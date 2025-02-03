@@ -20,6 +20,7 @@ package org.structr.web.function;
 
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
+import org.structr.core.graph.NodeInterface;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.User;
 import org.structr.web.servlet.EventSourceServlet;
@@ -56,13 +57,13 @@ public class SendEventFunction extends UiAdvancedFunction {
 			final String name             = sources[0].toString();
 			final String message          = sources[1].toString();
 
-			if (sources[2] instanceof User) {
+			if (sources[2] instanceof NodeInterface n && n.is("User")) {
 
-				return EventSourceServlet.sendEvent(name, message, (User)sources[1]);
+				return EventSourceServlet.sendEvent(name, message, n.as(User.class));
 
-			} else if (sources[2] instanceof Group) {
+			} else if (sources[2] instanceof NodeInterface n && n.is("Group")) {
 
-				return EventSourceServlet.sendEvent(name, message, (Group)sources[2]);
+				return EventSourceServlet.sendEvent(name, message, n.as(Group.class));
 
 			} else if (sources[2] instanceof Iterable) {
 
@@ -70,8 +71,10 @@ public class SendEventFunction extends UiAdvancedFunction {
 
 				for (Object obj : (Iterable)sources[2]) {
 
-					if (Principal.class.isAssignableFrom(obj.getClass())) {
-						targets.add((Principal)obj);
+					if (obj instanceof NodeInterface n && n.is("Principal")) {
+
+						targets.add(n.as(Principal.class));
+
 					} else {
 						logger.warn("{}: Ignoring non-principal {}", getName(), obj);
 					}

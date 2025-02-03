@@ -48,7 +48,7 @@ public class Ol extends GenericHtmlElementTraitDefinition {
 		return Map.of(
 			PropertyView.Html,
 			newSet(
-				"reversed", "start"
+				"_html_reversed", "_html_start"
 			)
 		);
 	}

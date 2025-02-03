@@ -18,7 +18,6 @@
  */
 package org.structr.web.function;
 
-import java.net.URI;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -30,14 +29,16 @@ import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
-import org.structr.storage.StorageProviderFactory;
+import org.structr.core.graph.NodeInterface;
 import org.structr.rest.common.HttpHelper;
 import org.structr.schema.action.ActionContext;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -93,13 +94,13 @@ public class HTTPPostMultiPartFunction extends HttpPostFunction {
 
 	private MultipartEntityBuilder addInputStreamToMultiPartBuilder(MultipartEntityBuilder builder, AbstractFile abstractFile, final String partKey) {
 
-		if (abstractFile instanceof File) {
+		if (abstractFile.is("File")) {
 
 			final File file = (File) abstractFile;
 			InputStreamBody inputStreamBody = new InputStreamBody(StorageProviderFactory.getStorageProvider(file).getInputStream(), ContentType.create(file.getContentType()), file.getName());
 			builder.addPart(partKey, inputStreamBody);
 
-		} else if (abstractFile instanceof Folder) {
+		} else if (abstractFile.is("folder")) {
 
 			final Folder folder = (Folder) abstractFile;
 			for (File folderFile : folder.getFiles()) {
@@ -118,9 +119,9 @@ public class HTTPPostMultiPartFunction extends HttpPostFunction {
 				builder = addPartToBuilder(builder, partKey, collectionPart);
 			}
 
-		} else if (partValue instanceof AbstractFile) {
+		} else if (partValue instanceof NodeInterface n) {
 
-			builder = this.addInputStreamToMultiPartBuilder(builder, (AbstractFile) partValue, partKey);
+			builder = this.addInputStreamToMultiPartBuilder(builder, n.as(AbstractFile.class), partKey);
 
 		} else if (partValue != null) {
 

@@ -26,6 +26,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
+import org.structr.core.graph.NodeInterface;
 import org.structr.schema.action.ActionContext;
 
 import java.util.HashSet;
@@ -53,11 +54,11 @@ public class IsInGroupFunction extends AdvancedScriptingFunction {
 
 			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 2, 3);
 
-			if (!(sources[0] instanceof Group)) {
+			if (!(sources[0] instanceof NodeInterface g && g.is("Group"))) {
 
 				logParameterError(caller, sources, "Expected node of type Group as first argument!", ctx.isJavaScriptContext());
 
-			} else if (!(sources[1] instanceof Principal)) {
+			} else if (!(sources[1] instanceof NodeInterface p && p.is("Principal"))) {
 
 				logParameterError(caller, sources, "Expected node of type Principal as second argument!", ctx.isJavaScriptContext());
 

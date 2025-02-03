@@ -49,7 +49,7 @@ public class Td extends GenericHtmlElementTraitDefinition {
 		return Map.of(
 			PropertyView.Html,
 			newSet(
-				"colspan", "rowspan", "headers"
+				"_html_colspan", "_html_rowspan", "_html_headers"
 			)
 		);
 	}

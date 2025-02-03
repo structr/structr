@@ -28,7 +28,6 @@ import org.structr.common.error.PasswordPolicyViolationException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
@@ -95,9 +94,7 @@ public class UpdateCommand extends AbstractCommand {
 			// If it's a node, check permissions
 			try (final Tx tx = app.tx()) {
 
-				if (obj instanceof AbstractNode) {
-
-					final AbstractNode node = (AbstractNode) obj;
+				if (obj instanceof NodeInterface node) {
 
 					if (!node.isGranted(Permission.write, getWebSocket().getSecurityContext())) {
 

@@ -42,10 +42,8 @@ import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 import org.structr.web.entity.LinkSource;
-import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.dom.Template;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -471,8 +469,8 @@ public class RenderContext extends ActionContext {
 					case "page":
 						hints.reportExistingKey(key);
 						Page page = getPage();
-						if (page == null && entity instanceof DOMNode) {
-							page = ((DOMNode) entity).getOwnerDocument();
+						if (page == null && entity.is("DOMNode")) {
+							page = entity.as(DOMNode.class).getOwnerDocument();
 						}
 						return page;
 
@@ -521,7 +519,7 @@ public class RenderContext extends ActionContext {
 	@Override
 	public void print(final Object[] objects, final Object caller) {
 
-		if ((caller instanceof Template) || (caller instanceof Content)) {
+		if (caller instanceof NodeInterface n && (n.is("Template") || n.is("Content"))) {
 
 			for (final Object obj : objects) {
 

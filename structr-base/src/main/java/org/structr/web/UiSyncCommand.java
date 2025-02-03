@@ -28,14 +28,9 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.*;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 import org.structr.rest.resource.MaintenanceResource;
-import org.structr.web.entity.File;
-import org.structr.web.entity.Folder;
 import org.structr.web.entity.dom.DOMNode;
-import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.dom.ShadowDocument;
 
 import java.util.*;
 
@@ -170,7 +165,7 @@ public class UiSyncCommand extends NodeServiceCommand implements MaintenanceComm
 		if (root.isNode()) {
 
 			final NodeInterface node = root.getSyncNode();
-			if (node instanceof File) {
+			if (node.is("File")) {
 
 				final String fileUuid = node.getUuid();
 				files.add(fileUuid);

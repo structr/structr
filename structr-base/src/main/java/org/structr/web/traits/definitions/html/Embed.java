@@ -72,7 +72,7 @@ public class Embed extends GenericHtmlElementTraitDefinition {
 		return Map.of(
 			PropertyView.Html,
 			newSet(
-				"src", "type", "width", "height"
+				"_html_src", "_html_type", "_html_width", "_html_height"
 			)
 		);
 	}

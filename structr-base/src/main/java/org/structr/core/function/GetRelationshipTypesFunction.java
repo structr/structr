@@ -22,8 +22,7 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
@@ -60,11 +59,11 @@ public class GetRelationshipTypesFunction extends AdvancedScriptingFunction {
 			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 3);
 
 			final Object param1 = sources[0];
-			AbstractNode node = null;
+			NodeInterface node = null;
 
-			if (param1 instanceof AbstractNode) {
+			if (param1 instanceof NodeInterface) {
 
-				node = (AbstractNode)param1;
+				node = (NodeInterface)param1;
 
 			} else {
 

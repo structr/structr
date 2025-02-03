@@ -26,12 +26,9 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-import org.structr.storage.StorageProviderFactory;
 import org.structr.schema.action.ActionContext;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.File;
-import org.structr.web.entity.css.CssDeclaration;
-import org.structr.web.entity.css.CssRule;
-import org.structr.web.entity.css.CssSelector;
 import org.w3c.css.sac.InputSource;
 import org.w3c.dom.css.CSSRule;
 import org.w3c.dom.css.CSSRuleList;
@@ -61,9 +58,9 @@ public class ImportCssFunction extends UiAdvancedFunction {
 
 		assertArrayHasMinLengthAndAllElementsNotNull(sources, 1);
 
-		if (sources[0] instanceof File) {
+		if (sources[0] instanceof NodeInterface n && n.is("File")) {
 
-			final File file = (File) sources[0];
+			final File file = n.as(File.class);
 
 			if (StorageProviderFactory.getStorageProvider(file).size() == 0) {
 				return "";

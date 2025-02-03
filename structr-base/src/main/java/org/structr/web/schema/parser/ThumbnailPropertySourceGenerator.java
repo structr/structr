@@ -20,13 +20,13 @@ package org.structr.web.schema.parser;
 
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.property.Property;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaHelper.Type;
 import org.structr.schema.parser.PropertyDefinition;
 import org.structr.schema.parser.PropertyGenerator;
 import org.structr.web.entity.Image;
+import org.structr.web.property.ThumbnailProperty;
 
 /**
  *
@@ -55,7 +55,7 @@ public class ThumbnailPropertySourceGenerator extends PropertyGenerator {
 
 	@Override
 	protected Property newInstance() throws FrameworkException {
-		return null;
+		return new ThumbnailProperty(source.getPropertyName()).format(source.getFormat());
 	}
 
 	@Override

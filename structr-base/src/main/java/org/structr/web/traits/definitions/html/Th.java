@@ -51,7 +51,7 @@ public class Th extends GenericHtmlElementTraitDefinition {
 		return Map.of(
 			PropertyView.Html,
 			newSet(
-				"colspan", "rowspan", "headers", "scope", "abbr"
+				"_html_colspan", "_html_rowspan", "_html_headers", "_html_scope", "_html_abbr"
 			)
 		);
 	}

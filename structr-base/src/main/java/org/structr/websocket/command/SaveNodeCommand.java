@@ -82,9 +82,9 @@ public class SaveNodeCommand extends AbstractCommand {
 
 				DOMNode targetNode = modifiedNode;
 
-				if (!(sourceNode instanceof Page)) {
+				if (!(sourceNode.is("Page"))) {
 
-					targetNode = (DOMNode) modifiedNode.getFirstChild().getNextSibling().getFirstChild().getNextSibling().getFirstChild();
+					targetNode = modifiedNode.getFirstChild().getNextSibling().getFirstChild().getNextSibling().getFirstChild();
 
 				}
 

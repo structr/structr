@@ -20,15 +20,12 @@ package org.structr.websocket.command;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.core.GraphObject;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipFactory;
-import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.websocket.StructrWebSocket;
@@ -83,7 +80,7 @@ public class ChildrenCommand extends AbstractCommand {
 				result.add(p.getWrappedNode());
 			}
 
-		} else  if (node instanceof Content content) {
+		} else  if (node.is("Content")) {
 
 			// Content has no children
 

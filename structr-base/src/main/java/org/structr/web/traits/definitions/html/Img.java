@@ -88,7 +88,7 @@ public class Img extends GenericHtmlElementTraitDefinition {
 		return Map.of(
 			PropertyView.Html,
 			newSet(
-				"alt", "src", "crossorigin", "usemap", "ismap", "width", "height"
+				"_html_alt", "_html_src", "_html_crossorigin", "_html_usemap", "_html_ismap", "_html_width", "_html_height"
 			)
 		);
 	}

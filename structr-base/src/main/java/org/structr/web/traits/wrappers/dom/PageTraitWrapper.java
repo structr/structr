@@ -230,9 +230,9 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 			@Override
 			public boolean accept(final DOMNode obj) {
 
-				if (obj instanceof DOMElement) {
+				if (obj.is("DOMElement")) {
 
-					DOMElement elem = (DOMElement) obj;
+					DOMElement elem = obj.as(DOMElement.class);
 
 					if (tagName.equals(elem.getTag())) {
 						return true;
@@ -253,89 +253,75 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 
 	public DOMNode importNode(final DOMNode node, final boolean deep, final boolean removeParentFromSourceNode) throws FrameworkException {
 
-		if (node instanceof DOMNode) {
+		final DOMNode domNode = node;
 
-			final DOMNode domNode = node;
+		// step 1: use type-specific import impl.
+		DOMNode importedNode = domNode.doImport(this);
 
-			// step 1: use type-specific import impl.
-			DOMNode importedNode = domNode.doImport(this);
+		// step 2: do recursive import?
+		if (deep && domNode.hasChildNodes()) {
 
-			// step 2: do recursive import?
-			if (deep && domNode.hasChildNodes()) {
+			// FIXME: is it really a good idea to do the
+			// recursion inside of a transaction?
+			DOMNode child = domNode.getFirstChild();
 
-				// FIXME: is it really a good idea to do the
-				// recursion inside of a transaction?
-				DOMNode child = domNode.getFirstChild();
+			while (child != null) {
 
-				while (child != null) {
+				// do not remove parent for child nodes
+				importNode(child, deep, false);
+				child = child.getNextSibling();
 
-					// do not remove parent for child nodes
-					importNode(child, deep, false);
-					child = child.getNextSibling();
-
-					final Logger logger = LoggerFactory.getLogger(Page.class);
-					logger.info("sibling is {}", child);
-				}
-
+				final Logger logger = LoggerFactory.getLogger(Page.class);
+				logger.info("sibling is {}", child);
 			}
-
-			// step 3: remove node from its current parent
-			// (Note that this step needs to be done last in
-			// (order for the child to be able to find its
-			// siblings.)
-			if (removeParentFromSourceNode) {
-
-				// only do this for the actual source node, do not remove
-				// child nodes from its parents
-				DOMNode _parent = domNode.getParent();
-				if (_parent != null) {
-					_parent.removeChild(domNode);
-				}
-			}
-
-			return importedNode;
 
 		}
 
-		return null;
+		// step 3: remove node from its current parent
+		// (Note that this step needs to be done last in
+		// (order for the child to be able to find its
+		// siblings.)
+		if (removeParentFromSourceNode) {
+
+			// only do this for the actual source node, do not remove
+			// child nodes from its parents
+			DOMNode _parent = domNode.getParent();
+			if (_parent != null) {
+				_parent.removeChild(domNode);
+			}
+		}
+
+		return importedNode;
 	}
 
-	public DOMNode adoptNode(final DOMNode node, final boolean removeParentFromSourceNode) throws FrameworkException {
+	public DOMNode adoptNode(final DOMNode domNode, final boolean removeParentFromSourceNode) throws FrameworkException {
 
-		if (node instanceof DOMNode) {
+		if (domNode.hasChildNodes()) {
 
-			final DOMNode domNode = (DOMNode) node;
+			DOMNode child = domNode.getFirstChild();
+			while (child != null) {
 
-			if (domNode.hasChildNodes()) {
-
-				DOMNode child = domNode.getFirstChild();
-				while (child != null) {
-
-					// do not remove parent for child nodes
-					adoptNode(child, false);
-					child = child.getNextSibling();
-				}
-
+				// do not remove parent for child nodes
+				adoptNode(child, false);
+				child = child.getNextSibling();
 			}
-
-			// (Note that this step needs to be done last in
-			// (order for the child to be able to find its
-			// siblings.)
-			if (removeParentFromSourceNode) {
-
-				// only do this for the actual source node, do not remove
-				// child nodes from its parents
-				DOMNode _parent = domNode.getParent();
-				if (_parent != null) {
-					_parent.removeChild(domNode);
-				}
-			}
-
-			return domNode.doAdopt(this);
 
 		}
 
-		return null;
+		// (Note that this step needs to be done last in
+		// (order for the child to be able to find its
+		// siblings.)
+		if (removeParentFromSourceNode) {
+
+			// only do this for the actual source node, do not remove
+			// child nodes from its parents
+			DOMNode _parent = domNode.getParent();
+			if (_parent != null) {
+				_parent.removeChild(domNode);
+			}
+		}
+
+		return domNode.doAdopt(this);
 	}
 
 	@Override
@@ -348,9 +334,9 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 			@Override
 			public boolean accept(DOMNode obj) {
 
-				if (obj instanceof DOMElement) {
+				if (obj.is("DOMElement")) {
 
-					final DOMElement elem = (DOMElement) obj;
+					final DOMElement elem = obj.as(DOMElement.class);
 
 					if (id.equals(elem.getHtmlId())) {
 						return true;

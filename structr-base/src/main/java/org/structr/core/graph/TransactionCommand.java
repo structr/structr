@@ -35,7 +35,6 @@ import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.StructrTransactionListener;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.scheduler.TransactionPostProcessQueue;
@@ -299,7 +298,7 @@ public class TransactionCommand {
 		}
 	}
 
-	public static void nodeModified(final Principal user, final AbstractNode node, final PropertyKey key, final Object previousValue, final Object newValue) {
+	public static void nodeModified(final Principal user, final NodeInterface node, final PropertyKey key, final Object previousValue, final Object newValue) {
 
 		TransactionCommand command = commands.get();
 		if (command != null) {

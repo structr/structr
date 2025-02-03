@@ -71,7 +71,7 @@ public class Source extends GenericHtmlElementTraitDefinition {
 		return Map.of(
 			PropertyView.Html,
 			newSet(
-				"src", "type", "media"
+				"_html_src", "_html_type", "_html_media"
 			)
 		);
 	}

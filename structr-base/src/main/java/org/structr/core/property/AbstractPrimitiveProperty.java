@@ -29,8 +29,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.CreationContainer;
@@ -167,13 +165,13 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 			// notify only non-system properties
 
 			// collect modified properties
-			if (obj instanceof AbstractNode) {
+			if (obj instanceof NodeInterface) {
 
 				if (!unvalidated) {
 
 					TransactionCommand.nodeModified(
 						securityContext.getCachedUser(),
-						(AbstractNode)obj,
+						(NodeInterface)obj,
 						AbstractPrimitiveProperty.this,
 						propertyContainer.hasProperty(dbName()) ? propertyContainer.getProperty(dbName()) : null,
 						value
@@ -188,7 +186,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 
 					TransactionCommand.relationshipModified(
 						securityContext.getCachedUser(),
-						(AbstractRelationship)obj,
+						(RelationshipInterface)obj,
 						AbstractPrimitiveProperty.this,
 						propertyContainer.hasProperty(dbName()) ? propertyContainer.getProperty(dbName()) : null,
 						value

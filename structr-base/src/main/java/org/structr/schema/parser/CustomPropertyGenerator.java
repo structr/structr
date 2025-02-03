@@ -34,10 +34,8 @@ public class CustomPropertyGenerator extends PropertyGenerator {
 
 	private static final Logger logger = LoggerFactory.getLogger(CustomPropertyGenerator.class);
 
-	private String propertyType         = null;
-	private String valueType            = null;
-	private String unqualifiedValueType = null;
-	private String propertyParameters   = null;
+	private String valueType  = null;
+	private Property property = null;
 
 	public CustomPropertyGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
 		super(errorBuffer, className, params);
@@ -58,12 +56,10 @@ public class CustomPropertyGenerator extends PropertyGenerator {
 						final Constructor<Property> constr = type.getConstructor(String.class);
 						if (constr != null) {
 
-							final Property property = constr.newInstance(params.getPropertyName());
+							property = constr.newInstance(params.getPropertyName());
 							if (property != null) {
 
-								this.propertyType         = type.getSimpleName();
-								this.valueType            = property.valueType().getName();
-								this.unqualifiedValueType = type.getSimpleName();
+								this.valueType = property.valueType().getName();
 
 								initialized = true;
 							}
@@ -78,13 +74,10 @@ public class CustomPropertyGenerator extends PropertyGenerator {
 							final Constructor<Property> specialConstructor = type.getConstructor(String.class, String.class);
 							if (specialConstructor != null) {
 
-								final Property property = specialConstructor.newInstance(params.getPropertyName(), params.getFormat());
+								property = specialConstructor.newInstance(params.getPropertyName(), params.getFormat());
 								if (property != null) {
 
-									this.propertyType         = type.getSimpleName();
-									this.valueType            = property.valueType().getName();
-									this.unqualifiedValueType = type.getSimpleName();
-									this.propertyParameters   = ", " + params.getFormat() + ".class";
+									this.valueType = property.valueType().getName();
 								}
 							}
 
@@ -111,7 +104,7 @@ public class CustomPropertyGenerator extends PropertyGenerator {
 
 	@Override
 	protected Property newInstance() throws FrameworkException {
-		return null;
+		return property;
 	}
 
 	@Override

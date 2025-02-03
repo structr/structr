@@ -60,7 +60,7 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 		}
 
 		final FolderAndFile obj = handle(rootFolderUUID, root, path, true);
-		if (obj != null && obj.file != null && obj.file instanceof File) {
+		if (obj != null && obj.file != null && obj.file.is("File")) {
 
 			final File fileNode       = (File)obj.file;
 			final java.io.File fileOnDisk = path.toFile();

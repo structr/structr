@@ -30,10 +30,8 @@ import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
 
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 public class FolderTraitWrapper extends AbstractFileTraitWrapper implements Folder {
 
@@ -73,19 +71,19 @@ public class FolderTraitWrapper extends AbstractFileTraitWrapper implements Fold
 	@Override
 	public Iterable<File> getFiles() {
 		// fixme: this wont work with the new implementation!
-		return Iterables.map(s -> (File)s, Iterables.filter((AbstractFile value) -> value instanceof File, getChildren()));
+		return Iterables.map(s -> (File)s, Iterables.filter((AbstractFile value) -> value.is("File"), getChildren()));
 	}
 
 	@Override
 	public Iterable<Folder> getFolders() {
 		// fixme: this wont work with the new implementation!
-		return Iterables.map(s -> (Folder)s, Iterables.filter((AbstractFile value) -> value instanceof Folder, getChildren()));
+		return Iterables.map(s -> (Folder)s, Iterables.filter((AbstractFile value) -> value.is("folder"), getChildren()));
 	}
 
 	@Override
 	public Iterable<Image> getImages() {
 		// fixme: this wont work with the new implementation!
-		return Iterables.map(s -> (Image)s, Iterables.filter((AbstractFile value) -> value instanceof Image, getChildren()));
+		return Iterables.map(s -> (Image)s, Iterables.filter((AbstractFile value) -> value.is("Image"), getChildren()));
 	}
 
 	@Override

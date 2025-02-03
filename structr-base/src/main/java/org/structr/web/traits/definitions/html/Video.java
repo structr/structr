@@ -67,8 +67,8 @@ public class Video extends GenericHtmlElementTraitDefinition {
 		return Map.of(
 			PropertyView.Html,
 			newSet(
-				"src", "crossorigin", "poster", "preload", "autoplay",
-				"playsinline", "loop", "muted", "controls", "width", "height"
+				"_html_src", "_html_crossorigin", "_html_poster", "_html_preload", "_html_autoplay",
+				"_html_playsinline", "_html_loop", "_html_muted", "_html_controls", "_html_width", "_html_height"
 			)
 		);
 	}

@@ -74,7 +74,7 @@ public class Link extends GenericHtmlElementTraitDefinition {
 		return Map.of(
 			PropertyView.Html,
 			newSet(
-				"href", "rel", "media", "hreflang", "type", "sizes"
+				"_html_href", "_html_rel", "_html_media", "_html_hreflang", "_html_type", "_html_sizes"
 			)
 		);
 	}

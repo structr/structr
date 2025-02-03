@@ -130,7 +130,7 @@ public class Style extends GenericHtmlElementTraitDefinition {
 		return Map.of(
 			PropertyView.Html,
 			newSet(
-				"media", "type", "scoped"
+				"_html_media", "_html_type", "_html_scoped"
 			)
 		);
 	}

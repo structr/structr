@@ -53,7 +53,7 @@ public class Option extends GenericHtmlElementTraitDefinition {
 		return Map.of(
 			PropertyView.Html,
 			newSet(
-				"value", "disabled", "selected", "label", "selectedValues"
+				"_html_value", "_html_disabled", "_html_selected", "_html_label", "_html_selectedValues"
 			)
 		);
 	}

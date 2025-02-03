@@ -53,7 +53,7 @@ public class XPathTest extends StructrUiTest {
 			Page page = Page.createNewPage(securityContext, pageName);
 
 			assertTrue(page != null);
-			assertTrue(page instanceof Page);
+			assertTrue(page.is("Page"));
 
 			DOMElement html   = page.createElement("html");
 			DOMElement head   = page.createElement("head");
@@ -121,7 +121,7 @@ public class XPathTest extends StructrUiTest {
 			Page page = Page.createNewPage(securityContext, pageName);
 
 			assertTrue(page != null);
-			assertTrue(page instanceof Page);
+			assertTrue(page.is("Page"));
 
 			DOMElement html   = page.createElement("html");
 			DOMElement head   = page.createElement("head");

@@ -48,7 +48,7 @@ public class Label extends GenericHtmlElementTraitDefinition {
 		return Map.of(
 			PropertyView.Html,
 			newSet(
-				"form", "for"
+				"_html_form", "_html_for"
 			)
 		);
 	}

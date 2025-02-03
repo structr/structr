@@ -81,8 +81,8 @@ public class Textarea extends GenericHtmlElementTraitDefinition {
 		return Map.of(
 			PropertyView.Html,
 			newSet(
-				"name", "disabled", "form", "readonly", "maxlength", "autofocus",
-				"required", "placeholder", "dirname", "rows", "wrap", "cols"
+				"_html_name", "_html_disabled", "_html_form", "_html_readonly", "_html_maxlength", "_html_autofocus",
+				"_html_required", "_html_placeholder", "_html_dirname", "_html_rows", "_html_wrap", "_html_cols"
 			)
 		);
 	}

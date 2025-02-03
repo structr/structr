@@ -37,7 +37,6 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
-import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -331,7 +330,7 @@ public class WebsocketController implements StructrTransactionListener {
 						message.setCommand("APPEND_MEMBER");
 						message.setNodeData("refId", startNode.getUuid());
 
-					} else if (endNode instanceof AbstractFile) {
+					} else if (endNode.is("AbstractFile")) {
 
 						message.setCommand("APPEND_FILE");
 						message.setNodeData("refId", startNode.getUuid());

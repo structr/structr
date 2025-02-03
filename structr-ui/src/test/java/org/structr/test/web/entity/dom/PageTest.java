@@ -58,7 +58,7 @@ public class PageTest extends StructrUiTest {
 				Page page = Page.createNewPage(securityContext, pageName);
 
 				assertTrue(page != null);
-				assertTrue(page instanceof Page);
+				assertTrue(page.is("Page"));
 
 				DOMNode html  = page.createElement("html");
 				DOMNode head  = page.createElement("head");
@@ -303,7 +303,7 @@ public class PageTest extends StructrUiTest {
 				Page page = Page.createNewPage(securityContext, "srcPage");
 
 				assertTrue(page != null);
-				assertTrue(page instanceof Page);
+				assertTrue(page.is("Page"));
 				DOMElement html = page.createElement("html");
 				DOMElement head = page.createElement("head");
 				DOMElement body = page.createElement("body");

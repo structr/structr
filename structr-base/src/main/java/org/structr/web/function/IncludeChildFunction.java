@@ -77,9 +77,9 @@ public class IncludeChildFunction extends IncludeFunction {
 			DOMNode node = null;
 
 			// Are we are in a Template node?
-			if (caller instanceof Template) {
+			if (caller instanceof NodeInterface n && n.is("Template")) {
 
-				final Template templateNode = (Template) caller;
+				final Template templateNode = n.as(Template.class);
 
 				// Retrieve direct children and other nodes
 

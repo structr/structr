@@ -47,7 +47,7 @@ public class Slot extends GenericHtmlElementTraitDefinition {
 		return Map.of(
 			PropertyView.Html,
 			newSet(
-				"name"
+				"_html_name"
 			)
 		);
 	}

@@ -69,7 +69,7 @@ public class Param extends GenericHtmlElementTraitDefinition {
 		return Map.of(
 			PropertyView.Html,
 			newSet(
-				"value"
+				"_html_value"
 			)
 		);
 	}

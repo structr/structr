@@ -24,7 +24,6 @@ import org.structr.common.Permissions;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.NodeInterface;
@@ -63,7 +62,7 @@ public class GrantFunction extends AdvancedScriptingFunction {
 
 				logParameterError(caller, sources, "Expected node of type Principal as first argument - unable to grant rights for the SuperUser!", ctx.isJavaScriptContext());
 
-			} else if (!(sources[1] instanceof AbstractNode)) {
+			} else if (!(sources[1] instanceof NodeInterface)) {
 
 				logParameterError(caller, sources, "Expected node as second argument!", ctx.isJavaScriptContext());
 

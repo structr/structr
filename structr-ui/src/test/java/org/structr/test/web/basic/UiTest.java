@@ -77,7 +77,7 @@ public class UiTest extends StructrUiTest {
 			img.setProperties(img.getSecurityContext(), new PropertyMap(Traits.of("NodeInterface").key("name"), "test-image.png"));
 
 			assertNotNull(img);
-			assertTrue(img instanceof Image);
+			assertTrue(img.is("Image"));
 
 			Image tn = img.getProperty(Traits.of(imageType).key("thumbnail"));
 
@@ -133,7 +133,7 @@ public class UiTest extends StructrUiTest {
 			testImage.setProperties(testImage.getSecurityContext(), new PropertyMap(Traits.of("Image").key("name"), initialImageName));
 
 			assertNotNull(testImage);
-			assertTrue(testImage instanceof Image);
+			assertTrue(testImage.is("Image"));
 
 			// Retrieve tn properties to force their generation
 			final Image tnSmall = testImage.getProperty(Traits.of("Image").key("tnSmall"));
@@ -219,7 +219,7 @@ public class UiTest extends StructrUiTest {
 			subclassTestImage.setProperties(subclassTestImage.getSecurityContext(), new PropertyMap(Traits.of("Image").key("name"), initialImageName));
 
 			assertNotNull(subclassTestImage);
-			assertTrue(subclassTestImage instanceof Image);
+			assertTrue(subclassTestImage.is("Image"));
 
 			final Image tnSmall  = subclassTestImage.getProperty(Traits.of(testImageType).key("tnSmall"));
 			final Image tnMid    = subclassTestImage.getProperty(Traits.of(testImageType).key("tnMid"));
@@ -472,8 +472,8 @@ public class UiTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			file = app.create("File",
-				new NodeAttribute<>(Traits.of("AbstractNode").key("name"),      "test.txt"),
-				new NodeAttribute<>(Traits.of("File").key(        "base64Data"), base64Data)
+				new NodeAttribute<>(Traits.of("File").key("name"),      "test.txt"),
+				new NodeAttribute<>(Traits.of("File").key("base64Data"), base64Data)
 			).as(File.class);
 
 			tx.success();

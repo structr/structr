@@ -26,6 +26,7 @@ import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
@@ -59,10 +60,10 @@ public class CreateRelationshipFunction extends CoreFunction {
 			final Object target = sources[1];
 			final String relType = (String)sources[2];
 
-			AbstractNode sourceNode = null;
-			AbstractNode targetNode = null;
+			NodeInterface sourceNode = null;
+			NodeInterface targetNode = null;
 
-			if (source instanceof AbstractNode && target instanceof AbstractNode) {
+			if (source instanceof NodeInterface && target instanceof NodeInterface) {
 
 				sourceNode = (AbstractNode)source;
 				targetNode = (AbstractNode)target;

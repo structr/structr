@@ -69,7 +69,7 @@ public class Base extends GenericHtmlElementTraitDefinition {
 
 		return Map.of(
 			PropertyView.Html,
-			newSet("href", "target")
+			newSet("_html_href", "_html_target")
 		);
 	}
 }

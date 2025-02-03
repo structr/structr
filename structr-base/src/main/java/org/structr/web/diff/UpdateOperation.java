@@ -20,7 +20,7 @@ package org.structr.web.diff;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
-import org.structr.web.entity.dom.Content;
+import org.structr.core.graph.NodeInterface;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
@@ -47,11 +47,11 @@ public class UpdateOperation extends InvertibleModificationOperation {
 	@Override
 	public String toString() {
 
-		if (existingNode instanceof Content) {
+		if (existingNode instanceof NodeInterface n && n.is("Content")) {
 
 			return "Update Content(" + existingNode.getIdHashOrProperty() + ") with " + newNode.getIdHashOrProperty();
 
-		} else if (existingNode instanceof DOMElement) {
+		} else if (existingNode instanceof NodeInterface n && n.is("DOMElement")) {
 
 			return "Update " + ((DOMElement)newNode).getTag() + "(" + existingNode.getIdHashOrProperty() + ") with " + newNode.getIdHashOrProperty();
 		}

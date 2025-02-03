@@ -20,13 +20,13 @@ package org.structr.web.function;
 
 import org.apache.commons.io.IOUtils;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.Traits;
-import org.structr.storage.StorageProviderFactory;
 import org.structr.schema.action.ActionContext;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 
@@ -59,10 +59,10 @@ public class CopyFileContentsFunction extends UiAdvancedFunction {
 			final Object toCopy       = sources[0];
 			final Object toBeReplaced = sources[1];
 
-			if (toCopy instanceof File && toBeReplaced instanceof File) {
+			if (toCopy instanceof NodeInterface source && toBeReplaced instanceof NodeInterface target && source.is("File") && target.is("File")) {
 
-				File nodeToCopy = (File) toCopy;
-				File nodeToBeReplaced = (File) toBeReplaced;
+				File nodeToCopy       = source.as(File.class);
+				File nodeToBeReplaced = target.as(File.class);
 
 				try (final InputStream is = StorageProviderFactory.getStorageProvider(nodeToCopy).getInputStream(); final OutputStream os = StorageProviderFactory.getStorageProvider(nodeToBeReplaced).getOutputStream()) {
 

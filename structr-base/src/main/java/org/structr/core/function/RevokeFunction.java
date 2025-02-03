@@ -24,7 +24,6 @@ import org.structr.common.Permissions;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.NodeInterface;
@@ -55,7 +54,7 @@ public class RevokeFunction extends AdvancedScriptingFunction {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 3);
 
-			if (!(sources[0] instanceof Principal)) {
+			if (!(sources[0] instanceof NodeInterface n && n.is("Principal"))) {
 
 				logParameterError(caller, sources, "Expected node of type Principal as first argument!", ctx.isJavaScriptContext());
 
@@ -63,7 +62,7 @@ public class RevokeFunction extends AdvancedScriptingFunction {
 
 				logParameterError(caller, sources, "Expected node of type Principal as first argument - unable to revoke rights for the SuperUser!", ctx.isJavaScriptContext());
 
-			} else if (!(sources[1] instanceof AbstractNode)) {
+			} else if (!(sources[1] instanceof NodeInterface)) {
 
 				logParameterError(caller, sources, "Expected node as second argument!", ctx.isJavaScriptContext());
 
@@ -73,7 +72,7 @@ public class RevokeFunction extends AdvancedScriptingFunction {
 
 			} else {
 
-				final Principal principal         = (Principal)sources[0];
+				final NodeInterface principal     = (NodeInterface)sources[0];
 				final NodeInterface node          = (NodeInterface)sources[1];
 				final Set<Permission> permissions = new HashSet();
 				final String[] parts              = ((String)sources[2]).split("[,]+");
@@ -97,7 +96,7 @@ public class RevokeFunction extends AdvancedScriptingFunction {
 				}
 
 				if (permissions.size() > 0) {
-					node.as(AccessControllable.class).revoke(permissions, principal, ctx.getSecurityContext());
+					node.as(AccessControllable.class).revoke(permissions, principal.as(Principal.class), ctx.getSecurityContext());
 				}
 			}
 

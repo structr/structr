@@ -148,7 +148,7 @@ public class DOMAndPageTest extends StructrUiTest {
 		}
 
 		assertTrue(page != null);
-		assertTrue(page instanceof Page);
+		assertTrue(page.is("Page"));
 
 		try (final Tx tx = app.tx()) {
 
@@ -663,7 +663,7 @@ public class DOMAndPageTest extends StructrUiTest {
 		}
 
 		assertTrue(page != null);
-		assertTrue(page instanceof Page);
+		assertTrue(page.is("Page"));
 
 		try (final Tx tx = app.tx()) {
 
@@ -769,7 +769,7 @@ public class DOMAndPageTest extends StructrUiTest {
 			Page page = Page.createNewPage(securityContext, pageName);
 
 			assertTrue(page != null);
-			assertTrue(page instanceof Page);
+			assertTrue(page.is("Page"));
 
 			DOMElement html   = page.createElement("html");
 			DOMElement head   = page.createElement("head");

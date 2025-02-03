@@ -22,9 +22,10 @@ import net.lingala.zip4j.ZipFile;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.core.graph.NodeInterface;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.FileHelper;
-import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 
@@ -50,7 +51,7 @@ public class CreateZipFunction extends UiAdvancedFunction {
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
-		if (sources == null || sources.length < 1 || sources[0] == null || sources[1] == null || !(sources[1] instanceof File || sources[1] instanceof Folder || sources[1] instanceof Collection)) {
+		if (sources == null || sources.length < 1 || sources[0] == null || sources[1] == null || !(sources[1] instanceof NodeInterface || sources[1] instanceof Collection)) {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
@@ -104,21 +105,21 @@ public class CreateZipFunction extends UiAdvancedFunction {
 
 			zipFile.setCharset(Charset.forName("UTF-8"));
 
-			if (sources[1] instanceof File) {
+			if (sources[1] instanceof NodeInterface n && n.is("File")) {
 
-				File file = (File) sources[1];
+				File file = n.as(File.class);
 				addFileToZipArchive(file.getName(), file, zipFile, params);
 
-			} else if (sources[1] instanceof Folder) {
+			} else if (sources[1] instanceof NodeInterface n && n.is("Folder")) {
 
-				Folder folder = (Folder) sources[1];
+				Folder folder = n.as(Folder.class);
 
 				addFilesToArchive(folder.getName() + "/", folder.getFiles(), zipFile, params);
 				addFoldersToArchive(folder.getName() + "/", folder.getFolders(), zipFile, params);
 
 			} else if (sources[1] instanceof Collection) {
 
-				final Collection filesOrFolders = (Collection) sources[1];
+				final Collection<GraphObject> filesOrFolders = (Collection) sources[1];
 
 				if (filesOrFolders.isEmpty()) {
 
@@ -128,16 +129,18 @@ public class CreateZipFunction extends UiAdvancedFunction {
 
 				} else {
 
-					for (Object fileOrFolder : filesOrFolders) {
+					for (GraphObject fileOrFolder : filesOrFolders) {
 
-						if (fileOrFolder instanceof File) {
+						if (fileOrFolder.is("File")) {
 
-							File file = (File) fileOrFolder;
+							final File file = fileOrFolder.as(File.class);
+
 							addFileToZipArchive(file.getName(), file, zipFile, params);
 
-						} else if (fileOrFolder instanceof Folder) {
+						} else if (fileOrFolder.is("folder")) {
 
-							Folder folder = (Folder) fileOrFolder;
+							final Folder folder = fileOrFolder.as(Folder.class);
+
 							addFilesToArchive(folder.getName() + "/", folder.getFiles(), zipFile, params);
 							addFoldersToArchive(folder.getName() + "/", folder.getFolders(), zipFile, params);
 

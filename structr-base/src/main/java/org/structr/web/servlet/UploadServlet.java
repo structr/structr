@@ -41,6 +41,7 @@ import org.structr.common.AccessMode;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.helper.PathHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.IJsonInput;
 import org.structr.core.JsonInput;
@@ -49,7 +50,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.exception.AuthenticationException;
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.rest.JsonInputGSONAdapter;
@@ -60,7 +61,6 @@ import org.structr.rest.servlet.AbstractServletBase;
 import org.structr.schema.SchemaHelper;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.FileHelper;
-import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 
@@ -70,7 +70,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import org.structr.common.helper.PathHelper;
 
 /**
  * Simple upload servlet.
@@ -506,10 +505,10 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 						response.getOutputStream().write("ERROR (404): File not found.\n".getBytes("UTF-8"));
 					}
 
-					if (node instanceof org.structr.web.entity.File) {
+					if (node instanceof NodeInterface n && n.is("File")) {
 
-						final File file = (File) node;
-						if (file.getWrappedNode().isGranted(Permission.write, securityContext)) {
+						final File file = n.as(File.class);
+						if (n.isGranted(Permission.write, securityContext)) {
 
 							try (final InputStream is = p.getInputStream()) {
 

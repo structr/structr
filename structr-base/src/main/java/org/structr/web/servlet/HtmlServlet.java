@@ -421,15 +421,15 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 						case Authenticated:
 
 							final Linkable result = authResult.getRootElement();
-							if (result instanceof Page) {
+							if (result.is("Page")) {
 
-								rootElement = (DOMNode)result;
+								rootElement = result.as(DOMElement.class);
 								securityContext = authResult.getSecurityContext();
 								renderContext.pushSecurityContext(securityContext);
 
-							} else if (result instanceof File) {
+							} else if (result.is("File")) {
 
-								streamFile(authResult.getSecurityContext(), (File)result, request, response, EditMode.NONE, true);
+								streamFile(authResult.getSecurityContext(), result.as(File.class), request, response, EditMode.NONE, true);
 								tx.success();
 								return;
 
@@ -705,16 +705,16 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 					}
 
-					if (dataNode != null && !(dataNode instanceof Linkable)) {
+					if (dataNode != null && !(dataNode.is("Linkable"))) {
 
 						rootElement = findPage(securityContext, StringUtils.substringBeforeLast(path, PathHelper.PATH_SEP), edit);
 
 						renderContext.setDetailsDataObject(dataNode);
 
 						// Start rendering on data node
-						if (rootElement == null && dataNode instanceof DOMNode) {
+						if (rootElement == null && dataNode.is("DOMNode")) {
 
-							rootElement = ((DOMNode) dataNode);
+							rootElement = dataNode.as(DOMNode.class);
 
 						}
 
@@ -737,7 +737,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 								rootElement = (DOMNode)result;
 								renderContext.pushSecurityContext(authResult.getSecurityContext());
 
-							} else if (result instanceof File) {
+							} else if (result.is("File")) {
 
 								//streamFile(authResult.getSecurityContext(), (File)result, request, response, EditMode.NONE);
 								tx.success();
@@ -1126,7 +1126,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			// prefetch file data
 			FileHelper.prefetchFileData(node.getUuid());
 
-			if (node instanceof File && (path.equals(node.getPath()) || node.getUuid().equals(PathHelper.getName(path)))) {
+			if (node.is("File") && (path.equals(node.getPath()) || node.getUuid().equals(PathHelper.getName(path)))) {
 				return (File) node;
 			}
 		}
@@ -1205,9 +1205,9 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 			final NodeInterface possiblePage = StructrApp.getInstance(securityContext).getNodeById("NodeInterface", name);
 
-			if (possiblePage != null && possiblePage instanceof Page && (EditMode.CONTENT.equals(edit) || isVisibleForSite(securityContext.getRequest(), (Page) possiblePage))) {
+			if (possiblePage != null && possiblePage.is("Page") && (EditMode.CONTENT.equals(edit) || isVisibleForSite(securityContext.getRequest(), possiblePage.as(Page.class)))) {
 
-				return (Page) possiblePage;
+				return possiblePage.as(Page.class);
 			}
 		}
 
@@ -1500,7 +1500,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 		response.setHeader("Date", httpDateFormat.format(new Date()));
 
-		final Integer seconds = node instanceof Page ? ((Page)node).getCacheForSeconds() : (node instanceof File ? ((File)node).getCacheForSeconds() : null);
+		final Integer seconds = node.is("Page") ? node.as(Page.class).getCacheForSeconds() : (node.is("File") ? node.as(File.class).getCacheForSeconds() : null);
 		final Calendar cal    = new GregorianCalendar();
 
 		if (!dontCache && seconds != null) {

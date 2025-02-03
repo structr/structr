@@ -264,9 +264,9 @@ public class DOMElementTraitWrapper extends DOMNodeTraitWrapper implements DOMEl
 		@Override
 		public boolean accept(final DOMNode obj) {
 
-			if (obj instanceof DOMElement) {
+			if (obj.is("DOMElement")) {
 
-				DOMElement elem = (DOMElement)obj;
+				DOMElement elem = obj.as(DOMElement.class);
 
 				if (tagName.equals(elem.getTag())) {
 					return true;

@@ -25,7 +25,6 @@ import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NativeQueryCommand;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.script.Scripting;
@@ -66,7 +65,7 @@ public class CypherQueryProperty extends AbstractReadOnlyProperty<Iterable<Graph
 	@Override
 	public Iterable<GraphObject> getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
 
-		if (obj instanceof AbstractNode) {
+		if (obj instanceof NodeInterface) {
 
 			try {
 

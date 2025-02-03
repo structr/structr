@@ -24,7 +24,6 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.ShadowDocument;
-import org.structr.web.entity.dom.Template;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -81,10 +80,10 @@ public class CreateComponentCommand extends AbstractCommand {
 			throw new FrameworkException(422, "No node to clone");
 		}
 		
-		final DOMNode clonedNode = (DOMNode) node.cloneNode(false);
+		final DOMNode clonedNode = node.cloneNode(false);
 
 		// Child nodes of a template must stay in page tree
-		if (!(clonedNode instanceof Template)) {
+		if (!(clonedNode.is("Template"))) {
 
 			moveChildNodes(node, clonedNode);
 		}

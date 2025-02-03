@@ -24,15 +24,12 @@ import org.structr.common.AccessControllable;
 import org.structr.common.Permission;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
-import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.Linkable;
-import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.importer.CommentHandler;
@@ -101,7 +98,7 @@ public class DeploymentCommentHandler implements CommentHandler {
 
 		handlers.put("pagelink", (final Page page, final DOMNode node, final String parameters) -> {
 
-			if (node instanceof LinkSource) {
+			if (node instanceof NodeInterface n && n.is("LinkSource")) {
 				DeployCommand.addDeferredPagelink(node.getUuid(), parameters);
 			}
 		});

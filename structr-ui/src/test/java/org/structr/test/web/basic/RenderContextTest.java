@@ -367,7 +367,7 @@ public class RenderContextTest extends StructrUiTest {
 			page.setProperties(page.getSecurityContext(), new PropertyMap(Traits.of("Page").key("visibleToPublicUsers"), true));
 
 			assertTrue(page != null);
-			assertTrue(page instanceof Page);
+			assertTrue(page.is("Page"));
 
 			html  = page.createElement("html");
 			head  = page.createElement("head");

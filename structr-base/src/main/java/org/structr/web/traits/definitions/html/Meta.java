@@ -72,7 +72,7 @@ public class Meta extends GenericHtmlElementTraitDefinition {
 		return Map.of(
 			PropertyView.Html,
 			newSet(
-				"name", "http-equiv", "content", "charset"
+				"_html_name", "_html_http-equiv", "_html_content", "_html_charset"
 			)
 		);
 	}

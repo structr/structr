@@ -21,8 +21,6 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.schema.action.ActionContext;
@@ -57,13 +55,13 @@ public class GetOutgoingRelationshipsFunction extends CoreFunction {
 			final Object source = sources[0];
 			final Object target = sources[1];
 
-			AbstractNode sourceNode = null;
-			AbstractNode targetNode = null;
+			NodeInterface sourceNode = null;
+			NodeInterface targetNode = null;
 
-			if (source instanceof AbstractNode && target instanceof AbstractNode) {
+			if (source instanceof NodeInterface && target instanceof NodeInterface) {
 
-				sourceNode = (AbstractNode)source;
-				targetNode = (AbstractNode)target;
+				sourceNode = (NodeInterface)source;
+				targetNode = (NodeInterface)target;
 
 			} else {
 

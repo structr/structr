@@ -54,7 +54,7 @@ public class Iframe extends GenericHtmlElementTraitDefinition {
 		return Map.of(
 			PropertyView.Html,
 			newSet(
-				"name", "src", "srcdoc", "sandbox", "seamless", "allowfullscreen", "width", "height"
+				"_html_name", "_html_src", "_html_srcdoc", "_html_sandbox", "_html_seamless", "_html_allowfullscreen", "_html_width", "_html_height"
 			)
 		);
 	}

@@ -57,14 +57,26 @@ public class ThumbnailProperty extends AbstractReadOnlyProperty<NodeInterface> {
 	@Override
 	public NodeInterface getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
 
-		if (obj instanceof File && ((File)obj).isTemplate()) {
-			return null;
-		} else
-		if (obj instanceof Image && ((Image)obj).isThumbnail()) {
+		if (obj == null) {
 			return null;
 		}
 
-		return ((NodeInterface) obj).as(Image.class).getScaledImage(width, height, crop).getWrappedNode();
+		if (obj.is("File") && obj.as(File.class).isTemplate()) {
+
+			return null;
+
+		} else if (obj.is("Image") && obj.as(Image.class).isThumbnail()) {
+
+			return null;
+		}
+
+		final Image tn = obj.as(Image.class).getScaledImage(width, height, crop);
+		if (tn != null) {
+
+			return tn.getWrappedNode();
+		}
+
+		return null;
 	}
 
 	@Override

@@ -26,7 +26,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -34,14 +33,12 @@ import org.structr.core.traits.Traits;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.dom.Template;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.command.AbstractCommand;
 import org.structr.websocket.command.CreateComponentCommand;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 import org.w3c.dom.DOMException;
-import org.w3c.dom.Document;
 
 import java.util.Map;
 import java.util.Map.Entry;
@@ -105,7 +102,7 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 					tx.prefetchHint("Websocket CreateAndAppendOMNodeCommand");
 
 					final boolean isShadowPage = document.equals(CreateComponentCommand.getOrCreateHiddenDocument());
-					final boolean isTemplate   = (parentNode instanceof Template);
+					final boolean isTemplate   = (parentNode.is("Template"));
 
 					if (isShadowPage && isTemplate && parentNode.getParent() == null) {
 						getWebSocket().send(MessageBuilder.status().code(422).message("Appending children to root-level shared component Templates is not allowed").build(), true);

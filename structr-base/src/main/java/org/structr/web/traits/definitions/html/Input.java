@@ -102,11 +102,11 @@ public class Input extends GenericHtmlElementTraitDefinition {
 		return Map.of(
 			PropertyView.Html,
 			newSet(
-				"accept", "alt", "autocomplete", "autofocus", "checked", "dirname", "disabled",
-				"form", "formaction", "formenctype", "formmethod", "formnovalidate", "formtarget",
-				"height", "list", "max", "maxlength", "min", "multiple", "name",
-				"pattern", "placeholder", "readonly", "required", "size", "src", "step",
-				"type", "value", "width"
+				"_html_accept", "_html_alt", "_html_autocomplete", "_html_autofocus", "_html_checked", "_html_dirname", "_html_disabled",
+				"_html_form", "_html_formaction", "_html_formenctype", "_html_formmethod", "_html_formnovalidate", "_html_formtarget",
+				"_html_height", "_html_list", "_html_max", "_html_maxlength", "_html_min", "_html_multiple", "_html_name",
+				"_html_pattern", "_html_placeholder", "_html_readonly", "_html_required", "_html_size", "_html_src", "_html_step",
+				"_html_type", "_html_value", "_html_width"
 			)
 		);
 	}

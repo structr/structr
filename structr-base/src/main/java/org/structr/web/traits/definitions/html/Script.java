@@ -128,7 +128,7 @@ public class Script extends GenericHtmlElementTraitDefinition {
 		return Map.of(
 			PropertyView.Html,
 			newSet(
-				"src", "async", "defer", "type", "charset"
+				"_html_src", "_html_async", "_html_defer", "_html_type", "_html_charset"
 			)
 		);
 	}

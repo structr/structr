@@ -89,7 +89,7 @@ public class Html extends GenericHtmlElementTraitDefinition {
 			),
 			PropertyView.Html,
 			newSet(
-				"manifest"
+				"_html_manifest"
 			)
 		);
 	}

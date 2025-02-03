@@ -47,7 +47,7 @@ public class Details extends GenericHtmlElementTraitDefinition {
 		return Map.of(
 			PropertyView.Html,
 			newSet(
-				"open"
+				"_html_open"
 			)
 		);
 	}

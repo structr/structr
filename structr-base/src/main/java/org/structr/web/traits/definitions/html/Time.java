@@ -69,7 +69,7 @@ public class Time extends GenericHtmlElementTraitDefinition {
 		return Map.of(
 			PropertyView.Html,
 			newSet(
-				"datetime"
+				"_html_datetime"
 			)
 		);
 	}

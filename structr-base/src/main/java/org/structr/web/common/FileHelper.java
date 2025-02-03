@@ -350,7 +350,7 @@ public class FileHelper {
 
 		map.putAll(getChecksums(file));
 
-		if (file instanceof Image) {
+		if (file.is("Image")) {
 
 			try {
 

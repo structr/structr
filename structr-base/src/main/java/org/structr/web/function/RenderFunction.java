@@ -20,6 +20,7 @@ package org.structr.web.function;
 
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.NodeInterface;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.DOMNode;
@@ -65,16 +66,16 @@ public class RenderFunction extends UiCommunityFunction {
 				useBuffer = false;
 			}
 
-			if (sources[0] instanceof DOMNode) {
+			if (sources[0] instanceof NodeInterface n && n.is("DOMNode")) {
 
-				((DOMNode)sources[0]).render(innerCtx, 0);
+				n.as(DOMNode.class).render(innerCtx, 0);
 
 			} else if (sources[0] instanceof Collection) {
 
 				for (final Object obj : (Collection)sources[0]) {
 
-					if (obj instanceof DOMNode) {
-						((DOMNode)obj).render(innerCtx, 0);
+					if (obj instanceof NodeInterface n && n.is("DOMNode")) {
+						n.as(DOMNode.class).render(innerCtx, 0);
 					}
 				}
 

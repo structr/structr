@@ -25,7 +25,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 
@@ -79,7 +78,7 @@ public class TypeProperty extends StringProperty {
 		}
 
 		// initialize type property from single label on unknown nodes
-		if (node instanceof AbstractNode && labels.size() == 1 && !dbNode.hasProperty("type")) {
+		if (node instanceof NodeInterface && labels.size() == 1 && !dbNode.hasProperty("type")) {
 
 			final String singleLabelTypeName = labels.get(0);
 

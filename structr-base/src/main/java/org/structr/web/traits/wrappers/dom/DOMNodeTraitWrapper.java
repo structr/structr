@@ -561,9 +561,9 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 
 		while (node != null) {
 
-			if (node instanceof Page) {
+			if (node.is("Page")) {
 
-				return (Page)node;
+				return node.as(Page.class);
 			}
 
 			node = node.getParent();
@@ -827,10 +827,10 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 			final List<DOMNode> ancestors = getAncestors();
 			if (!ancestors.isEmpty()) {
 
-				final DOMNode rootNode = (DOMNode)ancestors.get(ancestors.size() - 1);
-				if (rootNode instanceof Page) {
+				final DOMNode rootNode = ancestors.get(ancestors.size() - 1);
+				if (rootNode.is("Page")) {
 
-					page = (Page)rootNode;
+					page = rootNode.as(Page.class);
 
 				} else {
 
@@ -1370,20 +1370,12 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	@Override
 	public final void checkIsChild(final DOMNode otherNode) throws FrameworkException {
 
-		if (otherNode instanceof DOMNode) {
+		DOMNode _parent = otherNode.getParent();
 
-			DOMNode _parent = otherNode.getParent();
+		if (!isSameNode(_parent)) {
 
-			if (!isSameNode(_parent)) {
-
-				throw new FrameworkException(422, NOT_FOUND_ERR_MESSAGE);
-			}
-
-			// validation successful
-			return;
+			throw new FrameworkException(422, NOT_FOUND_ERR_MESSAGE);
 		}
-
-		throw new FrameworkException(422, NOT_SUPPORTED_ERR_MESSAGE);
 	}
 
 	public final void checkHierarchy(final DOMNode otherNode) throws FrameworkException {
@@ -1398,15 +1390,15 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 			Page otherDoc = otherNode.getOwnerDocument();
 
 			// Shadow doc is neutral
-			if (otherDoc != null && !doc.equals(otherDoc) && !(doc instanceof ShadowDocument)) {
+			if (otherDoc != null && !doc.equals(otherDoc) && !(doc.is("ShadowDocument"))) {
 
 				final Logger logger = LoggerFactory.getLogger(DOMNode.class);
 				logger.warn("{} node with UUID {} has owner document {} with UUID {} whereas this node has owner document {} with UUID {}",
-					otherNode.getClass().getSimpleName(),
+					otherNode.getType(),
 					((NodeInterface)otherNode).getUuid(),
-					otherDoc.getClass().getSimpleName(),
+					otherDoc.getType(),
 					((NodeInterface)otherDoc).getUuid(),
-					doc.getClass().getSimpleName(),
+					doc.getType(),
 					((NodeInterface)doc).getUuid()
 				);
 
@@ -1507,7 +1499,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 			final boolean parentPublic      = _parentNode.getWrappedNode().isVisibleToPublicUsers();
 			final boolean parentProtected   = _parentNode.getWrappedNode().isVisibleToAuthenticatedUsers();
 
-			addVisibilityInstructions = (_parentNode instanceof ShadowDocument) || (parentPublic != elementPublic || parentProtected != elementProtected);
+			addVisibilityInstructions = (_parentNode.is("ShadowDocument")) || (parentPublic != elementPublic || parentProtected != elementProtected);
 		}
 
 		if (addVisibilityInstructions) {
@@ -1541,11 +1533,11 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 
 			if (linkable != null) {
 
-				final String linkableInstruction = (linkable instanceof Page) ? "pagelink" : "link";
+				final String linkableInstruction = (linkable.is("Page")) ? "pagelink" : "link";
 
 				String path                = linkable.getPath();
 
-				if (linkable instanceof Page && path == null) {
+				if (linkable.is("Page") && path == null) {
 					path = linkable.getName();
 				}
 
@@ -2016,14 +2008,14 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 		} else {
 
 			DOMNode _parent = newChild.getParent();
-			if (_parent != null && _parent instanceof DOMNode) {
+			if (_parent != null) {
 
 				_parent.removeChild(newChild);
 			}
 
 			try {
 				// replace directly
-				treeReplaceChild(((DOMNode) newChild).getWrappedNode(), ((DOMNode) oldChild).getWrappedNode());
+				treeReplaceChild(newChild.getWrappedNode(), oldChild.getWrappedNode());
 
 			} catch (FrameworkException frex) {
 
@@ -2101,12 +2093,12 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 			} else {
 
 				final DOMNode _parent = newChild.getParent();
+				if (_parent != null) {
 
-				if (_parent != null && _parent instanceof DOMNode) {
 					_parent.removeChild(newChild);
 				}
 
-				doAppendChild((DOMNode)newChild);
+				doAppendChild(newChild);
 
 				// allow parent to set properties in new child
 				handleNewChild(newChild);

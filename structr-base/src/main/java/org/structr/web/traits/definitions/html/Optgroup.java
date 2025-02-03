@@ -48,7 +48,7 @@ public class Optgroup extends GenericHtmlElementTraitDefinition {
 		return Map.of(
 			PropertyView.Html,
 			newSet(
-				"disabled", "label"
+				"_html_disabled", "_html_label"
 			)
 		);
 	}

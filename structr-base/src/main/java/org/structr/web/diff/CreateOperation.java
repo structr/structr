@@ -20,8 +20,8 @@ package org.structr.web.diff;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
-import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
@@ -53,11 +53,11 @@ public class CreateOperation extends InvertibleModificationOperation {
 	@Override
 	public String toString() {
 
-		if (newNode instanceof Content) {
+		if (newNode instanceof NodeInterface n && n.is("Content")) {
 
 			return "Create Content(" + newNode.getIdHashOrProperty() + ")";
 
-		} else if (newNode instanceof DOMElement) {
+		} else if (newNode instanceof NodeInterface n && n.is("DOMElement")) {
 
 			return "Create " + ((DOMElement)newNode).getTag() + "(" + newNode.getIdHashOrProperty() + ")";
 		}

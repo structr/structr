@@ -83,7 +83,7 @@ public class AbstractFileTraitDefinition extends AbstractNodeTraitDefinition {
 
 					if (Settings.UniquePaths.getValue()) {
 
-						final AbstractFile file = ((NodeInterface) graphObject).as(AbstractFile.class);
+						final AbstractFile file = graphObject.as(AbstractFile.class);
 
 						file.validateAndRenameFileOnce(securityContext, errorBuffer);
 					}

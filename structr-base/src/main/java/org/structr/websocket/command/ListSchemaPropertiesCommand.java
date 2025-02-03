@@ -24,14 +24,12 @@ import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.SchemaProperty;
-import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
-import org.structr.schema.ConfigurationProvider;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -73,11 +71,10 @@ public class ListSchemaPropertiesCommand extends AbstractCommand {
 					NodeInterface schemaObject = getNode(id);
 					if (schemaObject != null) {
 
-						final ConfigurationProvider config = StructrApp.getConfiguration();
-						String typeName                    = schemaObject.getName();
+						String typeName = schemaObject.getName();
 
-						if (typeName == null && schemaObject instanceof SchemaRelationshipNode) {
-							typeName = ((SchemaRelationshipNode) schemaObject).getClassName();
+						if (typeName == null && schemaObject.is("SchemaRelationshipNode")) {
+							typeName = schemaObject.getType();
 						}
 
 						Traits type = Traits.of(typeName);

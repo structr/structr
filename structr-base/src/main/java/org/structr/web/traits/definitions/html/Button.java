@@ -57,8 +57,8 @@ public class Button extends GenericHtmlElementTraitDefinition {
 		return Map.of(
 			PropertyView.Html,
 			newSet(
-				"autofocus", "disabled", "form", "formaction", "formenctype",
-				"formmethod", "formnovalidate", "formtarget", "type"
+				"_html_autofocus", "_html_disabled", "_html_form", "_html_formaction", "_html_formenctype",
+				"_html_formmethod", "_html_formnovalidate", "_html_formtarget", "_html_type"
 			)
 		);
 	}

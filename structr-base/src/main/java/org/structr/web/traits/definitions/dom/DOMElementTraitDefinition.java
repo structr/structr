@@ -1506,9 +1506,9 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 		for (final GraphObject target : resolveDataTargets(actionContext, entity, dataTarget)) {
 
-			if (target instanceof DOMElement) {
+			if (target.is("DOMElement")) {
 
-				final DOMElement domTarget = (DOMElement)target;
+				final DOMElement domTarget = target.as(DOMElement.class);
 
 				domTarget.appendChild(child.as(DOMNode.class));
 
@@ -1677,9 +1677,9 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 		for (final GraphObject target : resolveDataTargets(actionContext, entity, dataTarget)) {
 
-			if (target instanceof DOMElement) {
+			if (target instanceof NodeInterface n && n.is("DOMElement")) {
 
-				final DOMElement parent = (DOMElement) target;
+				final DOMElement parent = n.as(DOMElement.class);
 
 				return ReplaceDOMChildFunction.apply(securityContext, parent, child.as(DOMNode.class), htmlSource);
 

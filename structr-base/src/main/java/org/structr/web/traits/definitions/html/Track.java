@@ -73,7 +73,7 @@ public class Track extends GenericHtmlElementTraitDefinition {
 		return Map.of(
 			PropertyView.Html,
 			newSet(
-				"kind", "src", "srclang", "label", "default"
+				"_html_kind", "_html_src", "_html_srclang", "_html_label", "_html_default"
 			)
 		);
 	}

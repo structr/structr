@@ -1298,7 +1298,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		putData(config, "visibleToAuthenticatedUsers", abstractFile.isVisibleToAuthenticatedUsers());
 		putData(config, "type",                        abstractFile.getType());
 
-		if (abstractFile instanceof File) {
+		if (abstractFile.is("File")) {
 
 			final File file = (File)abstractFile;
 

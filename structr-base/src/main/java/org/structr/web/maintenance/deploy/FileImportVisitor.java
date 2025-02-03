@@ -18,10 +18,6 @@
  */
 package org.structr.web.maintenance.deploy;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
@@ -45,8 +41,7 @@ import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class FileImportVisitor implements FileVisitor<Path> {
 
@@ -309,7 +304,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 					final NodeInterface createdFile = app.getNodeById("File", newFileUuid);
 					String type                     = createdFile.getType();
-					boolean isImage                 = createdFile instanceof Image;
+					boolean isImage                 = createdFile.is("Image");
 
 					logger.debug("File {}: {}, isImage? {}", new Object[] { createdFile.getName(), type, isImage });
 

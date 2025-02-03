@@ -54,7 +54,7 @@ public class Form extends GenericHtmlElementTraitDefinition {
 		return Map.of(
 			PropertyView.Html,
 			newSet(
-				"accept-charset", "action", "autocomplete", "enctype", "method", "name", "novalidate", "target"
+				"_html_accept-charset", "_html_action", "_html_autocomplete", "_html_enctype", "_html_method", "_html_name", "_html_novalidate", "_html_target"
 			)
 		);
 	}

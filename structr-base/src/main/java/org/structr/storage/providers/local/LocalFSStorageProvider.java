@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.storage.AbstractStorageProvider;
 import org.structr.storage.StorageProvider;
 import org.structr.web.entity.AbstractFile;
+import org.structr.web.entity.StorageConfiguration;
 
 import java.io.*;
 import java.nio.channels.FileChannel;
@@ -32,7 +33,6 @@ import java.nio.file.OpenOption;
 import java.util.Set;
 
 import static java.nio.file.StandardOpenOption.*;
-import org.structr.web.entity.StorageConfiguration;
 
 public class LocalFSStorageProvider extends AbstractStorageProvider {
 
@@ -132,11 +132,21 @@ public class LocalFSStorageProvider extends AbstractStorageProvider {
 
 		// If provider class is local as well, check if file needs to be moved
 		// Ensure files exist and abstract files are actual files
-		if (getAbstractFile() != null && getAbstractFile() instanceof org.structr.web.entity.File && newFileStorageProvider.getAbstractFile() != null && newFileStorageProvider.getAbstractFile() instanceof org.structr.web.entity.File) {
-			// Check file paths and only move if they differ
-			if (!getAbstractFile().getPath().equals(newFileStorageProvider.getAbstractFile().getPath())) {
+		final AbstractFile file = getAbstractFile();
 
-				fsHelper.getFileOnDisk(getAbstractFile()).renameTo(fsHelper.getFileOnDisk(newFileStorageProvider.getAbstractFile()));
+		if (file != null && file.is("File")) {
+
+			final AbstractFile otherFile = newFileStorageProvider.getAbstractFile();
+			if (otherFile != null && otherFile.is("File")) {
+
+				final String path1 = file.getPath();
+				final String path2 = otherFile.getPath();
+
+				// Check file paths and only move if they differ
+				if (path1 != null && path2 != null && !path1.equals(path2)) {
+
+					fsHelper.getFileOnDisk(file).renameTo(fsHelper.getFileOnDisk(otherFile));
+				}
 			}
 		}
 	}

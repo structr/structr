@@ -25,7 +25,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
@@ -33,9 +32,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.common.FileHelper;
-import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
-import org.structr.web.entity.Folder;
 
 import java.io.IOException;
 import java.net.URI;
@@ -259,13 +256,13 @@ public class PolyglotFilesystem implements FileSystem {
 
 		for (String attr : attributes.split(",")) {
 			switch (attr) {
-				case "isDirectory" -> attributeMap.put("isDirectory", (file instanceof Folder));
+				case "isDirectory" -> attributeMap.put("isDirectory", (file.is("folder")));
 				case "creationTime" -> attributeMap.put("creationTime", FileTime.fromMillis(file.getCreatedDate().getTime()));
 				case "lastModifiedTime" -> attributeMap.put("lastModifiedTime", FileTime.fromMillis(file.getLastModifiedDate().getTime()));
 				case "lastAccessTime" -> attributeMap.put("lastAccessTime", FileTime.fromMillis(file.getLastModifiedDate().getTime()));
 				case "isSymbolicLink" -> attributeMap.put("isSymbolicLink", false);
-				case "isRegularFile" -> attributeMap.put("isRegularFile", (file instanceof File));
-				case "size" -> attributeMap.put("size", (file instanceof File ? FileHelper.getSize((File)file) : 0));
+				case "isRegularFile" -> attributeMap.put("isRegularFile", (file.is("File")));
+				case "size" -> attributeMap.put("size", (file.is("File") ? FileHelper.getSize((File)file) : 0));
 			}
 		}
 

@@ -54,7 +54,7 @@ public class Select extends GenericHtmlElementTraitDefinition {
 		return Map.of(
 			PropertyView.Html,
 			newSet(
-				"name", "disabled", "accept", "form", "size", "multiple", "autofocus", "required"
+				"_html_name", "_html_disabled", "_html_accept", "_html_form", "_html_size", "_html_multiple", "_html_autofocus", "_html_required"
 			)
 		);
 	}

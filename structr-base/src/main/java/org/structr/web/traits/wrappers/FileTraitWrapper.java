@@ -498,7 +498,7 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 		final Principal _owner  = as(AccessControllable.class).getOwnerNode();
 		Folder workingOrHomeDir = null;
 
-		if (_owner != null && _owner instanceof User) {
+		if (_owner != null && _owner.is("User")) {
 
 			final User user = _owner.getWrappedNode().as(User.class);
 

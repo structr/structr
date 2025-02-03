@@ -110,7 +110,7 @@ public class FileDataConverter extends PropertyConverter {
 	@Override
 	public Object revert(Object source) {
 
-		if (currentObject instanceof File) {
+		if (currentObject.is("File")) {
 
 			final File currentFile = (File)currentObject;
 			return ImageHelper.getBase64String(currentFile);

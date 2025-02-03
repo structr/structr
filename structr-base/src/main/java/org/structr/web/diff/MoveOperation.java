@@ -20,12 +20,11 @@ package org.structr.web.diff;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
-import org.structr.web.entity.dom.Content;
+import org.structr.core.graph.NodeInterface;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.w3c.dom.DOMException;
-import org.w3c.dom.Node;
 
 import java.util.List;
 import java.util.Map;
@@ -54,11 +53,11 @@ public class MoveOperation extends InvertibleModificationOperation {
 	@Override
 	public String toString() {
 
-		if (originalNode instanceof Content) {
+		if (originalNode instanceof NodeInterface n && n.is("Content")) {
 
 			return "Move Content(" + originalNode.getIdHashOrProperty() + ")";
 
-		} else if (originalNode instanceof DOMElement) {
+		} else if (originalNode instanceof NodeInterface n && n.is("DOMElement")) {
 
 			return "Move " + ((DOMElement)originalNode).getTag() + "(" + originalNode.getIdHashOrProperty() + ")";
 		}

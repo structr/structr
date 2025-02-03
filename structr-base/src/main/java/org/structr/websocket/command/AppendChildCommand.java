@@ -19,12 +19,9 @@
 package org.structr.websocket.command;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.web.entity.dom.DOMNode;
-import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.dom.Template;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -85,7 +82,7 @@ public class AppendChildCommand extends AbstractCommand {
 					if (!(parentDOMNode.is("Page"))) {
 
 						final boolean isShadowPage = (parentDOMNode.getOwnerDocument() != null && parentDOMNode.getOwnerDocument().equals(CreateComponentCommand.getOrCreateHiddenDocument()));
-						final boolean isTemplate   = (parentDOMNode instanceof Template);
+						final boolean isTemplate   = (parentDOMNode.is("Template"));
 
 						if (isShadowPage && isTemplate && parentDOMNode.getParent() == null) {
 

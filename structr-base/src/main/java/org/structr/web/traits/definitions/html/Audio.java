@@ -56,7 +56,7 @@ public class Audio extends GenericHtmlElementTraitDefinition {
 		return Map.of(
 			PropertyView.Html,
 			newSet(
-				"src", "crossorigin", "preload", "autoplay", "loop", "muted", "controls"
+				"_html_src", "_html_crossorigin", "_html_preload", "_html_autoplay", "_html_loop", "_html_muted", "_html_controls"
 			)
 		);
 	}

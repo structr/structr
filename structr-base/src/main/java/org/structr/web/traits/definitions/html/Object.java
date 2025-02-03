@@ -52,7 +52,7 @@ public class Object extends GenericHtmlElementTraitDefinition {
 		return Map.of(
 			PropertyView.Html,
 			newSet(
-				"type", "typemustmatch", "usemap", "form", "width", "height"
+				"_html_type", "_html_typemustmatch", "_html_usemap", "_html_form", "_html_width", "_html_height"
 			)
 		);
 	}

@@ -273,7 +273,7 @@ public class UiScriptingTest extends StructrUiTest {
 			page.setProperties(page.getSecurityContext(), new PropertyMap(Traits.of("Page").key("visibleToPublicUsers"), true));
 
 			assertTrue(page != null);
-			assertTrue(page instanceof Page);
+			assertTrue(page.is("Page"));
 
 			html  = page.createElement("html");
 			head  = page.createElement("head");
@@ -969,7 +969,7 @@ public class UiScriptingTest extends StructrUiTest {
 			page.setProperties(page.getSecurityContext(), new PropertyMap(Traits.of("Page").key("visibleToPublicUsers"), true));
 
 			assertTrue(page != null);
-			assertTrue(page instanceof Page);
+			assertTrue(page.is("Page"));
 
 			final DOMNode html  = page.createElement("html");
 			final DOMNode head  = page.createElement("head");

@@ -49,7 +49,7 @@ public class Canvas extends GenericHtmlElementTraitDefinition {
 		return Map.of(
 			PropertyView.Html,
 			newSet(
-				"width", "height"
+				"_html_width", "_html_height"
 			)
 		);
 	}

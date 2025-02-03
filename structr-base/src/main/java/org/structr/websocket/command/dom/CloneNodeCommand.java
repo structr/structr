@@ -22,7 +22,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.dom.Template;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.command.AbstractCommand;
 import org.structr.websocket.command.CreateComponentCommand;
@@ -97,9 +96,9 @@ public class CloneNodeCommand extends AbstractCommand {
 
 			if (parent != null) {
 
-				if (parent instanceof Page) {
+				if (parent.is("Page")) {
 
-					ownerPage = (Page)parent;
+					ownerPage = parent.as(Page.class);
 
 				} else {
 
@@ -122,7 +121,7 @@ public class CloneNodeCommand extends AbstractCommand {
 				if (parent != null) {
 
 					final boolean isShadowPage = ownerPage.equals(CreateComponentCommand.getOrCreateHiddenDocument());
-					final boolean isTemplate   = (parent instanceof Template);
+					final boolean isTemplate   = (parent.is("Template"));
 
 					if (isShadowPage && isTemplate && parent.getParent() == null) {
 

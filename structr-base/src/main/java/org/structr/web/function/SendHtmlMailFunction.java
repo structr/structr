@@ -25,14 +25,15 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
-import org.structr.storage.StorageProviderFactory;
+import org.structr.common.helper.DynamicMailAttachment;
+import org.structr.common.helper.MailHelper;
+import org.structr.core.graph.NodeInterface;
 import org.structr.schema.action.ActionContext;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.File;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.structr.common.helper.DynamicMailAttachment;
-import org.structr.common.helper.MailHelper;
 
 public class SendHtmlMailFunction extends UiAdvancedFunction {
 
@@ -65,28 +66,30 @@ public class SendHtmlMailFunction extends UiAdvancedFunction {
 			final String htmlContent = sources[5].toString();
 			final String textContent = sources[6].toString();
 
-			List<File> fileNodes = null;
+			List<NodeInterface> fileNodes = null;
 			List<DynamicMailAttachment> attachments = new ArrayList<>();
 
 			try {
 
-				if (sources.length == 8 && sources[7] instanceof List && ((List) sources[7]).size() > 0 && ((List) sources[7]).get(0) instanceof File) {
+				if (sources.length == 8 && sources[7] instanceof List list && list.size() > 0 && list.get(0) instanceof NodeInterface n && n.is("File")) {
 
-					fileNodes = (List<File>) sources[7];
+					fileNodes = list;
 
-					for (File fileNode : fileNodes) {
+					for (final NodeInterface fileNode : fileNodes) {
 
+						final File file                        = fileNode.as(File.class);
 						final DynamicMailAttachment attachment = new DynamicMailAttachment();
-						attachment.setName(fileNode.getName());
+
+						attachment.setName(file.getName());
 						attachment.setDisposition(EmailAttachment.ATTACHMENT);
 
-						if (fileNode.isTemplate()) {
+						if (file.isTemplate()) {
 
-							attachment.setDataSource(fileNode);
+							attachment.setDataSource(file);
 
 						} else {
 
-							attachment.setDataSource(StorageProviderFactory.getStorageProvider(fileNode));
+							attachment.setDataSource(StorageProviderFactory.getStorageProvider(file));
 						}
 
 						attachments.add(attachment);
