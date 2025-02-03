@@ -31,6 +31,8 @@ public interface Transaction extends AutoCloseable, Prefetcher {
 	void success();
 	long getTransactionId();
 	boolean isSuccessful();
+	void setNodeIsCreated(final long id);
+	boolean isNodeCreated(final long id);
 	boolean isNodeDeleted(final long id);
 	boolean isRelationshipDeleted(final long id);
 
