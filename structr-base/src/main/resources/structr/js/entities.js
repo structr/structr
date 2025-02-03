@@ -476,11 +476,8 @@ let _Entities = {
 					let { dialogText } = _Dialogs.custom.openDialog(dialogTitle, null, ['full-height-dialog-text']);
 
 					if (showDeleteBtn) {
-						let deleteBtn = _Dialogs.custom.appendCustomDialogButton(`
-							<button class="flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
-								${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, ['mr-2', 'icon-red'])} <span>Delete object</span>
-							</button>
-						`);
+
+						let deleteBtn = _Dialogs.custom.appendCustomDialogButton(_Dialogs.custom.templates.deleteButton());
 
 						deleteBtn.addEventListener('click', async (e) => {
 							let deleted = await _Crud.helpers.crudAskDelete(obj.type, obj.id);
