@@ -33,7 +33,6 @@ import org.structr.common.error.NullArgumentToken;
 import org.structr.common.error.ReadOnlyPropertyToken;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation;
@@ -44,6 +43,7 @@ import org.structr.core.property.FunctionProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.TypeProperty;
+import org.structr.core.traits.NodeTrait;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.operations.FrameworkMethod;
@@ -335,6 +335,15 @@ public final class PropertyContainerTraitDefinition extends AbstractNodeTraitDef
 				throw new FrameworkException(422, "Property ‛" + key.jsonName() + "‛ is read-only", new ReadOnlyPropertyToken(type, key.jsonName()));
 			}
 
+			if (value instanceof NodeTrait t) {
+
+				// fixme:
+				System.out.println("######################### Converting NodeTrait to NodeInterface, this is not desired!");
+				Thread.dumpStack();
+
+				return key.setProperty(securityContext, graphObject, (T)t.getWrappedNode());
+			}
+
 			return key.setProperty(securityContext, graphObject, value);
 
 		} finally {
@@ -373,7 +382,7 @@ public final class PropertyContainerTraitDefinition extends AbstractNodeTraitDef
 
 						if (!propertyKey.isUnvalidated()) {
 
-							TransactionCommand.nodeModified(securityContext.getCachedUser(), (AbstractNode)graphObject, propertyKey, oldValue, value);
+							TransactionCommand.nodeModified(securityContext.getCachedUser(), (NodeInterface)graphObject, propertyKey, oldValue, value);
 						}
 
 						if (propertyKey instanceof TypeProperty) {

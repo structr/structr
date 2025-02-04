@@ -136,7 +136,7 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 
 	@Override public ActionEntry getActionEntry(final Map<String, SchemaNode> schemaNodes, final AbstractSchemaNode schemaEntity) throws FrameworkException {
 
-		final ActionEntry entry                  = new ActionEntry("___" + SchemaHelper.cleanPropertyName(getProperty(AbstractNode.name)), getProperty(SchemaMethod.source), getProperty(SchemaMethod.codeType));
+		final ActionEntry entry                  = new ActionEntry("___" + SchemaHelper.cleanPropertyName(getProperty(NodeInterface.name)), getProperty(SchemaMethod.source), getProperty(SchemaMethod.codeType));
 		final List<SchemaMethodParameter> params = Iterables.toList(getProperty(parameters));
 
 		// add UUID
@@ -208,7 +208,7 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 		valid &= ValidationHelper.isValidStringMatchingRegex(this, name, schemaMethodNamePattern, errorBuffer);
 
 		final Set<String> propertyViews = Services.getInstance().getConfigurationProvider().getPropertyViews();
-		final String thisMethodName     = getProperty(AbstractNode.name);
+		final String thisMethodName     = getProperty(NodeInterface.name);
 
 		if (thisMethodName != null && propertyViews.contains(thisMethodName)) {
 			errorBuffer.add(new SemanticErrorToken(this.getType(), "name", "already_exists").withValue(thisMethodName).withDetail("A method cannot have the same name as a view"));
@@ -513,7 +513,7 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 
 	private boolean getSignature(final Class type, final String methodName, final ActionEntry entry) {
 
-		// superclass is AbstractNode
+		// superclass is NodeInterface
 		for (final Method method : type.getMethods()) {
 
 			if (methodName.equals(method.getName()) && (method.getModifiers() & Modifier.STATIC) == 0) {

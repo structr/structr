@@ -30,7 +30,6 @@ import org.structr.api.util.NodeWithOwnerResult;
 import org.structr.common.Permission;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.property.AbstractPrimitiveProperty;
 import org.structr.core.property.PropertyKey;
@@ -195,7 +194,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 					final Object value    = entry.getValue();
 
 					if (!key.isUnvalidated()) {
-						TransactionCommand.nodeModified(securityContext.getCachedUser(), (AbstractNode)node, key, null, value);
+						TransactionCommand.nodeModified(securityContext.getCachedUser(), (NodeInterface)node, key, null, value);
 					}
 				}
 

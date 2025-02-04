@@ -98,7 +98,7 @@ public class DeploymentCommentHandler implements CommentHandler {
 
 		handlers.put("pagelink", (final Page page, final DOMNode node, final String parameters) -> {
 
-			if (node instanceof NodeInterface n && n.is("LinkSource")) {
+			if (node.is("LinkSource")) {
 				DeployCommand.addDeferredPagelink(node.getUuid(), parameters);
 			}
 		});

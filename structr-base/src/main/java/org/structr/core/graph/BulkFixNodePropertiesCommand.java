@@ -24,9 +24,7 @@ import org.structr.api.graph.Node;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 
@@ -52,9 +50,9 @@ public class BulkFixNodePropertiesCommand extends NodeServiceCommand implements 
 
 			logger.info("Trying to fix properties of all {} nodes", entityTypeName);
 
-			long nodeCount = bulkGraphOperation(securityContext, getNodeQuery(entityTypeName, false), 100, "FixNodeProperties", new BulkGraphOperation<AbstractNode>() {
+			long nodeCount = bulkGraphOperation(securityContext, getNodeQuery(entityTypeName, false), 100, "FixNodeProperties", new BulkGraphOperation<NodeInterface>() {
 
-				private void fixProperty(AbstractNode node, Property propertyToFix) {
+				private void fixProperty(NodeInterface node, Property propertyToFix) {
 
 					Node databaseNode = node.getNode();
 
@@ -103,7 +101,7 @@ public class BulkFixNodePropertiesCommand extends NodeServiceCommand implements 
 				}
 
 				@Override
-				public boolean handleGraphObject(SecurityContext securityContext, AbstractNode node) {
+				public boolean handleGraphObject(SecurityContext securityContext, NodeInterface node) {
 
 					if (propertyName != null) {
 

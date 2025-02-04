@@ -102,14 +102,14 @@ public class RepeaterTest extends StructrUiTest {
 
 			// create page
 			final Page page1     = Page.createSimplePage(securityContext, "page1");
-			final DOMNode div    = (DOMNode)page1.getElementsByTagName("div").get(0);
+			final DOMNode div    = page1.getElementsByTagName("div").get(0);
 			final DOMNode select = createElement(page1, div,    "select");
 			final DOMNode option = createElement(page1, select, "option", "${task.name}");
 
 
 			select.setProperty(Traits.of("DOMNode").key("functionQuery"),  "find('Project')");
 			select.setProperty(Traits.of("DOMNode").key("dataKey"),        "project");
-			select.setProperty(Traits.of("DOMNode").key("_html_multiple"), "multiple");
+			select.setProperty(Traits.of("Select").key("_html_multiple"), "multiple");
 
 			option.setProperty(Traits.of("DOMNode").key("functionQuery"),  "find('Task', sort('name'))");
 			option.setProperty(Traits.of("DOMNode").key("dataKey"),        "task");

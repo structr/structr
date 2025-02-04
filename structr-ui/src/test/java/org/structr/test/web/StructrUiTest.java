@@ -28,7 +28,6 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
@@ -37,6 +36,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.*;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.NodeTrait;
 import org.structr.core.traits.StructrTraits;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.test.web.entity.traits.definitions.*;
@@ -514,7 +514,11 @@ public abstract class StructrUiTest {
 	protected void makePublic(final Object... objects) throws FrameworkException {
 
 		for (final Object obj : objects) {
-			((GraphObject) obj).setVisibility(true, false);
+
+			if (obj instanceof NodeTrait n) {
+
+				n.getWrappedNode().setVisibility(true, false);
+			}
 		}
 
 	}

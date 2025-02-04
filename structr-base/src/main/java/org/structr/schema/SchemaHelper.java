@@ -370,22 +370,22 @@ public class SchemaHelper {
 		final Set<Validator> validators                        = new LinkedHashSet<>();
 		final Set<String> implementedInterfaces                = new LinkedHashSet<>();
 		final Set<String> enums                                = new LinkedHashSet<>();
-		final Class baseType                                   = AbstractNode.class;
+		final Class baseType                                   = NodeInterface.class;
 		final String _className                                = schemaNode.getName();
 		final SchemaNode _extendsClass                         = schemaNode.getExtendsClass();
 		final String _extendsClassInternal                     = schemaNode.getExtendsClassInternal();
 		String superClass                                      = baseType.getSimpleName();
-		boolean extendsAbstractNode                            = true;
+		boolean extendsNodeInterface                            = true;
 
 		if (_extendsClass != null) {
 
 			superClass = _extendsClass.getName();
-			extendsAbstractNode = false;
+			extendsNodeInterface = false;
 
 		} else if (_extendsClassInternal != null) {
 
 			superClass = _extendsClassInternal;
-			extendsAbstractNode = false;
+			extendsNodeInterface = false;
 		}
 
 		// import mixins, check that all types exist and return null otherwise (causing this class to be ignored)
@@ -529,7 +529,7 @@ public class SchemaHelper {
 			sourceFile.end();
 		}
 
-		SchemaHelper.formatValidators(sourceFile, schemaNode, validators, compoundIndexKeys, extendsAbstractNode, propertyValidators);
+		SchemaHelper.formatValidators(sourceFile, schemaNode, validators, compoundIndexKeys, extendsNodeInterface, propertyValidators);
 		SchemaHelper.formatMethods(sourceFile, schemaNode, methods, implementedInterfaces);
 		SchemaHelper.formatSchemaGrants(sourceFile, schemaNode);
 		SchemaHelper.formatDefaultVisibilityFlags(sourceFile, schemaNode);
@@ -545,7 +545,7 @@ public class SchemaHelper {
 	public static Set<String> getUnlicensedTypes(final SchemaNode schemaNode) throws FrameworkException {
 
 		final SchemaNode _extendsClass          = schemaNode.getProperty(SchemaNode.extendsClass);
-		final String superClass                 = _extendsClass != null ? _extendsClass.getName() : AbstractNode.class.getSimpleName();
+		final String superClass                 = _extendsClass != null ? _extendsClass.getName() : NodeInterface.class.getSimpleName();
 		final Set<String> implementedInterfaces = new LinkedHashSet<>();
 
 		// import mixins, check that all types exist and return null otherwise (causing this class to be ignored)
@@ -652,7 +652,7 @@ public class SchemaHelper {
 		}
 
 		if (superClass == null) {
-			superClass = AbstractNode.class;
+			superClass = NodeInterface.class;
 		}
 
 
@@ -997,7 +997,7 @@ public class SchemaHelper {
 		return interfaces;
 	}
 
-	public static void formatValidators(final SourceFile src, final CodeSource codeSource, final Set<Validator> validators, final Set<String> compoundIndexKeys, final boolean extendsAbstractNode, final List<String> propertyValidators) {
+	public static void formatValidators(final SourceFile src, final CodeSource codeSource, final Set<Validator> validators, final Set<String> compoundIndexKeys, final boolean extendsNodeInterface, final List<String> propertyValidators) {
 
 		if (!validators.isEmpty() || !compoundIndexKeys.isEmpty()) {
 
@@ -1845,7 +1845,7 @@ public class SchemaHelper {
 			return true;
 		}
 
-		if (AbstractNode.class.getSimpleName().equals(fqcn)) {
+		if (NodeInterface.class.getSimpleName().equals(fqcn)) {
 			return true;
 		}
 

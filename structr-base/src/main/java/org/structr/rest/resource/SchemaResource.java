@@ -208,8 +208,8 @@ public class SchemaResource extends ExactMatchEndpoint {
 
 		FIXME: this needs to be changed
 
-		// select AbstractNode and SUPERCLASSES (not subclasses!)
-		if (sourceType.isAssignableFrom(AbstractNode.class)) {
+		// select NodeInterface and SUPERCLASSES (not subclasses!)
+		if (sourceType.isAssignableFrom(NodeInterface.class)) {
 
 			map.put(allSourceTypesPossibleProperty, true);
 			map.put(htmlSourceTypesPossibleProperty, true);
@@ -228,8 +228,8 @@ public class SchemaResource extends ExactMatchEndpoint {
 			map.put(possibleSourceTypesProperty, StringUtils.join(SearchCommand.getAllSubtypesAsStringSet(sourceType.getSimpleName()), ","));
 		}
 
-		// select AbstractNode and SUPERCLASSES (not subclasses!)
-		if (targetType.isAssignableFrom(AbstractNode.class)) {
+		// select NodeInterface and SUPERCLASSES (not subclasses!)
+		if (targetType.isAssignableFrom(NodeInterface.class)) {
 
 			map.put(allTargetTypesPossibleProperty, true);
 			map.put(htmlTargetTypesPossibleProperty, true);

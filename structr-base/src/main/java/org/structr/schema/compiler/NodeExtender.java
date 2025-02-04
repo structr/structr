@@ -26,8 +26,7 @@ import org.structr.api.config.Settings;
 import org.structr.common.error.DiagnosticErrorToken;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.core.Services;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.module.JarConfigurationProvider;
 import org.structr.schema.SourceFile;
@@ -233,8 +232,8 @@ public class NodeExtender {
 					}
 				}
 
-				final AbstractNode source   = (AbstractNode)line.getCodeSource();
-				final int size              = code.size();
+				final NodeInterface source = (NodeInterface)line.getCodeSource();
+				final int size             = code.size();
 
 				if (source != null) {
 					errorBuffer.add(new DiagnosticErrorToken(name, diagnostic, source.getClass().getSimpleName(), source.getUuid(), source.getName()));

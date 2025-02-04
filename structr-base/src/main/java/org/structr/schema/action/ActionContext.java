@@ -41,6 +41,7 @@ import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
 import org.structr.core.api.Methods;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.NodeTrait;
 import org.structr.core.traits.Traits;
 import org.structr.schema.parser.DatePropertyGenerator;
 
@@ -144,7 +145,11 @@ public class ActionContext {
 
 			final String key = parts[i];
 
-			if (_data instanceof GraphObject obj) {
+			if (_data instanceof NodeTrait t) {
+
+				_data = t.getWrappedNode().evaluate(this, key, null, hints, row, column);
+
+			} else if (_data instanceof GraphObject obj) {
 
 				_data = obj.evaluate(this, key, null, hints, row, column);
 

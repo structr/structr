@@ -108,14 +108,15 @@ public class FileDataConverter extends PropertyConverter {
 	}
 
 	@Override
-	public Object revert(Object source) {
+	public Object revert(final Object source) {
 
-		if (currentObject.is("File")) {
+		if (currentObject != null && currentObject.is("File")) {
 
-			final File currentFile = (File)currentObject;
+			final File currentFile = currentObject.as(File.class);
 			return ImageHelper.getBase64String(currentFile);
 
 		} else {
+
 			return source;
 		}
 	}
@@ -125,7 +126,7 @@ public class FileDataConverter extends PropertyConverter {
 
 		if (currentObject instanceof CreationContainer) {
 
-			return (File)((CreationContainer)currentObject).getWrappedObject();
+			return ((CreationContainer)currentObject).getWrappedObject().as(File.class);
 		}
 
 		return (File)currentObject;

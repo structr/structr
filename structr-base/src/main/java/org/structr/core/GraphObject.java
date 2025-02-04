@@ -26,8 +26,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.CreationContainer;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
@@ -44,7 +42,7 @@ import java.util.*;
 
 
 /**
- * A common base class for {@link AbstractNode} and {@link AbstractRelationship}.
+ * A common base class for {@link NodeInterface} and {@link RelationshipInterface}.
  *
  */
 public interface GraphObject {

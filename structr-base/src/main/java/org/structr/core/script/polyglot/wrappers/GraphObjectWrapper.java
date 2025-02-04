@@ -26,18 +26,15 @@ import org.structr.common.AccessControllable;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
-import org.structr.core.app.StructrApp;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Methods;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.core.script.polyglot.function.GrantFunction;
-import org.structr.schema.action.ActionContext;
-
-import org.structr.core.api.AbstractMethod;
-import org.structr.core.api.Methods;
 import org.structr.core.traits.Traits;
+import org.structr.schema.action.ActionContext;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -76,19 +73,19 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 					return PolyglotWrapper.wrap(actionContext, ac.getOwnerNode());
 
 				case "_path":
-					return PolyglotWrapper.wrap(actionContext, ((AbstractNode) node).getPath(actionContext.getSecurityContext()));
+					return PolyglotWrapper.wrap(actionContext, nodeInterface.getPath(actionContext.getSecurityContext()));
 
 				case "createdDate":
-					return ((AbstractNode)this.node).getCreatedDate();
+					return this.node.getCreatedDate();
 
 				case "lastModifiedDate":
-					return ((AbstractNode)this.node).getLastModifiedDate();
+					return this.node.getLastModifiedDate();
 
 				case "visibleToPublicUsers":
-					return ((AbstractNode)this.node).isVisibleToPublicUsers();
+					return this.node.isVisibleToPublicUsers();
 
 				case "visibleToAuthenticatedUsers":
-					return ((AbstractNode)this.node).isVisibleToAuthenticatedUsers();
+					return this.node.isVisibleToAuthenticatedUsers();
 			}
 		}
 

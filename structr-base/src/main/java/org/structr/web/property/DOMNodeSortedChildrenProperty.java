@@ -16,66 +16,54 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.property;
+package org.structr.web.property;
 
 import org.structr.api.Predicate;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.AbstractReadOnlyCollectionProperty;
+import org.structr.web.entity.dom.DOMNode;
 
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 
-/**
- * A property that returns the end node of a hyperrelationship.
- *
- *
- */
-public class HyperRelationProperty<S extends NodeInterface, T extends NodeInterface> extends AbstractReadOnlyProperty<Iterable<T>> {
+public class DOMNodeSortedChildrenProperty extends AbstractReadOnlyCollectionProperty<DOMNode> {
 
-	Property<Iterable<S>> step1 = null;
-	Property<T> step2           = null;
-
-	public HyperRelationProperty(String name, Property<Iterable<S>> step1, Property<T> step2) {
-
+	public DOMNodeSortedChildrenProperty(final String name) {
 		super(name);
-
-		this.step1 = step1;
-		this.step2 = step2;
-	}
-
-	@Override
-	public Iterable<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
-		return getProperty(securityContext, obj, applyConverter, null);
-	}
-
-	@Override
-	public Iterable<T> getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
-
-		Iterable<S> connectors = obj.getProperty(step1);
-		List<T> endNodes       = new LinkedList<>();
-
-		if (connectors != null) {
-
-			for (NodeInterface node : connectors) {
-
-				endNodes.add(node.getProperty(step2));
-			}
-		}
-
-		return endNodes;
-	}
-
-	@Override
-	public String relatedType() {
-		return step2.relatedType();
 	}
 
 	@Override
 	public Class valueType() {
 		return NodeInterface.class;
+	}
+
+	@Override
+	public String relatedType() {
+		return null;
+	}
+
+	@Override
+	public Iterable<DOMNode> getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter) {
+		return getProperty(securityContext, obj, applyConverter, null);
+	}
+
+	@Override
+	public Iterable<DOMNode> getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
+
+		if (obj != null && obj.is("DOMNode")) {
+
+			try {
+				return obj.as(DOMNode.class).getChildNodes();
+
+			} catch (FrameworkException fex) {
+				fex.printStackTrace();
+			}
+		}
+
+		return null;
 	}
 
 	@Override
@@ -93,14 +81,13 @@ public class HyperRelationProperty<S extends NodeInterface, T extends NodeInterf
 		return SortType.Default;
 	}
 
-	// ----- OpenAPI -----
 	@Override
-	public Object getExampleValue(java.lang.String type, final String viewName) {
+	public Object getExampleValue(String type, String viewName) {
 		return null;
 	}
 
 	@Override
 	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
-		return null;
+		return Map.of();
 	}
 }

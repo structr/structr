@@ -406,6 +406,8 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 
 		} catch (FrameworkException fex) {
 
+			fex.printStackTrace();
+
 			// FIXME: what to do with the exception here?
 			final Logger logger = LoggerFactory.getLogger(Page.class);
 			logger.warn("", fex);

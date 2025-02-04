@@ -24,7 +24,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
@@ -34,7 +33,6 @@ import org.structr.util.Writable;
 import org.structr.web.entity.User;
 
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.List;
 
 /**

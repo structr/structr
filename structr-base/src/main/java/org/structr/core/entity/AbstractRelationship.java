@@ -219,7 +219,7 @@ public final class AbstractRelationship extends AbstractGraphObject<Relationship
 		return cachedEndNodeId;
 	}
 
-	public String getOtherNodeId(final AbstractNode node) {
+	public String getOtherNodeId(final NodeInterface node) {
 		return getOtherNode(node).getUuid();
 	}
 

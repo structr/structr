@@ -22,9 +22,9 @@ import graphql.Scalars;
 import graphql.schema.*;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graphql.GraphQLListType;
 import org.structr.core.property.*;
 import org.structr.core.traits.Traits;
@@ -413,7 +413,7 @@ public class GraphQLHelper {
 
 	private void registerParentType(final String parentType, final Map<String, GraphQLType> graphQLTypes, final Map<String, GraphQLFieldDefinition> fields, final Set<String> blacklist) throws IllegalAccessException {
 
-		if (parentType != null && !AbstractNode.class.equals(parentType) && !parentType.equals(this)) {
+		if (parentType != null && !NodeInterface.class.equals(parentType) && !parentType.equals(this)) {
 
 			final String parentName = parentType;
 			if (parentName != null && !blacklist.contains(parentName)) {

@@ -20,7 +20,6 @@ package org.structr.core.graph;
 
 import org.structr.api.DatabaseService;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
 
 import java.util.Collections;
 

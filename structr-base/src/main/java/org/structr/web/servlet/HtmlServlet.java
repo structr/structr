@@ -50,7 +50,6 @@ import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.auth.exception.OAuthException;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
@@ -374,9 +373,9 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 								final NodeInterface possibleRootNode = findNodeByUuid(securityContext, PathHelper.getName(pagePart));
 
 								// check visibleForSite here as well
-								if (possibleRootNode.is("DOMNode") && (!(possibleRootNode.is("Page")) || isVisibleForSite(request, possibleRootNode.as(Page.class)))) {
+								if (possibleRootNode != null && possibleRootNode.is("DOMNode") && (!(possibleRootNode.is("Page")) || isVisibleForSite(request, possibleRootNode.as(Page.class)))) {
 
-									rootElement = ((DOMNode) possibleRootNode);
+									rootElement = possibleRootNode.as(DOMNode.class);
 								}
 
 								if (rootElement == null) {
@@ -2004,7 +2003,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		String domUuid  = null;
 		String dataUuid = null;
 
-		public UuidCacheEntry(final DOMNode domNode, final File fileNode, final AbstractNode dataNode) {
+		public UuidCacheEntry(final DOMNode domNode, final File fileNode, final NodeInterface dataNode) {
 
 			if (domNode != null) {
 				this.domUuid = domNode.getUuid();

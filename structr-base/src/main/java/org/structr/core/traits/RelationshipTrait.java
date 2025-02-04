@@ -20,7 +20,7 @@ package org.structr.core.traits;
 
 import org.structr.core.graph.RelationshipInterface;
 
-public interface RelationshipTrait  {
+public interface RelationshipTrait {
 
 	RelationshipInterface getRelationship();
 }

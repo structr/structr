@@ -47,6 +47,7 @@ public interface NodeInterface extends GraphObject, Comparable<NodeInterface> {
 	boolean isDeleted();
 
 	String getName();
+	Object getPath(final SecurityContext securityContext);
 
 	boolean hasRelationshipTo(final RelationshipType type, final NodeInterface targetNode);
 	RelationshipInterface getRelationshipTo(final RelationshipType type, final NodeInterface targetNode);
@@ -81,7 +82,7 @@ public interface NodeInterface extends GraphObject, Comparable<NodeInterface> {
 
 	default void copyPermissionsTo(final SecurityContext ctx, final NodeInterface targetNode, final boolean overwrite) throws FrameworkException {
 
-		for (final RelationshipInterface rel : this.getIncomingRelationships("Security")) {
+		for (final RelationshipInterface rel : this.getIncomingRelationships("SecurityRelationship")) {
 
 			final Set<Permission> permissions = new HashSet();
 			final Security security           = rel.as(Security.class);
@@ -160,4 +161,5 @@ public interface NodeInterface extends GraphObject, Comparable<NodeInterface> {
 		}
 		*/
 	}
+
 }

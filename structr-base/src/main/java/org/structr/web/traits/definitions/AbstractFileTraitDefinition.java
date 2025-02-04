@@ -37,7 +37,7 @@ import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnModification;
 import org.structr.web.entity.AbstractFile;
-import org.structr.web.property.MethodProperty;
+import org.structr.web.property.AbstractFileIsMountedProperty;
 import org.structr.web.property.PathProperty;
 import org.structr.web.traits.wrappers.AbstractFileTraitWrapper;
 
@@ -56,7 +56,6 @@ public class AbstractFileTraitDefinition extends AbstractNodeTraitDefinition {
 	/*
 		type.addStringProperty("name", PropertyView.Public).setIndexed(true).setRequired(true).setFormat("[^\\\\/\\\\x00]+");
 
-		type.addCustomProperty("isMounted", MethodProperty.class.getName(), PropertyView.Public, PropertyView.Ui).setTypeHint("Boolean").setFormat(AbstractFileTraitDefinition.class.getName() + ", isMounted");
 		type.addBooleanProperty("includeInFrontendExport",                  PropertyView.Ui).setIndexed(true);
 		type.addBooleanProperty("isExternal",                               PropertyView.Public, PropertyView.Ui).setIndexed(true);
 		type.addLongProperty("lastSeenMounted",                             PropertyView.Public, PropertyView.Ui);
@@ -96,7 +95,7 @@ public class AbstractFileTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public void onModification(GraphObject graphObject, SecurityContext securityContext, ErrorBuffer errorBuffer, ModificationQueue modificationQueue) throws FrameworkException {
 
-					final AbstractFile file = ((NodeInterface) graphObject).as(AbstractFile.class);
+					final AbstractFile file = graphObject.as(AbstractFile.class);
 					if (file.isExternal()) {
 
 						// check if name changed
@@ -156,7 +155,7 @@ public class AbstractFileTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Boolean> isExternalProperty                 = new BooleanProperty("isExternal").indexed().dynamic();
 		final Property<String> nameProperty                        = new StringProperty("name").format("[^\\\\/\\\\x00]+").notNull().indexed().dynamic();
 		final Property<Long> lastSeenMountedProperty               = new LongProperty("lastSeenMounted").dynamic();
-		final Property<Object> isMountedProperty                   = new MethodProperty("isMounted").format("org.structr.web.entity.AbstractFile, isMounted").typeHint("Boolean").dynamic();
+		final Property<Boolean> isMountedProperty                  = new AbstractFileIsMountedProperty();
 		final Property<String> pathProperty                        = new PathProperty("path").typeHint("String").indexed().dynamic();
 
 		return Set.of(

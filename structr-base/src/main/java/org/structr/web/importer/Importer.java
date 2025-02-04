@@ -987,7 +987,7 @@ public class Importer {
 				}
 
 				// set linkable
-				if (linkable != null && newNode instanceof NodeInterface n && n.is("LinkSource")) {
+				if (linkable != null && newNode.is("LinkSource")) {
 					newNode.as(LinkSource.class).setLinkable(linkable);
 				}
 
@@ -1220,7 +1220,7 @@ public class Importer {
 
 				if (instructions != null) {
 
-					if (instructions.contains("@structr:content") && !(newNode instanceof NodeInterface n && n.is("Content"))) {
+					if (instructions.contains("@structr:content") && !(newNode.is("Content"))) {
 
 						// unhandled instructions from previous iteration => empty content element
 						createEmptyContentNode(page, parent, commentHandler, instructions);

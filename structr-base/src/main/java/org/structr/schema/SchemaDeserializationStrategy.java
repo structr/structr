@@ -27,7 +27,6 @@ import org.structr.common.error.TypeToken;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.DeserializationStrategy;
 import org.structr.core.notion.TypeAndPropertySetDeserializationStrategy;

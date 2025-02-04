@@ -123,9 +123,9 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 					final Traits traits   = obj.getTraits();
 
 					// sync content only
-					map.put(traits.key("contentProperty"),     content.getContent());
-					map.put(traits.key("contentTypeProperty"), content.getContentType());
-					map.put(traits.key("name"),                obj.getProperty(traits.key("name")));
+					map.put(traits.key("content"),     content.getContent());
+					map.put(traits.key("contentType"), content.getContentType());
+					map.put(traits.key("name"),        obj.getProperty(traits.key("name")));
 
 					for (final DOMNode syncedNode : domNode.getSyncedNodes()) {
 

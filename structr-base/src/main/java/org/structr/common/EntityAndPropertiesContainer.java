@@ -109,6 +109,11 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
+	public Object getPath(final SecurityContext securityContext) {
+		throw new UnsupportedOperationException("Not supported by this container.");
+	}
+
+	@Override
 	public boolean hasRelationshipTo(final RelationshipType relType, final NodeInterface targetNode) {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}

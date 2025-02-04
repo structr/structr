@@ -332,8 +332,8 @@ public class StructrTypeDefinitions implements StructrDefinition {
 					map.put(typeName, typeMap);
 					typeMap.put("allOf", allOf);
 
-					// default base type AbstractNode
-					allOf.add(new OpenAPISchemaReference("#/components/schemas/AbstractNode", PropertyView.Public));
+					// default base type NodeInterface
+					allOf.add(new OpenAPISchemaReference("#/components/schemas/NodeInterface", PropertyView.Public));
 
 					// add actual type definition
 					allOf.add(new OpenAPIStructrTypeSchemaOutput(type, viewName, 0));

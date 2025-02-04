@@ -20,7 +20,6 @@ package org.structr.websocket.command;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.auth.SessionHelper;

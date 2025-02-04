@@ -446,7 +446,7 @@ public class SchemaService implements Service {
 							AccessPathCache.invalidate();
 
 							// clear relationship instance cache
-							AbstractNode.clearRelationshipTemplateInstanceCache();
+							NodeInterface.clearRelationshipTemplateInstanceCache();
 
 							// clear permission cache
 							AccessControllableTraitDefinition.clearCaches();

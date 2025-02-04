@@ -20,7 +20,6 @@ package org.structr.web.diff;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
-import org.structr.core.graph.NodeInterface;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
@@ -53,11 +52,11 @@ public class MoveOperation extends InvertibleModificationOperation {
 	@Override
 	public String toString() {
 
-		if (originalNode instanceof NodeInterface n && n.is("Content")) {
+		if (originalNode.is("Content")) {
 
 			return "Move Content(" + originalNode.getIdHashOrProperty() + ")";
 
-		} else if (originalNode instanceof NodeInterface n && n.is("DOMElement")) {
+		} else if (originalNode.is("DOMElement")) {
 
 			return "Move " + ((DOMElement)originalNode).getTag() + "(" + originalNode.getIdHashOrProperty() + ")";
 		}

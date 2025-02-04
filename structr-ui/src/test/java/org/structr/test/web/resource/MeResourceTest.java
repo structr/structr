@@ -19,6 +19,7 @@
 package org.structr.test.web.resource;
 
 import io.restassured.RestAssured;
+import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
 import org.structr.common.error.FrameworkException;
@@ -68,6 +69,7 @@ public class MeResourceTest extends StructrUiTest {
 			.given()
 				.contentType("application/json; charset=UTF-8")
 				.headers("x-user", "admin", "x-password", "admin")
+				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 
 			.expect()
 				.statusCode(200)

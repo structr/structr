@@ -1282,7 +1282,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		for (final PropertyKey key : traits.getAllPropertyKeys()) {
 
 			// only export dynamic (=> additional) keys that are *not* remote properties
-			if (key.relatedType() == null && !(key instanceof FunctionProperty) && !(key instanceof CypherProperty)) {
+			if (key.isDynamic() && key.relatedType() == null && !(key instanceof FunctionProperty) && !(key instanceof CypherProperty)) {
 
 				putData(config, key.jsonName(), node.getProperty(key));
 			}
@@ -1334,7 +1334,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		for (final PropertyKey key : traits.getAllPropertyKeys()) {
 
 			// only export dynamic (=> additional) keys that are *not* remote properties
-			if (key.relatedType() == null && !(key instanceof FunctionProperty) && !(key instanceof CypherProperty)) {
+			if (key.isDynamic() && key.relatedType() == null && !(key instanceof FunctionProperty) && !(key instanceof CypherProperty)) {
 
 				putData(config, key.jsonName(), abstractFile.getWrappedNode().getProperty(key));
 			}

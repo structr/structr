@@ -363,9 +363,9 @@ public class DOMNodeTest extends DOMTest {
 				div.appendChild(wrongTextNode);
 				fail("Adding a node that was not created using the correct document should raise a DOMException");
 
-			} catch (DOMException dex) {
+			} catch (FrameworkException dex) {
 
-				assertEquals(DOMException.WRONG_DOCUMENT_ERR, dex.code);
+				assertEquals(DOMException.WRONG_DOCUMENT_ERR, dex.getStatus());
 			}
 
 			try {
@@ -373,9 +373,9 @@ public class DOMNodeTest extends DOMTest {
 				div.appendChild(div);
 				fail("Adding a node to itself should raise a DOMException");
 
-			} catch (DOMException dex) {
+			} catch (FrameworkException dex) {
 
-				assertEquals(DOMException.HIERARCHY_REQUEST_ERR, dex.code);
+				assertEquals(DOMException.HIERARCHY_REQUEST_ERR, dex.getStatus());
 			}
 
 			try {
@@ -383,9 +383,9 @@ public class DOMNodeTest extends DOMTest {
 				div2.appendChild(div);
 				fail("Adding one of its own ancestors to a node should raise a DOMException");
 
-			} catch (DOMException dex) {
+			} catch (FrameworkException dex) {
 
-				assertEquals(DOMException.HIERARCHY_REQUEST_ERR, dex.code);
+				assertEquals(DOMException.HIERARCHY_REQUEST_ERR, dex.getStatus());
 			}
 
 			tx.success();

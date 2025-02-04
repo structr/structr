@@ -37,8 +37,6 @@ import org.structr.core.api.InstanceMethod;
 import org.structr.core.api.Methods;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.ModificationQueue;
@@ -46,6 +44,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.*;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.NodeTrait;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.Traits;
@@ -360,7 +359,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 					final DOMElement element        = node.as(DOMElement.class);
 					final NodeInterface wrappedThis = node.getWrappedNode();
-					final DOMElement newElement     = (DOMElement) newPage.createElement(element.getTag());
+					final DOMElement newElement     = newPage.createElement(element.getTag());
 					final NodeInterface wrappedNew  = newElement.getWrappedNode();
 
 					// copy attributes
@@ -390,7 +389,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 					final AsyncBuffer out                 = renderContext.getBuffer();
 					final EditMode editMode               = renderContext.getEditMode(securityContext.getUser(false));
 					final boolean hasSharedComponent      = elem.hasSharedComponent();
-					final DOMElement synced               = hasSharedComponent ? (DOMElement) elem.getSharedComponent() : null;
+					final DOMNode synced                  = hasSharedComponent ? elem.getSharedComponent() : null;
 					final boolean isVoid                  = elem.isVoidElement();
 					final String _tag                     = elem.getTag();
 
@@ -520,10 +519,10 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public void openingTag(final DOMElement node, final AsyncBuffer out, final String tag, final EditMode editMode, final RenderContext renderContext, final int depth) throws FrameworkException {
 
-					final boolean hasSharedComponent = node.hasSharedComponent();
-					final DOMElement _sharedComponentElement = hasSharedComponent ? (DOMElement) node.getSharedComponent() : null;
-					final NodeInterface wrappedNode = node.getWrappedNode();
-					final Traits traits = wrappedNode.getTraits();
+					final boolean hasSharedComponent      = node.hasSharedComponent();
+					final DOMNode _sharedComponentElement = hasSharedComponent ? node.getSharedComponent() : null;
+					final NodeInterface wrappedNode       = node.getWrappedNode();
+					final Traits traits                   = wrappedNode.getTraits();
 
 					if (_sharedComponentElement != null && EditMode.DEPLOYMENT.equals(editMode)) {
 
@@ -659,6 +658,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 									final ActionMapping triggeredAction = list.get(0);
 									final NodeInterface actionNode      = triggeredAction.getWrappedNode();
 									final String options                = triggeredAction.getOptions();
+									final Traits eamTraits              = actionNode.getTraits();
 
 									// support for configuration options
 									if (StringUtils.isNotBlank(options)) {
@@ -674,7 +674,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 									// append all stored action mapping keys as data-structr-<key> attributes
 									for (final String key : Set.of("event", "action", "method", "dataType", "idExpression")) {
 
-										final String value = actionNode.getPropertyWithVariableReplacement(renderContext, traits.key(key));
+										final String value = actionNode.getPropertyWithVariableReplacement(renderContext, eamTraits.key(key));
 										if (StringUtils.isNotBlank(value)) {
 
 											final String keyHyphenated = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, key);
@@ -1405,11 +1405,11 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 			if (target.isNode()) {
 
-				app.delete((AbstractNode)target);
+				app.delete((NodeInterface)target);
 
 			} else {
 
-				app.delete((AbstractRelationship)target);
+				app.delete((RelationshipInterface)target);
 			}
 		}
 	}
@@ -1549,9 +1549,9 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 		for (final GraphObject target : resolveDataTargets(actionContext, entity, dataTarget)) {
 
-			if (target instanceof DOMElement) {
+			if (target.is("DOMElement")) {
 
-				final DOMElement parent = (DOMElement)target;
+				final DOMElement parent = target.as(DOMElement.class);
 
 				RemoveDOMChildFunction.apply(actionContext.getSecurityContext(), parent, child.as(DOMNode.class));
 
@@ -1677,7 +1677,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 		for (final GraphObject target : resolveDataTargets(actionContext, entity, dataTarget)) {
 
-			if (target instanceof NodeInterface n && n.is("DOMElement")) {
+			if (target instanceof NodeTrait n && n.is("DOMElement")) {
 
 				final DOMElement parent = n.as(DOMElement.class);
 
@@ -2073,17 +2073,17 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 	// ----- private methods -----
 	private String generateDataAttributesForIdList(final RenderContext renderContext, final ActionMapping actionMapping, final String keyName) {
 
-		final NodeInterface actionNode           = actionMapping.getWrappedNode();
-		final List<String> selectors             = new LinkedList<>();
-		final Traits traits                      = actionNode.getTraits();
-		final PropertyKey<Iterable<DOMNode>> key = traits.key(keyName);
+		final NodeInterface actionNode                 = actionMapping.getWrappedNode();
+		final List<String> selectors                   = new LinkedList<>();
+		final Traits traits                            = actionNode.getTraits();
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key(keyName);
 
-		for (final DOMNode node : actionNode.getProperty(key)) {
+		for (final NodeInterface node : actionNode.getProperty(key)) {
 
 			// Create CSS selector for data-structr-id
 			String selector = "[data-structr-id='" + node.getUuid() + "']";
 
-			final String dataKey = node.getDataKey();
+			final String dataKey = node.as(DOMNode.class).getDataKey();
 			if (dataKey != null) {
 
 				selector += "[data-repeater-data-object-id='" + renderContext.getDataNode(dataKey).getUuid() + "']";

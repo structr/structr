@@ -626,11 +626,11 @@ public class RenderContextTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// create a Project type
-			final NodeInterface projectNode = createTestNode("SchemaNode", new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Project"));
+			final NodeInterface projectNode = createTestNode("SchemaNode", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Project"));
 
 			// create a Task type with a string property "task"
 			final NodeInterface taskNode    = createTestNode("SchemaNode",
-				new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Task"),
+				new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Task"),
 				new NodeAttribute<>(new StringProperty("_task"), "String")
 			);
 
@@ -665,18 +665,18 @@ public class RenderContextTest extends StructrUiTest {
 
 			final List<NodeInterface> tasks = new LinkedList<>();
 
-			tasks.add(app.create(taskType, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Task 1"), new NodeAttribute<>(taskKey, "Task 1")));
-			tasks.add(app.create(taskType, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Task 2"), new NodeAttribute<>(taskKey, "Task 2")));
-			tasks.add(app.create(taskType, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "Task 3"), new NodeAttribute<>(taskKey, "Task 3")));
+			tasks.add(app.create(taskType, new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Task 1"), new NodeAttribute<>(taskKey, "Task 1")));
+			tasks.add(app.create(taskType, new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Task 2"), new NodeAttribute<>(taskKey, "Task 2")));
+			tasks.add(app.create(taskType, new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Task 3"), new NodeAttribute<>(taskKey, "Task 3")));
 
 			// create a project and a task
 			final NodeInterface project = app.create(projectType,
-				new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "project"),
+				new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "project"),
 				new NodeAttribute<>(tasksKey, tasks)
 			);
 
 			// create an additional test task without a project
-			final NodeInterface testTask = app.create(taskType, new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "test task"), new NodeAttribute<>(taskKey, "test task"));
+			final NodeInterface testTask = app.create(taskType, new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "test task"), new NodeAttribute<>(taskKey, "test task"));
 			final RenderContext renderContext = new RenderContext(securityContext);
 
 			renderContext.putDataObject("project", project);
@@ -724,17 +724,17 @@ public class RenderContextTest extends StructrUiTest {
 			test = app.create("TestOne", "test1");
 
 			app.create("Group",
-				new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "group1"),
+				new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "group1"),
 				new NodeAttribute<>(Traits.of("Group").key("members"), List.of(user))
 			);
 
 			final NodeInterface group2 = app.create("Group",
-				new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "group2"),
+				new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "group2"),
 				new NodeAttribute<>(Traits.of("Group").key("members"), List.of(user))
 			);
 
 			app.create("Group",
-				new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "group3"),
+				new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "group3"),
 				new NodeAttribute<>(Traits.of("Group").key("members"), List.of(user))
 			);
 

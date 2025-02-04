@@ -304,11 +304,11 @@ public class EndNodes extends Property<Iterable<NodeInterface>> implements Relat
 
 				final ConfigurationProvider configuration = StructrApp.getConfiguration();
 
-				destType = configuration.getNodeEntityClass(AbstractNode.class.getSimpleName());
+				destType = configuration.getNodeEntityClass(NodeInterface.class.getSimpleName());
 				if (destType == null) {
 
 					final Map<String, Class> interfaces = configuration.getInterfaces();
-					destType = interfaces.get(AbstractNode.class.getSimpleName());
+					destType = interfaces.get(NodeInterface.class.getSimpleName());
 				}
 			}
 

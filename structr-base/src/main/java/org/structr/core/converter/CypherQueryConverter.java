@@ -27,8 +27,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.cypher.CypherQueryHandler;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.GraphDatabaseCommand;
+import org.structr.core.graph.NodeInterface;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -90,7 +90,7 @@ public class CypherQueryConverter extends PropertyConverter {
 
 				nativeQuery.configure(parameters);
 
-				Iterable<AbstractNode> nodes = (Iterable<AbstractNode>)handler.handleQueryResults(graphDb.execute(nativeQuery));
+				Iterable<NodeInterface> nodes = (Iterable<NodeInterface>)handler.handleQueryResults(graphDb.execute(nativeQuery));
 
 				return nodes;
 

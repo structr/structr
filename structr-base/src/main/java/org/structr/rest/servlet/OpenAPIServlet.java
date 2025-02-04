@@ -33,7 +33,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.Tx;
 import org.structr.schema.action.ActionContext;
@@ -274,7 +273,7 @@ public class OpenAPIServlet extends AbstractDataServlet {
 		map.putAll(definitions.serializeOpenAPI(map, tag));
 
 		// base classes
-		map.put("AbstractNode", new OpenAPIStructrTypeSchemaOutput("AbstractNode", PropertyView.Public, 0));
+		map.put("NodeInterface", new OpenAPIStructrTypeSchemaOutput("NodeInterface", PropertyView.Public, 0));
 
 		// base responses for GET and PUT,POST operations
 		Map<String, Object> getResponseBaseSchema = new HashMap<>();

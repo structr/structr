@@ -29,9 +29,9 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.JsonInput;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
@@ -215,8 +215,8 @@ public class CSVFileImportJob extends FileImportJob {
 
 								} else {
 
-									final AbstractNode sourceNode = (AbstractNode)app.getNodeById(relSourceType, (String)input.get("sourceId"));
-									final AbstractNode targetNode = (AbstractNode)app.getNodeById(relTargetType, (String)input.get("targetId"));
+									final NodeInterface sourceNode = app.getNodeById(relSourceType, (String)input.get("sourceId"));
+									final NodeInterface targetNode = app.getNodeById(relTargetType, (String)input.get("targetId"));
 
 									app.create(sourceNode, targetNode, targetEntityType.getName(), PropertyMap.inputTypeToJavaType(threadContext, targetEntityType.getName(), input));
 									overallCount++;

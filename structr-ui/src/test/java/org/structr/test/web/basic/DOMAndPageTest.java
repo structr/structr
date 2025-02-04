@@ -694,7 +694,7 @@ public class DOMAndPageTest extends StructrUiTest {
 			Double time                 = (t1 - t0) / 1000.0;
 			Double rate                 = max / ((t1 - t0) / 1000.0);
 
-			logger.info("------> Time to render {} the base URI: {} seconds ({} per s)", new Object[] { max, decimalFormat.format(time), decimalFormat.format(rate) });
+			logger.info("------> Time to render {} the base URI: {} seconds ({} per second)", max, decimalFormat.format(time), decimalFormat.format(rate));
 
 			assertFalse(doc.select("html").isEmpty());
 			assertFalse(doc.select("html > head").isEmpty());
@@ -726,7 +726,7 @@ public class DOMAndPageTest extends StructrUiTest {
 			time                 = (t1 - t0) / 1000.0;
 			rate                 = max / ((t1 - t0) / 1000.0);
 
-			logger.info("------> Time to render {} the test page by name: {} seconds ({} per s)", new Object[] { max, decimalFormat.format(time), decimalFormat.format(rate) });
+			logger.info("------> Time to render {} the test page by name: {} seconds ({} per second)", max, decimalFormat.format(time), decimalFormat.format(rate));
 
 
 			assertFalse(doc.select("html").isEmpty());

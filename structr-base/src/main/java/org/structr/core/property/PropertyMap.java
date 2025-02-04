@@ -26,11 +26,9 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.CreationContainer;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.Traits;
-import org.structr.schema.SchemaHelper;
 
 import java.util.*;
 import java.util.Map.Entry;

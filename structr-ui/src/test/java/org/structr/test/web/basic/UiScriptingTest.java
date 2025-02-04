@@ -128,8 +128,8 @@ public class UiScriptingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			Page page         = (Page) app.create("Page", new NodeAttribute<>(Traits.of("Page").key("name"), "test"), new NodeAttribute<>(Traits.of("Page").key("visibleToPublicUsers"), true));
-			Template template = (Template) app.create("Template", new NodeAttribute<>(Traits.of("Page").key("visibleToPublicUsers"), true));
+			Page page         = app.create("Page", new NodeAttribute<>(Traits.of("Page").key("name"), "test"), new NodeAttribute<>(Traits.of("Page").key("visibleToPublicUsers"), true)).as(Page.class);
+			Template template = app.create("Template", new NodeAttribute<>(Traits.of("Page").key("visibleToPublicUsers"), true)).as(Template.class);
 
 			template.setContent("${if (\n" +
 				"	is_collection(request.param),\n" +
@@ -210,8 +210,8 @@ public class UiScriptingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			Page page         = (Page) app.create("Page", new NodeAttribute<>(Traits.of("Page").key("name"), "test"), new NodeAttribute<>(Traits.of("Page").key("visibleToPublicUsers"), true));
-			Template template = (Template) app.create("Template", new NodeAttribute<>(Traits.of("Page").key("visibleToPublicUsers"), true));
+			Page page         = app.create("Page", new NodeAttribute<>(Traits.of("Page").key("name"), "test"), new NodeAttribute<>(Traits.of("Page").key("visibleToPublicUsers"), true)).as(Page.class);
+			Template template = app.create("Template", new NodeAttribute<>(Traits.of("Page").key("visibleToPublicUsers"), true)).as(Template.class);
 
 			template.setContent("${{ $.print($.get('request').param.join('')); }}");
 
@@ -545,7 +545,7 @@ public class UiScriptingTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final Page page       = Page.createSimplePage(securityContext, "test");
-			final DOMNode div         = page.getElementsByTagName("div").get(0);
+			final DOMNode div     = page.getElementsByTagName("div").get(0);
 			final DOMNode content = div.getFirstChild();
 
 			// setup repeater
@@ -1495,9 +1495,9 @@ public class UiScriptingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			Page page         = (Page) app.create("Page", new NodeAttribute<>(Traits.of("Page").key("name"), "test"), new NodeAttribute<>(Traits.of("Page").key("visibleToPublicUsers"), true));
-			Template template1 = (Template) app.create("Template", new NodeAttribute<>(Traits.of("Page").key("visibleToPublicUsers"), true));
-			Template template2 = (Template) app.create("Template", new NodeAttribute<>(Traits.of("Page").key("visibleToPublicUsers"), true));
+			Page page         = app.create("Page", new NodeAttribute<>(Traits.of("Page").key("name"), "test"), new NodeAttribute<>(Traits.of("Page").key("visibleToPublicUsers"), true)).as(Page.class);
+			Template template1 = app.create("Template", new NodeAttribute<>(Traits.of("Page").key("visibleToPublicUsers"), true)).as(Template.class);
+			Template template2 = app.create("Template", new NodeAttribute<>(Traits.of("Page").key("visibleToPublicUsers"), true)).as(Template.class);
 
 			String script = "${{ let session = $.session; if ($.empty(session['test'])) { session['test'] = 123; } else { session['test'] = 456; } return $.session['test']; }}";
 			template1.setContent(script);
@@ -1555,9 +1555,9 @@ public class UiScriptingTest extends StructrUiTest {
 			// Test 1: JavaScript: print - render - print
 			{
 
-				final Page page          = (Page) app.create("Page", new NodeAttribute(Traits.of("NodeInterface").key("name"), test1PageName), new NodeAttribute(Traits.of("NodeInterface").key("visibleToPublicUsers"), true));
-				final Template template1 = (Template) app.create("Template", new NodeAttribute(Traits.of("NodeInterface").key("visibleToPublicUsers"), true));
-				final Template template2 = (Template) app.create("Template", new NodeAttribute(Traits.of("NodeInterface").key("visibleToPublicUsers"), true));
+				final Page page          = app.create("Page", new NodeAttribute(Traits.of("NodeInterface").key("name"), test1PageName), new NodeAttribute(Traits.of("NodeInterface").key("visibleToPublicUsers"), true)).as(Page.class);
+				final Template template1 = app.create("Template", new NodeAttribute(Traits.of("NodeInterface").key("visibleToPublicUsers"), true)).as(Template.class);
+				final Template template2 = app.create("Template", new NodeAttribute(Traits.of("NodeInterface").key("visibleToPublicUsers"), true)).as(Template.class);
 
 				template1.setContent("${{\n" +
 					"	$.print('TEST1 BEFORE');\n" +
@@ -1573,9 +1573,9 @@ public class UiScriptingTest extends StructrUiTest {
 
 			// Test 2: JavaScript: print - include_child - print
 			{
-				final Page page          = (Page) app.create("Page", new NodeAttribute(Traits.of("NodeInterface").key("name"), test2PageName), new NodeAttribute(Traits.of("NodeInterface").key("visibleToPublicUsers"), true));
-				final Template template1 = (Template) app.create("Template", new NodeAttribute(Traits.of("NodeInterface").key("visibleToPublicUsers"), true));
-				final Template template2 = (Template) app.create("Template", new NodeAttribute(Traits.of("NodeInterface").key("name"), "MY_CHILD"), new NodeAttribute(Traits.of("NodeInterface").key("visibleToPublicUsers"), true));
+				final Page page          = app.create("Page", new NodeAttribute(Traits.of("NodeInterface").key("name"), test2PageName), new NodeAttribute(Traits.of("NodeInterface").key("visibleToPublicUsers"), true)).as(Page.class);
+				final Template template1 = app.create("Template", new NodeAttribute(Traits.of("NodeInterface").key("visibleToPublicUsers"), true)).as(Template.class);
+				final Template template2 = app.create("Template", new NodeAttribute(Traits.of("NodeInterface").key("name"), "MY_CHILD"), new NodeAttribute(Traits.of("NodeInterface").key("visibleToPublicUsers"), true)).as(Template.class);
 
 				template1.setContent("${{\n" +
 					"	$.print('TEST2 BEFORE');\n" +
@@ -1591,9 +1591,9 @@ public class UiScriptingTest extends StructrUiTest {
 
 			// Test 3: StructrScript: print - render - print
 			{
-				final Page page          = (Page) app.create("Page", new NodeAttribute(Traits.of("NodeInterface").key("name"), test3PageName), new NodeAttribute(Traits.of("NodeInterface").key("visibleToPublicUsers"), true));
-				final Template template1 = (Template) app.create("Template", new NodeAttribute(Traits.of("NodeInterface").key("visibleToPublicUsers"), true));
-				final Template template2 = (Template) app.create("Template", new NodeAttribute(Traits.of("NodeInterface").key("visibleToPublicUsers"), true));
+				final Page page          = app.create("Page", new NodeAttribute(Traits.of("NodeInterface").key("name"), test3PageName), new NodeAttribute(Traits.of("NodeInterface").key("visibleToPublicUsers"), true)).as(Page.class);
+				final Template template1 = app.create("Template", new NodeAttribute(Traits.of("NodeInterface").key("visibleToPublicUsers"), true)).as(Template.class);
+				final Template template2 = app.create("Template", new NodeAttribute(Traits.of("NodeInterface").key("visibleToPublicUsers"), true)).as(Template.class);
 
 				template1.setContent("${\n" +
 					"	(\n" +
@@ -1611,9 +1611,9 @@ public class UiScriptingTest extends StructrUiTest {
 
 			// Test 4: StructrScript: print - include_child - print
 			{
-				final Page page          = (Page) app.create("Page", new NodeAttribute(Traits.of("NodeInterface").key("name"), test4PageName), new NodeAttribute(Traits.of("NodeInterface").key("visibleToPublicUsers"), true));
-				final Template template1 = (Template) app.create("Template", new NodeAttribute(Traits.of("NodeInterface").key("visibleToPublicUsers"), true));
-				final Template template2 = (Template) app.create("Template", new NodeAttribute(Traits.of("NodeInterface").key("name"), "MY_CHILD"), new NodeAttribute(Traits.of("NodeInterface").key("visibleToPublicUsers"), true));
+				final Page page          = app.create("Page", new NodeAttribute(Traits.of("NodeInterface").key("name"), test4PageName), new NodeAttribute(Traits.of("NodeInterface").key("visibleToPublicUsers"), true)).as(Page.class);
+				final Template template1 = app.create("Template", new NodeAttribute(Traits.of("NodeInterface").key("visibleToPublicUsers"), true)).as(Template.class);
+				final Template template2 = app.create("Template", new NodeAttribute(Traits.of("NodeInterface").key("name"), "MY_CHILD"), new NodeAttribute(Traits.of("NodeInterface").key("visibleToPublicUsers"), true)).as(Template.class);
 
 				template1.setContent("${\n" +
 					"	(\n" +
@@ -1664,8 +1664,8 @@ public class UiScriptingTest extends StructrUiTest {
 
 			// Test 1: print - implicit return - print (implicit return in StructrScript: the result of all scripting expressions is printed upon evaluation of the expression. this makes interleaved prints impossible to order correctly/logically)
 			{
-				final Page page         = (Page) app.create("Page", new NodeAttribute(Traits.of("NodeInterface").key("name"), test1PageName), new NodeAttribute(Traits.of("NodeInterface").key("visibleToPublicUsers"), true));
-				final Template template = (Template) app.create("Template", new NodeAttribute(Traits.of("NodeInterface").key("visibleToPublicUsers"), true));
+				final Page page         = app.create("Page", new NodeAttribute(Traits.of("NodeInterface").key("name"), test1PageName), new NodeAttribute(Traits.of("NodeInterface").key("visibleToPublicUsers"), true)).as(Page.class);
+				final Template template = app.create("Template", new NodeAttribute(Traits.of("NodeInterface").key("visibleToPublicUsers"), true)).as(Template.class);
 
 				template.setContent("${(\n" +
 					"	print('BEFORE'),\n" +
@@ -1678,8 +1678,8 @@ public class UiScriptingTest extends StructrUiTest {
 
 			// Test 2: print - return - print (make sure the second print statement is not executed)
 			{
-				final Page page         = (Page) app.create("Page", new NodeAttribute(Traits.of("NodeInterface").key("name"), test2PageName), new NodeAttribute(Traits.of("NodeInterface").key("visibleToPublicUsers"), true));
-				final Template template = (Template) app.create("Template", new NodeAttribute(Traits.of("NodeInterface").key("visibleToPublicUsers"), true));
+				final Page page         = app.create("Page", new NodeAttribute(Traits.of("NodeInterface").key("name"), test2PageName), new NodeAttribute(Traits.of("NodeInterface").key("visibleToPublicUsers"), true)).as(Page.class);
+				final Template template = app.create("Template", new NodeAttribute(Traits.of("NodeInterface").key("visibleToPublicUsers"), true)).as(Template.class);
 
 				template.setContent("${{\n" +
 					"	$.print('BEFORE');\n" +
@@ -1762,9 +1762,9 @@ public class UiScriptingTest extends StructrUiTest {
 			);
 
 			{
-				final Page page          = (Page) app.create("Page", new NodeAttribute(Traits.of("NodeInterface").key("name"), "irrelevant"), new NodeAttribute(Traits.of("NodeInterface").key("visibleToPublicUsers"), true));
-				final Template template1 = (Template) app.create("Template", new NodeAttribute(Traits.of("NodeInterface").key("visibleToPublicUsers"), true));
-				final Template template2 = (Template) app.create("Template", new NodeAttribute(Traits.of("NodeInterface").key("name"), "namedDOMNode"), new NodeAttribute(Traits.of("NodeInterface").key("visibleToPublicUsers"), true));
+				final Page page          = app.create("Page", new NodeAttribute(Traits.of("NodeInterface").key("name"), "irrelevant"), new NodeAttribute(Traits.of("NodeInterface").key("visibleToPublicUsers"), true)).as(Page.class);
+				final Template template1 = app.create("Template", new NodeAttribute(Traits.of("NodeInterface").key("visibleToPublicUsers"), true)).as(Template.class);
+				final Template template2 = app.create("Template", new NodeAttribute(Traits.of("NodeInterface").key("name"), "namedDOMNode"), new NodeAttribute(Traits.of("NodeInterface").key("visibleToPublicUsers"), true)).as(Template.class);
 
 				template1.setContent("Template not including child ;)");
 				template2.setContent("-X-");
@@ -1884,7 +1884,7 @@ public class UiScriptingTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final GraphObject project2 = app.nodeQuery(projectType).andName("Project 2").getFirst();
-			final List tasks           = Iterables.toList((Iterable)project2.getProperty(Traits.of("projectType").key("tasks")));
+			final List tasks           = Iterables.toList((Iterable)project2.getProperty(Traits.of(projectType).key("tasks")));
 
 			assertEquals("Project should not have tasks after a failed assertion rolls back the transaction", 0, tasks.size());
 

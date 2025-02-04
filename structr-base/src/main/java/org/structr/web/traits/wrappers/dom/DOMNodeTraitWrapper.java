@@ -43,6 +43,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.NodeTrait;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.AbstractTraitWrapper;
 import org.structr.schema.action.Function;
@@ -61,7 +62,7 @@ import org.structr.websocket.command.CreateComponentCommand;
 import java.util.*;
 
 /**
- * Combines AbstractNode and DOMnode
+ * Combines NodeInterface and DOMnode
  */
 public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> implements DOMNode {
 
@@ -77,8 +78,6 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 		type.addViewProperty(PropertyView.Ui, "failureActions");
 		type.addViewProperty(PropertyView.Ui, "successNotificationActions");
 		type.addViewProperty(PropertyView.Ui, "failureNotificationActions");
-
-		type.addCustomProperty("sortedChildren", MethodProperty.class.getName()).setTypeHint("DOMNode[]").setFormat(DOMNode.class.getName() + ", getChildNodes");
 
 		type.overrideMethod("getSiblingLinkType",          false, "return DOMNodeCONTAINS_NEXT_SIBLINGDOMNode.class;");
 		type.overrideMethod("getChildLinkType",            false, "return DOMNodeCONTAINSDOMNode.class;");
@@ -1140,7 +1139,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	@Override
 	public final int getChildPosition(final DOMNode otherNode) {
 
-		final LinkedTreeNode node = wrappedObject.as(LinkedTreeNode.class);
+		final LinkedTreeNode node = wrappedObject.as(DOMNode.class);
 
 		return node.treeGetChildPosition(otherNode.getWrappedNode());
 	}
@@ -1304,12 +1303,28 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 
 	@Override
 	public final void setOwnerDocument(final Page page) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("ownerDocument"), page.getWrappedNode());
+
+		if (page != null) {
+
+			wrappedObject.setProperty(traits.key("ownerDocument"), page.getWrappedNode());
+
+		} else {
+
+			wrappedObject.setProperty(traits.key("ownerDocument"), null);
+		}
 	}
 
 	@Override
 	public final void setSharedComponent(final DOMNode sharedComponent) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("sharedComponent"), sharedComponent.getWrappedNode());
+
+		if (sharedComponent != null) {
+
+			wrappedObject.setProperty(traits.key("sharedComponent"), sharedComponent.getWrappedNode());
+
+		} else {
+
+			wrappedObject.setProperty(traits.key("sharedComponent"), null);
+		}
 	}
 
 	@Override
@@ -1336,13 +1351,17 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 				for (final Object dataObject : listSource) {
 
 					// make current data object available in renderContext
-					if (dataObject instanceof GraphObject) {
+					if (dataObject instanceof NodeTrait n) {
 
-						renderContext.putDataObject(dataKey, (GraphObject)dataObject);
+						renderContext.putDataObject(dataKey, n.getWrappedNode());
 
-					} else if (dataObject instanceof Iterable) {
+					} else if (dataObject instanceof GraphObject o) {
 
-						renderContext.putDataObject(dataKey, Function.recursivelyWrapIterableInMap((Iterable)dataObject, 0));
+						renderContext.putDataObject(dataKey, o);
+
+					} else if (dataObject instanceof Iterable i) {
+
+						renderContext.putDataObject(dataKey, Function.recursivelyWrapIterableInMap(i, 0));
 					}
 
 					renderContent(renderContext, depth + 1);
@@ -1395,11 +1414,11 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 				final Logger logger = LoggerFactory.getLogger(DOMNode.class);
 				logger.warn("{} node with UUID {} has owner document {} with UUID {} whereas this node has owner document {} with UUID {}",
 					otherNode.getType(),
-					((NodeInterface)otherNode).getUuid(),
+					otherNode.getUuid(),
 					otherDoc.getType(),
-					((NodeInterface)otherDoc).getUuid(),
+					otherDoc.getUuid(),
 					doc.getType(),
-					((NodeInterface)doc).getUuid()
+					doc.getUuid()
 				);
 
 				throw new FrameworkException(422, WRONG_DOCUMENT_ERR_MESSAGE);

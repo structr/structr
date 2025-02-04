@@ -22,7 +22,6 @@ import org.structr.api.DatabaseService;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.TypeProperty;
 
 import java.util.Collections;
@@ -54,10 +53,10 @@ public class BulkCreateLabelsCommand extends NodeServiceCommand implements Maint
 			info("Starting creation of labels for all nodes of type {}", entityType);
 		}
 
-		final long count = bulkGraphOperation(securityContext, getNodeQuery(entityType, true), 10000, "CreateLabels", new BulkGraphOperation<AbstractNode>() {
+		final long count = bulkGraphOperation(securityContext, getNodeQuery(entityType, true), 10000, "CreateLabels", new BulkGraphOperation<NodeInterface>() {
 
 			@Override
-			public boolean handleGraphObject(SecurityContext securityContext, AbstractNode node) {
+			public boolean handleGraphObject(SecurityContext securityContext, NodeInterface node) {
 
 				TypeProperty.updateLabels(graphDb, node, node.getTraits(), removeUnused);
 
@@ -65,7 +64,7 @@ public class BulkCreateLabelsCommand extends NodeServiceCommand implements Maint
 			}
 
 			@Override
-			public void handleThrowable(SecurityContext securityContext, Throwable t, AbstractNode node) {
+			public void handleThrowable(SecurityContext securityContext, Throwable t, NodeInterface node) {
 				warn("Unable to create labels for node {}: {}", node, t.getMessage());
 			}
 

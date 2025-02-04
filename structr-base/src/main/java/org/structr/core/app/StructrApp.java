@@ -39,7 +39,6 @@ import org.structr.common.fulltext.DummyFulltextIndexer;
 import org.structr.common.fulltext.FulltextIndexer;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.*;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.graph.search.SearchRelationshipCommand;
@@ -49,7 +48,6 @@ import org.structr.module.StructrModule;
 import org.structr.schema.ConfigurationProvider;
 
 import java.io.IOException;
-import java.lang.reflect.Modifier;
 import java.net.URI;
 import java.util.*;
 

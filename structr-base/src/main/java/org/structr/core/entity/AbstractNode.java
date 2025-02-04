@@ -50,9 +50,9 @@ import java.util.Map;
 public final class AbstractNode extends AbstractGraphObject<Node> implements NodeInterface {
 
 	/*
-	public static final View defaultView = new View(AbstractNode.class, PropertyView.Public, id, type, name);
+	public static final View defaultView = new View(NodeInterface.class, PropertyView.Public, id, type, name);
 
-	public static final View uiView = new View(AbstractNode.class, PropertyView.Ui,
+	public static final View uiView = new View(NodeInterface.class, PropertyView.Ui,
 		id, name, owner, type, createdBy, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibleToAuthenticatedUsers
 	);
 

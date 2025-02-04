@@ -24,8 +24,6 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Node;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.PropertyKey;
 
 import java.util.Map;
@@ -61,10 +59,10 @@ public class BulkChangeNodePropertyKeyCommand extends NodeServiceCommand impleme
 				properties.remove("type");
 			}
 
-			final long count = bulkGraphOperation(securityContext, getNodeQuery(type, true), 1000, "ChangeNodePropertyKey", new BulkGraphOperation<AbstractNode>() {
+			final long count = bulkGraphOperation(securityContext, getNodeQuery(type, true), 1000, "ChangeNodePropertyKey", new BulkGraphOperation<NodeInterface>() {
 
 				@Override
-				public boolean handleGraphObject(SecurityContext securityContext, AbstractNode node) {
+				public boolean handleGraphObject(SecurityContext securityContext, NodeInterface node) {
 
 					for (Entry entry : properties.entrySet()) {
 
@@ -95,7 +93,7 @@ public class BulkChangeNodePropertyKeyCommand extends NodeServiceCommand impleme
 				}
 
 				@Override
-				public void handleThrowable(SecurityContext securityContext, Throwable t, AbstractNode node) {
+				public void handleThrowable(SecurityContext securityContext, Throwable t, NodeInterface node) {
 					logger.warn("Unable to set properties of node {}: {}", new Object[] { node.getUuid(), t.getMessage() } );
 				}
 

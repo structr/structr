@@ -22,21 +22,20 @@ package org.structr.rest.resource;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.helper.CaseHelper;
 import org.structr.core.entity.Principal;
 import org.structr.rest.RestMethodResult;
+import org.structr.rest.api.ExactMatchEndpoint;
+import org.structr.rest.api.RESTCall;
+import org.structr.rest.api.RESTCallHandler;
+import org.structr.rest.api.parameter.RESTParameter;
 import org.structr.rest.exception.NotAllowedException;
 
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
-import org.structr.common.SecurityContext;
-import org.structr.common.helper.CaseHelper;
-import org.structr.rest.api.ExactMatchEndpoint;
-import org.structr.rest.api.RESTCall;
-import org.structr.rest.api.RESTCallHandler;
-import org.structr.rest.api.parameter.RESTParameter;
-import org.structr.web.entity.User;
 
 /**
  *
@@ -65,7 +64,7 @@ public class MeResource extends ExactMatchEndpoint {
 			Principal user = securityContext.getUser(true);
 			if (user != null) {
 
-				return new PagingIterable<>(getURL(), Arrays.asList(user));
+				return new PagingIterable<>(getURL(), Arrays.asList(user.getWrappedNode()));
 
 			} else {
 

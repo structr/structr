@@ -19,9 +19,6 @@
 package org.structr.web.maintenance;
 
 import com.google.gson.Gson;
-import java.io.Reader;
-import java.nio.charset.Charset;
-import java.time.ZonedDateTime;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,32 +29,27 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
+import org.structr.rest.resource.MaintenanceResource;
 import org.structr.schema.SchemaHelper;
 import org.structr.web.entity.AbstractFile;
-import org.structr.web.entity.File;
-import org.structr.web.entity.Folder;
-import org.structr.web.entity.User;
 import org.structr.web.maintenance.deploy.DeletingFileImportVisitor;
 import org.structr.web.maintenance.deploy.ImportPreconditionFailedException;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
+import java.io.*;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
-import org.structr.rest.resource.MaintenanceResource;
 
 public class DeployDataCommand extends DeployCommand {
 

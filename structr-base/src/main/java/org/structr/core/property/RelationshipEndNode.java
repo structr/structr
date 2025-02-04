@@ -28,7 +28,6 @@ import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.Notion;
@@ -40,7 +39,7 @@ import java.util.Map;
  *
  *
  */
-public class RelationshipEndNode<T extends AbstractNode> extends AbstractReadOnlyProperty<T> {
+public class RelationshipEndNode<T extends NodeInterface> extends AbstractReadOnlyProperty<T> {
 
 	private Notion notion = null;
 

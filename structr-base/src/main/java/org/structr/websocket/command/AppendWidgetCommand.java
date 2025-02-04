@@ -21,7 +21,6 @@ package org.structr.websocket.command;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.web.entity.Widget;
 import org.structr.web.entity.dom.DOMNode;

@@ -22,8 +22,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
@@ -63,10 +61,10 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 				info("Start setting UUID on nodes of type {}", nodeType);
 			}
 
-			final long count = bulkGraphOperation(securityContext, getNodeQuery(nodeType, Boolean.TRUE.equals(allNodes)), 1000, "SetNodeUuid", new BulkGraphOperation<AbstractNode>() {
+			final long count = bulkGraphOperation(securityContext, getNodeQuery(nodeType, Boolean.TRUE.equals(allNodes)), 1000, "SetNodeUuid", new BulkGraphOperation<NodeInterface>() {
 
 				@Override
-				public boolean handleGraphObject(final SecurityContext securityContext, final AbstractNode node) {
+				public boolean handleGraphObject(final SecurityContext securityContext, final NodeInterface node) {
 
 					try {
 
@@ -85,7 +83,7 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 				}
 
 				@Override
-				public void handleThrowable(SecurityContext securityContext, Throwable t, AbstractNode node) {
+				public void handleThrowable(SecurityContext securityContext, Throwable t, NodeInterface node) {
 					logger.warn("Unable to set UUID of node {}", node, t);
 				}
 

@@ -27,7 +27,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
 
@@ -72,10 +71,10 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 		properties.remove("type");
 
 		// to be able to change the type (i.e. the labels) of a node, we cannot rely on the node query here, hence we need to fetch ALL nodes
-		final long count = bulkGraphOperation(securityContext, app.nodeQuery(), 1000, "SetNodeProperties", new BulkGraphOperation<AbstractNode>() {
+		final long count = bulkGraphOperation(securityContext, app.nodeQuery(), 1000, "SetNodeProperties", new BulkGraphOperation<NodeInterface>() {
 
 			@Override
-			public boolean handleGraphObject(final SecurityContext securityContext, final AbstractNode node) {
+			public boolean handleGraphObject(final SecurityContext securityContext, final NodeInterface node) {
 
 				// Treat only "our" nodes
 				if (node.getProperty(idProperty) != null && type.equals(node.getProperty(typeProperty))) {
@@ -125,7 +124,7 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 			}
 
 			@Override
-			public void handleThrowable(SecurityContext securityContext, Throwable t, AbstractNode node) {
+			public void handleThrowable(SecurityContext securityContext, Throwable t, NodeInterface node) {
 				logger.warn("Unable to set properties of node {}: {}", new Object[] { node.getUuid(), t.getMessage() } );
 			}
 

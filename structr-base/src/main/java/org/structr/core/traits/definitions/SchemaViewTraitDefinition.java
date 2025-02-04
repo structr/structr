@@ -98,7 +98,7 @@ public class SchemaViewTraitDefinition extends AbstractNodeTraitDefinition {
 		valid &= ValidationHelper.isValidStringMatchingRegex(this, name, schemaViewNamePattern, errorBuffer);
 
 		// check case-insensitive name uniqueness on current type
-		final String thisViewName       = getProperty(AbstractNode.name);
+		final String thisViewName       = getProperty(NodeInterface.name);
 		final AbstractSchemaNode parent = this.getProperty(SchemaView.schemaNode);
 
 		try {

@@ -314,17 +314,17 @@ public class UiTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			Folder a = (Folder) FileHelper.getFileByAbsolutePath(SecurityContext.getSuperUserInstance(), "/a");
+			NodeInterface a = FileHelper.getFileByAbsolutePath(SecurityContext.getSuperUserInstance(), "/a");
 			assertNotNull(a);
-			assertEquals(a.getPath(), "/a");
+			assertEquals(a.as(Folder.class).getPath(), "/a");
 
-			Folder b = (Folder) FileHelper.getFileByAbsolutePath(SecurityContext.getSuperUserInstance(), "/a/b");
+			NodeInterface b = FileHelper.getFileByAbsolutePath(SecurityContext.getSuperUserInstance(), "/a/b");
 			assertNotNull(b);
-			assertEquals(b.getPath(), "/a/b");
+			assertEquals(b.as(Folder.class).getPath(), "/a/b");
 
-			Folder c = (Folder) FileHelper.getFileByAbsolutePath(SecurityContext.getSuperUserInstance(), "/a/b/c");
+			NodeInterface c = FileHelper.getFileByAbsolutePath(SecurityContext.getSuperUserInstance(), "/a/b/c");
 			assertNotNull(c);
-			assertEquals(c.getPath(), "/a/b/c");
+			assertEquals(c.as(Folder.class).getPath(), "/a/b/c");
 
 			tx.success();
 

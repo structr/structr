@@ -49,7 +49,7 @@ import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.property.CustomHtmlAttributeProperty;
-import org.structr.web.property.MethodProperty;
+import org.structr.web.property.DOMNodeSortedChildrenProperty;
 import org.structr.web.traits.operations.*;
 import org.structr.web.traits.wrappers.dom.DOMNodeTraitWrapper;
 import org.w3c.dom.DOMException;
@@ -57,12 +57,12 @@ import org.w3c.dom.DOMException;
 import java.util.*;
 
 /**
- * Combines AbstractNode and org.w3c.dom.Node.
+ * Combines NodeInterface and org.w3c.dom.Node.
  */
 public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 	private static final String[] rawProps = new String[] {
-		"dataKey", "restQuery", "cypherQuery", "xpathQuery", "functionQuery", "selectedValues", "flow", "hideOnIndex", "hideOnDetail", "showForLocales", "hideForLocales", "showConditions", "hideConditions"
+		"dataKey", "restQuery", "cypherQuery", "functionQuery", "selectedValues", "flow", "hideOnIndex", "hideOnDetail", "showForLocales", "hideForLocales", "showConditions", "hideConditions"
 	};
 
 	private static final Set<String> DataAttributeOutputBlacklist = Set.of("data-structr-manual-reload-target");
@@ -88,7 +88,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
-					final DOMNode domNode = ((NodeInterface) graphObject).as(DOMNode.class);
+					final DOMNode domNode = graphObject.as(DOMNode.class);
 
 					domNode.checkName(errorBuffer);
 					domNode.syncName(errorBuffer);
@@ -101,7 +101,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
-					final DOMNode domNode = ((NodeInterface) graphObject).as(DOMNode.class);
+					final DOMNode domNode = graphObject.as(DOMNode.class);
 
 					domNode.increasePageVersion();
 					domNode.checkName(errorBuffer);
@@ -132,7 +132,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					getSuper().visitForUsage(obj, data);
 
 					final DOMNode node = obj.as(DOMNode.class);
-					final Page page = (Page) node.getOwnerDocument();
+					final Page page    = node.getOwnerDocument();
 
 					if (page != null) {
 
@@ -422,15 +422,15 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 						for (final String p : rawProps) {
 
-							final String htmlName = "data-structr-meta-" + CaseHelper.toUnderscore(p, false).replaceAll("_", "-");
-							final PropertyKey key = traits.key(p);
+							if (traits.hasKey(p)) {
 
-							if (key != null) {
+								final PropertyKey key = traits.key(p);
+								final Object value    = wrappedNode.getProperty(key);
 
-								final Object value = wrappedNode.getProperty(key);
 								if (value != null) {
 
-									final boolean isBoolean = key instanceof BooleanProperty;
+									final String htmlName    = "data-structr-meta-" + CaseHelper.toUnderscore(p, false).replaceAll("_", "-");
+									final boolean isBoolean  = key instanceof BooleanProperty;
 									final String stringValue = value.toString();
 
 									if ((isBoolean && "true".equals(stringValue)) || (!isBoolean && StringUtils.isNotBlank(stringValue))) {
@@ -534,7 +534,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Iterable<NodeInterface>> failureActionsProperty             = new EndNodes("failureActions", "DOMNodeFAILURE_TARGETActionMapping");
 		final Property<Iterable<NodeInterface>> successNotificationActionsProperty = new EndNodes("successNotificationActions", "DOMNodeSUCCESS_NOTIFICATION_ELEMENTActionMapping");
 		final Property<Iterable<NodeInterface>> failureNotificationActionsProperty = new EndNodes("failureNotificationActions", "DOMNodeFAILURE_NOTIFICATION_ELEMENTActionMapping");
-		final Property<Object> sortedChildrenProperty                              = new MethodProperty("sortedChildren").format("org.structr.web.entity.dom.DOMNode, getChildNodes").typeHint("DOMNode[]");
+		final Property<Iterable<DOMNode>> sortedChildrenProperty                   = new DOMNodeSortedChildrenProperty("sortedChildren").typeHint("DOMNode[]");
 		final Property<String> childrenIdsProperty                                 = new CollectionIdProperty("childrenIds", "DOMNode", "children", "DOMNode").category("Page Structure");
 		final Property<String> nextSiblingIdProperty                               = new EntityIdProperty("nextSiblingId", "DOMNode", "nextSibling", "DOMNode").category("Page Structure");
 		final Property<String> pageIdProperty                                      = new EntityIdProperty("pageId", "DOMNode", "ownerDocument", "Page").category("Page Structure");

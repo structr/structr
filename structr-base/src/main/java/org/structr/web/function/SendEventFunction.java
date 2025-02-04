@@ -20,7 +20,7 @@ package org.structr.web.function;
 
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
-import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.NodeTrait;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.User;
 import org.structr.web.servlet.EventSourceServlet;
@@ -57,11 +57,11 @@ public class SendEventFunction extends UiAdvancedFunction {
 			final String name             = sources[0].toString();
 			final String message          = sources[1].toString();
 
-			if (sources[2] instanceof NodeInterface n && n.is("User")) {
+			if (sources[2] instanceof NodeTrait n && n.is("User")) {
 
 				return EventSourceServlet.sendEvent(name, message, n.as(User.class));
 
-			} else if (sources[2] instanceof NodeInterface n && n.is("Group")) {
+			} else if (sources[2] instanceof NodeTrait n && n.is("Group")) {
 
 				return EventSourceServlet.sendEvent(name, message, n.as(Group.class));
 
@@ -71,7 +71,7 @@ public class SendEventFunction extends UiAdvancedFunction {
 
 				for (Object obj : (Iterable)sources[2]) {
 
-					if (obj instanceof NodeInterface n && n.is("Principal")) {
+					if (obj instanceof NodeTrait n && n.is("Principal")) {
 
 						targets.add(n.as(Principal.class));
 
