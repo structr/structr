@@ -840,13 +840,15 @@ let _Entities = {
 		let focusAttr  = 'class';
 		let id         = entity.id;
 
-		let onUpdateCallback = undefined;
-		if (view === '_html_') {
-			keys.sort();
+		let onUpdateCallback = (input, newVal, oldVal) => {
 
-			onUpdateCallback = (input, newVal) => {
+			if (view === '_html_') {
 				_Entities.showOrHideWarningForEmptyStringInHTMLAttribute(input[0].closest('tr'), newVal);
 			}
+		};
+
+		if (view === '_html_') {
+			keys.sort();
 		}
 
 		for (let key of keys) {
@@ -861,7 +863,7 @@ let _Entities = {
 
 			if (view === '_html_') {
 
-				let showKeyInitially = false;
+				let showKeyInitially = (key === '_html_class' || key === '_html_id');
 				for (let mostUsed of _Elements.mostUsedAttrs) {
 					if (_Helpers.isIn(entity.tag, mostUsed.elements) && _Helpers.isIn(key.substring(6), mostUsed.attrs)) {
 						showKeyInitially = true;
@@ -875,10 +877,9 @@ let _Entities = {
 				}
 
 				let displayKey  = _Entities.getDisplayKeyForHTMLKey(key);
-				let willBeShown = (showKeyInitially || key === '_html_class' || key === '_html_id');
 
 				let rowClass = '';
-				if  (willBeShown === false) {
+				if  (showKeyInitially === false) {
 					rowClass = ' class="hidden"';
 				}
 
@@ -936,6 +937,8 @@ let _Entities = {
 										}
 										checkbox.prop('checked', newVal);
 										val = newVal;
+
+										onUpdateCallback(checkbox, newVal, val);
 									});
 								});
 
@@ -956,17 +959,25 @@ let _Entities = {
 
 									let nodeId = res[key].id || res[key];
 
-									tempNodeCache.registerCallback(nodeId, nodeId, function(node) {
+									tempNodeCache.registerCallback(nodeId, nodeId, (node) => {
 
-										_Entities.appendRelatedNode(valueCell, node, function(nodeEl) {
+										_Entities.appendRelatedNode(valueCell, node, (nodeEl) => {
+
 											$('.remove', nodeEl).on('click', function(e) {
 												e.preventDefault();
+
 												_Entities.setProperty(id, key, null, false, (newVal) => {
+
 													if (!newVal) {
+
 														nodeEl.remove();
 														_Helpers.blinkGreen(valueCell);
 														_Dialogs.custom.showAndHideInfoBoxMessage(`Related node "${node.name || node.id}" has been removed from property "${key}".`, 'success', 2000, 1000);
+
+														onUpdateCallback(null, null, nodeId);
+
 													} else {
+
 														_Helpers.blinkRed(valueCell);
 													}
 												});
@@ -985,9 +996,12 @@ let _Entities = {
 							$('.add', valueCell).on('click', function() {
 								let { dialogText } = _Dialogs.custom.openDialog(`Add ${typeInfo[key].type}`);
 								_Entities.displaySearch(id, key, typeInfo[key].type, $(dialogText), isCollection);
+
+								// TODO: pass onUpdateCallback();
 							});
 
 						} else {
+
 							valueCell.append(_Helpers.formatValueInputField(key, res[key], typeInfo[key]));
 						}
 					}
@@ -1043,7 +1057,7 @@ let _Entities = {
 								valueCell.empty();
 							}
 
-							onUpdateCallback?.(input, newVal);
+							onUpdateCallback?.(input, newVal, res[key]);
 
 						} else {
 
@@ -1059,8 +1073,10 @@ let _Entities = {
 			}
 		}
 
-		$('tr td.value input',    propsTable).each(function(i, inputEl)    { _Entities.activateInput(inputEl,    id, entity.pageId, entity.type, typeInfo, onUpdateCallback); });
-		$('tr td.value textarea', propsTable).each(function(i, textareaEl) { _Entities.activateInput(textareaEl, id, entity.pageId, entity.type, typeInfo); });
+		for (let el of propsTable[0].querySelectorAll('tr td.value textarea, tr td.value input')) {
+
+			_Entities.activateInput(el, id, entity.pageId, entity.type, typeInfo, onUpdateCallback);
+		}
 
 		if (view === '_html_') {
 
@@ -1107,12 +1123,15 @@ let _Entities = {
 
 						let newKey = '_custom_html_' + key;
 
-						Command.setProperty(id, newKey, val, false, () => {
+						Command.setProperty(id, newKey, val, false, (newVal) => {
+
 							_Helpers.blinkGreen(exitedInput);
 							_Dialogs.custom.showAndHideInfoBoxMessage(`New property "${newKey}" has been added and saved with value "${val}".`, 'success', 2000, 1000);
 
 							keyInput.replaceWith(key);
 							valInput.name = newKey;
+
+							// TODO: call onUpdateCallback();
 
 							let nullIcon = _Helpers.createSingleDOMElementFromHTML(_Entities.getNullIconForKey(newKey));
 							row.querySelector('td:last-of-type').appendChild(nullIcon);
@@ -1123,6 +1142,8 @@ let _Entities = {
 								_Entities.setProperty(id, key, null, false, (newVal) => {
 									row.remove();
 									_Dialogs.custom.showAndHideInfoBoxMessage(`Custom HTML property "${key}" has been removed`, 'success', 2000, 1000);
+
+									// TODO: call onUpdateCallback();
 								});
 							});
 
@@ -1387,15 +1408,20 @@ let _Entities = {
 		let objId  = relId ? relId : id;
 		let key    = input.prop('name');
 
+		let cell = input.closest('.value');
+		if (cell.length === 0) {
+			cell = input.closest('.__value');
+		}
+
 		if (!input.hasClass('readonly') && !input.hasClass('newKey')) {
 
 			input.closest('.array-attr').find('svg.remove').off('click').on('click', () => {
-				let cell = input.closest('.value');
-				if (cell.length === 0) {
-					cell = input.closest('.__value');
-				}
+
+				oldVal = _Entities.getArrayValue(key, cell);
 				input.parent().remove();
-				_Entities.saveArrayValue(cell, objId, key, oldVal, id, pageId, type, typeInfo, onUpdateCallback);
+				input[0].dataset['changed'] = 'true';
+
+				_Entities.saveValue(cell, input, objId, key, oldVal, id, pageId, type, typeInfo, onUpdateCallback);
 			});
 
 			input.off('focus').on('focus', function() {
@@ -1415,8 +1441,8 @@ let _Entities = {
 				});
 			}
 
-			input[0].addEventListener('input-finished', (e) => {
-				_Entities.saveValue(input, objId, key, oldVal, id, pageId, type, typeInfo, onUpdateCallback);
+			input[0].addEventListener('input-finished', () => {
+				_Entities.saveValue(cell, input, objId, key, oldVal, id, pageId, type, typeInfo, onUpdateCallback);
 
 				input.removeClass('active');
 				input.parent().children('.icon').each(function(i, icon) {
@@ -1462,38 +1488,6 @@ let _Entities = {
 			});
 		}
 	},
-	saveArrayValue: (cell, objId, key, oldVal, id, pageId, type, typeInfo, onUpdateCallback) => {
-
-		let val            = _Entities.getArrayValue(key, cell);
-		let isCreateDialog = !objId;
-
-		_Entities.setProperty(objId, key, val, false, (newVal = []) => {
-
-			if (newVal !== oldVal) {
-
-				if (!isCreateDialog) {
-					_Helpers.blinkGreen(cell);
-				}
-
-				let valueMsg;
-				cell.html(_Helpers.formatArrayValueField(key, newVal, typeInfo[key]));
-				cell.find(`[name="${key}"]`).each(function(i, el) {
-					_Entities.activateInput(el, id, pageId, type, typeInfo);
-				});
-
-				valueMsg = (newVal !== undefined || newValue !== null) ? `value [${newVal.join(',\n')}]`: 'empty value';
-
-				if (!isCreateDialog) {
-
-					_Dialogs.custom.showAndHideInfoBoxMessage(`Updated property "${key}" with ${valueMsg}.`, 'success', 2000, 200);
-				}
-
-				onUpdateCallback?.();
-			}
-
-			oldVal = newVal;
-		});
-	},
 	getArrayValue: (key, cell) => {
 
 		let values      = [];
@@ -1513,16 +1507,12 @@ let _Entities = {
 
 		return values;
 	},
-	saveValue: (input, objId, key, oldVal, id, pageId, type, typeInfo, onUpdateCallback) => {
+	saveValue: (cell, input, objId, key, oldVal, id, pageId, type, typeInfo, onUpdateCallback) => {
 
 		let isCreateDialog = !objId;
 		let val;
-		let cell = input.closest('.value');
-		if (cell.length === 0) {
-			cell = input.closest('.__value');
-		}
 
-		let isArrayType = (typeInfo?.[key].isCollection == true && !typeInfo[key].relatedType);
+		let isArrayType = (typeInfo?.[key]?.isCollection == true && typeInfo?.[key]?.relatedType === false);
 		if (isArrayType) {
 			val = _Entities.getArrayValue(key, cell);
 		} else {
@@ -1540,7 +1530,6 @@ let _Entities = {
 				if (isPassword || (newVal !== oldVal)) {
 
 					if (!isCreateDialog) {
-
 						_Helpers.blinkGreen(input);
 					}
 
@@ -1561,11 +1550,10 @@ let _Entities = {
 					});
 
 					if (!isCreateDialog) {
-
 						_Dialogs.custom.showAndHideInfoBoxMessage(`Updated property "${key}"${!isPassword ? ' with ' + valueMsg : ''}`, 'success', 2000, 200);
 					}
 
-					onUpdateCallback?.(input, newVal);
+					onUpdateCallback?.(input, newVal, oldVal);
 
 				} else {
 
@@ -1577,7 +1565,9 @@ let _Entities = {
 
 			if (!isCreateDialog) {
 
-				_Entities.setProperty(objId, key, val, false, newVal => updateInput(newVal));
+				_Entities.setProperty(objId, key, val, false, newVal => {
+					updateInput(newVal ?? (isArrayType ? [] : undefined))
+				});
 
 			} else {
 
