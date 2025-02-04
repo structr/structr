@@ -917,12 +917,15 @@ let _Entities = {
 							valueCell.removeClass('value').append(`<input type="checkbox" class="${key}_">`);
 							let checkbox = $(propsTable.find(`input[type="checkbox"].${key}_`));
 
-							let val = res[key];
-							if (val) {
-								checkbox.prop('checked', true);
+							let val = res[key] ?? false;
+							checkbox.prop('checked', val);
+
+							let allowChange = ((!isReadOnly || StructrWS.isAdmin) && !isSystem);
+							if (typeInfo[key].className === 'org.structr.core.property.ConstantBooleanProperty') {
+								allowChange = false;
 							}
 
-							if ((!isReadOnly || StructrWS.isAdmin) && !isSystem) {
+							if (allowChange) {
 
 								checkbox.on('change', function() {
 
