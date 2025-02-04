@@ -33,13 +33,13 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.wrappers.AbstractTraitWrapper;
+import org.structr.core.traits.wrappers.GraphObjectTraitWrapper;
 import org.structr.schema.action.ActionContext;
 
 import java.util.*;
 import java.util.function.Function;
 
-public class VirtualTypeTraitWrapper extends AbstractTraitWrapper<NodeInterface> implements VirtualType {
+public class VirtualTypeTraitWrapper extends GraphObjectTraitWrapper<NodeInterface> implements VirtualType {
 
 	public VirtualTypeTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);

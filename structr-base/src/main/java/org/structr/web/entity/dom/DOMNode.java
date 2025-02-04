@@ -28,9 +28,9 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.entity.LinkedTreeNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.traits.NodeTrait;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.event.ActionMapping;
@@ -41,7 +41,7 @@ import java.util.List;
 import java.util.Set;
 
 //public interface DOMNode extends NodeTrait, LinkedTreeNode, Node, Renderable, DOMAdoptable, DOMImportable, ContextAwareEntity {
-public interface DOMNode extends NodeTrait, LinkedTreeNode {
+public interface DOMNode extends NodeInterface, LinkedTreeNode {
 
 	String PAGE_CATEGORY = "Page Structure";
 	String EDIT_MODE_BINDING_CATEGORY = "Edit Mode Binding";

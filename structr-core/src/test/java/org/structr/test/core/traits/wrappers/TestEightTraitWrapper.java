@@ -20,14 +20,14 @@ package org.structr.test.core.traits.wrappers;
 
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.wrappers.AbstractTraitWrapper;
+import org.structr.core.traits.wrappers.GraphObjectTraitWrapper;
 import org.structr.test.core.entity.TestEight;
 
 /**
  *
  *
  */
-public class TestEightTraitWrapper extends AbstractTraitWrapper<NodeInterface> implements TestEight {
+public class TestEightTraitWrapper extends GraphObjectTraitWrapper<NodeInterface> implements TestEight {
 
 	public TestEightTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);

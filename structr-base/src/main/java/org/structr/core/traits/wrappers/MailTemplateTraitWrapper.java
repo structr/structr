@@ -23,7 +23,7 @@ import org.structr.core.entity.MailTemplate;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 
-public class MailTemplateTraitWrapper extends AbstractTraitWrapper<NodeInterface> implements MailTemplate {
+public class MailTemplateTraitWrapper extends GraphObjectTraitWrapper<NodeInterface> implements MailTemplate {
 
 	public MailTemplateTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);

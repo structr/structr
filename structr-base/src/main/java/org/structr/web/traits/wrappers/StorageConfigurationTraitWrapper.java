@@ -25,7 +25,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.wrappers.AbstractTraitWrapper;
+import org.structr.core.traits.wrappers.GraphObjectTraitWrapper;
 import org.structr.storage.StorageProvider;
 import org.structr.web.entity.StorageConfiguration;
 import org.structr.web.entity.StorageConfigurationEntry;
@@ -37,7 +37,7 @@ import java.util.Map;
  * Storage container for mount configuration entries.
  */
 
-public class StorageConfigurationTraitWrapper extends AbstractTraitWrapper<NodeInterface> implements StorageConfiguration {
+public class StorageConfigurationTraitWrapper extends GraphObjectTraitWrapper<NodeInterface> implements StorageConfiguration {
 
 	public StorageConfigurationTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);

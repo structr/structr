@@ -30,7 +30,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.wrappers.AbstractTraitWrapper;
+import org.structr.core.traits.wrappers.GraphObjectTraitWrapper;
 import org.structr.files.external.DirectoryWatchService;
 import org.structr.storage.StorageProvider;
 import org.structr.storage.StorageProviderFactory;
@@ -45,7 +45,7 @@ import java.util.List;
 /**
  * Base class for filesystem objects in structr.
  */
-public class AbstractFileTraitWrapper extends AbstractTraitWrapper<NodeInterface> implements AbstractFile {
+public class AbstractFileTraitWrapper extends GraphObjectTraitWrapper<NodeInterface> implements AbstractFile {
 
 	public AbstractFileTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);

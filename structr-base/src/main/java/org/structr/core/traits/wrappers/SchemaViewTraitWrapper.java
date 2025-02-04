@@ -25,7 +25,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
 
-public class SchemaViewTraitWrapper extends AbstractTraitWrapper<NodeInterface> implements SchemaView {
+public class SchemaViewTraitWrapper extends GraphObjectTraitWrapper<NodeInterface> implements SchemaView {
 
 	public SchemaViewTraitWrapper(Traits traits, NodeInterface node) {
 		super(traits, node);

@@ -20,10 +20,10 @@ package org.structr.web.traits.wrappers;
 
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.wrappers.AbstractTraitWrapper;
+import org.structr.core.traits.wrappers.GraphObjectTraitWrapper;
 import org.structr.web.entity.ApplicationConfigurationDataNode;
 
-public class ApplicationConfigurationDataNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> implements ApplicationConfigurationDataNode {
+public class ApplicationConfigurationDataNodeTraitWrapper extends GraphObjectTraitWrapper<NodeInterface> implements ApplicationConfigurationDataNode {
 
 	public ApplicationConfigurationDataNodeTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);

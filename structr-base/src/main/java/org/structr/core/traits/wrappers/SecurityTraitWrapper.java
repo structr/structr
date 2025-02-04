@@ -33,7 +33,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-public class SecurityTraitWrapper extends AbstractTraitWrapper<RelationshipInterface> implements Security {
+public class SecurityTraitWrapper extends GraphObjectTraitWrapper<RelationshipInterface> implements Security {
 
 	private PropertyKey<String[]> allowedKey = null;
 

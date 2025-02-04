@@ -45,7 +45,7 @@ import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.NodeTrait;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.wrappers.AbstractTraitWrapper;
+import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.schema.action.Function;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
@@ -64,7 +64,7 @@ import java.util.*;
 /**
  * Combines NodeInterface and DOMnode
  */
-public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> implements DOMNode {
+public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOMNode {
 
 	public DOMNodeTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);
@@ -662,7 +662,7 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 			}
 
 			if (!key.isUnvalidated()) {
-				properties.put(key, sourceNode.getWrappedNode().getProperty(key));
+				properties.put(key, sourceNode.getProperty(key));
 			}
 		}
 
@@ -2272,41 +2272,5 @@ public class DOMNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> imp
 	@Override
 	public void setHidden(final boolean hidden) throws FrameworkException {
 		wrappedObject.setHidden(hidden);
-	}
-
-	@Override
-	public void setIdAttribute(final String id) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("_html_id"), id);
-	}
-
-	@Override
-	public boolean isHidden() {
-		return wrappedObject.isHidden();
-	}
-
-	public final String getTextContent() throws FrameworkException {
-
-		final List<DOMNode> results       = new LinkedList<>();
-		final TextCollector textCollector = new TextCollector();
-
-		DOMNode.collectNodesByPredicate(getSecurityContext(), this, results, textCollector, 0, false);
-
-		return textCollector.getText();
-	}
-
-	@Override
-	public final boolean isSameNode(final DOMNode node) {
-
-		if (node != null) {
-
-			String otherId = node.getUuid();
-			String ourId   = getUuid();
-
-			if (ourId != null && otherId != null && ourId.equals(otherId)) {
-				return true;
-			}
-		}
-
-		return false;
 	}
 }

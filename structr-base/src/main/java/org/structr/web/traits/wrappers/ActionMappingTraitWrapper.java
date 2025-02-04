@@ -22,13 +22,13 @@ import org.structr.api.util.Iterables;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.wrappers.AbstractTraitWrapper;
+import org.structr.core.traits.wrappers.GraphObjectTraitWrapper;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.event.ActionMapping;
 import org.structr.web.entity.event.ParameterMapping;
 
-public class ActionMappingTraitWrapper extends AbstractTraitWrapper<NodeInterface> implements ActionMapping {
+public class ActionMappingTraitWrapper extends GraphObjectTraitWrapper<NodeInterface> implements ActionMapping {
 
 	public ActionMappingTraitWrapper(final Traits traits, final NodeInterface node) {
 		super(traits, node);

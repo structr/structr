@@ -22,14 +22,13 @@ import org.structr.core.entity.Principal;
 import org.structr.core.entity.SchemaGrant;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
 
 /**
  *
  *
  */
-public class SchemaGrantTraitWrapper extends AbstractTraitWrapper<NodeInterface> implements SchemaGrant {
+public class SchemaGrantTraitWrapper extends GraphObjectTraitWrapper<NodeInterface> implements SchemaGrant {
 
 	public SchemaGrantTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);

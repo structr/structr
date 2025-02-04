@@ -22,7 +22,7 @@ import org.structr.core.entity.Localization;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 
-public class LocalizationTraitWrapper extends AbstractTraitWrapper<NodeInterface> implements Localization {
+public class LocalizationTraitWrapper extends GraphObjectTraitWrapper<NodeInterface> implements Localization {
 
 	public LocalizationTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);

@@ -21,9 +21,9 @@ package org.structr.transform;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.wrappers.AbstractTraitWrapper;
+import org.structr.core.traits.wrappers.GraphObjectTraitWrapper;
 
-public class VirtualPropertyTraitWrapper extends AbstractTraitWrapper<NodeInterface> implements VirtualProperty {
+public class VirtualPropertyTraitWrapper extends GraphObjectTraitWrapper<NodeInterface> implements VirtualProperty {
 
 	public VirtualPropertyTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);

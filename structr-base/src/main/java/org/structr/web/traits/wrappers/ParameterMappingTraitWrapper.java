@@ -20,11 +20,11 @@ package org.structr.web.traits.wrappers;
 
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.wrappers.AbstractTraitWrapper;
+import org.structr.core.traits.wrappers.GraphObjectTraitWrapper;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.event.ParameterMapping;
 
-public class ParameterMappingTraitWrapper extends AbstractTraitWrapper<NodeInterface> implements ParameterMapping {
+public class ParameterMappingTraitWrapper extends GraphObjectTraitWrapper<NodeInterface> implements ParameterMapping {
 
 	public ParameterMappingTraitWrapper(final Traits traits, final NodeInterface node) {
 		super(traits, node);

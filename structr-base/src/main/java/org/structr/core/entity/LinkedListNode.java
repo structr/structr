@@ -21,12 +21,11 @@ package org.structr.core.entity;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.traits.NodeTrait;
 
 /**
  * Abstract base class for a multi-dimensional linked list data structure.
  */
-public interface LinkedListNode extends NodeTrait {
+public interface LinkedListNode extends NodeInterface {
 
 	String getSiblingLinkType();
 	NodeInterface listGetPrevious(final NodeInterface currentElement);

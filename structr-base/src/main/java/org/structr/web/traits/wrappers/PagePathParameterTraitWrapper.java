@@ -22,14 +22,14 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.wrappers.AbstractTraitWrapper;
+import org.structr.core.traits.wrappers.GraphObjectTraitWrapper;
 import org.structr.schema.parser.DatePropertyGenerator;
 import org.structr.web.entity.path.PagePathParameter;
 
 /**
  *
  */
-public class PagePathParameterTraitWrapper extends AbstractTraitWrapper<NodeInterface> implements PagePathParameter {
+public class PagePathParameterTraitWrapper extends GraphObjectTraitWrapper<NodeInterface> implements PagePathParameter {
 
 	public PagePathParameterTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);

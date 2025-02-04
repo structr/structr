@@ -32,7 +32,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public class AccessControllableTraitWrapper extends AbstractTraitWrapper<NodeInterface> implements AccessControllable {
+public class AccessControllableTraitWrapper extends GraphObjectTraitWrapper<NodeInterface> implements AccessControllable {
 
 	public AccessControllableTraitWrapper(Traits traits, NodeInterface node) {
 		super(traits, node);

@@ -31,7 +31,7 @@ import java.util.List;
  *
  *
  */
-public class AbstractSchemaNodeTraitWrapper extends AbstractTraitWrapper<NodeInterface> implements AbstractSchemaNode {
+public class AbstractSchemaNodeTraitWrapper extends GraphObjectTraitWrapper<NodeInterface> implements AbstractSchemaNode {
 
 	public AbstractSchemaNodeTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);

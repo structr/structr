@@ -20,10 +20,10 @@ package org.structr.web.traits.wrappers;
 
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.wrappers.AbstractTraitWrapper;
+import org.structr.core.traits.wrappers.GraphObjectTraitWrapper;
 import org.structr.web.entity.css.CssRule;
 
-public class CssRuleTraitWrapper extends AbstractTraitWrapper<NodeInterface> implements CssRule {
+public class CssRuleTraitWrapper extends GraphObjectTraitWrapper<NodeInterface> implements CssRule {
 
 	public CssRuleTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);

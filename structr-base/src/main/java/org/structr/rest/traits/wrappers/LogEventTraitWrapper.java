@@ -20,12 +20,12 @@ package org.structr.rest.traits.wrappers;
 
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.wrappers.AbstractTraitWrapper;
+import org.structr.core.traits.wrappers.GraphObjectTraitWrapper;
 import org.structr.rest.entity.LogEvent;
 
 import java.util.Date;
 
-public class LogEventTraitWrapper extends AbstractTraitWrapper<NodeInterface> implements LogEvent {
+public class LogEventTraitWrapper extends GraphObjectTraitWrapper<NodeInterface> implements LogEvent {
 
 	public LogEventTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);

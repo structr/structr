@@ -22,7 +22,7 @@ import org.structr.core.entity.SchemaMethodParameter;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 
-public class SchemaMethodParameterTraitWrapper extends AbstractTraitWrapper<NodeInterface> implements SchemaMethodParameter {
+public class SchemaMethodParameterTraitWrapper extends GraphObjectTraitWrapper<NodeInterface> implements SchemaMethodParameter {
 
 	public SchemaMethodParameterTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);
