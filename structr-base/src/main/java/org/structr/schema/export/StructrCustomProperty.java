@@ -108,7 +108,7 @@ public class StructrCustomProperty extends StructrDynamicProperty {
 
 		properties.put(traits.key("fqcn"), fqcn);
 
-		property.getWrappedNode().setProperties(SecurityContext.getSuperUserInstance(), properties);
+		property.setProperties(SecurityContext.getSuperUserInstance(), properties);
 
 		return property;
 	}

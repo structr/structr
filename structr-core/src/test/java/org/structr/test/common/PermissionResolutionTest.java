@@ -278,7 +278,7 @@ public class PermissionResolutionTest extends StructrTest {
 
 			final NodeInterface p1 = app.create(projectType,
 				new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Project1"),
-				new NodeAttribute<>(Traits.of("NodeInterface").key("owner"), tester.getWrappedNode())
+				new NodeAttribute<>(Traits.of("NodeInterface").key("owner"), tester)
 			);
 
 			final NodeInterface p2 = app.create(projectType,
@@ -370,7 +370,7 @@ public class PermissionResolutionTest extends StructrTest {
 
 			final NodeInterface p1 = app.create(mooType,
 				new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Project1"),
-				new NodeAttribute<>(Traits.of("NodeInterface").key("owner"), tester.getWrappedNode())
+				new NodeAttribute<>(Traits.of("NodeInterface").key("owner"), tester)
 			);
 
 			final NodeInterface p2 = app.create(testType,
@@ -451,7 +451,7 @@ public class PermissionResolutionTest extends StructrTest {
 			final NodeInterface projectNode = app.nodeQuery("SchemaNode").andName("Project").getFirst();
 			final NodeInterface grant      = app.create("SchemaGrant",
 				new NodeAttribute<>(Traits.of("SchemaGrant").key("schemaNode"),          projectNode),
-				new NodeAttribute<>(Traits.of("SchemaGrant").key("principal"),           testGroup1.getWrappedNode()),
+				new NodeAttribute<>(Traits.of("SchemaGrant").key("principal"),           testGroup1),
 				new NodeAttribute<>(Traits.of("SchemaGrant").key("allowRead"),           false),
 				new NodeAttribute<>(Traits.of("SchemaGrant").key("allowWrite"),          false),
 				new NodeAttribute<>(Traits.of("SchemaGrant").key("allowDelete"),         false),
@@ -473,7 +473,7 @@ public class PermissionResolutionTest extends StructrTest {
 
 			final Principal tester = app.nodeQuery("User").andName("tester").getFirst().as(Principal.class);
 
-			app.create(projectType, new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Project1"), new NodeAttribute<>(Traits.of("NodeInterface").key("owner"), tester.getWrappedNode()));
+			app.create(projectType, new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Project1"), new NodeAttribute<>(Traits.of("NodeInterface").key("owner"), tester));
 			app.create(projectType, new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Project2"));
 			app.create(projectType, new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Project3"));
 			app.create(projectType, new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Project4"));

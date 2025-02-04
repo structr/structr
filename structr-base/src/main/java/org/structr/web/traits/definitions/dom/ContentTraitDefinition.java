@@ -129,13 +129,13 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 
 					for (final DOMNode syncedNode : domNode.getSyncedNodes()) {
 
-						syncedNode.getWrappedNode().setProperties(securityContext, map);
+						syncedNode.setProperties(securityContext, map);
 					}
 
 					final DOMNode sharedComponent = domNode.getSharedComponent();
 					if (sharedComponent != null) {
 
-						sharedComponent.getWrappedNode().setProperties(sharedComponent.getSecurityContext(), map);
+						sharedComponent.setProperties(sharedComponent.getSecurityContext(), map);
 					}
 				}
 			}
@@ -155,7 +155,7 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 					if (otherNode.getTraits().contains("Content")) {
 
 						final Content thisNode = node.as(Content.class);
-						final Content content = otherNode.getWrappedNode().as(Content.class);
+						final Content content = otherNode.as(Content.class);
 
 						thisNode.setContent(content.getContent());
 					}
@@ -223,7 +223,7 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 						final String _sharedComponentConfiguration = node.getSharedComponentConfiguration();
 						if (StringUtils.isNotBlank(_sharedComponentConfiguration)) {
 
-							Scripting.evaluate(renderContext, node.getWrappedNode(), "${" + _sharedComponentConfiguration.trim() + "}", "sharedComponentConfiguration", 0, node.getUuid());
+							Scripting.evaluate(renderContext, node, "${" + _sharedComponentConfiguration.trim() + "}", "sharedComponentConfiguration", 0, node.getUuid());
 						}
 
 						// determine some postprocessing flags
@@ -232,7 +232,7 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 							handler.setEscapeForHtml(true);
 						}
 
-						if (EditMode.CONTENT.equals(edit) && node.getWrappedNode().isGranted(Permission.write, securityContext)) {
+						if (EditMode.CONTENT.equals(edit) && node.isGranted(Permission.write, securityContext)) {
 
 							if ("text/javascript".equals(_contentType)) {
 
@@ -570,7 +570,7 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 
 				} else {
 
-					final Object value = Scripting.evaluate(renderContext, node.getWrappedNode(), script, "content", row, node.getUuid());
+					final Object value = Scripting.evaluate(renderContext, node, script, "content", row, node.getUuid());
 					if (value != null) {
 
 						String content = null;

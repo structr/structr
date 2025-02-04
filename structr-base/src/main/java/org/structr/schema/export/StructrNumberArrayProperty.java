@@ -226,7 +226,7 @@ public class StructrNumberArrayProperty extends StructrPropertyDefinition implem
 			properties.put(traits.key("format"), range.toString());
 		}
 
-		property.getWrappedNode().setProperties(SecurityContext.getSuperUserInstance(), properties);
+		property.setProperties(SecurityContext.getSuperUserInstance(), properties);
 
 		return property;
 	}

@@ -64,7 +64,7 @@ public class MeResource extends ExactMatchEndpoint {
 			Principal user = securityContext.getUser(true);
 			if (user != null) {
 
-				return new PagingIterable<>(getURL(), Arrays.asList(user.getWrappedNode()));
+				return new PagingIterable<>(getURL(), Arrays.asList(user));
 
 			} else {
 

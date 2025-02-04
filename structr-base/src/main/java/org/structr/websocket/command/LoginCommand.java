@@ -151,7 +151,7 @@ public class LoginCommand extends AbstractCommand {
 					}
 
 					// fixme: really?
-					userId = user.getWrappedNode().getNode().getId().getId();
+					userId = user.getNode().getId().getId();
 
 				} else {
 

@@ -301,7 +301,7 @@ public final class AbstractNode extends AbstractGraphObject<Node> implements Nod
 				final Principal owner = as(AccessControllable.class).getOwnerNode();
 				if (owner != null) {
 
-					return owner.getWrappedNode();
+					return owner;
 				}
 
 				return null;

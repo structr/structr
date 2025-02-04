@@ -816,12 +816,12 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 
 	@Override
 	public void setSourceNode(final SchemaNode sourceSchemaNode) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("sourceNode"), sourceSchemaNode.getWrappedNode());
+		wrappedObject.setProperty(traits.key("sourceNode"), sourceSchemaNode);
 	}
 
 	@Override
 	public void setTargetNode(final SchemaNode targetSchemaNode) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("targetNode"), targetSchemaNode.getWrappedNode());
+		wrappedObject.setProperty(traits.key("targetNode"), targetSchemaNode);
 	}
 
 	@Override

@@ -110,7 +110,7 @@ public interface DOMElement extends DOMNode  {
 
 	static org.jsoup.nodes.Element getMatchElement(final DOMElement domElement) {
 
-		final NodeInterface node = domElement.getWrappedNode();
+		final NodeInterface node = domElement;
 		final Traits traits      = node.getTraits();
 		final String tag         = domElement.getTag();
 

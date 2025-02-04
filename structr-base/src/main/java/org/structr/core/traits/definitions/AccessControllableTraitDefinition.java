@@ -162,7 +162,7 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 							properties.put(traits.key("accessControllableId"), node.getUuid());
 							properties.put(traits.key("allowed"),              permissionSet.toArray(new String[permissionSet.size()]));
 
-							StructrApp.getInstance(superUserContext).create(principal.getWrappedNode(), node, "SecurityRelationship", properties);
+							StructrApp.getInstance(superUserContext).create(principal, node, "SecurityRelationship", properties);
 
 						} catch (FrameworkException ex) {
 
@@ -235,7 +235,7 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 								properties.put(traits.key("accessControllableId"), node.getUuid());
 								properties.put(traits.key("allowed"),              permissionSet.toArray(new String[permissionSet.size()]));
 
-								StructrApp.getInstance(superUserContext).create(principal.getWrappedNode(), node, "SecurityRelationship", properties);
+								StructrApp.getInstance(superUserContext).create(principal, node, "SecurityRelationship", properties);
 
 							} catch (FrameworkException ex) {
 
@@ -372,7 +372,7 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 			}
 		}
 
-		final NodeInterface accessingUserNode = accessingUser != null ? accessingUser.getWrappedNode() :  null;
+		final NodeInterface accessingUserNode = accessingUser != null ? accessingUser :  null;
 		final Principal _owner                = node.as(AccessControllable.class).getOwnerNode();
 		final boolean hasOwner                = (_owner != null);
 

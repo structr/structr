@@ -517,7 +517,7 @@ public abstract class StructrUiTest {
 
 			if (obj instanceof NodeTrait n) {
 
-				n.getWrappedNode().setVisibility(true, false);
+				n.setVisibility(true, false);
 			}
 		}
 

@@ -54,7 +54,7 @@ public class GraphObjectTraitWrapper<T extends GraphObject> implements GraphObje
 
 		if (other instanceof GraphObjectTraitWrapper w) {
 
-			return wrappedObject.equals(w.getWrappedNode());
+			return wrappedObject.equals(w);
 		}
 
 		return false;

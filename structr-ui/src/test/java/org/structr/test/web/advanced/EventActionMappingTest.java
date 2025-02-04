@@ -78,7 +78,7 @@ public class EventActionMappingTest extends StructrUiTest {
 			final NodeInterface eam = app.create("ActionMapping");
 
 			// base setup
-			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn.getWrappedNode()));
+			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
 			eam.setProperty(Traits.of("ActionMapping").key("event"), "click");
 			eam.setProperty(Traits.of("ActionMapping").key("action"), "create");
 			eam.setProperty(Traits.of("ActionMapping").key("dataType"), "Project");
@@ -179,7 +179,7 @@ public class EventActionMappingTest extends StructrUiTest {
 			final NodeInterface eam = app.create("ActionMapping");
 
 			// base setup
-			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn.getWrappedNode()));
+			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
 			eam.setProperty(Traits.of("ActionMapping").key("event"), "click");
 			eam.setProperty(Traits.of("ActionMapping").key("action"), "create");
 			eam.setProperty(Traits.of("ActionMapping").key("dataType"), "Project");
@@ -279,7 +279,7 @@ public class EventActionMappingTest extends StructrUiTest {
 			final NodeInterface eam = app.create("ActionMapping");
 
 			// base setup
-			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn.getWrappedNode()));
+			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
 			eam.setProperty(Traits.of("ActionMapping").key("event"), "click");
 			eam.setProperty(Traits.of("ActionMapping").key("action"), "create");
 			eam.setProperty(Traits.of("ActionMapping").key("dataType"), "Project");
@@ -385,14 +385,14 @@ public class EventActionMappingTest extends StructrUiTest {
 			notificationUuid = notificationElement.getUuid();
 
 			final NodeInterface eam = app.create("ActionMapping");// base setup
-			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn.getWrappedNode()));
+			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
 			eam.setProperty(Traits.of("ActionMapping").key("event"), "click");
 			eam.setProperty(Traits.of("ActionMapping").key("action"), "create");
 			eam.setProperty(Traits.of("ActionMapping").key("dataType"), "Project");
 
 			// success notifications (possible values are system-alert, inline-text-message, custom-dialog, custom-dialog-linked)
 			eam.setProperty(Traits.of("ActionMapping").key("successNotifications"), "custom-dialog-linked");
-			eam.setProperty(Traits.of("ActionMapping").key("successNotificationElements"), List.of(notificationElement.getWrappedNode()));
+			eam.setProperty(Traits.of("ActionMapping").key("successNotificationElements"), List.of(notificationElement));
 
 			tx.success();
 
@@ -493,7 +493,7 @@ public class EventActionMappingTest extends StructrUiTest {
 			final NodeInterface eam = app.create("ActionMapping");
 
 			// base setup
-			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn.getWrappedNode()));
+			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
 			eam.setProperty(Traits.of("ActionMapping").key("event"), "click");
 			eam.setProperty(Traits.of("ActionMapping").key("action"), "create");
 			eam.setProperty(Traits.of("ActionMapping").key("dataType"), "Project");
@@ -597,7 +597,7 @@ public class EventActionMappingTest extends StructrUiTest {
 			final NodeInterface eam = app.create("ActionMapping");
 
 			// base setup
-			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn.getWrappedNode()));
+			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
 			eam.setProperty(Traits.of("ActionMapping").key("event"), "click");
 			eam.setProperty(Traits.of("ActionMapping").key("action"), "create");
 			eam.setProperty(Traits.of("ActionMapping").key("dataType"), "Project");
@@ -699,7 +699,7 @@ public class EventActionMappingTest extends StructrUiTest {
 			final NodeInterface eam = app.create("ActionMapping");
 
 			// base setup
-			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn.getWrappedNode()));
+			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
 			eam.setProperty(Traits.of("ActionMapping").key("event"), "click");
 			eam.setProperty(Traits.of("ActionMapping").key("action"), "create");
 			eam.setProperty(Traits.of("ActionMapping").key("dataType"), "Project");
@@ -799,7 +799,7 @@ public class EventActionMappingTest extends StructrUiTest {
 			final NodeInterface eam = app.create("ActionMapping");
 
 			// base setup
-			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn.getWrappedNode()));
+			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
 			eam.setProperty(Traits.of("ActionMapping").key("event"), "click");
 			eam.setProperty(Traits.of("ActionMapping").key("action"), "create");
 			eam.setProperty(Traits.of("ActionMapping").key("dataType"), "Project");
@@ -907,14 +907,14 @@ public class EventActionMappingTest extends StructrUiTest {
 			final NodeInterface eam = app.create("ActionMapping");
 
 			// base setup
-			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn.getWrappedNode()));
+			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
 			eam.setProperty(Traits.of("ActionMapping").key("event"), "click");
 			eam.setProperty(Traits.of("ActionMapping").key("action"), "create");
 			eam.setProperty(Traits.of("ActionMapping").key("dataType"), "Project");
 
 			// failure notifications (possible values are system-alert, inline-text-message, custom-dialog, custom-dialog-linked)
 			eam.setProperty(Traits.of("ActionMapping").key("failureNotifications"), "custom-dialog-linked");
-			eam.setProperty(Traits.of("ActionMapping").key("failureNotificationElements"), List.of(notificationElement.getWrappedNode()));
+			eam.setProperty(Traits.of("ActionMapping").key("failureNotificationElements"), List.of(notificationElement));
 
 			tx.success();
 
@@ -1011,7 +1011,7 @@ public class EventActionMappingTest extends StructrUiTest {
 			final NodeInterface eam = app.create("ActionMapping");
 
 			// base setup
-			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn.getWrappedNode()));
+			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
 			eam.setProperty(Traits.of("ActionMapping").key("event"), "click");
 			eam.setProperty(Traits.of("ActionMapping").key("action"), "create");
 			eam.setProperty(Traits.of("ActionMapping").key("dataType"), "Project");
@@ -1119,7 +1119,7 @@ public class EventActionMappingTest extends StructrUiTest {
 			final NodeInterface eam = app.create("ActionMapping");
 
 			// base setup
-			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn.getWrappedNode()));
+			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
 			eam.setProperty(Traits.of("ActionMapping").key("event"), "click");
 			eam.setProperty(Traits.of("ActionMapping").key("action"), "create");
 			eam.setProperty(Traits.of("ActionMapping").key("dataType"), "Project");
@@ -1221,7 +1221,7 @@ public class EventActionMappingTest extends StructrUiTest {
 			final NodeInterface eam = app.create("ActionMapping");
 
 			// base setup
-			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn.getWrappedNode()));
+			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
 			eam.setProperty(Traits.of("ActionMapping").key("event"), "click");
 			eam.setProperty(Traits.of("ActionMapping").key("action"), "create");
 			eam.setProperty(Traits.of("ActionMapping").key("dataType"), "Project");
@@ -1329,14 +1329,14 @@ public class EventActionMappingTest extends StructrUiTest {
 			final NodeInterface eam = app.create("ActionMapping");
 
 			// base setup
-			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn.getWrappedNode()));
+			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
 			eam.setProperty(Traits.of("ActionMapping").key("event"), "click");
 			eam.setProperty(Traits.of("ActionMapping").key("action"), "create");
 			eam.setProperty(Traits.of("ActionMapping").key("dataType"), "Project");
 
 			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, naviate-to-url, fire-event, full-page-reload, sign-out, none)
 			eam.setProperty(Traits.of("ActionMapping").key("successBehaviour"), "partial-refresh-linked");
-			eam.setProperty(Traits.of("ActionMapping").key("successTargets"), List.of(div.getWrappedNode()));
+			eam.setProperty(Traits.of("ActionMapping").key("successTargets"), List.of(div));
 
 			tx.success();
 
@@ -1442,7 +1442,7 @@ public class EventActionMappingTest extends StructrUiTest {
 			final NodeInterface eam = app.create("ActionMapping");
 
 			// base setup
-			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn.getWrappedNode()));
+			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
 			eam.setProperty(Traits.of("ActionMapping").key("event"), "click");
 			eam.setProperty(Traits.of("ActionMapping").key("action"), "create");
 			eam.setProperty(Traits.of("ActionMapping").key("dataType"), "Project");
@@ -1549,7 +1549,7 @@ public class EventActionMappingTest extends StructrUiTest {
 			final NodeInterface eam = app.create("ActionMapping");
 
 			// base setup
-			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn.getWrappedNode()));
+			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
 			eam.setProperty(Traits.of("ActionMapping").key("event"), "click");
 			eam.setProperty(Traits.of("ActionMapping").key("action"), "create");
 			eam.setProperty(Traits.of("ActionMapping").key("dataType"), "Project");
@@ -1656,7 +1656,7 @@ public class EventActionMappingTest extends StructrUiTest {
 			final NodeInterface eam = app.create("ActionMapping");
 
 			// base setup
-			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn.getWrappedNode()));
+			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
 			eam.setProperty(Traits.of("ActionMapping").key("event"), "click");
 			eam.setProperty(Traits.of("ActionMapping").key("action"), "create");
 			eam.setProperty(Traits.of("ActionMapping").key("dataType"), "Project");
@@ -1762,7 +1762,7 @@ public class EventActionMappingTest extends StructrUiTest {
 			final NodeInterface eam = app.create("ActionMapping");
 
 			// base setup
-			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn.getWrappedNode()));
+			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
 			eam.setProperty(Traits.of("ActionMapping").key("event"), "click");
 			eam.setProperty(Traits.of("ActionMapping").key("action"), "create");
 			eam.setProperty(Traits.of("ActionMapping").key("dataType"), "Project");
@@ -1866,7 +1866,7 @@ public class EventActionMappingTest extends StructrUiTest {
 			final NodeInterface eam = app.create("ActionMapping");
 
 			// base setup
-			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn.getWrappedNode()));
+			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
 			eam.setProperty(Traits.of("ActionMapping").key("event"), "click");
 			eam.setProperty(Traits.of("ActionMapping").key("action"), "create");
 			eam.setProperty(Traits.of("ActionMapping").key("dataType"), "Project");
@@ -1966,7 +1966,7 @@ public class EventActionMappingTest extends StructrUiTest {
 			final NodeInterface eam = app.create("ActionMapping");
 
 			// base setup
-			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn.getWrappedNode()));
+			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
 			eam.setProperty(Traits.of("ActionMapping").key("event"), "click");
 			eam.setProperty(Traits.of("ActionMapping").key("action"), "create");
 			eam.setProperty(Traits.of("ActionMapping").key("dataType"), "Project");
@@ -2074,14 +2074,14 @@ public class EventActionMappingTest extends StructrUiTest {
 			final NodeInterface eam = app.create("ActionMapping");
 
 			// base setup
-			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn.getWrappedNode()));
+			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
 			eam.setProperty(Traits.of("ActionMapping").key("event"), "click");
 			eam.setProperty(Traits.of("ActionMapping").key("action"), "create");
 			eam.setProperty(Traits.of("ActionMapping").key("dataType"), "Project");
 
 			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, naviate-to-url, fire-event, full-page-reload, sign-out, none)
 			eam.setProperty(Traits.of("ActionMapping").key("failureBehaviour"), "partial-refresh-linked");
-			eam.setProperty(Traits.of("ActionMapping").key("failureTargets"), List.of(div.getWrappedNode()));
+			eam.setProperty(Traits.of("ActionMapping").key("failureTargets"), List.of(div));
 
 			tx.success();
 
@@ -2187,7 +2187,7 @@ public class EventActionMappingTest extends StructrUiTest {
 			final NodeInterface eam = app.create("ActionMapping");
 
 			// base setup
-			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn.getWrappedNode()));
+			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
 			eam.setProperty(Traits.of("ActionMapping").key("event"), "click");
 			eam.setProperty(Traits.of("ActionMapping").key("action"), "create");
 			eam.setProperty(Traits.of("ActionMapping").key("dataType"), "Project");
@@ -2294,7 +2294,7 @@ public class EventActionMappingTest extends StructrUiTest {
 			final NodeInterface eam = app.create("ActionMapping");
 
 			// base setup
-			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn.getWrappedNode()));
+			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
 			eam.setProperty(Traits.of("ActionMapping").key("event"), "click");
 			eam.setProperty(Traits.of("ActionMapping").key("action"), "create");
 			eam.setProperty(Traits.of("ActionMapping").key("dataType"), "Project");
@@ -2401,7 +2401,7 @@ public class EventActionMappingTest extends StructrUiTest {
 			final NodeInterface eam = app.create("ActionMapping");
 
 			// base setup
-			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn.getWrappedNode()));
+			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
 			eam.setProperty(Traits.of("ActionMapping").key("event"), "click");
 			eam.setProperty(Traits.of("ActionMapping").key("action"), "create");
 			eam.setProperty(Traits.of("ActionMapping").key("dataType"), "Project");
@@ -2507,7 +2507,7 @@ public class EventActionMappingTest extends StructrUiTest {
 			final NodeInterface eam = app.create("ActionMapping");
 
 			// base setup
-			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn.getWrappedNode()));
+			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
 			eam.setProperty(Traits.of("ActionMapping").key("event"), "click");
 			eam.setProperty(Traits.of("ActionMapping").key("action"), "create");
 			eam.setProperty(Traits.of("ActionMapping").key("dataType"), "Project");
@@ -2611,7 +2611,7 @@ public class EventActionMappingTest extends StructrUiTest {
 			final NodeInterface eam = app.create("ActionMapping");
 
 			// base setup
-			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn.getWrappedNode()));
+			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
 			eam.setProperty(Traits.of("ActionMapping").key("event"), "click");
 			eam.setProperty(Traits.of("ActionMapping").key("action"), "create");
 			eam.setProperty(Traits.of("ActionMapping").key("dataType"), "Project");

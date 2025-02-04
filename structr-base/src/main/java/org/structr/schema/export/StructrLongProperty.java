@@ -215,7 +215,7 @@ public class StructrLongProperty extends StructrPropertyDefinition implements Js
 			properties.put(traits.key("format"), range.toString());
 		}
 
-		property.getWrappedNode().setProperties(SecurityContext.getSuperUserInstance(), properties);
+		property.setProperties(SecurityContext.getSuperUserInstance(), properties);
 
 		return property;
 	}

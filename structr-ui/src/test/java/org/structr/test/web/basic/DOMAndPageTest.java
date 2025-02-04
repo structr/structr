@@ -368,7 +368,7 @@ public class DOMAndPageTest extends StructrUiTest {
 				DOMElement title  = page.createElement("title");
 				Content titleText = page.createTextNode(pageTitle);
 
-				for (final RelationshipInterface r : page.getWrappedNode().getIncomingRelationships()) {
+				for (final RelationshipInterface r : page.getIncomingRelationships()) {
 					System.out.println("============ Relationship: " + r.toString());
 					assertEquals("PAGE", r.getRelType().name());
 
@@ -376,7 +376,7 @@ public class DOMAndPageTest extends StructrUiTest {
 
 				html.appendChild(head);
 
-				for (final RelationshipInterface r : head.getWrappedNode().getIncomingRelationships()) {
+				for (final RelationshipInterface r : head.getIncomingRelationships()) {
 					System.out.println("============ Relationship: " + r.toString());
 					assertEquals("CONTAINS", r.getRelType().name());
 
@@ -385,7 +385,7 @@ public class DOMAndPageTest extends StructrUiTest {
 				head.appendChild(title);
 				title.appendChild(titleText);
 
-				for (final RelationshipInterface r : titleText.getWrappedNode().getIncomingRelationships()) {
+				for (final RelationshipInterface r : titleText.getIncomingRelationships()) {
 					System.out.println("============ Relationship: " + r.toString());
 					assertEquals("CONTAINS", r.getRelType().name());
 				}

@@ -500,7 +500,7 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 
 		if (_owner != null && _owner.is("User")) {
 
-			final User user = _owner.getWrappedNode().as(User.class);
+			final User user = _owner.as(User.class);
 
 			workingOrHomeDir = user.getWorkingDirectory();
 			if (workingOrHomeDir == null) {
@@ -601,7 +601,7 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 		final Principal _owner = as(AccessControllable.class).getOwnerNode();
 		if (_owner != null) {
 
-			return !_owner.getWrappedNode().isGranted(Permission.write, wrappedObject.getSecurityContext());
+			return !_owner.isGranted(Permission.write, wrappedObject.getSecurityContext());
 		}
 
 		return true;

@@ -114,7 +114,7 @@ public class PagePathTraitWrapper extends GraphObjectTraitWrapper<NodeInterface>
 
 				// remove parameters that are no longer present in the list
 				for (final String parameterName : toRemove) {
-					app.delete(parameters.get(parameterName).getWrappedNode());
+					app.delete(parameters.get(parameterName));
 				}
 
 				// update positions

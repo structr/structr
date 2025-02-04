@@ -55,7 +55,7 @@ public class CreateComponentCommand extends AbstractCommand {
 
 				final DOMNode clonedNode = create(node);
 
-				TransactionCommand.registerNodeCallback(clonedNode.getWrappedNode(), callback);
+				TransactionCommand.registerNodeCallback(clonedNode, callback);
 
 			} catch (DOMException | FrameworkException ex) {
 

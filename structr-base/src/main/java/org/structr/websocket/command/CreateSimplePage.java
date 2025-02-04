@@ -53,7 +53,7 @@ public class CreateSimplePage extends AbstractCommand {
 
 			final Page page = Page.createSimplePage(securityContext, pageName);
 
-			TransactionCommand.registerNodeCallback(page.getWrappedNode(), callback);
+			TransactionCommand.registerNodeCallback(page, callback);
 
 		} catch (FrameworkException fex) {
 

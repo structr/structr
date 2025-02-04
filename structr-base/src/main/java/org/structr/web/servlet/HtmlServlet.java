@@ -464,7 +464,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					}
 				}
 
-				if (file != null && securityContext.isVisible(file.getWrappedNode())) {
+				if (file != null && securityContext.isVisible(file)) {
 
 					streamFile(securityContext, file, request, response, edit, true);
 					tx.success();
@@ -492,7 +492,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 				}
 
-				if (!securityContext.isVisible(rootElement.getWrappedNode())) {
+				if (!securityContext.isVisible(rootElement)) {
 
 					rootElement = notFound(response, securityContext);
 					if (rootElement == null) {
@@ -503,7 +503,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 				} else {
 
-					if (!EditMode.WIDGET.equals(edit) && !dontCache && notModifiedSince(request, response, rootElement.getWrappedNode(), dontCache)) {
+					if (!EditMode.WIDGET.equals(edit) && !dontCache && notModifiedSince(request, response, rootElement, dontCache)) {
 
 						ServletOutputStream out = response.getOutputStream();
 						out.flush();
@@ -793,7 +793,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 				}
 
-				if (!securityContext.isVisible(rootElement.getWrappedNode())) {
+				if (!securityContext.isVisible(rootElement)) {
 
 					rootElement = notFound(response, securityContext);
 					if (rootElement == null) {
@@ -804,9 +804,9 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 				}
 
-				if (securityContext.isVisible(rootElement.getWrappedNode())) {
+				if (securityContext.isVisible(rootElement)) {
 
-					if (!EditMode.WIDGET.equals(edit) && !dontCache && notModifiedSince(request, response, rootElement.getWrappedNode(), dontCache)) {
+					if (!EditMode.WIDGET.equals(edit) && !dontCache && notModifiedSince(request, response, rootElement, dontCache)) {
 
 						response.getOutputStream().close();
 
@@ -1233,7 +1233,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 			final Page page = node.as(Page.class);
 
-			if (securityContext.isVisible(page.getWrappedNode()) && ((EditMode.CONTENT.equals(edit) || isVisibleForSite(securityContext.getRequest(), page)) || (page.as(Linkable.class).getEnableBasicAuth() && node.isVisibleToAuthenticatedUsers()))) {
+			if (securityContext.isVisible(page) && ((EditMode.CONTENT.equals(edit) || isVisibleForSite(securityContext.getRequest(), page)) || (page.as(Linkable.class).getEnableBasicAuth() && node.isVisibleToAuthenticatedUsers()))) {
 
 				return page;
 			}
@@ -1552,7 +1552,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 	private void streamFile(final SecurityContext securityContext, final File file, HttpServletRequest request, HttpServletResponse response, final EditMode edit, final boolean sendContent) throws IOException {
 
-		if (!securityContext.isVisible(file.getWrappedNode())) {
+		if (!securityContext.isVisible(file)) {
 
 			response.sendError(HttpServletResponse.SC_NOT_FOUND);
 			return;
@@ -1584,7 +1584,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 		boolean dontCache = file.dontCache();
 
-		if (!EditMode.WIDGET.equals(edit) && notModifiedSince(request, response, file.getWrappedNode(), dontCache)) {
+		if (!EditMode.WIDGET.equals(edit) && notModifiedSince(request, response, file, dontCache)) {
 
 			out.flush();
 			out.close();
@@ -1714,7 +1714,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				final AbstractMethod method = Methods.resolveMethod(file.getTraits(), "onDownload");
 				if (method != null) {
 
-					method.execute(securityContext, file.getWrappedNode(), Arguments.fromMap(callbackMap), new EvaluationHints());
+					method.execute(securityContext, file, Arguments.fromMap(callbackMap), new EvaluationHints());
 				}
 
 			} catch (FrameworkException fex) {

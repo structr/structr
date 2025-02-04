@@ -105,7 +105,7 @@ public abstract class StructrDynamicProperty extends StructrStringProperty imple
 
 		properties.put(traits.key("typeHint"), typeHint);
 
-		property.getWrappedNode().setProperties(SecurityContext.getSuperUserInstance(), properties);
+		property.setProperties(SecurityContext.getSuperUserInstance(), properties);
 
 		return property;
 	}

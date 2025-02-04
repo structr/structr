@@ -147,7 +147,7 @@ public class ActionContext {
 
 			if (_data instanceof NodeTrait t) {
 
-				_data = t.getWrappedNode().evaluate(this, key, null, hints, row, column);
+				_data = t.evaluate(this, key, null, hints, row, column);
 
 			} else if (_data instanceof GraphObject obj) {
 
@@ -375,7 +375,7 @@ public class ActionContext {
 
 							case "me":
 								hints.reportExistingKey(key);
-								return securityContext.getUser(false).getWrappedNode();
+								return securityContext.getUser(false);
 
 							case "depth":
 								hints.reportExistingKey(key);

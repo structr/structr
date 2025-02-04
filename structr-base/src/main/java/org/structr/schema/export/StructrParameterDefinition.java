@@ -179,7 +179,7 @@ public class StructrParameterDefinition implements JsonParameter, StructrDefinit
 			final PropertyMap getOrCreateProperties = new PropertyMap();
 
 			getOrCreateProperties.put(traits.key("name"),         getName());
-			getOrCreateProperties.put(traits.key("schemaMethod"), schemaMethod.getWrappedNode());
+			getOrCreateProperties.put(traits.key("schemaMethod"), schemaMethod);
 
 			parameter = app.create("SchemaMethodParameter", getOrCreateProperties).as(SchemaMethodParameter.class);
 		}
@@ -192,7 +192,7 @@ public class StructrParameterDefinition implements JsonParameter, StructrDefinit
 		updateProperties.put(traits.key("index"),         index);
 
 		// update properties
-		parameter.getWrappedNode().setProperties(SecurityContext.getSuperUserInstance(), updateProperties);
+		parameter.setProperties(SecurityContext.getSuperUserInstance(), updateProperties);
 
 		// return modified property
 		return parameter;

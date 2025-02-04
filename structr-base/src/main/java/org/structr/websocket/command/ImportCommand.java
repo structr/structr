@@ -111,7 +111,7 @@ public class ImportCommand extends AbstractCommand {
 						for (final DOMNode node : newPage.getChildren()) {
 
 							newPage.removeChild(node);
-							app.delete(node.getWrappedNode());
+							app.delete(node);
 						}
 
 						newPage.appendChild(template);

@@ -49,7 +49,7 @@ public class StructrThumbnailProperty extends StructrStringProperty {
 		properties.put(traits.key("propertyType"), Type.Thumbnail.name());
 		properties.put(traits.key("format"), getFormat());
 
-		property.getWrappedNode().setProperties(SecurityContext.getSuperUserInstance(), properties);
+		property.setProperties(SecurityContext.getSuperUserInstance(), properties);
 
 		return property;
 	}

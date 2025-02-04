@@ -84,7 +84,7 @@ public class CreateLocalWidgetCommand extends AbstractCommand {
 
 			final Widget widget = app.create("Widget", properties).as(Widget.class);
 
-			TransactionCommand.registerNodeCallback(widget.getWrappedNode(), callback);
+			TransactionCommand.registerNodeCallback(widget, callback);
 
 		} catch (Throwable t) {
 

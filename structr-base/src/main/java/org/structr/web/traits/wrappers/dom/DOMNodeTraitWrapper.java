@@ -680,7 +680,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 			}
 
 			if (!key.isUnvalidated()) {
-				properties.put(key, sourceNode.getWrappedNode().getProperty(key));
+				properties.put(key, sourceNode.getProperty(key));
 			}
 		}
 
@@ -693,7 +693,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 			}
 
 			if (!key.isUnvalidated()) {
-				properties.put(key, sourceNode.getWrappedNode().getProperty(key));
+				properties.put(key, sourceNode.getProperty(key));
 			}
 		}
 
@@ -708,7 +708,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		targetNode.setProperties(securityContext, properties);
 
 		// for clone, always copy permissions
-		sourceNode.getWrappedNode().copyPermissionsTo(securityContext, targetNode.getWrappedNode(), true);
+		sourceNode.copyPermissionsTo(securityContext, targetNode, true);
 	}
 
 	@Override
@@ -1127,6 +1127,23 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	}
 
 	@Override
+	public boolean isSameNode(final DOMNode otherNode) {
+
+		if (otherNode != null) {
+
+			String otherId = otherNode.getUuid();
+			String ourId   = this.getUuid();
+
+			if (ourId != null && otherId != null && ourId.equals(otherId)) {
+				return true;
+			}
+		}
+
+		return false;
+
+	}
+
+	@Override
 	public final boolean hasSharedComponent() {
 		return wrappedObject.getProperty(traits.key("hasSharedComponent"));
 	}
@@ -1141,7 +1158,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 		final LinkedTreeNode node = wrappedObject.as(DOMNode.class);
 
-		return node.treeGetChildPosition(otherNode.getWrappedNode());
+		return node.treeGetChildPosition(otherNode);
 	}
 
 	@Override
@@ -1306,7 +1323,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 		if (page != null) {
 
-			wrappedObject.setProperty(traits.key("ownerDocument"), page.getWrappedNode());
+			wrappedObject.setProperty(traits.key("ownerDocument"), page);
 
 		} else {
 
@@ -1319,7 +1336,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 		if (sharedComponent != null) {
 
-			wrappedObject.setProperty(traits.key("sharedComponent"), sharedComponent.getWrappedNode());
+			wrappedObject.setProperty(traits.key("sharedComponent"), sharedComponent);
 
 		} else {
 
@@ -1353,7 +1370,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 					// make current data object available in renderContext
 					if (dataObject instanceof NodeTrait n) {
 
-						renderContext.putDataObject(dataKey, n.getWrappedNode());
+						renderContext.putDataObject(dataKey, n);
 
 					} else if (dataObject instanceof GraphObject o) {
 
@@ -1515,8 +1532,8 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		} else {
 
 			// parents visibility flags are different or parent is shadowpage -> output visibility flags
-			final boolean parentPublic      = _parentNode.getWrappedNode().isVisibleToPublicUsers();
-			final boolean parentProtected   = _parentNode.getWrappedNode().isVisibleToAuthenticatedUsers();
+			final boolean parentPublic      = _parentNode.isVisibleToPublicUsers();
+			final boolean parentProtected   = _parentNode.isVisibleToAuthenticatedUsers();
 
 			addVisibilityInstructions = (_parentNode.is("ShadowDocument")) || (parentPublic != elementPublic || parentProtected != elementProtected);
 		}
@@ -1644,7 +1661,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 		checkWriteAccess();
 
-		treeAppendChild(node.getWrappedNode());
+		treeAppendChild(node);
 	}
 
 	@Override
@@ -1652,7 +1669,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 		checkWriteAccess();
 
-		treeRemoveChild(node.getWrappedNode());
+		treeRemoveChild(node);
 	}
 
 	@Override
@@ -1963,7 +1980,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 			try {
 
 				// do actual tree insertion here
-				treeInsertBefore(((DOMNode) newChild).getWrappedNode(), ((DOMNode) refChild).getWrappedNode());
+				treeInsertBefore(((DOMNode) newChild), ((DOMNode) refChild));
 
 			} catch (FrameworkException frex) {
 
@@ -2034,7 +2051,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 			try {
 				// replace directly
-				treeReplaceChild(newChild.getWrappedNode(), oldChild.getWrappedNode());
+				treeReplaceChild(newChild, oldChild);
 
 			} catch (FrameworkException frex) {
 
@@ -2272,5 +2289,10 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	@Override
 	public void setHidden(final boolean hidden) throws FrameworkException {
 		wrappedObject.setHidden(hidden);
+	}
+
+	@Override
+	public void setIdAttribute(final String id) throws FrameworkException {
+		wrappedObject.setProperty(traits.key("_html_id"), id);
 	}
 }

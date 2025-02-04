@@ -120,7 +120,7 @@ public class ImageTraitDefinition extends AbstractNodeTraitDefinition {
 
 							if (!tn.getUuid().equals(thisImage.getUuid())) {
 
-								tn.getWrappedNode().setProperty(key, value);
+								tn.setProperty(key, value);
 							}
 						}
 					}
@@ -157,7 +157,7 @@ public class ImageTraitDefinition extends AbstractNodeTraitDefinition {
 
 								if (!tn.getUuid().equals(thisImage.getUuid())) {
 
-									final NodeInterface wrappedNode = tn.getWrappedNode();
+									final NodeInterface wrappedNode = tn;
 									final SecurityContext sc        = wrappedNode.getSecurityContext();
 
 									wrappedNode.setProperties(sc, propertiesCopiedToAllThumbnails);

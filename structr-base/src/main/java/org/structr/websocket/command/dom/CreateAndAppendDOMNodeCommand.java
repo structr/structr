@@ -243,7 +243,7 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 
 		try {
 
-			sourceNode.getWrappedNode().copyPermissionsTo(targetNode.getSecurityContext(), targetNode.getWrappedNode(), true);
+			sourceNode.copyPermissionsTo(targetNode.getSecurityContext(), targetNode, true);
 
 		} catch (FrameworkException fex) {
 

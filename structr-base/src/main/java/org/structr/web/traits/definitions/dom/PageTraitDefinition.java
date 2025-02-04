@@ -96,7 +96,7 @@ public class PageTraitDefinition extends AbstractNodeTraitDefinition {
 
 					while (subNode != null) {
 
-						if (renderContext.getSecurityContext().isVisible(subNode.getWrappedNode())) {
+						if (renderContext.getSecurityContext().isVisible(subNode)) {
 
 							subNode.render(renderContext, depth);
 						}

@@ -210,7 +210,7 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 				// only include toplevel elements of the shadow document
 				if (child.getParent() == null) {
 
-					calculateHash(child.getWrappedNode(), buf, depth+1);
+					calculateHash(child, buf, depth+1);
 				}
 			}
 
@@ -218,7 +218,7 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 
 			for (final DOMNode child : start.as(DOMNode.class).getChildren()) {
 
-				calculateHash(child.getWrappedNode(), buf, depth+1);
+				calculateHash(child, buf, depth+1);
 			}
 		}
 
@@ -241,7 +241,7 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 
 		if (owner != null) {
 
-			buf.append(valueOrEmpty(owner.getWrappedNode(), Traits.of("NodeInterface").key("name")));
+			buf.append(valueOrEmpty(owner, Traits.of("NodeInterface").key("name")));
 		}
 
 		// include permissions in content hash generation!
@@ -266,7 +266,7 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 			final Page ownerDocument = node.as(DOMNode.class).getOwnerDocument();
 			if (ownerDocument != null) {
 
-				buf.append(valueOrEmpty(ownerDocument.getWrappedNode(), Traits.of("NodeInterface").key("name")));
+				buf.append(valueOrEmpty(ownerDocument, Traits.of("NodeInterface").key("name")));
 			}
 		}
 
@@ -393,7 +393,7 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 			}
 		}
 
-		return parent.getWrappedNode();
+		return parent;
 	}
 
 	protected void assertFalse(final String message, final boolean value) {

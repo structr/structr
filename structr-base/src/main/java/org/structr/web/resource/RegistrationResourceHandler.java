@@ -384,7 +384,7 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 
 		if (user != null) {
 
-			user = new NodeFactory(securityContext).instantiate(user.getWrappedNode().getNode()).as(Principal.class);
+			user = new NodeFactory(securityContext).instantiate(user.getNode()).as(Principal.class);
 
 			// convert to user
 			user.unlockSystemPropertiesOnce();

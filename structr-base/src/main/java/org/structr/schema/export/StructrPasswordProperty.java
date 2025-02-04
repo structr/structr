@@ -54,7 +54,7 @@ public class StructrPasswordProperty extends StructrPropertyDefinition implement
 		properties.put(traits.key("format"), getFormat());
 		properties.put(traits.key("contentType"), getContentType());
 
-		property.getWrappedNode().setProperties(SecurityContext.getSuperUserInstance(), properties);
+		property.setProperties(SecurityContext.getSuperUserInstance(), properties);
 
 		return property;
 	}

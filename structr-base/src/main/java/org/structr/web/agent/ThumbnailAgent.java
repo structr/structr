@@ -155,7 +155,7 @@ public class ThumbnailAgent extends Agent<ThumbnailWorkObject> {
 					final PropertyMap properties = new PropertyMap();
 					properties.put(Traits.of("Image").key("width"),                               tnWidth);
 					properties.put(Traits.of("Image").key("height"),                              tnHeight);
-					properties.put(Traits.of("NodeInterface").key("hidden"),                      originalImage.getWrappedNode().isHidden());
+					properties.put(Traits.of("NodeInterface").key("hidden"),                      originalImage.isHidden());
 					properties.put(Traits.of("NodeInterface").key("visibleToAuthenticatedUsers"), originalImage.isVisibleToAuthenticatedUsers());
 					properties.put(Traits.of("NodeInterface").key("visibleToPublicUsers"),        originalImage.isVisibleToPublicUsers());
 					properties.put(Traits.of("File").key("size"),                                 Long.valueOf(data.length));

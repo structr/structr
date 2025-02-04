@@ -82,7 +82,7 @@ public class AppendMemberCommand extends AbstractCommand {
 
 					group.addMember(getWebSocket().getSecurityContext(), principal.as(Principal.class));
 
-					TransactionCommand.registerNodeCallback(group.getWrappedNode(), callback);
+					TransactionCommand.registerNodeCallback(group, callback);
 
 				} catch (final FrameworkException ex) {
 

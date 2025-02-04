@@ -103,10 +103,10 @@ public class PageImporter extends HtmlFileImporter {
 		if (page != null) {
 
 			for (final DOMNode child : page.getElements()) {
-				app.delete(child.getWrappedNode());
+				app.delete(child);
 			}
 
-			app.delete(page.getWrappedNode());
+			app.delete(page);
 		}
 	}
 
@@ -212,7 +212,7 @@ public class PageImporter extends HtmlFileImporter {
 						fixDocumentElements(newPage);
 
 						// store properties from pages.json
-						newPage.getWrappedNode().setProperties(securityContext, properties);
+						newPage.setProperties(securityContext, properties);
 					}
 
 				} else {
@@ -232,7 +232,7 @@ public class PageImporter extends HtmlFileImporter {
 						final Page newPage = app.create("Page", name).as(Page.class);
 
 						// store properties from pages.json
-						newPage.getWrappedNode().setProperties(securityContext, properties);
+						newPage.setProperties(securityContext, properties);
 
 						// add children
 						importer.createChildNodes(newPage, newPage);

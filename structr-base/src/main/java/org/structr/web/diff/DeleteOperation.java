@@ -70,7 +70,7 @@ public class DeleteOperation extends InvertibleModificationOperation {
 				parent.removeChild(existingNode);
 			}
 
-			app.delete(existingNode.getWrappedNode());
+			app.delete(existingNode);
 		}
 	}
 

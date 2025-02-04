@@ -63,7 +63,7 @@ public class StructrStringArrayProperty extends StructrPropertyDefinition implem
 		final SchemaProperty property = super.createDatabaseSchema(app, schemaNode);
 		final Traits traits           = Traits.of("SchemaProperty");
 
-		property.getWrappedNode().setProperty(traits.key("propertyType"), Type.StringArray.name());
+		property.setProperty(traits.key("propertyType"), Type.StringArray.name());
 
 		return property;
 	}

@@ -334,7 +334,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 				public void updateFromNode(final NodeInterface thisNode, final DOMNode node2) throws FrameworkException {
 
 					final PropertyMap properties = new PropertyMap();
-					final NodeInterface wrapped = node2.getWrappedNode();
+					final NodeInterface wrapped = node2;
 					final DOMElement newNode = wrapped.as(DOMElement.class);
 					final Traits traits = wrapped.getTraits();
 
@@ -358,9 +358,9 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 				public DOMElement doImport(final DOMNode node, final Page newPage) throws FrameworkException {
 
 					final DOMElement element        = node.as(DOMElement.class);
-					final NodeInterface wrappedThis = node.getWrappedNode();
+					final NodeInterface wrappedThis = node;
 					final DOMElement newElement     = newPage.createElement(element.getTag());
-					final NodeInterface wrappedNew  = newElement.getWrappedNode();
+					final NodeInterface wrappedNew  = newElement;
 
 					// copy attributes
 					for (PropertyKey key : element.getHtmlAttributes()) {
@@ -460,7 +460,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 								final String _sharedComponentConfiguration = elem.getSharedComponentConfiguration();
 								if (StringUtils.isNotBlank(_sharedComponentConfiguration)) {
 
-									Scripting.evaluate(renderContext, elem.getWrappedNode(), "${" + _sharedComponentConfiguration.trim() + "}", "sharedComponentConfiguration", node.getUuid());
+									Scripting.evaluate(renderContext, elem, "${" + _sharedComponentConfiguration.trim() + "}", "sharedComponentConfiguration", node.getUuid());
 								}
 
 								for (final RelationshipInterface rel : rels) {
@@ -521,14 +521,14 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 					final boolean hasSharedComponent      = node.hasSharedComponent();
 					final DOMNode _sharedComponentElement = hasSharedComponent ? node.getSharedComponent() : null;
-					final NodeInterface wrappedNode       = node.getWrappedNode();
+					final NodeInterface wrappedNode       = node;
 					final Traits traits                   = wrappedNode.getTraits();
 
 					if (_sharedComponentElement != null && EditMode.DEPLOYMENT.equals(editMode)) {
 
 						out.append("<structr:component src=\"");
 
-						final String _name = _sharedComponentElement.getWrappedNode().getProperty(traits.key("name"));
+						final String _name = _sharedComponentElement.getProperty(traits.key("name"));
 						out.append(_name != null ? _name.concat("-").concat(_sharedComponentElement.getUuid()) : _sharedComponentElement.getUuid());
 
 						out.append("\"");
@@ -656,7 +656,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 									// why only the first one?!
 									final ActionMapping triggeredAction = list.get(0);
-									final NodeInterface actionNode      = triggeredAction.getWrappedNode();
+									final NodeInterface actionNode      = triggeredAction;
 									final String options                = triggeredAction.getOptions();
 									final Traits eamTraits              = actionNode.getTraits();
 
@@ -727,7 +727,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 									// even though the data model has a ManyToMany rel between triggerElements and triggeredActions
 									for (final ParameterMapping parameterMapping : triggeredAction.getParameterMappings()) {
 
-										final NodeInterface parameterMappingNode = parameterMapping.getWrappedNode();
+										final NodeInterface parameterMappingNode = parameterMapping;
 										final String parameterType = parameterMappingNode.getProperty(parameterTypeKey);
 										final String parameterName = parameterMappingNode.getPropertyWithVariableReplacement(renderContext, parameterNameKey);
 
@@ -745,7 +745,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 												final DOMElement element = parameterMapping.getInputElement();
 												if (element != null) {
 
-													final String elementCssId = element.getWrappedNode().getPropertyWithVariableReplacement(renderContext, htmlIdKey);
+													final String elementCssId = element.getPropertyWithVariableReplacement(renderContext, htmlIdKey);
 
 													if (elementCssId != null) {
 
@@ -897,7 +897,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 				public List<String> getHtmlAttributeNames(final DOMElement element) {
 
 					final List<String> names = new ArrayList<>(20);
-					final NodeInterface node = element.getWrappedNode();
+					final NodeInterface node = element;
 					final int len = PropertyView.Html.length();
 
 					for (String key : node.getNode().getPropertyKeys()) {
@@ -2042,7 +2042,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 			}
 
-			final NodeInterface node = domElement.getWrappedNode();
+			final NodeInterface node = domElement;
 			final Traits traits      = node.getTraits();
 
 			// update reload targets with list from above
@@ -2073,7 +2073,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 	// ----- private methods -----
 	private String generateDataAttributesForIdList(final RenderContext renderContext, final ActionMapping actionMapping, final String keyName) {
 
-		final NodeInterface actionNode                 = actionMapping.getWrappedNode();
+		final NodeInterface actionNode                 = actionMapping;
 		final List<String> selectors                   = new LinkedList<>();
 		final Traits traits                            = actionNode.getTraits();
 		final PropertyKey<Iterable<NodeInterface>> key = traits.key(keyName);

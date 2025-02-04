@@ -94,13 +94,13 @@ public class TemplateTraitDefinition extends AbstractNodeTraitDefinition {
 						if (_syncedNode != null) {
 
 							// use name of synced node
-							final String _name = _syncedNode.getWrappedNode().getProperty(traits.key("name"));
+							final String _name = _syncedNode.getProperty(traits.key("name"));
 							out.append(_name != null ? _name.concat("-").concat(_syncedNode.getUuid()) : _syncedNode.getUuid());
 
 						} else {
 
 							// use name of local template
-							final String _name = node.getWrappedNode().getProperty(traits.key("name"));
+							final String _name = node.getProperty(traits.key("name"));
 							out.append(_name != null ? _name.concat("-").concat(node.getUuid()) : node.getUuid());
 						}
 

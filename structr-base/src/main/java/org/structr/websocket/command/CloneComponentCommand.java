@@ -124,7 +124,7 @@ public class CloneComponentCommand extends AbstractCommand {
 				}
 			}
 
-			TransactionCommand.registerNodeCallback(node.getWrappedNode(), callback);
+			TransactionCommand.registerNodeCallback(node, callback);
 
 		} catch (DOMException | FrameworkException ex) {
 

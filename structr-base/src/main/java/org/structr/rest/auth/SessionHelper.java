@@ -178,7 +178,7 @@ public class SessionHelper {
 	 */
 	public static void clearAllSessions(final Principal user) {
 
-		if (!user.getWrappedNode().getTraits().contains("Group")) {
+		if (!user.getTraits().contains("Group")) {
 
 			logger.info("Clearing all sessions for user {} ({})", user.getName(), user.getUuid());
 

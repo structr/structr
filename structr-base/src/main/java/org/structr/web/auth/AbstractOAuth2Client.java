@@ -224,7 +224,7 @@ public abstract class AbstractOAuth2Client implements OAuth2Client {
 			arguments.add("provider", this.provider);
 			arguments.add("userinfo", this.getUserInfo());
 
-			method.execute(user.getSecurityContext(), user.getWrappedNode(), arguments, new EvaluationHints());
+			method.execute(user.getSecurityContext(), user, arguments, new EvaluationHints());
 		}
 	}
 

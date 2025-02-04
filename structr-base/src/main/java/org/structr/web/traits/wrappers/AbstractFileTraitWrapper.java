@@ -61,7 +61,7 @@ public class AbstractFileTraitWrapper extends GraphObjectTraitWrapper<NodeInterf
 
 		if (parent != null) {
 
-			wrappedObject.setProperty(traits.key("parent"), parent.getWrappedNode());
+			wrappedObject.setProperty(traits.key("parent"), parent);
 
 		} else {
 

@@ -73,7 +73,7 @@ class IdNotionReferenceProperty extends StructrReferenceProperty {
 		properties.put(traits.key("format"), referenceName + ", " + StringUtils.join(properties, ", "));
 		properties.put(traits.key("propertyType"), SchemaHelper.Type.IdNotion.name());
 
-		property.getWrappedNode().setProperties(SecurityContext.getSuperUserInstance(), properties);
+		property.setProperties(SecurityContext.getSuperUserInstance(), properties);
 
 		return property;
 	}

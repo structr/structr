@@ -378,7 +378,7 @@ public class PageTest extends StructrUiTest {
 
 			newPage = (Page) pageToClone.cloneNode(false);
 
-			newPage.setName(pageToClone.getName() + "-" + newPage.getWrappedNode().getNode().getId().toString());
+			newPage.setName(pageToClone.getName() + "-" + newPage.getNode().getId().toString());
 
 			DOMNode firstChild = pageToClone.getFirstChild().getNextSibling();
 

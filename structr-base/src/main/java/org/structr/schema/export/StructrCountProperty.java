@@ -49,7 +49,7 @@ public class StructrCountProperty extends StructrLongProperty implements JsonCou
 		properties.put(traits.key("propertyType"), SchemaHelper.Type.Count.name());
 		properties.put(traits.key("format"), getFormat());
 	
-		property.getWrappedNode().setProperties(SecurityContext.getSuperUserInstance(), properties);
+		property.setProperties(SecurityContext.getSuperUserInstance(), properties);
 
 		return property;
 	}

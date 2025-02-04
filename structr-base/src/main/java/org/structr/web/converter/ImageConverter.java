@@ -120,7 +120,7 @@ public class ImageConverter extends PropertyConverter {
 			if (img != null) {
 
 				// manual indexing of UUID needed here to avoid a 404 in the following setProperty call
-				img.getWrappedNode().addToIndex();
+				img.addToIndex();
 				
 				currentObject.setProperties(securityContext, new PropertyMap(keyAndClass.getPropertyKey(), img));
 			}

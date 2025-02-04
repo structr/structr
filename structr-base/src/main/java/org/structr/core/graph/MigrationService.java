@@ -697,8 +697,8 @@ public class MigrationService {
 					new NodeAttribute<>(storageConfigurationTraits.key("value"),         folder.getMountTarget())
 				);
 
-				folder.getWrappedNode().setProperty(folderTraits.key("storageConfiguration"), config);
-				folder.getWrappedNode().setProperty(folderTraits.key("mountTarget"), null);
+				folder.setProperty(folderTraits.key("storageConfiguration"), config);
+				folder.setProperty(folderTraits.key("mountTarget"), null);
 			}
 
 			tx.success();

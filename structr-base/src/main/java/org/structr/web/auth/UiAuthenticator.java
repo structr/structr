@@ -173,7 +173,7 @@ public class UiAuthenticator implements Authenticator {
 				securityContext = SecurityContext.getInstance(user, request, AccessMode.Backend);
 
 				// overwrite superuser context in user
-				user.getWrappedNode().setSecurityContext(securityContext);
+				user.setSecurityContext(securityContext);
 			}
 		}
 
@@ -310,7 +310,7 @@ public class UiAuthenticator implements Authenticator {
 			// combine allowed flags for permissions user is allowed to see
 			for (final ResourceAccess permission : permissions) {
 
-				if (securityContext.isReadable(permission.getWrappedNode(), false, false)) {
+				if (securityContext.isReadable(permission, false, false)) {
 
 					permissionsFound++;
 					combinedFlags = combinedFlags | permission.getFlags();
@@ -490,7 +490,7 @@ public class UiAuthenticator implements Authenticator {
 			final Principal user = getUser(request, false);
 			if (user != null) {
 
-				Services.getInstance().broadcastLogout(user.getWrappedNode().getNode().getId().getId());
+				Services.getInstance().broadcastLogout(user.getNode().getId().getId());
 
 				AuthHelper.doLogout(request, user);
 			}

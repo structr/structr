@@ -140,7 +140,7 @@ public final class SchemaGrantTraitDefinition extends AbstractNodeTraitDefinitio
 	// ----- private methods -----
 	private void checkRelationshipsAndDeleteSelf(final SchemaGrant grant, final boolean isCreation) throws FrameworkException {
 
-		final NodeInterface node = grant.getWrappedNode();
+		final NodeInterface node = grant;
 		final Node dbNode        = node.getNode();
 		final Principal p        = grant.getPrincipal();
 

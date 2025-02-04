@@ -1338,7 +1338,7 @@ public class AccessControlTest extends StructrTest {
 			final PropertyKey<Boolean> isAdminKey = traits.key("isAdmin");
 			final SecurityContext userContext     = SecurityContext.getInstance(nonAdmin, AccessMode.Frontend);
 
-			nonAdmin.getWrappedNode().setSecurityContext(userContext);
+			nonAdmin.setSecurityContext(userContext);
 			App userApp = StructrApp.getInstance(userContext);
 
 			try (final Tx tx = userApp.tx()) {

@@ -75,7 +75,7 @@ public class ListComponentsCommand extends AbstractCommand {
 			// Filter list and return only top level nodes
 			for (DOMNode node : resultList) {
 
-				if (Boolean.FALSE.equals(node.getWrappedNode().hasIncomingRelationships(node.getChildLinkType()))) {
+				if (Boolean.FALSE.equals(node.hasIncomingRelationships(node.getChildLinkType()))) {
 
 					filteredResults.add(node);
 				}
@@ -143,7 +143,7 @@ public class ListComponentsCommand extends AbstractCommand {
 
 		for (final DOMNode n : source) {
 
-			result.add(n.getWrappedNode());
+			result.add(n);
 		}
 
 		return result;

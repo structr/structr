@@ -326,7 +326,7 @@ public class Deployment1Test extends DeploymentTestBase {
 			final DOMNode sharedTemplate = createComponent(template);
 
 			// remove original template from page
-			app.delete(template.getWrappedNode());
+			app.delete(template);
 
 			createElement(page, sharedTemplate, "div");
 
@@ -358,7 +358,7 @@ public class Deployment1Test extends DeploymentTestBase {
 			final DOMNode sharedTemplate = createComponent(template);
 
 			// remove original template from page
-			app.delete(template.getWrappedNode());
+			app.delete(template);
 
 			createElement(page, sharedTemplate, "div");
 

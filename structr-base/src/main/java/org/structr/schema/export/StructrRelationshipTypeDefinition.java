@@ -531,7 +531,7 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 			properties.put(traits.key("propertyMask"), aclHiddenProperties);
 		}
 
-		_schemaNode.getWrappedNode().setProperties(SecurityContext.getSuperUserInstance(), properties);
+		_schemaNode.setProperties(SecurityContext.getSuperUserInstance(), properties);
 
 		return _schemaNode;
 	}

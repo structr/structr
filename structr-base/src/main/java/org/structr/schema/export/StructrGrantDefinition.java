@@ -183,7 +183,7 @@ public class StructrGrantDefinition implements JsonGrant, StructrDefinition {
 		updateProperties.put(traits.key("allowDelete"),        getAllowDelete());
 		updateProperties.put(traits.key("allowAccessControl"), getAllowAccessControl());
 
-		grant.getWrappedNode().setProperties(SecurityContext.getSuperUserInstance(), updateProperties);
+		grant.setProperties(SecurityContext.getSuperUserInstance(), updateProperties);
 
 		this.schemaGrant = grant;
 

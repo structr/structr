@@ -156,7 +156,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					final boolean isAdminOnlyEditMode = (RenderContext.EditMode.RAW.equals(editMode) || RenderContext.EditMode.WIDGET.equals(editMode) || RenderContext.EditMode.DEPLOYMENT.equals(editMode));
 					final boolean isPartial = renderContext.isPartialRendering(); // renderContext.getPage() == null;
 
-					if (!isAdminOnlyEditMode && !securityContext.isVisible(node.getWrappedNode())) {
+					if (!isAdminOnlyEditMode && !securityContext.isVisible(node)) {
 						return;
 					}
 
@@ -190,7 +190,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 						if (StringUtils.isNotBlank(subKey)) {
 
 							// fetch (optional) list of external data elements
-							final Iterable<GraphObject> listData = DOMNodeTraitDefinition.checkListSources(node.getWrappedNode(), securityContext, renderContext);
+							final Iterable<GraphObject> listData = DOMNodeTraitDefinition.checkListSources(node, securityContext, renderContext);
 
 							final PropertyKey propertyKey;
 
@@ -354,8 +354,8 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 				public void renderCustomAttributes(final DOMNode node, final AsyncBuffer out, final SecurityContext securityContext, final RenderContext renderContext) throws FrameworkException {
 
 					final RenderContext.EditMode editMode = renderContext.getEditMode(securityContext.getUser(false));
-					final Traits traits = node.getWrappedNode().getTraits();
-					final NodeInterface wrappedNode = node.getWrappedNode();
+					final Traits traits = node.getTraits();
+					final NodeInterface wrappedNode = node;
 
 					Set<PropertyKey> dataAttributes = node.getDataPropertyKeys();
 

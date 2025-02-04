@@ -373,7 +373,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 			getOrCreateProperties.put(traits.key("signature"),             getSignature());
 			getOrCreateProperties.put(traits.key("codeType"),              getCodeType());
 			getOrCreateProperties.put(traits.key("returnType"),            getReturnType());
-			getOrCreateProperties.put(traits.key("schemaNode"),            schemaNode.getWrappedNode());
+			getOrCreateProperties.put(traits.key("schemaNode"),            schemaNode);
 			getOrCreateProperties.put(traits.key("exceptions"),            listToArray(getExceptions()));
 			getOrCreateProperties.put(traits.key("overridesExisting"),     overridesExisting());
 			getOrCreateProperties.put(traits.key("callSuper"),             callSuper());
@@ -405,7 +405,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 			updateProperties.put(traits.key("tags"), listToArray(mergedTags));
 		}
 
-		method.getWrappedNode().setProperties(SecurityContext.getSuperUserInstance(), updateProperties);
+		method.setProperties(SecurityContext.getSuperUserInstance(), updateProperties);
 
 		// create database schema for method parameters
 		for (final StructrParameterDefinition param : parameters) {

@@ -1735,12 +1735,12 @@ public class SearchAndSortingTest extends StructrTest {
 
 					if (rand < 0.3) {
 
-						node.setProperty(Traits.of("NodeInterface").key("owner"), tester1.getWrappedNode());
+						node.setProperty(Traits.of("NodeInterface").key("owner"), tester1);
 						tester1Nodes.add(node);
 
 					} else if (rand < 0.6) {
 
-						node.setProperty(Traits.of("NodeInterface").key("owner"), tester2.getWrappedNode());
+						node.setProperty(Traits.of("NodeInterface").key("owner"), tester2);
 						tester2Nodes.add(node);
 					}
 
@@ -1905,11 +1905,11 @@ public class SearchAndSortingTest extends StructrTest {
 			assertEquals("Invalid search result", 1, result1.size());
 
 			// search for a group with group2 as a parent
-			final List<NodeInterface> result2 = app.nodeQuery("Group").and(groupsKey, Arrays.asList(groups.get(1).getWrappedNode())).getAsList();
+			final List<NodeInterface> result2 = app.nodeQuery("Group").and(groupsKey, Arrays.asList(groups.get(1))).getAsList();
 			assertEquals("Invalid search result", 2, result2.size());
 
 			// search for a group with group2 as a parent and a given name
-			final List<NodeInterface> result3 = app.nodeQuery("Group").andName("Group3").and(groupsKey, Arrays.asList(groups.get(1).getWrappedNode())).getAsList();
+			final List<NodeInterface> result3 = app.nodeQuery("Group").andName("Group3").and(groupsKey, Arrays.asList(groups.get(1))).getAsList();
 			assertEquals("Invalid search result", 1, result3.size());
 
 			tx.success();
@@ -2558,10 +2558,10 @@ public class SearchAndSortingTest extends StructrTest {
 			final Principal ownerE = createTestNode("User", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "E")).as(Principal.class);
 
 			createTestNode("Group", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "zzz"));
-			createTestNode("Group", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "aaa"), new NodeAttribute<>(Traits.of("NodeInterface").key("owner"), ownerA.getWrappedNode()));
-			createTestNode("Group", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "ttt"), new NodeAttribute<>(Traits.of("NodeInterface").key("owner"), ownerE.getWrappedNode()));
-			createTestNode("Group", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "xxx"), new NodeAttribute<>(Traits.of("NodeInterface").key("owner"), ownerC.getWrappedNode()));
-			createTestNode("Group", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "bbb"), new NodeAttribute<>(Traits.of("NodeInterface").key("owner"), ownerD.getWrappedNode()));
+			createTestNode("Group", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "aaa"), new NodeAttribute<>(Traits.of("NodeInterface").key("owner"), ownerA));
+			createTestNode("Group", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "ttt"), new NodeAttribute<>(Traits.of("NodeInterface").key("owner"), ownerE));
+			createTestNode("Group", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "xxx"), new NodeAttribute<>(Traits.of("NodeInterface").key("owner"), ownerC));
+			createTestNode("Group", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "bbb"), new NodeAttribute<>(Traits.of("NodeInterface").key("owner"), ownerD));
 
 			tx.success();
 

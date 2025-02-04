@@ -68,7 +68,7 @@ public class ChildrenCommand extends AbstractCommand {
 
 			for (final DOMNode child : page.getChildren()) {
 
-				result.add(child.getWrappedNode());
+				result.add(child);
 			}
 
 		} else  if (node.is("Group")) {
@@ -77,7 +77,7 @@ public class ChildrenCommand extends AbstractCommand {
 
 			for (final Principal p : group.getMembers()) {
 
-				result.add(p.getWrappedNode());
+				result.add(p);
 			}
 
 		} else  if (node.is("Content")) {

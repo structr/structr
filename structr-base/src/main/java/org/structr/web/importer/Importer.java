@@ -1255,7 +1255,7 @@ public class Importer {
 					} else {
 
 						// don't do same page check or hierarchy check
-						parent.getWrappedNode().getTemporaryStorage().put("import", true);
+						parent.getTemporaryStorage().put("import", true);
 
 						if (!dontSetParent) {
 
@@ -1600,7 +1600,7 @@ public class Importer {
 		final PropertyKey<NodeInterface> parentKey        = Traits.of("DOMNode").key("parent");
 		final ShadowDocument shadowDocument               = CreateComponentCommand.getOrCreateHiddenDocument();
 
-		for (final NodeInterface n : StructrApp.getInstance().nodeQuery("DOMNode").andName(name).and(ownerDocumentKey, shadowDocument.getWrappedNode()).getAsList()) {
+		for (final NodeInterface n : StructrApp.getInstance().nodeQuery("DOMNode").andName(name).and(ownerDocumentKey, shadowDocument).getAsList()) {
 
 			// only return toplevel nodes in shared components
 			if (n.getProperty(parentKey) == null) {

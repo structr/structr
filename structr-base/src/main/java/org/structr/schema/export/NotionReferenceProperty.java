@@ -76,7 +76,7 @@ class NotionReferenceProperty extends StructrReferenceProperty {
 		createProperties.put(traits.key("format"), referenceName + ", " + StringUtils.join(properties, ", "));
 		createProperties.put(traits.key("propertyType"), SchemaHelper.Type.Notion.name());
 
-		property.getWrappedNode().setProperties(SecurityContext.getSuperUserInstance(), createProperties);
+		property.setProperties(SecurityContext.getSuperUserInstance(), createProperties);
 
 		return property;
 	}

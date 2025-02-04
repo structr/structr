@@ -494,7 +494,7 @@ public class ScriptingTest extends StructrTest {
 			user1  = app.create("User", "Tester1").as(Principal.class);
 			user2  = app.create("User", "Tester2").as(Principal.class);
 
-			group.setProperty(members, List.of(user1.getWrappedNode()));
+			group.setProperty(members, List.of(user1));
 
 
 			testOne = app.create("TestOne");
@@ -513,36 +513,36 @@ public class ScriptingTest extends StructrTest {
 
 			final ActionContext actionContext = new ActionContext(securityContext);
 
-			final Object result1 = Scripting.evaluate(actionContext, group.getWrappedNode(), "${{ return Structr.find('Principal', { name: 'Tester2' })[0]; }}", "test");
+			final Object result1 = Scripting.evaluate(actionContext, group, "${{ return Structr.find('Principal', { name: 'Tester2' })[0]; }}", "test");
 
 			System.out.println(result1);
 
 			// test prerequisites
 			assertEquals("Invalid prerequisite", 1, Iterables.count(group.getProperty(members)));
-			assertEquals("Invalid prerequisite", user2.getWrappedNode(), result1);
+			assertEquals("Invalid prerequisite", user2, result1);
 
 			// test scripting association
-			Scripting.evaluate(actionContext, group.getWrappedNode(), "${{ var group = Structr.find('Group')[0]; var users = group.members; users.push(Structr.find('Principal', { name: 'Tester2' })[0]); }}", "test");
+			Scripting.evaluate(actionContext, group, "${{ var group = Structr.find('Group')[0]; var users = group.members; users.push(Structr.find('Principal', { name: 'Tester2' })[0]); }}", "test");
 			assertEquals("Invalid scripted array operation result", 2, Iterables.count(group.getProperty(members)));
 
 			// reset group
-			group.setProperty(members, List.of(user1.getWrappedNode()));
+			group.setProperty(members, List.of(user1));
 
 			// test prerequisites
 			assertEquals("Invalid prerequisite",     1, Iterables.count(group.getProperty(members)));
 
 			// test direct push on member property
-			Scripting.evaluate(actionContext, group.getWrappedNode(), "${{ var group = Structr.find('Group')[0]; group.members.push(Structr.find('Principal', { name: 'Tester2' })[0]); }}", "test");
+			Scripting.evaluate(actionContext, group, "${{ var group = Structr.find('Group')[0]; group.members.push(Structr.find('Principal', { name: 'Tester2' })[0]); }}", "test");
 			assertEquals("Invalid scripted array operation result", 2, Iterables.count(group.getProperty(members)));
 
 
 
 			// test scripting association
-			Scripting.evaluate(actionContext, group.getWrappedNode(), "${{ var test = Structr.find('TestOne')[0]; var testSixs = test.manyToManyTestSixs; testSixs.push(Structr.find('TestSix')[0]); }}", "test");
+			Scripting.evaluate(actionContext, group, "${{ var test = Structr.find('TestOne')[0]; var testSixs = test.manyToManyTestSixs; testSixs.push(Structr.find('TestSix')[0]); }}", "test");
 			assertEquals("Invalid scripted array operation result", 1, Iterables.count(testOne.getProperty(Traits.of("TestOne").key("manyToManyTestSixs"))));
 
 			// test direct push on member property
-			Scripting.evaluate(actionContext, group.getWrappedNode(), "${{ var test = Structr.find('TestOne')[0]; var testSixs = test.manyToManyTestSixs.push(Structr.find('TestSix')[1]); }}", "test");
+			Scripting.evaluate(actionContext, group, "${{ var test = Structr.find('TestOne')[0]; var testSixs = test.manyToManyTestSixs.push(Structr.find('TestSix')[1]); }}", "test");
 			assertEquals("Invalid scripted array operation result", 2, Iterables.count(testOne.getProperty(Traits.of("TestOne").key("manyToManyTestSixs"))));
 
 

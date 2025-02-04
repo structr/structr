@@ -172,7 +172,7 @@ public class SystemTest extends StructrTest {
 			test.resetTimestamps();
 
 			try (final Tx tx = app.tx()) {
-				app.delete(test.getWrappedNode());
+				app.delete(test);
 				tx.success();
 			}
 
@@ -1446,7 +1446,7 @@ public class SystemTest extends StructrTest {
 			// create grant
 			app.create("SchemaGrant",
 				new NodeAttribute<>(Traits.of("SchemaGrant").key("schemaNode"),          projectNode),
-				new NodeAttribute<>(Traits.of("SchemaGrant").key("principal"),           testGroup1.getWrappedNode()),
+				new NodeAttribute<>(Traits.of("SchemaGrant").key("principal"),           testGroup1),
 				new NodeAttribute<>(Traits.of("SchemaGrant").key("allowRead"),           true),
 				new NodeAttribute<>(Traits.of("SchemaGrant").key("allowWrite"),          true),
 				new NodeAttribute<>(Traits.of("SchemaGrant").key("allowDelete"),         true),

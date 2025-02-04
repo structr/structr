@@ -108,7 +108,7 @@ public class ReplaceTemplateCommand extends AbstractCommand {
 			// 4: Remove old template node
 			parent.removeChild(templateToBeReplaced);
 			
-			TransactionCommand.registerNodeCallback(newClonedTemplate.getWrappedNode(), callback);
+			TransactionCommand.registerNodeCallback(newClonedTemplate, callback);
 
 		} catch (DOMException | FrameworkException ex) {
 

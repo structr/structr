@@ -88,7 +88,7 @@ public class GetSuggestionsCommand extends AbstractCommand {
 
 								if (element.select(selector).first() != null) {
 
-									result.add(widget.getWrappedNode());
+									result.add(widget);
 									break;
 								}
 							}

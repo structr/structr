@@ -60,7 +60,7 @@ public class StructrBooleanProperty extends StructrPropertyDefinition implements
 		final SchemaProperty property = super.createDatabaseSchema(app, schemaNode);
 		final Traits traits           = Traits.of("SchemaProperty");
 
-		property.getWrappedNode().setProperty(traits.key("propertyType"), Type.Boolean.name());
+		property.setProperty(traits.key("propertyType"), Type.Boolean.name());
 
 		return property;
 	}

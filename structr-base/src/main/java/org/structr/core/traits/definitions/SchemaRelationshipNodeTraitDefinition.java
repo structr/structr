@@ -308,8 +308,8 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 			final Query<NodeInterface> query = StructrApp.getInstance().nodeQuery("SchemaRelationshipNode").and(relTypeKey, node.getRelationshipType(), true);
 
 			// source node or static type (string-based)
-			if (sourceNode != null) query.and(sourceNodeKey, sourceNode.getWrappedNode()); else query.and(sourceTypeKey, node.getSourceType());
-			if (targetNode != null) query.and(targetNodeKey, targetNode.getWrappedNode()); else query.and(targetTypeKey, node.getTargetType());
+			if (sourceNode != null) query.and(sourceNodeKey, sourceNode); else query.and(sourceTypeKey, node.getSourceType());
+			if (targetNode != null) query.and(targetNodeKey, targetNode); else query.and(targetTypeKey, node.getTargetType());
 
 			for (final NodeInterface exRel : query.getResultStream()) {
 

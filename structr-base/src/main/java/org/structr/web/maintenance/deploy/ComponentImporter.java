@@ -121,7 +121,7 @@ public class ComponentImporter extends HtmlFileImporter {
 			deleteRecursively(app, sync);
 		}
 
-		app.delete(node.getWrappedNode());
+		app.delete(node);
 
 		FlushCachesCommand.flushAll();
 	}

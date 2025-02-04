@@ -168,7 +168,7 @@ public class StructrScriptProperty extends StructrPropertyDefinition implements 
 		properties.put(traits.key("format"), source);
 
 		// set properties in bulk
-		property.getWrappedNode().setProperties(SecurityContext.getSuperUserInstance(), properties);
+		property.setProperties(SecurityContext.getSuperUserInstance(), properties);
 
 		return property;
 	}

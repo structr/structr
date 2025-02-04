@@ -107,7 +107,7 @@ public class AppendChildCommand extends AbstractCommand {
 				}
 			}
 
-			TransactionCommand.registerNodeCallback(node.getWrappedNode(), callback);
+			TransactionCommand.registerNodeCallback(node, callback);
 
 		} else {
 

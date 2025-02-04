@@ -107,7 +107,7 @@ public class TemplateImporter extends HtmlFileImporter {
 			deleteRecursively(app, child);
 		}
 
-		app.delete(node.getWrappedNode());
+		app.delete(node);
 	}
 
 	private PropertyMap getPropertiesForTemplate(final String name) {

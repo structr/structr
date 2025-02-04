@@ -125,7 +125,7 @@ public class ConsoleTest extends StructrUiTest {
 				assertEquals("Invalid console execution result", Boolean.TRUE,              (Boolean)admin.isAdmin());
 
 				final NodeInterface folder = app.create("Folder", "folder");
-				folder.setProperty(Traits.of("Folder").key("owner"), admin.getWrappedNode());
+				folder.setProperty(Traits.of("Folder").key("owner"), admin);
 
 				tx.success();
 			}

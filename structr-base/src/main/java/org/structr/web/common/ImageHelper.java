@@ -92,7 +92,7 @@ public abstract class ImageHelper extends FileHelper {
 		final Image newImage = StructrApp.getInstance(securityContext).create(imageType, props).as(Image.class);
 		setFileData(newImage, imageStream, contentType);
 
-		return newImage.getWrappedNode();
+		return newImage;
 
 	}
 
@@ -186,7 +186,7 @@ public abstract class ImageHelper extends FileHelper {
 
 				if (thumbnail != null) {
 
-					app.create(originalImage.getWrappedNode(), thumbnail.getWrappedNode(), thumbnailRel);
+					app.create(originalImage, thumbnail, thumbnailRel);
 				}
 
 			} catch (FrameworkException ex) {
@@ -216,7 +216,7 @@ public abstract class ImageHelper extends FileHelper {
 				relProperties.put(traits.key("height"),                 thumbnail.getHeight());
 				relProperties.put(traits.key("checksum"),               originalImage.getChecksum());
 
-				app.create(originalImage.getWrappedNode(), thumbnail.getWrappedNode(), thumbnailRel, relProperties);
+				app.create(originalImage, thumbnail, thumbnailRel, relProperties);
 			}
 
 		} catch (FrameworkException ex) {
@@ -825,7 +825,7 @@ public abstract class ImageHelper extends FileHelper {
 				final Integer orientation = exifIFD0Directory.getInt(ExifIFD0Directory.TAG_ORIENTATION);
 				final Traits traits       = Traits.of("Image");
 
-				originalImage.getWrappedNode().setProperty(traits.key("orientation"), orientation);
+				originalImage.setProperty(traits.key("orientation"), orientation);
 
 				return orientation;
 			}

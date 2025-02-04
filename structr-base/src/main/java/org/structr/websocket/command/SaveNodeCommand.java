@@ -108,7 +108,7 @@ public class SaveNodeCommand extends AbstractCommand {
 
 			try {
 
-				app.delete(modifiedNode.getWrappedNode());
+				app.delete(modifiedNode);
 
 			} catch (FrameworkException ex) {
 

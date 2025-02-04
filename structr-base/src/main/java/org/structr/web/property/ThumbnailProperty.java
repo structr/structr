@@ -73,7 +73,7 @@ public class ThumbnailProperty extends AbstractReadOnlyProperty<NodeInterface> {
 		final Image tn = obj.as(Image.class).getScaledImage(width, height, crop);
 		if (tn != null) {
 
-			return tn.getWrappedNode();
+			return tn;
 		}
 
 		return null;

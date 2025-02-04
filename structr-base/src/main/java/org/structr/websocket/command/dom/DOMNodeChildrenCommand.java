@@ -65,7 +65,7 @@ public class DOMNodeChildrenCommand extends AbstractCommand {
 
 			prefetch(currentNode.getUuid());
 
-			result.add(currentNode.getWrappedNode());
+			result.add(currentNode);
 
 			currentNode = (DOMNode) currentNode.getNextSibling();
 

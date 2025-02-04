@@ -341,7 +341,7 @@ public final class PropertyContainerTraitDefinition extends AbstractNodeTraitDef
 				System.out.println("######################### Converting NodeTrait to NodeInterface, this is not desired!");
 				Thread.dumpStack();
 
-				return key.setProperty(securityContext, graphObject, (T)t.getWrappedNode());
+				return key.setProperty(securityContext, graphObject, (T)t);
 			}
 
 			return key.setProperty(securityContext, graphObject, value);

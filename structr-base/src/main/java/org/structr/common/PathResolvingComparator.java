@@ -139,7 +139,7 @@ public class PathResolvingComparator implements Comparator<GraphObject> {
 
 					} else if (value instanceof NodeTrait t) {
 
-						current = t.getWrappedNode();
+						current = t;
 
 					} else {
 

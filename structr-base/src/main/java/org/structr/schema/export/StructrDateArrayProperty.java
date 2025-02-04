@@ -63,7 +63,7 @@ public class StructrDateArrayProperty extends StructrPropertyDefinition implemen
 		final SchemaProperty property = super.createDatabaseSchema(app, schemaNode);
 		final Traits traits           = Traits.of("SchemaProperty");
 
-		property.getWrappedNode().setProperty(traits.key("propertyType"), Type.DateArray.name());
+		property.setProperty(traits.key("propertyType"), Type.DateArray.name());
 
 		return property;
 	}

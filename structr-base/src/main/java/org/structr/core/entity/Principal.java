@@ -93,7 +93,7 @@ public interface Principal extends NodeTrait {
 
 		for (final Group parent : principal.getParentsPrivileged()) {
 
-			recursiveCollectParentUuids(parent.getWrappedNode(), uuids);
+			recursiveCollectParentUuids(parent, uuids);
 		}
 	}
 }

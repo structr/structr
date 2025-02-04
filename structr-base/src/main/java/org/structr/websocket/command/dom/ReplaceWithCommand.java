@@ -174,7 +174,7 @@ public class ReplaceWithCommand extends CreateAndAppendDOMNodeCommand {
 				}
 			}
 
-			TransactionCommand.registerNodeCallback(newNode.getWrappedNode(), callback);
+			TransactionCommand.registerNodeCallback(newNode, callback);
 
 		} catch (Exception ex) {
 

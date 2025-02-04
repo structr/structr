@@ -335,22 +335,22 @@ public class RenderContext extends ActionContext {
 		return dataObjects;
 	}
 
-	public GraphObject getDataNode(String key) {
+	public GraphObject getDataNode(final String key) {
 		return dataObjects.get(key);
 	}
 
-	public void putDataObject(String key, GraphObject currentDataObject) {
+	public void putDataObject(final String key, final GraphObject currentDataObject) {
 		dataObjects.put(key, currentDataObject);
 		setDataObject(currentDataObject);
 
 	}
 
-	public void clearDataObject(String key) {
+	public void clearDataObject(final String key) {
 		dataObjects.remove(key);
 		setDataObject(null);
 	}
 
-	public boolean hasDataForKey(String key) {
+	public boolean hasDataForKey(final String key) {
 		return dataObjects.containsKey(key);
 	}
 

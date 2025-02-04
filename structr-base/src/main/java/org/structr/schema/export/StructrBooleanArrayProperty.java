@@ -63,7 +63,7 @@ public class StructrBooleanArrayProperty extends StructrPropertyDefinition imple
 		final SchemaProperty property = super.createDatabaseSchema(app, schemaNode);
 		final Traits traits           = Traits.of("SchemaProperty");
 
-		property.getWrappedNode().setProperty(traits.key("propertyType"), Type.BooleanArray.name());
+		property.setProperty(traits.key("propertyType"), Type.BooleanArray.name());
 
 		return property;
 	}

@@ -800,7 +800,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		for (final Folder child : folders) {
 
-			exportFilesAndFolders(path, child.getWrappedNode(), config);
+			exportFilesAndFolders(path, child, config);
 		}
 
 		final List<File> files = Iterables.toList(folder.getFiles());
@@ -808,7 +808,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		for (final File file : files) {
 
-			exportFile(path, file.getWrappedNode(), config);
+			exportFile(path, file, config);
 		}
 	}
 
@@ -960,7 +960,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 					final String content = node.getContent(RenderContext.EditMode.DEPLOYMENT);
 
-					exportContentElementSource(targetFolder, node.getWrappedNode(), configuration, content);
+					exportContentElementSource(targetFolder, node, configuration, content);
 				}
 			}
 
@@ -1266,7 +1266,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			putData(config, "contentType",             page.getContentType());
 			putData(config, "dontCache",               page.dontCache());
 			putData(config, "enableBasicAuth",         linkable.getEnableBasicAuth());
-			putData(config, "hidden",                  page.getWrappedNode().isHidden());
+			putData(config, "hidden",                  page.isHidden());
 			putData(config, "hideConditions",          page.getHideConditions());
 			putData(config, "pageCreatesRawData",      page.pageCreatesRawData());
 			putData(config, "path",                    page.getPath());
@@ -1336,7 +1336,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			// only export dynamic (=> additional) keys that are *not* remote properties
 			if (key.isDynamic() && key.relatedType() == null && !(key instanceof FunctionProperty) && !(key instanceof CypherProperty)) {
 
-				putData(config, key.jsonName(), abstractFile.getWrappedNode().getProperty(key));
+				putData(config, key.jsonName(), abstractFile.getProperty(key));
 			}
 		}
 
@@ -2337,7 +2337,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 					if (inputConverter != null) {
 
-						node.getWrappedNode().setProperty(propertyKey, inputConverter.convert(properties.get(propertyKey)));
+						node.setProperty(propertyKey, inputConverter.convert(properties.get(propertyKey)));
 					}
 				}
 

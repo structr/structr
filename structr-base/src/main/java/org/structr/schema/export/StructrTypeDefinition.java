@@ -1016,7 +1016,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 				final SchemaProperty property = schemaProperties.get(propertyName);
 				if (property != null) {
 
-					viewProperties.add(property.getWrappedNode());
+					viewProperties.add(property);
 
 				} else {
 
@@ -1029,7 +1029,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 
 				viewNode = app.create("SchemaView",
-					new NodeAttribute<>(schemaViewTraits.key("schemaNode"), newSchemaNode.getWrappedNode()),
+					new NodeAttribute<>(schemaViewTraits.key("schemaNode"), newSchemaNode),
 					new NodeAttribute<>(schemaViewTraits.key("name"), view.getKey())
 				).as(SchemaView.class);
 			}
@@ -1044,7 +1044,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 			}
 
 			// update properties of existing or new schema view node
-			viewNode.getWrappedNode().setProperties(SecurityContext.getSuperUserInstance(), updateProperties);
+			viewNode.setProperties(SecurityContext.getSuperUserInstance(), updateProperties);
 		}
 
 		for (final StructrMethodDefinition method : methods) {
@@ -1082,7 +1082,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		nodeProperties.put(schemaNodeTraits.key("description"),       getDescription());
 		nodeProperties.put(schemaNodeTraits.key("icon"),              getIcon());
 
-		newSchemaNode.getWrappedNode().setProperties(SecurityContext.getSuperUserInstance(), nodeProperties);
+		newSchemaNode.setProperties(SecurityContext.getSuperUserInstance(), nodeProperties);
 
 		return newSchemaNode;
 	}
@@ -1536,7 +1536,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 			if (method.overridesExisting() || deleteWhitelist.contains(typeAndName)) {
 
-				StructrApp.getInstance().delete(method.getSchemaMethod().getWrappedNode());
+				StructrApp.getInstance().delete(method.getSchemaMethod());
 
 			} else {
 
@@ -1544,7 +1544,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 				final Method staticMethod = getMethodOrNull(nodeType, method);
 				if (staticMethod != null) {
 
-					StructrApp.getInstance().delete(method.getSchemaMethod().getWrappedNode());
+					StructrApp.getInstance().delete(method.getSchemaMethod());
 				}
 			}
 		}
@@ -1567,7 +1567,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 		if (field != null || property instanceof DeletedPropertyDefinition) {
 
-			StructrApp.getInstance().delete(property.getSchemaProperty().getWrappedNode());
+			StructrApp.getInstance().delete(property.getSchemaProperty());
 		}
 	}
 

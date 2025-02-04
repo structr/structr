@@ -99,7 +99,7 @@ public class AbstractFileTraitDefinition extends AbstractNodeTraitDefinition {
 					if (file.isExternal()) {
 
 						// check if name changed
-						final GraphObjectMap beforeProps = modificationQueue.getModifications(file.getWrappedNode()).get(new GenericProperty<>("before"));
+						final GraphObjectMap beforeProps = modificationQueue.getModifications(file).get(new GenericProperty<>("before"));
 						if (beforeProps != null) {
 
 							final String prevName = beforeProps.getProperty(new GenericProperty<>("name"));

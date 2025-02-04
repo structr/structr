@@ -152,7 +152,7 @@ public class SetPermissionCommand extends AbstractCommand {
 					value.set(null, null);
 				}
 
-				webSocketData.setResult(List.of(principal.getWrappedNode()));
+				webSocketData.setResult(List.of(principal));
 
 				// send only over local connection (no broadcast)
 				getWebSocket().send(webSocketData, true);

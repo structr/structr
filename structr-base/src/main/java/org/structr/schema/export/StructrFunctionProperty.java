@@ -229,7 +229,7 @@ public class StructrFunctionProperty extends StructrDynamicProperty implements J
 		properties.put(traits.key("writeFunction"), writeFunction);
 		properties.put(traits.key("isCachingEnabled"), cachingEnabled);
 
-		property.getWrappedNode().setProperties(SecurityContext.getSuperUserInstance(), properties);
+		property.setProperties(SecurityContext.getSuperUserInstance(), properties);
 
 		return property;
 	}

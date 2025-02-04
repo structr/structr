@@ -607,8 +607,8 @@ public class SecurityContext {
 		if (user != null) {
 
 			final Principal owner         = node.as(AccessControllable.class).getOwnerNode();
-			final NodeInterface ownerNode = owner != null ? owner.getWrappedNode() : null;
-			final NodeInterface userNode  = user.getWrappedNode();
+			final NodeInterface ownerNode = owner != null ? owner : null;
+			final NodeInterface userNode  = user;
 
 			// owner is always allowed to do anything with its nodes
 			if (userNode.equals(node) || userNode.equals(ownerNode) || Iterables.toList(user.getParents()).contains(owner)) {

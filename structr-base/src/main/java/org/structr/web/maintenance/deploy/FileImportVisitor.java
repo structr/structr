@@ -336,7 +336,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 		if (img.isThumbnail()) {
 
 			// thumbnail image
-			if (img.getWrappedNode().getIncomingRelationship(thumbnailRel) == null) {
+			if (img.getIncomingRelationship(thumbnailRel) == null) {
 
 				ImageHelper.findAndReconnectOriginalImage(img);
 			}
@@ -344,7 +344,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 		} else {
 
 			// original image
-			if (!img.getWrappedNode().getOutgoingRelationships(thumbnailRel).iterator().hasNext()) {
+			if (!img.getOutgoingRelationships(thumbnailRel).iterator().hasNext()) {
 
 				ImageHelper.findAndReconnectThumbnails(img);
 

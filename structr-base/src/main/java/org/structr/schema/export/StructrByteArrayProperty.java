@@ -63,7 +63,7 @@ public class StructrByteArrayProperty extends StructrPropertyDefinition implemen
 		final SchemaProperty property = super.createDatabaseSchema(app, schemaNode);
 		final Traits traits           = Traits.of("SchemaProperty");
 
-		property.getWrappedNode().setProperty(traits.key("propertyType"), Type.ByteArray.name());
+		property.setProperty(traits.key("propertyType"), Type.ByteArray.name());
 
 		return property;
 	}

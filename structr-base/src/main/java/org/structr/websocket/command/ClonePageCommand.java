@@ -63,7 +63,7 @@ import org.w3c.dom.DOMException;
 
 					final Page newPage = pageToClone.cloneNode(false).as(Page.class);
 
-					newPage.setProperties(securityContext, new PropertyMap(Traits.of("Page").key("name"), pageToClone.getName() + "-" + newPage.getWrappedNode().getNode().getId().toString()));
+					newPage.setProperties(securityContext, new PropertyMap(Traits.of("Page").key("name"), pageToClone.getName() + "-" + newPage.getNode().getId().toString()));
 
 //					DOMNode firstChild = (DOMNode) pageToClone.getFirstChild().getNextSibling();
 //
@@ -89,7 +89,7 @@ import org.w3c.dom.DOMException;
 						final DOMNode tmp = subNode.getNextSibling();
 						if (tmp != null) {
 
-							subNodeNode = tmp.getWrappedNode();
+							subNodeNode = tmp;
 
 						} else {
 

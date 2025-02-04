@@ -69,7 +69,7 @@ public class DOMNodeTest extends DOMTest {
 			div.appendChild(content1);
 
 			// check for correct relationship management
-			List<RelationshipInterface> divRels = toList(div.getWrappedNode().getOutgoingRelationships(domChildrenType));
+			List<RelationshipInterface> divRels = toList(div.getOutgoingRelationships(domChildrenType));
 			assertEquals(1, divRels.size());
 			assertEquals(Integer.valueOf(0), divRels.get(0).getProperty(div.getPositionProperty()));
 
@@ -77,7 +77,7 @@ public class DOMNodeTest extends DOMTest {
 			div.appendChild(content2);
 
 			// check for correct relationship management
-			divRels = toList(div.getWrappedNode().getOutgoingRelationships(domChildrenType));
+			divRels = toList(div.getOutgoingRelationships(domChildrenType));
 			assertEquals(2, divRels.size());
 			assertEquals(Integer.valueOf(0), divRels.get(0).getProperty(div.getPositionProperty()));
 			assertEquals(Integer.valueOf(1), divRels.get(1).getProperty(div.getPositionProperty()));

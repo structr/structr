@@ -47,6 +47,7 @@ public interface NodeInterface extends GraphObject, Comparable<NodeInterface> {
 	boolean isDeleted();
 
 	String getName();
+	void setName(final String name) throws FrameworkException;
 	Object getPath(final SecurityContext securityContext);
 
 	boolean hasRelationshipTo(final RelationshipType type, final NodeInterface targetNode);

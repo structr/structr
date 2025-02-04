@@ -278,7 +278,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 			try {
 
 				final RelationshipFactory factory = new RelationshipFactory(securityContext);
-				final NodeInterface userNode      = user.getWrappedNode();
+				final NodeInterface userNode      = user;
 				final Node userDatabaseNode       = userNode.getNode();
 				final NodeWithOwnerResult result  = graphDb.createNodeWithOwner(userDatabaseNode.getId(), type, labels, properties, ownsProperties, securityProperties);
 				final Relationship securityRel    = result.getSecurityRelationship();

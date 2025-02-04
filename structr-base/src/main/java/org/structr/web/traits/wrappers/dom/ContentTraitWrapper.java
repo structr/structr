@@ -416,7 +416,7 @@ public class ContentTraitWrapper extends DOMNodeTraitWrapper implements Content 
 
 				} else {
 
-					final Object value = Scripting.evaluate(renderContext, node.getWrappedNode(), script, "content", row, node.getUuid());
+					final Object value = Scripting.evaluate(renderContext, node, script, "content", row, node.getUuid());
 					if (value != null) {
 
 						String content = null;

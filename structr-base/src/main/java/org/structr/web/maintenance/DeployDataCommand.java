@@ -700,13 +700,13 @@ public class DeployDataCommand extends DeployCommand {
 				Files.createDirectories(fileSystemPath);
 
 				final Map<String, Object> properties = new TreeMap<>();
-				exportFileConfiguration(fileOrFolder.getWrappedNode(), properties);
+				exportFileConfiguration(fileOrFolder, properties);
 
 				filesAndFoldersMap.put(path, properties);
 
 			} else {
 
-				exportFile(fileSystemPath.getParent(), fileOrFolder.getWrappedNode(), filesAndFoldersMap);
+				exportFile(fileSystemPath.getParent(), fileOrFolder, filesAndFoldersMap);
 			}
 		}
 

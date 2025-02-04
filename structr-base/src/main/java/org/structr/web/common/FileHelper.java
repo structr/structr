@@ -220,7 +220,7 @@ public class FileHelper {
 		// schedule indexing
 		newFile.notifyUploadCompletion();
 
-		return newFile.getWrappedNode();
+		return newFile;
 	}
 
 	/**
@@ -250,7 +250,7 @@ public class FileHelper {
 			newFile.notifyUploadCompletion();
 		}
 
-		return newFile.getWrappedNode();
+		return newFile;
 	}
 
 	/**
@@ -369,7 +369,7 @@ public class FileHelper {
 			}
 		}
 
-		file.getWrappedNode().setProperties(file.getSecurityContext(), map, true);
+		file.setProperties(file.getSecurityContext(), map, true);
 	}
 
 	/**
@@ -601,7 +601,7 @@ public class FileHelper {
 	 */
 	public static void writeToFile(final File fileNode, final byte[] data) throws FrameworkException, IOException {
 
-		setFilePropertiesOnCreation(fileNode.getWrappedNode());
+		setFilePropertiesOnCreation(fileNode);
 
 		try (final InputStream is = new ByteArrayInputStream(data); final OutputStream os = StorageProviderFactory.getStorageProvider(fileNode).getOutputStream()) {
 			IOUtils.copy(is, os);
@@ -619,7 +619,7 @@ public class FileHelper {
 	 */
 	public static void writeToFile(final File fileNode, final InputStream data) throws FrameworkException, IOException {
 
-		setFilePropertiesOnCreation(fileNode.getWrappedNode());
+		setFilePropertiesOnCreation(fileNode);
 
 		try (final OutputStream out = StorageProviderFactory.getStorageProvider(fileNode).getOutputStream()) {
 
