@@ -1056,8 +1056,8 @@ let _Entities = {
 			}
 		}
 
-		$('.props tr td.value input',    container).each(function(i, inputEl)    { _Entities.activateInput(inputEl,    id, entity.pageId, entity.type, typeInfo, onUpdateCallback); });
-		$('.props tr td.value textarea', container).each(function(i, textareaEl) { _Entities.activateInput(textareaEl, id, entity.pageId, entity.type, typeInfo); });
+		$('tr td.value input',    propsTable).each(function(i, inputEl)    { _Entities.activateInput(inputEl,    id, entity.pageId, entity.type, typeInfo, onUpdateCallback); });
+		$('tr td.value textarea', propsTable).each(function(i, textareaEl) { _Entities.activateInput(textareaEl, id, entity.pageId, entity.type, typeInfo); });
 
 		if (view === '_html_') {
 
