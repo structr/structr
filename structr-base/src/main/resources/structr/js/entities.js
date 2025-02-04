@@ -435,7 +435,9 @@ let _Entities = {
 				let activeView = 'ui';
 				let tabTexts   = [];
 
-				if (Object.keys(properties).length) {
+				// filter out id,name,type from properties to only show tab "Custom attributes" if there really are custom attributes
+				let customPropertiesWithoutBasicProps = Object.keys(properties).filter(key => !['id', 'type', 'name'].includes(key));
+				if (customPropertiesWithoutBasicProps.length > 0) {
 					views.push('custom');
 				}
 
@@ -695,6 +697,10 @@ let _Entities = {
 						}
 					}
 
+					if (view === 'ui') {
+						noCategoryKeys = noCategoryKeys.filter(key => !['_html_id', '_html_class'].includes(key));
+					}
+
 					// reset result counts
 					_Entities.collectionPropertiesResultCount = {};
 
@@ -723,7 +729,9 @@ let _Entities = {
 		let cell = $(`.value.${key}_`, container);
 		cell.css('height', '60px');
 
-		fetch(`${Structr.rootUrl + entity.type}/${entity.id}/${key}?${Structr.getRequestParameterName('pageSize')}=${pageSize}&${Structr.getRequestParameterName('page')}=${page}`, {
+		let fetchKey = (key === 'syncedNodesIds') ? 'syncedNodes' : key;
+
+		fetch(`${Structr.rootUrl + entity.type}/${entity.id}/${fetchKey}?${Structr.getRequestParameterName('pageSize')}=${pageSize}&${Structr.getRequestParameterName('page')}=${page}`, {
 			headers: _Helpers.getHeadersForCustomView(['id', 'name'])
 		}).then(async response => {
 
