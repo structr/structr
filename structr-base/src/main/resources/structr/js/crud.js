@@ -1773,11 +1773,7 @@ let _Crud = {
 
 				let { dialogText } = _Dialogs.custom.openDialog(`Details of ${type} ${node?.name ?? node.id}`);
 
-				let deleteBtn = _Dialogs.custom.appendCustomDialogButton(`
-					<button class="flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
-						${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, ['mr-2', 'icon-red'])} <span>Delete object</span>
-					</button>
-				`);
+				let deleteBtn = _Dialogs.custom.appendCustomDialogButton(_Dialogs.custom.templates.deleteButton());
 
 				deleteBtn.addEventListener('click', async (e) => {
 
@@ -1788,7 +1784,9 @@ let _Crud = {
 					}
 				});
 
-				dialogText.insertAdjacentHTML('beforeend', `<table class="props" id="details_${node.id}"><tr><th>Name</th><th>Value</th>`);
+				dialogText.insertAdjacentHTML('beforeend', `<form id="entityForm"><table class="props" id="details_${node.id}"><tr><th>Name</th><th>Value</th></tr></table><form>`);
+
+				document.querySelector('#entityForm').addEventListener('submit', e => e.preventDefault());
 
 				let table = dialogText.querySelector('table');
 
@@ -3075,6 +3073,8 @@ let _Crud = {
 			_Dialogs.custom.noConfirmOnEscape();
 
 			dialog.dialogText.insertAdjacentHTML('beforeend', '<form id="entityForm"><table class="props"><tr><th>Property Name</th><th>Value</th></tr>');
+
+			document.querySelector('#entityForm').addEventListener('submit', e => e.preventDefault());
 
 			let table = dialog.dialogText.querySelector('table');
 

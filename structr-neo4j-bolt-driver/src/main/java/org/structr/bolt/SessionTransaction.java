@@ -56,6 +56,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 	protected final Map<Long, RelationshipWrapper> rels = new LinkedHashMap<>();
 	protected final Map<Long, NodeWrapper> nodes        = new LinkedHashMap<>();
 	protected final Set<Long> deletedNodes              = new LinkedHashSet<>();
+	protected final Set<Long> createdNodes              = new LinkedHashSet<>();
 	protected final Set<Long> deletedRels               = new LinkedHashSet<>();
 	protected final Set<String> prefetchedOutgoing      = new LinkedHashSet<>();
 	protected final Set<String> prefetchedIncoming      = new LinkedHashSet<>();
@@ -233,6 +234,16 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 	@Override
 	public org.structr.api.graph.Relationship getRelationship(Identity id) {
 		return getRelationshipWrapper(id.getId());
+	}
+
+	@Override
+	public void setNodeIsCreated(final long id) {
+		createdNodes.add(id);
+	}
+
+	@Override
+	public boolean isNodeCreated(final long id) {
+		return createdNodes.contains(id);
 	}
 
 	@Override
