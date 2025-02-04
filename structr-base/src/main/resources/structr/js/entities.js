@@ -792,22 +792,25 @@ let _Entities = {
 
 				if (data.result.length) {
 
-					for (let obj of (data.result[0][key] || data.result)) {
+					let collection = (data.result[0][key] ?? data.result ?? []);
+
+					for (let obj of collection) {
 
 						let nodeId = (typeof obj === 'string') ? obj : obj.id;
 
 						tempNodeCache.registerCallback(nodeId, nodeId, (node) => {
 
 							_Entities.appendRelatedNode(cell, node, (nodeEl) => {
-								$('.remove', nodeEl).on('click', (e) => {
 
-									e.preventDefault();
-									Command.removeFromCollection(entity.id, key, node.id, () => {
+								nodeEl[0].querySelector('.remove')?.addEventListener('click', e => {
+
+									e.stopPropagation();
+
+									Command.removeFromCollection(entity.id, fetchKey, node.id, () => {
 										nodeEl.remove();
 										_Helpers.blinkGreen(cell);
 										_Dialogs.custom.showAndHideInfoBoxMessage(`Related node "${node.name || node.id}" has been removed from property "${key}".`, 'success', 2000, 1000);
 									});
-									return false;
 								});
 							});
 						});
