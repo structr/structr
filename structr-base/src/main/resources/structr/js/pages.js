@@ -671,7 +671,7 @@ let _Pages = {
 
 				} else {
 
-					if (tabsMenu) tabsMenu.style.marginLeft = `calc(${leftPos}px + 0rem)`;
+					if (tabsMenu) tabsMenu.style.marginLeft = `calc(${leftPos}px - 8rem)`;
 
 					leftResizer.style.left = `calc(${leftPos}px - 1rem)`;
 					_Pages.centerPane.style.marginLeft = `calc(${leftPos}px + 2rem)`;
