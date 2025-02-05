@@ -43,6 +43,7 @@ import org.structr.schema.SchemaService;
 import org.structr.schema.export.StructrSchema;
 import org.structr.web.entity.User;
 import org.testng.annotations.*;
+import org.testng.annotations.*;
 import org.testng.annotations.Optional;
 import org.structr.test.rest.traits.definitions.*;
 import org.structr.test.rest.traits.definitions.relationships.*;

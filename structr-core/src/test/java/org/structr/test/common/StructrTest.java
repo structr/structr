@@ -46,6 +46,7 @@ import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.SchemaService;
 import org.structr.schema.action.EvaluationHints;
 import org.testng.annotations.*;
+import org.testng.annotations.*;
 import org.structr.test.core.traits.definitions.*;
 import org.structr.test.core.traits.definitions.relationships.*;
 import org.testng.annotations.Optional;
