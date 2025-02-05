@@ -97,10 +97,6 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		pathProperty, showOnErrorCodesProperty, contentTypeProperty, categoryProperty, pathsProperty
 	);
 
-	public static final View categoryView = new View(Page.class, "category",
-		categoryProperty
-	);
-
 	public void setVersion(final int version) throws FrameworkException {
 		setProperty(versionProperty, version);
 	}

@@ -87,7 +87,7 @@ public class RenderContext extends ActionContext {
 
 	public enum EditMode {
 
-		NONE, WIDGET, CONTENT, RAW, DEPLOYMENT, SHAPES, SHAPES_MINIATURES
+		NONE, WIDGET, CONTENT, RAW, DEPLOYMENT, PREVIEW
 	}
 
 	public RenderContext(final SecurityContext securityContext) {
@@ -236,48 +236,15 @@ public class RenderContext extends ActionContext {
 
 	public static EditMode editMode(final String editString) {
 
-		EditMode edit;
-
 		switch (editString) {
 
-			case "1":
-
-				edit = EditMode.WIDGET;
-				break;
-
-			case "2":
-
-				edit = EditMode.CONTENT;
-				break;
-
-			case "3":
-
-				edit = EditMode.RAW;
-				break;
-
-			case "4":
-
-				edit = EditMode.DEPLOYMENT;
-				break;
-
-			case "5":
-
-				edit = EditMode.SHAPES;
-				break;
-
-			case "6":
-
-				edit = EditMode.SHAPES_MINIATURES;
-				break;
-
-			default:
-
-				edit = EditMode.NONE;
-
+			case "1": return EditMode.WIDGET;
+			case "2": return EditMode.CONTENT;
+			case "3": return EditMode.RAW;
+			case "4": return EditMode.DEPLOYMENT;
+			case "5": return EditMode.PREVIEW;
+			default: return EditMode.NONE;
 		}
-
-		return edit;
-
 	}
 
 	public String getISO3Country() {

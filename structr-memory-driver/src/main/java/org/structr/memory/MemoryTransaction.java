@@ -42,6 +42,7 @@ public class MemoryTransaction implements Transaction {
 	//private final Map<MemoryIdentity, MemoryNode> createdNodes                 = new LinkedHashMap<>();
 	private final Set<MemoryEntity> modifiedEntities                           = new LinkedHashSet<>();
 	private final Set<MemoryIdentity> deletedNodes                             = new LinkedHashSet<>();
+	private final Set<Long> nodesCreated                                       = new LinkedHashSet<>();
 	private final long transactionId                                           = idCounter.incrementAndGet();
 	private MemoryDatabaseService db                                           = null;
 	private boolean failureOverride                                            = false;
@@ -117,12 +118,24 @@ public class MemoryTransaction implements Transaction {
 	}
 
 	@Override
+	public void setNodeIsCreated(final long id) {
+		nodesCreated.add(id);
+	}
+
+	@Override
+	public boolean isNodeCreated(final long id) {
+		return nodesCreated.contains(id);
+	}
+
+	@Override
 	public boolean isNodeDeleted(final long id) {
 		return deletedNodes.contains(id);
 	}
 
 	public void create(final MemoryNode newNode) {
 		createdNodes.add(newNode);
+
+		setNodeIsCreated(newNode.getIdentity().getId());
 	}
 
 	public void create(final MemoryRelationship newRelationship) {

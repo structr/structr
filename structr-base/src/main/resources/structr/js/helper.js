@@ -139,9 +139,9 @@ let _Helpers = {
 	isUUID: (str) => _Helpers.uuidRegexp.test(str),
 	formatValueInputField: (key, obj, propertyInfo) => {
 
-		let isPassword  = (propertyInfo.className === 'org.structr.core.property.PasswordProperty');
-		let isReadOnly  = _Helpers.isIn(key, _Entities.readOnlyAttrs) || (propertyInfo.readOnly);
-		let isMultiline = (propertyInfo.format === 'multi-line');
+		let isPassword  = (propertyInfo?.className === 'org.structr.core.property.PasswordProperty');
+		let isReadOnly  = _Helpers.isIn(key, _Entities.readOnlyAttrs) || (propertyInfo?.readOnly ?? false);
+		let isMultiline = (propertyInfo?.format === 'multi-line');
 
 		if (obj === undefined || obj === null) {
 
@@ -683,7 +683,15 @@ let _Helpers = {
 			el.attr('title', 'Result count = ' + pageSize);
 		},
 	},
-	isMac: () => (navigator.platform === 'MacIntel')
+	isMac: () => (navigator.platform === 'MacIntel'),
+	getHeadersForCustomView: (desiredProperties = []) => {
+
+		let propertiesString = ((desiredProperties.length > 0) ? ` properties=${desiredProperties.join(',')}` : '');
+
+		return {
+			Accept: 'application/json; charset=utf-8;' + propertiesString
+		}
+	}
 };
 
 /**

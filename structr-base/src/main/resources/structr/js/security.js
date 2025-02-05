@@ -352,13 +352,13 @@ let _UsersAndGroups = {
 				name: _Helpers.createRandomName(userTypeSelect.value)
 			};
 
-			_Crud.createDialogWithErrorHandling.create(nodeData.type, nodeData, (type, newNodeId) => {
+			_Crud.creationDialogWithErrorHandling.initializeForEvent(e, nodeData.type, nodeData, (type, newNodeId) => {
 
 				Command.get(newNodeId, null, userData => {
 					let userModelObj = StructrModel.create(userData);
 					_UsersAndGroups.appendUserToElement(_UsersAndGroups.getUsersListElement(), userModelObj);
 				});
-			})
+			});
 		});
 
 		userTypeSelect.addEventListener('change', () => {
@@ -542,9 +542,18 @@ let _UsersAndGroups = {
 		let addGroupButton  = document.getElementById('add-group-button');
 
 		addGroupButton.addEventListener('click', (e) => {
-			Command.create({ type: groupTypeSelect.value }, (group) => {
-				let groupModelObj = StructrModel.create(group);
-				_UsersAndGroups.appendGroupToElement($(_UsersAndGroups.getGroupsListElement()), groupModelObj);
+
+			let nodeData = {
+				type: groupTypeSelect.value,
+				name: _Helpers.createRandomName(groupTypeSelect.value)
+			};
+
+			_Crud.creationDialogWithErrorHandling.initializeForEvent(e, nodeData.type, nodeData, (type, newNodeId) => {
+
+				Command.get(newNodeId, null, groupData => {
+					let groupModelObj = StructrModel.create(groupData);
+					_UsersAndGroups.appendGroupToElement($(_UsersAndGroups.getGroupsListElement()), groupModelObj);
+				});
 			});
 		});
 

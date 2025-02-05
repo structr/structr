@@ -97,16 +97,6 @@ let _Entities = {
 			}
 		});
 	},
-	appendSchemaHint: (el, key, typeInfo) => {
-
-		if (typeInfo[key] && typeInfo[key].hint) {
-			_Helpers.appendInfoTextToElement({
-				element: el,
-				text: typeInfo[key].hint,
-				class: 'hint'
-			});
-		}
-	},
 	repeaterConfig: (entity, el) => {
 
 		let queryTypes = [
@@ -445,7 +435,9 @@ let _Entities = {
 				let activeView = 'ui';
 				let tabTexts   = [];
 
-				if (Object.keys(properties).length) {
+				// filter out id,name,type from properties to only show tab "Custom attributes" if there really are custom attributes
+				let customPropertiesWithoutBasicProps = Object.keys(properties).filter(key => !['id', 'type', 'name'].includes(key));
+				if (customPropertiesWithoutBasicProps.length > 0) {
 					views.push('custom');
 				}
 
@@ -486,11 +478,8 @@ let _Entities = {
 					let { dialogText } = _Dialogs.custom.openDialog(dialogTitle, null, ['full-height-dialog-text']);
 
 					if (showDeleteBtn) {
-						let deleteBtn = _Dialogs.custom.appendCustomDialogButton(`
-							<button class="flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
-								${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, ['mr-2', 'icon-red'])} <span>Delete object</span>
-							</button>
-						`);
+
+						let deleteBtn = _Dialogs.custom.appendCustomDialogButton(_Dialogs.custom.templates.deleteButton());
 
 						deleteBtn.addEventListener('click', async (e) => {
 							let deleted = await _Crud.helpers.crudAskDelete(obj.type, obj.id);
@@ -663,9 +652,7 @@ let _Entities = {
 			let collectionProperties = Object.keys(properties).filter(key => typeInfo[key].isCollection && typeInfo[key].relatedType );
 
 			fetch(`${Structr.rootUrl}${entity.type}/${entity.id}/all?${Structr.getRequestParameterName('edit')}=2`, {
-				headers: {
-					Accept: 'application/json; charset=utf-8; properties=' + filteredProperties.join(',')
-				}
+				headers: _Helpers.getHeadersForCustomView(filteredProperties)
 			}).then(async response => {
 
 				let data          = await response.json();
@@ -710,6 +697,10 @@ let _Entities = {
 						}
 					}
 
+					if (view === 'ui') {
+						noCategoryKeys = noCategoryKeys.filter(key => !['_html_id', '_html_class'].includes(key));
+					}
+
 					// reset result counts
 					_Entities.collectionPropertiesResultCount = {};
 
@@ -738,10 +729,10 @@ let _Entities = {
 		let cell = $(`.value.${key}_`, container);
 		cell.css('height', '60px');
 
-		fetch(`${Structr.rootUrl + entity.type}/${entity.id}/${key}?${Structr.getRequestParameterName('pageSize')}=${pageSize}&${Structr.getRequestParameterName('page')}=${page}`, {
-			headers: {
-				Accept: 'application/json; charset=utf-8; properties=id,name'
-			}
+		let fetchKey = (key === 'syncedNodesIds') ? 'syncedNodes' : key;
+
+		fetch(`${Structr.rootUrl + entity.type}/${entity.id}/${fetchKey}?${Structr.getRequestParameterName('pageSize')}=${pageSize}&${Structr.getRequestParameterName('page')}=${page}`, {
+			headers: _Helpers.getHeadersForCustomView(['id', 'name'])
 		}).then(async response => {
 
 			let data = await response.json();
@@ -801,22 +792,25 @@ let _Entities = {
 
 				if (data.result.length) {
 
-					for (let obj of (data.result[0][key] || data.result)) {
+					let collection = (data.result[0][key] ?? data.result ?? []);
+
+					for (let obj of collection) {
 
 						let nodeId = (typeof obj === 'string') ? obj : obj.id;
 
 						tempNodeCache.registerCallback(nodeId, nodeId, (node) => {
 
 							_Entities.appendRelatedNode(cell, node, (nodeEl) => {
-								$('.remove', nodeEl).on('click', (e) => {
 
-									e.preventDefault();
-									Command.removeFromCollection(entity.id, key, node.id, () => {
+								nodeEl[0].querySelector('.remove')?.addEventListener('click', e => {
+
+									e.stopPropagation();
+
+									Command.removeFromCollection(entity.id, fetchKey, node.id, () => {
 										nodeEl.remove();
 										_Helpers.blinkGreen(cell);
 										_Dialogs.custom.showAndHideInfoBoxMessage(`Related node "${node.name || node.id}" has been removed from property "${key}".`, 'success', 2000, 1000);
 									});
-									return false;
 								});
 							});
 						});
@@ -846,28 +840,30 @@ let _Entities = {
 		let focusAttr  = 'class';
 		let id         = entity.id;
 
-		let onUpdateCallback = undefined;
-		if (view === '_html_') {
-			keys.sort();
+		let onUpdateCallback = (input, newVal, oldVal) => {
 
-			onUpdateCallback = (input, newVal) => {
+			if (view === '_html_') {
 				_Entities.showOrHideWarningForEmptyStringInHTMLAttribute(input[0].closest('tr'), newVal);
 			}
+		};
+
+		if (view === '_html_') {
+			keys.sort();
 		}
 
 		for (let key of keys) {
 
 			let valueCell    = undefined;
-			let isReadOnly   = _Helpers.isIn(key, _Entities.readOnlyAttrs) || (typeInfo[key].readOnly);
-			let isSystem     = typeInfo[key].system;
-			let isBoolean    = (typeInfo[key].type === 'Boolean');
-			let isDate       = (typeInfo[key].type === 'Date');
-			let isRelated    = typeInfo[key].relatedType;
-			let isCollection = typeInfo[key].isCollection;
+			let isReadOnly   = _Helpers.isIn(key, _Entities.readOnlyAttrs) || (typeInfo[key]?.readOnly ?? false);
+			let isSystem     = (typeInfo[key]?.system ?? false);
+			let isBoolean    = (typeInfo[key]?.type === 'Boolean');
+			let isDate       = (typeInfo[key]?.type === 'Date');
+			let isRelated    = (typeInfo[key]?.relatedType !== undefined);
+			let isCollection = (typeInfo[key]?.isCollection ?? false);
 
 			if (view === '_html_') {
 
-				let showKeyInitially = false;
+				let showKeyInitially = (key === '_html_class' || key === '_html_id');
 				for (let mostUsed of _Elements.mostUsedAttrs) {
 					if (_Helpers.isIn(entity.tag, mostUsed.elements) && _Helpers.isIn(key.substring(6), mostUsed.attrs)) {
 						showKeyInitially = true;
@@ -881,10 +877,9 @@ let _Entities = {
 				}
 
 				let displayKey  = _Entities.getDisplayKeyForHTMLKey(key);
-				let willBeShown = (showKeyInitially || key === '_html_class' || key === '_html_id');
 
 				let rowClass = '';
-				if  (willBeShown === false) {
+				if  (showKeyInitially === false) {
 					rowClass = ' class="hidden"';
 				}
 
@@ -923,12 +918,15 @@ let _Entities = {
 							valueCell.removeClass('value').append(`<input type="checkbox" class="${key}_">`);
 							let checkbox = $(propsTable.find(`input[type="checkbox"].${key}_`));
 
-							let val = res[key];
-							if (val) {
-								checkbox.prop('checked', true);
+							let val = res[key] ?? false;
+							checkbox.prop('checked', val);
+
+							let allowChange = ((!isReadOnly || StructrWS.isAdmin) && !isSystem);
+							if (typeInfo[key].className === 'org.structr.core.property.ConstantBooleanProperty') {
+								allowChange = false;
 							}
 
-							if ((!isReadOnly || StructrWS.isAdmin) && !isSystem) {
+							if (allowChange) {
 
 								checkbox.on('change', function() {
 
@@ -939,6 +937,8 @@ let _Entities = {
 										}
 										checkbox.prop('checked', newVal);
 										val = newVal;
+
+										onUpdateCallback(checkbox, newVal, val);
 									});
 								});
 
@@ -959,17 +959,25 @@ let _Entities = {
 
 									let nodeId = res[key].id || res[key];
 
-									tempNodeCache.registerCallback(nodeId, nodeId, function(node) {
+									tempNodeCache.registerCallback(nodeId, nodeId, (node) => {
 
-										_Entities.appendRelatedNode(valueCell, node, function(nodeEl) {
+										_Entities.appendRelatedNode(valueCell, node, (nodeEl) => {
+
 											$('.remove', nodeEl).on('click', function(e) {
 												e.preventDefault();
+
 												_Entities.setProperty(id, key, null, false, (newVal) => {
+
 													if (!newVal) {
+
 														nodeEl.remove();
 														_Helpers.blinkGreen(valueCell);
 														_Dialogs.custom.showAndHideInfoBoxMessage(`Related node "${node.name || node.id}" has been removed from property "${key}".`, 'success', 2000, 1000);
+
+														onUpdateCallback(null, null, nodeId);
+
 													} else {
+
 														_Helpers.blinkRed(valueCell);
 													}
 												});
@@ -988,16 +996,27 @@ let _Entities = {
 							$('.add', valueCell).on('click', function() {
 								let { dialogText } = _Dialogs.custom.openDialog(`Add ${typeInfo[key].type}`);
 								_Entities.displaySearch(id, key, typeInfo[key].type, $(dialogText), isCollection);
+
+								// TODO: pass onUpdateCallback();
 							});
 
 						} else {
+
 							valueCell.append(_Helpers.formatValueInputField(key, res[key], typeInfo[key]));
 						}
 					}
 				}
 			}
 
-			_Entities.appendSchemaHint($('.key:last', propsTable), key, typeInfo);
+			let hintText = typeInfo[key]?.hint;
+
+			if (hintText) {
+				_Helpers.appendInfoTextToElement({
+					element: $('.key:last', propsTable),
+					text: hintText,
+					class: 'hint'
+				});
+			}
 
 			let nullIconId = `#${_Entities.null_prefix}${key}`;
 
@@ -1038,7 +1057,7 @@ let _Entities = {
 								valueCell.empty();
 							}
 
-							onUpdateCallback?.(input, newVal);
+							onUpdateCallback?.(input, newVal, res[key]);
 
 						} else {
 
@@ -1054,8 +1073,10 @@ let _Entities = {
 			}
 		}
 
-		$('.props tr td.value input',    container).each(function(i, inputEl)    { _Entities.activateInput(inputEl,    id, entity.pageId, entity.type, typeInfo, onUpdateCallback); });
-		$('.props tr td.value textarea', container).each(function(i, textareaEl) { _Entities.activateInput(textareaEl, id, entity.pageId, entity.type, typeInfo); });
+		for (let el of propsTable[0].querySelectorAll('tr td.value textarea, tr td.value input')) {
+
+			_Entities.activateInput(el, id, entity.pageId, entity.type, typeInfo, onUpdateCallback);
+		}
 
 		if (view === '_html_') {
 
@@ -1102,12 +1123,15 @@ let _Entities = {
 
 						let newKey = '_custom_html_' + key;
 
-						Command.setProperty(id, newKey, val, false, () => {
+						Command.setProperty(id, newKey, val, false, (newVal) => {
+
 							_Helpers.blinkGreen(exitedInput);
 							_Dialogs.custom.showAndHideInfoBoxMessage(`New property "${newKey}" has been added and saved with value "${val}".`, 'success', 2000, 1000);
 
 							keyInput.replaceWith(key);
 							valInput.name = newKey;
+
+							// TODO: call onUpdateCallback();
 
 							let nullIcon = _Helpers.createSingleDOMElementFromHTML(_Entities.getNullIconForKey(newKey));
 							row.querySelector('td:last-of-type').appendChild(nullIcon);
@@ -1118,6 +1142,8 @@ let _Entities = {
 								_Entities.setProperty(id, key, null, false, (newVal) => {
 									row.remove();
 									_Dialogs.custom.showAndHideInfoBoxMessage(`Custom HTML property "${key}" has been removed`, 'success', 2000, 1000);
+
+									// TODO: call onUpdateCallback();
 								});
 							});
 
@@ -1382,15 +1408,20 @@ let _Entities = {
 		let objId  = relId ? relId : id;
 		let key    = input.prop('name');
 
+		let cell = input.closest('.value');
+		if (cell.length === 0) {
+			cell = input.closest('.__value');
+		}
+
 		if (!input.hasClass('readonly') && !input.hasClass('newKey')) {
 
 			input.closest('.array-attr').find('svg.remove').off('click').on('click', () => {
-				let cell = input.closest('.value');
-				if (cell.length === 0) {
-					cell = input.closest('.__value');
-				}
+
+				oldVal = _Entities.getArrayValue(key, cell);
 				input.parent().remove();
-				_Entities.saveArrayValue(cell, objId, key, oldVal, id, pageId, type, typeInfo, onUpdateCallback);
+				input[0].dataset['changed'] = 'true';
+
+				_Entities.saveValue(cell, input, objId, key, oldVal, id, pageId, type, typeInfo, onUpdateCallback);
 			});
 
 			input.off('focus').on('focus', function() {
@@ -1410,8 +1441,8 @@ let _Entities = {
 				});
 			}
 
-			input[0].addEventListener('input-finished', (e) => {
-				_Entities.saveValue(input, objId, key, oldVal, id, pageId, type, typeInfo, onUpdateCallback);
+			input[0].addEventListener('input-finished', () => {
+				_Entities.saveValue(cell, input, objId, key, oldVal, id, pageId, type, typeInfo, onUpdateCallback);
 
 				input.removeClass('active');
 				input.parent().children('.icon').each(function(i, icon) {
@@ -1457,38 +1488,6 @@ let _Entities = {
 			});
 		}
 	},
-	saveArrayValue: (cell, objId, key, oldVal, id, pageId, type, typeInfo, onUpdateCallback) => {
-
-		let val            = _Entities.getArrayValue(key, cell);
-		let isCreateDialog = !objId;
-
-		_Entities.setProperty(objId, key, val, false, (newVal = []) => {
-
-			if (newVal !== oldVal) {
-
-				if (!isCreateDialog) {
-					_Helpers.blinkGreen(cell);
-				}
-
-				let valueMsg;
-				cell.html(_Helpers.formatArrayValueField(key, newVal, typeInfo[key]));
-				cell.find(`[name="${key}"]`).each(function(i, el) {
-					_Entities.activateInput(el, id, pageId, type, typeInfo);
-				});
-
-				valueMsg = (newVal !== undefined || newValue !== null) ? `value [${newVal.join(',\n')}]`: 'empty value';
-
-				if (!isCreateDialog) {
-
-					_Dialogs.custom.showAndHideInfoBoxMessage(`Updated property "${key}" with ${valueMsg}.`, 'success', 2000, 200);
-				}
-
-				onUpdateCallback?.();
-			}
-
-			oldVal = newVal;
-		});
-	},
 	getArrayValue: (key, cell) => {
 
 		let values      = [];
@@ -1508,16 +1507,12 @@ let _Entities = {
 
 		return values;
 	},
-	saveValue: (input, objId, key, oldVal, id, pageId, type, typeInfo, onUpdateCallback) => {
+	saveValue: (cell, input, objId, key, oldVal, id, pageId, type, typeInfo, onUpdateCallback) => {
 
 		let isCreateDialog = !objId;
 		let val;
-		let cell = input.closest('.value');
-		if (cell.length === 0) {
-			cell = input.closest('.__value');
-		}
 
-		let isArrayType = (typeInfo?.[key].isCollection == true && !typeInfo[key].relatedType);
+		let isArrayType = (typeInfo?.[key]?.isCollection == true && typeInfo?.[key]?.relatedType === false);
 		if (isArrayType) {
 			val = _Entities.getArrayValue(key, cell);
 		} else {
@@ -1535,7 +1530,6 @@ let _Entities = {
 				if (isPassword || (newVal !== oldVal)) {
 
 					if (!isCreateDialog) {
-
 						_Helpers.blinkGreen(input);
 					}
 
@@ -1556,11 +1550,10 @@ let _Entities = {
 					});
 
 					if (!isCreateDialog) {
-
 						_Dialogs.custom.showAndHideInfoBoxMessage(`Updated property "${key}"${!isPassword ? ' with ' + valueMsg : ''}`, 'success', 2000, 200);
 					}
 
-					onUpdateCallback?.(input, newVal);
+					onUpdateCallback?.(input, newVal, oldVal);
 
 				} else {
 
@@ -1572,7 +1565,9 @@ let _Entities = {
 
 			if (!isCreateDialog) {
 
-				_Entities.setProperty(objId, key, val, false, newVal => updateInput(newVal));
+				_Entities.setProperty(objId, key, val, false, newVal => {
+					updateInput(newVal ?? (isArrayType ? [] : undefined))
+				});
 
 			} else {
 
@@ -2708,10 +2703,13 @@ let _Entities = {
 
 				_Schema.getTypeInfo(entity.type, (typeInfo) => {
 
-					_Entities.listProperties(entity, 'custom', customContainer, typeInfo, (properties) => {
+					_Entities.listProperties(entity, 'custom', customContainer, typeInfo, (propertiesInfo) => {
+
+						// filter out id,name,type from properties
+						let customProperties = Object.keys(propertiesInfo).filter(key => !['id', 'type', 'name'].includes(key));
 
 						// make container visible when custom properties exist
-						if (Object.keys(properties).length > 0) {
+						if (customProperties.length > 0) {
 							$('div#custom-properties-parent').removeClass("hidden");
 						}
 

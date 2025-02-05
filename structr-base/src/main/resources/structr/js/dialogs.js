@@ -590,25 +590,7 @@ let _Dialogs = {
 
 			} else {
 
-				let dialogHTML = `
-					<div id="dialogBox" class="dialog">
-						<i title="Fullscreen Mode" id="maximizeDialog" class="window-icon minmax">${_Icons.getSvgIcon(_Icons.iconMaximizeDialog, 18, 18)}</i>
-						<i title="Window Mode" id="minimizeDialog" class="window-icon minmax">${_Icons.getSvgIcon(_Icons.iconMinimizeDialog, 18, 18)}</i>
-						<i title="Close" id="closeDialog" class="window-icon close">${_Icons.getSvgIcon(_Icons.iconCrossIcon, 18, 18)}</i>
-
-						<h2 class="dialogTitle"></h2>
-
-						<div class="dialogTextWrapper">
-							<div class="dialogText"></div>
-						</div>
-
-						<div class="dialogMsg"></div>
-
-						<div class="dialogMeta"></div>
-
-						<div class="dialogBtn flex"></div>
-					</div>
-				`;
+				let dialogHTML = _Dialogs.custom.templates.defaultDialog();
 				return _Dialogs.basic.append(dialogHTML, { width: '' });
 			}
 		},
@@ -810,6 +792,34 @@ let _Dialogs = {
 					$(newDiv).fadeOut(fadeoutTime, () => { newDiv.remove(); });
 				}, stayTime);
 			}
+		},
+		templates: {
+			defaultDialog: config => `
+				<div id="dialogBox" class="dialog">
+					<i title="Fullscreen Mode" id="maximizeDialog" class="window-icon minmax">${_Icons.getSvgIcon(_Icons.iconMaximizeDialog, 18, 18)}</i>
+					<i title="Window Mode" id="minimizeDialog" class="window-icon minmax">${_Icons.getSvgIcon(_Icons.iconMinimizeDialog, 18, 18)}</i>
+					<i title="Close" id="closeDialog" class="window-icon close">${_Icons.getSvgIcon(_Icons.iconCrossIcon, 18, 18)}</i>
+
+					<h2 class="dialogTitle"></h2>
+
+					<div class="dialogTextWrapper">
+						<div class="dialogText"></div>
+					</div>
+
+					<div class="dialogMsg"></div>
+
+					<div class="dialogMeta"></div>
+
+					<div class="dialogBtn flex"></div>
+				</div>
+			`,
+			deleteButton: config => `
+				<button class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
+					<div class="flex items-center">
+						${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, ['mr-2', 'icon-red'])} <span>Delete object</span>
+					</div>
+				</button>
+			`
 		}
 	}
 };
