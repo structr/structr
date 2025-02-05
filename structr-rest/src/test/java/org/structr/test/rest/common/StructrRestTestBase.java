@@ -41,7 +41,7 @@ import org.structr.core.graph.Tx;
 import org.structr.schema.SchemaService;
 import org.structr.schema.export.StructrSchema;
 import org.structr.web.entity.User;
-import org.testng.annotations.Optional;
+import org.testng.annotations.*;
 
 import java.io.File;
 import java.io.RandomAccessFile;
