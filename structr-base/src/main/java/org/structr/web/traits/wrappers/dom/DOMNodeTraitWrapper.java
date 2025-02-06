@@ -1322,28 +1322,12 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 	@Override
 	public final void setOwnerDocument(final Page page) throws FrameworkException {
-
-		if (page != null) {
-
-			wrappedObject.setProperty(traits.key("ownerDocument"), page);
-
-		} else {
-
-			wrappedObject.setProperty(traits.key("ownerDocument"), null);
-		}
+		wrappedObject.setProperty(traits.key("ownerDocument"), page);
 	}
 
 	@Override
 	public final void setSharedComponent(final DOMNode sharedComponent) throws FrameworkException {
-
-		if (sharedComponent != null) {
-
-			wrappedObject.setProperty(traits.key("sharedComponent"), sharedComponent);
-
-		} else {
-
-			wrappedObject.setProperty(traits.key("sharedComponent"), null);
-		}
+		wrappedObject.setProperty(traits.key("sharedComponent"), sharedComponent);
 	}
 
 	@Override
