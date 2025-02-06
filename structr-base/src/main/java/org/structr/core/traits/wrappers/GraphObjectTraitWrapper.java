@@ -49,6 +49,15 @@ public class GraphObjectTraitWrapper<T extends GraphObject> implements GraphObje
 		this.traits        = traits;
 	}
 
+	/**
+	 * Implement standard toString() method
+	 */
+	@Override
+	public String toString() {
+		return getUuid();
+
+	}
+
 	@Override
 	public boolean equals(final Object other) {
 

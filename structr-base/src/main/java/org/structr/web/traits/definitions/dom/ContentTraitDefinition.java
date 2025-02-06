@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.Permission;
+import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -62,20 +63,6 @@ import java.util.Set;
  * All methods in the W3C Text interface are based on the raw database content.
  */
 public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
-
-	/*
-	public static final View defaultView = new View(Content.class, PropertyView.Public,
-		isContentProperty, contentTypeProperty, contentProperty, isDOMNodeProperty, pageIdProperty, parentProperty, sharedComponentIdProperty, syncedNodesIdsProperty, hideConditionsProperty, showConditionsProperty, hideForLocalesProperty,
-		showForLocalesProperty, sharedComponentConfigurationProperty, dataKeyProperty, cypherQueryProperty,
-		restQueryProperty, functionQueryProperty
-	);
-
-	public static final View uiView = new View(Content.class, PropertyView.Ui,
-		isContentProperty, contentTypeProperty, contentProperty, sharedComponentConfigurationProperty, isDOMNodeProperty, pageIdProperty, parentProperty, sharedComponentIdProperty, syncedNodesIdsProperty,
-		showForLocalesProperty, hideForLocalesProperty, showConditionsProperty, hideConditionsProperty, dataKeyProperty, cypherQueryProperty, restQueryProperty,
-		functionQueryProperty
-	);
-	*/
 
 	public ContentTraitDefinition() {
 		super("Content");
@@ -367,6 +354,23 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 			contentProperty,
 			contentTypeProperty,
 			isContentProperty
+		);
+	}
+
+	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+			PropertyView.Public,
+			newSet(
+				"isContent", "contentType", "content", "isDOMNode", "pageId", "parent", "sharedComponentId", "syncedNodesIds", "hideConditions", "showConditions", "hideForLocales",
+				"showForLocales", "sharedComponentConfiguration", "dataKey", "cypherQuery", "restQuery", "functionQuery"
+			),
+			PropertyView.Ui,
+			newSet(
+				"isContent", "contentType", "content", "sharedComponentConfiguration", "isDOMNode", "pageId", "parent", "sharedComponentId", "syncedNodesIds",
+				"showForLocales", "hideForLocales", "showConditions", "hideConditions", "dataKey", "cypherQuery", "restQuery", "functionQuery"
+			)
 		);
 	}
 

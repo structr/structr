@@ -113,16 +113,6 @@ public class CreateNodeCommand extends NodeServiceCommand {
 				securityContext.uuidWasSetManually(true);
 			}
 
-			// initial check for deprecated syntax, will be removed in the future
-			// FIXME
-
-			for (final PropertyKey key : attributes.keySet()) {
-
-				if (key.jsonName().startsWith("_")) {
-					throw new RuntimeException("Potential use of deprecated underscore notation for creating properties, views and methods while creating " + typeName + ".");
-				}
-			}
-
 			// use property keys to set property values on creation dummy
 			// set default values for common properties in creation query
 			idKey.setProperty(securityContext,               tmp, uuid);

@@ -423,7 +423,7 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 			props.put(credentialKey, credentialValue);
 			props.put(confirmationKeyKey, confKey);
 
-			user = (Principal) app.create(userClass, props);
+			user = app.create(userClass, props).as(Principal.class);
 
 		} else {
 

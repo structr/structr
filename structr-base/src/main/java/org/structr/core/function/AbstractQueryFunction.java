@@ -51,7 +51,7 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 
 		for (final String type : Traits.getAllTypes(t -> t.isNodeType())) {
 
-			hints.add(new TypeNameHint(quoteChar + name + quoteChar, type));
+			hints.add(new TypeNameHint(quoteChar + type + quoteChar, type));
 		}
 
 		return hints;

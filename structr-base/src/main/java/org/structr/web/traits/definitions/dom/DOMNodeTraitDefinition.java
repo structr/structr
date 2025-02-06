@@ -22,6 +22,7 @@ package org.structr.web.traits.definitions.dom;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
+import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -66,12 +67,6 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 	};
 
 	private static final Set<String> DataAttributeOutputBlacklist = Set.of("data-structr-manual-reload-target");
-
-	/*
-	public static final View uiView = new View(DOMNode.class, PropertyView.Ui,
-		reloadingActionsProperty, failureActionsProperty, successNotificationActionsProperty, failureNotificationActionsProperty
-	);
-	*/
 
 	public DOMNodeTraitDefinition() {
 		super("DOMNode");
@@ -647,6 +642,15 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 			hasSharedComponent,
 			domSortPositionProperty
 			//flow
+		);
+	}
+
+	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+			PropertyView.Ui,
+			newSet("reloadingActions", "failureActions", "successNotificationActions", "failureNotificationActions")
 		);
 	}
 

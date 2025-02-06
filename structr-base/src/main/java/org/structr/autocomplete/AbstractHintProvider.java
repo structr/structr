@@ -72,7 +72,7 @@ public abstract class AbstractHintProvider {
 
 		if (StringUtils.isBlank(textAfter) || textAfter.startsWith(" ") || textAfter.startsWith("\t") || textAfter.startsWith("\n") || textAfter.startsWith(";") || textAfter.startsWith(")")) {
 
-			if (isAutoscriptEnv || currentEntity.is("SchemaMethod")) {
+			if (isAutoscriptEnv || (currentEntity != null && currentEntity.is("SchemaMethod"))) {
 
 				// we can use the whole text here, the method will always contain script code and nothing else
 				// add ${ to be able to reuse code below

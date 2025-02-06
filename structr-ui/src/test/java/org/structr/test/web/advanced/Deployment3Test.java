@@ -244,9 +244,9 @@ public class Deployment3Test extends DeploymentTestBase {
 
 			assertEquals(1, div.as(DOMNode.class).treeGetChildCount());
 
-			Object obj = div.as(DOMNode.class).treeGetFirstChild();
+			NodeInterface obj = div.as(DOMNode.class).treeGetFirstChild();
 
-			assertTrue(Template.class.isAssignableFrom(obj.getClass()));
+			assertTrue(obj.is("Template"));
 
 			Template template = (Template)obj;
 

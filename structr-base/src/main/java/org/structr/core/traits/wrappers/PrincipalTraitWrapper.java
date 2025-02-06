@@ -144,7 +144,7 @@ public class PrincipalTraitWrapper extends AbstractNodeTraitWrapper implements P
 
 	@Override
 	public boolean isTwoFactorConfirmed() {
-		return wrappedObject.getProperty(traits.key("isTwoFactorConfirmed"));
+		return wrappedObject.getProperty(traits.key("twoFactorConfirmed"));
 	}
 
 	@Override

@@ -18,6 +18,7 @@
  */
 package org.structr.web.traits.definitions.dom;
 
+import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.api.AbstractMethod;
@@ -43,16 +44,6 @@ import java.util.Map;
 import java.util.Set;
 
 public class TemplateTraitDefinition extends AbstractNodeTraitDefinition {
-
-	/*
-	public static final View defaultView = new View(Template.class, PropertyView.Public,
-		contentProperty, contentTypeProperty, childrenProperty, childrenIdsProperty
-	);
-
-	public static final View uiView = new View(Template.class, PropertyView.Ui,
-		childrenProperty, childrenIdsProperty
-	);
-	*/
 
 	public TemplateTraitDefinition() {
 		super("Template");
@@ -193,6 +184,21 @@ public class TemplateTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 		return Set.of();
+	}
+
+	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+			PropertyView.Public,
+			newSet(
+				"content", "contentType", "children", "childrenIds"
+			),
+			PropertyView.Ui,
+			newSet(
+				"children", "childrenIds"
+			)
+		);
 	}
 
 	@Override

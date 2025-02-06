@@ -422,7 +422,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 							final Linkable result = authResult.getRootElement();
 							if (result.is("Page")) {
 
-								rootElement = result.as(DOMElement.class);
+								rootElement = result.as(DOMNode.class);
 								securityContext = authResult.getSecurityContext();
 								renderContext.pushSecurityContext(securityContext);
 

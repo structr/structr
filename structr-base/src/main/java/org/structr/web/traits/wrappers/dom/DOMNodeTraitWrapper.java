@@ -2062,7 +2062,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 			final PropertyMap properties = new PropertyMap();
 
-			for (final PropertyKey key : wrappedObject.getPropertyKeys(PropertyView.Ui)) {
+			for (final PropertyKey key : getPropertyKeys(PropertyView.Ui)) {
 
 				// skip blacklisted properties
 				if (cloneBlacklist.contains(key.jsonName())) {
@@ -2071,12 +2071,12 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 
 				if (!key.isUnvalidated()) {
-					properties.put(key, wrappedObject.getProperty(key));
+					properties.put(key, getProperty(key));
 				}
 			}
 
 			// htmlView is necessary for the cloning of DOM nodes - otherwise some properties won't be cloned
-			for (final PropertyKey key : wrappedObject.getPropertyKeys(PropertyView.Html)) {
+			for (final PropertyKey key : getPropertyKeys(PropertyView.Html)) {
 
 				// skip blacklisted properties
 				if (cloneBlacklist.contains(key.jsonName())) {
@@ -2084,7 +2084,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 				}
 
 				if (!key.isUnvalidated()) {
-					properties.put(key, wrappedObject.getProperty(key));
+					properties.put(key, getProperty(key));
 				}
 			}
 
@@ -2097,13 +2097,13 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 				}
 
 				if (!key.isUnvalidated()) {
-					properties.put(key, wrappedObject.getProperty(key));
+					properties.put(key, getProperty(key));
 				}
 			}
 
 			if (traits.contains("LinkSource")) {
 
-				final LinkSource linkSourceElement = wrappedObject.as(LinkSource.class);
+				final LinkSource linkSourceElement = this.as(LinkSource.class);
 				final Traits linkSourceTraits      = Traits.of("LinkSource");
 
 				properties.put(linkSourceTraits.key("linkable"), linkSourceElement.getLinkable());
@@ -2116,7 +2116,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 				final NodeInterface clone = app.create(getType(), properties);
 
 				// for clone, always copy permissions
-				wrappedObject.copyPermissionsTo(securityContext, clone, true);
+				copyPermissionsTo(securityContext, clone, true);
 
 				return clone.as(DOMNode.class);
 

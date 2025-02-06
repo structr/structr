@@ -58,7 +58,7 @@ public class RendererTest extends StructrUiTest {
 			final Page page1 = Page.createSimplePage(securityContext, "page1");
 
 			final DOMNode div = page1.getElementsByTagName("div").get(0);
-			content           = (Content)div.getFirstChild();
+			content           = div.getFirstChild().as(Content.class);
 
 			tx.success();
 

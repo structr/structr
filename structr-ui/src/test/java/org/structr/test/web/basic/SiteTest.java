@@ -42,8 +42,8 @@ public class SiteTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface site1 = createTestNode("Site", new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "site1"), new NodeAttribute<>(Traits.of("Site").key("hostname"), "test1.example.com"));
-			final NodeInterface site2 = createTestNode("Site", new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "site2"), new NodeAttribute<>(Traits.of("Site").key("hostname"), "test2.example.com"));
+			final NodeInterface site1 = createTestNode("Site", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "site1"), new NodeAttribute<>(Traits.of("Site").key("hostname"), "test1.example.com"));
+			final NodeInterface site2 = createTestNode("Site", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "site2"), new NodeAttribute<>(Traits.of("Site").key("hostname"), "test2.example.com"));
 
 			site1.setProperty(Traits.of("Site").key("visibleToAuthenticatedUsers"), true);
 			site2.setProperty(Traits.of("Site").key("visibleToAuthenticatedUsers"), true);
@@ -97,8 +97,8 @@ public class SiteTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface site1 = createTestNode("Site", new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "site1"), new NodeAttribute<>(Traits.of("Site").key("hostname"), "test1.example.com"));
-			final NodeInterface site2 = createTestNode("Site", new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "site2"), new NodeAttribute<>(Traits.of("Site").key("hostname"), "test2.example.com"));
+			final NodeInterface site1 = createTestNode("Site", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "site1"), new NodeAttribute<>(Traits.of("Site").key("hostname"), "test1.example.com"));
+			final NodeInterface site2 = createTestNode("Site", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "site2"), new NodeAttribute<>(Traits.of("Site").key("hostname"), "test2.example.com"));
 
 			site1.setProperty(Traits.of("Site").key("visibleToAuthenticatedUsers"), true);
 			site2.setProperty(Traits.of("Site").key("visibleToAuthenticatedUsers"), true);

@@ -24,17 +24,12 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.Traits;
-import org.structr.schema.SchemaHelper;
-import org.structr.web.entity.User;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -175,11 +170,14 @@ public class TestHelper {
 						final String viewName    = view.getKey();
 						final List<String> keys  = view.getValue();
 
+						System.out.println("Checking " + typeName + "." + viewName);
+
 						// check entity
 						final Map<String, Object> result = RestAssured
 							.given()
 							.header("X-User",     "admin")
 							.header("X-Password", "admin")
+							.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 							.expect()
 							.statusCode(200)
 							.when()

@@ -90,35 +90,6 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 	private static final Set<String> RequestParameterBlacklist = Set.of(HtmlServlet.ENCODED_RENDER_STATE_PARAMETER_NAME);
 
 	/*
-	public static final View defaultView = new View(DOMElement.class, PropertyView.Public,
-		tagProperty, pathProperty, partialUpdateKeyProperty, isDOMNodeProperty, pageIdProperty, parentProperty, sharedComponentIdProperty, syncedNodesIdsProperty,
-		name, childrenProperty, dataKeyProperty, cypherQueryProperty, restQueryProperty, functionQueryProperty
-	);
-
-	public static final View uiView = new View(DOMElement.class, PropertyView.Ui,
-		tagProperty, pathProperty, partialUpdateKeyProperty, htmlClassProperty, htmlIdProperty, sharedComponentConfigurationProperty,
-		isDOMNodeProperty, pageIdProperty, parentProperty, sharedComponentIdProperty, syncedNodesIdsProperty, dataStructrIdProperty, childrenProperty,
-		childrenIdsProperty, showForLocalesProperty, hideForLocalesProperty, showConditionsProperty, hideConditionsProperty, dataKeyProperty, cypherQueryProperty,
-		restQueryProperty, functionQueryProperty, renderingModeProperty, delayOrIntervalProperty, dataInsertProperty, dataFromWidgetProperty, dataTreeChildrenProperty,
-		dataReloadTargetProperty, eventMappingProperty, triggeredActionsProperty, reloadingActionsProperty, failureActionsProperty, successNotificationActionsProperty,
-		failureNotificationActionsProperty, manualReloadTargetProperty
-	);
-
-	public static final View htmlView = new View(DOMElement.class, PropertyView.Html,
-		onAbortProperty, onBlurProperty, onCanPlayProperty, onCanPlayThroughProperty, onChangeProperty, onClickProperty, onContextMenuProperty, onDblClickProperty,
-		onDragProperty, onDragEndProperty, onDragEnterProperty, onDragLeaveProperty, onDragOverProperty, onDragStartProperty, onDropProperty, onDurationChangeProperty,
-		onEmptiedProperty, onEndedProperty, onErrorProperty, onFocusProperty, onInputProperty, onInvalidProperty, onKeyDownProperty, onKeyPressProperty, onKeyUpProperty,
-		onLoadProperty, onLoadedDataProperty, onLoadedMetadataProperty, onLoadStartProperty, onMouseDownProperty, onMouseMoveProperty, onMouseOutProperty,
-		onMouseOverProperty, onMouseUpProperty, onMouseWheelProperty, onPauseProperty, onPlayProperty, onPlayingProperty, onProgressProperty, onRateChangeProperty,
-		onReadyStateChangeProperty, onResetProperty, onScrollProperty, onSeekedProperty, onSeekingProperty, onSelectProperty, onShowProperty, onStalledProperty,
-		onSubmitProperty, onSuspendProperty, onTimeUpdateProperty, onVolumechangeProperty, onWaitingProperty, htmlDataProperty,
-
-		htmlAcceskeyProperty, htmlClassProperty, htmlContentEditableProperty, htmlContextMenuProperty, htmlDirProperty, htmlDraggableProperty, htmlDropzoneProperty,
-		htmlHiddenProperty, htmlIdProperty, htmlLangProperty, htmlSpellcheckProperty, htmlStyleProperty, htmlTabindexProperty, htmlTitleProperty, htmlTranslateProperty,
-
-		htmlRoleProperty, htmlIsProperty, htmlPropertiesProperty
-	);
-
 		final LicenseManager licenseManager = Services.getInstance().getLicenseManager();
 		if (licenseManager == null || licenseManager.isModuleLicensed("api-builder")) {
 
@@ -286,7 +257,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 						allProperties.add(attr);
 					}
 
-					final DOMNode domElement = ((NodeInterface) graphObject).as(DOMNode.class);
+					final DOMNode domElement = graphObject.as(DOMNode.class);
 
 					allProperties.addAll(domElement.getDataPropertyKeys());
 
@@ -1216,6 +1187,43 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 			htmlPropertiesProperty,
 			htmlRoleProperty
 		);
+	}
+
+	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+			PropertyView.Public,
+			newSet(
+				"tag", "path", "partialUpdateKey", "isDOMNode", "pageId", "parent", "sharedComponentId", "syncedNodesIds",
+				"name", "children", "dataKey", "cypherQuery", "restQuery", "functionQuery"
+			),
+			PropertyView.Ui,
+			newSet(
+				"tag", "path", "partialUpdateKey", "_html_class", "_html_id", "sharedComponentConfiguration",
+				"isDOMNode", "pageId", "parent", "sharedComponentId", "syncedNodesIds", "data-structr-id", "children",
+				"childrenIds", "showForLocales", "hideForLocales", "showConditions", "hideConditions", "dataKey", "cypherQuery",
+				"restQuery", "functionQuery", "data-structr-rendering-mode", "data-structr-delay-or-interval", "data-structr-insert", "data-structr-from-widget",
+				"data-structr-tree-children", "data-structr-reload-target", "eventMapping", "triggeredActions", "reloadingActions", "failureActions", "successNotificationActions",
+				"failureNotificationActions", "data-structr-manual-reload-target"
+			),
+			PropertyView.Html,
+			newSet(
+				"_html_onabort", "_html_onblur", "_html_oncanplay", "_html_oncanplaythrough", "_html_onchange", "_html_onclick", "_html_oncontextmenu", "_html_ondblclick",
+				"_html_ondrag", "_html_ondragend", "_html_ondragenter", "_html_ondragleave", "_html_ondragover", "_html_ondragstart", "_html_ondrop", "_html_ondurationchange",
+				"_html_onemptied", "_html_onended", "_html_onerror", "_html_onfocus", "_html_oninput", "_html_oninvalid", "_html_onkeydown", "_html_onkeypress", "_html_onkeyup",
+				"_html_onload", "_html_onloadeddata", "_html_onloadedmetadata", "_html_onloadstart", "_html_onmousedown", "_html_onmousemove", "_html_onmouseout",
+				"_html_onmouseover", "_html_onmouseup", "_html_onmousewheel", "_html_onpause", "_html_onplay", "_html_onplaying", "_html_onprogress", "_html_onratechange",
+				"_html_onreadystatechange", "_html_onreset", "_html_onscroll", "_html_onseeked", "_html_onseeking", "_html_onselect", "_html_onshow", "_html_onstalled",
+				"_html_onsubmit", "_html_onsuspend", "_html_ontimeupdate", "_html_onvolumechange", "_html_onwaiting", "_html_data",
+
+				"_html_accesskey", "_html_class", "_html_contenteditable", "_html_contextmenu", "_html_dir", "_html_draggable", "_html_dropzone",
+				"_html_hidden", "_html_id", "_html_lang", "_html_spellcheck", "_html_style", "_html_tabindex", "_html_title", "_html_translate",
+
+				"_html_role", "_html_is", "_html_properties"
+			)
+		);
+
 	}
 
 	@Override
