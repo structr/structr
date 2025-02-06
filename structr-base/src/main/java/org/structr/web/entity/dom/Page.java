@@ -52,11 +52,10 @@ public interface Page extends DOMNode {
 	DOMElement getElementById(final String id) throws FrameworkException;
 	DOMElement createElement(final String tag) throws FrameworkException;
 	DOMElement createElement(final String tag, final boolean suppressException) throws FrameworkException;
-	DocumentFragment createDocumentFragment();
 	Content createTextNode(final String text);
 	Comment createComment(final String comment);
 
-	void adoptNode(final DOMNode newHtmlNode);
+	void adoptNode(final DOMNode newHtmlNode) throws FrameworkException;
 	DOMNode importNode(final DOMNode node, final boolean deep) throws FrameworkException;
 
 	List<DOMNode> getElementsByTagName(final String head) throws FrameworkException;

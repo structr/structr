@@ -186,8 +186,11 @@ public class PageTest extends StructrUiTest {
 				// srcPage should not have a document element any more
 				//assertNull(srcPage.getDocumentElement());
 
-				// srcPage should have exactly one child element
-				assertEquals(1, srcPage.getChildNodes().size());
+				final List<DOMNode> srcChildren = srcPage.getChildNodes();
+				final List<DOMNode> dstChildren = dstPage.getChildNodes();
+
+				// srcPage should have no children any more
+				assertEquals(0, srcChildren.size());
 
 				tx.success();
 
@@ -339,9 +342,9 @@ public class PageTest extends StructrUiTest {
 				tx.success();
 			}
 
-		} catch (Throwable t) {
+		} catch (FrameworkException fex) {
 
-			t.printStackTrace();
+			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
 	}
@@ -365,6 +368,8 @@ public class PageTest extends StructrUiTest {
 			pageToClone.adoptNode(templ);
 			pageToClone.appendChild(templ);
 
+			System.out.println(pageToClone.getContent(RenderContext.EditMode.NONE));
+
 			tx.success();
 
 		} catch (Throwable t) {
@@ -376,16 +381,11 @@ public class PageTest extends StructrUiTest {
 		// clone page
 		try (final Tx tx = app.tx()) {
 
-			newPage = (Page) pageToClone.cloneNode(false);
+			newPage = pageToClone.cloneNode(false).as(Page.class);
 
 			newPage.setName(pageToClone.getName() + "-" + newPage.getNode().getId().toString());
 
-			DOMNode firstChild = pageToClone.getFirstChild().getNextSibling();
-
-			if (firstChild == null) {
-				firstChild = pageToClone.getFirstChild();
-			}
-
+			DOMNode firstChild = pageToClone.getFirstChild();
 			if (firstChild != null) {
 
 				final DOMNode newHtmlNode = DOMNodeTraitWrapper.cloneAndAppendChildren(securityContext, firstChild);
@@ -393,6 +393,8 @@ public class PageTest extends StructrUiTest {
 				newPage.adoptNode(newHtmlNode);
 				newPage.appendChild(newHtmlNode);
 			}
+
+			System.out.println(newPage.getContent(RenderContext.EditMode.NONE));
 
 			tx.success();
 

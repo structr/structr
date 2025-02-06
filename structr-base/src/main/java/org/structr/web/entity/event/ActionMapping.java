@@ -19,11 +19,10 @@
 package org.structr.web.entity.event;
 
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.traits.NodeTrait;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 
-public interface ActionMapping extends NodeTrait {
+public interface ActionMapping extends NodeInterface {
 
 	String getEvent();
 	String getAction();

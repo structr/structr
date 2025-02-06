@@ -22,7 +22,7 @@ import org.structr.core.entity.Localization;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 
-public class LocalizationTraitWrapper extends GraphObjectTraitWrapper<NodeInterface> implements Localization {
+public class LocalizationTraitWrapper extends AbstractNodeTraitWrapper implements Localization {
 
 	public LocalizationTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);
@@ -45,6 +45,6 @@ public class LocalizationTraitWrapper extends GraphObjectTraitWrapper<NodeInterf
 
 	@Override
 	public boolean isImported() {
-		return wrappedObject.getProperty(traits.key("isImported"));
+		return wrappedObject.getProperty(traits.key("imported"));
 	}
 }

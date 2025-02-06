@@ -23,5 +23,5 @@ import org.structr.core.graph.NodeInterface;
 @FunctionalInterface
 public interface NodeTraitFactory {
 
-	NodeTrait newInstance(final Traits traits, final NodeInterface node);
+	NodeInterface newInstance(final Traits traits, final NodeInterface node);
 }

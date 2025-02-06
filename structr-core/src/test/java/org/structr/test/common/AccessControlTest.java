@@ -787,8 +787,8 @@ public class AccessControlTest extends StructrTest {
 
 		try (final Tx tx = user1App.tx()) {
 
-			Group group     = user1App.getNodeById("Group", groupId).as(Group.class);
-			User user2 = user1App.getNodeById("User", user2Id).as(User.class);
+			Group group = user1App.getNodeById("Group", groupId).as(Group.class);
+			User user2  = user1App.getNodeById("User", user2Id).as(User.class);
 
 			group.removeMember(user1Context, user2);
 			tx.success();
@@ -1499,7 +1499,7 @@ public class AccessControlTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			Group group = app.getNodeById("Group", groupId).as(Group.class);
+			NodeInterface group = app.getNodeById("Group", groupId);
 
 			// Grant write permission on group to user1
 			group.as(AccessControllable.class).grant(Permission.write, user1);

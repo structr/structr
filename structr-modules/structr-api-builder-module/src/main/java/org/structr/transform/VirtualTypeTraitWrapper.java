@@ -39,7 +39,7 @@ import org.structr.schema.action.ActionContext;
 import java.util.*;
 import java.util.function.Function;
 
-public class VirtualTypeTraitWrapper extends GraphObjectTraitWrapper<NodeInterface> implements VirtualType {
+public class VirtualTypeTraitWrapper extends AbstractNodeTraitWrapper implements VirtualType {
 
 	public VirtualTypeTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);

@@ -18,6 +18,7 @@
  */
 package org.structr.web.traits.definitions;
 
+import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -46,7 +47,6 @@ import java.util.Set;
 public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 
 	/*
-		type.addBooleanProperty("isFolder", PropertyView.Public, PropertyView.Ui).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
 		type.addStringProperty("mountTarget", PropertyView.Public).setIndexed(true);
 		type.addIntegerProperty("position").setIndexed(true);
 
@@ -68,11 +68,6 @@ public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 		super("Folder");
 	}
 
-	/*
-	View defaultView = new View(Folder.class, PropertyView.Public, filesProperty, foldersProperty, parentIdProperty);
-	View uiView      = new View(Folder.class, PropertyView.Ui,     filesProperty, foldersProperty, imagesProperty);
-	*/
-
 	@Override
 	public Map<Class, LifecycleMethod> getLifecycleMethods() {
 
@@ -83,7 +78,7 @@ public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
-					final Folder thisFolder = ((NodeInterface) graphObject).as(Folder.class);
+					final Folder thisFolder = graphObject.as(Folder.class);
 
 					thisFolder.setHasParent();
 
@@ -101,7 +96,7 @@ public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
-					final Folder thisFolder = ((NodeInterface) graphObject).as(Folder.class);
+					final Folder thisFolder = graphObject.as(Folder.class);
 
 					thisFolder.setHasParent();
 
@@ -118,7 +113,7 @@ public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public void onDeletion(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final PropertyMap properties) throws FrameworkException {
 
-					final Folder thisFolder = ((NodeInterface) graphObject).as(Folder.class);
+					final Folder thisFolder = graphObject.as(Folder.class);
 
 					FolderTraitDefinition.updateWatchService(thisFolder, false);
 				}
@@ -155,7 +150,7 @@ public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Iterable<NodeInterface>> imagesProperty            = new EndNodes("images", "FolderCONTAINSImage");
 		final Property<NodeInterface> folderParentProperty                = new StartNode("folderParent", "FolderCONTAINSFolder");
 		final Property<NodeInterface> homeFolderOfUserProperty            = new StartNode("homeFolderOfUser", "UserHOME_DIRFolder");
-		final Property<Boolean> isFolderProperty                           = new BooleanProperty("isFolder").readOnly().transformators("org.structr.common.ConstantBooleanTrue").dynamic();
+		final Property<Boolean> isFolderProperty                           = new ConstantBooleanProperty("isFolder", true).readOnly().dynamic();
 		final Property<Boolean> mountDoFulltextIndexingProperty            = new BooleanProperty("mountDoFulltextIndexing").dynamic();
 		final Property<Boolean> mountWatchContentsProperty                 = new BooleanProperty("mountWatchContents").dynamic();
 		final Property<Integer> mountScanIntervalProperty                  = new IntProperty("mountScanInterval").dynamic();
@@ -165,8 +160,8 @@ public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> mountTargetFileTypeProperty                 = new StringProperty("mountTargetFileType").dynamic();
 		final Property<String> mountTargetFolderTypeProperty               = new StringProperty("mountTargetFolderType").dynamic();
 		final Property<Long> mountLastScannedProperty                      = new LongProperty("mountLastScanned").dynamic();
-		final Property<Object> filesCountProperty                          = new FunctionProperty("filesCount").typeHint("int").dynamic();
-		final Property<Object> foldersCountProperty                        = new FunctionProperty("foldersCount").typeHint("int").dynamic();
+		final Property<Object> filesCountProperty                          = new FunctionProperty("filesCount").readFunction("size(this.files)").typeHint("int").dynamic();
+		final Property<Object> foldersCountProperty                        = new FunctionProperty("foldersCount").readFunction("size(this.files)").typeHint("int").dynamic();
 
 		return Set.of(
 			childrenProperty,
@@ -188,6 +183,21 @@ public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 			mountLastScannedProperty,
 			filesCountProperty,
 			foldersCountProperty
+		);
+	}
+
+	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+			PropertyView.Public,
+			newSet(
+				"files", "folders", "parentId"
+			),
+			PropertyView.Ui,
+			newSet(
+				"files", "folders", "images"
+			)
 		);
 	}
 

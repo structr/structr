@@ -35,7 +35,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-public class SchemaPropertyTraitWrapper extends GraphObjectTraitWrapper<NodeInterface> implements SchemaProperty {
+public class SchemaPropertyTraitWrapper extends AbstractNodeTraitWrapper implements SchemaProperty {
 
 	private NotionPropertyGenerator notionPropertyParser           = null;
 	private DoublePropertyGenerator doublePropertyParser           = null;

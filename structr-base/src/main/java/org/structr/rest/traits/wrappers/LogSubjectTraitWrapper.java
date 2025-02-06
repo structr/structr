@@ -20,10 +20,10 @@ package org.structr.rest.traits.wrappers;
 
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.wrappers.GraphObjectTraitWrapper;
+import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.rest.entity.LogSubject;
 
-public class LogSubjectTraitWrapper extends GraphObjectTraitWrapper<NodeInterface> implements LogSubject {
+public class LogSubjectTraitWrapper extends AbstractNodeTraitWrapper implements LogSubject {
 
 	public LogSubjectTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);

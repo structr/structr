@@ -18,9 +18,9 @@
  */
 package org.structr.rest.entity;
 
-import org.structr.core.traits.NodeTrait;
+import org.structr.core.graph.NodeInterface;
 
-public interface LogEvent extends NodeTrait {
+public interface LogEvent extends NodeInterface {
 
 	long getTimestamp();
 	String getAction();

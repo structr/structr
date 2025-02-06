@@ -25,7 +25,6 @@ import org.apache.commons.compress.utils.IOUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.traits.NodeTrait;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
@@ -71,12 +70,12 @@ public class CreateArchiveFunction extends UiAdvancedFunction {
 			zaps.setCreateUnicodeExtraFields(ZipArchiveOutputStream.UnicodeExtraFieldPolicy.ALWAYS);
 			zaps.setFallbackToUTF8(true);
 
-			if (sources[1] instanceof NodeTrait n && n.is("File")) {
+			if (sources[1] instanceof NodeInterface n && n.is("File")) {
 
 				File file = n.as(File.class);
 				addFileToZipArchive(file.getName(), file, zaps);
 
-			} else if (sources[1] instanceof NodeTrait n && n.is("Folder")) {
+			} else if (sources[1] instanceof NodeInterface n && n.is("Folder")) {
 
 				Folder folder = n.as(Folder.class);
 				addFilesToArchive(folder.getName() + "/", folder.getFiles(), zaps);

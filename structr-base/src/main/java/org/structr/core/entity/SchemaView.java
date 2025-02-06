@@ -18,9 +18,9 @@
  */
 package org.structr.core.entity;
 
-import org.structr.core.traits.NodeTrait;
+import org.structr.core.graph.NodeInterface;
 
-public interface SchemaView extends NodeTrait {
+public interface SchemaView extends NodeInterface {
 
 	Iterable<SchemaProperty> getSchemaProperties();
 	String getNonGraphProperties();

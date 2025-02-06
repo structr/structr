@@ -363,31 +363,6 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 	}
 
 	@Override
-	public DocumentFragment createDocumentFragment() {
-
-		final App app = StructrApp.getInstance(this.getSecurityContext());
-
-		try {
-
-			// create new content element
-			final DocumentFragment fragment = app.create("DocumentFragment").as(DocumentFragment.class);
-
-			fragment.setOwnerDocument(this);
-
-			return fragment;
-
-		} catch (FrameworkException fex) {
-
-			// FIXME: what to do with the exception here?
-			final Logger logger = LoggerFactory.getLogger(Page.class);
-			logger.warn("", fex);
-		}
-
-		return null;
-
-	}
-
-	@Override
 	public Content createTextNode(final String text) {
 
 		try {
@@ -442,7 +417,7 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 	}
 
 	@Override
-	public void adoptNode(DOMNode newHtmlNode) {
-
+	public void adoptNode(final DOMNode newHtmlNode) throws FrameworkException {
+		adoptNode(newHtmlNode, true);
 	}
 }

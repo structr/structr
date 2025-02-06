@@ -106,8 +106,6 @@ public class PropertyTest extends StructrTest {
 
 			assertNotNull(testEntity);
 
-			Settings.CypherDebugLogging.setValue(true);
-
 			List<NodeInterface> result = null;
 
 			// test exact search with correct value => 1 result

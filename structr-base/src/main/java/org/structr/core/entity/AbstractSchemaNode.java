@@ -18,11 +18,11 @@
  */
 package org.structr.core.entity;
 
-import org.structr.core.traits.NodeTrait;
+import org.structr.core.graph.NodeInterface;
 
 import java.util.List;
 
-public interface AbstractSchemaNode extends NodeTrait {
+public interface AbstractSchemaNode extends NodeInterface {
 
 	Iterable<SchemaProperty> getSchemaProperties();
 	Iterable<SchemaView> getSchemaViews();

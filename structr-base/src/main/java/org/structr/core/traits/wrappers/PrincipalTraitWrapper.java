@@ -42,7 +42,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
 
-public class PrincipalTraitWrapper extends GraphObjectTraitWrapper<NodeInterface> implements Principal {
+public class PrincipalTraitWrapper extends AbstractNodeTraitWrapper implements Principal {
 
 	public PrincipalTraitWrapper(final Traits traits, final NodeInterface nodeInterface) {
 		super(traits, nodeInterface);

@@ -19,9 +19,9 @@
 package org.structr.web.entity.path;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.traits.NodeTrait;
+import org.structr.core.graph.NodeInterface;
 
-public interface PagePathParameter extends NodeTrait {
+public interface PagePathParameter extends NodeInterface {
 
 	Integer getPosition();
 	void setPosition(final Integer position) throws FrameworkException;

@@ -140,7 +140,7 @@ public class ComponentImporter extends HtmlFileImporter {
 
 				DeployCommand.checkOwnerAndSecurity(dataMap);
 
-				return PropertyMap.inputTypeToJavaType(SecurityContext.getSuperUserInstance(), "DOMNode", dataMap);
+				return PropertyMap.inputTypeToJavaType(SecurityContext.getSuperUserInstance(), "Template", dataMap);
 
 			} catch (FrameworkException ex) {
 				logger.warn("Unable to resolve properties for shared component: {}", ex.getMessage());
@@ -247,7 +247,7 @@ public class ComponentImporter extends HtmlFileImporter {
 
 					if (isHullMode()) {
 
-						logger.info("Importing outer component shell for {} from {}..", new Object[] { componentName, fileName } );
+						logger.info("Importing outer component shell for {} from {}..", componentName, fileName);
 
 						importer.retainHullOnly();
 
@@ -255,9 +255,9 @@ public class ComponentImporter extends HtmlFileImporter {
 
 					} else {
 
-						logger.info("Importing inner component contents for {} from {}..", new Object[] { componentName, fileName } );
+						logger.info("Importing inner component contents for {} from {}..", componentName, fileName);
 
-						rootElement = importer.createComponentHullChildNodes(existingComponent.as(DOMNode.class), shadowDocument);
+						rootElement = importer.createComponentHullChildNodes(existingComponent, shadowDocument);
 					}
 
 					if (rootElement != null) {

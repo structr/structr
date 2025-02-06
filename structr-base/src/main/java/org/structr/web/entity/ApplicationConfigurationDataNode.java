@@ -18,9 +18,9 @@
  */
 package org.structr.web.entity;
 
-import org.structr.core.traits.NodeTrait;
+import org.structr.core.graph.NodeInterface;
 
-public interface ApplicationConfigurationDataNode extends NodeTrait {
+public interface ApplicationConfigurationDataNode extends NodeInterface {
 
 	String getUuid();
 	String getConfigType();

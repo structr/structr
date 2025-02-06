@@ -30,7 +30,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.DefaultSortOrder;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.wrappers.GraphObjectTraitWrapper;
+import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.path.PagePath;
 import org.structr.web.entity.path.PagePathParameter;
@@ -42,7 +42,7 @@ import java.util.regex.Pattern;
 /**
  *
  */
-public class PagePathTraitWrapper extends GraphObjectTraitWrapper<NodeInterface> implements PagePath {
+public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements PagePath {
 
 	public PagePathTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);

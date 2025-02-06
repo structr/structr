@@ -82,7 +82,7 @@ public final class AbstractNode extends AbstractGraphObject<Node> implements Nod
 			return false;
 		}
 
-		if (!(o instanceof AbstractNode)) {
+		if (!(o instanceof NodeInterface)) {
 
 			return false;
 		}
@@ -146,6 +146,11 @@ public final class AbstractNode extends AbstractGraphObject<Node> implements Nod
 		}
 
 		return _name;
+	}
+
+	@Override
+	public void setName(final String name) throws FrameworkException {
+		setProperty(typeHandler.key("name"), name);
 	}
 
 	@Override

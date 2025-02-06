@@ -18,12 +18,12 @@
  */
 package org.structr.web.entity;
 
-import org.structr.core.traits.NodeTrait;
+import org.structr.core.graph.NodeInterface;
 
 /**
  *
  */
-public interface Linkable extends NodeTrait {
+public interface Linkable extends NodeInterface {
 
 	boolean getEnableBasicAuth();
 	String getBasicAuthRealm();

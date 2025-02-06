@@ -25,7 +25,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.traits.NodeTrait;
 import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 import org.structr.storage.StorageProviderFactory;
@@ -59,7 +58,7 @@ public class ImportCssFunction extends UiAdvancedFunction {
 
 		assertArrayHasMinLengthAndAllElementsNotNull(sources, 1);
 
-		if (sources[0] instanceof NodeTrait n && n.is("File")) {
+		if (sources[0] instanceof NodeInterface n && n.is("File")) {
 
 			final File file = n.as(File.class);
 

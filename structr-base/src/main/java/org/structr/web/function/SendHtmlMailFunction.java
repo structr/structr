@@ -28,7 +28,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.DynamicMailAttachment;
 import org.structr.common.helper.MailHelper;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.traits.NodeTrait;
 import org.structr.schema.action.ActionContext;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.File;
@@ -72,7 +71,7 @@ public class SendHtmlMailFunction extends UiAdvancedFunction {
 
 			try {
 
-				if (sources.length == 8 && sources[7] instanceof List list && list.size() > 0 && list.get(0) instanceof NodeTrait n && n.is("File")) {
+				if (sources.length == 8 && sources[7] instanceof List list && list.size() > 0 && list.get(0) instanceof NodeInterface n && n.is("File")) {
 
 					fileNodes = list;
 

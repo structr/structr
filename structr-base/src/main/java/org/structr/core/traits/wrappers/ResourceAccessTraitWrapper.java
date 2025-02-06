@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class ResourceAccessTraitWrapper extends GraphObjectTraitWrapper<NodeInterface> implements ResourceAccess {
+public class ResourceAccessTraitWrapper extends AbstractNodeTraitWrapper implements ResourceAccess {
 
 	private static final Map<String, List<ResourceAccess>> permissionsCache = new ConcurrentHashMap<>();
 

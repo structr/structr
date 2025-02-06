@@ -52,7 +52,7 @@ public class UpdateOperation extends InvertibleModificationOperation {
 
 		} else if (existingNode.is("DOMElement")) {
 
-			return "Update " + ((DOMElement)newNode).getTag() + "(" + existingNode.getIdHashOrProperty() + ") with " + newNode.getIdHashOrProperty();
+			return "Update " + newNode.as(DOMElement.class).getTag() + "(" + existingNode.getIdHashOrProperty() + ") with " + newNode.getIdHashOrProperty();
 		}
 
 		return "Update " + existingNode.getUuid() + "(" + existingNode.getIdHash();

@@ -20,10 +20,10 @@ package org.structr.web.traits.wrappers;
 
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.wrappers.GraphObjectTraitWrapper;
+import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.web.entity.Site;
 
-public class SiteTraitWrapper extends GraphObjectTraitWrapper<NodeInterface> implements Site {
+public class SiteTraitWrapper extends AbstractNodeTraitWrapper implements Site {
 
 	public SiteTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);

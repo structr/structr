@@ -18,11 +18,11 @@
  */
 package org.structr.core.entity;
 
-import org.structr.core.traits.NodeTrait;
+import org.structr.core.graph.NodeInterface;
 
 /**
  * Controls CORS settings
  * These settings overwrite the system default and the settings defined in {@see Settings.java}.
  */
-public interface CorsSetting extends NodeTrait {
+public interface CorsSetting extends NodeInterface {
 }

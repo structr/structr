@@ -58,7 +58,7 @@ public class CreateOperation extends InvertibleModificationOperation {
 
 		} else if (newNode.is("DOMElement")) {
 
-			return "Create " + ((DOMElement)newNode).getTag() + "(" + newNode.getIdHashOrProperty() + ")";
+			return "Create " + newNode.as(DOMElement.class).getTag() + "(" + newNode.getIdHashOrProperty() + ")";
 		}
 
 		return "Create " + newNode.getUuid() + "(" + newNode.getIdHashOrProperty() + ")";

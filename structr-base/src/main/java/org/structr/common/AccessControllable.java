@@ -21,7 +21,7 @@ package org.structr.common;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Security;
-import org.structr.core.traits.NodeTrait;
+import org.structr.core.graph.NodeInterface;
 
 import java.util.List;
 import java.util.Set;
@@ -30,7 +30,7 @@ import java.util.Set;
  * Interface to encapsulate query-able permissions. This interface exists
  * in order to make {@link SecurityContext} testable.
  */
-public interface AccessControllable extends NodeTrait {
+public interface AccessControllable extends NodeInterface {
 
 	Principal getOwnerNode();
 

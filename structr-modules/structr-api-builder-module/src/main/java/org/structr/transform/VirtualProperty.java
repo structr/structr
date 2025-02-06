@@ -19,9 +19,9 @@
 package org.structr.transform;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.traits.NodeTrait;
+import org.structr.core.graph.NodeInterface;
 
-public interface VirtualProperty extends NodeTrait {
+public interface VirtualProperty extends NodeInterface {
 
 	Integer getPosition();
 	String getSourceName();

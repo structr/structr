@@ -433,7 +433,7 @@ public class Importer {
 		}
 	}
 
-	public DOMNode createComponentHullChildNodes (final DOMNode parent, final Page page) throws FrameworkException {
+	public DOMNode createComponentHullChildNodes (final NodeInterface parent, final Page page) throws FrameworkException {
 
 		for (final Node node : parsedDocument.childNodes()) {
 
@@ -645,11 +645,11 @@ public class Importer {
 		return createChildNodes(startNode, parent, page, false, 0, null);
 	}
 
-	private DOMNode createChildNodes(final Node startNode, final DOMNode parent, final Page page, final boolean removeHashAttribute, final int depth, final DOMNode suppliedRoot) throws FrameworkException {
+	private DOMNode createChildNodes(final Node startNode, final NodeInterface parent, final Page page, final boolean removeHashAttribute, final int depth, final NodeInterface suppliedRoot) throws FrameworkException {
 
-		DOMNode rootElement     = suppliedRoot;
-		Linkable linkable       = null;
-		String instructions     = null;
+		NodeInterface rootElement = suppliedRoot;
+		Linkable linkable         = null;
+		String instructions       = null;
 
 		final List<Node> children = startNode.childNodes();
 		for (Node node : children) {
@@ -1246,11 +1246,13 @@ public class Importer {
 				// allow parent to be null to prevent direct child relationship
 				if (parent != null) {
 
+					final DOMNode parentDOMNode = parent.as(DOMNode.class);
+
 					// special handling for <head> elements
 					if (newNode.is("Head") && parent.is("Body")) {
 
-						final DOMNode html = parent.getParent();
-						html.insertBefore(newNode, parent);
+						final DOMNode html = parentDOMNode.getParent();
+						html.insertBefore(newNode, parentDOMNode);
 
 					} else {
 
@@ -1259,7 +1261,7 @@ public class Importer {
 
 						if (!dontSetParent) {
 
-							parent.appendChild(newNode);
+							parentDOMNode.appendChild(newNode);
 						}
 					}
 				}
@@ -1280,7 +1282,11 @@ public class Importer {
 			createEmptyContentNode(page, parent, commentHandler, instructions);
 		}
 
-		return rootElement;
+		if (rootElement != null) {
+			return rootElement.as(DOMNode.class);
+		}
+
+		return null;
 	}
 
 	/**
@@ -1649,7 +1655,7 @@ public class Importer {
 		return workString;
 	}
 
-	private Content createEmptyContentNode(final Page page, final DOMNode parent, final CommentHandler commentHandler, final String instructions) throws FrameworkException {
+	private Content createEmptyContentNode(final Page page, final NodeInterface parent, final CommentHandler commentHandler, final String instructions) throws FrameworkException {
 
 		final Content contentNode                = page.createTextNode("");
 		final Traits traits                      = contentNode.getTraits();
@@ -1670,7 +1676,7 @@ public class Importer {
 
 		if (parent != null) {
 
-			parent.appendChild(contentNode);
+			parent.as(DOMNode.class).appendChild(contentNode);
 		}
 
 		if (commentHandler != null) {
@@ -1681,7 +1687,7 @@ public class Importer {
 		return contentNode;
 	}
 
-	private NodeInterface createNewTemplateNode(final DOMNode parent, final List<Node> children) throws FrameworkException {
+	private NodeInterface createNewTemplateNode(final NodeInterface parent, final List<Node> children) throws FrameworkException {
 
 		final StringBuilder sb = new StringBuilder();
 
@@ -1692,9 +1698,9 @@ public class Importer {
 		return createNewTemplateNode(parent, sb.toString(), null);
 	}
 
-	private NodeInterface createNewTemplateNode(final DOMNode parent, final String content, final String contentType) throws FrameworkException {
+	private NodeInterface createNewTemplateNode(final NodeInterface parent, final String content, final String contentType) throws FrameworkException {
 
-		final Traits traits                      = Traits.of("Content");
+		final Traits traits                      = Traits.of("Template");
 		final PropertyKey<String> contentTypeKey = traits.key("contentType");
 		final PropertyKey<String> contentKey     = traits.key("content");
 		final PropertyKey<Boolean> vtpuKey       = traits.key("visibleToPublicUsers");
@@ -1709,7 +1715,7 @@ public class Importer {
 		final NodeInterface newTemplate = StructrApp.getInstance(securityContext).create("Template", map);
 
 		if (parent != null) {
-			parent.appendChild(newTemplate.as(Template.class));
+			parent.as(DOMNode.class).appendChild(newTemplate.as(Template.class));
 		}
 
 		return newTemplate;

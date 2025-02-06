@@ -70,20 +70,17 @@ public class FolderTraitWrapper extends AbstractFileTraitWrapper implements Fold
 
 	@Override
 	public Iterable<File> getFiles() {
-		// fixme: this wont work with the new implementation!
-		return Iterables.map(s -> (File)s, Iterables.filter((AbstractFile value) -> value.is("File"), getChildren()));
+		return Iterables.map(s -> s.as(File.class), Iterables.filter((AbstractFile value) -> value.is("File"), getChildren()));
 	}
 
 	@Override
 	public Iterable<Folder> getFolders() {
-		// fixme: this wont work with the new implementation!
-		return Iterables.map(s -> (Folder)s, Iterables.filter((AbstractFile value) -> value.is("folder"), getChildren()));
+		return Iterables.map(s -> s.as(Folder.class), Iterables.filter((AbstractFile value) -> value.is("Folder"), getChildren()));
 	}
 
 	@Override
 	public Iterable<Image> getImages() {
-		// fixme: this wont work with the new implementation!
-		return Iterables.map(s -> (Image)s, Iterables.filter((AbstractFile value) -> value.is("Image"), getChildren()));
+		return Iterables.map(s -> s.as(Image.class), Iterables.filter((AbstractFile value) -> value.is("Image"), getChildren()));
 	}
 
 	@Override

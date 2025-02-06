@@ -19,9 +19,8 @@
 package org.structr.web.entity;
 
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.traits.NodeTrait;
 
-public interface Site extends NodeTrait {
+public interface Site extends NodeInterface {
 
 	String getHostname();
 	Integer getPort();

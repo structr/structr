@@ -28,9 +28,9 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UniqueToken;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.*;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.wrappers.GraphObjectTraitWrapper;
+import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.files.external.DirectoryWatchService;
 import org.structr.storage.StorageProvider;
 import org.structr.storage.StorageProviderFactory;
@@ -45,7 +45,7 @@ import java.util.List;
 /**
  * Base class for filesystem objects in structr.
  */
-public class AbstractFileTraitWrapper extends GraphObjectTraitWrapper<NodeInterface> implements AbstractFile {
+public class AbstractFileTraitWrapper extends AbstractNodeTraitWrapper implements AbstractFile {
 
 	public AbstractFileTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);

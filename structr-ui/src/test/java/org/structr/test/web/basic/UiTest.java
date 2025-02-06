@@ -74,7 +74,7 @@ public class UiTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			img = ImageHelper.createFileBase64(securityContext, base64Image, imageType);
-			img.setProperties(img.getSecurityContext(), new PropertyMap(Traits.of("NodeInterface").key("name"), "test-image.png"));
+			img.setProperties(img.getSecurityContext(), new PropertyMap(Traits.of("Image").key("name"), "test-image.png"));
 
 			assertNotNull(img);
 			assertTrue(img.is("Image"));

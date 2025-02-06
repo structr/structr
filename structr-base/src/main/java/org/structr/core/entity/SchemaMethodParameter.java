@@ -19,9 +19,8 @@
 package org.structr.core.entity;
 
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.traits.NodeTrait;
 
-public interface SchemaMethodParameter extends NodeTrait {
+public interface SchemaMethodParameter extends NodeInterface {
 
 	NodeInterface getSchemaNode();
 

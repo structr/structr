@@ -28,7 +28,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.traits.NodeTrait;
 import org.structr.schema.action.ActionContext;
 
 public class IsAllowedFunction extends AdvancedScriptingFunction {
@@ -53,7 +52,7 @@ public class IsAllowedFunction extends AdvancedScriptingFunction {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 3);
 
-			if (!(sources[0] instanceof NodeTrait n && n.is("Principal"))) {
+			if (!(sources[0] instanceof NodeInterface n && n.is("Principal"))) {
 
 				logParameterError(caller, sources, "Expected node of type Principal as first argument!", ctx.isJavaScriptContext());
 

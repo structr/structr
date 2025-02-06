@@ -18,9 +18,9 @@
  */
 package org.structr.core.entity;
 
-import org.structr.core.traits.NodeTrait;
+import org.structr.core.graph.NodeInterface;
 
-public interface SchemaGrant extends NodeTrait {
+public interface SchemaGrant extends NodeInterface {
 
 	String getPrincipalName();
 	Principal getPrincipal();

@@ -196,7 +196,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 			final PropertyMap subFileProperties = new PropertyMap();
 			subFileProperties.put(Traits.of("SchemaNode").key("name"), "SubFile");
-			subFileProperties.put(Traits.of("SchemaNode").key("extendsClass"), app.nodeQuery("SchemaNode").andName("File").getFirst());
+			subFileProperties.put(Traits.of("SchemaNode").key("inheritedTraits"), new String[] { "File" });
 			subFile.setProperties(subFile.getSecurityContext(), subFileProperties);
 
 
@@ -288,7 +288,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 			final PropertyMap subFileProperties = new PropertyMap();
 			subFileProperties.put(Traits.of("SchemaNode").key("name"), "SubFile");
-			subFileProperties.put(Traits.of("SchemaNode").key("extendsClass"), app.nodeQuery("SchemaNode").andName("Image").getFirst());
+			subFileProperties.put(Traits.of("SchemaNode").key("inheritedTraits"), new String[] { "Image" });
 			subFile.setProperties(subFile.getSecurityContext(), subFileProperties);
 
 
@@ -834,7 +834,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 			final NodeInterface testBase = app.create("SchemaNode", "TestBase");
 			final NodeInterface test     = app.create("SchemaNode",
 				new NodeAttribute<>(Traits.of("SchemaNode").key("name"), "Test"),
-				new NodeAttribute<>(Traits.of("SchemaNode").key("extendsClass"), testBase)
+				new NodeAttribute<>(Traits.of("SchemaNode").key("inheritedTraits"), new String[] { "TestBase" })
 			);
 
 			// create view with sort order

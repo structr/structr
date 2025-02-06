@@ -18,7 +18,7 @@
  */
 package org.structr.web.entity.css;
 
-import org.structr.core.traits.NodeTrait;
+import org.structr.core.graph.NodeInterface;
 
-public interface CssSelector extends NodeTrait {
+public interface CssSelector extends NodeInterface {
 }

@@ -34,7 +34,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
-public class SchemaMethodTraitWrapper extends GraphObjectTraitWrapper<NodeInterface> implements SchemaMethod {
+public class SchemaMethodTraitWrapper extends AbstractNodeTraitWrapper implements SchemaMethod {
 
 	public SchemaMethodTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);

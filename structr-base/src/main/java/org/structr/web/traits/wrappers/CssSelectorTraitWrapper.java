@@ -20,10 +20,10 @@ package org.structr.web.traits.wrappers;
 
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.wrappers.GraphObjectTraitWrapper;
+import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.web.entity.css.CssSelector;
 
-public class CssSelectorTraitWrapper extends GraphObjectTraitWrapper<NodeInterface> implements CssSelector {
+public class CssSelectorTraitWrapper extends AbstractNodeTraitWrapper implements CssSelector {
 
 	public CssSelectorTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);

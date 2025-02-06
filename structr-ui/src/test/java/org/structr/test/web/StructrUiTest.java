@@ -36,7 +36,6 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.*;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.traits.NodeTrait;
 import org.structr.core.traits.StructrTraits;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.test.web.entity.traits.definitions.*;
@@ -515,7 +514,7 @@ public abstract class StructrUiTest {
 
 		for (final Object obj : objects) {
 
-			if (obj instanceof NodeTrait n) {
+			if (obj instanceof NodeInterface n) {
 
 				n.setVisibility(true, false);
 			}

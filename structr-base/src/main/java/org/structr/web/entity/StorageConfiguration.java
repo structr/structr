@@ -20,12 +20,11 @@ package org.structr.web.entity;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.traits.NodeTrait;
 import org.structr.storage.StorageProvider;
 
 import java.util.Map;
 
-public interface StorageConfiguration extends NodeTrait {
+public interface StorageConfiguration extends NodeInterface {
 
 	Iterable<NodeInterface> getEntries();
 	String getProvider();

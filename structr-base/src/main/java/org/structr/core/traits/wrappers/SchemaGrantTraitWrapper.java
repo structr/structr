@@ -28,7 +28,7 @@ import org.structr.core.traits.Traits;
  *
  *
  */
-public class SchemaGrantTraitWrapper extends GraphObjectTraitWrapper<NodeInterface> implements SchemaGrant {
+public class SchemaGrantTraitWrapper extends AbstractNodeTraitWrapper implements SchemaGrant {
 
 	public SchemaGrantTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);

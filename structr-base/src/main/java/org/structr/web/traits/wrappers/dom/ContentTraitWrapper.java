@@ -56,6 +56,20 @@ public class ContentTraitWrapper extends DOMNodeTraitWrapper implements Content 
 		wrappedObject.setProperty(traits.key("contentType"), contentType);
 	}
 
+	@Override
+	public String getNodeValue() {
+
+		try {
+
+			return getData();
+
+		} catch (FrameworkException e) {
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+
 	public void setData(final String data) throws FrameworkException {
 
 		this.checkWriteAccess();

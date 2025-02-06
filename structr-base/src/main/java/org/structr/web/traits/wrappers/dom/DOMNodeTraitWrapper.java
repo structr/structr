@@ -43,7 +43,6 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
-import org.structr.core.traits.NodeTrait;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.schema.action.Function;
@@ -53,7 +52,10 @@ import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.common.StringRenderBuffer;
 import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.Linkable;
-import org.structr.web.entity.dom.*;
+import org.structr.web.entity.dom.Content;
+import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.entity.dom.Page;
+import org.structr.web.entity.dom.Template;
 import org.structr.web.entity.event.ActionMapping;
 import org.structr.web.property.CustomHtmlAttributeProperty;
 import org.structr.web.traits.operations.*;
@@ -216,7 +218,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	@Override
 	public final NodeInterface treeGetParent() {
 
-		final RelationshipInterface prevRel = getWrappedNode().getIncomingRelationship(getChildLinkType());
+		final RelationshipInterface prevRel = getIncomingRelationship(getChildLinkType());
 		if (prevRel != null) {
 
 			return prevRel.getSourceNode();
@@ -234,7 +236,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		properties.put(getPositionProperty(), treeGetChildCount());
 
 		// create child relationship
-		linkChildren(getWrappedNode(), childElement, properties);
+		linkChildren(this, childElement, properties);
 
 		// add new node to linked list
 		if (lastChild != null) {
@@ -272,7 +274,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 				PropertyMap properties = new PropertyMap();
 				properties.put(getPositionProperty(), position);
 
-				linkChildren(getWrappedNode(), newChild, properties);
+				linkChildren(this, newChild, properties);
 
 				found = true;
 
@@ -321,7 +323,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 				PropertyMap properties = new PropertyMap();
 				properties.put(getPositionProperty(), position);
 
-				linkChildren(getWrappedNode(), newChild, properties);
+				linkChildren(this, newChild, properties);
 
 				position++;
 			}
@@ -340,7 +342,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		// remove element from linked list
 		listRemove(childToRemove);
 
-		unlinkChildren(getWrappedNode(), childToRemove);
+		unlinkChildren(this, childToRemove);
 
 		ensureCorrectChildPositions();
 	}
@@ -352,14 +354,14 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		int oldPosition = treeGetChildPosition(oldChild);
 
 		// remove old node
-		unlinkChildren(getWrappedNode(), oldChild);
+		unlinkChildren(this, oldChild);
 
 		// insert new node with position from old node
 		PropertyMap properties = new PropertyMap();
 
 		properties.put(getPositionProperty(), oldPosition);
 
-		linkChildren(getWrappedNode(), newChild, properties);
+		linkChildren(this, newChild, properties);
 
 		// replace element in linked list as well
 		listInsertBefore(oldChild, newChild);
@@ -388,7 +390,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	@Override
 	public final NodeInterface treeGetChild(final int position) {
 
-		for (final RelationshipInterface rel : getWrappedNode().getOutgoingRelationships(getChildLinkType())) {
+		for (final RelationshipInterface rel : this.getOutgoingRelationships(getChildLinkType())) {
 
 			Integer pos = rel.getProperty(getPositionProperty());
 
@@ -432,14 +434,14 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 	@Override
 	public final int treeGetChildCount() {
-		return Iterables.count(getWrappedNode().getOutgoingRelationships(getChildLinkType()));
+		return Iterables.count(this.getOutgoingRelationships(getChildLinkType()));
 	}
 
 	@Override
 	public final List<RelationshipInterface> treeGetChildRelationships() {
 
 		// fetch all relationships
-		List<RelationshipInterface> childRels = Iterables.toList(getWrappedNode().getOutgoingRelationships(getChildLinkType()));
+		List<RelationshipInterface> childRels = Iterables.toList(this.getOutgoingRelationships(getChildLinkType()));
 
 		// sort relationships by position
 		Collections.sort(childRels, new Comparator<RelationshipInterface>() {
@@ -720,7 +722,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		getLinkableInstructions(instructions);
 		getSecurityInstructions(instructions);
 
-		if (getWrappedNode().isHidden()) {
+		if (this.isHidden()) {
 			instructions.add("@structr:hidden");
 		}
 
@@ -1203,7 +1205,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 	@Override
 	public String getNodeValue() {
-		return null;
+		return traits.getMethod(GetNodeValue.class).getNodeValue(wrappedObject);
 	}
 
 	@Override
@@ -1368,7 +1370,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 				for (final Object dataObject : listSource) {
 
 					// make current data object available in renderContext
-					if (dataObject instanceof NodeTrait n) {
+					if (dataObject instanceof NodeInterface n) {
 
 						renderContext.putDataObject(dataKey, n);
 
@@ -1943,60 +1945,31 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		checkHierarchy(newChild);
 		checkHierarchy(refChild);
 
-		if (newChild instanceof DocumentFragment) {
+		final DOMNode _parent = newChild.getParent();
+		if (_parent != null) {
 
-			// When inserting document fragments, we must take
-			// care of the special case that the nodes already
-			// have a NEXT_LIST_ENTRY relationship coming from
-			// the document fragment, so we must first remove
-			// the node from the document fragment and then
-			// add it to the new parent.
-			final DocumentFragment fragment = (DocumentFragment)newChild;
-			DOMNode currentChild = fragment.getFirstChild();
-
-			while (currentChild != null) {
-
-				// save next child in fragment list for later use
-				DOMNode savedNextChild = currentChild.getNextSibling();
-
-				// remove child from document fragment
-				fragment.removeChild(currentChild);
-
-				// insert child into new parent
-				insertBefore(currentChild, refChild);
-
-				// next
-				currentChild = savedNextChild;
-			}
-
-		} else {
-
-			final DOMNode _parent = newChild.getParent();
-			if (_parent != null) {
-
-				_parent.removeChild(newChild);
-			}
-
-			try {
-
-				// do actual tree insertion here
-				treeInsertBefore(((DOMNode) newChild), ((DOMNode) refChild));
-
-			} catch (FrameworkException frex) {
-
-				if (frex.getStatus() == 404) {
-
-					throw new FrameworkException(422, frex.getMessage());
-
-				} else {
-
-					throw new FrameworkException(422, frex.getMessage());
-				}
-			}
-
-			// allow parent to set properties in new child
-			handleNewChild(newChild);
+			_parent.removeChild(newChild);
 		}
+
+		try {
+
+			// do actual tree insertion here
+			treeInsertBefore(newChild, refChild);
+
+		} catch (FrameworkException frex) {
+
+			if (frex.getStatus() == 404) {
+
+				throw new FrameworkException(422, frex.getMessage());
+
+			} else {
+
+				throw new FrameworkException(422, frex.getMessage());
+			}
+		}
+
+		// allow parent to set properties in new child
+		handleNewChild(newChild);
 
 		return refChild;
 	}
@@ -2011,63 +1984,30 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		checkHierarchy(newChild);
 		checkHierarchy(oldChild);
 
-		if (newChild instanceof DocumentFragment) {
+		DOMNode _parent = newChild.getParent();
+		if (_parent != null) {
 
-			// When inserting document fragments, we must take
-			// care of the special case that the nodes already
-			// have a NEXT_LIST_ENTRY relationship coming from
-			// the document fragment, so we must first remove
-			// the node from the document fragment and then
-			// add it to the new parent.
-			// replace indirectly using insertBefore and remove
-			final DocumentFragment fragment = (DocumentFragment)newChild;
-			DOMNode currentChild = fragment.getFirstChild();
-
-			while (currentChild != null) {
-
-				// save next child in fragment list for later use
-				final DOMNode savedNextChild = currentChild.getNextSibling();
-
-				// remove child from document fragment
-				fragment.removeChild(currentChild);
-
-				// add child to new parent
-				insertBefore(currentChild, oldChild);
-
-				// next
-				currentChild = savedNextChild;
-			}
-
-			// finally, remove reference element
-			removeChild(oldChild);
-
-		} else {
-
-			DOMNode _parent = newChild.getParent();
-			if (_parent != null) {
-
-				_parent.removeChild(newChild);
-			}
-
-			try {
-				// replace directly
-				treeReplaceChild(newChild, oldChild);
-
-			} catch (FrameworkException frex) {
-
-				if (frex.getStatus() == 404) {
-
-					throw new FrameworkException(422, frex.getMessage());
-
-				} else {
-
-					throw new FrameworkException(422, frex.getMessage());
-				}
-			}
-
-			// allow parent to set properties in new child
-			handleNewChild(newChild);
+			_parent.removeChild(newChild);
 		}
+
+		try {
+			// replace directly
+			treeReplaceChild(newChild, oldChild);
+
+		} catch (FrameworkException frex) {
+
+			if (frex.getStatus() == 404) {
+
+				throw new FrameworkException(422, frex.getMessage());
+
+			} else {
+
+				throw new FrameworkException(422, frex.getMessage());
+			}
+		}
+
+		// allow parent to set properties in new child
+		handleNewChild(newChild);
 
 		return oldChild;
 	}
@@ -2099,46 +2039,16 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 		try {
 
-			if (newChild instanceof DocumentFragment) {
+			final DOMNode _parent = newChild.getParent();
+			if (_parent != null) {
 
-				// When inserting document fragments, we must take
-				// care of the special case that the nodes already
-				// have a NEXT_LIST_ENTRY relationship coming from
-				// the document fragment, so we must first remove
-				// the node from the document fragment and then
-				// add it to the new parent.
-				// replace indirectly using insertBefore and remove
-				final DocumentFragment fragment = (DocumentFragment)newChild;
-				DOMNode currentChild = fragment.getFirstChild();
-
-				while (currentChild != null) {
-
-					// save next child in fragment list for later use
-					final DOMNode savedNextChild = currentChild.getNextSibling();
-
-					// remove child from document fragment
-					fragment.removeChild(currentChild);
-
-					// append child to new parent
-					appendChild(currentChild);
-
-					// next
-					currentChild = savedNextChild;
-				}
-
-			} else {
-
-				final DOMNode _parent = newChild.getParent();
-				if (_parent != null) {
-
-					_parent.removeChild(newChild);
-				}
-
-				doAppendChild(newChild);
-
-				// allow parent to set properties in new child
-				handleNewChild(newChild);
+				_parent.removeChild(newChild);
 			}
+
+			doAppendChild(newChild);
+
+			// allow parent to set properties in new child
+			handleNewChild(newChild);
 
 		} catch (FrameworkException fex) {
 

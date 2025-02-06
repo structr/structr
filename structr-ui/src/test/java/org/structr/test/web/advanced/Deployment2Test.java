@@ -304,13 +304,13 @@ public class Deployment2Test extends DeploymentTestBase {
 			// create extended folder class
 			app.create("SchemaNode",
 				new NodeAttribute<>(Traits.of("SchemaNode").key("name"), "ExtendedFolder"),
-				new NodeAttribute<>(Traits.of("SchemaNode").key("extendsClass"), app.nodeQuery("SchemaNode").andName("Folder").getFirst())
+				new NodeAttribute<>(Traits.of("SchemaNode").key("inheritedTraits"), new String[] { "Folder" })
 			);
 
 			// create extended file class
 			app.create("SchemaNode",
 				new NodeAttribute<>(Traits.of("SchemaNode").key("name"), "ExtendedFile"),
-				new NodeAttribute<>(Traits.of("SchemaNode").key("extendsClass"), app.nodeQuery("SchemaNode").andName("File").getFirst())
+				new NodeAttribute<>(Traits.of("SchemaNode").key("inheritedTraits"), new String[] { "File" })
 			);
 
 			tx.success();
@@ -348,7 +348,7 @@ public class Deployment2Test extends DeploymentTestBase {
 		}
 
 		// test
-		compare(calculateHash(), false, true);
+		compare(calculateHash(), true, true);
 	}
 
 	@Test

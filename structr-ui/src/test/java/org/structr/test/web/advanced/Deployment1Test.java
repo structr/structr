@@ -20,6 +20,7 @@ package org.structr.test.web.advanced;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -129,7 +130,7 @@ public class Deployment1Test extends DeploymentTestBase {
 		}
 
 		// test
-		compare(calculateHash(), false);
+		compare(calculateHash(), true);
 	}
 
 	@Test
@@ -171,11 +172,15 @@ public class Deployment1Test extends DeploymentTestBase {
 
 			final NodeInterface folder = app.nodeQuery("Folder").andName("with spaces").getFirst();
 
-			assertNotNull("Invalid deployment result", folder);
+			assertNotNull("Folder was not created correctly", folder);
 
-			final NodeInterface file     = app.nodeQuery("File").and(Traits.of("File").key("parent"), folder).and(Traits.of("File").key("name"), fileName).getFirst();
+			Settings.CypherDebugLogging.setValue(true);
 
-			assertNotNull("Invalid deployment result", file);
+			final NodeInterface file = app.nodeQuery("File").and(Traits.of("File").key("parent"), folder).and(Traits.of("File").key("name"), fileName).getFirst();
+
+			Settings.CypherDebugLogging.setValue(false);
+
+			assertNotNull("File was not created correctly", file);
 
 			assertEquals("Deployment import does not restore attributes correctly", folder, file.as(File.class).getParent());
 			assertTrue("Deployment import does not restore attributes correctly",  file.getProperty(Traits.of("File").key("visibleToPublicUsers")));
@@ -252,11 +257,11 @@ public class Deployment1Test extends DeploymentTestBase {
 
 			final NodeInterface folder = app.nodeQuery("Folder").andName("with spaces").getFirst();
 
-			assertNotNull("Invalid deployment result", folder);
+			assertNotNull("Folder was not created", folder);
 
-			final NodeInterface file     = app.nodeQuery("File").and(Traits.of("File").key("parent"), folder).and(Traits.of("File").key("name"), fileName).getFirst();
+			final NodeInterface file = app.nodeQuery("File").and(Traits.of("File").key("parent"), folder).and(Traits.of("File").key("name"), fileName).getFirst();
 
-			assertNotNull("Invalid deployment result", file);
+			assertNotNull("File was not created", file);
 
 			assertEquals("Deployment import of existing file does not restore attributes correctly", folder, file.as(File.class).getParent());
 			assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(Traits.of("File").key("visibleToPublicUsers")));

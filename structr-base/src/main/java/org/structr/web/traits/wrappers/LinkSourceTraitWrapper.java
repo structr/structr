@@ -21,14 +21,14 @@ package org.structr.web.traits.wrappers;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.wrappers.GraphObjectTraitWrapper;
+import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.Linkable;
 
 /**
  * This class represents elements which can have an outgoing link to a resource.
  */
-public class LinkSourceTraitWrapper extends GraphObjectTraitWrapper<NodeInterface> implements LinkSource {
+public class LinkSourceTraitWrapper extends AbstractNodeTraitWrapper implements LinkSource {
 
 	public LinkSourceTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);

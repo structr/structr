@@ -112,7 +112,7 @@ public abstract class InvertibleModificationOperation implements Comparable<Inve
 		// recurse
 		for (final RelationshipInterface childRel : node.getChildRelationships()) {
 
-			collectNodes((DOMNode)childRel.getTargetNode(), indexMappedNodes, hashMappedNodes, depthMap, depth+1, childIndexMap);
+			collectNodes(childRel.getTargetNode().as(DOMNode.class), indexMappedNodes, hashMappedNodes, depthMap, depth+1, childIndexMap);
 		}
 
 	}

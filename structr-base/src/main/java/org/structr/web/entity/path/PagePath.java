@@ -20,14 +20,14 @@ package org.structr.web.entity.path;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.traits.NodeTrait;
+import org.structr.core.graph.NodeInterface;
 import org.structr.web.entity.dom.Page;
 
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public interface PagePath extends NodeTrait {
+public interface PagePath extends NodeInterface {
 
 	Pattern PATH_COMPONENT_PATTERN = Pattern.compile("\\{([a-z][a-zA-Z0-9]+)\\}");
 

@@ -121,8 +121,9 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Map<Class, FrameworkMethod> getFrameworkMethods() {
 
-		return Map.of(
+		final Map<Class, FrameworkMethod> methods = new LinkedHashMap<>();
 
+		methods.put(
 			VisitForUsage.class,
 			new VisitForUsage() {
 
@@ -141,7 +142,10 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 					data.put("path", node.getPagePath());
 				}
-			},
+			}
+		);
+
+		methods.put(
 
 			Render.class,
 			new Render() {
@@ -286,7 +290,10 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 						}
 					}
 				}
-			},
+			}
+		);
+
+		methods.put(
 
 			DoAdopt.class,
 			new DoAdopt() {
@@ -309,7 +316,10 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 					return node;
 				}
-			},
+			}
+		);
+
+		methods.put(
 
 			GetCssClass.class,
 			new GetCssClass() {
@@ -318,7 +328,10 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 				public String getCssClass(final NodeInterface node) {
 					return null;
 				}
-			},
+			}
+		);
+
+		methods.put(
 
 			GetPagePath.class,
 			new GetPagePath() {
@@ -345,7 +358,22 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 					return cachedPagePath;
 				}
-			},
+			}
+		);
+
+		methods.put(
+
+			GetNodeValue.class,
+			new GetNodeValue() {
+
+				@Override
+				public String getNodeValue(final NodeInterface node) {
+					return null;
+				}
+			}
+		);
+
+		methods.put(
 
 			RenderCustomAttributes.class,
 			new RenderCustomAttributes() {
@@ -441,7 +469,10 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 						}
 					}
 				}
-			},
+			}
+		);
+
+		methods.put(
 
 			HandleNewChild.class,
 			new HandleNewChild() {
@@ -460,7 +491,10 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 						d.setOwnerDocument(page);
 					}
 				}
-			},
+			}
+		);
+
+		methods.put(
 
 			CheckHierarchy.class,
 			new CheckHierarchy() {
@@ -490,7 +524,10 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					// validation successful
 					return;
 				}
-			},
+			}
+		);
+
+		methods.put(
 
 			RenderManagedAttributes.class,
 			new RenderManagedAttributes() {
@@ -500,6 +537,20 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 			}
 		);
+
+		methods.put(
+
+			ContentEquals.class,
+			new ContentEquals() {
+
+				@Override
+				public boolean contentEquals(final DOMNode elem, final DOMNode node) {
+					return false;
+				}
+			}
+		);
+
+		return methods;
 	}
 
 	@Override

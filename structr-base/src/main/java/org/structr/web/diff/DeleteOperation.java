@@ -50,7 +50,7 @@ public class DeleteOperation extends InvertibleModificationOperation {
 
 		} else if (existingNode.is("DOMElement")) {
 
-			return "Delete " + ((DOMElement)existingNode).getTag() + "(" + existingNode.getIdHash();
+			return "Delete " + existingNode.as(DOMElement.class).getTag() + "(" + existingNode.getIdHash();
 		}
 
 		return "Delete " + existingNode.getUuid() + "(" + existingNode.getIdHash();

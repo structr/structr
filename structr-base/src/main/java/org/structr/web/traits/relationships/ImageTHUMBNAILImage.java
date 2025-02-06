@@ -21,6 +21,7 @@ package org.structr.web.traits.relationships;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.IntProperty;
+import org.structr.core.property.LongProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
@@ -29,10 +30,10 @@ import java.util.Set;
 
 public class ImageTHUMBNAILImage extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
-	private static final PropertyKey<Integer> checksum   = new IntProperty("checksum");
-	private static final PropertyKey<Integer> maxWidth   = new IntProperty("maxWidth");
-	private static final PropertyKey<Integer> maxHeight  = new IntProperty("maxHeight");
-	private static final PropertyKey<Boolean> cropToFit  = new BooleanProperty("cropToFit");
+	private static final PropertyKey<Long> checksum     = new LongProperty("checksum");
+	private static final PropertyKey<Integer> maxWidth  = new IntProperty("maxWidth");
+	private static final PropertyKey<Integer> maxHeight = new IntProperty("maxHeight");
+	private static final PropertyKey<Boolean> cropToFit = new BooleanProperty("cropToFit");
 
 	public ImageTHUMBNAILImage() {
 		super("ImageTHUMBNAILImage");

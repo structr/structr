@@ -236,7 +236,7 @@ public class TraitsImplementation implements Traits {
 
 		}
 
-		throw new RuntimeException("No trait definition found for " + type + ".");
+		throw new RuntimeException("Type " + this.typeName + " does not have the " + type + " trait.");
 	}
 
 	@Override

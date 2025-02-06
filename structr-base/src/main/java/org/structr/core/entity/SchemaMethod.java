@@ -18,14 +18,10 @@
  */
 package org.structr.core.entity;
 
-import org.structr.common.error.FrameworkException;
-import org.structr.core.traits.NodeTrait;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.operations.LifecycleMethod;
-import org.structr.schema.action.ActionEntry;
 
-import java.util.Map;
-
-public interface SchemaMethod extends NodeTrait {
+public interface SchemaMethod extends NodeInterface {
 
 	String schemaMethodNamePattern    = "[a-z_][a-zA-Z0-9_]*";
 

@@ -372,16 +372,15 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 			}
 		}
 
-		final NodeInterface accessingUserNode = accessingUser != null ? accessingUser :  null;
-		final Principal _owner                = node.as(AccessControllable.class).getOwnerNode();
-		final boolean hasOwner                = (_owner != null);
+		final Principal _owner = node.as(AccessControllable.class).getOwnerNode();
+		final boolean hasOwner = (_owner != null);
 
-		if (isCreation && (accessingUser == null || accessingUserNode.equals(node) || accessingUser.equals(_owner) ) ) {
+		if (isCreation && (accessingUser == null || accessingUser.equals(node) || accessingUser.equals(_owner) ) ) {
 			return true;
 		}
 
 		// allow accessingUser to access itself, but not parents etc.
-		if (node.equals(accessingUserNode) && (level == 0 || (permission.equals(Permission.read) && level > 0))) {
+		if (node.equals(accessingUser) && (level == 0 || (permission.equals(Permission.read) && level > 0))) {
 			return true;
 		}
 

@@ -44,7 +44,6 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.*;
 import org.structr.core.script.Scripting;
-import org.structr.core.traits.NodeTrait;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.Traits;
@@ -1677,7 +1676,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 		for (final GraphObject target : resolveDataTargets(actionContext, entity, dataTarget)) {
 
-			if (target instanceof NodeTrait n && n.is("DOMElement")) {
+			if (target instanceof NodeInterface n && n.is("DOMElement")) {
 
 				final DOMElement parent = n.as(DOMElement.class);
 
@@ -1747,8 +1746,12 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 		if (dialogType != null && !dialogType.equals("none")) {
 
-			final String dialogTitle = triggeredAction.getPropertyWithVariableReplacement(renderContext, "dialogTitle");
-			final String dialogText = triggeredAction.getPropertyWithVariableReplacement(renderContext, "dialogText");
+			final Traits traits                = triggeredAction.getTraits();
+			final PropertyKey<String> titleKey = traits.key("dialogTitle");
+			final PropertyKey<String> textKey  = traits.key("dialogText");
+
+			final String dialogTitle = triggeredAction.getPropertyWithVariableReplacement(renderContext, titleKey);
+			final String dialogText = triggeredAction.getPropertyWithVariableReplacement(renderContext, textKey);
 
 			out.append(" data-structr-dialog-type=\"").append(dialogType).append("\"");
 			out.append(" data-structr-dialog-title=\"").append(DOMNode.escapeForHtmlAttributes(dialogTitle)).append("\"");
@@ -1834,11 +1837,13 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public void renderSuccessBehaviourAttributes(final RenderContext renderContext, final AsyncBuffer out, final ActionMapping triggeredAction) throws FrameworkException {
 
+		final Traits traits = triggeredAction.getTraits();
+
 		// Possible values for the success behaviour are nothing, full-page-reload, partial-refresh, navigate-to-url, fire-event
 		final String successBehaviour = triggeredAction.getSuccessBehaviour();
-		final String successPartial   = triggeredAction.getPropertyWithVariableReplacement(renderContext, "successPartial");
-		final String successURL       = triggeredAction.getPropertyWithVariableReplacement(renderContext, "successURL");
-		final String successEvent     = triggeredAction.getPropertyWithVariableReplacement(renderContext, "successEvent");
+		final String successPartial   = triggeredAction.getPropertyWithVariableReplacement(renderContext, traits.key("successPartial"));
+		final String successURL       = triggeredAction.getPropertyWithVariableReplacement(renderContext, traits.key("successURL"));
+		final String successEvent     = triggeredAction.getPropertyWithVariableReplacement(renderContext, traits.key("successEvent"));
 
 		String successTargetString = null;
 
@@ -1869,7 +1874,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 			}
 		}
 
-		final String idExpression = triggeredAction.getPropertyWithVariableReplacement(renderContext, "idExpression");
+		final String idExpression = triggeredAction.getPropertyWithVariableReplacement(renderContext, traits.key("idExpression"));
 		if (StringUtils.isNotBlank(idExpression)) {
 			out.append(" data-structr-target=\"").append(idExpression).append("\"");
 		}
@@ -1877,7 +1882,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		final String action = triggeredAction.getAction();
 		if ("create".equals(action)) {
 
-			final String dataType = triggeredAction.getPropertyWithVariableReplacement(renderContext, "dataType");
+			final String dataType = triggeredAction.getPropertyWithVariableReplacement(renderContext, traits.key("dataType"));
 			if (StringUtils.isNotBlank(dataType)) {
 				out.append(" data-structr-target=\"").append(dataType).append("\"");
 			}
@@ -1890,11 +1895,13 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public void renderFailureBehaviourAttributes(final RenderContext renderContext, final AsyncBuffer out, final ActionMapping triggeredAction) throws FrameworkException {
 
+		final Traits traits = triggeredAction.getTraits();
+
 		// Possible values for the failure behaviour are nothing, full-page-reload, partial-refresh, navigate-to-url, fire-event
 		final String failureBehaviour = triggeredAction.getFailureBehaviour();
-		final String failurePartial   = triggeredAction.getPropertyWithVariableReplacement(renderContext, "failurePartial");
-		final String failureURL       = triggeredAction.getPropertyWithVariableReplacement(renderContext, "failureURL");
-		final String failureEvent     = triggeredAction.getPropertyWithVariableReplacement(renderContext, "failureEvent");
+		final String failurePartial   = triggeredAction.getPropertyWithVariableReplacement(renderContext, traits.key("failurePartial"));
+		final String failureURL       = triggeredAction.getPropertyWithVariableReplacement(renderContext, traits.key("failureURL"));
+		final String failureEvent     = triggeredAction.getPropertyWithVariableReplacement(renderContext, traits.key("failureEvent"));
 
 		String failureTargetString = null;
 

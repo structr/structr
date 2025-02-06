@@ -29,7 +29,6 @@ import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.testng.annotations.Test;
-import org.w3c.dom.DOMException;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -251,14 +250,15 @@ public class DOMNodeTest extends DOMTest {
 
 				fail("Removing a node that is not a child of the given node should raise a DOMException");
 
-			} catch (DOMException dex) {
+			} catch (FrameworkException fex) {
 
-				assertEquals(DOMException.NOT_FOUND_ERR, dex.code);
+				assertEquals(422, fex.getStatus());
 			}
 			tx.success();
 
 		} catch (FrameworkException fex) {
 
+			fex.printStackTrace();
 			fail("unexpected exception");
 		}
 
@@ -365,7 +365,7 @@ public class DOMNodeTest extends DOMTest {
 
 			} catch (FrameworkException dex) {
 
-				assertEquals(DOMException.WRONG_DOCUMENT_ERR, dex.getStatus());
+				assertEquals(422, dex.getStatus());
 			}
 
 			try {
@@ -375,7 +375,7 @@ public class DOMNodeTest extends DOMTest {
 
 			} catch (FrameworkException dex) {
 
-				assertEquals(DOMException.HIERARCHY_REQUEST_ERR, dex.getStatus());
+				assertEquals(422, dex.getStatus());
 			}
 
 			try {
@@ -385,7 +385,7 @@ public class DOMNodeTest extends DOMTest {
 
 			} catch (FrameworkException dex) {
 
-				assertEquals(DOMException.HIERARCHY_REQUEST_ERR, dex.getStatus());
+				assertEquals(422, dex.getStatus());
 			}
 
 			tx.success();
@@ -511,212 +511,6 @@ public class DOMNodeTest extends DOMTest {
 			assertEquals(test3, children2.get(3));
 			assertEquals(test4, children2.get(4));
 			assertEquals(test5, children2.get(5));
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-
-			fail("unexpected exception");
-		}
-
-	}
-
-	@Test
-	public void testReplaceChildWithFragment() {
-
-		try (final Tx tx = app.tx()) {
-
-			NodeInterface node = getDocument();
-			assertNotNull(node);
-
-			final Page document = node.as(Page.class);
-
-			Content test1 = document.createTextNode("test1");
-			Content test2 = document.createTextNode("test2");
-			Content test3 = document.createTextNode("test3");
-			Content test4 = document.createTextNode("test4");
-			Content test5 = document.createTextNode("test5");
-			Content test6 = document.createTextNode("test6");
-			Content test7 = document.createTextNode("test7");
-			Content test8 = document.createTextNode("test8");
-			Content test9 = document.createTextNode("test9");
-			assertNotNull(test1);
-			assertNotNull(test2);
-			assertNotNull(test3);
-			assertNotNull(test4);
-			assertNotNull(test5);
-			assertNotNull(test6);
-			assertNotNull(test7);
-			assertNotNull(test8);
-			assertNotNull(test9);
-
-			DOMElement div = document.createElement("div");
-			assertNotNull(div);
-
-			// add children
-			div.appendChild(test1);
-			div.appendChild(test2);
-			div.appendChild(test3);
-			div.appendChild(test4);
-			div.appendChild(test5);
-
-			// examine children
-			final List<DOMNode> children1 = div.getChildNodes();
-			assertEquals(test1, children1.get(0));
-			assertEquals(test2, children1.get(1));
-			assertEquals(test3, children1.get(2));
-			assertEquals(test4, children1.get(3));
-			assertEquals(test5, children1.get(4));
-
-			// examine children
-			final List<DOMNode> children2 = div.getChildNodes();
-
-			assertEquals(test1, children2.get(0));
-			assertEquals(test2, children2.get(1));
-			assertEquals(test6, children2.get(2));
-			assertEquals(test7, children2.get(3));
-			assertEquals(test8, children2.get(4));
-			assertEquals(test9, children2.get(5));
-			assertEquals(test4, children2.get(6));
-			assertEquals(test5, children2.get(7));
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-
-			fail("unexpected exception");
-		}
-
-	}
-
-	@Test
-	public void testInsertBeforeWithFragment() {
-
-		try (final Tx tx = app.tx()) {
-
-			NodeInterface node = getDocument();
-			assertNotNull(node);
-
-			final Page document = node.as(Page.class);
-
-			Content test1 = document.createTextNode("test1");
-			Content test2 = document.createTextNode("test2");
-			Content test3 = document.createTextNode("test3");
-			Content test4 = document.createTextNode("test4");
-			Content test5 = document.createTextNode("test5");
-			Content test6 = document.createTextNode("test6");
-			Content test7 = document.createTextNode("test7");
-			Content test8 = document.createTextNode("test8");
-			Content test9 = document.createTextNode("test9");
-			assertNotNull(test1);
-			assertNotNull(test2);
-			assertNotNull(test3);
-			assertNotNull(test4);
-			assertNotNull(test5);
-			assertNotNull(test6);
-			assertNotNull(test7);
-			assertNotNull(test8);
-			assertNotNull(test9);
-
-			DOMElement div = document.createElement("div");
-			assertNotNull(div);
-
-			// add children
-			div.appendChild(test1);
-			div.appendChild(test2);
-			div.appendChild(test3);
-			div.appendChild(test4);
-			div.appendChild(test5);
-
-			// examine children
-			final List<DOMNode> children1 = div.getChildNodes();
-			assertEquals(test1, children1.get(0));
-			assertEquals(test2, children1.get(1));
-			assertEquals(test3, children1.get(2));
-			assertEquals(test4, children1.get(3));
-			assertEquals(test5, children1.get(4));
-
-			// examine children
-			final List<DOMNode> children2 = div.getChildNodes();
-
-			assertEquals(test1, children2.get(0));
-			assertEquals(test2, children2.get(1));
-			assertEquals(test6, children2.get(2));
-			assertEquals(test7, children2.get(3));
-			assertEquals(test8, children2.get(4));
-			assertEquals(test9, children2.get(5));
-			assertEquals(test3, children2.get(6));
-			assertEquals(test4, children2.get(7));
-			assertEquals(test5, children2.get(8));
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-
-			fail("unexpected exception");
-		}
-
-	}
-
-	@Test
-	public void testAppendWithFragment() {
-
-		try (final Tx tx = app.tx()) {
-
-			NodeInterface node = getDocument();
-			assertNotNull(node);
-
-			final Page document = node.as(Page.class);
-
-			Content test1 = document.createTextNode("test1");
-			Content test2 = document.createTextNode("test2");
-			Content test3 = document.createTextNode("test3");
-			Content test4 = document.createTextNode("test4");
-			Content test5 = document.createTextNode("test5");
-			Content test6 = document.createTextNode("test6");
-			Content test7 = document.createTextNode("test7");
-			Content test8 = document.createTextNode("test8");
-			Content test9 = document.createTextNode("test9");
-			assertNotNull(test1);
-			assertNotNull(test2);
-			assertNotNull(test3);
-			assertNotNull(test4);
-			assertNotNull(test5);
-			assertNotNull(test6);
-			assertNotNull(test7);
-			assertNotNull(test8);
-			assertNotNull(test9);
-
-			DOMElement div = document.createElement("div");
-			assertNotNull(div);
-
-			// add children
-			div.appendChild(test1);
-			div.appendChild(test2);
-			div.appendChild(test3);
-			div.appendChild(test4);
-			div.appendChild(test5);
-
-			// examine children
-			final List<DOMNode> children1 = div.getChildNodes();
-			assertEquals(test1, children1.get(0));
-			assertEquals(test2, children1.get(1));
-			assertEquals(test3, children1.get(2));
-			assertEquals(test4, children1.get(3));
-			assertEquals(test5, children1.get(4));
-
-			// examine children
-			final List<DOMNode> children2 = div.getChildNodes();
-
-			assertEquals(test1, children2.get(0));
-			assertEquals(test2, children2.get(1));
-			assertEquals(test3, children2.get(2));
-			assertEquals(test4, children2.get(3));
-			assertEquals(test5, children2.get(4));
-			assertEquals(test6, children2.get(5));
-			assertEquals(test7, children2.get(6));
-			assertEquals(test8, children2.get(7));
-			assertEquals(test9, children2.get(8));
 
 			tx.success();
 

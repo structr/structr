@@ -205,8 +205,6 @@ public class FileImportVisitor implements FileVisitor<Path> {
 				final PropertyMap fileProperties = new PropertyMap(traits.key("name"), fileName);
 				fileProperties.putAll(convertRawPropertiesForFileOrFolder(rawProperties));
 
-				final PropertyKey isThumbnailKey = traits.key("isThumbnail");
-
 				NodeInterface parent = null;
 				boolean skipFile     = false;
 
@@ -216,10 +214,15 @@ public class FileImportVisitor implements FileVisitor<Path> {
 					parent = getExistingFolder(parentPath);
 				}
 
-				if (fileProperties.containsKey(isThumbnailKey) && (boolean) fileProperties.get(isThumbnailKey)) {
+				if (traits.hasKey("isThumbnail")) {
 
-					logger.info("Thumbnail image found: {}, ignoring. Please delete file in files directory and entry in files.json.", fullPath);
-					skipFile = true;
+					final PropertyKey isThumbnailKey = traits.key("isThumbnail");
+
+					if (fileProperties.containsKey(isThumbnailKey) && (boolean) fileProperties.get(isThumbnailKey)) {
+
+						logger.info("Thumbnail image found: {}, ignoring. Please delete file in files directory and entry in files.json.", fullPath);
+						skipFile = true;
+					}
 				}
 
 				NodeInterface file = app.getNodeById("File", fileProperties.get(traits.key("id")));
@@ -306,13 +309,13 @@ public class FileImportVisitor implements FileVisitor<Path> {
 					String type                     = createdFile.getType();
 					boolean isImage                 = createdFile.is("Image");
 
-					logger.debug("File {}: {}, isImage? {}", new Object[] { createdFile.getName(), type, isImage });
+					logger.debug("File {}: {}, isImage? {}", createdFile.getName(), type, isImage);
 
 					if (isImage) {
 
 						try {
 							ImageHelper.updateMetadata(createdFile.as(File.class));
-							handleThumbnails((Image) createdFile);
+							handleThumbnails(createdFile.as(Image.class));
 
 						} catch (Throwable t) {
 							logger.warn("Unable to update metadata: {}", t.getMessage());

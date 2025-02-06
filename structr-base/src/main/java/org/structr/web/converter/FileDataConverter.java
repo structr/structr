@@ -129,6 +129,10 @@ public class FileDataConverter extends PropertyConverter {
 			return ((CreationContainer)currentObject).getWrappedObject().as(File.class);
 		}
 
-		return (File)currentObject;
+		if (currentObject != null && currentObject.is("File")) {
+			return currentObject.as(File.class);
+		}
+
+		return null;
 	}
 }

@@ -20,15 +20,15 @@ package org.structr.core.entity;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.CaseHelper;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.traits.NodeTrait;
 import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.schema.parser.*;
 
 import java.util.List;
 import java.util.Set;
 
-public interface SchemaProperty extends PropertyDefinition, NodeTrait {
+public interface SchemaProperty extends PropertyDefinition, NodeInterface {
 
 	AbstractSchemaNode getSchemaNode();
 	String getSourceContentType();

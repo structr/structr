@@ -24,7 +24,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
 
-public class SessionDataNodeTraitWrapper extends GraphObjectTraitWrapper<NodeInterface> implements SessionDataNode {
+public class SessionDataNodeTraitWrapper extends AbstractNodeTraitWrapper implements SessionDataNode {
 
 	public SessionDataNodeTraitWrapper(final Traits traits, final NodeInterface node) {
 		super(traits, node);

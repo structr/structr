@@ -25,7 +25,7 @@ import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.traits.NodeTrait;
+import org.structr.core.graph.NodeInterface;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 import java.io.IOException;
@@ -35,7 +35,7 @@ import java.nio.file.Paths;
 /**
  * Base class for filesystem objects in structr.
  */
-public interface AbstractFile extends NodeTrait {
+public interface AbstractFile extends NodeInterface {
 
 	void setParent(final Folder parent) throws FrameworkException;
 	void setHasParent(final boolean hasParent) throws FrameworkException;

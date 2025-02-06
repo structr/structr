@@ -107,7 +107,9 @@ public class CommentTraitDefinition extends AbstractNodeTraitDefinition {
 
 							} else {
 
-								_content = thisNode.getPropertyWithVariableReplacement(renderContext, "content");
+								final PropertyKey<String> key = thisNode.getTraits().key("content");
+
+								_content = thisNode.getPropertyWithVariableReplacement(renderContext, key);
 
 								buf.append("<!--").append(_content).append("-->");
 							}

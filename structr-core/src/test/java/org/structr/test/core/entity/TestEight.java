@@ -18,13 +18,13 @@
  */
 package org.structr.test.core.entity;
 
-import org.structr.core.traits.NodeTrait;
+import org.structr.core.graph.NodeInterface;
 
 /**
  *
  *
  */
-public interface TestEight extends NodeTrait {
+public interface TestEight extends NodeInterface {
 
 	void resetTimestamps();
 

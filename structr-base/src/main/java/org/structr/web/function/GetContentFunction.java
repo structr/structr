@@ -21,7 +21,7 @@ package org.structr.web.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.traits.NodeTrait;
+import org.structr.core.graph.NodeInterface;
 import org.structr.schema.action.ActionContext;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.File;
@@ -52,7 +52,7 @@ public class GetContentFunction extends UiAdvancedFunction {
 
 			assertArrayHasMinLengthAndAllElementsNotNull(sources, 1);
 
-			if (sources[0] instanceof NodeTrait n && n.is("File")) {
+			if (sources[0] instanceof NodeInterface n && n.is("File")) {
 
 				final File file = n.as(File.class);
 

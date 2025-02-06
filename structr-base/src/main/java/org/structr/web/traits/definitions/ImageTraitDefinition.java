@@ -20,6 +20,8 @@ package org.structr.web.traits.definitions;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.Permission;
+import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -34,6 +36,7 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.core.traits.operations.accesscontrollable.IsGranted;
 import org.structr.core.traits.operations.graphobject.OnModification;
 import org.structr.core.traits.operations.propertycontainer.SetProperties;
 import org.structr.core.traits.operations.propertycontainer.SetProperty;
@@ -67,10 +70,11 @@ public class ImageTraitDefinition extends AbstractNodeTraitDefinition {
 
 			OnModification.class,
 			new OnModification() {
+
 				@Override
 				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
-					final Image thisImage = ((NodeInterface) graphObject).as(Image.class);
+					final Image thisImage = graphObject.as(Image.class);
 					if ( !thisImage.isThumbnail() && !thisImage.isTemplate() ) {
 
 						if (modificationQueue.isPropertyModified(graphObject, Traits.nameProperty())) {
@@ -114,7 +118,7 @@ public class ImageTraitDefinition extends AbstractNodeTraitDefinition {
 					// Copy visibility properties and owner to all thumbnails
 					if ("visibleToPublicUsers".equals(keyName) || "visibleToAuthenticatedUsers".equals(keyName) || "owner".equals(keyName)) {
 
-						final Image thisImage = ((NodeInterface) graphObject).as(Image.class);
+						final Image thisImage = graphObject.as(Image.class);
 
 						for (final Image tn : thisImage.getThumbnails()) {
 
@@ -135,9 +139,9 @@ public class ImageTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public void setProperties(final GraphObject graphObject, final SecurityContext securityContext, final PropertyMap properties, final boolean isCreation) throws FrameworkException {
 
-					final Image thisImage = ((NodeInterface) graphObject).as(Image.class);
+					final Image thisImage = graphObject.as(Image.class);
 
-					if ( !thisImage.isThumbnail() ) {
+					if (!thisImage.isThumbnail()) {
 
 						final PropertyMap propertiesCopiedToAllThumbnails = new PropertyMap();
 
@@ -151,14 +155,14 @@ public class ImageTraitDefinition extends AbstractNodeTraitDefinition {
 							}
 						}
 
-						if ( !propertiesCopiedToAllThumbnails.isEmpty() ) {
+						if (!propertiesCopiedToAllThumbnails.isEmpty()) {
 
 							for (final Image tn : thisImage.getThumbnails()) {
 
 								if (!tn.getUuid().equals(thisImage.getUuid())) {
 
 									final NodeInterface wrappedNode = tn;
-									final SecurityContext sc        = wrappedNode.getSecurityContext();
+									final SecurityContext sc = wrappedNode.getSecurityContext();
 
 									wrappedNode.setProperties(sc, propertiesCopiedToAllThumbnails);
 								}
@@ -167,6 +171,27 @@ public class ImageTraitDefinition extends AbstractNodeTraitDefinition {
 					}
 
 					getSuper().setProperties(graphObject, securityContext, properties, isCreation);
+				}
+			},
+
+			IsGranted.class,
+			new IsGranted() {
+
+				@Override
+				public boolean isGranted(final NodeInterface graphObject, final Permission permission, final SecurityContext securityContext, final boolean isCreation) {
+
+					final Image thisImage = graphObject.as(Image.class);
+
+					if (thisImage.isThumbnail()) {
+
+						final org.structr.web.entity.Image originalImage = thisImage.getOriginalImage();
+						if (originalImage != null) {
+
+							return originalImage.isGranted(permission, securityContext, isCreation);
+						}
+					}
+
+					return getSuper().isGranted(graphObject, permission, securityContext, isCreation);
 				}
 			}
 		);
@@ -195,7 +220,7 @@ public class ImageTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<NodeInterface> tnMidProperty                = new ThumbnailProperty("tnMid").format("300, 300, false").typeHint("Image").dynamic();
 		final Property<NodeInterface> tnSmallProperty              = new ThumbnailProperty("tnSmall").format("100, 100, false").typeHint("Image").dynamic();
 		final Property<Boolean> isCreatingThumbProperty            = new BooleanProperty("isCreatingThumb").indexed().dynamic();
-		final Property<Boolean> isImageProperty                    = new BooleanProperty("isImage").readOnly().transformators("org.structr.common.ConstantBooleanTrue").dynamic();
+		final Property<Boolean> isImageProperty                    = new ConstantBooleanProperty("isImage", true).readOnly().dynamic();
 		final Property<Boolean> isThumbnailProperty                = new BooleanProperty("isThumbnail").indexed().dynamic();
 		final Property<Boolean> thumbnailCreationFailedProperty    = new BooleanProperty("thumbnailCreationFailed").dynamic();
 		final Property<Integer> heightProperty                     = new IntProperty("height").indexed().dynamic();
@@ -228,48 +253,16 @@ public class ImageTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+			PropertyView.Public,
+			newSet("parent")
+		);
+	}
+
+	@Override
 	public Relation getRelation() {
 		return null;
 	}
-
-	/*
-
-	// TODO: sysinternal and unvalidated properties are not possible right now
-	image.overrideMethod("isImage",              false, "return getProperty(isImageProperty);");
-	image.overrideMethod("isThumbnail",          false, "return getProperty(isThumbnailProperty);");
-	image.overrideMethod("getOriginalImageName", false, "return " + Image.class.getName() + ".getOriginalImageName(this);");
-	image.overrideMethod("setProperty",          true,  "return " + Image.class.getName() + ".setProperty(this, arg0, arg1);");
-	image.overrideMethod("onModification",       true,  Image.class.getName() + ".onModification(this, arg0, arg1, arg2);");
-	image.overrideMethod("setProperties",        true,  Image.class.getName() + ".setProperties(this, arg0, arg1);");
-	image.overrideMethod("isGranted",            false, "if (this.isThumbnail()) { final org.structr.web.entity.Image originalImage = getOriginalImage(); if (originalImage != null) { return originalImage.isGranted(arg0, arg1); } } return super.isGranted(arg0, arg1);");
-
-	final JsonMethod getScaledImage1 = image.addMethod("getScaledImage");
-	getScaledImage1.setReturnType(Image.class.getName());
-	getScaledImage1.setSource("return "+ Image.class.getName() + ".getScaledImage(this, arg0, arg1);");
-	getScaledImage1.addParameter("arg0", "String");
-	getScaledImage1.addParameter("arg1", "String");
-
-	final JsonMethod getScaledImage2 = image.addMethod("getScaledImage");
-	getScaledImage2.setReturnType(Image.class.getName());
-	getScaledImage2.setSource("return "+ Image.class.getName() + ".getScaledImage(this, arg0, arg1, arg2);");
-	getScaledImage2.addParameter("arg0", "String");
-	getScaledImage2.addParameter("arg1", "String");
-	getScaledImage2.addParameter("arg2", "boolean");
-
-	final JsonMethod getScaledImage3 = image.addMethod("getScaledImage");
-	getScaledImage3.setReturnType(Image.class.getName());
-	getScaledImage3.setSource("return "+ Image.class.getName() + ".getScaledImage(this, arg0, arg1);");
-	getScaledImage3.addParameter("arg0", "int");
-	getScaledImage3.addParameter("arg1", "int");
-
-	final JsonMethod getScaledImage4 = image.addMethod("getScaledImage");
-	getScaledImage4.setReturnType(Image.class.getName());
-	getScaledImage4.setSource("return "+ Image.class.getName() + ".getScaledImage(this, arg0, arg1, arg2);");
-	getScaledImage4.addParameter("arg0", "int");
-	getScaledImage4.addParameter("arg1", "int");
-	getScaledImage4.addParameter("arg2", "boolean");
-
-	// view configuration
-	image.addViewProperty(PropertyView.Public, "parent");
-	 */
 }

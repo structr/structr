@@ -43,7 +43,6 @@ import org.structr.core.property.FunctionProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.TypeProperty;
-import org.structr.core.traits.NodeTrait;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.operations.FrameworkMethod;
@@ -333,15 +332,6 @@ public final class PropertyContainerTraitDefinition extends AbstractNodeTraitDef
 			if ((key.isReadOnly() || key.isWriteOnce()) && !graphObject.readOnlyPropertiesUnlocked() && !securityContext.isSuperUser()) {
 
 				throw new FrameworkException(422, "Property ‛" + key.jsonName() + "‛ is read-only", new ReadOnlyPropertyToken(type, key.jsonName()));
-			}
-
-			if (value instanceof NodeTrait t) {
-
-				// fixme:
-				System.out.println("######################### Converting NodeTrait to NodeInterface, this is not desired!");
-				Thread.dumpStack();
-
-				return key.setProperty(securityContext, graphObject, (T)t);
 			}
 
 			return key.setProperty(securityContext, graphObject, value);

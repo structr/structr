@@ -26,7 +26,6 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.property.StringProperty;
 import org.structr.core.traits.Traits;
 import org.structr.schema.export.StructrSchema;
 import org.structr.web.common.FileHelper;
@@ -439,10 +438,15 @@ public class Deployment3Test extends DeploymentTestBase {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			app.create("SchemaNode",
+			final NodeInterface node = app.create("SchemaNode",
 				new NodeAttribute<>(Traits.of("SchemaNode").key("name"), "ExtendedFile"),
-				new NodeAttribute<>(Traits.of("SchemaNode").key("extendsClass"), app.nodeQuery("SchemaNode").andName("File").getFirst()),
-				new NodeAttribute<>(new StringProperty("_test"), "String")
+				new NodeAttribute<>(Traits.of("SchemaNode").key("inheritedTraits"), new String[] { "File" })
+			);
+
+			app.create("SchemaProperty",
+				new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaNode"),   node),
+				new NodeAttribute<>(Traits.of("SchemaProperty").key("name"),         "test"),
+				new NodeAttribute<>(Traits.of("SchemaProperty").key("propertyType"), "String")
 			);
 
 			tx.success();

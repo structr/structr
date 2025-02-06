@@ -18,7 +18,7 @@
  */
 package org.structr.web.entity;
 
-import org.structr.core.traits.NodeTrait;
+import org.structr.core.graph.NodeInterface;
 
-public interface Component extends NodeTrait {
+public interface Component extends NodeInterface {
 }

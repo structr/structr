@@ -371,6 +371,7 @@ public class UiScriptingTest extends StructrUiTest {
 			app.create("SchemaProperty",
 				new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaNode"),   schemaNode),
 				new NodeAttribute<>(Traits.of("SchemaProperty").key("name"),         "testFunction"),
+				new NodeAttribute<>(Traits.of("SchemaProperty").key("propertyType"), "Function"),
 				new NodeAttribute<>(Traits.of("SchemaProperty").key("readFunction"), "this.folders")
 			);
 

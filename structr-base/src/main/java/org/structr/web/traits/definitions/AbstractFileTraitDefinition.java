@@ -23,6 +23,7 @@ import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.entity.Relation;
@@ -34,6 +35,7 @@ import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnModification;
 import org.structr.web.entity.AbstractFile;
@@ -122,6 +124,24 @@ public class AbstractFileTraitDefinition extends AbstractNodeTraitDefinition {
 						file.validateAndRenameFileOnce(securityContext, errorBuffer);
 					}
 				}
+			},
+
+			IsValid.class,
+			new IsValid() {
+				@Override
+
+				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
+
+					final PropertyKey<String> nameKey = obj.getTraits().key("name");
+
+					boolean valid = true;
+
+					// validations that are stored in the format attribute of a property must be implemented in IsValid, manually!
+					valid &= ValidationHelper.isValidStringMatchingRegex(obj, nameKey, "[^\\/\\x00]+", errorBuffer);
+					valid &= ValidationHelper.isValidPropertyNotNull(obj, nameKey, errorBuffer);
+
+					return valid;
+				}
 			}
 		);
 	}
@@ -153,7 +173,7 @@ public class AbstractFileTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Boolean> hasParentProperty                  = new BooleanProperty("hasParent").indexed().dynamic();
 		final Property<Boolean> includeInFrontendExportProperty    = new BooleanProperty("includeInFrontendExport").indexed().dynamic();
 		final Property<Boolean> isExternalProperty                 = new BooleanProperty("isExternal").indexed().dynamic();
-		final Property<String> nameProperty                        = new StringProperty("name").format("[^\\\\/\\\\x00]+").notNull().indexed().dynamic();
+		final Property<String> nameProperty                        = new StringProperty("name").notNull().indexed().dynamic(); // fixme: not dynamic, but does it have any consequences?
 		final Property<Long> lastSeenMountedProperty               = new LongProperty("lastSeenMounted").dynamic();
 		final Property<Boolean> isMountedProperty                  = new AbstractFileIsMountedProperty();
 		final Property<String> pathProperty                        = new PathProperty("path").typeHint("String").indexed().dynamic();
@@ -189,6 +209,6 @@ public class AbstractFileTraitDefinition extends AbstractNodeTraitDefinition {
 	// ----- protected methods -----
 
 	static void updateHasParent(final GraphObject obj, final NodeInterface value) throws FrameworkException {
-		((AbstractFile) obj).setHasParent(value != null);
+		obj.as(AbstractFile.class).setHasParent(value != null);
 	}
 }

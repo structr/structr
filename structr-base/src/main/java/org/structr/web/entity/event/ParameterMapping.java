@@ -18,10 +18,10 @@
  */
 package org.structr.web.entity.event;
 
-import org.structr.core.traits.NodeTrait;
+import org.structr.core.graph.NodeInterface;
 import org.structr.web.entity.dom.DOMElement;
 
-public interface ParameterMapping extends NodeTrait {
+public interface ParameterMapping extends NodeInterface {
 
 	DOMElement getInputElement();
 

@@ -87,37 +87,31 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 		final Path tmp          = Paths.get("/tmp/structr-deployment-test" + System.currentTimeMillis() + System.nanoTime());
 
 		try {
-			if (tmp != null) {
 
-				// export to temp directory
-				final Map<String, Object> firstExportParams = new HashMap<>();
-				firstExportParams.put("mode", "export");
-				firstExportParams.put("target", tmp.toString());
+			// export to temp directory
+			final Map<String, Object> firstExportParams = new HashMap<>();
+			firstExportParams.put("mode", "export");
+			firstExportParams.put("target", tmp.toString());
 
-				// execute deploy command
-				cmd.execute(firstExportParams);
+			// execute deploy command
+			cmd.execute(firstExportParams);
 
-				if (cleanDatabase) {
-					cleanDatabase();
-				}
-
-				// apply callback if present
-				if (callback != null) {
-					callback.apply(null);
-				}
-
-				// import from exported source
-				final Map<String, Object> firstImportParams = new HashMap<>();
-				firstImportParams.put("mode", "import");
-				firstImportParams.put("source", tmp.toString());
-
-				// execute deploy command
-				cmd.execute(firstImportParams);
-
-			} else {
-
-				fail("Unable to create temporary directory.");
+			if (cleanDatabase) {
+				cleanDatabase();
 			}
+
+			// apply callback if present
+			if (callback != null) {
+				callback.apply(null);
+			}
+
+			// import from exported source
+			final Map<String, Object> firstImportParams = new HashMap<>();
+			firstImportParams.put("mode", "import");
+			firstImportParams.put("source", tmp.toString());
+
+			// execute deploy command
+			cmd.execute(firstImportParams);
 
 		} catch (Throwable t) {
 
@@ -344,7 +338,7 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 		);
 
 		if (parent != null) {
-			parent.appendChild((DOMNode)template);
+			parent.appendChild(template.as(DOMNode.class));
 		}
 
 		return template.as(Template.class);

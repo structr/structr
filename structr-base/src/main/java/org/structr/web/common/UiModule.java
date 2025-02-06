@@ -131,7 +131,7 @@ public class UiModule implements StructrModule {
 		StructrTraits.registerNodeType("Div",   new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new GenericHtmlElementTraitDefinition("Div"));
 		StructrTraits.registerNodeType("A",     new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new GenericHtmlElementTraitDefinition("A"));
 
-		StructrTraits.registerNodeType("A",               new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new A());
+		StructrTraits.registerNodeType("A",               new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new LinkSourceTraitDefinition(), new A());
 		StructrTraits.registerNodeType("Abbr",            new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new Abbr());
 		StructrTraits.registerNodeType("Address",         new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new GenericHtmlElementTraitDefinition("Address"));
 		StructrTraits.registerNodeType("Area",            new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new Area());
@@ -184,7 +184,7 @@ public class UiModule implements StructrModule {
 		StructrTraits.registerNodeType("Html",            new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new Html());
 		StructrTraits.registerNodeType("Iframe",          new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new Iframe());
 		StructrTraits.registerNodeType("I",               new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new I());
-		StructrTraits.registerNodeType("Img",             new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new Img());
+		StructrTraits.registerNodeType("Img",             new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new LinkSourceTraitDefinition(), new Img());
 		StructrTraits.registerNodeType("Input",           new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new Input());
 		StructrTraits.registerNodeType("Ins",             new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new GenericHtmlElementTraitDefinition("Ins"));
 		StructrTraits.registerNodeType("Kbd",             new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new Kbd());
@@ -216,7 +216,7 @@ public class UiModule implements StructrModule {
 		StructrTraits.registerNodeType("Rt",              new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new Rt());
 		StructrTraits.registerNodeType("Ruby",            new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new Ruby());
 		StructrTraits.registerNodeType("Samp",            new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new Samp());
-		StructrTraits.registerNodeType("Script",          new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new Script());
+		StructrTraits.registerNodeType("Script",          new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new LinkSourceTraitDefinition(), new Script());
 		StructrTraits.registerNodeType("Section",         new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new GenericHtmlElementTraitDefinition("Section"));
 		StructrTraits.registerNodeType("Select",          new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new Select());
 		StructrTraits.registerNodeType("S",               new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new S());

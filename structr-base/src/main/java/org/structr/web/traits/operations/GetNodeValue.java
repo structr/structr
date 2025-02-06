@@ -16,31 +16,12 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.traits.wrappers;
+package org.structr.web.traits.operations;
 
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.traits.Traits;
-import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
-import org.structr.web.entity.ApplicationConfigurationDataNode;
+import org.structr.core.traits.operations.FrameworkMethod;
 
-public class ApplicationConfigurationDataNodeTraitWrapper extends AbstractNodeTraitWrapper implements ApplicationConfigurationDataNode {
+public abstract class GetNodeValue extends FrameworkMethod<Void> {
 
-	public ApplicationConfigurationDataNodeTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
-		super(traits, wrappedObject);
-	}
-
-	@Override
-	public String getName() {
-		return wrappedObject.getName();
-	}
-
-	@Override
-	public String getConfigType() {
-		return wrappedObject.getProperty(traits.key("configType"));
-	}
-
-	@Override
-	public String getContent() {
-		return wrappedObject.getProperty(traits.key("content"));
-	}
+	public abstract String getNodeValue(final NodeInterface node);
 }

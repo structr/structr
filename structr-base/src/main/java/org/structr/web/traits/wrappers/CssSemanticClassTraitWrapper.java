@@ -20,10 +20,10 @@ package org.structr.web.traits.wrappers;
 
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.wrappers.GraphObjectTraitWrapper;
+import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.web.entity.css.CssSemanticClass;
 
-public class CssSemanticClassTraitWrapper extends GraphObjectTraitWrapper<NodeInterface> implements CssSemanticClass {
+public class CssSemanticClassTraitWrapper extends AbstractNodeTraitWrapper implements CssSemanticClass {
 
 	public CssSemanticClassTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);

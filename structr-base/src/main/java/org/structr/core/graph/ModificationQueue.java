@@ -41,7 +41,6 @@ import org.structr.core.property.RelationProperty;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentSkipListMap;
-import java.util.LinkedList;
 
 /**
  *
@@ -412,7 +411,7 @@ public class ModificationQueue {
 
 			for (final PropertyKey k : state.getModifiedProperties().keySet()) {
 
-				if (k.equals(key.jsonName()) && graphObject.getUuid().equals(state.getGraphObject().getUuid()) ) {
+				if (k.equals(key) && graphObject.getUuid().equals(state.getGraphObject().getUuid()) ) {
 
 					return true;
 

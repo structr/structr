@@ -18,9 +18,9 @@
  */
 package org.structr.core.entity;
 
-import org.structr.core.traits.NodeTrait;
+import org.structr.core.graph.NodeInterface;
 
-public interface Localization extends NodeTrait {
+public interface Localization extends NodeInterface {
 
 	String getLocalizedName();
 	String getLocale();

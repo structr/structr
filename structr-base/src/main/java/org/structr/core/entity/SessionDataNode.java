@@ -19,9 +19,9 @@
 package org.structr.core.entity;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.traits.NodeTrait;
+import org.structr.core.graph.NodeInterface;
 
-public interface SessionDataNode extends NodeTrait {
+public interface SessionDataNode extends NodeInterface {
 
 	void incrementVersion() throws FrameworkException;
 }

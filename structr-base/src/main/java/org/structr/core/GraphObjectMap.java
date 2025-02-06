@@ -465,7 +465,7 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 
 		for (final PropertyKey propertyKey : properties.keySet()) {
 
-			if (key.equals(propertyKey)) {
+			if (key.equals(propertyKey.jsonName())) {
 
 				return properties.get(propertyKey);
 			}

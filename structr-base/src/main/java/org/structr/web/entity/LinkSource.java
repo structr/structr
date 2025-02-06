@@ -19,12 +19,12 @@
 package org.structr.web.entity;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.traits.NodeTrait;
+import org.structr.core.graph.NodeInterface;
 
 /**
  * This class represents elements which can have an outgoing link to a resource.
  */
-public interface LinkSource extends NodeTrait {
+public interface LinkSource extends NodeInterface {
 
 	Linkable getLinkable();
 	Object setLinkable(final Linkable linkable) throws FrameworkException;

@@ -58,7 +58,7 @@ public class MoveOperation extends InvertibleModificationOperation {
 
 		} else if (originalNode.is("DOMElement")) {
 
-			return "Move " + ((DOMElement)originalNode).getTag() + "(" + originalNode.getIdHashOrProperty() + ")";
+			return "Move " + originalNode.as(DOMElement.class).getTag() + "(" + originalNode.getIdHashOrProperty() + ")";
 		}
 
 		return "Move " + originalNode.getUuid()+ "(" + originalNode.getIdHashOrProperty() + ")";

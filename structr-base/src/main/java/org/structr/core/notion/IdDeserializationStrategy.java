@@ -33,10 +33,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationProperty;
 import org.structr.core.traits.Traits;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Deserializes a {@link GraphObject} using the UUID property.
@@ -91,14 +88,16 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> extends Deser
 				final Map<String, Object> foreignProps = new HashMap<>();
 
 				// store "foreign" properties (those that are to be set on the newly created relationship
-				for (final String key : properties.keySet()) {
+				for (final Iterator<String> it = properties.keySet().iterator(); it.hasNext();) {
+
+					final String key = it.next();
 
 					if (!actualType.hasKey(key)) {
 
 						foreignProps.put(key, properties.get(key));
 
 						// remove from property set
-						properties.remove(key);
+						it.remove();
 					}
 				}
 

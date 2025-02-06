@@ -52,9 +52,10 @@ public class GraphObjectTraitWrapper<T extends GraphObject> implements GraphObje
 	@Override
 	public boolean equals(final Object other) {
 
-		if (other instanceof GraphObjectTraitWrapper w) {
+		if (other instanceof GraphObject o) {
 
-			return wrappedObject.equals(w);
+			// equality based on uuid
+			return getUuid().equals(o.getUuid());
 		}
 
 		return false;
@@ -316,10 +317,6 @@ public class GraphObjectTraitWrapper<T extends GraphObject> implements GraphObje
 	@Override
 	public boolean changelogEnabled() {
 		return wrappedObject.changelogEnabled();
-	}
-
-	public T getWrappedNode() {
-		return wrappedObject;
 	}
 
 	public boolean isVisibleToPublicUsers() {

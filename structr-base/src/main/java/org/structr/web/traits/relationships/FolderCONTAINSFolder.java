@@ -50,7 +50,7 @@ public class FolderCONTAINSFolder extends AbstractRelationshipTraitDefinition im
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
-		return Relation.Multiplicity.One;
+		return Relation.Multiplicity.Many;
 	}
 
 	@Override

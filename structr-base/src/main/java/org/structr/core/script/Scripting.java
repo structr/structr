@@ -148,6 +148,7 @@ public class Scripting {
 	}
 
 	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String input, final String methodName, final int startRow, final String codeSource) throws FrameworkException, UnlicensedScriptException {
+
 		final String expression = StringUtils.strip(input);
 
 		if (expression.isEmpty()) {
@@ -240,6 +241,7 @@ public class Scripting {
 	}
 
 	public static Object evaluateScript(final ActionContext actionContext, final GraphObject entity, final String engineName, final Snippet snippet) throws FrameworkException {
+
 		// Clear output buffer
 		actionContext.clear();
 

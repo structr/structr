@@ -24,7 +24,6 @@ import net.lingala.zip4j.model.enums.EncryptionMethod;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.traits.NodeTrait;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
@@ -106,12 +105,12 @@ public class CreateZipFunction extends UiAdvancedFunction {
 
 			zipFile.setCharset(Charset.forName("UTF-8"));
 
-			if (sources[1] instanceof NodeTrait n && n.is("File")) {
+			if (sources[1] instanceof NodeInterface n && n.is("File")) {
 
 				File file = n.as(File.class);
 				addFileToZipArchive(file.getName(), file, zipFile, params);
 
-			} else if (sources[1] instanceof NodeTrait n && n.is("Folder")) {
+			} else if (sources[1] instanceof NodeInterface n && n.is("Folder")) {
 
 				Folder folder = n.as(Folder.class);
 

@@ -364,7 +364,7 @@ public class DeploymentCommentHandler implements CommentHandler {
 		return currentPosition < sourceLength;
 	}
 
-	private static interface Handler {
+	private interface Handler {
 		void apply(final Page page, final DOMNode node, final String parameters) throws FrameworkException;
 	}
 }

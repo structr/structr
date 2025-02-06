@@ -21,11 +21,11 @@ package org.structr.web.traits.wrappers;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.wrappers.GraphObjectTraitWrapper;
+import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.web.entity.StorageConfiguration;
 import org.structr.web.entity.StorageConfigurationEntry;
 
-public class StorageConfigurationEntryTraitWrapper extends GraphObjectTraitWrapper<NodeInterface> implements StorageConfigurationEntry {
+public class StorageConfigurationEntryTraitWrapper extends AbstractNodeTraitWrapper implements StorageConfigurationEntry {
 
 	public StorageConfigurationEntryTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);

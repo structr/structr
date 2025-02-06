@@ -109,6 +109,11 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
+	public void setName(final String name) throws FrameworkException {
+		throw new UnsupportedOperationException("Not supported by this container.");
+	}
+
+	@Override
 	public Object getPath(final SecurityContext securityContext) {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}

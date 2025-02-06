@@ -49,10 +49,7 @@ import org.structr.web.converter.ContentConverters;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
-import org.structr.web.traits.operations.DoImport;
-import org.structr.web.traits.operations.GetContextName;
-import org.structr.web.traits.operations.RenderContent;
-import org.structr.web.traits.operations.UpdateFromNode;
+import org.structr.web.traits.operations.*;
 import org.structr.web.traits.wrappers.dom.ContentTraitWrapper;
 
 import java.io.IOException;
@@ -301,6 +298,41 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 							DOMNode.logScriptingError(logger, t, "Error while evaluating script in shared component, Content[{}]", node.getUuid());
 						}
 					}
+				}
+			},
+
+			GetNodeValue.class,
+			new GetNodeValue() {
+
+				@Override
+				public String getNodeValue(final NodeInterface node) {
+					return node.getProperty(node.getTraits().key("content"));
+				}
+			},
+
+			ContentEquals.class,
+			new ContentEquals() {
+
+				@Override
+				public boolean contentEquals(final DOMNode thisNode, final DOMNode otherNode) {
+
+					if (otherNode.is("Content")) {
+
+						final String content1 = thisNode.as(Content.class).getContent();
+						final String content2 = otherNode.as(Content.class).getContent();
+
+						if (content1 == null && content2 == null) {
+							return true;
+						}
+
+						if (content1 != null && content2 != null) {
+
+							return content1.equals(content2);
+						}
+					}
+
+					return false;
+
 				}
 			}
 		);

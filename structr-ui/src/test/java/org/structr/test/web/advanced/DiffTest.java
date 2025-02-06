@@ -365,6 +365,7 @@ public class DiffTest extends StructrUiTest {
 	public void testAddAttributes() {
 
 		final String result1 = testDiff("<html><head><title>Title</title></head><body><div><h2>one</h2></div><div><h2>two</h2></div><div><h2>three</h2></div><div><h2>four</h2></div></body></html>", (String from) -> {
+
 			final StringBuilder buf = new StringBuilder(from);
 
 			int insert = buf.indexOf("<div ") + 5;
@@ -682,9 +683,6 @@ public class DiffTest extends StructrUiTest {
 
 					// execute operation
 					op.apply(app, sourcePage, modifiedPage);
-
-					System.out.println("############################################################################################");
-//					System.out.println(sourcePage.getContent(RenderContext.EditMode.NONE));
 				}
 
 				tx.success();

@@ -19,9 +19,9 @@
 package org.structr.core.entity;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.traits.NodeTrait;
+import org.structr.core.graph.NodeInterface;
 
-public interface ResourceAccess extends NodeTrait {
+public interface ResourceAccess extends NodeInterface {
 
 	static boolean hasFlag(long flag, long flags) {
 		return (flags & flag) == flag;

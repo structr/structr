@@ -22,11 +22,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.traits.NodeTrait;
 import org.structr.core.traits.Traits;
-import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 
@@ -137,7 +135,7 @@ public class PathResolvingComparator implements Comparator<GraphObject> {
 
 						current = o;
 
-					} else if (value instanceof NodeTrait t) {
+					} else if (value instanceof NodeInterface t) {
 
 						current = t;
 

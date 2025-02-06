@@ -302,10 +302,16 @@ public abstract class PolyglotWrapper {
 
 			return obj;
 
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+
 		} finally {
 
 			actionContext.level --;
 		}
+
+		return null;
 	}
 
 	public static Arguments unwrapExecutableArguments(final ActionContext actionContext, final AbstractMethod method, final Value[] args) throws FrameworkException {

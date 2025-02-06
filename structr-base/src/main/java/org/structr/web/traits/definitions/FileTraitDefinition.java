@@ -86,7 +86,7 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
-					final File thisFile = ((NodeInterface) graphObject).as(File.class);
+					final File thisFile = graphObject.as(File.class);
 
 					if (Settings.FilesystemEnabled.getValue() && !thisFile.getHasParent()) {
 
@@ -104,7 +104,7 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
-					final File thisFile = ((NodeInterface) graphObject).as(File.class);
+					final File thisFile = graphObject.as(File.class);
 
 					synchronized (thisFile) {
 
@@ -152,7 +152,7 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public void afterCreation(GraphObject graphObject, SecurityContext securityContext) throws FrameworkException {
 
-					final File thisFile = ((NodeInterface) graphObject).as(File.class);
+					final File thisFile = graphObject.as(File.class);
 
 					try {
 
@@ -223,7 +223,7 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> contentTypeProperty       = new StringProperty("contentType");
 		final Property<Boolean> dontCacheProperty         = new BooleanProperty("dontCache").defaultValue(false).dynamic();
 		final Property<Boolean> indexedProperty           = new BooleanProperty("indexed").dynamic();
-		final Property<Boolean> isFileProperty            = new BooleanProperty("isFile").readOnly().transformators("org.structr.common.ConstantBooleanTrue").dynamic();
+		final Property<Boolean> isFileProperty            = new ConstantBooleanProperty("isFile", true).readOnly().dynamic();
 		final Property<Boolean> isTemplateProperty        = new BooleanProperty("isTemplate").dynamic();
 		final Property<Boolean> useAsJavascriptLibrary    = new BooleanProperty("useAsJavascriptLibrary").indexed();
 		final Property<Integer> cacheForSecondsProperty   = new IntProperty("cacheForSeconds").dynamic();
@@ -386,11 +386,25 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 
 		if (key.equals(storageConfigurationKey)) {
 
-			thisFile.checkMoveBinaryContents((StorageConfiguration)value);
+			if (value instanceof NodeInterface n && n.is("StorageConfiguration")) {
+
+				thisFile.checkMoveBinaryContents(n.as(StorageConfiguration.class));
+
+			} else {
+
+				throw new RuntimeException("Invalid value supplied to setProperty(" + key.jsonName() + ")");
+			}
 
 		} else if (key.equals(parentKey)) {
 
-			thisFile.checkMoveBinaryContents(thisFile.getParent(), (Folder)value);
+			if (value instanceof NodeInterface n && n.is("Folder")) {
+
+				thisFile.checkMoveBinaryContents(thisFile.getParent(), n.as(Folder.class));
+
+			} else {
+
+				throw new RuntimeException("Invalid value supplied to setProperty(" + key.jsonName() + ")");
+			}
 
 		} else if (key.equals(parentIdKey)) {
 
@@ -404,7 +418,10 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 				LoggerFactory.getLogger(org.structr.web.entity.File.class).warn("Exception while trying to lookup parent folder.", ex);
 			}
 
-			thisFile.checkMoveBinaryContents(thisFile.getParent(), parentFolder.as(Folder.class));
+			if (parentFolder != null) {
+
+				thisFile.checkMoveBinaryContents(thisFile.getParent(), parentFolder.as(Folder.class));
+			}
 		}
 	}
 

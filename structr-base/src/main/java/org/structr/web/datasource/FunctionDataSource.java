@@ -24,7 +24,6 @@ import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
-import org.structr.core.app.StructrApp;
 import org.structr.core.datasources.GraphDataSource;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;

@@ -18,7 +18,7 @@
  */
 package org.structr.rest.entity;
 
-import org.structr.core.traits.NodeTrait;
+import org.structr.core.graph.NodeInterface;
 
-public interface LogSubject extends NodeTrait {
+public interface LogSubject extends NodeInterface {
 }

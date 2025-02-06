@@ -1292,15 +1292,16 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	protected void exportFileConfiguration(final NodeInterface node, final Map<String, Object> config) {
 
 		final AbstractFile abstractFile = node.as(AbstractFile.class);
+		final String fileType           = abstractFile.getType();
 
 		putData(config, "id",                          abstractFile.getUuid());
 		putData(config, "visibleToPublicUsers",        abstractFile.isVisibleToPublicUsers());
 		putData(config, "visibleToAuthenticatedUsers", abstractFile.isVisibleToAuthenticatedUsers());
-		putData(config, "type",                        abstractFile.getType());
+		putData(config, "type",                        fileType);
 
 		if (abstractFile.is("File")) {
 
-			final File file = (File)abstractFile;
+			final File file = abstractFile.as(File.class);
 
 			putData(config, "isTemplate",              file.isTemplate());
 			putData(config, "dontCache",               file.dontCache());
@@ -1328,7 +1329,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			putData(config, "height",      image.getHeight());
 		}
 
-		final Traits traits = Traits.of("AbstractFile");
+		final Traits traits = node.getTraits();
 
 		// export all dynamic properties
 		for (final PropertyKey key : traits.getAllPropertyKeys()) {

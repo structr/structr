@@ -123,7 +123,7 @@ public class TemplateTraitDefinition extends AbstractNodeTraitDefinition {
 
 						for (final RelationshipInterface rel : rels) {
 
-							final DOMNode subNode = (DOMNode) rel.getTargetNode();
+							final DOMNode subNode = rel.getTargetNode().as(DOMNode.class);
 							subNode.render(renderContext, depth + 1);
 						}
 

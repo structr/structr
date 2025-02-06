@@ -25,7 +25,6 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.traits.NodeTrait;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.importer.Importer;
@@ -35,7 +34,7 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.regex.Matcher;
 
-public interface Widget extends NodeTrait {
+public interface Widget extends NodeInterface {
 
 	ThreadLocalMatcher threadLocalTemplateMatcher = new ThreadLocalMatcher("\\[[^\\]]+\\]");
 

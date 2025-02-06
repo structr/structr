@@ -199,7 +199,7 @@ public class StructrApp implements App {
 				final PropertyContainer container = entity.getPropertyContainer();
 
 				nodeUuidMap.put(uuid, container.getId());
-				return (NodeInterface)entity;
+				return entity;
 			}
 
 		} else {

@@ -19,9 +19,9 @@
 package org.structr.web.entity;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.traits.NodeTrait;
+import org.structr.core.graph.NodeInterface;
 
-public interface StorageConfigurationEntry extends NodeTrait {
+public interface StorageConfigurationEntry extends NodeInterface {
 
 	StorageConfiguration getConfiguration();
 	void setName(final String name) throws FrameworkException;

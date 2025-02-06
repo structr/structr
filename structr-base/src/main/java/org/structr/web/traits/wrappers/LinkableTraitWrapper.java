@@ -20,10 +20,10 @@ package org.structr.web.traits.wrappers;
 
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.wrappers.GraphObjectTraitWrapper;
+import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.web.entity.Linkable;
 
-public class LinkableTraitWrapper extends GraphObjectTraitWrapper<NodeInterface> implements Linkable {
+public class LinkableTraitWrapper extends AbstractNodeTraitWrapper implements Linkable {
 
 	public LinkableTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);
