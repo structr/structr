@@ -130,7 +130,7 @@ public class AuthHelper {
 
 			try {
 
-				final NodeInterface node = StructrApp.getInstance().nodeQuery("Principal").and().or(key, value).or(Traits.nameProperty(), value).disableSorting().getFirst();
+				final NodeInterface node = StructrApp.getInstance().nodeQuery("Principal").and().or(key, value).or(Traits.of("NodeInterface").key("name"), value).disableSorting().getFirst();
 				if (node != null) {
 
 					principal = node.as(Principal.class);

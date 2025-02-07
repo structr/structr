@@ -58,7 +58,7 @@ public class CreateCommand extends AbstractCommand {
 		try {
 
 			final PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, webSocketData.getNodeData());
-			final String rawType         = properties.get(Traits.typeProperty());
+			final String rawType         = properties.get(Traits.of("GraphObject").key("type"));
 			final NodeInterface newNode  = app.create(rawType, properties);
 
 			TransactionCommand.registerNodeCallback(newNode, callback);

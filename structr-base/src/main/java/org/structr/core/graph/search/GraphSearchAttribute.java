@@ -44,7 +44,7 @@ public class GraphSearchAttribute<T> extends PropertySearchAttribute<T> implemen
 	private Set<Object> values    = null;
 
 	public GraphSearchAttribute(PropertyKey<T> key, T value, final Occurrence occurrence, final boolean exact) {
-		this(Traits.idProperty(), key, value, occurrence, exact);
+		this(Traits.of("GraphObject").key("id"), key, value, occurrence, exact);
 	}
 
 	public GraphSearchAttribute(final PropertyKey notionKey, final PropertyKey<T> key, final T value, final Occurrence occurrence, final boolean exact) {

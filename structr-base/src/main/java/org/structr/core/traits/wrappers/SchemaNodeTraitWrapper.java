@@ -25,8 +25,8 @@ import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.TraitDefinition;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.TraitDefinition;
 import org.structr.schema.DynamicNodeTraitDefinition;
 
 import java.util.ArrayList;

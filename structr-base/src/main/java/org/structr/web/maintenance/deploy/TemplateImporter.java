@@ -175,7 +175,7 @@ public class TemplateImporter extends HtmlFileImporter {
 						deleteTemplate(app, existingTemplate.as(DOMNode.class));
 					}
 
-					template = app.create("Template", new NodeAttribute(Traits.idProperty(), templateName)).as(Template.class);
+					template = app.create("Template", new NodeAttribute(Traits.of("GraphObject").key("id"), templateName)).as(Template.class);
 
 				} else if (byNameAndId) {
 
@@ -191,7 +191,7 @@ public class TemplateImporter extends HtmlFileImporter {
 						deleteTemplate(app, existingTemplate.as(DOMNode.class));
 					}
 
-					template = app.create("Template", new NodeAttribute(Traits.idProperty(), uuid)).as(Template.class);
+					template = app.create("Template", new NodeAttribute(Traits.of("GraphObject").key("id"), uuid)).as(Template.class);
 					properties.put(traits.key("name"), name);
 
 				} else {

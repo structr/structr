@@ -859,7 +859,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface node : app.nodeQuery("Site").sort(Traits.nameProperty()).getAsList()) {
+			for (final NodeInterface node : app.nodeQuery("Site").sort(Traits.of("NodeInterface").key("name")).getAsList()) {
 
 				final Site site                 = node.as(Site.class);
 				final Map<String, Object> entry = new TreeMap<>();
@@ -904,7 +904,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface page : app.nodeQuery("Page").sort(Traits.nameProperty()).getAsList()) {
+			for (final NodeInterface page : app.nodeQuery("Page").sort(Traits.of("NodeInterface").key("name")).getAsList()) {
 
 				if (!page.is("ShadowDocument")) {
 
@@ -1054,7 +1054,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final Map<String, Object> grant = new TreeMap<>();
 				grants.add(grant);
 
-				grant.put("id",                          res.getProperty(Traits.idProperty()));
+				grant.put("id",                          res.getProperty(Traits.of("GraphObject").key("id")));
 				grant.put("signature",                   res.getProperty(signatureKey));
 				grant.put("flags",                       res.getProperty(flagsKey));
 				grant.put("visibleToPublicUsers",        res.isVisibleToPublicUsers());
@@ -1104,7 +1104,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final Map<String, Object> entry = new LinkedHashMap<>();
 				corsSettings.add(entry);
 
-				putData(entry, "id",               corsSetting.getProperty(Traits.idProperty()));
+				putData(entry, "id",               corsSetting.getProperty(Traits.of("GraphObject").key("id")));
 				putData(entry, "requestUri",       corsSetting.getProperty(traits.key("requestUri")));
 				putData(entry, "acceptedOrigins",  corsSetting.getProperty(traits.key("acceptedOrigins")));
 				putData(entry, "maxAge",           corsSetting.getProperty(traits.key("maxAge")));
@@ -1520,7 +1520,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface node : app.nodeQuery("Widget").sort(Traits.nameProperty()).getAsList()) {
+			for (final NodeInterface node : app.nodeQuery("Widget").sort(Traits.of("NodeInterface").key("name")).getAsList()) {
 
 				final Widget widget             = node.as(Widget.class);
 				final Map<String, Object> entry = new TreeMap<>();

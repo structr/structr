@@ -281,7 +281,7 @@ public class GraphObjectGSONAdapter {
 
 					// speciality for the Ui view: limit recursive rendering to (id, name)
 					if (compactNestedProperties && depth > 0 && ((PropertyView.Ui.equals(localPropertyView) && !securityContext.isSuperUserSecurityContext()) || PropertyView.All.equals(localPropertyView))) {
-						keys = traits.getDefaultKeys();
+						keys = Traits.getDefaultKeys();
 					}
 
 					// prefetching hook

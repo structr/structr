@@ -30,7 +30,7 @@ import org.structr.core.traits.Traits;
 public class UuidSearchAttribute extends SearchAttribute<String> implements UuidQuery {
 
 	public UuidSearchAttribute(final String value, final Occurrence occur) {
-		super(occur, Traits.idProperty(), value);
+		super(occur, Traits.of("GraphObject").key("id"), value);
 	}
 
 	@Override

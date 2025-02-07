@@ -54,7 +54,7 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> extends Deser
 	public T deserialize(final SecurityContext securityContext, final String type, final S source, final Object context) throws FrameworkException {
 
 		final App app = StructrApp.getInstance(securityContext);
-		final PropertyKey<String> idProperty = Traits.idProperty();
+		final PropertyKey<String> idProperty = Traits.of("GraphObject").key("id");
 
 		if (source != null) {
 
@@ -105,7 +105,7 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> extends Deser
 				final PropertyMap convertedProperties  = PropertyMap.inputTypeToJavaType(securityContext, actualType.getName(), properties);
 
 				// If property map contains the uuid, search only for uuid
-				if (convertedProperties.containsKey(Traits.idProperty())) {
+				if (convertedProperties.containsKey(Traits.of("GraphObject").key("id"))) {
 
 					// related node is already found
 					if (relatedNode != null) {

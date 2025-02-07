@@ -53,7 +53,6 @@ import org.structr.storage.StorageProviderFactory;
 import org.structr.util.Base64;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
-import org.structr.web.entity.Image;
 
 import javax.activation.MimetypesFileTypeMap;
 import javax.imageio.ImageIO;
@@ -93,7 +92,7 @@ public class FileHelper {
 		if (existingFile != null) {
 
 			existingFile.unlockSystemPropertiesOnce();
-			existingFile.setProperties(securityContext, new PropertyMap(Traits.typeProperty(), fileType == null ? "File" : fileType));
+			existingFile.setProperties(securityContext, new PropertyMap(Traits.of("GraphObject").key("type"), fileType == null ? "File" : fileType));
 
 			return getFileByUuid(securityContext, uuid);
 		}
@@ -389,7 +388,7 @@ public class FileHelper {
 			id = newUuid;
 
 			fileNode.unlockSystemPropertiesOnce();
-			properties.put(Traits.idProperty(), newUuid);
+			properties.put(Traits.of("GraphObject").key("id"), newUuid);
 		}
 
 		fileNode.unlockSystemPropertiesOnce();
@@ -498,7 +497,7 @@ public class FileHelper {
 
 					// modify type when image type is detected AND the type is "File"
 					if (contentType.startsWith("image/") && !file.getTraits().contains("Image") && "File".equals(file.getType())) {
-						map.put(Traits.typeProperty(), "Image");
+						map.put(Traits.of("GraphObject").key("type"), "Image");
 					}
 				}
 

@@ -688,7 +688,7 @@ public class PermissionResolutionTest extends StructrTest {
 
 			final Principal tester            = app.nodeQuery("User").andName("tester").getFirst().as(Principal.class);
 			final SecurityContext userContext = SecurityContext.getInstance(tester, AccessMode.Backend);
-			final List<NodeInterface> result  = app.nodeQuery(projectType).sort(Traits.nameProperty()).getAsList();
+			final List<NodeInterface> result  = app.nodeQuery(projectType).sort(Traits.of("NodeInterface").key("name")).getAsList();
 
 			assertEquals("Invalid permission resolution result",  true, result.get(0).isGranted(Permission.read,          userContext));
 			assertEquals("Invalid permission resolution result",  true, result.get(0).isGranted(Permission.write,         userContext));

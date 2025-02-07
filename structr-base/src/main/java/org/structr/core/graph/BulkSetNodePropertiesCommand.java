@@ -51,8 +51,8 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 
 	public long executeWithCount(final Map<String, Object> properties) throws FrameworkException {
 
-		final PropertyKey<String> typeProperty = Traits.typeProperty();
-		final PropertyKey<String> idProperty   = Traits.idProperty();
+		final PropertyKey<String> typeProperty = Traits.of("GraphObject").key("type");
+		final PropertyKey<String> idProperty   = Traits.of("GraphObject").key("id");
 		final String type                      = (String)properties.get("type");
 
 		if (StringUtils.isBlank(type)) {

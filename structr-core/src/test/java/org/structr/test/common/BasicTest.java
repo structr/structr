@@ -1062,7 +1062,7 @@ public class BasicTest extends StructrTest {
 
 			final String uuid = StringUtils.replace(UUID.randomUUID().toString(), "-", "");
 
-			props.put(Traits.idProperty(), uuid);
+			props.put(Traits.of("GraphObject").key("id"), uuid);
 
 			try (final Tx tx = app.tx()) {
 
@@ -1097,7 +1097,7 @@ public class BasicTest extends StructrTest {
 
 			final String uuid = StringUtils.replace(UUID.randomUUID().toString(), "-", "");
 
-			props.put(Traits.idProperty(), uuid);
+			props.put(Traits.of("GraphObject").key("id"), uuid);
 
 			try (final Tx tx = app.tx()) {
 
@@ -1129,7 +1129,7 @@ public class BasicTest extends StructrTest {
 
 			final String uuid = StringUtils.replace(UUID.randomUUID().toString(), "-", "");
 
-			props.put(Traits.idProperty(), uuid);
+			props.put(Traits.of("GraphObject").key("id"), uuid);
 
 			try (final Tx tx = app.tx()) {
 
@@ -2013,7 +2013,7 @@ public class BasicTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final String uuid1 = test.getProperty(Traits.idProperty());
+			final String uuid1 = test.getProperty(Traits.of("GraphObject").key("id"));
 			final String uuid2 = test.getUuid();
 
 			assertEquals("Object creation does not accept provided UUID", uuid, uuid1);
@@ -2049,7 +2049,7 @@ public class BasicTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final String uuid1 = test.getProperty(Traits.idProperty());
+			final String uuid1 = test.getProperty(Traits.of("GraphObject").key("id"));
 			final String uuid2 = test.getUuid();
 
 			assertEquals("UUID mismatch in getProperty() and getUuid()", uuid1, uuid2);

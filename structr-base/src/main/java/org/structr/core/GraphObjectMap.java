@@ -26,7 +26,6 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.entity.Relation;
-import org.structr.core.entity.SchemaMethod;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
@@ -35,8 +34,8 @@ import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.TraitDefinition;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.TraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.schema.action.ActionContext;
@@ -54,7 +53,7 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 
 	@Override
 	public String getUuid() {
-		return getProperty(Traits.idProperty());
+		return getProperty(Traits.of("NodeInterface").key("id"));
 	}
 
 	@Override
@@ -75,11 +74,6 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 			@Override
 			public boolean contains(final String type) {
 				return false;
-			}
-
-			@Override
-			public TraitDefinition get(final String type) {
-				return null;
 			}
 
 			@Override
@@ -114,11 +108,6 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 			@Override
 			public boolean isRelationshipType() {
 				return false;
-			}
-
-			@Override
-			public Set<PropertyKey> getDefaultKeys() {
-				return Set.of();
 			}
 
 			@Override
@@ -194,10 +183,6 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 			public Set<String> getAllTraits() {
 				return Set.of();
 			}
-
-			@Override
-			public void registerDynamicMethod(final SchemaMethod method) {
-			}
 		};
 	}
 
@@ -213,7 +198,7 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 
 	@Override
 	public String getType() {
-		return getProperty(Traits.idProperty());
+		return getProperty(Traits.of("NodeInterface").key("type"));
 	}
 
 	@Override

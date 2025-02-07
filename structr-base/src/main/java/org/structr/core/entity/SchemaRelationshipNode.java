@@ -24,7 +24,7 @@ import org.structr.api.schema.JsonSchema;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.CaseHelper;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.traits.definitions.TraitDefinition;
+import org.structr.core.traits.TraitDefinition;
 import org.structr.core.traits.operations.graphobject.IsValid;
 
 import java.util.List;

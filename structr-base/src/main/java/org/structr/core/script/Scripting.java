@@ -585,7 +585,7 @@ public class Scripting {
 
 			final StringBuilder buf = new StringBuilder();
 			final GraphObject obj   = (GraphObject)value;
-			final String name       = obj.getProperty(Traits.nameProperty());
+			final String name       = obj.getProperty(Traits.of("NodeInterface").key("name"));
 
 			buf.append(obj.getType());
 			buf.append("(");

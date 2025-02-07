@@ -274,7 +274,7 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 					try {
 
 						newNode.unlockSystemPropertiesOnce();
-						newNode.setProperties(newNode.getSecurityContext(), new PropertyMap(Traits.typeProperty(), "Template"));
+						newNode.setProperties(newNode.getSecurityContext(), new PropertyMap(Traits.of("GraphObject").key("type"), "Template"));
 
 					} catch (FrameworkException fex) {
 						logger.warn("Unable to set type of node {} to Template: {}", new Object[] { newNode.getUuid(), fex.getMessage() } );

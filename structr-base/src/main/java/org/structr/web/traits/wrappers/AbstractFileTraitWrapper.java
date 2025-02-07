@@ -206,7 +206,7 @@ public class AbstractFileTraitWrapper extends AbstractNodeTraitWrapper implement
 			final String originalPath = getPath();
 			final String newName      = getRenamedFilename(getName());
 
-			wrappedObject.setProperty(Traits.nameProperty(), newName);
+			wrappedObject.setProperty(Traits.of("NodeInterface").key("name"), newName);
 
 			valid = validatePath(securityContext, errorBuffer);
 

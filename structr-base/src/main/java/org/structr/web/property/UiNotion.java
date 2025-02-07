@@ -31,6 +31,6 @@ import java.util.Set;
 public class UiNotion extends PropertySetNotion {
 
 	public UiNotion() {
-		super(Set.of(Traits.idProperty(), Traits.nameProperty()));
+		super(Set.of(Traits.of("GraphObject").key("id"), Traits.of("NodeInterface").key("name")));
 	}
 }

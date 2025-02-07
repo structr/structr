@@ -341,7 +341,7 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 		if (!className.equals(potentialNewClassName)) {
 
 			try {
-				node.setProperty(Traits.nameProperty(), potentialNewClassName);
+				node.setProperty(Traits.of("NodeInterface").key("name"), potentialNewClassName);
 
 			} catch (FrameworkException fex) {
 				logger.warn("Unable to set relationship name to {}.", potentialNewClassName);

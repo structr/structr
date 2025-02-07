@@ -63,6 +63,6 @@ public class ObjectNotion extends Notion {
 
 	@Override
 	public PropertyKey getPrimaryPropertyKey() {
-		return Traits.idProperty();
+		return Traits.of("GraphObject").key("id");
 	}
 }

@@ -293,7 +293,7 @@ public class DOMElementTraitWrapper extends DOMNodeTraitWrapper implements DOMEl
 		// create synthetic HtmlProperty
 		final HtmlProperty htmlProperty = new HtmlProperty(name);
 
-		htmlProperty.setDeclaringTrait(traits.get("DOMElement"));
+		htmlProperty.setDeclaringTrait(Traits.getTrait("DOMElement"));
 
 		return htmlProperty;
 	}

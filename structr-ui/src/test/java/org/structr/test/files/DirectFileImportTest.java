@@ -152,11 +152,11 @@ public class DirectFileImportTest extends StructrUiTest {
 		// verify successful file import
 		try (final Tx tx = app.tx()) {
 
-			assertNotNull("Folder should have been created by import", app.nodeQuery("Folder").and(pathKey, "/" + testDir.getFileName().toString()).sort(Traits.nameProperty()).getFirst());
+			assertNotNull("Folder should have been created by import", app.nodeQuery("Folder").and(pathKey, "/" + testDir.getFileName().toString()).sort(Traits.of("NodeInterface").key("name")).getFirst());
 
-			final File file1 = app.nodeQuery("File").and(pathKey, "/" + testDir.getFileName().toString() + "/test1.txt").sort(Traits.nameProperty()).getFirst().as(File.class);
-			final File file2 = app.nodeQuery("File").and(pathKey, "/" + testDir.getFileName().toString() + "/test2.txt").sort(Traits.nameProperty()).getFirst().as(File.class);
-			final File file3 = app.nodeQuery("File").and(pathKey, "/" + testDir.getFileName().toString() + "/test3.txt").sort(Traits.nameProperty()).getFirst().as(File.class);
+			final File file1 = app.nodeQuery("File").and(pathKey, "/" + testDir.getFileName().toString() + "/test1.txt").sort(Traits.of("NodeInterface").key("name")).getFirst().as(File.class);
+			final File file2 = app.nodeQuery("File").and(pathKey, "/" + testDir.getFileName().toString() + "/test2.txt").sort(Traits.of("NodeInterface").key("name")).getFirst().as(File.class);
+			final File file3 = app.nodeQuery("File").and(pathKey, "/" + testDir.getFileName().toString() + "/test3.txt").sort(Traits.of("NodeInterface").key("name")).getFirst().as(File.class);
 
 			assertNotNull("Test file should have been created by import", file1);
 			assertNotNull("Test file should have been created by import", file2);
@@ -215,11 +215,11 @@ public class DirectFileImportTest extends StructrUiTest {
 		// verify successful file import
 		try (final Tx tx = app.tx()) {
 
-			assertNotNull("Folder should have been created by import", app.nodeQuery("Folder").and(pathKey, "/" + testDir.getFileName().toString()).sort(Traits.nameProperty()).getFirst());
+			assertNotNull("Folder should have been created by import", app.nodeQuery("Folder").and(pathKey, "/" + testDir.getFileName().toString()).sort(Traits.of("NodeInterface").key("name")).getFirst());
 
-			final File file1 = app.nodeQuery("File").and(pathKey, "/" +  testDir.getFileName().toString() + "/test1.txt").sort(Traits.nameProperty()).getFirst().as(File.class);
-			final File file2 = app.nodeQuery("File").and(pathKey, "/" +  testDir.getFileName().toString() + "/test2.txt").sort(Traits.nameProperty()).getFirst().as(File.class);
-			final File file3 = app.nodeQuery("File").and(pathKey, "/" +  testDir.getFileName().toString() + "/test3.txt").sort(Traits.nameProperty()).getFirst().as(File.class);
+			final File file1 = app.nodeQuery("File").and(pathKey, "/" +  testDir.getFileName().toString() + "/test1.txt").sort(Traits.of("NodeInterface").key("name")).getFirst().as(File.class);
+			final File file2 = app.nodeQuery("File").and(pathKey, "/" +  testDir.getFileName().toString() + "/test2.txt").sort(Traits.of("NodeInterface").key("name")).getFirst().as(File.class);
+			final File file3 = app.nodeQuery("File").and(pathKey, "/" +  testDir.getFileName().toString() + "/test3.txt").sort(Traits.of("NodeInterface").key("name")).getFirst().as(File.class);
 
 			assertNotNull("Test file should have been created by import", file1);
 			assertNotNull("Test file should have been created by import", file2);
@@ -285,7 +285,7 @@ public class DirectFileImportTest extends StructrUiTest {
 		// verify successful file import
 		try (final Tx tx = app.tx()) {
 
-			final List<NodeInterface> files = app.nodeQuery("File").sort(Traits.nameProperty()).getAsList();
+			final List<NodeInterface> files = app.nodeQuery("File").sort(Traits.of("NodeInterface").key("name")).getAsList();
 
 			// import mode SKIP => no change, no additional file
 			assertEquals("Only one file should exist after import", 1, files.size());
@@ -339,7 +339,7 @@ public class DirectFileImportTest extends StructrUiTest {
 		// verify successful file import
 		try (final Tx tx = app.tx()) {
 
-			final List<NodeInterface> files = app.nodeQuery("File").sort(Traits.nameProperty()).getAsList();
+			final List<NodeInterface> files = app.nodeQuery("File").sort(Traits.of("NodeInterface").key("name")).getAsList();
 
 			// import mode SKIP => no change, no additional file
 			assertEquals("Only one file should exist after import", 1, files.size());
@@ -410,7 +410,7 @@ public class DirectFileImportTest extends StructrUiTest {
 		// verify successful file import
 		try (final Tx tx = app.tx()) {
 
-			final List<NodeInterface> files = app.nodeQuery("File").sort(Traits.nameProperty()).getAsList();
+			final List<NodeInterface> files = app.nodeQuery("File").sort(Traits.of("NodeInterface").key("name")).getAsList();
 
 			// import mode SKIP => no change, no additional file
 			assertEquals("Only one file should exist after import", 1, files.size());
@@ -469,7 +469,7 @@ public class DirectFileImportTest extends StructrUiTest {
 		// verify successful file import
 		try (final Tx tx = app.tx()) {
 
-			final List<NodeInterface> files = app.nodeQuery("File").sort(Traits.nameProperty()).getAsList();
+			final List<NodeInterface> files = app.nodeQuery("File").sort(Traits.of("NodeInterface").key("name")).getAsList();
 
 			// import mode SKIP => no change, no additional file
 			assertEquals("Only one file should exist after import", 1, files.size());
@@ -540,7 +540,7 @@ public class DirectFileImportTest extends StructrUiTest {
 		// verify successful file import
 		try (final Tx tx = app.tx()) {
 
-			final List<NodeInterface> files = app.nodeQuery("File").sort(Traits.nameProperty()).getAsList();
+			final List<NodeInterface> files = app.nodeQuery("File").sort(Traits.of("NodeInterface").key("name")).getAsList();
 
 			// import mode SKIP => no change, no additional file
 			assertEquals("Two files should exist after import", 2, files.size());
@@ -600,7 +600,7 @@ public class DirectFileImportTest extends StructrUiTest {
 		// verify successful file import
 		try (final Tx tx = app.tx()) {
 
-			final List<NodeInterface> files = app.nodeQuery("File").sort(Traits.nameProperty()).getAsList();
+			final List<NodeInterface> files = app.nodeQuery("File").sort(Traits.of("NodeInterface").key("name")).getAsList();
 
 			// import mode SKIP => no change, no additional file
 			assertEquals("Two files should exist after import", 1, files.size());
@@ -671,7 +671,7 @@ public class DirectFileImportTest extends StructrUiTest {
 		// verify successful file import
 		try (final Tx tx = app.tx()) {
 
-			final List<NodeInterface> files = app.nodeQuery("File").sort(Traits.nameProperty()).getAsList();
+			final List<NodeInterface> files = app.nodeQuery("File").sort(Traits.of("NodeInterface").key("name")).getAsList();
 
 			// import mode SKIP => no change, no additional file
 			assertEquals("Only one file should exist after import", 1, files.size());
@@ -725,7 +725,7 @@ public class DirectFileImportTest extends StructrUiTest {
 		// verify successful file import
 		try (final Tx tx = app.tx()) {
 
-			final List<NodeInterface> files = app.nodeQuery("File").sort(Traits.nameProperty()).getAsList();
+			final List<NodeInterface> files = app.nodeQuery("File").sort(Traits.of("NodeInterface").key("name")).getAsList();
 
 			// import mode SKIP => no change, no additional file
 			assertEquals("Only one file should exist after import", 1, files.size());
@@ -796,7 +796,7 @@ public class DirectFileImportTest extends StructrUiTest {
 		// verify successful file import
 		try (final Tx tx = app.tx()) {
 
-			final List<NodeInterface> files = app.nodeQuery("File").sort(Traits.nameProperty()).getAsList();
+			final List<NodeInterface> files = app.nodeQuery("File").sort(Traits.of("NodeInterface").key("name")).getAsList();
 
 			// import mode SKIP => no change, no additional file
 			assertEquals("Only one file should exist after import", 1, files.size());
@@ -855,7 +855,7 @@ public class DirectFileImportTest extends StructrUiTest {
 		// verify successful file import
 		try (final Tx tx = app.tx()) {
 
-			final List<NodeInterface> files = app.nodeQuery("File").sort(Traits.nameProperty()).getAsList();
+			final List<NodeInterface> files = app.nodeQuery("File").sort(Traits.of("NodeInterface").key("name")).getAsList();
 
 			// import mode SKIP => no change, no additional file
 			assertEquals("Only one file should exist after import", 1, files.size());
@@ -926,7 +926,7 @@ public class DirectFileImportTest extends StructrUiTest {
 		// verify successful file import
 		try (final Tx tx = app.tx()) {
 
-			final List<NodeInterface> files = app.nodeQuery("File").sort(Traits.nameProperty()).getAsList();
+			final List<NodeInterface> files = app.nodeQuery("File").sort(Traits.of("NodeInterface").key("name")).getAsList();
 
 			// import mode SKIP => no change, no additional file
 			assertEquals("Two files should exist after import", 2, files.size());
@@ -989,7 +989,7 @@ public class DirectFileImportTest extends StructrUiTest {
 		// verify successful file import
 		try (final Tx tx = app.tx()) {
 
-			final List<NodeInterface> files = app.nodeQuery("File").sort(Traits.nameProperty()).getAsList();
+			final List<NodeInterface> files = app.nodeQuery("File").sort(Traits.of("NodeInterface").key("name")).getAsList();
 
 			// import mode SKIP => no change, no additional file
 			assertEquals("Two files should exist after import", 1, files.size());
@@ -1050,10 +1050,10 @@ public class DirectFileImportTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			//assertNotNull("Folder should have been created by import",     app.nodeQuery("Folder").andName(testDir.getFileName().toString()).getFirst());
-			assertNotNull("Test file should have been created by import",  app.nodeQuery("File").and(pathKey, "/test1.txt").sort(Traits.nameProperty()).getFirst());
-			assertNull("Test file should NOT have been created by import", app.nodeQuery("File").and(pathKey, "/test2.pdf").sort(Traits.nameProperty()).getFirst());
-			assertNull("Test file should NOT have been created by import", app.nodeQuery("File").and(pathKey, "/test3.zip").sort(Traits.nameProperty()).getFirst());
-			assertNotNull("Test file should have been created by import",  app.nodeQuery("File").and(pathKey, "/test4.txt").sort(Traits.nameProperty()).getFirst());
+			assertNotNull("Test file should have been created by import",  app.nodeQuery("File").and(pathKey, "/test1.txt").sort(Traits.of("NodeInterface").key("name")).getFirst());
+			assertNull("Test file should NOT have been created by import", app.nodeQuery("File").and(pathKey, "/test2.pdf").sort(Traits.of("NodeInterface").key("name")).getFirst());
+			assertNull("Test file should NOT have been created by import", app.nodeQuery("File").and(pathKey, "/test3.zip").sort(Traits.of("NodeInterface").key("name")).getFirst());
+			assertNotNull("Test file should have been created by import",  app.nodeQuery("File").and(pathKey, "/test4.txt").sort(Traits.of("NodeInterface").key("name")).getFirst());
 
 			tx.success();
 

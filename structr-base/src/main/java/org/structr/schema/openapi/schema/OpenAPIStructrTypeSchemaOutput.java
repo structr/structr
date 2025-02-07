@@ -107,9 +107,9 @@ public class OpenAPIStructrTypeSchemaOutput extends TreeMap<String, Object> {
 
 		} else {
 
-			final PropertyKey idKey   = Traits.idProperty();
-			final PropertyKey typeKey = Traits.typeProperty();
-			final PropertyKey nameKey = Traits.nameProperty();
+			final PropertyKey idKey   = Traits.of("GraphObject").key("id");
+			final PropertyKey typeKey = Traits.of("GraphObject").key("type");
+			final PropertyKey nameKey = Traits.of("NodeInterface").key("name");
 
 			// default properties
 			properties.put("id",   idKey.describeOpenAPIOutputType(typeName, viewName, level));

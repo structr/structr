@@ -22,8 +22,8 @@ import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaRelationshipNode;
+import org.structr.core.traits.TraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
-import org.structr.core.traits.definitions.TraitDefinition;
 
 public class DynamicRelationshipTraitDefinition extends AbstractDynamicTraitDefinition<SchemaRelationshipNode> implements RelationshipBaseTraitDefinition {
 

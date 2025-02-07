@@ -79,7 +79,7 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> extends D
 	private T deserialize(final SecurityContext securityContext, final String type, final PropertyMap attributes, final Object context) throws FrameworkException {
 
 		final App app = StructrApp.getInstance(securityContext);
-		final PropertyKey<String> idProperty = Traits.idProperty();
+		final PropertyKey<String> idProperty = Traits.of("GraphObject").key("id");
 
 		if (attributes != null) {
 

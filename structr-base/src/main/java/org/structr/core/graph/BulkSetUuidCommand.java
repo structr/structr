@@ -44,7 +44,7 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 	public long executeWithCount(final Map<String, Object> attributes) throws FrameworkException {
 
-		final PropertyKey<String> idProperty = Traits.idProperty();
+		final PropertyKey<String> idProperty = Traits.of("GraphObject").key("id");
 		final String nodeType  = (String) attributes.get("type");
 		final String relType   = (String) attributes.get("relType");
 		final Boolean allNodes = (Boolean) attributes.get("allNodes");

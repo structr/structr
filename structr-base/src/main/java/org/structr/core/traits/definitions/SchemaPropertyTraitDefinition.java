@@ -71,7 +71,7 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 
 				@Override
 				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
-					return ValidationHelper.isValidStringMatchingRegex(obj, Traits.nameProperty(), schemaPropertyNamePattern, errorBuffer);
+					return ValidationHelper.isValidStringMatchingRegex(obj, Traits.of("NodeInterface").key("name"), schemaPropertyNamePattern, errorBuffer);
 				}
 			}
 		);

@@ -1666,7 +1666,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 			} else {
 
 				// fallback: iterate over id, type, name
-				Traits.of("NodeInterface").getDefaultKeys().stream().forEach(visitor::visit);
+				Traits.getDefaultKeys().stream().forEach(visitor::visit);
 			}
 		}
 	}

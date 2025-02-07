@@ -21,46 +21,31 @@ package org.structr.core.traits;
 import org.structr.api.Predicate;
 import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
-import org.structr.core.api.ScriptMethod;
 import org.structr.core.entity.Relation;
-import org.structr.core.entity.SchemaMethod;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.traits.definitions.TraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * A named collection of traits that a node can have.
  */
 public class TraitsImplementation implements Traits {
 
-	private static final Set<String> DEFAULT_PROPERTY_KEYS        = new LinkedHashSet<>(Arrays.asList("id", "type", "name"));
-	private static final Map<String, Traits> globalTraitMap       = new LinkedHashMap<>();
-	private static final Map<String, Set<PropertyKey>> properties = new LinkedHashMap<>();
-	private static PropertyKey<Date> cachedCreatedDateProperty    = null;
-	private static PropertyKey<String> cachedNameProperty         = null;
-	private static PropertyKey<String> cachedTypeProperty         = null;
-	private static PropertyKey<String> cachedIdProperty           = null;
+	private static final Map<String, Traits> globalTypeMap = new LinkedHashMap<>();
+	private static final Map<String, Trait> globalTraitMap = new LinkedHashMap<>();
 
-	private final Map<String, TraitDefinition> types                              = new LinkedHashMap<>();
-	private final Map<String, AbstractMethod> dynamicMethods                      = new LinkedHashMap<>();
-	private final Map<Class, FrameworkMethod> overwritableMethods                 = new LinkedHashMap<>();
-	private final Map<Class, NodeTraitFactory> nodeTraitFactories                 = new LinkedHashMap<>();
-	private final Map<Class, RelationshipTraitFactory> relationshipTraitFactories = new LinkedHashMap<>();
-	private final Map<Class, Set> composableMethods                               = new LinkedHashMap<>();
-	private final Map<String, PropertyKey> propertyKeys                           = new LinkedHashMap<>();
-	private final Map<String, Set<String>> views                                  = new LinkedHashMap<>();
-
+	private final Set<TraitDefinition> definitions = new LinkedHashSet<>();
+	private final Set<String> traits               = new LinkedHashSet<>();
 	private final boolean isNodeType;
-	private final String typeName;
 	private final boolean isRelationshipType;
 	private final boolean isBuiltInType;
 	private final boolean changelogEnabled;
-	private Relation relation;
+	private final String typeName;
 
 	TraitsImplementation(final String typeName, final boolean isBuiltInType, final boolean isNodeType, final boolean isRelationshipType, final boolean changelogEnabled) {
 
@@ -70,7 +55,7 @@ public class TraitsImplementation implements Traits {
 		this.isRelationshipType = isRelationshipType;
 		this.changelogEnabled   = changelogEnabled;
 
-		globalTraitMap.put(typeName, this);
+		globalTypeMap.put(typeName, this);
 	}
 
 	@Deprecated
@@ -83,26 +68,24 @@ public class TraitsImplementation implements Traits {
 
 	@Override
 	public Set<String> getLabels() {
-		return Collections.unmodifiableSet(types.keySet());
+		return Collections.unmodifiableSet(globalTraitMap.keySet());
 	}
 
 	@Override
 	public boolean contains(final String type) {
-		return types.containsKey(type);
-	}
-
-	@Override
-	public TraitDefinition get(final String type) {
-		return types.get(type);
+		return globalTraitMap.containsKey(type);
 	}
 
 	@Override
 	public <T> PropertyKey<T> key(final String name) {
 
-		final PropertyKey<T> key = propertyKeys.get(name);
-		if (key != null) {
+		for (final Trait trait : globalTraitMap.values()) {
 
-			return key;
+			final Map<String, PropertyKey> keys = trait.getPropertyKeys();
+			if (keys.containsKey(name)) {
+
+				return keys.get(name);
+			}
 		}
 
 		throw new RuntimeException("Missing property key " + name + " of type " + typeName);
@@ -110,7 +93,15 @@ public class TraitsImplementation implements Traits {
 
 	@Override
 	public boolean hasKey(final String name) {
-		return propertyKeys.containsKey(name);
+
+		for (final Trait trait : globalTraitMap.values()) {
+
+			if (trait.getPropertyKeys().containsKey(name)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	@Override
@@ -129,23 +120,6 @@ public class TraitsImplementation implements Traits {
 	}
 
 	/**
-	 * Returns the default set of property keys, which is
-	 * id, type and name.
-	 * @return
-	 */
-	@Override
-	public Set<PropertyKey> getDefaultKeys() {
-
-		final Set<PropertyKey> keys = new LinkedHashSet<>();
-
-		keys.add(propertyKeys.get("id"));
-		keys.add(propertyKeys.get("type"));
-		keys.add(propertyKeys.get("name"));
-
-		return keys;
-	}
-
-	/**
 	 * Returns the combined property set of all traits that
 	 * this type contains.
 	 *
@@ -156,10 +130,7 @@ public class TraitsImplementation implements Traits {
 
 		final Set<PropertyKey> set = new LinkedHashSet<>();
 
-		for (final PropertyKey key : propertyKeys.values()) {
-
-			set.add(key);
-		}
+		traits.stream().map(name -> globalTraitMap.get(name)).forEach(trait -> set.addAll(trait.getPropertyKeys().values()));
 
 		return set;
 	}
@@ -173,50 +144,66 @@ public class TraitsImplementation implements Traits {
 	@Override
 	public Set<PropertyKey> getPropertyKeysForView(final String propertyView) {
 
-		final Set<String> view = views.get(propertyView);
-		if (view != null) {
+		final LinkedHashSet<PropertyKey> set = new LinkedHashSet<>();
 
-			final LinkedHashSet<PropertyKey> set = new LinkedHashSet<>();
+		for (final String name : traits) {
 
-			for (final String name : view) {
+			final Trait trait = globalTraitMap.get(name);
 
-				final PropertyKey key = propertyKeys.get(name);
-				if (key != null) {
+			set.addAll(trait.getPropertyKeysForView(propertyView));
 
-					set.add(key);
-
-				} else {
-
-					throw new RuntimeException("Key " + name + " from view " + propertyView + " does not exist!");
-				}
-			}
-
-			return set;
 		}
 
-		return Set.of();
+		return set;
 	}
 
 	@Override
 	public <T extends LifecycleMethod> Set<T> getMethods(final Class<T> type) {
 
-		final Set<T> methods = composableMethods.get(type);
-		if (methods != null) {
+		final Set<T> methods = new LinkedHashSet<>();
 
-			return methods;
+		for (final String name : traits) {
+
+			final Trait trait = globalTraitMap.get(name);
+
+			methods.add(trait.getLifecycleMethod(type));
 		}
 
-		return Collections.EMPTY_SET;
+		return methods;
 	}
 
 	@Override
 	public <T extends FrameworkMethod> T getMethod(final Class<T> type) {
-		return (T) overwritableMethods.get(type);
+
+		// build hierarchy here??
+
+		final Set<T> methods = new LinkedHashSet<>();
+
+		for (final String name : traits) {
+
+			final Trait trait = globalTraitMap.get(name);
+
+			methods.add(trait.getFrameworkMethod(type));
+		}
+
+		// fixme: need hierarchy!
+		return null;
 	}
 
 	@Override
 	public Map<String, AbstractMethod> getDynamicMethods() {
-		return Collections.unmodifiableMap(dynamicMethods);
+
+		final Map<String, AbstractMethod> methods = new LinkedHashMap<>();
+
+		for (final String name : traits) {
+
+			final Trait trait = globalTraitMap.get(name);
+
+			// this is the place where we can detect clashes!
+			methods.putAll(trait.getDynamicMethods());
+		}
+
+		return methods;
 	}
 
 	@Override
@@ -224,115 +211,71 @@ public class TraitsImplementation implements Traits {
 
 		if (obj.isNode()) {
 
-			final NodeTraitFactory factory = nodeTraitFactories.get(type);
-			if (factory != null) {
+			for (final String name : traits) {
 
-				return (T) factory.newInstance(this, (NodeInterface) obj);
+				final Trait trait = globalTraitMap.get(name);
+				final Map<Class, NodeTraitFactory> factories = trait.getNodeTraitFactories();
+
+				final NodeTraitFactory factory = factories.get(type);
+				if (factory != null) {
+
+					return (T) factory.newInstance(this, (NodeInterface) obj);
+				}
 			}
 
 		} else {
 
-			final RelationshipTraitFactory factory = relationshipTraitFactories.get(type);
-			if (factory != null) {
+			for (final String name : traits) {
 
-				return (T) factory.newInstance(this, (RelationshipInterface) obj);
+				final Trait trait = globalTraitMap.get(name);
+				final Map<Class, RelationshipTraitFactory> factories = trait.getRelationshipTraitFactories();
+
+				final RelationshipTraitFactory factory = factories.get(type);
+				if (factory != null) {
+
+					return (T) factory.newInstance(this, (RelationshipInterface) obj);
+				}
 			}
-
 		}
 
 		throw new RuntimeException("Type " + this.typeName + " does not have the " + type + " trait.");
 	}
 
 	@Override
-	public synchronized void registerImplementation(final TraitDefinition trait) {
+	public synchronized void registerImplementation(final TraitDefinition traitDefinition) {
 
-		// register trait
-		types.put(trait.getName(), trait);
+		final String name = traitDefinition.getName();
+		Trait trait       = globalTraitMap.get(name);
 
-		// relation (for relationship types)
-		final Relation r = trait.getRelation();
-		if (r != null) {
+		if (trait == null) {
 
-			if (this.relation != null) {
-
-				throw new RuntimeException("Duplicate Relation specification!");
-			}
-
-			this.relation = r;
+			trait = new Trait(traitDefinition);
+			globalTraitMap.put(name, trait);
 		}
 
-		// properties need to be registered first so they are available in lifecycle methods etc.
-		for (final PropertyKey key : trait.getPropertyKeys()) {
-
-			final String name = key.jsonName();
-
-			// register property key
-			propertyKeys.put(name, key);
-
-			// set declaring trait
-			key.setDeclaringTrait(trait);
-
-			// store property-trait association (which property is defined by which trait)
-			this.properties.computeIfAbsent(trait.getName(), k -> new LinkedHashSet<>()).add(key);
-
-			// add key to "all" view
-			this.views.computeIfAbsent("all", k -> new LinkedHashSet<>()).add(name);
-
-			// add dynamic keys to "custom" view
-			if (key.isDynamic() || DEFAULT_PROPERTY_KEYS.contains(name)) {
-				this.views.computeIfAbsent("custom", k -> new LinkedHashSet<>()).add(name);
-			}
-		}
-
-		// composable methods (like callbacks etc.)
-		for (final Map.Entry<Class, LifecycleMethod> entry : trait.getLifecycleMethods().entrySet()) {
-
-			final Class type = entry.getKey();
-
-			composableMethods.computeIfAbsent(type, k -> new LinkedHashSet()).add(entry.getValue());
-		}
-
-		// overwritable methods
-		for (final Map.Entry<Class, FrameworkMethod> entry : trait.getFrameworkMethods().entrySet()) {
-
-			final Class type             = entry.getKey();
-			final FrameworkMethod method = entry.getValue();
-			final FrameworkMethod parent = overwritableMethods.put(type, method);
-
-			// replace currently registered implementation and install as super implementation
-			if (parent != null) {
-
-				method.setSuper(parent);
-			}
-		}
-
-		// dynamic methods
-		for (final AbstractMethod method : trait.getDynamicMethods()) {
-			this.dynamicMethods.put(method.getName(), method);
-		}
-
-		// views
-		for (final Map.Entry<String, Set<String>> views : trait.getViews().entrySet()) {
-
-			final Set<String> set = this.views.computeIfAbsent(views.getKey(), k -> new LinkedHashSet<>());
-
-			set.addAll(views.getValue());
-		}
-
-
-		// trait implementations
-		this.nodeTraitFactories.putAll(trait.getNodeTraitFactories());
-		this.relationshipTraitFactories.putAll(trait.getRelationshipTraitFactories());
+		definitions.add(traitDefinition);
 	}
 
 	@Override
 	public Relation getRelation() {
-		return relation;
+
+		for (final String name : traits) {
+
+			final Trait trait  = globalTraitMap.get(name);
+			final Relation rel = trait.getRelation();
+
+			if (rel != null) {
+
+				return rel;
+			}
+		}
+
+		return null;
 	}
 
 	@Override
 	public Set<TraitDefinition> getTraitDefinitions() {
-		return Collections.unmodifiableSet(new LinkedHashSet<>(types.values()));
+		return Collections.unmodifiableSet(definitions);
 	}
 
 	@Override
@@ -357,39 +300,31 @@ public class TraitsImplementation implements Traits {
 
 	@Override
 	public Set<String> getViewNames() {
-		return Collections.unmodifiableSet(views.keySet());
+
+		final Set<String> names = new LinkedHashSet<>();
+
+		for (final Trait trait : getTraits()) {
+
+			names.addAll(trait.getViewNames());
+		}
+
+		return names;
 	}
 
 	@Override
 	public Set<String> getAllTraits() {
-		return new LinkedHashSet<>(types.keySet());
+		return new LinkedHashSet<>(traits);
 	}
 
-	public void registerDynamicMethod(final SchemaMethod method) {
-
-		if (method.isLifecycleMethod()) {
-
-			final Class<LifecycleMethod> type = method.getMethodType();
-			if (type != null) {
-
-				composableMethods.computeIfAbsent(type, k -> new LinkedHashSet()).add(method.asLifecycleMethod());
-
-			} else {
-
-				// report error?
-			}
-
-		} else {
-
-			dynamicMethods.put(method.getName(), new ScriptMethod(method));
-		}
-
+	// ----- private methods -----
+	private Set<Trait> getTraits() {
+		return traits.stream().map(globalTraitMap::get).collect(Collectors.toSet());
 	}
 
 	// ----- static methods -----
 	static Traits of(String name) {
 
-		final Traits traits = TraitsImplementation.globalTraitMap.get(name);
+		final Traits traits = TraitsImplementation.globalTypeMap.get(name);
 		if (traits != null) {
 
 			return traits;
@@ -398,10 +333,33 @@ public class TraitsImplementation implements Traits {
 		throw new RuntimeException("Missing trait definition for " + name + ".");
 	}
 
+	public static Trait getTrait(final String type) {
+		return globalTraitMap.get(type);
+	}
+
+	/**
+	 * Returns the default set of property keys, which is
+	 * id, type and name.
+	 * @return
+	 */
+	public static Set<PropertyKey> getDefaultKeys() {
+
+		final Set<PropertyKey> keys = new LinkedHashSet<>();
+		final Traits nodeTraits     = Traits.of("NodeInterface");
+
+		keys.add(nodeTraits.key("id"));
+		keys.add(nodeTraits.key("type"));
+		keys.add(nodeTraits.key("name"));
+
+		return keys;
+	}
+
 	static Set<PropertyKey> getPropertiesOfTrait(final String name) {
 
-		if (properties.containsKey(name)) {
-			return properties.get(name);
+		final Trait trait = globalTraitMap.get(name);
+		if (trait != null) {
+
+			return trait.getAllPropertyKeys();
 		}
 
 		return Set.of();
@@ -412,7 +370,7 @@ public class TraitsImplementation implements Traits {
 		final Traits traits1 = Traits.of(type1);
 		final Traits traits2 = Traits.of(type2);
 
-		for (final Traits traits : globalTraitMap.values()) {
+		for (final Traits traits : globalTypeMap.values()) {
 
 			if (traits.isRelationshipType()) {
 
@@ -435,7 +393,7 @@ public class TraitsImplementation implements Traits {
 	}
 
 	static boolean exists(String name) {
-		return TraitsImplementation.globalTraitMap.containsKey(name);
+		return TraitsImplementation.globalTypeMap.containsKey(name);
 	}
 
 	static Set<String> getAllTypes() {
@@ -446,7 +404,7 @@ public class TraitsImplementation implements Traits {
 
 		final Set<String> types = new LinkedHashSet<>();
 
-		for (final Traits trait : TraitsImplementation.globalTraitMap.values()) {
+		for (final Traits trait : TraitsImplementation.globalTypeMap.values()) {
 
 			if (filter == null || filter.accept(trait)) {
 
@@ -476,47 +434,11 @@ public class TraitsImplementation implements Traits {
 		return null;
 	}
 
-	static PropertyKey<String> idProperty() {
-
-		if (TraitsImplementation.cachedIdProperty == null) {
-			TraitsImplementation.cachedIdProperty = key("GraphObject", "id");
-		}
-
-		return TraitsImplementation.cachedIdProperty;
-	}
-
-	static PropertyKey<String> nameProperty() {
-
-		if (TraitsImplementation.cachedNameProperty == null) {
-			TraitsImplementation.cachedNameProperty = key("NodeInterface", "name");
-		}
-
-		return TraitsImplementation.cachedNameProperty;
-	}
-
-	static PropertyKey<String> typeProperty() {
-
-		if (TraitsImplementation.cachedTypeProperty == null) {
-			TraitsImplementation.cachedTypeProperty = key("GraphObject", "type");
-		}
-
-		return TraitsImplementation.cachedTypeProperty;
-	}
-
-	static PropertyKey<Date> createdDateProperty() {
-
-		if (TraitsImplementation.cachedCreatedDateProperty == null) {
-			TraitsImplementation.cachedCreatedDateProperty = key("GraphObject", "createdDate");
-		}
-
-		return TraitsImplementation.cachedCreatedDateProperty;
-	}
-
 	static Set<String> getAllViews() {
 
 		final Set<String> allViews = new LinkedHashSet<>();
 
-		for (final Traits traits : TraitsImplementation.globalTraitMap.values()) {
+		for (final Traits traits : TraitsImplementation.globalTypeMap.values()) {
 
 			traits.getViewNames().forEach(allViews::add);
 		}
@@ -535,7 +457,7 @@ public class TraitsImplementation implements Traits {
 
 		final Map<String, Map<String, PropertyKey>> removedClasses = new LinkedHashMap<>();
 
-		for (final Iterator<Traits> it = TraitsImplementation.globalTraitMap.values().iterator(); it.hasNext(); ) {
+		for (final Iterator<Traits> it = TraitsImplementation.globalTypeMap.values().iterator(); it.hasNext(); ) {
 
 			final Traits traits = it.next();
 
@@ -555,7 +477,7 @@ public class TraitsImplementation implements Traits {
 				}
 
 				// remove property keys from global map
-				properties.remove(indexingTypeName);
+				//properties.remove(indexingTypeName);
 
 				// add mapped property keys
 				final Map<String, PropertyKey> map = removedClasses.computeIfAbsent(indexingTypeName, k -> new LinkedHashMap<>());

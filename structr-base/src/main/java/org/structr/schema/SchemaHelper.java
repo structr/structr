@@ -35,8 +35,8 @@ import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.RelationProperty;
 import org.structr.core.property.StringProperty;
+import org.structr.core.traits.Trait;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.TraitDefinition;
 import org.structr.rest.resource.SchemaResource;
 import org.structr.schema.parser.*;
 
@@ -279,7 +279,7 @@ public class SchemaHelper {
 		map.put("jsonName", property.jsonName());
 		map.put("className", property.getClass().getName());
 
-		final TraitDefinition declaringTrait = property.getDeclaringTrait();
+		final Trait declaringTrait = property.getDeclaringTrait();
 		if (declaringTrait != null) {
 
 			map.put("declaringClass", declaringTrait.getName());

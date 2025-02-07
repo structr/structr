@@ -95,14 +95,14 @@ public class StructrApp implements App {
 		String finalType                = type;
 
 		// try to identify the actual type from input set (creation wouldn't work otherwise anyway)
-		final String typeFromInput = properties.get(Traits.typeProperty());
+		final String typeFromInput = properties.get(Traits.of("GraphObject").key("type"));
 		if (typeFromInput != null) {
 
 			final Traits actualType = Traits.of(typeFromInput);
 			if (actualType == null) {
 
 				// overwrite type information when creating a node (adhere to type specified by resource!)
-				properties.put(Traits.typeProperty(), type);
+				properties.put(Traits.of("GraphObject").key("type"), type);
 
 			} else if (actualType.isInterface() || actualType.isAbstract()) {
 
@@ -115,7 +115,7 @@ public class StructrApp implements App {
 		}
 
 		// set type
-		properties.put(Traits.typeProperty(), finalType);
+		properties.put(Traits.of("GraphObject").key("type"), finalType);
 
 		return command.execute(properties);
 	}
@@ -127,7 +127,7 @@ public class StructrApp implements App {
 		final CreateNodeCommand command    = command(CreateNodeCommand.class);
 
 		// add type information when creating a node
-		attrs.add(new NodeAttribute(Traits.typeProperty(), type));
+		attrs.add(new NodeAttribute(Traits.of("GraphObject").key("type"), type));
 
 		return command.execute(attrs);
 	}

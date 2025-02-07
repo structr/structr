@@ -39,9 +39,9 @@ public class OpenAPIStructrTypeExample extends TreeMap<String, Object> {
 
 		if (level > 0 && Schema.RestrictedViews.contains(viewName)) {
 
-			handleProperty(type, Traits.idProperty(),   viewName, level);
-			handleProperty(type, Traits.typeProperty(), viewName, level);
-			handleProperty(type, Traits.nameProperty(), viewName, level);
+			handleProperty(type, Traits.of("GraphObject").key("id"),   viewName, level);
+			handleProperty(type, Traits.of("GraphObject").key("type"), viewName, level);
+			handleProperty(type, Traits.of("NodeInterface").key("name"), viewName, level);
 
 		} else {
 

@@ -60,7 +60,7 @@ public class GeoHelper {
 		double latitude         = coords.getLatitude();
 		double longitude        = coords.getLongitude();
 
-		props.put(Traits.typeProperty(), "Location");
+		props.put(Traits.of("GraphObject").key("type"), "Location");
 		props.put(traits.key("latitude"),  latitude);
 		props.put(traits.key("longitude"), longitude);
 

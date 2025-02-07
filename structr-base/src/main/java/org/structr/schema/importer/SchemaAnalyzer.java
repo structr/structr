@@ -383,7 +383,7 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 					}
 
 					// set node type which is in "name" property
-					propertyMap.put(Traits.nameProperty(), type);
+					propertyMap.put(Traits.of("NodeInterface").key("name"), type);
 
 					// check if there is an existing Structr entity with the same type and make the dynamic class extend the existing class if yes.
 					final Traits existingType = Traits.of(type);

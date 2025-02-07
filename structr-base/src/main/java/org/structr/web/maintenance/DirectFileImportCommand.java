@@ -307,7 +307,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 				final NodeInterface newFile = app.create(traits.getName(),
 						new NodeAttribute(Traits.of("File").key("name"), name),
 						new NodeAttribute(Traits.of("File").key("parent"), FileHelper.createFolderPath(securityContext, parentPath)),
-						new NodeAttribute(Traits.typeProperty(), traits.getName())
+						new NodeAttribute(Traits.of("GraphObject").key("type"), traits.getName())
 				);
 
 				try (final InputStream is = new FileInputStream(file.toFile()); final OutputStream os = StorageProviderFactory.getStorageProvider(newFile.as(File.class)).getOutputStream()) {

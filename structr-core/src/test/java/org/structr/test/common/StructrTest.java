@@ -40,12 +40,11 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
-import org.structr.schema.SchemaService;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.test.core.traits.definitions.*;
 import org.structr.test.core.traits.definitions.relationships.*;
-import org.testng.annotations.*;
 import org.testng.annotations.Optional;
+import org.testng.annotations.*;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -262,14 +261,14 @@ public class StructrTest {
 
 		final PropertyMap map = new PropertyMap();
 
-		map.put(Traits.nameProperty(), name);
+		map.put(Traits.of("NodeInterface").key("name"), name);
 
 		return createTestNode(type, map);
 	}
 
 	protected NodeInterface createTestNode(final String type, final PropertyMap props) throws FrameworkException {
 
-		props.put(Traits.typeProperty(), type);
+		props.put(Traits.of("GraphObject").key("type"), type);
 
 		try (final Tx tx = app.tx()) {
 

@@ -113,7 +113,7 @@ public class APIBuilderModule implements StructrModule, APIBuilder {
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface virtualTypeNode : app.nodeQuery("VirtualType").sort(Traits.nameProperty()).getAsList()) {
+			for (final NodeInterface virtualTypeNode : app.nodeQuery("VirtualType").sort(Traits.of("NodeInterface").key("name")).getAsList()) {
 
 				final VirtualType virtualType   = virtualTypeNode.as(VirtualType.class);
 				final Map<String, Object> entry = new TreeMap<>();

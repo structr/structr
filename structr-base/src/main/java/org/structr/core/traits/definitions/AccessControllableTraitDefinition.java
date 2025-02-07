@@ -262,8 +262,8 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 
 						final NodeInterface p1 = o1.getSourceNode();
 						final NodeInterface p2 = o2.getSourceNode();
-						final String n1 = p1 != null ? p1.getProperty(Traits.nameProperty()) : "empty";
-						final String n2 = p2 != null ? p2.getProperty(Traits.nameProperty()) : "empty";
+						final String n1 = p1 != null ? p1.getProperty(Traits.of("NodeInterface").key("name")) : "empty";
+						final String n2 = p2 != null ? p2.getProperty(Traits.of("NodeInterface").key("name")) : "empty";
 
 						if (n1 != null && n2 != null) {
 							return n1.compareTo(n2);

@@ -24,11 +24,8 @@ import org.structr.api.search.QueryPredicate;
 import org.structr.api.search.SortOrder;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
-import org.structr.core.traits.definitions.TraitDefinition;
+import org.structr.core.traits.Trait;
 
 import java.util.Comparator;
 import java.util.LinkedHashSet;
@@ -142,7 +139,7 @@ public abstract class SearchAttribute<T> extends NodeAttribute<T> implements Pre
 		final PropertyKey key = getKey();
 		if (key != null) {
 
-			final TraitDefinition declaringTrait = key.getDeclaringTrait();
+			final Trait declaringTrait = key.getDeclaringTrait();
 
 			if (declaringTrait != null && !declaringTrait.isRelationship()) {
 

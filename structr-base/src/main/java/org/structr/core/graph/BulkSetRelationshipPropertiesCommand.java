@@ -45,7 +45,7 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
 
 		final DatabaseService graphDb        = (DatabaseService) arguments.get("graphDb");
 		final App app                        = StructrApp.getInstance();
-		final PropertyKey<String> idProperty = Traits.idProperty();
+		final PropertyKey<String> idProperty = Traits.of("GraphObject").key("id");
 		String relationshipTypeClass         = "RelationshipInterface";
 
 		if (graphDb != null) {

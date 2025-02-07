@@ -77,7 +77,7 @@ public class ImageTraitDefinition extends AbstractNodeTraitDefinition {
 					final Image thisImage = graphObject.as(Image.class);
 					if ( !thisImage.isThumbnail() && !thisImage.isTemplate() ) {
 
-						if (modificationQueue.isPropertyModified(graphObject, Traits.nameProperty())) {
+						if (modificationQueue.isPropertyModified(graphObject, Traits.of("NodeInterface").key("name"))) {
 
 							final String newImageName = thisImage.getName();
 

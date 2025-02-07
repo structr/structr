@@ -28,8 +28,8 @@ import org.structr.core.converter.ValidationInfo;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.CreationContainer;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.Trait;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.TraitDefinition;
 
 import java.util.Date;
 
@@ -55,7 +55,7 @@ public class PasswordProperty extends StringProperty {
 	}
 
 	@Override
-	public void registrationCallback(final TraitDefinition trait) {
+	public void registrationCallback(final Trait trait) {
 
 		if (validationInfo != null && validationInfo.getErrorKey() == null) {
 			validationInfo.setErrorKey(this);

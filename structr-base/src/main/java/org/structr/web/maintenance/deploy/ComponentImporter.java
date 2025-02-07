@@ -94,7 +94,7 @@ public class ComponentImporter extends HtmlFileImporter {
 
 			if (DeployCommand.isUuid(name)) {
 
-				result = StructrApp.getInstance().nodeQuery("DOMNode").and(Traits.idProperty(), name).getFirst();
+				result = StructrApp.getInstance().nodeQuery("DOMNode").and(Traits.of("GraphObject").key("id"), name).getFirst();
 
 			} else {
 
@@ -268,7 +268,7 @@ public class ComponentImporter extends HtmlFileImporter {
 
 							// set UUID
 							rootElement.unlockSystemPropertiesOnce();
-							rootElement.setProperty(Traits.idProperty(), componentName);
+							rootElement.setProperty(Traits.of("GraphObject").key("id"), componentName);
 
 						} else if (byNameAndId) {
 
@@ -279,13 +279,13 @@ public class ComponentImporter extends HtmlFileImporter {
 							DeployCommand.updateDeferredPagelink(rootElement.getUuid(), uuid);
 
 							rootElement.unlockSystemPropertiesOnce();
-							rootElement.setProperty(Traits.idProperty(), uuid);
-							properties.put(Traits.nameProperty(), name);
+							rootElement.setProperty(Traits.of("GraphObject").key("id"), uuid);
+							properties.put(Traits.of("NodeInterface").key("name"), name);
 
 						} else {
 
 							// set name
-							rootElement.setProperty(Traits.nameProperty(), componentName);
+							rootElement.setProperty(Traits.of("NodeInterface").key("name"), componentName);
 						}
 
 						// store properties from components.json if present

@@ -103,7 +103,7 @@ public interface Page extends DOMNode {
 		properties.put(enableBasicAuthKey, false);
 
 		if (uuid != null) {
-			properties.put(Traits.idProperty(), uuid);
+			properties.put(traits.key("id"), uuid);
 		}
 
 		return app.create("Page", properties).as(Page.class);

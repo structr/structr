@@ -390,7 +390,7 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 			user.unlockSystemPropertiesOnce();
 
 			final PropertyMap changedProperties = new PropertyMap();
-			changedProperties.put(Traits.typeProperty(), "User");
+			changedProperties.put(Traits.of("GraphObject").key("type"), "User");
 			changedProperties.put(confirmationKeyKey, confKey);
 			user.setProperties(securityContext, changedProperties);
 

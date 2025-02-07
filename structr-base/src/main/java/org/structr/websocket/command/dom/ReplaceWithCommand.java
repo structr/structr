@@ -120,7 +120,7 @@ public class ReplaceWithCommand extends CreateAndAppendDOMNodeCommand {
 				try {
 
 					newNode.unlockSystemPropertiesOnce();
-					newNode.setProperties(newNode.getSecurityContext(), new PropertyMap(Traits.typeProperty(), "Template"));
+					newNode.setProperties(newNode.getSecurityContext(), new PropertyMap(Traits.of("GraphObject").key("type"), "Template"));
 
 				} catch (FrameworkException fex) {
 

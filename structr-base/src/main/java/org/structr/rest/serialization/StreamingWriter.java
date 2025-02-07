@@ -451,19 +451,19 @@ public abstract class StreamingWriter {
 					final boolean hasView = traits.getViewNames().contains(localPropertyView);
 
 					if ((keys == null || keys.isEmpty()) && depth > 0 && !hasView) {
-						keys = traits.getDefaultKeys();
+						keys = Traits.getDefaultKeys();
 					}
 
 					if (keys != null) {
 
 						// speciality for all, custom and ui view: limit recursive rendering to (id, type, name)
 						if (reduceNestedObjectsForRestrictedViews && depth > reduceNestedObjectsInRestrictedViewsDepth && Schema.RestrictedViews.contains(localPropertyView)) {
-							keys = traits.getDefaultKeys();
+							keys = Traits.getDefaultKeys();
 						}
 
 						// speciality nested nodes which were already rendered: limit recursive rendering (id, type, name)
 						if (reduceRedundancy && !notVisitedBefore && depth > 0) {
-							keys = traits.getDefaultKeys();
+							keys = Traits.getDefaultKeys();
 						}
 
 						// prefetching hook

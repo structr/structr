@@ -1143,7 +1143,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	 */
 	private DOMNode findPartialByName(final SecurityContext securityContext, final String name) throws FrameworkException {
 
-		for (final NodeInterface node : StructrApp.getInstance(securityContext).nodeQuery("DOMNode").andName(name).not().and(Traits.typeProperty(), "Page").getAsList()) {
+		for (final NodeInterface node : StructrApp.getInstance(securityContext).nodeQuery("DOMNode").andName(name).not().and(Traits.of("GraphObject").key("type"), "Page").getAsList()) {
 
 			final DOMNode potentialPartial = node.as(DOMNode.class);
 

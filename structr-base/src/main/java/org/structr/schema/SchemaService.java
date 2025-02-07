@@ -40,8 +40,9 @@ import org.structr.core.graph.NodeService;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Trait;
+import org.structr.core.traits.TraitDefinition;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.TraitDefinition;
 import org.structr.schema.compiler.*;
 
 import java.net.URI;
@@ -146,9 +147,9 @@ public class SchemaService implements Service {
 						// attach method to existing type
 						if (Traits.exists(staticSchemaNodeName)) {
 
-							final Traits traits = Traits.of(staticSchemaNodeName);
+							final Trait trait = Traits.getTrait(staticSchemaNodeName);
 
-							traits.registerDynamicMethod(schemaMethod);
+							trait.registerDynamicMethod(schemaMethod);
 						}
 					}
 				}
@@ -617,7 +618,7 @@ public class SchemaService implements Service {
 					final Set<String> whitelist   = new LinkedHashSet<>(Set.of("GraphObject", "NodeInterface"));
 					final DatabaseService graphDb = StructrApp.getInstance().getDatabaseService();
 
-					final Map<String, Map<String, IndexConfig>> schemaIndexConfig    = new HashMap();
+					final Map<String, Map<String, IndexConfig>> schemaIndexConfig  = new HashMap();
 					final Map<String, Map<String, IndexConfig>> removedTypesConfig = new HashMap();
 
 					for (final String type : Traits.getAllTypes()) {
@@ -636,8 +637,8 @@ public class SchemaService implements Service {
 
 						for (final PropertyKey key : traits.getAllPropertyKeys()) {
 
-							boolean createIndex         = key.isIndexed() || key.isIndexedWhenEmpty();
-							final TraitDefinition trait = key.getDeclaringTrait();
+							boolean createIndex = key.isIndexed() || key.isIndexedWhenEmpty();
+							final Trait trait   = key.getDeclaringTrait();
 
 							if (isRelationship) {
 
@@ -684,7 +685,7 @@ public class SchemaService implements Service {
 
 							} else {
 
-								final boolean wasIdIndex = Traits.idProperty().equals(propertyKey);
+								final boolean wasIdIndex = "id".equals(propertyKey.jsonName());
 								final boolean dropIndex  = wasIndexed && !wasIdIndex;
 
 								typeConfig.put(propertyKey.dbName(), new NodeIndexConfig(dropIndex));

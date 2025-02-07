@@ -18,7 +18,7 @@
  */
 package org.structr.core.entity;
 
-import org.structr.core.traits.definitions.TraitDefinition;
+import org.structr.core.traits.TraitDefinition;
 
 import java.util.Set;
 

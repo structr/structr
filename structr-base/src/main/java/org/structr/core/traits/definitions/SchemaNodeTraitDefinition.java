@@ -73,8 +73,8 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 					boolean valid = true;
 
-					valid &= ValidationHelper.isValidUniqueProperty(obj, Traits.nameProperty(), errorBuffer);
-					valid &= ValidationHelper.isValidStringMatchingRegex(obj, Traits.nameProperty(), SchemaNode.schemaNodeNamePattern, errorBuffer);
+					valid &= ValidationHelper.isValidUniqueProperty(obj, Traits.of("NodeInterface").key("name"), errorBuffer);
+					valid &= ValidationHelper.isValidStringMatchingRegex(obj, Traits.of("NodeInterface").key("name"), SchemaNode.schemaNodeNamePattern, errorBuffer);
 
 					return valid;
 				}
@@ -98,7 +98,7 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
-					if (modificationQueue.isPropertyModified(graphObject, Traits.nameProperty())) {
+					if (modificationQueue.isPropertyModified(graphObject, Traits.of("NodeInterface").key("name"))) {
 						throwExceptionIfTypeAlreadyExists(graphObject);
 					}
 
@@ -477,7 +477,7 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 		if (Services.getInstance().isInitialized() && ! Services.getInstance().isOverridingSchemaTypesAllowed()) {
 
-			final String typeName = graphObject.getProperty(Traits.nameProperty());
+			final String typeName = graphObject.getProperty(Traits.of("NodeInterface").key("name"));
 
 			// add type names to list of forbidden entity names
 			if (EntityNameBlacklist.contains(typeName)) {

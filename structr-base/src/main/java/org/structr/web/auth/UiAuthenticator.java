@@ -875,7 +875,7 @@ public class UiAuthenticator implements Authenticator {
 
 					try {
 
-						user = AuthHelper.getPrincipalForPassword(Traits.nameProperty(), userName, password);
+						user = AuthHelper.getPrincipalForPassword(Traits.of("NodeInterface").key("name"), userName, password);
 
 					} catch (AuthenticationException ex) {
 

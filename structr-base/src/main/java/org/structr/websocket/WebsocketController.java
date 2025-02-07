@@ -187,7 +187,7 @@ public class WebsocketController implements StructrTransactionListener {
 	private WebSocketMessage getMessageForEvent(final SecurityContext securityContext, final ModificationEvent modificationEvent) throws FrameworkException {
 
 		final String callbackId = modificationEvent.getCallbackId();
-		final PropertyKey<String> idProperty = Traits.idProperty();
+		final PropertyKey<String> idProperty = Traits.of("GraphObject").key("id");
 
 		if (modificationEvent.isNode()) {
 

@@ -102,9 +102,9 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 			final List<T> result = new LinkedList<>();
 
 			// Check if properties contain the UUID attribute
-			if (attributes.containsKey(Traits.idProperty())) {
+			if (attributes.containsKey(Traits.of("GraphObject").key("id"))) {
 
-				result.add((T)app.getNodeById(attributes.get(Traits.idProperty())));
+				result.add((T)app.getNodeById(attributes.get(Traits.of("GraphObject").key("id"))));
 
 			} else {
 

@@ -42,7 +42,7 @@ public class TypeSearchAttribute<S extends GraphObject> extends PropertySearchAt
 
 	public TypeSearchAttribute(final String type, final Occurrence occur, final boolean isExactMatch) {
 
-		super(Traits.typeProperty(), null, occur, isExactMatch);
+		super(Traits.of("GraphObject").key("type"), null, occur, isExactMatch);
 
 		final Traits traits = Traits.of(type);
 

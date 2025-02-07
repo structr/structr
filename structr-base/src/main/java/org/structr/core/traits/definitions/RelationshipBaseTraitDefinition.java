@@ -21,6 +21,7 @@ package org.structr.core.traits.definitions;
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
 import org.structr.core.entity.*;
+import org.structr.core.traits.TraitDefinition;
 
 public interface RelationshipBaseTraitDefinition extends TraitDefinition {
 

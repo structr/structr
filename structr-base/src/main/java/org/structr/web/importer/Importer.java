@@ -816,7 +816,7 @@ public class Importer {
 
 					if (DeployCommand.isUuid(src)) {
 
-						template = StructrApp.getInstance().nodeQuery("NodeInterface").and(Traits.idProperty(), src).getFirst();
+						template = StructrApp.getInstance().nodeQuery("NodeInterface").and(Traits.of("GraphObject").key("id"), src).getFirst();
 
 						if (template == null) {
 
@@ -828,7 +828,7 @@ public class Importer {
 						final String uuidAtEnd = DeployCommand.getUuidOrNullFromEndOfString(src);
 						if (uuidAtEnd != null) {
 
-							template = StructrApp.getInstance().nodeQuery("NodeInterface").and(Traits.idProperty(), uuidAtEnd).getFirst();
+							template = StructrApp.getInstance().nodeQuery("NodeInterface").and(Traits.of("GraphObject").key("id"), uuidAtEnd).getFirst();
 
 							if (template == null) {
 
@@ -911,7 +911,7 @@ public class Importer {
 					DOMNode component = null;
 					if (DeployCommand.isUuid(src)) {
 
-						final NodeInterface n = app.nodeQuery("DOMNode").and(Traits.idProperty(), src).getFirst();
+						final NodeInterface n = app.nodeQuery("DOMNode").and(Traits.of("GraphObject").key("id"), src).getFirst();
 						if (n != null) {
 
 							component = n.as(DOMNode.class);
@@ -923,7 +923,7 @@ public class Importer {
 
 						if (uuidAtEnd != null) {
 
-							final NodeInterface n = app.nodeQuery("DOMNode").and(Traits.idProperty(), uuidAtEnd).getFirst();
+							final NodeInterface n = app.nodeQuery("DOMNode").and(Traits.of("GraphObject").key("id"), uuidAtEnd).getFirst();
 							if (n != null) {
 
 								component = n.as(DOMNode.class);
@@ -1232,10 +1232,10 @@ public class Importer {
 
 							commentHandler.handleComment(page, newNode, instructions, true);
 
-							if (newNodeProperties.containsKey(Traits.idProperty())) {
+							if (newNodeProperties.containsKey(Traits.of("GraphObject").key("id"))) {
 
 								// id of the newNode was changed => if a pagelink instruction was present, we need to update it because the node itself was not yet updated
-								DeployCommand.updateDeferredPagelink(newNode.getUuid(), newNodeProperties.get(Traits.idProperty()));
+								DeployCommand.updateDeferredPagelink(newNode.getUuid(), newNodeProperties.get(Traits.of("GraphObject").key("id")));
 							}
 						}
 					}

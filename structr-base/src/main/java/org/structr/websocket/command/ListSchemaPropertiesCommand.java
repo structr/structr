@@ -98,8 +98,8 @@ public class ListSchemaPropertiesCommand extends AbstractCommand {
 									valueTypeName = valueType.getSimpleName();
 								}
 
-								property.put(Traits.idProperty(),                                     key.getSourceUuid());
-								property.put(Traits.nameProperty(),                                   propertyName);
+								property.put(Traits.of("GraphObject").key("id"),                                     key.getSourceUuid());
+								property.put(Traits.of("NodeInterface").key("name"),                                   propertyName);
 								property.put(isSelected,                                              viewProperties.contains(key));
 								property.put(isDisabled,                                              _isDisabled);
 								property.put(schemaPropertyTraits.key("propertyType"),          valueTypeName);

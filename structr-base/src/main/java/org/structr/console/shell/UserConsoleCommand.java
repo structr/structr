@@ -105,7 +105,7 @@ public class UserConsoleCommand extends AdminConsoleCommand {
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface user : app.nodeQuery("User").sort(Traits.nameProperty()).getResultStream()) {
+			for (final NodeInterface user : app.nodeQuery("User").sort(Traits.of("NodeInterface").key("name")).getResultStream()) {
 
 				final String name = user.getName();
 
@@ -134,7 +134,7 @@ public class UserConsoleCommand extends AdminConsoleCommand {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface node = app.create("User", new NodeAttribute<>(Traits.nameProperty(), name));
+			final NodeInterface node = app.create("User", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), name));
 			final User user          = node.as(User.class);
 
 			// set e-mail address

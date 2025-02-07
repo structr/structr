@@ -22,34 +22,29 @@ import org.structr.api.Predicate;
 import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.entity.Relation;
-import org.structr.core.entity.SchemaMethod;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.traits.definitions.TraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 
-import java.util.Date;
 import java.util.Map;
 import java.util.Set;
 
 public interface Traits {
 
 	Set<String> getLabels();
-	boolean contains(String type);
-	TraitDefinition get(String type);
-	<T> PropertyKey<T> key(String name);
-	boolean hasKey(String name);
+	boolean contains(final String type);
+	<T> PropertyKey<T> key(final String name);
+	boolean hasKey(final String name);
 	String getName();
 	boolean isNodeType();
 	boolean isRelationshipType();
-	Set<PropertyKey> getDefaultKeys();
 	Set<PropertyKey> getAllPropertyKeys();
-	Set<PropertyKey> getPropertyKeysForView(String propertyView);
-	<T extends LifecycleMethod> Set<T> getMethods(Class<T> type);
-	<T extends FrameworkMethod> T getMethod(Class<T> type);
+	Set<PropertyKey> getPropertyKeysForView(final String propertyView);
+	<T extends LifecycleMethod> Set<T> getMethods(final Class<T> type);
+	<T extends FrameworkMethod> T getMethod(final Class<T> type);
 	Map<String, AbstractMethod> getDynamicMethods();
-	<T> T as(Class<T> type, GraphObject obj);
-	void registerImplementation(TraitDefinition trait);
+	<T> T as(final Class<T> type, final GraphObject obj);
+	void registerImplementation(final TraitDefinition trait);
 	Relation getRelation();
 	Set<TraitDefinition> getTraitDefinitions();
 	boolean isInterface();
@@ -58,22 +53,29 @@ public interface Traits {
 	boolean changelogEnabled();
 	Set<String> getViewNames();
 	Set<String> getAllTraits();
-	void registerDynamicMethod(final SchemaMethod method);
 
 	// ----- static methods -----
-	static Traits of(String name) {
+	static Traits of(final String name) {
 		return TraitsImplementation.of(name);
+	}
+
+	static Trait getTrait(final String name) {
+		return TraitsImplementation.getTrait(name);
 	}
 
 	static Set<PropertyKey> getPropertiesOfTrait(final String name) {
 		return TraitsImplementation.getPropertiesOfTrait(name);
 	}
 
-	static Traits ofRelationship(String type1, String relType, String type2) {
+	static Set<PropertyKey> getDefaultKeys() {
+		return TraitsImplementation.getDefaultKeys();
+	}
+
+	static Traits ofRelationship(final String type1, final String relType, final String type2) {
 		return TraitsImplementation.ofRelationship(type1, relType, type2);
 	}
 
-	static boolean exists(String name) {
+	static boolean exists(final String name) {
 		return TraitsImplementation.exists(name);
 	}
 
@@ -81,28 +83,12 @@ public interface Traits {
 		return TraitsImplementation.getAllTypes();
 	}
 
-	static Set<String> getAllTypes(Predicate<Traits> filter) {
+	static Set<String> getAllTypes(final Predicate<Traits> filter) {
 		return TraitsImplementation.getAllTypes(filter);
 	}
 
-	static <T> PropertyKey<T> key(String type, String name) {
+	static <T> PropertyKey<T> key(final String type, final String name) {
 		return TraitsImplementation.key(type, name);
-	}
-
-	static PropertyKey<String> idProperty() {
-		return TraitsImplementation.idProperty();
-	}
-
-	static PropertyKey<String> nameProperty() {
-		return TraitsImplementation.nameProperty();
-	}
-
-	static PropertyKey<String> typeProperty() {
-		return TraitsImplementation.typeProperty();
-	}
-
-	static PropertyKey<Date> createdDateProperty() {
-		return TraitsImplementation.createdDateProperty();
 	}
 
 	static Set<String> getAllViews() {

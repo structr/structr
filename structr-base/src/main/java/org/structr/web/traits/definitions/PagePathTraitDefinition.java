@@ -57,7 +57,7 @@ public class PagePathTraitDefinition extends AbstractNodeTraitDefinition {
 
 				@Override
 				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
-					return ValidationHelper.isValidPropertyNotNull(obj, Traits.nameProperty(), errorBuffer);
+					return ValidationHelper.isValidPropertyNotNull(obj, Traits.of("NodeInterface").key("name"), errorBuffer);
 				}
 			}
 		);
