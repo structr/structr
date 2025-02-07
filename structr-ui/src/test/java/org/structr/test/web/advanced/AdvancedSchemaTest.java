@@ -215,7 +215,6 @@ public class AdvancedSchemaTest extends FrontendTest {
 			logger.error("", ex);
 		}
 
-
 		try (final Tx tx = app.tx()) {
 
 			RestAssured

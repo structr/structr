@@ -102,7 +102,7 @@ public class NotionPropertyGenerator extends PropertyGenerator {
 				isAutocreate            = isBoolean;
 
 				// use PropertyNotion when only a single element is given
-				isPropertySet = (parts.length == 2 || isBoolean);
+				isPropertySet = !(parts.length == 2 || isBoolean);
 
 				for (int i=1; i<parts.length; i++) {
 

@@ -172,10 +172,10 @@ public class StructrGrantDefinition implements JsonGrant, StructrDefinition {
 		getOrCreateProperties.put(traits.key("principal"),  principals.get(0));
 		getOrCreateProperties.put(traits.key("schemaNode"), (SchemaNode)schemaNode);
 
-		SchemaGrant grant = app.nodeQuery("SchemaGrant").and(getOrCreateProperties).getFirst().as(SchemaGrant.class);
+		NodeInterface grant = app.nodeQuery("SchemaGrant").and(getOrCreateProperties).getFirst();
 		if (grant == null) {
 
-			grant = app.create("SchemaGrant", getOrCreateProperties).as(SchemaGrant.class);
+			grant = app.create("SchemaGrant", getOrCreateProperties);
 		}
 
 		updateProperties.put(traits.key("allowRead"),          getAllowRead());
@@ -185,9 +185,9 @@ public class StructrGrantDefinition implements JsonGrant, StructrDefinition {
 
 		grant.setProperties(SecurityContext.getSuperUserInstance(), updateProperties);
 
-		this.schemaGrant = grant;
+		this.schemaGrant = grant.as(SchemaGrant.class);
 
-		return grant;
+		return this.schemaGrant;
 	}
 
 

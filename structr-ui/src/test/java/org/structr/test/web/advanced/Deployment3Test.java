@@ -248,7 +248,7 @@ public class Deployment3Test extends DeploymentTestBase {
 
 			assertTrue(obj.is("Template"));
 
-			Template template = (Template)obj;
+			Template template = obj.as(Template.class);
 
 			assertEquals("${{Structr.print(\"<div>Test</div>\");}}", template.getContent());
 			assertEquals("text/html", template.getContentType());

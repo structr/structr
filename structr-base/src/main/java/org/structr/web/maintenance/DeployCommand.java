@@ -1042,7 +1042,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		final List<Map<String, Object>> grants = new LinkedList<>();
 		final Traits traits                    = Traits.of("ResourceAccess");
 		final PropertyKey<String> signatureKey = traits.key("signature");
-		final PropertyKey<Integer> flagsKey    = traits.key("flags");
+		final PropertyKey<Long> flagsKey       = traits.key("flags");
 		final App app                          = StructrApp.getInstance();
 
 		final List<String> unreachableGrants = new LinkedList<>();

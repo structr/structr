@@ -462,6 +462,6 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 
 	@Override
 	public boolean changelogEnabled() {
-		return false;
+		return typeHandler.changelogEnabled();
 	}
 }

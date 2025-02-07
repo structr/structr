@@ -170,13 +170,13 @@ public class AbstractFileTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<NodeInterface> storageConfigurationProperty = new EndNode("storageConfiguration", "AbstractFileCONFIGURED_BYStorageConfiguration");
 		final Property<NodeInterface> parentProperty               = new StartNode("parent", "FolderCONTAINSAbstractFile").updateCallback(AbstractFileTraitDefinition::updateHasParent);
 		final Property<String> parentIdProperty                    = new EntityIdProperty("parentId", "AbstractFile", "parent", "Folder");
-		final Property<Boolean> hasParentProperty                  = new BooleanProperty("hasParent").indexed().dynamic();
-		final Property<Boolean> includeInFrontendExportProperty    = new BooleanProperty("includeInFrontendExport").indexed().dynamic();
-		final Property<Boolean> isExternalProperty                 = new BooleanProperty("isExternal").indexed().dynamic();
-		final Property<String> nameProperty                        = new StringProperty("name").notNull().indexed().dynamic(); // fixme: not dynamic, but does it have any consequences?
-		final Property<Long> lastSeenMountedProperty               = new LongProperty("lastSeenMounted").dynamic();
+		final Property<Boolean> hasParentProperty                  = new BooleanProperty("hasParent").indexed();
+		final Property<Boolean> includeInFrontendExportProperty    = new BooleanProperty("includeInFrontendExport").indexed();
+		final Property<Boolean> isExternalProperty                 = new BooleanProperty("isExternal").indexed();
+		final Property<String> nameProperty                        = new StringProperty("name").notNull().indexed(); // fixme: not dynamic, but does it have any consequences?
+		final Property<Long> lastSeenMountedProperty               = new LongProperty("lastSeenMounted");
 		final Property<Boolean> isMountedProperty                  = new AbstractFileIsMountedProperty();
-		final Property<String> pathProperty                        = new PathProperty("path").typeHint("String").indexed().dynamic();
+		final Property<String> pathProperty                        = new PathProperty("path").typeHint("String").indexed();
 
 		return Set.of(
 			storageConfigurationProperty,

@@ -98,9 +98,10 @@ public class UserConsoleCommand extends AdminConsoleCommand {
 	}
 
 	// ----- private methods -----
-	private void handleList(final SecurityContext securityContext, final Writable writable) throws FrameworkException, IOException{
+	private void handleList(final SecurityContext securityContext, final Writable writable) throws FrameworkException, IOException {
 
 		final App app = StructrApp.getInstance(securityContext);
+		boolean first = true;
 
 		try (final Tx tx = app.tx()) {
 
@@ -108,9 +109,13 @@ public class UserConsoleCommand extends AdminConsoleCommand {
 
 				final String name = user.getName();
 
+				if (!first) {
+					writable.print(", ");
+				}
+
 				writable.print(name);
 
-				writable.print(", ");
+				first = false;
 			}
 
 			writable.println();

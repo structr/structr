@@ -26,6 +26,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.entity.Relation;
+import org.structr.core.entity.SchemaMethod;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
@@ -180,6 +181,11 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 			}
 
 			@Override
+			public boolean changelogEnabled() {
+				return false;
+			}
+
+			@Override
 			public Set<String> getViewNames() {
 				return Set.of();
 			}
@@ -187,6 +193,10 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 			@Override
 			public Set<String> getAllTraits() {
 				return Set.of();
+			}
+
+			@Override
+			public void registerDynamicMethod(final SchemaMethod method) {
 			}
 		};
 	}

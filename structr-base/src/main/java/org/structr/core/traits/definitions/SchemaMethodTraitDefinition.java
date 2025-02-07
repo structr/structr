@@ -81,14 +81,14 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 		final Property<String>             returnType              = new StringProperty("returnType").indexed();
 		final Property<String>             openAPIReturnType       = new StringProperty("openAPIReturnType").indexed();
 		final Property<String>             source                  = new StringProperty("source");
-		final Property<String[]>           exceptions              = new ArrayProperty("exceptions", String.class).indexed();
+		final Property<String[]>           exceptions              = new ArrayProperty<>("exceptions", String.class).indexed();
 		final Property<Boolean>            callSuper               = new BooleanProperty("callSuper").indexed();
 		final Property<Boolean>            overridesExisting       = new BooleanProperty("overridesExisting").indexed();
 		final Property<Boolean>            doExport                = new BooleanProperty("doExport").indexed();
 		final Property<String>             codeType                = new StringProperty("codeType").indexed();
 		final Property<Boolean>            isPartOfBuiltInSchema   = new BooleanProperty("isPartOfBuiltInSchema").indexed();
 		final Property<Boolean>            includeInOpenAPI        = new BooleanProperty("includeInOpenAPI").indexed();
-		final Property<String[]>           tags                    = new ArrayProperty("tags", String.class).indexed();
+		final Property<String[]>           tags                    = new ArrayProperty<>("tags", String.class).indexed();
 		final Property<String>             summary                 = new StringProperty("summary");
 		final Property<String>             description             = new StringProperty("description");
 		final Property<Boolean>            isStatic                = new BooleanProperty("isStatic").defaultValue(false);

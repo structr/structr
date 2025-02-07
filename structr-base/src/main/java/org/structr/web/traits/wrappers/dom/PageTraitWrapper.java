@@ -248,7 +248,7 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 	}
 
 	public DOMNode importNode(final DOMNode node, final boolean deep) throws FrameworkException {
-		return importNode(node, deep, false);
+		return importNode(node, deep, true);
 	}
 
 	public DOMNode importNode(final DOMNode node, final boolean deep, final boolean removeParentFromSourceNode) throws FrameworkException {

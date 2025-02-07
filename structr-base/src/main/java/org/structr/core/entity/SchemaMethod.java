@@ -27,6 +27,7 @@ public interface SchemaMethod extends NodeInterface {
 
 	AbstractSchemaNode getSchemaNode();
 	Iterable<SchemaMethodParameter> getParameters();
+	String getStaticSchemaNodeName();
 	String getName();
 	String getSource();
 	String getSummary();
@@ -81,5 +82,4 @@ public interface SchemaMethod extends NodeInterface {
 		}
 	}
 	*/
-
 }

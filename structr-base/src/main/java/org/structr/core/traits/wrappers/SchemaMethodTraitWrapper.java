@@ -61,6 +61,11 @@ public class SchemaMethodTraitWrapper extends AbstractNodeTraitWrapper implement
 	}
 
 	@Override
+	public String getStaticSchemaNodeName() {
+		return wrappedObject.getProperty(traits.key("staticSchemaNodeName"));
+	}
+
+	@Override
 	public String getName() {
 		return wrappedObject.getProperty(traits.key("name"));
 	}

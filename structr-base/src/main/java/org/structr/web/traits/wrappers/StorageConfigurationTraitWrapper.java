@@ -97,10 +97,13 @@ public class StorageConfigurationTraitWrapper extends AbstractNodeTraitWrapper i
 	@Override
 	public NodeInterface addEntry(final String key, final String value) throws FrameworkException {
 
-		return StructrApp.getInstance().create("StorageConfigurationEntry",
-			new NodeAttribute<>(traits.key("configuration"), this),
-			new NodeAttribute<>(traits.key("name"),          key),
-			new NodeAttribute<>(traits.key("value"),         value)
+		final String type        = "StorageConfigurationEntry";
+		final Traits entryTraits = Traits.of(type);
+
+		return StructrApp.getInstance().create(type,
+			new NodeAttribute<>(entryTraits.key("configuration"), this),
+			new NodeAttribute<>(entryTraits.key("name"),          key),
+			new NodeAttribute<>(entryTraits.key("value"),         value)
 		);
 	}
 }

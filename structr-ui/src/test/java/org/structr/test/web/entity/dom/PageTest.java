@@ -23,9 +23,11 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.DOMElement;
@@ -37,6 +39,7 @@ import org.testng.annotations.Test;
 import org.w3c.dom.DOMException;
 
 import java.util.List;
+import java.util.Set;
 
 import static org.testng.AssertJUnit.*;
 
@@ -449,26 +452,39 @@ public class PageTest extends StructrUiTest {
 
 	private boolean isClone(final DOMNode n1, final DOMNode n2) throws FrameworkException {
 
-		boolean isClone = true;
+		final String content1 = n1.getNodeValue();
+		final String content2 = n2.getNodeValue();
+		boolean isClone       = true;
 
 		isClone &= StringUtils.equals(n1.getType(), n2.getType());
-		isClone &= StringUtils.equals(n1.getContent(RenderContext.EditMode.CONTENT), n2.getContent(RenderContext.EditMode.CONTENT));
+		isClone &= StringUtils.equals(content1, content2);
 
-		/*
-		NamedNodeMap attrs1 = n1.getIdHash()
-		NamedNodeMap attrs2 = n2.getAttributes();
+		final Set<PropertyKey> compareKeys = n1.getTraits().getPropertyKeysForView(PropertyView.Html);
+		for (final PropertyKey key : compareKeys) {
 
-		for (int i = 0; i < attrs1.getLength(); i++) {
+			final Object value1 = n1.getProperty(key);
+			final Object value2 = n2.getProperty(key);
 
-			Node a1 = attrs1.item(i);
-			isClone &= isClone(a1, attrs2.item(i));
-
+			isClone &= isEqualOrNull(value1, value2);
 		}
-		*/
-
-		//fixme
 
 		return isClone;
 	}
 
+	private boolean isEqualOrNull(final Object o1, final Object o2) {
+
+		if (o1 == null && o2 != null) {
+			return false;
+		}
+
+		if (o1 != null && o2 == null) {
+			return false;
+		}
+
+		if (o1 == null && o2 == null) {
+			return true;
+		}
+
+		return o1.equals(o2);
+	}
 }

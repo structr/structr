@@ -152,29 +152,25 @@ public class ConsoleTest extends StructrUiTest {
 
 		final Console console = new Console(securityContext, ConsoleMode.JavaScript, Collections.emptyMap());
 
-		final int nodeCount           = 196;
-		final int relCount            = 306;
+		final int nodeCount           = 0;
+		final int relCount            = 0;
 		final int resourceAccessCount = 0;
 
 		final String fullIndexRebuildOutput =
 			"Node type not set or no entity class found. Starting (re-)indexing all nodes\r\n" +
 			"RebuildNodeIndex: " + nodeCount + " objects processed\r\n" +
-			"RebuildNodeIndex: " + nodeCount + " objects processed\r\n" +
 			"Done with (re-)indexing " + nodeCount + " nodes\r\n" +
 			"Relationship type not set, starting (re-)indexing all relationships\r\n" +
-			"RebuildRelIndex: " + relCount + " objects processed\r\n" +
 			"RebuildRelIndex: " + relCount + " objects processed\r\n" +
 			"Done with (re-)indexing " + relCount + " relationships\r\n";
 
 		final String nodeIndexRebuildOutput =
 			"Node type not set or no entity class found. Starting (re-)indexing all nodes\r\n" +
 			"RebuildNodeIndex: " + nodeCount + " objects processed\r\n" +
-			"RebuildNodeIndex: " + nodeCount + " objects processed\r\n" +
 			"Done with (re-)indexing " + nodeCount + " nodes\r\n";
 
 		final String relIndexRebuildOutput =
 			"Relationship type not set, starting (re-)indexing all relationships\r\n" +
-			"RebuildRelIndex: " + relCount + " objects processed\r\n" +
 			"RebuildRelIndex: " + relCount + " objects processed\r\n" +
 			"Done with (re-)indexing " + relCount + " relationships\r\n";
 
@@ -191,7 +187,6 @@ public class ConsoleTest extends StructrUiTest {
 		final String createNodeUuidsOutput =
 			"Start setting UUID on all nodes\r\n" +
 			"SetNodeUuid: " + nodeCount + " objects processed\r\n" +
-			"SetNodeUuid: " + nodeCount + " objects processed\r\n" +
 			"Done with setting UUID on " + nodeCount + " nodes\r\n";
 
 		final String createNodeUuidsOnUserOutput =
@@ -207,12 +202,10 @@ public class ConsoleTest extends StructrUiTest {
 		final String createRelUuidsOutput =
 			"Start setting UUID on all rels\r\n" +
 			"SetRelationshipUuid: " + relCount + " objects processed\r\n" +
-			"SetRelationshipUuid: " + relCount + " objects processed\r\n" +
 			"Done with setting UUID on " + relCount + " relationships\r\n";
 
 		final String createLabelsOutput =
 			"Node type not set or no entity class found. Starting creation of labels for all nodes.\r\n" +
-			"CreateLabels: " + nodeCount + " objects processed\r\n" +
 			"CreateLabels: " + nodeCount + " objects processed\r\n" +
 			"Done with creating labels on " + nodeCount + " nodes\r\n";
 

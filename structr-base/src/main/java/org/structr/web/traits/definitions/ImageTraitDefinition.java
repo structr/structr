@@ -217,19 +217,19 @@ public class ImageTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<NodeInterface> imageOfUser                  = new EndNode("imageOfUser", "ImagePICTURE_OFUser");
 		final Property<Iterable<NodeInterface>> thumbnailsProperty = new EndNodes("thumbnails", "ImageTHUMBNAILImage");
 		final Property<NodeInterface> originalImageProperty        = new StartNode("originalImage", "ImageTHUMBNAILImage");
-		final Property<NodeInterface> tnMidProperty                = new ThumbnailProperty("tnMid").format("300, 300, false").typeHint("Image").dynamic();
-		final Property<NodeInterface> tnSmallProperty              = new ThumbnailProperty("tnSmall").format("100, 100, false").typeHint("Image").dynamic();
-		final Property<Boolean> isCreatingThumbProperty            = new BooleanProperty("isCreatingThumb").indexed().dynamic();
-		final Property<Boolean> isImageProperty                    = new ConstantBooleanProperty("isImage", true).readOnly().dynamic();
-		final Property<Boolean> isThumbnailProperty                = new BooleanProperty("isThumbnail").indexed().dynamic();
-		final Property<Boolean> thumbnailCreationFailedProperty    = new BooleanProperty("thumbnailCreationFailed").dynamic();
-		final Property<Integer> heightProperty                     = new IntProperty("height").indexed().dynamic();
-		final Property<Integer> orientationProperty                = new IntProperty("orientation").indexed().dynamic();
-		final Property<Integer> widthProperty                      = new IntProperty("width").indexed().dynamic();
-		final Property<String> exifIFD0DataProperty                = new StringProperty("exifIFD0Data").dynamic();
-		final Property<String> exifSubIFDDataProperty              = new StringProperty("exifSubIFDData").dynamic();
-		final Property<String> gpsDataProperty                     = new StringProperty("gpsData").dynamic();
-		final Property<String> imageDataProperty                   = new ImageDataProperty("imageData").typeHint("String").dynamic();
+		final Property<NodeInterface> tnMidProperty                = new ThumbnailProperty("tnMid").format("300, 300, false").typeHint("Image");
+		final Property<NodeInterface> tnSmallProperty              = new ThumbnailProperty("tnSmall").format("100, 100, false").typeHint("Image");
+		final Property<Boolean> isCreatingThumbProperty            = new BooleanProperty("isCreatingThumb").indexed();
+		final Property<Boolean> isImageProperty                    = new ConstantBooleanProperty("isImage", true).readOnly();
+		final Property<Boolean> isThumbnailProperty                = new BooleanProperty("isThumbnail").indexed();
+		final Property<Boolean> thumbnailCreationFailedProperty    = new BooleanProperty("thumbnailCreationFailed");
+		final Property<Integer> heightProperty                     = new IntProperty("height").indexed();
+		final Property<Integer> orientationProperty                = new IntProperty("orientation").indexed();
+		final Property<Integer> widthProperty                      = new IntProperty("width").indexed();
+		final Property<String> exifIFD0DataProperty                = new StringProperty("exifIFD0Data");
+		final Property<String> exifSubIFDDataProperty              = new StringProperty("exifSubIFDData");
+		final Property<String> gpsDataProperty                     = new StringProperty("gpsData");
+		final Property<String> imageDataProperty                   = new ImageDataProperty("imageData").typeHint("String");
 
 		return Set.of(
 			imageParentProperty,

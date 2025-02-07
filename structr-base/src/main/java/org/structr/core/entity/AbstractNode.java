@@ -350,11 +350,6 @@ public final class AbstractNode extends AbstractGraphObject<Node> implements Nod
 		this.rawPathSegmentId = rawPathSegmentId;
 	}
 
-	@Override
-	public boolean changelogEnabled() {
-		return true;
-	}
-
 	// ----- Cloud synchronization and replication -----
 	@Override
 	public List<GraphObject> getSyncData() throws FrameworkException {

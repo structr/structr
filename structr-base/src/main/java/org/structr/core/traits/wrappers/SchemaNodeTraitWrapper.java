@@ -21,7 +21,6 @@ package org.structr.core.traits.wrappers;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.SchemaGrant;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.graph.NodeInterface;
@@ -39,59 +38,6 @@ public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper imple
 
 	public SchemaNodeTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);
-	}
-
-	@Override
-	public Iterable<SchemaGrant> getSchemaGrants() {
-
-		final PropertyKey<Iterable<NodeInterface>> key = traits.key("schemaGrants");
-
-		 return Iterables.map(n -> n.as(SchemaGrant.class), wrappedObject.getProperty(key));
-	}
-
-	@Override
-	public String getSummary() {
-		return wrappedObject.getProperty(traits.key("summary"));
-	}
-
-	@Override
-	public String getIcon() {
-		return wrappedObject.getProperty(traits.key("icon"));
-	}
-
-	@Override
-	public String getDescription() {
-		return wrappedObject.getProperty(traits.key("description"));
-	}
-
-	@Override
-	public String getCategory() {
-		return wrappedObject.getProperty(traits.key("category"));
-	}
-
-	@Override
-	public boolean isInterface() {
-		return wrappedObject.getProperty(traits.key("isInterface"));
-	}
-
-	@Override
-	public boolean isAbstract() {
-		return wrappedObject.getProperty(traits.key("isAbstract"));
-	}
-
-	@Override
-	public boolean changelogDisabled() {
-		return wrappedObject.getProperty(traits.key("changelogDisabled"));
-	}
-
-	@Override
-	public boolean includeInOpenAPI() {
-		return wrappedObject.getProperty(traits.key("includeInOpenAPI"));
-	}
-
-	@Override
-	public String[] getTags() {
-		return wrappedObject.getProperty(traits.key("tags"));
 	}
 
 	@Override

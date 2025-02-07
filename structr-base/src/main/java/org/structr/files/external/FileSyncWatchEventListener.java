@@ -62,7 +62,7 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 		final FolderAndFile obj = handle(rootFolderUUID, root, path, true);
 		if (obj != null && obj.file != null && obj.file.is("File")) {
 
-			final File fileNode       = (File)obj.file;
+			final File fileNode           = obj.file.as(File.class);
 			final java.io.File fileOnDisk = path.toFile();
 			final long size               = fileOnDisk.length();
 			final long lastModified       = fileOnDisk.lastModified();
@@ -185,7 +185,7 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 		final Traits traits                        = Traits.of("AbstractFile");
 		final PropertyKey<Boolean> isExternalKey   = traits.key("isExternal");
 		final PropertyKey<NodeInterface> parentKey = traits.key("parent");
-		final PropertyKey<String> nameKey          = traits.key("parent");
+		final PropertyKey<String> nameKey          = traits.key("name");
 		final App app                              = StructrApp.getInstance();
 		final String type                          = isFile ? (fileType != null ? fileType : "File") : (folderType != null ? folderType : "Folder");
 

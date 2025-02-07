@@ -53,7 +53,7 @@ public class RenderDataTest extends DOMTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final Page doc = (Page) getDocument();
+			final Page doc = getDocument().as(Page.class);
 			name = doc.getName();
 
 			final List<NodeInterface> users = createTestNodes("User", 3);
@@ -93,9 +93,9 @@ public class RenderDataTest extends DOMTest {
 			final PropertyMap p1Properties = new PropertyMap();
 			p1Properties.put(Traits.of("DOMElement").key("restQuery"), "User?_sort=name");
 			p1Properties.put(Traits.of("DOMElement").key("dataKey"), "user");
-			((DOMElement) p1).setProperties(((DOMElement) p1).getSecurityContext(), p1Properties);
+			p1.setProperties(p1.getSecurityContext(), p1Properties);
 
-			Content userNameContentNode = (Content) doc.createTextNode("${user.name}");
+			Content userNameContentNode = doc.createTextNode("${user.name}");
 
 			p1.appendChild(userNameContentNode);
 

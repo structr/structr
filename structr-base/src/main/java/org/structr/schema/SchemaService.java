@@ -34,9 +34,7 @@ import org.structr.common.error.InvalidSchemaToken;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Relation;
-import org.structr.core.entity.SchemaNode;
-import org.structr.core.entity.SchemaRelationshipNode;
+import org.structr.core.entity.*;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.Tx;
@@ -118,7 +116,7 @@ public class SchemaService implements Service {
 					final String name                      = schemaRel.getClassName();
 					final TraitDefinition[] definitions    = schemaRel.getTraitDefinitions();
 
-					StructrTraits.registerDynamicRelationshipType(name, definitions);
+					StructrTraits.registerDynamicRelationshipType(name, !schemaRel.changelogDisabled(), definitions);
 
 					// type still exists, was not removed, so we remove it from the map of removed types
 					removedTypes.remove(name);
@@ -131,10 +129,34 @@ public class SchemaService implements Service {
 					final String name                   = schemaNode.getClassName();
 					final TraitDefinition[] definitions = schemaNode.getTraitDefinitions();
 
-					StructrTraits.registerDynamicNodeType(name, definitions);
+					StructrTraits.registerDynamicNodeType(name, !schemaNode.changelogDisabled(), definitions);
 
 					// type still exists, was not removed, so we remove it from the map of removed types
 					removedTypes.remove(name);
+				}
+
+				// fetch schema methods that extend the static schema (not attached to a schema node)
+				for (final NodeInterface node : app.nodeQuery("SchemaMethod").and(Traits.of("SchemaMethod").key("schemaNode"), null).getResultStream()) {
+
+					final SchemaMethod schemaMethod   = node.as(SchemaMethod.class);
+					final String staticSchemaNodeName = schemaMethod.getStaticSchemaNodeName();
+
+					if (StringUtils.isNotBlank(staticSchemaNodeName)) {
+
+						// attach method to existing type
+						if (Traits.exists(staticSchemaNodeName)) {
+
+							final Traits traits = Traits.of(staticSchemaNodeName);
+
+							traits.registerDynamicMethod(schemaMethod);
+						}
+					}
+				}
+
+				// fetch schema properties that extend the static schema (not attached to a schema node)
+				for (final NodeInterface node : app.nodeQuery("SchemaProperty").and(Traits.of("SchemaProperty").key("schemaNode"), null).getResultStream()) {
+
+					final SchemaProperty schemaProperty = node.as(SchemaProperty.class);
 				}
 
 				updateIndexConfiguration(removedTypes);

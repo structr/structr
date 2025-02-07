@@ -24,14 +24,14 @@ public class StructrTraits {
 
 	public static void registerBaseType(final TraitDefinition definition) {
 
-		final Traits traits = new TraitsImplementation(definition.getName(), true, false, false);
+		final Traits traits = new TraitsImplementation(definition.getName(), true, false, false, false);
 
 		traits.registerImplementation(definition);
 	}
 
 	public static void registerNodeInterface() {
 
-		final Traits traits = new TraitsImplementation("NodeInterface", true, true, false);
+		final Traits traits = new TraitsImplementation("NodeInterface", true, true, false, false);
 
 		traits.registerImplementation(new PropertyContainerTraitDefinition());
 		traits.registerImplementation(new GraphObjectTraitDefinition());
@@ -40,14 +40,14 @@ public class StructrTraits {
 
 	public static void registerRelationshipInterface() {
 
-		final Traits traits = new TraitsImplementation("RelationshipInterface", true, false, true);
+		final Traits traits = new TraitsImplementation("RelationshipInterface", true, false, true, false);
 
 		traits.registerImplementation(new PropertyContainerTraitDefinition());
 		traits.registerImplementation(new GraphObjectTraitDefinition());
 		traits.registerImplementation(new RelationshipInterfaceTraitDefinition());
 	}
 
-	public static void registerDynamicNodeType(final String typeName, final TraitDefinition... definitions) {
+	public static void registerDynamicNodeType(final String typeName, final boolean changelogEnabled, final TraitDefinition... definitions) {
 
 		Traits traits;
 
@@ -59,7 +59,7 @@ public class StructrTraits {
 
 		} else {
 
-			traits = new TraitsImplementation(typeName, false, true, false);
+			traits = new TraitsImplementation(typeName, false, true, false, changelogEnabled);
 
 			// Node types consist of at least the following traits
 			traits.registerImplementation(new PropertyContainerTraitDefinition());
@@ -74,14 +74,14 @@ public class StructrTraits {
 		}
 	}
 
-	public static void registerDynamicRelationshipType(final String typeName, final TraitDefinition... definitions) {
+	public static void registerDynamicRelationshipType(final String typeName, final boolean changelogEnabled, final TraitDefinition... definitions) {
 
 		// do not overwrite types
 		if (Traits.getAllTypes(null).contains(typeName)) {
 			return;
 		}
 
-		final Traits traits = new TraitsImplementation(typeName, false, false, true);
+		final Traits traits = new TraitsImplementation(typeName, false, false, true, changelogEnabled);
 
 		// Node types consist of at least the following traits
 		traits.registerImplementation(new PropertyContainerTraitDefinition());
@@ -95,7 +95,7 @@ public class StructrTraits {
 
 	public static void registerNodeType(final String typeName, final TraitDefinition... definitions) {
 
-		final Traits traits = new TraitsImplementation(typeName, true, true, false);
+		final Traits traits = new TraitsImplementation(typeName, true, true, false, false);
 
 		// Node types consist of at least the following traits
 		traits.registerImplementation(new PropertyContainerTraitDefinition());
@@ -110,7 +110,7 @@ public class StructrTraits {
 
 	public static void registerRelationshipType(final String typeName, final TraitDefinition... definitions) {
 
-		final Traits traits = new TraitsImplementation(typeName, true, false, true);
+		final Traits traits = new TraitsImplementation(typeName, true, false, true, false);
 
 		// Relationship types consist of at least the following traits
 		traits.registerImplementation(new PropertyContainerTraitDefinition());

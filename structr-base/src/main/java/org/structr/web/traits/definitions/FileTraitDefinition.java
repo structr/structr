@@ -219,25 +219,25 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> fileParentProperty = new StartNode("fileParent", "FolderCONTAINSFile");
-		final Property<String> contentTypeProperty       = new StringProperty("contentType");
-		final Property<Boolean> dontCacheProperty         = new BooleanProperty("dontCache").defaultValue(false).dynamic();
-		final Property<Boolean> indexedProperty           = new BooleanProperty("indexed").dynamic();
-		final Property<Boolean> isFileProperty            = new ConstantBooleanProperty("isFile", true).readOnly().dynamic();
-		final Property<Boolean> isTemplateProperty        = new BooleanProperty("isTemplate").dynamic();
+		final Property<NodeInterface> fileParentProperty  = new StartNode("fileParent", "FolderCONTAINSFile");
+		final Property<String> contentTypeProperty        = new StringProperty("contentType");
+		final Property<Boolean> dontCacheProperty         = new BooleanProperty("dontCache").defaultValue(false);
+		final Property<Boolean> indexedProperty           = new BooleanProperty("indexed");
+		final Property<Boolean> isFileProperty            = new ConstantBooleanProperty("isFile", true).readOnly();
+		final Property<Boolean> isTemplateProperty        = new BooleanProperty("isTemplate");
 		final Property<Boolean> useAsJavascriptLibrary    = new BooleanProperty("useAsJavascriptLibrary").indexed();
-		final Property<Integer> cacheForSecondsProperty   = new IntProperty("cacheForSeconds").dynamic();
-		final Property<Integer> positionProperty          = new IntProperty("position").indexed().dynamic();
-		final Property<Integer> versionProperty           = new IntProperty("version").indexed().dynamic();
-		final Property<String> md5Property                = new StringProperty("md5").dynamic();
-		final Property<String> sha1Property               = new StringProperty("sha1").dynamic();
-		final Property<String> sha512Property             = new StringProperty("sha512").dynamic();
-		final Property<String> urlProperty                = new StringProperty("url").dynamic();
-		final Property<Long> checksumProperty             = new LongProperty("checksum").indexed().dynamic();
-		final Property<Long> crc32Property                = new LongProperty("crc32").indexed().dynamic();
-		final Property<Long> fileModificationDateProperty = new LongProperty("fileModificationDate").dynamic();
-		final Property<Long> sizeProperty                 = new LongProperty("size").indexed().dynamic();
-		final Property<String> base64DataProperty         = new FileDataProperty("base64Data").typeHint("String").dynamic();
+		final Property<Integer> cacheForSecondsProperty   = new IntProperty("cacheForSeconds");
+		final Property<Integer> positionProperty          = new IntProperty("position").indexed();
+		final Property<Integer> versionProperty           = new IntProperty("version").indexed();
+		final Property<String> md5Property                = new StringProperty("md5");
+		final Property<String> sha1Property               = new StringProperty("sha1");
+		final Property<String> sha512Property             = new StringProperty("sha512");
+		final Property<String> urlProperty                = new StringProperty("url");
+		final Property<Long> checksumProperty             = new LongProperty("checksum").indexed();
+		final Property<Long> crc32Property                = new LongProperty("crc32").indexed();
+		final Property<Long> fileModificationDateProperty = new LongProperty("fileModificationDate");
+		final Property<Long> sizeProperty                 = new LongProperty("size").indexed();
+		final Property<String> base64DataProperty         = new FileDataProperty("base64Data").typeHint("String");
 
 		return Set.of(
 			fileParentProperty,
@@ -433,7 +433,7 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 
 		final Traits traits                                             = Traits.of("File");
 		final PropertyKey<StorageConfiguration> storageConfigurationKey = traits.key("storageConfiguration");
-		final PropertyKey<Folder> parentKey                             = traits.key("parent");
+		final PropertyKey<NodeInterface> parentKey                      = traits.key("parent");
 		final PropertyKey<String> parentIdKey                           = traits.key("parentId");
 
 		if (properties.containsKey(storageConfigurationKey)) {
@@ -442,7 +442,7 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 
 		} else if (properties.containsKey(parentKey)) {
 
-			thisFile.checkMoveBinaryContents(thisFile.getParent(), properties.get(parentKey));
+			thisFile.checkMoveBinaryContents(thisFile.getParent(), properties.get(parentKey).as(Folder.class));
 
 		} else if (properties.containsKey(parentIdKey)) {
 

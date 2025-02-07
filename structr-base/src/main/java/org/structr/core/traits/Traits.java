@@ -22,6 +22,7 @@ import org.structr.api.Predicate;
 import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.entity.Relation;
+import org.structr.core.entity.SchemaMethod;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.definitions.TraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
@@ -54,8 +55,10 @@ public interface Traits {
 	boolean isInterface();
 	boolean isAbstract();
 	boolean isBuiltInType();
+	boolean changelogEnabled();
 	Set<String> getViewNames();
 	Set<String> getAllTraits();
+	void registerDynamicMethod(final SchemaMethod method);
 
 	// ----- static methods -----
 	static Traits of(String name) {

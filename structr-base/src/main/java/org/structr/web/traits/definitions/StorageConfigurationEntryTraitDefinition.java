@@ -27,7 +27,7 @@ import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.web.entity.StorageConfigurationEntry;
-import org.structr.web.traits.wrappers.StorageConfigurationTraitWrapper;
+import org.structr.web.traits.wrappers.StorageConfigurationEntryTraitWrapper;
 
 import java.util.Map;
 import java.util.Set;
@@ -35,7 +35,7 @@ import java.util.Set;
 /**
  * Storage object for mount configuration data.
  */
-public class StorageConfigurationEntryTraitDefinition  extends AbstractNodeTraitDefinition {
+public class StorageConfigurationEntryTraitDefinition extends AbstractNodeTraitDefinition {
 
 	/*
 	public static final View uiView = new View(StorageConfigurationEntry.class, PropertyView.Ui,
@@ -68,7 +68,7 @@ public class StorageConfigurationEntryTraitDefinition  extends AbstractNodeTrait
 
 		return Map.of(
 
-			StorageConfigurationEntry.class, (traits, node) -> new StorageConfigurationTraitWrapper(traits, node)
+			StorageConfigurationEntry.class, (traits, node) -> new StorageConfigurationEntryTraitWrapper(traits, node)
 		);
 	}
 

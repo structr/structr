@@ -2069,9 +2069,13 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 					continue;
 				}
 
-
 				if (!key.isUnvalidated()) {
-					properties.put(key, getProperty(key));
+
+					final Object value = getProperty(key);
+					if (value != null) {
+
+						properties.put(key, getProperty(key));
+					}
 				}
 			}
 
@@ -2084,7 +2088,12 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 				}
 
 				if (!key.isUnvalidated()) {
-					properties.put(key, getProperty(key));
+
+					final Object value = getProperty(key);
+					if (value != null) {
+
+						properties.put(key, getProperty(key));
+					}
 				}
 			}
 
@@ -2097,7 +2106,12 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 				}
 
 				if (!key.isUnvalidated()) {
-					properties.put(key, getProperty(key));
+
+					final Object value = getProperty(key);
+					if (value != null) {
+
+						properties.put(key, getProperty(key));
+					}
 				}
 			}
 

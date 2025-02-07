@@ -21,7 +21,9 @@ package org.structr.core.traits;
 import org.structr.api.Predicate;
 import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.ScriptMethod;
 import org.structr.core.entity.Relation;
+import org.structr.core.entity.SchemaMethod;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
@@ -57,14 +59,16 @@ public class TraitsImplementation implements Traits {
 	private final String typeName;
 	private final boolean isRelationshipType;
 	private final boolean isBuiltInType;
+	private final boolean changelogEnabled;
 	private Relation relation;
 
-	TraitsImplementation(final String typeName, final boolean isBuiltInType, final boolean isNodeType, final boolean isRelationshipType) {
+	TraitsImplementation(final String typeName, final boolean isBuiltInType, final boolean isNodeType, final boolean isRelationshipType, final boolean changelogEnabled) {
 
 		this.typeName           = typeName;
 		this.isNodeType         = isNodeType;
 		this.isBuiltInType      = isBuiltInType;
 		this.isRelationshipType = isRelationshipType;
+		this.changelogEnabled   = changelogEnabled;
 
 		globalTraitMap.put(typeName, this);
 	}
@@ -347,6 +351,11 @@ public class TraitsImplementation implements Traits {
 	}
 
 	@Override
+	public boolean changelogEnabled() {
+		return changelogEnabled;
+	}
+
+	@Override
 	public Set<String> getViewNames() {
 		return Collections.unmodifiableSet(views.keySet());
 	}
@@ -354,6 +363,27 @@ public class TraitsImplementation implements Traits {
 	@Override
 	public Set<String> getAllTraits() {
 		return new LinkedHashSet<>(types.keySet());
+	}
+
+	public void registerDynamicMethod(final SchemaMethod method) {
+
+		if (method.isLifecycleMethod()) {
+
+			final Class<LifecycleMethod> type = method.getMethodType();
+			if (type != null) {
+
+				composableMethods.computeIfAbsent(type, k -> new LinkedHashSet()).add(method.asLifecycleMethod());
+
+			} else {
+
+				// report error?
+			}
+
+		} else {
+
+			dynamicMethods.put(method.getName(), new ScriptMethod(method));
+		}
+
 	}
 
 	// ----- static methods -----

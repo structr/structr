@@ -31,7 +31,6 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.Traits;
 import org.structr.schema.ConfigurationProvider;
@@ -162,10 +161,18 @@ public class RenderContextTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create("SchemaNode",
-				new NodeAttribute(Traits.of("SchemaNode").key("name"), "Item"),
-				new NodeAttribute(new StringProperty("_testMethodCalled"), "Boolean"),
-				new NodeAttribute(new StringProperty("___testMethod"), "set(this, 'testMethodCalled', true)")
+			final NodeInterface schemaNode = app.create("SchemaNode", "Item");
+
+			app.create("SchemaProperty",
+				new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaNode"), schemaNode),
+				new NodeAttribute<>(Traits.of("SchemaProperty").key("name"), "testMethodCalled"),
+				new NodeAttribute<>(Traits.of("SchemaProperty").key("propertyType"), "Boolean")
+			);
+
+			app.create("SchemaMethod",
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("schemaNode"), schemaNode),
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("name"), "testMethod"),
+				new NodeAttribute<>(Traits.of("SchemaMethod").key("source"), "set(this, 'testMethodCalled', true)")
 			);
 
 			// compile the stuff
@@ -224,10 +231,20 @@ public class RenderContextTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface projectNode = app.create("SchemaNode",
-				new NodeAttribute(Traits.of("SchemaNode").key("name"), "Project"),
-				new NodeAttribute(new StringProperty("_taskList"), "Notion(tasks, id, name)"),
-				new NodeAttribute(new StringProperty("_taskNames"), "Notion(tasks, name)")
+			final NodeInterface projectNode = app.create("SchemaNode", "Project");
+
+			app.create("SchemaProperty",
+				new NodeAttribute(Traits.of("SchemaProperty").key("schemaNode"), projectNode),
+				new NodeAttribute(Traits.of("SchemaProperty").key("name"), "taskList"),
+				new NodeAttribute(Traits.of("SchemaProperty").key("propertyType"), "Notion"),
+				new NodeAttribute(Traits.of("SchemaProperty").key("format"), "tasks, id, name")
+			);
+
+			app.create("SchemaProperty",
+				new NodeAttribute(Traits.of("SchemaProperty").key("schemaNode"), projectNode),
+				new NodeAttribute(Traits.of("SchemaProperty").key("name"), "taskNames"),
+				new NodeAttribute(Traits.of("SchemaProperty").key("propertyType"), "Notion"),
+				new NodeAttribute(Traits.of("SchemaProperty").key("format"), "tasks, name")
 			);
 
 			final NodeInterface taskNode = app.create("SchemaNode",
@@ -320,6 +337,10 @@ public class RenderContextTest extends StructrUiTest {
 			assertEquals("Invalid dot syntax result: ", "Task1", Scripting.replaceVariables(renderContext, project, "${project.taskNames[0]}"));
 			assertEquals("Invalid dot syntax result: ", "Task2", Scripting.replaceVariables(renderContext, project, "${project.taskNames[1]}"));
 			assertEquals("Invalid dot syntax result: ", "Task3", Scripting.replaceVariables(renderContext, project, "${project.taskNames[2]}"));
+
+			assertEquals("Invalid dot syntax result: ", task1.getUuid(), Scripting.replaceVariables(renderContext, project, "${project.taskList[0].id}"));
+			assertEquals("Invalid dot syntax result: ", task2.getUuid(), Scripting.replaceVariables(renderContext, project, "${project.taskList[1].id}"));
+			assertEquals("Invalid dot syntax result: ", task3.getUuid(), Scripting.replaceVariables(renderContext, project, "${project.taskList[2].id}"));
 
 			assertEquals("Invalid dot syntax result: ", "Task3", Scripting.replaceVariables(renderContext, project, "${project.currentTask.name}"));
 
@@ -625,12 +646,15 @@ public class RenderContextTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// create a Project type
-			final NodeInterface projectNode = createTestNode("SchemaNode", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Project"));
+			final NodeInterface projectNode = app.create("SchemaNode", "Project");
 
 			// create a Task type with a string property "task"
-			final NodeInterface taskNode    = createTestNode("SchemaNode",
-				new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Task"),
-				new NodeAttribute<>(new StringProperty("_task"), "String")
+			final NodeInterface taskNode  = app.create("SchemaNode", "Task");
+
+			app.create("SchemaProperty",
+				new NodeAttribute(Traits.of("SchemaProperty").key("schemaNode"), taskNode),
+				new NodeAttribute(Traits.of("SchemaProperty").key("name"), "task"),
+				new NodeAttribute(Traits.of("SchemaProperty").key("propertyType"), "String")
 			);
 
 			// create a schema relationship between them

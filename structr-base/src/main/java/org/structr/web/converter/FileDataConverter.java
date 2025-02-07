@@ -63,7 +63,7 @@ public class FileDataConverter extends PropertyConverter {
 			return false;
 		}
 
-		final File currentFile = (File)getCurrentObject();
+		final File currentFile = getCurrentObject().as(File.class);
 
 		if (source instanceof byte[]) {
 

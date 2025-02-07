@@ -150,18 +150,18 @@ public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Iterable<NodeInterface>> imagesProperty            = new EndNodes("images", "FolderCONTAINSImage");
 		final Property<NodeInterface> folderParentProperty                = new StartNode("folderParent", "FolderCONTAINSFolder");
 		final Property<NodeInterface> homeFolderOfUserProperty            = new StartNode("homeFolderOfUser", "UserHOME_DIRFolder");
-		final Property<Boolean> isFolderProperty                           = new ConstantBooleanProperty("isFolder", true).readOnly().dynamic();
-		final Property<Boolean> mountDoFulltextIndexingProperty            = new BooleanProperty("mountDoFulltextIndexing").dynamic();
-		final Property<Boolean> mountWatchContentsProperty                 = new BooleanProperty("mountWatchContents").dynamic();
-		final Property<Integer> mountScanIntervalProperty                  = new IntProperty("mountScanInterval").dynamic();
-		final Property<Integer> positionProperty                           = new IntProperty("position").indexed().dynamic();
-		final Property<String> enabledChecksumsProperty                    = new StringProperty("enabledChecksums").dynamic();
-		final Property<String> mountTargetProperty                         = new StringProperty("mountTarget").indexed().dynamic();
-		final Property<String> mountTargetFileTypeProperty                 = new StringProperty("mountTargetFileType").dynamic();
-		final Property<String> mountTargetFolderTypeProperty               = new StringProperty("mountTargetFolderType").dynamic();
-		final Property<Long> mountLastScannedProperty                      = new LongProperty("mountLastScanned").dynamic();
-		final Property<Object> filesCountProperty                          = new FunctionProperty("filesCount").readFunction("size(this.files)").typeHint("int").dynamic();
-		final Property<Object> foldersCountProperty                        = new FunctionProperty("foldersCount").readFunction("size(this.files)").typeHint("int").dynamic();
+		final Property<Boolean> isFolderProperty                           = new ConstantBooleanProperty("isFolder", true).readOnly();
+		final Property<Boolean> mountDoFulltextIndexingProperty            = new BooleanProperty("mountDoFulltextIndexing");
+		final Property<Boolean> mountWatchContentsProperty                 = new BooleanProperty("mountWatchContents");
+		final Property<Integer> mountScanIntervalProperty                  = new IntProperty("mountScanInterval");
+		final Property<Integer> positionProperty                           = new IntProperty("position").indexed();
+		final Property<String> enabledChecksumsProperty                    = new StringProperty("enabledChecksums");
+		final Property<String> mountTargetProperty                         = new StringProperty("mountTarget").indexed();
+		final Property<String> mountTargetFileTypeProperty                 = new StringProperty("mountTargetFileType");
+		final Property<String> mountTargetFolderTypeProperty               = new StringProperty("mountTargetFolderType");
+		final Property<Long> mountLastScannedProperty                      = new LongProperty("mountLastScanned");
+		final Property<Object> filesCountProperty                          = new FunctionProperty("filesCount").readFunction("size(this.files)").typeHint("int");
+		final Property<Object> foldersCountProperty                        = new FunctionProperty("foldersCount").readFunction("size(this.files)").typeHint("int");
 
 		return Set.of(
 			childrenProperty,
