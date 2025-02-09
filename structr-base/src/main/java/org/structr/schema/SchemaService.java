@@ -108,7 +108,7 @@ public class SchemaService implements Service {
 
 				tx.prefetchHint("Reload schema");
 
-				final Map<String, Map<String, PropertyKey>> removedTypes = Traits.removeDynamicTypes();
+				final Map<String, Map<String, PropertyKey>> removedTypes = Traits.clearDynamicSchema();
 
 				// fetch schema relationships
 				for (final NodeInterface node : app.nodeQuery("SchemaRelationshipNode").getResultStream()) {

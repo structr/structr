@@ -41,9 +41,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.*;
-import org.structr.core.property.IntProperty;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
@@ -1097,6 +1095,8 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (Exception t) {
+
+			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
 

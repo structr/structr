@@ -29,7 +29,6 @@ import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * A named collection of traits that a node can have.
@@ -68,24 +67,31 @@ public class TraitsImplementation implements Traits {
 
 	@Override
 	public Set<String> getLabels() {
-		return Collections.unmodifiableSet(globalTraitMap.keySet());
+		return traits;
 	}
 
 	@Override
 	public boolean contains(final String type) {
-		return globalTraitMap.containsKey(type);
+		return traits.contains(type);
 	}
 
 	@Override
 	public <T> PropertyKey<T> key(final String name) {
 
-		for (final Trait trait : globalTraitMap.values()) {
+		PropertyKey<T> key = null;
+
+		for (final Trait trait : getTraits()) {
 
 			final Map<String, PropertyKey> keys = trait.getPropertyKeys();
 			if (keys.containsKey(name)) {
 
-				return keys.get(name);
+				key = keys.get(name);
 			}
+		}
+
+		// return last key, not first
+		if (key != null) {
+			return key;
 		}
 
 		throw new RuntimeException("Missing property key " + name + " of type " + typeName);
@@ -94,7 +100,7 @@ public class TraitsImplementation implements Traits {
 	@Override
 	public boolean hasKey(final String name) {
 
-		for (final Trait trait : globalTraitMap.values()) {
+		for (final Trait trait : getTraits()) {
 
 			if (trait.getPropertyKeys().containsKey(name)) {
 				return true;
@@ -130,7 +136,7 @@ public class TraitsImplementation implements Traits {
 
 		final Set<PropertyKey> set = new LinkedHashSet<>();
 
-		traits.stream().map(name -> globalTraitMap.get(name)).forEach(trait -> set.addAll(trait.getPropertyKeys().values()));
+		getTraits().forEach(trait -> set.addAll(trait.getPropertyKeys().values()));
 
 		return set;
 	}
@@ -146,12 +152,16 @@ public class TraitsImplementation implements Traits {
 
 		final LinkedHashSet<PropertyKey> set = new LinkedHashSet<>();
 
-		for (final String name : traits) {
+		for (final Trait trait : getTraits()) {
 
-			final Trait trait = globalTraitMap.get(name);
+			final Set<String> names = trait.getPropertyKeysForView(propertyView);
+			if (names != null) {
 
-			set.addAll(trait.getPropertyKeysForView(propertyView));
+				for (final String keyName : names) {
 
+					set.add(key(keyName));
+				}
+			}
 		}
 
 		return set;
@@ -162,11 +172,13 @@ public class TraitsImplementation implements Traits {
 
 		final Set<T> methods = new LinkedHashSet<>();
 
-		for (final String name : traits) {
+		for (final Trait trait : getTraits()) {
 
-			final Trait trait = globalTraitMap.get(name);
+			final T method    = trait.getLifecycleMethod(type);
+			if (method != null) {
 
-			methods.add(trait.getLifecycleMethod(type));
+				methods.add(method);
+			}
 		}
 
 		return methods;
@@ -177,17 +189,34 @@ public class TraitsImplementation implements Traits {
 
 		// build hierarchy here??
 
-		final Set<T> methods = new LinkedHashSet<>();
+		final List<T> methods = new LinkedList<>();
 
-		for (final String name : traits) {
+		for (final Trait trait : getTraits()) {
 
-			final Trait trait = globalTraitMap.get(name);
+			final T method = trait.getFrameworkMethod(type);
+			if (method != null) {
 
-			methods.add(trait.getFrameworkMethod(type));
+				methods.add(method);
+			}
 		}
 
-		// fixme: need hierarchy!
-		return null;
+		Collections.reverse(methods);
+
+		T actualMethod = methods.get(0);
+		T current = null;
+
+		for (final T method : methods) {
+
+			if (current != null) {
+
+				current.setSuper(method);
+			}
+
+			current = method;
+
+		}
+
+		return actualMethod;
 	}
 
 	@Override
@@ -195,9 +224,7 @@ public class TraitsImplementation implements Traits {
 
 		final Map<String, AbstractMethod> methods = new LinkedHashMap<>();
 
-		for (final String name : traits) {
-
-			final Trait trait = globalTraitMap.get(name);
+		for (final Trait trait : getTraits()) {
 
 			// this is the place where we can detect clashes!
 			methods.putAll(trait.getDynamicMethods());
@@ -211,12 +238,11 @@ public class TraitsImplementation implements Traits {
 
 		if (obj.isNode()) {
 
-			for (final String name : traits) {
+			for (final Trait trait : getTraits()) {
 
-				final Trait trait = globalTraitMap.get(name);
 				final Map<Class, NodeTraitFactory> factories = trait.getNodeTraitFactories();
+				final NodeTraitFactory factory               = factories.get(type);
 
-				final NodeTraitFactory factory = factories.get(type);
 				if (factory != null) {
 
 					return (T) factory.newInstance(this, (NodeInterface) obj);
@@ -225,12 +251,11 @@ public class TraitsImplementation implements Traits {
 
 		} else {
 
-			for (final String name : traits) {
+			for (final Trait trait : getTraits()) {
 
-				final Trait trait = globalTraitMap.get(name);
 				final Map<Class, RelationshipTraitFactory> factories = trait.getRelationshipTraitFactories();
+				final RelationshipTraitFactory factory               = factories.get(type);
 
-				final RelationshipTraitFactory factory = factories.get(type);
 				if (factory != null) {
 
 					return (T) factory.newInstance(this, (RelationshipInterface) obj);
@@ -242,28 +267,27 @@ public class TraitsImplementation implements Traits {
 	}
 
 	@Override
-	public synchronized void registerImplementation(final TraitDefinition traitDefinition) {
+	public synchronized void registerImplementation(final TraitDefinition traitDefinition, final boolean isDynamic) {
 
 		final String name = traitDefinition.getName();
 		Trait trait       = globalTraitMap.get(name);
 
 		if (trait == null) {
 
-			trait = new Trait(traitDefinition);
+			trait = new Trait(traitDefinition, isDynamic);
 			globalTraitMap.put(name, trait);
 		}
 
 		definitions.add(traitDefinition);
+		traits.add(name);
 	}
 
 	@Override
 	public Relation getRelation() {
 
-		for (final String name : traits) {
+		for (final Trait trait : getTraits()) {
 
-			final Trait trait  = globalTraitMap.get(name);
 			final Relation rel = trait.getRelation();
-
 			if (rel != null) {
 
 				return rel;
@@ -316,9 +340,77 @@ public class TraitsImplementation implements Traits {
 		return new LinkedHashSet<>(traits);
 	}
 
+	@Override
+	public Map<String, Map<String, PropertyKey>> removeDynamicProperties() {
+
+		final Map<String, Map<String, PropertyKey>> removedProperties = new LinkedHashMap<>();
+		final Set<String> traitsToRemove                              = new LinkedHashSet<>();
+
+		for (final Trait trait : getTraits()) {
+
+			String name = trait.getName();
+
+			// Use relationship type instead of the type name for relationships
+			// because the return value is for index update purposes.
+
+			if (trait.isRelationship()) {
+
+				final Relation relation = trait.getRelation();
+				if (relation != null) {
+
+					name = relation.name();
+				}
+			}
+
+			if (trait.isDynamic()) {
+
+				// dynamic trait => we can remove all property keys
+				removedProperties.computeIfAbsent(name, k -> new LinkedHashMap<>()).putAll(trait.getPropertyKeys());
+
+				// mark trait for removal
+				traitsToRemove.add(name);
+
+			} else {
+
+				// check all property keys of all traits to see if there are dynamic keys that need to be removed
+				for (final PropertyKey key : trait.getPropertyKeys().values()) {
+
+					if (key.isDynamic()) {
+
+						removedProperties.computeIfAbsent(name, k -> new LinkedHashMap<>()).put(key.jsonName(), key);
+					}
+				}
+			}
+		}
+
+		traits.removeAll(traitsToRemove);
+
+		// remove all traits from global map
+		globalTraitMap.keySet().removeAll(traitsToRemove);
+
+		return removedProperties;
+	}
+
+	@Override
+	public void removeDynamicMethods() {
+
+	}
+
 	// ----- private methods -----
 	private Set<Trait> getTraits() {
-		return traits.stream().map(globalTraitMap::get).collect(Collectors.toSet());
+
+		final Set<Trait> set = new LinkedHashSet<>();
+
+		for (final String name : traits) {
+
+			final Trait trait = globalTraitMap.get(name);
+			if (trait != null) {
+
+				set.add(trait);
+			}
+		}
+
+		return set;
 	}
 
 	// ----- static methods -----
@@ -359,7 +451,7 @@ public class TraitsImplementation implements Traits {
 		final Trait trait = globalTraitMap.get(name);
 		if (trait != null) {
 
-			return trait.getAllPropertyKeys();
+			return new LinkedHashSet<>(trait.getPropertyKeys().values());
 		}
 
 		return Set.of();
@@ -453,7 +545,7 @@ public class TraitsImplementation implements Traits {
 	 *
 	 * @return
 	 */
-	static Map<String, Map<String, PropertyKey>> removeDynamicTypes() {
+	static Map<String, Map<String, PropertyKey>> clearDynamicSchema() {
 
 		final Map<String, Map<String, PropertyKey>> removedClasses = new LinkedHashMap<>();
 
@@ -461,30 +553,13 @@ public class TraitsImplementation implements Traits {
 
 			final Traits traits = it.next();
 
+			removedClasses.putAll(traits.removeDynamicProperties());
+			traits.removeDynamicMethods();
+
 			if (!traits.isBuiltInType()) {
 
+				// remove this type from the global map
 				it.remove();
-
-				String indexingTypeName = traits.getName();
-
-				if (traits.isRelationshipType()) {
-
-					final Relation relation = traits.getRelation();
-					if (relation != null) {
-
-						indexingTypeName = relation.name();
-					}
-				}
-
-				// remove property keys from global map
-				//properties.remove(indexingTypeName);
-
-				// add mapped property keys
-				final Map<String, PropertyKey> map = removedClasses.computeIfAbsent(indexingTypeName, k -> new LinkedHashMap<>());
-				for (final PropertyKey key : traits.getAllPropertyKeys()) {
-
-					map.put(key.jsonName(), key);
-				}
 			}
 		}
 

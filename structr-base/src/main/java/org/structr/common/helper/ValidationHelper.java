@@ -578,7 +578,7 @@ public class ValidationHelper {
 						result = StructrApp.getInstance()
 								.nodeQuery(type)
 								.and(key, value)
-								.sort(traits.key("createdDateProperty"))
+								.sort(traits.key("createdDate"))
 								.getAsList();
 
 					} else {
@@ -586,7 +586,7 @@ public class ValidationHelper {
 						result = StructrApp.getInstance()
 								.relationshipQuery(type)
 								.and(key, value)
-								.sort(traits.key("createdDateProperty"))
+								.sort(traits.key("createdDate"))
 								.getAsList();
 
 					}
@@ -665,7 +665,7 @@ public class ValidationHelper {
 					result = StructrApp.getInstance()
 							.nodeQuery(type)
 							.and(properties)
-							.sort(traits.key("createdDateProperty"))
+							.sort(traits.key("createdDate"))
 							.getAsList();
 
 				} else {
@@ -673,7 +673,7 @@ public class ValidationHelper {
 					result = StructrApp.getInstance()
 							.relationshipQuery(type)
 							.and(properties)
-							.sort(traits.key("createdDateProperty"))
+							.sort(traits.key("createdDate"))
 							.getAsList();
 
 				}
@@ -733,7 +733,7 @@ public class ValidationHelper {
 					result = StructrApp.getInstance()
 							.nodeQuery()
 							.and(key, value)
-							.sort(traits.key("createdDateProperty"))
+							.sort(traits.key("createdDate"))
 							.getAsList();
 
 				} else if (object instanceof RelationshipInterface) {
@@ -741,7 +741,7 @@ public class ValidationHelper {
 					result = StructrApp.getInstance()
 							.relationshipQuery()
 							.and(key, value)
-							.sort(traits.key("createdDateProperty"))
+							.sort(traits.key("createdDate"))
 							.getAsList();
 
 				} else {

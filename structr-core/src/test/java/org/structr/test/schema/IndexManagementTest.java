@@ -548,7 +548,7 @@ public class IndexManagementTest extends StructrTest {
 				while (!indexCreatedSuccessfully(db, false, true, "HAS_PROJECT", INDEXED_RELATIONSHIP_PROPERTIES, 1)) {
 
 					if (System.currentTimeMillis() > start + INDEX_UPDATE_TIMEOUT) {
-						fail("Timeout waiting for index update!");
+						fail("Timeout waiting for index creation!");
 					}
 
 					// wait for index to be created
@@ -578,7 +578,7 @@ public class IndexManagementTest extends StructrTest {
 				while (!hasNumberOfIndexes(db, "HAS_PROJECT", 0)) {
 
 					if (System.currentTimeMillis() > start + INDEX_UPDATE_TIMEOUT) {
-						fail("Timeout waiting for index update!");
+						fail("Timeout waiting for index removal!");
 					}
 
 					// wait for index to be created

@@ -44,7 +44,9 @@ public interface Traits {
 	<T extends FrameworkMethod> T getMethod(final Class<T> type);
 	Map<String, AbstractMethod> getDynamicMethods();
 	<T> T as(final Class<T> type, final GraphObject obj);
-	void registerImplementation(final TraitDefinition trait);
+	void registerImplementation(final TraitDefinition trait, final boolean isDynamic);
+	Map<String, Map<String, PropertyKey>> removeDynamicProperties();
+	void removeDynamicMethods();
 	Relation getRelation();
 	Set<TraitDefinition> getTraitDefinitions();
 	boolean isInterface();
@@ -95,7 +97,7 @@ public interface Traits {
 		return TraitsImplementation.getAllViews();
 	}
 
-	static Map<String, Map<String, PropertyKey>> removeDynamicTypes() {
-		return TraitsImplementation.removeDynamicTypes();
+	static Map<String, Map<String, PropertyKey>> clearDynamicSchema() {
+		return TraitsImplementation.clearDynamicSchema();
 	}
 }

@@ -141,7 +141,7 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 			}
 
 			@Override
-			public void registerImplementation(final TraitDefinition trait) {
+			public void registerImplementation(final TraitDefinition trait, final boolean isDynamic) {
 			}
 
 			@Override
@@ -182,6 +182,15 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 			@Override
 			public Set<String> getAllTraits() {
 				return Set.of();
+			}
+
+			@Override
+			public Map<String, Map<String, PropertyKey>> removeDynamicProperties() {
+				return Map.of();
+			}
+
+			@Override
+			public void removeDynamicMethods() {
 			}
 		};
 	}

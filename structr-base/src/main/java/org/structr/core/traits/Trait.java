@@ -42,10 +42,14 @@ public class Trait {
 
 	private final Relation relation;
 	private final String name;
+	private final boolean isRelationship;
+	private final boolean isDynamic;
 
-	public Trait(final TraitDefinition traitDefinition) {
+	public Trait(final TraitDefinition traitDefinition, final boolean isDynamic) {
 
-		this.name = traitDefinition.getName();
+		this.name           = traitDefinition.getName();
+		this.isRelationship = traitDefinition.isRelationship();
+		this.isDynamic      = isDynamic;
 
 		// relation (for relationship types)
 		this.relation = traitDefinition.getRelation();
@@ -96,34 +100,8 @@ public class Trait {
 		return this.name;
 	}
 
-	public Set<PropertyKey> getAllPropertyKeys() {
-		return new LinkedHashSet<>(propertyKeys.values());
-	}
-
-	public Set<PropertyKey> getPropertyKeysForView(final String viewName) {
-
-		final Set<String> view = views.get(viewName);
-		if (view != null) {
-
-			final Set<PropertyKey> set = new LinkedHashSet<>();
-
-			for (final String name : view) {
-
-				final PropertyKey key = propertyKeys.get(name);
-				if (key != null) {
-
-					set.add(key);
-
-				} else {
-
-					throw new RuntimeException("Key " + name + " from view " + viewName + " does not exist!");
-				}
-			}
-
-			return set;
-		}
-
-		return Set.of();
+	public Set<String> getPropertyKeysForView(final String viewName) {
+		return views.get(viewName);
 	}
 
 	public <T extends LifecycleMethod> T getLifecycleMethod(final Class<T> type) {
@@ -163,8 +141,7 @@ public class Trait {
 	}
 
 	public boolean isRelationship() {
-		// fixme
-		return relation != null;
+		return isRelationship;
 	}
 
 	public void registerDynamicMethod(final SchemaMethod method) {
@@ -185,5 +162,9 @@ public class Trait {
 
 			dynamicMethods.put(method.getName(), new ScriptMethod(method));
 		}
+	}
+
+	public boolean isDynamic() {
+		return isDynamic;
 	}
 }
