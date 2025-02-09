@@ -35,9 +35,9 @@ public class DynamicRelationshipTraitDefinition extends AbstractDynamicTraitDefi
 
 		super(schemaNode);
 
-		this.relationshipType = schemaNode.getRelationshipType();
-		this.sourceType       = schemaNode.getSchemaNodeSourceType();
-		this.targetType       = schemaNode.getSchemaNodeTargetType();
+		this.relationshipType    = schemaNode.getRelationshipType();
+		this.sourceType          = schemaNode.getSchemaNodeSourceType();
+		this.targetType          = schemaNode.getSchemaNodeTargetType();
 	}
 
 	@Override
@@ -98,10 +98,10 @@ public class DynamicRelationshipTraitDefinition extends AbstractDynamicTraitDefi
 	@Override
 	public int getCascadingDeleteFlag() {
 
-		final Long flag = schemaNode.getCascadingDeleteFlag();
-		if (flag != null) {
+		final Long cascadingDeleteFlag = schemaNode.getCascadingDeleteFlag();
+		if (cascadingDeleteFlag != null) {
 
-			return flag.intValue();
+			return cascadingDeleteFlag.intValue();
 		}
 
 		return 0;
@@ -110,10 +110,10 @@ public class DynamicRelationshipTraitDefinition extends AbstractDynamicTraitDefi
 	@Override
 	public int getAutocreationFlag() {
 
-		final Long flag = schemaNode.getAutocreationFlag();
-		if (flag != null) {
+		final Long autocreationFlag = schemaNode.getAutocreationFlag();
+		if (autocreationFlag != null) {
 
-			return flag.intValue();
+			return autocreationFlag.intValue();
 		}
 
 		return 0;

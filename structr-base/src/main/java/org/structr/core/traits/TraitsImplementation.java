@@ -348,27 +348,27 @@ public class TraitsImplementation implements Traits {
 
 		for (final Trait trait : getTraits()) {
 
-			String name = trait.getName();
+			final String traitName = trait.getName();
+			String indexName = traitName;
 
 			// Use relationship type instead of the type name for relationships
 			// because the return value is for index update purposes.
-
 			if (trait.isRelationship()) {
 
 				final Relation relation = trait.getRelation();
 				if (relation != null) {
 
-					name = relation.name();
+					indexName = relation.name();
 				}
 			}
 
 			if (trait.isDynamic()) {
 
 				// dynamic trait => we can remove all property keys
-				removedProperties.computeIfAbsent(name, k -> new LinkedHashMap<>()).putAll(trait.getPropertyKeys());
+				removedProperties.computeIfAbsent(indexName, k -> new LinkedHashMap<>()).putAll(trait.getPropertyKeys());
 
 				// mark trait for removal
-				traitsToRemove.add(name);
+				traitsToRemove.add(traitName);
 
 			} else {
 
@@ -377,7 +377,7 @@ public class TraitsImplementation implements Traits {
 
 					if (key.isDynamic()) {
 
-						removedProperties.computeIfAbsent(name, k -> new LinkedHashMap<>()).put(key.jsonName(), key);
+						removedProperties.computeIfAbsent(indexName, k -> new LinkedHashMap<>()).put(key.jsonName(), key);
 					}
 				}
 			}

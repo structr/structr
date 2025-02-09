@@ -26,7 +26,10 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation;
 
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.HashSet;
+import java.util.Queue;
+import java.util.Set;
 
 /**
  * Deletes a node. Caution, this command cannot be used multiple times, please instantiate
@@ -53,7 +56,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 	private void cascadeDelete(final NodeInterface node) throws FrameworkException {
 
 		final DeleteRelationshipCommand drc           = StructrApp.getInstance().command(DeleteRelationshipCommand.class);
-		final Principal user                 = securityContext.getCachedUser();
+		final Principal user                          = securityContext.getCachedUser();
 		final Set<RelationshipInterface> relsToDelete = new HashSet<>();
 		final Set<NodeInterface> nodesToDelete        = new HashSet<>();
 		final Set<NodeInterface> nodesToCheck         = new HashSet<>();
