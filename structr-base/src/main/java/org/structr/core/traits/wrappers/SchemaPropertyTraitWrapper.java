@@ -18,7 +18,6 @@
  */
 package org.structr.core.traits.wrappers;
 
-import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractSchemaNode;
@@ -31,7 +30,6 @@ import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.parser.*;
 
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -62,6 +60,11 @@ public class SchemaPropertyTraitWrapper extends AbstractNodeTraitWrapper impleme
 	@Override
 	public String getClassName() {
 		return getSchemaNode().getClassName();
+	}
+
+	@Override
+	public String getStaticSchemaNodeName() {
+		return wrappedObject.getProperty(traits.key("staticSchemaNodeName"));
 	}
 
 	@Override
@@ -270,27 +273,6 @@ public class SchemaPropertyTraitWrapper extends AbstractNodeTraitWrapper impleme
 	@Override
 	public String getFqcn() {
 		return wrappedObject.getProperty(traits.key("fqcn"));
-	}
-
-	@Override
-	public Set<String> getEnumDefinitions() {
-
-		final String _format    = getFormat();
-		final Set<String> enums = new LinkedHashSet<>();
-
-		if (_format != null) {
-
-			for (final String source : _format.split("[, ]+")) {
-
-				final String trimmed = source.trim();
-				if (StringUtils.isNotBlank(trimmed)) {
-
-					enums.add(trimmed);
-				}
-			}
-		}
-
-		return enums;
 	}
 
 	public String getContentHash() {

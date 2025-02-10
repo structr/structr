@@ -18,10 +18,12 @@
  */
 package org.structr.core.traits;
 
+import org.structr.common.error.FrameworkException;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.ScriptMethod;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaMethod;
+import org.structr.core.entity.SchemaProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
@@ -50,9 +52,12 @@ public class Trait {
 		this.name           = traitDefinition.getName();
 		this.isRelationship = traitDefinition.isRelationship();
 		this.isDynamic      = isDynamic;
+		this.relation       = traitDefinition.getRelation();
 
-		// relation (for relationship types)
-		this.relation = traitDefinition.getRelation();
+		initializeFrom(traitDefinition);
+	}
+
+	public final void initializeFrom(final TraitDefinition traitDefinition) {
 
 		// properties need to be registered first so they are available in lifecycle methods etc.
 		for (final PropertyKey key : traitDefinition.getPropertyKeys()) {
@@ -94,6 +99,11 @@ public class Trait {
 		// trait implementations
 		this.nodeTraitFactories.putAll(traitDefinition.getNodeTraitFactories());
 		this.relationshipTraitFactories.putAll(traitDefinition.getRelationshipTraitFactories());
+	}
+
+	@Override
+	public String toString() {
+		return "Trait(" + getName() + ")";
 	}
 
 	public String getName() {
@@ -166,5 +176,14 @@ public class Trait {
 
 	public boolean isDynamic() {
 		return isDynamic;
+	}
+
+	public void registerDynamicProperty(final SchemaProperty schemaProperty) throws FrameworkException {
+
+		final PropertyKey key = schemaProperty.createKey(null);
+		if (key != null) {
+
+			propertyKeys.put(key.jsonName(), key);
+		}
 	}
 }

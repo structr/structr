@@ -93,6 +93,7 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Iterable<NodeInterface>> excludedViews = new StartNodes("excludedViews", "SchemaExcludedViewProperty", new PropertySetNotion<>(newSet("id", "name")));
 
 		final Property<String>             declaringUuid         = new StringProperty("declaringUuid");
+		final Property<String>             staticSchemaNodeName  = new StringProperty("staticSchemaNodeName");
 		final Property<String>             declaringClass        = new StringProperty("declaringClass");
 		final Property<String>             defaultValue          = new StringProperty("defaultValue");
 		final Property<String>             propertyType          = new StringProperty("propertyType").indexed();
@@ -124,6 +125,7 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 		return newSet(
 
 			schemaNode,
+			staticSchemaNodeName,
 			schemaViews,
 			excludedViews,
 			declaringUuid,

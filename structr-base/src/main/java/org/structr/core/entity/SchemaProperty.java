@@ -32,12 +32,11 @@ public interface SchemaProperty extends PropertyDefinition, NodeInterface {
 
 	AbstractSchemaNode getSchemaNode();
 	String getSourceContentType();
+	String getStaticSchemaNodeName();
 
 	String getNotionBaseProperty();
 	Set<String> getPropertiesForNotionProperty();
 	String getNotionMultiplicity();
-
-	Set<String> getEnumDefinitions();
 
 	NotionPropertyGenerator getNotionPropertyParser();
 	IntegerPropertyGenerator getIntPropertyParser();

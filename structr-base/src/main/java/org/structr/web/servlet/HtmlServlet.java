@@ -1126,7 +1126,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			FileHelper.prefetchFileData(node.getUuid());
 
 			if (node.is("File") && (path.equals(node.getPath()) || node.getUuid().equals(PathHelper.getName(path)))) {
-				return (File) node;
+				return node.as(File.class);
 			}
 		}
 

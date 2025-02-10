@@ -367,7 +367,7 @@ public class PropertyMap {
 				final String key   = entry.getKey();
 				final Object value = entry.getValue();
 
-				if (key != null) {
+				if (key != null && traits.hasKey(key)) {
 
 					final PropertyKey propertyKey = traits.key(key);
 

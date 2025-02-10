@@ -276,6 +276,10 @@ public class TraitsImplementation implements Traits {
 
 			trait = new Trait(traitDefinition, isDynamic);
 			globalTraitMap.put(name, trait);
+
+		} else {
+
+			trait.initializeFrom(traitDefinition);
 		}
 
 		definitions.add(traitDefinition);

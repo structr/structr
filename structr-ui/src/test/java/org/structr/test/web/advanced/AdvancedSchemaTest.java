@@ -78,15 +78,12 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 		try (final Tx tx = app.tx()) {
 
-			// Add String property "testFile" to built-in File class
-			NodeInterface fileNodeDef = app.nodeQuery("SchemaNode").andName("File").getFirst();
-
 			NodeInterface testFileProperty = app.create("SchemaProperty");
 
 			final PropertyMap testFileProperties = new PropertyMap();
 			testFileProperties.put(Traits.of("SchemaProperty").key("name"), "testFile");
 			testFileProperties.put(Traits.of("SchemaProperty").key("propertyType"), "String");
-			testFileProperties.put(Traits.of("SchemaProperty").key("schemaNode"), fileNodeDef);
+			testFileProperties.put(Traits.of("SchemaProperty").key("staticSchemaNodeName"), "File");
 			testFileProperty.setProperties(testFileProperty.getSecurityContext(), testFileProperties);
 
 			tx.success();

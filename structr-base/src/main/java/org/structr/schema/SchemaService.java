@@ -158,6 +158,18 @@ public class SchemaService implements Service {
 				for (final NodeInterface node : app.nodeQuery("SchemaProperty").and(Traits.of("SchemaProperty").key("schemaNode"), null).getResultStream()) {
 
 					final SchemaProperty schemaProperty = node.as(SchemaProperty.class);
+					final String staticSchemaNodeName   = schemaProperty.getStaticSchemaNodeName();
+
+					if (StringUtils.isNotBlank(staticSchemaNodeName)) {
+
+						// attach method to existing type
+						if (Traits.exists(staticSchemaNodeName)) {
+
+							final Trait trait = Traits.getTrait(staticSchemaNodeName);
+
+							trait.registerDynamicProperty(schemaProperty);
+						}
+					}
 				}
 
 				updateIndexConfiguration(removedTypes);
