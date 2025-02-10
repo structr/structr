@@ -341,11 +341,11 @@ public class SchemaPropertyTraitWrapper extends AbstractNodeTraitWrapper impleme
 	}
 
 	@Override
-	public PropertyKey createKey(final AbstractSchemaNode entity) throws FrameworkException {
+	public PropertyKey createKey(final String className) throws FrameworkException {
 
 		final ErrorBuffer errorBuffer = new ErrorBuffer();
 
-		PropertyGenerator generator = SchemaHelper.getPropertyGenerator(errorBuffer, entity, this);
+		PropertyGenerator generator = SchemaHelper.getPropertyGenerator(errorBuffer, className, this);
 
 		return generator.createKey();
 	}
@@ -354,7 +354,7 @@ public class SchemaPropertyTraitWrapper extends AbstractNodeTraitWrapper impleme
 	public List<IsValid> createValidators(final AbstractSchemaNode entity) throws FrameworkException {
 
 		final ErrorBuffer errorBuffer     = new ErrorBuffer();
-		final PropertyGenerator generator = SchemaHelper.getPropertyGenerator(errorBuffer, entity, this);
+		final PropertyGenerator generator = SchemaHelper.getPropertyGenerator(errorBuffer, entity.getClassName(), this);
 
 		return generator.getValidators(getPropertyName());
 	}

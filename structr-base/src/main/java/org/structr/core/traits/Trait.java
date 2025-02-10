@@ -62,21 +62,7 @@ public class Trait {
 		// properties need to be registered first so they are available in lifecycle methods etc.
 		for (final PropertyKey key : traitDefinition.getPropertyKeys()) {
 
-			final String name = key.jsonName();
-
-			// register property key
-			propertyKeys.put(name, key);
-
-			// set declaring trait
-			key.setDeclaringTrait(this);
-
-			// add key to "all" view
-			this.views.computeIfAbsent("all", k -> new LinkedHashSet<>()).add(name);
-
-			// add dynamic keys to "custom" view
-			if (key.isDynamic() || DEFAULT_PROPERTY_KEYS.contains(name)) {
-				this.views.computeIfAbsent("custom", k -> new LinkedHashSet<>()).add(name);
-			}
+			registerPropertyKey(key);
 		}
 
 		lifecycleMethods.putAll(traitDefinition.getLifecycleMethods());
@@ -180,10 +166,30 @@ public class Trait {
 
 	public void registerDynamicProperty(final SchemaProperty schemaProperty) throws FrameworkException {
 
-		final PropertyKey key = schemaProperty.createKey(null);
+		final PropertyKey key = schemaProperty.createKey(getName());
 		if (key != null) {
 
-			propertyKeys.put(key.jsonName(), key);
+			registerPropertyKey(key);
+		}
+	}
+
+	// ----- private methods -----
+	private void registerPropertyKey(final PropertyKey key) {
+
+		final String name = key.jsonName();
+
+		// register property key
+		propertyKeys.put(name, key);
+
+		// set declaring trait
+		key.setDeclaringTrait(this);
+
+		// add key to "all" view
+		this.views.computeIfAbsent("all", k -> new LinkedHashSet<>()).add(name);
+
+		// add dynamic keys to "custom" view
+		if (key.isDynamic() || DEFAULT_PROPERTY_KEYS.contains(name)) {
+			this.views.computeIfAbsent("custom", k -> new LinkedHashSet<>()).add(name);
 		}
 	}
 }

@@ -350,9 +350,8 @@ public class AdvancedSchemaTest extends FrontendTest {
 			logger.error("", ex);
 		}
 
-		final GenericProperty jsonName = new GenericProperty("jsonName");
-		NodeInterface test                = null;
-		String id                      = null;
+		NodeInterface test = null;
+		String id          = null;
 
 		try (final Tx tx = app.tx()) {
 
@@ -375,6 +374,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 			fex.printStackTrace();
 		}
 
+		// This test seems to assume that every dynamic entity automatically gets a "public" view..
 
 		try (final Tx tx = app.tx()) {
 
@@ -543,13 +543,13 @@ public class AdvancedSchemaTest extends FrontendTest {
 			final List<GraphObjectMap> list3 = (List)new TypeInfoFunction().apply(new ActionContext(securityContext), null, new Object[] { "Test", "public" });
 
 			assertEquals("Invalid number of properties in sorted view", 7, list3.size());
-			assertEquals("id",    list3.get(0).get(jsonName));
-			assertEquals("type",  list3.get(1).get(jsonName));
-			assertEquals("name",  list3.get(2).get(jsonName));
-			assertEquals("one",   list3.get(3).get(jsonName));
-			assertEquals("two",   list3.get(4).get(jsonName));
-			assertEquals("three", list3.get(5).get(jsonName));
-			assertEquals("four",  list3.get(6).get(jsonName));
+			assertEquals("id",    list3.get(0).toMap().get("jsonName"));
+			assertEquals("type",  list3.get(1).toMap().get("jsonName"));
+			assertEquals("name",  list3.get(2).toMap().get("jsonName"));
+			assertEquals("one",   list3.get(3).toMap().get("jsonName"));
+			assertEquals("two",   list3.get(4).toMap().get("jsonName"));
+			assertEquals("three", list3.get(5).toMap().get("jsonName"));
+			assertEquals("four",  list3.get(6).toMap().get("jsonName"));
 
 		} catch (FrameworkException fex) {
 			fex.printStackTrace();
@@ -561,13 +561,13 @@ public class AdvancedSchemaTest extends FrontendTest {
 			final List<GraphObjectMap> list4 = (List)Scripting.evaluate(new ActionContext(securityContext), null, "${type_info('Test', 'public')}", "test");
 
 			assertEquals("Invalid number of properties in sorted view", 7, list4.size());
-			assertEquals("id",    list4.get(0).get(jsonName));
-			assertEquals("type",  list4.get(1).get(jsonName));
-			assertEquals("name",  list4.get(2).get(jsonName));
-			assertEquals("one",   list4.get(3).get(jsonName));
-			assertEquals("two",   list4.get(4).get(jsonName));
-			assertEquals("three", list4.get(5).get(jsonName));
-			assertEquals("four",  list4.get(6).get(jsonName));
+			assertEquals("id",    list4.get(0).toMap().get("jsonName"));
+			assertEquals("type",  list4.get(1).toMap().get("jsonName"));
+			assertEquals("name",  list4.get(2).toMap().get("jsonName"));
+			assertEquals("one",   list4.get(3).toMap().get("jsonName"));
+			assertEquals("two",   list4.get(4).toMap().get("jsonName"));
+			assertEquals("three", list4.get(5).toMap().get("jsonName"));
+			assertEquals("four",  list4.get(6).toMap().get("jsonName"));
 
 		} catch (FrameworkException fex) {
 			fex.printStackTrace();

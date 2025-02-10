@@ -43,7 +43,7 @@ public interface SchemaProperty extends PropertyDefinition, NodeInterface {
 	LongPropertyGenerator getLongPropertyParser();
 	DoublePropertyGenerator getDoublePropertyParser();
 
-	PropertyKey createKey(final AbstractSchemaNode entity) throws FrameworkException;
+	PropertyKey createKey(final String className) throws FrameworkException;
 	List<IsValid> createValidators(final AbstractSchemaNode entity) throws FrameworkException;
 
 	static String getPropertyName(final Set<String> existingPropertyNames, final boolean outgoing, final String relationshipTypeName, final String _sourceType, final String _targetType, final String _targetJsonName, final String _targetMultiplicity, final String _sourceJsonName, final String _sourceMultiplicity) {

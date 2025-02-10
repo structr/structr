@@ -29,7 +29,6 @@ import org.structr.common.error.InvalidPropertySchemaToken;
 import org.structr.common.helper.CaseHelper;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
@@ -1668,7 +1667,7 @@ public class SchemaHelper {
 
 	// ----- private methods -----
 	*/
-	public static PropertyGenerator getPropertyGenerator(final ErrorBuffer errorBuffer, final AbstractSchemaNode entity, final PropertyDefinition propertyDefinition) throws FrameworkException {
+	public static PropertyGenerator getPropertyGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition propertyDefinition) throws FrameworkException {
 
 		final String propertyName              = propertyDefinition.getPropertyName();
 		final Type propertyType                = propertyDefinition.getPropertyType();
@@ -1676,10 +1675,8 @@ public class SchemaHelper {
 
 		if (factory != null) {
 
-			final PropertyGenerator generator = factory.newInstance(errorBuffer, entity.getClassName(), propertyDefinition);
+			final PropertyGenerator generator = factory.newInstance(errorBuffer, className, propertyDefinition);
 			if (generator != null) {
-
-				generator.setSchemaNode(entity);
 
 				return generator;
 			}
