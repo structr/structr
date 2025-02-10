@@ -1308,17 +1308,5 @@ public class AdvancedSchemaTest extends FrontendTest {
 		} catch (FrameworkException fex) {
 			fex.printStackTrace();
 		}
-
-		// test getGeneratedSourceCode method
-		RestAssured.basePath = "/structr/rest";
-		RestAssured
-			.given()
-				.header("X-User",     "admin")
-				.header("X-Password", "admin")
-			.expect()
-				.statusCode(200)
-				.body("result", startsWith("package org.structr.dynamic;"))
-			.when()
-				.post("/SchemaNode/" + fileTypeId + "/getGeneratedSourceCode");
 	}
 }

@@ -40,6 +40,11 @@ public class SchemaViewTraitWrapper extends AbstractNodeTraitWrapper implements 
 	}
 
 	@Override
+	public String getStaticSchemaNodeName() {
+		return wrappedObject.getProperty(traits.key("staticSchemaNodeName"));
+	}
+
+	@Override
 	public String getNonGraphProperties() {
 		return wrappedObject.getProperty(traits.key("nonGraphProperties"));
 	}

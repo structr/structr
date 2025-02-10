@@ -24,6 +24,7 @@ import org.structr.core.api.ScriptMethod;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaProperty;
+import org.structr.core.entity.SchemaView;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
@@ -170,6 +171,17 @@ public class Trait {
 		if (key != null) {
 
 			registerPropertyKey(key);
+		}
+	}
+
+	public void registerDynamicView(final SchemaView schemaView) {
+
+		final String name      = schemaView.getName();
+		final Set<String> view = views.computeIfAbsent(name, k -> new LinkedHashSet<>());
+
+		for (final SchemaProperty property : schemaView.getSchemaProperties()) {
+
+			view.add(property.getName());
 		}
 	}
 

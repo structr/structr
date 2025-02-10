@@ -365,14 +365,11 @@ public class UiScriptingTest extends StructrUiTest {
 
 			uuid = parent.getUuid();
 
-			// create function property that returns folder children
-			final NodeInterface schemaNode = app.nodeQuery("SchemaNode").andName("Folder").getFirst();
-
 			app.create("SchemaProperty",
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaNode"),   schemaNode),
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("name"),         "testFunction"),
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("propertyType"), "Function"),
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("readFunction"), "this.folders")
+				new NodeAttribute<>(Traits.of("SchemaProperty").key("staticSchemaNodeName"), "Folder"),
+				new NodeAttribute<>(Traits.of("SchemaProperty").key("name"),                 "testFunction"),
+				new NodeAttribute<>(Traits.of("SchemaProperty").key("propertyType"),         "Function"),
+				new NodeAttribute<>(Traits.of("SchemaProperty").key("readFunction"),         "this.folders")
 			);
 
 			// create admin user
@@ -441,12 +438,11 @@ public class UiScriptingTest extends StructrUiTest {
 			uuid = parent.getUuid();
 
 			// create function property that returns folder children
-			final NodeInterface schemaNode = app.nodeQuery("SchemaNode").andName("Folder").getFirst();
-
 			app.create("SchemaProperty",
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaNode"),   schemaNode),
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("name"),         "testFunction"),
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("readFunction"), "this.folders")
+				new NodeAttribute<>(Traits.of("SchemaProperty").key("staticSchemaNodeName"), "Folder"),
+				new NodeAttribute<>(Traits.of("SchemaProperty").key("name"),                 "testFunction"),
+				new NodeAttribute<>(Traits.of("SchemaProperty").key("propertyType"),         "Function"),
+				new NodeAttribute<>(Traits.of("SchemaProperty").key("readFunction"),         "this.folders")
 			);
 
 			// create admin user
@@ -472,14 +468,12 @@ public class UiScriptingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface schemaNode = app.nodeQuery("SchemaNode").andName("Folder").getFirst();
-
 			// create view without property "folders"
-			final NodeInterface testFn = app.nodeQuery("SchemaProperty").and(Traits.of("SchemaProperty").key("schemaNode"), schemaNode).andName("testFunction").getFirst();
+			final NodeInterface testFn = app.nodeQuery("SchemaProperty").and(Traits.of("SchemaProperty").key("staticSchemaNodeName"), "Folder").andName("testFunction").getFirst();
 
 			app.create("SchemaView",
 					new NodeAttribute<>(Traits.of("SchemaView").key("name"), "someprops"),
-					new NodeAttribute<>(Traits.of("SchemaView").key("schemaNode"), schemaNode),
+					new NodeAttribute<>(Traits.of("SchemaView").key("staticSchemaNodeName"), "Folder"),
 					new NodeAttribute<>(Traits.of("SchemaView").key("schemaProperties"), List.of(testFn)),
 					new NodeAttribute<>(Traits.of("SchemaView").key("nonGraphProperties"), "id,type,name")
 			);
@@ -504,7 +498,7 @@ public class UiScriptingTest extends StructrUiTest {
 		RestAssured
 				.given()
 				.contentType("application/json; charset=UTF-8")
-				.accept("application/json; properties=id,type,name,folders,testFunction")	// folders is not included in the someprops view BUT should not be returned because it is run by admin
+				.accept("application/json; properties=id,type,name,folders,testFunction")	// folders is included in the someprops view BUT should not be returned because it is run by admin
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
@@ -940,8 +934,8 @@ public class UiScriptingTest extends StructrUiTest {
 
 			assertEquals("Invalid result for Structr.toJson() on Javascript object", "{\n\t\"name\": \"Test\"\n}", result1);
 			assertEquals("Invalid result for Structr.toJson() on Javascript array",  "[\n\t{\n\t\t\"name\": \"Test\"\n\t}\n]", result2);
-			assertEquals("Invalid result for Structr.toJson() on GraphObject",       "{\n\t\"id\": \"d7b5f5008fdf4066a1b9c2a74479ba5f\",\n\t\"type\": \"User\",\n\t\"isUser\": true,\n\t\"name\": \"admin\"\n}", result3);
-			assertEquals("Invalid result for Structr.toJson() on GraphObject array", "[\n\t{\n\t\t\"id\": \"d7b5f5008fdf4066a1b9c2a74479ba5f\",\n\t\t\"type\": \"User\",\n\t\t\"isUser\": true,\n\t\t\"name\": \"admin\"\n\t}\n]", result4);
+			assertEquals("Invalid result for Structr.toJson() on GraphObject",       "{\n\t\"id\": \"d7b5f5008fdf4066a1b9c2a74479ba5f\",\n\t\"type\": \"User\",\n\t\"name\": \"admin\",\n\t\"isUser\": true\n}", result3);
+			assertEquals("Invalid result for Structr.toJson() on GraphObject array", "[\n\t{\n\t\t\"id\": \"d7b5f5008fdf4066a1b9c2a74479ba5f\",\n\t\t\"type\": \"User\",\n\t\t\"name\": \"admin\",\n\t\t\"isUser\": true\n\t}\n]", result4);
 
 			tx.success();
 
@@ -1948,13 +1942,7 @@ public class UiScriptingTest extends StructrUiTest {
 			fail("Unexpected exception");
 		}
 
-		/**
-		 * We currently have a discrepancy in looking up methods. This test should reflect this (or should be updated after that discrepancy is resolved)
-		 */
 		try (final Tx tx = app.tx()) {
-
-			final AbstractMethod shouldBeNull  = Methods.resolveMethod(Traits.of("User"), methodName);
-			assertEquals(true, shouldBeNull == null);
 
 			final AbstractMethod shouldBeFound = Methods.resolveMethod(Traits.of("User"), methodName);
 			assertEquals(true, shouldBeFound != null);

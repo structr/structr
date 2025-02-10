@@ -23,6 +23,7 @@ import org.structr.core.graph.NodeInterface;
 public interface SchemaView extends NodeInterface {
 
 	Iterable<SchemaProperty> getSchemaProperties();
+	String getStaticSchemaNodeName();
 	String getNonGraphProperties();
 	String getSortOrder();
 }

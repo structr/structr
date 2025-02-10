@@ -172,6 +172,24 @@ public class SchemaService implements Service {
 					}
 				}
 
+				// fetch schema views that extend the static schema (not attached to a schema node)
+				for (final NodeInterface node : app.nodeQuery("SchemaView").and(Traits.of("SchemaView").key("schemaNode"), null).getResultStream()) {
+
+					final SchemaView schemaView       = node.as(SchemaView.class);
+					final String staticSchemaNodeName = schemaView.getStaticSchemaNodeName();
+
+					if (StringUtils.isNotBlank(staticSchemaNodeName)) {
+
+						// attach method to existing type
+						if (Traits.exists(staticSchemaNodeName)) {
+
+							final Trait trait = Traits.getTrait(staticSchemaNodeName);
+
+							trait.registerDynamicView(schemaView);
+						}
+					}
+				}
+
 				updateIndexConfiguration(removedTypes);
 
 				final GraphQLObjectType.Builder queryTypeBuilder         = GraphQLObjectType.newObject();

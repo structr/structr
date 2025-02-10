@@ -18,17 +18,28 @@
  */
 package org.structr.core.traits.definitions;
 
+import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.Relation;
-import org.structr.core.graph.NodeInterface;
+import org.structr.core.entity.SchemaProperty;
+import org.structr.core.graph.*;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.core.traits.operations.graphobject.OnCreation;
+import org.structr.core.traits.operations.graphobject.OnModification;
 import org.structr.core.traits.wrappers.AbstractSchemaNodeTraitWrapper;
 
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -73,6 +84,40 @@ public final class AbstractSchemaNodeTraitDefinition extends AbstractNodeTraitDe
 		return Map.of(
 			AbstractSchemaNode.class, (traits, node) -> new AbstractSchemaNodeTraitWrapper(traits, node)
 		);
+	}
+
+	@Override
+	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+
+		final Map<Class, LifecycleMethod> methods = new LinkedHashMap<>();
+
+		methods.put(
+
+			OnCreation.class,
+			new OnCreation() {
+				@Override
+				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+
+					// register transaction post processing that recreates the schema information
+					TransactionCommand.postProcess("createDefaultProperties", new CreateBuiltInSchemaEntities(graphObject.as(AbstractSchemaNode.class)));
+				}
+			}
+		);
+
+		methods.put(
+			OnModification.class,
+			new OnModification() {
+
+				@Override
+				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
+					// register transaction post processing that recreates the schema information
+					TransactionCommand.postProcess("createDefaultProperties", new CreateBuiltInSchemaEntities(graphObject.as(AbstractSchemaNode.class)));
+				}
+			}
+		);
+
+		return methods;
 	}
 
 	@Override
@@ -130,48 +175,6 @@ public final class AbstractSchemaNodeTraitDefinition extends AbstractNodeTraitDe
 		return null;
 	}
 
-	/*
-	@Override
-	public void onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
-
-		super.onCreation(securityContext, errorBuffer);
-
-		// register transaction post processing that recreates the schema information
-		TransactionCommand.postProcess("createDefaultProperties", new CreateBuiltInSchemaEntities(this));
-	}
-
-	@Override
-	public void onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
-
-		super.onModification(securityContext, errorBuffer, modificationQueue);
-
-		// register transaction post processing that recreates the schema information
-		TransactionCommand.postProcess("createDefaultProperties", new CreateBuiltInSchemaEntities(this));
-	}
-
-	public void createBuiltInSchemaEntities(final ErrorBuffer errorBuffer) throws FrameworkException {
-		new CreateBuiltInSchemaEntities(this).execute(securityContext, errorBuffer);
-	}
-
-	public void addDynamicView(final String view) {
-		dynamicViews.add(view);
-	}
-
-	public Set<String> getDynamicViews() {
-		return dynamicViews;
-	}
-
-	public void clearCachedSchemaMethodsForInstance() {
-
-		cachedSchemaMethods.remove(getUuid());
-	}
-
-
-	public static void clearCachedSchemaMethods() {
-
-		cachedSchemaMethods.clear();
-	}
-
 	private static class CreateBuiltInSchemaEntities implements TransactionPostProcess {
 
 		private AbstractSchemaNode node = null;
@@ -183,58 +186,41 @@ public final class AbstractSchemaNodeTraitDefinition extends AbstractNodeTraitDe
 		@Override
 		public boolean execute(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
-			final ConfigurationProvider config  = StructrApp.getConfiguration();
+			final String type = node.getClassName();
 
-			// determine runtime type
-			Class builtinClass = config.getNodeEntityClass(node.getClassName());
-			if (builtinClass == null) {
-
-				// second try: relationship class name
-				builtinClass = config.getRelationshipEntityClass(node.getClassName());
-			}
-
-			if (builtinClass != null) {
-
-				createViewNodesForClass(node, builtinClass, config, null);
-
-				final Class superClass = builtinClass.getSuperclass();
-				if (superClass != null) {
-					final AbstractSchemaNode parentNode = ((AbstractSchemaNode) node).getProperty(SchemaNode.extendsClass);
-					createViewNodesForClass(node, superClass, config, parentNode);
-				}
-
-			}
+			createViewNodesForClass(node, type);
 
 			return true;
 		}
 
-		private static void createViewNodesForClass(final AbstractSchemaNode schemaNode, final Class cls, final ConfigurationProvider config, final AbstractSchemaNode parentNode) throws FrameworkException {
+		private static void createViewNodesForClass(final AbstractSchemaNode schemaNode, final String type) throws FrameworkException {
 
 			final Set<String> existingViewNames = Iterables.toList(schemaNode.getSchemaViews()).stream().map(v -> v.getName()).collect(Collectors.toSet());
+			final Traits traits                 = Traits.of(type);
 
-			for (final String view : config.getPropertyViewsForType(cls)) {
+			for (final String view : traits.getViewNames()) {
 
 				// Don't create duplicate and internal views
 				if (existingViewNames.contains(view)) {
 					continue;
 				}
 
-				final Set<String> viewPropertyNames   = new HashSet<>();
-				final List<SchemaProperty> properties = new LinkedList<>();
+				final Set<String> viewPropertyNames  = new HashSet<>();
+				final List<NodeInterface> properties = new LinkedList<>();
 
 				// collect names of properties in the given view
-				for (final PropertyKey key : config.getPropertySet(cls, view)) {
+				for (final PropertyKey key : traits.getPropertyKeysForView(view)) {
 
-					if (parentNode != null || key.isPartOfBuiltInSchema()) {
+					if (!key.isDynamic()) {
 						viewPropertyNames.add(key.jsonName());
 					}
 				}
 
 				// collect schema properties that match the view
 				// if parentNode is set, we're adding inherited properties from the parent node
-				for (final SchemaProperty schemaProperty : (parentNode != null ? parentNode : schemaNode).getProperty(SchemaNode.schemaProperties)) {
+				for (final SchemaProperty schemaProperty : schemaNode.getSchemaProperties()) {
 
-					final String schemaPropertyName = schemaProperty.getProperty(SchemaProperty.name);
+					final String schemaPropertyName = schemaProperty.getName();
 					if (viewPropertyNames.contains(schemaPropertyName)) {
 
 						properties.add(schemaProperty);
@@ -242,15 +228,13 @@ public final class AbstractSchemaNodeTraitDefinition extends AbstractNodeTraitDe
 				}
 
 				// create view node
-				StructrApp.getInstance(schemaNode.getSecurityContext()).create(SchemaView.class,
-						new NodeAttribute(SchemaView.schemaNode, schemaNode),
-						new NodeAttribute(SchemaView.name, view),
-						new NodeAttribute(SchemaView.schemaProperties, properties),
-						new NodeAttribute(SchemaView.isBuiltinView, true)
+				StructrApp.getInstance(schemaNode.getSecurityContext()).create("SchemaView",
+						new NodeAttribute(Traits.of("SchemaView").key("schemaNode"),       schemaNode),
+						new NodeAttribute(Traits.of("SchemaView").key("name"),             view),
+						new NodeAttribute(Traits.of("SchemaView").key("schemaProperties"), properties),
+						new NodeAttribute(Traits.of("SchemaView").key("isBuiltinView"),    true)
 				);
-
 			}
 		}
 	}
-	*/
 }

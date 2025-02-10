@@ -69,16 +69,18 @@ public class SchemaViewTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface>           schemaNode         = new StartNode("schemaNode", "SchemaNodeView", new PropertySetNotion<>(newSet("id", "name")));
-		final Property<Iterable<NodeInterface>> schemaProperties   = new EndNodes("schemaProperties", "SchemaViewProperty", new PropertySetNotion<>(newSet("id", "name")));
-		final Property<Boolean>                 isBuiltinView      = new BooleanProperty("isBuiltinView");
-		final Property<String>                  nonGraphProperties = new StringProperty("nonGraphProperties");
-		final Property<String>                  sortOrder          = new StringProperty("sortOrder");
+		final Property<NodeInterface>           schemaNode           = new StartNode("schemaNode", "SchemaNodeView", new PropertySetNotion<>(newSet("id", "name")));
+		final Property<Iterable<NodeInterface>> schemaProperties     = new EndNodes("schemaProperties", "SchemaViewProperty", new PropertySetNotion<>(newSet("id", "name")));
+		final Property<Boolean>                 isBuiltinView        = new BooleanProperty("isBuiltinView");
+		final Property<String>                  staticSchemaNodeName = new StringProperty("staticSchemaNodeName");
+		final Property<String>                  nonGraphProperties   = new StringProperty("nonGraphProperties");
+		final Property<String>                  sortOrder            = new StringProperty("sortOrder");
 
 		return newSet(
 			schemaNode,
 			schemaProperties,
 			isBuiltinView,
+			staticSchemaNodeName,
 			nonGraphProperties,
 			sortOrder
 		);
