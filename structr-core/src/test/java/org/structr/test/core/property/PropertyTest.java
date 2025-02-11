@@ -35,7 +35,6 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.property.StringProperty;
 import org.structr.core.traits.Traits;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.common.StructrTest;
@@ -1268,18 +1267,17 @@ public class PropertyTest extends StructrTest {
 	public void testEscapingInFunctionProperty() {
 
 		// create test node with offending quote
-
 		try (final Tx tx = app.tx()) {
 
 			final PropertyMap properties = new PropertyMap();
 
 			properties.put(Traits.of("NodeInterface").key("name"), "Test");
-			properties.put(new StringProperty("_functionTest"), "Function()");
 
 			final NodeInterface type = app.create("SchemaNode", "Test");
 			final NodeInterface prop = app.create("SchemaProperty", "functionTest");
 
 			prop.setProperty(Traits.of("SchemaProperty").key("schemaNode"),   type);
+			prop.setProperty(Traits.of("SchemaProperty").key("propertyType"), "Function");
 			prop.setProperty(Traits.of("SchemaProperty").key("readFunction"), "{ // \"}");
 
 			tx.success();

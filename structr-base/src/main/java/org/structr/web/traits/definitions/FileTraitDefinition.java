@@ -386,25 +386,11 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 
 		if (key.equals(storageConfigurationKey)) {
 
-			if (value instanceof NodeInterface n && n.is("StorageConfiguration")) {
-
-				thisFile.checkMoveBinaryContents(n.as(StorageConfiguration.class));
-
-			} else {
-
-				throw new RuntimeException("Invalid value supplied to setProperty(" + key.jsonName() + ")");
-			}
+			thisFile.checkMoveBinaryContents((NodeInterface)value);
 
 		} else if (key.equals(parentKey)) {
 
-			if (value instanceof NodeInterface n && n.is("Folder")) {
-
-				thisFile.checkMoveBinaryContents(thisFile.getParent(), n.as(Folder.class));
-
-			} else {
-
-				throw new RuntimeException("Invalid value supplied to setProperty(" + key.jsonName() + ")");
-			}
+			thisFile.checkMoveBinaryContents(thisFile.getParent(), (NodeInterface)value);
 
 		} else if (key.equals(parentIdKey)) {
 
@@ -420,7 +406,7 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 
 			if (parentFolder != null) {
 
-				thisFile.checkMoveBinaryContents(thisFile.getParent(), parentFolder.as(Folder.class));
+				thisFile.checkMoveBinaryContents(thisFile.getParent(), parentFolder);
 			}
 		}
 	}
@@ -431,10 +417,10 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 			return;
 		}
 
-		final Traits traits                                             = Traits.of("File");
-		final PropertyKey<StorageConfiguration> storageConfigurationKey = traits.key("storageConfiguration");
-		final PropertyKey<NodeInterface> parentKey                      = traits.key("parent");
-		final PropertyKey<String> parentIdKey                           = traits.key("parentId");
+		final Traits traits                                      = Traits.of("File");
+		final PropertyKey<NodeInterface> storageConfigurationKey = traits.key("storageConfiguration");
+		final PropertyKey<NodeInterface> parentKey               = traits.key("parent");
+		final PropertyKey<String> parentIdKey                    = traits.key("parentId");
 
 		if (properties.containsKey(storageConfigurationKey)) {
 
@@ -442,7 +428,7 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 
 		} else if (properties.containsKey(parentKey)) {
 
-			thisFile.checkMoveBinaryContents(thisFile.getParent(), properties.get(parentKey).as(Folder.class));
+			thisFile.checkMoveBinaryContents(thisFile.getParent(), properties.get(parentKey));
 
 		} else if (properties.containsKey(parentIdKey)) {
 
@@ -456,7 +442,7 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 				LoggerFactory.getLogger(org.structr.web.entity.File.class).warn("Exception while trying to lookup parent folder.", ex);
 			}
 
-			thisFile.checkMoveBinaryContents(thisFile.getParent(), parentFolder.as(Folder.class));
+			thisFile.checkMoveBinaryContents(thisFile.getParent(), parentFolder);
 		}
 	}
 }

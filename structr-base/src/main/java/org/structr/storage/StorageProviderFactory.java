@@ -20,21 +20,21 @@ package org.structr.storage;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.traits.Traits;
-import org.structr.web.entity.AbstractFile;
-import org.structr.web.entity.Folder;
-
-import java.lang.reflect.InvocationTargetException;
-import java.util.Map;
-import java.util.Map.Entry;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.Traits;
 import org.structr.storage.providers.local.LocalFSStorageProvider;
+import org.structr.web.entity.AbstractFile;
+import org.structr.web.entity.Folder;
 import org.structr.web.entity.StorageConfiguration;
+
+import java.lang.reflect.InvocationTargetException;
+import java.util.Map;
+import java.util.Map.Entry;
 
 public abstract class StorageProviderFactory {
 
@@ -88,12 +88,12 @@ public abstract class StorageProviderFactory {
 		return getDefaultStorageProvider(file);
 	}
 
-	public static StorageProvider getSpecificStorageProvider(final AbstractFile file, final StorageConfiguration config) {
+	public static StorageProvider getSpecificStorageProvider(final AbstractFile file, final NodeInterface config) {
 
 		if (config != null) {
 
 			// Get config by name and get provider class to instantiate via reflection
-			final Class<? extends StorageProvider> storageProviderClass = config.getStorageProviderImplementation();
+			final Class<? extends StorageProvider> storageProviderClass = config.as(StorageConfiguration.class).getStorageProviderImplementation();
 			if (storageProviderClass != null) {
 
 				try {

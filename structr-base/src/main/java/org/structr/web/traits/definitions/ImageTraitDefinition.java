@@ -54,11 +54,6 @@ import java.util.Set;
  */
 public class ImageTraitDefinition extends AbstractNodeTraitDefinition {
 
-	/*
-	View publicView = new View(Image.class, PropertyView.Public, parentProperty);
-	View uiView     = new View(Image.class, PropertyView.Ui,     parentProperty);
-	*/
-
 	public ImageTraitDefinition() {
 		super("Image");
 	}
@@ -257,6 +252,8 @@ public class ImageTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 			PropertyView.Public,
+			newSet("parent"),
+			PropertyView.Ui,
 			newSet("parent")
 		);
 	}

@@ -21,10 +21,13 @@ package org.structr.core.traits.wrappers;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.RelationProperty;
+import org.structr.core.traits.Trait;
 import org.structr.core.traits.TraitDefinition;
 import org.structr.core.traits.Traits;
 import org.structr.schema.DynamicNodeTraitDefinition;
@@ -83,6 +86,42 @@ public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper imple
 
 			if (propertyNameToCheck.equals(SchemaRelationshipNode.getPropertyName(inRel, existingPropertyNames, false))) {
 				return inRel.getSourceMultiplicity();
+			}
+		}
+
+		final Set<String> allTraits = new LinkedHashSet<>();
+
+		allTraits.add("PropertyContainer");
+		allTraits.add("GraphObject");
+		allTraits.add("NodeInterface");
+		allTraits.add("AccessControllable");
+		allTraits.addAll(getInheritedTraits());
+
+		// check inheritance
+		for (final String name : allTraits) {
+
+			final Trait trait = Traits.getTrait(name);
+			if (trait != null) {
+
+				final PropertyKey key = trait.getPropertyKeys().get(propertyNameToCheck);
+				if (key != null && key instanceof RelationProperty rel) {
+
+					final Relation relation = rel.getRelation();
+					if (relation != null) {
+
+						final PropertyKey sourceProperty = relation.getSourceProperty();
+						if (sourceProperty.jsonName().equals(propertyNameToCheck)) {
+
+							return Relation.Multiplicity.One.equals(relation.getSourceMultiplicity()) ? "1" : "*";
+						}
+
+						final PropertyKey targetProperty = relation.getTargetProperty();
+						if (targetProperty.jsonName().equals(propertyNameToCheck)) {
+
+							return Relation.Multiplicity.One.equals(relation.getTargetMultiplicity()) ? "1" : "*";
+						}
+					}
+				}
 			}
 		}
 

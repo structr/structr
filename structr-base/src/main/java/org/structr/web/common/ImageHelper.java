@@ -41,9 +41,10 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.PathHelper;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.*;
+import org.structr.core.property.Property;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.util.Base64;
@@ -695,7 +696,7 @@ public abstract class ImageHelper extends FileHelper {
 		try (final InputStream dataStream = file.getInputStream()) {
 
 			if (dataStream != null) {
-				return Base64.encodeToString(IOUtils.toByteArray(file.getInputStream()), false);
+				return Base64.encodeToString(IOUtils.toByteArray(dataStream), false);
 			}
 
 		} catch (IOException ex) {

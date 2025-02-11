@@ -24,7 +24,6 @@ import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
-import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.operations.graphobject.IsValid;
@@ -39,10 +38,9 @@ import java.util.List;
  */
 public abstract class PropertyGenerator<T> {
 
-	protected AbstractSchemaNode schemaNode = null;
-	protected PropertyDefinition source     = null;
-	private ErrorBuffer errorBuffer         = null;
-	protected String className              = null;
+	protected PropertyDefinition source = null;
+	private ErrorBuffer errorBuffer     = null;
+	protected String className          = null;
 
 	public abstract Type getPropertyType();
 	public abstract String getValueType();
@@ -54,10 +52,6 @@ public abstract class PropertyGenerator<T> {
 		this.errorBuffer = errorBuffer;
 		this.className   = className;
 		this.source      = propertyDefinition;
-	}
-
-	public void setSchemaNode(final AbstractSchemaNode schemaNode) {
-		this.schemaNode = schemaNode;
 	}
 
 	public IsValid getValidator() {
@@ -112,6 +106,7 @@ public abstract class PropertyGenerator<T> {
 			propertyKey = newInstance();
 
 		} catch (FrameworkException e) {
+			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
 

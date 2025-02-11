@@ -271,6 +271,34 @@ public class SchemaPropertyTraitWrapper extends AbstractNodeTraitWrapper impleme
 	}
 
 	@Override
+	public String getMultiplicity(final String baseProperty) {
+
+		final AbstractSchemaNode abstractSchemaNode = getSchemaNode();
+		if (abstractSchemaNode != null && abstractSchemaNode.is("SchemaNode")) {
+
+			final SchemaNode schemaNode = abstractSchemaNode.as(SchemaNode.class);
+
+			return schemaNode.getMultiplicity(baseProperty);
+		}
+
+		return null;
+	}
+
+	@Override
+	public String getRelatedType(final String baseProperty) {
+
+		final AbstractSchemaNode abstractSchemaNode = getSchemaNode();
+		if (abstractSchemaNode != null && abstractSchemaNode.is("SchemaNode")) {
+
+			final SchemaNode schemaNode = abstractSchemaNode.as(SchemaNode.class);
+
+			return schemaNode.getRelatedType(baseProperty);
+		}
+
+		return null;
+	}
+
+	@Override
 	public String getFqcn() {
 		return wrappedObject.getProperty(traits.key("fqcn"));
 	}
@@ -387,7 +415,6 @@ public class SchemaPropertyTraitWrapper extends AbstractNodeTraitWrapper impleme
 			notionPropertyParser = new NotionPropertyGenerator(new ErrorBuffer(), getPropertyName(), this);
 
 			// we need to initialize the parser
-			notionPropertyParser.setSchemaNode(getSchemaNode().as(SchemaNode.class));
 			notionPropertyParser.createKey();
 		}
 

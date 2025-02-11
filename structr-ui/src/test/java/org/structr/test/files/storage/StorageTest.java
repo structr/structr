@@ -44,6 +44,7 @@ import static org.testng.AssertJUnit.*;
 
 
 public class StorageTest extends StructrUiTest {
+
 	private static final Logger logger = LoggerFactory.getLogger(StorageTest.class);
 
 	@Test

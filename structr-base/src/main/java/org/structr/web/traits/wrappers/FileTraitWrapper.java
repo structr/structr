@@ -52,8 +52,10 @@ import org.structr.storage.StorageProviderFactory;
 import org.structr.web.common.ClosingOutputStream;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.RenderContext;
+import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
-import org.structr.web.entity.*;
+import org.structr.web.entity.Folder;
+import org.structr.web.entity.User;
 import org.structr.web.importer.CSVFileImportJob;
 import org.structr.web.importer.MixedCSVFileImportJob;
 import org.structr.web.importer.XMLFileImportJob;
@@ -534,7 +536,9 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 	}
 
 	@Override
-	public void checkMoveBinaryContents(final StorageConfiguration newProvider) {
+	public void checkMoveBinaryContents(final NodeInterface newProvider) {
+
+		System.out.println("File.checkMoveBinaryContents(" + newProvider + ")");
 
 		final AbstractFile abstractFile = wrappedObject.as(AbstractFile.class);
 
@@ -548,10 +552,12 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 	}
 
 	@Override
-	public void checkMoveBinaryContents(final Folder previousParent, final Folder newParent) {
+	public void checkMoveBinaryContents(final Folder previousParent, final NodeInterface newParent) {
+
+		System.out.println("File.checkMoveBinaryContents(" + previousParent + ", " + newParent + ")");
 
 		final StorageProvider previousSP = StorageProviderFactory.getSpecificStorageProvider(this, previousParent != null ? previousParent.getStorageConfiguration(): null);
-		final StorageProvider newSP      = StorageProviderFactory.getSpecificStorageProvider(this, newParent != null ? newParent.getStorageConfiguration(): null);
+		final StorageProvider newSP      = StorageProviderFactory.getSpecificStorageProvider(this, newParent != null ? newParent.as(Folder.class).getStorageConfiguration(): null);
 		previousSP.moveTo(newSP);
 	}
 

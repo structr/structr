@@ -23,15 +23,12 @@ import org.structr.api.util.Iterables;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
-import org.structr.core.entity.SchemaNode;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.CollectionNotionProperty;
 import org.structr.core.property.EntityNotionProperty;
 import org.structr.core.property.Property;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.traits.Traits;
 import org.structr.schema.SchemaHelper.Type;
 
 import java.util.LinkedHashSet;
@@ -85,17 +82,17 @@ public class NotionPropertyGenerator extends PropertyGenerator {
 		final String[] parts = expression.split("[, ]+");
 		Property property    = null;
 
-		if (parts.length > 0 && schemaNode instanceof SchemaNode entity) {
+		if (parts.length > 0) {
 
-			final String baseType = entity.getClassName();
+			final String baseType = source.getClassName();
 
 			baseProperty = parts[0];
-			multiplicity = entity.getMultiplicity(baseProperty);
 
+			multiplicity = source.getMultiplicity(baseProperty);
 			if (multiplicity != null) {
 
 				// determine related type from relationship
-				relatedType  = entity.getRelatedType(baseProperty);
+				relatedType  = source.getRelatedType(baseProperty);
 
 				final boolean isBoolean = (parts.length == 3 && ("true".equals(parts[2].toLowerCase()) || "false".equals(parts[2].toLowerCase())));
 				Notion notion           = null;
@@ -113,21 +110,25 @@ public class NotionPropertyGenerator extends PropertyGenerator {
 					if (!isFlag && !propertyName.contains(".")) {
 
 						properties.add(fullPropertyName);
+
+					} else {
+
+						fullPropertyName = extendPropertyName(relatedType, fullPropertyName, isFlag);
+
+						properties.add(fullPropertyName);
+
+						propertyName = extendPropertyName(relatedType, propertyName, isFlag);
+
+						properties.add(propertyName);
+
+						/*
+						buf.append(propertyName);
+
+						if (i < parts.length - 1) {
+							buf.append(", ");
+						}
+						*/
 					}
-
-					/*
-					fullPropertyName = extendPropertyName(fullPropertyName, isFlag);
-
-					properties.add(fullPropertyName);
-
-					propertyName = extendPropertyName(propertyName, isFlag);
-
-					buf.append(propertyName);
-
-					if (i < parts.length-1) {
-						buf.append(", ");
-					}
-					*/
 				}
 
 				if (isPropertySet) {
@@ -159,11 +160,11 @@ public class NotionPropertyGenerator extends PropertyGenerator {
 
 			} else {
 
-				throw new FrameworkException(422, "Invalid notion property expression for property ‛" + source.getPropertyName() +  "‛", new InvalidPropertySchemaToken(entity.getClassName(), source.getPropertyName(), expression, "invalid_property_definition", "Invalid notion property expression for property " + source.getPropertyName() + "."));
+				throw new FrameworkException(422, "Invalid notion property expression for property ‛" + source.getPropertyName() +  "‛", new InvalidPropertySchemaToken(source.getClassName(), source.getPropertyName(), expression, "invalid_property_definition", "Invalid notion property expression for property " + source.getPropertyName() + "."));
 			}
 
 			if (properties.isEmpty()) {
-				throw new FrameworkException(422, "Invalid notion property expression for property ‛" + source.getPropertyName() +  "‛", new InvalidPropertySchemaToken(entity.getClassName(), source.getPropertyName(), expression, "invalid_property_definition", "Invalid notion property expression for property " + source.getPropertyName() + ", notion must define at least one property."));
+				throw new FrameworkException(422, "Invalid notion property expression for property ‛" + source.getPropertyName() +  "‛", new InvalidPropertySchemaToken(source.getClassName(), source.getPropertyName(), expression, "invalid_property_definition", "Invalid notion property expression for property " + source.getPropertyName() + ", notion must define at least one property."));
 			}
 		}
 
@@ -172,7 +173,7 @@ public class NotionPropertyGenerator extends PropertyGenerator {
 		return property;
 	}
 
-	private String extendPropertyName(final String propertyName, final Boolean isBoolean) throws FrameworkException {
+	private String extendPropertyName(final String relatedType, final String propertyName, final Boolean isBoolean) throws FrameworkException {
 
 		String extendedPropertyName = propertyName;
 
@@ -197,13 +198,18 @@ public class NotionPropertyGenerator extends PropertyGenerator {
 		}
 
 		final String tmpPropertyName  = StringUtils.contains(extendedPropertyName, ".") ? StringUtils.substringAfterLast(extendedPropertyName, ".") : extendedPropertyName;
-		final PropertyKey propertyKey = Traits.of("NodeInterface").key(tmpPropertyName);
+
+		return tmpPropertyName;
+
+		/*
+		final PropertyKey propertyKey = Traits.of(relatedType).key(tmpPropertyName);
 
 		if (propertyKey != null) {
 			return extendedPropertyName;
 		}
 
 		return (isBoolean || StringUtils.endsWith(extendedPropertyName, "Property")) ? extendedPropertyName : extendedPropertyName + "Property";
+		*/
 	}
 
 	public boolean isPropertySet() {

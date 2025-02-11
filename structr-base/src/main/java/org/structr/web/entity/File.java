@@ -21,6 +21,7 @@ package org.structr.web.entity;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.graph.NodeInterface;
 
 import javax.activation.DataSource;
 import java.io.OutputStream;
@@ -58,8 +59,8 @@ public interface File extends AbstractFile, DataSource {
 
 	int getNumberOrDefault(Map<String, Object> data, String key, int defaultValue);
 
-	void checkMoveBinaryContents(final StorageConfiguration newProvider);
-	void checkMoveBinaryContents(final Folder previousParent, final Folder newParent);
+	void checkMoveBinaryContents(final NodeInterface newProvider);
+	void checkMoveBinaryContents(final Folder previousParent, final NodeInterface newParent);
 
 	boolean doIndexing();
 

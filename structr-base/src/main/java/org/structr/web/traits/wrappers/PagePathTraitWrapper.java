@@ -150,6 +150,7 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 
 		final Map<String, PagePathParameter> map = new LinkedHashMap<>();
 		final List<PagePathParameter> sorted     = Iterables.asList(getParameters());
+		final Traits traits                      = Traits.of("PagePathParameter");
 
 		// sort by position
 		Collections.sort(sorted, new DefaultSortOrder(traits.key("position"), false));
