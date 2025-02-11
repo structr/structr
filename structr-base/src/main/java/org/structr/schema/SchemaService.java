@@ -30,6 +30,7 @@ import org.structr.api.index.NodeIndexConfig;
 import org.structr.api.index.RelationshipIndexConfig;
 import org.structr.api.service.*;
 import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidSchemaToken;
 import org.structr.core.Services;
 import org.structr.core.app.App;
@@ -150,6 +151,10 @@ public class SchemaService implements Service {
 							final Trait trait = Traits.getTrait(staticSchemaNodeName);
 
 							trait.registerDynamicMethod(schemaMethod);
+
+						} else {
+
+							throw new FrameworkException(422, "Invalid schema method " + schemaMethod.getUuid() + ": property staticSchemaNodeName contains unknown type " + staticSchemaNodeName);
 						}
 					}
 				}
@@ -168,6 +173,10 @@ public class SchemaService implements Service {
 							final Trait trait = Traits.getTrait(staticSchemaNodeName);
 
 							trait.registerDynamicProperty(schemaProperty);
+
+						} else {
+
+							throw new FrameworkException(422, "Invalid schema property " + schemaProperty.getUuid() + ": property staticSchemaNodeName contains unknown type " + staticSchemaNodeName);
 						}
 					}
 				}
@@ -186,6 +195,32 @@ public class SchemaService implements Service {
 							final Trait trait = Traits.getTrait(staticSchemaNodeName);
 
 							trait.registerDynamicView(schemaView);
+
+						} else {
+
+							throw new FrameworkException(422, "Invalid schema view " + schemaView.getUuid() + ": property staticSchemaNodeName contains unknown type " + staticSchemaNodeName);
+						}
+					}
+				}
+
+				// fetch schema grants that extend the static schema (not attached to a schema node)
+				for (final NodeInterface node : app.nodeQuery("SchemaGrant").and(Traits.of("SchemaGrant").key("schemaNode"), null).getResultStream()) {
+
+					final SchemaGrant schemaGrant     = node.as(SchemaGrant.class);
+					final String staticSchemaNodeName = schemaGrant.getStaticSchemaNodeName();
+
+					if (StringUtils.isNotBlank(staticSchemaNodeName)) {
+
+						// attach method to existing type
+						if (Traits.exists(staticSchemaNodeName)) {
+
+							final Trait trait = Traits.getTrait(staticSchemaNodeName);
+
+							trait.registerSchemaGrant(schemaGrant);
+
+						} else {
+
+							throw new FrameworkException(422, "Invalid schema grant " + schemaGrant.getUuid() + ": property staticSchemaNodeName contains unknown type " + staticSchemaNodeName);
 						}
 					}
 				}

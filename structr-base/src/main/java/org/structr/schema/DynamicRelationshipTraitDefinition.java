@@ -27,9 +27,19 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
 public class DynamicRelationshipTraitDefinition extends AbstractDynamicTraitDefinition<SchemaRelationshipNode> implements RelationshipBaseTraitDefinition {
 
-	final String relationshipType;
-	final String sourceType;
-	final String targetType;
+	private Relation.Multiplicity sourceMultiplicity;
+	private Relation.Multiplicity targetMultiplicity;
+	private PropagationDirection propagationDirection;
+	private PropagationMode readPropagation;
+	private PropagationMode writePropagation;
+	private PropagationMode deletePropagation;
+	private PropagationMode accessControlPropagation;
+	private String deltaProperties;
+	private String relationshipType;
+	private String sourceType;
+	private String targetType;
+	private int cascadingDeleteFlag = 0;
+	private int autocreationFlag    = 0;
 
 	public DynamicRelationshipTraitDefinition(final SchemaRelationshipNode schemaNode) {
 
@@ -38,6 +48,10 @@ public class DynamicRelationshipTraitDefinition extends AbstractDynamicTraitDefi
 		this.relationshipType    = schemaNode.getRelationshipType();
 		this.sourceType          = schemaNode.getSchemaNodeSourceType();
 		this.targetType          = schemaNode.getSchemaNodeTargetType();
+
+		initializeMultiplicity(schemaNode);
+		initializePermissionPropagation(schemaNode);
+		initializeFlags(schemaNode);
 	}
 
 	@Override
@@ -57,66 +71,22 @@ public class DynamicRelationshipTraitDefinition extends AbstractDynamicTraitDefi
 
 	@Override
 	public Relation.Multiplicity getSourceMultiplicity() {
-
-		final String multiplicity = schemaNode.getSourceMultiplicity();
-		if (multiplicity != null) {
-
-			switch (multiplicity) {
-
-				case "1" -> {
-					return Relation.Multiplicity.One;
-				}
-				case "*" -> {
-					return Relation.Multiplicity.Many;
-				}
-			}
-		}
-
-		return null;
+		return sourceMultiplicity;
 	}
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
-
-		final String multiplicity = schemaNode.getTargetMultiplicity();
-		if (multiplicity != null) {
-
-			switch (multiplicity) {
-
-				case "1" -> {
-					return Relation.Multiplicity.One;
-				}
-				case "*" -> {
-					return Relation.Multiplicity.Many;
-				}
-			}
-		}
-
-		return null;
+		return targetMultiplicity;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
-
-		final Long cascadingDeleteFlag = schemaNode.getCascadingDeleteFlag();
-		if (cascadingDeleteFlag != null) {
-
-			return cascadingDeleteFlag.intValue();
-		}
-
-		return 0;
+		return cascadingDeleteFlag;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
-
-		final Long autocreationFlag = schemaNode.getAutocreationFlag();
-		if (autocreationFlag != null) {
-
-			return autocreationFlag.intValue();
-		}
-
-		return 0;
+		return autocreationFlag;
 	}
 
 	@Override
@@ -135,26 +105,84 @@ public class DynamicRelationshipTraitDefinition extends AbstractDynamicTraitDefi
 	}
 
 	public PropagationDirection getPropagationDirection() {
-		return schemaNode.getPermissionPropagation();
+		return propagationDirection;
 	}
 
 	public PropagationMode getReadPropagation() {
-		return schemaNode.getReadPropagation();
+		return readPropagation;
 	}
 
 	public PropagationMode getWritePropagation() {
-		return schemaNode.getWritePropagation();
+		return writePropagation;
 	}
 
 	public PropagationMode getDeletePropagation() {
-		return schemaNode.getDeletePropagation();
+		return deletePropagation;
 	}
 
 	public PropagationMode getAccessControlPropagation() {
-		return schemaNode.getAccessControlPropagation();
+		return accessControlPropagation;
 	}
 
 	public String getDeltaProperties() {
-		return schemaNode.getPropertyMask();
+		return deltaProperties;
+	}
+
+	// ----- protected methods -----
+	protected void initializeMultiplicity(final SchemaRelationshipNode schemaNode) {
+
+		final String sourceMultiplicity = schemaNode.getSourceMultiplicity();
+		if (sourceMultiplicity != null) {
+
+			switch (sourceMultiplicity) {
+
+				case "1" -> {
+					this.sourceMultiplicity = Relation.Multiplicity.One;
+				}
+				case "*" -> {
+					this.sourceMultiplicity = Relation.Multiplicity.Many;
+				}
+			}
+		}
+
+		final String targetMultiplicity = schemaNode.getTargetMultiplicity();
+		if (targetMultiplicity != null) {
+
+			switch (targetMultiplicity) {
+
+				case "1" -> {
+					this.targetMultiplicity = Relation.Multiplicity.One;
+				}
+				case "*" -> {
+					this.targetMultiplicity = Relation.Multiplicity.Many;
+				}
+			}
+		}
+	}
+
+	protected void initializePermissionPropagation(final SchemaRelationshipNode schemaNode) {
+
+		this.propagationDirection     = schemaNode.getPermissionPropagation();
+		this.readPropagation          = schemaNode.getReadPropagation();
+		this.writePropagation         = schemaNode.getWritePropagation();
+		this.deletePropagation        = schemaNode.getDeletePropagation();
+		this.accessControlPropagation = schemaNode.getAccessControlPropagation();
+		this.deltaProperties          =  schemaNode.getPropertyMask();
+	}
+
+	protected void initializeFlags(final SchemaRelationshipNode schemaNode) {
+
+
+		final Long cascadingDeleteFlag = schemaNode.getCascadingDeleteFlag();
+		if (cascadingDeleteFlag != null) {
+
+			this.cascadingDeleteFlag = cascadingDeleteFlag.intValue();
+		}
+
+		final Long autocreationFlag = schemaNode.getAutocreationFlag();
+		if (autocreationFlag != null) {
+
+			this.autocreationFlag = autocreationFlag.intValue();
+		}
 	}
 }

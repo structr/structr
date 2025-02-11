@@ -42,14 +42,22 @@ import java.util.*;
 
 public abstract class AbstractDynamicTraitDefinition<T extends AbstractSchemaNode> implements TraitDefinition {
 
+	protected final Map<Class, LifecycleMethod> lifecycleMethods = new LinkedHashMap<>();
+	protected final Map<Class, FrameworkMethod> frameworkMethods = new LinkedHashMap<>();
+	protected final Set<AbstractMethod> dynamicMethods           = new LinkedHashSet<>();
+	protected final Map<String, Set<String>> views               = new LinkedHashMap<>();
+	protected final Set<PropertyKey> propertyKeys                = new LinkedHashSet<>();
 	protected final String name;
-	protected final T schemaNode;
 
 	public AbstractDynamicTraitDefinition(final T schemaNode) {
 
 		this.name = schemaNode.getClassName();
 
-		this.schemaNode = schemaNode;
+		initializeLifecycleMethods(schemaNode);
+		initializeFrameworkMethods(schemaNode);
+		initializeDynamicMethods(schemaNode);
+		initializePropertyKeys(schemaNode);
+		initializeViews(schemaNode);
 	}
 
 	@Override
@@ -59,10 +67,47 @@ public abstract class AbstractDynamicTraitDefinition<T extends AbstractSchemaNod
 
 	@Override
 	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+		return lifecycleMethods;
+	}
 
-		final Map<Class, LifecycleMethod> methods = new LinkedHashMap<>();
-		final Set<String> compoundKeys            = new LinkedHashSet<>();
-		final Validator validator                 = new Validator();
+	@Override
+	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+		return frameworkMethods;
+	}
+
+	@Override
+	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
+		return Map.of();
+	}
+
+	@Override
+	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+		return Map.of();
+	}
+
+	@Override
+	public Set<AbstractMethod> getDynamicMethods() {
+		return dynamicMethods;
+	}
+
+	@Override
+	public Map<String, Set<String>> getViews() {
+		return views;
+	}
+
+	@Override
+	public Set<PropertyKey> getPropertyKeys() {
+		return propertyKeys;
+	}
+
+	// ----- protected methods -----
+	protected void initializeFrameworkMethods(final T schemaNode) {
+	}
+
+	protected void initializeLifecycleMethods(final T schemaNode) {
+
+		final Set<String> compoundKeys = new LinkedHashSet<>();
+		final Validator validator      = new Validator();
 
 		// collect validators
 		for (final SchemaProperty property : schemaNode.getSchemaProperties()) {
@@ -102,7 +147,7 @@ public abstract class AbstractDynamicTraitDefinition<T extends AbstractSchemaNod
 		}
 
 		if (validator.hasValidators()) {
-			methods.put(IsValid.class, validator);
+			lifecycleMethods.put(IsValid.class, validator);
 		}
 
 		// collect methods
@@ -113,50 +158,26 @@ public abstract class AbstractDynamicTraitDefinition<T extends AbstractSchemaNod
 				final Class<LifecycleMethod> type = method.getMethodType();
 				if (type != null) {
 
-					methods.put(type, method.asLifecycleMethod());
+					lifecycleMethods.put(type, method.asLifecycleMethod());
 				}
 			}
 		}
-
-		return methods;
 	}
 
-	@Override
-	public Map<Class, FrameworkMethod> getFrameworkMethods() {
-		return new LinkedHashMap<>();
-	}
-
-	@Override
-	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
-		return Map.of();
-	}
-
-	@Override
-	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
-		return Map.of();
-	}
-
-	@Override
-	public Set<AbstractMethod> getDynamicMethods() {
-
-		final Set<AbstractMethod> methods = new LinkedHashSet<>();
+	protected void initializeDynamicMethods(final T schemaNode) {
 
 		for (final SchemaMethod method : schemaNode.getSchemaMethods()) {
 
 			// dynamic methods can be lifecycle methods which are handled elsewhere
 			if (!method.isLifecycleMethod()) {
 
-				methods.add(new ScriptMethod(method));
+				dynamicMethods.add(new ScriptMethod(method));
 			}
 		}
-
-		return methods;
 	}
 
-	@Override
-	public Map<String, Set<String>> getViews() {
+	protected void initializeViews(final T schemaNode) {
 
-		final Map<String, Set<String>> views = new LinkedHashMap<>();
 
 		for (final SchemaView view : schemaNode.getSchemaViews()) {
 
@@ -183,27 +204,20 @@ public abstract class AbstractDynamicTraitDefinition<T extends AbstractSchemaNod
 
 			views.put(view.getName(), names);
 		}
-
-		return views;
 	}
 
-	@Override
-	public Set<PropertyKey> getPropertyKeys() {
-
-		final Set<PropertyKey> keys = new LinkedHashSet<>();
+	protected void initializePropertyKeys(final T schemaNode) {
 
 		for (final SchemaProperty property : schemaNode.getSchemaProperties()) {
 
 			try {
 
-				keys.add(property.createKey(schemaNode.getClassName()));
+				propertyKeys.add(property.createKey(schemaNode.getClassName()));
 
 			} catch (FrameworkException e) {
 				e.printStackTrace();
 			}
 		}
-
-		return keys;
 	}
 
 	// ----- static classes -----

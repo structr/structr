@@ -23,14 +23,11 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.*;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.TraitDefinition;
-import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.accesscontrollable.AllowedBySchema;
 import org.structr.core.traits.operations.propertycontainer.GetVisibilityFlags;
 
 import java.util.LinkedHashSet;
-import java.util.Map;
 import java.util.Set;
 
 public class DynamicNodeTraitDefinition extends AbstractDynamicTraitDefinition<SchemaNode> {
@@ -40,9 +37,10 @@ public class DynamicNodeTraitDefinition extends AbstractDynamicTraitDefinition<S
 	}
 
 	@Override
-	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+	public void initializeFrameworkMethods(final SchemaNode schemaNode) {
 
-		final Map<Class, FrameworkMethod> methods  = super.getFrameworkMethods();
+		super.initializeFrameworkMethods(schemaNode);
+
 		final Set<String> readPermissions          = new LinkedHashSet<>();
 		final Set<String> writePermissions         = new LinkedHashSet<>();
 		final Set<String> deletePermissions        = new LinkedHashSet<>();
@@ -53,7 +51,7 @@ public class DynamicNodeTraitDefinition extends AbstractDynamicTraitDefinition<S
 
 		if (visibleToPublic || visibleToAuth) {
 
-			methods.put(GetVisibilityFlags.class, new GetVisibilityFlags() {
+			frameworkMethods.put(GetVisibilityFlags.class, new GetVisibilityFlags() {
 
 				@Override
 				public boolean isVisibleToPublicUsers(final GraphObject obj) {
@@ -92,7 +90,7 @@ public class DynamicNodeTraitDefinition extends AbstractDynamicTraitDefinition<S
 
 		if (hasGrants) {
 
-			methods.put(AllowedBySchema.class, new AllowedBySchema() {
+			frameworkMethods.put(AllowedBySchema.class, new AllowedBySchema() {
 
 				@Override
 				public boolean allowedBySchema(final NodeInterface node, final Principal principal, final Permission permission) {
@@ -111,21 +109,17 @@ public class DynamicNodeTraitDefinition extends AbstractDynamicTraitDefinition<S
 				}
 			});
 		}
-
-		return methods;
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
-
-		final Set<PropertyKey> keys = new LinkedHashSet<>();
+	public void initializePropertyKeys(final SchemaNode schemaNode) {
 
 		// linked properties
 		for (final SchemaRelationshipNode outRel : schemaNode.getRelatedTo()) {
 
 			try {
 
-				keys.add(outRel.createKey(schemaNode, true));
+				propertyKeys.add(outRel.createKey(schemaNode, true));
 
 			} catch (FrameworkException e) {
 				e.printStackTrace();
@@ -136,7 +130,7 @@ public class DynamicNodeTraitDefinition extends AbstractDynamicTraitDefinition<S
 
 			try {
 
-				keys.add(inRel.createKey(schemaNode, false));
+				propertyKeys.add(inRel.createKey(schemaNode, false));
 
 			} catch (FrameworkException e) {
 				e.printStackTrace();
@@ -144,9 +138,7 @@ public class DynamicNodeTraitDefinition extends AbstractDynamicTraitDefinition<S
 		}
 
 		// add normal keys after relationship keys
-		keys.addAll(super.getPropertyKeys());
-
-		return keys;
+		super.initializePropertyKeys(schemaNode);
 	}
 
 	@Override

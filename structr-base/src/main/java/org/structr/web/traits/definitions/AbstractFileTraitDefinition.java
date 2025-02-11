@@ -20,6 +20,7 @@ package org.structr.web.traits.definitions;
 
 
 import org.structr.api.config.Settings;
+import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -54,22 +55,6 @@ public class AbstractFileTraitDefinition extends AbstractNodeTraitDefinition {
 	public AbstractFileTraitDefinition() {
 		super("AbstractFile");
 	}
-
-	/*
-		type.addStringProperty("name", PropertyView.Public).setIndexed(true).setRequired(true).setFormat("[^\\\\/\\\\x00]+");
-
-		type.addBooleanProperty("includeInFrontendExport",                  PropertyView.Ui).setIndexed(true);
-		type.addBooleanProperty("isExternal",                               PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addLongProperty("lastSeenMounted",                             PropertyView.Public, PropertyView.Ui);
-
-		type.addBooleanProperty("hasParent").setIndexed(true);
-
-		type.addCustomProperty("path", PathProperty.class.getName(), PropertyView.Public, PropertyView.Ui).setTypeHint("String").setIndexed(true);
-	*/
-
-	/*
-	View uiView = new View(AbstractFileTraitDefinition.class, PropertyView.Ui, parentProperty, storageConfigurationProperty);
-	*/
 
 	@Override
 	public Map<Class, LifecycleMethod> getLifecycleMethods() {
@@ -191,6 +176,24 @@ public class AbstractFileTraitDefinition extends AbstractNodeTraitDefinition {
 			pathProperty
 		);
 	}
+
+	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+			PropertyView.Public,
+			newSet(
+				"name", "isExternal", "lastSeenMounted", "path"
+			),
+			PropertyView.Ui,
+			newSet(
+				"includeInFrontendExport", "isExternal", "lastSeenMounted", "path", "parent", "storageConfiguration"
+			)
+		);
+	}
+	/*
+	View uiView = new View(AbstractFileTraitDefinition.class, PropertyView.Ui, parentProperty, storageConfigurationProperty);
+	*/
 
 	@Override
 	public Relation getRelation() {

@@ -1307,9 +1307,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			putData(config, "dontCache",               file.dontCache());
 			putData(config, "contentType",             file.getContentType());
 			putData(config, "cacheForSeconds",         file.getCacheForSeconds());
-			putData(config, "includeInFrontendExport", file.includeInFrontendExport());
 			putData(config, "useAsJavascriptLibrary",  file.useAsJavascriptLibrary());
 		}
+
+		putData(config, "includeInFrontendExport", abstractFile.includeInFrontendExport());
 
 		if (abstractFile.is("Linkable")) {
 

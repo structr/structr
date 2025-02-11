@@ -18,16 +18,16 @@
  */
 package org.structr.core.traits;
 
+import org.structr.common.Permission;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.ScriptMethod;
-import org.structr.core.entity.Relation;
-import org.structr.core.entity.SchemaMethod;
-import org.structr.core.entity.SchemaProperty;
-import org.structr.core.entity.SchemaView;
+import org.structr.core.entity.*;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.core.traits.operations.accesscontrollable.AllowedBySchema;
 
 import java.util.*;
 
@@ -182,6 +182,56 @@ public class Trait {
 		for (final SchemaProperty property : schemaView.getSchemaProperties()) {
 
 			view.add(property.getName());
+		}
+	}
+
+	public void registerSchemaGrant(final SchemaGrant grant) {
+
+		final String principalId                   = grant.getPrincipal().getUuid();
+		final Set<String> readPermissions          = new LinkedHashSet<>();
+		final Set<String> writePermissions         = new LinkedHashSet<>();
+		final Set<String> deletePermissions        = new LinkedHashSet<>();
+		final Set<String> accessControlPermissions = new LinkedHashSet<>();
+		boolean hasGrants                          = false;
+
+		if (grant.allowRead()) {
+			readPermissions.add(principalId);
+		}
+
+		if (grant.allowWrite()) {
+			writePermissions.add(principalId);
+		}
+
+		if (grant.allowDelete()) {
+			deletePermissions.add(principalId);
+		}
+
+		if (grant.allowAccessControl()) {
+			accessControlPermissions.add(principalId);
+		}
+
+		hasGrants = true;
+
+		if (hasGrants) {
+
+			frameworkMethods.put(AllowedBySchema.class, new AllowedBySchema() {
+
+				@Override
+				public boolean allowedBySchema(final NodeInterface node, final Principal principal, final Permission permission) {
+
+					final Set<String> ids = principal.getOwnAndRecursiveParentsUuids();
+
+					switch (permission.name()) {
+
+						case "read":          return !org.apache.commons.collections4.SetUtils.intersection(readPermissions, ids).isEmpty();
+						case "write":         return !org.apache.commons.collections4.SetUtils.intersection(writePermissions, ids).isEmpty();
+						case "delete":        return !org.apache.commons.collections4.SetUtils.intersection(deletePermissions, ids).isEmpty();
+						case "accessControl": return !org.apache.commons.collections4.SetUtils.intersection(accessControlPermissions, ids).isEmpty();
+					}
+
+					return getSuper().allowedBySchema(node, principal, permission);
+				}
+			});
 		}
 	}
 

@@ -21,6 +21,7 @@ package org.structr.core.traits.definitions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Node;
+import org.structr.common.PropertyView;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.ValidationHelper;
@@ -51,24 +52,6 @@ import java.util.Set;
 public final class SchemaGrantTraitDefinition extends AbstractNodeTraitDefinition {
 
 	private static final Logger logger = LoggerFactory.getLogger(SchemaGrantTraitDefinition.class);
-
-	/*
-	public static final View defaultView = new View(SchemaNode.class, PropertyView.Public,
-		principal, schemaNode, staticSchemaNodeName, allowRead, allowWrite, allowDelete, allowAccessControl
-	);
-
-	public static final View uiView = new View(SchemaNode.class, PropertyView.Ui,
-		principal, schemaNode, staticSchemaNodeName, allowRead, allowWrite, allowDelete, allowAccessControl
-	);
-
-	public static final View schemaView = new View(SchemaNode.class, "schema",
-		id, principal, schemaNode, staticSchemaNodeName, allowRead, allowWrite, allowDelete, allowAccessControl
-	);
-
-	public static final View exportView = new View(SchemaNode.class, "export",
-		principal, schemaNode, staticSchemaNodeName, allowRead, allowWrite, allowDelete, allowAccessControl
-	);
-	*/
 
 	public SchemaGrantTraitDefinition() {
 		super("SchemaGrant");
@@ -131,6 +114,32 @@ public final class SchemaGrantTraitDefinition extends AbstractNodeTraitDefinitio
 			allowWrite
 		);
 	}
+
+	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+			PropertyView.Public,
+			newSet(
+				"principal", "schemaNode", "staticSchemaNodeName", "allowRead", "allowWrite", "allowDelete", "allowAccessControl"
+			),
+			PropertyView.Ui,
+			newSet(
+				"principal", "schemaNode", "staticSchemaNodeName", "allowRead", "allowWrite", "allowDelete", "allowAccessControl"
+			),
+			"schema",
+			newSet(
+				"id", "principal", "schemaNode", "staticSchemaNodeName", "allowRead", "allowWrite", "allowDelete", "allowAccessControl"
+			),
+			"export",
+			newSet(
+				"principal", "schemaNode", "staticSchemaNodeName", "allowRead", "allowWrite", "allowDelete", "allowAccessControl"
+			)
+		);
+	}
+
+	/*
+	*/
 
 	@Override
 	public Relation getRelation() {

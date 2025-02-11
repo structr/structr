@@ -68,7 +68,7 @@ public class Deployment5Test extends DeploymentTestBase {
 			final NodeInterface group = app.create("Group", "SchemaAccess");
 			final NodeInterface user  = app.create("User", "tester");
 
-			group.as(Group.class).addMember(securityContext, user.as(Group.class));
+			group.as(Group.class).addMember(securityContext, user.as(User.class));
 
 			// create schema grant object
 			app.create("SchemaGrant",
@@ -93,7 +93,7 @@ public class Deployment5Test extends DeploymentTestBase {
 		// test1: verify that user is allowed to access MailTemplates
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface user                   = app.nodeQuery("User").andName("tester").getFirst();
+			final NodeInterface user          = app.nodeQuery("User").andName("tester").getFirst();
 			final SecurityContext userContext = SecurityContext.getInstance(user.as(User.class), AccessMode.Backend);
 
 			for (final NodeInterface template : app.nodeQuery("MailTemplate").getAsList()) {
@@ -111,7 +111,7 @@ public class Deployment5Test extends DeploymentTestBase {
 		}
 
 		// deployment export, clean database, create new group with same name but different ID, deployment import
-		doImportExportRoundtrip(true, true, new Function() {
+		doImportExportRoundtrip(false, true, new Function() {
 
 			@Override
 			public Object apply(final Object o) {
@@ -121,7 +121,7 @@ public class Deployment5Test extends DeploymentTestBase {
 					final NodeInterface group = app.create("Group", "SchemaAccess");
 					final NodeInterface user   = app.create("User", "tester");
 
-					group.as(Group.class).addMember(securityContext, user.as(Group.class));
+					group.as(Group.class).addMember(securityContext, user.as(User.class));
 
 					tx.success();
 
@@ -137,8 +137,8 @@ public class Deployment5Test extends DeploymentTestBase {
 		// test2: verify that new user is allowed to access MailTemplates
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface user                   = app.nodeQuery("User").andName("tester").getFirst();
-			final SecurityContext userContext = SecurityContext.getInstance(user.as(Group.class), AccessMode.Backend);
+			final NodeInterface user          = app.nodeQuery("User").andName("tester").getFirst();
+			final SecurityContext userContext = SecurityContext.getInstance(user.as(User.class), AccessMode.Backend);
 
 			for (final NodeInterface template : app.nodeQuery("MailTemplate").getAsList()) {
 
