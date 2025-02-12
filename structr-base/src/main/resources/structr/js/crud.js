@@ -3016,8 +3016,10 @@ let _Crud = {
 
 			let dialogText = _Dialogs.custom.getDialogTextElement();
 
+			let errors = responseData?.errors ?? [];
+
 			if (!_Dialogs.custom.isDialogOpen()) {
-				let elements = _Crud.creationDialogWithErrorHandling.showCreateDialog(type, nodeData, onSuccess);
+				let elements = _Crud.creationDialogWithErrorHandling.showCreateDialog(type, nodeData, onSuccess, errors);
 				dialogText = elements.dialogText;
 			}
 
@@ -3029,7 +3031,7 @@ let _Crud = {
 			// delay only used to further highlight the input elements (slight blink)
 			window.setTimeout(() => {
 
-				for (let error of (responseData?.errors ?? [])) {
+				for (let error of errors) {
 
 					let key      = error.property;
 					let errorMsg = error.token;
@@ -3062,7 +3064,7 @@ let _Crud = {
 				_Crud.creationDialogWithErrorHandling.showCreateDialog(type, initialData, onSuccess);
 			});
 		},
-		showCreateDialog: (type, initialData = {}, onSuccess) => {
+		showCreateDialog: (type, initialData = {}, onSuccess, errors = []) => {
 
 			if (!type) {
 				Structr.error('Missing type');
@@ -3080,36 +3082,50 @@ let _Crud = {
 
 			let isRelType = _Crud.helpers.isRelType(type);
 
-			// sort keys to the top, for which initial data has been provided
-			let sortedKeys = Object.keys(initialData);
-			let otherKeys  = Object.keys(_Crud.types[type].views.all).filter(otherKey => !sortedKeys.includes(otherKey));
-			sortedKeys.push(...otherKeys);
+			let keys = Object.keys(_Crud.types[type].views.all).sort();
 
-			for (let key of sortedKeys) {
+			// 1. always display name first
+			let bucket1 = keys.filter(k => k === 'name').sort();
+			keys = keys.filter(k => !bucket1.includes(k));
 
-				let isBuiltinBaseProperty              = _Crud.helpers.isBaseProperty(key, type);
-				let isBuiltinHiddenProperty            = _Crud.helpers.isHiddenProperty(key, type);
-				let readOnly                           = _Crud.helpers.isReadOnly(key, type);
-				let isEntityIdProperty                 = _Crud.helpers.isEntityIdProperty(key, type);
-				let isCollectionIdProperty             = _Crud.helpers.isCollectionIdProperty(key, type);
-				let isCollectionNotionProperty         = _Crud.helpers.isCollectionNotionProperty(key, type);
-				let isSourceOrTargetNode               = isRelType && (key === Structr.internalKeys.sourceNode || key === Structr.internalKeys.targetNode);
-				let isInternalTimestamp                = isRelType && (key === Structr.internalKeys.internalTimestamp);
-				let isVisibilityFlagOnRelationship     = isRelType && (key === Structr.internalKeys.visibleToPublicUsers || key === Structr.internalKeys.visibleToAuthenticatedUsers);
+			// 2. show pre-filled attributes second
+			let bucket2 = keys.filter(k => !!initialData[k]).sort();
+			keys = keys.filter(k => !bucket2.includes(k));
 
-				if (!readOnly && !isBuiltinHiddenProperty && !isBuiltinBaseProperty && !isInternalTimestamp && !isVisibilityFlagOnRelationship && !isSourceOrTargetNode && !isEntityIdProperty && !isCollectionIdProperty && !isCollectionNotionProperty) {
+			// 3. show attributes with errors third
+			let bucket3 = keys.filter(k => errors.some(e => e.property === k)).sort();
+			keys = keys.filter(k => !bucket3.includes(k));
 
-					let row = _Helpers.createSingleDOMElementFromHTML(`
-						<tr>
-							<td class="key"><label for="${key}">${key}</label></td>
-							<td class="__value"></td>
-						</tr>
-					`);
-					table.appendChild(row);
+			let priorityBuckets = [bucket1, bucket2, bucket3, keys];
 
-					let cell = $(row.querySelector(`.__value`));
+			for (let bucket of priorityBuckets) {
 
-					_Crud.objectList.populateCell(null, key, type, initialData[key], cell);
+				for (let key of bucket) {
+
+					let isBuiltinBaseProperty              = _Crud.helpers.isBaseProperty(key, type);
+					let isBuiltinHiddenProperty            = _Crud.helpers.isHiddenProperty(key, type);
+					let readOnly                           = _Crud.helpers.isReadOnly(key, type);
+					let isEntityIdProperty                 = _Crud.helpers.isEntityIdProperty(key, type);
+					let isCollectionIdProperty             = _Crud.helpers.isCollectionIdProperty(key, type);
+					let isCollectionNotionProperty         = _Crud.helpers.isCollectionNotionProperty(key, type);
+					let isSourceOrTargetNode               = isRelType && (key === Structr.internalKeys.sourceNode || key === Structr.internalKeys.targetNode);
+					let isInternalTimestamp                = isRelType && (key === Structr.internalKeys.internalTimestamp);
+					let isVisibilityFlagOnRelationship     = isRelType && (key === Structr.internalKeys.visibleToPublicUsers || key === Structr.internalKeys.visibleToAuthenticatedUsers);
+
+					if (!readOnly && !isBuiltinHiddenProperty && !isBuiltinBaseProperty && !isInternalTimestamp && !isVisibilityFlagOnRelationship && !isSourceOrTargetNode && !isEntityIdProperty && !isCollectionIdProperty && !isCollectionNotionProperty) {
+
+						let row = _Helpers.createSingleDOMElementFromHTML(`
+							<tr>
+								<td class="key"><label for="${key}">${key}</label></td>
+								<td class="__value"></td>
+							</tr>
+						`);
+						table.appendChild(row);
+
+						let cell = $(row.querySelector(`.__value`));
+
+						_Crud.objectList.populateCell(null, key, type, initialData[key], cell);
+					}
 				}
 			}
 
