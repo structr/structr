@@ -555,12 +555,12 @@ public class ValidationHelper {
 			if (value != null) {
 
 				final Traits traits      = object.getTraits();
-				String type              = traits.getName();
 				List<GraphObject> result = null;
+				final String type;
 
 				// use declaring class for inheritance-aware uniqueness
 				final Trait trait = key.getDeclaringTrait();
-				if (trait == null || "NodeInterface".equals(trait.getName())) {
+				if (trait == null || "NodeInterface".equals(trait.getLabel())) {
 
 					// fallback: object type
 					type = object.getTraits().getName();
@@ -568,7 +568,7 @@ public class ValidationHelper {
 				} else {
 
 					// use declaring trait for inheritance-aware queries
-					type = trait.getName();
+					type = trait.getLabel();
 				}
 
 				try {
@@ -648,7 +648,7 @@ public class ValidationHelper {
 				if (type == null) {
 
 					// set type on first iteration
-					type = key.getDeclaringTrait().getName();
+					type = key.getDeclaringTrait().getLabel();
 				}
 			}
 

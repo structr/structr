@@ -44,12 +44,14 @@ public class Trait {
 	private final Map<String, Set<String>> views                                  = new LinkedHashMap<>();
 
 	private final Relation relation;
+	private final String label;
 	private final String name;
 	private final boolean isRelationship;
 	private final boolean isDynamic;
 
 	public Trait(final TraitDefinition traitDefinition, final boolean isDynamic) {
 
+		this.label          = traitDefinition.getLabel();
 		this.name           = traitDefinition.getName();
 		this.isRelationship = traitDefinition.isRelationship();
 		this.isDynamic      = isDynamic;
@@ -90,11 +92,14 @@ public class Trait {
 
 	@Override
 	public String toString() {
-		return "Trait(" + getName() + ")";
+		return "Trait(" + name + ")";
 	}
 
 	public String getName() {
-		return this.name;
+		return name;
+	}
+	public String getLabel() {
+		return label;
 	}
 
 	public Set<String> getPropertyKeysForView(final String viewName) {
@@ -167,7 +172,7 @@ public class Trait {
 
 	public void registerDynamicProperty(final SchemaProperty schemaProperty) throws FrameworkException {
 
-		final PropertyKey key = schemaProperty.createKey(getName());
+		final PropertyKey key = schemaProperty.createKey(getLabel());
 		if (key != null) {
 
 			registerPropertyKey(key);
@@ -233,6 +238,10 @@ public class Trait {
 				}
 			});
 		}
+	}
+
+	public void removeDynamicMethods() {
+
 	}
 
 	// ----- private methods -----

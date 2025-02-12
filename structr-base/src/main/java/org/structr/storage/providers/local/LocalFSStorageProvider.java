@@ -55,12 +55,7 @@ public class LocalFSStorageProvider extends AbstractStorageProvider {
 		try {
 
 			ensureFileExists();
-
-			final java.io.File fileOnDisk = fsHelper.getFileOnDisk(getAbstractFile());
-
-			System.out.println("LocalFSStorageProvider: getInputStream(" + fileOnDisk.getAbsolutePath()+ ")");
-
-			return new FileInputStream(fileOnDisk);
+			return new FileInputStream(fsHelper.getFileOnDisk(getAbstractFile()));
 
 		} catch (FileNotFoundException ex) {
 
@@ -82,12 +77,7 @@ public class LocalFSStorageProvider extends AbstractStorageProvider {
 		try {
 
 			ensureFileExists();
-
-			final java.io.File fileOnDisk = fsHelper.getFileOnDisk(getAbstractFile());
-
-			System.out.println("LocalFSStorageProvider: getOutputStream(" + fileOnDisk.getAbsolutePath()+ ")");
-
-			return new FileOutputStream(fileOnDisk, append);
+			return new FileOutputStream(fsHelper.getFileOnDisk(getAbstractFile()), append);
 
 		} catch (FileNotFoundException ex) {
 			logger.error("Could not find file", ex);

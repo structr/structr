@@ -122,7 +122,6 @@ public class ScriptMethod extends AbstractMethod {
 
 	@Override
 	public boolean shouldReturnRawResult() {
-
 		return this.returnRawResult;
 	}
 

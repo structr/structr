@@ -38,8 +38,7 @@ public class TraitsImplementation implements Traits {
 	private static final Map<String, Traits> globalTypeMap = new LinkedHashMap<>();
 	private static final Map<String, Trait> globalTraitMap = new LinkedHashMap<>();
 
-	private final Set<TraitDefinition> definitions = new LinkedHashSet<>();
-	private final Set<String> traits               = new LinkedHashSet<>();
+	private final Map<String, TraitDefinition> traits = new LinkedHashMap<>();
 	private final boolean isNodeType;
 	private final boolean isRelationshipType;
 	private final boolean isBuiltInType;
@@ -67,12 +66,20 @@ public class TraitsImplementation implements Traits {
 
 	@Override
 	public Set<String> getLabels() {
-		return traits;
+
+		final Set<String> labels = new LinkedHashSet<>();
+
+		for (final TraitDefinition definition : traits.values()) {
+
+			labels.add(definition.getLabel());
+		}
+
+		return labels;
 	}
 
 	@Override
 	public boolean contains(final String type) {
-		return traits.contains(type);
+		return getLabels().contains(type);
 	}
 
 	@Override
@@ -267,26 +274,6 @@ public class TraitsImplementation implements Traits {
 	}
 
 	@Override
-	public synchronized void registerImplementation(final TraitDefinition traitDefinition, final boolean isDynamic) {
-
-		final String name = traitDefinition.getName();
-		Trait trait       = globalTraitMap.get(name);
-
-		if (trait == null) {
-
-			trait = new Trait(traitDefinition, isDynamic);
-			globalTraitMap.put(name, trait);
-
-		} else {
-
-			trait.initializeFrom(traitDefinition);
-		}
-
-		definitions.add(traitDefinition);
-		traits.add(name);
-	}
-
-	@Override
 	public Relation getRelation() {
 
 		for (final Trait trait : getTraits()) {
@@ -303,7 +290,7 @@ public class TraitsImplementation implements Traits {
 
 	@Override
 	public Set<TraitDefinition> getTraitDefinitions() {
-		return Collections.unmodifiableSet(definitions);
+		return Collections.unmodifiableSet(new LinkedHashSet<>(traits.values()));
 	}
 
 	@Override
@@ -341,11 +328,26 @@ public class TraitsImplementation implements Traits {
 
 	@Override
 	public Set<String> getAllTraits() {
-		return new LinkedHashSet<>(traits);
+		return getLabels();
 	}
 
 	@Override
-	public Map<String, Map<String, PropertyKey>> removeDynamicProperties() {
+	public synchronized void registerImplementation(final TraitDefinition traitDefinition, final boolean isDynamic) {
+
+		final String name  = traitDefinition.getName();
+		Trait trait        = globalTraitMap.get(name);
+
+		if (trait == null) {
+
+			trait = new Trait(traitDefinition, isDynamic);
+			globalTraitMap.put(name, trait);
+		}
+
+		traits.put(name, traitDefinition);
+	}
+
+	@Override
+	public Map<String, Map<String, PropertyKey>> removeDynamicTraits() {
 
 		final Map<String, Map<String, PropertyKey>> removedProperties = new LinkedHashMap<>();
 		final Set<String> traitsToRemove                              = new LinkedHashSet<>();
@@ -373,21 +375,10 @@ public class TraitsImplementation implements Traits {
 
 				// mark trait for removal
 				traitsToRemove.add(traitName);
-
-			} else {
-
-				// check all property keys of all traits to see if there are dynamic keys that need to be removed
-				for (final PropertyKey key : trait.getPropertyKeys().values()) {
-
-					if (key.isDynamic()) {
-
-						removedProperties.computeIfAbsent(indexName, k -> new LinkedHashMap<>()).put(key.jsonName(), key);
-					}
-				}
 			}
 		}
 
-		traits.removeAll(traitsToRemove);
+		traits.keySet().removeAll(traitsToRemove);
 
 		// remove all traits from global map
 		globalTraitMap.keySet().removeAll(traitsToRemove);
@@ -395,17 +386,12 @@ public class TraitsImplementation implements Traits {
 		return removedProperties;
 	}
 
-	@Override
-	public void removeDynamicMethods() {
-
-	}
-
 	// ----- private methods -----
 	private Set<Trait> getTraits() {
 
 		final Set<Trait> set = new LinkedHashSet<>();
 
-		for (final String name : traits) {
+		for (final String name : traits.keySet()) {
 
 			final Trait trait = globalTraitMap.get(name);
 			if (trait != null) {
@@ -452,10 +438,12 @@ public class TraitsImplementation implements Traits {
 
 	static Set<PropertyKey> getPropertiesOfTrait(final String name) {
 
-		final Trait trait = globalTraitMap.get(name);
-		if (trait != null) {
+		for (final Trait trait : globalTraitMap.values()) {
 
-			return new LinkedHashSet<>(trait.getPropertyKeys().values());
+			if (name.equals(trait.getLabel())) {
+
+				return new LinkedHashSet<>(trait.getPropertyKeys().values());
+			}
 		}
 
 		return Set.of();
@@ -557,8 +545,7 @@ public class TraitsImplementation implements Traits {
 
 			final Traits traits = it.next();
 
-			removedClasses.putAll(traits.removeDynamicProperties());
-			traits.removeDynamicMethods();
+			removedClasses.putAll(traits.removeDynamicTraits());
 
 			if (!traits.isBuiltInType()) {
 

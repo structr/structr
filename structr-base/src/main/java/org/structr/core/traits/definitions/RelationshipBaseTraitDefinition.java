@@ -65,7 +65,7 @@ public interface RelationshipBaseTraitDefinition extends TraitDefinition {
 
 					@Override
 					public String getType() {
-						return getName();
+						return getLabel();
 					}
 
 					@Override
@@ -136,7 +136,7 @@ public interface RelationshipBaseTraitDefinition extends TraitDefinition {
 
 					@Override
 					public String getType() {
-						return getName();
+						return getLabel();
 					}
 
 					@Override
@@ -207,7 +207,7 @@ public interface RelationshipBaseTraitDefinition extends TraitDefinition {
 
 					@Override
 					public String getType() {
-						return getName();
+						return getLabel();
 					}
 
 					@Override
@@ -278,7 +278,7 @@ public interface RelationshipBaseTraitDefinition extends TraitDefinition {
 
 					@Override
 					public String getType() {
-						return getName();
+						return getLabel();
 					}
 
 					@Override

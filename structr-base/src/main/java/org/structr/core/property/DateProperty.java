@@ -24,17 +24,17 @@ import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.DateFormatToken;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.PropertyInputParsingException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.converter.TemporalDateConverter;
 import org.structr.schema.parser.DatePropertyGenerator;
 
 import java.text.SimpleDateFormat;
-import java.time.*;
+import java.time.Instant;
 import java.util.Date;
 import java.util.Map;
 import java.util.TreeMap;
-import org.structr.common.error.PropertyInputParsingException;
 
 /**
 * A property that stores and retrieves a simple string-based Date with
@@ -192,14 +192,14 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 
 						throw new PropertyInputParsingException(
 							jsonName(),
-							new DateFormatToken(declaringTrait.getName(), jsonName()).withDetail(source)
+							new DateFormatToken(declaringTrait.getLabel(), jsonName()).withDetail(source)
 						);
 
 					}
 
 				} else {
 
-					throw new FrameworkException(422, "Unknown input type for date property ‛" + jsonName() + "‛: " + (source.getClass().getName()), new DateFormatToken(declaringTrait.getName(), jsonName()).withDetail(source));
+					throw new FrameworkException(422, "Unknown input type for date property ‛" + jsonName() + "‛: " + (source.getClass().getName()), new DateFormatToken(declaringTrait.getLabel(), jsonName()).withDetail(source));
 
 				}
 			}

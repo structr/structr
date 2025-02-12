@@ -247,7 +247,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 		if (declaringTrait != null) {
 
-			return declaringTrait.getName() + "." + dbName;
+			return declaringTrait.getLabel() + "." + dbName;
 		}
 
 		return "GraphObject." + dbName;

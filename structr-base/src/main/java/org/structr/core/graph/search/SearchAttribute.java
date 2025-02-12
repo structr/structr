@@ -143,7 +143,7 @@ public abstract class SearchAttribute<T> extends NodeAttribute<T> implements Pre
 
 			if (declaringTrait != null && !declaringTrait.isRelationship()) {
 
-				final String name = declaringTrait.getName();
+				final String name = declaringTrait.getLabel();
 
 				if (!"GraphObject".equals(name)) {
 

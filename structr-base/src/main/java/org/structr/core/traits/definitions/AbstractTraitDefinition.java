@@ -35,9 +35,16 @@ import java.util.Set;
 public abstract class AbstractTraitDefinition implements TraitDefinition {
 
 	protected final String name;
+	protected final String label;
 
 	public AbstractTraitDefinition(final String name) {
-		this.name = name;
+		this(name, name);
+	}
+
+	public AbstractTraitDefinition(final String name, final String label) {
+
+		this.name  = name;
+		this.label = label;
 	}
 
 	public abstract boolean isRelationship();
@@ -50,6 +57,11 @@ public abstract class AbstractTraitDefinition implements TraitDefinition {
 	@Override
 	public String getName() {
 		return name;
+	}
+
+	@Override
+	public String getLabel() {
+		return label;
 	}
 
 	@Override

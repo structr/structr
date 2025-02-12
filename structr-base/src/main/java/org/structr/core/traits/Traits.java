@@ -45,8 +45,7 @@ public interface Traits {
 	Map<String, AbstractMethod> getDynamicMethods();
 	<T> T as(final Class<T> type, final GraphObject obj);
 	void registerImplementation(final TraitDefinition trait, final boolean isDynamic);
-	Map<String, Map<String, PropertyKey>> removeDynamicProperties();
-	void removeDynamicMethods();
+	Map<String, Map<String, PropertyKey>> removeDynamicTraits();
 	Relation getRelation();
 	Set<TraitDefinition> getTraitDefinitions();
 	boolean isInterface();

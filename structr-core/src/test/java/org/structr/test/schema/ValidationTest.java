@@ -1163,6 +1163,9 @@ public class ValidationTest extends StructrTest {
 				assertEquals("Invalid uniqueness validation result", "Test", token.getType());
 				assertEquals("Invalid uniqueness validation result", "already_taken", token.getToken());
 				assertEquals("Invalid uniqueness validation result", uuid1, token.getDetail());
+
+			} catch (Throwable t) {
+				t.printStackTrace();
 			}
 
 			removeInstances(testType);

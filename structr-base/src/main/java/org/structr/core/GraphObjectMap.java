@@ -185,12 +185,8 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 			}
 
 			@Override
-			public Map<String, Map<String, PropertyKey>> removeDynamicProperties() {
+			public Map<String, Map<String, PropertyKey>> removeDynamicTraits() {
 				return Map.of();
-			}
-
-			@Override
-			public void removeDynamicMethods() {
 			}
 		};
 	}

@@ -715,7 +715,7 @@ public class SchemaService implements Service {
 
 							} else {
 
-								createIndex &= (trait == null || whitelist.contains(type) || type.equals(trait.getName()));
+								createIndex &= (trait == null || whitelist.contains(type) || type.equals(trait.getLabel()));
 								//createIndex &= (!NonIndexed.class.isAssignableFrom(type));
 
 								typeConfig.put(key.dbName(), new NodeIndexConfig(createIndex));

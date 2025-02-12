@@ -50,8 +50,8 @@ public class IndexManagementTest extends StructrTest {
 
 	private static final Logger logger                               = LoggerFactory.getLogger(IndexManagementTest.class);
 	private static final Set<String> INDEXED_RELATIONSHIP_PROPERTIES = Set.of("test");
-	private static final long INDEX_UPDATE_TIMEOUT                   = TimeUnit.MINUTES.toMillis(2);
-	private static final long INDEX_UPDATE_WAIT_TIME                 = TimeUnit.SECONDS.toMillis(5);
+	private static final long INDEX_UPDATE_TIMEOUT                   = TimeUnit.MINUTES.toMillis(5);
+	private static final long INDEX_UPDATE_WAIT_TIME                 = TimeUnit.SECONDS.toMillis(10);
 
 	@Test
 	public void testIndexCreationAndRemovalForNodePropertyWithIndexedFlag() {

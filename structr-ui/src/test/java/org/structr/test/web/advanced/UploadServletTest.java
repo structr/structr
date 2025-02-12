@@ -19,12 +19,11 @@
 package org.structr.test.web.advanced;
 
 import io.restassured.RestAssured;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.Traits;
 import org.structr.schema.export.StructrSchema;
@@ -41,8 +40,6 @@ import static org.testng.AssertJUnit.*;
  *
  */
 public class UploadServletTest extends StructrUiTest {
-
-	private static final Logger logger = LoggerFactory.getLogger(UploadServletTest.class);
 
 	@Test
 	public void testSuccessfulFileUpload() {
@@ -85,7 +82,7 @@ public class UploadServletTest extends StructrUiTest {
 		// find file
 		try (final Tx tx = app.tx()) {
 
-			final File file           = app.nodeQuery("File").getFirst().as(File.class);
+			final File file = app.nodeQuery("File").getFirst().as(File.class);
 
 			assertEquals("UUID returned from file upload does not match actual UUID", response,    file.getUuid());
 			assertEquals("Name of uploaded file does not match actual name",          "test.txt",  file.getName());
@@ -207,7 +204,7 @@ public class UploadServletTest extends StructrUiTest {
 		// find file
 		try (final Tx tx = app.tx()) {
 
-			final File file = (File)app.nodeQuery("ExtendedFile").getFirst();
+			final NodeInterface file = app.nodeQuery("ExtendedFile").getFirst();
 
 			assertEquals("Name of uploaded file does not match actual name", "test.txt",     file.getName());
 			assertEquals("Type of uploaded file does not match actual type", "ExtendedFile", file.getType());

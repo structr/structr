@@ -70,7 +70,7 @@ public class EnumProperty extends AbstractPrimitiveProperty<String> {
 
 			if (!enumConstants.contains(value)) {
 
-				throw new FrameworkException(422, "Cannot parse input for property ‛" + jsonName() + "‛", new ValueToken(declaringTrait.getName(), jsonName(), enumConstants));
+				throw new FrameworkException(422, "Cannot parse input for property ‛" + jsonName() + "‛", new ValueToken(declaringTrait.getLabel(), jsonName(), enumConstants));
 			}
 		}
 

@@ -160,7 +160,7 @@ public class ZonedDateTimeProperty extends AbstractPrimitiveProperty<ZonedDateTi
 
 				} else {
 
-					throw new FrameworkException(422, "Incompatible input type for zoneddatetime property " + jsonName() + ": " + (source.getClass().getName()), new ZonedDateTimeFormatToken(declaringTrait.getName(), ZonedDateTimeProperty.this));
+					throw new FrameworkException(422, "Incompatible input type for zoneddatetime property " + jsonName() + ": " + (source.getClass().getName()), new ZonedDateTimeFormatToken(declaringTrait.getLabel(), ZonedDateTimeProperty.this));
 
 				}
 			}

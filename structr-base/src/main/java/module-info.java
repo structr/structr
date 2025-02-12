@@ -194,7 +194,6 @@ module structr.base {
     exports org.structr.web.common.microformat;
     exports org.structr.web.converter;
     exports org.structr.web.datasource;
-    exports org.structr.web.diff;
     exports org.structr.web.entity;
     exports org.structr.web.entity.css;
     exports org.structr.web.entity.dom;

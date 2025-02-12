@@ -120,17 +120,7 @@ public class UiModule implements StructrModule {
 		StructrTraits.registerNodeType("User",                             new PrincipalTraitDefinition(), new UserTraitDefinition());
 		StructrTraits.registerNodeType("Widget",                           new WidgetTraitDefinition());
 
-
-
 		// HTML elements
-		StructrTraits.registerNodeType("Html",  new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new GenericHtmlElementTraitDefinition("Html"));
-		StructrTraits.registerNodeType("Head",  new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new GenericHtmlElementTraitDefinition("Head"));
-		StructrTraits.registerNodeType("Meta",  new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new GenericHtmlElementTraitDefinition("Meta"));
-		StructrTraits.registerNodeType("Body",  new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new GenericHtmlElementTraitDefinition("Body"));
-		StructrTraits.registerNodeType("Input", new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new GenericHtmlElementTraitDefinition("Input"));
-		StructrTraits.registerNodeType("Div",   new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new GenericHtmlElementTraitDefinition("Div"));
-		StructrTraits.registerNodeType("A",     new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new GenericHtmlElementTraitDefinition("A"));
-
 		StructrTraits.registerNodeType("A",               new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new LinkSourceTraitDefinition(), new A());
 		StructrTraits.registerNodeType("Abbr",            new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new Abbr());
 		StructrTraits.registerNodeType("Address",         new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new GenericHtmlElementTraitDefinition("Address"));

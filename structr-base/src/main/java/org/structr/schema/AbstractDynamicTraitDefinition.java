@@ -47,11 +47,13 @@ public abstract class AbstractDynamicTraitDefinition<T extends AbstractSchemaNod
 	protected final Set<AbstractMethod> dynamicMethods           = new LinkedHashSet<>();
 	protected final Map<String, Set<String>> views               = new LinkedHashMap<>();
 	protected final Set<PropertyKey> propertyKeys                = new LinkedHashSet<>();
+	protected final String label;
 	protected final String name;
 
 	public AbstractDynamicTraitDefinition(final T schemaNode) {
 
-		this.name = schemaNode.getClassName();
+		this.label = schemaNode.getClassName();
+		this.name  = this.label + "." + schemaNode.getUuid();
 
 		initializeLifecycleMethods(schemaNode);
 		initializeFrameworkMethods(schemaNode);
@@ -63,6 +65,11 @@ public abstract class AbstractDynamicTraitDefinition<T extends AbstractSchemaNod
 	@Override
 	public String getName() {
 		return name;
+	}
+
+	@Override
+	public String getLabel() {
+		return label;
 	}
 
 	@Override

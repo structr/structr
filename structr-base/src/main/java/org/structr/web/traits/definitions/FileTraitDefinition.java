@@ -41,7 +41,6 @@ import org.structr.core.traits.operations.graphobject.AfterCreation;
 import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnModification;
 import org.structr.core.traits.operations.nodeinterface.OnNodeDeletion;
-import org.structr.core.traits.operations.propertycontainer.SetProperties;
 import org.structr.core.traits.operations.propertycontainer.SetProperty;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.common.FileHelper;
@@ -185,7 +184,9 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 
 					return getSuper().setProperty(graphObject, key, value, isCreation);
 				}
-			},
+			}
+
+			/*
 
 			SetProperties.class,
 			new SetProperties() {
@@ -200,6 +201,7 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 					getSuper().setProperties(graphObject, securityContext, properties, isCreation);
 				}
 			}
+			*/
 		);
 	}
 

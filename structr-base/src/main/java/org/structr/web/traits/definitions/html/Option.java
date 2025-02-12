@@ -18,11 +18,29 @@
  */
 package org.structr.web.traits.definitions.html;
 
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.core.GraphObjectMap;
+import org.structr.core.function.EqualFunction;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
+import org.structr.core.script.Scripting;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.operations.FrameworkMethod;
+import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.HtmlProperty;
+import org.structr.web.common.RenderContext;
+import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.traits.operations.RenderManagedAttributes;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -51,16 +69,38 @@ public class Option extends GenericHtmlElementTraitDefinition {
 	public Map<String, Set<String>> getViews() {
 
 		return Map.of(
+			PropertyView.Ui,
+			newSet(
+				"selectedValues"
+			),
 			PropertyView.Html,
 			newSet(
-				"_html_value", "_html_disabled", "_html_selected", "_html_label", "_html_selectedValues"
+				"_html_value", "_html_disabled", "_html_selected", "_html_label", "selectedValues"
 			)
 		);
 	}
 
+	@Override
+	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+
+		final Map<Class, FrameworkMethod> frameworkMethods = super.getFrameworkMethods();
+
+		frameworkMethods.put(
+			RenderManagedAttributes.class,
+			new RenderManagedAttributes() {
+
+				@Override
+				public void renderManagedAttributes(final NodeInterface node, final AsyncBuffer out, final SecurityContext securityContext, final RenderContext renderContext) throws FrameworkException {
+					Option.renderManagedAttributes(node.as(DOMNode.class), out, securityContext, renderContext);
+				}
+			}
+		);
+
+		return frameworkMethods;
+	}
+
 	/*
 	static final GenericProperty valueKey = new GenericProperty("value");
-	static final EqualFunction EqualFunction = new EqualFunction();
 
 	static class Impl { static {
 
@@ -76,26 +116,32 @@ public class Option extends GenericHtmlElementTraitDefinition {
 	}}
 
 	String getSelectedValues();
+	*/
 
-	@Override
-	void renderManagedAttributes(final AsyncBuffer out, final SecurityContext securityContext, final RenderContext renderContext) throws FrameworkException {
+
+	static final EqualFunction EqualFunction = new EqualFunction();
+
+	static void renderManagedAttributes(final DOMNode node, final AsyncBuffer out, final SecurityContext securityContext, final RenderContext renderContext) throws FrameworkException {
 
 		try {
 
 			// make sure we are inside a repeater
-			final String dataKey = getDataKey();
+			final String dataKey = node.getDataKey();
 			if (dataKey != null) {
 
 				// make sure the unmanaged "selected" attribute is not set
-				final String originalSelected = getProperty("_html_selected");
+				final Traits traits                = node.getTraits();
+				final PropertyKey<String> valueKey = new StringProperty("value");
+				final String originalSelected      = node.getProperty(traits.key("_html_selected"));
+
 				if (StringUtils.isEmpty(originalSelected)) {
 
 					// fetch selectedValues expression
-					final String selectedValuesExpression = getSelectedValues();
+					final String selectedValuesExpression = node.getProperty(traits.key("selectedValues"));
 					if (selectedValuesExpression != null) {
 
 						// evaluate selectedValues expression
-						final java.lang.Object selectedValues = Scripting.evaluate(renderContext, this, "${" + selectedValuesExpression.trim() + "}", selectedValuesExpression, this.getUuid());
+						final java.lang.Object selectedValues = Scripting.evaluate(renderContext, node, "${" + selectedValuesExpression.trim() + "}", selectedValuesExpression, node.getUuid());
 						if (selectedValues != null) {
 
 							// fetch value of current data key
@@ -148,11 +194,11 @@ public class Option extends GenericHtmlElementTraitDefinition {
 					}
 				}
 			}
+
 		} catch (final Throwable t) {
 
-			final Logger logger = LoggerFactory.getLogger(Content.class);
-			DOMNode.logScriptingError(logger, t, "Error while evaluating script in Option[{}]", this.getUuid());
+			final Logger logger = LoggerFactory.getLogger(Option.class);
+			DOMNode.logScriptingError(logger, t, "Error while evaluating script in Option[{}]", node.getUuid());
 		}
 	}
-	*/
 }

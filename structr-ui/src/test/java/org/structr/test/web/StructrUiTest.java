@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.api.AbstractMethod;
@@ -37,6 +38,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.*;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
+import org.structr.schema.SchemaService;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.test.web.entity.traits.definitions.*;
 import org.structr.test.web.entity.traits.definitions.relationships.FourThreeOneToOne;
@@ -157,8 +159,6 @@ public abstract class StructrUiTest {
 				// delete everything
 				Services.getInstance().getDatabaseService().cleanDatabase();
 
-				FlushCachesCommand.flushAll();
-
 				tx.success();
 
 			} catch (Throwable t) {
@@ -167,19 +167,8 @@ public abstract class StructrUiTest {
 				logger.error("Exception while trying to clean database: {}", t.getMessage());
 			}
 
-
-			try {
-
-				FlushCachesCommand.flushAll();
-
-			} catch (Throwable t) {
-
-				t.printStackTrace();
-				logger.error("Exception while trying to create built-in schema for tenant identifier {}: {}", randomTenantId, t.getMessage());
-
-			}
-
-			System.out.println("###### cleaning database done");
+			SchemaService.reloadSchema(new ErrorBuffer(), null, false, false);
+			FlushCachesCommand.flushAll();
 		}
 
 		first = false;

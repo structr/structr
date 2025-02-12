@@ -281,7 +281,7 @@ public class SchemaHelper {
 		final Trait declaringTrait = property.getDeclaringTrait();
 		if (declaringTrait != null) {
 
-			map.put("declaringClass", declaringTrait.getName());
+			map.put("declaringClass", declaringTrait.getLabel());
 		}
 
 		map.put("defaultValue", property.defaultValue());

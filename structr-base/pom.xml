@@ -624,6 +624,12 @@
             <groupId>org.apache.tika</groupId>
             <artifactId>tika-parser-scientific-package</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.eclipse.paho</groupId>
+            <artifactId>org.eclipse.paho.client.mqttv3</artifactId>
+            <version>1.2.5</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <build>

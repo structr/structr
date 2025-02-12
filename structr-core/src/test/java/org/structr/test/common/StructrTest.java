@@ -27,6 +27,7 @@ import org.structr.api.DatabaseService;
 import org.structr.api.config.Settings;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.api.AbstractMethod;
@@ -40,6 +41,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.schema.SchemaService;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.test.core.traits.definitions.*;
 import org.structr.test.core.traits.definitions.relationships.*;
@@ -105,17 +107,8 @@ public class StructrTest {
 				logger.error("Exception while trying to clean database: {}", t.getMessage());
 			}
 
-
-			try {
-
-				FlushCachesCommand.flushAll();
-
-			} catch (Throwable t) {
-
-				t.printStackTrace();
-				logger.error("Exception while trying to create built-in schema for tenant identifier {}: {}", randomTenantId, t.getMessage());
-
-			}
+			SchemaService.reloadSchema(new ErrorBuffer(), null, false, false);
+			FlushCachesCommand.flushAll();
 		}
 
 		first = false;

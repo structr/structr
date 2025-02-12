@@ -20,7 +20,6 @@ package org.structr.test.web.advanced;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.config.Settings;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -174,11 +173,7 @@ public class Deployment1Test extends DeploymentTestBase {
 
 			assertNotNull("Folder was not created correctly", folder);
 
-			Settings.CypherDebugLogging.setValue(true);
-
 			final NodeInterface file = app.nodeQuery("File").and(Traits.of("File").key("parent"), folder).and(Traits.of("File").key("name"), fileName).getFirst();
-
-			Settings.CypherDebugLogging.setValue(false);
 
 			assertNotNull("File was not created correctly", file);
 

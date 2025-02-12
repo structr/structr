@@ -765,7 +765,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 			if (declaringClass != null) {
 
-				className = declaringClass.getName() + ".";
+				className = declaringClass.getLabel() + ".";
 			}
 
 			// disable logging for keys we know are not indexed and cannot

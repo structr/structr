@@ -34,6 +34,7 @@ import java.util.Set;
 public interface TraitDefinition extends Comparable<TraitDefinition> {
 
 	String getName();
+	String getLabel();
 
 	Map<Class, LifecycleMethod> getLifecycleMethods();
 	Map<Class, FrameworkMethod> getFrameworkMethods();
@@ -54,4 +55,5 @@ public interface TraitDefinition extends Comparable<TraitDefinition> {
 	default boolean isInterface() {
 		return false;
 	}
+
 }
