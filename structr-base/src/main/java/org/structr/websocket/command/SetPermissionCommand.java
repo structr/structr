@@ -20,6 +20,7 @@ package org.structr.websocket.command;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.Iterables;
 import org.structr.common.Permission;
 import org.structr.common.Permissions;
 import org.structr.common.SecurityContext;
@@ -33,6 +34,7 @@ import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.graph.Tx;
 import org.structr.web.entity.Folder;
+import org.structr.web.entity.dom.DOMNode;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -65,11 +67,12 @@ public class SetPermissionCommand extends AbstractCommand {
 
 		setDoTransactionNotifications(true);
 
-		AbstractNode obj   = getNode(webSocketData.getId());
-		boolean rec        = webSocketData.getNodeDataBooleanValue(RECURSIVE_KEY);
-		String principalId = webSocketData.getNodeDataStringValue(PRINCIPAL_ID_KEY);
-		String permissions = webSocketData.getNodeDataStringValue(PERMISSIONS_KEY);
-		String action      = webSocketData.getNodeDataStringValue(ACTION_KEY);
+		final AbstractNode obj   = getNode(webSocketData.getId());
+		final boolean recursive  = webSocketData.getNodeDataBooleanValue(RECURSIVE_KEY);
+		final String principalId = webSocketData.getNodeDataStringValue(PRINCIPAL_ID_KEY);
+		final String permissions = webSocketData.getNodeDataStringValue(PERMISSIONS_KEY);
+		final String action      = webSocketData.getNodeDataStringValue(ACTION_KEY);
+		final String syncMode    = webSocketData.getNodeDataStringValue(UpdateCommand.SHARED_COMPONENT_SYNC_MODE_KEY);
 
 		if (principalId == null) {
 
@@ -80,11 +83,11 @@ public class SetPermissionCommand extends AbstractCommand {
 		PrincipalInterface principal = (PrincipalInterface) getNode(principalId);
 		if (principal == null) {
 
-			logger.error("No principal found with id {}", new Object[]{principalId});
+			logger.error("No principal found with id {}", principalId);
 			getWebSocket().send(MessageBuilder.status().code(400).build(), true);
 		}
 
-		webSocketData.getNodeData().remove("recursive");
+		webSocketData.getNodeData().remove(RECURSIVE_KEY);
 
 		if (obj != null) {
 
@@ -96,19 +99,19 @@ public class SetPermissionCommand extends AbstractCommand {
 			final App app = StructrApp.getInstance(securityContext);
 			try (final Tx nestedTx = app.tx()) {
 
-				if (!((AbstractNode)obj).isGranted(Permission.accessControl, securityContext)) {
+				if (!obj.isGranted(Permission.accessControl, securityContext)) {
 
-					logger.warn("No access control permission for {} on {}", new Object[]{getWebSocket().getCurrentUser().toString(), obj.toString()});
+					logger.warn("No access control permission for {} on {}", getWebSocket().getCurrentUser().toString(), obj.toString());
 					getWebSocket().send(MessageBuilder.status().message("No access control permission").code(400).build(), true);
 					nestedTx.success();
 
 					return;
-
 				}
 
 				nestedTx.success();
 
 			} catch (FrameworkException ex) {
+
 				logger.warn("", ex);
 			}
 
@@ -128,8 +131,14 @@ public class SetPermissionCommand extends AbstractCommand {
 					}
 				}
 
+				setPermission(value, app, obj, principal, action, permissionSet, recursive);
 
-				setPermission(value, app, obj, principal, action, permissionSet, rec);
+				final LinkedHashSet<DOMNode> entities = new LinkedHashSet<>();
+				getSyncedEntities(entities, obj, syncMode, principal, action, permissionSet);
+				for (final DOMNode syncedNode : entities) {
+
+					setPermission(value, app, syncedNode, principal, action, permissionSet, false);
+				}
 
 				// commit and close transaction
 				final Tx tx = value.get(null);
@@ -150,7 +159,7 @@ public class SetPermissionCommand extends AbstractCommand {
 
 			} catch (FrameworkException ex) {
 
-				logger.error("Unable to set permissions: {}", ((FrameworkException) ex).toString());
+				logger.error("Unable to set permissions: {}", ex);
 				getWebSocket().send(MessageBuilder.status().code(ex.getStatus()).jsonErrorObject(ex.toJSON()).build(), true);
 			}
 
@@ -232,6 +241,34 @@ public class SetPermissionCommand extends AbstractCommand {
 			for (final Object t : children) {
 
 				setPermission(transaction, app, (AbstractNode) t, principal, action, permissions, recursive);
+			}
+		}
+	}
+
+	private void getSyncedEntities(final Set<DOMNode> entities, final AbstractNode obj, final String syncMode, final PrincipalInterface principal, final String action, final Set<Permission> permissions) {
+
+		if (Boolean.TRUE.equals(obj.getProperty(DOMNode.isDOMNodeProperty))) {
+
+			if (syncMode != null) {
+
+				try {
+
+					UpdateCommand.SHARED_COMPONENT_SYNC_MODE mode = UpdateCommand.SHARED_COMPONENT_SYNC_MODE.valueOf(syncMode);
+
+					if (UpdateCommand.SHARED_COMPONENT_SYNC_MODE.ALL.equals(mode) || UpdateCommand.SHARED_COMPONENT_SYNC_MODE.BY_VALUE.equals(mode)) {
+
+						final List<DOMNode> syncedNodes = Iterables.toList(obj.getProperty(DOMNode.syncedNodesProperty));
+
+						// for setPermission, ALL and BY_VALUE are not different, because we are only flipping bits
+						// only for action == "setAllowed" it would make a difference, but this is never called for shared components AFAIK
+
+						entities.addAll(syncedNodes);
+					}
+
+				} catch (IllegalArgumentException iae) {
+
+					logger.warn("Unsupported sync mode for shared components supplied: {}. Possible values are: {}", syncMode, UpdateCommand.SHARED_COMPONENT_SYNC_MODE.values());
+				}
 			}
 		}
 	}

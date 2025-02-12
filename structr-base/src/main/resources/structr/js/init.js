@@ -2050,9 +2050,9 @@ let Structr = {
 			</div>
 		`,
 		autoScriptTextArea: config => `
-			<div class="flex ${config.wrapperClassString ?? ''}" title="Auto-script environment">
+			<div id="${config.wrapperId ?? ''}" class="flex ${config.wrapperClassString ?? ''}" title="Auto-script environment">
 				<span class="inline-flex items-center bg-gray px-2 w-4 justify-center select-none border border-solid border-gray-input rounded-l">\${</span>
-				<textarea type="text" class="block flex-grow rounded-none px-1.5 py-2 border-0 border-y border-solid border-gray-input ${config.textareaClassString ?? ''}" placeholder="${config.placeholder ?? ''}" ${config.textareaAttributeString ?? ''}></textarea>
+				<textarea id="${config.textareaId ?? ''}" type="text" class="block flex-grow rounded-none px-1.5 py-2 border-0 border-y border-solid border-gray-input ${config.textareaClassString ?? ''}" placeholder="${config.placeholder ?? ''}" ${config.textareaAttributeString ?? ''}></textarea>
 				<span class="inline-flex items-center bg-gray px-2 w-4 justify-center select-none border border-solid border-gray-input rounded-r">}</span>
 			</div>
 		`
@@ -2783,12 +2783,18 @@ let UISettings = {
 
 		settingsGroupsToShow.push(...additionalSettingsGroups);
 
-		let dropdown = _Helpers.createSingleDOMElementFromHTML(`<div id="ui-settings-popup" class="dropdown-menu darker-shadow-dropdown dropdown-menu-large">
-			<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" data-preferred-position-x="left">
-				${_Icons.getSvgIcon(_Icons.iconUIConfigSettings, 16, 16, ['mr-2'])}
-			</button>
-			<div class="dropdown-menu-container" style="display: none;"></div>
-		</div>`);
+		let settingsContainerId = 'ui-settings-popup';
+
+		_Helpers.fastRemoveElement(Structr.functionBar.querySelector('#' + settingsContainerId));
+
+		let dropdown = _Helpers.createSingleDOMElementFromHTML(`
+			<div id="${settingsContainerId}" class="dropdown-menu darker-shadow-dropdown dropdown-menu-large">
+				<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" data-preferred-position-x="left">
+					${_Icons.getSvgIcon(_Icons.iconUIConfigSettings, 16, 16, ['mr-2'])}
+				</button>
+				<div class="dropdown-menu-container" style="display: none;"></div>
+			</div>
+		`);
 
 		let container = dropdown.querySelector('.dropdown-menu-container');
 
@@ -2851,6 +2857,35 @@ let UISettings = {
 
 				input.addEventListener('blur', () => {
 					UISettings.setValueForSetting(setting, input, input.value, input.parentElement);
+				});
+
+				if (setting.infoText) {
+					settingDOM.dataset['comment'] = setting.infoText;
+				}
+
+				container.appendChild(settingDOM);
+
+				break;
+			}
+
+			case 'select': {
+
+				let settingDOM = _Helpers.createSingleDOMElementFromHTML(`
+					<div class="flex items-center">
+						<label class="flex items-center p-1">
+							${setting.text}
+							<select class="mr-2 ${setting.inputCssClass ?? ''}">
+								${Object.values(setting.possibleValues).map(option => `<option value="${option.value}">${option.text}</option>`)}
+							</select>
+						</label>
+					</div>
+				`);
+
+				let select   = settingDOM.querySelector('select');
+				select.value = UISettings.getValueForSetting(setting);
+
+				select.addEventListener('change', () => {
+					UISettings.setValueForSetting(setting, select, select.value, select.parentElement);
 				});
 
 				if (setting.infoText) {
@@ -2933,6 +2968,19 @@ let UISettings = {
 					storageKey: 'favorHTMLForDOMNodes' + location.port,
 					defaultValue: true,
 					type: 'checkbox'
+				},
+				sharedComponentSyncModeKey: {
+					text: 'Sync strategy when updating a shared component',
+					storageKey: 'sharedComponentSyncMode' + location.port,
+					defaultValue: 'ASK',
+					type: 'select',
+					inputCssClass: 'w-40 truncate',
+					possibleValues: {
+						ASK:      { value: 'ASK',      text: 'Always ask' },
+						ALL:      { value: 'ALL',      text: 'All' },
+						BY_VALUE: { value: 'BY_VALUE', text: 'All with same previous value' },
+						NONE:     { value: 'NONE',     text: 'Do not sync' }
+					}
 				}
 			}
 		},
