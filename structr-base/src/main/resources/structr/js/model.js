@@ -272,8 +272,13 @@ let StructrModel = {
 
 		return obj;
 	},
-	updateKey: function(id, key, value) {
-		var obj = StructrModel.obj(id);
+	updateModelWithData: (id, data) => {
+		for (let [k,v] of Object.entries(data)) {
+			StructrModel.updateKey(id, k, v);
+		}
+	},
+	updateKey: (id, key, value) => {
+		let obj = StructrModel.obj(id);
 
 		if (obj) {
 			obj[key] = value;
@@ -320,6 +325,12 @@ let StructrModel = {
 
 					if (key === 'name') {
 						attrElement.attr('title', newValue).html(newValue);
+
+						// find elements, where this node is displayed as a related node
+						let otherDisplayedNodes = document.querySelectorAll('.related-node._' + id);
+						for (let other of otherDisplayedNodes) {
+							_Entities.updateRelatedNodeName(other, newValue ?? id);
+						}
 					}
 				}
 

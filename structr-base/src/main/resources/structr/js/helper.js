@@ -237,16 +237,18 @@ let _Helpers = {
 		}
 	},
 	getHTMLTreeElementDisplayName: (entity) => {
-		if (!entity.name) {
-			if (entity.tag === 'option' && entity._html_value) {
-				return `${entity.tag}[value="${_Helpers.escapeForHtmlAttributes(entity._html_value)}"]`;
+		if (entity) {
+			if (!entity.name) {
+				if (entity.tag === 'option' && entity._html_value) {
+					return `${entity.tag}[value="${_Helpers.escapeForHtmlAttributes(entity._html_value)}"]`;
+				}
+				return (entity?.tag ?? `[${entity.type}]`);
 			}
-			return (entity?.tag ?? `[${entity.type}]`);
+			if ((entity?.name ?? '').trim() === '') {
+				return '(blank name)';
+			}
+			return entity.name;
 		}
-		if ((entity?.name ?? '').trim() === '') {
-			return '(blank name)';
-		}
-		return entity.name;
 	},
 	getDateTimePickerFormat: (rawFormat) => {
 
@@ -691,6 +693,16 @@ let _Helpers = {
 		return {
 			Accept: 'application/json; charset=utf-8;' + propertiesString
 		}
+	},
+	getDataCommentAttributeForPropertyFromSchemaInfoHint: (key, typeInfo) => {
+
+		let hint = typeInfo?.[key]?.hint;
+
+		if (hint) {
+			return `data-comment="${_Helpers.escapeForHtmlAttributes(hint)}"`;
+		}
+
+		return '';
 	}
 };
 
