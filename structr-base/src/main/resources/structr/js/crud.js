@@ -1158,7 +1158,7 @@ let _Crud = {
 						cell.append(_Helpers.formatArrayValueField(key, values, typeInfo[key]));
 
 						cell.find(`[name="${key}"]`).each(function (i, el) {
-							_Entities.activateInput(el, id, null, type, typeInfo, () => {
+							_Entities.activateInput(el, id, key, type, typeInfo, () => {
 								if (id) {
 									_Crud.objectList.refreshObject(id, key);
 								}
@@ -1699,7 +1699,7 @@ let _Crud = {
 								// if the name changed, update all occurrences as a related node
 								let otherDisplayedNodes = document.querySelectorAll('.related-node._' + id);
 								for (let other of otherDisplayedNodes) {
-									_Entities.updateRelatedNodeName(other, newValue);
+									_Entities.updateRelatedNodeName(other, newValue ?? id);
 								}
 							}
 

@@ -123,7 +123,8 @@ let _Entities = {
 				return new ErrorMessage().text('Please select only one query type.').show();
 			}
 
-			let data = {};
+			let data    = {};
+			let mainKey = null;
 
 			for (let queryType of queryTypes) {
 
@@ -141,6 +142,8 @@ let _Entities = {
 						data.flow = null;
 						flowSelector.value = '--- Select Flow ---';
 					}
+
+					mainKey = queryType.propertyName;
 				}
 
 				data[queryType.propertyName] = val;
@@ -156,7 +159,7 @@ let _Entities = {
 				} else {
 					_Helpers.blinkGreen(saveQueryButton);
 				}
-			});
+			}, null, mainKey);
 		};
 
 		let activateEditor = (queryType) => {
@@ -435,7 +438,9 @@ let _Entities = {
 				let activeView = 'ui';
 				let tabTexts   = [];
 
-				if (Object.keys(properties).length) {
+				// filter out id,name,type from properties to only show tab "Custom attributes" if there really are custom attributes
+				let customPropertiesWithoutBasicProps = Object.keys(properties).filter(key => !['id', 'type', 'name'].includes(key));
+				if (customPropertiesWithoutBasicProps.length > 0) {
 					views.push('custom');
 				}
 
@@ -497,7 +502,7 @@ let _Entities = {
 					let mainTabs  = dialogText.querySelector('#tabs');
 					let contentEl = dialogText.querySelector('#tabs');
 
-					_Entities.basicTab.appendBasicTypeTab(entity, mainTabs, contentEl);
+					_Entities.basicTab.appendBasicTypeTab(entity, mainTabs, contentEl, typeInfo);
 
 					_Entities.appendViews(entity, views, tabTexts, mainTabs, contentEl, typeInfo);
 
@@ -653,10 +658,12 @@ let _Entities = {
 				headers: _Helpers.getHeadersForCustomView(filteredProperties)
 			}).then(async response => {
 
-				let data          = await response.json();
-				let fetchedEntity = data.result;
-
 				if (response.ok) {
+
+					let data          = await response.json();
+					let fetchedEntity = data.result;
+
+					StructrModel.updateModelWithData(fetchedEntity.id, fetchedEntity);
 
 					let tempNodeCache = new AsyncObjectCache((id) => {
 						Command.get(id, 'id,name,type,tag,isContent,content', (node) => {
@@ -695,6 +702,10 @@ let _Entities = {
 						}
 					}
 
+					if (view === 'ui') {
+						noCategoryKeys = noCategoryKeys.filter(key => !['_html_id', '_html_class'].includes(key));
+					}
+
 					// reset result counts
 					_Entities.collectionPropertiesResultCount = {};
 
@@ -710,9 +721,7 @@ let _Entities = {
 					}
 				}
 
-				if (typeof callback === 'function') {
-					callback(properties);
-				}
+				callback?.(properties);
 			});
 		});
 	},
@@ -723,7 +732,9 @@ let _Entities = {
 		let cell = $(`.value.${key}_`, container);
 		cell.css('height', '60px');
 
-		fetch(`${Structr.rootUrl + entity.type}/${entity.id}/${key}?${Structr.getRequestParameterName('pageSize')}=${pageSize}&${Structr.getRequestParameterName('page')}=${page}`, {
+		let fetchKey = (key === 'syncedNodesIds') ? 'syncedNodes' : key;
+
+		fetch(`${Structr.rootUrl + entity.type}/${entity.id}/${fetchKey}?${Structr.getRequestParameterName('pageSize')}=${pageSize}&${Structr.getRequestParameterName('page')}=${page}`, {
 			headers: _Helpers.getHeadersForCustomView(['id', 'name'])
 		}).then(async response => {
 
@@ -784,22 +795,25 @@ let _Entities = {
 
 				if (data.result.length) {
 
-					for (let obj of (data.result[0][key] || data.result)) {
+					let collection = (data.result[0][key] ?? data.result ?? []);
+
+					for (let obj of collection) {
 
 						let nodeId = (typeof obj === 'string') ? obj : obj.id;
 
 						tempNodeCache.registerCallback(nodeId, nodeId, (node) => {
 
 							_Entities.appendRelatedNode(cell, node, (nodeEl) => {
-								$('.remove', nodeEl).on('click', (e) => {
 
-									e.preventDefault();
-									Command.removeFromCollection(entity.id, key, node.id, () => {
+								nodeEl[0].querySelector('.remove')?.addEventListener('click', e => {
+
+									e.stopPropagation();
+
+									Command.removeFromCollection(entity.id, fetchKey, node.id, () => {
 										nodeEl.remove();
 										_Helpers.blinkGreen(cell);
 										_Dialogs.custom.showAndHideInfoBoxMessage(`Related node "${node.name || node.id}" has been removed from property "${key}".`, 'success', 2000, 1000);
 									});
-									return false;
 								});
 							});
 						});
@@ -829,13 +843,15 @@ let _Entities = {
 		let focusAttr  = 'class';
 		let id         = entity.id;
 
-		let onUpdateCallback = undefined;
+		let onUpdateCallback = (row, newValue) => {
+
+			if (view === '_html_') {
+				_Entities.showOrHideWarningForEmptyStringInHTMLAttribute(row, newValue);
+			}
+		};
+
 		if (view === '_html_') {
 			keys.sort();
-
-			onUpdateCallback = (input, newVal) => {
-				_Entities.showOrHideWarningForEmptyStringInHTMLAttribute(input[0].closest('tr'), newVal);
-			}
 		}
 
 		for (let key of keys) {
@@ -850,7 +866,7 @@ let _Entities = {
 
 			if (view === '_html_') {
 
-				let showKeyInitially = false;
+				let showKeyInitially = (key === '_html_class' || key === '_html_id');
 				for (let mostUsed of _Elements.mostUsedAttrs) {
 					if (_Helpers.isIn(entity.tag, mostUsed.elements) && _Helpers.isIn(key.substring(6), mostUsed.attrs)) {
 						showKeyInitially = true;
@@ -864,24 +880,25 @@ let _Entities = {
 				}
 
 				let displayKey  = _Entities.getDisplayKeyForHTMLKey(key);
-				let willBeShown = (showKeyInitially || key === '_html_class' || key === '_html_id');
 
 				let rowClass = '';
-				if  (willBeShown === false) {
-					rowClass = ' class="hidden"';
+				if  (showKeyInitially === false) {
+					rowClass = 'hidden';
 				}
 
 				let value = res[key];
-				let row   = _Helpers.createSingleDOMElementFromHTML(`<tr${rowClass}>
-					<td class="key">
-						<span class="flex justify-between items-center">
-							<span>${displayKey}</span>
-							<span class="${_Entities.classNameForEmptyStringWarningContainer} flex"></span>
-						</span>
-					</td>
-					<td class="value ${key}_">${_Helpers.formatValueInputField(key, value, typeInfo[key])}</td>
-					<td>${_Entities.getNullIconForKey(key)}</td>
-				</tr>`);
+				let row   = _Helpers.createSingleDOMElementFromHTML(`
+					<tr class="${rowClass}">
+						<td class="key">
+							<span class="flex justify-between items-center">
+								<span>${displayKey}</span>
+								<span class="${_Entities.classNameForEmptyStringWarningContainer} flex"></span>
+							</span>
+						</td>
+						<td class="value ${key}_">${_Helpers.formatValueInputField(key, value, typeInfo[key])}</td>
+						<td>${_Entities.getNullIconForKey(key)}</td>
+					</tr>
+				`);
 				propsTable[0].appendChild(row);
 				valueCell = $(`.value.${key}_`, propsTable);
 
@@ -906,12 +923,15 @@ let _Entities = {
 							valueCell.removeClass('value').append(`<input type="checkbox" class="${key}_">`);
 							let checkbox = $(propsTable.find(`input[type="checkbox"].${key}_`));
 
-							let val = res[key];
-							if (val) {
-								checkbox.prop('checked', true);
+							let val = res[key] ?? false;
+							checkbox.prop('checked', val);
+
+							let allowChange = ((!isReadOnly || StructrWS.isAdmin) && !isSystem);
+							if (typeInfo[key].className === 'org.structr.core.property.ConstantBooleanProperty') {
+								allowChange = false;
 							}
 
-							if ((!isReadOnly || StructrWS.isAdmin) && !isSystem) {
+							if (allowChange) {
 
 								checkbox.on('change', function() {
 
@@ -942,17 +962,23 @@ let _Entities = {
 
 									let nodeId = res[key].id || res[key];
 
-									tempNodeCache.registerCallback(nodeId, nodeId, function(node) {
+									tempNodeCache.registerCallback(nodeId, nodeId, (node) => {
 
-										_Entities.appendRelatedNode(valueCell, node, function(nodeEl) {
+										_Entities.appendRelatedNode(valueCell, node, (nodeEl) => {
+
 											$('.remove', nodeEl).on('click', function(e) {
 												e.preventDefault();
+
 												_Entities.setProperty(id, key, null, false, (newVal) => {
+
 													if (!newVal) {
+
 														nodeEl.remove();
 														_Helpers.blinkGreen(valueCell);
 														_Dialogs.custom.showAndHideInfoBoxMessage(`Related node "${node.name || node.id}" has been removed from property "${key}".`, 'success', 2000, 1000);
+
 													} else {
+
 														_Helpers.blinkRed(valueCell);
 													}
 												});
@@ -974,6 +1000,7 @@ let _Entities = {
 							});
 
 						} else {
+
 							valueCell.append(_Helpers.formatValueInputField(key, res[key], typeInfo[key]));
 						}
 					}
@@ -990,38 +1017,54 @@ let _Entities = {
 				});
 			}
 
-			let nullIconId = `#${_Entities.null_prefix}${key}`;
+			let nullIcon = container[0].querySelector(`#${_Entities.null_prefix}${key}`);
 
 			if (isSystem || isReadOnly || isBoolean) {
 
-				container[0].querySelector(nullIconId).remove();
+				nullIcon?.remove();
 
 			} else {
 
-				container[0].querySelector(nullIconId).addEventListener('click', (e) => {
+				nullIcon?.addEventListener('click', (e) => {
 
-					let icon     = e.target.closest(nullIconId);
-					let key      = icon.id.substring(_Entities.null_prefix.length);
+					let row      = e.target.closest('tr');
 					let input    = $(`.${key}_`).find('input');
 					let textarea = $(`.${key}_`).find('textarea');
 
-					_Entities.setProperty(id, key, null, false, (newVal) => {
+					_Entities.setProperty(id, key, null, false, (newVal = null) => {
 
 						if (!newVal) {
 
 							if (key.indexOf('_custom_html_') === -1) {
+
+								if (isCollection) {
+
+									let cell = valueCell[0];
+									_Helpers.fastRemoveAllChildren(cell);
+									cell.innerHTML = _Helpers.formatArrayValueField(key, [], typeInfo[key]);
+
+									for (let el of cell.querySelectorAll(`[name="${key}"]`)) {
+										_Entities.activateInput(el, id, key, entity.type, typeInfo, onUpdateCallback);
+									}
+								}
+
 								_Helpers.blinkGreen(valueCell);
+
 								_Dialogs.custom.showAndHideInfoBoxMessage(`Property "${key}" has been set to null.`, 'success', 2000, 1000);
+
 							} else {
-								icon.closest('tr').remove();
+
+								row.remove();
 								_Dialogs.custom.showAndHideInfoBoxMessage(`Custom HTML property "${key}" has been removed`, 'success', 2000, 1000);
 							}
 
 							if (key === 'name') {
+
 								let entity = StructrModel.objects[id];
 								if (!_Entities.isContentElement(entity)) {
 									entity.name = entity.tag ?? `[${entity.type}]`;
 								}
+
 								StructrModel.refresh(id);
 							}
 
@@ -1029,7 +1072,7 @@ let _Entities = {
 								valueCell.empty();
 							}
 
-							onUpdateCallback?.(input, newVal);
+							onUpdateCallback?.(row, newVal);
 
 						} else {
 
@@ -1045,12 +1088,17 @@ let _Entities = {
 			}
 		}
 
-		$('.props tr td.value input',    container).each(function(i, inputEl)    { _Entities.activateInput(inputEl,    id, entity.pageId, entity.type, typeInfo, onUpdateCallback); });
-		$('.props tr td.value textarea', container).each(function(i, textareaEl) { _Entities.activateInput(textareaEl, id, entity.pageId, entity.type, typeInfo); });
+		for (let el of propsTable[0].querySelectorAll('tr td.value textarea, tr td.value input')) {
+
+			let key = el.name;
+			_Entities.activateInput(el, id, key, entity.type, typeInfo, onUpdateCallback);
+		}
 
 		if (view === '_html_') {
 
-			$(`input[name="_html_${focusAttr}"]`, propsTable).focus();
+			let focusedInput = propsTable[0].querySelector(`input[name="_html_${focusAttr}"]`);
+			focusedInput?.focus();
+			focusedInput?.setSelectionRange(focusedInput.value?.length, focusedInput.value?.length);
 
 			container.append(`
 				<div class="flex items-center mt-4 mb-4">
@@ -1093,7 +1141,8 @@ let _Entities = {
 
 						let newKey = '_custom_html_' + key;
 
-						Command.setProperty(id, newKey, val, false, () => {
+						Command.setProperty(id, newKey, val, false, (newVal) => {
+
 							_Helpers.blinkGreen(exitedInput);
 							_Dialogs.custom.showAndHideInfoBoxMessage(`New property "${newKey}" has been added and saved with value "${val}".`, 'success', 2000, 1000);
 
@@ -1113,7 +1162,7 @@ let _Entities = {
 							});
 
 							// deactivate this function and resume regular save-actions
-							_Entities.activateInput(valInput, id, entity.pageId, entity.type, typeInfo);
+							_Entities.activateInput(valInput, id, key, entity.type, typeInfo);
 						});
 					}
 				}
@@ -1365,56 +1414,68 @@ let _Entities = {
 			return onDelete(nodeEl);
 		}
 	},
-	activateInput: (el, id, pageId, type, typeInfo, onUpdateCallback) => {
+	activateInput: (input, id, key, type, typeInfo, onUpdateCallback) => {
 
-		let input  = $(el);
-		let oldVal = input.val();
-		let relId  = input.parent().attr('rel_id');
+		let relId  = $(input).parent().attr('rel_id');
 		let objId  = relId ? relId : id;
-		let key    = input.prop('name');
 
-		if (!input.hasClass('readonly') && !input.hasClass('newKey')) {
+		let cell = input.closest('.value');
+		if (!cell) {
+			cell = input.closest('.__value');
+		}
 
-			input.closest('.array-attr').find('svg.remove').off('click').on('click', () => {
-				let cell = input.closest('.value');
-				if (cell.length === 0) {
-					cell = input.closest('.__value');
+		if (!input.classList.contains('readonly') && !input.classList.contains('newKey')) {
+
+			if (input.dataset['activated'] !== 'true') {
+
+				input.dataset['activated'] = 'true';
+
+				input.closest('.array-attr')?.querySelector('svg.remove')?.addEventListener('click', () => {
+
+					let oldValue = _Entities.getArrayValue(key, cell);
+					input.parentNode.remove();
+					input.dataset['changed'] = 'true';
+
+					_Entities.saveValue(cell, input, objId, key, oldValue, id, type, typeInfo);
+				});
+
+				input.addEventListener('focus', function() {
+					input.classList.add('active');
+				});
+
+				input.addEventListener('change', function() {
+					input.dataset['changed'] = 'true';
+					if (input.type === 'checkbox') {
+						input.blur();
+					}
+				});
+
+				if (!input.classList.contains('input-datetime')) {
+
+					input.addEventListener('focusout', function() {
+						input.dispatchEvent(new Event('input-finished'));
+					});
 				}
-				input.parent().remove();
-				_Entities.saveArrayValue(cell, objId, key, oldVal, id, pageId, type, typeInfo, onUpdateCallback);
-			});
 
-			input.off('focus').on('focus', function() {
-				input.addClass('active');
-			});
+				input.addEventListener('input-finished', (e) => {
 
-			input.off('change').on('change', function() {
-				el.dataset['changed'] = 'true';
-				if (el.type === 'checkbox') {
-					el.blur();
+					let oldValue = StructrModel.obj(id)?.[key] ?? null;
+					_Entities.saveValue(cell, input, objId, key, oldValue, id, type, typeInfo, onUpdateCallback);
+
+					input.classList.remove('active');
+
+					for (let icon of input.parentNode.querySelectorAll('.icon')) {
+						console.log(icon)
+						icon.remove();
+					}
+				});
+
+				if (_Crud.types?.[type]?.views?.all?.[key]?.type === 'Date[]') {
+
+					_Entities.addDatePicker(input, key, type, () => {
+						input.dispatchEvent(new Event('input-finished'));
+					});
 				}
-			});
-
-			if (!input.hasClass('input-datetime')) {
-				input.off('focusout').on('focusout', function() {
-					input[0].dispatchEvent(new Event('input-finished'));
-				});
-			}
-
-			input[0].addEventListener('input-finished', (e) => {
-				_Entities.saveValue(input, objId, key, oldVal, id, pageId, type, typeInfo, onUpdateCallback);
-
-				input.removeClass('active');
-				input.parent().children('.icon').each(function(i, icon) {
-					$(icon).remove();
-				});
-			});
-
-			if (_Crud.types?.[type]?.views?.all?.[key]?.type === 'Date[]') {
-
-				_Entities.addDatePicker(input[0], key, type, () => {
-					input[0].dispatchEvent(new Event('input-finished'));
-				});
 			}
 		}
 	},
@@ -1448,49 +1509,17 @@ let _Entities = {
 			});
 		}
 	},
-	saveArrayValue: (cell, objId, key, oldVal, id, pageId, type, typeInfo, onUpdateCallback) => {
-
-		let val            = _Entities.getArrayValue(key, cell);
-		let isCreateDialog = !objId;
-
-		_Entities.setProperty(objId, key, val, false, (newVal = []) => {
-
-			if (newVal !== oldVal) {
-
-				if (!isCreateDialog) {
-					_Helpers.blinkGreen(cell);
-				}
-
-				let valueMsg;
-				cell.html(_Helpers.formatArrayValueField(key, newVal, typeInfo[key]));
-				cell.find(`[name="${key}"]`).each(function(i, el) {
-					_Entities.activateInput(el, id, pageId, type, typeInfo);
-				});
-
-				valueMsg = (newVal !== undefined || newValue !== null) ? `value [${newVal.join(',\n')}]`: 'empty value';
-
-				if (!isCreateDialog) {
-
-					_Dialogs.custom.showAndHideInfoBoxMessage(`Updated property "${key}" with ${valueMsg}.`, 'success', 2000, 200);
-				}
-
-				onUpdateCallback?.();
-			}
-
-			oldVal = newVal;
-		});
-	},
 	getArrayValue: (key, cell) => {
 
 		let values      = [];
-		let valueInputs = cell[0].querySelectorAll('[name="' + key + '"]');
+		let valueInputs = cell.querySelectorAll(`[name="${key}"]`);
 
 		for (let el of valueInputs) {
 
 			let isNew     = (el.dataset['isNew'] === 'true');
 			let isChanged = (el.dataset['changed'] === 'true');
 
-			if (!isNew || isChanged) {
+			if (!isNew || (isNew && isChanged)) {
 
 				let value = (el.type === 'checkbox') ? (el.checked ? 'true' : 'false') : $(el).val();
 				values.push(value);
@@ -1499,16 +1528,13 @@ let _Entities = {
 
 		return values;
 	},
-	saveValue: (input, objId, key, oldVal, id, pageId, type, typeInfo, onUpdateCallback) => {
+	saveValue: (cell, el, objId, key, oldVal, id, type, typeInfo, onUpdateCallback) => {
 
+		let input = $(el);
 		let isCreateDialog = !objId;
 		let val;
-		let cell = input.closest('.value');
-		if (cell.length === 0) {
-			cell = input.closest('.__value');
-		}
 
-		let isArrayType = (typeInfo?.[key].isCollection == true && !typeInfo[key].relatedType);
+		let isArrayType = (typeInfo?.[key]?.isCollection == true && (typeInfo?.[key]?.relatedType === undefined));
 		if (isArrayType) {
 			val = _Entities.getArrayValue(key, cell);
 		} else {
@@ -1526,15 +1552,20 @@ let _Entities = {
 				if (isPassword || (newVal !== oldVal)) {
 
 					if (!isCreateDialog) {
-
-						_Helpers.blinkGreen(input);
+						let blinkTarget = (isArrayType) ? cell : input;
+						_Helpers.blinkGreen(blinkTarget);
 					}
 
 					let valueMsg;
 					if (newVal.constructor === Array) {
 
-						cell.html(_Helpers.formatArrayValueField(key, newVal, typeInfo[key]));
+						_Helpers.fastRemoveAllChildren(cell);
+						cell.innerHTML = _Helpers.formatArrayValueField(key, newVal, typeInfo[key]);
 						valueMsg = (newVal !== undefined || newValue !== null) ? `value [${newVal.join(',\n')}]`: 'empty value';
+
+						for (let el of cell.querySelectorAll(`[name="${key}"]`)) {
+							_Entities.activateInput(el, id, key, type, typeInfo, onUpdateCallback);
+						}
 
 					} else {
 
@@ -1542,16 +1573,11 @@ let _Entities = {
 						valueMsg = (newVal !== undefined || newValue !== null) ? `value "${newVal}"`: 'empty value';
 					}
 
-					cell.find(`[name="${key}"]`).each(function(i, el) {
-						_Entities.activateInput(el, id, pageId, type, typeInfo, onUpdateCallback);
-					});
-
 					if (!isCreateDialog) {
-
 						_Dialogs.custom.showAndHideInfoBoxMessage(`Updated property "${key}"${!isPassword ? ' with ' + valueMsg : ''}`, 'success', 2000, 200);
 					}
 
-					onUpdateCallback?.(input, newVal);
+					onUpdateCallback(input[0].closest('tr'), newVal);
 
 				} else {
 
@@ -1563,7 +1589,9 @@ let _Entities = {
 
 			if (!isCreateDialog) {
 
-				_Entities.setProperty(objId, key, val, false, newVal => updateInput(newVal));
+				_Entities.setProperty(objId, key, val, false, newVal => {
+					updateInput(newVal ?? (isArrayType ? [] : undefined))
+				});
 
 			} else {
 
@@ -1653,11 +1681,13 @@ let _Entities = {
 
 					for (let result of data.result) {
 
+						let allowed = result.allowed ?? [];
+
 						let permissions = {
-							read: _Helpers.isIn('read', result.allowed),
-							write: _Helpers.isIn('write', result.allowed),
-							delete: _Helpers.isIn('delete', result.allowed),
-							accessControl: _Helpers.isIn('accessControl', result.allowed)
+							read: allowed.includes('read'),
+							write: allowed.includes('write'),
+							delete: allowed.includes('delete'),
+							accessControl: allowed.includes('accessControl')
 						};
 
 						let principalId = result.principalId;
@@ -1739,13 +1769,12 @@ let _Entities = {
 					templateResult: (state) => templateOption(state, false)
 				}).on('select2:select', function(e) {
 
-					let data = e.params.data;
-					let pId  = data.id;
-					let rec  = $('#recursive', container).is(':checked');
+					let principalId = e.params.data.id;
+					let recursive   = container[0].querySelector('#recursive')?.checked ?? false;
 
-					Command.setPermission(entity.id, pId, 'grant', 'read', rec);
+					Command.setPermission(entity.id, principalId, 'grant', 'read', recursive);
 
-					Command.get(pId, requiredAttributesForPrincipals, (p) => {
+					Command.get(principalId, requiredAttributesForPrincipals, (p) => {
 						_Entities.addPrincipal(entity, p, { read: true }, allowRecursive, container);
 					});
 				});
@@ -1862,6 +1891,7 @@ let _Entities = {
 
 				let permissions = [...row[0].querySelectorAll('input:checked')].map(i => i.dataset.permission).join(',');
 
+				// this does not apply to shared component sync ==> syncMode = NONE
 				Command.setPermission(entity.id, principal.id, 'setAllowed', permissions, true, () => {
 
 					button.removeAttribute('disabled');
@@ -2432,11 +2462,11 @@ let _Entities = {
 
 	basicTab: {
 		dialogs: {
-			defaultDom: async (el, entity) => {
+			defaultDom: async (el, entity, typeInfo) => {
 
 				let enrichedEntity = await _Entities.basicTab.addHtmlPropertiesToEntity(entity);
 
-				el.html(_Entities.basicTab.templates.defaultDOMOptions({ entity: enrichedEntity }));
+				el.html(_Entities.basicTab.templates.defaultDOMOptions({ entity: enrichedEntity, typeInfo }));
 
 				_Entities.basicTab.populateInputFields(el, enrichedEntity);
 				_Entities.basicTab.registerSimpleInputChangeHandlers(el, enrichedEntity);
@@ -2448,12 +2478,14 @@ let _Entities = {
 				_Entities.basicTab.showRenderingOptions(el, entity);
 
 				_Entities.basicTab.showChildContentEditor(el, entity);
+
+				_Entities.basicTab.showSharedComponentConfigurationEditor(el, entity);
 			},
-			a: async (el, entity) => {
+			a: async (el, entity, typeInfo) => {
 
 				let enrichedEntity = await _Entities.basicTab.addHtmlPropertiesToEntity(entity);
 
-				el.html(_Entities.basicTab.templates.aOptions({ entity: enrichedEntity }));
+				el.html(_Entities.basicTab.templates.aOptions({ entity: enrichedEntity, typeInfo }));
 
 				_Entities.basicTab.populateInputFields(el, enrichedEntity);
 				_Entities.basicTab.registerSimpleInputChangeHandlers(el, enrichedEntity);
@@ -2465,12 +2497,14 @@ let _Entities = {
 				_Entities.basicTab.showRenderingOptions(el, entity);
 
 				_Entities.basicTab.showChildContentEditor(el, entity);
+
+				_Entities.basicTab.showSharedComponentConfigurationEditor(el, entity);
 			},
-			button: async (el, entity) => {
+			button: async (el, entity, typeInfo) => {
 
 				let enrichedEntity = await _Entities.basicTab.addHtmlPropertiesToEntity(entity);
 
-				el.html(_Entities.basicTab.templates.buttonOptions({ entity: enrichedEntity }));
+				el.html(_Entities.basicTab.templates.buttonOptions({ entity: enrichedEntity, typeInfo }));
 
 				_Entities.basicTab.populateInputFields(el, enrichedEntity);
 				_Entities.basicTab.registerSimpleInputChangeHandlers(el, enrichedEntity);
@@ -2482,10 +2516,12 @@ let _Entities = {
 				_Entities.basicTab.showRenderingOptions(el, entity);
 
 				_Entities.basicTab.showChildContentEditor(el, entity);
-			},
-			content: async (el, entity) => {
 
-				el.html(_Entities.basicTab.templates.contentOptions({ entity: entity }));
+				_Entities.basicTab.showSharedComponentConfigurationEditor(el, entity);
+			},
+			content: async (el, entity, typeInfo) => {
+
+				el.html(_Entities.basicTab.templates.contentOptions({ entity: entity, typeInfo }));
 
 				_Entities.basicTab.populateInputFields(el, entity);
 				_Entities.basicTab.registerSimpleInputChangeHandlers(el, entity);
@@ -2495,11 +2531,11 @@ let _Entities = {
 				await _Entities.basicTab.showCustomProperties(el, entity);
 				_Entities.basicTab.activateShowHideConditionOptions(el, entity);
 			},
-			div: async (el, entity) => {
+			div: async (el, entity, typeInfo) => {
 
 				let enrichedEntity = await _Entities.basicTab.addHtmlPropertiesToEntity(entity);
 
-				el.html(_Entities.basicTab.templates.divOptions({ entity: enrichedEntity }));
+				el.html(_Entities.basicTab.templates.divOptions({ entity: enrichedEntity, typeInfo }));
 
 				_Entities.basicTab.populateInputFields(el, enrichedEntity);
 				_Entities.basicTab.registerSimpleInputChangeHandlers(el, enrichedEntity);
@@ -2509,6 +2545,29 @@ let _Entities = {
 				await _Entities.basicTab.showCustomProperties(el, entity);
 				_Entities.basicTab.activateShowHideConditionOptions(el, entity);
 				_Entities.basicTab.showRenderingOptions(el, entity);
+
+				_Entities.basicTab.showChildContentEditor(el, entity);
+
+				_Entities.basicTab.showSharedComponentConfigurationEditor(el, entity);
+			},
+			option: async (el, entity, typeInfo) => {
+
+				let enrichedEntity = await _Entities.basicTab.addHtmlPropertiesToEntity(entity);
+
+				el.html(_Entities.basicTab.templates.optionOptions({ entity: enrichedEntity, typeInfo }));
+
+				_Entities.basicTab.populateInputFields(el, enrichedEntity);
+				_Entities.basicTab.registerSimpleInputChangeHandlers(el, enrichedEntity);
+
+				_Entities.basicTab.focusInput(el);
+
+				await _Entities.basicTab.showCustomProperties(el, entity);
+				_Entities.basicTab.activateShowHideConditionOptions(el, entity);
+				_Entities.basicTab.showRenderingOptions(el, entity);
+
+				_Entities.basicTab.showChildContentEditor(el, entity);
+
+				_Entities.basicTab.showSharedComponentConfigurationEditor(el, entity);
 			},
 			file: async (el, entity) => {
 
@@ -2607,23 +2666,6 @@ let _Entities = {
 
 				_Entities.basicTab.showCustomProperties(el, entity);
 			},
-			option: async (el, entity) => {
-
-				let enrichedEntity = await _Entities.basicTab.addHtmlPropertiesToEntity(entity);
-
-				el.html(_Entities.basicTab.templates.optionOptions({ entity: enrichedEntity }));
-
-				_Entities.basicTab.populateInputFields(el, enrichedEntity);
-				_Entities.basicTab.registerSimpleInputChangeHandlers(el, enrichedEntity);
-
-				_Entities.basicTab.focusInput(el);
-
-				await _Entities.basicTab.showCustomProperties(el, entity);
-				_Entities.basicTab.activateShowHideConditionOptions(el, entity);
-				_Entities.basicTab.showRenderingOptions(el, entity);
-
-				_Entities.basicTab.showChildContentEditor(el, entity);
-			},
 			page: async (el, entity) => {
 
 				el.html(_Entities.basicTab.templates.pageOptions({ entity: entity, page: entity }));
@@ -2669,7 +2711,7 @@ let _Entities = {
 
 			return dialogConfig;
 		},
-		appendBasicTypeTab: (entity, mainTabs, contentEl) => {
+		appendBasicTypeTab: (entity, mainTabs, contentEl, typeInfo) => {
 
 			let dialogConfig = _Entities.basicTab.getBasicTabConfig(entity);
 
@@ -2679,7 +2721,7 @@ let _Entities = {
 
 					let wrapperFn = (contentElement) => {
 
-						dialogConfig.appendDialogForEntityToContainer($(contentElement), entity).then(() => {
+						dialogConfig.appendDialogForEntityToContainer($(contentElement), entity, typeInfo).then(() => {
 							_Helpers.activateCommentsInElement(contentElement);
 						});
 					}
@@ -2751,6 +2793,18 @@ let _Entities = {
 					} else {
 						populateDialog(modelObj);
 					}
+				}
+			}
+		},
+		showSharedComponentConfigurationEditor: (el, entity) => {
+
+			let textContentContainer = el.find('#shared-component-configuration-editor')[0];
+
+			if (entity && (entity.sharedComponent?.id || entity.sharedComponentId)) {
+
+				if (textContentContainer) {
+
+					textContentContainer.classList.remove('hidden');
 				}
 			}
 		},
@@ -2928,7 +2982,7 @@ let _Entities = {
 
 						${_Entities.basicTab.templates.visibilityPartial(config)}
 
-						${_Entities.basicTab.templates.contentPartial(config)}
+						${_Entities.basicTab.templates.textContentPartial()}
 
 					</div>
 
@@ -2958,7 +3012,9 @@ let _Entities = {
 
 						${_Entities.basicTab.templates.visibilityPartial(config)}
 
-						${_Entities.basicTab.templates.contentPartial()}
+						${_Entities.basicTab.templates.textContentPartial()}
+
+						${_Entities.basicTab.templates.sharedComponentConfigurationPartial(config)}
 					</div>
 
 					${_Entities.basicTab.templates.customPropertiesPartial(config)}
@@ -2980,10 +3036,16 @@ let _Entities = {
 					${_Entities.basicTab.templates.customPropertiesPartial(config)}
 				</div>
 			`,
-			contentPartial: config => `
+			textContentPartial: config => `
 				<div id="child-content-editor" class="col-span-2 hidden">
 					<label class="block mb-2" for="content-input">Text Content</label>
 					<textarea id="content-input" name="content" data-defer-change-handler="true"></textarea>
+				</div>
+			`,
+			sharedComponentConfigurationPartial: config => `
+				<div id="shared-component-configuration-editor" class="col-span-2 hidden">
+					<label class="block mb-2" for="shared-component-configuration-input" ${_Helpers.getDataCommentAttributeForPropertyFromSchemaInfoHint('sharedComponentConfiguration', config.typeInfo)}>Shared Component Configuration</label>
+					${Structr.templates.autoScriptTextArea({ wrapperId: 'shared-component-configuration-editor', wrapperClassString: 'col-span-2', textareaId: 'shared-component-configuration-input', textareaAttributeString: 'name="sharedComponentConfiguration"' })}
 				</div>
 			`,
 			customPropertiesPartial: config => `
@@ -3009,8 +3071,9 @@ let _Entities = {
 
 						${_Entities.basicTab.templates.visibilityPartial(config)}
 
-						${_Entities.basicTab.templates.contentPartial()}
+						${_Entities.basicTab.templates.textContentPartial()}
 
+						${_Entities.basicTab.templates.sharedComponentConfigurationPartial(config)}
 					</div>
 
 					${_Entities.basicTab.templates.renderingOptions(config)}
@@ -3035,6 +3098,9 @@ let _Entities = {
 
 						${_Entities.basicTab.templates.visibilityPartial(config)}
 
+						${_Entities.basicTab.templates.textContentPartial()}
+
+						${_Entities.basicTab.templates.sharedComponentConfigurationPartial(config)}
 					</div>
 
 					${_Entities.basicTab.templates.renderingOptions(config)}
@@ -3213,7 +3279,9 @@ let _Entities = {
 
 						${_Entities.basicTab.templates.visibilityPartial(config)}
 
-						${_Entities.basicTab.templates.contentPartial()}
+						${_Entities.basicTab.templates.textContentPartial()}
+
+						${_Entities.basicTab.templates.sharedComponentConfigurationPartial(config)}
 					</div>
 
 					${_Entities.basicTab.templates.renderingOptions(config)}

@@ -671,7 +671,7 @@ let _Pages = {
 
 				} else {
 
-					if (tabsMenu) tabsMenu.style.marginLeft = `calc(${leftPos}px + 0rem)`;
+					if (tabsMenu) tabsMenu.style.marginLeft = `calc(${leftPos}px - 8rem)`;
 
 					leftResizer.style.left = `calc(${leftPos}px - 1rem)`;
 					_Pages.centerPane.style.marginLeft = `calc(${leftPos}px + 2rem)`;
@@ -1091,11 +1091,14 @@ let _Pages = {
 				_Pages.centerPane.insertAdjacentHTML('beforeend', _Pages.templates.basic());
 				let basicContainer = document.querySelector('#center-pane .basic-container');
 
-				if (dialogConfig) {
-					dialogConfig.appendDialogForEntityToContainer($(basicContainer), obj).then(() => {
-						_Helpers.activateCommentsInElement(basicContainer);
-					});
-				}
+				_Schema.getTypeInfo(obj.type, (typeInfo) => {
+
+					if (dialogConfig) {
+						dialogConfig.appendDialogForEntityToContainer($(basicContainer), obj, typeInfo).then(() => {
+							_Helpers.activateCommentsInElement(basicContainer);
+						});
+					}
+				});
 
 				break;
 
@@ -1104,9 +1107,9 @@ let _Pages = {
 				_Pages.centerPane.insertAdjacentHTML('beforeend', _Pages.templates.properties());
 				let propertiesContainer = document.querySelector('#center-pane .properties-container');
 
-				_Schema.getTypeInfo(obj.type, function(typeInfo) {
+				_Schema.getTypeInfo(obj.type, (typeInfo) => {
 
-					_Entities.listProperties(obj, '_html_', $(propertiesContainer), typeInfo, function(properties) {
+					_Entities.listProperties(obj, '_html_', $(propertiesContainer), typeInfo, (properties) => {
 
 						// make container visible when custom properties exist
 						if (Object.keys(properties).length > 0) {
@@ -3725,6 +3728,68 @@ let _Pages = {
 		},
 		isDropAllowed: () => {
 			return _Pages.isDropAllowed(_Pages.sharedComponents.getNewSharedComponentDropzone());
+		},
+		getSavedDecisionForSharedComponentAttributeSync: () => {
+			return UISettings.getValueForSetting(UISettings.settingGroups.pages.settings.sharedComponentSyncModeKey);
+		},
+		shouldAskUserSyncSharedComponentAttributes: (id, key, newValue) => {
+
+			let modelObj = StructrModel.obj(id);
+			if (!modelObj) {
+				return false;
+			}
+			let previousValue  = modelObj[key];
+			if (newValue == previousValue) {
+				return false;
+			}
+			let doNotAskForKeys = ['id', 'name', 'syncedNodeIds', 'syncedNodes', 'sharedComponent', 'sharedComponentId'];
+			if (doNotAskForKeys.includes(key) || ((modelObj instanceof StructrContent) && (key === 'content' || key === 'contentType'))) {
+				return false;
+			}
+
+			let isDOMNode      = (modelObj.isDOMNode === true);
+			let hasSyncedNodes = (modelObj.syncedNodesIds?.length ?? 0) > 0;
+			let savedDecision  = _Pages.sharedComponents.getSavedDecisionForSharedComponentAttributeSync();
+			let shouldAsk      = isDOMNode && hasSyncedNodes && (savedDecision === UISettings.settingGroups.pages.settings.sharedComponentSyncModeKey.possibleValues.ASK.value);
+
+			return shouldAsk;
+		},
+		askSyncSharedComponentAttributesPromise: () => {
+
+			let infoText = 'The update can be applied to <b>all</b> elements or only to elements with <b>the same previous value</b>.';
+
+			let questionText = `
+				<div class="mt-2" data-comment="${_Helpers.escapeForHtmlAttributes(infoText)}">Apply the same change to the synced elements of this shared component?</div>
+			`;
+
+			let options = [{
+					buttonText: `${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, ['icon-green', 'mr-2'])} ${UISettings.settingGroups.pages.settings.sharedComponentSyncModeKey.possibleValues.ALL.text}`,
+					result: UISettings.settingGroups.pages.settings.sharedComponentSyncModeKey.possibleValues.ALL.value
+				}, {
+					buttonText: `${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, ['icon-green', 'mr-2'])}  ${UISettings.settingGroups.pages.settings.sharedComponentSyncModeKey.possibleValues.BY_VALUE.text}`,
+					result: UISettings.settingGroups.pages.settings.sharedComponentSyncModeKey.possibleValues.BY_VALUE.value
+				}, {
+					buttonText: `${_Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, ['icon-red', 'mr-2'])}  ${UISettings.settingGroups.pages.settings.sharedComponentSyncModeKey.possibleValues.NONE.text}`,
+					result: UISettings.settingGroups.pages.settings.sharedComponentSyncModeKey.possibleValues.NONE.value
+			}];
+
+			let defaultValue = UISettings.settingGroups.pages.settings.sharedComponentSyncModeKey.possibleValues.BY_VALUE.value;
+			let cancelValue  = UISettings.settingGroups.pages.settings.sharedComponentSyncModeKey.possibleValues.NONE.value;
+
+			return _Dialogs.multipleChoiceQuestion.askPromise(questionText, options, defaultValue, cancelValue, true).then((result) => {
+
+				let syncMode = result.answer;
+				let save     = result.save;
+
+				if (save) {
+
+					UISettings.setValueForSetting(UISettings.settingGroups.pages.settings.sharedComponentSyncModeKey, null, syncMode, null);
+
+					UISettings.showSettingsForCurrentModule();
+				}
+
+				return syncMode;
+			});
 		}
 	},
 
@@ -5027,14 +5092,14 @@ let _Pages = {
 	}
 };
 
-function findDiff(str1, str2){
-	let diff= "";
-	str2.split('').forEach(function(val, i){
-		if (val != str1.charAt(i))
-			diff += val ;
-	});
-	return diff;
-}
+// function findDiff(str1, str2){
+// 	let diff= "";
+// 	str2.split('').forEach(function(val, i){
+// 		if (val != str1.charAt(i))
+// 			diff += val ;
+// 	});
+// 	return diff;
+// }
 
 // polyfill for RegExp.escape
 if (!RegExp.escape) {

@@ -76,7 +76,6 @@ public abstract class DOMNode extends AbstractNode implements LinkedTreeNode<DOM
 	private static final Set<String> DataAttributeOutputBlacklist = Set.of("data-structr-manual-reload-target");
 
 	public static final String PAGE_CATEGORY                 = "Page Structure";
-	public static final String EDIT_MODE_BINDING_CATEGORY    = "Edit Mode Binding";
 	public static final String EVENT_ACTION_MAPPING_CATEGORY = "Event Action Mapping";
 	public static final String QUERY_CATEGORY                = "Query and Data Binding";
 

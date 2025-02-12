@@ -166,17 +166,6 @@
 	min-height: 10rem;
 }
 
-.crud-table tr td .array-attr,
-.props .array-attr,
-#entityForm .array-attr {
-	display: flex;
-	align-items: center;
-	gap: .25rem;
-	margin-bottom: .25rem;
-	width: 100%;
-	text-align: center;
-}
-
 .icon-crud-datetime {
 	position: absolute;
 	left: .75rem;
@@ -184,18 +173,6 @@
 
 .crud-table tr td .array-attr {
 	justify-content: center;
-}
-
-
-.crud-table tr td .array-attr input[type="text"]:not(.input-datetime),
-.crud-table tr td .array-attr textarea {
-	width: calc(100% - 3rem);
-}
-
-.crud-table tr td .array-attr svg.remove,
-.props .array-attr svg.remove,
-#entityForm .array-attr svg.remove {
-	position: initial;
 }
 
 .crud-table tr td.boolean-attr {
