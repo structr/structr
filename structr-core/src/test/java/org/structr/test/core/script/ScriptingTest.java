@@ -3699,9 +3699,9 @@ public class ScriptingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<NodeInterface> result1 = (List)Scripting.evaluate(ctx, null, "${{ return $.findPrivileged('Project', { 'name2': $.predicate.contains('s') }, $.predicate.sort('name', true)); }}", "testFindNewSyntax");
-			final List<NodeInterface> result2 = (List)Scripting.evaluate(ctx, null, "${{ return $.findPrivileged('Project', $.predicate.sort('name', true)); }}", "testFindNewSyntax");
-			final List<NodeInterface> result3 = (List)Scripting.evaluate(ctx, null, "${{ return $.findPrivileged('Project', $.predicate.sort('name')); }}", "testFindNewSyntax");
+			final List<NodeInterface> result1 = (List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', { 'name2': $.predicate.contains('s') }, $.predicate.sort('name', true)); }}", "testFindNewSyntax");
+			final List<NodeInterface> result2 = (List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.sort('name', true)); }}", "testFindNewSyntax");
+			final List<NodeInterface> result3 = (List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.sort('name')); }}", "testFindNewSyntax");
 
 			final String testFunction = "${{\n" +
 			"    let users = $.find('Project', {\n" +
@@ -3713,7 +3713,7 @@ public class ScriptingTest extends StructrTest {
 			"        $.predicate.sort('name', true),\n" +
 			"        $.predicate.page(1, 10)\n" +
 			"    );\n" +
-			"    return users;\n" +
+			"    users;\n" +
 			"}}";
 
 			final Object result4Object        = Scripting.evaluate(ctx, null, testFunction, "testFindNewSyntax");
@@ -3848,45 +3848,47 @@ public class ScriptingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			assertEquals("Normal find() should use OR to search for remote properties", 9, ((List)Scripting.evaluate(ctx, null, "${{ let t1 = $.find('Task', 'name', 't1'); return $.find('Project', 'tasks', t1); }}", "testFindOldSyntax")).size());
-			assertEquals("Normal find() should use OR to search for remote properties", 9, ((List)Scripting.evaluate(ctx, null, "${{ let t2 = $.find('Task', 'name', 't2'); return $.find('Project', 'tasks', t2); }}", "testFindOldSyntax")).size());
-			assertEquals("Normal find() should use OR to search for remote properties", 9, ((List)Scripting.evaluate(ctx, null, "${{ let t3 = $.find('Task', 'name', 't3'); return $.find('Project', 'tasks', t3); }}", "testFindOldSyntax")).size());
+			assertEquals("Normal find() should use OR to search for remote properties", 9, ((List)Scripting.evaluate(ctx, null, "${{ let t1 = $.find('Task', 'name', 't1'); $.find('Project', 'tasks', t1); }}", "testFindOldSyntax")).size());
+			assertEquals("Normal find() should use OR to search for remote properties", 9, ((List)Scripting.evaluate(ctx, null, "${{ let t2 = $.find('Task', 'name', 't2'); $.find('Project', 'tasks', t2); }}", "testFindOldSyntax")).size());
+			assertEquals("Normal find() should use OR to search for remote properties", 9, ((List)Scripting.evaluate(ctx, null, "${{ let t3 = $.find('Task', 'name', 't3'); $.find('Project', 'tasks', t3); }}", "testFindOldSyntax")).size());
 
-			assertEquals("Normal find() should use OR to search for remote properties", 13, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t2 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't1'), $.predicate.equals('name', 't2'))); return $.find('Project', 'tasks', t1_t2); }}", "testFindOldSyntax")).size());
-			assertEquals("Normal find() should use OR to search for remote properties", 13, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t3 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't1'), $.predicate.equals('name', 't3'))); return $.find('Project', 'tasks', t1_t3); }}", "testFindOldSyntax")).size());
-			assertEquals("Normal find() should use OR to search for remote properties", 13, ((List)Scripting.evaluate(ctx, null, "${{ let t2_t3 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't2'), $.predicate.equals('name', 't3'))); return $.find('Project', 'tasks', t2_t3); }}", "testFindOldSyntax")).size());
+			List result = ((List)Scripting.evaluate(ctx, null, "${{ let t1_t2 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't1'), $.predicate.equals('name', 't2'))); $.find('Project', 'tasks', t1_t2); }}", "testFindOldSyntax"));
 
-			assertEquals("Normal find() should use OR to search for remote properties", 15, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t2_t3 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't1'), $.predicate.equals('name', 't2'), $.predicate.equals('name', 't3'))); return $.find('Project', 'tasks', t1_t2_t3); }}", "testFindOldSyntax")).size());
-			assertEquals("Normal find() should use OR to search for remote properties", 15, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', 'tasks', $.find('Task')); }}", "testFindOldSyntax")).size());
+			assertEquals("Normal find() should use OR to search for remote properties", 13, result.size());
+			assertEquals("Normal find() should use OR to search for remote properties", 13, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t3 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't1'), $.predicate.equals('name', 't3'))); $.find('Project', 'tasks', t1_t3); }}", "testFindOldSyntax")).size());
+			assertEquals("Normal find() should use OR to search for remote properties", 13, ((List)Scripting.evaluate(ctx, null, "${{ let t2_t3 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't2'), $.predicate.equals('name', 't3'))); $.find('Project', 'tasks', t2_t3); }}", "testFindOldSyntax")).size());
 
-			assertEquals("Advanced find() should use EXACT search for $.equals predicate on remote properties", 2, ((List)Scripting.evaluate(ctx, null, "${{ let t1 = $.find('Task', 'name', 't1'); return $.find('Project', 'tasks', $.predicate.equals(t1)); }}", "testFindNewSyntax")).size());
+			assertEquals("Normal find() should use OR to search for remote properties", 15, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t2_t3 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't1'), $.predicate.equals('name', 't2'), $.predicate.equals('name', 't3'))); $.find('Project', 'tasks', t1_t2_t3); }}", "testFindOldSyntax")).size());
+			assertEquals("Normal find() should use OR to search for remote properties", 15, ((List)Scripting.evaluate(ctx, null, "${{ $.find('Project', 'tasks', $.find('Task')); }}", "testFindOldSyntax")).size());
 
-			assertEquals("Advanced find() should use EXACT search for $.equals predicate on remote properties", 2, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t2 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't1'), $.predicate.equals('name', 't2'))); return $.find('Project', 'tasks', $.predicate.equals(t1_t2)); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() should use EXACT search for $.equals predicate on remote properties", 2, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t3 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't1'), $.predicate.equals('name', 't3'))); return $.find('Project', 'tasks', $.predicate.equals(t1_t3)); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() should use EXACT search for $.equals predicate on remote properties", 2, ((List)Scripting.evaluate(ctx, null, "${{ let t1 = $.find('Task', 'name', 't1'); $.find('Project', 'tasks', $.predicate.equals(t1)); }}", "testFindNewSyntax")).size());
 
-			assertEquals("Advanced find() should use CONTAINS search for $.contains predicate on remote properties", 9, ((List)Scripting.evaluate(ctx, null, "${{ let t1 = $.find('Task', 'name', 't1'); return $.find('Project', 'tasks', $.predicate.contains(t1)); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() should use EXACT search for $.equals predicate on remote properties", 2, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t2 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't1'), $.predicate.equals('name', 't2'))); $.find('Project', 'tasks', $.predicate.equals(t1_t2)); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() should use EXACT search for $.equals predicate on remote properties", 2, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t3 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't1'), $.predicate.equals('name', 't3'))); $.find('Project', 'tasks', $.predicate.equals(t1_t3)); }}", "testFindNewSyntax")).size());
 
-			assertEquals("Advanced find() should use CONTAINS search for $.contains predicate on remote properties", 5, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t2 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't1'), $.predicate.equals('name', 't2'))); return $.find('Project', 'tasks', $.predicate.contains(t1_t2)); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() should use CONTAINS search for $.contains predicate on remote properties", 9, ((List)Scripting.evaluate(ctx, null, "${{ let t1 = $.find('Task', 'name', 't1'); $.find('Project', 'tasks', $.predicate.contains(t1)); }}", "testFindNewSyntax")).size());
 
-			assertEquals("Advanced find() should use CONTAINS search for $.contains predicate on remote properties", 3, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t2_t3 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't1'), $.predicate.equals('name', 't2'), $.predicate.equals('name', 't3'))); return $.find('Project', 'tasks', $.predicate.contains(t1_t2_t3)); }}", "testFindOldSyntax")).size());
+			assertEquals("Advanced find() should use CONTAINS search for $.contains predicate on remote properties", 5, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t2 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't1'), $.predicate.equals('name', 't2'))); $.find('Project', 'tasks', $.predicate.contains(t1_t2)); }}", "testFindNewSyntax")).size());
+
+			assertEquals("Advanced find() should use CONTAINS search for $.contains predicate on remote properties", 3, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t2_t3 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't1'), $.predicate.equals('name', 't2'), $.predicate.equals('name', 't3'))); $.find('Project', 'tasks', $.predicate.contains(t1_t2_t3)); }}", "testFindOldSyntax")).size());
 
 			// test with unconnected Task
-			assertEquals("Advanced find() should use EXACT search for $.equals predicate on remote properties", 0, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t5 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't1'), $.predicate.equals('name', 't5'))); return $.find('Project', 'tasks', $.predicate.equals(t1_t5)); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() should use CONTAINS search for $.contains predicate on remote properties", 0, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t5 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't1'), $.predicate.equals('name', 't5'))); return $.find('Project', 'tasks', $.predicate.contains(t1_t5)); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() should use EXACT search for $.equals predicate on remote properties", 0, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t5 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't1'), $.predicate.equals('name', 't5'))); $.find('Project', 'tasks', $.predicate.equals(t1_t5)); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() should use CONTAINS search for $.contains predicate on remote properties", 0, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t5 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't1'), $.predicate.equals('name', 't5'))); $.find('Project', 'tasks', $.predicate.contains(t1_t5)); }}", "testFindNewSyntax")).size());
 
 			// test unconnected Task
-			assertEquals("Normal find() should use OR to search for remote properties", 0, ((List)Scripting.evaluate(ctx, null, "${{ let t5 = $.find('Task', 'name', 't5'); return $.find('Project', 'tasks', t5); }}", "testFindOldSyntax")).size());
-			assertEquals("Advanced find() should use EXACT search for $.equals predicate on remote properties", 0, ((List)Scripting.evaluate(ctx, null, "${{ let t5 = $.find('Task', 'name', 't5'); return $.find('Project', 'tasks', $.predicate.equals(t5)); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() should use CONTAINS search for $.contains predicate on remote properties", 0, ((List)Scripting.evaluate(ctx, null, "${{ let t5 = $.find('Task', 'name', 't5'); return $.find('Project', 'tasks', $.predicate.contains(t5)); }}", "testFindNewSyntax")).size());
+			assertEquals("Normal find() should use OR to search for remote properties", 0, ((List)Scripting.evaluate(ctx, null, "${{ let t5 = $.find('Task', 'name', 't5'); $.find('Project', 'tasks', t5); }}", "testFindOldSyntax")).size());
+			assertEquals("Advanced find() should use EXACT search for $.equals predicate on remote properties", 0, ((List)Scripting.evaluate(ctx, null, "${{ let t5 = $.find('Task', 'name', 't5'); $.find('Project', 'tasks', $.predicate.equals(t5)); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() should use CONTAINS search for $.contains predicate on remote properties", 0, ((List)Scripting.evaluate(ctx, null, "${{ let t5 = $.find('Task', 'name', 't5'); $.find('Project', 'tasks', $.predicate.contains(t5)); }}", "testFindNewSyntax")).size());
 
 
 			// ($.and and $.or with $.contains)
-			assertEquals("Advanced find() should use CONTAINS search for $.contains predicate on remote properties", 9, ((List)Scripting.evaluate(ctx, null, "${{ let t1 = $.find('Task', 'name', 't1'); let t5 = $.find('Task', 'name', 't5'); return $.find('Project', 'tasks', $.predicate.or($.predicate.contains(t1), $.predicate.contains(t5))); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() should use CONTAINS search for $.contains predicate on remote properties", 0, ((List)Scripting.evaluate(ctx, null, "${{ let t1 = $.find('Task', 'name', 't1'); let t5 = $.find('Task', 'name', 't5'); return $.find('Project', 'tasks', $.predicate.and($.predicate.contains(t1), $.predicate.contains(t5))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() should use CONTAINS search for $.contains predicate on remote properties", 9, ((List)Scripting.evaluate(ctx, null, "${{ let t1 = $.find('Task', 'name', 't1'); let t5 = $.find('Task', 'name', 't5'); $.find('Project', 'tasks', $.predicate.or($.predicate.contains(t1), $.predicate.contains(t5))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() should use CONTAINS search for $.contains predicate on remote properties", 0, ((List)Scripting.evaluate(ctx, null, "${{ let t1 = $.find('Task', 'name', 't1'); let t5 = $.find('Task', 'name', 't5'); $.find('Project', 'tasks', $.predicate.and($.predicate.contains(t1), $.predicate.contains(t5))); }}", "testFindNewSyntax")).size());
 
 			// ($.not and $.empty)
-			assertEquals("Advanced find() should understand $.not predicate for remote properties", 4, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Task', $.predicate.not($.predicate.empty('projects'))); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() should understand $.empty predicate for remote properties", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Task', $.predicate.empty('projects')); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() should understand $.not predicate for remote properties", 4, ((List)Scripting.evaluate(ctx, null, "${{ $.find('Task', $.predicate.not($.predicate.empty('projects'))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() should understand $.empty predicate for remote properties", 1, ((List)Scripting.evaluate(ctx, null, "${{ $.find('Task', $.predicate.empty('projects')); }}", "testFindNewSyntax")).size());
 
 		} catch (FrameworkException t) {
 
@@ -3970,9 +3972,9 @@ public class ScriptingTest extends StructrTest {
 
 			final String errorMessage = "Advanced find() should understand $.empty predicate for remote properties";
 
-			assertEquals(errorMessage, 3, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.predicate.empty('parent')); }}", "testFindNewSyntax1")).size());
-			assertEquals(errorMessage, 3, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.predicate.empty('children')); }}", "testFindNewSyntax2")).size());
-			assertEquals(errorMessage, 2, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Task', $.predicate.empty('project')); }}", "testFindNewSyntax3")).size());
+			assertEquals(errorMessage, 3, ((List)Scripting.evaluate(ctx, null, "${{ $.find('Project', $.predicate.empty('parent')); }}", "testFindNewSyntax1")).size());
+			assertEquals(errorMessage, 3, ((List)Scripting.evaluate(ctx, null, "${{ $.find('Project', $.predicate.empty('children')); }}", "testFindNewSyntax2")).size());
+			assertEquals(errorMessage, 2, ((List)Scripting.evaluate(ctx, null, "${{ $.find('Task', $.predicate.empty('project')); }}", "testFindNewSyntax3")).size());
 
 		} catch (FrameworkException t) {
 
@@ -4066,9 +4068,9 @@ public class ScriptingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<NodeInterface> result1 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', { 'name2': $.predicate.contains('s') }, $.predicate.sort('name', true)); }}", "testFindNewSyntax");
-			final List<NodeInterface> result2 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.predicate.sort('name', true)); }}", "testFindNewSyntax");
-			final List<NodeInterface> result3 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.predicate.sort('name')); }}", "testFindNewSyntax");
+			final List<NodeInterface> result1 = (List)Scripting.evaluate(ctx, null, "${{ $.find('Project', { 'name2': $.predicate.contains('s') }, $.predicate.sort('name', true)); }}", "testFindNewSyntax");
+			final List<NodeInterface> result2 = (List)Scripting.evaluate(ctx, null, "${{ $.find('Project', $.predicate.sort('name', true)); }}", "testFindNewSyntax");
+			final List<NodeInterface> result3 = (List)Scripting.evaluate(ctx, null, "${{ $.find('Project', $.predicate.sort('name')); }}", "testFindNewSyntax");
 
 			final String testFunction = "${{\n" +
 			"    let users = $.find('Project', {\n" +
@@ -4080,7 +4082,7 @@ public class ScriptingTest extends StructrTest {
 			"        $.predicate.sort('name', true),\n" +
 			"        $.predicate.page(1, 10)\n" +
 			"    );\n" +
-			"    return users;\n" +
+			"    users;\n" +
 			"}}";
 
 			final Object result4Object        = Scripting.evaluate(ctx, null, testFunction, "testFindNewSyntax");
@@ -4115,35 +4117,35 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Advanced find() does not filter correctly", result4.get(0).getUuid(), group3);
 			assertEquals("Advanced find() does not filter correctly", result4.get(1).getUuid(), group2);
 
-			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', { name: $.predicate.contains('2') }); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 3, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.predicate.contains('name2', 'e')); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', { name: 'group1', name1: 'structr', name2: 'test' }); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.predicate.empty('name')); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.predicate.or($.predicate.empty('name'), $.predicate.equals('name', 'group2'))); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 3, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.predicate.contains('name2', 'e'), $.predicate.contains('name2', 'e'), $.predicate.contains('name2', 'e')); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.predicate.and($.predicate.equals('age', $.predicate.range(0, 35)))); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.predicate.equals('age', $.predicate.range(0, 35)), $.predicate.equals('name', 'group2')); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.predicate.and($.predicate.equals('age', $.predicate.range(0, 35)), $.predicate.equals('name', 'group2'))); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 3, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.predicate.and($.predicate.contains('name2', 'e'))); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.predicate.and($.predicate.equals('name', 'group1'))); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.predicate.and($.predicate.equals('name', 'group1'), $.predicate.equals('name1', 'structr'))); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.predicate.and($.predicate.equals('name1', 'structr'), $.predicate.equals('name2', 'test'))); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 0, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.predicate.and($.predicate.equals('name1', 'structr'), $.predicate.equals('name2', 'structr'))); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.predicate.or($.predicate.equals('age', 22), $.predicate.equals('age', 44))); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.predicate.and($.predicate.equals('name3', 'other'), $.predicate.or($.predicate.equals('age', 22), $.predicate.equals('age', 44)))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ $.find('Project', { name: $.predicate.contains('2') }); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 3, ((List)Scripting.evaluate(ctx, null, "${{ $.find('Project', $.predicate.contains('name2', 'e')); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ $.find('Project', { name: 'group1', name1: 'structr', name2: 'test' }); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ $.find('Project', $.predicate.empty('name')); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ $.find('Project', $.predicate.or($.predicate.empty('name'), $.predicate.equals('name', 'group2'))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 3, ((List)Scripting.evaluate(ctx, null, "${{ $.find('Project', $.predicate.contains('name2', 'e'), $.predicate.contains('name2', 'e'), $.predicate.contains('name2', 'e')); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ $.find('Project', $.predicate.and($.predicate.equals('age', $.predicate.range(0, 35)))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ $.find('Project', $.predicate.equals('age', $.predicate.range(0, 35)), $.predicate.equals('name', 'group2')); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ $.find('Project', $.predicate.and($.predicate.equals('age', $.predicate.range(0, 35)), $.predicate.equals('name', 'group2'))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 3, ((List)Scripting.evaluate(ctx, null, "${{ $.find('Project', $.predicate.and($.predicate.contains('name2', 'e'))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ $.find('Project', $.predicate.and($.predicate.equals('name', 'group1'))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ $.find('Project', $.predicate.and($.predicate.equals('name', 'group1'), $.predicate.equals('name1', 'structr'))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ $.find('Project', $.predicate.and($.predicate.equals('name1', 'structr'), $.predicate.equals('name2', 'test'))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 0, ((List)Scripting.evaluate(ctx, null, "${{ $.find('Project', $.predicate.and($.predicate.equals('name1', 'structr'), $.predicate.equals('name2', 'structr'))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ $.find('Project', $.predicate.or($.predicate.equals('age', 22), $.predicate.equals('age', 44))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ $.find('Project', $.predicate.and($.predicate.equals('name3', 'other'), $.predicate.or($.predicate.equals('age', 22), $.predicate.equals('age', 44)))); }}", "testFindNewSyntax")).size());
 
 			// startsWith and endsWith
-			assertEquals("Advanced find() returns wrong result", 10, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Test', { name: $.predicate.startsWith('test00') }); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Test', { name: $.predicate.endsWith('21') }); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 10, ((List)Scripting.evaluate(ctx, null, "${{ $.find('Test', { name: $.predicate.startsWith('test00') }); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ $.find('Test', { name: $.predicate.endsWith('21') }); }}", "testFindNewSyntax")).size());
 
 			//case insensitive
 			System.out.println("#################################");
-			assertEquals("Advanced find() returns wrong result", 10, ((List)Scripting.evaluate(ctx, null, "${{ return $.search('Test', { name: $.predicate.startsWith('TEST00') }); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.search('Test', { name: $.predicate.endsWith('21') }); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 10, ((List)Scripting.evaluate(ctx, null, "${{ $.search('Test', { name: $.predicate.startsWith('TEST00') }); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ $.search('Test', { name: $.predicate.endsWith('21') }); }}", "testFindNewSyntax")).size());
 
-			final List<NodeInterface> page1 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('Test', $.predicate.sort('name'), $.predicate.page(1, 10)); }}", "testFindNewSyntax");
-			final List<NodeInterface> page2 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('Test', $.predicate.sort('name'), $.predicate.page(1, 5)); }}", "testFindNewSyntax");
-			final List<NodeInterface> page3 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('Test', $.predicate.sort('name'), $.predicate.page(3, 5)); }}", "testFindNewSyntax");
+			final List<NodeInterface> page1 = (List)Scripting.evaluate(ctx, null, "${{ $.find('Test', $.predicate.sort('name'), $.predicate.page(1, 10)); }}", "testFindNewSyntax");
+			final List<NodeInterface> page2 = (List)Scripting.evaluate(ctx, null, "${{ $.find('Test', $.predicate.sort('name'), $.predicate.page(1, 5)); }}", "testFindNewSyntax");
+			final List<NodeInterface> page3 = (List)Scripting.evaluate(ctx, null, "${{ $.find('Test', $.predicate.sort('name'), $.predicate.page(3, 5)); }}", "testFindNewSyntax");
 
 			assertEquals("Advanced find() with sort() and page() returns wrong result", 10, page1.size());
 			assertEquals("Advanced find() with sort() and page() returns wrong result", "test000", page1.get(0).getName());
@@ -4232,7 +4234,7 @@ public class ScriptingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			List<GraphObject> result = (List<GraphObject>) Scripting.evaluate(ctx, null, "${{ return $.find('Test', $.predicate.sort('test2.test3.name', false)); }}", "testFindNewSyntax");
+			List<GraphObject> result = (List<GraphObject>) Scripting.evaluate(ctx, null, "${{ $.find('Test', $.predicate.sort('test2.test3.name', false)); }}", "testFindNewSyntax");
 
 			assertEquals("Advanced find() returns wrong result", 10, result.size());
 			assertEquals("Advanced find() sorted incorrectly", "test1_0", result.get(0).getProperty(AbstractNode.name));
@@ -4240,7 +4242,7 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Advanced find() sorted incorrectly", "test2_0", ((NodeInterface)result.get(0).getProperty(StructrApp.key(testType, "test2"))).getProperty(AbstractNode.name));
 			assertEquals("Advanced find() sorted incorrectly", "test3_0", ((NodeInterface)((NodeInterface)result.get(0).getProperty(StructrApp.key(testType, "test2"))).getProperty(StructrApp.key(test2Type, "test3"))).getProperty(AbstractNode.name));
 
-			result = (List<GraphObject>) Scripting.evaluate(ctx, null, "${{ return $.find('Test', $.predicate.sort('test2.test3.name', true)); }}", "testFindNewSyntax");
+			result = (List<GraphObject>) Scripting.evaluate(ctx, null, "${{ $.find('Test', $.predicate.sort('test2.test3.name', true)); }}", "testFindNewSyntax");
 
 			assertEquals("Advanced find() sorted incorrectly", "test1_9", result.get(0).getProperty(AbstractNode.name));
 			assertEquals("Advanced find() sorted incorrectly", "test1_8", result.get(1).getProperty(AbstractNode.name));
@@ -4321,7 +4323,7 @@ public class ScriptingTest extends StructrTest {
 			"            }\n" +
 			"        }\n" +
 			"    );\n" +
-			"    return nodes;\n" +
+			"    nodes;\n" +
 			"}}";
 
 			final List<NodeInterface> res1 = (List)Scripting.evaluate(ctx, null, testRangeFunctionInANDGroup, "testAdvancedFindRangeQueryLeak");
@@ -4339,7 +4341,7 @@ public class ScriptingTest extends StructrTest {
 			"            }\n" +
 			"        }\n" +
 			"    );\n" +
-			"    return nodes;\n" +
+			"    nodes;\n" +
 			"}}";
 
 			final List<NodeInterface> res2 = (List)Scripting.evaluate(ctx, null, testRangeFunctionORWrapRangeInAND, "testAdvancedFindRangeQueryLeak");
@@ -4354,7 +4356,7 @@ public class ScriptingTest extends StructrTest {
 			"                $.predicate.equals('count', $.predicate.range(5, 14))\n" +
 			"            )\n" +
 			"    );\n" +
-			"    return nodes;\n" +
+			"    nodes;\n" +
 			"}}";
 
 			final List<NodeInterface> res3 = (List)Scripting.evaluate(ctx, null, testRangeFunctionInORGroupStructrScriptSyntax, "testAdvancedFindRangeQueryLeak");
@@ -4370,7 +4372,7 @@ public class ScriptingTest extends StructrTest {
 			"            }\n" +
 			"        }\n" +
 			"    );\n" +
-			"    return nodes;\n" +
+			"    nodes;\n" +
 			"}}";
 
 			final List<NodeInterface> res4 = (List)Scripting.evaluate(ctx, null, testRangeFunctionInORGroupOtherSyntax, "testAdvancedFindRangeQueryLeak");
@@ -4435,37 +4437,37 @@ public class ScriptingTest extends StructrTest {
 
 			final String errorMessage = "all test nodes should be returned - no cypher exception should be triggered by empty clauses!";
 
-			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('TestType').length; }}", ""));
+			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ $.find('TestType').length; }}", ""));
 
-			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('TestType', $.predicate.and()).length; }}", ""));
-			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('TestType', $.predicate.or()).length; }}", ""));
+			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ $.find('TestType', $.predicate.and()).length; }}", ""));
+			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ $.find('TestType', $.predicate.or()).length; }}", ""));
 
-			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('TestType', $.predicate.and(), $.predicate.and()).length; }}", ""));
-			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('TestType', $.predicate.and(), $.predicate.or ()).length; }}", ""));
-			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('TestType', $.predicate.or (), $.predicate.and()).length; }}", ""));
-			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('TestType', $.predicate.or (), $.predicate.or ()).length; }}", ""));
+			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ $.find('TestType', $.predicate.and(), $.predicate.and()).length; }}", ""));
+			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ $.find('TestType', $.predicate.and(), $.predicate.or ()).length; }}", ""));
+			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ $.find('TestType', $.predicate.or (), $.predicate.and()).length; }}", ""));
+			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ $.find('TestType', $.predicate.or (), $.predicate.or ()).length; }}", ""));
 
-			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('TestType', $.predicate.and($.predicate.and()), $.predicate.and($.predicate.and())).length; }}", ""));
-			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('TestType', $.predicate.or ($.predicate.and()), $.predicate.and($.predicate.and())).length; }}", ""));
-			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('TestType', $.predicate.and($.predicate.and()), $.predicate.and($.predicate.or ())).length; }}", ""));
-			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('TestType', $.predicate.or ($.predicate.and()), $.predicate.and($.predicate.or ())).length; }}", ""));
-			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('TestType', $.predicate.and($.predicate.or ()), $.predicate.and($.predicate.and())).length; }}", ""));
-			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('TestType', $.predicate.or ($.predicate.or ()), $.predicate.and($.predicate.and())).length; }}", ""));
-			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('TestType', $.predicate.and($.predicate.or ()), $.predicate.and($.predicate.or ())).length; }}", ""));
-			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('TestType', $.predicate.or ($.predicate.or ()), $.predicate.and($.predicate.or ())).length; }}", ""));
+			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ $.find('TestType', $.predicate.and($.predicate.and()), $.predicate.and($.predicate.and())).length; }}", ""));
+			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ $.find('TestType', $.predicate.or ($.predicate.and()), $.predicate.and($.predicate.and())).length; }}", ""));
+			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ $.find('TestType', $.predicate.and($.predicate.and()), $.predicate.and($.predicate.or ())).length; }}", ""));
+			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ $.find('TestType', $.predicate.or ($.predicate.and()), $.predicate.and($.predicate.or ())).length; }}", ""));
+			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ $.find('TestType', $.predicate.and($.predicate.or ()), $.predicate.and($.predicate.and())).length; }}", ""));
+			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ $.find('TestType', $.predicate.or ($.predicate.or ()), $.predicate.and($.predicate.and())).length; }}", ""));
+			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ $.find('TestType', $.predicate.and($.predicate.or ()), $.predicate.and($.predicate.or ())).length; }}", ""));
+			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ $.find('TestType', $.predicate.or ($.predicate.or ()), $.predicate.and($.predicate.or ())).length; }}", ""));
 
-			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('TestType', $.predicate.or (), $.predicate.or (), $.predicate.or ()).length; }}", ""));
-			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('TestType', $.predicate.and(), $.predicate.and(), $.predicate.and()).length; }}", ""));
+			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ $.find('TestType', $.predicate.or (), $.predicate.or (), $.predicate.or ()).length; }}", ""));
+			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ $.find('TestType', $.predicate.and(), $.predicate.and(), $.predicate.and()).length; }}", ""));
 
-			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('TestType', $.predicate.and($.predicate.or (), $.predicate.or (), $.predicate.or ())).length; }}", ""));
-			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('TestType', $.predicate.or ($.predicate.or (), $.predicate.or (), $.predicate.or ())).length; }}", ""));
-			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('TestType', $.predicate.and($.predicate.and(), $.predicate.and(), $.predicate.and())).length; }}", ""));
-			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('TestType', $.predicate.or ($.predicate.and(), $.predicate.and(), $.predicate.and())).length; }}", ""));
+			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ $.find('TestType', $.predicate.and($.predicate.or (), $.predicate.or (), $.predicate.or ())).length; }}", ""));
+			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ $.find('TestType', $.predicate.or ($.predicate.or (), $.predicate.or (), $.predicate.or ())).length; }}", ""));
+			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ $.find('TestType', $.predicate.and($.predicate.and(), $.predicate.and(), $.predicate.and())).length; }}", ""));
+			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ $.find('TestType', $.predicate.or ($.predicate.and(), $.predicate.and(), $.predicate.and())).length; }}", ""));
 
-			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('TestType', $.predicate.or ($.predicate.or (), $.predicate.and(), $.predicate.or ())).length; }}", ""));
-			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('TestType', $.predicate.or ($.predicate.and(), $.predicate.or (), $.predicate.and())).length; }}", ""));
+			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ $.find('TestType', $.predicate.or ($.predicate.or (), $.predicate.and(), $.predicate.or ())).length; }}", ""));
+			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ $.find('TestType', $.predicate.or ($.predicate.and(), $.predicate.or (), $.predicate.and())).length; }}", ""));
 
-			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('TestType', $.predicate.and($.predicate.or($.predicate.or(), $.predicate.and($.predicate.or($.predicate.or()), $.predicate.or())), $.predicate.or())).length; }}", ""));
+			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ $.find('TestType', $.predicate.and($.predicate.or($.predicate.or(), $.predicate.and($.predicate.or($.predicate.or()), $.predicate.or())), $.predicate.or())).length; }}", ""));
 
 			tx.success();
 
@@ -4503,10 +4505,10 @@ public class ScriptingTest extends StructrTest {
 
 			final int testNodeCount = StructrApp.getInstance().nodeQuery(Group.class).getAsList().size();
 
-			assertEquals("All groups should be returned", testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('Group').length; }}", ""));
-			assertEquals("All groups should be returned with 'node' in their name", testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('Group', $.predicate.contains('name', 'node')).length; }}", ""));
-			assertEquals("All groups should be returned because the empty string is always contained in any string", testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('Group', $.predicate.contains('name', '')).length; }}", ""));
-			assertEquals("No groups should be found!", 0, Scripting.evaluate(ctx, null, "${{ return $.find('Group', $.predicate.contains('name', 'notinthere')).length; }}", ""));
+			assertEquals("All groups should be returned", testNodeCount, Scripting.evaluate(ctx, null, "${{ $.find('Group').length; }}", ""));
+			assertEquals("All groups should be returned with 'node' in their name", testNodeCount, Scripting.evaluate(ctx, null, "${{ $.find('Group', $.predicate.contains('name', 'node')).length; }}", ""));
+			assertEquals("All groups should be returned because the empty string is always contained in any string", testNodeCount, Scripting.evaluate(ctx, null, "${{ $.find('Group', $.predicate.contains('name', '')).length; }}", ""));
+			assertEquals("No groups should be found!", 0, Scripting.evaluate(ctx, null, "${{ $.find('Group', $.predicate.contains('name', 'notinthere')).length; }}", ""));
 
 			tx.success();
 
@@ -4526,7 +4528,7 @@ public class ScriptingTest extends StructrTest {
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 			final JsonType test  = schema.addType("Test");
 
-			test.addMethod("doTest", "{ let arr = []; arr.push({ name: 'test1' }); arr.push({ name: 'test2' }); arr.push({ name: 'test2' }); return arr; }");
+			test.addMethod("doTest", "{ let arr = []; arr.push({ name: 'test1' }); arr.push({ name: 'test2' }); arr.push({ name: 'test2' }); arr; }");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -4546,7 +4548,7 @@ public class ScriptingTest extends StructrTest {
 
 			app.create(testType, "test");
 
-			final Object result = Scripting.evaluate(ctx, null, "${{ var test = $.find('Test')[0]; var arr = test.doTest(); for (e of arr) { Structr.log(e); }; return arr; }}", "test");
+			final Object result = Scripting.evaluate(ctx, null, "${{ var test = $.find('Test')[0]; var arr = test.doTest(); for (e of arr) { Structr.log(e); }; arr; }}", "test");
 
 			assertTrue("Invalid wrapping of native Javascript array", result instanceof List);
 			assertEquals("Invalid wrapping of native Javascript array", 3, ((List)result).size());
@@ -4569,7 +4571,7 @@ public class ScriptingTest extends StructrTest {
 
 			// test that the empty() function is resolved to the non-namespaced one after exiting find()
 			assertEquals("StructrScript: namespace is not exited correctly after entering find()", "[]true", (Scripting.evaluate(ctx, null, "${(find('Group'),empty(null))}", "test")));
-			assertEquals("JavaScript: namespace is not exited correctly after entering find()", true, (Scripting.evaluate(ctx, null, "${{ $.find('Group'); return $.empty(null); }}", "test")));
+			assertEquals("JavaScript: namespace is not exited correctly after entering find()", true, (Scripting.evaluate(ctx, null, "${{ $.find('Group'); $.empty(null); }}", "test")));
 
 			tx.success();
 
@@ -4706,8 +4708,8 @@ public class ScriptingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final Object value1 = Scripting.evaluate(ctx, null, "${{ return $.find('Project', 'name', 'p1')[0].date; }}", "");
-			final Object value2 = Scripting.evaluate(ctx, null, "${{ return $.get($.find('Project', 'name', 'p1')[0], 'date'); }}", "");
+			final Object value1 = Scripting.evaluate(ctx, null, "${{ $.find('Project', 'name', 'p1')[0].date; }}", "");
+			final Object value2 = Scripting.evaluate(ctx, null, "${{ $.get($.find('Project', 'name', 'p1')[0], 'date'); }}", "");
 
 			final Object value3 = Scripting.evaluate(ctx, null, "${find('Project', 'name', 'p1')[0].date}", "");
 			final Object value4 = Scripting.evaluate(ctx, null, "${get(first(find('Project', 'name', 'p1')), 'date')}", "");
@@ -4770,8 +4772,8 @@ public class ScriptingTest extends StructrTest {
 
 			final Group group1   = app.nodeQuery(Group.class).andName("group1").getFirst();
 			final Group group2   = app.nodeQuery(Group.class).andName("group2").getFirst();
-			final String script1 = "${{ return $.find('Group', { $and: { name: 'group1', id: $.predicate.not($.predicate.equals('" + group1.getUuid() + "')) }}); }}";
-			final String script2 = "${{ return $.find('Group', { $and: { name: 'group1', id: $.predicate.not($.predicate.equals('" + group2.getUuid() + "')) }}); }}";
+			final String script1 = "${{ $.find('Group', { $and: { name: 'group1', id: $.predicate.not($.predicate.equals('" + group1.getUuid() + "')) }}); }}";
+			final String script2 = "${{ $.find('Group', { $and: { name: 'group1', id: $.predicate.not($.predicate.equals('" + group2.getUuid() + "')) }}); }}";
 
 			// test that not(equal()) works for the id property
 			final Object result1 = Scripting.evaluate(ctx, null, script1, "test1");
@@ -5192,10 +5194,10 @@ public class ScriptingTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final ActionContext ac = new ActionContext(securityContext);
-			assertEquals("All array properties should return 0 length", "000000",                                         Scripting.evaluate(ac, null, "${{ let n = $.find('ArrayPropertiesTest', { name: 'emptyTest' })[0]; $.print($.int(n.strings.length), $.int(n.ints.length), $.int(n.doubles.length), $.int(n.longs.length), $.int(n.bools.length), $.int(n.dates.length)); }}", "emptyPushTest"));
-			assertEquals("All array properties should return 1 length after one push()", "111111",                        Scripting.evaluate(ac, null, "${{ let n = $.find('ArrayPropertiesTest', { name: 'emptyPushTest' })[0]; $.print($.int(n.strings.length), $.int(n.ints.length), $.int(n.doubles.length), $.int(n.longs.length), $.int(n.bools.length), $.int(n.dates.length)); }}", "emptyPushTest"));
-			assertEquals("All array properties should return 3 length after assignment of [x,y,z]", "333333",             Scripting.evaluate(ac, null, "${{ let n = $.find('ArrayPropertiesTest', { name: 'emptySetTest' })[0]; $.print($.int(n.strings.length), $.int(n.ints.length), $.int(n.doubles.length), $.int(n.longs.length), $.int(n.bools.length), $.int(n.dates.length)); }}", "emptyPushTest"));
-			assertEquals("All array properties should return 4 length after assignment of [x,y,z] plus push()", "444444", Scripting.evaluate(ac, null, "${{ let n = $.find('ArrayPropertiesTest', { name: 'setAndPushTest' })[0]; $.print($.int(n.strings.length), $.int(n.ints.length), $.int(n.doubles.length), $.int(n.longs.length), $.int(n.bools.length), $.int(n.dates.length)); }}", "emptyPushTest"));
+			assertEquals("All array properties should 0 length", "000000",                                         Scripting.evaluate(ac, null, "${{ let n = $.find('ArrayPropertiesTest', { name: 'emptyTest' })[0]; $.print($.int(n.strings.length), $.int(n.ints.length), $.int(n.doubles.length), $.int(n.longs.length), $.int(n.bools.length), $.int(n.dates.length)); }}", "emptyPushTest"));
+			assertEquals("All array properties should 1 length after one push()", "111111",                        Scripting.evaluate(ac, null, "${{ let n = $.find('ArrayPropertiesTest', { name: 'emptyPushTest' })[0]; $.print($.int(n.strings.length), $.int(n.ints.length), $.int(n.doubles.length), $.int(n.longs.length), $.int(n.bools.length), $.int(n.dates.length)); }}", "emptyPushTest"));
+			assertEquals("All array properties should 3 length after assignment of [x,y,z]", "333333",             Scripting.evaluate(ac, null, "${{ let n = $.find('ArrayPropertiesTest', { name: 'emptySetTest' })[0]; $.print($.int(n.strings.length), $.int(n.ints.length), $.int(n.doubles.length), $.int(n.longs.length), $.int(n.bools.length), $.int(n.dates.length)); }}", "emptyPushTest"));
+			assertEquals("All array properties should 4 length after assignment of [x,y,z] plus push()", "444444", Scripting.evaluate(ac, null, "${{ let n = $.find('ArrayPropertiesTest', { name: 'setAndPushTest' })[0]; $.print($.int(n.strings.length), $.int(n.ints.length), $.int(n.doubles.length), $.int(n.longs.length), $.int(n.bools.length), $.int(n.dates.length)); }}", "emptyPushTest"));
 
 			tx.success();
 
@@ -5326,7 +5328,7 @@ public class ScriptingTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			//final List<TestOne> result1 = app.nodeQuery(TestOne.class).sort(TestOne.aLong).sort(TestOne.name).getAsList();
-			final List<TestOne> result1 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('TestOne', $.predicate.sort('aLong'), $.predicate.sort('name'))}}", "test1");
+			final List<TestOne> result1 = (List)Scripting.evaluate(ctx, null, "${{ $.find('TestOne', $.predicate.sort('aLong'), $.predicate.sort('name'))}}", "test1");
 
 			assertEquals("Sorting by multiple keys returns wrong result", "name4", result1.get(0).getName());
 			assertEquals("Sorting by multiple keys returns wrong result", "name6", result1.get(1).getName());
@@ -5339,7 +5341,7 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Sorting by multiple keys returns wrong result", "name7", result1.get(8).getName());
 
 			//final List<TestOne> result2 = app.nodeQuery(TestOne.class).sort(TestOne.aLong, true).sort(TestOne.name).getAsList();
-			final List<TestOne> result2 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('TestOne', $.predicate.sort('aLong', true), $.predicate.sort('name'))}}", "test2");
+			final List<TestOne> result2 = (List)Scripting.evaluate(ctx, null, "${{ $.find('TestOne', $.predicate.sort('aLong', true), $.predicate.sort('name'))}}", "test2");
 
 			assertEquals("Sorting by multiple keys returns wrong result", "name1", result2.get(0).getName());
 			assertEquals("Sorting by multiple keys returns wrong result", "name2", result2.get(1).getName());
@@ -5352,7 +5354,7 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Sorting by multiple keys returns wrong result", "name9", result2.get(8).getName());
 
 			//final List<TestOne> result3 = app.nodeQuery(TestOne.class).sort(TestOne.aLong).sort(TestOne.name, true).getAsList();
-			final List<TestOne> result3 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('TestOne', $.predicate.sort('aLong'), $.predicate.sort('name', true))}}", "test3");
+			final List<TestOne> result3 = (List)Scripting.evaluate(ctx, null, "${{ $.find('TestOne', $.predicate.sort('aLong'), $.predicate.sort('name', true))}}", "test3");
 
 			assertEquals("Sorting by multiple keys returns wrong result", "name9", result3.get(0).getName());
 			assertEquals("Sorting by multiple keys returns wrong result", "name8", result3.get(1).getName());
@@ -5365,7 +5367,7 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Sorting by multiple keys returns wrong result", "name1", result3.get(8).getName());
 
 			//final List<TestOne> result4 = app.nodeQuery(TestOne.class).sort(TestOne.aLong).sort(TestOne.anInt).sort(TestOne.name).getAsList();
-			final List<TestOne> result4 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('TestOne', $.predicate.sort('aLong'), $.predicate.sort('anInt'), $.predicate.sort('name'))}}", "test4");
+			final List<TestOne> result4 = (List)Scripting.evaluate(ctx, null, "${{ $.find('TestOne', $.predicate.sort('aLong'), $.predicate.sort('anInt'), $.predicate.sort('name'))}}", "test4");
 
 			assertEquals("Sorting by multiple keys returns wrong result", "name4", result4.get(0).getName());
 			assertEquals("Sorting by multiple keys returns wrong result", "name6", result4.get(1).getName());
@@ -5378,7 +5380,7 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Sorting by multiple keys returns wrong result", "name7", result4.get(8).getName());
 
 			//final List<TestOne> result5 = app.nodeQuery(TestOne.class).sort(TestOne.aLong).sort(TestOne.anInt, true).sort(TestOne.name).getAsList();
-			final List<TestOne> result5 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('TestOne', $.predicate.sort('aLong'), $.predicate.sort('anInt', true), $.predicate.sort('name'))}}", "test5");
+			final List<TestOne> result5 = (List)Scripting.evaluate(ctx, null, "${{ $.find('TestOne', $.predicate.sort('aLong'), $.predicate.sort('anInt', true), $.predicate.sort('name'))}}", "test5");
 
 			assertEquals("Sorting by multiple keys returns wrong result", "name9", result5.get(0).getName());
 			assertEquals("Sorting by multiple keys returns wrong result", "name8", result5.get(1).getName());
@@ -5877,8 +5879,8 @@ public class ScriptingTest extends StructrTest {
 			type.addMethod("doStaticTest", "{}").setIsStatic(true);
 			type.addMethod("doDynamicTest", "{}");
 
-			type.addMethod("doStaticTestWithThis", "{ return $.this.type; }").setIsStatic(true);
-			type.addMethod("doDynamicTestWithThis", "{ return $.this.type; }");
+			type.addMethod("doStaticTestWithThis", "{ $.this.type; }").setIsStatic(true);
+			type.addMethod("doDynamicTestWithThis", "{ $.this.type; }");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -6135,7 +6137,7 @@ public class ScriptingTest extends StructrTest {
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 			final JsonType type     = schema.addType("Test");
 
-			type.addMethod("createMap", "{ return { param1: 'Test', param2: 123 }; }");
+			type.addMethod("createMap", "{ { param1: 'Test', param2: 123 }; }");
 			type.addMethod("test",      "concat('success',    this.name, retrieve('param1'))");
 			type.addMethod("testOne",   "concat('successOne', this.name, retrieve('param1'), retrieve('param2'))");
 			type.addMethod("test123",   "concat('success123', this.name, retrieve('param1'), retrieve('param2'), retrieve('param3'))");
@@ -6183,36 +6185,36 @@ public class ScriptingTest extends StructrTest {
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 			final JsonType type     = schema.addType("Test");
 
-			type.addMethod("createObject", "{ return { key1: 'value1' }; }").setIsStatic(true);
-			type.addMethod("createDate",   "{ return new Date(); }").setIsStatic(true);
-			type.addMethod("createMap",    "{ return new Map(); }").setIsStatic(true);
-			type.addMethod("createSet",    "{ let mySet = new Set(); mySet.add('initialValue'); return mySet; }").setIsStatic(true);
+			type.addMethod("createObject", "{ { key1: 'value1' }; }").setIsStatic(true);
+			type.addMethod("createDate",   "{ new Date(); }").setIsStatic(true);
+			type.addMethod("createMap",    "{ new Map(); }").setIsStatic(true);
+			type.addMethod("createSet",    "{ let mySet = new Set(); mySet.add('initialValue'); mySet; }").setIsStatic(true);
 
 			// native object created inline
-			type.addMethod("test0",      "{ let map = { key1: 'value1' }; map.key2 = 123; return map; }").setIsStatic(true); // success
-			type.addMethod("test1",      "{ let map = { key1: 'value1' }; map.set('key2', 123); return map; }").setIsStatic(true); // failure
+			type.addMethod("test0",      "{ let map = { key1: 'value1' }; map.key2 = 123; map; }").setIsStatic(true); // success
+			type.addMethod("test1",      "{ let map = { key1: 'value1' }; map.set('key2', 123); map; }").setIsStatic(true); // failure
 
 			// native object created in method
-			type.addMethod("test2",      "{ let map = $.Test.createObject(); map.key2 = 123; return map; }").setIsStatic(true); // success
-			type.addMethod("test3",      "{ let map = $.Test.createObject(); map.set('key2', 123); return map; }").setIsStatic(true); // failure
+			type.addMethod("test2",      "{ let map = $.Test.createObject(); map.key2 = 123; map; }").setIsStatic(true); // success
+			type.addMethod("test3",      "{ let map = $.Test.createObject(); map.set('key2', 123); map; }").setIsStatic(true); // failure
 
 			// map created inline
-			type.addMethod("test4",      "{ let map = new Map(); map.test = 'ignore'; map.set('key1', 'value1'); return map; }").setIsStatic(true); // success
-			type.addMethod("test5",      "{ let map = new Map(); map.test = 'ignore'; map.key1 = 'value1'; return map; }").setIsStatic(true); // no error but empty map
+			type.addMethod("test4",      "{ let map = new Map(); map.test = 'ignore'; map.set('key1', 'value1'); map; }").setIsStatic(true); // success
+			type.addMethod("test5",      "{ let map = new Map(); map.test = 'ignore'; map.key1 = 'value1'; map; }").setIsStatic(true); // no error but empty map
 
 			// map created in method
-			type.addMethod("test6",      "{ let map = $.Test.createMap(); map.test = 'ignore'; map.set('key1', 'value1'); map.set('key2', 123); return map; }").setIsStatic(true);  // success
-			type.addMethod("test7",      "{ let map = $.Test.createMap(); map.test = 'ignore'; map.key1 = 'value1'; map.key2 = 123; return map; }").setIsStatic(true); // failure
+			type.addMethod("test6",      "{ let map = $.Test.createMap(); map.test = 'ignore'; map.set('key1', 'value1'); map.set('key2', 123); map; }").setIsStatic(true);  // success
+			type.addMethod("test7",      "{ let map = $.Test.createMap(); map.test = 'ignore'; map.key1 = 'value1'; map.key2 = 123; map; }").setIsStatic(true); // failure
 
 			// date created inline
-			type.addMethod("test8",      "{ let date = new Date(); let nextMonth = (date.getMonth() + 1).toFixed(0); return nextMonth; }").setIsStatic(true);
+			type.addMethod("test8",      "{ let date = new Date(); let nextMonth = (date.getMonth() + 1).toFixed(0); nextMonth; }").setIsStatic(true);
 
 			// date created in method
-			type.addMethod("test9",      "{ let date = $.Test.createDate(); let nextMonth = (date.getMonth() + 1).toFixed(0); return nextMonth; }").setIsStatic(true);
+			type.addMethod("test9",      "{ let date = $.Test.createDate(); let nextMonth = (date.getMonth() + 1).toFixed(0); nextMonth; }").setIsStatic(true);
 
 			// set created in method
-			type.addMethod("test10",      "{ let mySet = $.Test.createSet(); mySet.test = 'ignore'; mySet.add('initialValue'); mySet.add('value1'); mySet.add('value2'); return mySet; }").setIsStatic(true);
-			type.addMethod("test11",      "{ let mySet = $.Test.createSet(); mySet.test = 'ignore'; mySet[0] = 'ignore'; mySet.add('value1'); return mySet; }").setIsStatic(true);
+			type.addMethod("test10",      "{ let mySet = $.Test.createSet(); mySet.test = 'ignore'; mySet.add('initialValue'); mySet.add('value1'); mySet.add('value2'); mySet; }").setIsStatic(true);
+			type.addMethod("test11",      "{ let mySet = $.Test.createSet(); mySet.test = 'ignore'; mySet[0] = 'ignore'; mySet.add('value1'); mySet; }").setIsStatic(true);
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -6227,14 +6229,14 @@ public class ScriptingTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			// create a native object inline and set some properties => success
-			final Map<String, Object> value0 = (Map)Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.Test.test0(); }}", "test0");
+			final Map<String, Object> value0 = (Map)Scripting.evaluate(new ActionContext(securityContext), null, "${{ $.Test.test0(); }}", "test0");
 			assertEquals("value1",  value0.get("key1"));
 			assertEquals(123,       value0.get("key2"));
 
 			try {
 
 				// create a native object inline and use obj.set() => failure
-				Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.Test.test1(); }}", "test1");
+				Scripting.evaluate(new ActionContext(securityContext), null, "${{ $.Test.test1(); }}", "test1");
 				//fail("Object access via set() should not work");
 
 			} catch (FrameworkException fex) {
@@ -6243,14 +6245,14 @@ public class ScriptingTest extends StructrTest {
 
 
 
-			// create a native object in a method, return it, and set a property => success
-			final Map<String, Object> value2 = (Map)Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.Test.test2(); }}", "test0");
+			// create a native object in a method, it, and set a property => success
+			final Map<String, Object> value2 = (Map)Scripting.evaluate(new ActionContext(securityContext), null, "${{ $.Test.test2(); }}", "test0");
 			assertEquals("value1",  value2.get("key1"));
 			assertEquals(123,       value2.get("key2"));
 
 			try {
 				// create a native object in a method, return it, and use obj.set() => failure
-				Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.Test.test3(); }}", "test1");
+				Scripting.evaluate(new ActionContext(securityContext), null, "${{ $.Test.test3(); }}", "test1");
 				//fail("Object access via set() should not work");
 
 			} catch (FrameworkException fex) {
@@ -6260,32 +6262,32 @@ public class ScriptingTest extends StructrTest {
 
 
 			// create a native Map inline and set a property via set() => success
-			final Map<String, Object> value4 = (Map)Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.Test.test4(); }}", "test0");
+			final Map<String, Object> value4 = (Map)Scripting.evaluate(new ActionContext(securityContext), null, "${{ $.Test.test4(); }}", "test0");
 			assertEquals("value1",  value4.get("key1"));
 
 			// create a native Map inline and set a property directly => empty map but no error
-			final Map<String, Object> value5 = (Map)Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.Test.test5(); }}", "test5");
+			final Map<String, Object> value5 = (Map)Scripting.evaluate(new ActionContext(securityContext), null, "${{ $.Test.test5(); }}", "test5");
 			assertEquals(0, value5.size());
 
 
 
 			// create a native Map in a method and set a property via set() => success
-			final Map<String, Object> value6 = (Map)Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.Test.test6(); }}", "test6");
+			final Map<String, Object> value6 = (Map)Scripting.evaluate(new ActionContext(securityContext), null, "${{ $.Test.test6(); }}", "test6");
 			assertEquals("value1",  value6.get("key1"));
 
 			// create a native Map in a method and set a property directly => empty map but no error
-			final Map<String, Object> value7 = (Map)Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.Test.test7(); }}", "test7");
+			final Map<String, Object> value7 = (Map)Scripting.evaluate(new ActionContext(securityContext), null, "${{ $.Test.test7(); }}", "test7");
 			assertEquals(0, value7.size());
 
 
 
 			// create a native date, get the month value, add one and convert it to a string => success
-			final Object value8 = Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.Test.test8(); }}", "test8");
+			final Object value8 = Scripting.evaluate(new ActionContext(securityContext), null, "${{ $.Test.test8(); }}", "test8");
 			System.out.println(value8);
 
 
 			// create a native date in a method, get the month value, add one and convert it to a string => success
-			final Object value9 = Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.Test.test9(); }}", "test9");
+			final Object value9 = Scripting.evaluate(new ActionContext(securityContext), null, "${{ $.Test.test9(); }}", "test9");
 			System.out.println(value9);
 
 
@@ -6293,13 +6295,13 @@ public class ScriptingTest extends StructrTest {
 			// - crate a native set in a method, and add values via add() => success
 			// - also test for Set functionality where duplicates are not added
 			// - also ignore direct property access (at least in size calculation)
-			final Set<Object> value10 = (Set)Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.Test.test10(); }}", "test10");
+			final Set<Object> value10 = (Set)Scripting.evaluate(new ActionContext(securityContext), null, "${{ $.Test.test10(); }}", "test10");
 			assertEquals(3, value10.size());
 
 			// - create a native set in a method, add values via add() => success
 			// - ignore setting of a value via array-index lookup
 			// - also ignore direct property access (at least in size calculation)
-			final Set<Object> value11 = (Set)Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.Test.test11(); }}", "test11");
+			final Set<Object> value11 = (Set)Scripting.evaluate(new ActionContext(securityContext), null, "${{ $.Test.test11(); }}", "test11");
 			assertEquals(2, value11.size());
 
 			tx.success();
@@ -6319,10 +6321,10 @@ public class ScriptingTest extends StructrTest {
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 			final JsonType type     = schema.addType("Test");
 
-			type.addMethod("getName", "{ return $.this.name; }");
+			type.addMethod("getName", "{ $.this.name; }");
 
 			// native object created inline
-			type.addMethod("test",  "{ let names = []; for (let t of $.find('Test')) { names.push(t.getName()); } return names.join(''); }");
+			type.addMethod("test",  "{ let names = []; for (let t of $.find('Test')) { names.push(t.getName()); } names.join(''); }");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -6346,7 +6348,7 @@ public class ScriptingTest extends StructrTest {
 			}
 
 			// create a native object inline and set some properties => success
-			final String value = (String)Scripting.evaluate(new ActionContext(securityContext), list.get(0), "${{ return $.this.test(); }}", "test");
+			final String value = (String)Scripting.evaluate(new ActionContext(securityContext), list.get(0), "${{ $.this.test(); }}", "test");
 
 			assertEquals("Test00Test01Test02", value);
 
@@ -6367,7 +6369,7 @@ public class ScriptingTest extends StructrTest {
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 			final JsonType type     = schema.addType("Test");
 
-			type.addMethod("method1", "{ $.log($.methodParameters); $.userMethod(); return $.methodParameters; }");
+			type.addMethod("method1", "{ $.log($.methodParameters); $.userMethod(); $.methodParameters; }");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -6390,7 +6392,7 @@ public class ScriptingTest extends StructrTest {
 
 			final NodeInterface node = app.create(testClass, "Test");
 
-			final Map<String, Object> value = (Map)Scripting.evaluate(new ActionContext(securityContext), node, "${{ return $.this.method1({ key1: 'value1', key2: 123 }); }}", "test");
+			final Map<String, Object> value = (Map)Scripting.evaluate(new ActionContext(securityContext), node, "${{ $.this.method1({ key1: 'value1', key2: 123 }); }}", "test");
 			assertEquals("value1", value.get("key1"));
 			assertEquals(123,      value.get("key2"));
 
@@ -6413,8 +6415,8 @@ public class ScriptingTest extends StructrTest {
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 			final JsonType type     = schema.addType("Test");
 
-			type.addMethod("method1", "{ let map = new Map(); map.set('key1', 'value1'); return $.this.method2({ test: map }); }");
-			type.addMethod("method2", "{ let map = $.methodParameters.test; return map.get('key1'); }");
+			type.addMethod("method1", "{ let map = new Map(); map.set('key1', 'value1'); $.this.method2({ test: map }); }");
+			type.addMethod("method2", "{ let map = $.methodParameters.test; map.get('key1'); }");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -6432,7 +6434,7 @@ public class ScriptingTest extends StructrTest {
 
 			final NodeInterface node = app.create(testClass, "Test");
 
-			Scripting.evaluate(new ActionContext(securityContext), node, "${{ return $.this.method1({ key1: 'value1', key2: 123 }); }}", "test");
+			Scripting.evaluate(new ActionContext(securityContext), node, "${{ $.this.method1({ key1: 'value1', key2: 123 }); }}", "test");
 
 			tx.success();
 
@@ -6451,14 +6453,14 @@ public class ScriptingTest extends StructrTest {
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 			final JsonType type     = schema.addType("Test");
 
-			type.addMethod("getDate",             "{ return new Date(); }").setIsStatic(true);
-			type.addMethod("getNowJavascript",    "{ return $.now; }").setIsStatic(true);
+			type.addMethod("getDate",             "{ new Date(); }").setIsStatic(true);
+			type.addMethod("getNowJavascript",    "{ $.now; }").setIsStatic(true);
 			type.addMethod("getNowStructrscript", "now").setIsStatic(true);
 
-			type.addMethod("test1", "{ return { test1: new Date(), test2: $.now, test3: $.Test.getDate(), test4: $.Test.getNowJavascript(), test5: $.Test.getNowStructrscript() }; }").setIsStatic(true);
-			type.addMethod("test2", "{ return $.Test.test1(); }").setIsStatic(true);
-			type.addMethod("test3", "{ return $.Test.test2(); }").setIsStatic(true);
-			type.addMethod("test4", "{ return { test1: typeof new Date(), test2: typeof $.now, test3: typeof $.Test.getDate(), test4: typeof $.Test.getNowJavascript(), test5: typeof $.Test.getNowStructrscript() }; }").setIsStatic(true);
+			type.addMethod("test1", "{ { test1: new Date(), test2: $.now, test3: $.Test.getDate(), test4: $.Test.getNowJavascript(), test5: $.Test.getNowStructrscript() }; }").setIsStatic(true);
+			type.addMethod("test2", "{ $.Test.test1(); }").setIsStatic(true);
+			type.addMethod("test3", "{ $.Test.test2(); }").setIsStatic(true);
+			type.addMethod("test4", "{ { test1: typeof new Date(), test2: typeof $.now, test3: typeof $.Test.getDate(), test4: typeof $.Test.getNowJavascript(), test5: typeof $.Test.getNowStructrscript() }; }").setIsStatic(true);
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -6472,9 +6474,9 @@ public class ScriptingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final Map<String, Object> result1 = (Map)Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.Test.test1(); }}", "test");
-			final Map<String, Object> result2 = (Map)Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.Test.test2(); }}", "test");
-			final Map<String, Object> result3 = (Map)Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.Test.test3(); }}", "test");
+			final Map<String, Object> result1 = (Map)Scripting.evaluate(new ActionContext(securityContext), null, "${{ $.Test.test1(); }}", "test");
+			final Map<String, Object> result2 = (Map)Scripting.evaluate(new ActionContext(securityContext), null, "${{ $.Test.test2(); }}", "test");
+			final Map<String, Object> result3 = (Map)Scripting.evaluate(new ActionContext(securityContext), null, "${{ $.Test.test3(); }}", "test");
 
 			// check values (only need to check first result because we're checking for equality below)
 			final Object value1 = result1.get("test1");
@@ -6525,7 +6527,7 @@ public class ScriptingTest extends StructrTest {
 			assertEquals(result2.get("test5").getClass(), result3.get("test5").getClass());
 
 			// test Javascript typeof result
-			final Map<String, Object> result4 = (Map)Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.Test.test4(); }}", "test");
+			final Map<String, Object> result4 = (Map)Scripting.evaluate(new ActionContext(securityContext), null, "${{ $.Test.test4(); }}", "test");
 
 			assertEquals("object", result4.get("test1"));
 			assertEquals("object", result4.get("test2"));
@@ -6546,8 +6548,8 @@ public class ScriptingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final String result1 = (String)Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.dateFormat(new Date(), 'yyyy-MM-dd'); }}", "test1");
-			final String result2 = (String)Scripting.evaluate(new ActionContext(securityContext), null, "${{ return $.dateFormat($.now, 'yyyy-MM-dd'); }}", "test2");
+			final String result1 = (String)Scripting.evaluate(new ActionContext(securityContext), null, "${{ $.dateFormat(new Date(), 'yyyy-MM-dd'); }}", "test1");
+			final String result2 = (String)Scripting.evaluate(new ActionContext(securityContext), null, "${{ $.dateFormat($.now, 'yyyy-MM-dd'); }}", "test2");
 
 			final String expected = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
 
@@ -6666,9 +6668,9 @@ public class ScriptingTest extends StructrTest {
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 			final JsonType type     = schema.addType("Test");
 
-			type.addMethod("doTest1",             "{ return 'test1'; }");
-			type.addMethod("doTest2",             "{ return 'test2'; }").setIsStatic(true);
-			type.addMethod("doTest3",             "{ return 'test3'; }").setIsPrivate(true);
+			type.addMethod("doTest1",             "{ 'test1'; }");
+			type.addMethod("doTest2",             "{ 'test2'; }").setIsStatic(true);
+			type.addMethod("doTest3",             "{ 'test3'; }").setIsPrivate(true);
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -6683,7 +6685,7 @@ public class ScriptingTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final GraphObject test     = app.create(StructrApp.getConfiguration().getNodeEntityClass("Test"), "test");
-			final List<String> result1 = (List) Scripting.evaluate(new ActionContext(securityContext), test, "${{ return Object.getOwnPropertyNames($.this); }}", "test");
+			final List<String> result1 = (List) Scripting.evaluate(new ActionContext(securityContext), test, "${{ Object.getOwnPropertyNames($.this); }}", "test");
 			final Set<String> expected = new LinkedHashSet<>();
 
 			expected.add("name");
@@ -6727,11 +6729,11 @@ public class ScriptingTest extends StructrTest {
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 			final JsonType type     = schema.addType("Test");
 
-			type.addMethod("doTest1", "{ $.log($.functionInfo()); return $.functionInfo(); }").addParameter("id", "string").addParameter("date", "date");
-			type.addMethod("doTest2", "{ $.log($.functionInfo()); return $.functionInfo(); }").setIsStatic(true);
-			type.addMethod("doTest3", "{ $.log($.functionInfo()); return $.functionInfo(); }").setIsPrivate(true);
-			type.addMethod("doTest4", "{ $.log($.functionInfo()); return $.this.doTest1(); }");
-			type.addMethod("doTest5", "{ $.log($.functionInfo()); return $.this.doTest4(); }");
+			type.addMethod("doTest1", "{ $.log($.functionInfo()); $.functionInfo(); }").addParameter("id", "string").addParameter("date", "date");
+			type.addMethod("doTest2", "{ $.log($.functionInfo()); $.functionInfo(); }").setIsStatic(true);
+			type.addMethod("doTest3", "{ $.log($.functionInfo()); $.functionInfo(); }").setIsPrivate(true);
+			type.addMethod("doTest4", "{ $.log($.functionInfo()); $.this.doTest1(); }");
+			type.addMethod("doTest5", "{ $.log($.functionInfo()); $.this.doTest4(); }");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -6748,16 +6750,16 @@ public class ScriptingTest extends StructrTest {
 			final GraphObject test            = app.create(StructrApp.getConfiguration().getNodeEntityClass("Test"), "test");
 
 			// test successful execution
-			final Map<String, Object> result1 = (Map) Scripting.evaluate(new ActionContext(securityContext), test, "${{ return $.this.doTest1(); }}", "test");
-			final Map<String, Object> result2 = (Map) Scripting.evaluate(new ActionContext(securityContext), test, "${{ return $.Test.doTest2(); }}", "test");
-			final Map<String, Object> result3 = (Map) Scripting.evaluate(new ActionContext(securityContext), test, "${{ return $.this.doTest3(); }}", "test");
-			final Map<String, Object> result4 = (Map) Scripting.evaluate(new ActionContext(securityContext), test, "${{ return $.this.doTest4(); }}", "test");
-			final Map<String, Object> result5 = (Map) Scripting.evaluate(new ActionContext(securityContext), test, "${{ return $.this.doTest5(); }}", "test");
-			final Map<String, Object> result6 = (Map) Scripting.evaluate(new ActionContext(securityContext), test, "${{ return $.functionInfo('Test', 'doTest1'); }}", "test");
+			final Map<String, Object> result1 = (Map) Scripting.evaluate(new ActionContext(securityContext), test, "${{ $.this.doTest1(); }}", "test");
+			final Map<String, Object> result2 = (Map) Scripting.evaluate(new ActionContext(securityContext), test, "${{ $.Test.doTest2(); }}", "test");
+			final Map<String, Object> result3 = (Map) Scripting.evaluate(new ActionContext(securityContext), test, "${{ $.this.doTest3(); }}", "test");
+			final Map<String, Object> result4 = (Map) Scripting.evaluate(new ActionContext(securityContext), test, "${{ $.this.doTest4(); }}", "test");
+			final Map<String, Object> result5 = (Map) Scripting.evaluate(new ActionContext(securityContext), test, "${{ $.this.doTest5(); }}", "test");
+			final Map<String, Object> result6 = (Map) Scripting.evaluate(new ActionContext(securityContext), test, "${{ $.functionInfo('Test', 'doTest1'); }}", "test");
 
-			final String result7 = (String)Scripting.evaluate(new ActionContext(securityContext), test, "${{ return $.functionInfo('TestWrong', 'doTest1'); }}", "test");
-			final String result8 = (String)Scripting.evaluate(new ActionContext(securityContext), test, "${{ return $.functionInfo('Test', 'wrongName'); }}", "test");
-			final String result9 = (String)Scripting.evaluate(new ActionContext(securityContext), test, "${{ return $.functionInfo('Test'); }}", "test");
+			final String result7 = (String)Scripting.evaluate(new ActionContext(securityContext), test, "${{ $.functionInfo('TestWrong', 'doTest1'); }}", "test");
+			final String result8 = (String)Scripting.evaluate(new ActionContext(securityContext), test, "${{ $.functionInfo('Test', 'wrongName'); }}", "test");
+			final String result9 = (String)Scripting.evaluate(new ActionContext(securityContext), test, "${{ $.functionInfo('Test'); }}", "test");
 
 
 			assertEquals("Invalid functionInfo() result", "doTest1", result1.get("name"));
@@ -6890,7 +6892,7 @@ public class ScriptingTest extends StructrTest {
 		buf.append(parseMethod);
 		buf.append("('");
 		buf.append(end);
-		buf.append("'); return $.find('Project', { ");
+		buf.append("'); $.find('Project', { ");
 		buf.append(fieldName);
 		buf.append(": $.predicate.range(startDate, endDate) }, $.predicate.sort('name')); }}");
 
