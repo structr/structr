@@ -18,16 +18,31 @@
  */
 package org.structr.core.traits.definitions;
 
+import org.structr.api.util.Iterables;
+import org.structr.common.PropertyView;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
+import org.structr.common.error.SemanticErrorToken;
+import org.structr.common.helper.ValidationHelper;
+import org.structr.core.GraphObject;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaMethod;
+import org.structr.core.entity.SchemaMethodParameter;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.core.traits.wrappers.SchemaMethodTraitWrapper;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -35,27 +50,10 @@ import java.util.Set;
  */
 public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefinition {
 
-
 	/*
 	private static final Set<PropertyKey> schemaRebuildTriggerKeys = new LinkedHashSet<>(Arrays.asList(
 		name, schemaNode, staticSchemaNodeName, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, isStatic, isPrivate, returnRawResult, httpVerb
 	));
-
-	public static final View defaultView = new View(SchemaMethod.class, PropertyView.Public,
-		name, schemaNode, staticSchemaNodeName, source, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic, isPrivate, returnRawResult, httpVerb
-	);
-
-	public static final View uiView = new View(SchemaMethod.class, PropertyView.Ui,
-		name, schemaNode, staticSchemaNodeName, source, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic, includeInOpenAPI, openAPIReturnType, isPrivate, returnRawResult, httpVerb
-	);
-
-	public static final View schemaView = new View(SchemaNode.class, "schema",
-		id, type, schemaNode, staticSchemaNodeName, name, source, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic, includeInOpenAPI, openAPIReturnType, isPrivate, returnRawResult, httpVerb
-	);
-
-	public static final View exportView = new View(SchemaMethod.class, "export",
-		id, type, schemaNode, staticSchemaNodeName, name, source, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic, includeInOpenAPI, openAPIReturnType, isPrivate, returnRawResult, httpVerb
-	);
 	*/
 
 	public SchemaMethodTraitDefinition() {
@@ -63,10 +61,72 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 	}
 
 	@Override
-	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+	public Map<Class, LifecycleMethod> getLifecycleMethods() {
 
 		return Map.of(
-			SchemaMethod.class, (traits, node) -> new SchemaMethodTraitWrapper(traits, node)
+
+			IsValid.class,
+			new IsValid() {
+
+				@Override
+				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
+
+					final SchemaMethod method                      = obj.as(SchemaMethod.class);
+					final Traits traits                            = obj.getTraits();
+					final PropertyKey<NodeInterface> schemaNodeKey = traits.key("schemaNode");
+					final PropertyKey<String> nameKey              = traits.key("name");
+					boolean valid                                  = true;
+
+					valid &= ValidationHelper.isValidStringMatchingRegex(obj, nameKey, SchemaMethod.schemaMethodNamePattern, errorBuffer);
+
+					final Set<String> propertyViews = Traits.getAllViews();
+					final String thisMethodName     = method.getName();
+
+					if (thisMethodName != null && propertyViews.contains(thisMethodName)) {
+						errorBuffer.add(new SemanticErrorToken(method.getType(), "name", "already_exists").withValue(thisMethodName).withDetail("A method cannot have the same name as a view"));
+						valid = false;
+					}
+
+					// check case-insensitive name uniqueness on current level (type or user-defined functions)
+					final AbstractSchemaNode parentOrNull = method.getSchemaNode();
+
+					try {
+
+						final List<NodeInterface> methodsOnCurrentLevel = StructrApp.getInstance().nodeQuery("SchemaMethod").and(schemaNodeKey, parentOrNull).getAsList();
+						final List<SchemaMethodParameter> params        = Iterables.toList(method.getParameters());
+						// param comparison is required because otherwise this would fail for at least "getScaledImage" and "updateFeedTask"
+						final String paramsAsString                     = params.stream().map(p -> p.getName() + ":" + p.getParameterType()).collect(Collectors.joining(";"));
+
+						for (final NodeInterface otherSchemaMethodNode : methodsOnCurrentLevel) {
+
+							final boolean isDifferentMethod = !(method.getUuid().equals(otherSchemaMethodNode.getUuid()));
+
+							if (isDifferentMethod) {
+
+								final SchemaMethod otherSchemaMethod                = otherSchemaMethodNode.as(SchemaMethod.class);
+								final boolean isSameNameIgnoringCase                = thisMethodName.equalsIgnoreCase(otherSchemaMethod.getName());
+								final List<SchemaMethodParameter> otherMethodParams = Iterables.toList(otherSchemaMethod.getParameters());
+								final String otherParamsAsString                    = otherMethodParams.stream().map(p -> p.getName() + ":" + p.getParameterType()).collect(Collectors.joining(";"));
+
+								final boolean hasSameParameters = (params.size() == otherMethodParams.size() && paramsAsString.equals(otherParamsAsString));
+
+								if (isSameNameIgnoringCase && hasSameParameters) {
+
+									errorBuffer.add(new SemanticErrorToken(method.getType(), "name", "already_exists").withValue(thisMethodName).withDetail("Multiple methods with identical names (case-insensitive) are not supported on the same level"));
+									valid = false;
+								}
+							}
+						}
+
+					} catch (FrameworkException fex) {
+
+						errorBuffer.add(new SemanticErrorToken(method.getType(),"none", "exception_occurred").withValue(thisMethodName).withDetail("Exception occurred while checking uniqueness of method name - please retry. Cause: " + fex.getMessage()));
+						valid = false;
+					}
+
+					return valid;
+				}
+			}
 		);
 	}
 
@@ -125,132 +185,48 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 	}
 
 	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+
+			PropertyView.Public,
+			newSet(
+				"name", "schemaNode", "staticSchemaNodeName", "source", "returnType", "exceptions", "callSuper", "overridesExisting", "doExport", "codeType", "isPartOfBuiltInSchema", "tags", "summary", "description", "isStatic", "isPrivate", "returnRawResult", "httpVerb"
+			),
+
+			PropertyView.Ui,
+			newSet(
+				"name", "schemaNode", "staticSchemaNodeName", "source", "returnType", "exceptions", "callSuper", "overridesExisting", "doExport", "codeType", "isPartOfBuiltInSchema", "tags", "summary", "description", "isStatic", "includeInOpenAPI", "openAPIReturnType", "isPrivate", "returnRawResult", "httpVerb"
+			),
+
+			"schema",
+			newSet(
+				"id", "type", "schemaNode", "staticSchemaNodeName", "name", "source", "returnType", "exceptions", "callSuper", "overridesExisting", "doExport", "codeType", "isPartOfBuiltInSchema", "tags", "summary", "description", "isStatic", "includeInOpenAPI", "openAPIReturnType", "isPrivate", "returnRawResult", "httpVerb"
+			),
+
+			"export",
+			newSet(
+				"id", "type", "schemaNode", "staticSchemaNodeName", "name", "source", "returnType", "exceptions", "callSuper", "overridesExisting", "doExport", "codeType", "isPartOfBuiltInSchema", "tags", "summary", "description", "isStatic", "includeInOpenAPI", "openAPIReturnType", "isPrivate", "returnRawResult", "httpVerb"
+			)
+		);
+	}
+
+	@Override
+	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
+		return Map.of(
+			SchemaMethod.class, (traits, node) -> new SchemaMethodTraitWrapper(traits, node)
+		);
+	}
+
+	@Override
 	public Relation getRelation() {
 		return null;
 	}
 
 	/*
-	@Override public Iterable<SchemaMethodParameter> getParameters() {
-		return getProperty(parameters);
-	}
-
-	@Override public ActionEntry getActionEntry(final Map<String, SchemaNode> schemaNodes, final AbstractSchemaNode schemaEntity) throws FrameworkException {
-
-		final ActionEntry entry                  = new ActionEntry("___" + SchemaHelper.cleanPropertyName(getProperty(NodeInterface.name)), getProperty(SchemaMethod.source), getProperty(SchemaMethod.codeType));
-		final List<SchemaMethodParameter> params = Iterables.toList(getProperty(parameters));
-
-		// add UUID
-		entry.setCodeSource(this);
-
-		// Parameters must be sorted by index
-		//Collections.sort(params, new GraphObjectComparator(SchemaMethodParameter.index, false));
-		Collections.sort(params, SchemaMethodParameter.index.sorted(false));
-
-		for (final SchemaMethodParameter parameter : params) {
-
-			entry.addParameter(parameter.getParameterType(), parameter.getName());
-		}
-
-		entry.setReturnType(getProperty(returnType));
-		entry.setCallSuper(getProperty(callSuper));
-
-		final String[] _exceptions = getProperty(exceptions);
-		if (_exceptions != null) {
-
-			for (final String exception : _exceptions) {
-				entry.addException(exception);
-			}
-		}
-
-		// check for overridden methods and determine method signature etc. from superclass(es)
-		if (getProperty(overridesExisting)) {
-			determineSignature(schemaNodes, schemaEntity, entry, getProperty(name));
-		}
-
-		// check for overridden methods and determine method signature etc. from superclass(es)
-		if (getProperty(doExport)) {
-			entry.setDoExport(true);
-		}
-
-		// check for overridden methods and determine method signature etc. from superclass(es)
-		if (getProperty(isStatic)) {
-			entry.setIsStatic(true);
-		}
-
-		return entry;
-	}
-
-	@Override public boolean isStaticMethod() {
-		return getProperty(isStatic);
-	}
-
-	@Override public boolean isPrivateMethod() {
-		return getProperty(isPrivate);
-	}
-
-	@Override public boolean returnRawResult() {
-		return getProperty(returnRawResult);
-	}
-
-	@Override public HttpVerb getHttpVerb() {
-		return getProperty(httpVerb);
-	}
-
-	@Override public boolean isJava() {
-		return "java".equals(getProperty(codeType));
-	}
-
 	@Override
 	public boolean isValid(final ErrorBuffer errorBuffer) {
-
-		boolean valid = super.isValid(errorBuffer);
-
-		valid &= ValidationHelper.isValidStringMatchingRegex(this, name, schemaMethodNamePattern, errorBuffer);
-
-		final Set<String> propertyViews = Services.getInstance().getConfigurationProvider().getPropertyViews();
-		final String thisMethodName     = getProperty(NodeInterface.name);
-
-		if (thisMethodName != null && propertyViews.contains(thisMethodName)) {
-			errorBuffer.add(new SemanticErrorToken(this.getType(), "name", "already_exists").withValue(thisMethodName).withDetail("A method cannot have the same name as a view"));
-		}
-
-		// check case-insensitive name uniqueness on current level (type or user-defined functions)
-		final AbstractSchemaNode parentOrNull = this.getProperty(SchemaMethod.schemaNode);
-
-		try {
-
-			final List<SchemaMethod> methodsOnCurrentLevel = StructrApp.getInstance().nodeQuery("SchemaMethod").and(SchemaMethod.schemaNode, parentOrNull).getAsList();
-			final List<SchemaMethodParameter> params       = Iterables.toList(this.getParameters());
-			// param comparison is required because otherwise this would fail for at least "getScaledImage" and "updateFeedTask"
-			final String paramsAsString                    = params.stream().map(p -> p.getName() + ":" + p.getParameterType()).collect(Collectors.joining(";"));
-
-			for (final SchemaMethod otherSchemaMethod : methodsOnCurrentLevel) {
-
-				final boolean isDifferentMethod = !(this.getUuid().equals(otherSchemaMethod.getUuid()));
-
-				if (isDifferentMethod) {
-
-					final boolean isSameNameIgnoringCase                = thisMethodName.equalsIgnoreCase(otherSchemaMethod.getName());
-					final List<SchemaMethodParameter> otherMethodParams = Iterables.toList(otherSchemaMethod.getParameters());
-					final String otherParamsAsString                    = otherMethodParams.stream().map(p -> p.getName() + ":" + p.getParameterType()).collect(Collectors.joining(";"));
-
-					final boolean hasSameParameters = (params.size() == otherMethodParams.size() && paramsAsString.equals(otherParamsAsString));
-
-					if (isSameNameIgnoringCase && hasSameParameters) {
-
-						errorBuffer.add(new SemanticErrorToken(this.getType(), "name", "already_exists").withValue(thisMethodName).withDetail("Multiple methods with identical names (case-insensitive) are not supported on the same level"));
-						valid = false;
-					}
-				}
-			}
-
-		} catch (FrameworkException fex) {
-
-			errorBuffer.add(new SemanticErrorToken(this.getType(),"none", "exception_occurred").withValue(thisMethodName).withDetail("Exception occurred while checking uniqueness of method name - please retry. Cause: " + fex.getMessage()));
-			valid = false;
-		}
-
-		return valid;
 	}
 
 	@Override

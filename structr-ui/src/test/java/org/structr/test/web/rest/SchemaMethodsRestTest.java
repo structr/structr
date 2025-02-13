@@ -353,8 +353,8 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 
-			assertEquals("Wrong error code in response",    422,                                                                fex.getStatus());
-			assertEquals("Wrong error message in response", "Unable to commit transaction, transaction post processing failed", fex.getMessage());
+			assertEquals("Wrong error code in response",    422,                                               fex.getStatus());
+			assertEquals("Wrong error message in response", "Unable to commit transaction, validation failed", fex.getMessage());
 
 			final ErrorToken token = fex.getErrorBuffer().getErrorTokens().get(0);
 

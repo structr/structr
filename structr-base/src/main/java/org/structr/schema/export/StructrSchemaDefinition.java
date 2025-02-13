@@ -54,9 +54,9 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 
 	public StructrSchemaDefinition(final URI id) {
 
-		this.typeDefinitions = new StructrTypeDefinitions(this);
-		this.userDefinedFunctions   = new StructrGlobalSchemaMethods();
-		this.id              = id;
+		this.typeDefinitions      = new StructrTypeDefinitions(this);
+		this.userDefinedFunctions = new StructrGlobalSchemaMethods();
+		this.id                   = id;
 	}
 
 	@Override

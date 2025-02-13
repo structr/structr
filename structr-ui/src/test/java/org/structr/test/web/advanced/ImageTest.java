@@ -284,7 +284,10 @@ public class ImageTest extends StructrUiTest {
 			final NodeInterface path  = FileHelper.createFolderPath(securityContext, folderPath);
 
 			// set path
-			image.as(File.class).setParent(path.as(Folder.class));
+			if (path != null) {
+
+				image.as(File.class).setParent(path.as(Folder.class));
+			}
 
 			// request thumbnail creation
 			image.getProperty(Traits.of("Image").key("tnMid"));

@@ -538,8 +538,6 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 	@Override
 	public void checkMoveBinaryContents(final NodeInterface newProvider) {
 
-		System.out.println("File.checkMoveBinaryContents(" + newProvider + ")");
-
 		final AbstractFile abstractFile = wrappedObject.as(AbstractFile.class);
 
 		if (!StorageProviderFactory.getStorageProvider(abstractFile).equals(StorageProviderFactory.getSpecificStorageProvider(abstractFile, newProvider))) {
@@ -553,8 +551,6 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 
 	@Override
 	public void checkMoveBinaryContents(final Folder previousParent, final NodeInterface newParent) {
-
-		System.out.println("File.checkMoveBinaryContents(" + previousParent + ", " + newParent + ")");
 
 		final StorageProvider previousSP = StorageProviderFactory.getSpecificStorageProvider(this, previousParent != null ? previousParent.getStorageConfiguration(): null);
 		final StorageProvider newSP      = StorageProviderFactory.getSpecificStorageProvider(this, newParent != null ? newParent.as(Folder.class).getStorageConfiguration(): null);

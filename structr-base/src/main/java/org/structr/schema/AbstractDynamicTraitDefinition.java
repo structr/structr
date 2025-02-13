@@ -185,7 +185,6 @@ public abstract class AbstractDynamicTraitDefinition<T extends AbstractSchemaNod
 
 	protected void initializeViews(final T schemaNode) {
 
-
 		for (final SchemaView view : schemaNode.getSchemaViews()) {
 
 			final Set<String> names = new LinkedHashSet<>();
@@ -209,6 +208,12 @@ public abstract class AbstractDynamicTraitDefinition<T extends AbstractSchemaNod
 				}
 			}
 
+			final String sortOrder = view.getSortOrder();
+			if (sortOrder != null) {
+
+				applySortOrder(names, sortOrder);
+			}
+
 			views.put(view.getName(), names);
 		}
 	}
@@ -225,6 +230,74 @@ public abstract class AbstractDynamicTraitDefinition<T extends AbstractSchemaNod
 				e.printStackTrace();
 			}
 		}
+	}
+
+	// ----- private methods -----
+	private void sortProperties(final Set<String> names, final String sortOrder) {
+
+		if (StringUtils.isNotBlank(sortOrder)) {
+
+			final String[] parts = sortOrder.split(",");
+
+			for (final String part : parts) {
+
+				final String trimmed = part.trim();
+
+				if (StringUtils.isNotBlank(trimmed)) {
+
+
+				}
+			}
+
+		}
+	}
+
+	private void applySortOrder(final Set<String> view, final String orderString) {
+
+		final List<String> list = new LinkedList<>();
+
+		if ("alphabetic".equals(orderString)) {
+
+			// copy elements to list for sorting
+			list.addAll(view);
+
+			// sort alphabetically
+			Collections.sort(list);
+
+		} else {
+
+			// sort according to comma-separated list of property names
+			final String[] order = orderString.split("[, ]+");
+			for (final String property : order) {
+
+				if (StringUtils.isNotEmpty(property.trim())) {
+
+					// SchemaProperty instances are suffixed with "Property"
+					final String suffixedProperty = property + "Property";
+
+					if (view.contains(property)) {
+
+						// move property from view to list
+						list.add(property);
+						view.remove(property);
+
+					} else if (view.contains(suffixedProperty)) {
+
+						// move property from view to list
+						list.add(suffixedProperty);
+						view.remove(suffixedProperty);
+					}
+
+				}
+			}
+
+			// append the rest
+			list.addAll(view);
+		}
+
+		// clear source view, add sorted list contents
+		view.clear();
+		view.addAll(list);
 	}
 
 	// ----- static classes -----

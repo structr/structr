@@ -175,7 +175,7 @@ public class FilesystemTest extends StructrUiTest {
 			final Set<String> names        = new HashSet<>();
 
 			// there should only be two directories: home, and the home directory of the user
-			assertEquals("Too many directories exist after modifying a user", 2, dirs.size());
+			assertEquals("Wrong number of directories exist after modifying a user", 2, dirs.size());
 
 			for (final NodeInterface folder : dirs) {
 				names.add(folder.getName());

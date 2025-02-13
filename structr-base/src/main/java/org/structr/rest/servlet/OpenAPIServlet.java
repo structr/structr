@@ -274,6 +274,7 @@ public class OpenAPIServlet extends AbstractDataServlet {
 
 		// base classes
 		map.put("NodeInterface", new OpenAPIStructrTypeSchemaOutput("NodeInterface", PropertyView.Public, 0));
+		map.put("User",          new OpenAPIStructrTypeSchemaOutput("User",          PropertyView.Public, 0));
 
 		// base responses for GET and PUT,POST operations
 		Map<String, Object> getResponseBaseSchema = new HashMap<>();

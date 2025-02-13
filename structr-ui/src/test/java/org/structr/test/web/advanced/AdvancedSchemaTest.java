@@ -919,6 +919,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 		assertEquals("name",  list2.get(6).dbName());
 
 		// test schema resource
+		RestAssured.basePath = "/structr/rest";
 		RestAssured
 
 			.given()

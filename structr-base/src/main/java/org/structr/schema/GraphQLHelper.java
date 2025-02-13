@@ -591,7 +591,7 @@ public class GraphQLHelper {
 
 		for (final PropertyKey key : Traits.getPropertiesOfTrait(graphObjectClass)) {
 
-			if (key.relatedType() == null) {
+			if (!(key instanceof RelationProperty)) {
 
 				properties.add(key);
 			}
