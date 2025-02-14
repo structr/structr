@@ -111,7 +111,7 @@ public class Deployment5Test extends DeploymentTestBase {
 		}
 
 		// deployment export, clean database, create new group with same name but different ID, deployment import
-		doImportExportRoundtrip(false, true, new Function() {
+		doImportExportRoundtrip(true, true, new Function() {
 
 			@Override
 			public Object apply(final Object o) {

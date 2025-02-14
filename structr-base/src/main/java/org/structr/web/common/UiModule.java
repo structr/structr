@@ -95,6 +95,7 @@ public class UiModule implements StructrModule {
 		StructrTraits.registerNodeType("ActionMapping",                    new ActionMappingTraitDefinition());
 		StructrTraits.registerNodeType("ApplicationConfigurationDataNode", new ApplicationConfigurationDataNodeTraitDefinition());
 		StructrTraits.registerNodeType("Comment",                          new DOMNodeTraitDefinition(), new ContentTraitDefinition(), new CommentTraitDefinition());
+		StructrTraits.registerNodeType("Component",                        new DOMNodeTraitDefinition(), new ComponentTraitDefinition());
 		StructrTraits.registerNodeType("Content",                          new DOMNodeTraitDefinition(), new ContentTraitDefinition());
 		StructrTraits.registerNodeType("CssDeclaration",                   new CssDeclarationTraitDefinition());
 		StructrTraits.registerNodeType("CssRule",                          new CssRuleTraitDefinition());

@@ -35,10 +35,7 @@ import org.structr.common.helper.VersionHelper;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.entity.Localization;
-import org.structr.core.entity.MailTemplate;
-import org.structr.core.entity.Principal;
-import org.structr.core.entity.Security;
+import org.structr.core.entity.*;
 import org.structr.core.graph.*;
 import org.structr.core.property.CypherProperty;
 import org.structr.core.property.FunctionProperty;
@@ -109,6 +106,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private final static String DEPLOYMENT_CONF_FILE_PATH                             = "deployment.conf";
 	private final static String PRE_DEPLOY_CONF_FILE_PATH                             = "pre-deploy.conf";
 	private final static String POST_DEPLOY_CONF_FILE_PATH                            = "post-deploy.conf";
+	private final static String SCHEMA_GRANTS_FILE_PATH                               = "security/schema-grants.json";
 	private final static String GRANTS_FILE_PATH                                      = "security/grants.json";
 	private final static String CORS_SETTINGS_FILE_PATH                               = "security/cors-settings.json";
 	private final static String MAIL_TEMPLATES_FILE_PATH                              = "mail-templates.json";
@@ -303,6 +301,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Path deploymentConfFile                       = source.resolve(DEPLOYMENT_CONF_FILE_PATH);
 			final Path preDeployConfFile                        = source.resolve(PRE_DEPLOY_CONF_FILE_PATH);
 			final Path postDeployConfFile                       = source.resolve(POST_DEPLOY_CONF_FILE_PATH);
+			final Path schemaGrantsMetadataFile                 = source.resolve(SCHEMA_GRANTS_FILE_PATH);
 			final Path grantsMetadataFile                       = source.resolve(GRANTS_FILE_PATH);
 			final Path corsSettingsMetadataFile                 = source.resolve(CORS_SETTINGS_FILE_PATH);
 			final Path mailTemplatesMetadataFile                = source.resolve(MAIL_TEMPLATES_FILE_PATH);
@@ -362,6 +361,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			// apply pre-deploy.conf
 			applyConfigurationFileIfExists(ctx, preDeployConfFile, DEPLOYMENT_IMPORT_STATUS);
 
+			importSchemaGrants(schemaGrantsMetadataFile);
 			importResourceAccessGrants(grantsMetadataFile);
 			importCorsSettings(corsSettingsMetadataFile);
 			importMailTemplates(mailTemplatesMetadataFile, source);
@@ -553,6 +553,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Path modules             = Files.createDirectories(target.resolve(MODULES_FOLDER_PATH));
 			final Path mailTemplatesFolder = Files.createDirectories(target.resolve(MAIL_TEMPLATES_FOLDER_PATH));
 
+			final Path schemaGrantsConf                    = target.resolve(SCHEMA_GRANTS_FILE_PATH);
 			final Path grantsConf                          = target.resolve(GRANTS_FILE_PATH);
 			final Path corsSettingsConf                    = target.resolve(CORS_SETTINGS_FILE_PATH);
 			final Path filesConf                           = target.resolve(FILES_FILE_PATH);
@@ -603,6 +604,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Templates");
 			exportTemplates(templates, templatesConf);
+
+			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Schema Grants");
+			exportSchemaGrants(schemaGrantsConf);
 
 			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Resource Access Grants");
 			exportResourceAccessGrants(grantsConf);
@@ -1035,6 +1039,38 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
+	private void exportSchemaGrants(final Path target) throws FrameworkException {
+
+		logger.info("Exporting schema grants");
+
+		final List<Map<String, Object>> grants = new LinkedList<>();
+		final Traits traits                    = Traits.of("SchemaGrant");
+		final App app                          = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			for (final NodeInterface node : app.nodeQuery("SchemaGrant").sort(traits.key("id")).getAsList()) {
+
+				final Map<String, Object> grant = new TreeMap<>();
+				final SchemaGrant schemaGrant   = node.as(SchemaGrant.class);
+				grants.add(grant);
+
+				grant.put("id",                          schemaGrant.getUuid());
+				grant.put("principal",                   Map.of("name", schemaGrant.getPrincipalName()));
+				grant.put("schemaNode",                  Map.of("id", schemaGrant.getSchemaNode().getUuid()));
+				grant.put("staticSchemaNodeName",        schemaGrant.getStaticSchemaNodeName());
+				grant.put("allowRead",                   schemaGrant.allowRead());
+				grant.put("allowWrite",                  schemaGrant.allowWrite());
+				grant.put("allowDelete",                 schemaGrant.allowDelete());
+				grant.put("allowAccessControl",          schemaGrant.allowAccessControl());
+			}
+
+			tx.success();
+		}
+
+		writeSortedCompactJsonToFile(target, grants, null);
+	}
+
 	private void exportResourceAccessGrants(final Path target) throws FrameworkException {
 
 		logger.info("Exporting resource access grants");
@@ -1400,7 +1436,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Map ownerData = ((Map)entry.get("owner"));
 			if (ownerData != null) {
 
-				final String ownerName               = (String) ((Map)entry.get("owner")).get("name");
+				final String ownerName               = (String) ownerData.get("name");
 				final List<NodeInterface> principals = StructrApp.getInstance().nodeQuery("Principal").andName(ownerName).getAsList();
 
 				if (principals.isEmpty()) {
@@ -1451,6 +1487,36 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			entry.put("grantees", cleanedGrantees);
 		}
+
+		// new section for schema grants
+		if (entry.containsKey("principal")) {
+
+			final Map ownerData = ((Map)entry.get("principal"));
+			if (ownerData != null) {
+
+				final String ownerName               = (String) ((Map)entry.get("principal")).get("name");
+				final List<NodeInterface> principals = StructrApp.getInstance().nodeQuery("Principal").andName(ownerName).getAsList();
+
+				if (principals.isEmpty()) {
+
+					logger.warn("Unknown principal! Found no node of type Principal named '{}', ignoring.", ownerName);
+					DeployCommand.addMissingPrincipal(ownerName);
+
+					entry.remove("principal");
+
+				} else if (principals.size() > 1) {
+
+					logger.warn("Ambiguous principal! Found {} nodes of type Principal named '{}', ignoring.", principals.size(), ownerName);
+					DeployCommand.addAmbiguousPrincipal(ownerName);
+
+					entry.remove("principal");
+				}
+
+			} else if (removeNullOwner) {
+				entry.remove("principal");
+			}
+		}
+
 	}
 
 	private void exportMailTemplates(final Path targetConf, final Path targetFolder) throws FrameworkException {
@@ -1886,6 +1952,71 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			logger.error("Unable to import {}, aborting with {}", type, fex.getMessage(), fex);
 
 			throw fex;
+		}
+	}
+
+	private void importSchemaGrants(final Path schemaGrantsMetadataFile) throws FrameworkException {
+
+		if (Files.exists(schemaGrantsMetadataFile)) {
+
+			logger.info("Reading {}", schemaGrantsMetadataFile);
+			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing schema grants");
+
+			importSchemaGrants(readConfigList(schemaGrantsMetadataFile));
+		}
+	}
+
+	private void importSchemaGrants(final List<Map<String, Object>> data) throws FrameworkException {
+
+		boolean isOldExport = false;
+		final StringBuilder grantMessagesHtml = new StringBuilder();
+		final StringBuilder grantMessagesText = new StringBuilder();
+
+		final SecurityContext context = SecurityContext.getSuperUserInstance();
+		context.setDoTransactionNotifications(false);
+		final App app                 = StructrApp.getInstance(context);
+
+		try (final Tx tx = app.tx()) {
+
+			tx.disableChangelog();
+
+			for (final NodeInterface toDelete : app.nodeQuery("SchemaGrant").getAsList()) {
+				app.delete(toDelete);
+			}
+
+			for (final Map<String, Object> entry : data) {
+
+				checkOwnerAndSecurity(entry);
+
+				app.create("SchemaGrant", PropertyMap.inputTypeToJavaType(context, "SchemaGrant", entry));
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			logger.error("Unable to import resouce access grant, aborting with {}", fex.getMessage(), fex);
+
+			throw fex;
+
+		} finally {
+
+			if (isOldExport) {
+
+				final String text = "Found outdated version of grants.json file without visibility and grantees!\n\n"
+					+ "    Configuration was auto-updated using this simple heuristic:\n"
+					+ "     * Grants with public access were set to **visibleToPublicUsers: true**\n"
+					+ "     * Grants with authenticated access were set to **visibleToAuthenticatedUsers: true**\n\n"
+					+ "    Please make any necessary changes in the 'Security' area as this may not suffice for your use case. The ability to use group/user rights to grants has been added to improve flexibility.";
+
+				final String htmlText = "Configuration was auto-updated using this simple heuristic:<br>"
+					+ "&nbsp;- Grants with public access were set to <code>visibleToPublicUsers: true</code><br>"
+					+ "&nbsp;- Grants with authenticated access were set to <code>visibleToAuthenticatedUsers: true</code><br><br>"
+					+ "Please make any necessary changes in the <a href=\"#security\">Security</a> area as this may not suffice for your use case. The ability to use group/user rights to grants has been added to improve flexibility.";
+
+				deferredLogTexts.add(text + "\n\n" + grantMessagesText);
+				publishWarningMessage("Found grants.json file without visibility and grantees", htmlText + "<br><br>" + grantMessagesHtml);
+			}
 		}
 	}
 
