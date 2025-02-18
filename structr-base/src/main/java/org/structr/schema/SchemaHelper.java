@@ -466,6 +466,16 @@ public class SchemaHelper {
 		}
 
 		SchemaHelper.formatValidators(sourceFile, schemaNode, validators, compoundIndexKeys, extendsAbstractNode, propertyValidators);
+
+		// prevent service classes from being instantiated
+		if (schemaNode.getProperty(SchemaNode.isServiceClass)) {
+
+			sourceFile.line(schemaNode, "@Override");
+			sourceFile.begin(schemaNode, "public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {");
+			sourceFile.line(schemaNode, "throw new FrameworkException(422, \"Cannot instantiate service class\");");
+			sourceFile.end();
+		}
+
 		SchemaHelper.formatMethods(sourceFile, schemaNode, methods, implementedInterfaces);
 		SchemaHelper.formatSchemaGrants(sourceFile, schemaNode);
 		SchemaHelper.formatDefaultVisibilityFlags(sourceFile, schemaNode);
