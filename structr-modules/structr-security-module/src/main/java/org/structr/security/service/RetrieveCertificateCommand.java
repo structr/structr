@@ -43,8 +43,9 @@ import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.Traits;
+import org.structr.rest.resource.MaintenanceResource;
 import org.structr.rest.service.HttpService;
-import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.Actions;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.Folder;
@@ -58,7 +59,6 @@ import java.security.cert.X509Certificate;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.*;
-import org.structr.rest.resource.MaintenanceResource;
 
 /**
  * Maintenance command to get or renew TLS certificates via ACME protocol (i.e. Let's Encrypt).
@@ -684,20 +684,22 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 				try (final Tx tx = app.tx()) {
 
 					final SecurityContext adminContext = SecurityContext.getSuperUserInstance();
-					final Folder parentFolder = FileHelper.createFolderPath(adminContext, "/.well-known/acme-challenge/");
+					final Folder parentFolder = FileHelper.createFolderPath(adminContext, "/.well-known/acme-challenge/").as(Folder.class);
+					final Traits folderTraits = Traits.of("Folder");
+					final Traits fileTraits   = Traits.of("File");
 
 					PropertyMap props = new PropertyMap();
-					props.put(StructrApp.key(org.structr.web.entity.Folder.class, "visibleToPublicUsers"), true);
-					props.put(StructrApp.key(org.structr.web.entity.Folder.class, "visibleToAuthenticatedUsers"), true);
+					props.put(folderTraits.key("visibleToPublicUsers"), true);
+					props.put(folderTraits.key("visibleToAuthenticatedUsers"), true);
 
 					parentFolder.setProperties(adminContext, props);
 					parentFolder.getParent().setProperties(adminContext, props);
 
-					org.structr.web.entity.File challengeFile = FileHelper.createFile(adminContext, new ByteArrayInputStream(content.getBytes()), "text/plain", SchemaHelper.getEntityClassForRawType("File"), challenge.get().getToken(), parentFolder);
+					org.structr.web.entity.File challengeFile = FileHelper.createFile(adminContext, new ByteArrayInputStream(content.getBytes()), "text/plain", "File", challenge.get().getToken(), parentFolder).as(org.structr.web.entity.File.class);
 
 					props = new PropertyMap();
-					props.put(StructrApp.key(org.structr.web.entity.File.class, "visibleToPublicUsers"), true);
-					props.put(StructrApp.key(org.structr.web.entity.File.class, "visibleToAuthenticatedUsers"), true);
+					props.put(fileTraits.key("visibleToPublicUsers"), true);
+					props.put(fileTraits.key("visibleToAuthenticatedUsers"), true);
 
 					challengeFile.setProperties(adminContext, props);
 

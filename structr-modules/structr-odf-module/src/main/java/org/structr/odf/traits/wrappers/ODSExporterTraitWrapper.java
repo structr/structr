@@ -16,10 +16,18 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.odf.entity;
+package org.structr.odf.traits.wrappers;
+
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.Traits;
 
 /**
  *
  */
-public interface ODSExporter extends ODFExporter {
+public class ODSExporterTraitWrapper extends ODFExporterTraitWrapper {
+
+	public ODSExporterTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
+	}
 }
+

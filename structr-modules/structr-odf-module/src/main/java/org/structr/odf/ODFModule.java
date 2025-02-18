@@ -20,7 +20,14 @@ package org.structr.odf;
 
 import org.structr.api.service.LicenseManager;
 import org.structr.core.entity.AbstractSchemaNode;
+import org.structr.core.traits.StructrTraits;
 import org.structr.module.StructrModule;
+import org.structr.odf.entity.relationship.ODFExporterEXPORTS_TOFile;
+import org.structr.odf.entity.relationship.ODFExporterGETS_TRANSFORMATION_FROMVirtualType;
+import org.structr.odf.entity.relationship.ODFExporterUSES_TEMPLATEFile;
+import org.structr.odf.traits.definitions.ODFExporterTraitDefinition;
+import org.structr.odf.traits.definitions.ODSExporterTraitDefinition;
+import org.structr.odf.traits.definitions.ODTExporterTraitDefinition;
 import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
 
@@ -33,6 +40,14 @@ public class ODFModule implements StructrModule{
 
 	@Override
 	public void onLoad(final LicenseManager licenseManager) {
+
+		StructrTraits.registerRelationshipType("ODFExporterEXPORTS_TOFile",                      new ODFExporterEXPORTS_TOFile());
+		StructrTraits.registerRelationshipType("ODFExporterGETS_TRANSFORMATION_FROMVirtualType", new ODFExporterGETS_TRANSFORMATION_FROMVirtualType());
+		StructrTraits.registerRelationshipType("ODFExporterUSES_TEMPLATEFile",                   new ODFExporterUSES_TEMPLATEFile());
+
+		StructrTraits.registerNodeType("ODFExporter", new ODFExporterTraitDefinition());
+		StructrTraits.registerNodeType("ODSExporter", new ODSExporterTraitDefinition());
+		StructrTraits.registerNodeType("ODTExporter", new ODTExporterTraitDefinition());
 	}
 
 	@Override

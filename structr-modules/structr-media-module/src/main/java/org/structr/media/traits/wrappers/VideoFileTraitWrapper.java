@@ -16,10 +16,19 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.odf.entity;
+package org.structr.media.traits.wrappers;
+
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.Traits;
+import org.structr.media.VideoFile;
+import org.structr.web.traits.wrappers.FileTraitWrapper;
 
 /**
- *
+ * A video whose binary data will be stored on disk.
  */
-public interface ODSExporter extends ODFExporter {
+public class VideoFileTraitWrapper extends FileTraitWrapper implements VideoFile {
+
+	public VideoFileTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
+	}
 }

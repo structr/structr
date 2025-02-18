@@ -16,25 +16,38 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.odf.entity;
+package org.structr.odf.traits.wrappers;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
+import org.structr.odf.entity.ODFExporter;
 import org.structr.transform.VirtualType;
 import org.structr.web.entity.File;
 
 /**
  * Base class for ODF exporter
  */
-public interface ODFExporter extends NodeInterface {
+public class ODFExporterTraitWrapper extends AbstractNodeTraitWrapper implements ODFExporter {
 
-	String ODF_IMAGE_PARENT_NAME                 = "draw:frame";
-	String ODF_IMAGE_ATTRIBUTE_PARENT_IMAGE_NAME = "draw:name";
-	String ODF_IMAGE_ATTRIBUTE_FILE_PATH         = "xlink:href";
-	String ODF_IMAGE_DIRECTORY                   = "Pictures/";
+	public ODFExporterTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
+	}
 
-	File getDocumentTemplate();
-	File getResultDocument();
-	void setResultDocument(final File resultDocument) throws FrameworkException;
-	VirtualType getTransformationProvider();
+	public File getDocumentTemplate() {
+		return wrappedObject.getProperty(traits.key("documentTemplate"));
+	}
+
+	public File getResultDocument() {
+		return wrappedObject.getProperty(traits.key("resultDocument"));
+	}
+
+	public void setResultDocument(final File resultDocument) throws FrameworkException {
+		wrappedObject.setProperty(traits.key("resultDocument"), resultDocument);
+	}
+
+	public VirtualType getTransformationProvider() {
+		return getProperty(traits.key("transformationProvider"));
+	}
 }

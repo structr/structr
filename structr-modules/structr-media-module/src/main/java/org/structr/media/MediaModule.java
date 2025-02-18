@@ -20,9 +20,16 @@ package org.structr.media;
 
 import org.structr.api.service.LicenseManager;
 import org.structr.core.entity.AbstractSchemaNode;
+import org.structr.core.traits.StructrTraits;
+import org.structr.media.relationship.VideoFileHAS_CONVERTED_VIDEOVideoFile;
+import org.structr.media.relationship.VideoFileHAS_POSTER_IMAGEImage;
+import org.structr.media.traits.definitions.VideoFileTraitDefinition;
 import org.structr.module.StructrModule;
 import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.FileTraitDefinition;
+import org.structr.web.traits.definitions.LinkableTraitDefinition;
 
 import java.util.Set;
 
@@ -33,6 +40,11 @@ public class MediaModule implements StructrModule {
 
 	@Override
 	public void onLoad(final LicenseManager licenseManager) {
+
+		StructrTraits.registerRelationshipType("VideoFileHAS_CONVERTED_VIDEOVideoFile", new VideoFileHAS_CONVERTED_VIDEOVideoFile());
+		StructrTraits.registerRelationshipType("VideoFileHAS_POSTER_IMAGEImage",        new VideoFileHAS_POSTER_IMAGEImage());
+
+		StructrTraits.registerNodeType("VideoFile", new AbstractFileTraitDefinition(), new FileTraitDefinition(), new LinkableTraitDefinition(), new VideoFileTraitDefinition());
 	}
 
 	@Override

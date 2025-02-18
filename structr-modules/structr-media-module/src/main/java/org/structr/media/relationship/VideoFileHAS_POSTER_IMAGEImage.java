@@ -18,30 +18,53 @@
  */
 package org.structr.media.relationship;
 
-import org.structr.core.entity.OneToOne;
 import org.structr.core.entity.Relation;
-import org.structr.media.VideoFile;
-import org.structr.web.entity.Image;
+import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
+import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
-public class VideoFileHAS_POSTER_IMAGEImage extends OneToOne<VideoFile, Image> {
+public class VideoFileHAS_POSTER_IMAGEImage extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
-	@Override
-	public Class<VideoFile> getSourceType() {
-		return VideoFile.class;
+	public VideoFileHAS_POSTER_IMAGEImage() {
+		super("VideoFileHAS_POSTER_IMAGEImage");
 	}
 
 	@Override
-	public Class<Image> getTargetType() {
-		return Image.class;
+	public String getSourceType() {
+		return "VideoFile";
 	}
 
 	@Override
-	public String name() {
+	public String getTargetType() {
+		return "Image";
+	}
+
+	@Override
+	public String getRelationshipType() {
 		return "HAS_POSTER_IMAGE";
+	}
+
+	@Override
+	public Relation.Multiplicity getSourceMultiplicity() {
+		return Relation.Multiplicity.One;
+	}
+
+	@Override
+	public Relation.Multiplicity getTargetMultiplicity() {
+		return Relation.Multiplicity.One;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
 		return Relation.SOURCE_TO_TARGET;
+	}
+
+	@Override
+	public int getAutocreationFlag() {
+		return Relation.NONE;
+	}
+
+	@Override
+	public boolean isInternal() {
+		return false;
 	}
 }
