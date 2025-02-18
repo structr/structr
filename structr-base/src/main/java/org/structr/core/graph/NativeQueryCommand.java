@@ -23,6 +23,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.NativeQuery;
+import org.structr.api.SyntaxErrorException;
+import org.structr.api.Transaction;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Path;
 import org.structr.api.graph.PropertyContainer;
@@ -68,18 +70,25 @@ public class NativeQueryCommand extends NodeServiceCommand {
 		final DatabaseService graphDb = (DatabaseService) arguments.get("graphDb");
 		if (graphDb != null) {
 
-			final NativeQuery<Iterable> nativeQuery = graphDb.query(query, Iterable.class);
+			Iterable extracted = null;
+			try (final Transaction tx = graphDb.beginTx(true)) {
 
-			if (parameters != null) {
-				nativeQuery.configure(parameters);
-			}
+				final NativeQuery<Iterable> nativeQuery = graphDb.query(query, Iterable.class);
 
-			final Iterable result    = graphDb.execute(nativeQuery);
-			final Iterable extracted = extractRows(result, includeHiddenAndDeleted, publicOnly);
+				if (parameters != null) {
+					nativeQuery.configure(parameters);
+				}
 
-			if (!dontFlushCachesIfKeywordsInQuery && query.matches("(?i)(?s)(?m).*\\s+(delete|set|remove)\\s+.*")) {
-				logger.info("Clearing all caches due to DELETE, SET or REMOVE found in native query: " + query);
-				FlushCachesCommand.flushAll();
+				final Iterable result = graphDb.execute(nativeQuery, tx);
+				tx.success();
+
+				extracted = extractRows(result, includeHiddenAndDeleted, publicOnly);
+
+				if (!dontFlushCachesIfKeywordsInQuery && query.matches("(?i)(?s)(?m).*\\s+(delete|set|remove)\\s+.*")) {
+					logger.info("Clearing all caches due to DELETE, SET or REMOVE found in native query: " + query);
+					FlushCachesCommand.flushAll();
+				}
+
 			}
 
 			return extracted;

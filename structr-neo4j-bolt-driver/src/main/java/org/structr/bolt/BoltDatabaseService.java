@@ -159,6 +159,35 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 	}
 
 	@Override
+	public Transaction beginTx(boolean forceNew) {
+
+		if (!forceNew) {
+			return beginTx();
+		} else {
+			try {
+				if (neo4jMajorVersion >= 4) {
+
+					return new ReactiveSessionTransaction(this, driver.rxSession(sessionConfig));
+
+				} else {
+
+					return new AsyncSessionTransaction(this, driver.asyncSession());
+				}
+
+
+			} catch (ServiceUnavailableException ex) {
+
+				logger.warn("ServiceUnavailableException in BoltDataBaseService.beginTx(). Retrying with timeout.");
+				return beginTx(1);
+			} catch (ClientException cex) {
+				logger.warn("Cannot connect to Neo4j database server at {}: {}", databaseUrl, cex.getMessage());
+			}
+		}
+
+		return null;
+	}
+
+	@Override
 	public Transaction beginTx() {
 
 		SessionTransaction session = sessions.get();
@@ -471,9 +500,20 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 	@Override
 	public <T> T execute(final NativeQuery<T> nativeQuery) {
 
+		return execute(nativeQuery, getCurrentTransaction());
+	}
+
+	@Override
+	public <T> T execute(final NativeQuery<T> nativeQuery, final Transaction tx) {
+
+		if (!(tx instanceof SessionTransaction)) {
+
+			throw new IllegalArgumentException("Unsupported transaction type " + tx.toString());
+		}
+
 		if (nativeQuery instanceof AbstractNativeQuery) {
 
-			return (T)((AbstractNativeQuery)nativeQuery).execute(getCurrentTransaction());
+			return (T)((AbstractNativeQuery)nativeQuery).execute((SessionTransaction) tx);
 		}
 
 		throw new IllegalArgumentException("Unsupported query type " + nativeQuery.getClass().getName() + ".");
