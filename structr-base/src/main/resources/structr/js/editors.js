@@ -239,6 +239,26 @@ let _Editors = {
 			}
 		}
 	},
+	getErrorPropertyNameForLinting: (entity, propertyName) => {
+
+		let errorPropertyNameForLinting = propertyName;
+
+		if (entity.type === 'SchemaMethod') {
+			errorPropertyNameForLinting = entity.name;
+		} else if (entity.type === 'SchemaProperty') {
+			if (propertyName === 'readFunction') {
+				errorPropertyNameForLinting = `getProperty(${entity.name})`;
+			} else if (propertyName === 'writeFunction') {
+				errorPropertyNameForLinting = `setProperty(${entity.name})`;
+			}
+		} else if (entity.type === 'Content' || entity.type === 'Template') {
+			errorPropertyNameForLinting = 'content';
+		} else if (entity.type === 'File') {
+			errorPropertyNameForLinting = 'getInputStream';
+		}
+
+		return errorPropertyNameForLinting;
+	},
 	getScriptErrors: async (entity, errorAttributeName) => {
 
 		let schemaType = entity?.type ?? '';
@@ -528,7 +548,7 @@ let _Editors = {
 			monacoInstance.restoreViewState(viewState);
 		}
 
-		let errorPropertyNameForLinting = _Code.getErrorPropertyNameForLinting(entity, propertyName);
+		let errorPropertyNameForLinting = _Editors.getErrorPropertyNameForLinting(entity, propertyName);
 		if (customConfig.lint === true) {
 
 			_Editors.updateMonacoLintingDecorations(entity, propertyName, errorPropertyNameForLinting, true);

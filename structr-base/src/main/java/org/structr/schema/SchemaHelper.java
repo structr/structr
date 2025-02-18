@@ -50,6 +50,9 @@ import org.structr.rest.resource.SchemaResource;
 import org.structr.rest.resource.SchemaTypeResource;
 import org.structr.schema.action.ActionEntry;
 import org.structr.schema.action.Actions;
+import org.structr.schema.export.StructrSchema;
+import org.structr.schema.export.StructrSchemaDefinition;
+import org.structr.schema.export.StructrTypeDefinition;
 import org.structr.schema.parser.Validator;
 import org.structr.schema.parser.*;
 
@@ -1378,20 +1381,28 @@ public class SchemaHelper {
 		final ConfigurationProvider config = StructrApp.getConfiguration();
 		List<GraphObjectMap> resultList    = new LinkedList<>();
 
+		final StructrSchemaDefinition schemaDef            = (StructrSchemaDefinition) StructrSchema.createFromDatabase(StructrApp.getInstance());
+		final List<StructrTypeDefinition> matchingTypeDefs = schemaDef.getTypeDefinitions().stream().filter(typeDef -> typeDef.getName().equals(rawType)).collect(Collectors.toList());
+
+		final boolean isServiceClass = (matchingTypeDefs.size() > 0) ? matchingTypeDefs.get(0).isServiceClass() : false;
+
 		if (type != null) {
 
 			if (propertyView != null) {
 
-				for (final Map.Entry<String, Object> entry : getPropertiesForView(securityContext, type, propertyView).entrySet()) {
+				if (!isServiceClass) {
 
-					final GraphObjectMap property = new GraphObjectMap();
+					for (final Map.Entry<String, Object> entry : getPropertiesForView(securityContext, type, propertyView).entrySet()) {
 
-					for (final Map.Entry<String, Object> prop : ((Map<String, Object>) entry.getValue()).entrySet()) {
+						final GraphObjectMap property = new GraphObjectMap();
 
-						property.setProperty(new GenericProperty(prop.getKey()), prop.getValue());
+						for (final Map.Entry<String, Object> prop : ((Map<String, Object>) entry.getValue()).entrySet()) {
+
+							property.setProperty(new GenericProperty(prop.getKey()), prop.getValue());
+						}
+
+						resultList.add(property);
 					}
-
-					resultList.add(property);
 				}
 
 			} else {
@@ -1414,20 +1425,26 @@ public class SchemaHelper {
 				schema.setProperty(SchemaResource.isInterfaceProperty, Modifier.isInterface(modifiers));
 				schema.setProperty(SchemaResource.flagsProperty, SecurityContext.getResourceFlags(rawType));
 
-				final Set<String> propertyViews = new LinkedHashSet<>(config.getPropertyViewsForType(type));
+				if (!isServiceClass) {
 
-				// list property sets for all views
-				Map<String, Map<String, Object>> views = new TreeMap();
-				schema.setProperty(SchemaResource.viewsProperty, views);
+					// list property sets for all views
+					Map<String, Map<String, Object>> views = new TreeMap();
+					schema.setProperty(SchemaResource.viewsProperty, views);
 
-				for (final String view : propertyViews) {
+					final Set<String> propertyViews = new LinkedHashSet<>(config.getPropertyViewsForType(type));
+					for (final String view : propertyViews) {
 
-					views.put(view, getPropertiesForView(securityContext, type, view));
+						views.put(view, getPropertiesForView(securityContext, type, view));
+					}
 				}
 
 				if (isRel) {
 
 					schema.setProperty(new GenericProperty("relInfo"), SchemaResource.relationToMap(config, Relation.getInstance(type)));
+
+				} else {
+
+					schema.setProperty(SchemaResource.isServiceClassProperty, isServiceClass);
 				}
 			}
 		}

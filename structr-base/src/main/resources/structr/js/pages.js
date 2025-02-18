@@ -2221,7 +2221,7 @@ let _Pages = {
 
 						window.location.href = '#code';
 						window.setTimeout(() => {
-							_Code.findAndOpenNode(pathToOpen, false);
+							_Code.tree.findAndOpenNode(pathToOpen, false);
 						}, 1000);
 					}
 				});
