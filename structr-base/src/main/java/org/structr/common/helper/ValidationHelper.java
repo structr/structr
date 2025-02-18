@@ -29,6 +29,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 
@@ -135,11 +136,17 @@ public class ValidationHelper {
 			} else {
 
 				return true;
-
 			}
 		}
 
-		errorBuffer.add(new EmptyPropertyToken(type, key.jsonName()));
+		final EmptyPropertyToken ept = new EmptyPropertyToken(type, key.jsonName());
+
+		// for nodes, that were not created in the current tx, add the detail UUID
+		if (!TransactionCommand.getCurrentTransaction().isNodeCreated(node.getPropertyContainer().getId().getId())) {
+			ept.withDetail(node.getUuid());
+		}
+
+		errorBuffer.add(ept);
 
 		return false;
 	}

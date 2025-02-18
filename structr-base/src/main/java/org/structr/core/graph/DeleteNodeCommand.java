@@ -57,7 +57,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 	private void cascadeDelete(final NodeInterface node) throws FrameworkException {
 
 		final DeleteRelationshipCommand drc           = StructrApp.getInstance().command(DeleteRelationshipCommand.class);
-		final PrincipalInterface user                          = securityContext.getCachedUser();
+		final PrincipalInterface user                 = securityContext.getCachedUser();
 		final Set<RelationshipInterface> relsToDelete = new HashSet<>();
 		final Set<NodeInterface> nodesToDelete        = new HashSet<>();
 		final Set<NodeInterface> nodesToCheck         = new HashSet<>();

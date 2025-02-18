@@ -32,13 +32,13 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.graph.Tx;
+import org.structr.web.entity.Folder;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Websocket command to grant or revoke a permission.
@@ -171,7 +171,7 @@ public class SetPermissionCommand extends AbstractCommand {
 		return "SET_PERMISSION";
 	}
 
-	private void setPermission(final Value<Tx> transaction, final App app, final AbstractNode obj, final PrincipalInterface principal, final String action, final Set<Permission> permissions, final boolean rec) throws FrameworkException {
+	private void setPermission(final Value<Tx> transaction, final App app, final AbstractNode obj, final PrincipalInterface principal, final String action, final Set<Permission> permissions, final boolean recursive) throws FrameworkException {
 
 		// create new transaction if not already present
 		Tx tx = transaction.get(null);
@@ -216,11 +216,22 @@ public class SetPermissionCommand extends AbstractCommand {
 			tx = app.tx(true, true, false);
 		}
 
-		if (rec && obj instanceof LinkedTreeNode) {
+		if (recursive) {
 
-			for (final Object t : ((LinkedTreeNode) obj).treeGetChildren()) {
+			final List<Object> children = new ArrayList<>();
 
-				setPermission(transaction, app, (AbstractNode) t, principal, action, permissions, rec);
+			if (obj instanceof LinkedTreeNode) {
+
+				children.addAll(((LinkedTreeNode) obj).treeGetChildren());
+
+			} else if (obj instanceof Folder) {
+
+				children.addAll(Folder.getAllChildNodes((Folder) obj));
+			}
+
+			for (final Object t : children) {
+
+				setPermission(transaction, app, (AbstractNode) t, principal, action, permissions, recursive);
 			}
 		}
 	}

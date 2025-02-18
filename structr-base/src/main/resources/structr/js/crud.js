@@ -434,14 +434,7 @@ let _Crud = {
 
 			document.querySelector('#create' + type).addEventListener('click', (e) => {
 
-				if (e.shiftKey === true) {
-
-					_Crud.createDialogWithErrorHandling.showCreateDialog(type, {}, _Crud.createDialogWithErrorHandling.crudCreateSuccess);
-
-				} else {
-
-					_Crud.createDialogWithErrorHandling.create(type, {}, _Crud.createDialogWithErrorHandling.crudCreateSuccess);
-				}
+				_Crud.creationDialogWithErrorHandling.initializeForEvent(e, type, {}, _Crud.creationDialogWithErrorHandling.crudCreateSuccess);
 			});
 
 			document.querySelector('#export' + type).addEventListener('click', () => {
@@ -649,16 +642,18 @@ let _Crud = {
 
 			_Crud.helpers.delayedMessage.showLoadingMessageAfterDelay(`Loading data for type <b>${type}</b>`, 100);
 
-			let acceptHeaderProperties = (isRetry ? '' : ' properties=' + _Crud.objectList.filterKeys(type, Object.keys(properties)).join(','));
+			let customViewProperties = (isRetry ? [] : _Crud.objectList.filterKeys(type, Object.keys(properties)));
 
 			let signal = _Crud.crudListFetchAbortMechanism.abortController.signal;
 
+			let headers = {
+				Range: _Crud.objectList.getRangeHeaderForType(type),
+			};
+			Object.assign(headers, _Helpers.getHeadersForCustomView(customViewProperties));
+
 			fetch (url, {
 				signal: signal,
-				headers: {
-					Range: _Crud.objectList.getRangeHeaderForType(type),
-					Accept: 'application/json; charset=utf-8;' + acceptHeaderProperties
-				}
+				headers: headers
 			}).then(async response => {
 
 				let data = await response.json();
@@ -1778,11 +1773,7 @@ let _Crud = {
 
 				let { dialogText } = _Dialogs.custom.openDialog(`Details of ${type} ${node?.name ?? node.id}`);
 
-				let deleteBtn = _Dialogs.custom.appendCustomDialogButton(`
-					<button class="flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
-						${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, ['mr-2', 'icon-red'])} <span>Delete object</span>
-					</button>
-				`);
+				let deleteBtn = _Dialogs.custom.appendCustomDialogButton(_Dialogs.custom.templates.deleteButton());
 
 				deleteBtn.addEventListener('click', async (e) => {
 
@@ -1793,7 +1784,9 @@ let _Crud = {
 					}
 				});
 
-				dialogText.insertAdjacentHTML('beforeend', `<table class="props" id="details_${node.id}"><tr><th>Name</th><th>Value</th>`);
+				dialogText.insertAdjacentHTML('beforeend', `<form id="entityForm"><table class="props" id="details_${node.id}"><tr><th>Name</th><th>Value</th></tr></table><form>`);
+
+				document.querySelector('#entityForm').addEventListener('submit', e => e.preventDefault());
 
 				let table = dialogText.querySelector('table');
 
@@ -2973,8 +2966,19 @@ let _Crud = {
 			return _Icons.getSvgIcon(_Icons.iconDatetime, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-lightgray', 'icon-crud-datetime', 'pointer-events-none']));
 		}
 	},	
-	createDialogWithErrorHandling: {
-		create: (type, nodeData = {}, onSuccess) => {
+	creationDialogWithErrorHandling: {
+		initializeForEvent: (e, type, initialData = {}, onSuccess) => {
+
+			if (e.shiftKey === true) {
+
+				_Crud.creationDialogWithErrorHandling.loadTypeInfoAndShowCreateDialog(type, initialData, onSuccess);
+
+			} else {
+
+				_Crud.creationDialogWithErrorHandling.tryCreate(type, initialData, onSuccess);
+			}
+		},
+		tryCreate: (type, nodeData = {}, onSuccess) => {
 
 			let url = Structr.rootUrl + type;
 
@@ -3003,7 +3007,7 @@ let _Crud = {
 
 					_Crud.helpers.ensureTypeInfoIsLoaded(type, () => {
 
-						_Crud.createDialogWithErrorHandling.showCreateError(type, nodeData, responseData, onSuccess);
+						_Crud.creationDialogWithErrorHandling.showCreateError(type, nodeData, responseData, onSuccess);
 					});
 				}
 			});
@@ -3013,7 +3017,7 @@ let _Crud = {
 			let dialogText = _Dialogs.custom.getDialogTextElement();
 
 			if (!_Dialogs.custom.isDialogOpen()) {
-				let elements = _Crud.createDialogWithErrorHandling.showCreateDialog(type, nodeData, onSuccess);
+				let elements = _Crud.creationDialogWithErrorHandling.showCreateDialog(type, nodeData, onSuccess);
 				dialogText = elements.dialogText;
 			}
 
@@ -3030,8 +3034,8 @@ let _Crud = {
 					let key      = error.property;
 					let errorMsg = error.token;
 
-					let inputs = dialogText.querySelectorAll(`td [name="${key}"]`);
-					if (inputs.length > 0) {
+					let cellsForKeyWithError = dialogText.querySelectorAll(`td [name="${key}"]`);
+					if (cellsForKeyWithError.length > 0) {
 
 						let errorText = `"${key}" ${errorMsg.replace(/_/gi, ' ')}`;
 
@@ -3041,16 +3045,22 @@ let _Crud = {
 
 						_Dialogs.custom.showAndHideInfoBoxMessage(errorText, 'error', 4000, 1000);
 
-
 						// add "invalid" highlight from elements
-						for (let input of inputs) {
+						for (let input of cellsForKeyWithError) {
 							input.classList.add('form-input', 'input-invalid');
 						}
 
-						inputs[0].focus();
+						cellsForKeyWithError[0].focus();
 					}
 				}
 			}, 100);
+		},
+		loadTypeInfoAndShowCreateDialog: (type, initialData = {}, onSuccess) => {
+
+			_Crud.helpers.ensureTypeInfoIsLoaded(type, () => {
+
+				_Crud.creationDialogWithErrorHandling.showCreateDialog(type, initialData, onSuccess);
+			});
 		},
 		showCreateDialog: (type, initialData = {}, onSuccess) => {
 
@@ -3064,11 +3074,18 @@ let _Crud = {
 
 			dialog.dialogText.insertAdjacentHTML('beforeend', '<form id="entityForm"><table class="props"><tr><th>Property Name</th><th>Value</th></tr>');
 
+			document.querySelector('#entityForm').addEventListener('submit', e => e.preventDefault());
+
 			let table = dialog.dialogText.querySelector('table');
 
 			let isRelType = _Crud.helpers.isRelType(type);
 
-			for (let key in _Crud.types[type].views.all) {
+			// sort keys to the top, for which initial data has been provided
+			let sortedKeys = Object.keys(initialData);
+			let otherKeys  = Object.keys(_Crud.types[type].views.all).filter(otherKey => !sortedKeys.includes(otherKey));
+			sortedKeys.push(...otherKeys);
+
+			for (let key of sortedKeys) {
 
 				let isBuiltinBaseProperty              = _Crud.helpers.isBaseProperty(key, type);
 				let isBuiltinHiddenProperty            = _Crud.helpers.isHiddenProperty(key, type);
@@ -3103,7 +3120,7 @@ let _Crud = {
 
 				_Helpers.disableElement(dialogSaveButton);
 				let nodeData = _Crud.helpers.getDataFromForm(document.querySelector('#entityForm'));
-				_Crud.createDialogWithErrorHandling.create(type, nodeData, onSuccess);
+				_Crud.creationDialogWithErrorHandling.tryCreate(type, nodeData, onSuccess);
 			});
 
 			return dialog;
@@ -3113,9 +3130,7 @@ let _Crud = {
 			let properties = _Crud.helpers.getPropertiesForTypeAndCurrentView(type);
 
 			let newNodeResponse = await fetch(`${Structr.rootUrl}${newNodeId}/all`, {
-				headers: {
-					Accept: 'application/json; charset=utf-8; properties=' + _Crud.objectList.filterKeys(type, Object.keys(properties)).join(',')
-				}
+				headers: _Helpers.getHeadersForCustomView(_Crud.objectList.filterKeys(type, Object.keys(properties)))
 			});
 
 			if (newNodeResponse.ok) {
@@ -3134,11 +3149,11 @@ let _Crud = {
 	},
 	crudCache: new AsyncObjectCache(async (obj) => {
 
+		let properties = ['id', 'name', 'type', 'contentType', 'isThumbnail', 'isImage', 'tnSmall', 'tnMid'];
+
 		let response = await fetch(Structr.rootUrl + (obj.type ? obj.type + '/' : '') + obj.id + '/' + _Crud.defaultView, {
-			headers: {
-				Accept: 'application/json; charset=utf-8; properties=id,name,type,contentType,isThumbnail,isImage,tnSmall,tnMid'
-			}
-		})
+			headers: _Helpers.getHeadersForCustomView(properties)
+		});
 
 		if (response.ok) {
 
