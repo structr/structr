@@ -18,8 +18,24 @@
  */
 package org.structr.xmpp;
 
+import org.jivesoftware.smack.packet.IQ;
+import org.jivesoftware.smack.packet.Message;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.common.AccessControllable;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Arguments;
+import org.structr.core.api.Methods;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.Tx;
+import org.structr.core.traits.Traits;
+import org.structr.schema.action.EvaluationHints;
+import org.structr.xmpp.traits.definitions.XMPPClientTraitDefinition;
 
 /**
  *
@@ -36,4 +52,64 @@ public interface XMPPClient extends NodeInterface, XMPPInfo {
 	String getPresenceMode();
 	boolean getIsConnected();
 	boolean getIsEnabled();
+
+	// ----- static methods -----
+	static void onMessage(final String uuid, final Message message) {
+
+		final App app = StructrApp.getInstance();
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface client = StructrApp.getInstance().getNodeById("XMPPClient", uuid);
+			if (client != null) {
+
+				final String callbackName   = "onXMPP" + message.getClass().getSimpleName();
+				final AbstractMethod method = Methods.resolveMethod(client.getTraits(), callbackName);
+
+				if (method != null) {
+
+					final Arguments arguments = new Arguments();
+
+					arguments.add("sender",  message.getFrom());
+					arguments.add("message", message.getBody());
+
+					method.execute(SecurityContext.getSuperUserInstance(), client, arguments, new EvaluationHints());
+				}
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			final Logger logger = LoggerFactory.getLogger(XMPPClientTraitDefinition.class);
+			logger.warn("", fex);
+		}
+	}
+
+	static void onRequest(final String uuid, final IQ request) {
+
+		final App app = StructrApp.getInstance();
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface client = StructrApp.getInstance().getNodeById("XMPPClient", uuid);
+			if (client != null) {
+
+				final Traits traits = Traits.of("XMPPRequest");
+
+				app.create("XMPPRequest",
+					new NodeAttribute(traits.key("client"),      client),
+					new NodeAttribute(traits.key("sender"),      request.getFrom()),
+					new NodeAttribute(traits.key("owner"),       client.as(AccessControllable.class).getOwnerNode()),
+					new NodeAttribute(traits.key("content"),     request.toXML("").toString()),
+					new NodeAttribute(traits.key("requestType"), request.getType())
+				);
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			final Logger logger = LoggerFactory.getLogger(XMPPClientTraitDefinition.class);
+			logger.warn("", fex);
+		}
+	}
 }

@@ -18,6 +18,7 @@
  */
 package org.structr.core.traits.operations.accesscontrollable;
 
+import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.operations.FrameworkMethod;
@@ -25,4 +26,5 @@ import org.structr.core.traits.operations.FrameworkMethod;
 public abstract class GetOwnerNode extends FrameworkMethod {
 
 	public abstract Principal getOwnerNode(final NodeInterface nodeInterface);
+	public abstract void setOwner(final NodeInterface nodeInterface, final Principal principal) throws FrameworkException;
 }

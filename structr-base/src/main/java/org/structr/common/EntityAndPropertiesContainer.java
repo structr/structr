@@ -459,6 +459,11 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
+	public void setLastModifiedDate(Date date) throws FrameworkException {
+		throw new UnsupportedOperationException("Not supported by this container.");
+	}
+
+	@Override
 	public Map<String, Object> getTemporaryStorage() {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}

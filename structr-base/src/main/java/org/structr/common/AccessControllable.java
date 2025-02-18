@@ -33,7 +33,7 @@ import java.util.Set;
 public interface AccessControllable extends NodeInterface {
 
 	Principal getOwnerNode();
-	void setOwner(final Principal structrUser);
+	void setOwner(final Principal structrUser) throws FrameworkException;
 
 	List<Security> getSecurityRelationships();
 	Security getSecurityRelationship(final Principal principal);

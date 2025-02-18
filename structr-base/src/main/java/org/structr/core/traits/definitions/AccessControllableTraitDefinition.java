@@ -90,6 +90,11 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 
 					return null;
 				}
+
+				@Override
+				public void setOwner(final NodeInterface nodeInterface, final Principal principal) throws FrameworkException {
+					nodeInterface.setProperty(nodeInterface.getTraits().key("owner"), principal);
+				}
 			},
 
 			IsGranted.class,

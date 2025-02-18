@@ -294,6 +294,10 @@ public class CreationContainer<T extends Comparable> implements GraphObject, Pro
 	}
 
 	@Override
+	public void setLastModifiedDate(final Date date) throws FrameworkException {
+	}
+
+	@Override
 	public void indexPassiveProperties() {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}

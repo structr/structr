@@ -44,6 +44,11 @@ public class AccessControllableTraitWrapper extends AbstractNodeTraitWrapper imp
 	}
 
 	@Override
+	public final void setOwner(final Principal p) throws FrameworkException {
+		traits.getMethod(GetOwnerNode.class).setOwner(wrappedObject, p);
+	}
+
+	@Override
 	public boolean allowedBySchema(final Principal principal, final Permission permission) {
 		return traits.getMethod(AllowedBySchema.class).allowedBySchema(wrappedObject, principal, permission);
 	}

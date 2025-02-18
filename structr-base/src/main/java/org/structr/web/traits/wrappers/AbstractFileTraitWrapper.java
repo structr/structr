@@ -57,7 +57,7 @@ public class AbstractFileTraitWrapper extends AbstractNodeTraitWrapper implement
 	}
 
 	@Override
-	public void setParent(final NodeInterface parent) throws FrameworkException {
+	public void setParent(final Folder parent) throws FrameworkException {
 		wrappedObject.setProperty(traits.key("parent"), parent);
 	}
 
@@ -67,8 +67,15 @@ public class AbstractFileTraitWrapper extends AbstractNodeTraitWrapper implement
 	}
 
 	@Override
-	public NodeInterface getParent() {
-		return wrappedObject.getProperty(traits.key("parent"));
+	public Folder getParent() {
+
+		final NodeInterface node = wrappedObject.getProperty(traits.key("parent"));
+		if (node != null) {
+
+			return node.as(Folder.class);
+		}
+
+		return null;
 	}
 
 	@Override

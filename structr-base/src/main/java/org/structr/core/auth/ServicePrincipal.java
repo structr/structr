@@ -603,6 +603,10 @@ public class ServicePrincipal implements Principal {
 	}
 
 	@Override
+	public void setLastModifiedDate(final Date date) throws FrameworkException {
+	}
+
+	@Override
 	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 
 	}
