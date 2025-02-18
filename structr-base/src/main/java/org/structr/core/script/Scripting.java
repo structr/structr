@@ -392,8 +392,6 @@ public class Scripting {
 
 				if (ex.isHostException() && ex.asHostException() instanceof RuntimeException) {
 
-					reportError(actionContext.getSecurityContext(), entity, ex, snippet);
-
 					// Only report error, if exception is not an already logged AssertException
 					if (ex.isHostException() && !(ex.asHostException() instanceof AlreadyLoggedAssertException)) {
 						reportError(actionContext.getSecurityContext(), entity, ex, snippet);
@@ -410,10 +408,11 @@ public class Scripting {
 					} else {
 						throw ex.asHostException();
 					}
-				}
+				} else {
 
-				reportError(actionContext.getSecurityContext(), entity, ex, snippet);
-				throw new FrameworkException(422, "Server-side scripting error", ex);
+					reportError(actionContext.getSecurityContext(), entity, ex, snippet);
+					throw new FrameworkException(422, "Server-side scripting error", ex);
+				}
 			}
 
 			context.leave();

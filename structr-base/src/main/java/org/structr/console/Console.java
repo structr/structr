@@ -19,6 +19,7 @@
 package org.structr.console;
 
 import org.apache.commons.lang3.StringUtils;
+import org.structr.api.SyntaxErrorException;
 import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
@@ -248,6 +249,9 @@ public class Console {
 			writable.println();
 
 			tx.success();
+		} catch (SyntaxErrorException see) {
+
+			writable.println("Unexpected syntax error in console command. " + see.getMessage());
 		}
 
 	}

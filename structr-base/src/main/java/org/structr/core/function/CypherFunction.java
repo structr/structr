@@ -18,6 +18,7 @@
  */
 package org.structr.core.function;
 
+import org.structr.api.SyntaxErrorException;
 import org.structr.api.UnknownClientException;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
@@ -25,6 +26,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NativeQueryCommand;
+import org.structr.core.graph.Tx;
 import org.structr.schema.action.ActionContext;
 
 import java.util.LinkedHashMap;
@@ -48,7 +50,7 @@ public class CypherFunction extends CoreFunction {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		try {
+		try(final Tx tx = StructrApp.getInstance().tx()) {
 
 			if (sources.length < 1) {
 				throw ArgumentCountException.tooFew(sources.length, 1);
@@ -112,7 +114,9 @@ public class CypherFunction extends CoreFunction {
 				nqc.setDontFlushCachesIfKeywordsInQuery(dontFlushCaches);
 			}
 
-			return nqc.execute(query, params);
+			tx.success();
+			final Iterable result = nqc.execute(query, params);
+			return result;
 
 		} catch (ArgumentNullException pe) {
 
@@ -123,10 +127,12 @@ public class CypherFunction extends CoreFunction {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
+		} catch (SyntaxErrorException ex) {
 
-		} catch (UnknownClientException uce) {
+			throw new FrameworkException(422, "%s: SyntaxError (Cause: %s)".formatted(getReplacement(), ex.getMessage()));
+		} catch (UnknownClientException ex) {
 
-			logException(uce, "{}: Exception in '{}' for parameters: {} (Cause: {})", new Object[] { getReplacement(), caller, sources, uce.getMessage() });
+			logException(ex, "{}: Exception in '{}' for parameters: {} (Cause: {})", new Object[] { getReplacement(), caller, sources, ex.getMessage() });
 			return null;
 		}
 	}
