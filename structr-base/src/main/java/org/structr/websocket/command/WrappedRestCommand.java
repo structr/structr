@@ -44,7 +44,7 @@ import java.util.Map;
 
 public class WrappedRestCommand extends AbstractCommand {
 
-	private static final Logger logger = LoggerFactory.getLogger(WrapContentCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(WrappedRestCommand.class.getName());
 
 	static {
 
