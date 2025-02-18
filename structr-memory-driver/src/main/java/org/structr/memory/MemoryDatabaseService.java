@@ -60,6 +60,15 @@ public class MemoryDatabaseService extends AbstractDatabaseService {
 	}
 
 	@Override
+	public Transaction beginTx(boolean forceNew) {
+		if (!forceNew) {
+			return beginTx();
+		} else {
+			return new MemoryTransaction(this);
+		}
+	}
+
+	@Override
 	public Transaction beginTx() {
 		return beginTx(-1);
 	}
@@ -236,6 +245,11 @@ public class MemoryDatabaseService extends AbstractDatabaseService {
 
 	@Override
 	public <T> T execute(final NativeQuery<T> nativeQuery) {
+		throw new UnsupportedOperationException("Not supported.");
+	}
+
+	@Override
+	public <T> T execute(final NativeQuery<T> nativeQuery, final Transaction tx) {
 		throw new UnsupportedOperationException("Not supported.");
 	}
 
