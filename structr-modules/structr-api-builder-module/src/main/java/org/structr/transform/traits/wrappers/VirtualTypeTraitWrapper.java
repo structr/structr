@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.transform;
+package org.structr.transform.traits.wrappers;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -33,8 +33,11 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.wrappers.GraphObjectTraitWrapper;
+import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.schema.action.ActionContext;
+import org.structr.transform.Transformation;
+import org.structr.transform.VirtualProperty;
+import org.structr.transform.VirtualType;
 
 import java.util.*;
 import java.util.function.Function;

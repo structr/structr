@@ -22,6 +22,7 @@ import com.google.gson.Gson;
 import com.sun.mail.util.BASE64DecoderStream;
 import com.sun.mail.util.MailConnectException;
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.IntegerSetting;
@@ -29,23 +30,23 @@ import org.structr.api.config.Setting;
 import org.structr.api.config.Settings;
 import org.structr.api.config.StringSetting;
 import org.structr.api.service.*;
+import org.structr.common.AccessControllable;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.helper.AdvancedMailContainer;
+import org.structr.common.helper.DynamicMailAttachment;
 import org.structr.common.mail.MailServiceInterface;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
-import org.structr.mail.entity.EMailMessage;
+import org.structr.core.traits.Traits;
 import org.structr.mail.entity.Mailbox;
 import org.structr.schema.SchemaService;
 import org.structr.web.common.FileHelper;
-import org.structr.web.entity.File;
-import org.structr.web.entity.Image;
 
 import javax.activation.DataSource;
 import javax.mail.*;
@@ -58,8 +59,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.structr.common.helper.AdvancedMailContainer;
-import org.structr.common.helper.DynamicMailAttachment;
 
 @ServiceDependency(SchemaService.class)
 @StopServiceForMaintenanceMode
@@ -227,22 +226,24 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 
 		try (final Tx tx = app.tx()) {
 
+			final Traits traits = Traits.of("EmailMessage");
 			PropertyMap props = new PropertyMap();
-			props.put(EMailMessage.fromProperty,           amc.getDisplayName(amc.getFromName(), amc.getFromAddress()));
-			props.put(EMailMessage.fromMailProperty,       amc.getFromAddress());
-			props.put(EMailMessage.toProperty,             amc.getCombinedDisplayNames(amc.getTo()));
-			props.put(EMailMessage.subjectProperty,        amc.getSubject());
-			props.put(EMailMessage.contentProperty,        amc.getTextContent());
-			props.put(EMailMessage.htmlContentProperty,    amc.getHtmlContent());
-			props.put(EMailMessage.sentDateProperty,       new Date());
 
-			props.put(EMailMessage.messageIdProperty,      messageId);
-			props.put(EMailMessage.inReplyToProperty,      amc.getInReplyTo());
+			props.put(traits.key("from"),           amc.getDisplayName(amc.getFromName(), amc.getFromAddress()));
+			props.put(traits.key("fromMail"),       amc.getFromAddress());
+			props.put(traits.key("to"),             amc.getCombinedDisplayNames(amc.getTo()));
+			props.put(traits.key("subject"),        amc.getSubject());
+			props.put(traits.key("content"),        amc.getTextContent());
+			props.put(traits.key("htmlContent"),    amc.getHtmlContent());
+			props.put(traits.key("sentDate"),       new Date());
 
-			props.put(EMailMessage.headerProperty,         new Gson().toJson(amc.getCustomHeaders()));
+			props.put(traits.key("messageId"),      messageId);
+			props.put(traits.key("inReplyTo"),      amc.getInReplyTo());
 
-			props.put(EMailMessage.replyToProperty,        amc.getCombinedDisplayNames(amc.getReplyTo()));
-			props.put(EMailMessage.bccProperty,            amc.getCombinedDisplayNames(amc.getBcc()));
+			props.put(traits.key("header"),         new Gson().toJson(amc.getCustomHeaders()));
+
+			props.put(traits.key("replyTo"),        amc.getCombinedDisplayNames(amc.getReplyTo()));
+			props.put(traits.key("bcc"),            amc.getCombinedDisplayNames(amc.getBcc()));
 
 
 			if (amc.getAttachments().size() > 0) {
@@ -251,14 +252,14 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 
 				for (final DynamicMailAttachment attachment : amc.getAttachments()) {
 
-					final File savedFile = handleOutgoingMailAttachment(securityContext, attachment);
+					final NodeInterface savedFile = handleOutgoingMailAttachment(securityContext, attachment);
 
 					if (savedFile != null) {
 						concreteAttachedFiles.add(savedFile);
 					}
 				}
 
-				props.put(EMailMessage.attachedFilesProperty, concreteAttachedFiles);
+				props.put(traits.key("attachedFiles"), concreteAttachedFiles);
 			}
 
 			// not setting folder/receivedDate
@@ -277,12 +278,12 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 		return outgoingMessage;
 	}
 
-	private File handleOutgoingMailAttachment(final SecurityContext securityContext, final DynamicMailAttachment dma) {
+	private NodeInterface handleOutgoingMailAttachment(final SecurityContext securityContext, final DynamicMailAttachment dma) {
 
-		File file = null;
+		NodeInterface file = null;
 
 		final DataSource ds   = dma.getDataSource();
-		final Class fileClass = ds.getContentType().toLowerCase().startsWith("image/") ? Image.class : File.class;
+		final String fileType = ds.getContentType().toLowerCase().startsWith("image/") ? "Image" : "File";
 
 		final App app = StructrApp.getInstance();
 
@@ -290,13 +291,14 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 
 			final String path = getStoragePath("/outgoing", new Date());
 
-			org.structr.web.entity.Folder fileFolder = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), path);
+			NodeInterface fileFolder = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), path);
 
-			file = FileHelper.createFile(SecurityContext.getSuperUserInstance(), ds.getInputStream(), ds.getContentType(), fileClass, dma.getName(), fileFolder);
+			file = FileHelper.createFile(SecurityContext.getSuperUserInstance(), ds.getInputStream(), ds.getContentType(), fileType, dma.getName(), fileFolder.as(org.structr.web.entity.Folder.class));
 
 			final Principal owner = securityContext.getUser(false);
 			if (owner != null) {
-				file.setProperty(AbstractNode.owner, securityContext.getUser(false));
+
+				file.as(AccessControllable.class).setProperty(Traits.of("NodeInterface").key("owner"), securityContext.getUser(false));
 			}
 
 			tx.success();
@@ -324,19 +326,19 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 	}
 
 	// Returns attachment UUID to append to the mail to be created
-	private File extractFileAttachment(final Mailbox mb, final Message m, final Part p) {
+	private NodeInterface extractFileAttachment(final Mailbox mb, final Message m, final Part p) {
 
-		File file = null;
+		NodeInterface file = null;
 
 		try {
 
-			final Class fileClass = p.getContentType().toLowerCase().startsWith("image/") ? Image.class : File.class;
+			final String fileType = p.getContentType().toLowerCase().startsWith("image/") ? "Image" : "File";
 
 			final App app = StructrApp.getInstance();
 
 			try (final Tx tx = app.tx()) {
 
-				org.structr.web.entity.Folder fileFolder = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), getStoragePath(mb.getUuid(), m.getReceivedDate()));
+				NodeInterface fileFolder = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), getStoragePath(mb.getUuid(), m.getReceivedDate()));
 
 				try {
 
@@ -352,12 +354,12 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 
 					}
 
-					file = FileHelper.createFile(SecurityContext.getSuperUserInstance(), p.getInputStream(), p.getContentType(), fileClass, fileName, fileFolder);
+					file = FileHelper.createFile(SecurityContext.getSuperUserInstance(), p.getInputStream(), p.getContentType(), fileType, fileName, fileFolder.as(org.structr.web.entity.Folder.class));
 
 				} catch (FrameworkException ex) {
 
 					logger.warn("EMail in mailbox[" + mb.getUuid() + "] attachment has invalid name. Using random UUID as fallback.");
-					file = FileHelper.createFile(SecurityContext.getSuperUserInstance(), p.getInputStream(), p.getContentType(), fileClass, NodeServiceCommand.getNextUuid(), fileFolder);
+					file = FileHelper.createFile(SecurityContext.getSuperUserInstance(), p.getInputStream(), p.getContentType(), fileType, NodeServiceCommand.getNextUuid(), fileFolder.as(org.structr.web.entity.Folder.class));
 				}
 
 				tx.success();
@@ -376,7 +378,7 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 		return file;
 	}
 
-	private Map<String,String> handleMultipart(final Mailbox mb, final Message message, Multipart p, List<File> attachments) {
+	private Map<String,String> handleMultipart(final Mailbox mb, final Message message, final Multipart p, final List<NodeInterface> attachments) {
 
 		final Map<String,String> result = new HashMap<>();
 
@@ -403,7 +405,7 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 
 				} else if (Part.ATTACHMENT.equalsIgnoreCase(part.getDisposition()) || (part.getContentType().toLowerCase().contains("image/") && Part.INLINE.equalsIgnoreCase(part.getDisposition())) || part.getContentType().toLowerCase().contains("application/pdf")) {
 
-					final File file = extractFileAttachment(mb, message, part);
+					final NodeInterface file = extractFileAttachment(mb, message, part);
 
 					if (file != null) {
 
@@ -466,7 +468,7 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 		try (Tx tx = app.tx()) {
 
 			// Fetch mails for each mailbox found
-			app.nodeQuery("Mailbox").getResultStream().forEach(this::fetchMails);
+			app.nodeQuery("Mailbox").getResultStream().forEach(n -> fetchMails(n.as(Mailbox.class)));
 			tx.success();
 
 		} catch (FrameworkException ex) {
@@ -638,14 +640,15 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 						final String bcc  = message.getRecipients(Message.RecipientType.BCC) != null ? Arrays.stream(message.getRecipients(Message.RecipientType.BCC)).map((a) -> a != null ? decodeText(a.toString()) : "").reduce("", (a, b) -> a.equals("") ? b : a + "," + b) : "";
 
 						// Allow mail instance class to be overriden by custom types to enable special mail handling
-						Class<? extends EMailMessage> entityClass = EMailMessage.class;
+						String entityType   = "EMailMessage";
+						String overrideType = mailbox.getOverrideMailEntityType();
 
-						final String entityType = mailbox.getOverrideMailEntityType();
-						if (entityType != null && entityType.length() > 0) {
-							Class overrideClass = StructrApp.getConfiguration().getNodeEntityClass(entityType);
-							if (overrideClass != null && EMailMessage.class.isAssignableFrom(overrideClass)) {
+						if (StringUtils.isNotBlank(overrideType)) {
 
-								entityClass = overrideClass;
+							if (Traits.exists(overrideType) && Traits.of(overrideType).contains("EMailMessage")) {
+
+								entityType = overrideType;
+
 							} else {
 
 								logger.warn("Mailbox[" + mailbox.getUuid() + "] has invalid overrideMailEntityType set. Given type is not found or does not extend EMailMessage.");
@@ -668,46 +671,47 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 							headers.put(header.getName(), header.getValue());
 						}
 
-						EMailMessage existingEMailMessage = null;
+						final Traits traits = Traits.of(entityType);
+						NodeInterface existingEMailMessage = null;
 
 						// Try to match via messageId first
 						if (messageId != null) {
-							existingEMailMessage = app.nodeQuery(entityClass).and(EMailMessage.messageIdProperty, messageId).getFirst();
+							existingEMailMessage = app.nodeQuery(entityType).and(traits.key("messageId"), messageId).getFirst();
 						}
 						// If messageId can't be matched, use fallback
 						if (existingEMailMessage == null) {
-							existingEMailMessage = app.nodeQuery(entityClass).and(EMailMessage.subjectProperty, message.getSubject()).and(EMailMessage.fromProperty, from).and(EMailMessage.toProperty, to).and(EMailMessage.receivedDateProperty, message.getReceivedDate()).and(EMailMessage.sentDateProperty, message.getSentDate()).getFirst();
+							existingEMailMessage = app.nodeQuery(entityType).and(traits.key("subject"), message.getSubject()).and(traits.key("from"), from).and(traits.key("to"), to).and(traits.key("receivedDate"), message.getReceivedDate()).and(traits.key("sentDate"), message.getSentDate()).getFirst();
 						}
 
 						if (existingEMailMessage == null) {
 
-							pm.put(EMailMessage.subjectProperty, message.getSubject());
-							pm.put(EMailMessage.fromProperty, from);
+							pm.put(traits.key("subject"), message.getSubject());
+							pm.put(traits.key("from"), from);
 
 
 							final Pattern pattern = Pattern.compile(".* <(.*)>");
 							final Matcher matcher = pattern.matcher(from);
 							if (matcher.matches()) {
-								pm.put(EMailMessage.fromMailProperty, matcher.group(1));
+								pm.put(traits.key("fromMail"), matcher.group(1));
 							} else {
-								pm.put(EMailMessage.fromMailProperty, from);
+								pm.put(traits.key("fromMail"), from);
 							}
 
-							pm.put(EMailMessage.toProperty, to);
-							pm.put(EMailMessage.ccProperty, cc);
-							pm.put(EMailMessage.bccProperty, bcc);
-							pm.put(EMailMessage.folderProperty, message.getFolder().getFullName());
-							pm.put(EMailMessage.receivedDateProperty, message.getReceivedDate());
-							pm.put(EMailMessage.sentDateProperty, message.getSentDate());
-							pm.put(EMailMessage.mailboxProperty, mailbox);
-							pm.put(EMailMessage.headerProperty, gson.toJson(headers));
+							pm.put(traits.key("to"), to);
+							pm.put(traits.key("cc"), cc);
+							pm.put(traits.key("bcc"), bcc);
+							pm.put(traits.key("folder"), message.getFolder().getFullName());
+							pm.put(traits.key("receivedDate"), message.getReceivedDate());
+							pm.put(traits.key("sentDate"), message.getSentDate());
+							pm.put(traits.key("mailbox"), mailbox);
+							pm.put(traits.key("header"), gson.toJson(headers));
 
 							if (messageId != null) {
-								pm.put(EMailMessage.messageIdProperty, messageId);
+								pm.put(traits.key("messageId"), messageId);
 							}
 
 							if (inReplyTo != null) {
-								pm.put(EMailMessage.inReplyToProperty, inReplyTo);
+								pm.put(traits.key("inReplyTo"), inReplyTo);
 							}
 
 							// Handle content extraction
@@ -715,7 +719,7 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 							String htmlContent = null;
 							final Object contentObj = message.getContent();
 
-							final List<File> attachments = new ArrayList<>();
+							final List<NodeInterface> attachments = new ArrayList<>();
 
 							if (message.getContentType().contains("multipart")) {
 
@@ -732,11 +736,11 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 								htmlContent = contentObj.toString();
 							}
 
-							pm.put(EMailMessage.contentProperty, content);
-							pm.put(EMailMessage.htmlContentProperty, htmlContent);
-							pm.put(EMailMessage.attachedFilesProperty, attachments);
+							pm.put(traits.key("content"), content);
+							pm.put(traits.key("htmlContent"), htmlContent);
+							pm.put(traits.key("attachedFiles"), attachments);
 
-							app.create(entityClass, pm);
+							app.create(entityType, pm);
 						}
 					}
 

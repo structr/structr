@@ -23,13 +23,14 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
-import org.structr.storage.StorageProviderFactory;
+import org.structr.core.traits.Traits;
 import org.structr.files.ssh.filesystem.StructrFileAttributes;
 import org.structr.files.ssh.filesystem.StructrFilesystem;
 import org.structr.files.ssh.filesystem.StructrPath;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
@@ -113,8 +114,8 @@ public class StructrFilePath extends StructrPath {
 	@Override
 	public SeekableByteChannel newChannel(final Set<? extends OpenOption> options, final FileAttribute<?>... attrs) throws IOException {
 
-		AbstractFile actualFile   = getActualFile();
-		SeekableByteChannel channel       = null;
+		NodeInterface actualFile    = getActualFile();
+		SeekableByteChannel channel = null;
 
 		final boolean create      = options.contains(StandardOpenOption.CREATE);
 		final boolean createNew   = options.contains(StandardOpenOption.CREATE_NEW);
@@ -148,9 +149,9 @@ public class StructrFilePath extends StructrPath {
 					}
 				}
 
-				if (actualFile != null && actualFile instanceof File) {
+				if (actualFile != null && actualFile.is("File")) {
 
-					final File file = (File)actualFile;
+					final File file = actualFile.as(File.class);
 
 					channel = StorageProviderFactory.getStorageProvider(file).getSeekableByteChannel(options);
 				}
@@ -159,7 +160,7 @@ public class StructrFilePath extends StructrPath {
 
 			} catch (FrameworkException fex) {
 
-				logger.warn("Unable to open file channel for writing of {}: {}", new Object[] { actualFile.getPath(), fex.getMessage() });
+				logger.warn("Unable to open file channel for writing of {}: {}", actualFile.as(File.class).getPath(), fex.getMessage());
 			}
 
 		} else {
@@ -168,19 +169,19 @@ public class StructrFilePath extends StructrPath {
 
 				try (final Tx tx = StructrApp.getInstance(fs.getSecurityContext()).tx()) {
 
-					channel = StorageProviderFactory.getStorageProvider(actualFile).getSeekableByteChannel(options);
+					channel = StorageProviderFactory.getStorageProvider(actualFile.as(File.class)).getSeekableByteChannel(options);
 
 					tx.success();
 
 				} catch (FrameworkException fex) {
 
-					logger.warn("Unable to open file channel for reading of {}: {}", new Object[] { actualFile.getPath(), fex.getMessage() });
+					logger.warn("Unable to open file channel for reading of {}: {}", actualFile.as(File.class).getPath(), fex.getMessage());
 
 				}
 
 			} else {
 
-				throw new FileNotFoundException("File " + actualFile.getPath() + " does not exist.");
+				throw new FileNotFoundException("File " + actualFile.as(File.class).getPath() + " does not exist.");
 			}
 		}
 
@@ -193,8 +194,8 @@ public class StructrFilePath extends StructrPath {
 		final App app = StructrApp.getInstance(fs.getSecurityContext());
 		try (final Tx tx = app.tx()) {
 
-			final String name = getFileName().toString();
-			final Folder newFolder = app.create("Folder", new NodeAttribute<>(AbstractNode.name, name));
+			final String name             = getFileName().toString();
+			final NodeInterface newFolder = app.create("Folder", new NodeAttribute<>(Traits.of("Folder").key("name"), name));
 
 			// set parent folder
 			setParentFolder(newFolder);
@@ -203,7 +204,7 @@ public class StructrFilePath extends StructrPath {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("Unable to delete file {}: {}", new Object[] { getActualFile().getPath(), fex.getMessage() } );
+			logger.warn("Unable to delete file {}: {}", getActualFile().as(File.class).getPath(), fex.getMessage());
 		}
 	}
 
@@ -214,12 +215,12 @@ public class StructrFilePath extends StructrPath {
 
 		try (final Tx tx = app.tx()) {
 
-			final AbstractFile actualFile = getActualFile();
+			final NodeInterface actualFile = getActualFile();
 
 			// if a folder is to be deleted, check contents
-			if (actualFile instanceof Folder && ((Folder)actualFile).getChildren().iterator().hasNext()) {
+			if (actualFile.is("Folder") && actualFile.as(Folder.class).getChildren().iterator().hasNext()) {
 
-				throw new DirectoryNotEmptyException(getActualFile().getPath());
+				throw new DirectoryNotEmptyException(getActualFile().as(File.class).getPath());
 
 			} else {
 
@@ -229,7 +230,7 @@ public class StructrFilePath extends StructrPath {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.warn("Unable to delete file {}: {}", new Object[] { getActualFile().getPath(), fex.getMessage() } );
+			logger.warn("Unable to delete file {}: {}", getActualFile().as(File.class).getPath(), fex.getMessage());
 		}
 	}
 
@@ -241,10 +242,10 @@ public class StructrFilePath extends StructrPath {
 	@Override
 	public Map<String, Object> getAttributes(final String attributes, final LinkOption... options) throws IOException {
 
-		final AbstractFile actualFile = getActualFile();
+		final NodeInterface actualFile = getActualFile();
 		if (actualFile != null) {
 
-			return new StructrFileAttributes(fs.getSecurityContext(), actualFile).toMap(attributes);
+			return new StructrFileAttributes(fs.getSecurityContext(), actualFile.as(File.class)).toMap(attributes);
 		}
 
 		throw new NoSuchFileException(toString());
@@ -253,10 +254,10 @@ public class StructrFilePath extends StructrPath {
 	@Override
 	public <T extends BasicFileAttributes> T getAttributes(Class<T> type, LinkOption... options) throws IOException {
 
-		final AbstractFile actualFile = getActualFile();
+		final NodeInterface actualFile = getActualFile();
 		if (actualFile != null) {
 
-			return (T)new StructrFileAttributes(fs.getSecurityContext(), actualFile);
+			return (T)new StructrFileAttributes(fs.getSecurityContext(), actualFile.as(File.class));
 		}
 
 		throw new NoSuchFileException(toString());
@@ -279,8 +280,7 @@ public class StructrFilePath extends StructrPath {
 
 			final App app                = StructrApp.getInstance(fs.getSecurityContext());
 			final StructrFilePath other  = (StructrFilePath)target;
-			final AbstractFile otherFile = other.getActualFile();
-			final AbstractFile thisFile  = getActualFile();
+			final NodeInterface thisFile = getActualFile();
 			final String targetName      = target.getFileName().toString();
 
 			try (final Tx tx = app.tx()) {
@@ -290,16 +290,17 @@ public class StructrFilePath extends StructrPath {
 				if (otherParent instanceof StructrFilesRootPath) {
 
 					// rename & move (parent is null: root path)
-					thisFile.setParent(null);
-					thisFile.setProperty(AbstractNode.name, targetName);
+					thisFile.as(File.class).setParent(null);
+					thisFile.setName(targetName);
+
 				} else {
 
-					final StructrFilePath parent  = (StructrFilePath)other.getParent();
-					final Folder newParentFolder  = (Folder)parent.getActualFile();
+					final StructrFilePath parent        = (StructrFilePath)other.getParent();
+					final NodeInterface newParentFolder = parent.getActualFile();
 
 					// rename & move
-					thisFile.setParent(newParentFolder);
-					thisFile.setProperty(AbstractNode.name, targetName);
+					thisFile.as(File.class).setParent(newParentFolder);
+					thisFile.setName(targetName);
 				}
 
 				tx.success();
@@ -322,15 +323,16 @@ public class StructrFilePath extends StructrPath {
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
-	public AbstractFile getActualFile() {
+	public NodeInterface getActualFile() {
 
 		final String filePath = toString();
 		final App app         = StructrApp.getInstance(fs.getSecurityContext());
+		final Traits traits   = Traits.of("AbstractFile");
 
 		try (final Tx tx = app.tx()) {
 
 			// remove /files from path since it is a virtual directory
-			final AbstractFile actualFile = app.nodeQuery("AbstractFile").and(StructrApp.key(AbstractFile.class, "path"), filePath).sort(AbstractNode.name).getFirst();
+			final NodeInterface actualFile = app.nodeQuery("AbstractFile").and(traits.key( "path"), filePath).sort(traits.key("name")).getFirst();
 
 			tx.success();
 
@@ -344,13 +346,13 @@ public class StructrFilePath extends StructrPath {
 		return null;
 	}
 
-	public File createNewFile() throws FrameworkException, IOException {
+	public NodeInterface createNewFile() throws FrameworkException, IOException {
 
 		final String name        = getFileName().toString();
 		final byte[] data        = new byte[0];
 		final String contentType = null;
 
-		return FileHelper.createFile(fs.getSecurityContext(), data, contentType, File.class, name, false);
+		return FileHelper.createFile(fs.getSecurityContext(), data, contentType, "File", name, false);
 	}
 
 	@Override
@@ -359,16 +361,17 @@ public class StructrFilePath extends StructrPath {
 	}
 
 	// ----- private methods -----
-	private void setParentFolder(final AbstractFile file) throws FrameworkException {
+	private void setParentFolder(final NodeInterface file) throws FrameworkException {
 
 		final Path parentPath = getParent();
+
 		if (parentPath != null && parentPath instanceof StructrFilePath) {
 
 			final StructrFilePath parentFilePath = (StructrFilePath)parentPath;
-			final Folder parentFolder = (Folder)parentFilePath.getActualFile();
+			final NodeInterface parentFolder     = parentFilePath.getActualFile();
 			if (parentFolder != null) {
 
-				file.setParent(parentFolder);
+				file.as(AbstractFile.class).setParent(parentFolder);
 			}
 		}
 	}

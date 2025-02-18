@@ -16,32 +16,32 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.feed.entity.relationship;
+package org.structr.feed.traits.relationship;
 
-import org.structr.core.entity.OneToMany;
 import org.structr.core.entity.Relation;
-import org.structr.feed.entity.FeedItem;
-import org.structr.feed.entity.FeedItemEnclosure;
+import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.feed.entity.AbstractFeedItem;
+import org.structr.feed.traits.wrappers.AbstractFeedItemTraitWrapper;
 
-public class FeedItemFEED_ITEM_ENCLOSURESFeedItemEnclosure extends OneToMany<FeedItem, FeedItemEnclosure> {
+import java.util.Map;
 
-	@Override
-	public Class<FeedItem> getSourceType() {
-		return FeedItem.class;
+public class AbstractFeedItemTraitDefinition extends AbstractNodeTraitDefinition {
+
+	public AbstractFeedItemTraitDefinition() {
+		super("AbstractFeedItem");
 	}
 
 	@Override
-	public Class<FeedItemEnclosure> getTargetType() {
-		return FeedItemEnclosure.class;
+	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
+		return Map.of(
+			AbstractFeedItem.class, (traits, node) -> new AbstractFeedItemTraitWrapper(traits, node)
+		);
 	}
 
 	@Override
-	public String name() {
-		return "FEED_ITEM_ENCLOSURES";
-	}
-
-	@Override
-	public int getCascadingDeleteFlag() {
-		return Relation.SOURCE_TO_TARGET;
+	public Relation getRelation() {
+		return null;
 	}
 }

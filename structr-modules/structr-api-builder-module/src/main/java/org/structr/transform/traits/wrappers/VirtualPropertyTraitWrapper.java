@@ -16,12 +16,14 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.transform;
+package org.structr.transform.traits.wrappers;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.wrappers.GraphObjectTraitWrapper;
+import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
+import org.structr.transform.Transformation;
+import org.structr.transform.VirtualProperty;
 
 public class VirtualPropertyTraitWrapper extends AbstractNodeTraitWrapper implements VirtualProperty {
 

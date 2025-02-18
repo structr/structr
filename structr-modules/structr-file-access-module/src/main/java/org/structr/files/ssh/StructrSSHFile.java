@@ -20,11 +20,14 @@ package org.structr.files.ssh;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.Traits;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
@@ -177,13 +180,15 @@ public class StructrSSHFile implements Path {
 
 	protected Iterable<Folder> getFolders() throws FrameworkException {
 
-		if (actualFile != null && parent != null && actualFile instanceof Folder) {
+		if (actualFile != null && parent != null && actualFile.is("Folder")) {
 
-			return ((Folder)actualFile).getFolders();
+			return actualFile.as(Folder.class).getFolders();
 
 		} else {
 
-			return StructrApp.getInstance(getSecurityContext()).nodeQuery("Folder").and(StructrApp.key(AbstractFile.class, "parent"), null).getAsList();
+			final Iterable<NodeInterface> folders = StructrApp.getInstance(getSecurityContext()).nodeQuery("Folder").and(Traits.of("AbstractFile").key("parent"), null).getResultStream();
+
+			return Iterables.map(n -> n.as(Folder.class), folders);
 		}
 	}
 
@@ -191,11 +196,13 @@ public class StructrSSHFile implements Path {
 
 		if (actualFile != null && parent != null && actualFile instanceof Folder) {
 
-			return ((Folder)actualFile).getFiles();
+			return actualFile.as(Folder.class).getFiles();
 
 		} else {
 
-			return StructrApp.getInstance(getSecurityContext()).nodeQuery("File").and(StructrApp.key(AbstractFile.class, "parent"), null).getAsList();
+			final Iterable<NodeInterface> files = StructrApp.getInstance(getSecurityContext()).nodeQuery("File").and(Traits.of("AbstractFile").key("parent"), null).getResultStream();
+
+			return Iterables.map(n -> n.as(File.class), files);
 		}
 	}
 

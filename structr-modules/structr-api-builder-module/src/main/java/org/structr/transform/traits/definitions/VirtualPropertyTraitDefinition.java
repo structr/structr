@@ -16,16 +16,19 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.transform;
+package org.structr.transform.traits.definitions;
 
+import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
-import org.structr.core.traits.definitions.AbstractTraitDefinition;
+import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.transform.VirtualProperty;
+import org.structr.transform.traits.wrappers.VirtualPropertyTraitWrapper;
 
 import java.util.Map;
 import java.util.Set;
@@ -33,26 +36,18 @@ import java.util.Set;
 /**
  *
  */
-public class VirtualTypeTraitDefinition extends AbstractNodeTraitDefinition {
+public class VirtualPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 
-	private static final Property<Iterable<NodeInterface>> propertiesProperty = new EndNodes("properties", "VirtualTypevirtualPropertyVirtualProperty");
-	private static final Property<String> filterExpressionProperty            = new StringProperty("filterExpression");
-	private static final Property<String> sourceTypeProperty                  = new StringProperty("sourceType");
-	private static final Property<Integer> positionProperty                   = new IntProperty("position").indexed();
+	public static final Property<NodeInterface> virtualType = new StartNode("virtualType", "VirtualTypevirtualPropertyVirtualProperty");
+	public static final Property<Integer> position          = new IntProperty("position").indexed();
+	public static final Property<String> sourceName         = new StringProperty("sourceName");
+	public static final Property<String> targetName         = new StringProperty("targetName");
+	public static final Property<String> inputFunction      = new StringProperty("inputFunction");
+	public static final Property<String> outputFunction     = new StringProperty("outputFunction");
 
-	public VirtualTypeTraitDefinition() {
-		super("VirtualType");
+	public VirtualPropertyTraitDefinition() {
+		super("VirtualProperty");
 	}
-
-	/*
-	public static final View defaultView = new View(VirtualType.class, PropertyView.Public,
-		name, filterExpressionProperty, sourceTypeProperty, positionProperty, propertiesProperty
-	);
-
-	public static final View uiView = new View(VirtualType.class, PropertyView.Ui,
-		filterExpressionProperty, sourceTypeProperty, positionProperty, propertiesProperty
-	);
-	*/
 
 	@Override
 	public Map<Class, LifecycleMethod> getLifecycleMethods() {
@@ -73,7 +68,7 @@ public class VirtualTypeTraitDefinition extends AbstractNodeTraitDefinition {
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
 		return Map.of(
-			VirtualType.class, (traits, node) -> new VirtualTypeTraitWrapper(traits, node)
+			VirtualProperty.class, (traits, node) -> new VirtualPropertyTraitWrapper(traits, node)
 		);
 	}
 
@@ -81,10 +76,27 @@ public class VirtualTypeTraitDefinition extends AbstractNodeTraitDefinition {
 	public Set<PropertyKey> getPropertyKeys() {
 
 		return Set.of(
-			propertiesProperty,
-			filterExpressionProperty,
-			sourceTypeProperty,
-			positionProperty
+			virtualType,
+			position,
+			sourceName,
+			targetName,
+			inputFunction,
+			outputFunction
+		);
+	}
+
+	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+			PropertyView.Public,
+			newSet(
+				"virtualType", "sourceName", "targetName", "inputFunction", "outputFunction", "position"
+			),
+			PropertyView.Ui,
+			newSet(
+				"virtualType", "sourceName", "targetName", "inputFunction", "outputFunction", "position"
+			)
 		);
 	}
 

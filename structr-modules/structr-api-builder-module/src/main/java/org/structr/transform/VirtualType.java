@@ -21,7 +21,7 @@ package org.structr.transform;
 import org.structr.common.ResultTransformer;
 import org.structr.core.graph.NodeInterface;
 
-public interface VirtualType extends NodeTrait, ResultTransformer {
+public interface VirtualType extends NodeInterface, ResultTransformer {
 
 	String getSourceType();
 	Integer getPosition();

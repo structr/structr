@@ -355,6 +355,11 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 		return getProperty(typeHandler.key("lastModifiedDate"));
 	}
 
+	@Override
+	public final void setLastModifiedDate(final Date date) throws FrameworkException {
+		setProperty(typeHandler.key("lastModifiedDate"), date);
+	}
+
 	/**
 	 * Returns the property set for the given view as an Iterable.
 	 * <p>

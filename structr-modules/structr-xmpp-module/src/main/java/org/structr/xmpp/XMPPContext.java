@@ -28,10 +28,8 @@ import org.jivesoftware.smack.roster.packet.RosterPacket;
 import org.jivesoftware.smack.sm.predicates.ForEveryStanza;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
-import org.jivesoftware.smackx.muc.DiscussionHistory;
 import org.jivesoftware.smackx.muc.MultiUserChat;
 import org.jivesoftware.smackx.muc.MultiUserChatManager;
-import org.jxmpp.jid.EntityBareJid;
 import org.jxmpp.jid.impl.JidCreate;
 import org.jxmpp.jid.parts.Resourcepart;
 import org.jxmpp.stringprep.XmppStringprepException;
@@ -42,6 +40,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.xmpp.handler.*;
 
@@ -49,7 +48,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 
 /**
  *
@@ -81,7 +79,9 @@ public class XMPPContext {
 
 				try (final Tx tx = app.tx()) {
 
-					for (final XMPPClient client : app.nodeQuery("XMPPClient").getAsList()) {
+					for (final NodeInterface clientNode : app.nodeQuery("XMPPClient").getAsList()) {
+
+						final XMPPClient client = clientNode.as(XMPPClient.class);
 
 						client.setIsConnected(false);
 

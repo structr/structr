@@ -16,30 +16,41 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.xmpp;
+package org.structr.feed.traits.relationship;
 
-import org.structr.core.entity.OneToMany;
 import org.structr.core.entity.Relation;
+import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
+import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
-/**
- *
- *
- */
-public class XMPPClientRequest extends OneToMany<XMPPClient, XMPPRequest> {
+public class FeedItemFEED_ITEM_ENCLOSURESFeedItemEnclosure extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
-	@Override
-	public Class<XMPPClient> getSourceType() {
-		return XMPPClient.class;
+	public FeedItemFEED_ITEM_ENCLOSURESFeedItemEnclosure() {
+		super("FeedItemFEED_ITEM_ENCLOSURESFeedItemEnclosure");
 	}
 
 	@Override
-	public Class<XMPPRequest> getTargetType() {
-		return XMPPRequest.class;
+	public String getSourceType() {
+		return "FeedItem";
 	}
 
 	@Override
-	public String name() {
-		return "PENDING_REQUEST";
+	public String getTargetType() {
+		return "FeedItemEnclosure";
+	}
+
+	@Override
+	public String getRelationshipType() {
+		return "FEED_ITEM_ENCLOSURES";
+	}
+
+	@Override
+	public Relation.Multiplicity getSourceMultiplicity() {
+		return Relation.Multiplicity.One;
+	}
+
+	@Override
+	public Relation.Multiplicity getTargetMultiplicity() {
+		return Relation.Multiplicity.Many;
 	}
 
 	@Override
@@ -48,7 +59,12 @@ public class XMPPClientRequest extends OneToMany<XMPPClient, XMPPRequest> {
 	}
 
 	@Override
+	public int getAutocreationFlag() {
+		return Relation.NONE;
+	}
+
+	@Override
 	public boolean isInternal() {
-		return true;
+		return false;
 	}
 }

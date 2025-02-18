@@ -248,6 +248,10 @@ public class GraphObjectTraitWrapper<T extends GraphObject> implements GraphObje
 		return wrappedObject.getProperty(traits.key("lastModifiedDate"));
 	}
 
+	public void setLastModifiedDate(final Date date) throws FrameworkException {
+		wrappedObject.setProperty(traits.key("lastModifiedDate"), date);
+	}
+
 	@Override
 	public void onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 		wrappedObject.onCreation(securityContext, errorBuffer);

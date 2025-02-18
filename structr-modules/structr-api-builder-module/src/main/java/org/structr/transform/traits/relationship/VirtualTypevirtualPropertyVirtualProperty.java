@@ -16,24 +16,16 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.transform.relationship;
+package org.structr.transform.traits.relationship;
 
-import org.structr.core.entity.OneToMany;
 import org.structr.core.entity.Relation;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.traits.NodeTraitFactory;
-import org.structr.core.traits.RelationshipTraitFactory;
+import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
-import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
-import org.structr.transform.VirtualProperty;
-import org.structr.transform.VirtualPropertyTraitDefinition;
-import org.structr.transform.VirtualType;
 
 import java.util.Map;
-import java.util.Set;
 
-public class VirtualTypevirtualPropertyVirtualProperty extends RelationshipBaseTraitDefinition {
+public class VirtualTypevirtualPropertyVirtualProperty extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public VirtualTypevirtualPropertyVirtualProperty() {
 		super("VirtualTypevirtualPropertyVirtualProperty");
@@ -50,22 +42,22 @@ public class VirtualTypevirtualPropertyVirtualProperty extends RelationshipBaseT
 	}
 
 	@Override
-	protected String getRelationshipType() {
+	public String getRelationshipType() {
 		return "virtualProperty";
 	}
 
 	@Override
-	protected Relation.Multiplicity getSourceMultiplicity() {
+	public Relation.Multiplicity getSourceMultiplicity() {
 		return Relation.Multiplicity.One;
 	}
 
 	@Override
-	protected Relation.Multiplicity getTargetMultiplicity() {
+	public Relation.Multiplicity getTargetMultiplicity() {
 		return Relation.Multiplicity.Many;
 	}
 
 	@Override
-	protected int getCascadingDeleteFlag() {
+	public int getCascadingDeleteFlag() {
 		return Relation.NONE;
 	}
 
@@ -77,26 +69,6 @@ public class VirtualTypevirtualPropertyVirtualProperty extends RelationshipBaseT
 	@Override
 	public Map<Class, LifecycleMethod> getLifecycleMethods() {
 		return Map.of();
-	}
-
-	@Override
-	public Map<Class, FrameworkMethod> getFrameworkMethods() {
-		return Map.of();
-	}
-
-	@Override
-	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
-		return Map.of();
-	}
-
-	@Override
-	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
-		return Map.of();
-	}
-
-	@Override
-	public Set<PropertyKey> getPropertyKeys() {
-		return Set.of();
 	}
 
 	@Override

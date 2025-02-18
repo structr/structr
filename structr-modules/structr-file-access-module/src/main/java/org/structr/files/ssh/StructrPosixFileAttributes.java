@@ -21,6 +21,7 @@ package org.structr.files.ssh;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
+import org.structr.common.AccessControllable;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Group;
@@ -45,7 +46,7 @@ public class StructrPosixFileAttributes implements PosixFileAttributes {
 	final AbstractFile file;
 
 	StructrPosixFileAttributes(final StructrSSHFile path) {
-		file = ((StructrSSHFile) path).getActualFile();
+		file = path.getActualFile();
 	}
 
 	@Override
@@ -54,7 +55,7 @@ public class StructrPosixFileAttributes implements PosixFileAttributes {
 		UserPrincipal owner = null;
 
 		try (Tx tx = StructrApp.getInstance().tx()) {
-			owner = file.getOwnerNode()::getName;
+			owner = file.as(AccessControllable.class).getOwnerNode()::getName;
 			tx.success();
 		} catch (FrameworkException fex) {
 			logger.error("", fex);
@@ -65,7 +66,7 @@ public class StructrPosixFileAttributes implements PosixFileAttributes {
 
 	@Override
 	public GroupPrincipal group() {
-		final List<Group> groups = Iterables.toList(file.getOwnerNode().getGroups());
+		final List<Group> groups = Iterables.toList(file.as(AccessControllable.class).getOwnerNode().getGroups());
 		return groups != null && groups.size() > 0 ? groups.get(0)::getName : null;
 	}
 

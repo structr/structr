@@ -38,7 +38,9 @@ import org.structr.module.StructrModule;
 import org.structr.module.api.APIBuilder;
 import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
-import org.structr.transform.relationship.VirtualTypevirtualPropertyVirtualProperty;
+import org.structr.transform.traits.definitions.VirtualPropertyTraitDefinition;
+import org.structr.transform.traits.definitions.VirtualTypeTraitDefinition;
+import org.structr.transform.traits.relationship.VirtualTypevirtualPropertyVirtualProperty;
 
 import java.io.*;
 import java.nio.charset.Charset;

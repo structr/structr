@@ -16,37 +16,59 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.mail.entity.relationship;
+package org.structr.mail.entity.traits.definitions.relationship;
 
 
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
-import org.structr.common.PermissionPropagation;
-import org.structr.core.entity.OneToMany;
 import org.structr.core.entity.Relation;
-import org.structr.mail.entity.EMailMessage;
-import org.structr.web.entity.File;
+import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
+import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
-public class EMailMessageHAS_ATTACHMENTFile extends OneToMany<EMailMessage, File> implements PermissionPropagation {
+public class EMailMessageHAS_ATTACHMENTFile extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
-	@Override
-	public Class<EMailMessage> getSourceType() {
-		return EMailMessage.class;
+	public EMailMessageHAS_ATTACHMENTFile() {
+		super("EMailMessageHAS_ATTACHMENTFile");
 	}
 
 	@Override
-	public Class<File> getTargetType() {
-		return File.class;
+	public String getSourceType() {
+		return "EMailMessage";
 	}
 
 	@Override
-	public String name() {
+	public String getTargetType() {
+		return "File";
+	}
+
+	@Override
+	public Relation.Multiplicity getSourceMultiplicity() {
+		return Relation.Multiplicity.One;
+	}
+
+	@Override
+	public Relation.Multiplicity getTargetMultiplicity() {
+		return Relation.Multiplicity.Many;
+	}
+
+	@Override
+	public String getRelationshipType() {
 		return "HAS_ATTACHMENT";
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
 		return Relation.SOURCE_TO_TARGET;
+	}
+
+	@Override
+	public int getAutocreationFlag() {
+		return Relation.NONE;
+	}
+
+	@Override
+	public boolean isInternal() {
+		return false;
 	}
 
 	@Override

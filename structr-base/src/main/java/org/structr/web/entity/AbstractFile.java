@@ -37,9 +37,9 @@ import java.nio.file.Paths;
  */
 public interface AbstractFile extends NodeInterface {
 
-	void setParent(final Folder parent) throws FrameworkException;
+	void setParent(final NodeInterface parent) throws FrameworkException;
 	void setHasParent(final boolean hasParent) throws FrameworkException;
-	Folder getParent();
+	NodeInterface getParent();
 
 	String getPath();
 	String getFolderPath();

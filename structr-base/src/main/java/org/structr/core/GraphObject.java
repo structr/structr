@@ -104,6 +104,7 @@ public interface GraphObject {
 	// access
 	Date getCreatedDate();
 	Date getLastModifiedDate();
+	void setLastModifiedDate(final Date date) throws FrameworkException;
 
 	void onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException;
 	void onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException;

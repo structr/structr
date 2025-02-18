@@ -57,16 +57,8 @@ public class AbstractFileTraitWrapper extends AbstractNodeTraitWrapper implement
 	}
 
 	@Override
-	public void setParent(final Folder parent) throws FrameworkException {
-
-		if (parent != null) {
-
-			wrappedObject.setProperty(traits.key("parent"), parent);
-
-		} else {
-
-			wrappedObject.setProperty(traits.key("parent"), null);
-		}
+	public void setParent(final NodeInterface parent) throws FrameworkException {
+		wrappedObject.setProperty(traits.key("parent"), parent);
 	}
 
 	@Override
@@ -75,15 +67,8 @@ public class AbstractFileTraitWrapper extends AbstractNodeTraitWrapper implement
 	}
 
 	@Override
-	public Folder getParent() {
-
-		final NodeInterface node = wrappedObject.getProperty(traits.key("parent"));
-		if (node != null) {
-
-			return node.as(Folder.class);
-		}
-
-		return null;
+	public NodeInterface getParent() {
+		return wrappedObject.getProperty(traits.key("parent"));
 	}
 
 	@Override
@@ -102,11 +87,11 @@ public class AbstractFileTraitWrapper extends AbstractNodeTraitWrapper implement
 
 		if (getHasParent()) {
 
-			Folder parentFolder = getParent();
+			NodeInterface parentFolder = getParent();
 			while (parentFolder != null) {
 
-				folderPath = parentFolder.getName().concat("/").concat(folderPath);
-				parentFolder = parentFolder.getParent();
+				folderPath   = parentFolder.getName().concat("/").concat(folderPath);
+				parentFolder = parentFolder.as(Folder.class).getParent();
 			}
 		}
 
@@ -138,11 +123,11 @@ public class AbstractFileTraitWrapper extends AbstractNodeTraitWrapper implement
 			return true;
 		}
 
-		final Folder parent = getParent();
+		final NodeInterface parent = getParent();
 		if (parent != null) {
 
 			// recurse
-			return parent.isMounted();
+			return parent.as(Folder.class).isMounted();
 		}
 
 		return false;
@@ -185,11 +170,11 @@ public class AbstractFileTraitWrapper extends AbstractNodeTraitWrapper implement
 			return true;
 		}
 
-		final Folder parent = getParent();
+		final NodeInterface parent = getParent();
 		if (parent != null) {
 
 			// recurse
-			return parent.includeInFrontendExport();
+			return parent.as(Folder.class).includeInFrontendExport();
 		}
 
 		return false;

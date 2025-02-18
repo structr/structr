@@ -16,32 +16,55 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.feed.entity.relationship;
+package org.structr.feed.traits.relationship;
 
-import org.structr.core.entity.OneToMany;
 import org.structr.core.entity.Relation;
-import org.structr.feed.entity.DataFeed;
-import org.structr.feed.entity.FeedItem;
+import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
+import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
-public class DataFeedHAS_FEED_ITEMSFeedItem extends OneToMany<DataFeed, FeedItem> {
+public class DataFeedHAS_FEED_ITEMSFeedItem extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
-	@Override
-	public Class<DataFeed> getSourceType() {
-		return DataFeed.class;
+	public DataFeedHAS_FEED_ITEMSFeedItem() {
+		super("DataFeedHAS_FEED_ITEMSFeedItem");
 	}
 
 	@Override
-	public Class<FeedItem> getTargetType() {
-		return FeedItem.class;
+	public String getSourceType() {
+		return "DataFeed";
 	}
 
 	@Override
-	public String name() {
+	public String getTargetType() {
+		return "FeedItem";
+	}
+
+	@Override
+	public String getRelationshipType() {
 		return "HAS_FEED_ITEMS";
+	}
+
+	@Override
+	public Relation.Multiplicity getSourceMultiplicity() {
+		return Relation.Multiplicity.One;
+	}
+
+	@Override
+	public Relation.Multiplicity getTargetMultiplicity() {
+		return Relation.Multiplicity.Many;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
 		return Relation.SOURCE_TO_TARGET;
+	}
+
+	@Override
+	public int getAutocreationFlag() {
+		return Relation.NONE;
+	}
+
+	@Override
+	public boolean isInternal() {
+		return false;
 	}
 }

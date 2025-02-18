@@ -25,7 +25,6 @@ import org.structr.common.AccessControllable;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
@@ -44,7 +43,7 @@ import java.util.*;
 public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttributes, PosixFileAttributeView {
 
 	private static final Logger logger              = LoggerFactory.getLogger(StructrFileAttributes.class.getName());
-	public static final Set<String> SUPPORTED_VIEWS = new LinkedHashSet<>(Arrays.asList(new String[] { "owner", "dos", "basic", "posix", "permissions" } ));
+	public static final Set<String> SUPPORTED_VIEWS = new LinkedHashSet<>(Arrays.asList("owner", "dos", "basic", "posix", "permissions"));
 
 	private SecurityContext securityContext = null;
 	private AbstractFile file               = null;

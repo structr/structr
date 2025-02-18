@@ -16,32 +16,59 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.mail.entity.relationship;
+package org.structr.xmpp.traits.relationships;
 
-import org.structr.core.entity.OneToMany;
 import org.structr.core.entity.Relation;
-import org.structr.mail.entity.EMailMessage;
-import org.structr.mail.entity.Mailbox;
+import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
+import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
-public class MailboxCONTAINS_EMAILMESSAGESEMailMessage extends OneToMany<Mailbox, EMailMessage> {
+/**
+ *
+ *
+ */
+public class XMPPClientRequest extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
-	@Override
-	public Class<Mailbox> getSourceType() {
-		return Mailbox.class;
+	public XMPPClientRequest() {
+		super("XMPPClientRequest");
 	}
 
 	@Override
-	public Class<EMailMessage> getTargetType() {
-		return EMailMessage.class;
+	public String getSourceType() {
+		return "XMPPClient";
 	}
 
 	@Override
-	public String name() {
-		return "CONTAINS_EMAILMESSAGES";
+	public String getTargetType() {
+		return "XMPPRequest";
+	}
+
+	@Override
+	public String getRelationshipType() {
+		return "PENDING_REQUEST";
+	}
+
+	@Override
+	public Relation.Multiplicity getSourceMultiplicity() {
+		return Relation.Multiplicity.One;
+	}
+
+	@Override
+	public Relation.Multiplicity getTargetMultiplicity() {
+		return Relation.Multiplicity.Many;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
 		return Relation.SOURCE_TO_TARGET;
+	}
+
+	@Override
+	public int getAutocreationFlag() {
+		return Relation.NONE;
+	}
+
+	@Override
+	public boolean isInternal() {
+		return true;
 	}
 }
