@@ -110,7 +110,11 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 
 	public ActionEntry getActionEntry(final Map<String, SchemaNode> schemaNodes, final AbstractSchemaNode schemaEntity) throws FrameworkException {
 
-		final ActionEntry entry                  = new ActionEntry("___" + SchemaHelper.cleanPropertyName(getProperty(AbstractNode.name)), getProperty(SchemaMethod.source), getProperty(SchemaMethod.codeType));
+		// hacky way to prevent lifecycle method aggregation/transformation on service classes
+		final boolean isServiceClass = schemaEntity.getProperty(SchemaNode.isServiceClass);
+		final String prefix = isServiceClass ? "_-_" : "___";
+
+		final ActionEntry entry                  = new ActionEntry(prefix + SchemaHelper.cleanPropertyName(getProperty(AbstractNode.name)), getProperty(SchemaMethod.source), getProperty(SchemaMethod.codeType));
 		final List<SchemaMethodParameter> params = Iterables.toList(getProperty(parameters));
 
 		// add UUID

@@ -966,49 +966,57 @@ public class SchemaHelper {
 
 	public static void formatMethods(final SourceFile src, final AbstractSchemaNode schemaNode, final Map<String, List<ActionEntry>> saveActions, final Set<String> implementedInterfaces) {
 
-	        /*
-		Methods are collected and grouped by name. There can be multiple methods with the same
-		name, which must be combined into a single method.
+		/*
+			For non-Service classes, methods are collected and grouped by name. There can be multiple methods with the same
+			name, which must be combined into a single method.
 		*/
+		final boolean isServiceClass = Boolean.TRUE.equals(schemaNode.getProperty(SchemaNode.isServiceClass));
 
 		for (final Map.Entry<String, List<ActionEntry>> entry : saveActions.entrySet()) {
 
 			final List<ActionEntry> actionList = entry.getValue();
 			final String name                  = entry.getKey();
 
-			switch (name) {
+			if (isServiceClass) {
 
-				case "onNodeCreation":
-					formatNodeCreationCallback(src, schemaNode, name, actionList);
-					break;
+				formatCustomMethods(src, schemaNode, actionList);
 
-				case "onCreation":
-					formatCreationCallback(src, schemaNode, name, actionList);
-					break;
+			} else {
 
-				case "afterCreation":
-					formatAfterCreationCallback(src, schemaNode, name, actionList);
-					break;
+				switch (name) {
 
-				case "onModification":
-					formatModificationCallback(src, schemaNode, name, actionList);
-					break;
+					case "onNodeCreation":
+						formatNodeCreationCallback(src, schemaNode, name, actionList);
+						break;
 
-				case "afterModification":
-					formatAfterModificationCallback(src, schemaNode, name, actionList);
-					break;
+					case "onCreation":
+						formatCreationCallback(src, schemaNode, name, actionList);
+						break;
 
-				case "onNodeDeletion":
-					formatDeletionCallback(src, schemaNode, name, actionList);
-					break;
+					case "afterCreation":
+						formatAfterCreationCallback(src, schemaNode, name, actionList);
+						break;
 
-				case "afterDeletion":
-					formatAfterDeletionCallback(src, schemaNode, name, actionList);
-					break;
+					case "onModification":
+						formatModificationCallback(src, schemaNode, name, actionList);
+						break;
 
-				default:
-					formatCustomMethods(src, schemaNode, actionList);
-					break;
+					case "afterModification":
+						formatAfterModificationCallback(src, schemaNode, name, actionList);
+						break;
+
+					case "onNodeDeletion":
+						formatDeletionCallback(src, schemaNode, name, actionList);
+						break;
+
+					case "afterDeletion":
+						formatAfterDeletionCallback(src, schemaNode, name, actionList);
+						break;
+
+					default:
+						formatCustomMethods(src, schemaNode, actionList);
+						break;
+				}
 			}
 		}
 	}
