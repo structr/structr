@@ -51,7 +51,7 @@ public class Mailbox extends AbstractNode {
 	public static final Property<String[]> foldersProperty                = new ArrayProperty("folders", String.class).indexed();
 	public static final Property<String> mailProtocolProperty             = new EnumProperty("mailProtocol", Protocol.class).indexed().notNull();
 	public static final Property<Integer> portProperty                    = new IntProperty("port").indexed();
-	public static final Property<Object> availableFoldersOnServerProperty = new FunctionProperty("availableFoldersOnServer").readFunction("{return Structr.this.getAvailableFoldersOnServer()}");
+	public static final Property<Object> availableFoldersOnServerProperty = new FunctionProperty("availableFoldersOnServer").readFunction("{Structr.this.getAvailableFoldersOnServer()}");
 
 	public static final View defaultView = new View(Mailbox.class, PropertyView.Public,
 		id, type, name

@@ -97,7 +97,7 @@ public class GlobalSchemaMethodResourceTest extends StructrRestTestBase {
 
 			app.create(SchemaMethod.class,
 				new NodeAttribute<>(SchemaMethod.name, "myTestMethod02"),
-				new NodeAttribute<>(SchemaMethod.source, "{ return { name: 'test', count: 1 }}")
+				new NodeAttribute<>(SchemaMethod.source, "{ { name: 'test', count: 1 }}")
 			);
 
 			tx.success();
@@ -126,7 +126,7 @@ public class GlobalSchemaMethodResourceTest extends StructrRestTestBase {
 
 			app.create(SchemaMethod.class,
 					new NodeAttribute<>(SchemaMethod.name, "myTestMethod03"),
-					new NodeAttribute<>(SchemaMethod.source, "{ return [ [{'name': 'a'}], [{'name': 'b'}], [{'name': 'c'}] ]; }")
+					new NodeAttribute<>(SchemaMethod.source, "{ [ [{'name': 'a'}], [{'name': 'b'}], [{'name': 'c'}] ]; }")
 			);
 
 			tx.success();

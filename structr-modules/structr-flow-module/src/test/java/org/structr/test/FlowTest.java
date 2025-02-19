@@ -106,7 +106,7 @@ public class FlowTest extends StructrUiTest {
 			container.setProperty(FlowContainer.startNode, forEach);
 
 			FlowDataSource ds = app.create(FlowDataSource.class);
-			ds.setProperty(FlowDataSource.query, "{return [1,2,3,4,5];}");
+			ds.setProperty(FlowDataSource.query, "{[1,2,3,4,5];}");
 			ds.setProperty(FlowDataSource.flowContainer, container);
 			forEach.setProperty(FlowForEach.dataSource, ds);
 

@@ -225,7 +225,7 @@ public class MeResourceTest extends StructrUiTest {
 			final JsonType type     = schema.getType("User");
 
 			// method must be exported
-			type.addMethod("doTest", "{ return { message: 'success', parameters: $.args }; }").setDoExport(true);
+			type.addMethod("doTest", "{ { message: 'success', parameters: $.args }; }").setDoExport(true);
 
 			StructrSchema.replaceDatabaseSchema(app, schema);
 

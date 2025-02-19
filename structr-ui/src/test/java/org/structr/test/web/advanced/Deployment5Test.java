@@ -350,10 +350,10 @@ public class Deployment5Test extends DeploymentTestBase {
 			body.removeChild(div2);
 
 			comp1.setProperty(AbstractNode.name, "shared-component-one");
-			comp1.setProperty(StructrApp.key(DOMNode.class, "hideConditions"), "{ return $.requestStore['SC1_render_count'] > 3; }");
+			comp1.setProperty(StructrApp.key(DOMNode.class, "hideConditions"), "{ $.requestStore['SC1_render_count'] > 3; }");
 
 			comp2.setProperty(AbstractNode.name, "shared-component-two");
-			comp2.setProperty(StructrApp.key(DOMNode.class, "hideConditions"), "{ return $.requestStore['SCS_render_count'] > 3; }");
+			comp2.setProperty(StructrApp.key(DOMNode.class, "hideConditions"), "{ $.requestStore['SCS_render_count'] > 3; }");
 
 			createContent(shadowPage, comp1, "shared-component-one\n" +
 					"${{\n" +
