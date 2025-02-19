@@ -1490,7 +1490,7 @@ let _Files = {
 
 		let monacoEditor = _Editors.getMonacoEditor(file, 'content', editorContainer.querySelector('.editor'), fileMonacoConfig);
 
-		_Editors.addEscapeKeyHandlersToPreventPopupClose(monacoEditor);
+		_Editors.addEscapeKeyHandlersToPreventPopupClose(file.id, 'content', monacoEditor);
 
 		let editorInfo = dialogMeta.querySelector('.editor-info');
 		_Editors.appendEditorOptionsElement(editorInfo);

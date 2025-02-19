@@ -3997,6 +3997,9 @@ ul.combined-input-select-field li:hover {
 .m-2 {
 	margin: .5rem;
 }
+.m-4 {
+	margin: 1rem;
+}
 .-mr-2 {
 	margin-right: -.5rem;
 }
