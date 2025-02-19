@@ -19,6 +19,8 @@
 package org.structr.rest.resource;
 
 
+import java.lang.reflect.Constructor;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.PagingIterable;
@@ -46,6 +48,10 @@ import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.api.parameter.RESTParameter;
+import org.structr.schema.export.StructrSchema;
+import org.structr.schema.export.StructrSchemaDefinition;
+import org.structr.schema.export.StructrTypeDefinition;
+import org.structr.schema.export.StructrTypeDefinitions;
 
 /**
  *
@@ -61,6 +67,7 @@ public class SchemaResource extends ExactMatchEndpoint {
 	public static final BooleanProperty isRelProperty                   = new BooleanProperty("isRel");
 	public static final BooleanProperty isAbstractProperty              = new BooleanProperty("isAbstract");
 	public static final BooleanProperty isInterfaceProperty             = new BooleanProperty("isInterface");
+	public static final BooleanProperty isServiceClassProperty          = new BooleanProperty("isServiceClass");
 	public static final LongProperty flagsProperty                      = new LongProperty("flags");
 	public static final GenericProperty viewsProperty                   = new GenericProperty("views");
 	public static final GenericProperty relatedToProperty               = new GenericProperty("relatedTo");
@@ -98,6 +105,8 @@ public class SchemaResource extends ExactMatchEndpoint {
 		Set<String> entityKeys = new HashSet<>();
 		entityKeys.addAll(nodeEntityKeys);
 		entityKeys.addAll(relEntityKeys);
+
+		final StructrSchemaDefinition schemaDef = (StructrSchemaDefinition) StructrSchema.createFromDatabase(StructrApp.getInstance());
 
 		for (String rawType : entityKeys) {
 
@@ -142,6 +151,12 @@ public class SchemaResource extends ExactMatchEndpoint {
 					schema.setProperty(new GenericProperty("relInfo"), relationToMap(config, Relation.getInstance(type)));
 
 				} else {
+
+					final List<StructrTypeDefinition> matchingTypeDefs = schemaDef.getTypeDefinitions().stream().filter(typeDef -> typeDef.getName().equals(rawType)).collect(Collectors.toList());
+
+					if (matchingTypeDefs.size() > 0) {
+						schema.setProperty(isServiceClassProperty, matchingTypeDefs.get(0).isServiceClass());
+					}
 
 //					final List<GraphObjectMap> relatedTo   = new LinkedList<>();
 //					final List<GraphObjectMap> relatedFrom = new LinkedList<>();

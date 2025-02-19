@@ -1237,7 +1237,7 @@ let _Dashboard = {
 				let methodEntry = _Helpers.createSingleDOMElementFromHTML(_Dashboard.tabs['user-defined-methods'].getMarkupForMethod(method));
 
 				methodEntry.querySelector('button.run').addEventListener('click', () => {
-					_Code.runSchemaMethod(method);
+					_Code.mainArea.helpers.runSchemaMethod(method);
 				});
 
 				container.appendChild(methodEntry);
@@ -1490,14 +1490,9 @@ let _Dashboard = {
 
 								button.addEventListener('click', () => {
 
-									Command.get(data.id, null, (obj) => {
+									Command.get(data.id, _Code.helpers.getAttributesToFetchForErrorObject(), (obj) => {
 
-										let pathToOpen = (obj.schemaNode) ? `/root/custom/${obj.schemaNode.id}/methods/${obj.id}` : `/globals/${obj.id}`;
-
-										window.location.href = '#code';
-										window.setTimeout(() => {
-											_Code.findAndOpenNode(pathToOpen, false);
-										}, 1000);
+										_Code.helpers.navigateToSchemaObjectFromAnywhere(obj);
 									});
 								});
 

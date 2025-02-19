@@ -53,7 +53,7 @@ let _Schema = {
 	inheritanceSlideout: undefined,
 	onload: () => {
 
-		_Code.preloadAvailableTagsForEntities().then(() => {
+		_Code.helpers.preloadAvailableTagsForEntities().then(() => {
 
 			Structr.setMainContainerHTML(_Schema.templates.main());
 			_Helpers.activateCommentsInElement(Structr.mainContainer);
@@ -549,7 +549,7 @@ let _Schema = {
 
 					if (response.ok) {
 
-						_Code.addAvailableTagsForEntities([data]);
+						_Code.helpers.addAvailableTagsForEntities([data]);
 
 						_Schema.bulkDialogsGeneral.resetInputsViaTabControls(tabControls);
 
@@ -593,7 +593,7 @@ let _Schema = {
 				_Schema.applySavedLayoutConfiguration(schemaLayout, true);
 			}
 
-			let response = await fetch(`${Structr.rootUrl}SchemaNode/ui?${Structr.getRequestParameterName('sort')}=hierarchyLevel&${Structr.getRequestParameterName('order')}=asc`);
+			let response = await fetch(`${Structr.rootUrl}SchemaNode/ui?${Structr.getRequestParameterName('sort')}=hierarchyLevel&${Structr.getRequestParameterName('order')}=asc&isServiceClass=false`);
 			if (response.ok) {
 
 				let data             = await response.json();
@@ -880,32 +880,39 @@ let _Schema = {
 				targetView = 'basic';
 			}
 
+			let tabControls = {};
+
 			let basicTabContent        = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'basic', 'Basic', targetView === 'basic');
-			let localPropsTabContent   = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'local', 'Direct properties', targetView === 'local');
-			let remotePropsTabContent  = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'remote', 'Linked properties', targetView === 'remote');
-			let builtinPropsTabContent = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'builtin', 'Inherited properties', targetView === 'builtin');
-			let viewsTabContent        = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'views', 'Views', targetView === 'views');
-			let methodsTabContent      = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'methods', 'Methods', targetView === 'methods', _Editors.resizeVisibleEditors);
-			let schemaGrantsTabContent = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'schema-grants', 'Schema Grants', targetView === 'schema-grants');
+			tabControls.basic          = _Schema.nodes.appendBasicNodeInfo(basicTabContent, entity, mainTabs);
 
-			_Schema.properties.appendBuiltinProperties(builtinPropsTabContent, entity);
+			if (entity.isServiceClass === false) {
 
-			let tabControls = {
-				basic            : _Schema.nodes.appendBasicNodeInfo(basicTabContent, entity, mainTabs),
-				schemaProperties : _Schema.properties.appendLocalProperties(localPropsTabContent, entity),
-				remoteProperties : _Schema.remoteProperties.appendRemote(remotePropsTabContent, entity, async (el) => { await _Schema.remoteProperties.asyncEditSchemaObjectLinkHandler(el, mainTabs, entity.id); }),
-				schemaViews      : _Schema.views.appendViews(viewsTabContent, entity),
-				schemaMethods    : _Schema.methods.appendMethods(methodsTabContent, entity, entity.schemaMethods),
-				schemaGrants     : _Schema.schemaGrants.appendSchemaGrants(schemaGrantsTabContent, entity)
-			};
+				let localPropsTabContent   = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'local', 'Direct properties', targetView === 'local');
+				let remotePropsTabContent  = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'remote', 'Linked properties', targetView === 'remote');
+				let builtinPropsTabContent = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'builtin', 'Inherited properties', targetView === 'builtin');
+				let viewsTabContent        = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'views', 'Views', targetView === 'views');
+				let schemaGrantsTabContent = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'schema-grants', 'Schema Grants', targetView === 'schema-grants');
+
+				tabControls.schemaProperties = _Schema.properties.appendLocalProperties(localPropsTabContent, entity);
+				tabControls.remoteProperties = _Schema.remoteProperties.appendRemote(remotePropsTabContent, entity, async (el) => { await _Schema.remoteProperties.asyncEditSchemaObjectLinkHandler(el, mainTabs, entity.id); });
+				tabControls.schemaViews      = _Schema.views.appendViews(viewsTabContent, entity);
+				tabControls.schemaGrants     = _Schema.schemaGrants.appendSchemaGrants(schemaGrantsTabContent, entity);
+
+				_Schema.properties.appendBuiltinProperties(builtinPropsTabContent, entity);
+			}
+
+			let methodsTabContent     = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'methods', 'Methods', targetView === 'methods', _Editors.resizeVisibleEditors);
+			tabControls.schemaMethods = _Schema.methods.appendMethods(methodsTabContent, entity, entity.schemaMethods);
 
 			if (Structr.isModuleActive(_Code)) {
 
 				// only show the following tabs in the Code area where it is not opened in a popup
 
-				let workingSetsTabContent = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'working-sets', 'Working Sets', targetView === 'working-sets');
-				workingSetsTabContent.classList.add('relative');
-				_Schema.nodes.appendWorkingSets(workingSetsTabContent, entity);
+				if (entity.isServiceClass === false) {
+					let workingSetsTabContent = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'working-sets', 'Working Sets', targetView === 'working-sets');
+					workingSetsTabContent.classList.add('relative');
+					_Schema.nodes.appendWorkingSets(workingSetsTabContent, entity);
+				}
 
 				_Schema.nodes.appendGeneratedSourceCodeTab(entity, mainTabs, contentDiv, targetView);
 			}
@@ -936,7 +943,7 @@ let _Schema = {
 
 			updateChangeStatus();
 
-			_Schema.nodes.showCreateNewTypeDialog(dialogText, updateChangeStatus);
+			_Schema.nodes.showCreateNewTypeDialog(dialogText, updateChangeStatus, { isServiceClass: false });
 
 			initialData = _Schema.nodes.getTypeDefinitionDataFromForm(dialogText, {});
 
@@ -982,7 +989,6 @@ let _Schema = {
 				delete nameInput.dataset['property'];
 				nameInput.disabled = true;
 				nameInput.classList.add('disabled');
-			} else {
 			}
 
 			if (entity.extendsClass || entity.extendsClassInternal || entity.isBuiltinType === false) {
@@ -1004,11 +1010,15 @@ let _Schema = {
 				_Helpers.fastRemoveElement(container.querySelector('.extends-type'));
 			}
 
-			container.querySelector('[data-property="changelogDisabled"]').checked      = (true === entity.changelogDisabled);
-			container.querySelector('[data-property="defaultVisibleToPublic"]').checked = (true === entity.defaultVisibleToPublic);
-			container.querySelector('[data-property="defaultVisibleToAuth"]').checked   = (true === entity.defaultVisibleToAuth);
+			let schemaNodeFlags = ['isServiceClass', 'changelogDisabled', 'defaultVisibleToPublic', 'defaultVisibleToAuth'];
 
-			_Code.populateOpenAPIBaseConfig(container, entity, _Code.availableTags);
+			for (let flag of schemaNodeFlags) {
+
+				let checkbox = container.querySelector(`[data-property="${flag}"]`);
+				if (checkbox) checkbox.checked = (true === entity[flag]);
+			}
+
+			_Code.mainArea.populateOpenAPIBaseConfig(container, entity, _Code.availableTags);
 		},
 		appendTypeHierarchy: (container, entity = {}, changeFn) => {
 
@@ -1051,7 +1061,7 @@ let _Schema = {
 		},
 		appendBasicNodeInfo: (tabContent, entity, mainTabs) => {
 
-			tabContent.appendChild(_Helpers.createSingleDOMElementFromHTML(_Schema.templates.typeBasicTab()));
+			tabContent.appendChild(_Helpers.createSingleDOMElementFromHTML(_Schema.templates.typeBasicTab({ isServiceClass: entity?.isServiceClass, isCreate: !entity })));
 
 			_Helpers.activateCommentsInElement(tabContent);
 
@@ -1059,6 +1069,7 @@ let _Schema = {
 
 				let typeInfo    = _Schema.nodes.getTypeDefinitionDataFromForm(tabContent, entity);
 				let changedData = _Schema.nodes.getTypeDefinitionChanges(entity, typeInfo);
+
 				let hasChanges  = Object.keys(changedData).length > 0;
 
 				_Schema.bulkDialogsGeneral.dataChangedInTab(tabContent, hasChanges);
@@ -1070,7 +1081,7 @@ let _Schema = {
 				property.addEventListener('input', updateChangeStatus);
 			}
 
-			if (false === entity.isBuiltinType) {
+			if (entity.isBuiltinType === false && entity.isServiceClass === false) {
 
 				_Schema.nodes.appendTypeHierarchy(tabContent, entity, updateChangeStatus);
 			}
@@ -1209,7 +1220,7 @@ let _Schema = {
 			}
 		},
 		getTypeDefinitionDataFromForm: (tabContent, entity) => {
-			return _Code.collectDataFromContainer(tabContent, entity);
+			return _Code.persistence.collectDataFromContainer(tabContent, entity);
 		},
 		validateBasicTypeInfo: (typeInfo, container, entity) => {
 
@@ -1257,17 +1268,17 @@ let _Schema = {
 			return newData;
 		},
 		resetTypeDefinition: (container, entity) => {
-			_Code.revertFormDataInContainer(container, entity);
+			_Code.persistence.revertFormDataInContainer(container, entity);
 		},
-		showCreateNewTypeDialog: (container, updateFunction) => {
+		showCreateNewTypeDialog: (container, updateFunction, config = {}) => {
 
-			container.insertAdjacentHTML('beforeend', _Schema.templates.typeBasicTab());
+			container.insertAdjacentHTML('beforeend', _Schema.templates.typeBasicTab({ isCreate: true, ...config }));
 
 			_Helpers.fastRemoveElement(container.querySelector('.edit-parent-type'));
 
 			_Schema.nodes.appendTypeHierarchy(container, {}, updateFunction);
 			_Schema.nodes.activateTagsSelect(container);
-			_Code.populateOpenAPIBaseConfig(container, {}, _Code.availableTags);
+			_Code.mainArea.populateOpenAPIBaseConfig(container, {}, _Code.availableTags);
 
 			_Helpers.activateCommentsInElement(container);
 		},
@@ -3463,7 +3474,7 @@ let _Schema = {
 					isPrivate:       method.isPrivate,
 					returnRawResult: method.returnRawResult,
 					httpVerb:        method.httpVerb,
-					schemaNode:      method.schemaNode,
+					schemaNode:      entity,
 					initialData: {
 						name:            method.name,
 						isStatic:        method.isStatic,
@@ -3659,7 +3670,8 @@ let _Schema = {
 					let baseMethodConfig = {
 						name:       (isPrefix ? _Schema.methods.getFirstFreeMethodName(name) : name),
 						id:         'new' + (addedMethodsCounter++),
-						schemaNode: entity
+						schemaNode: entity,
+						httpVerb: 'POST'
 					};
 
 					_Schema.methods.appendNewMethod(gridBody, baseMethodConfig, entity);
@@ -3685,7 +3697,7 @@ let _Schema = {
 				isPrivate:       method.isPrivate ?? false,
 				returnRawResult: method.returnRawResult ?? false,
 				httpVerb:        method.httpVerb ?? 'POST',
-				schemaNode:      method.schemaNode
+				schemaNode:      entity
 			};
 
 			_Schema.methods.bindRowEvents(gridBody, gridRow, entity);
@@ -3860,11 +3872,12 @@ let _Schema = {
 				element?.closest('.method-config-element')?.classList.toggle('hidden', (canSeeAttr === false));
 			};
 
-			let isTypeMethod      = (!!methodData.schemaNode);
-			let isLifecycleMethod = LifecycleMethods.isLifecycleMethod(methodData);
-			let isCallableViaREST = (methodData.isPrivate !== true);
+			let isTypeMethod         = (!!methodData.schemaNode);
+			let isServiceClassMethod = (isTypeMethod && methodData.schemaNode.isServiceClass === true);
+			let isLifecycleMethod    = LifecycleMethods.isLifecycleMethod(methodData);
+			let isCallableViaREST    = (methodData.isPrivate !== true);
 
-			updateVisibilityForAttribute('isStatic',        (!isLifecycleMethod && isTypeMethod));
+			updateVisibilityForAttribute('isStatic',        (!isLifecycleMethod && isTypeMethod && !isServiceClassMethod));
 			updateVisibilityForAttribute('isPrivate',       (!isLifecycleMethod));
 			updateVisibilityForAttribute('returnRawResult', (!isLifecycleMethod && isCallableViaREST));
 			updateVisibilityForAttribute('httpVerb',        (!isLifecycleMethod && isCallableViaREST));
@@ -4537,8 +4550,8 @@ let _Schema = {
 		});
 
 		let nodeTypeSelector = $('#node-type-selector');
-		Command.list('SchemaNode', true, 1000, 1, 'name', 'asc', 'id,name', (nodes) => {
-			nodeTypeSelector.append(nodes.map(node => `<option>${node.name}</option>`).join(''));
+		Command.list('SchemaNode', true, 1000, 1, 'name', 'asc', 'id,name,isServiceClass', (nodes) => {
+			nodeTypeSelector.append(nodes.filter(n => !n.isServiceClass).map(node => `<option>${node.name}</option>`).join(''));
 		});
 
 		registerSchemaToolButtonAction($('#reindex-nodes'), 'rebuildIndex', nodeTypeSelector, (type) => {
@@ -4829,7 +4842,6 @@ let _Schema = {
 
 			Structr.error('Unreadable JSON - please make sure you are using JSON exported from this dialog!', true);
 		}
-
 	},
 	applyNodePositions: (positions) => {
 
@@ -4903,7 +4915,10 @@ let _Schema = {
 			LSWrapper.setItem(_Schema.activeSchemaToolsSelectedVisibilityTab, tabName);
 		};
 
-		Command.query('SchemaNode', 2000, 1, 'name', 'asc', {}, (schemaNodes) => {
+		Command.query('SchemaNode', 2000, 1, 'name', 'asc', { isServiceClass: false }, (schemaNodes) => {
+
+			console.log(schemaNodes);
+			schemaNodes = schemaNodes.filter(s => !s.isServiceClass);
 
 			let tabsHtml = visibilityTables.map(visType => `<li id="tab" data-name="${visType.caption}">${visType.caption}</li>`).join('');
 			ul.insertAdjacentHTML('beforeend', tabsHtml);
@@ -4987,7 +5002,6 @@ let _Schema = {
 			let activeTab = LSWrapper.getItem(_Schema.activeSchemaToolsSelectedVisibilityTab) || visibilityTables[0].caption;
 			activateTab(activeTab);
 		}, false, null, 'id,name,isBuiltinType,category');
-
 	},
 	updateHiddenSchemaTypes: () => {
 
@@ -5603,9 +5617,12 @@ let _Schema = {
 			</div>
 
 			<div id="inheritance-tree" class="slideOut slideOutLeft">
-				<div class="flex items-center justify-between my-2">
-					<label class="ml-4">Search: <input type="text" id="search-types" autocomplete="off"></label>
-					<label class="mr-4 flex" data-comment="Built-in types will still be shown if they are ancestors of custom types.">
+				<div class="flex items-center justify-between m-4 gap-2">
+					<label>
+						Search:
+						<input type="text" id="search-types" autocomplete="one-time-code">
+					</label>
+					<label class="flex" data-comment="Built-in types will still be shown if they are ancestors of custom types.">
 						<input type="checkbox" id="show-builtin-types" ${(LSWrapper.getItem(_Schema.showBuiltinTypesInInheritanceTreeKey, false) ? 'checked' : '')}>
 						<span class="whitespace-nowrap">Show built-in types</span>
 					</label>
@@ -5811,25 +5828,34 @@ let _Schema = {
 
 					<input data-property="name" class="flex-grow" placeholder="Type Name...">
 
-					<div class="extends-type flex items-center gap-2">
-						extends
-						<select class="extends-class-select" data-property="extendsClass"></select>
-						${_Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['edit-parent-type']), 'Edit parent type')}
-					</div>
+					${!config.isServiceClass ? `
+						<div class="extends-type flex items-center gap-2">
+							extends
+							<select class="extends-class-select" data-property="extendsClass"></select>
+							${_Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['edit-parent-type']), 'Edit parent type')}
+						</div>
+					` : ''}
 				</div>
 
 				<h3>Options</h3>
 				<div class="property-options-group">
-					<div>
-						<label data-comment="Only takes effect if the changelog is active">
-							<input id="changelog-checkbox" type="checkbox" data-property="changelogDisabled"> Disable changelog
-						</label>
-						<label class="ml-8" data-comment="Makes all nodes of this type visible to public users if checked">
-							<input id="public-checkbox" type="checkbox" data-property="defaultVisibleToPublic"> Visible for public users
-						</label>
-						<label class="ml-8" data-comment="Makes all nodes of this type visible to authenticated users if checked">
-							<input id="authenticated-checkbox" type="checkbox" data-property="defaultVisibleToAuth"> Visible for authenticated users
-						</label>
+					<div class="flex">
+						${config.isServiceClass ? `
+							<label class="flex items-center mr-8" data-comment="Service-classes are containers for grouped functionality and can not be instantiated">
+								<input id="serviceclass-checkbox" type="checkbox" data-property="isServiceClass" disabled checked> Is Service Class
+							</label>
+						` : ''}
+						${!config.isServiceClass ? `
+							<label class="flex items-center mr-8" data-comment="Only takes effect if the changelog is active">
+								<input id="changelog-checkbox" type="checkbox" data-property="changelogDisabled"> Disable changelog
+							</label>
+							<label class="flex items-center mr-8" data-comment="Makes all nodes of this type visible to public users if checked">
+								<input id="public-checkbox" type="checkbox" data-property="defaultVisibleToPublic"> Visible for public users
+							</label>
+							<label class="flex items-center" data-comment="Makes all nodes of this type visible to authenticated users if checked">
+								<input id="authenticated-checkbox" type="checkbox" data-property="defaultVisibleToAuth"> Visible for authenticated users
+							</label>
+						` : ''}
 					</div>
 				</div>
 

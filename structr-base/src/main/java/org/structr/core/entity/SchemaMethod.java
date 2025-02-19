@@ -59,7 +59,7 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 	}
 
 	public static final Property<Iterable<SchemaMethodParameter>> parameters = new EndNodes<>("parameters", SchemaMethodParameters.class).partOfBuiltInSchema();
-	public static final Property<AbstractSchemaNode> schemaNode              = new StartNode<>("schemaNode", SchemaNodeMethod.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name, SchemaNode.isBuiltinType)).partOfBuiltInSchema();
+	public static final Property<AbstractSchemaNode> schemaNode              = new StartNode<>("schemaNode", SchemaNodeMethod.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name, SchemaNode.isBuiltinType, SchemaNode.isServiceClass)).partOfBuiltInSchema();
 	public static final Property<String>             signature               = new StringProperty("signature").indexed().partOfBuiltInSchema();
 	public static final Property<String>             virtualFileName         = new StringProperty("virtualFileName").indexed().partOfBuiltInSchema();
 	public static final Property<String>             returnType              = new StringProperty("returnType").indexed().partOfBuiltInSchema();
@@ -110,7 +110,11 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 
 	public ActionEntry getActionEntry(final Map<String, SchemaNode> schemaNodes, final AbstractSchemaNode schemaEntity) throws FrameworkException {
 
-		final ActionEntry entry                  = new ActionEntry("___" + SchemaHelper.cleanPropertyName(getProperty(AbstractNode.name)), getProperty(SchemaMethod.source), getProperty(SchemaMethod.codeType));
+		// hacky way to prevent lifecycle method aggregation/transformation on service classes
+		final boolean isServiceClass = schemaEntity.getProperty(SchemaNode.isServiceClass);
+		final String prefix = isServiceClass ? "_-_" : "___";
+
+		final ActionEntry entry                  = new ActionEntry(prefix + SchemaHelper.cleanPropertyName(getProperty(AbstractNode.name)), getProperty(SchemaMethod.source), getProperty(SchemaMethod.codeType));
 		final List<SchemaMethodParameter> params = Iterables.toList(getProperty(parameters));
 
 		// add UUID
@@ -271,13 +275,21 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 
 	private void handleAutomaticCorrectionOfAttributes(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 
-		final boolean isLifeCycleMethod = isLifecycleMethod();
-		final boolean isTypeMethod      = (getProperty(SchemaMethod.schemaNode) != null);
+		final AbstractSchemaNode schemaNode = getProperty(SchemaMethod.schemaNode);
+
+		final boolean isLifeCycleMethod    = isLifecycleMethod();
+		final boolean isTypeMethod         = (schemaNode != null);
+		final boolean isServiceClassMethod = isTypeMethod && Boolean.TRUE.equals(schemaNode.getProperty(SchemaNode.isServiceClass));
 
 		// - lifecycle methods can never be static
 		// - user-defined functions can also not be static (? or should always be static?)
 		if (!isTypeMethod || isLifeCycleMethod) {
 			setProperty(SchemaMethod.isStatic, false);
+		}
+
+		// - service class methods must be static (they also can not have lifecycle methods because they can not be instantiated)
+		if (isServiceClassMethod) {
+			setProperty(SchemaMethod.isStatic, true);
 		}
 
 		// lifecycle methods are NEVER callable via REST
@@ -442,6 +454,10 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 		final AbstractSchemaNode parent = getProperty(SchemaMethod.schemaNode);
 		final boolean hasParent         = (parent != null);
 		final String methodName         = getName();
+
+		if (hasParent && Boolean.TRUE.equals(parent.getProperty(SchemaNode.isServiceClass))) {
+			return false;
+		}
 
 		if (hasParent) {
 

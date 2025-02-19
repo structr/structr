@@ -1610,7 +1610,7 @@ let Structr = {
 
 					if (data.nodeId && data.nodeType) {
 
-						Command.get(data.nodeId, 'id,type,name,content,ownerDocument,schemaNode', function (obj) {
+						Command.get(data.nodeId, _Code.helpers.getAttributesToFetchForErrorObject(), (obj) => {
 
 							let name     = data.name.slice(data.name.indexOf('_html_') === 0 ? 6 : 0);
 							let property = 'Property';
@@ -1618,15 +1618,17 @@ let Structr = {
 
 							switch (obj.type) {
 
+								case 'SchemaProperty':
+									property = 'Property';
+									title    = 'Schema Property';
+									break;
+
 								case 'SchemaMethod':
-									if (obj.schemaNode && data.isStaticMethod) {
-										title = `type "${data.staticType}"`;
-										property ='StaticMethod';
-									} else if (obj.schemaNode) {
-										title = `type "${obj.schemaNode.name}"`;
-										property = 'Method';
+									if (obj.schemaNode) {
+										title    = `type "${obj.schemaNode.name}"`;
+										property = (obj.isStatic === true) ? 'Static Method' : 'Method';
 									} else {
-										title = 'global schema method';
+										title    = 'user-defined function';
 										property = 'Method';
 									}
 									break;
@@ -1669,15 +1671,9 @@ let Structr = {
 
 							if (data.nodeType === 'SchemaMethod' || data.nodeType === 'SchemaProperty') {
 
-								let pathToOpen = (obj.schemaNode) ? `/root/custom/${obj.schemaNode.id}/methods/${obj.id}` : `/globals/${obj.id}`;
+								builder.specialInteractionButton(`Go to code`, () => {
 
-								builder.specialInteractionButton(`Go to ${data.nodeType === 'SchemaMethod' ? 'method' : 'property'}`, () => {
-
-									window.location.href = '#code';
-
-									window.setTimeout(() => {
-										_Code.findAndOpenNode(pathToOpen, false);
-									}, 1000);
+									_Code.helpers.navigateToSchemaObjectFromAnywhere(obj);
 
 								}, 'Dismiss');
 
@@ -2263,7 +2259,7 @@ let _TreeHelper = {
 
 class LifecycleMethods {
 
-	static onlyAvailableInSchemaNodeContext(schemaNode)      { return (schemaNode ?? null) !== null; }
+	static onlyAvailableInSchemaNodeContext(schemaNode)      { return ((schemaNode ?? null) !== null && schemaNode?.isServiceClass === false); }
 	static onlyAvailableWithoutSchemaNodeContext(schemaNode) { return (schemaNode ?? null) === null; }
 
 	// TODO: these functions must be able to detect schemaNodes that inherit from User/File (or any other possible way these lifecycle methods should be available there)
@@ -2363,7 +2359,8 @@ class LifecycleMethods {
 			available: LifecycleMethods.onlyAvailableWithFileNodeContext,
 			comment: `Is called after a file has been uploaded. This method is being called without parameters.`,
 			isPrefix: false
-		}, {
+		},
+		{
 			name: 'onDownload',
 			available: LifecycleMethods.onlyAvailableWithFileNodeContext,
 			comment: `Is called after a file has been requested for download. This function can not prevent the download of a file. This method is being called without parameters.`,
