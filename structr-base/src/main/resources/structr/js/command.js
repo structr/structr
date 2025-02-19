@@ -395,22 +395,6 @@ let Command = {
 	/**
 	 * Send a REMOVE command to the server.
 	 *
-	 * The server will remove the node with the given sourceId from the node
-	 * with the given targetId and broadcast a removal notification.
-	 */
-	removeSourceFromTarget: function(entityId, parentId) {
-		let obj = {
-			command: 'REMOVE',
-			id: entityId,
-			data: {
-				id: parentId
-			}
-		};
-		return StructrWS.sendObj(obj);
-	},
-	/**
-	 * Send a REMOVE command to the server.
-	 *
 	 * The server will remove the node from the
 	 * tree and broadcast a removal notification.
 	 */
@@ -447,30 +431,65 @@ let Command = {
 	 * notification.
 	 *
 	 * If recursive is set to true, the property will be set on all subnodes, too.
+	 *
+	 * For shared components, depending on syncMode, the same change will be applied to synced nodes.
 	 */
-	setProperty: function(id, key, value, recursive, callback) {
+	setProperty: (id, key, value, recursive, callback, syncMode) => {
+
 		let obj = {
 			command: 'UPDATE',
 			id: id,
-			data: {}
+			data: {
+				[key]: value
+			},
+			config: {
+				recursive: (recursive === true),
+				key: key,
+				syncMode: syncMode ?? UISettings.getValueForSetting(UISettings.settingGroups.pages.settings.sharedComponentSyncModeKey)
+			}
 		};
-		obj.data[key] = value;
-		if (recursive) obj.data.recursive = true;
-		return StructrWS.sendObj(obj, callback);
+
+		if (!syncMode && _Pages.sharedComponents.shouldAskUserSyncSharedComponentAttributes(id, key, value)) {
+
+			_Pages.sharedComponents.askSyncSharedComponentAttributesPromise().then(userSyncMode => {
+				Command.setProperty(id, key, value, false, callback, userSyncMode);
+			});
+
+		} else {
+
+			return StructrWS.sendObj(obj, callback);
+		}
 	},
 	/**
 	 * Send an UPDATE command to the server.
 	 *
 	 * The server will set the properties contained in the 'data' on the node
 	 * with the given id and broadcast an update notification.
+	 *
+	 * For shared components, depending on syncMode and syncKey, the same change will be applied to synced nodes.
 	 */
-	setProperties: function(id, data, callback) {
+	setProperties: (id, data, callback, syncMode, syncKey) => {
+
 		let obj = {
 			command: 'UPDATE',
 			id: id,
-			data: data
+			data: data,
+			config: {
+				key:      syncKey,
+				syncMode: syncMode ?? UISettings.getValueForSetting(UISettings.settingGroups.pages.settings.sharedComponentSyncModeKey)
+			}
 		};
-		return StructrWS.sendObj(obj, callback);
+
+		if (!syncMode && _Pages.sharedComponents.shouldAskUserSyncSharedComponentAttributes(id, syncKey, data[syncKey])) {
+
+			_Pages.sharedComponents.askSyncSharedComponentAttributesPromise().then(userSyncMode => {
+				Command.setProperties(id, data, callback, userSyncMode);
+			});
+
+		} else {
+
+			return StructrWS.sendObj(obj, callback);
+		}
 	},
 	/**
 	 * Send a SET_PERMISSIONS command to the server.
@@ -478,18 +497,32 @@ let Command = {
 	 * The server will set the permission contained in the 'data' on the node
 	 * with the given id and broadcast an update notification.
 	 */
-	setPermission: function(id, principalId, action, permissions, recursive, callback) {
+	setPermission: (id, principalId, action, permissions, recursive, callback, syncMode) => {
 		let obj = {
 			command: 'SET_PERMISSION',
 			id: id,
 			data: {
 				principalId: principalId,
-				action: action,
+				action:      action,
 				permissions: permissions,
-				recursive: recursive
+				recursive:   recursive,
+				syncMode:    syncMode ?? UISettings.getValueForSetting(UISettings.settingGroups.pages.settings.sharedComponentSyncModeKey)
 			}
 		};
+
 		return StructrWS.sendObj(obj, callback);
+
+		// TODO: syncKey and newValue are interesting to determine!
+		if (!syncMode) {
+
+			_Pages.sharedComponents.askSyncSharedComponentAttributesPromise(id).then(userSyncMode => {
+				Command.setPermission(id, principalId, action, permissions, recursive, callback, userSyncMode);
+			});
+
+		} else {
+
+			return StructrWS.sendObj(obj, callback);
+		}
 	},
 	/**
 	 * Send an UNARCHIVE command to the server.
@@ -536,7 +569,7 @@ let Command = {
 	 * to the new one.
 	 *
 	 */
-	appendChild: async (id, parentId, key, callback) => {
+	appendChild: async (id, parentId, key) => {
 
 		return new Promise((resolve => {
 			let obj = {
@@ -620,28 +653,6 @@ let Command = {
 		};
 		return StructrWS.sendObj(obj, callback);
 	},
-	// /**
-	//  * Send an INSERT_BEFORE command to the server.
-	//  *
-	//  * The server will insert the DOM node with the given id
-	//  * after the node with the given refId as child of the node
-	//  * with the given parentId.
-	//  *
-	//  * If the node was in the tree before, it will be
-	//  * removed from the former parent before being inserted.
-	//  *
-	//  */
-	// insertBefore: function(parentId, id, refId) {
-	// 	let obj = {
-	// 		command: 'INSERT_BEFORE',
-	// 		id: id,
-	// 		data: {
-	// 			refId: refId,
-	// 			parentId: parentId
-	// 		}
-	// 	};
-	// 	return StructrWS.sendObj(obj);
-	// },
 	/**
 	 * Send an INSERT_RELATIVE_TO_DOM_NODE command to the server.
 	 *
@@ -759,17 +770,6 @@ let Command = {
 		$.extend(obj.data, attributes);
 		return StructrWS.sendObj(obj);
 	},
-	wrapContent: function(pageId, parentId, tagName) {
-		let obj = {
-			command: 'WRAP_CONTENT',
-			pageId: pageId,
-			data: {
-				parentId: parentId,
-				tagName: tagName
-			}
-		};
-		return StructrWS.sendObj(obj);
-	},
 	/**
 	 * Send a CREATE_COMPONENT command to the server.
 	 *
@@ -808,23 +808,6 @@ let Command = {
 		}));
 	},
 	/**
-	 * Send a REPLACE_TEMPLATE command to the server.
-	 *
-	 * The server will replace the template node with the given id
-	 * with the template node with given newTemplateId.
-	 *
-	 */
-	replaceTemplate: function(id, newTemplateId, callback) {
-		let obj = {
-			command: 'REPLACE_TEMPLATE',
-			id: id,
-			data: {
-				newTemplateId: newTemplateId
-			}
-		};
-		return StructrWS.sendObj(obj, callback);
-	},
-	/**
 	 * Send a CREATE_LOCAL_WIDGET command to the server.
 	 *
 	 * The server will create a local widget element with the given
@@ -845,7 +828,7 @@ let Command = {
 	 * Send a CLONE_NODE command to the server.
 	 *
 	 * The server will clone the DOM node with the given id
-	 * and append it to a the parent with given parentId.
+	 * and append it to the parent with given parentId.
 	 *
 	 * NEW: The server will clone the DOM node with the given id
 	 * after the node with the given refId as child of the node
@@ -868,62 +851,6 @@ let Command = {
 
 			return StructrWS.sendObj(obj, resolve);
 		}));
-	},
-	/**
-	 * Send a SYNC_MODE command to the server.
-	 *
-	 * The server set the mode for synchronization
-	 * between source and target node to the
-	 * given value.
-	 *
-	 * Internally, SYNC relationships will be created.
-	 *
-	 */
-	setSyncMode: function(id, targetId, mode) {
-		let obj = {
-			command: 'SYNC_MODE',
-			id: id,
-			data: {
-				targetId: targetId,
-				syncMode: mode
-			}
-		};
-		return StructrWS.sendObj(obj);
-	},
-	/**
-	 * Send an ADD command to the server.
-	 *
-	 * The server will do one of the following:
-	 *
-	 * Add the node with the given id to the children of the node with the
-	 * id given as 'id' property of the 'nodeData' hash. If the 'relData'
-	 * contains a page id in both property fields 'sourcePageId' and
-	 * 'targetPageId', the node will be copied from the source to the
-	 * target page,
-	 *
-	 * - or -
-	 *
-	 * If 'id' is null, create a new node with the properties contained
-	 * in the 'nodeData' has and use the relationship parameters from the
-	 * 'relData' hash.
-	 *
-	 * When finished, the server will broadcast an ADD and eventually
-	 * a CREATE notification.
-	 */
-	createAndAdd: function(id, nodeData, relData) {
-		let obj = {
-			command: 'ADD',
-			id: id,
-			data: nodeData,
-			relData: relData
-		};
-		if (!obj.data.name) {
-			obj.data.name = `New ${obj.data.type} ${Math.floor(Math.random() * (999999 - 1))}`;
-		}
-		if (obj.data.isContent && !obj.data.content) {
-			obj.data.content = obj.data.name;
-		}
-		return StructrWS.sendObj(obj);
 	},
 	/**
 	 * Send a CREATE command to the server.
@@ -1149,21 +1076,6 @@ let Command = {
 		};
 		return StructrWS.sendObj(obj);
 	},
-	/**
-	 * Send a LIST_ACTIVE_ELEMENTS command to the server.
-	 *
-	 * The server will return a result set containing all active elements
-	 * in the given page.
-	 *
-	 * The optional callback function will be executed for each node in the result set.
-	 */
-	// listActiveElements: function(pageId, callback) {
-	// 	let obj = {
-	// 		command: 'LIST_ACTIVE_ELEMENTS',
-	// 		id: pageId
-	// 	};
-	// 	return StructrWS.sendObj(obj, callback);
-	// },
 	listLocalizations: (pageId, locale, detailObjectId, queryString) => {
 		return new Promise((resolve, reject) => {
 			let obj = {
@@ -1279,17 +1191,6 @@ let Command = {
 				cursorPosition: cursorPosition,
 				isAutoscriptEnv: isAutoscriptEnv
 			}
-		};
-		return StructrWS.sendObj(obj, callback);
-	},
-	/**
-	 * Send a FIND_DUPLICATES command to the server.
-	 *
-	 * The server will return a list of all files with identical paths
-	 */
-	findDuplicates: function(callback) {
-		let obj  = {
-			command: 'FIND_DUPLICATES'
 		};
 		return StructrWS.sendObj(obj, callback);
 	},

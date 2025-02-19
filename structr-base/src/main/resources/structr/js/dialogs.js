@@ -302,54 +302,84 @@ let _Dialogs = {
 	confirmation: {
 		showPromise: (text, defaultOption = true) => {
 
+			let choices = [{
+					buttonText: `${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, ['icon-green', 'mr-2'])} Yes`,
+					result: true
+				}, {
+					buttonText: `${_Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, ['icon-red', 'mr-2'])} No`,
+					result: false
+			}];
+
+			return _Dialogs.multipleChoiceQuestion.askPromise(text, choices, defaultOption, !defaultOption);
+		},
+	},
+	multipleChoiceQuestion: {
+		askPromise: (text, choices = [], defaultOption, cancelOption = null, allowSaveDecision = false) => {
+
 			return new Promise((resolve, reject) => {
 
-				let confirmationMessage = `
-					<div class="text-center">
-						<div class="confirmationText mb-4">
+				let multipleChoiceMessage = `
+					<div class="confirmationText text-center">
+						<div class="mb-4">
 							${text}
 						</div>
-						<button class="yesButton inline-flex items-center hover:bg-gray-100 hover:bg-gray-100 focus:border-gray-666 active:border-green">
-							${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, ['icon-green', 'mr-2'])} Yes
-						</button>
-						<button class="noButton inline-flex items-center hover:bg-gray-100 hover:bg-gray-100 focus:border-gray-666 active:border-green">
-							${_Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, ['icon-red', 'mr-2'])} No
-						</button>
 					</div>
 				`;
 
-				let messageDiv = _Dialogs.basic.append(confirmationMessage, { padding: '1rem' });
-
-				let yesButton = messageDiv.querySelector('.yesButton');
-				let noButton  = messageDiv.querySelector('.noButton');
+				let messageDiv            = _Dialogs.basic.append(multipleChoiceMessage, { padding: '1rem' });
+				let confirmationContainer = messageDiv.querySelector('.confirmationText');
 
 				let answerFunction = (e, response) => {
 					e.stopPropagation();
 
+					let result = (allowSaveDecision !== true) ? response : {
+						answer: response,
+						save: confirmationContainer.querySelector('#save-decision').checked
+					};
+
 					_Dialogs.basic.removeBlockerAround(messageDiv);
 
-					resolve(response);
+					resolve(result);
 				};
 
-				yesButton.addEventListener('click', (e) => {
-					answerFunction(e, true);
-				});
+				if (allowSaveDecision === true) {
 
-				noButton.addEventListener('click', (e) => {
-					answerFunction(e, false);
-				});
+					let button = _Helpers.createSingleDOMElementFromHTML(`
+						<div class="pb-4">
+							<label class="flex items-center justify-center">
+								<input type="checkbox" id="save-decision">
+								<span data-comment="This can be changed at a later time in the UI settings">Save answer and do not ask again</span>
+							</label>
+						</div>
+					`);
+
+					confirmationContainer.appendChild(button);
+				}
+
+				for (let choice of choices) {
+
+					let button = _Helpers.createSingleDOMElementFromHTML(`
+						<button class="inline-flex items-center hover:bg-gray-100 hover:bg-gray-100 focus:border-gray-666 active:border-green">
+							${choice.buttonText}
+						</button>
+					`);
+
+					confirmationContainer.appendChild(button);
+
+					if (defaultOption === choice.result) {
+						button.focus();
+					}
+
+					button.addEventListener('click', (e) => answerFunction(e, choice.result));
+				}
+
+				_Helpers.activateCommentsInElement(messageDiv);
 
 				messageDiv.addEventListener('keyup', (e) => {
 					if (e.key === 'Escape' || e.code === 'Escape' || e.keyCode === 27) {
-						answerFunction(e, false);
+						answerFunction(e, cancelOption);
 					}
 				});
-
-				if (defaultOption === true) {
-					yesButton.focus();
-				} else {
-					noButton.focus();
-				}
 			});
 		},
 	},

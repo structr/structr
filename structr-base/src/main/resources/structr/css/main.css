@@ -781,7 +781,8 @@ img.disabled {
 	right: 2px;
 }
 
-.props tr td.value input, .props tr td.value textarea {
+.props tr td.value input,
+.props tr td.value textarea {
 	width: calc(100% - 1rem);
 }
 
@@ -792,14 +793,32 @@ img.disabled {
 	color: var(--input-disabled);
 }
 
-.props tr td.value .array-attr input,
-.props tr td.value .array-attr textarea {
-	width: calc(100% - 24px);
+.crud-table tr td .array-attr,
+.props .array-attr,
+#entityForm .array-attr {
+	display: flex;
+	align-items: center;
+	gap: .25rem;
+	margin-bottom: .25rem;
+	width: 100%;
+	text-align: center;
 }
 
-.props tr td.value .array-attr i.remove {
-	vertical-align: middle;
-	margin: 7px 0 6px 2px;
+.props tr td.value .array-attr input[type="text"]:not(.input-datetime),
+.props tr td.value .array-attr textarea,
+.crud-table tr td .array-attr input[type="text"]:not(.input-datetime),
+.crud-table tr td .array-attr textarea {
+	width: calc(100% - 2rem);
+}
+
+.props tr td.value .array-attr input[type="checkbox"] {
+	width: initial;
+}
+
+.crud-table tr td .array-attr svg.remove,
+.props .array-attr svg.remove,
+#entityForm .array-attr svg.remove {
+	position: initial;
 }
 
 .props tr td.value .tick {
@@ -1461,7 +1480,7 @@ button.action.disabled:hover {
 	margin-right: 0.5rem;
 }
 
-#confirmationText, #infoText, #dialogBox .dialogText {
+#infoText, #dialogBox .dialogText {
 	vertical-align: top;
 }
 
@@ -3356,8 +3375,9 @@ div#custom-properties-parent {
 }
 
 div#custom-properties-container table td:nth-child(3) {
-	text-align: right;
-	width: 30px;
+	text-align: center;
+	width: 2rem;
+	padding: 0;
 }
 
 button.icon-button {
@@ -3377,8 +3397,6 @@ button.icon-button i {
 .routing-container textarea {
 	width: 100%;
 	box-sizing: border-box;
-	/*margin-top: .25rem;*/
-	/*height: 2.5rem;*/
 }
 
 
@@ -3517,7 +3535,7 @@ table.props td.__value {
 
 #ui-settings-popup .dropdown-menu-container {
 	width: 30rem;
-	padding: .25rem 0 1rem 1rem;
+	padding: .25rem .5rem 1rem .75rem
 }
 
 .editor-settings-popup .dropdown-menu-container {
