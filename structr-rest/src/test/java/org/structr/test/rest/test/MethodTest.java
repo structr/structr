@@ -200,8 +200,8 @@ public class MethodTest extends StructrRestTestBase {
 			final JsonObjectType base  = schema.addType("BaseType");
 
 			// methods
-			base.addMethod("test1", "{ return $.this.test2($.methodParameters); }");
-			base.addMethod("test2", "{ return $.methodParameters; }");
+			base.addMethod("test1", "{ $.this.test2($.methodParameters); }");
+			base.addMethod("test2", "{ $.methodParameters; }");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -248,13 +248,13 @@ public class MethodTest extends StructrRestTestBase {
 			final JsonObjectType base  = schema.addType("BaseType");
 
 			// first method with parameter definition => input should be converted to Date
-			base.addMethod("test1", "{ return { date: $.args.date, isDate: $.args.date instanceof Date };}").addParameter("date", "Date");
+			base.addMethod("test1", "{ { date: $.args.date, isDate: $.args.date instanceof Date };}").addParameter("date", "Date");
 
 			// second method without parameter definition => input should not be converted (result: string)
-			base.addMethod("test2", "{ return { date: $.args.date, isDate: $.args.date instanceof Date };}");
+			base.addMethod("test2", "{ { date: $.args.date, isDate: $.args.date instanceof Date };}");
 
 			// third method calls first, but input should not be converted because it doesn't come from a REST call
-			base.addMethod("test3", "{ return $.this.test1({ date: new Date(2022, 0, 1) }); }");
+			base.addMethod("test3", "{ $.this.test1({ date: new Date(2022, 0, 1) }); }");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -413,10 +413,10 @@ public class MethodTest extends StructrRestTestBase {
 				.setDoExport(true);
 
 			// define method without parameters so it must be called with a map argument
-			base.addMethod("doTest1", "{ return $.this.testJavaArgumentPassing('topic', 'message'); }");
+			base.addMethod("doTest1", "{ $.this.testJavaArgumentPassing('topic', 'message'); }");
 
 			// define method with parameters so it can be called with unnamed arguments
-			base.addMethod("doTest2", "{ return $.this.testJavaArgumentPassing('topic', 'message'); }")
+			base.addMethod("doTest2", "{ $.this.testJavaArgumentPassing('topic', 'message'); }")
 				.addParameter("topic", "String")
 				.addParameter("message", "String");
 
@@ -439,7 +439,7 @@ public class MethodTest extends StructrRestTestBase {
 
 			try {
 
-				Scripting.evaluate(new ActionContext(securityContext), node, "${{ return $.this.doTest1('topic', 'message'); }}", "test script that expects an exception");
+				Scripting.evaluate(new ActionContext(securityContext), node, "${{ $.this.doTest1('topic', 'message'); }}", "test script that expects an exception");
 
 				fail("Calling a method with illegal arguments should throw an exception.");
 
@@ -449,7 +449,7 @@ public class MethodTest extends StructrRestTestBase {
 
 			{
 				// test doTest1 with map-based arguments (should succeed)
-				final Object value = Scripting.evaluate(new ActionContext(securityContext), node, "${{ return $.this.doTest1({ topic: 'topic', message: 'message' }); }}", "test script that expects success");
+				final Object value = Scripting.evaluate(new ActionContext(securityContext), node, "${{ $.this.doTest1({ topic: 'topic', message: 'message' }); }}", "test script that expects success");
 				assertTrue("Invalid method result", value instanceof RestMethodResult);
 				final RestMethodResult result = (RestMethodResult)value;
 				assertEquals("Invalid method result", "topic, message", result.getMessage());
@@ -457,7 +457,7 @@ public class MethodTest extends StructrRestTestBase {
 
 			{
 				// test doTest2 with unnamed arguments (should succeed)
-				final Object value = Scripting.evaluate(new ActionContext(securityContext), node, "${{ return $.this.doTest2('topic', 'message'); }}", "test script that expects success");
+				final Object value = Scripting.evaluate(new ActionContext(securityContext), node, "${{ $.this.doTest2('topic', 'message'); }}", "test script that expects success");
 				assertTrue("Invalid method result", value instanceof RestMethodResult);
 				final RestMethodResult result = (RestMethodResult)value;
 				assertEquals("Invalid method result", "topic, message", result.getMessage());
@@ -483,8 +483,8 @@ public class MethodTest extends StructrRestTestBase {
 			final JsonObjectType base  = schema.addType("BaseType");
 
 			// methods
-			base.addMethod("test1", "{ return $.methodParameters; }");
-			base.addMethod("test2", "{ return $.args; }");
+			base.addMethod("test1", "{ $.methodParameters; }");
+			base.addMethod("test2", "{ $.args; }");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -532,11 +532,11 @@ public class MethodTest extends StructrRestTestBase {
 			final JsonObjectType base  = schema.addType("BaseType");
 
 			// methods
-			base.addMethod("doGet",    "{ return 'get'; }").setHttpVerb("GET");
-			base.addMethod("doPut",    "{ return 'put'; }").setHttpVerb("PUT");
-			base.addMethod("doPost",   "{ return 'post'; }").setHttpVerb("POST");
-			base.addMethod("doPatch",  "{ return 'patch'; }").setHttpVerb("PATCH");
-			base.addMethod("doDelete", "{ return 'delete'; }").setHttpVerb("DELETE");
+			base.addMethod("doGet",    "{ 'get'; }").setHttpVerb("GET");
+			base.addMethod("doPut",    "{ 'put'; }").setHttpVerb("PUT");
+			base.addMethod("doPost",   "{ 'post'; }").setHttpVerb("POST");
+			base.addMethod("doPatch",  "{ 'patch'; }").setHttpVerb("PATCH");
+			base.addMethod("doDelete", "{ 'delete'; }").setHttpVerb("DELETE");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -591,7 +591,7 @@ public class MethodTest extends StructrRestTestBase {
 			final JsonObjectType base  = schema.addType("BaseType");
 
 			// methods
-			base.addMethod("test1", "{ return $.methodParameters; }")
+			base.addMethod("test1", "{ $.methodParameters; }")
 				.addParameter("key1", "String")
 				.addParameter("key2", "Integer")
 				.setHttpVerb("GET");

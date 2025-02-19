@@ -419,20 +419,20 @@ public class ScriptingTest extends StructrTest {
 
 			final ActionContext actionContext = new ActionContext(securityContext);
 
-			assertEquals("Invalid scripted find() result", testOne1, Scripting.evaluate(actionContext, testOne1, "${{ return Structr.find('TestOne', { anInt: 42 })[0]; }}", "test"));
-			assertEquals("Invalid scripted find() result", testOne2, Scripting.evaluate(actionContext, testOne1, "${{ return Structr.find('TestOne', { anInt: 33 })[0]; }}", "test"));
+			assertEquals("Invalid scripted find() result", testOne1, Scripting.evaluate(actionContext, testOne1, "${{ Structr.find('TestOne', { anInt: 42 })[0]; }}", "test"));
+			assertEquals("Invalid scripted find() result", testOne2, Scripting.evaluate(actionContext, testOne1, "${{ Structr.find('TestOne', { anInt: 33 })[0]; }}", "test"));
 
-			assertEquals("Invalid scripted find() result", testOne1, Scripting.evaluate(actionContext, testOne1, "${{ return Structr.find('TestOne', { aLong: " + long1 + " })[0]; }}", "test"));
-			assertEquals("Invalid scripted find() result", testOne2, Scripting.evaluate(actionContext, testOne1, "${{ return Structr.find('TestOne', { aLong: " + long2 + " })[0]; }}", "test"));
+			assertEquals("Invalid scripted find() result", testOne1, Scripting.evaluate(actionContext, testOne1, "${{ Structr.find('TestOne', { aLong: " + long1 + " })[0]; }}", "test"));
+			assertEquals("Invalid scripted find() result", testOne2, Scripting.evaluate(actionContext, testOne1, "${{ Structr.find('TestOne', { aLong: " + long2 + " })[0]; }}", "test"));
 
-			assertEquals("Invalid scripted find() result", testOne1, Scripting.evaluate(actionContext, testOne1, "${{ return Structr.find('TestOne', { aDouble: " + double1 + " })[0]; }}", "test"));
-			assertEquals("Invalid scripted find() result", testOne2, Scripting.evaluate(actionContext, testOne1, "${{ return Structr.find('TestOne', { aDouble: " + double2 + " })[0]; }}", "test"));
+			assertEquals("Invalid scripted find() result", testOne1, Scripting.evaluate(actionContext, testOne1, "${{ Structr.find('TestOne', { aDouble: " + double1 + " })[0]; }}", "test"));
+			assertEquals("Invalid scripted find() result", testOne2, Scripting.evaluate(actionContext, testOne1, "${{ Structr.find('TestOne', { aDouble: " + double2 + " })[0]; }}", "test"));
 
-			assertEquals("Invalid scripted find() result", testOne1, Scripting.evaluate(actionContext, testOne1, "${{ return Structr.find('TestOne', { anEnum: 'One' })[0]; }}", "test"));
-			assertEquals("Invalid scripted find() result", testOne2, Scripting.evaluate(actionContext, testOne1, "${{ return Structr.find('TestOne', { anEnum: 'Two' })[0]; }}", "test"));
+			assertEquals("Invalid scripted find() result", testOne1, Scripting.evaluate(actionContext, testOne1, "${{ Structr.find('TestOne', { anEnum: 'One' })[0]; }}", "test"));
+			assertEquals("Invalid scripted find() result", testOne2, Scripting.evaluate(actionContext, testOne1, "${{ Structr.find('TestOne', { anEnum: 'Two' })[0]; }}", "test"));
 
-			assertEquals("Invalid scripted find() result", testOne1, Scripting.evaluate(actionContext, testOne1, "${{ return Structr.find('TestOne', { aBoolean: true })[0]; }}", "test"));
-			assertEquals("Invalid scripted find() result", testOne2, Scripting.evaluate(actionContext, testOne1, "${{ return Structr.find('TestOne', { aBoolean: false })[0]; }}", "test"));
+			assertEquals("Invalid scripted find() result", testOne1, Scripting.evaluate(actionContext, testOne1, "${{ Structr.find('TestOne', { aBoolean: true })[0]; }}", "test"));
+			assertEquals("Invalid scripted find() result", testOne2, Scripting.evaluate(actionContext, testOne1, "${{ Structr.find('TestOne', { aBoolean: false })[0]; }}", "test"));
 
 
 			tx.success();
@@ -527,7 +527,7 @@ public class ScriptingTest extends StructrTest {
 
 			final ActionContext actionContext = new ActionContext(securityContext);
 
-			final Object result1 = Scripting.evaluate(actionContext, group, "${{ return Structr.find('Principal', { name: 'Tester2' })[0]; }}", "test");
+			final Object result1 = Scripting.evaluate(actionContext, group, "${{ Structr.find('Principal', { name: 'Tester2' })[0]; }}", "test");
 
 			System.out.println(result1);
 
@@ -1941,7 +1941,7 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid string array access result with contains()", "false", Scripting.replaceVariables(ctx, testFour, "${contains(this.stringArrayProperty, 'five')}"));
 
 			// sort on arrays in JS
-			assertEquals("Invalid sort result", "[TestSix19, TestSix18, TestSix17, TestSix16, TestSix15, TestSix14, TestSix13, TestSix12, TestSix11, TestSix10, TestSix09, TestSix08, TestSix07, TestSix06, TestSix05, TestSix04, TestSix03, TestSix02, TestSix01, TestSix00]", Scripting.replaceVariables(ctx, null, "${{ return $.extract($.sort($.find('TestOne')[0].manyToManyTestSixs, 'name', true), 'name'); }}"));
+			assertEquals("Invalid sort result", "[TestSix19, TestSix18, TestSix17, TestSix16, TestSix15, TestSix14, TestSix13, TestSix12, TestSix11, TestSix10, TestSix09, TestSix08, TestSix07, TestSix06, TestSix05, TestSix04, TestSix03, TestSix02, TestSix01, TestSix00]", Scripting.replaceVariables(ctx, null, "${{ $.extract($.sort($.find('TestOne')[0].manyToManyTestSixs, 'name', true), 'name'); }}"));
 
 			// sort with extract
 			assertEquals("Invalid sort result", "[b, a, c]", Scripting.replaceVariables(ctx, null, "${merge('b', 'a', 'c')}"));
@@ -2570,7 +2570,7 @@ public class ScriptingTest extends StructrTest {
 	@Test
 	public void testNewlineAtEndOfScriptingCode() {
 
-		final String script =  "${{ return 'test'; }}\n";
+		final String script =  "${{ 'test'; }}\n";
 
 		try (final Tx tx = app.tx()) {
 
@@ -3112,8 +3112,8 @@ public class ScriptingTest extends StructrTest {
 
 			assertEquals("Newlines in script code not trimmed correctly", "passed", Actions.execute(securityContext, null, "	 ${ 'passed' }	 ",    "StructrScript with whitespace"));
 			assertEquals("Newlines in script code not trimmed correctly", "passed", Actions.execute(securityContext, null, "${ 'passed' }",                "StructrScript without whitespace"));
-			assertEquals("Newlines in script code not trimmed correctly", "passed", Actions.execute(securityContext, null, "  ${{ return 'passed'; }}   ", "JavaScript with whitespace"));
-			assertEquals("Newlines in script code not trimmed correctly", "passed", Actions.execute(securityContext, null, "${{ return 'passed'; }}",      "JavaScript without whitespace"));
+			assertEquals("Newlines in script code not trimmed correctly", "passed", Actions.execute(securityContext, null, "  ${{ 'passed'; }}   ", "JavaScript with whitespace"));
+			assertEquals("Newlines in script code not trimmed correctly", "passed", Actions.execute(securityContext, null, "${{ 'passed'; }}",      "JavaScript without whitespace"));
 
 			tx.success();
 
@@ -3225,8 +3225,8 @@ public class ScriptingTest extends StructrTest {
 
 			assertEquals("Whitespace in script code not trimmed correctly", "passed", Actions.execute(securityContext, null, "	 ${ 'passed' }	 ",    "StructrScript with whitespace"));
 			assertEquals("Whitespace in script code not trimmed correctly", "passed", Actions.execute(securityContext, null, "${ 'passed' }",                "StructrScript without whitespace"));
-			assertEquals("Whitespace in script code not trimmed correctly", "passed", Actions.execute(securityContext, null, "  ${{ return 'passed'; }}   ", "JavaScript with whitespace"));
-			assertEquals("Whitespace in script code not trimmed correctly", "passed", Actions.execute(securityContext, null, "${{ return 'passed'; }}",      "JavaScript without whitespace"));
+			assertEquals("Whitespace in script code not trimmed correctly", "passed", Actions.execute(securityContext, null, "  ${{ 'passed'; }}   ", "JavaScript with whitespace"));
+			assertEquals("Whitespace in script code not trimmed correctly", "passed", Actions.execute(securityContext, null, "${{ 'passed'; }}",      "JavaScript without whitespace"));
 
 			tx.success();
 
@@ -3442,8 +3442,8 @@ public class ScriptingTest extends StructrTest {
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 			final JsonType project  = schema.addType("Project");
 
-			project.addFunctionProperty("test1").setFormat("{ return Structr.this.name + 'test' + 123; }");
-			project.addFunctionProperty("test2").setFormat("{ return 'test' + 123 + Structr.this.name; }");
+			project.addFunctionProperty("test1").setFormat("{ Structr.this.name + 'test' + 123; }");
+			project.addFunctionProperty("test2").setFormat("{ 'test' + 123 + Structr.this.name; }");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -3751,26 +3751,26 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Advanced find() does not filter correctly", result4.get(0).getUuid(), group3);
 			assertEquals("Advanced find() does not filter correctly", result4.get(1).getUuid(), group2);
 
-			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.findPrivileged('Project', { name: $.predicate.contains('2') }); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 3, ((List)Scripting.evaluate(ctx, null, "${{ return $.findPrivileged('Project', $.predicate.contains('name2', 'e')); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.findPrivileged('Project', { name: 'group1', name1: 'structr', name2: 'test' }); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.findPrivileged('Project', $.predicate.empty('name')); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ return $.findPrivileged('Project', $.predicate.or($.predicate.empty('name'), $.predicate.equals('name', 'group2'))); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 3, ((List)Scripting.evaluate(ctx, null, "${{ return $.findPrivileged('Project', $.predicate.contains('name2', 'e'), $.predicate.contains('name2', 'e'), $.predicate.contains('name2', 'e')); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ return $.findPrivileged('Project', $.predicate.and($.predicate.equals('age', $.predicate.range(0, 35)))); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.findPrivileged('Project', $.predicate.equals('age', $.predicate.range(0, 35)), $.predicate.equals('name', 'group2')); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.findPrivileged('Project', $.predicate.and($.predicate.equals('age', $.predicate.range(0, 35)), $.predicate.equals('name', 'group2'))); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 3, ((List)Scripting.evaluate(ctx, null, "${{ return $.findPrivileged('Project', $.predicate.and($.predicate.contains('name2', 'e'))); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.findPrivileged('Project', $.predicate.and($.predicate.equals('name', 'group1'))); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.findPrivileged('Project', $.predicate.and($.predicate.equals('name', 'group1'), $.predicate.equals('name1', 'structr'))); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ return $.findPrivileged('Project', $.predicate.and($.predicate.equals('name1', 'structr'), $.predicate.equals('name2', 'test'))); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 0, ((List)Scripting.evaluate(ctx, null, "${{ return $.findPrivileged('Project', $.predicate.and($.predicate.equals('name1', 'structr'), $.predicate.equals('name2', 'structr'))); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ return $.findPrivileged('Project', $.predicate.or($.predicate.equals('age', 22), $.predicate.equals('age', 44))); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ return $.findPrivileged('Project', $.predicate.and($.predicate.equals('name3', 'other'), $.predicate.or($.predicate.equals('age', 22), $.predicate.equals('age', 44)))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', { name: $.predicate.contains('2') }); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 3, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.contains('name2', 'e')); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', { name: 'group1', name1: 'structr', name2: 'test' }); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.empty('name')); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.or($.predicate.empty('name'), $.predicate.equals('name', 'group2'))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 3, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.contains('name2', 'e'), $.predicate.contains('name2', 'e'), $.predicate.contains('name2', 'e')); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.and($.predicate.equals('age', $.predicate.range(0, 35)))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.equals('age', $.predicate.range(0, 35)), $.predicate.equals('name', 'group2')); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.and($.predicate.equals('age', $.predicate.range(0, 35)), $.predicate.equals('name', 'group2'))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 3, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.and($.predicate.contains('name2', 'e'))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.and($.predicate.equals('name', 'group1'))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.and($.predicate.equals('name', 'group1'), $.predicate.equals('name1', 'structr'))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.and($.predicate.equals('name1', 'structr'), $.predicate.equals('name2', 'test'))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 0, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.and($.predicate.equals('name1', 'structr'), $.predicate.equals('name2', 'structr'))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.or($.predicate.equals('age', 22), $.predicate.equals('age', 44))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.and($.predicate.equals('name3', 'other'), $.predicate.or($.predicate.equals('age', 22), $.predicate.equals('age', 44)))); }}", "testFindNewSyntax")).size());
 
-			final List<NodeInterface> page1 = (List)Scripting.evaluate(ctx, null, "${{ return $.findPrivileged('Test', $.predicate.sort('name'), $.predicate.page(1, 10)); }}", "testFindNewSyntax");
-			final List<NodeInterface> page2 = (List)Scripting.evaluate(ctx, null, "${{ return $.findPrivileged('Test', $.predicate.sort('name'), $.predicate.page(1, 5)); }}", "testFindNewSyntax");
-			final List<NodeInterface> page3 = (List)Scripting.evaluate(ctx, null, "${{ return $.findPrivileged('Test', $.predicate.sort('name'), $.predicate.page(3, 5)); }}", "testFindNewSyntax");
+			final List<NodeInterface> page1 = (List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Test', $.predicate.sort('name'), $.predicate.page(1, 10)); }}", "testFindNewSyntax");
+			final List<NodeInterface> page2 = (List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Test', $.predicate.sort('name'), $.predicate.page(1, 5)); }}", "testFindNewSyntax");
+			final List<NodeInterface> page3 = (List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Test', $.predicate.sort('name'), $.predicate.page(3, 5)); }}", "testFindNewSyntax");
 
 			assertEquals("Advanced find() with sort() and page() returns wrong result", 10, page1.size());
 			assertEquals("Advanced find() with sort() and page() returns wrong result", "test000", page1.get(0).getName());
@@ -5750,7 +5750,7 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid slice() result, must return a list of 2 object", 2, sliceWithFindResultList.size());
 
 			// slice with find JS
-			//final Object sliceWithFindJSResult = Scripting.evaluate(ctx, null, "${{ return $.slice(function() { return $.find('TestSix') }, 0, 2); }}", "slice test with find in JS");
+			//final Object sliceWithFindJSResult = Scripting.evaluate(ctx, null, "${{ $.slice(function() { return $.find('TestSix') }, 0, 2); }}", "slice test with find in JS");
 			//assertTrue("Invalid slice() result, must return collection for valid results", sliceWithFindJSResult instanceof Collection);
 			//assertTrue("Invalid slice() result, must return list for valid results", sliceWithFindJSResult instanceof List);
 			//final List sliceWithFindJSResultList = (List)sliceWithFindJSResult;

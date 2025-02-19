@@ -328,9 +328,9 @@ public class UiScriptingTest extends StructrUiTest {
 			ctx.setDetailsDataObject(detailsDataObject);
 			ctx.setPage(page);
 
-			test(p, text, "${{ return Structr.get('div').id; }}",    "<p data-repeater-data-object-id=\"" + div.getUuid() + "\">" + div.getUuid() + "</p>", ctx);
-			test(p, text, "${{ return Structr.get('page').id; }}",   "<p data-repeater-data-object-id=\"" + div.getUuid() + "\">" + page.getUuid() + "</p>", ctx);
-			test(p, text, "${{ return Structr.get('parent').id; }}", "<p data-repeater-data-object-id=\"" + div.getUuid() + "\">" + p.getUuid() + "</p>", ctx);
+			test(p, text, "${{ Structr.get('div').id; }}",    "<p data-repeater-data-object-id=\"" + div.getUuid() + "\">" + div.getUuid() + "</p>", ctx);
+			test(p, text, "${{ Structr.get('page').id; }}",   "<p data-repeater-data-object-id=\"" + div.getUuid() + "\">" + page.getUuid() + "</p>", ctx);
+			test(p, text, "${{ Structr.get('parent').id; }}", "<p data-repeater-data-object-id=\"" + div.getUuid() + "\">" + p.getUuid() + "</p>", ctx);
 
 			tx.success();
 
@@ -775,8 +775,8 @@ public class UiScriptingTest extends StructrUiTest {
 			fail("Unexpected exception.");
 		}
 
-		final String script1              =  "${{ return Structr.find('User', 'name', 'admin'); }}\n";
-		final String script2              =  "${{ return Structr.doPrivileged(function() { return Structr.find('User', 'name', 'admin'); }); }}\n";
+		final String script1              =  "${{ Structr.find('User', 'name', 'admin'); }}\n";
+		final String script2              =  "${{ Structr.doPrivileged(function() { return Structr.find('User', 'name', 'admin'); }); }}\n";
 		final SecurityContext userContext = SecurityContext.getInstance(tester, AccessMode.Backend);
 		final App app                     = StructrApp.getInstance(userContext);
 		final RenderContext renderContext = new RenderContext(userContext, new RequestMockUp(), new ResponseMockUp(), RenderContext.EditMode.NONE);
@@ -904,10 +904,10 @@ public class UiScriptingTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// unprivileged call
-			final Object result1 = Scripting.evaluate(renderContext, null, "${{ return Structr.toJson({ name: 'Test' }); }}",        "test1");
-			final Object result2 = Scripting.evaluate(renderContext, null, "${{ return Structr.toJson([{ name: 'Test' }]); }}",      "test2");
-			final Object result3 = Scripting.evaluate(renderContext, null, "${{ return Structr.toJson(Structr.find('User')[0]); }}", "test3");
-			final Object result4 = Scripting.evaluate(renderContext, null, "${{ return Structr.toJson(Structr.find('User')); }}",    "test4");
+			final Object result1 = Scripting.evaluate(renderContext, null, "${{ Structr.toJson({ name: 'Test' }); }}",        "test1");
+			final Object result2 = Scripting.evaluate(renderContext, null, "${{ Structr.toJson([{ name: 'Test' }]); }}",      "test2");
+			final Object result3 = Scripting.evaluate(renderContext, null, "${{ Structr.toJson(Structr.find('User')[0]); }}", "test3");
+			final Object result4 = Scripting.evaluate(renderContext, null, "${{ Structr.toJson(Structr.find('User')); }}",    "test4");
 
 			assertEquals("Invalid result for Structr.toJson() on Javascript object", "{\n\t\"name\": \"Test\"\n}", result1);
 			assertEquals("Invalid result for Structr.toJson() on Javascript array",  "[\n\t{\n\t\t\"name\": \"Test\"\n\t}\n]", result2);
@@ -1040,10 +1040,10 @@ public class UiScriptingTest extends StructrUiTest {
 			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
 			final JsonObjectType type = schema.addType("Test");
 
-			type.addMethod("testBoolean1", "{ return true; }");
-			type.addMethod("testBoolean2", "{ return false; }");
-			type.addMethod("testBoolean3", "{ return true; }");
-			type.addMethod("testBoolean4", "{ return false; }");
+			type.addMethod("testBoolean1", "{ true; }");
+			type.addMethod("testBoolean2", "{ false; }");
+			type.addMethod("testBoolean3", "{ true; }");
+			type.addMethod("testBoolean4", "{ false; }");
 
 			type.addStringProperty("log");
 
@@ -1747,20 +1747,20 @@ public class UiScriptingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			assertEquals("include() in a schema method should return the rendered output of the named node!", "testPrint", Scripting.evaluate(renderContext, null, "${{ return Structr.call('testSinglePrintJS'); }}", "test"));
-			assertEquals("include() in a schema method should return the rendered output of the named node!", "testPrint1testPrint2", Scripting.evaluate(renderContext, null, "${{ return Structr.call('testMultiPrintJS'); }}", "test"));
-			assertEquals("a javascript method should favor printed results instead of return value (quirky as that might seem)", "testPrint", Scripting.evaluate(renderContext, null, "${{ return Structr.call('testPrintReturnJS'); }}", "test"));
-			assertEquals("a javascript method should favor printed results instead of return value (quirky as that might seem). also unreachable statements should not have any effect!", "testPrint", Scripting.evaluate(renderContext, null, "${{ return Structr.call('testPrintReturnUnreachablePrintJS'); }}", "test"));
+			assertEquals("include() in a schema method should return the rendered output of the named node!", "testPrint", Scripting.evaluate(renderContext, null, "${{ Structr.call('testSinglePrintJS'); }}", "test"));
+			assertEquals("include() in a schema method should return the rendered output of the named node!", "testPrint1testPrint2", Scripting.evaluate(renderContext, null, "${{ Structr.call('testMultiPrintJS'); }}", "test"));
+			assertEquals("a javascript method should favor printed results instead of return value (quirky as that might seem)", "testPrint", Scripting.evaluate(renderContext, null, "${{ Structr.call('testPrintReturnJS'); }}", "test"));
+			assertEquals("a javascript method should favor printed results instead of return value (quirky as that might seem). also unreachable statements should not have any effect!", "testPrint", Scripting.evaluate(renderContext, null, "${{ Structr.call('testPrintReturnUnreachablePrintJS'); }}", "test"));
 
-			assertEquals("include() in a schema method should return the rendered output of the named node!", "testPrint", Scripting.evaluate(renderContext, null, "${{ return Structr.call('testSinglePrintSS'); }}", "test"));
-			assertEquals("include() in a schema method should return the rendered output of the named node!", "testPrint1testPrint2", Scripting.evaluate(renderContext, null, "${{ return Structr.call('testMultiPrintSS'); }}", "test"));
-			assertEquals("a structrscript method should favor the implicit return value instead of printed values (quirky as that might seem)", "implicitStructrScriptReturn", Scripting.evaluate(renderContext, null, "${{ return Structr.call('testPrintReturnSS'); }}", "test"));
-			assertEquals("a structrscript method should favor the implicit return value instead of printed values (quirky as that might seem)", "implicitStructrScriptReturn", Scripting.evaluate(renderContext, null, "${{ return Structr.call('testPrintImplicitReturnPrintSS'); }}", "test"));
-			assertEquals("a structrscript method should favor the implicit return value instead of printed values (quirky as that might seem) AND also concatenate all implicit results", "implicitStructrScriptReturn1implicitStructrScriptReturn2", Scripting.evaluate(renderContext, null, "${{ return Structr.call('testPrintImplicitReturnPrintMixedSS'); }}", "test"));
+			assertEquals("include() in a schema method should return the rendered output of the named node!", "testPrint", Scripting.evaluate(renderContext, null, "${{ Structr.call('testSinglePrintSS'); }}", "test"));
+			assertEquals("include() in a schema method should return the rendered output of the named node!", "testPrint1testPrint2", Scripting.evaluate(renderContext, null, "${{ Structr.call('testMultiPrintSS'); }}", "test"));
+			assertEquals("a structrscript method should favor the implicit return value instead of printed values (quirky as that might seem)", "implicitStructrScriptReturn", Scripting.evaluate(renderContext, null, "${{ Structr.call('testPrintReturnSS'); }}", "test"));
+			assertEquals("a structrscript method should favor the implicit return value instead of printed values (quirky as that might seem)", "implicitStructrScriptReturn", Scripting.evaluate(renderContext, null, "${{ Structr.call('testPrintImplicitReturnPrintSS'); }}", "test"));
+			assertEquals("a structrscript method should favor the implicit return value instead of printed values (quirky as that might seem) AND also concatenate all implicit results", "implicitStructrScriptReturn1implicitStructrScriptReturn2", Scripting.evaluate(renderContext, null, "${{ Structr.call('testPrintImplicitReturnPrintMixedSS'); }}", "test"));
 
-			assertEquals("include() in a schema method should return the rendered output of the named node!", "-X-", Scripting.evaluate(renderContext, null, "${{ return Structr.call('testIncludeJS'); }}", "test"));
-			assertEquals("include_child() should not work in a schema method because it has no children!", "", Scripting.evaluate(renderContext, null, "${{ return Structr.call('testIncludeChildJS'); }}", "test"));
-			assertEquals("render() in a schema method should return the rendered output of the given nodes!", "-X-", Scripting.evaluate(renderContext, null, "${{ return Structr.call('testRenderJS'); }}", "test"));
+			assertEquals("include() in a schema method should return the rendered output of the named node!", "-X-", Scripting.evaluate(renderContext, null, "${{ Structr.call('testIncludeJS'); }}", "test"));
+			assertEquals("include_child() should not work in a schema method because it has no children!", "", Scripting.evaluate(renderContext, null, "${{ Structr.call('testIncludeChildJS'); }}", "test"));
+			assertEquals("render() in a schema method should return the rendered output of the given nodes!", "-X-", Scripting.evaluate(renderContext, null, "${{ Structr.call('testRenderJS'); }}", "test"));
 
 			tx.success();
 
