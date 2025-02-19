@@ -45,7 +45,7 @@ let _Code = {
 		Structr.adaptUiToAvailableFeatures();
 	},
 	beforeunloadHandler: () => {
-		if (_Code.isDirty()) {
+		if (_Code.persistence.isDirty()) {
 			return 'There are unsaved changes - discard changes?';
 		}
 	},
@@ -90,12 +90,12 @@ let _Code = {
 	},
 	unload: () => {
 
-		let allow = _Code.testAllowNavigation();
+		let allow = _Code.persistence.testAllowNavigation();
 		if (allow) {
 
-			document.removeEventListener('keydown', _Code.handleKeyDownEvent);
+			document.removeEventListener('keydown', _Code.helpers.handleKeyDownEvent);
 
-			_Code.runCurrentEntitySaveAction = null;
+			_Code.persistence.runCurrentEntitySaveAction = null;
 			_Editors.disposeAllEditors();
 
 			_Helpers.fastRemoveAllChildren(document.querySelector('#code-main'));
@@ -108,11 +108,11 @@ let _Code = {
 		Structr.setFunctionBarHTML(_Code.templates.functions());
 		Structr.setMainContainerHTML(_Code.templates.main());
 
-		_Code.preloadAvailableTagsForEntities().then(() => {
+		_Code.helpers.preloadAvailableTagsForEntities().then(() => {
 
 			UISettings.showSettingsForCurrentModule(UISettings.settingGroups.schema_code);
 
-			document.addEventListener('keydown', _Code.handleKeyDownEvent);
+			document.addEventListener('keydown', _Code.helpers.handleKeyDownEvent);
 
 			_Code.recentElements.init();
 			_Code.pathLocations.init();
@@ -130,11 +130,11 @@ let _Code = {
 			$.jstree.defaults.dnd.inside_pos        = 'last';
 			$.jstree.defaults.dnd.large_drop_target = true;
 
-			_Code.codeTree.on('select_node.jstree', _Code.handleTreeClick);
-			_Code.codeTree.on('refresh.jstree', _Code.activateLastClicked);
+			_Code.codeTree.on('select_node.jstree', _Code.tree.handleTreeClick);
+			_Code.codeTree.on('refresh.jstree', _Code.tree.activateLastClicked);
 
 			_Code.recentElements.loadRecentlyUsedElements(() => {
-				_TreeHelper.initTree(_Code.codeTree, _Code.treeInitFunction, 'structr-ui-code');
+				_TreeHelper.initTree(_Code.codeTree, _Code.tree.treeInitFunction, 'structr-ui-code');
 			});
 
 			Structr.mainMenu.unblock(100);
@@ -143,706 +143,274 @@ let _Code = {
 			Structr.adaptUiToAvailableFeatures();
 		});
 	},
-	preloadAvailableTagsForEntities: async () => {
-
-		let schemaNodeTags   = await Command.queryPromise('SchemaNode', _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', null, false, null, 'tags');
-		let schemaMethodTags = await Command.queryPromise('SchemaMethod', _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', null, false, null, 'tags');
-
-		_Code.addAvailableTagsForEntities(schemaNodeTags);
-		_Code.addAvailableTagsForEntities(schemaMethodTags);
-	},
-	addAvailableTagsForEntities: (entities) => {
-
-		let change = false;
-
-		for (let entity of entities) {
-
-			if (entity.tags) {
-
-				for (let tag of entity.tags) {
-
-					if (!_Code.availableTags.includes(tag) && !_Code.tagBlacklist.includes(tag)) {
-						change = true;
-						_Code.availableTags.push(tag);
-					}
-				}
-			}
-		}
-
-		if (change) {
-			_Code.refreshNode('/openapi');
-		}
-
-		_Code.availableTags.sort();
-	},
-	handleKeyDownEvent: (e) => {
-
-		if (Structr.isModuleActive(_Code)) {
-
-			let event   = e?.originalEvent ?? e;
-			let keyCode = event.keyCode;
-			let code    = event.code;
-
-			// ctrl-s / cmd-s
-			if ((code === 'KeyS' || keyCode === 83) && ((!_Helpers.isMac() && event.ctrlKey) || (_Helpers.isMac() && event.metaKey))) {
-				event.preventDefault();
-				_Code.runCurrentEntitySaveAction();
-			}
-
-			// ctrl-r / cmd-r
-			if ((code === 'KeyR' || keyCode === 82) && ((!_Helpers.isMac() && event.ctrlKey) || (_Helpers.isMac() && event.metaKey))) {
-
-				// allow browser hard-reload with CMD/CTRL+SHIFT+R
-				if (!event.shiftKey) {
-
-					let runButton = document.getElementById('action-button-run');
-
-					if (runButton) {
-
-						event.preventDefault();
-						event.stopPropagation();
-
-						if (!_Dialogs.custom.isDialogOpen()) {
-							runButton.click();
-						}
-					}
-				}
-			}
-
-			if (_Code.search.searchIsActive()) {
-				if (e.key === 'Escape') {
-					_Code.search.cancelSearch();
-				}
-			}
-		}
-	},
-	forceNotDirty: () => {
-		_Code.codeContents.find('.to-delete').removeClass('to-delete');
-		_Code.codeContents.find('.has-changes').removeClass('has-changes');
-
-		_Code.additionalDirtyChecks = [];
-	},
-	isDirty: () => {
-		let isDirty = false;
-		if (_Code.codeContents) {
-			isDirty = (_Code.codeContents.find('.to-delete').length + _Code.codeContents.find('.has-changes').length) > 0;
-		}
-		return isDirty;
-	},
-	updateDirtyFlag: (entity) => {
-
-		let formContent = _Code.collectChangedPropertyData(entity);
-		let dirty       = Object.keys(formContent).length > 0;
-
-		for (let additionalCheck of _Code.additionalDirtyChecks) {
-			dirty = dirty || additionalCheck();
-		}
-
-		if (dirty) {
-			$('#action-button-save').removeClass('disabled').attr('disabled', null);
-			$('#action-button-cancel').removeClass('disabled').attr('disabled', null);
-		} else {
-			$('#action-button-save').addClass('disabled').attr('disabled', 'disabled');
-			$('#action-button-cancel').addClass('disabled').attr('disabled', 'disabled');
-		}
-
-		_Code.tellFirstElementToShowDirtyState(dirty);
-
-		return formContent;
-	},
-	tellFirstElementToShowDirtyState: (dirty) => {
-		if (dirty === true) {
-			_Code.codeContents.children().first().addClass('has-changes');
-		} else {
-			_Code.codeContents.children().first().removeClass('has-changes');
-		}
-	},
-	testAllowNavigation: () => {
-		if (_Code.isDirty()) {
-			return confirm('Discard unsaved changes?');
-		}
-
-		return true;
-	},
-	collectPropertyData: (entity) => {
-
-		return _Code.collectDataFromContainer(document.querySelector('#code-contents'), entity);
-	},
-	collectDataFromContainer: (container, entity) => {
-
-		let data = {};
-
-		for (let p of container.querySelectorAll('input[data-property]')) {
-			switch (p.type) {
-				case "checkbox":
-					data[p.dataset.property] = p.checked;
-					break;
-				case "number":
-					if (p.value) {
-						data[p.dataset.property] = parseInt(p.value);
-					} else {
-						data[p.dataset.property] = null;
-					}
-					break;
-				case "text":
-				default:
-					if (entity[p.dataset.property] === null && p.value === '') {
-						data[p.dataset.property] = entity[p.dataset.property];
-					} else if (p.value) {
-						data[p.dataset.property] = p.value;
-					} else {
-						data[p.dataset.property] = null;
-					}
-					break;
-			}
-		}
-
-		for (let p of container.querySelectorAll('select[data-property]')) {
-			if (p.multiple === true) {
-				data[p.dataset.property] = Array.prototype.map.call(p.selectedOptions, (o) => o.value);
-			} else {
-
-				data[p.dataset.property] = p.value;
-
-				// add exception for typeHint
-				if (p.dataset.property === 'typeHint' && p.value === 'null') {
-					data.typeHint = null;
-				}
-			}
-		}
-
-		for (let editorWrapper of container.querySelectorAll('.editor[data-property]')) {
-			let propertyName = editorWrapper.dataset.property;
-			let entityId = entity?.id;
-			if (!entityId) {
-				entityId = editorWrapper.dataset.id;
-			}
-			if (!entityId) {
-				console.log('Editor should be saved but ID is missing from dataset - getting data will probably fail!');
-			}
-
-			data[propertyName] = _Editors.getTextForExistingEditor(entityId, propertyName);
-		}
-
-		return data;
-	},
-	collectChangedPropertyData: (entity) => {
-
-		let formContent = _Code.collectPropertyData(entity);
-		let keys        = Object.keys(formContent);
-
-		// remove unchanged keys
-		for (let key of keys) {
-
-			if ( (formContent[key] === entity[key]) || (!formContent[key] && entity[key] === "") || (formContent[key] === "" && !entity[key]) || (!formContent[key] && !entity[key])) {
-				delete formContent[key];
-			}
-
-			if (Array.isArray(formContent[key])) {
-
-				let compareSource = entity[key];
-
-				if (key === 'tags' && compareSource) {
-					// remove blacklisted tags from source for comparison
-					compareSource = compareSource.filter((tag) => { return !_Code.tagBlacklist.includes(tag); });
-				}
-
-				if (formContent[key].length === 0 && (!compareSource || compareSource.length === 0)) {
-
-					delete formContent[key];
-
-				} else if (compareSource && compareSource.length === formContent[key].length) {
-
-					// check if same
-					let diff = formContent[key].filter((v) => {
-						return !compareSource.includes(v);
-					});
-					if (diff.length === 0) {
-						delete formContent[key];
-					}
-				}
-			}
-		}
-
-		return formContent;
-	},
-	revertFormData: (entity) => {
-
-		_Code.revertFormDataInContainer(document.querySelector('#code-contents'), entity);
-
-		_Code.updateDirtyFlag(entity);
-	},
-	revertFormDataInContainer: (container, entity) => {
-
-		for (let p of container.querySelectorAll('input[data-property]')) {
-			switch (p.type) {
-				case "checkbox":
-					p.checked = entity[p.dataset.property];
-					break;
-				case "number":
-					p.value = entity[p.dataset.property];
-					break;
-				case "text":
-				default:
-					p.value = entity[p.dataset.property] || '';
-					break;
-			}
-		}
-
-		for (let p of container.querySelectorAll('select[data-property]')) {
-
-			let isSet   = !!entity[p.dataset.property];
-			let isArray = Array.isArray(entity[p.dataset.property]);
-
-			for (let option of p.options) {
-				if (!isSet) {
-					option.selected = false;
-				} else {
-					if (isArray) {
-						option.selected = entity[p.dataset.property].includes(option.value);
-					} else {
-						option.selected = (entity[p.dataset.property].id === option.value);
-					}
-				}
-			}
-
-			p.dispatchEvent(new Event('change'));
-		}
-
-		for (let editorWrapper of container.querySelectorAll('.editor[data-property]')) {
-
-			let propertyName = editorWrapper.dataset.property;
-			let entityId     = editorWrapper.dataset.id;
-			let value        = '';
-
-			if (entity) {
-				entityId = entity.id;
-				value = (entity[propertyName] || '');
-			} else {
-				console.log('Editor should be saved but ID is missing from dataset - getting data will probably fail!');
-			}
-
-			_Editors.setTextForExistingEditor(entityId, propertyName, value);
-		}
-	},
-	isCompileRequiredForSave: (changes) => {
-
-		let compileRequired = false;
-
-		for (let key in changes) {
-			compileRequired = compileRequired || _Code.compileRequiredForKey(key);
-		}
-
-		return compileRequired;
-	},
-	compileRequiredForKey: (key) => {
-
-		let element = _Code.getElementForKey(key);
-		if (element && element.dataset.recompile === "false") {
-			return false;
-		}
-
-		return true;
-	},
-	getElementForKey: (key) => {
-		return document.querySelector('#code-contents [data-property=' + key + ']');
-	},
-	showSaveAction: (changes) => {
-
-		for (let key of Object.keys(changes)) {
-			let element = _Code.getElementForKey(key);
-			if (element) {
-
-				if (element.tagName === 'INPUT' && element.type === 'text' && !element.classList.contains('hidden')) {
-					_Helpers.blinkGreen($(element));
-				} else if (element.tagName === 'INPUT' && element.type === 'checkbox' && !element.classList.contains('hidden')) {
-					_Helpers.blinkGreen($(element.closest('.checkbox')));
-				} else {
-					_Helpers.blinkGreen($(element.closest('.property-box')));
-				}
-			}
-		}
-	},
-	runCurrentEntitySaveAction: () => {
-		// this is the default action - it should always be overwritten by specific save actions and is only here to prevent errors
-		if (_Code.isDirty()) {
-			new WarningMessage().text('No save action is defined - but the editor has unsaved changes!').requiresConfirmation().show();
-		}
-	},
-	saveEntityAction: (entity, callback, optionalFormDataModificationFunctions = []) => {
-
-		if (_Code.isDirty()) {
-
-			let formData = _Code.collectChangedPropertyData(entity);
-
-			for (let modFn of optionalFormDataModificationFunctions) {
-				modFn(formData);
-			}
-
-			let compileRequired = _Code.isCompileRequiredForSave(formData);
-
-			if (compileRequired) {
-				_Code.showSchemaRecompileMessage();
-			}
-
-			fetch(Structr.rootUrl + entity.id, {
-				method: 'PUT',
-				body: JSON.stringify(formData)
-			}).then(async response => {
-
-				if (response.ok) {
-
-					_Code.addAvailableTagsForEntities([formData]);
-
-					Object.assign(entity, formData);
-					_Code.updateDirtyFlag(entity);
-
-					if (formData.name) {
-						_Code.refreshTree();
-					}
-
-					if (compileRequired) {
-						_Code.hideSchemaRecompileMessage();
-					}
-					_Code.showSaveAction(formData);
-
-					if (typeof callback === 'function') {
-						callback();
-					}
-
-				} else {
-
-					let data = await response.json();
-
-					Structr.errorFromResponse(data);
-
-					_Code.hideSchemaRecompileMessage();
-				}
-			});
-		}
-	},
-	refreshTree: () => {
-		_TreeHelper.refreshTree(_Code.codeTree);
-	},
-	treeInitFunction: (obj, callback) => {
-
-		let id   = obj?.data?.key || '#';
-		let path = obj?.data?.path || '';
-
-		/* The tree construction is now based on obj.data.key, together with
-		 * additional information like type, parent etc. That means all nodes
-		 * must specify a data object (see below for example).
-		 */
-
-		if (id === '#') {
-
-			let defaultEntries = [
-				{
-					id:       path + '/globals',
-					text:     'User-defined functions',
-					children: true,
-					icon:     _Icons.nonExistentEmptyIcon,
-					li_attr:  { 'data-id': 'globals' },
-					data: {
-						svgIcon: _Icons.getSvgIcon(_Icons.iconGlobe, 16, 24),
-						key:     'SchemaMethod',
-						query:   { schemaNode: null },
-						content: 'globals',
-						path:    path + '/globals'
-					},
-				},
-				{
-					id:       path + '/openapi',
-					text:     'OpenAPI - Swagger UI',
-					children: (_Code.availableTags.length > 0),
-					icon:     _Icons.nonExistentEmptyIcon,
-					li_attr:  { 'data-id': 'openapi' },
-					data: {
-						svgIcon: _Icons.getSvgIcon(_Icons.iconSwagger, 18, 24),
-						key:     'openapi',
-						content: 'openapi',
-						path:    path + '/openapi'
-					},
-				},
-				{
-					id:      '/root',
-					text:    'Types',
-					icon:    _Icons.nonExistentEmptyIcon,
-					li_attr: { 'data-id': 'root' },
-					data: {
-						svgIcon: _Icons.getSvgIcon(_Icons.iconStructrSSmall, 18, 24),
-						key:     'root',
-						path:    '/root',
-						// content: 'root'      // uncomment this to restore the visualisation of all types when selecting the "Types" entry
-					},
-					children: [
-						{
-							id:       '/root/custom',
-							text:     'Custom',
-							children: true,
-							icon:     _Icons.nonExistentEmptyIcon,
-							li_attr:  { 'data-id': 'custom' },
-							data: {
-								svgIcon: _Icons.getSvgIcon(_Icons.iconFolderClosed, 16, 24),
-								key:     'SchemaNode',
-								query:   { isBuiltinType: false },
-								content: 'custom',
-								path:    '/root/custom',
-							},
+	tree: {
+		treeInitFunction: (obj, callback) => {
+
+			let id   = obj?.data?.key || '#';
+			let path = obj?.data?.path || '';
+
+			/* The tree construction is now based on obj.data.key, together with
+			 * additional information like type, parent etc. That means all nodes
+			 * must specify a data object (see below for example).
+			 */
+
+			if (id === '#') {
+
+				let defaultEntries = [
+					{
+						id:       path + '/globals',
+						text:     'User-defined functions',
+						children: true,
+						icon:     _Icons.nonExistentEmptyIcon,
+						li_attr:  { 'data-id': 'globals' },
+						data: {
+							svgIcon: _Icons.getSvgIcon(_Icons.iconGlobe, 16, 24),
+							key:     'SchemaMethod',
+							query:   { schemaNode: null },
+							content: 'globals',
+							path:    path + '/globals'
 						},
-						{
-							id:       '/root/builtin',
-							text:     'Built-In',
-							children: true,
-							icon:     _Icons.nonExistentEmptyIcon,
-							li_attr:  { 'data-id': 'builtin' },
-							data: {
-								svgIcon: _Icons.getSvgIcon(_Icons.iconFolderClosed, 16, 24),
-								key:     'SchemaNode',
-								query:   { isBuiltinType: true },
-								content: 'builtin',
-								path:    '/root/builtin'
-							},
-						},
-						{
-							id:       '/root/workingsets',
-							text:     'Working Sets',
-							children: true,
-							icon:     _Icons.nonExistentEmptyIcon,
-							li_attr:  { 'data-id': 'workingsets' },
-							data: {
-								svgIcon: _Icons.getSvgIcon(_Icons.iconFavoritesFolder, 16, 24),
-								key: 'workingsets',
-								content: 'workingsets',
-								path: '/root/workingsets'
-							},
-						}
-					],
-				}
-			];
-
-			if (_Code.search.searchIsActive()) {
-
-				defaultEntries.unshift({
-					id:       path + '/searchresults',
-					text:     'Search Results',
-					children: true,
-					icon:     _Icons.nonExistentEmptyIcon,
-					data: {
-						key: 'searchresults',
-						path: path + '/searchresults',
-						svgIcon: _Icons.getSvgIcon(_Icons.iconSearch, 16, 24)
 					},
-					state: {
-						opened: true
-					}
-				});
-			}
-
-			callback(defaultEntries);
-
-		} else {
-
-			let data = obj.data;
-
-			data.callback = callback;
-
-			switch (data.key) {
-
-				case 'searchresults':
-					_Code.loadSearchResults(data);
-					break;
-
-				case 'openapi':
-					_Code.displayFunction(_Code.availableTags.map(t => { return { id: t, name: t, type: "OpenAPITag" } }), data);
-					break;
-
-				case 'workingsets':
-					_Code.loadWorkingSets(data);
-					break;
-
-				case 'workingset':
-					_Code.loadWorkingSet(data);
-					break;
-
-				case 'loadmultiple':
-					_Code.loadMultiple(data);
-					break;
-
-				case 'remoteproperties':
-					_Code.loadRemoteProperties(data);
-					break;
-
-				case 'inheritedproperties':
-					_Code.loadInheritedProperties(data);
-					break;
-
-				default: {
-
-					if (data.key === 'SchemaNode' && data.path.indexOf(data.id) >= 0) {
-
-						// reload function for single type
-						Command.get(data.id, null, (entity) => {
-
-							let children = _Code.getChildElementsForSchemaNode(entity, data.path);
-
-							// directly call callback method to insert child nodes of type
-							callback(children);
-
-						}, 'ui');
-
-					} else {
-
-						// generic query function, controlled by data object
-						Command.query(data.key, _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', data.query, result => {
-
-							if (data.key === 'SchemaMethod' && result.length > 0) {
-
-								result = _Schema.filterJavaMethods(result, result[0].schemaNode);
+					{
+						id:       path + '/openapi',
+						text:     'OpenAPI - Swagger UI',
+						children: (_Code.availableTags.length > 0),
+						icon:     _Icons.nonExistentEmptyIcon,
+						li_attr:  { 'data-id': 'openapi' },
+						data: {
+							svgIcon: _Icons.getSvgIcon(_Icons.iconSwagger, 18, 24),
+							key:     'openapi',
+							content: 'openapi',
+							path:    path + '/openapi'
+						},
+					},
+					{
+						id:      '/root',
+						text:    'Types',
+						icon:    _Icons.nonExistentEmptyIcon,
+						li_attr: { 'data-id': 'root' },
+						data: {
+							svgIcon: _Icons.getSvgIcon(_Icons.iconStructrSSmall, 18, 24),
+							key:     'root',
+							path:    '/root',
+						},
+						children: [
+							{
+								id:       '/root/custom',
+								text:     'Custom',
+								children: true,
+								icon:     _Icons.nonExistentEmptyIcon,
+								li_attr:  { 'data-id': 'custom' },
+								data: {
+									svgIcon: _Icons.getSvgIcon(_Icons.iconFolderClosed, 16, 24),
+									key:     'SchemaNode',
+									query:   { isBuiltinType: false, isServiceClass: false },
+									content: 'custom',
+									path:    '/root/custom',
+								},
+							},
+							{
+								id:       '/root/services',
+								text:     'Services',
+								children: true,
+								icon:     _Icons.nonExistentEmptyIcon,
+								li_attr:  { 'data-id': 'services' },
+								data: {
+									svgIcon: _Icons.getSvgIcon(_Icons.iconFolderClosed, 16, 24),
+									key:     'SchemaNode',
+									query:   { isServiceClass: true },
+									content: 'services',
+									path:    '/root/services',
+								},
+							},
+							{
+								id:       '/root/builtin',
+								text:     'Built-In',
+								children: true,
+								icon:     _Icons.nonExistentEmptyIcon,
+								li_attr:  { 'data-id': 'builtin' },
+								data: {
+									svgIcon: _Icons.getSvgIcon(_Icons.iconFolderClosed, 16, 24),
+									key:     'SchemaNode',
+									query:   { isBuiltinType: true },
+									content: 'builtin',
+									path:    '/root/builtin'
+								},
+							},
+							{
+								id:       '/root/workingsets',
+								text:     'Working Sets',
+								children: true,
+								icon:     _Icons.nonExistentEmptyIcon,
+								li_attr:  { 'data-id': 'workingsets' },
+								data: {
+									svgIcon: _Icons.getSvgIcon(_Icons.iconFavoritesFolder, 16, 24),
+									key: 'workingsets',
+									content: 'workingsets',
+									path: '/root/workingsets'
+								},
 							}
-
-							_Code.displayFunction(result, data);
-
-						}, true, 'ui');
+						],
 					}
+				];
+
+				if (_Code.search.searchIsActive()) {
+
+					defaultEntries.unshift({
+						id:       path + '/searchresults',
+						text:     'Search Results',
+						children: true,
+						icon:     _Icons.nonExistentEmptyIcon,
+						data: {
+							key: 'searchresults',
+							path: path + '/searchresults',
+							svgIcon: _Icons.getSvgIcon(_Icons.iconSearch, 16, 24)
+						},
+						state: {
+							opened: true
+						}
+					});
 				}
-			}
-		}
-	},
-	displayFunction: (result, data, dontSort, isSearch) => {
 
-		let path = data.path;
-		let list = [];
+				callback(defaultEntries);
 
-		for (let entity of result) {
+			} else {
 
-			// skip HTML entities
-			if (entity?.category !== 'html') {
+				let data = obj.data;
 
-				let icon = _Icons.getIconForSchemaNodeType(entity);
+				data.callback = callback;
 
-				switch (entity.type) {
+				switch (data.key) {
 
-					case 'OpenAPITag': {
-
-						list.push({
-							id:       path + '/' + entity.id,
-							text:     entity.name,
-							children: false,
-							icon:     _Icons.nonExistentEmptyIcon,
-							li_attr:  { 'data-id': entity.id },
-							data: {
-								svgIcon: _Icons.getSvgIcon(_Icons.iconSwagger, 16, 24),
-								name:    entity.name,
-								key:     entity.type,
-								id:      entity.id,
-								path:    path + '/' + entity.id
-							},
-						});
-
+					case 'searchresults':
+						_Code.tree.loadSearchResults(data);
 						break;
-					}
 
-					case 'SchemaGroup': {
-
-						list.push({
-							id:       path + '/' + entity.id,
-							text:     entity.name,
-							children: entity.children.length > 0,
-							icon:     _Icons.nonExistentEmptyIcon,
-							li_attr:  { 'data-id': entity.id },
-							data: {
-								svgIcon: _Icons.getSvgIcon((entity.name === _WorkingSets.recentlyUsedName ? _Icons.iconRecentlyUsed : _Icons.iconFolderClosed), 16, 24),
-								key:     'workingset',
-								id:      entity.id,
-								content: 'workingset',
-								path:    path + '/' + entity.id
-							},
-						});
-
+					case 'openapi':
+						_Code.tree.displayFunction(_Code.availableTags.map(t => { return { id: t, name: t, type: "OpenAPITag" } }), data);
 						break;
-					}
 
-					case 'SchemaNode': {
-
-						list.push({
-							id:       path + '/' + entity.id,
-							text:     entity.name,
-							children: _Code.getChildElementsForSchemaNode(entity, path + '/' + entity.id),
-							icon:     _Icons.nonExistentEmptyIcon,
-							li_attr:  { 'data-id': entity.id },
-							data: {
-								svgIcon: icon,
-								key:     entity.type,
-								id:      entity.id,
-								path:    path + '/' + entity.id
-							},
-						});
-
+					case 'workingsets':
+						_Code.tree.loadWorkingSets(data);
 						break;
-					}
 
-					case 'SchemaRelationshipNode': {
-
-						let name = entity.name || '[unnamed]';
-
-						list.push({
-							id:       path + '/' + entity.name,
-							text:     name,
-							children: false,
-							icon:     _Icons.nonExistentEmptyIcon,
-							li_attr: { 'data-id': entity.id },
-							data: {
-								svgIcon: icon,
-								key:     entity.type,
-								id:      entity.id,
-								path:    path + '/' + entity.id
-							},
-						});
-
+					case 'workingset':
+						_Code.tree.loadWorkingSet(data);
 						break;
-					}
+
+					// case 'loadmultiple':
+					// 	_Code.loadMultiple(data);
+					// 	break;
+
+					case 'remoteproperties':
+						_Code.tree.loadRemoteProperties(data);
+						break;
+
+					case 'inheritedproperties':
+						_Code.tree.loadInheritedProperties(data);
+						break;
 
 					default: {
 
-						let name = entity.name || '[unnamed]';
+						if (data.key === 'SchemaNode' && data.path.indexOf(data.id) >= 0) {
 
-						if (isSearch && entity.schemaNode) {
-							name = entity.schemaNode.name + '.' + name;
-						}
+							// reload function for single type
+							Command.get(data.id, null, (entity) => {
 
-						if (entity.inherited) {
+								// in case the type was renamed, update the text
+								obj.text = entity.name;
 
-							list.push({
-								id:       path + '/' + entity.id,
-								text:     name + (' (' + (entity.propertyType || '') + ')'),
-								children: false,
-								icon:     _Icons.nonExistentEmptyIcon,
-								li_attr:  { 'data-id': entity.id, style: 'color: #aaa;' },
-								data: {
-									svgIcon: icon,
-									key:     entity.type,
-									id:      entity.id,
-									path:    path + '/' + entity.id
-								}
-							});
+								let children = _Code.tree.getChildElementsForSchemaNode(entity, data.path);
+
+								// directly call callback method to insert child nodes of type
+								callback(children);
+
+							}, 'ui');
 
 						} else {
 
-							let hasVisibleChildren = _Code.hasVisibleChildren(data.root, entity);
+							// generic query function, controlled by data object
+							Command.query(data.key, _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', data.query, result => {
 
-							if (entity.type === 'SchemaMethod') {
-								name = name + '()';
-							}
+								if (data.key === 'SchemaMethod' && result.length > 0) {
 
-							if (entity.type === 'SchemaProperty') {
-								name = name + ' (' + entity.propertyType + ')';
-							}
+									result = _Schema.filterJavaMethods(result, result[0].schemaNode);
+								}
+
+								_Code.tree.displayFunction(result, data);
+
+							}, true, 'ui');
+						}
+					}
+				}
+			}
+		},
+		activateLastClicked: () => {
+			_Code.tree.findAndOpenNode(_Code.lastClickedPath);
+		},
+		refreshTree: () => {
+			_TreeHelper.refreshTree(_Code.codeTree);
+		},
+		displayFunction: (result, data, dontSort, isSearch) => {
+
+			let path = data.path;
+			let list = [];
+
+			for (let entity of result) {
+
+				// skip HTML entities
+				if (entity?.category !== 'html') {
+
+					let icon = _Icons.getIconForSchemaNodeType(entity);
+
+					switch (entity.type) {
+
+						case 'OpenAPITag': {
 
 							list.push({
 								id:       path + '/' + entity.id,
-								text:     name,
-								children: hasVisibleChildren,
+								text:     entity.name,
+								children: false,
+								icon:     _Icons.nonExistentEmptyIcon,
+								li_attr:  { 'data-id': entity.id },
+								data: {
+									svgIcon: _Icons.getSvgIcon(_Icons.iconSwagger, 16, 24),
+									name:    entity.name,
+									key:     entity.type,
+									id:      entity.id,
+									path:    path + '/' + entity.id
+								},
+							});
+
+							break;
+						}
+
+						case 'SchemaGroup': {
+
+							list.push({
+								id:       path + '/' + entity.id,
+								text:     entity.name,
+								children: entity.children.length > 0,
+								icon:     _Icons.nonExistentEmptyIcon,
+								li_attr:  { 'data-id': entity.id },
+								data: {
+									svgIcon: _Icons.getSvgIcon((entity.name === _WorkingSets.recentlyUsedName ? _Icons.iconRecentlyUsed : _Icons.iconFolderClosed), 16, 24),
+									key:     'workingset',
+									id:      entity.id,
+									content: 'workingset',
+									path:    path + '/' + entity.id
+								},
+							});
+
+							break;
+						}
+
+						case 'SchemaNode': {
+
+							list.push({
+								id:       path + '/' + entity.id,
+								text:     entity.name,
+								children: _Code.tree.getChildElementsForSchemaNode(entity, path + '/' + entity.id),
 								icon:     _Icons.nonExistentEmptyIcon,
 								li_attr:  { 'data-id': entity.id },
 								data: {
@@ -852,1823 +420,1878 @@ let _Code = {
 									path:    path + '/' + entity.id
 								},
 							});
+
+							break;
 						}
 
-						break;
-					}
-				}
-			}
-		}
+						case 'SchemaRelationshipNode': {
 
-		if (!dontSort) {
-			_Helpers.sort(list, 'text');
-		}
+							let name = entity.name || '[unnamed]';
 
-		data.callback(list);
-	},
-	getChildElementsForSchemaNode: (entity, path) => {
+							list.push({
+								id:       path + '/' + entity.name,
+								text:     name,
+								children: false,
+								icon:     _Icons.nonExistentEmptyIcon,
+								li_attr: { 'data-id': entity.id },
+								data: {
+									svgIcon: icon,
+									key:     entity.type,
+									id:      entity.id,
+									path:    path + '/' + entity.id
+								},
+							});
 
-		return [
-			{
-				id:       path + '/properties',
-				text:     'Direct Properties',
-				children: (entity.schemaProperties.length > 0),
-				icon:     _Icons.nonExistentEmptyIcon,
-				li_attr:  { 'data-id': 'properties' },
-				data:     {
-					svgIcon: _Icons.getSvgIcon(_Icons.iconSliders, 16, 24),
-					key:     'SchemaProperty',
-					id:      entity.id,
-					type:    entity.name,
-					query:   { schemaNode: entity.id },
-					content: 'properties',
-					path:    path + '/properties'
-				},
-			},
-			{
-				id:       path + '/remoteproperties',
-				text:     'Linked Properties',
-				children: ((entity.relatedTo.length + entity.relatedFrom.length) > 0),
-				icon:     _Icons.nonExistentEmptyIcon,
-				li_attr:  { 'data-id': 'remoteproperties' },
-				data:     {
-					svgIcon: _Icons.getSvgIcon(_Icons.iconSliders, 16, 24),
-					key:     'remoteproperties',
-					id:      entity.id,
-					type:    entity.name,
-					content: 'remoteproperties',
-					path:    path + '/remoteproperties'
-				},
-			},
-			{
-				id:       path + '/views',
-				text:     'Views',
-				children: (entity.schemaViews.length > 0),
-				icon:     _Icons.nonExistentEmptyIcon,
-				li_attr:  { 'data-id': 'views' },
-				data:     {
-					svgIcon: _Icons.getSvgIcon(_Icons.iconSchemaViews, 16, 24),
-					key:     'SchemaView',
-					id:      entity.id,
-					type:    entity.name,
-					query:   { schemaNode: entity.id },
-					content: 'views',
-					path:    path + '/views'
-				},
-			},
-			{
-				id:       path + '/methods',
-				text:     'Methods',
-				children: _Schema.filterJavaMethods(entity.schemaMethods, entity).length > 0,
-				icon:     _Icons.nonExistentEmptyIcon,
-				li_attr:  { 'data-id': 'methods' },
-				data:     {
-					svgIcon: _Icons.getSvgIcon(_Icons.iconSchemaMethods, 16, 24),
-					key:     'SchemaMethod',
-					id:      entity.id,
-					type:    entity.name,
-					query:   { schemaNode: entity.id },
-					content: 'methods',
-					path:    path + '/methods'
-				},
-			},
-			{
-				id:       path + '/inheritedproperties',
-				text:     'Inherited Properties',
-				children: false,
-				icon:     _Icons.nonExistentEmptyIcon,
-				li_attr:  { 'data-id': 'inheritedproperties' },
-				data:     {
-					svgIcon: _Icons.getSvgIcon(_Icons.iconSliders, 16, 24),
-					key:     'inheritedproperties',
-					id:      entity.id,
-					type:    entity.name,
-					content: 'inheritedproperties',
-					path:    path + '/inheritedproperties'
-				},
-			}
-		];
-
-	},
-	loadSearchResults: (data) => {
-
-		let text          = $('#tree-search-input').val();
-		let searchResults = {};
-		let count         = 0;
-		let collectFunction = (result) => {
-
-			// remove duplicates
-			for (let r of result) {
-				searchResults[r.id] = r;
-			}
-
-			// only show results after all 6 searches are finished (to prevent duplicates)
-			if (++count === 6) {
-
-				let results = Object.values(searchResults).filter(result => {
-
-					if (result.type === 'SchemaMethod') {
-
-						// let our only filter method filter schema methods
-						let filtered = _Schema.filterJavaMethods([result], result.schemaNode);
-
-						return filtered.length > 0;
-					}
-
-					return true;
-				});
-
-				_Code.displayFunction(results, data, false, true);
-			}
-		};
-
-		let parts = text.split('.');
-
-		if (parts.length === 2 && parts[1].trim() !== '') {
-
-			let handleExactSchemaNodeSearch = (result) => {
-
-				if (result.length === 0) {
-					// because we will not find methods/properties if no schema node was found via exact search
-					count += 2;
-				}
-
-				collectFunction(result);
-
-				for (let schemaNode of result) {
-					// should yield at max one hit because we are using exact search
-
-					let matchingMethods = [];
-
-					for (let method of _Schema.filterJavaMethods(schemaNode.schemaMethods, schemaNode)) {
-
-						if (method.name.indexOf(parts[1]) === 0) {
-
-							// populate backRef to schemaNode because it only contains id by default
-							method.schemaNode = schemaNode;
-
-							matchingMethods.push(method);
+							break;
 						}
-					}
-					collectFunction(matchingMethods);
 
-					let matchingProperties = [];
-					for (let property of schemaNode.schemaProperties) {
+						default: {
 
-						if (property.name.indexOf(parts[1]) === 0) {
+							let name = entity.name || '[unnamed]';
 
-							// populate backRef to schemaNode because it only contains id by default
-							property.schemaNode = schemaNode;
-
-							matchingProperties.push(property);
-						}
-					}
-					collectFunction(matchingProperties);
-				}
-			};
-
-			Command.query('SchemaNode',     _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', { name: parts[0] }, handleExactSchemaNodeSearch, true);
-
-		} else {
-
-			Command.query('SchemaNode',     _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', { name: text }, collectFunction, false);
-			Command.query('SchemaProperty', _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', { name: text }, collectFunction, false);
-			Command.query('SchemaMethod',   _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', { name: text }, collectFunction, false);
-		}
-
-		// text search always happens
-		Command.query('SchemaMethod',   _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', { source: text}, collectFunction, false);
-		Command.query('SchemaProperty', _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', { writeFunction: text}, collectFunction, false);
-		Command.query('SchemaProperty', _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', { readFunction: text}, collectFunction, false);
-
-	},
-	showSwaggerUI: (data) => {
-
-		_Code.pathLocations.updatePathLocationStack(data.path);
-		_Code.lastClickedPath = data.path;
-
-		_Helpers.fastRemoveAllChildren(_Code.codeContents[0]);
-
-		let tagName       = data?.name;
-		let baseUrl       = location.origin + location.pathname;
-		let swaggerUrl    = baseUrl + 'swagger/';
-		let openApiTagUrl = baseUrl + 'openapi/' + (tagName ? tagName + '.json' : '');
-		let iframeSrc     = `${swaggerUrl}?url=${openApiTagUrl}`;
-
-		_Code.codeContents.append(_Code.templates.swaggerui({ iframeSrc: iframeSrc }));
-
-	},
-	loadMultiple: async (data) => {
-		// execute a list of queries and join the results
-		let result = [];
-		for (let query of data.queries) {
-			let r = await Command.queryPromise(query.type, _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', query.query, true, 'ui');
-			result = result.concat(r);
-		}
-		_Code.displayFunction(result, data);
-	},
-	loadWorkingSets: (data) => {
-		_WorkingSets.getWorkingSets(result => _Code.displayFunction(result, data, true));
-	},
-	loadWorkingSet: (data) => {
-		_WorkingSets.getWorkingSetContents(data.id, result => _Code.displayFunction(result, data));
-	},
-	loadRemoteProperties: (data) => {
-
-		Command.get(data.id, null, entity => {
-
-			let mapFn = (rel, out) => {
-
-				let attrName = (out ? (rel.targetJsonName || rel.oldTargetJsonName) : (rel.sourceJsonName || rel.oldSourceJsonName));
-
-				return {
-					id:           rel.id,
-					type:         rel.type,
-					name:         attrName,
-					propertyType: '',
-					inherited:    false
-				};
-			};
-
-			let processedRemoteAttributes = [].concat(entity.relatedTo.map(r => mapFn(r, true))).concat(entity.relatedFrom.map((r) => mapFn(r, false)));
-
-			_Code.displayFunction(processedRemoteAttributes, data);
-		});
-	},
-	loadInheritedProperties: (data) => {
-
-		Command.listSchemaProperties(data.id, 'custom', (result) => {
-
-			let filtered = result.filter(p => (p.declaringClass !== data.type));
-
-			_Code.displayFunction(filtered.map(s => {
-				return {
-					id: s.declaringUuid + '-' + s.name,
-					type: 'SchemaProperty',
-					name: s.declaringClass + '.' + s.name,
-					propertyType: s.declaringPropertyType ? s.declaringPropertyType : s.propertyType,
-					inherited: true
-				};
-			}), data);
-		});
-	},
-	clearMainArea: () => {
-		_Helpers.fastRemoveAllChildren(_Code.codeContents[0]);
-
-		_Code.runCurrentEntitySaveAction = null;
-	},
-	hasVisibleChildren: (id, entity) => {
-
-		let hasVisibleChildren = false;
-
-		if (entity.schemaMethods) {
-
-			let methods = _Schema.filterJavaMethods(entity.schemaMethods, entity);
-			for (let m of methods) {
-
-				if (id === 'custom' || !m.isPartOfBuiltInSchema) {
-
-					hasVisibleChildren = true;
-				}
-			}
-		}
-
-		return hasVisibleChildren;
-	},
-	handleTreeClick: (evt, data) => {
-
-		let selection = data?.node?.data || {};
-
-		selection.updateLocationStack = true;
-
-		// copy key => source for backwards compatibility
-		selection.source = selection.key;
-
-		if (data && data.event && data.event.updateLocationStack === false) {
-			selection.updateLocationStack = false;
-		}
-
-		_Code.handleSelection(selection);
-	},
-	handleSelection: (data) => {
-
-		if (_Code.testAllowNavigation()) {
-
-			_Code.dirty = false;
-			_Code.additionalDirtyChecks = [];
-
-			// clear page
-			_Code.clearMainArea();
-
-			switch (data.content) {
-
-				case 'searchresults':
-				case 'undefined':
-				case 'null':
-					break;
-
-				case 'root':
-					_Code.displayRootContent();
-					break;
-
-				case 'globals':
-					_Code.displayGlobalMethodsContent(data, true);
-					break;
-
-				case 'openapi':
-					_Code.showSwaggerUI(data);
-					break;
-
-				case 'custom':
-					_Code.displayCustomTypesContent(data);
-					break;
-
-				case 'builtin':
-					_Code.displayBuiltInTypesContent(data.type);
-					break;
-
-				case 'workingsets':
-					_Code.displayWorkingSetsContent();
-					break;
-
-				case 'workingset':
-					_Code.displaySchemaGroupContent(data);
-					break;
-
-				case 'properties':
-					_Code.displayPropertiesContent(data, data.updateLocationStack);
-					break;
-
-				case 'remoteproperties':
-					_Code.displayRemotePropertiesContent(data, data.updateLocationStack);
-					break;
-
-				case 'views':
-					_Code.displayViewsContent(data, data.updateLocationStack);
-					break;
-
-				case 'methods':
-					_Code.displayMethodsContent(data, data.updateLocationStack);
-					break;
-
-				case 'inheritedproperties':
-					_Code.displayInheritedPropertiesContent(data, data.updateLocationStack);
-					break;
-
-				case 'inherited':
-					_Code.findAndOpenNode(data.path, true);
-					break;
-
-				default:
-					_Code.handleNodeObjectClick(data);
-					break;
-			}
-		}
-	},
-	handleNodeObjectClick: (data) => {
-
-		let nodeType = data.key || data.type;
-		if (nodeType) {
-
-			switch (nodeType) {
-
-				case 'SchemaView':
-					_Code.displayViewDetails(data);
-					break;
-
-				case 'SchemaProperty':
-					_Code.displayPropertyDetails(data);
-					break;
-
-				case 'SchemaMethod':
-					_Code.displaySchemaMethodContent(data);
-					break;
-
-				case 'SchemaNode':
-					_Code.displaySchemaNodeContent(data);
-					break;
-
-				case 'SchemaRelationshipNode':
-					_Code.displaySchemaRelationshipNodeContent(data);
-					break;
-
-				case 'OpenAPITag':
-					_Code.showSwaggerUI(data);
-					break;
-			}
-		}
-	},
-	displaySchemaNodeContent: (data) => {
-
-		fetch(`${Structr.rootUrl}${data.id}/schema`).then(response => {
-
-			if (response.ok) {
-				return response.json();
-			} else {
-				throw Error("Unable to fetch schema node content");
-			}
-
-		}).then(json => {
-
-			let entity = json.result;
-
-			_Code.recentElements.updateRecentlyUsed(entity, data.path, data.updateLocationStack);
-
-			_Helpers.fastRemoveAllChildren(_Code.codeContents[0]);
-			_Code.codeContents.append(_Code.templates.type({ data, type: entity }));
-
-			let targetView  = LSWrapper.getItem(`${_Entities.activeEditTabPrefix}_${entity.id}`, 'basic');
-			let tabControls = _Schema.nodes.loadNode(entity, $('.tabs-container', )[0], $('.tabs-content-container', _Code.codeContents)[0], targetView);
-
-			// remove bulk edit save/discard buttons
-			for (let button of _Code.codeContents[0].querySelectorAll('.discard-all, .save-all')) {
-				_Helpers.fastRemoveElement(button);
-			}
-
-			_Code.runCurrentEntitySaveAction = () => {
-
-				_Schema.bulkDialogsGeneral.saveEntityFromTabControls(entity, tabControls).then((success) => {
-
-					if (success) {
-
-						// reload tree node
-						_Code.refreshNode(data.path);
-
-						// and refresh center pane
-						_Code.handleNodeObjectClick(data);
-					}
-				});
-			};
-
-			let saveButton = _Code.displaySvgActionButton('#type-actions', _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, 'icon-green'), 'save', 'Save', _Code.runCurrentEntitySaveAction);
-
-			let cancelButton = _Code.displaySvgActionButton('#type-actions', _Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, 'icon-red'), 'cancel', 'Revert changes', () => {
-				_Schema.bulkDialogsGeneral.resetInputsViaTabControls(tabControls);
-			});
-
-			// delete button
-			if (!entity.isPartOfBuiltInSchema) {
-				_Code.displaySvgActionButton('#type-actions', _Icons.getSvgIcon(_Icons.iconTrashcan, 14, 14, 'icon-red'), 'delete', 'Delete type ' + entity.name, () => {
-					_Code.deleteSchemaEntity(entity, `Delete type ${entity.name}?`, 'This will delete all schema relationships as well, but no data will be removed.', data);
-				});
-			}
-
-			_Helpers.disableElements(true, saveButton, cancelButton);
-
-			document.querySelector('#code-contents .tabs-content-container')?.addEventListener('bulk-data-change', (e) => {
-
-				e.stopPropagation();
-
-				let changeCount = _Schema.bulkDialogsGeneral.getChangeCountFromBulkInfo(_Schema.bulkDialogsGeneral.getBulkInfoFromTabControls(tabControls, false));
-				let isDirty     = (changeCount > 0);
-				_Helpers.disableElements(!isDirty, saveButton, cancelButton);
-
-				_Code.tellFirstElementToShowDirtyState(isDirty);
-			});
-		});
-	},
-	displaySchemaRelationshipNodeContent: (data) => {
-
-		Command.get(data.id, null, (entity) => {
-
-			Command.get(entity.sourceId, null, (sourceNode) => {
-
-				Command.get(entity.targetId, null, (targetNode) => {
-
-					_Helpers.fastRemoveAllChildren(_Code.codeContents[0]);
-					_Code.codeContents.append(_Code.templates.propertyRemote({ data, entity, sourceNode, targetNode }));
-
-					let targetView  = LSWrapper.getItem(_Entities.activeEditTabPrefix  + '_' + entity.id, 'basic');
-					let tabControls = _Schema.relationships.loadRelationship(entity, $('.tabs-container', _Code.codeContents)[0], $('.tabs-content-container', _Code.codeContents)[0], sourceNode, targetNode, targetView);
-
-					// remove bulk edit save/discard buttons
-					for (let button of _Code.codeContents[0].querySelectorAll('.discard-all, .save-all')) {
-						_Helpers.fastRemoveElement(button);
-					}
-
-					_Code.runCurrentEntitySaveAction = () => {
-
-						_Schema.bulkDialogsGeneral.saveEntityFromTabControls(entity, tabControls).then((success) => {
-
-							if (success) {
-
-								// refresh parent node "Related properties"
-								let parentPath = data.path.substring(0, data.path.lastIndexOf('/'));
-								_Code.refreshNode(parentPath);
+							if (isSearch && entity.schemaNode) {
+								name = entity.schemaNode.name + '.' + name;
 							}
-						});
-					};
 
-					let saveButton = _Code.displaySvgActionButton('#type-actions', _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, 'icon-green'), 'save', 'Save', _Code.runCurrentEntitySaveAction);
+							if (entity.inherited) {
 
-					let cancelButton = _Code.displaySvgActionButton('#type-actions', _Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, 'icon-red'), 'cancel', 'Revert changes', () => {
-						_Schema.bulkDialogsGeneral.resetInputsViaTabControls(tabControls);
+								list.push({
+									id:       path + '/' + entity.id,
+									text:     name + (' (' + (entity.propertyType || '') + ')'),
+									children: false,
+									icon:     _Icons.nonExistentEmptyIcon,
+									li_attr:  { 'data-id': entity.id, style: 'color: #aaa;' },
+									data: {
+										svgIcon: icon,
+										key:     entity.type,
+										id:      entity.id,
+										path:    path + '/' + entity.id
+									}
+								});
+
+							} else {
+
+								let hasVisibleChildren = _Code.tree.hasVisibleChildren(data.root, entity);
+
+								if (entity.type === 'SchemaMethod') {
+									name = name + '()';
+								}
+
+								if (entity.type === 'SchemaProperty') {
+									name = name + ' (' + entity.propertyType + ')';
+								}
+
+								list.push({
+									id:       path + '/' + entity.id,
+									text:     name,
+									children: hasVisibleChildren,
+									icon:     _Icons.nonExistentEmptyIcon,
+									li_attr:  { 'data-id': entity.id },
+									data: {
+										svgIcon: icon,
+										key:     entity.type,
+										id:      entity.id,
+										path:    path + '/' + entity.id
+									},
+								});
+							}
+
+							break;
+						}
+					}
+				}
+			}
+
+			if (!dontSort) {
+				_Helpers.sort(list, 'text');
+			}
+
+			data.callback(list);
+		},
+		getChildElementsForSchemaNode: (entity, path) => {
+
+			let children = [
+				{
+					id:       path + '/properties',
+					text:     'Direct Properties',
+					children: (entity.schemaProperties.length > 0),
+					icon:     _Icons.nonExistentEmptyIcon,
+					li_attr:  { 'data-id': 'properties' },
+					data:     {
+						svgIcon: _Icons.getSvgIcon(_Icons.iconSliders, 16, 24),
+						key:     'SchemaProperty',
+						id:      entity.id,
+						type:    entity.name,
+						query:   { schemaNode: entity.id },
+						content: 'properties',
+						path:    path + '/properties'
+					},
+				},
+				{
+					id:       path + '/remoteproperties',
+					text:     'Linked Properties',
+					children: ((entity.relatedTo.length + entity.relatedFrom.length) > 0),
+					icon:     _Icons.nonExistentEmptyIcon,
+					li_attr:  { 'data-id': 'remoteproperties' },
+					data:     {
+						svgIcon: _Icons.getSvgIcon(_Icons.iconSliders, 16, 24),
+						key:     'remoteproperties',
+						id:      entity.id,
+						type:    entity.name,
+						content: 'remoteproperties',
+						path:    path + '/remoteproperties'
+					},
+				},
+				{
+					id:       path + '/views',
+					text:     'Views',
+					children: (entity.schemaViews.length > 0),
+					icon:     _Icons.nonExistentEmptyIcon,
+					li_attr:  { 'data-id': 'views' },
+					data:     {
+						svgIcon: _Icons.getSvgIcon(_Icons.iconSchemaViews, 16, 24),
+						key:     'SchemaView',
+						id:      entity.id,
+						type:    entity.name,
+						query:   { schemaNode: entity.id },
+						content: 'views',
+						path:    path + '/views'
+					},
+				},
+				{
+					id:       path + '/methods',
+					text:     'Methods',
+					children: _Schema.filterJavaMethods(entity.schemaMethods, entity).length > 0,
+					icon:     _Icons.nonExistentEmptyIcon,
+					li_attr:  { 'data-id': 'methods' },
+					data:     {
+						svgIcon: _Icons.getSvgIcon(_Icons.iconSchemaMethods, 16, 24),
+						key:     'SchemaMethod',
+						id:      entity.id,
+						type:    entity.name,
+						query:   { schemaNode: entity.id },
+						content: 'methods',
+						path:    path + '/methods'
+					},
+				},
+				{
+					id:       path + '/inheritedproperties',
+					text:     'Inherited Properties',
+					children: false,
+					icon:     _Icons.nonExistentEmptyIcon,
+					li_attr:  { 'data-id': 'inheritedproperties' },
+					data:     {
+						svgIcon: _Icons.getSvgIcon(_Icons.iconSliders, 16, 24),
+						key:     'inheritedproperties',
+						id:      entity.id,
+						type:    entity.name,
+						content: 'inheritedproperties',
+						path:    path + '/inheritedproperties'
+					},
+				}
+			];
+
+			if (entity.isServiceClass === true) {
+				children = [children[3]];
+			}
+
+			return children;
+		},
+		loadSearchResults: (data) => {
+
+			let text          = $('#tree-search-input').val();
+			let searchResults = {};
+			let count         = 0;
+			let collectFunction = (result) => {
+
+				// remove duplicates
+				for (let r of result) {
+					searchResults[r.id] = r;
+				}
+
+				// only show results after all 6 searches are finished (to prevent duplicates)
+				if (++count === 6) {
+
+					let results = Object.values(searchResults).filter(result => {
+
+						if (result.type === 'SchemaMethod') {
+
+							// let our only filter method filter schema methods
+							let filtered = _Schema.filterJavaMethods([result], result.schemaNode);
+
+							return filtered.length > 0;
+						}
+
+						return true;
 					});
 
-					// delete button
-					if (!entity.isPartOfBuiltInSchema) {
-						_Code.displaySvgActionButton('#type-actions', _Icons.getSvgIcon(_Icons.iconTrashcan, 14, 14, 'icon-red'), 'delete', 'Delete relationship ' + entity.relationshipType, () => {
-							_Code.deleteSchemaEntity(entity, 'Delete relationship ' + entity.relationshipType + '?', 'This will delete all schema relationships as well, but no data will be removed.', data);
-						});
+					_Code.tree.displayFunction(results, data, false, true);
+				}
+			};
+
+			let parts = text.split('.');
+
+			if (parts.length === 2 && parts[1].trim() !== '') {
+
+				let handleExactSchemaNodeSearch = (result) => {
+
+					if (result.length === 0) {
+						// because we will not find methods/properties if no schema node was found via exact search
+						count += 2;
 					}
 
-					_Helpers.disableElements(true, saveButton, cancelButton);
+					collectFunction(result);
 
-					document.querySelector('#code-contents .tabs-content-container')?.childNodes[0]?.addEventListener('bulk-data-change', (e) => {
+					for (let schemaNode of result) {
+						// should yield at max one hit because we are using exact search
 
-						e.stopPropagation();
+						let matchingMethods = [];
 
-						let changeCount = _Schema.bulkDialogsGeneral.getChangeCountFromBulkInfo(_Schema.bulkDialogsGeneral.getBulkInfoFromTabControls(tabControls, false));
-						let isDirty     = (changeCount > 0);
-						_Helpers.disableElements(!isDirty, saveButton, cancelButton);
+						for (let method of _Schema.filterJavaMethods(schemaNode.schemaMethods, schemaNode)) {
 
-						_Code.tellFirstElementToShowDirtyState(isDirty);
-					});
-				});
-			});
-		});
-	},
-	displaySchemaMethodContent: (data) => {
+							if (method.name.indexOf(parts[1]) === 0) {
 
-		// ID of schema method can either be in typeId (for user-defined functions) or in memberId (for type methods)
-		Command.get(data.id, 'id,owner,type,createdBy,hidden,createdDate,lastModifiedDate,name,isStatic,isPrivate,returnRawResult,httpVerb,schemaNode,source,openAPIReturnType,exceptions,callSuper,overridesExisting,doExport,codeType,isPartOfBuiltInSchema,tags,summary,description,parameters,includeInOpenAPI,index,exampleValue,parameterType', (result) => {
+								// populate backRef to schemaNode because it only contains id by default
+								method.schemaNode = schemaNode;
 
-			let isCallableViaHTTP   = (result.isPrivate !== true);
-			let isUserDefinedMethod = (!result.schemaNode && !result.isPartOfBuiltInSchema);
-			let isStaticMethod      = result.isStatic;
+								matchingMethods.push(method);
+							}
+						}
+						collectFunction(matchingMethods);
 
-			let lastOpenTab = LSWrapper.getItem(`${_Entities.activeEditTabPrefix}_${data.id}`, 'source');
+						let matchingProperties = [];
+						for (let property of schemaNode.schemaProperties) {
 
-			_Code.recentElements.updateRecentlyUsed(result, data.path, data.updateLocationStack);
+							if (property.name.indexOf(parts[1]) === 0) {
 
-			_Helpers.fastRemoveAllChildren(_Code.codeContents[0]);
-			_Code.codeContents.append(_Code.templates.method({ method: result }));
+								// populate backRef to schemaNode because it only contains id by default
+								property.schemaNode = schemaNode;
 
-			LSWrapper.setItem(_Code.codeLastOpenMethodKey, result.id);
-
-			let buttons = $('#method-buttons');
-
-			_Schema.methods.updateUIForAllAttributes(buttons[0], result);
-
-			// method name input,etc
-			{
-				let methodNameOutputElement    = document.getElementById('method-name-output');
-				let methodNameInputElement     = document.getElementById('method-name-input');
-				let methodNameContainerElement = document.getElementById('method-name-container');
-				let currentMethodName          = result.name;
-
-				let setMethodNameInUI = (name) => {
-
-					currentMethodName                 = name;
-					methodNameOutputElement.innerText = currentMethodName;
-
-					methodNameInputElement.classList.add('hidden');
-					methodNameContainerElement.classList.remove('hidden');
-
-					_Editors.resizeVisibleEditors();
-					_Code.updateDirtyFlag(result);
-
-					let updatedObj = Object.assign({}, result, { name: currentMethodName });
-					_Schema.methods.updateUIForAllAttributes(buttons[0], updatedObj);
+								matchingProperties.push(property);
+							}
+						}
+						collectFunction(matchingProperties);
+					}
 				};
 
-				methodNameInputElement.addEventListener('keyup', (e) => {
+				Command.query('SchemaNode',     _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', { name: parts[0] }, handleExactSchemaNodeSearch, true);
 
-					if (e.key === 'Escape') {
-						methodNameInputElement.value = currentMethodName;
-						setMethodNameInUI(currentMethodName);
-					} else if (e.key === 'Enter') {
-						setMethodNameInUI(methodNameInputElement.value);
+			} else {
+
+				Command.query('SchemaNode',     _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', { name: text }, collectFunction, false);
+				Command.query('SchemaProperty', _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', { name: text }, collectFunction, false);
+				Command.query('SchemaMethod',   _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', { name: text }, collectFunction, false);
+			}
+
+			// text search always happens
+			Command.query('SchemaMethod',   _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', { source: text}, collectFunction, false);
+			Command.query('SchemaProperty', _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', { writeFunction: text}, collectFunction, false);
+			Command.query('SchemaProperty', _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', { readFunction: text}, collectFunction, false);
+
+		},
+		hasVisibleChildren: (id, entity) => {
+
+			let hasVisibleChildren = false;
+
+			if (entity.schemaMethods) {
+
+				let methods = _Schema.filterJavaMethods(entity.schemaMethods, entity);
+				for (let m of methods) {
+
+					if (id === 'custom' || !m.isPartOfBuiltInSchema) {
+
+						hasVisibleChildren = true;
 					}
+				}
+			}
+
+			return hasVisibleChildren;
+		},
+		handleTreeClick: (evt, data) => {
+
+			let selection = data?.node?.data || {};
+
+			selection.updateLocationStack = true;
+
+			// copy key => source for backwards compatibility
+			selection.source = selection.key;
+
+			if (data && data.event && data.event.updateLocationStack === false) {
+				selection.updateLocationStack = false;
+			}
+
+			_Code.tree.handleSelection(selection);
+		},
+		handleSelection: (data) => {
+
+			if (_Code.persistence.testAllowNavigation()) {
+
+				_Code.dirty = false;
+				_Code.additionalDirtyChecks = [];
+
+				// clear page
+				_Code.mainArea.clearMainArea();
+
+				switch (data.content) {
+
+					case 'searchresults':
+					case 'undefined':
+					case 'null':
+					case 'root':
+						break;
+
+					case 'globals':
+						_Code.mainArea.displayGlobalMethodsContent(data, true);
+						break;
+
+					case 'openapi':
+						_Code.mainArea.showSwaggerUI(data);
+						break;
+
+					case 'custom':
+						_Code.mainArea.displayCustomTypesContent(data);
+						break;
+
+					case 'services':
+						_Code.mainArea.displayServiceClassesContent(data);
+						break;
+
+					case 'builtin':
+						_Code.mainArea.displayBuiltInTypesContent(data.type);
+						break;
+
+					case 'workingsets':
+						_Code.mainArea.displayWorkingSetsContent();
+						break;
+
+					case 'workingset':
+						_Code.mainArea.displayWorkingSetContent(data);
+						break;
+
+					case 'properties':
+						_Code.mainArea.displayPropertiesContent(data, data.updateLocationStack);
+						break;
+
+					case 'remoteproperties':
+						_Code.mainArea.displayRemotePropertiesContent(data, data.updateLocationStack);
+						break;
+
+					case 'views':
+						_Code.mainArea.displayViewsContent(data, data.updateLocationStack);
+						break;
+
+					case 'methods':
+						_Code.mainArea.displayMethodsContent(data, data.updateLocationStack);
+						break;
+
+					case 'inheritedproperties':
+						_Code.mainArea.displayInheritedPropertiesContent(data, data.updateLocationStack);
+						break;
+
+					case 'inherited':
+						_Code.tree.findAndOpenNode(data.path, true);
+						break;
+
+					default:
+						_Code.tree.handleNodeObjectClick(data);
+						break;
+				}
+			}
+		},
+		// loadMultiple: async (data) => {
+		// 	// execute a list of queries and join the results
+		// 	let result = [];
+		// 	for (let query of data.queries) {
+		// 		let r = await Command.queryPromise(query.type, _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', query.query, true, 'ui');
+		// 		result = result.concat(r);
+		// 	}
+		// 	_Code.tree.displayFunction(result, data);
+		// },
+		loadWorkingSets: (data) => {
+			_WorkingSets.getWorkingSets(result => _Code.tree.displayFunction(result, data, true));
+		},
+		loadWorkingSet: (data) => {
+			_WorkingSets.getWorkingSetContents(data.id, result => _Code.tree.displayFunction(result, data));
+		},
+		loadRemoteProperties: (data) => {
+
+			Command.get(data.id, null, entity => {
+
+				let mapFn = (rel, out) => {
+
+					let attrName = (out ? (rel.targetJsonName || rel.oldTargetJsonName) : (rel.sourceJsonName || rel.oldSourceJsonName));
+
+					return {
+						id:           rel.id,
+						type:         rel.type,
+						name:         attrName,
+						propertyType: '',
+						inherited:    false
+					};
+				};
+
+				let processedRemoteAttributes = [].concat(entity.relatedTo.map(r => mapFn(r, true))).concat(entity.relatedFrom.map((r) => mapFn(r, false)));
+
+				_Code.tree.displayFunction(processedRemoteAttributes, data);
+			});
+		},
+		loadInheritedProperties: (data) => {
+
+			Command.listSchemaProperties(data.id, 'custom', (result) => {
+
+				let filtered = result.filter(p => (p.declaringClass !== data.type));
+
+				_Code.tree.displayFunction(filtered.map(s => {
+					return {
+						id: s.declaringUuid + '-' + s.name,
+						type: 'SchemaProperty',
+						name: s.declaringClass + '.' + s.name,
+						propertyType: s.declaringPropertyType ? s.declaringPropertyType : s.propertyType,
+						inherited: true
+					};
+				}), data);
+			});
+		},
+		handleNodeObjectClick: (data) => {
+
+			let nodeType = data.key || data.type;
+			if (nodeType) {
+
+				switch (nodeType) {
+
+					case 'SchemaView':
+						_Code.mainArea.displayViewDetails(data);
+						break;
+
+					case 'SchemaProperty':
+						_Code.mainArea.displayPropertyDetails(data);
+						break;
+
+					case 'SchemaMethod':
+						_Code.mainArea.displaySchemaMethodContent(data);
+						break;
+
+					case 'SchemaNode':
+						_Code.mainArea.displaySchemaNodeContent(data);
+						break;
+
+					case 'SchemaRelationshipNode':
+						_Code.mainArea.displaySchemaRelationshipNodeContent(data);
+						break;
+
+					case 'OpenAPITag':
+						_Code.mainArea.showSwaggerUI(data);
+						break;
+				}
+			}
+		},
+		refreshNode: (id) => {
+
+			if (_Code.codeTree) {
+
+				let escapedId = id.replaceAll('/', '\\/');
+				_Code.codeTree.jstree().refresh_node(document.querySelector(`li#${escapedId}`));
+			}
+		},
+		findAndOpenNode: (path, updateLocationStack) => {
+			let tree = $('#code-tree').jstree(true);
+			_Code.tree.findAndOpenNodeRecursive(tree, document, path, 0, updateLocationStack);
+		},
+		findAndOpenNodeRecursive: (tree, parent, path, depth, updateLocationStack) => {
+
+			let parts = path.split('/').filter(p => p.length);
+			if (path.length === 0) { return; }
+			if (parts.length < 1) { return; }
+			if (depth > 15) { return; }
+
+			let id   = parts[depth];
+			let node = parent.querySelector(`li[data-id="${id}"]`);
+
+			if (depth === parts.length - 1) {
+
+				if (node != null) {
+
+					// node found, activate
+					if (tree.get_selected().indexOf(node.id) === -1) {
+						tree.activate_node(node, { updateLocationStack: updateLocationStack });
+						tree.open_node(node);
+					}
+
+					let selectedNode = tree.get_node(node, true);
+					if (selectedNode) {
+
+						// depending on the depth we select a different parent level
+						let parentToScrollTo = selectedNode;
+						switch (selectedNode.parents.length) {
+							case 4:
+								parentToScrollTo = tree.get_node(tree.get_parent(node), true);
+								break;
+							case 5:
+								parentToScrollTo = tree.get_node(tree.get_parent(tree.get_parent(node)), true)
+								break;
+						}
+
+						if (parentToScrollTo.length) {
+							parentToScrollTo[0].scrollIntoView();
+						} else {
+							parentToScrollTo.scrollIntoView();
+						}
+					}
+
+					if (_Code.search.searchIsActive()) {
+						tree.element[0].scrollTo(0,0);
+					}
+				}
+
+			} else {
+
+				tree.open_node(node, function(n) {
+					let newParent = parent.querySelector(`li[data-id="${id}"]`);
+					_Code.tree.findAndOpenNodeRecursive(tree, newParent, path, depth + 1, updateLocationStack);
+				});
+			}
+		},
+	},
+	mainArea: {
+		clearMainArea: () => {
+			_Helpers.fastRemoveAllChildren(_Code.codeContents[0]);
+
+			_Code.persistence.runCurrentEntitySaveAction = null;
+		},
+		displayGlobalMethodsContent: (data, updateLocationStack) => {
+
+			if (updateLocationStack === true) {
+				_Code.pathLocations.updatePathLocationStack(data.path);
+				_Code.lastClickedPath = data.path;
+			}
+
+			_Code.recentElements.addRecentlyUsedElement(data.content, "User-defined functions", data.svgIcon, data.path, false);
+
+			_Code.codeContents.append(_Code.templates.globals());
+
+			Command.rest('SchemaMethod/schema?schemaNode=null&' + Structr.getRequestParameterName('sort') + '=name&' + Structr.getRequestParameterName('order') + '=ascending', (methods) => {
+
+				_Schema.methods.appendMethods(_Code.codeContents[0].querySelector('.content-container'), null, methods, () => {
+					_Code.tree.refreshNode(data.path);
 				});
 
-				methodNameInputElement.addEventListener('blur', (e) => {
-					setMethodNameInUI(methodNameInputElement.value);
+				_Code.persistence.runCurrentEntitySaveAction = () => {
+					$('.save-all', _Code.codeContents).click();
+				};
+			});
+		},
+		displayCustomTypesContent: (data) => {
+
+			_Code.codeContents[0].insertAdjacentHTML('beforeend', _Code.templates.createNewType());
+
+			let container = _Code.codeContents[0].querySelector('#create-type-container');
+
+			_Schema.nodes.showCreateNewTypeDialog(container, null, { isServiceClass: false });
+
+			_Code.persistence.runCurrentEntitySaveAction = () => {
+
+				let typeData = _Schema.nodes.getTypeDefinitionDataFromForm(container, {});
+
+				if (!typeData.name || typeData.name.trim() === '') {
+
+					_Helpers.blinkRed(container.querySelector('[data-property="name"]'));
+
+				} else {
+
+					_Schema.nodes.createTypeDefinition(typeData).then(responseData => {
+
+						_Code.tree.refreshNode(data.path);
+
+						window.setTimeout(() => {
+							// tree needs to be refreshed - implement better solution using refresh_node.jstree event
+							_Code.tree.findAndOpenNode(data.path + '/' + responseData.result[0], true);
+						}, 250);
+
+					}, rejectData => {
+
+						Structr.errorFromResponse(rejectData, undefined, { requiresConfirmation: true });
+					});
+				}
+			};
+
+			_Code.mainArea.helpers.displaySvgActionButton('#create-type-actions', _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, 'icon-green'), 'create', 'Create', _Code.persistence.runCurrentEntitySaveAction);
+		},
+		displayBuiltInTypesContent: () => {
+			_Code.codeContents.append(_Code.templates.builtin());
+		},
+		displaySchemaNodeContent: (data) => {
+
+			fetch(`${Structr.rootUrl}${data.id}/schema`).then(response => {
+
+				if (response.ok) {
+					return response.json();
+				} else {
+					throw Error("Unable to fetch schema node content");
+				}
+
+			}).then(json => {
+
+				let entity = json.result;
+
+				_Code.recentElements.updateRecentlyUsed(entity, data.path, data.updateLocationStack);
+
+				_Helpers.fastRemoveAllChildren(_Code.codeContents[0]);
+				_Code.codeContents.append(_Code.templates.type({ data, type: entity }));
+
+				let targetView  = LSWrapper.getItem(`${_Entities.activeEditTabPrefix}_${entity.id}`, 'basic');
+				let tabControls = _Schema.nodes.loadNode(entity, $('.tabs-container', )[0], $('.tabs-content-container', _Code.codeContents)[0], targetView);
+
+				// remove bulk edit save/discard buttons
+				for (let button of _Code.codeContents[0].querySelectorAll('.discard-all, .save-all')) {
+					_Helpers.fastRemoveElement(button);
+				}
+
+				_Code.persistence.runCurrentEntitySaveAction = () => {
+
+					_Schema.bulkDialogsGeneral.saveEntityFromTabControls(entity, tabControls).then((success) => {
+
+						if (success) {
+
+							// reload tree node
+							_Code.tree.refreshNode(data.path);
+
+							// and refresh center pane
+							_Code.tree.handleNodeObjectClick(data);
+						}
+					});
+				};
+
+				let saveButton = _Code.mainArea.helpers.displaySvgActionButton('#type-actions', _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, 'icon-green'), 'save', 'Save', _Code.persistence.runCurrentEntitySaveAction);
+
+				let cancelButton = _Code.mainArea.helpers.displaySvgActionButton('#type-actions', _Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, 'icon-red'), 'cancel', 'Revert changes', () => {
+					_Schema.bulkDialogsGeneral.resetInputsViaTabControls(tabControls);
 				});
 
-				methodNameContainerElement.addEventListener('click', (e) => {
+				// delete button
+				if (!entity.isPartOfBuiltInSchema) {
+					_Code.mainArea.helpers.displaySvgActionButton('#type-actions', _Icons.getSvgIcon(_Icons.iconTrashcan, 14, 14, 'icon-red'), 'delete', 'Delete type ' + entity.name, () => {
+						_Code.persistence.deleteSchemaEntity(entity, `Delete type ${entity.name}?`, 'This will delete all schema relationships as well, but no data will be removed.', data);
+					});
+				}
+
+				_Helpers.disableElements(true, saveButton, cancelButton);
+
+				document.querySelector('#code-contents .tabs-content-container')?.addEventListener('bulk-data-change', (e) => {
 
 					e.stopPropagation();
-					methodNameContainerElement.classList.add('hidden');
 
-					const methodNameInputField = methodNameInputElement;
-					methodNameInputField?.classList.remove('hidden');
-					methodNameInputField?.focus();
+					let changeCount = _Schema.bulkDialogsGeneral.getChangeCountFromBulkInfo(_Schema.bulkDialogsGeneral.getBulkInfoFromTabControls(tabControls, false));
+					let isDirty     = (changeCount > 0);
+					_Helpers.disableElements(!isDirty, saveButton, cancelButton);
 
-					_Editors.resizeVisibleEditors();
+					_Code.persistence.tellFirstElementToShowDirtyState(isDirty);
 				});
-			}
-
-			// Source Editor
-			let sourceMonacoConfig = {
-				language: 'auto',
-				lint: true,
-				autocomplete: true,
-				changeFn: (editor, entity) => {
-					_Code.updateDirtyFlag(entity);
-				}
-			};
-
-			let sourceEditor = _Editors.getMonacoEditor(result, 'source', _Code.codeContents[0].querySelector('#tabView-source .editor'), sourceMonacoConfig);
-			_Editors.appendEditorOptionsElement(_Code.codeContents[0].querySelector('.editor-info'));
-
-			if (_Code.shouldHideOpenAPITabForMethod(result)) {
-
-				$('li[data-name=api]').hide();
-
-				if (lastOpenTab === 'api') {
-					lastOpenTab = 'source';
-				}
-
-			} else {
-
-				let apiTab = $('#tabView-api', _Code.codeContents);
-				apiTab.append(_Code.templates.openAPIBaseConfig({ type: result.type }));
-
-				_Code.populateOpenAPIBaseConfig(apiTab[0], result, _Code.availableTags);
-
-				let parameterTplRow = $('.template', apiTab);
-				let parameterContainer = parameterTplRow.parent();
-
-				// do not use "fastRemove" because it also removes all children and we want to use it as a template afterwards
-				parameterTplRow[0].remove();
-
-				let addParameterRow = (parameter) => {
-
-					let clone = parameterTplRow.clone().removeClass('template');
-
-					if (parameter) {
-
-						$('input[data-parameter-property=index]', clone).val(parameter.index);
-						$('input[data-parameter-property=name]', clone).val(parameter.name);
-						$('input[data-parameter-property=parameterType]', clone).val(parameter.parameterType);
-						$('input[data-parameter-property=description]', clone).val(parameter.description);
-						$('input[data-parameter-property=exampleValue]', clone).val(parameter.exampleValue);
-
-					} else {
-
-						let maxCnt = 0;
-						for (let indexInput of apiTab[0].querySelectorAll('input[data-parameter-property=index]')) {
-							maxCnt = Math.max(maxCnt, parseInt(indexInput.value) + 1);
-						}
-
-						$('input[data-parameter-property=index]', clone).val(maxCnt);
-					}
-
-					$('input[data-parameter-property]', clone).on('input', () => {
-						_Code.updateDirtyFlag(result);
-					});
-
-					parameterContainer.append(clone);
-
-					_Editors.resizeVisibleEditors();
-
-					$('.method-parameter-delete .remove-action', clone).on('click', () => {
-						clone.remove();
-
-						_Editors.resizeVisibleEditors();
-
-						_Code.updateDirtyFlag(result);
-					});
-
-					_Code.updateDirtyFlag(result);
-				};
-
-				result.parameters.sort((p1, p2) => (p1.index ?? 0) - (p2.index ?? 0));
-
-				for (let p of result.parameters) {
-					addParameterRow(p);
-				}
-
-				_Code.additionalDirtyChecks.push(() => {
-					return _Code.schemaMethodParametersChanged(result.parameters);
-				});
-
-				$('#add-parameter-button').on('click', () => { addParameterRow(); });
-
-				$('#tags-select', apiTab).select2({
-					tags: true,
-					width: '100%'
-				}).on('change', () => {
-					_Code.updateDirtyFlag(result);
-				});
-
-				$('input[type=checkbox]', apiTab).on('change', function() {
-					_Code.updateDirtyFlag(result);
-				});
-
-				$('input[type=text]', apiTab).on('keyup', function() {
-					_Code.updateDirtyFlag(result);
-				});
-
-				let openAPIReturnTypeMonacoConfig = {
-					language: 'json',
-					lint: false,
-					autocomplete: true,
-					changeFn: (editor, entity) => {
-						_Code.updateDirtyFlag(entity);
-					}
-				};
-
-				_Editors.getMonacoEditor(result, 'openAPIReturnType', apiTab[0].querySelector('.editor'), openAPIReturnTypeMonacoConfig);
-
-				_Helpers.activateCommentsInElement(apiTab[0]);
-			}
-
-			if (_Code.shouldHideAPIExampleTabForMethod(result)) {
-
-				$('li[data-name=api-usage]').hide();
-
-				if (lastOpenTab === 'api-usage') {
-					lastOpenTab = 'source';
-				}
-
-			} else {
-
-				let apiExamplesTab = _Code.codeContents[0].querySelector('#tabView-api-usage');
-
-				let exampleData      = Object.fromEntries((result.parameters ?? []).map(p => [p.name, (p.exampleValue ?? '')]));
-				let isGet            = (result.httpVerb.toLowerCase() === 'get');
-				let isStatic         = (result.isStatic === true);
-				let url              = _Code.getURLForSchemaMethod(result, true);
-				let queryString      = new URLSearchParams(exampleData).toString();
-				let isUserDefinedFn  = (!result.schemaNode);
-				let isInstanceMethod = (!isStatic && !isUserDefinedMethod);
-
-				let uuidHelpText = 'Note that {uuid} must be replaced with a UUID of a database object of a matching type';
-
-				let getFetchParts = () => {
-
-					let parts = [];
-
-					if (isGet) {
-
-						parts.push(`let parameters = ${JSON.stringify(exampleData, undefined, '\t')};`);
-						parts.push('let queryString = new URLSearchParams(parameters).toString();');
-						parts.push('');
-
-						if (isInstanceMethod) {
-							parts.push(`// ${uuidHelpText}`);
-						}
-
-						parts.push(`fetch('${url}?' + queryString).then(response => {`);
-						parts.push('	// handle response');
-						parts.push('	console.log(response);');
-						parts.push('});');
-
-					} else {
-
-						parts.push(`let data = ${JSON.stringify(exampleData, undefined, '\t')};`);
-						parts.push('');
-
-						if (isInstanceMethod) {
-							parts.push(`// ${uuidHelpText}`);
-						}
-
-						parts.push(`fetch('${_Code.getURLForSchemaMethod(result, true)}', {`);
-						parts.push(`	method: '${result.httpVerb.toUpperCase()}',`);
-						parts.push('	body: JSON.stringify(data)');
-						parts.push('}).then(response => {');
-						parts.push('	// handle response');
-						parts.push('	console.log(response);');
-						parts.push('});');
-					}
-
-					return parts;
-				};
-
-				let getCurlParts = () => {
-
-					let parts = [
-						`${isInstanceMethod ? `# ${uuidHelpText}\n` : ''}curl -HX-User:admin -HX-Password:admin -X${result.httpVerb.toUpperCase()} "${url}${(isGet && queryString.length > 0) ? '?' + queryString : ''}"`
-					];
-
-					if (!isGet) {
-						parts.push(`-d '${JSON.stringify(exampleData)}'`);
-					}
-
-					return parts;
-				};
-
-				let getScriptingParts = () => {
-
-					let parts = [];
-
-					if (isUserDefinedFn) {
-
-						parts.push('${{');
-						parts.push(`	let parameters = ${JSON.stringify(exampleData, undefined, '\t').split('\n').join('\n\t')};`);
-						parts.push(`	let result     = $.${result.name}(parameters);`);
-						parts.push('}}');
-
-					} else if (isStatic) {
-
-						parts.push('${{');
-						parts.push(`	let parameters = ${JSON.stringify(exampleData, undefined, '\t').split('\n').join('\n\t')};`);
-						parts.push(`	let result     = $.${result.schemaNode.name}.${result.name}(parameters);`);
-						parts.push('}}');
-
-					} else {
-
-						parts.push('${{');
-						parts.push(`	let parameters = ${JSON.stringify(exampleData, undefined, '\t').split('\n').join('\n\t')};`);
-						parts.push('');
-						parts.push(`	// option a) this instance method can be called from anywhere by looking up a specific object of type "${result.schemaNode.name}" by UUID (or any other means)`);
-						parts.push(`	// ${uuidHelpText}`);
-						parts.push(`	let objectUUID   = '<b>{uuid}</b>';`);
-						parts.push(`	let nodeInstance = $.find('${result.schemaNode.name}', objectUUID);`);
-						parts.push(`	let resultOne    = nodeInstance.${result.name}(parameters);`);
-						parts.push('');
-						parts.push('');
-						parts.push(`	// option b) this instance method can be called if the current scripting context is already a object of type "${result.schemaNode.name}". Then we can use $.this`);
-						parts.push(`	let resultTwo = $.this.${result.name}(parameters);`);
-						parts.push('}}');
-					}
-
-					return parts;
-				}
-
-				let templateConfig = {
-					type: result.type,
-					method: result,
-					exampleData: exampleData,
-					fetchExample: getFetchParts().join('\n'),
-					curlExample: getCurlParts().join(' \\\n\t'),
-					scriptingExample: getScriptingParts().join('\n')
-				};
-				apiExamplesTab.insertAdjacentHTML('beforeend', _Code.templates.schemaMethodAPIExamples(templateConfig));
-
-				for (let copyBtn of apiExamplesTab.querySelectorAll('button[copy-button]')) {
-					copyBtn.addEventListener('click', async (e) => {
-						let text  =copyBtn.closest('details').querySelector('div[usage-text]').textContent;
-						await navigator.clipboard.writeText(text);
-					});
-				}
-
-				apiExamplesTab.querySelector('#fetch-example')?.addEventListener('toggle', (e) => {
-					LSWrapper.setItem(_Code.methodsFetchExampleStateKey, e.newState);
-				});
-
-				apiExamplesTab.querySelector('#curl-example')?.addEventListener('toggle', (e) => {
-					LSWrapper.setItem(_Code.methodsCurlExampleStateKey, e.newState);
-				});
-
-				apiExamplesTab.querySelector('#scripting-example')?.addEventListener('toggle', (e) => {
-					LSWrapper.setItem(_Code.methodsScriptingExampleStateKey, e.newState);
-				});
-			}
-
-			// default buttons
-			_Code.runCurrentEntitySaveAction = () => {
-
-				let storeParametersInFormDataFunction = (formData) => {
-
-					let parametersData = _Code.collectSchemaMethodParameters();
-
-					if (parametersData !== null) {
-
-						formData['parameters'] = parametersData;
-					}
-				};
-
-				let afterSaveCallback = () => {
-
-					_Code.additionalDirtyChecks = [];
-					_Code.displaySchemaMethodContent(data);
-
-					// refresh parent in case icon changed
-					_Code.refreshNode(data.path.slice(0, data.path.lastIndexOf('/')));
-				};
-
-				_Code.saveEntityAction(result, afterSaveCallback, [storeParametersInFormDataFunction]);
-			};
-
-			_Code.displaySvgActionButton('#method-actions', _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, 'icon-green'), 'save', 'Save method', _Code.runCurrentEntitySaveAction);
-
-			_Code.displaySvgActionButton('#method-actions', _Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, 'icon-red'), 'cancel', 'Revert changes', () => {
-				_Code.additionalDirtyChecks = [];
-				_Editors.disposeEditorModel(result.id, 'source');
-				_Editors.disposeEditorModel(result.id, 'openAPIReturnType');
-				_Code.displaySchemaMethodContent(data);
 			});
+		},
+		displayPropertiesContent: (data, updateLocationStack) => {
 
-			// delete button
-			_Code.displaySvgActionButton('#method-actions', _Icons.getSvgIcon(_Icons.iconTrashcan, 14, 14, 'icon-red'), 'delete', 'Delete method', () => {
-				_Code.deleteSchemaEntity(result, 'Delete method ' + result.name + '?', 'Note: Builtin methods will be restored in their initial configuration', data);
-			});
+			if (updateLocationStack === true) {
+				_Code.pathLocations.updatePathLocationStack(data.path);
+				_Code.lastClickedPath = data.path;
+			}
 
-			// run button (for user-defined functions and static methods which are callable via HTTP)
-			if ((isUserDefinedMethod || isStaticMethod) && isCallableViaHTTP) {
+			_Code.codeContents.append(_Code.templates.propertiesLocal({ data: data }));
 
-				_Code.displaySvgActionButton('#method-actions', _Icons.getSvgIcon(_Icons.iconRunButton, 14, 14), 'run', 'Open run dialog', () => {
-					_Code.runSchemaMethod(result);
+			Command.get(data.id, null, (entity) => {
+
+				_Schema.properties.appendLocalProperties(document.querySelector('#code-contents .content-container'), entity, {
+
+					editReadWriteFunction: (property) => {
+						_Code.tree.findAndOpenNode(data.path + '/' + property.id, true);
+					},
+					editCypherProperty: (property) => {
+						_Code.tree.findAndOpenNode(data.path + '/' + property.id, true);
+					}
+				}, () => {
+					_Code.tree.refreshNode(data.path);
 				});
-			}
 
-			_Helpers.activateCommentsInElement(buttons[0]);
-
-			_Code.updateDirtyFlag(result);
-
-			$('input, select', buttons).on('input', () => {
-				let changes = _Code.updateDirtyFlag(result);
-
-				let updatedObj = Object.assign({}, result, changes);
-				_Schema.methods.updateUIForAllAttributes(buttons[0], updatedObj);
+				_Code.persistence.runCurrentEntitySaveAction = () => {
+					$('.save-all', _Code.codeContents).click();
+				};
 			});
+		},
+		displayRemotePropertiesContent: (data, updateLocationStack) => {
 
-			if (typeof callback === 'function') {
-				callback();
+			if (updateLocationStack === true) {
+				_Code.pathLocations.updatePathLocationStack(data.path);
+				_Code.lastClickedPath = data.path;
 			}
+
+			_Code.codeContents.append(_Code.templates.propertiesRemote({ data: data }));
+
+			Command.get(data.id, null, (entity) => {
+
+				_Schema.remoteProperties.appendRemote(_Code.codeContents[0].querySelector('.content-container'), entity, () => {
+
+					// TODO: navigation should/could be possible in the code area as well - currently this is deactivated in schema.js
+
+				}, _Code.tree.refreshTree);
+
+				_Code.persistence.runCurrentEntitySaveAction = () => {
+					$('.save-all', _Code.codeContents).click();
+				};
+			});
+		},
+		displayViewsContent: (data, updateLocationStack) => {
+
+			if (updateLocationStack === true) {
+				_Code.pathLocations.updatePathLocationStack(data.path);
+				_Code.lastClickedPath = data.path;
+			}
+
+			_Code.codeContents.append(_Code.templates.views({ data: data }));
+
+			Command.get(data.id, null, (entity) => {
+				_Schema.views.appendViews(_Code.codeContents[0].querySelector('.content-container'), entity, () => {
+					_Code.tree.refreshNode(data.path);
+				});
+
+				_Code.persistence.runCurrentEntitySaveAction = () => {
+					$('.save-all', _Code.codeContents).click();
+				};
+			});
+		},
+		displayMethodsContent: (data, updateLocationStack) => {
+
+			if (updateLocationStack === true) {
+				_Code.pathLocations.updatePathLocationStack(data.path);
+				_Code.lastClickedPath = data.path;
+			}
+
+			_Code.codeContents.append(_Code.templates.methods({ data: data }));
+
+			Command.get(data.id, null, (entity) => {
+
+				_Schema.methods.appendMethods(_Code.codeContents[0].querySelector('.content-container'), entity, entity.schemaMethods, () => {
+					_Code.tree.refreshNode(data.path);
+				});
+
+				_Code.persistence.runCurrentEntitySaveAction = () => {
+					$('.save-all', _Code.codeContents).click();
+				};
+			}, 'schema');
+		},
+		displayInheritedPropertiesContent: (data, updateLocationStack) => {
+
+			if (updateLocationStack === true) {
+				_Code.pathLocations.updatePathLocationStack(data.path);
+				_Code.lastClickedPath = data.path;
+			}
+
+			_Code.codeContents.append(_Code.templates.propertiesInherited({ data: data }));
+
+			Command.get(data.id, null, (entity) => {
+				_Schema.properties.appendBuiltinProperties(_Code.codeContents[0].querySelector('.content-container'), entity);
+			});
+		},
+		displayPropertyDetails: (data) => {
+
+			Command.get(data.id, null, (result) => {
+
+				_Code.recentElements.updateRecentlyUsed(result, data.path, data.updateLocationStack);
+
+				if (result.propertyType) {
+
+					switch (result.propertyType) {
+						case 'Cypher':
+							_Code.mainArea.displayCypherPropertyDetails(result);
+							break;
+
+						case 'Function':
+							_Code.mainArea.displayFunctionPropertyDetails(result, data);
+							break;
+
+						case 'String':
+							_Code.mainArea.displayStringPropertyDetails(result, data);
+							break;
+
+						case 'Boolean':
+							_Code.mainArea.displayBooleanPropertyDetails(result, data);
+							break;
+
+						default:
+							_Code.mainArea.displayDefaultPropertyDetails(result, data);
+							break;
+					}
+
+				} else {
+
+					if (result.type === 'SchemaRelationshipNode') {
+						// this is a linked property/adjacent type
+						// _Code.displayRelationshipPropertyDetails(result);
+					}
+				}
+			});
+		},
+		displayFunctionPropertyDetails: (property, data, lastOpenTab) => {
+
+			_Code.codeContents.append(_Code.templates.functionProperty({ property: property }));
 
 			let activateTab = (tabName) => {
-
-				LSWrapper.setItem(`${_Entities.activeEditTabPrefix}_${data.id}`, tabName);
-
-				$('.method-tab-content', _Code.codeContents).hide();
+				$('.function-property-tab-content', _Code.codeContents).hide();
 				$('li[data-name]', _Code.codeContents).removeClass('active');
 
-				let activeTab = $(`#tabView-${tabName}`, _Code.codeContents);
+				let activeTab = $('#tabView-' + tabName, _Code.codeContents);
 				activeTab.show();
-				$(`li[data-name="${tabName}"]`, _Code.codeContents).addClass('active');
+				$('li[data-name="' + tabName + '"]', _Code.codeContents).addClass('active');
 
 				window.setTimeout(() => { _Editors.resizeVisibleEditors(); }, 250);
 			};
 
-			$('li[data-name]', _Code.codeContents).off('click').on('click', function(e) {
-				e.stopPropagation();
-				activateTab($(this).data('name'));
-			});
+			for (let tabLink of _Code.codeContents[0].querySelectorAll('li[data-name]')) {
+				tabLink.addEventListener('click', (e) => {
+					e.stopPropagation();
+					activateTab(tabLink.dataset.name);
+				})
+			}
 			activateTab(lastOpenTab || 'source');
 
-			_Editors.focusEditor(sourceEditor);
-		});
-	},
-	shouldHideOpenAPITabForMethod: (entity) => {
-
-		let isJavaMethod         = (entity.codeType === 'java');
-		let isLifecycleMethod    = LifecycleMethods.isLifecycleMethod(entity);
-		let isNotCallableViaHTTP = (entity.isPrivate === true);
-
-		return isJavaMethod || isLifecycleMethod || isNotCallableViaHTTP;
-	},
-	shouldHideAPIExampleTabForMethod: (entity) => {
-
-		let isJavaMethod         = (entity.codeType === 'java');
-		let isLifecycleMethod    = LifecycleMethods.isLifecycleMethod(entity);
-
-		return isJavaMethod || isLifecycleMethod;
-	},
-	populateOpenAPIBaseConfig: (container, entity = {}, availableTags) => {
-
-		container.querySelector('[data-property="includeInOpenAPI"]').checked = (entity.includeInOpenAPI === true);
-
-		let tagsSelect = container.querySelector('#tags-select');
-
-		tagsSelect.insertAdjacentHTML('beforeend', ((entity.tags) ? entity.tags.map(tag => `<option selected>${tag}</option>`).join() : ''));
-		tagsSelect.insertAdjacentHTML('beforeend', availableTags.filter(tag => (!entity.tags || !entity.tags.includes(tag))).map(tag => `<option>${tag}</option>`).join());
-
-		container.querySelector('[data-property="summary"]').value = entity.summary || '';
-
-		if (entity.type && entity.type !== 'SchemaNode') {
-
-			container.querySelector('[data-property="description"]').value = entity.description || '';
-		}
-	},
-	collectSchemaMethodParameters: () => {
-
-		let container = _Code.codeContents[0].querySelector('#openapi-options');
-		if (container === null) {
-
-			// we are not showing API tab, do not return anything
-			return null;
-		}
-
-		let parametersData = [];
-		for (let formParam of _Code.codeContents[0].querySelectorAll('.method-parameter')) {
-			let pData = {};
-			for (let formParamValue of formParam.querySelectorAll('[data-parameter-property]')) {
-
-				if (formParamValue.type === 'number') {
-					pData[formParamValue.dataset['parameterProperty']] = parseInt(formParamValue.value);
-				} else {
-					pData[formParamValue.dataset['parameterProperty']] = formParamValue.value;
-				}
-
-			}
-
-			parametersData.push(pData);
-		}
-
-		return parametersData;
-	},
-	schemaMethodParametersChanged: (parameters) => {
-
-		let parametersData = _Code.collectSchemaMethodParameters();
-
-		let easyAccessFormData = {};
-		for (let fp of parametersData) {
-			easyAccessFormData[fp.index] = fp;
-		}
-
-		// if params have same length AND every element from original params is identical to formData ==> ALLOW
-		if (parametersData.length !== parameters.length) {
-
-			return true;
-
-		} else {
-
-			for (let originalParameter of parameters) {
-
-				let sameIndexFromForm = easyAccessFormData[originalParameter.index];
-
-				if (sameIndexFromForm) {
-
-					for (let key in sameIndexFromForm) {
-
-						if (sameIndexFromForm[key] !== originalParameter[key] && !(sameIndexFromForm[key] === '' && !originalParameter[key])) {
-							return true;
-						}
-					}
-
-				} else {
-
-					return true;
-
-				}
-			}
-		}
-
-		return false;
-	},
-	displaySchemaGroupContent: (data) => {
-
-		_WorkingSets.getWorkingSet(data.id, function(workingSet) {
-
-			_Code.recentElements.updateRecentlyUsed(workingSet, data.path, data.updateLocationStack);
-			_Helpers.fastRemoveAllChildren(_Code.codeContents[0]);
-			_Code.codeContents.append(_Code.templates.workingSet({ type: workingSet }));
-
-			if (workingSet.name === _WorkingSets.recentlyUsedName) {
-
-				_Code.displaySvgActionButton('#working-set-content', _Icons.getSvgIcon(_Icons.iconTrashcan, 14, 14, 'icon-red'), 'clear', 'Clear', function() {
-					_WorkingSets.clearRecentlyUsed(function() {
-						_Code.refreshTree();
-					});
-				});
-
-				$('#group-name-input').prop('disabled', true);
-
-			} else {
-
-				_Code.displaySvgActionButton('#working-set-content', _Icons.getSvgIcon(_Icons.iconTrashcan, 14, 14, 'icon-red'), 'remove', 'Remove', function() {
-					_WorkingSets.deleteSet(data.id, function() {
-						_Code.refreshNode('/workingsets');
-						_Code.findAndOpenNode('/workingsets');
-					});
-				});
-
-				_Code.activatePropertyValueInput('group-name-input', workingSet.id, 'name');
-			}
-
-			$('#schema-graph').append(_Code.templates.root());
-
-			var layouter = new SigmaLayouter('group-contents');
-
-			Command.query('SchemaNode', 10000, 1, 'name', 'asc', { }, function(result1) {
-
-				for (let node of result1) {
-					if (workingSet.children.includes(node.name)) {
-						layouter.addNode(node, data.path);
-					}
-				}
-
-				Command.query('SchemaRelationshipNode', 10000, 1, 'name', 'asc', { }, function(result2) {
-
-					for (let r of result2) {
-						layouter.addEdge(r.id, r.relationshipType, r.sourceId, r.targetId, true);
-					}
-
-					layouter.refresh();
-					layouter.layout();
-					layouter.on('clickNode', _Code.handleGraphClick);
-
-					_Code.layouter = layouter;
-
-					// experimental: use positions from schema layouter to initialize positions in schema editor
-					window.setTimeout(function() {
-
-						let minX = 0;
-						let minY = 0;
-
-						layouter.getNodes().forEach(function(node) {
-							if (node.x < minX) { minX = node.x; }
-							if (node.y < minY) { minY = node.y; }
-						});
-
-						let positions = {};
-
-						layouter.getNodes().forEach(function(node) {
-
-							positions[node.label] = {
-								top: node.y - minY + 20,
-								left: node.x - minX + 20
-							};
-						});
-
-						_WorkingSets.updatePositions(workingSet.id, positions);
-
-					}, 300);
-
-				}, true, 'ui');
-
-			}, true, 'ui');
-		});
-	},
-	displayRootContent: () => {
-
-		_Code.codeContents.append(_Code.templates.root());
-
-		let layouter = new SigmaLayouter('all-types');
-
-		Command.query('SchemaNode', 10000, 1, 'name', 'asc', { }, (result1) => {
-
-			result1.forEach(function(node) {
-				layouter.addNode(node, '');
-			});
-
-			Command.query('SchemaRelationshipNode', 10000, 1, 'name', 'asc', { }, (result2) => {
-
-				result2.forEach(function(r) {
-					layouter.addEdge(r.id, r.relationshipType, r.sourceId, r.targetId, true);
-				});
-
-				layouter.refresh();
-				layouter.layout();
-				layouter.on('clickNode', _Code.handleGraphClick);
-
-				_Code.layouter = layouter;
-
-			}, true, 'ui');
-
-		}, true, 'ui');
-	},
-	handleGraphClick: (e) => {
-
-		let data = e.data;
-		if (data.node) {
-
-			if (data.node.path) {
-
-				_Code.findAndOpenNode(data.node.path + '/' + data.node.id, false);
-
-			} else {
-
-				// we need to find out if this node is a custom type or built-in
-				if (data.node.builtIn) {
-					_Code.findAndOpenNode('/root/builtin/' + data.node.id, false);
-				} else {
-					_Code.findAndOpenNode('/root/custom/' + data.node.id, false);
-				}
-			}
-		}
-	},
-	displayCustomTypesContent: (data) => {
-
-		_Code.codeContents[0].insertAdjacentHTML('beforeend', _Code.templates.customTypes());
-
-		let container = _Code.codeContents[0].querySelector('#create-type-container');
-
-		_Schema.nodes.showCreateNewTypeDialog(container);
-
-		_Code.runCurrentEntitySaveAction = () => {
-
-			let typeData = _Schema.nodes.getTypeDefinitionDataFromForm(container, {});
-
-			if (!typeData.name || typeData.name.trim() === '') {
-
-				_Helpers.blinkRed(container.querySelector('[data-property="name"]'));
-
-			} else {
-
-				_Schema.nodes.createTypeDefinition(typeData).then(responseData => {
-
-					_Code.refreshNode(data.path);
-
-					window.setTimeout(() => {
-						// tree needs to be refreshed - implement better solution using refresh_node.jstree event
-						_Code.findAndOpenNode(data.path + '/' + responseData.result[0], true);
-					}, 250);
-
-				}, rejectData => {
-
-					Structr.errorFromResponse(rejectData, undefined, { requiresConfirmation: true });
-				});
-			}
-		};
-
-		_Code.displaySvgActionButton('#create-type-actions', _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, 'icon-green'), 'create', 'Create', _Code.runCurrentEntitySaveAction);
-	},
-	displayWorkingSetsContent: () => {
-		_Code.codeContents.append(_Code.templates.workingSets());
-	},
-	displayBuiltInTypesContent: () => {
-		_Code.codeContents.append(_Code.templates.builtin());
-	},
-	displayPropertiesContent: (data, updateLocationStack) => {
-
-		if (updateLocationStack === true) {
-			_Code.pathLocations.updatePathLocationStack(data.path);
-			_Code.lastClickedPath = data.path;
-		}
-
-		_Code.codeContents.append(_Code.templates.propertiesLocal({ data: data }));
-
-		Command.get(data.id, null, (entity) => {
-
-			_Schema.properties.appendLocalProperties(document.querySelector('#code-contents .content-container'), entity, {
-
-				editReadWriteFunction: (property) => {
-					_Code.findAndOpenNode(data.path + '/' + property.id, true);
+			_Helpers.activateCommentsInElement(_Code.codeContents[0], { insertAfter: true });
+
+			let functionPropertyMonacoConfig = {
+				language: 'auto',
+				lint: true,
+				autocomplete: true,
+				changeFn: (editor, entity) => {
+					_Code.persistence.updateDirtyFlag(entity);
 				},
-				editCypherProperty: (property) => {
-					_Code.findAndOpenNode(data.path + '/' + property.id, true);
+				isAutoscriptEnv: true
+			};
+
+			_Editors.getMonacoEditor(property, 'readFunction', _Code.codeContents[0].querySelector('#read-code-container .editor'), functionPropertyMonacoConfig);
+			_Editors.getMonacoEditor(property, 'writeFunction', _Code.codeContents[0].querySelector('#write-code-container .editor'), functionPropertyMonacoConfig);
+
+			_Editors.appendEditorOptionsElement(_Code.codeContents[0].querySelector('.editor-info'));
+
+			let openAPIReturnTypeMonacoConfig = {
+				language: 'json',
+				lint: true,
+				autocomplete: true,
+				changeFn: (editor, entity) => {
+					_Code.persistence.updateDirtyFlag(entity);
 				}
-			}, () => {
-				_Code.refreshNode(data.path);
+			};
+
+			_Editors.getMonacoEditor(property, 'openAPIReturnType', _Code.codeContents[0].querySelector('#tabView-api .editor'), openAPIReturnTypeMonacoConfig);
+
+			_Code.mainArea.displayDefaultPropertyOptions(property, _Editors.resizeVisibleEditors, data);
+		},
+		displayCypherPropertyDetails: (property, data) => {
+
+			_Code.codeContents.append(_Code.templates.cypherProperty({ property: property }));
+
+			let cypherMonacoConfig = {
+				language: 'cypher',
+				lint: false,
+				autocomplete: false,
+				changeFn: (editor, entity) => {
+					_Code.persistence.updateDirtyFlag(entity);
+				},
+				isAutoscriptEnv: false
+			};
+
+			_Editors.getMonacoEditor(property, 'format', _Code.codeContents[0].querySelector('#cypher-code-container .editor'), cypherMonacoConfig);
+			_Editors.appendEditorOptionsElement(_Code.codeContents[0].querySelector('.editor-info'));
+
+			_Code.mainArea.displayDefaultPropertyOptions(property, _Editors.resizeVisibleEditors, data);
+		},
+		displayStringPropertyDetails: (property, data) => {
+
+			_Code.codeContents.append(_Code.templates.stringProperty({ property: property }));
+			_Code.mainArea.displayDefaultPropertyOptions(property, undefined, data);
+		},
+		displayBooleanPropertyDetails: (property, data) => {
+
+			_Code.codeContents.append(_Code.templates.booleanProperty({ property: property }));
+			_Code.mainArea.displayDefaultPropertyOptions(property, undefined, data);
+		},
+		displayDefaultPropertyDetails: (property, data) => {
+
+			_Code.codeContents.append(_Code.templates.defaultProperty({ property: property }));
+			_Code.mainArea.displayDefaultPropertyOptions(property, undefined, data);
+		},
+		displayDefaultPropertyOptions: (property, callback, data) => {
+
+			_Code.persistence.runCurrentEntitySaveAction = () => {
+				_Code.persistence.saveEntityAction(property);
+			};
+
+			let buttons     = $('#property-buttons');
+			let dbNameClass = (UISettings.getValueForSetting(UISettings.settingGroups.schema_code.settings.showDatabaseNameForDirectProperties) === true) ? '' : 'hidden';
+
+			buttons.prepend(_Code.templates.propertyOptions({ property: property, dbNameClass: dbNameClass }));
+
+			_Code.mainArea.helpers.displaySvgActionButton('#property-actions', _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, 'icon-green'), 'save', 'Save property', _Code.persistence.runCurrentEntitySaveAction);
+
+			_Code.mainArea.helpers.displaySvgActionButton('#property-actions', _Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, 'icon-red'), 'cancel', 'Revert changes', () => {
+				_Code.persistence.revertFormData(property);
 			});
 
-			_Code.runCurrentEntitySaveAction = () => {
-				$('.save-all', _Code.codeContents).click();
-			};
-		});
-	},
-	displayRemotePropertiesContent: (data, updateLocationStack) => {
+			if (!property.schemaNode.isBuiltinType) {
 
-		if (updateLocationStack === true) {
-			_Code.pathLocations.updatePathLocationStack(data.path);
-			_Code.lastClickedPath = data.path;
-		}
+				_Code.mainArea.helpers.displaySvgActionButton('#property-actions', _Icons.getSvgIcon(_Icons.iconTrashcan, 14, 14, 'icon-red'), 'delete', 'Delete property', () => {
+					_Code.persistence.deleteSchemaEntity(property, `Delete property ${property.name}?`, 'No data will be removed.', data);
+				});
+			}
 
-		_Code.codeContents.append(_Code.templates.propertiesRemote({ data: data }));
+			let changeHandler = () => {
 
-		Command.get(data.id, null, (entity) => {
+				_Code.persistence.updateDirtyFlag(property);
 
-			_Schema.remoteProperties.appendRemote(_Code.codeContents[0].querySelector('.content-container'), entity, () => {
+				if (property.propertyType === 'Function') {
 
-				// TODO: navigation should/could be possible in the code area as well - currently this is deactivated in schema.js
+					let propertyInfoUI = _Code.persistence.collectPropertyData(property);
+					let container      = buttons[0].querySelector('#property-indexed').closest('div');
 
-			}, _Code.refreshTree);
-
-			_Code.runCurrentEntitySaveAction = () => {
-				$('.save-all', _Code.codeContents).click();
-			};
-		});
-	},
-	displayViewsContent: (data, updateLocationStack) => {
-
-		if (updateLocationStack === true) {
-			_Code.pathLocations.updatePathLocationStack(data.path);
-			_Code.lastClickedPath = data.path;
-		}
-
-		_Code.codeContents.append(_Code.templates.views({ data: data }));
-
-		Command.get(data.id, null, (entity) => {
-			_Schema.views.appendViews(_Code.codeContents[0].querySelector('.content-container'), entity, () => {
-				_Code.refreshNode(data.path);
-			});
-
-			_Code.runCurrentEntitySaveAction = () => {
-				$('.save-all', _Code.codeContents).click();
-			};
-		});
-	},
-	displayGlobalMethodsContent: (data, updateLocationStack) => {
-
-		if (updateLocationStack === true) {
-			_Code.pathLocations.updatePathLocationStack(data.path);
-			_Code.lastClickedPath = data.path;
-		}
-
-		_Code.recentElements.addRecentlyUsedElement(data.content, "User-defined functions", data.svgIcon, data.path, false);
-
-		_Code.codeContents.append(_Code.templates.globals());
-
-		Command.rest('SchemaMethod/schema?schemaNode=null&' + Structr.getRequestParameterName('sort') + '=name&' + Structr.getRequestParameterName('order') + '=ascending', (methods) => {
-
-			_Schema.methods.appendMethods(_Code.codeContents[0].querySelector('.content-container'), null, methods, () => {
-				_Code.refreshNode(data.path);
-			});
-
-			_Code.runCurrentEntitySaveAction = () => {
-				$('.save-all', _Code.codeContents).click();
-			};
-		});
-	},
-	displayMethodsContent: (data, updateLocationStack) => {
-
-		if (updateLocationStack === true) {
-			_Code.pathLocations.updatePathLocationStack(data.path);
-			_Code.lastClickedPath = data.path;
-		}
-
-		_Code.codeContents.append(_Code.templates.methods({ data: data }));
-
-		Command.get(data.id, null, (entity) => {
-
-			_Schema.methods.appendMethods(_Code.codeContents[0].querySelector('.content-container'), entity, entity.schemaMethods, () => {
-				_Code.refreshNode(data.path);
-			});
-
-			_Code.runCurrentEntitySaveAction = () => {
-				$('.save-all', _Code.codeContents).click();
-			};
-		}, 'schema');
-	},
-	displayInheritedPropertiesContent: (data, updateLocationStack) => {
-
-		if (updateLocationStack === true) {
-			_Code.pathLocations.updatePathLocationStack(data.path);
-			_Code.lastClickedPath = data.path;
-		}
-
-		_Code.codeContents.append(_Code.templates.propertiesInherited({ data: data }));
-
-		Command.get(data.id, null, (entity) => {
-			_Schema.properties.appendBuiltinProperties(_Code.codeContents[0].querySelector('.content-container'), entity);
-		});
-	},
-	displayPropertyDetails: (data) => {
-
-		Command.get(data.id, null, (result) => {
-
-			_Code.recentElements.updateRecentlyUsed(result, data.path, data.updateLocationStack);
-
-			if (result.propertyType) {
-
-				switch (result.propertyType) {
-					case 'Cypher':
-						_Code.displayCypherPropertyDetails(result);
-						break;
-
-					case 'Function':
-						_Code.displayFunctionPropertyDetails(result, data);
-						break;
-
-					case 'String':
-						_Code.displayStringPropertyDetails(result, data);
-						break;
-
-					case 'Boolean':
-						_Code.displayBooleanPropertyDetails(result, data);
-						break;
-
-					default:
-						_Code.displayDefaultPropertyDetails(result, data);
-						break;
+					_Schema.properties.checkFunctionProperty(propertyInfoUI, container);
 				}
+			};
+
+			if (property.propertyType !== 'Function') {
+				_Helpers.fastRemoveElement($('#property-type-hint-input').parent()[0]);
+			} else {
+				$('#property-type-hint-input').val(property.typeHint || 'null');
+			}
+
+			if (property.propertyType === 'Cypher') {
+				_Helpers.fastRemoveElement($('#property-format-input').parent()[0]);
+			}
+
+			$('select', buttons).on('change', changeHandler);
+			$('input[type=checkbox]', buttons).on('change', changeHandler);
+			$('input[type=text]', buttons).on('keyup', changeHandler);
+
+			if (property.schemaNode.isBuiltinType) {
+
+				_Helpers.fastRemoveElement($('button#delete-property-button').parent()[0]);
 
 			} else {
 
-				if (result.type === 'SchemaRelationshipNode') {
-					// this is a linked property/adjacent type
-					// _Code.displayRelationshipPropertyDetails(result);
+				$('button#delete-property-button').on('click', function() {
+					_Code.persistence.deleteSchemaEntity(property, `Delete property ${property.name}?`, 'Property values will not be removed from data nodes.', data);
+				});
+			}
+
+			changeHandler();
+
+			if (typeof callback === 'function') {
+				callback();
+			}
+		},
+		displayViewDetails: (data) => {
+
+			Command.get(data.id, null, (result) => {
+
+				_Code.recentElements.updateRecentlyUsed(result, data.path, data.updateLocationStack);
+
+				_Code.codeContents.append(_Code.templates.defaultView({ view: result }));
+				_Code.mainArea.displayDefaultViewOptions(result, undefined, data);
+			});
+		},
+		displayDefaultViewOptions: (view, callback, data) => {
+
+			_Code.persistence.runCurrentEntitySaveAction = () => {
+
+				if (_Code.persistence.isDirty()) {
+
+					// update entity before storing the view to make sure that nonGraphProperties are correctly identified..
+					Command.get(view.schemaNode.id, null, (reloadedEntity) => {
+
+						let formData                = _Code.persistence.collectChangedPropertyData(view);
+						let sortedAttrs             = $('.property-attrs.view').sortedValues();
+						formData.schemaProperties   = _Schema.views.findSchemaPropertiesByNodeAndName(reloadedEntity, sortedAttrs);
+						formData.nonGraphProperties = _Schema.views.findNonGraphProperties(reloadedEntity, sortedAttrs);
+
+						_Code.helpers.showSchemaRecompileMessage();
+
+						Command.setProperties(view.id, formData, () => {
+							Object.assign(view, formData);
+							_Code.persistence.updateDirtyFlag(view);
+
+							_Code.persistence.showSaveAction(formData);
+
+							if (formData.name) {
+								_Code.tree.refreshTree();
+							}
+
+							_Code.helpers.hideSchemaRecompileMessage();
+						});
+					});
 				}
-			}
-		});
-	},
-	displayViewDetails: (data) => {
+			};
 
-		Command.get(data.id, null, (result) => {
+			let buttons = $('#view-buttons');
+			buttons.prepend(_Code.templates.viewOptions({ view: view }));
 
-			_Code.recentElements.updateRecentlyUsed(result, data.path, data.updateLocationStack);
+			if (_Schema.views.isViewEditable(view)) {
 
-			_Code.codeContents.append(_Code.templates.defaultView({ view: result }));
-			_Code.displayDefaultViewOptions(result, undefined, data);
-		});
-	},
-	displayFunctionPropertyDetails: (property, data, lastOpenTab) => {
+				_Code.mainArea.helpers.displaySvgActionButton('#view-actions', _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, 'icon-green'), 'save', 'Save view', _Code.persistence.runCurrentEntitySaveAction);
 
-		_Code.codeContents.append(_Code.templates.functionProperty({ property: property }));
+				_Code.mainArea.helpers.displaySvgActionButton('#view-actions', _Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, 'icon-red'), 'cancel', 'Revert changes', () => {
+					_Code.persistence.revertFormData(view);
+					Command.listSchemaProperties(view.schemaNode.id, view.name, (data) => {
 
-		let activateTab = (tabName) => {
-			$('.function-property-tab-content', _Code.codeContents).hide();
-			$('li[data-name]', _Code.codeContents).removeClass('active');
-
-			let activeTab = $('#tabView-' + tabName, _Code.codeContents);
-			activeTab.show();
-			$('li[data-name="' + tabName + '"]', _Code.codeContents).addClass('active');
-
-			window.setTimeout(() => { _Editors.resizeVisibleEditors(); }, 250);
-		};
-
-		for (let tabLink of _Code.codeContents[0].querySelectorAll('li[data-name]')) {
-			tabLink.addEventListener('click', (e) => {
-				e.stopPropagation();
-				activateTab(tabLink.dataset.name);
-			})
-		}
-		activateTab(lastOpenTab || 'source');
-
-		_Helpers.activateCommentsInElement(_Code.codeContents[0], { insertAfter: true });
-
-		let functionPropertyMonacoConfig = {
-			language: 'auto',
-			lint: true,
-			autocomplete: true,
-			changeFn: (editor, entity) => {
-				_Code.updateDirtyFlag(entity);
-			},
-			isAutoscriptEnv: true
-		};
-
-		_Editors.getMonacoEditor(property, 'readFunction', _Code.codeContents[0].querySelector('#read-code-container .editor'), functionPropertyMonacoConfig);
-		_Editors.getMonacoEditor(property, 'writeFunction', _Code.codeContents[0].querySelector('#write-code-container .editor'), functionPropertyMonacoConfig);
-
-		_Editors.appendEditorOptionsElement(_Code.codeContents[0].querySelector('.editor-info'));
-
-		let openAPIReturnTypeMonacoConfig = {
-			language: 'json',
-			lint: true,
-			autocomplete: true,
-			changeFn: (editor, entity) => {
-				_Code.updateDirtyFlag(entity);
-			}
-		};
-
-		_Editors.getMonacoEditor(property, 'openAPIReturnType', _Code.codeContents[0].querySelector('#tabView-api .editor'), openAPIReturnTypeMonacoConfig);
-
-		_Code.displayDefaultPropertyOptions(property, _Editors.resizeVisibleEditors, data);
-	},
-	displayCypherPropertyDetails: (property, data) => {
-
-		_Code.codeContents.append(_Code.templates.cypherProperty({ property: property }));
-
-		let cypherMonacoConfig = {
-			language: 'cypher',
-			lint: false,
-			autocomplete: false,
-			changeFn: (editor, entity) => {
-				_Code.updateDirtyFlag(entity);
-			},
-			isAutoscriptEnv: false
-		};
-
-		_Editors.getMonacoEditor(property, 'format', _Code.codeContents[0].querySelector('#cypher-code-container .editor'), cypherMonacoConfig);
-		_Editors.appendEditorOptionsElement(_Code.codeContents[0].querySelector('.editor-info'));
-
-		_Code.displayDefaultPropertyOptions(property, _Editors.resizeVisibleEditors, data);
-	},
-	displayStringPropertyDetails: (property, data) => {
-
-		_Code.codeContents.append(_Code.templates.stringProperty({ property: property }));
-		_Code.displayDefaultPropertyOptions(property, undefined, data);
-	},
-	displayBooleanPropertyDetails: (property, data) => {
-
-		_Code.codeContents.append(_Code.templates.booleanProperty({ property: property }));
-		_Code.displayDefaultPropertyOptions(property, undefined, data);
-	},
-	displayDefaultPropertyDetails: (property, data) => {
-
-		_Code.codeContents.append(_Code.templates.defaultProperty({ property: property }));
-		_Code.displayDefaultPropertyOptions(property, undefined, data);
-	},
-	displayDefaultPropertyOptions: (property, callback, data) => {
-
-		_Code.runCurrentEntitySaveAction = () => {
-			_Code.saveEntityAction(property);
-		};
-
-		let buttons     = $('#property-buttons');
-		let dbNameClass = (UISettings.getValueForSetting(UISettings.settingGroups.schema_code.settings.showDatabaseNameForDirectProperties) === true) ? '' : 'hidden';
-
-		buttons.prepend(_Code.templates.propertyOptions({ property: property, dbNameClass: dbNameClass }));
-
-		_Code.displaySvgActionButton('#property-actions', _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, 'icon-green'), 'save', 'Save property', _Code.runCurrentEntitySaveAction);
-
-		_Code.displaySvgActionButton('#property-actions', _Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, 'icon-red'), 'cancel', 'Revert changes', () => {
-			_Code.revertFormData(property);
-		});
-
-		if (!property.schemaNode.isBuiltinType) {
-
-			_Code.displaySvgActionButton('#property-actions', _Icons.getSvgIcon(_Icons.iconTrashcan, 14, 14, 'icon-red'), 'delete', 'Delete property', () => {
-				_Code.deleteSchemaEntity(property, `Delete property ${property.name}?`, 'No data will be removed.', data);
-			});
-		}
-
-		let changeHandler = () => {
-
-			_Code.updateDirtyFlag(property);
-
-			if (property.propertyType === 'Function') {
-
-				let propertyInfoUI = _Code.collectPropertyData(property);
-				let container      = buttons[0].querySelector('#property-indexed').closest('div');
-
-				_Schema.properties.checkFunctionProperty(propertyInfoUI, container);
-			}
-		};
-
-		if (property.propertyType !== 'Function') {
-			_Helpers.fastRemoveElement($('#property-type-hint-input').parent()[0]);
-		} else {
-			$('#property-type-hint-input').val(property.typeHint || 'null');
-		}
-
-		if (property.propertyType === 'Cypher') {
-			_Helpers.fastRemoveElement($('#property-format-input').parent()[0]);
-		}
-
-		$('select', buttons).on('change', changeHandler);
-		$('input[type=checkbox]', buttons).on('change', changeHandler);
-		$('input[type=text]', buttons).on('keyup', changeHandler);
-
-		if (property.schemaNode.isBuiltinType) {
-
-			_Helpers.fastRemoveElement($('button#delete-property-button').parent()[0]);
-
-		} else {
-
-			$('button#delete-property-button').on('click', function() {
-				_Code.deleteSchemaEntity(property, `Delete property ${property.name}?`, 'Property values will not be removed from data nodes.', data);
-			});
-		}
-
-		changeHandler();
-
-		if (typeof callback === 'function') {
-			callback();
-		}
-	},
-	displayDefaultViewOptions: (view, callback, data) => {
-
-		_Code.runCurrentEntitySaveAction = () => {
-
-			if (_Code.isDirty()) {
-
-				// update entity before storing the view to make sure that nonGraphProperties are correctly identified..
-				Command.get(view.schemaNode.id, null, (reloadedEntity) => {
-
-					let formData                = _Code.collectChangedPropertyData(view);
-					let sortedAttrs             = $('.property-attrs.view').sortedValues();
-					formData.schemaProperties   = _Schema.views.findSchemaPropertiesByNodeAndName(reloadedEntity, sortedAttrs);
-					formData.nonGraphProperties = _Schema.views.findNonGraphProperties(reloadedEntity, sortedAttrs);
-
-					_Code.showSchemaRecompileMessage();
-
-					Command.setProperties(view.id, formData, () => {
-						Object.assign(view, formData);
-						_Code.updateDirtyFlag(view);
-
-						_Code.showSaveAction(formData);
-
-						if (formData.name) {
-							_Code.refreshTree();
+						let select = document.querySelector('#view-properties .property-attrs');
+						for (let prop of data) {
+							let option = select.querySelector(`option[value="${prop.name}"]`);
+							if (option) {
+								option.selected = prop.isSelected;
+							}
 						}
 
-						_Code.hideSchemaRecompileMessage();
+						select.dispatchEvent(new CustomEvent('change'));
 					});
 				});
 			}
-		};
 
-		let buttons = $('#view-buttons');
-		buttons.prepend(_Code.templates.viewOptions({ view: view }));
+			if (_Schema.views.isDeleteViewAllowed(view)) {
 
-		if (_Schema.views.isViewEditable(view)) {
+				_Code.mainArea.helpers.displaySvgActionButton('#view-actions', _Icons.getSvgIcon(_Icons.iconTrashcan, 14, 14, 'icon-red'), 'delete', 'Delete view', () => {
+					_Code.persistence.deleteSchemaEntity(view, `Delete view ${view.name}?`, 'Note: Builtin views will be restored in their initial configuration', data);
+				});
+			}
 
-			_Code.displaySvgActionButton('#view-actions', _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, 'icon-green'), 'save', 'Save view', _Code.runCurrentEntitySaveAction);
+			_Code.persistence.updateDirtyFlag(view);
 
-			_Code.displaySvgActionButton('#view-actions', _Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, 'icon-red'), 'cancel', 'Revert changes', () => {
-				_Code.revertFormData(view);
-				Command.listSchemaProperties(view.schemaNode.id, view.name, (data) => {
+			$('input[type=text]', buttons).on('keyup', () => {
+				_Code.persistence.updateDirtyFlag(view);
+			});
 
-					let select = document.querySelector('#view-properties .property-attrs');
-					for (let prop of data) {
-						let option = select.querySelector(`option[value="${prop.name}"]`);
-						if (option) {
-							option.selected = prop.isSelected;
+			_Code.mainArea.displayViewSelect(view);
+
+			if (typeof callback === 'function') {
+				callback();
+			}
+		},
+		displayViewSelect: (view) => {
+
+			Command.listSchemaProperties(view.schemaNode.id, view.name, (properties) => {
+
+				let viewIsEditable = _Schema.views.isViewEditable(view);
+				let viewSelectElem = document.querySelector('#view-properties .property-attrs');
+				viewSelectElem.disabled = !viewIsEditable;
+
+				if (view.sortOrder) {
+
+					for (let sortedProp of view.sortOrder.split(',')) {
+
+						let prop = properties.filter(prop => (prop.name === sortedProp));
+
+						if (prop.length) {
+
+							_Schema.views.appendPropertyForViewSelect(viewSelectElem, view, prop[0]);
+
+							properties = properties.filter(prop  => (prop.name !== sortedProp));
 						}
 					}
-
-					select.dispatchEvent(new CustomEvent('change'));
-				});
-			});
-		}
-
-		if (_Schema.views.isDeleteViewAllowed(view)) {
-
-			_Code.displaySvgActionButton('#view-actions', _Icons.getSvgIcon(_Icons.iconTrashcan, 14, 14, 'icon-red'), 'delete', 'Delete view', () => {
-				_Code.deleteSchemaEntity(view, `Delete view ${view.name}?`, 'Note: Builtin views will be restored in their initial configuration', data);
-			});
-		}
-
-		_Code.updateDirtyFlag(view);
-
-		$('input[type=text]', buttons).on('keyup', () => {
-			_Code.updateDirtyFlag(view);
-		});
-
-		_Code.displayViewSelect(view);
-
-		if (typeof callback === 'function') {
-			callback();
-		}
-	},
-	displayViewSelect: (view) => {
-
-		Command.listSchemaProperties(view.schemaNode.id, view.name, (properties) => {
-
-			let viewIsEditable = _Schema.views.isViewEditable(view);
-			let viewSelectElem = document.querySelector('#view-properties .property-attrs');
-			viewSelectElem.disabled = !viewIsEditable;
-
-			if (view.sortOrder) {
-
-				for (let sortedProp of view.sortOrder.split(',')) {
-
-					let prop = properties.filter(prop => (prop.name === sortedProp));
-
-					if (prop.length) {
-
-						_Schema.views.appendPropertyForViewSelect(viewSelectElem, view, prop[0]);
-
-						properties = properties.filter(prop  => (prop.name !== sortedProp));
-					}
 				}
-			}
 
-			for (let prop of properties) {
-				_Schema.views.appendPropertyForViewSelect(viewSelectElem, view, prop);
-			}
+				for (let prop of properties) {
+					_Schema.views.appendPropertyForViewSelect(viewSelectElem, view, prop);
+				}
 
-			let viewSelect2 = $(viewSelectElem).select2({
-				search_contains: true,
-				width: '100%',
-				dropdownCssClass: 'select2-sortable hide-selected-options hide-disabled-options',
-				containerCssClass: 'select2-sortable hide-selected-options hide-disabled-options',
-				closeOnSelect: false,
-				scrollAfterSelect: false
+				let viewSelect2 = $(viewSelectElem).select2({
+					search_contains: true,
+					width: '100%',
+					dropdownCssClass: 'select2-sortable hide-selected-options hide-disabled-options',
+					containerCssClass: 'select2-sortable hide-selected-options hide-disabled-options',
+					closeOnSelect: false,
+					scrollAfterSelect: false
+				});
+
+				if (viewIsEditable) {
+
+					let changeFn = () => {
+						let sortedAttrs = $(viewSelectElem).sortedValues();
+						$('input#view-sort-order').val(sortedAttrs.join(','));
+						_Code.persistence.updateDirtyFlag(view);
+					};
+
+					viewSelect2.on('change', changeFn).select2Sortable(changeFn);
+				}
 			});
+		},
+		displaySchemaMethodContent: (data) => {
 
-			if (viewIsEditable) {
+			// ID of schema method can either be in typeId (for user-defined functions) or in memberId (for type methods)
+			Command.get(data.id, 'id,owner,type,createdBy,hidden,createdDate,lastModifiedDate,name,isStatic,isPrivate,returnRawResult,httpVerb,schemaNode,source,openAPIReturnType,exceptions,callSuper,overridesExisting,doExport,codeType,isPartOfBuiltInSchema,tags,summary,description,parameters,includeInOpenAPI,index,exampleValue,parameterType', (result) => {
 
-				let changeFn = () => {
-					let sortedAttrs = $(viewSelectElem).sortedValues();
-					$('input#view-sort-order').val(sortedAttrs.join(','));
-					_Code.updateDirtyFlag(view);
+				let isCallableViaHTTP   = (result.isPrivate !== true);
+				let isUserDefinedMethod = (!result.schemaNode && !result.isPartOfBuiltInSchema);
+				let isStaticMethod      = result.isStatic;
+
+				let lastOpenTab = LSWrapper.getItem(`${_Entities.activeEditTabPrefix}_${data.id}`, 'source');
+
+				_Code.recentElements.updateRecentlyUsed(result, data.path, data.updateLocationStack);
+
+				_Helpers.fastRemoveAllChildren(_Code.codeContents[0]);
+				_Code.codeContents.append(_Code.templates.method({ method: result }));
+
+				LSWrapper.setItem(_Code.codeLastOpenMethodKey, result.id);
+
+				let buttons = $('#method-buttons');
+
+				_Schema.methods.updateUIForAllAttributes(buttons[0], result);
+
+				// method name input,etc
+				{
+					let methodNameOutputElement    = document.getElementById('method-name-output');
+					let methodNameInputElement     = document.getElementById('method-name-input');
+					let methodNameContainerElement = document.getElementById('method-name-container');
+					let currentMethodName          = result.name;
+
+					let setMethodNameInUI = (name) => {
+
+						currentMethodName                 = name;
+						methodNameOutputElement.innerText = currentMethodName;
+
+						methodNameInputElement.classList.add('hidden');
+						methodNameContainerElement.classList.remove('hidden');
+
+						_Editors.resizeVisibleEditors();
+						_Code.persistence.updateDirtyFlag(result);
+
+						let updatedObj = Object.assign({}, result, { name: currentMethodName });
+						_Schema.methods.updateUIForAllAttributes(buttons[0], updatedObj);
+					};
+
+					methodNameInputElement.addEventListener('keyup', (e) => {
+
+						if (e.key === 'Escape') {
+							methodNameInputElement.value = currentMethodName;
+							setMethodNameInUI(currentMethodName);
+						} else if (e.key === 'Enter') {
+							setMethodNameInUI(methodNameInputElement.value);
+						}
+					});
+
+					methodNameInputElement.addEventListener('blur', (e) => {
+						setMethodNameInUI(methodNameInputElement.value);
+					});
+
+					methodNameContainerElement.addEventListener('click', (e) => {
+
+						e.stopPropagation();
+						methodNameContainerElement.classList.add('hidden');
+
+						const methodNameInputField = methodNameInputElement;
+						methodNameInputField?.classList.remove('hidden');
+						methodNameInputField?.focus();
+
+						_Editors.resizeVisibleEditors();
+					});
+				}
+
+				// Source Editor
+				let sourceMonacoConfig = {
+					language: 'auto',
+					lint: true,
+					autocomplete: true,
+					changeFn: (editor, entity) => {
+						_Code.persistence.updateDirtyFlag(entity);
+					}
 				};
 
-				viewSelect2.on('change', changeFn).select2Sortable(changeFn);
-			}
-		});
-	},
-	displaySvgActionButton: (targetId, iconSvg, suffix, name, callback) => {
+				let sourceEditor = _Editors.getMonacoEditor(result, 'source', _Code.codeContents[0].querySelector('#tabView-source .editor'), sourceMonacoConfig);
+				_Editors.appendEditorOptionsElement(_Code.codeContents[0].querySelector('.editor-info'));
 
-		let button     = _Helpers.createSingleDOMElementFromHTML(_Code.templates.actionButton({ iconSvg: iconSvg, suffix: suffix, name: name }));
-		button.addEventListener('click', callback);
+				if (_Code.mainArea.helpers.shouldHideOpenAPITabForMethod(result)) {
 
-		let targetNode = document.querySelector(targetId);
-		targetNode.appendChild(button);
+					$('li[data-name=api]').hide();
 
-		return button;
-	},
-	findAndOpenNode: (path, updateLocationStack) => {
-		let tree = $('#code-tree').jstree(true);
-		_Code.findAndOpenNodeRecursive(tree, document, path, 0, updateLocationStack);
-	},
-	findAndOpenNodeRecursive: (tree, parent, path, depth, updateLocationStack) => {
-
-		let parts = path.split('/').filter(p => p.length);
-		if (path.length === 0) { return; }
-		if (parts.length < 1) { return; }
-		if (depth > 15) { return; }
-
-		let id   = parts[depth];
-		let node = parent.querySelector(`li[data-id="${id}"]`);
-
-		if (depth === parts.length - 1) {
-
-			if (node != null) {
-
-				// node found, activate
-				if (tree.get_selected().indexOf(node.id) === -1) {
-					tree.activate_node(node, { updateLocationStack: updateLocationStack });
-					tree.open_node(node);
-				}
-
-				let selectedNode = tree.get_node(node, true);
-				if (selectedNode) {
-
-					// depending on the depth we select a different parent level
-					let parentToScrollTo = selectedNode;
-					switch (selectedNode.parents.length) {
-						case 4:
-							parentToScrollTo = tree.get_node(tree.get_parent(node), true);
-							break;
-						case 5:
-							parentToScrollTo = tree.get_node(tree.get_parent(tree.get_parent(node)), true)
-							break;
+					if (lastOpenTab === 'api') {
+						lastOpenTab = 'source';
 					}
 
-					if (parentToScrollTo.length) {
-						parentToScrollTo[0].scrollIntoView();
-					} else {
-						parentToScrollTo.scrollIntoView();
+				} else {
+
+					let apiTab = $('#tabView-api', _Code.codeContents);
+					apiTab.append(_Code.templates.openAPIBaseConfig({ type: result.type }));
+
+					_Code.mainArea.populateOpenAPIBaseConfig(apiTab[0], result, _Code.availableTags);
+
+					let parameterTplRow = $('.template', apiTab);
+					let parameterContainer = parameterTplRow.parent();
+
+					// do not use "fastRemove" because it also removes all children and we want to use it as a template afterwards
+					parameterTplRow[0].remove();
+
+					let addParameterRow = (parameter) => {
+
+						let clone = parameterTplRow.clone().removeClass('template');
+
+						if (parameter) {
+
+							$('input[data-parameter-property=index]', clone).val(parameter.index);
+							$('input[data-parameter-property=name]', clone).val(parameter.name);
+							$('input[data-parameter-property=parameterType]', clone).val(parameter.parameterType);
+							$('input[data-parameter-property=description]', clone).val(parameter.description);
+							$('input[data-parameter-property=exampleValue]', clone).val(parameter.exampleValue);
+
+						} else {
+
+							let maxCnt = 0;
+							for (let indexInput of apiTab[0].querySelectorAll('input[data-parameter-property=index]')) {
+								maxCnt = Math.max(maxCnt, parseInt(indexInput.value) + 1);
+							}
+
+							$('input[data-parameter-property=index]', clone).val(maxCnt);
+						}
+
+						$('input[data-parameter-property]', clone).on('input', () => {
+							_Code.persistence.updateDirtyFlag(result);
+						});
+
+						parameterContainer.append(clone);
+
+						_Editors.resizeVisibleEditors();
+
+						$('.method-parameter-delete .remove-action', clone).on('click', () => {
+							clone.remove();
+
+							_Editors.resizeVisibleEditors();
+
+							_Code.persistence.updateDirtyFlag(result);
+						});
+
+						_Code.persistence.updateDirtyFlag(result);
+					};
+
+					result.parameters.sort((p1, p2) => (p1.index ?? 0) - (p2.index ?? 0));
+
+					for (let p of result.parameters) {
+						addParameterRow(p);
 					}
+
+					_Code.additionalDirtyChecks.push(() => {
+						return _Code.mainArea.schemaMethodParametersChanged(result.parameters);
+					});
+
+					$('#add-parameter-button').on('click', () => { addParameterRow(); });
+
+					$('#tags-select', apiTab).select2({
+						tags: true,
+						width: '100%'
+					}).on('change', () => {
+						_Code.persistence.updateDirtyFlag(result);
+					});
+
+					$('input[type=checkbox]', apiTab).on('change', function() {
+						_Code.persistence.updateDirtyFlag(result);
+					});
+
+					$('input[type=text]', apiTab).on('keyup', function() {
+						_Code.persistence.updateDirtyFlag(result);
+					});
+
+					let openAPIReturnTypeMonacoConfig = {
+						language: 'json',
+						lint: false,
+						autocomplete: true,
+						changeFn: (editor, entity) => {
+							_Code.persistence.updateDirtyFlag(entity);
+						}
+					};
+
+					_Editors.getMonacoEditor(result, 'openAPIReturnType', apiTab[0].querySelector('.editor'), openAPIReturnTypeMonacoConfig);
+
+					_Helpers.activateCommentsInElement(apiTab[0]);
 				}
 
-				if (_Code.search.searchIsActive()) {
-					tree.element[0].scrollTo(0,0);
+				if (_Code.mainArea.helpers.shouldHideAPIExampleTabForMethod(result)) {
+
+					$('li[data-name=api-usage]').hide();
+
+					if (lastOpenTab === 'api-usage') {
+						lastOpenTab = 'source';
+					}
+
+				} else {
+
+					let apiExamplesTab = _Code.codeContents[0].querySelector('#tabView-api-usage');
+
+					let exampleData      = Object.fromEntries((result.parameters ?? []).map(p => [p.name, (p.exampleValue ?? '')]));
+					let isGet            = (result.httpVerb.toLowerCase() === 'get');
+					let isStatic         = (result.isStatic === true);
+					let url              = _Code.mainArea.helpers.getURLForSchemaMethod(result, true);
+					let queryString      = new URLSearchParams(exampleData).toString();
+					let isUserDefinedFn  = (!result.schemaNode);
+					let isInstanceMethod = (!isStatic && !isUserDefinedMethod);
+
+					let uuidHelpText = 'Note that {uuid} must be replaced with a UUID of a database object of a matching type';
+
+					let getFetchParts = () => {
+
+						let parts = [];
+
+						if (isGet) {
+
+							parts.push(`let parameters = ${JSON.stringify(exampleData, undefined, '\t')};`);
+							parts.push('let queryString = new URLSearchParams(parameters).toString();');
+							parts.push('');
+
+							if (isInstanceMethod) {
+								parts.push(`// ${uuidHelpText}`);
+							}
+
+							parts.push(`fetch('${url}?' + queryString).then(response => {`);
+							parts.push('	// handle response');
+							parts.push('	console.log(response);');
+							parts.push('});');
+
+						} else {
+
+							parts.push(`let data = ${JSON.stringify(exampleData, undefined, '\t')};`);
+							parts.push('');
+
+							if (isInstanceMethod) {
+								parts.push(`// ${uuidHelpText}`);
+							}
+
+							parts.push(`fetch('${_Code.mainArea.helpers.getURLForSchemaMethod(result, true)}', {`);
+							parts.push(`	method: '${result.httpVerb.toUpperCase()}',`);
+							parts.push('	body: JSON.stringify(data)');
+							parts.push('}).then(response => {');
+							parts.push('	// handle response');
+							parts.push('	console.log(response);');
+							parts.push('});');
+						}
+
+						return parts;
+					};
+
+					let getCurlParts = () => {
+
+						let parts = [
+							`${isInstanceMethod ? `# ${uuidHelpText}\n` : ''}curl -HX-User:admin -HX-Password:admin -X${result.httpVerb.toUpperCase()} "${url}${(isGet && queryString.length > 0) ? '?' + queryString : ''}"`
+						];
+
+						if (!isGet) {
+							parts.push(`-d '${JSON.stringify(exampleData)}'`);
+						}
+
+						return parts;
+					};
+
+					let getScriptingParts = () => {
+
+						let parts = [];
+
+						if (isUserDefinedFn) {
+
+							parts.push('${{');
+							parts.push(`	let parameters = ${JSON.stringify(exampleData, undefined, '\t').split('\n').join('\n\t')};`);
+							parts.push(`	let result     = $.${result.name}(parameters);`);
+							parts.push('}}');
+
+						} else if (isStatic) {
+
+							parts.push('${{');
+							parts.push(`	let parameters = ${JSON.stringify(exampleData, undefined, '\t').split('\n').join('\n\t')};`);
+							parts.push(`	let result     = $.${result.schemaNode.name}.${result.name}(parameters);`);
+							parts.push('}}');
+
+						} else {
+
+							parts.push('${{');
+							parts.push(`	let parameters = ${JSON.stringify(exampleData, undefined, '\t').split('\n').join('\n\t')};`);
+							parts.push('');
+							parts.push(`	// option a) this instance method can be called from anywhere by looking up a specific object of type "${result.schemaNode.name}" by UUID (or any other means)`);
+							parts.push(`	// ${uuidHelpText}`);
+							parts.push(`	let objectUUID   = '<b>{uuid}</b>';`);
+							parts.push(`	let nodeInstance = $.find('${result.schemaNode.name}', objectUUID);`);
+							parts.push(`	let resultOne    = nodeInstance.${result.name}(parameters);`);
+							parts.push('');
+							parts.push('');
+							parts.push(`	// option b) this instance method can be called if the current scripting context is already a object of type "${result.schemaNode.name}". Then we can use $.this`);
+							parts.push(`	let resultTwo = $.this.${result.name}(parameters);`);
+							parts.push('}}');
+						}
+
+						return parts;
+					}
+
+					let templateConfig = {
+						type: result.type,
+						method: result,
+						exampleData: exampleData,
+						fetchExample: getFetchParts().join('\n'),
+						curlExample: getCurlParts().join(' \\\n\t'),
+						scriptingExample: getScriptingParts().join('\n')
+					};
+					apiExamplesTab.insertAdjacentHTML('beforeend', _Code.templates.schemaMethodAPIExamples(templateConfig));
+
+					for (let copyBtn of apiExamplesTab.querySelectorAll('button[copy-button]')) {
+						copyBtn.addEventListener('click', async (e) => {
+							let text  =copyBtn.closest('details').querySelector('div[usage-text]').textContent;
+							await navigator.clipboard.writeText(text);
+						});
+					}
+
+					apiExamplesTab.querySelector('#fetch-example')?.addEventListener('toggle', (e) => {
+						LSWrapper.setItem(_Code.methodsFetchExampleStateKey, e.newState);
+					});
+
+					apiExamplesTab.querySelector('#curl-example')?.addEventListener('toggle', (e) => {
+						LSWrapper.setItem(_Code.methodsCurlExampleStateKey, e.newState);
+					});
+
+					apiExamplesTab.querySelector('#scripting-example')?.addEventListener('toggle', (e) => {
+						LSWrapper.setItem(_Code.methodsScriptingExampleStateKey, e.newState);
+					});
 				}
-			}
 
-		} else {
+				// default buttons
+				_Code.persistence.runCurrentEntitySaveAction = () => {
 
-			tree.open_node(node, function(n) {
-				let newParent = parent.querySelector(`li[data-id="${id}"]`);
-				_Code.findAndOpenNodeRecursive(tree, newParent, path, depth + 1, updateLocationStack);
-			});
-		}
-	},
-	showSchemaRecompileMessage: () => {
-		_Dialogs.loadingMessage.show('Schema is compiling', 'Please wait...', 'code-compilation-message');
-	},
-	hideSchemaRecompileMessage:  () => {
-		_Dialogs.loadingMessage.hide('code-compilation-message');
-	},
-	activateLastClicked: () => {
+					let storeParametersInFormDataFunction = (formData) => {
 
-		_Code.findAndOpenNode(_Code.lastClickedPath);
-	},
-	deleteSchemaEntity: (entity, title, text, data) => {
+						let parametersData = _Code.mainArea.helpers.collectSchemaMethodParameters();
 
-		let path  = data.path;
-		let parts = path.split('-');
+						if (parametersData !== null) {
 
-		parts.pop();
+							formData['parameters'] = parametersData;
+						}
+					};
 
-		let parent = parts.join('-');
+					let afterSaveCallback = () => {
 
-		_Dialogs.confirmation.showPromise(`<h3>${title}</h3><p>${(text || '')}</p>`).then((confirm) => {
+						_Code.additionalDirtyChecks = [];
+						_Code.mainArea.displaySchemaMethodContent(data);
 
-			if (confirm === true) {
+						// refresh parent in case icon changed
+						_Code.tree.refreshNode(data.path.slice(0, data.path.lastIndexOf('/')));
+					};
 
-				_Code.showSchemaRecompileMessage();
-				_Code.dirty = false;
+					_Code.persistence.saveEntityAction(result, afterSaveCallback, [storeParametersInFormDataFunction]);
+				};
 
-				Command.deleteNode(entity.id, false, () => {
-					_Code.forceNotDirty();
-					_Code.hideSchemaRecompileMessage();
-					_Code.findAndOpenNode(parent, false);
-					_Code.refreshTree();
+				_Code.mainArea.helpers.displaySvgActionButton('#method-actions', _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, 'icon-green'), 'save', 'Save method', _Code.persistence.runCurrentEntitySaveAction);
+
+				_Code.mainArea.helpers.displaySvgActionButton('#method-actions', _Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, 'icon-red'), 'cancel', 'Revert changes', () => {
+					_Code.additionalDirtyChecks = [];
+					_Editors.disposeEditorModel(result.id, 'source');
+					_Editors.disposeEditorModel(result.id, 'openAPIReturnType');
+					_Code.mainArea.displaySchemaMethodContent(data);
 				});
+
+				// delete button
+				_Code.mainArea.helpers.displaySvgActionButton('#method-actions', _Icons.getSvgIcon(_Icons.iconTrashcan, 14, 14, 'icon-red'), 'delete', 'Delete method', () => {
+					_Code.persistence.deleteSchemaEntity(result, 'Delete method ' + result.name + '?', 'Note: Builtin methods will be restored in their initial configuration', data);
+				});
+
+				// run button (for user-defined functions and static methods which are callable via HTTP)
+				if ((isUserDefinedMethod || isStaticMethod) && isCallableViaHTTP) {
+
+					_Code.mainArea.helpers.displaySvgActionButton('#method-actions', _Icons.getSvgIcon(_Icons.iconRunButton, 14, 14), 'run', 'Open run dialog', () => {
+						_Code.mainArea.helpers.runSchemaMethod(result);
+					});
+				}
+
+				_Helpers.activateCommentsInElement(buttons[0]);
+
+				_Code.persistence.updateDirtyFlag(result);
+
+				$('input, select', buttons).on('input', () => {
+					let changes = _Code.persistence.updateDirtyFlag(result);
+
+					let updatedObj = Object.assign({}, result, changes);
+					_Schema.methods.updateUIForAllAttributes(buttons[0], updatedObj);
+				});
+
+				if (typeof callback === 'function') {
+					callback();
+				}
+
+				let activateTab = (tabName) => {
+
+					LSWrapper.setItem(`${_Entities.activeEditTabPrefix}_${data.id}`, tabName);
+
+					$('.method-tab-content', _Code.codeContents).hide();
+					$('li[data-name]', _Code.codeContents).removeClass('active');
+
+					let activeTab = $(`#tabView-${tabName}`, _Code.codeContents);
+					activeTab.show();
+					$(`li[data-name="${tabName}"]`, _Code.codeContents).addClass('active');
+
+					window.setTimeout(() => { _Editors.resizeVisibleEditors(); }, 250);
+				};
+
+				$('li[data-name]', _Code.codeContents).off('click').on('click', function(e) {
+					e.stopPropagation();
+					activateTab($(this).data('name'));
+				});
+				activateTab(lastOpenTab || 'source');
+
+				_Editors.focusEditor(sourceEditor);
+			});
+		},
+		schemaMethodParametersChanged: (parameters) => {
+
+			let parametersData = _Code.mainArea.helpers.collectSchemaMethodParameters();
+
+			let easyAccessFormData = {};
+			for (let fp of parametersData) {
+				easyAccessFormData[fp.index] = fp;
 			}
-		});
-	},
-	getURLForSchemaMethod: (schemaMethod, absolute = true) => {
 
-		let isStatic              = (schemaMethod.isStatic === true);
-		let isUserDefinedFunction = (schemaMethod.schemaNode === null);
+			// if params have same length AND every element from original params is identical to formData ==> ALLOW
+			if (parametersData.length !== parameters.length) {
 
-		let parts = [];
+				return true;
 
-		if (!isUserDefinedFunction) {
-			parts.push(schemaMethod.schemaNode.name);
+			} else {
 
-			if (!isStatic) {
-				parts.push('<b>{uuid}</b>');
+				for (let originalParameter of parameters) {
+
+					let sameIndexFromForm = easyAccessFormData[originalParameter.index];
+
+					if (sameIndexFromForm) {
+
+						for (let key in sameIndexFromForm) {
+
+							if (sameIndexFromForm[key] !== originalParameter[key] && !(sameIndexFromForm[key] === '' && !originalParameter[key])) {
+								return true;
+							}
+						}
+
+					} else {
+
+						return true;
+					}
+				}
 			}
-		}
 
-		parts.push(schemaMethod.name);
-		let url  = (absolute ? location.origin : '') + Structr.rootUrl + parts.join('/');
+			return false;
+		},
+		populateOpenAPIBaseConfig: (container, entity = {}, availableTags) => {
 
-		return url;
-	},
-	runSchemaMethod: (schemaMethod) => {
+			container.querySelector('[data-property="includeInOpenAPI"]').checked = (entity.includeInOpenAPI === true);
 
-		let name = (schemaMethod.schemaNode === null) ? schemaMethod.name : schemaMethod.schemaNode.name + '/' + schemaMethod.name;
-		let url  = _Code.getURLForSchemaMethod(schemaMethod);
+			let tagsSelect = container.querySelector('#tags-select');
 
-		let { dialogText } = _Dialogs.custom.openDialog(`Run user-defined function ${name}`, null, ['run-global-schema-method-dialog']);
+			tagsSelect.insertAdjacentHTML('beforeend', ((entity.tags) ? entity.tags.map(tag => `<option selected>${tag}</option>`).join() : ''));
+			tagsSelect.insertAdjacentHTML('beforeend', availableTags.filter(tag => (!entity.tags || !entity.tags.includes(tag))).map(tag => `<option>${tag}</option>`).join());
 
-		let runButton = _Dialogs.custom.prependCustomDialogButton(`
+			container.querySelector('[data-property="summary"]').value = entity.summary || '';
+
+			if (entity.type && entity.type !== 'SchemaNode') {
+
+				container.querySelector('[data-property="description"]').value = entity.description || '';
+			}
+		},
+		displaySchemaRelationshipNodeContent: (data) => {
+
+			Command.get(data.id, null, (entity) => {
+
+				Command.get(entity.sourceId, null, (sourceNode) => {
+
+					Command.get(entity.targetId, null, (targetNode) => {
+
+						_Helpers.fastRemoveAllChildren(_Code.codeContents[0]);
+						_Code.codeContents.append(_Code.templates.propertyRemote({ data, entity, sourceNode, targetNode }));
+
+						let targetView  = LSWrapper.getItem(_Entities.activeEditTabPrefix  + '_' + entity.id, 'basic');
+						let tabControls = _Schema.relationships.loadRelationship(entity, $('.tabs-container', _Code.codeContents)[0], $('.tabs-content-container', _Code.codeContents)[0], sourceNode, targetNode, targetView);
+
+						// remove bulk edit save/discard buttons
+						for (let button of _Code.codeContents[0].querySelectorAll('.discard-all, .save-all')) {
+							_Helpers.fastRemoveElement(button);
+						}
+
+						_Code.persistence.runCurrentEntitySaveAction = () => {
+
+							_Schema.bulkDialogsGeneral.saveEntityFromTabControls(entity, tabControls).then((success) => {
+
+								if (success) {
+
+									// refresh parent node "Related properties"
+									let parentPath = data.path.substring(0, data.path.lastIndexOf('/'));
+									_Code.tree.refreshNode(parentPath);
+								}
+							});
+						};
+
+						let saveButton = _Code.mainArea.helpers.displaySvgActionButton('#type-actions', _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, 'icon-green'), 'save', 'Save', _Code.persistence.runCurrentEntitySaveAction);
+
+						let cancelButton = _Code.mainArea.helpers.displaySvgActionButton('#type-actions', _Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, 'icon-red'), 'cancel', 'Revert changes', () => {
+							_Schema.bulkDialogsGeneral.resetInputsViaTabControls(tabControls);
+						});
+
+						// delete button
+						if (!entity.isPartOfBuiltInSchema) {
+							_Code.mainArea.helpers.displaySvgActionButton('#type-actions', _Icons.getSvgIcon(_Icons.iconTrashcan, 14, 14, 'icon-red'), 'delete', 'Delete relationship ' + entity.relationshipType, () => {
+								_Code.persistence.deleteSchemaEntity(entity, 'Delete relationship ' + entity.relationshipType + '?', 'This will delete all schema relationships as well, but no data will be removed.', data);
+							});
+						}
+
+						_Helpers.disableElements(true, saveButton, cancelButton);
+
+						document.querySelector('#code-contents .tabs-content-container')?.childNodes[0]?.addEventListener('bulk-data-change', (e) => {
+
+							e.stopPropagation();
+
+							let changeCount = _Schema.bulkDialogsGeneral.getChangeCountFromBulkInfo(_Schema.bulkDialogsGeneral.getBulkInfoFromTabControls(tabControls, false));
+							let isDirty     = (changeCount > 0);
+							_Helpers.disableElements(!isDirty, saveButton, cancelButton);
+
+							_Code.persistence.tellFirstElementToShowDirtyState(isDirty);
+						});
+					});
+				});
+			});
+		},
+		showSwaggerUI: (data) => {
+
+			_Code.pathLocations.updatePathLocationStack(data.path);
+			_Code.lastClickedPath = data.path;
+
+			_Helpers.fastRemoveAllChildren(_Code.codeContents[0]);
+
+			let tagName       = data?.name;
+			let baseUrl       = location.origin + location.pathname;
+			let swaggerUrl    = baseUrl + 'swagger/';
+			let openApiTagUrl = baseUrl + 'openapi/' + (tagName ? tagName + '.json' : '');
+			let iframeSrc     = `${swaggerUrl}?url=${openApiTagUrl}`;
+
+			_Code.codeContents.append(_Code.templates.swaggerui({ iframeSrc: iframeSrc }));
+		},
+		displayWorkingSetsContent: () => {
+			_Code.codeContents.append(_Code.templates.workingSets());
+		},
+		displayWorkingSetContent: (data) => {
+
+			_WorkingSets.getWorkingSet(data.id, function(workingSet) {
+
+				_Code.recentElements.updateRecentlyUsed(workingSet, data.path, data.updateLocationStack);
+				_Helpers.fastRemoveAllChildren(_Code.codeContents[0]);
+				_Code.codeContents.append(_Code.templates.workingSet({ type: workingSet }));
+
+				if (workingSet.name === _WorkingSets.recentlyUsedName) {
+
+					_Code.mainArea.helpers.displaySvgActionButton('#working-set-content', _Icons.getSvgIcon(_Icons.iconTrashcan, 14, 14, 'icon-red'), 'clear', 'Clear', function() {
+						_WorkingSets.clearRecentlyUsed(function() {
+							_Code.tree.refreshTree();
+						});
+					});
+
+					$('#group-name-input').prop('disabled', true);
+
+				} else {
+
+					_Code.mainArea.helpers.displaySvgActionButton('#working-set-content', _Icons.getSvgIcon(_Icons.iconTrashcan, 14, 14, 'icon-red'), 'remove', 'Remove', function() {
+						_WorkingSets.deleteSet(data.id, function() {
+							_Code.tree.refreshNode('/workingsets');
+							_Code.tree.findAndOpenNode('/workingsets');
+						});
+					});
+
+					$('input#group-name-input').on('blur', function() {
+						let elem     = $(this);
+						let previous = elem.attr('value');
+
+						if (previous !== elem.val()) {
+							let data   = {
+								name: elem.val()
+							};
+
+							Command.setProperties(workingSet.id, data, () => {
+								_Helpers.blinkGreen(elem);
+								_TreeHelper.refreshTree('#code-tree');
+							});
+						}
+					});
+				}
+
+				$('#schema-graph').append(_Code.templates.root());
+
+				var layouter = new SigmaLayouter('group-contents');
+
+				Command.query('SchemaNode', 10000, 1, 'name', 'asc', { }, function(result1) {
+
+					for (let node of result1) {
+						if (workingSet.children.includes(node.name)) {
+							layouter.addNode(node, data.path);
+						}
+					}
+
+					Command.query('SchemaRelationshipNode', 10000, 1, 'name', 'asc', { }, function(result2) {
+
+						for (let r of result2) {
+							layouter.addEdge(r.id, r.relationshipType, r.sourceId, r.targetId, true);
+						}
+
+						layouter.refresh();
+						layouter.layout();
+						layouter.on('clickNode', e => {
+
+							let eventData = e.data;
+							if (eventData.node) {
+
+								if (eventData.node.path) {
+
+									_Code.tree.findAndOpenNode(eventData.node.path + '/' + eventData.node.id, false);
+
+								} else {
+
+									// we need to find out if this node is a custom type or built-in
+									if (eventData.node.builtIn) {
+										_Code.tree.findAndOpenNode('/root/builtin/' + eventData.node.id, false);
+									} else {
+										_Code.tree.findAndOpenNode('/root/custom/' + eventData.node.id, false);
+									}
+								}
+							}
+						});
+
+						_Code.layouter = layouter;
+
+						// experimental: use positions from schema layouter to initialize positions in schema editor
+						window.setTimeout(function() {
+
+							let minX = 0;
+							let minY = 0;
+
+							layouter.getNodes().forEach(function(node) {
+								if (node.x < minX) { minX = node.x; }
+								if (node.y < minY) { minY = node.y; }
+							});
+
+							let positions = {};
+
+							layouter.getNodes().forEach(function(node) {
+
+								positions[node.label] = {
+									top: node.y - minY + 20,
+									left: node.x - minX + 20
+								};
+							});
+
+							_WorkingSets.updatePositions(workingSet.id, positions);
+
+						}, 300);
+
+					}, true, 'ui');
+
+				}, true, 'ui');
+			});
+		},
+		displayServiceClassesContent: (data) => {
+
+			_Code.codeContents[0].insertAdjacentHTML('beforeend', _Code.templates.createNewType({ text: 'Service Class'}));
+
+			let container = _Code.codeContents[0].querySelector('#create-type-container');
+
+			_Schema.nodes.showCreateNewTypeDialog(container, null, { isServiceClass: true });
+
+			_Code.persistence.runCurrentEntitySaveAction = () => {
+
+				let typeData = _Schema.nodes.getTypeDefinitionDataFromForm(container, {});
+
+				if (!typeData.name || typeData.name.trim() === '') {
+
+					_Helpers.blinkRed(container.querySelector('[data-property="name"]'));
+
+				} else {
+
+					_Schema.nodes.createTypeDefinition(typeData).then(responseData => {
+
+						_Code.tree.refreshNode(data.path);
+
+						window.setTimeout(() => {
+							// tree needs to be refreshed - implement better solution using refresh_node.jstree event
+							_Code.tree.findAndOpenNode(data.path + '/' + responseData.result[0], true);
+						}, 250);
+
+					}, rejectData => {
+
+						Structr.errorFromResponse(rejectData, undefined, { requiresConfirmation: true });
+					});
+				}
+			};
+
+			_Code.mainArea.helpers.displaySvgActionButton('#create-type-actions', _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, 'icon-green'), 'create', 'Create', _Code.persistence.runCurrentEntitySaveAction);
+		},
+		helpers: {
+			shouldHideOpenAPITabForMethod: (entity) => {
+
+				let isJavaMethod         = (entity.codeType === 'java');
+				let isLifecycleMethod    = LifecycleMethods.isLifecycleMethod(entity);
+				let isNotCallableViaHTTP = (entity.isPrivate === true);
+
+				return isJavaMethod || isLifecycleMethod || isNotCallableViaHTTP;
+			},
+			shouldHideAPIExampleTabForMethod: (entity) => {
+
+				let isJavaMethod         = (entity.codeType === 'java');
+				let isLifecycleMethod    = LifecycleMethods.isLifecycleMethod(entity);
+
+				return isJavaMethod || isLifecycleMethod;
+			},
+			collectSchemaMethodParameters: () => {
+
+				let container = _Code.codeContents[0].querySelector('#openapi-options');
+				if (container === null) {
+
+					// we are not showing API tab, do not return anything
+					return null;
+				}
+
+				let parametersData = [];
+				for (let formParam of _Code.codeContents[0].querySelectorAll('.method-parameter')) {
+					let pData = {};
+					for (let formParamValue of formParam.querySelectorAll('[data-parameter-property]')) {
+
+						if (formParamValue.type === 'number') {
+							pData[formParamValue.dataset['parameterProperty']] = parseInt(formParamValue.value);
+						} else {
+							pData[formParamValue.dataset['parameterProperty']] = formParamValue.value;
+						}
+
+					}
+
+					parametersData.push(pData);
+				}
+
+				return parametersData;
+			},
+			displaySvgActionButton: (targetId, iconSvg, suffix, name, callback) => {
+
+				let button     = _Helpers.createSingleDOMElementFromHTML(_Code.templates.actionButton({ iconSvg: iconSvg, suffix: suffix, name: name }));
+				button.addEventListener('click', callback);
+
+				let targetNode = document.querySelector(targetId);
+				targetNode.appendChild(button);
+
+				return button;
+			},
+			runSchemaMethod: (schemaMethod) => {
+
+				let name = (schemaMethod.schemaNode === null) ? schemaMethod.name : schemaMethod.schemaNode.name + '/' + schemaMethod.name;
+				let url  = _Code.mainArea.helpers.getURLForSchemaMethod(schemaMethod);
+
+				let { dialogText } = _Dialogs.custom.openDialog(`Run user-defined function ${name}`, null, ['run-global-schema-method-dialog']);
+
+				let runButton = _Dialogs.custom.prependCustomDialogButton(`
 			<button id="run-method" class="flex items-center action focus:border-gray-666 active:border-green">
 				${_Icons.getSvgIcon(_Icons.iconRunButton, 16, 18, 'mr-2')}
 				<span>Run</span>
 			</button>
 		`);
 
-		let clearButton = _Dialogs.custom.appendCustomDialogButton('<button id="clear-log" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Clear output</button>');
+				let clearButton = _Dialogs.custom.appendCustomDialogButton('<button id="clear-log" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Clear output</button>');
 
-		window.setTimeout(() => {
-			runButton.focus();
-		}, 50);
+				window.setTimeout(() => {
+					runButton.focus();
+				}, 50);
 
-		let paramsOuterBox = _Helpers.createSingleDOMElementFromHTML(`
+				let paramsOuterBox = _Helpers.createSingleDOMElementFromHTML(`
 			<div>
 				<div id="params">
 					<h3 class="heading-narrow">Parameters</h3>
@@ -2680,19 +2303,19 @@ let _Code = {
 				<pre id="log-output"></pre>
 			</div>
 		`);
-		dialogText.appendChild(paramsOuterBox);
+				dialogText.appendChild(paramsOuterBox);
 
-		_Helpers.appendInfoTextToElement({
-			element: paramsOuterBox.querySelector('h3'),
-			text: 'Parameters can be accessed in the called method by using the <code>$.methodParameters[name]</code> object (JavaScript-only) or the <code>retrieve(name)</code> function.<br>For methods called via GET, the parameters are sent using the request URL and thus, they can be accessed via the <code>request</code> object',
-			css: { marginLeft: "5px" },
-			helpElementCss: { fontSize: "12px" }
-		});
+				_Helpers.appendInfoTextToElement({
+					element: paramsOuterBox.querySelector('h3'),
+					text: 'Parameters can be accessed in the called method by using the <code>$.methodParameters[name]</code> object (JavaScript-only) or the <code>retrieve(name)</code> function.<br>For methods called via GET, the parameters are sent using the request URL and thus, they can be accessed via the <code>request</code> object',
+					css: { marginLeft: "5px" },
+					helpElementCss: { fontSize: "12px" }
+				});
 
-		let newParamTrigger = paramsOuterBox.querySelector('.add-param-action');
-		newParamTrigger.addEventListener('click', () => {
+				let newParamTrigger = paramsOuterBox.querySelector('.add-param-action');
+				newParamTrigger.addEventListener('click', () => {
 
-			let newParam = _Helpers.createSingleDOMElementFromHTML(`
+					let newParam = _Helpers.createSingleDOMElementFromHTML(`
 				<div class="param flex items-center mb-1">
 					<input class="param-name" placeholder="Parameter name">
 					<span class="px-2">=</span>
@@ -2701,93 +2324,502 @@ let _Code = {
 				</div>
 			`);
 
-			newParam.querySelector('.remove-action').addEventListener('click', () => {
-				_Helpers.fastRemoveElement(newParam);
-			});
+					newParam.querySelector('.remove-action').addEventListener('click', () => {
+						_Helpers.fastRemoveElement(newParam);
+					});
 
-			newParamTrigger.parentNode.appendChild(newParam);
-		});
+					newParamTrigger.parentNode.appendChild(newParam);
+				});
 
-		let logOutput = paramsOuterBox.querySelector('#log-output');
+				let logOutput = paramsOuterBox.querySelector('#log-output');
 
-		runButton.addEventListener('click', async () => {
+				runButton.addEventListener('click', async () => {
 
-			logOutput.textContent = 'Running method..\n';
+					logOutput.textContent = 'Running method..\n';
 
-			let params = {};
-			for (let paramRow of paramsOuterBox.querySelectorAll('#params .param')) {
-				let name = paramRow.querySelector('.param-name').value;
-				if (name) {
-					params[name] = paramRow.querySelector('.param-value').value;
+					let params = {};
+					for (let paramRow of paramsOuterBox.querySelectorAll('#params .param')) {
+						let name = paramRow.querySelector('.param-name').value;
+						if (name) {
+							params[name] = paramRow.querySelector('.param-value').value;
+						}
+					}
+
+					let methodCallUrl = url;
+					let fetchConfig = { method: schemaMethod.httpVerb };
+
+					if (schemaMethod.httpVerb === 'GET') {
+
+						methodCallUrl += '?' + new URLSearchParams(params).toString();
+
+					} else {
+
+						fetchConfig.body = JSON.stringify(params);
+					}
+
+					let response = await fetch(methodCallUrl, fetchConfig);
+					let text     = await response.text();
+
+					logOutput.textContent = text + 'Done.';
+				});
+
+				clearButton.addEventListener('click', () => {
+					logOutput.textContent = '';
+				});
+			},
+			getURLForSchemaMethod: (schemaMethod, absolute = true) => {
+
+				let isStatic              = (schemaMethod.isStatic === true);
+				let isUserDefinedFunction = (schemaMethod.schemaNode === null);
+
+				let parts = [];
+
+				if (!isUserDefinedFunction) {
+					parts.push(schemaMethod.schemaNode.name);
+
+					if (!isStatic) {
+						parts.push('<b>{uuid}</b>');
+					}
+				}
+
+				parts.push(schemaMethod.name);
+				let url  = (absolute ? location.origin : '') + Structr.rootUrl + parts.join('/');
+
+				return url;
+			},
+		}
+	},
+	helpers: {
+		getAttributesToFetchForErrorObject: () => 'id,type,name,content,isStatic,ownerDocument,schemaNode',
+		getPathToOpenForSchemaObjectFromError: (obj) => {
+			let firstSubFolder = (obj.schemaNode?.isServiceClass === true) ? 'services' : 'custom';
+			let typeFolder     = (obj.type === 'SchemaProperty') ? 'properties' : 'methods';
+			let pathToOpen     = (obj.schemaNode) ? `/root/${firstSubFolder}/${obj.schemaNode.id}/${typeFolder}/${obj.id}` : `/globals/${obj.id}`;
+
+			return pathToOpen;
+		},
+		navigateToSchemaObjectFromAnywhere: (obj) => {
+
+			let pathToOpen = _Code.helpers.getPathToOpenForSchemaObjectFromError(obj);
+			let timeout    = (window.location.hash === '#code') ? 100 : 1000;
+
+			window.location.href = '#code';
+
+			window.setTimeout(() => {
+				_Code.tree.findAndOpenNode(pathToOpen, false);
+			}, timeout);
+		},
+		handleKeyDownEvent: (e) => {
+
+			if (Structr.isModuleActive(_Code)) {
+
+				let event   = e?.originalEvent ?? e;
+				let keyCode = event.keyCode;
+				let code    = event.code;
+
+				// ctrl-s / cmd-s
+				if ((code === 'KeyS' || keyCode === 83) && ((!_Helpers.isMac() && event.ctrlKey) || (_Helpers.isMac() && event.metaKey))) {
+					event.preventDefault();
+					_Code.persistence.runCurrentEntitySaveAction();
+				}
+
+				// ctrl-r / cmd-r
+				if ((code === 'KeyR' || keyCode === 82) && ((!_Helpers.isMac() && event.ctrlKey) || (_Helpers.isMac() && event.metaKey))) {
+
+					// allow browser hard-reload with CMD/CTRL+SHIFT+R
+					if (!event.shiftKey) {
+
+						let runButton = document.getElementById('action-button-run');
+
+						if (runButton) {
+
+							event.preventDefault();
+							event.stopPropagation();
+
+							if (!_Dialogs.custom.isDialogOpen()) {
+								runButton.click();
+							}
+						}
+					}
+				}
+
+				if (_Code.search.searchIsActive()) {
+					if (e.key === 'Escape') {
+						_Code.search.cancelSearch();
+					}
+				}
+			}
+		},
+		showSchemaRecompileMessage: () => {
+			_Dialogs.loadingMessage.show('Schema is compiling', 'Please wait...', 'code-compilation-message');
+		},
+		hideSchemaRecompileMessage:  () => {
+			_Dialogs.loadingMessage.hide('code-compilation-message');
+		},
+		preloadAvailableTagsForEntities: async () => {
+
+			let schemaNodeTags   = await Command.queryPromise('SchemaNode', _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', null, false, null, 'tags');
+			let schemaMethodTags = await Command.queryPromise('SchemaMethod', _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', null, false, null, 'tags');
+
+			_Code.helpers.addAvailableTagsForEntities(schemaNodeTags);
+			_Code.helpers.addAvailableTagsForEntities(schemaMethodTags);
+		},
+		addAvailableTagsForEntities: (entities) => {
+
+			let change = false;
+
+			for (let entity of entities) {
+
+				if (entity.tags) {
+
+					for (let tag of entity.tags) {
+
+						if (!_Code.availableTags.includes(tag) && !_Code.tagBlacklist.includes(tag)) {
+							change = true;
+							_Code.availableTags.push(tag);
+						}
+					}
 				}
 			}
 
-			let methodCallUrl = url;
-			let fetchConfig = { method: schemaMethod.httpVerb };
-
-			if (schemaMethod.httpVerb === 'GET') {
-
-				methodCallUrl += '?' + new URLSearchParams(params).toString();
-
-			} else {
-
-				fetchConfig.body = JSON.stringify(params);
+			if (change) {
+				_Code.tree.refreshNode('/openapi');
 			}
 
-			let response = await fetch(methodCallUrl, fetchConfig);
-			let text     = await response.text();
-
-			logOutput.textContent = text + 'Done.';
-		});
-
-		clearButton.addEventListener('click', () => {
-			logOutput.textContent = '';
-		});
+			_Code.availableTags.sort();
+		},
+		getElementForKey: (key) => {
+			return document.querySelector(`#code-contents [data-property=${key}]`);
+		},
 	},
-	activatePropertyValueInput: (inputId, id, name) => {
+	persistence: {
+		saveEntityAction: (entity, callback, optionalFormDataModificationFunctions = []) => {
 
-		$('input#' + inputId).on('blur', function() {
-			let elem     = $(this);
-			let previous = elem.attr('value');
+			if (_Code.persistence.isDirty()) {
 
-			if (previous !== elem.val()) {
-				let data   = {};
-				data[name] = elem.val();
+				let formData = _Code.persistence.collectChangedPropertyData(entity);
 
-				Command.setProperties(id, data, () => {
-					_Helpers.blinkGreen(elem);
-					_TreeHelper.refreshTree('#code-tree');
+				for (let modFn of optionalFormDataModificationFunctions) {
+					modFn(formData);
+				}
+
+				let compileRequired = _Code.persistence.isCompileRequiredForSave(formData);
+
+				if (compileRequired) {
+					_Code.helpers.showSchemaRecompileMessage();
+				}
+
+				fetch(Structr.rootUrl + entity.id, {
+					method: 'PUT',
+					body: JSON.stringify(formData)
+				}).then(async response => {
+
+					if (response.ok) {
+
+						_Code.helpers.addAvailableTagsForEntities([formData]);
+
+						Object.assign(entity, formData);
+						_Code.persistence.updateDirtyFlag(entity);
+
+						if (formData.name) {
+							_Code.tree.refreshTree();
+						}
+
+						if (compileRequired) {
+							_Code.helpers.hideSchemaRecompileMessage();
+						}
+						_Code.persistence.showSaveAction(formData);
+
+						if (typeof callback === 'function') {
+							callback();
+						}
+
+					} else {
+
+						let data = await response.json();
+
+						Structr.errorFromResponse(data);
+
+						_Code.helpers.hideSchemaRecompileMessage();
+					}
 				});
 			}
-		});
-	},
-	getErrorPropertyNameForLinting: (entity, propertyName) => {
+		},
+		deleteSchemaEntity: (entity, title, text, data) => {
 
-		let errorPropertyNameForLinting = propertyName;
+			let path  = data.path;
+			let parts = path.split('-');
 
-		if (entity.type === 'SchemaMethod') {
-			errorPropertyNameForLinting = entity.name;
-		} else if (entity.type === 'SchemaProperty') {
-			if (propertyName === 'readFunction') {
-				errorPropertyNameForLinting = `getProperty(${entity.name})`;
-			} else if (propertyName === 'writeFunction') {
-				errorPropertyNameForLinting = `setProperty(${entity.name})`;
-			} else {
-				// error?
+			parts.pop();
+
+			let parent = parts.join('-');
+
+			_Dialogs.confirmation.showPromise(`<h3>${title}</h3><p>${(text || '')}</p>`).then((confirm) => {
+
+				if (confirm === true) {
+
+					_Code.helpers.showSchemaRecompileMessage();
+					_Code.dirty = false;
+
+					Command.deleteNode(entity.id, false, () => {
+						_Code.persistence.forceNotDirty();
+						_Code.helpers.hideSchemaRecompileMessage();
+						_Code.tree.findAndOpenNode(parent, false);
+						_Code.tree.refreshTree();
+					});
+				}
+			});
+		},
+		isCompileRequiredForSave: (changes) => {
+
+			let compileRequired = false;
+
+			for (let key in changes) {
+				compileRequired = compileRequired || _Code.persistence.compileRequiredForKey(key);
 			}
-		} else if (entity.type === 'Content' || entity.type === 'Template') {
-			errorPropertyNameForLinting = 'content';
-		} else if (entity.type === 'File') {
-			errorPropertyNameForLinting = 'getInputStream';
-		}
 
-		return errorPropertyNameForLinting;
-	},
-	refreshNode: (id) => {
-		if (_Code.codeTree) {
-			let escapedId = id.replaceAll('/', '\\/');
-			_Code.codeTree.jstree().refresh_node(document.querySelector(`li#${escapedId}`));
-		}
+			return compileRequired;
+		},
+		compileRequiredForKey: (key) => {
+
+			let element = _Code.helpers.getElementForKey(key);
+			if (element && element.dataset.recompile === "false") {
+				return false;
+			}
+
+			return true;
+		},
+		forceNotDirty: () => {
+			_Code.codeContents.find('.to-delete').removeClass('to-delete');
+			_Code.codeContents.find('.has-changes').removeClass('has-changes');
+
+			_Code.additionalDirtyChecks = [];
+		},
+		isDirty: () => {
+			let isDirty = false;
+			if (_Code.codeContents) {
+				isDirty = (_Code.codeContents.find('.to-delete').length + _Code.codeContents.find('.has-changes').length) > 0;
+			}
+			return isDirty;
+		},
+		updateDirtyFlag: (entity) => {
+
+			let formContent = _Code.persistence.collectChangedPropertyData(entity);
+			let dirty       = Object.keys(formContent).length > 0;
+
+			for (let additionalCheck of _Code.additionalDirtyChecks) {
+				dirty = dirty || additionalCheck();
+			}
+
+			if (dirty) {
+				$('#action-button-save').removeClass('disabled').attr('disabled', null);
+				$('#action-button-cancel').removeClass('disabled').attr('disabled', null);
+			} else {
+				$('#action-button-save').addClass('disabled').attr('disabled', 'disabled');
+				$('#action-button-cancel').addClass('disabled').attr('disabled', 'disabled');
+			}
+
+			_Code.persistence.tellFirstElementToShowDirtyState(dirty);
+
+			return formContent;
+		},
+		tellFirstElementToShowDirtyState: (dirty) => {
+			if (dirty === true) {
+				_Code.codeContents.children().first().addClass('has-changes');
+			} else {
+				_Code.codeContents.children().first().removeClass('has-changes');
+			}
+		},
+		testAllowNavigation: () => {
+			if (_Code.persistence.isDirty()) {
+				return confirm('Discard unsaved changes?');
+			}
+
+			return true;
+		},
+		collectPropertyData: (entity) => {
+
+			return _Code.persistence.collectDataFromContainer(document.querySelector('#code-contents'), entity);
+		},
+		collectDataFromContainer: (container, entity) => {
+
+			let data = {};
+
+			for (let p of container.querySelectorAll('input[data-property]')) {
+				switch (p.type) {
+					case "checkbox":
+						data[p.dataset.property] = p.checked;
+						break;
+					case "number":
+						if (p.value) {
+							data[p.dataset.property] = parseInt(p.value);
+						} else {
+							data[p.dataset.property] = null;
+						}
+						break;
+					case "text":
+					default:
+						if (entity[p.dataset.property] === null && p.value === '') {
+							data[p.dataset.property] = entity[p.dataset.property];
+						} else if (p.value) {
+							data[p.dataset.property] = p.value;
+						} else {
+							data[p.dataset.property] = null;
+						}
+						break;
+				}
+			}
+
+			for (let p of container.querySelectorAll('select[data-property]')) {
+				if (p.multiple === true) {
+					data[p.dataset.property] = Array.prototype.map.call(p.selectedOptions, (o) => o.value);
+				} else {
+
+					data[p.dataset.property] = p.value;
+
+					// add exception for typeHint
+					if (p.dataset.property === 'typeHint' && p.value === 'null') {
+						data.typeHint = null;
+					}
+				}
+			}
+
+			for (let editorWrapper of container.querySelectorAll('.editor[data-property]')) {
+				let propertyName = editorWrapper.dataset.property;
+				let entityId = entity?.id;
+				if (!entityId) {
+					entityId = editorWrapper.dataset.id;
+				}
+				if (!entityId) {
+					console.log('Editor should be saved but ID is missing from dataset - getting data will probably fail!');
+				}
+
+				data[propertyName] = _Editors.getTextForExistingEditor(entityId, propertyName);
+			}
+
+			return data;
+		},
+		collectChangedPropertyData: (entity) => {
+
+			let formContent = _Code.persistence.collectPropertyData(entity);
+			let keys        = Object.keys(formContent);
+
+			// remove unchanged keys
+			for (let key of keys) {
+
+				if ( (formContent[key] === entity[key]) || (!formContent[key] && entity[key] === "") || (formContent[key] === "" && !entity[key]) || (!formContent[key] && !entity[key])) {
+					delete formContent[key];
+				}
+
+				if (Array.isArray(formContent[key])) {
+
+					let compareSource = entity[key];
+
+					if (key === 'tags' && compareSource) {
+						// remove blacklisted tags from source for comparison
+						compareSource = compareSource.filter((tag) => { return !_Code.tagBlacklist.includes(tag); });
+					}
+
+					if (formContent[key].length === 0 && (!compareSource || compareSource.length === 0)) {
+
+						delete formContent[key];
+
+					} else if (compareSource && compareSource.length === formContent[key].length) {
+
+						// check if same
+						let diff = formContent[key].filter((v) => {
+							return !compareSource.includes(v);
+						});
+						if (diff.length === 0) {
+							delete formContent[key];
+						}
+					}
+				}
+			}
+
+			return formContent;
+		},
+		revertFormData: (entity) => {
+
+			_Code.persistence.revertFormDataInContainer(document.querySelector('#code-contents'), entity);
+
+			_Code.persistence.updateDirtyFlag(entity);
+		},
+		revertFormDataInContainer: (container, entity) => {
+
+			for (let p of container.querySelectorAll('input[data-property]')) {
+				switch (p.type) {
+					case "checkbox":
+						p.checked = entity[p.dataset.property];
+						break;
+					case "number":
+						p.value = entity[p.dataset.property];
+						break;
+					case "text":
+					default:
+						p.value = entity[p.dataset.property] || '';
+						break;
+				}
+			}
+
+			for (let p of container.querySelectorAll('select[data-property]')) {
+
+				let isSet   = !!entity[p.dataset.property];
+				let isArray = Array.isArray(entity[p.dataset.property]);
+
+				for (let option of p.options) {
+					if (!isSet) {
+						option.selected = false;
+					} else {
+						if (isArray) {
+							option.selected = entity[p.dataset.property].includes(option.value);
+						} else {
+							option.selected = (entity[p.dataset.property].id === option.value);
+						}
+					}
+				}
+
+				p.dispatchEvent(new Event('change'));
+			}
+
+			for (let editorWrapper of container.querySelectorAll('.editor[data-property]')) {
+
+				let propertyName = editorWrapper.dataset.property;
+				let entityId     = editorWrapper.dataset.id;
+				let value        = '';
+
+				if (entity) {
+					entityId = entity.id;
+					value = (entity[propertyName] || '');
+				} else {
+					console.log('Editor should be saved but ID is missing from dataset - getting data will probably fail!');
+				}
+
+				_Editors.setTextForExistingEditor(entityId, propertyName, value);
+			}
+		},
+		showSaveAction: (changes) => {
+
+			for (let key of Object.keys(changes)) {
+				let element = _Code.helpers.getElementForKey(key);
+				if (element) {
+
+					if (element.tagName === 'INPUT' && element.type === 'text' && !element.classList.contains('hidden')) {
+						_Helpers.blinkGreen($(element));
+					} else if (element.tagName === 'INPUT' && element.type === 'checkbox' && !element.classList.contains('hidden')) {
+						_Helpers.blinkGreen($(element.closest('.checkbox')));
+					} else {
+						_Helpers.blinkGreen($(element.closest('.property-box')));
+					}
+				}
+			}
+		},
+		runCurrentEntitySaveAction: () => {
+			// this is the default action - it should always be overwritten by specific save actions and is only here to prevent errors
+			if (_Code.persistence.isDirty()) {
+				new WarningMessage().text('No save action is defined - but the editor has unsaved changes!').requiresConfirmation().show();
+			}
+		},		
 	},
 	search: {
 		searchThreshold: 3,
@@ -2909,7 +2941,7 @@ let _Code = {
 			}
 
 			recentlyUsedButton.addEventListener('click', () => {
-				_Code.findAndOpenNode(path, true);
+				_Code.tree.findAndOpenNode(path, true);
 			});
 
 			recentlyUsedButton.querySelector('.remove-recently-used').addEventListener('click', (e) => {
@@ -3016,7 +3048,7 @@ let _Code = {
 			if (pos >= 0 && pos < _Code.pathLocations.stack.length) {
 
 				let path = _Code.pathLocations.stack[pos];
-				_Code.findAndOpenNode(path, false);
+				_Code.tree.findAndOpenNode(path, false);
 
 			} else {
 				_Code.pathLocations.currentIndex -= 1;
@@ -3032,7 +3064,7 @@ let _Code = {
 			if (pos >= 0 && pos < _Code.pathLocations.stack.length) {
 
 				let path = _Code.pathLocations.stack[pos];
-				_Code.findAndOpenNode(path, false);
+				_Code.tree.findAndOpenNode(path, false);
 
 			} else {
 
@@ -3123,21 +3155,8 @@ let _Code = {
 		builtin: config => `
 			<h2>System Types</h2>
 		`,
-		createObjectForm: config => `
-			<div class="mt-4">
-				<input style="width: 100%; box-sizing: border-box;" id="new-object-name-${config.suffix}" value="${config.value}" placeholder="Enter name...">
-			</div>
-			<div class="flex justify-between mt-3">
-				<button id="cancel-button-${config.suffix}" type="button" class="create-form-button cancel flex items-center px-3 py-1">
-					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, 'icon-red')}
-				</button>
-				<button id="create-button-${config.suffix}" type="button" class="create-form-button accept flex items-center px-3 py-1">
-					${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, 'icon-green')}
-				</button>
-			</div>
-		`,
-		customTypes: config => `
-			<h2>Create New Type</h2>
+		createNewType: config => `
+			<h2>Create New ${config?.text ?? 'Type'}</h2>
 			<div id="method-buttons">
 				<div class="flex flex-wrap gap-x-4">
 					<div class="mb-2">
@@ -3709,13 +3728,13 @@ let _WorkingSets = {
 			if (result && result.length) {
 
 				_WorkingSets.addTypeToSet(result[0].id, name, () => {
-					_Code.refreshNode('/workingsets/' + result[0].id);
+					_Code.tree.refreshNode('/workingsets/' + result[0].id);
 				});
 
 			} else {
 
 				_WorkingSets.createNewSetAndAddType(name, () => {
-					_Code.refreshNode('/workingsets');
+					_Code.tree.refreshNode('/workingsets');
 				}, _WorkingSets.recentlyUsedName);
 			}
 

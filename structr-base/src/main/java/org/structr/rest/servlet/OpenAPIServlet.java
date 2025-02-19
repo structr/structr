@@ -241,7 +241,7 @@ public class OpenAPIServlet extends AbstractDataServlet {
 
 		for (final StructrTypeDefinition type : schema.getTypeDefinitions()) {
 
-			if (type.isSelected(tag) && (StringUtils.isNotBlank(tag) && type.includeInOpenAPI())) {
+			if (type.isSelected(tag) && (StringUtils.isNotBlank(tag) && type.includeInOpenAPI() && !type.isServiceClass())) {
 
 				String summary = type.getSummary();
 				if (StringUtils.isBlank(summary)) {

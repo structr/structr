@@ -248,43 +248,46 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 			if (type.isSelected(tag) && type.includeInOpenAPI()) {
 
-				Class typeClass = configuration.getNodeEntityClass(type.name);
-				if (typeClass == null) {
+				if (!type.isServiceClass()) {
 
-					final Map<String, Class> interfaces = configuration.getInterfaces();
+					Class typeClass = configuration.getNodeEntityClass(type.name);
+					if (typeClass == null) {
 
-					typeClass = interfaces.get(type.name);
-				}
+						final Map<String, Class> interfaces = configuration.getInterfaces();
 
-				Set<String> viewNames = configuration.getPropertyViewsForType(typeClass);
+						typeClass = interfaces.get(type.name);
+					}
 
-				viewNames = viewNames.stream().filter(viewName ->  StringUtils.equals(viewName, "all") || !StructrTypeDefinition.VIEW_BLACKLIST.contains(viewName)).collect(Collectors.toSet());
+					Set<String> viewNames = configuration.getPropertyViewsForType(typeClass);
 
-				for (String viewName : viewNames) {
+					viewNames = viewNames.stream().filter(viewName ->  StringUtils.equals(viewName, "all") || !StructrTypeDefinition.VIEW_BLACKLIST.contains(viewName)).collect(Collectors.toSet());
 
-					final String typeName = type.getName() + (viewName == null || StringUtils.equals(PropertyView.Public, viewName) ? "" : "." + viewName);
+					for (String viewName : viewNames) {
 
-					String viewNameStringForReference = StringUtils.equals(viewName, PropertyView.Public) ? "" : "." + viewName;
-					map.put(typeName + "MultipleResponse",
-							new OpenAPIRequestResponse(
-								"The request was executed successfully.",
-								new OpenAPISchemaReference(type.getName() + viewNameStringForReference + "MultipleResponseSchema"),
-								new OpenAPIExampleAnyResult(List.of(), true),
+						final String typeName = type.getName() + (viewName == null || StringUtils.equals(PropertyView.Public, viewName) ? "" : "." + viewName);
+
+						String viewNameStringForReference = StringUtils.equals(viewName, PropertyView.Public) ? "" : "." + viewName;
+						map.put(typeName + "MultipleResponse",
+								new OpenAPIRequestResponse(
+									"The request was executed successfully.",
+									new OpenAPISchemaReference(type.getName() + viewNameStringForReference + "MultipleResponseSchema"),
+									new OpenAPIExampleAnyResult(List.of(), true),
+									null,
+									false,
+									null
+								)
+						);
+
+						map.put(typeName + "SingleResponse",
+							new OpenAPIRequestResponse("The request was executed successfully.",
+								new OpenAPISchemaReference(type.getName() + viewNameStringForReference + "SingleResponseSchema"),
+								new OpenAPIExampleAnyResult(Map.of(), true),
 								null,
 								false,
 								null
 							)
-					);
-
-					map.put(typeName + "SingleResponse",
-						new OpenAPIRequestResponse("The request was executed successfully.",
-							new OpenAPISchemaReference(type.getName() + viewNameStringForReference + "SingleResponseSchema"),
-							new OpenAPIExampleAnyResult(Map.of(), true),
-							null,
-							false,
-							null
-						)
-					);
+						);
+					}
 				}
 
 				for (final StructrMethodDefinition method : type.methods) {
@@ -332,7 +335,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 		for (final StructrTypeDefinition<?> type : typeDefinitions) {
 
-			if (StringUtils.isNotEmpty(view) || typeWhiteList.contains(type.getName()) || type.isSelected(tag) && type.includeInOpenAPI()) {
+			if (StringUtils.isNotEmpty(view) || typeWhiteList.contains(type.getName()) || type.isSelected(tag) && type.includeInOpenAPI() && !type.isServiceClass()) {
 
 				for (final String viewName : this.getViewNamesOfType(type, view)) {
 
