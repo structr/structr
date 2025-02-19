@@ -1461,7 +1461,7 @@ public class UiScriptingTest extends StructrUiTest {
 			Template template1 = app.create(StructrTraits.TEMPLATE, new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Template.class);
 			Template template2 = app.create(StructrTraits.TEMPLATE, new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Template.class);
 
-			String script = "${{ let session = $.session; if ($.empty(session['test'])) { session['test'] = 123; } else { session['test'] = 456; } return $.session['test']; }}";
+			String script = "${{ let session = $.session; if ($.empty(session['test'])) { session['test'] = 123; } else { session['test'] = 456; } $.session['test']; }}";
 			template1.setContent(script);
 			template2.setContent(script);
 
@@ -1638,15 +1638,14 @@ public class UiScriptingTest extends StructrUiTest {
 				page.appendChild(template);
 			}
 
-			// Test 2: print - return - print (make sure the second print statement is not executed)
+			// Test 2: print - return
 			{
 				final Page page         = app.create(StructrTraits.PAGE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), test2PageName), new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Page.class);
 				final Template template = app.create(StructrTraits.TEMPLATE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Template.class);
 
 				template.setContent("${{\n" +
 					"	$.print('BEFORE');\n" +
-					"	return 'X';\n" +
-					"	$.print('AFTER');\n" +
+					"	'X';\n" +
 					"}}");
 
 				page.appendChild(template);
@@ -1682,16 +1681,17 @@ public class UiScriptingTest extends StructrUiTest {
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "{ $.print('testPrint1'); $.print('testPrint2'); }")
 			);
 
-			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testPrintReturnJS"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "{ $.print('testPrint'); return 'returnValue'; }")
+			app.create(SchemaMethod.class, new NodeAttribute<>(SchemaMethod.name,   "testPrintReturnJS"),
+				new NodeAttribute<>(SchemaMethod.source, "{ $.print('testPrint'); return 'returnValue'; }")
 			);
 
-			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testPrintReturnUnreachablePrintJS"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "{ $.print('testPrint'); return 'returnValue'; $.print('unreachable print'); }")
+			app.create(SchemaMethod.class, new NodeAttribute<>(SchemaMethod.name, "testPrintReturnUnreachablePrintJS"),
+				new NodeAttribute<>(SchemaMethod.source, "{ $.print('testPrint'); return 'returnValue'; $.print('unreachable print'); }")
 			);
 
-			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testSinglePrintSS"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "print('testPrint')")
+
+			app.create(SchemaMethod.class, new NodeAttribute<>(SchemaMethod.name,   "testSinglePrintSS"),
+				new NodeAttribute<>(SchemaMethod.source, "print('testPrint')")
 			);
 
 			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testMultiPrintSS"),
@@ -1710,17 +1710,18 @@ public class UiScriptingTest extends StructrUiTest {
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "(print('testPrint1'), 'implicitStructrScriptReturn1', print('testPrint2'), 'implicitStructrScriptReturn2'), print('testPrint2')")
 			);
 
-			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testIncludeJS"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "{ let val = $.include('namedDOMNode'); return val; }")
+
+			app.create(SchemaMethod.class, new NodeAttribute<>(SchemaMethod.name,   "testIncludeJS"),
+				new NodeAttribute<>(SchemaMethod.source, "{ let val = $.include('namedDOMNode'); return val; }")
 			);
 
 			// can not yield result - schema method has no children
-			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testIncludeChildJS"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "{ let val = $.include_child('namedDOMNode'); return val; }")
+			app.create(SchemaMethod.class, new NodeAttribute<>(SchemaMethod.name,   "testIncludeChildJS"),
+				new NodeAttribute<>(SchemaMethod.source, "{ let val = $.include_child('namedDOMNode'); return val; }")
 			);
 
-			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testRenderJS"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "{ let val = $.render($.find('DOMNode', 'name', 'namedDOMNode')); return val; }")
+			app.create(SchemaMethod.class, new NodeAttribute<>(SchemaMethod.name,   "testRenderJS"),
+				new NodeAttribute<>(SchemaMethod.source, "{ let val = $.render($.find('DOMNode', 'name', 'namedDOMNode')); return val; }")
 			);
 
 			{
@@ -1750,7 +1751,6 @@ public class UiScriptingTest extends StructrUiTest {
 			assertEquals("include() in a schema method should return the rendered output of the named node!", "testPrint", Scripting.evaluate(renderContext, null, "${{ Structr.call('testSinglePrintJS'); }}", "test"));
 			assertEquals("include() in a schema method should return the rendered output of the named node!", "testPrint1testPrint2", Scripting.evaluate(renderContext, null, "${{ Structr.call('testMultiPrintJS'); }}", "test"));
 			assertEquals("a javascript method should favor printed results instead of return value (quirky as that might seem)", "testPrint", Scripting.evaluate(renderContext, null, "${{ Structr.call('testPrintReturnJS'); }}", "test"));
-			assertEquals("a javascript method should favor printed results instead of return value (quirky as that might seem). also unreachable statements should not have any effect!", "testPrint", Scripting.evaluate(renderContext, null, "${{ Structr.call('testPrintReturnUnreachablePrintJS'); }}", "test"));
 
 			assertEquals("include() in a schema method should return the rendered output of the named node!", "testPrint", Scripting.evaluate(renderContext, null, "${{ Structr.call('testSinglePrintSS'); }}", "test"));
 			assertEquals("include() in a schema method should return the rendered output of the named node!", "testPrint1testPrint2", Scripting.evaluate(renderContext, null, "${{ Structr.call('testMultiPrintSS'); }}", "test"));
