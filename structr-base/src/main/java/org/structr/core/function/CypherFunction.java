@@ -132,8 +132,7 @@ public class CypherFunction extends CoreFunction {
 			throw new FrameworkException(422, "%s: SyntaxError (Cause: %s)".formatted(getReplacement(), ex.getMessage()));
 		} catch (UnknownClientException ex) {
 
-			logException(ex, "{}: Exception in '{}' for parameters: {} (Cause: {})", new Object[] { getReplacement(), caller, sources, ex.getMessage() });
-			return null;
+			throw new FrameworkException(422, "%s: UnknownClientException (Cause: %s)".formatted(getReplacement(), ex.getMessage()));
 		}
 	}
 
