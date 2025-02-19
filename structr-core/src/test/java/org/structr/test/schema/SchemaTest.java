@@ -1233,10 +1233,10 @@ public class SchemaTest extends StructrTest {
 
 			final ActionContext ctx = new ActionContext(securityContext);
 
-			assertEquals("Invalid inheritance result, overriding method is not called", "BaseType",   (Scripting.evaluate(ctx, base,  "${{ return $.this.doTest(); }}", "test1")));
-			assertEquals("Invalid inheritance result, overriding method is not called", "Extended1",  (Scripting.evaluate(ctx, ext1,  "${{ return $.this.doTest(); }}", "test2")));
-			assertEquals("Invalid inheritance result, overriding method is not called", "Extended11", (Scripting.evaluate(ctx, ext11, "${{ return $.this.doTest(); }}", "test3")));
-			assertEquals("Invalid inheritance result, overriding method is not called", "Extended2",  (Scripting.evaluate(ctx, ext2,  "${{ return $.this.doTest(); }}", "test4")));
+			assertEquals("Invalid inheritance result, overriding method is not called", "BaseType",   (Scripting.evaluate(ctx, base,  "${{ $.this.doTest(); }}", "test1")));
+			assertEquals("Invalid inheritance result, overriding method is not called", "Extended1",  (Scripting.evaluate(ctx, ext1,  "${{ $.this.doTest(); }}", "test2")));
+			assertEquals("Invalid inheritance result, overriding method is not called", "Extended11", (Scripting.evaluate(ctx, ext11, "${{ $.this.doTest(); }}", "test3")));
+			assertEquals("Invalid inheritance result, overriding method is not called", "Extended2",  (Scripting.evaluate(ctx, ext2,  "${{ $.this.doTest(); }}", "test4")));
 
 			tx.success();
 

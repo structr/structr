@@ -598,7 +598,7 @@ public class SchemaMethodsTest extends FrontendTest {
 			// create global schema method for JavaScript
 			app.create(SchemaMethod.class,
 				new NodeAttribute<>(SchemaMethod.name,   "globalTest1"),
-				new NodeAttribute<>(SchemaMethod.source, "{ return { success: true, value: 123 }; }")
+				new NodeAttribute<>(SchemaMethod.source, "{ { success: true, value: 123 }; }")
 			);
 
 			// create admin user to call global schema methods with
@@ -646,7 +646,7 @@ public class SchemaMethodsTest extends FrontendTest {
 
 			testFooFileMethodProperties.put(SchemaMethod.id, schemaMethodId);
 			testFooFileMethodProperties.put(SchemaMethod.name, schemaMethodName);
-			testFooFileMethodProperties.put(SchemaMethod.source, "{ return 'test'; }");
+			testFooFileMethodProperties.put(SchemaMethod.source, "{ 'test'; }");
 			testFooFileMethodProperties.put(SchemaMethod.schemaNode, fooFileDef);
 			testFooFileMethodProperties.put(SchemaMethod.isStatic, true);
 
