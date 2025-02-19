@@ -255,6 +255,7 @@ public class Console {
 			tx.success();
 		} catch (SyntaxErrorException see) {
 
+			writable.println("Unexpected syntax error in console command. " + see.getMessage());
 			logger.error("Unexpected syntax error in console command. {}", see.getMessage());
 		}
 
