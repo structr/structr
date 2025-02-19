@@ -1057,12 +1057,18 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				grant.put("id",                          schemaGrant.getUuid());
 				grant.put("principal",                   Map.of("name", schemaGrant.getPrincipalName()));
-				grant.put("schemaNode",                  Map.of("id", schemaGrant.getSchemaNode().getUuid()));
 				grant.put("staticSchemaNodeName",        schemaGrant.getStaticSchemaNodeName());
 				grant.put("allowRead",                   schemaGrant.allowRead());
 				grant.put("allowWrite",                  schemaGrant.allowWrite());
 				grant.put("allowDelete",                 schemaGrant.allowDelete());
 				grant.put("allowAccessControl",          schemaGrant.allowAccessControl());
+
+				// schema node can be null
+				final SchemaNode optionalSchemaNode = schemaGrant.getSchemaNode();
+				if (optionalSchemaNode != null) {
+
+					grant.put("schemaNode", Map.of("id", optionalSchemaNode.getUuid()));
+				}
 			}
 
 			tx.success();
