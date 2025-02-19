@@ -372,7 +372,7 @@ let _Entities = {
 
 		let editor = _Editors.getMonacoEditor(entity, 'source', dialogText.querySelector('.editor'), emptyDivMonacoConfig);
 
-		_Editors.addEscapeKeyHandlersToPreventPopupClose(editor);
+		_Editors.addEscapeKeyHandlersToPreventPopupClose(entity.id, 'source', editor);
 
 		dialogSaveButton.addEventListener('click', (e) => {
 			e.stopPropagation();
