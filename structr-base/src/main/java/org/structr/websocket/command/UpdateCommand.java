@@ -18,7 +18,6 @@
  */
 package org.structr.websocket.command;
 
-import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
@@ -28,7 +27,6 @@ import org.structr.common.error.PasswordPolicyViolationException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.TransactionCommand;
@@ -43,6 +41,7 @@ import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -184,27 +183,27 @@ public class UpdateCommand extends AbstractCommand {
 
 		if (recursive) {
 
-			if (obj instanceof LinkedTreeNode) {
+			if (obj.is("DOMNode")) {
 
-				final LinkedTreeNode node = (LinkedTreeNode) obj;
+				final DOMNode node = obj.as(DOMNode.class);
 
-				for (Object child : node.treeGetChildren()) {
+				for (NodeInterface child : node.treeGetChildren()) {
 
-					collectEntities(entities, (GraphObject) child, recursive);
+					collectEntities(entities, child, recursive);
 				}
 
-			} else if (obj instanceof Folder) {
+			} else if (obj.is("Folder")) {
 
-				final Folder folder = (Folder) obj;
+				final Folder folder = obj.as(Folder.class);
 
-				entities.addAll(Folder.getAllChildNodes(folder).stream().map(abstractfile -> abstractfile.getUuid()).collect(Collectors.toList()));
+				entities.addAll(folder.getAllChildNodes().stream().map(abstractfile -> abstractfile.getUuid()).collect(Collectors.toList()));
 			}
 		}
 	}
 
 	private void collectSyncedEntities(final Set<String> entities, final GraphObject obj, final String syncMode, final String attributeName) {
 
-		if (Boolean.TRUE.equals(obj.getProperty(DOMNode.isDOMNodeProperty))) {
+		if (obj.is("DOMNode")) {
 
 			if (syncMode != null) {
 
@@ -214,13 +213,13 @@ public class UpdateCommand extends AbstractCommand {
 
 					if (SHARED_COMPONENT_SYNC_MODE.ALL.equals(mode) || SHARED_COMPONENT_SYNC_MODE.BY_VALUE.equals(mode)) {
 
-						final List<DOMNode> syncedNodes = Iterables.toList(obj.getProperty(DOMNode.syncedNodesProperty));
+						final List<DOMNode> syncedNodes = Iterables.toList(obj.as(DOMNode.class).getSyncedNodes());
 
 						if (syncedNodes.size() > 0) {
 
 							if (SHARED_COMPONENT_SYNC_MODE.BY_VALUE.equals(mode)) {
 
-								final PropertyKey propertyKey = StructrApp.key(obj.getClass(), attributeName);
+								final PropertyKey propertyKey = obj.getTraits().key(attributeName);
 								final Object previousValue    = obj.getProperty(propertyKey);
 
 								final List<DOMNode> nodesWithSameValue = syncedNodes.stream().filter(syncedNode -> {

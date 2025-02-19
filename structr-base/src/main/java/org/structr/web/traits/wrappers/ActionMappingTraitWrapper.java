@@ -112,6 +112,22 @@ public class ActionMappingTraitWrapper extends AbstractNodeTraitWrapper implemen
 	}
 
 	@Override
+	public Iterable<DOMNode> getSuccessNotificationElements() {
+
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key("successNotificationElements");
+
+		return Iterables.map(n -> n.as(DOMNode.class), wrappedObject.getProperty(key));
+	}
+
+	@Override
+	public Iterable<DOMNode> getFailureNotificationElements() {
+
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key("failureNotificationElements");
+
+		return Iterables.map(n -> n.as(DOMNode.class), wrappedObject.getProperty(key));
+	}
+
+	@Override
 	public String getSuccessNotifications() {
 		return wrappedObject.getProperty(traits.key("successNotifications"));
 	}

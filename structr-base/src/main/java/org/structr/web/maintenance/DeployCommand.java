@@ -1736,15 +1736,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					putData(entry, "successTargets", successTargets.stream().map(domNode -> domNode.getUuid()).collect(Collectors.toList()));
 				}
 
-				final PropertyKey<Iterable<DOMNode>> successNotificationElementsKey = StructrApp.key(ActionMapping.class, "successNotificationElements");
-				List<DOMNode> successNotificationElements = Iterables.toList(actionMapping.getProperty(successNotificationElementsKey));
-
+				List<DOMNode> successNotificationElements = Iterables.toList(actionMapping.getSuccessNotificationElements());
 				if (!successNotificationElements.isEmpty()) {
+
 					putData(entry, "successNotificationElements", successNotificationElements.stream().map(domNode -> domNode.getUuid()).collect(Collectors.toList()));
 				}
-
-				final PropertyKey<Iterable<DOMNode>> failureTargetsKey = StructrApp.key(ActionMapping.class, "failureTargets");
-				List<DOMNode> failureTargets = Iterables.toList(actionMapping.getProperty(failureTargetsKey));
 
 				final List<DOMNode> failureTargets = Iterables.toList(actionMapping.getFailureTargets());
 				if (!failureTargets.isEmpty()) {
@@ -1752,21 +1748,18 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					putData(entry, "failureTargets", failureTargets.stream().map(domNode -> domNode.getUuid()).collect(Collectors.toList()));
 				}
 
-				final PropertyKey<Iterable<DOMNode>> failureNotificationElementsKey = StructrApp.key(ActionMapping.class, "failureNotificationElements");
-				List<DOMNode> failureNotificationElements = Iterables.toList(actionMapping.getProperty(failureNotificationElementsKey));
-
+				List<DOMNode> failureNotificationElements = Iterables.toList(actionMapping.getFailureNotificationElements());
 				if (!failureNotificationElements.isEmpty()) {
+
 					putData(entry, "failureNotificationElements", failureNotificationElements.stream().map(domNode -> domNode.getUuid()).collect(Collectors.toList()));
 				}
-
-				final PropertyKey<Iterable<ParameterMapping>> parameterMappingsKey = StructrApp.key(ActionMapping.class, "parameterMappings");
-				List<ParameterMapping> parameterMappings = Iterables.toList(actionMapping.getProperty(parameterMappingsKey));
 
 				final List<ParameterMapping> parameterMappings = Iterables.toList(actionMapping.getParameterMappings());
 				if (!parameterMappings.isEmpty()) {
 
 					putData(entry, "parameterMappings", parameterMappings.stream().map(parameterMapping -> parameterMapping.getUuid() ).collect(Collectors.toList()));
 				}
+
 				putData(entry, "event",        actionMapping.getEvent());
 				putData(entry, "action",       actionMapping.getAction());
 				putData(entry, "method",       actionMapping.getMethod());

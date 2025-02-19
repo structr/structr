@@ -39,6 +39,8 @@ public interface ActionMapping extends NodeInterface {
 	Iterable<DOMElement> getTriggerElements();
 	Iterable<DOMNode> getSuccessTargets();
 	Iterable<DOMNode> getFailureTargets();
+	Iterable<DOMNode> getSuccessNotificationElements();
+	Iterable<DOMNode> getFailureNotificationElements();
 
 	String getSuccessNotifications();
 	String getSuccessBehaviour();

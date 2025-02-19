@@ -18,6 +18,7 @@
  */
 package org.structr.web.traits.definitions;
 
+import org.structr.common.PropertyView;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
@@ -38,18 +39,6 @@ public class ActionMappingTraitDefinition extends AbstractNodeTraitDefinition {
 	public ActionMappingTraitDefinition() {
 		super("ActionMapping");
 	}
-
-	/*
-	public static final View uiView = new View(ActionMapping.class, PropertyView.Ui,
-		eventProperty, actionProperty, methodProperty, dataTypeProperty, idExpressionProperty, optionsProperty, dialogTypeProperty, dialogTitleProperty, dialogTextProperty,
-		successNotificationsProperty, successNotificationsPartialProperty, successNotificationsEventProperty,
-		failureNotificationsProperty, failureNotificationsPartialProperty, failureNotificationsEventProperty,
-		successBehaviourProperty, successPartialProperty, successURLProperty, successEventProperty, successNotificationsDelayProperty,
-		failureBehaviourProperty, failurePartialProperty, failureURLProperty, failureEventProperty, failureNotificationsDelayProperty,
-
-		triggerElements, successTargets, failureTargets, successNotificationElements, failureNotificationElements, parameterMappings
-	);
-	*/
 
 	@Override
 	public Map<Class, LifecycleMethod> getLifecycleMethods() {
@@ -158,6 +147,26 @@ public class ActionMappingTraitDefinition extends AbstractNodeTraitDefinition {
 			failurePartialProperty,
 			failureURLProperty,
 			failureEventProperty
+		);
+	}
+
+	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+			PropertyView.Public,
+			newSet(
+
+			),
+			PropertyView.Ui,
+			newSet(
+			"event", "action", "method", "dataType", "idExpression", "options", "dialogType", "dialogTitle", "dialogText",
+				"successNotifications", "successNotificationsPartial", "successNotificationsEvent",
+				"failureNotifications", "failureNotificationsPartial", "failureNotificationsEvent",
+				"successBehaviour", "successPartial", "successURL", "successEvent", "successNotificationsDelay",
+				"failureBehaviour", "failurePartial", "failureURL", "failureEvent", "failureNotificationsDelay",
+				"triggerElements, successTargets, failureTargets, successNotificationElements, failureNotificationElements, parameterMappings"
+			)
 		);
 	}
 

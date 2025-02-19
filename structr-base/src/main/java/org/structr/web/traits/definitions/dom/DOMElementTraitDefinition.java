@@ -570,17 +570,6 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 						// include special mode attributes
 						switch (editMode) {
 
-							case SHAPES:
-							case SHAPES_MINIATURES:
-
-								final boolean isInsertable = node.isInsertable();
-								final boolean isFromWidget = node.isFromWidget();
-
-								if (isInsertable || isFromWidget) {
-									out.append(" data-structr-id=\"").append(uuid).append("\"");
-								}
-								break;
-
 							case CONTENT:
 
 								if (depth == 0) {
