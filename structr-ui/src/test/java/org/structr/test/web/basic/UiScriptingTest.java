@@ -543,7 +543,7 @@ public class UiScriptingTest extends StructrUiTest {
 			final Content content = (Content)div.getFirstChild();
 
 			// setup repeater
-			content.setProperty(StructrApp.key(DOMNode.class, "functionQuery"), "{ var arr = []; for (var i=0; i<10; i++) { arr.push({ name: 'test' + i }); }; return arr; }");
+			content.setProperty(StructrApp.key(DOMNode.class, "functionQuery"), "{ var arr = []; for (var i=0; i<10; i++) { arr.push({ name: 'test' + i }); }; arr; }");
 			content.setProperty(StructrApp.key(DOMNode.class, "dataKey"), "test");
 			content.setProperty(StructrApp.key(Content.class, "content"), "${test.name}");
 
@@ -1493,7 +1493,7 @@ public class UiScriptingTest extends StructrUiTest {
 			Template template1 = (Template) app.create(Template.class, new NodeAttribute(Page.visibleToPublicUsers, true));
 			Template template2 = (Template) app.create(Template.class, new NodeAttribute(Page.visibleToPublicUsers, true));
 
-			String script = "${{ let session = $.session; if ($.empty(session['test'])) { session['test'] = 123; } else { session['test'] = 456; } return $.session['test']; }}";
+			String script = "${{ let session = $.session; if ($.empty(session['test'])) { session['test'] = 123; } else { session['test'] = 456; } $.session['test']; }}";
 			template1.setContent(script);
 			template2.setContent(script);
 
@@ -1670,15 +1670,14 @@ public class UiScriptingTest extends StructrUiTest {
 				page.appendChild(template);
 			}
 
-			// Test 2: print - return - print (make sure the second print statement is not executed)
+			// Test 2: print - return
 			{
 				final Page page         = (Page) app.create(Page.class, new NodeAttribute(AbstractNode.name, test2PageName), new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
 				final Template template = (Template) app.create(Template.class, new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
 
 				template.setContent("${{\n" +
 					"	$.print('BEFORE');\n" +
-					"	return 'X';\n" +
-					"	$.print('AFTER');\n" +
+					"	'X';\n" +
 					"}}");
 
 				page.appendChild(template);
@@ -1715,13 +1714,8 @@ public class UiScriptingTest extends StructrUiTest {
 			);
 
 			app.create(SchemaMethod.class, new NodeAttribute<>(SchemaMethod.name,   "testPrintReturnJS"),
-				new NodeAttribute<>(SchemaMethod.source, "{ $.print('testPrint'); return 'returnValue'; }")
+				new NodeAttribute<>(SchemaMethod.source, "{ $.print('testPrint'); 'returnValue'; }")
 			);
-
-			app.create(SchemaMethod.class, new NodeAttribute<>(SchemaMethod.name, "testPrintReturnUnreachablePrintJS"),
-				new NodeAttribute<>(SchemaMethod.source, "{ $.print('testPrint'); return 'returnValue'; $.print('unreachable print'); }")
-			);
-
 
 			app.create(SchemaMethod.class, new NodeAttribute<>(SchemaMethod.name,   "testSinglePrintSS"),
 				new NodeAttribute<>(SchemaMethod.source, "print('testPrint')")
@@ -1745,16 +1739,16 @@ public class UiScriptingTest extends StructrUiTest {
 
 
 			app.create(SchemaMethod.class, new NodeAttribute<>(SchemaMethod.name,   "testIncludeJS"),
-				new NodeAttribute<>(SchemaMethod.source, "{ let val = $.include('namedDOMNode'); return val; }")
+				new NodeAttribute<>(SchemaMethod.source, "{ let val = $.include('namedDOMNode'); val; }")
 			);
 
 			// can not yield result - schema method has no children
 			app.create(SchemaMethod.class, new NodeAttribute<>(SchemaMethod.name,   "testIncludeChildJS"),
-				new NodeAttribute<>(SchemaMethod.source, "{ let val = $.include_child('namedDOMNode'); return val; }")
+				new NodeAttribute<>(SchemaMethod.source, "{ let val = $.include_child('namedDOMNode'); val; }")
 			);
 
 			app.create(SchemaMethod.class, new NodeAttribute<>(SchemaMethod.name,   "testRenderJS"),
-				new NodeAttribute<>(SchemaMethod.source, "{ let val = $.render($.find('DOMNode', 'name', 'namedDOMNode')); return val; }")
+				new NodeAttribute<>(SchemaMethod.source, "{ let val = $.render($.find('DOMNode', 'name', 'namedDOMNode')); val; }")
 			);
 
 			{
@@ -1784,7 +1778,6 @@ public class UiScriptingTest extends StructrUiTest {
 			assertEquals("include() in a schema method should return the rendered output of the named node!", "testPrint", Scripting.evaluate(renderContext, null, "${{ Structr.call('testSinglePrintJS'); }}", "test"));
 			assertEquals("include() in a schema method should return the rendered output of the named node!", "testPrint1testPrint2", Scripting.evaluate(renderContext, null, "${{ Structr.call('testMultiPrintJS'); }}", "test"));
 			assertEquals("a javascript method should favor printed results instead of return value (quirky as that might seem)", "testPrint", Scripting.evaluate(renderContext, null, "${{ Structr.call('testPrintReturnJS'); }}", "test"));
-			assertEquals("a javascript method should favor printed results instead of return value (quirky as that might seem). also unreachable statements should not have any effect!", "testPrint", Scripting.evaluate(renderContext, null, "${{ Structr.call('testPrintReturnUnreachablePrintJS'); }}", "test"));
 
 			assertEquals("include() in a schema method should return the rendered output of the named node!", "testPrint", Scripting.evaluate(renderContext, null, "${{ Structr.call('testSinglePrintSS'); }}", "test"));
 			assertEquals("include() in a schema method should return the rendered output of the named node!", "testPrint1testPrint2", Scripting.evaluate(renderContext, null, "${{ Structr.call('testMultiPrintSS'); }}", "test"));

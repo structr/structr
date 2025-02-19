@@ -462,9 +462,9 @@ public class ScriptingTest extends StructrTest {
 
 			Scripting.evaluate(actionContext, context, "${{ var e = Structr.get('this'); e.anEnum = 'One'; }}", "test");
 
-			assertEquals("Invalid enum get result", "One", Scripting.evaluate(actionContext, context, "${{ var e = Structr.get('this'); return e.anEnum; }}", "test"));
+			assertEquals("Invalid enum get result", "One", Scripting.evaluate(actionContext, context, "${{ var e = Structr.get('this'); e.anEnum; }}", "test"));
 
-			assertEquals("Invalid Javascript enum comparison result", true, Scripting.evaluate(actionContext, context, "${{ var e = Structr.get('this'); return e.anEnum == 'One'; }}", "test"));
+			assertEquals("Invalid Javascript enum comparison result", true, Scripting.evaluate(actionContext, context, "${{ var e = Structr.get('this'); e.anEnum == 'One'; }}", "test"));
 
 			tx.success();
 
@@ -976,12 +976,12 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid if(empty()) result", "false",  Scripting.replaceVariables(ctx, testOne,  "${if(empty(this.anotherString), \"true\", \"false\")}"));
 
 			// empty in JavaScript
-			assertEquals("Invalid empty() result", "true",  Scripting.replaceVariables(ctx, testOne, "${{return $.empty(\"\")}}"));
-			assertEquals("Invalid empty() result", "false", Scripting.replaceVariables(ctx, testOne, "${{return $.empty(\" \")}}"));
-			assertEquals("Invalid empty() result", "false", Scripting.replaceVariables(ctx, testOne, "${{return $.empty(\"   \")}}"));
-			assertEquals("Invalid empty() result", "false", Scripting.replaceVariables(ctx, testOne, "${{return $.empty(\"xyz\")}}"));
-			assertEquals("Invalid empty() result", "true",  Scripting.replaceVariables(ctx, testOne, "${{return $.empty([])}}"));
-			assertEquals("Invalid empty() result", "true",  Scripting.replaceVariables(ctx, testOne, "${{return $.empty({})}}"));
+			assertEquals("Invalid empty() result", "true",  Scripting.replaceVariables(ctx, testOne, "${{$.empty(\"\")}}"));
+			assertEquals("Invalid empty() result", "false", Scripting.replaceVariables(ctx, testOne, "${{$.empty(\" \")}}"));
+			assertEquals("Invalid empty() result", "false", Scripting.replaceVariables(ctx, testOne, "${{$.empty(\"   \")}}"));
+			assertEquals("Invalid empty() result", "false", Scripting.replaceVariables(ctx, testOne, "${{$.empty(\"xyz\")}}"));
+			assertEquals("Invalid empty() result", "true",  Scripting.replaceVariables(ctx, testOne, "${{$.empty([])}}"));
+			assertEquals("Invalid empty() result", "true",  Scripting.replaceVariables(ctx, testOne, "${{$.empty({})}}"));
 
 			// equal
 			assertEquals("Invalid equal() result", "true",  Scripting.replaceVariables(ctx, testOne, "${equal(this.id, this.id)}"));
@@ -1604,7 +1604,7 @@ public class ScriptingTest extends StructrTest {
 			// set with null
 
 			// set date (JS scripting)
-			assertEquals("Setting the current date/time should not produce output (JS)", "", Scripting.replaceVariables(ctx, testOne, "${{var t = Structr.get('this'); t.aDate = new Date();}}"));
+			assertEquals("Setting the current date/time should not produce output (JS)", "", Scripting.replaceVariables(ctx, testOne, "${{var t = Structr.get('this'); t.aDate = new Date(); null;}}"));
 
 			try {
 
@@ -2348,14 +2348,14 @@ public class ScriptingTest extends StructrTest {
 
 			app.create(SchemaMethod.class,
 				new NodeAttribute<>(SchemaMethod.name,   "testReturnValueOfGlobalSchemaMethod"),
-				new NodeAttribute<>(SchemaMethod.source, "{ { name: 'test', value: 123, me: Structr.me }; }")
+				new NodeAttribute<>(SchemaMethod.source, "{ const result = { name: 'test', value: 123, me: Structr.me }; result;}")
 			);
 
 			app.create(SchemaProperty.class,
 				new NodeAttribute<>(SchemaProperty.schemaNode,   app.create(SchemaNode.class, new NodeAttribute<>(SchemaNode.name, "Test"))),
 				new NodeAttribute<>(SchemaProperty.name,         "returnTest"),
 				new NodeAttribute<>(SchemaProperty.propertyType, "Function"),
-				new NodeAttribute<>(SchemaProperty.readFunction, "{ { name: 'test', value: 123, me: Structr.this }; }")
+				new NodeAttribute<>(SchemaProperty.readFunction, "{ const result = { name: 'test', value: 123, me: Structr.this }; result;}")
 			);
 
 			tx.success();
@@ -2369,7 +2369,7 @@ public class ScriptingTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final ActionContext ctx = new ActionContext(securityContext, null);
-			final Map map           = (Map)Scripting.evaluate(ctx, null, "${{return Structr.call('testReturnValueOfGlobalSchemaMethod')}}", "test");
+			final Map map           = (Map)Scripting.evaluate(ctx, null, "${{Structr.call('testReturnValueOfGlobalSchemaMethod')}}", "test");
 
 			final Object name       = map.get("name");
 			final Object value      = map.get("value");
@@ -4548,7 +4548,7 @@ public class ScriptingTest extends StructrTest {
 
 			app.create(testType, "test");
 
-			final Object result = Scripting.evaluate(ctx, null, "${{ var test = $.find('Test')[0]; var arr = test.doTest(); for (e of arr) { Structr.log(e); }; arr; }}", "test");
+			final Object result = Scripting.evaluate(ctx, null, "${{ var test = $.find('Test')[0]; var arr = test.doTest(); for (let e of arr) { Structr.log(e); }; arr; }}", "test");
 
 			assertTrue("Invalid wrapping of native Javascript array", result instanceof List);
 			assertEquals("Invalid wrapping of native Javascript array", 3, ((List)result).size());
@@ -6137,7 +6137,7 @@ public class ScriptingTest extends StructrTest {
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 			final JsonType type     = schema.addType("Test");
 
-			type.addMethod("createMap", "{ { param1: 'Test', param2: 123 }; }");
+			type.addMethod("createMap", "{ const result = { param1: 'Test', param2: 123 }; result;}");
 			type.addMethod("test",      "concat('success',    this.name, retrieve('param1'))");
 			type.addMethod("testOne",   "concat('successOne', this.name, retrieve('param1'), retrieve('param2'))");
 			type.addMethod("test123",   "concat('success123', this.name, retrieve('param1'), retrieve('param2'), retrieve('param3'))");
@@ -6457,10 +6457,10 @@ public class ScriptingTest extends StructrTest {
 			type.addMethod("getNowJavascript",    "{ $.now; }").setIsStatic(true);
 			type.addMethod("getNowStructrscript", "now").setIsStatic(true);
 
-			type.addMethod("test1", "{ { test1: new Date(), test2: $.now, test3: $.Test.getDate(), test4: $.Test.getNowJavascript(), test5: $.Test.getNowStructrscript() }; }").setIsStatic(true);
+			type.addMethod("test1", "{ const result = { test1: new Date(), test2: $.now, test3: $.Test.getDate(), test4: $.Test.getNowJavascript(), test5: $.Test.getNowStructrscript() }; result;}").setIsStatic(true);
 			type.addMethod("test2", "{ $.Test.test1(); }").setIsStatic(true);
 			type.addMethod("test3", "{ $.Test.test2(); }").setIsStatic(true);
-			type.addMethod("test4", "{ { test1: typeof new Date(), test2: typeof $.now, test3: typeof $.Test.getDate(), test4: typeof $.Test.getNowJavascript(), test5: typeof $.Test.getNowStructrscript() }; }").setIsStatic(true);
+			type.addMethod("test4", "{ const result = { test1: typeof new Date(), test2: typeof $.now, test3: typeof $.Test.getDate(), test4: typeof $.Test.getNowJavascript(), test5: typeof $.Test.getNowStructrscript() }; result;}").setIsStatic(true);
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 

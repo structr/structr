@@ -250,10 +250,10 @@ public class MethodTest extends StructrRestTestBase {
 			final JsonObjectType base  = schema.addType("BaseType");
 
 			// first method with parameter definition => input should be converted to Date
-			base.addMethod("test1", "{ { date: $.args.date, isDate: $.args.date instanceof Date };}").addParameter("date", "Date");
+			base.addMethod("test1", "{ const result = { date: $.args.date, isDate: $.args.date instanceof Date }; result;}").addParameter("date", "Date");
 
 			// second method without parameter definition => input should not be converted (result: string)
-			base.addMethod("test2", "{ { date: $.args.date, isDate: $.args.date instanceof Date };}");
+			base.addMethod("test2", "{ const result = { date: $.args.date, isDate: $.args.date instanceof Date }; result;}");
 
 			// third method calls first, but input should not be converted because it doesn't come from a REST call
 			base.addMethod("test3", "{ $.this.test1({ date: new Date(2022, 0, 1) }); }");

@@ -28,7 +28,7 @@ public class Snippet {
 	private String name              = null;
 	private String source            = null;
 	private String transcribedSource = null;
-	private String mimeType          = "application/javascript";
+	private String mimeType          = null;
 	private String engineName        = null;
 	private boolean embed            = true;
 	private int startRow             = 0;

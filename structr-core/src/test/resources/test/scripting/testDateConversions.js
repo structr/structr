@@ -18,7 +18,7 @@ ${{
     if (request.forDay  && request.forDay.length)  { forDay  = request.forDay;	}
     if (request.forWeek && request.forWeek.length) { forWeek = request.forWeek;	}
 
-    endDate = Structr.parseDate(until, 'yyyy-MM-dd');
+    var endDate = Structr.parseDate(until, 'yyyy-MM-dd');
 
     var to = Structr.dateFormat(endDate, 'yyyy-MM-dd');
 
