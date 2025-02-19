@@ -26,14 +26,12 @@ import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.Traits;
-import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
@@ -529,8 +527,7 @@ public class CsvImportTest extends StructrUiTest {
 		// check imported data for correct import
 		try (final Tx tx = app.tx()) {
 
-			final ConfigurationProvider conf = StructrApp.getConfiguration();
-			final String type                = "Item";
+			final String type                   = "Item";
 			final PropertyKey<Integer> originId = Traits.of(type).key("originId");
 			final PropertyKey<String> typeName  = Traits.of(type).key("typeName");
 			final PropertyKey<String> name      = Traits.of(type).key("name");

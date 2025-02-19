@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.test;
+package org.structr.test.web.advanced;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -26,16 +26,14 @@ import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
-import org.structr.schema.ConfigurationProvider;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.Traits;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.FileHelper;
-import org.structr.web.entity.File;
-import org.structr.web.entity.User;
 import org.testng.annotations.Test;
 
 import java.util.LinkedHashMap;
@@ -77,8 +75,8 @@ public class XmlImportTest extends StructrUiTest {
 				+ "	</item>\n"
 				+ "</items>\n";
 
-			final byte[] fileData = xmlData.getBytes("utf-8");
-			final File file       = FileHelper.createFile(securityContext, fileData, "application/xml", File.class, "test.xml", true);
+			final byte[] fileData    = xmlData.getBytes("utf-8");
+			final NodeInterface file = FileHelper.createFile(securityContext, fileData, "application/xml", "File", "test.xml", true);
 
 			// extract UUID for later use
 			newFileId = file.getUuid();
@@ -86,6 +84,7 @@ public class XmlImportTest extends StructrUiTest {
 			// create new type
 			final JsonSchema schema = StructrSchema.createEmptySchema();
 			final JsonType newType  = schema.addType("Item");
+			final Traits userTraits = Traits.of("User");
 
 			newType.addStringProperty("name");
 			newType.addIntegerProperty("originId").isIndexed();
@@ -98,9 +97,9 @@ public class XmlImportTest extends StructrUiTest {
 
 			// create test user
 			app.create("User",
-				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"),  true)
+				new NodeAttribute<>(userTraits.key("name"),     "admin"),
+				new NodeAttribute<>(userTraits.key("password"), "admin"),
+				new NodeAttribute<>(userTraits.key("isAdmin"),  true)
 			);
 
 			tx.success();
@@ -165,9 +164,14 @@ public class XmlImportTest extends StructrUiTest {
 		// check imported data for correct import
 		try (final Tx tx = app.tx()) {
 
-			final ConfigurationProvider conf = StructrApp.getConfiguration();
-			final Class type                 = conf.getNodeEntityClass("Item");
-			final List<NodeInterface> items  = app.nodeQuery(type).sort(conf.getPropertyKeyForJSONName(type, "originId")).getAsList();
+			final String type                   = "Item";
+			final PropertyKey<Integer> originId = Traits.of(type).key("originId");
+			final PropertyKey<String> typeName  = Traits.of(type).key("typeName");
+			final PropertyKey<String> name      = Traits.of(type).key("name");
+			final PropertyKey<String> test1     = Traits.of(type).key("test1");
+			final PropertyKey<String> test2     = Traits.of(type).key("test2");
+			final PropertyKey<String> test3     = Traits.of(type).key("test3");
+			final List<NodeInterface> items     = app.nodeQuery(type).sort(originId).getAsList();
 
 			assertEquals("Invalid XML import result, expected 3 items to be created from XML import. ", 3, items.size());
 
@@ -175,29 +179,29 @@ public class XmlImportTest extends StructrUiTest {
 			final NodeInterface two   = items.get(1);
 			final NodeInterface three = items.get(2);
 
-			assertEquals("Invalid XML mapping result", 0,   one.getProperty(conf.getPropertyKeyForJSONName(type, "originId")));
-			assertEquals("Invalid XML mapping result", 1,   two.getProperty(conf.getPropertyKeyForJSONName(type, "originId")));
-			assertEquals("Invalid XML mapping result", 2, three.getProperty(conf.getPropertyKeyForJSONName(type, "originId")));
+			assertEquals("Invalid XML mapping result", (Integer)0,   one.getProperty(originId));
+			assertEquals("Invalid XML mapping result", (Integer)1,   two.getProperty(originId));
+			assertEquals("Invalid XML mapping result", (Integer)2, three.getProperty(originId));
 
-			assertEquals("Invalid XML mapping result", "One",   one.getProperty(conf.getPropertyKeyForJSONName(type, "typeName")));
-			assertEquals("Invalid XML mapping result", "Two",   two.getProperty(conf.getPropertyKeyForJSONName(type, "typeName")));
-			assertEquals("Invalid XML mapping result", "Three", three.getProperty(conf.getPropertyKeyForJSONName(type, "typeName")));
+			assertEquals("Invalid XML mapping result", "One",   one.getProperty(typeName));
+			assertEquals("Invalid XML mapping result", "Two",   two.getProperty(typeName));
+			assertEquals("Invalid XML mapping result", "Three", three.getProperty(typeName));
 
-			assertEquals("Invalid XML mapping result", "name: one",   one.getProperty(conf.getPropertyKeyForJSONName(type, "name")));
-			assertEquals("Invalid XML mapping result", "name: two",   two.getProperty(conf.getPropertyKeyForJSONName(type, "name")));
-			assertEquals("Invalid XML mapping result", "name: three", three.getProperty(conf.getPropertyKeyForJSONName(type, "name")));
+			assertEquals("Invalid XML mapping result", "name: one",   one.getProperty(name));
+			assertEquals("Invalid XML mapping result", "name: two",   two.getProperty(name));
+			assertEquals("Invalid XML mapping result", "name: three", three.getProperty(name));
 
-			assertEquals("Invalid XML mapping result", 11,   one.getProperty(conf.getPropertyKeyForJSONName(type, "test1")));
-			assertEquals("Invalid XML mapping result", 22,   two.getProperty(conf.getPropertyKeyForJSONName(type, "test1")));
-			assertEquals("Invalid XML mapping result", 33, three.getProperty(conf.getPropertyKeyForJSONName(type, "test1")));
+			assertEquals("Invalid XML mapping result", 11,   one.getProperty(test1));
+			assertEquals("Invalid XML mapping result", 22,   two.getProperty(test1));
+			assertEquals("Invalid XML mapping result", 33, three.getProperty(test1));
 
-			assertEquals("Invalid XML mapping result", 22,   one.getProperty(conf.getPropertyKeyForJSONName(type, "test2")));
-			assertEquals("Invalid XML mapping result", 33,   two.getProperty(conf.getPropertyKeyForJSONName(type, "test2")));
-			assertEquals("Invalid XML mapping result", 44, three.getProperty(conf.getPropertyKeyForJSONName(type, "test2")));
+			assertEquals("Invalid XML mapping result", 22,   one.getProperty(test2));
+			assertEquals("Invalid XML mapping result", 33,   two.getProperty(test2));
+			assertEquals("Invalid XML mapping result", 44, three.getProperty(test2));
 
-			assertEquals("Invalid XML mapping result", null,   one.getProperty(conf.getPropertyKeyForJSONName(type, "test3")));
-			assertEquals("Invalid XML mapping result", null,   two.getProperty(conf.getPropertyKeyForJSONName(type, "test3")));
-			assertEquals("Invalid XML mapping result", htmlPropertyData, three.getProperty(conf.getPropertyKeyForJSONName(type, "test3")));
+			assertEquals("Invalid XML mapping result", null,   one.getProperty(test3));
+			assertEquals("Invalid XML mapping result", null,   two.getProperty(test3));
+			assertEquals("Invalid XML mapping result", htmlPropertyData, three.getProperty(test3));
 
 			tx.success();
 

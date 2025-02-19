@@ -36,8 +36,6 @@
 		<module>structr-odf-module</module>
 		<module>structr-ldap-client-module</module>
 		<module>structr-payment-module</module>
-		<module>structr-xml-module</module>
-		<module>structr-knowledge-module</module>
 		<module>structr-translation-module</module>
 		<module>structr-messaging-engine-module</module>
 		<module>structr-excel-module</module>
