@@ -1399,27 +1399,27 @@ let _Pages = {
 
 		// add more events here
 		return [
-			{ name: "none", text: 'None' },
-			{ name: "click", text: 'Click' },
-			{ name: "change", text: 'Change' },
-			{ name: "copy", text: 'Copy' },
-			{ name: "cut", text: 'Cut' },
-			{ name: "drop", text: 'Drop' },
-			{ name: "focusout", text: 'Focus out' },
-			{ name: "input", text: 'Input' },
-			{ name: "keydown", text: 'Key down' },
-			{ name: "keyup", text: 'Key up' },
-			{ name: "keypress", text: 'Key press' },
-			{ name: "load", text: 'Page load' },
-			{ name: "mousemove", text: 'Mouse move' },
-			{ name: "mouseover", text: 'Mouse over' },
-			{ name: "mouseenter", text: 'Mouse enter' },
-			{ name: "mouseout", text: 'Mouse out' },
-			{ name: "mouseleave", text: 'Mouse leave' },
-			{ name: "offline", text: 'Offline' },
-			{ name: "online", text: 'Online' },
-			{ name: "paste", text: 'Paste' },
-			{ name: "submit", text: 'Submit' }
+			"none",
+			"click",
+			"change",
+			"copy",
+			"cut",
+			"drop",
+			"focusout",
+			"input",
+			"keydown",
+			"keyup",
+			"keypress",
+			"load",
+			"mousemove",
+			"mouseover",
+			"mouseenter",
+			"mouseout",
+			"mouseleave",
+			"offline",
+			"online",
+			"paste",
+			"submit",
 		];
 
 	},
@@ -4263,10 +4263,10 @@ let _Pages = {
 								<input type="text" class="combined-input-select-field" id="data-event-input" placeholder="Browser event (click, keydown, focusout etc.)">
 								<select class="required combined-input-select-field" id="data-event-select">
 									<option value="">Select event from list</option>
-									${_Pages.getEventActionMappingAvailableEvents().map(event => `<option value="${event.name}">${event.text}</option>`).join('')}
+									${_Pages.getEventActionMappingAvailableEvents().map(event => `<option value="${event}">${event}</option>`).join('')}
 								</select>
 								<ul class="combined-input-select-field hidden">
-									${_Pages.getEventActionMappingAvailableEvents().map(event => `<li data-value="${event.name}">${event.text}</li>`).join('')}
+									${_Pages.getEventActionMappingAvailableEvents().map(event => `<li data-value="${event}">${event}</li>`).join('')}
 								</ul>
 							</div>
 						</div>
