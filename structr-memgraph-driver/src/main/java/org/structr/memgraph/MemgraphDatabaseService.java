@@ -161,6 +161,15 @@ public class MemgraphDatabaseService extends AbstractDatabaseService {
 	}
 
 	@Override
+	public Transaction beginTx(boolean forceNew) {
+		if (!forceNew) {
+			return beginTx();
+		} else {
+			return new SessionTransaction(this, driver.session());
+		}
+	}
+
+	@Override
 	public Transaction beginTx(final int timeoutInSeconds) {
 
 		SessionTransaction session = sessions.get();
@@ -643,6 +652,11 @@ public class MemgraphDatabaseService extends AbstractDatabaseService {
 		}
 
 		throw new IllegalArgumentException("Unsupported query type " + nativeQuery.getClass().getName() + ".");
+	}
+
+	@Override
+	public <T> T execute(NativeQuery<T> nativeQuery, Transaction tx) {
+		return null;
 	}
 
 	@Override
