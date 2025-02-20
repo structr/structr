@@ -16,24 +16,17 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.messaging.implementation.mqtt.entity;
+package org.structr.messaging.traits.operations;
 
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.messaging.engine.entities.MessageClient;
-import org.structr.messaging.implementation.mqtt.MQTTInfo;
+import org.structr.rest.RestMethodResult;
 
-public interface MQTTClient extends MessageClient, MQTTInfo {
+public abstract class MessageClientOperations extends FrameworkMethod<MessageClientOperations> {
 
-	boolean getEnabled();
-	void setEnabled(final boolean enabled) throws FrameworkException;
-
-	boolean getIsConnected();
-	void setIsConnected(final boolean connected) throws FrameworkException;
-
-	int getQos();
-
-	String getUsername();
-	String getPassword();
-	String getMainBrokerURL();
-	String[] getFallbackBrokerURLs();
+	public abstract RestMethodResult sendMessage(final SecurityContext securityContext, final MessageClient client, final String topic, final String message) throws FrameworkException;
+	public abstract RestMethodResult subscribeTopic(final SecurityContext securityContext, final MessageClient client, String topic) throws FrameworkException;
+	public abstract RestMethodResult unsubscribeTopic(final SecurityContext securityContext, final MessageClient client, String topic) throws FrameworkException;
 }

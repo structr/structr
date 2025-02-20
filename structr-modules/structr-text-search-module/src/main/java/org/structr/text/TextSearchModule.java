@@ -206,7 +206,7 @@ public class TextSearchModule implements FulltextIndexer, StructrModule {
 
 	@Override
 	public Set<String> getDependencies() {
-		return null;
+		return Set.of("ui");
 	}
 
 	@Override

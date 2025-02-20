@@ -1,0 +1,118 @@
+/*
+ * Copyright (C) 2010-2024 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package org.structr.messaging.traits.definitions;
+
+import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.core.entity.Relation;
+import org.structr.core.graph.ModificationQueue;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.Property;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.StartNodes;
+import org.structr.core.property.StringProperty;
+import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.core.traits.operations.graphobject.OnCreation;
+import org.structr.core.traits.operations.graphobject.OnModification;
+import org.structr.messaging.engine.entities.MessageSubscriber;
+
+import java.util.Map;
+import java.util.Set;
+
+public class MessageSubscriberTraitDefinition extends AbstractNodeTraitDefinition {
+
+	@Override
+	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+
+		return Map.of(
+
+			OnCreation.class,
+			new OnCreation() {
+
+				@Override
+				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+
+					final MessageSubscriber subscriber = graphObject.as(MessageSubscriber.class);
+					if (subscriber.getTopic() != null) {
+
+						subscriber.subscribeOnAllClients(securityContext);
+					}
+				}
+			},
+
+			OnModification.class,
+			new OnModification() {
+
+				@Override
+				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
+					final MessageSubscriber subscriber = graphObject.as(MessageSubscriber.class);
+					final PropertyKey topicKey         = subscriber.getTraits().key("topic");
+
+					if (modificationQueue.isPropertyModified(subscriber, topicKey)) {
+
+						subscriber.subscribeOnAllClients(securityContext);
+					}
+				}
+			}
+		);
+	}
+
+	@Override
+	public Set<PropertyKey> getPropertyKeys() {
+
+		final Property<Iterable<NodeInterface>> clientsProperty = new StartNodes("clients", "MessageClientHASMessageSubscriber");
+		final Property<String> topicProperty                    = new StringProperty("topic").indexed();
+		final Property<String> callbackProperty                 = new StringProperty("callback");
+
+		return newSet(
+			clientsProperty,
+			topicProperty,
+			callbackProperty
+		);
+	}
+
+	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+			PropertyView.Public,
+			newSet(
+				"topic", "callback", "clients"
+			),
+			PropertyView.Ui,
+			newSet(
+				"topic", "callback", "clients"
+			)
+		);
+	}
+
+	public MessageSubscriberTraitDefinition() {
+		super("MessageSubscriber");
+	}
+
+	@Override
+	public Relation getRelation() {
+		return null;
+	}
+}

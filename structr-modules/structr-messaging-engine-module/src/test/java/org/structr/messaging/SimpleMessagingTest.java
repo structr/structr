@@ -19,9 +19,9 @@
 package org.structr.messaging;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.Traits;
 import org.structr.messaging.engine.entities.MessageClient;
 import org.structr.messaging.engine.entities.MessageSubscriber;
 import org.structr.schema.action.ActionContext;
@@ -41,15 +41,18 @@ public class SimpleMessagingTest extends StructrUiTest {
 
 		try(final Tx tx = app.tx()) {
 
-			MessageClient client1 = app.create("MessageClient", "client1");
-			MessageSubscriber sub = app.create("MessageSubscriber", "sub");
+			final MessageClient client1           = app.create("MessageClient", "client1").as(MessageClient.class);
+			final MessageSubscriber sub           = app.create("MessageSubscriber", "sub").as(MessageSubscriber.class);
+			final List<MessageSubscriber> subList = new ArrayList<>();
+			final Traits subscriberTraits         = Traits.of("MessageSubscriber");
+			final Traits clientTraits             = Traits.of("MessageClient");
 
-			List<MessageSubscriber> subList = new ArrayList<>();
 			subList.add(sub);
 
-			client1.setProperty(StructrApp.key(MessageClient.class, "subscribers"), subList);
-			sub.setProperty(StructrApp.key(MessageSubscriber.class, "topic"), "test");
-			sub.setProperty(StructrApp.key(MessageSubscriber.class, "callback"), "set(this, 'name', retrieve('message'))");
+			client1.setProperty(clientTraits.key("subscribers"), subList);
+
+			sub.setProperty(subscriberTraits.key("topic"), "test");
+			sub.setProperty(subscriberTraits.key("callback"), "set(this, 'name', retrieve('message'))");
 
 			Scripting.replaceVariables(new ActionContext(securityContext, null), client1, "${{Structr.log('Sending message'); Structr.get('this').sendMessage('test','testmessage');}}");
 

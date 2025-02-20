@@ -30,7 +30,6 @@ import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
-import org.structr.core.app.StructrApp;
 import org.structr.core.function.LocalizeFunction;
 import org.structr.core.property.DateProperty;
 import org.structr.core.property.PropertyKey;
@@ -259,7 +258,7 @@ public class ToExcelFunction extends Function<Object, Object> {
 
 					for (final String colName : properties) {
 
-						final PropertyKey key = StructrApp.key(obj.getClass(), colName);
+						final PropertyKey key = graphObj.getTraits().key(colName);
 						final Object value    = graphObj.getProperty(key);
 						cell                  = currentRow.createCell(cellCount++);
 
