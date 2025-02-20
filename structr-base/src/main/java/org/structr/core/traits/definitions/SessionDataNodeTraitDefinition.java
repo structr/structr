@@ -18,6 +18,7 @@
  */
 package org.structr.core.traits.definitions;
 
+import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -46,16 +47,6 @@ public class SessionDataNodeTraitDefinition extends AbstractNodeTraitDefinition 
 	public SessionDataNodeTraitDefinition() {
 		super("SessionDataNode");
 	}
-
-	/*
-	public static final View uiView = new View(SessionDataNode.class, PropertyView.Ui,
-		sessionId, contextPath, vhost, lastAccessed, version
-	);
-
-	public static final View publicView = new View(SessionDataNode.class, PropertyView.Public,
-		sessionId, contextPath, vhost, lastAccessed, version
-	);
-	*/
 
 	@Override
 	public Map<Class, LifecycleMethod> getLifecycleMethods() {
@@ -110,6 +101,21 @@ public class SessionDataNodeTraitDefinition extends AbstractNodeTraitDefinition 
 			vhostProperty,
 			lastAccessedProperty,
 			versionProperty
+		);
+	}
+
+	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+			PropertyView.Ui,
+			newSet(
+				"sessionId", "cpath", "vhost", "lastAccessed", "version"
+			),
+			PropertyView.Public,
+			newSet(
+				"sessionId", "cpath", "vhost", "lastAccessed", "version"
+			)
 		);
 	}
 

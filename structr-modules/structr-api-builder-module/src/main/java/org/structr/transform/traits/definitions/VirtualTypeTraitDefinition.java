@@ -18,6 +18,7 @@
  */
 package org.structr.transform.traits.definitions;
 
+import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
@@ -42,13 +43,6 @@ public class VirtualTypeTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	/*
-	public static final View defaultView = new View(VirtualType.class, PropertyView.Public,
-		name, filterExpressionProperty, sourceTypeProperty, positionProperty, propertiesProperty
-	);
-
-	public static final View uiView = new View(VirtualType.class, PropertyView.Ui,
-		filterExpressionProperty, sourceTypeProperty, positionProperty, propertiesProperty
-	);
 	*/
 
 	@Override
@@ -87,6 +81,21 @@ public class VirtualTypeTraitDefinition extends AbstractNodeTraitDefinition {
 			filterExpressionProperty,
 			sourceTypeProperty,
 			positionProperty
+		);
+	}
+
+	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+			PropertyView.Public,
+			newSet(
+				"name, filterExpression", "sourceType", "position", "properties"
+			),
+			PropertyView.Ui,
+			newSet(
+				"filterExpression", "sourceType", "position", "properties"
+			)
 		);
 	}
 

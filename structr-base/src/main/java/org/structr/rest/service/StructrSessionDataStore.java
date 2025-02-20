@@ -78,7 +78,7 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 					final PropertyMap properties = new PropertyMap();
 
 					properties.put(sessionTraits.key("lastAccessed"), new Date(data.getLastAccessed()));
-					properties.put(sessionTraits.key("contextPath"),  data.getContextPath());
+					properties.put(sessionTraits.key("cpath"),        data.getContextPath());
 					properties.put(sessionTraits.key("vhost"),        data.getVhost());
 
 					node.setProperties(ctx, properties);
@@ -153,7 +153,7 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 				result = new SessionData(
 						id,
-						node.getProperty(traits.key("contextPath")),
+						node.getProperty(traits.key("cpath")),
 						node.getProperty(traits.key("vhost")),
 						node.getCreatedDate().getTime(),
 						node.getLastModifiedDate().getTime(),

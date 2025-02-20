@@ -38,13 +38,6 @@ import java.util.Set;
  */
 public class VirtualPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 
-	public static final Property<NodeInterface> virtualType = new StartNode("virtualType", "VirtualTypevirtualPropertyVirtualProperty");
-	public static final Property<Integer> position          = new IntProperty("position").indexed();
-	public static final Property<String> sourceName         = new StringProperty("sourceName");
-	public static final Property<String> targetName         = new StringProperty("targetName");
-	public static final Property<String> inputFunction      = new StringProperty("inputFunction");
-	public static final Property<String> outputFunction     = new StringProperty("outputFunction");
-
 	public VirtualPropertyTraitDefinition() {
 		super("VirtualProperty");
 	}
@@ -74,6 +67,13 @@ public class VirtualPropertyTraitDefinition extends AbstractNodeTraitDefinition 
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
+
+		final Property<NodeInterface> virtualType = new StartNode("virtualType", "VirtualTypevirtualPropertyVirtualProperty");
+		final Property<Integer> position          = new IntProperty("position").indexed();
+		final Property<String> sourceName         = new StringProperty("sourceName");
+		final Property<String> targetName         = new StringProperty("targetName");
+		final Property<String> inputFunction      = new StringProperty("inputFunction");
+		final Property<String> outputFunction     = new StringProperty("outputFunction");
 
 		return Set.of(
 			virtualType,

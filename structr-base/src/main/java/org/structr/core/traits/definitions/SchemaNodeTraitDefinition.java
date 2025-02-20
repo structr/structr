@@ -142,7 +142,6 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Boolean>                          isInterface            = new BooleanProperty("isInterface").indexed();
 		final Property<Boolean>                          isAbstract             = new BooleanProperty("isAbstract").indexed();
 		final Property<String>                           category               = new StringProperty("category").indexed();
-		final Property<Boolean>                          includeInOpenAPI       = new BooleanProperty("includeInOpenAPI").indexed();
 
 		return newSet(
 			relatedTo,
@@ -157,8 +156,7 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 			relCount,
 			isInterface,
 			isAbstract,
-			category,
-			includeInOpenAPI
+			category
 		);
 	}
 

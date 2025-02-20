@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
+import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -56,32 +57,6 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 
 	private static final Logger logger                           = LoggerFactory.getLogger(SchemaRelationshipNodeTraitDefinition.class);
 	private static final String SchemaRemoteAttributeNamePattern = "[a-zA-Z_][a-zA-Z0-9_]*";
-
-	/*
-	public static final View defaultView = new View(SchemaRelationshipNode.class, PropertyView.Public,
-		name, sourceId, targetId, sourceType, targetType, sourceMultiplicity, targetMultiplicity, sourceNotion, targetNotion, relationshipType,
-		sourceJsonName, targetJsonName, extendsClass, cascadingDeleteFlag, autocreationFlag, previousSourceJsonName, previousTargetJsonName,
-		permissionPropagation, readPropagation, writePropagation, deletePropagation, accessControlPropagation, propertyMask, isPartOfBuiltInSchema
-	);
-
-	public static final View uiView = new View(SchemaRelationshipNode.class, PropertyView.Ui,
-		name, sourceId, targetId, sourceType, targetType, sourceMultiplicity, targetMultiplicity, sourceNotion, targetNotion, relationshipType,
-		sourceJsonName, targetJsonName, extendsClass, cascadingDeleteFlag, autocreationFlag, previousSourceJsonName, previousTargetJsonName,
-		permissionPropagation, readPropagation, writePropagation, deletePropagation, accessControlPropagation, propertyMask, isPartOfBuiltInSchema
-	);
-
-	public static final View exportView = new View(SchemaRelationshipNode.class, "export",
-		sourceId, targetId, sourceType, targetType, sourceMultiplicity, targetMultiplicity, sourceNotion, targetNotion, relationshipType,
-		sourceJsonName, targetJsonName, extendsClass, cascadingDeleteFlag, autocreationFlag, permissionPropagation,
-		propertyMask, isPartOfBuiltInSchema
-	);
-
-	public static final View schemaView = new View(SchemaNode.class, "schema",
-		name, sourceId, targetId, sourceType, targetType, sourceMultiplicity, targetMultiplicity, sourceNotion, targetNotion, relationshipType,
-		sourceJsonName, targetJsonName, extendsClass, cascadingDeleteFlag, autocreationFlag, previousSourceJsonName, previousTargetJsonName,
-		permissionPropagation, readPropagation, writePropagation, deletePropagation, accessControlPropagation, propertyMask, isPartOfBuiltInSchema
-	);
-	*/
 
 	public SchemaRelationshipNodeTraitDefinition() {
 		super("SchemaRelationshipNode");
@@ -220,6 +195,37 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 		return Map.of(
 			SchemaRelationshipNode.class, (traits, node) -> new SchemaRelationshipNodeTraitWrapper(traits, node)
+		);
+	}
+
+	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+			PropertyView.Public,
+			newSet(
+				"name", "sourceId", "targetId", "sourceType", "targetType", "sourceMultiplicity", "targetMultiplicity", "sourceNotion", "targetNotion", "relationshipType",
+				"sourceJsonName", "targetJsonName", "cascadingDeleteFlag", "autocreationFlag", "oldSourceJsonName", "oldTargetJsonName",
+				"permissionPropagation", "readPropagation", "writePropagation", "deletePropagation", "accessControlPropagation", "propertyMask", "isPartOfBuiltInSchema"
+			),
+			PropertyView.Ui,
+			newSet(
+				"name", "sourceId", "targetId", "sourceType", "targetType", "sourceMultiplicity", "targetMultiplicity", "sourceNotion", "targetNotion", "relationshipType",
+				"sourceJsonName", "targetJsonName", "cascadingDeleteFlag", "autocreationFlag", "oldSourceJsonName", "oldTargetJsonName",
+				"permissionPropagation", "readPropagation", "writePropagation", "deletePropagation", "accessControlPropagation", "propertyMask", "isPartOfBuiltInSchema"
+			),
+			"export",
+			newSet(
+				"sourceId", "targetId", "sourceType", "targetType", "sourceMultiplicity", "targetMultiplicity", "sourceNotion", "targetNotion", "relationshipType",
+				"sourceJsonName", "targetJsonName", "cascadingDeleteFlag", "autocreationFlag", "permissionPropagation",
+				"propertyMask", "isPartOfBuiltInSchema"
+			),
+			"schema",
+			newSet(
+				"name", "sourceId", "targetId", "sourceType", "targetType", "sourceMultiplicity", "targetMultiplicity", "sourceNotion", "targetNotion", "relationshipType",
+				"sourceJsonName", "targetJsonName", "cascadingDeleteFlag", "autocreationFlag", "oldSourceJsonName", "oldTargetJsonName",
+				"permissionPropagation", "readPropagation", "writePropagation", "deletePropagation", "accessControlPropagation", "propertyMask", "isPartOfBuiltInSchema"
+			)
 		);
 	}
 

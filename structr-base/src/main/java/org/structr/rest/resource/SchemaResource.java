@@ -133,7 +133,10 @@ public class SchemaResource extends ExactMatchEndpoint {
 
 				if (type.isRelationshipType()) {
 
-					schema.setProperty(new GenericProperty("relInfo"), relationToMap(config, type.getRelation()));
+					if (!"RelationshipInterface".equals(type.getName())) {
+
+						schema.setProperty(new GenericProperty("relInfo"), relationToMap(config, type.getRelation()));
+					}
 
 				} else {
 

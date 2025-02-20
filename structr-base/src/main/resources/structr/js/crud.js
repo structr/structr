@@ -292,7 +292,7 @@ let _Crud = {
 					let isBuiltInRel    = isRelType && !(type.className.startsWith('org.structr.dynamic'));
 					let isCustomRelType = isRelType && (type.className.startsWith('org.structr.dynamic'));
 					let isDynamicType   = !isRelType && (type.className.startsWith('org.structr.dynamic'));
-					let isHtmlType      = !isRelType && (type.extendsClass.startsWith('org.structr.web.entity.dom'));
+					let isHtmlType      = !isRelType;// && (type.extendsClass.startsWith('org.structr.web.entity.dom'));
 					let isFlowType      = !isRelType && type.className.startsWith('org.structr.flow');
 					let isOtherType     = !(isRelType || isDynamicType || isHtmlType || isFlowType);
 

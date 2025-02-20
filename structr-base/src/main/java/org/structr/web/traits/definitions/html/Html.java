@@ -85,7 +85,7 @@ public class Html extends GenericHtmlElementTraitDefinition {
 		return Map.of(
 			PropertyView.Ui,
 			newSet(
-				"manifest", "customOpeningTag"
+				"_html_manifest", "customOpeningTag"
 			),
 			PropertyView.Html,
 			newSet(
