@@ -26,11 +26,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.Traits;
 import org.structr.test.web.files.SSHTest;
 import org.structr.web.entity.File;
-import org.structr.web.entity.Folder;
 import org.testng.annotations.Test;
 
 import java.io.ByteArrayInputStream;
@@ -135,12 +136,13 @@ public class SSHFilesTest extends SSHTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<File> files = app.nodeQuery("File").sort(AbstractNode.name).getAsList();
+			final PropertyKey<String> nameKey = Traits.of("File").key("name");
+			final List<NodeInterface> files   = app.nodeQuery("File").sort(nameKey).getAsList();
 
 			assertEquals("Invalid number of test files", 2, files.size());
 
-			final File file1 = files.get(0);
-			final File file2 = files.get(1);
+			final File file1 = files.get(0).as(File.class);
+			final File file2 = files.get(1).as(File.class);
 
 			assertEquals("Invalid test file name", name1, file1.getName());
 			assertEquals("Invalid test file name", name2, file2.getName());
@@ -352,11 +354,12 @@ public class SSHFilesTest extends SSHTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<File> files = app.nodeQuery("File").sort(AbstractNode.name).getAsList();
+			final PropertyKey<String> nameKey = Traits.of("File").key("name");
+			final List<NodeInterface> files   = app.nodeQuery("File").sort(nameKey).getAsList();
 
 			assertEquals("Invalid number of test files", 1, files.size());
 
-			final File file1 = files.get(0);
+			final File file1 = files.get(0).as(File.class);
 
 			assertEquals("Invalid test file name", name, file1.getName());
 
@@ -411,9 +414,10 @@ public class SSHFilesTest extends SSHTest {
 
 		Settings.SSHPublicKeyOnly.setValue(false);
 
-		final ChannelSftp sftp   = setupSftpClient("ftpuser1", "ftpuserpw1", true);
-		final String testContent = "Test Content öäü";
-		final String name        = "file1.txt";
+		final ChannelSftp sftp            = setupSftpClient("ftpuser1", "ftpuserpw1", true);
+		final PropertyKey<String> nameKey = Traits.of("File").key("name");
+		final String testContent          = "Test Content öäü";
+		final String name                 = "file1.txt";
 
 		try {
 
@@ -438,11 +442,11 @@ public class SSHFilesTest extends SSHTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<File> files = app.nodeQuery("File").sort(AbstractNode.name).getAsList();
+			final List<NodeInterface> files = app.nodeQuery("File").sort(nameKey).getAsList();
 
 			assertEquals("Invalid number of test files", 1, files.size());
 
-			final File file1 = files.get(0);
+			final File file1 = files.get(0).as(File.class);
 
 			assertEquals("Invalid test file name", name, file1.getName());
 
@@ -472,7 +476,7 @@ public class SSHFilesTest extends SSHTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<File> files = app.nodeQuery("File").sort(AbstractNode.name).getAsList();
+			final List<NodeInterface> files = app.nodeQuery("File").sort(nameKey).getAsList();
 
 			assertEquals("Invalid number of test files", 0, files.size());
 
@@ -488,7 +492,8 @@ public class SSHFilesTest extends SSHTest {
 
 		Settings.SSHPublicKeyOnly.setValue(false);
 
-		final ChannelSftp sftp   = setupSftpClient("ftpuser1", "ftpuserpw1", true);
+		final ChannelSftp sftp            = setupSftpClient("ftpuser1", "ftpuserpw1", true);
+		final PropertyKey<String> nameKey = Traits.of("File").key("name");
 
 		try {
 
@@ -510,10 +515,10 @@ public class SSHFilesTest extends SSHTest {
 
 		try (final Tx tx = app.tx()) {
 
-			assertEquals("Folder test1 should exist", "test1", app.nodeQuery("Folder").andName("test1").sort(AbstractNode.name).getFirst().getName());
-			assertEquals("Folder test2 should exist", "test2", app.nodeQuery("Folder").andName("test2").sort(AbstractNode.name).getFirst().getName());
-			assertEquals("Folder nested1 should exist", "nested1", app.nodeQuery("Folder").andName("nested1").sort(AbstractNode.name).getFirst().getName());
-			assertNull("Folder nested2 should have been deleted", app.nodeQuery("Folder").andName("nested2").sort(AbstractNode.name).getFirst());
+			assertEquals("Folder test1 should exist", "test1", app.nodeQuery("Folder").andName("test1").sort(nameKey).getFirst().getName());
+			assertEquals("Folder test2 should exist", "test2", app.nodeQuery("Folder").andName("test2").sort(nameKey).getFirst().getName());
+			assertEquals("Folder nested1 should exist", "nested1", app.nodeQuery("Folder").andName("nested1").sort(nameKey).getFirst().getName());
+			assertNull("Folder nested2 should have been deleted", app.nodeQuery("Folder").andName("nested2").sort(nameKey).getFirst());
 
 			tx.success();
 

@@ -575,11 +575,6 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 		return wrappedObject.getSecurityContext().doIndexing();
 	}
 
-	@Override
-	public Map<String, Object> extractStructure() throws FrameworkException {
-		return StructrApp.getInstance(wrappedObject.getSecurityContext()).getContentAnalyzer().analyzeContent(wrappedObject);
-	}
-
 	// ----- interface JavaScriptSource -----
 	@Override
 	public String getJavascriptLibraryCode() {

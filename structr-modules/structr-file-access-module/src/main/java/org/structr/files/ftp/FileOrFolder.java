@@ -35,6 +35,7 @@ import org.structr.core.traits.Traits;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
+import org.structr.web.entity.Folder;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -145,7 +146,10 @@ public class FileOrFolder extends AbstractStructrFtpFile {
 					structrFile = FileHelper.createFile(securityContext, new byte[0], null, "File", getName(), false).as(AbstractFile.class);
 
 					structrFile.as(AccessControllable.class).setOwner(owner.getStructrUser());
-					structrFile.setParent(parentFolder);
+
+					if (parentFolder != null) {
+						structrFile.setParent(parentFolder.as(Folder.class));
+					}
 
 				} catch (FrameworkException ex) {
 					logger.error("", ex);

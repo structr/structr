@@ -20,6 +20,9 @@ package org.structr.ldap;
 
 import org.structr.api.service.LicenseManager;
 import org.structr.core.entity.AbstractSchemaNode;
+import org.structr.core.traits.StructrTraits;
+import org.structr.ldap.traits.definitions.LDAPGroupTraitDefinition;
+import org.structr.ldap.traits.definitions.LDAPUserTraitDefinition;
 import org.structr.module.StructrModule;
 import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
@@ -33,6 +36,9 @@ public class LDAPModule implements StructrModule {
 
 	@Override
 	public void onLoad(final LicenseManager licenseManager) {
+
+		StructrTraits.registerNodeType("LDAPGroup", new LDAPGroupTraitDefinition());
+		StructrTraits.registerNodeType("LDAPUser", new LDAPUserTraitDefinition());
 	}
 
 	@Override

@@ -27,7 +27,7 @@
 		<module>structr-xmpp-module</module>
 		<module>structr-media-module</module>
 		<module>structr-api-builder-module</module>
-		<module>structr-flow-module</module>
+		<!--module>structr-flow-module</module-->
 		<module>structr-file-access-module</module>
 		<module>structr-text-search-module</module>
 		<module>structr-data-feeds-module</module>

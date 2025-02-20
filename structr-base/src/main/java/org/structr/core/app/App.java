@@ -23,7 +23,6 @@ import org.structr.api.DatabaseService;
 import org.structr.api.service.Command;
 import org.structr.api.service.Service;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.fulltext.ContentAnalyzer;
 import org.structr.common.fulltext.FulltextIndexer;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.*;
@@ -73,7 +72,6 @@ public interface App extends Closeable {
 	void processTasks(final Task... tasks);
 	<T extends Command & MaintenanceCommand> void maintenance(final Class<T> commandClass, final Map<String, Object> propertySet) throws FrameworkException;
 
-	ContentAnalyzer getContentAnalyzer(final Object... params);
 	FulltextIndexer getFulltextIndexer(final Object... params);
 
 	Iterable<GraphObject> query(final String nativeQuery, final Map<String, Object> parameters) throws FrameworkException;

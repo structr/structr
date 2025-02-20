@@ -299,7 +299,7 @@ public class StructrFilePath extends StructrPath {
 					final NodeInterface newParentFolder = parent.getActualFile();
 
 					// rename & move
-					thisFile.as(File.class).setParent(newParentFolder);
+					thisFile.as(File.class).setParent(newParentFolder.as(Folder.class));
 					thisFile.setName(targetName);
 				}
 
@@ -371,7 +371,7 @@ public class StructrFilePath extends StructrPath {
 			final NodeInterface parentFolder     = parentFilePath.getActualFile();
 			if (parentFolder != null) {
 
-				file.as(AbstractFile.class).setParent(parentFolder);
+				file.as(AbstractFile.class).setParent(parentFolder.as(Folder.class));
 			}
 		}
 	}

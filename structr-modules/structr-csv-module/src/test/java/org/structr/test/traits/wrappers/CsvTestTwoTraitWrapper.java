@@ -16,19 +16,20 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.text.model;
+package org.structr.test.traits.wrappers;
 
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNode;
-import org.structr.core.property.StringProperty;
-import org.structr.text.model.relationship.StructuredDocumentMETADATAMetadataNode;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 
 /**
+ * A simple entity for the most basic tests.
  *
+ * The isValid method does always return true for testing purposes only.
  */
-public class MetadataNode extends AbstractNode {
+public class CsvTestTwoTraitWrapper extends AbstractNodeTraitWrapper {
 
-	public static final Property<StructuredDocument> documentProperty = new StartNode<>("document", StructuredDocumentMETADATAMetadataNode.class);
-	public static final Property<String> contentProperty              = new StringProperty("content");
+	public CsvTestTwoTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
+	}
 }

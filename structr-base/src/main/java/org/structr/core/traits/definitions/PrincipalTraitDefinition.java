@@ -27,6 +27,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
+import org.structr.core.auth.HashHelper;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.*;
@@ -35,6 +36,7 @@ import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
+import org.structr.core.traits.operations.principal.IsValidPassword;
 import org.structr.core.traits.operations.propertycontainer.GetProperty;
 import org.structr.core.traits.operations.propertycontainer.SetProperty;
 import org.structr.core.traits.wrappers.PrincipalTraitWrapper;
@@ -104,6 +106,26 @@ public class PrincipalTraitDefinition extends AbstractNodeTraitDefinition {
 					graphObject.clearCaches();
 
 					return getSuper().setProperty(graphObject, key, value, isCreation);
+				}
+			},
+
+			IsValidPassword.class,
+			new IsValidPassword() {
+
+				@Override
+				public boolean isValidPassword(Principal principal, String password) {
+
+					final String encryptedPasswordFromDatabase = principal.getEncryptedPassword();
+					if (encryptedPasswordFromDatabase != null) {
+
+						final String encryptedPasswordToCheck = HashHelper.getHash(password, principal.getSalt());
+
+						if (encryptedPasswordFromDatabase.equals(encryptedPasswordToCheck)) {
+							return true;
+						}
+					}
+
+					return false;
 				}
 			}
 		);

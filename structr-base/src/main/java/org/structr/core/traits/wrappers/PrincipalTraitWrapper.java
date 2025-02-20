@@ -29,13 +29,13 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.auth.HashHelper;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.operations.principal.IsValidPassword;
 import org.structr.core.traits.operations.principal.OnAuthenticate;
 
 import java.net.URI;
@@ -381,16 +381,12 @@ public class PrincipalTraitWrapper extends AbstractNodeTraitWrapper implements P
 	}
 
 	@Override
-	public boolean isValidPassword(final String password) {
+	public final boolean isValidPassword(final String password) {
 
-		final String encryptedPasswordFromDatabase = getEncryptedPassword();
-		if (encryptedPasswordFromDatabase != null) {
+		final IsValidPassword method = traits.getMethod(IsValidPassword.class);
+		if (method != null) {
 
-			final String encryptedPasswordToCheck = HashHelper.getHash(password, getSalt());
-
-			if (encryptedPasswordFromDatabase.equals(encryptedPasswordToCheck)) {
-				return true;
-			}
+			return method.isValidPassword(this, password);
 		}
 
 		return false;

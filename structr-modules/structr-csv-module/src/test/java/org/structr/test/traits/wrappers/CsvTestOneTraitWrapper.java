@@ -16,32 +16,20 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.text.model.relationship;
+package org.structr.test.traits.wrappers;
 
-import org.structr.core.entity.OneToMany;
-import org.structr.core.entity.Relation;
-import org.structr.text.model.MetadataNode;
-import org.structr.text.model.StructuredDocument;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 
-public class StructuredDocumentMETADATAMetadataNode extends OneToMany<StructuredDocument, MetadataNode> {
+/**
+ * A simple entity for the most basic tests.
+ *
+ * The isValid method does always return true for testing purposes only.
+ */
+public class CsvTestOneTraitWrapper extends AbstractNodeTraitWrapper {
 
-	@Override
-	public Class<StructuredDocument> getSourceType() {
-		return StructuredDocument.class;
-	}
-
-	@Override
-	public Class<MetadataNode> getTargetType() {
-		return MetadataNode.class;
-	}
-
-	@Override
-	public String name() {
-		return "METADATA";
-	}
-
-	@Override
-	public int getCascadingDeleteFlag() {
-		return Relation.SOURCE_TO_TARGET;
+	public CsvTestOneTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
 	}
 }

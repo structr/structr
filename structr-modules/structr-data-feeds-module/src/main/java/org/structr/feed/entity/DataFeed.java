@@ -18,6 +18,7 @@
  */
 package org.structr.feed.entity;
 
+import org.structr.common.SecurityContext;
 import org.structr.core.graph.NodeInterface;
 
 import java.util.Date;
@@ -34,10 +35,8 @@ public interface DataFeed extends NodeInterface {
 	Integer getMaxItems();
 	Iterable<NodeInterface> getItems();
 
-	/*
-	void cleanUp(final SecurityContext ctx);
-	void updateIfDue(final SecurityContext ctx);
-	void updateFeed(final SecurityContext ctx);
-	void updateFeed(final SecurityContext ctx, final boolean cleanUp);
-	*/
+	void updateIfDue(final SecurityContext securityContext);
+	void cleanUp(final SecurityContext securityContext);
+	void updateFeed(final SecurityContext securityContext);
+	void updateFeed(final SecurityContext securityContext, final boolean cleanUp);
 }

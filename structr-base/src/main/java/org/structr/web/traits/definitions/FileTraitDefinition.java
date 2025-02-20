@@ -21,6 +21,7 @@ package org.structr.web.traits.definitions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
+import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -59,17 +60,6 @@ import java.util.Set;
  *
  */
 public class FileTraitDefinition extends AbstractNodeTraitDefinition {
-
-	/*
-		// view configuration
-		type.addViewProperty(PropertyView.Public, "includeInFrontendExport");
-		type.addViewProperty(PropertyView.Public, "owner");
-
-		type.addViewProperty(PropertyView.Ui, "hasParent");
-		type.addViewProperty(PropertyView.Ui, "path");
-
-	}}
-	*/
 
 	public FileTraitDefinition() {
 		super("File");
@@ -261,6 +251,21 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 			fileModificationDateProperty,
 			sizeProperty,
 			base64DataProperty
+		);
+	}
+
+	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+			PropertyView.Public,
+			newSet(
+				"includeInFrontendExport", "owner"
+			),
+			PropertyView.Ui,
+			newSet(
+				"hasParent", "path"
+			)
 		);
 	}
 

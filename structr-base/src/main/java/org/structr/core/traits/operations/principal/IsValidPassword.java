@@ -16,18 +16,12 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.common.fulltext;
+package org.structr.core.traits.operations.principal;
 
-import java.util.Map;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.graph.NodeInterface;
+import org.structr.core.entity.Principal;
+import org.structr.core.traits.operations.FrameworkMethod;
 
-import java.util.Set;
+public abstract class IsValidPassword extends FrameworkMethod {
 
-/**
- */
-public interface ContentAnalyzer {
-
-	Map<String, Object> analyzeContent(final NodeInterface indexable) throws FrameworkException;
-	Set<String> getStopWords(final String language);
+	public abstract boolean isValidPassword(final Principal principal, final String password);
 }

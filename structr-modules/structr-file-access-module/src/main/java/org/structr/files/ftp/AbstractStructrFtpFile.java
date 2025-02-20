@@ -34,6 +34,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
+import org.structr.web.entity.Folder;
 
 import java.util.Date;
 import java.util.List;
@@ -288,13 +289,12 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 
 					if (newParent != null && newParent.is("Folder")) {
 
-						structrFile.setParent(newParent);
+						structrFile.setParent(newParent.as(Folder.class));
 
 					} else {
 
 						// Move to /
 						structrFile.setParent(null);
-
 					}
 
 				}

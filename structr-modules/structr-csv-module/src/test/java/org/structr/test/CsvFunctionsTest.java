@@ -22,18 +22,17 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Localization;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
-import org.structr.test.entity.CsvTestEnum;
-import org.structr.test.entity.CsvTestOne;
-import org.structr.test.entity.CsvTestTwo;
+import org.structr.test.traits.definitions.CsvTestOneTraitDefinition;
+import org.structr.test.traits.definitions.CsvTestTwoTraitDefinition;
 import org.structr.test.web.StructrUiTest;
-import org.structr.test.web.entity.TestFive;
-import org.structr.test.web.entity.TestTwo;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.util.List;
@@ -46,11 +45,19 @@ public class CsvFunctionsTest extends StructrUiTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(CsvFunctionsTest.class.getName());
 
+	@Override
+	@BeforeMethod(firstTimeOnly = true)
+	public void createSchema() {
+
+		StructrTraits.registerNodeType("CsvTestOne", new CsvTestOneTraitDefinition());
+		StructrTraits.registerNodeType("CsvTestTwo", new CsvTestTwoTraitDefinition());
+	}
+
 	@Test
 	public void testCsvFunctions() {
 
-		List<CsvTestOne> csvTestOnes                = null;
-		CsvTestTwo csvTestTwo                       = null;
+		List<NodeInterface> csvTestOnes                = null;
+		NodeInterface csvTestTwo                       = null;
 		int index                                   = 0;
 
 		try (final Tx tx = app.tx()) {
@@ -58,49 +65,51 @@ public class CsvFunctionsTest extends StructrUiTest {
 			csvTestOnes = createTestNodes("CsvTestOne", 5);
 			csvTestTwo  = createTestNode("CsvTestTwo");
 
-			final PropertyMap indexLocalizationProperties = new PropertyMap();
-			final PropertyMap nameLocalizationProperties = new PropertyMap();
+			final Traits localizationTraits                         = Traits.of("Localization");
+			final Traits testOneTraits                              = Traits.of("CsvTestOne");
+			final PropertyMap indexLocalizationProperties           = new PropertyMap();
+			final PropertyMap nameLocalizationProperties            = new PropertyMap();
 			final PropertyMap indexLocalizationPropertiesWithDomain = new PropertyMap();
-			final PropertyMap nameLocalizationPropertiesWithDomain = new PropertyMap();
+			final PropertyMap nameLocalizationPropertiesWithDomain  = new PropertyMap();
 
-			indexLocalizationProperties.put(StructrApp.key(Localization.class, "name"),                    "index");
-			indexLocalizationProperties.put(StructrApp.key(Localization.class, "localizedName"),           "Localized INDEX");
-			indexLocalizationProperties.put(StructrApp.key(Localization.class, "locale"),                  "en");
+			indexLocalizationProperties.put(localizationTraits.key("name"),                    "index");
+			indexLocalizationProperties.put(localizationTraits.key("localizedName"),           "Localized INDEX");
+			indexLocalizationProperties.put(localizationTraits.key("locale"),                  "en");
 
-			nameLocalizationProperties.put(StructrApp.key(Localization.class, "name"),                     "name");
-			nameLocalizationProperties.put(StructrApp.key(Localization.class, "localizedName"),            "Localized NAME");
-			nameLocalizationProperties.put(StructrApp.key(Localization.class, "locale"),                   "en");
+			nameLocalizationProperties.put(localizationTraits.key("name"),                     "name");
+			nameLocalizationProperties.put(localizationTraits.key("localizedName"),            "Localized NAME");
+			nameLocalizationProperties.put(localizationTraits.key("locale"),                   "en");
 
-			indexLocalizationPropertiesWithDomain.put(StructrApp.key(Localization.class, "name"),          "index");
-			indexLocalizationPropertiesWithDomain.put(StructrApp.key(Localization.class, "localizedName"), "Localized INDEX with DOMAIN");
-			indexLocalizationPropertiesWithDomain.put(StructrApp.key(Localization.class, "locale"),        "en");
-			indexLocalizationPropertiesWithDomain.put(StructrApp.key(Localization.class, "domain"),        "CSV TEST Domain");
+			indexLocalizationPropertiesWithDomain.put(localizationTraits.key("name"),          "index");
+			indexLocalizationPropertiesWithDomain.put(localizationTraits.key("localizedName"), "Localized INDEX with DOMAIN");
+			indexLocalizationPropertiesWithDomain.put(localizationTraits.key("locale"),        "en");
+			indexLocalizationPropertiesWithDomain.put(localizationTraits.key("domain"),        "CSV TEST Domain");
 
-			nameLocalizationPropertiesWithDomain.put(StructrApp.key(Localization.class, "name"),           "name");
-			nameLocalizationPropertiesWithDomain.put(StructrApp.key(Localization.class, "localizedName"),  "Localized NAME with DOMAIN");
-			nameLocalizationPropertiesWithDomain.put(StructrApp.key(Localization.class, "locale"),         "en");
-			nameLocalizationPropertiesWithDomain.put(StructrApp.key(Localization.class, "domain"),         "CSV TEST Domain");
+			nameLocalizationPropertiesWithDomain.put(localizationTraits.key("name"),           "name");
+			nameLocalizationPropertiesWithDomain.put(localizationTraits.key("localizedName"),  "Localized NAME with DOMAIN");
+			nameLocalizationPropertiesWithDomain.put(localizationTraits.key("locale"),         "en");
+			nameLocalizationPropertiesWithDomain.put(localizationTraits.key("domain"),         "CSV TEST Domain");
 
 			app.create("Localization", indexLocalizationProperties);
 			app.create("Localization", nameLocalizationProperties);
 			app.create("Localization", indexLocalizationPropertiesWithDomain);
 			app.create("Localization", nameLocalizationPropertiesWithDomain);
 
-			for (final CsvTestOne csvTestOne : csvTestOnes) {
+			for (final NodeInterface csvTestOne : csvTestOnes) {
 
-				csvTestOne.setProperty(CsvTestOne.name, "CSV Test Node " + StringUtils.leftPad(Integer.toString(index+1), 4, "0"));
-				csvTestOne.setProperty(CsvTestOne.index, index+1);
+				csvTestOne.setProperty(testOneTraits.key("name"), "CSV Test Node " + StringUtils.leftPad(Integer.toString(index+1), 4, "0"));
+				csvTestOne.setProperty(testOneTraits.key("index"), index+1);
 
 				if (index == 0) {
 					// set string array on test four
-					csvTestOne.setProperty(CsvTestOne.stringArrayProperty, new String[] { "one", "two", "three", "four" } );
+					csvTestOne.setProperty(testOneTraits.key("stringArrayProperty"), new String[] { "one", "two", "three", "four" } );
 				}
 
-				csvTestOne.setProperty(CsvTestOne.intArrayProperty, new Integer[] { index, index+1, index+2, index+3 } );
+				csvTestOne.setProperty(testOneTraits.key("intArrayProperty"), new Integer[] { index, index+1, index+2, index+3 } );
 
 				if (index == 2) {
 					// set string array on test four
-					csvTestOne.setProperty(CsvTestOne.enumProperty, CsvTestEnum.EnumValue2 );
+					csvTestOne.setProperty(testOneTraits.key("enumProperty"), "EnumValue2");
 				}
 
 				index++;
@@ -398,9 +407,9 @@ public class CsvFunctionsTest extends StructrUiTest {
 
 			final ActionContext ctx = new ActionContext(securityContext, null);
 
-			final TestTwo testTwo    = createTestNode("TestTwo");
-			final TestFive testFive1 = createTestNode("TestFive");
-			final TestFive testFive2 = createTestNode("TestFive");
+			final NodeInterface testTwo    = createTestNode("TestTwo");
+			final NodeInterface testFive1 = createTestNode("TestFive");
+			final NodeInterface testFive2 = createTestNode("TestFive");
 
 			Scripting.replaceVariables(ctx, csvTestTwo, "${{ $.find('TestTwo', '" + testTwo.getUuid() + "').testFives.push($.find('TestFive', '" + testFive1.getUuid() + "')); }}");
 			Scripting.replaceVariables(ctx, csvTestTwo, "${{ $.find('TestTwo', '" + testTwo.getUuid() + "').testFives.push($.find('TestFive', '" + testFive2.getUuid() + "')); }}");

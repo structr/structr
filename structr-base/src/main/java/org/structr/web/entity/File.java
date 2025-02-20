@@ -64,8 +64,6 @@ public interface File extends AbstractFile, DataSource {
 
 	boolean doIndexing();
 
-	Map<String, Object> extractStructure() throws FrameworkException;
-
 	// ----- interface JavaScriptSource -----
 	String getJavascriptLibraryCode();
 	String getContentType();
