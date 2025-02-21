@@ -43,8 +43,7 @@ import org.structr.messaging.implementation.mqtt.function.MQTTPublishFunction;
 import org.structr.messaging.implementation.mqtt.function.MQTTSubscribeTopicFunction;
 import org.structr.messaging.implementation.mqtt.function.MQTTUnsubscribeTopicFunction;
 import org.structr.messaging.implementation.pulsar.PulsarClient;
-import org.structr.messaging.traits.definitions.MessageClientTraitDefinition;
-import org.structr.messaging.traits.definitions.MessageSubscriberTraitDefinition;
+import org.structr.messaging.traits.definitions.*;
 import org.structr.module.StructrModule;
 import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
@@ -66,6 +65,9 @@ public class MessageEngineModule implements StructrModule {
 
 		StructrTraits.registerNodeType("MessageClient",     new MessageClientTraitDefinition());
 		StructrTraits.registerNodeType("MessageSubscriber", new MessageSubscriberTraitDefinition());
+		StructrTraits.registerNodeType("KafkaClient",       new MessageClientTraitDefinition(), new KafkaClientTraitDefinition());
+		StructrTraits.registerNodeType("MQTTClient",        new MessageClientTraitDefinition(), new MQTTClientTraitDefinition());
+		StructrTraits.registerNodeType("PulsarClient",      new MessageClientTraitDefinition(), new PulsarClientTraitDefinition());
 	}
 
 	@Override

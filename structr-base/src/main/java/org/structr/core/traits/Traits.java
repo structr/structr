@@ -76,6 +76,12 @@ public interface Traits {
 		return TraitsImplementation.ofRelationship(type1, relType, type2);
 	}
 
+	/**
+	 * Indicates whether a type (not a trait!) with the given name exists.
+	 *
+	 * @param name
+	 * @return
+	 */
 	static boolean exists(final String name) {
 		return TraitsImplementation.exists(name);
 	}

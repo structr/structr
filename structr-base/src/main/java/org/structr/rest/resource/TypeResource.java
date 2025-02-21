@@ -19,11 +19,11 @@
 package org.structr.rest.resource;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.SchemaNode;
 import org.structr.core.traits.Traits;
+import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
-import org.structr.core.entity.SchemaNode;
-import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.parameter.RESTParameter;
 
 /**
@@ -39,7 +39,7 @@ public class TypeResource extends ExactMatchEndpoint {
 	public RESTCallHandler accept(final RESTCall call) throws FrameworkException {
 
 		final String typeName = call.get("type");
-		if (typeName != null) {
+		if (typeName != null && Traits.exists(typeName)) {
 
 			// test if resource class exists
 			final Traits traits = Traits.of(typeName);

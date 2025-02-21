@@ -183,7 +183,11 @@ public class SchemaMethodTraitWrapper extends AbstractNodeTraitWrapper implement
 		final Class<LifecycleMethod> type = getMethodType();
 		if (type != null) {
 
-			return new LifecycleMethodAdapter(getSource());
+			final String source = getSource();
+			if (source != null) {
+
+				return new LifecycleMethodAdapter(source);
+			}
 		}
 
 		return null;

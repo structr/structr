@@ -118,6 +118,11 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 	@Override
 	public void addLabels(final Set<String> input) {
 
+		// no-op
+		if (input.isEmpty()) {
+			return;
+		}
+
 		final SessionTransaction tx   = db.getCurrentTransaction();
 		final Map<String, Object> map = new HashMap<>();
 		final String tenantIdentifier = getTenantIdentifier(db);

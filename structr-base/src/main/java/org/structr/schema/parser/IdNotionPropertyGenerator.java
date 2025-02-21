@@ -18,8 +18,13 @@
  */
 package org.structr.schema.parser;
 
+import org.apache.commons.lang.StringUtils;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.InvalidPropertySchemaToken;
+import org.structr.core.entity.SchemaNode;
+import org.structr.core.property.CollectionIdProperty;
+import org.structr.core.property.EntityIdProperty;
 import org.structr.core.property.Property;
 import org.structr.schema.SchemaHelper.Type;
 
@@ -62,66 +67,50 @@ public class IdNotionPropertyGenerator extends PropertyGenerator {
 	@Override
 	public Property newInstance() throws FrameworkException {
 
-		/*
+		final String className  = source.getClassName();
+		final String name       = source.getPropertyName();
 		final String expression = source.getFormat();
+
 		if (StringUtils.isBlank(expression)) {
 
 			//reportError(new InvalidPropertySchemaToken(SchemaNode.class.getSimpleName(), expression, "invalid_property_definition", "Empty notion property expression."));
-			throw new FrameworkException(422, "Empty notion property expression for property ‛" + source.getPropertyName() +  "‛", new InvalidPropertySchemaToken(SchemaNode.class.getSimpleName(), this.source.getPropertyName(), expression, "invalid_property_definition", "Empty notion property expression."));
+			throw new FrameworkException(422, "Empty notion property expression for property ‛" + name + "‛", new InvalidPropertySchemaToken(className, source.getPropertyName(), expression, "invalid_property_definition", "Empty notion property expression for property " + source.getPropertyName() + "."));
 		}
 
-		final StringBuilder buf = new StringBuilder();
-		final String[] parts    = expression.split("[, ]+");
+		final String[] parts = expression.split("[, ]+");
+		Property property    = null;
 
 		if (parts.length > 0) {
 
-			boolean isBuiltinProperty           = false;
-			baseProperty                        = parts[0];
-			multiplicity                        = entity.as(SchemaRelationshipNode.class).getMultiplicity(baseProperty);
+			baseProperty = parts[0];
+
+			final String relatedType = source.getRelatedType(baseProperty);
+			final String baseType    = source.getClassName();
+
+			multiplicity = source.getMultiplicity(baseProperty);
 
 			if (multiplicity != null) {
+
+				if (parts.length == 3 && "true".equals(parts[2].toLowerCase())) {
+					isAutocreate = true;
+				}
 
 				switch (multiplicity) {
 
 					case "1X":
-						// this line exists because when a NotionProperty is set up for a builtin propery
-						// (like for example "owner", there must not be the string "Property" appended
-						// to the property name, and the SchemaNode returns the above "extended" multiplicity
-						// string when it has detected a fallback property name like "owner" from NodeInterface.
-						isBuiltinProperty = true; // no break!
 					case "1":
-						propertyType = EntityIdProperty.class.getSimpleName();
+						//public EntityIdProperty(final String name, final String baseType, final String basePropertyName, final String relatedType) {
+						property = new EntityIdProperty(name, baseType, baseProperty, relatedType, isAutocreate);
 						break;
 
 					case "*X":
-						// this line exists because when a NotionProperty is set up for a builtin propery
-						// (like for example "owner", there must not be the string "Property" appended
-						// to the property name, and the SchemaNode returns the above "extended" multiplicity
-						// string when it has detected a fallback property name like "owner" from NodeInterface.
-						isBuiltinProperty = true; // no break!
 					case "*":
-						propertyType = CollectionIdProperty.class.getSimpleName();
+						//public CollectionIdProperty(final String name, final String baseType, final String basePropertyName, final String relatedType) {
+						property = new CollectionIdProperty(name, baseType, baseProperty, relatedType, isAutocreate);
 						break;
 
 					default:
 						break;
-				}
-
-				buf.append(", ");
-				buf.append(source.getClassName());
-				buf.append(".");
-				buf.append(baseProperty);
-
-				// append "Property" only if it is NOT a builtin property!
-				if (!isBuiltinProperty) {
-					buf.append("Property");
-				}
-
-				if (parts.length == 3 && "true".equals(parts[2].toLowerCase())) {
-
-					isAutocreate = true;
-
-					buf.append(", true");
 				}
 
 			} else {
@@ -130,11 +119,7 @@ public class IdNotionPropertyGenerator extends PropertyGenerator {
 			}
 		}
 
-
-		parameters = buf.toString();
-		*/
-
-		return null;
+		return property;
 	}
 
 	public boolean isPropertySet() {

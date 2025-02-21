@@ -923,10 +923,11 @@ public class Importer {
 
 							} else if (key.startsWith(DATA_STRUCTR_PREFIX)) { // don't convert data-structr-* attributes as they are internal
 
-								final PropertyKey propertyKey = newNodeType.key(key);
-								if (propertyKey != null) {
+								if (newNodeType.hasKey(key)) {
 
+									final PropertyKey propertyKey = newNodeType.key(key);
 									final PropertyConverter inputConverter = propertyKey.inputConverter(securityContext);
+
 									if (value != null && inputConverter != null) {
 
 										newNodeProperties.put(propertyKey, propertyKey.inputConverter(securityContext).convert(value));

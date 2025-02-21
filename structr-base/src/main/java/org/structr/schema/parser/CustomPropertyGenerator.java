@@ -65,7 +65,8 @@ public class CustomPropertyGenerator extends PropertyGenerator {
 							}
 						}
 
-					} catch (Throwable ignore) {}
+					} catch (Throwable ignore) {
+					}
 
 					if (!initialized) {
 

@@ -84,6 +84,10 @@ public class TraitsImplementation implements Traits {
 
 	@Override
 	public <T> PropertyKey<T> key(final String name) {
+		return key(name, true);
+	}
+
+	private <T> PropertyKey<T> key(final String name, final boolean throwException) {
 
 		PropertyKey<T> key = null;
 
@@ -101,7 +105,11 @@ public class TraitsImplementation implements Traits {
 			return key;
 		}
 
-		throw new RuntimeException("Missing property key " + name + " of type " + typeName);
+		if (throwException) {
+			throw new RuntimeException("Missing property key " + name + " of type " + typeName);
+		}
+
+		return null;
 	}
 
 	@Override
@@ -166,7 +174,12 @@ public class TraitsImplementation implements Traits {
 
 				for (final String keyName : names) {
 
-					set.add(key(keyName));
+					// do not throw exception here
+					final PropertyKey key = key(keyName, false);
+					if (key != null) {
+
+						set.add(key);
+					}
 				}
 			}
 		}

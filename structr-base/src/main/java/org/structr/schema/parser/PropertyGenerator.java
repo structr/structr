@@ -110,6 +110,11 @@ public abstract class PropertyGenerator<T> {
 			throw new RuntimeException(e);
 		}
 
+		// no property was created
+		if (propertyKey == null) {
+			return null;
+		}
+
 		if (StringUtils.isNotBlank(source.getDbName())) {
 			propertyKey.dbName(source.getDbName());
 		}

@@ -115,7 +115,10 @@ public class TypeProperty extends StringProperty {
 		}
 
 		// add difference
-		dbNode.addLabels(toAdd);
+		if (!toAdd.isEmpty()) {
+
+			dbNode.addLabels(toAdd);
+		}
 	}
 
 	// ----- OpenAPI -----
