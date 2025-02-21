@@ -23,6 +23,7 @@ import org.structr.common.error.FrameworkException;
 public interface Content extends DOMNode {
 
 	String getContent();
+	String getContentType();
 
 	void setContent(final String content) throws FrameworkException;
 	void setContentType(final String contentType) throws FrameworkException;

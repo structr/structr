@@ -57,6 +57,11 @@ public class ContentTraitWrapper extends DOMNodeTraitWrapper implements Content 
 	}
 
 	@Override
+	public final String getContentType() {
+		return wrappedObject.getProperty(traits.key("contentType"));
+	}
+
+	@Override
 	public String getNodeValue() {
 
 		try {

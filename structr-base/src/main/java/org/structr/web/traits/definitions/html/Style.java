@@ -89,8 +89,8 @@ public class Style extends GenericHtmlElementTraitDefinition {
 
 						try {
 
+							final String thisContentType  = node.is("Content") ? node.as(Content.class).getContentType() : null;
 							final String childContentType = content.getContentType();
-							final String thisContentType  = node.getContentType();
 
 							if (childContentType == null && thisContentType != null) {
 

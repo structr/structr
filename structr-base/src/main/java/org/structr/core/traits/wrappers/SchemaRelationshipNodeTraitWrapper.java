@@ -66,7 +66,8 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 		return null;
 	}
 
-	@Override public SchemaNode getTargetNode() {
+	@Override
+	public SchemaNode getTargetNode() {
 
 		final NodeInterface node = wrappedObject.getProperty(traits.key("targetNode"));
 		if (node != null) {

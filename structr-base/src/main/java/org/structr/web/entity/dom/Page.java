@@ -42,6 +42,7 @@ public interface Page extends DOMNode {
 	String getPath();
 	String getCategory();
 	String getShowOnErrorCodes();
+	String getContentType();
 
 	boolean pageCreatesRawData();
 

@@ -1244,11 +1244,6 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	}
 
 	@Override
-	public final String getContentType() {
-		return wrappedObject.getProperty(traits.key("contentType"));
-	}
-
-	@Override
 	public final DOMNode getParent() {
 
 		final NodeInterface node = wrappedObject.getProperty(traits.key("parent"));

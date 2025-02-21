@@ -18,6 +18,7 @@
  */
 package org.structr.web.traits.definitions.dom;
 
+import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.entity.Relation;
@@ -45,23 +46,6 @@ import static org.structr.web.entity.dom.DOMNode.PAGE_CATEGORY;
  * Represents a page resource.
  */
 public class PageTraitDefinition extends AbstractNodeTraitDefinition {
-
-	/*
-	public static final View defaultView = new View(Page.class, PropertyView.Public,
-		linkingElementsProperty, enableBasicAuthProperty, basicAuthRealmProperty, dontCacheProperty, childrenProperty, name, owner, sitesProperty,
-		isPageProperty, pageCreatesRawDataProperty, versionProperty, positionProperty, cacheForSecondsProperty, pathProperty,
-		showOnErrorCodesProperty, contentTypeProperty, categoryProperty, pathsProperty
-	);
-
-	public static final View uiView = new View(Page.class, PropertyView.Ui,
-		isPageProperty, pageCreatesRawDataProperty, dontCacheProperty, childrenProperty, sitesProperty, versionProperty, positionProperty, cacheForSecondsProperty,
-		pathProperty, showOnErrorCodesProperty, contentTypeProperty, categoryProperty, pathsProperty
-	);
-
-	public static final View categoryView = new View(Page.class, "category",
-		categoryProperty
-	);
-	*/
 
 	public PageTraitDefinition() {
 		super("Page");
@@ -197,6 +181,28 @@ public class PageTraitDefinition extends AbstractNodeTraitDefinition {
 			showOnErrorCodesProperty,
 			contentTypeProperty,
 			categoryProperty
+		);
+	}
+
+	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+			PropertyView.Public,
+			newSet(
+				"linkingElements", "enableBasicAuth", "basicAuthRealm", "dontCache", "children", "name", "owner", "sites",
+				"isPage", "pageCreatesRawData", "version", "position", "cacheForSeconds", "path",
+				"showOnErrorCodes", "contentType", "category", "paths"
+			),
+			PropertyView.Ui,
+			newSet(
+				"isPage", "pageCreatesRawData", "dontCache", "children", "sites", "version", "position", "cacheForSeconds",
+				"path", "showOnErrorCodes", "contentType", "category", "paths"
+			),
+			"category",
+				newSet(
+				"category"
+			)
 		);
 	}
 

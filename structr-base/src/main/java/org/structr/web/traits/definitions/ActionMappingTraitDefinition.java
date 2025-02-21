@@ -165,7 +165,7 @@ public class ActionMappingTraitDefinition extends AbstractNodeTraitDefinition {
 				"failureNotifications", "failureNotificationsPartial", "failureNotificationsEvent",
 				"successBehaviour", "successPartial", "successURL", "successEvent", "successNotificationsDelay",
 				"failureBehaviour", "failurePartial", "failureURL", "failureEvent", "failureNotificationsDelay",
-				"triggerElements, successTargets, failureTargets, successNotificationElements, failureNotificationElements, parameterMappings"
+				"triggerElements", "successTargets", "failureTargets", "successNotificationElements", "failureNotificationElements", "parameterMappings"
 			)
 		);
 	}

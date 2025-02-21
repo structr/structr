@@ -278,7 +278,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 							final NodeInterface node = findNodeByUuid(securityContext, uriParts[0]);
 							if (node != null && node.is("DOMElement")) {
 
-								rootElement = (DOMElement) node;
+								rootElement = node.as(DOMElement.class);
 
 								renderContext.setIsPartialRendering(true);
 							}
@@ -521,23 +521,11 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 						// prepare response
 						response.setCharacterEncoding("UTF-8");
-
-						String contentType = rootElement.getContentType();
-						if (contentType == null) {
-
-							// Default
-							contentType = "text/html;charset=UTF-8";
-						}
-
-						if (contentType.equals("text/html")) {
-							contentType = contentType.concat(";charset=UTF-8");
-						}
-
-						response.setContentType(contentType);
+						response.setContentType(getContentTypeOrDefault(rootElement));
 
 						setCustomResponseHeaders(response);
 
-						final boolean createsRawData = rootElement.as(Page.class).pageCreatesRawData();
+						final boolean createsRawData = rootElement.is("Page") && rootElement.as(Page.class).pageCreatesRawData();
 
 						// async or not?
 						if (isAsync && !createsRawData) {
@@ -731,14 +719,14 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 						// Element with Basic Auth found and authentication succeeded
 						case Authenticated:
 							final Linkable result = authResult.getRootElement();
-							if (result instanceof Page) {
+							if (result.is("Page")) {
 
-								rootElement = (DOMNode)result;
+								rootElement = result.as(Page.class);
 								renderContext.pushSecurityContext(authResult.getSecurityContext());
 
 							} else if (result.is("File")) {
 
-								//streamFile(authResult.getSecurityContext(), (File)result, request, response, EditMode.NONE);
+								streamFile(authResult.getSecurityContext(), result.as(File.class), request, response, EditMode.NONE, true);
 								tx.success();
 								return;
 
@@ -814,20 +802,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 						// prepare response
 						response.setCharacterEncoding("UTF-8");
-
-						String contentType = rootElement.getContentType();
-
-						if (contentType == null) {
-
-							// Default
-							contentType = "text/html;charset=UTF-8";
-						}
-
-						if (contentType.equals("text/html")) {
-							contentType = contentType.concat(";charset=UTF-8");
-						}
-
-						response.setContentType(contentType);
+						response.setContentType(getContentTypeOrDefault(rootElement));
 
 						setCustomResponseHeaders(response);
 					}
@@ -1200,6 +1175,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		}
 
 		// Check direct access by UUID
+		// FIXME: the length is different depending on the uuid type setting
 		if (name.length() == 32) {
 
 			final NodeInterface possiblePage = StructrApp.getInstance(securityContext).getNodeById("NodeInterface", name);
@@ -1928,6 +1904,26 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		}
 
 		return null;
+	}
+
+	private String getContentTypeOrDefault(final DOMNode rootElement) {
+
+		String contentType = "text/html;charset=UTF-8";
+
+		if (rootElement.is("Page")) {
+
+			final String possibleContentType = rootElement.as(Page.class).getContentType();
+			if (StringUtils.isNotBlank(possibleContentType)) {
+
+				contentType = possibleContentType;
+
+				if (contentType.equals("text/html")) {
+					contentType = contentType.concat(";charset=UTF-8");
+				}
+			}
+		}
+
+		return contentType;
 	}
 
 	public static String filterMaliciousRedirects(final String source) {

@@ -88,7 +88,7 @@ public class Script extends GenericHtmlElementTraitDefinition {
 							final PropertyKey<String> key = node.getTraits().key("_html_type");
 							final String scriptType       = node.getProperty(key);
 
-							if (StringUtils.isNotBlank(scriptType) && StringUtils.isBlank(newChild.getContentType())) {
+							if (StringUtils.isNotBlank(scriptType) && StringUtils.isBlank(newChild.as(Content.class).getContentType())) {
 
 								newChild.as(Content.class).setContentType(scriptType);
 							}

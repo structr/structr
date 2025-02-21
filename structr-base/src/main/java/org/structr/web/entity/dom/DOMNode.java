@@ -149,7 +149,6 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 	String getPagePath();
 	String getContextName();
 	String getSharedComponentConfiguration();
-	String getContentType();
 
 	DOMNode getParent();
 	DOMNode getSharedComponent();

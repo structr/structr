@@ -18,6 +18,7 @@
  */
 package org.structr.web.traits.definitions;
 
+import org.structr.common.PropertyView;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
@@ -41,12 +42,6 @@ public class LinkableTraitDefinition extends AbstractNodeTraitDefinition {
 	public LinkableTraitDefinition() {
 		super("Linkable");
 	}
-
-	/*
-	View uiView = new View(LinkableTraitDefinition.class, PropertyView.Ui,
-		linkingElementsProperty, linkinkElementsIdsProperty, enableBasicAuthProperty, basicAuthRealmProperty
-	);
-	*/
 
 	@Override
 	public Map<Class, LifecycleMethod> getLifecycleMethods() {
@@ -80,15 +75,26 @@ public class LinkableTraitDefinition extends AbstractNodeTraitDefinition {
 	public Set<PropertyKey> getPropertyKeys() {
 
 		final Property<Iterable<NodeInterface>> linkingElementsProperty = new StartNodes("linkingElements", "LinkSourceLINKLinkable");
-		final Property<Iterable<String>> linkinkElementsIdsProperty     = new CollectionIdProperty<>("linkingElementsIds", "Linkable","linkingElements", "LinkSource");
+		final Property<Iterable<String>> linkingElementsIdsProperty     = new CollectionIdProperty<>("linkingElementsIds", "Linkable","linkingElements", "LinkSource");
 		final Property<Boolean> enableBasicAuthProperty                 = new BooleanProperty("enableBasicAuth").defaultValue(false).indexed();
 		final Property<String> basicAuthRealmProperty                   = new StringProperty("basicAuthRealm");
 
 		return Set.of(
 			linkingElementsProperty,
-			linkinkElementsIdsProperty,
+			linkingElementsIdsProperty,
 			enableBasicAuthProperty,
 			basicAuthRealmProperty
+		);
+	}
+
+	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+			PropertyView.Ui,
+			newSet(
+				"linkingElements", "linkingElementsIds", "enableBasicAuth", "basicAuthRealm"
+			)
 		);
 	}
 

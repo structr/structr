@@ -99,6 +99,11 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 	}
 
 	@Override
+	public final String getContentType() {
+		return wrappedObject.getProperty(traits.key("contentType"));
+	}
+
+	@Override
 	public String getShowOnErrorCodes() {
 		return wrappedObject.getProperty(traits.key("showOnErrorCodes"));
 	}

@@ -207,13 +207,13 @@ public class SchemaMethodTraitWrapper extends AbstractNodeTraitWrapper implement
 
 			typeBasedLifecycleMethods.put("onNodeCreation",    OnNodeCreation.class);
 			typeBasedLifecycleMethods.put("onCreate",          OnCreation.class);
-			typeBasedLifecycleMethods.put("onCreation",        OnCreation.class);
+			typeBasedLifecycleMethods.put("onCreation",        OnCreation.class);  // FIXME: deprecate this
 			typeBasedLifecycleMethods.put("afterCreate",       AfterCreation.class);
-			typeBasedLifecycleMethods.put("afterCreation",     AfterCreation.class);
+			typeBasedLifecycleMethods.put("afterCreation",     AfterCreation.class);  // FIXME: deprecate this
 			typeBasedLifecycleMethods.put("onSave",            OnModification.class);
-			typeBasedLifecycleMethods.put("onModification",    OnModification.class);
+			typeBasedLifecycleMethods.put("onModification",    OnModification.class);  // FIXME: deprecate this
 			typeBasedLifecycleMethods.put("afterSave",         AfterModification.class);
-			typeBasedLifecycleMethods.put("afterModification", AfterModification.class);
+			typeBasedLifecycleMethods.put("afterModification", AfterModification.class);  // FIXME: deprecate this
 			typeBasedLifecycleMethods.put("onDelete",          OnDeletion.class);
 			typeBasedLifecycleMethods.put("afterDelete",       AfterDeletion.class);
 
