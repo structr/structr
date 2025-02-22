@@ -18,6 +18,7 @@
  */
 package org.structr.core.traits.definitions;
 
+import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaView;
 import org.structr.core.graph.NodeInterface;
@@ -36,24 +37,6 @@ import java.util.Set;
 public class SchemaViewTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public static final String schemaViewNamePattern    = "[a-zA-Z_][a-zA-Z0-9_]*";
-
-	/*
-	public static final View defaultView = new View(SchemaProperty.class, PropertyView.Public,
-		id, name, schemaNode, schemaProperties, nonGraphProperties
-	);
-
-	public static final View uiView = new View(SchemaProperty.class, PropertyView.Ui,
-		id, name, schemaNode, schemaProperties, nonGraphProperties, isBuiltinView, sortOrder
-	);
-
-	public static final View schemaView = new View(SchemaView.class, "schema",
-		id, name, schemaNode, schemaProperties, nonGraphProperties, isBuiltinView, sortOrder
-	);
-
-	public static final View exportView = new View(SchemaView.class, "export",
-		id, typeHandler, name, schemaNode, nonGraphProperties, isBuiltinView, sortOrder
-	);
-	*/
 
 	public SchemaViewTraitDefinition() {
 		super("SchemaView");
@@ -83,6 +66,33 @@ public class SchemaViewTraitDefinition extends AbstractNodeTraitDefinition {
 			staticSchemaNodeName,
 			nonGraphProperties,
 			sortOrder
+		);
+	}
+
+	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+
+				PropertyView.Public,
+				newSet(
+						"id", "name", "schemaNode", "schemaProperties", "nonGraphProperties"
+				),
+
+				PropertyView.Ui,
+				newSet(
+						"id", "name", "schemaNode", "schemaProperties", "nonGraphProperties", "isBuiltinView", "sortOrder"
+				),
+
+				"schema",
+				newSet(
+						"id", "name", "schemaNode", "schemaProperties", "nonGraphProperties", "isBuiltinView", "sortOrder"
+				),
+
+				"export",
+				newSet(
+						"id", "typeHandler", "name", "schemaNode", "nonGraphProperties", "isBuiltinView", "sortOrder"
+				)
 		);
 	}
 
