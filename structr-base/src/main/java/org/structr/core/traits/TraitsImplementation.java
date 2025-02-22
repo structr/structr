@@ -207,36 +207,23 @@ public class TraitsImplementation implements Traits {
 	@Override
 	public <T extends FrameworkMethod> T getMethod(final Class<T> type) {
 
-		// build hierarchy here??
-
-		final List<T> methods = new LinkedList<>();
+		T current = null;
 
 		for (final Trait trait : getTraits()) {
 
 			final T method = trait.getFrameworkMethod(type);
 			if (method != null) {
 
-				methods.add(method);
+				if (current != null) {
+
+					method.setSuper(current);
+				}
+
+				current = method;
 			}
 		}
 
-		Collections.reverse(methods);
-
-		T actualMethod = methods.get(0);
-		T current = null;
-
-		for (final T method : methods) {
-
-			if (current != null) {
-
-				current.setSuper(method);
-			}
-
-			current = method;
-
-		}
-
-		return actualMethod;
+		return current;
 	}
 
 	@Override
