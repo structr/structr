@@ -111,6 +111,7 @@ public class SchemaResource extends ExactMatchEndpoint {
 				schema.setProperty(typeProperty, type.getName());
 				schema.setProperty(nameProperty, type.getName());
 				schema.setProperty(classNameProperty, type.getName());
+				schema.setProperty(SchemaResource.traitsProperty, type.getAllTraits());
 				//schema.setProperty(extendsClassNameProperty, type.getSuperclass().getName());
 				schema.setProperty(isRelProperty, type.isRelationshipType());
 				schema.setProperty(isAbstractProperty, type.isAbstract());
