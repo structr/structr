@@ -289,15 +289,14 @@ let _Crud = {
 
 					let type            = _Crud.types[typeName];
 					let isRelType       = (type.isRel === true);
-					let isBuiltInRel    = isRelType;		// TODO: needs builtin flag 	&& isBuiltin
-					let isCustomRelType = isRelType;		// TODO: needs builtin flag		&& !isBuiltin
+					let isBuiltInRel    = isRelType && type.isBuiltin;
+					let isCustomRelType = isRelType && !type.isBuiltin;
 
-					let isDynamicType   = !isRelType;		// TODO: needs builtin flag		&& !isBuiltin
+					let isDynamicType   = !isRelType && !type.isBuiltin;
 					let isHtmlType      = type.traits.includes('DOMNode');
 					let isFlowType      = type.traits.includes('FlowNode');
 					let isOtherType     = !(isRelType || isDynamicType || isHtmlType || isFlowType);
 
-					// TODO: this will not work ATM because the different filter settings must be overlap-free
 					let hide = (!typeVisibility.rels && isBuiltInRel) || (!typeVisibility.customRels && isCustomRelType) || (!typeVisibility.custom && isDynamicType) ||
 						(!typeVisibility.html && isHtmlType) || (!typeVisibility.flow && isFlowType) || (!typeVisibility.other && isOtherType);
 

@@ -55,6 +55,7 @@ public class SchemaResource extends ExactMatchEndpoint {
 	public static final BooleanProperty isRelProperty                   = new BooleanProperty("isRel");
 	public static final BooleanProperty isAbstractProperty              = new BooleanProperty("isAbstract");
 	public static final BooleanProperty isInterfaceProperty             = new BooleanProperty("isInterface");
+	public static final BooleanProperty isBuiltinProperty               = new BooleanProperty("isBuiltin");
 	public static final LongProperty flagsProperty                      = new LongProperty("flags");
 	public static final GenericProperty viewsProperty                   = new GenericProperty("views");
 	public static final GenericProperty relatedToProperty               = new GenericProperty("relatedTo");
@@ -111,7 +112,8 @@ public class SchemaResource extends ExactMatchEndpoint {
 				schema.setProperty(typeProperty, type.getName());
 				schema.setProperty(nameProperty, type.getName());
 				schema.setProperty(classNameProperty, type.getName());
-				schema.setProperty(SchemaResource.traitsProperty, type.getAllTraits());
+				schema.setProperty(traitsProperty, type.getAllTraits());
+				schema.setProperty(isBuiltinProperty, type.isBuiltinType());
 				//schema.setProperty(extendsClassNameProperty, type.getSuperclass().getName());
 				schema.setProperty(isRelProperty, type.isRelationshipType());
 				schema.setProperty(isAbstractProperty, type.isAbstract());

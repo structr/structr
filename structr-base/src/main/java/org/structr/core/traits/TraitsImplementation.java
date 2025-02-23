@@ -140,6 +140,11 @@ public class TraitsImplementation implements Traits {
 		return isRelationshipType;
 	}
 
+	@Override
+	public boolean isBuiltinType() {
+		return isBuiltInType;
+	}
+
 	/**
 	 * Returns the combined property set of all traits that
 	 * this type contains.
