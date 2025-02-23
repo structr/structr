@@ -18,6 +18,7 @@
  */
 package org.structr.web.traits.definitions;
 
+import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
@@ -37,12 +38,6 @@ import java.util.Set;
  * Storage object for configuration data.
  */
 public class ApplicationConfigurationDataNodeTraitDefinition extends AbstractNodeTraitDefinition {
-
-	/*
-	public static final View uiView = new View(ApplicationConfigurationDataNode.class, PropertyView.Ui,
-		configTypeProperty, contentProperty
-	);
-	*/
 
 	public ApplicationConfigurationDataNodeTraitDefinition() {
 		super("ApplicationConfigurationDataNode");
@@ -80,6 +75,15 @@ public class ApplicationConfigurationDataNodeTraitDefinition extends AbstractNod
 		return Set.of(
 			configTypeProperty,
 			contentProperty
+		);
+	}
+
+	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+				PropertyView.Ui,
+				newSet("configType", "content")
 		);
 	}
 
