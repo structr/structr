@@ -185,6 +185,11 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 			}
 
 			@Override
+			public boolean isBuiltinType() {
+				return false;
+			}
+
+			@Override
 			public Map<String, Map<String, PropertyKey>> removeDynamicTraits() {
 				return Map.of();
 			}

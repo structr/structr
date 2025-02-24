@@ -18,6 +18,7 @@
  */
 package org.structr.core.traits.definitions;
 
+import org.structr.common.PropertyView;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
@@ -38,24 +39,6 @@ import java.util.Set;
 public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 
 	private static final String schemaPropertyNamePattern = "[_A-Za-z][\\-_0-9A-Za-z]*";
-
-	/*
-	public static final View defaultView = new View(SchemaProperty.class, PropertyView.Public,
-		id, typeHandler, name, dbName, schemaNode, schemaViews, excludedViews, propertyType, contentType, format, fqcn, typeHint, hint, category, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, declaringClass, isDynamic, readFunction, writeFunction, openAPIReturnType, validators, transformers, isCachingEnabled
-	);
-
-	public static final View uiView = new View(SchemaProperty.class, PropertyView.Ui,
-		id, typeHandler, name, dbName, createdBy, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibleToAuthenticatedUsers, schemaNode, schemaViews, excludedViews, propertyType, contentType, fqcn, format, typeHint, hint, category, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, declaringClass, isDynamic, readFunction, writeFunction, openAPIReturnType, validators, transformers, isCachingEnabled
-	);
-
-	public static final View schemaView = new View(SchemaProperty.class, "schema",
-		id, typeHandler, name, dbName, schemaNode, excludedViews, schemaViews, propertyType, contentType, format, fqcn, typeHint, hint, category, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic, readFunction, writeFunction, openAPIReturnType, validators, transformers, isCachingEnabled
-	);
-
-	public static final View exportView = new View(SchemaProperty.class, "export",
-		id, typeHandler, name, schemaNode, schemaViews, excludedViews, dbName, propertyType, contentType, format, fqcn, typeHint, hint, category, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic, readFunction, writeFunction, openAPIReturnType, validators, transformers, isCachingEnabled
-	);
-	*/
 
 	public SchemaPropertyTraitDefinition() {
 		super("SchemaProperty");
@@ -156,6 +139,33 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 			openAPIReturnType,
 			validators,
 			transformers
+		);
+	}
+
+	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+
+				PropertyView.Public,
+				newSet(
+						"id", "typeHandler", "name", "dbName", "schemaNode", "schemaViews", "excludedViews", "propertyType", "contentType", "format", "fqcn", "typeHint", "hint", "category", "notNull", "compound", "unique", "indexed", "readOnly", "defaultValue", "isBuiltinProperty", "declaringClass", "isDynamic", "readFunction", "writeFunction", "openAPIReturnType", "validators", "transformers", "isCachingEnabled"
+				),
+
+				PropertyView.Ui,
+				newSet(
+						"id", "typeHandler", "name", "dbName", "createdBy", "hidden", "createdDate", "lastModifiedDate", "visibleToPublicUsers", "visibleToAuthenticatedUsers", "schemaNode", "schemaViews", "excludedViews", "propertyType", "contentType", "fqcn", "format", "typeHint", "hint", "category", "notNull", "compound", "unique", "indexed", "readOnly", "defaultValue", "isBuiltinProperty", "declaringClass", "isDynamic", "readFunction", "writeFunction", "openAPIReturnType", "validators", "transformers", "isCachingEnabled"
+				),
+
+				"schema",
+				newSet(
+						"id", "typeHandler", "name", "dbName", "schemaNode", "excludedViews", "schemaViews", "propertyType", "contentType", "format", "fqcn", "typeHint", "hint", "category", "notNull", "compound", "unique", "indexed", "readOnly", "defaultValue", "isBuiltinProperty", "isDefaultInUi", "isDefaultInPublic", "declaringClass", "isDynamic", "readFunction", "writeFunction", "openAPIReturnType", "validators", "transformers", "isCachingEnabled"
+				),
+
+				"export",
+				newSet(
+						"id", "typeHandler", "name", "schemaNode", "schemaViews", "excludedViews", "dbName", "propertyType", "contentType", "format", "fqcn", "typeHint", "hint", "category", "notNull", "compound", "unique", "indexed", "readOnly", "defaultValue", "isBuiltinProperty", "isDefaultInUi", "isDefaultInPublic", "declaringClass", "isDynamic", "readFunction", "writeFunction", "openAPIReturnType", "validators", "transformers", "isCachingEnabled"
+				)
 		);
 	}
 

@@ -54,6 +54,7 @@ public interface Traits {
 	boolean changelogEnabled();
 	Set<String> getViewNames();
 	Set<String> getAllTraits();
+	boolean isBuiltinType();
 
 	// ----- static methods -----
 	static Traits of(final String name) {
