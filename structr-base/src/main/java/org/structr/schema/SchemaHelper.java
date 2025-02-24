@@ -213,6 +213,7 @@ public class SchemaHelper {
 		final ConfigurationProvider config    = StructrApp.getConfiguration();
 		final List<GraphObjectMap> resultList = new LinkedList<>();
 		final Traits traits                   = Traits.of(type);
+		final boolean isServiceClass          = traits.isServiceClass();
 
 		if (traits != null) {
 
@@ -245,20 +246,24 @@ public class SchemaHelper {
 				schema.setProperty(SchemaResource.classNameProperty, type);
 				schema.setProperty(SchemaResource.traitsProperty, traits.getAllTraits());
 				schema.setProperty(SchemaResource.isBuiltinProperty, traits.isBuiltinType());
+				schema.setProperty(SchemaResource.isServiceClassProperty, traits.isServiceClass());
 				schema.setProperty(SchemaResource.isRelProperty, isRel);
 				schema.setProperty(SchemaResource.isAbstractProperty, traits.isAbstract());
 				schema.setProperty(SchemaResource.isInterfaceProperty, traits.isInterface());
 				schema.setProperty(SchemaResource.flagsProperty, SecurityContext.getResourceFlags(type));
 
-				final Set<String> propertyViews = new LinkedHashSet<>(traits.getViewNames());
+				if (!isServiceClass) {
 
-				// list property sets for all views
-				Map<String, Map<String, Object>> views = new TreeMap();
-				schema.setProperty(SchemaResource.viewsProperty, views);
+					final Set<String> propertyViews = new LinkedHashSet<>(traits.getViewNames());
 
-				for (final String view : propertyViews) {
+					// list property sets for all views
+					Map<String, Map<String, Object>> views = new TreeMap();
+					schema.setProperty(SchemaResource.viewsProperty, views);
 
-					views.put(view, getPropertiesForView(securityContext, traits, view));
+					for (final String view : propertyViews) {
+
+						views.put(view, getPropertiesForView(securityContext, traits, view));
+					}
 				}
 
 				if (isRel) {

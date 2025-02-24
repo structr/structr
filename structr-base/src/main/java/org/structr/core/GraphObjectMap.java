@@ -170,6 +170,11 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 			}
 
 			@Override
+			public boolean isServiceClass() {
+				return false;
+			}
+
+			@Override
 			public boolean changelogEnabled() {
 				return false;
 			}

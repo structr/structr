@@ -45,6 +45,7 @@ public interface AbstractSchemaNode extends NodeInterface {
 
 	boolean isInterface();
 	boolean isAbstract();
+	boolean isServiceClass();
 	boolean changelogDisabled();
 	boolean includeInOpenAPI();
 

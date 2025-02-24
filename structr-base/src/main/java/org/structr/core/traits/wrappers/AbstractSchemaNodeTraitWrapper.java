@@ -196,6 +196,11 @@ public class AbstractSchemaNodeTraitWrapper extends AbstractNodeTraitWrapper imp
 	}
 
 	@Override
+	public boolean isServiceClass() {
+		return wrappedObject.getProperty(traits.key("isServiceClass"));
+	}
+
+	@Override
 	public boolean changelogDisabled() {
 		return wrappedObject.getProperty(traits.key("changelogDisabled"));
 	}

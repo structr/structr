@@ -243,37 +243,40 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 			if (type.isSelected(tag) && type.includeInOpenAPI()) {
 
-				final Traits traits         = Traits.of(type.name);
-				final Set<String> viewNames = traits.getViewNames();
+				if (!type.isServiceClass()) {
 
-				viewNames.removeAll(StructrTypeDefinition.VIEW_BLACKLIST);
-				viewNames.remove("all");
+					final Traits traits = Traits.of(type.name);
+					final Set<String> viewNames = traits.getViewNames();
 
-				for (String viewName : viewNames) {
+					viewNames.removeAll(StructrTypeDefinition.VIEW_BLACKLIST);
+					viewNames.remove("all");
 
-					final String typeName = type.getName() + (viewName == null || StringUtils.equals(PropertyView.Public, viewName) ? "" : "." + viewName);
+					for (String viewName : viewNames) {
 
-					String viewNameStringForReference = StringUtils.equals(viewName, PropertyView.Public) ? "" : "." + viewName;
-					map.put(typeName + "MultipleResponse",
-							new OpenAPIRequestResponse(
-								"The request was executed successfully.",
-								new OpenAPISchemaReference(type.getName() + viewNameStringForReference + "MultipleResponseSchema"),
-								new OpenAPIExampleAnyResult(List.of(), true),
-								null,
-								false,
-								null
-							)
-					);
+						final String typeName = type.getName() + (viewName == null || StringUtils.equals(PropertyView.Public, viewName) ? "" : "." + viewName);
 
-					map.put(typeName + "SingleResponse",
-						new OpenAPIRequestResponse("The request was executed successfully.",
-							new OpenAPISchemaReference(type.getName() + viewNameStringForReference + "SingleResponseSchema"),
-							new OpenAPIExampleAnyResult(Map.of(), true),
-							null,
-							false,
-							null
-						)
-					);
+						String viewNameStringForReference = StringUtils.equals(viewName, PropertyView.Public) ? "" : "." + viewName;
+						map.put(typeName + "MultipleResponse",
+								new OpenAPIRequestResponse(
+										"The request was executed successfully.",
+										new OpenAPISchemaReference(type.getName() + viewNameStringForReference + "MultipleResponseSchema"),
+										new OpenAPIExampleAnyResult(List.of(), true),
+										null,
+										false,
+										null
+								)
+						);
+
+						map.put(typeName + "SingleResponse",
+								new OpenAPIRequestResponse("The request was executed successfully.",
+										new OpenAPISchemaReference(type.getName() + viewNameStringForReference + "SingleResponseSchema"),
+										new OpenAPIExampleAnyResult(Map.of(), true),
+										null,
+										false,
+										null
+								)
+						);
+					}
 				}
 
 				for (final StructrMethodDefinition method : type.methods) {
@@ -321,7 +324,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 		for (final StructrTypeDefinition<?> type : typeDefinitions) {
 
-			if (StringUtils.isNotEmpty(view) || typeWhiteList.contains(type.getName()) || type.isSelected(tag) && type.includeInOpenAPI()) {
+			if (StringUtils.isNotEmpty(view) || typeWhiteList.contains(type.getName()) || type.isSelected(tag) && type.includeInOpenAPI() && !type.isServiceClass()) {
 
 				for (final String viewName : this.getViewNamesOfType(type, view)) {
 
@@ -338,7 +341,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 					// add actual type definition
 					allOf.add(new OpenAPIStructrTypeSchemaOutput(type, viewName, 0));
 
-					// genereate schema for readFunction returnType
+					// generate schema for readFunction returnType
 					type.visitProperties(key -> {
 
 						if (key instanceof FunctionProperty && StringUtils.isEmpty(key.typeHint())) {

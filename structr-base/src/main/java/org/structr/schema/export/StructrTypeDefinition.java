@@ -68,6 +68,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	protected boolean includeInOpenAPI                            = false;
 	protected boolean isInterface                                 = false;
 	protected boolean isAbstract                                  = false;
+	protected boolean isServiceClass                              = false;
 	protected boolean changelogDisabled                           = false;
 	protected StructrSchemaDefinition root                        = null;
 	protected String description                                  = null;
@@ -788,6 +789,10 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		serializedForm.put(JsonSchema.KEY_IS_INTERFACE, isInterface);
 		serializedForm.put(JsonSchema.KEY_INCLUDE_IN_OPENAPI, includeInOpenAPI);
 
+		if (getClass().equals(StructrNodeTypeDefinition.class)) {
+			serializedForm.put(JsonSchema.KEY_IS_SERVICE_CLASS, isServiceClass);
+		}
+
 		if (changelogDisabled) {
 			serializedForm.put(JsonSchema.KEY_CHANGELOG_DISABLED, true);
 		}
@@ -863,6 +868,10 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 		if (source.containsKey(JsonSchema.KEY_IS_INTERFACE)) {
 			this.isInterface = (Boolean)source.get(JsonSchema.KEY_IS_INTERFACE);
+		}
+
+		if (source.containsKey(JsonSchema.KEY_IS_SERVICE_CLASS)) {
+			this.isServiceClass = (Boolean)source.get(JsonSchema.KEY_IS_SERVICE_CLASS);
 		}
 
 		if (source.containsKey(JsonSchema.KEY_CHANGELOG_DISABLED)) {
@@ -954,6 +963,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 			}
 		}
 
+		this.isServiceClass              = schemaNode.isServiceClass();
 		this.changelogDisabled           = schemaNode.changelogDisabled();
 		this.summary                     = schemaNode.getSummary();
 		this.icon                        = schemaNode.getIcon();
@@ -990,6 +1000,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		createProperties.put(schemaNodeTraits.key("isInterface"),            isInterface);
 		createProperties.put(schemaNodeTraits.key("isAbstract"),             isAbstract);
 		createProperties.put(schemaNodeTraits.key("category"),               category);
+		createProperties.put(schemaNodeTraits.key("isServiceClass"),         isServiceClass);
 		createProperties.put(schemaNodeTraits.key("changelogDisabled"),      changelogDisabled);
 		createProperties.put(schemaNodeTraits.key("defaultVisibleToPublic"), visibleToPublicUsers);
 		createProperties.put(schemaNodeTraits.key("defaultVisibleToAuth"),   visibleToAuthenticatedUsers);
@@ -1105,6 +1116,14 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 	Map<String, String> getViewOrder() {
 		return viewOrder;
+	}
+
+	public boolean isServiceClass() {
+		return isServiceClass;
+	}
+
+	public void setIsServiceClass() {
+		this.isServiceClass = true;
 	}
 
 	void initializeReferenceProperties() {
@@ -1326,6 +1345,12 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		if (isInterfaceValue != null && Boolean.TRUE.equals(isInterfaceValue)) {
 
 			typeDefinition.setIsInterface();
+		}
+
+		final Object isServiceClass = source.get(JsonSchema.KEY_IS_SERVICE_CLASS);
+		if (isServiceClass != null && Boolean.TRUE.equals(isServiceClass)) {
+
+			typeDefinition.setIsServiceClass();
 		}
 
 		final Object isChangelogDisabled = source.get(JsonSchema.KEY_CHANGELOG_DISABLED);
@@ -1578,31 +1603,35 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		final Map<String, Object> root      = new LinkedHashMap<>();
 		final Map<String, Object> singleOps = new LinkedHashMap<>();
 		final Map<String, Object> multiOps  = new LinkedHashMap<>();
-		final Set<String> views             = getInheritedViewNamesExcludingPublic();
 
-		for (final String view : views) {
+		if (!isServiceClass()) {
 
-			root.put("/" + name + "/" + view, Map.of("get", new OpenAPIGetMultipleOperation(this, view)));
+			final Set<String> views = getInheritedViewNamesExcludingPublic();
+
+			for (final String view : views) {
+
+				root.put("/" + name + "/" + view, Map.of("get", new OpenAPIGetMultipleOperation(this, view)));
+			}
+
+			root.put("/" + name, multiOps);
+
+			multiOps.put("get", new OpenAPIGetMultipleOperation(this, PropertyView.Public));
+			//multiOps.put("patch",  new OpenAPIPatchOperation(this));
+			multiOps.put("post", new OpenAPIPostOperation(this, viewNames));
+			multiOps.put("delete", new OpenAPIDeleteMultipleOperation(this));
+
+
+			for (final String view : views) {
+
+				root.put("/" + name + "/{uuid}" + "/" + view, Map.of("get", new OpenAPIGetSingleOperation(this, view)));
+			}
+
+			root.put("/" + name + "/{uuid}", singleOps);
+
+			singleOps.put("get", new OpenAPIGetSingleOperation(this, PropertyView.Public));
+			singleOps.put("put", new OpenAPIPutSingleOperation(this, viewNames));
+			singleOps.put("delete", new OpenAPIDeleteSingleOperation(this));
 		}
-
-		root.put("/" + name, multiOps);
-
-		multiOps.put("get",    new OpenAPIGetMultipleOperation(this, PropertyView.Public));
-		//multiOps.put("patch",  new OpenAPIPatchOperation(this));
-		multiOps.put("post",   new OpenAPIPostOperation(this, viewNames));
-		multiOps.put("delete", new OpenAPIDeleteMultipleOperation(this));
-
-
-		for (final String view : views) {
-
-			root.put("/" + name + "/{uuid}" + "/" + view, Map.of("get", new OpenAPIGetSingleOperation(this, view)));
-		}
-
-		root.put("/" + name + "/{uuid}", singleOps);
-
-		singleOps.put("get",    new OpenAPIGetSingleOperation(this, PropertyView.Public));
-		singleOps.put("put",    new OpenAPIPutSingleOperation(this, viewNames));
-		singleOps.put("delete", new OpenAPIDeleteSingleOperation(this));
 
 		// methods
 		for (final StructrMethodDefinition method : methods) {

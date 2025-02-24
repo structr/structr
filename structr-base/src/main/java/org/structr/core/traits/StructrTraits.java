@@ -24,14 +24,14 @@ public class StructrTraits {
 
 	public static void registerBaseType(final TraitDefinition definition) {
 
-		final Traits traits = new TraitsImplementation(definition.getName(), true, false, false, false);
+		final Traits traits = new TraitsImplementation(definition.getName(), true, false, false, false, false);
 
 		traits.registerImplementation(definition, false);
 	}
 
 	public static void registerNodeInterface() {
 
-		final Traits traits = new TraitsImplementation("NodeInterface", true, true, false, false);
+		final Traits traits = new TraitsImplementation("NodeInterface", true, true, false, false, false);
 
 		traits.registerImplementation(new PropertyContainerTraitDefinition(), false);
 		traits.registerImplementation(new GraphObjectTraitDefinition(), false);
@@ -40,14 +40,14 @@ public class StructrTraits {
 
 	public static void registerRelationshipInterface() {
 
-		final Traits traits = new TraitsImplementation("RelationshipInterface", true, false, true, false);
+		final Traits traits = new TraitsImplementation("RelationshipInterface", true, false, true, false, false);
 
 		traits.registerImplementation(new PropertyContainerTraitDefinition(), false);
 		traits.registerImplementation(new GraphObjectTraitDefinition(), false);
 		traits.registerImplementation(new RelationshipInterfaceTraitDefinition(), false);
 	}
 
-	public static void registerDynamicNodeType(final String typeName, final boolean changelogEnabled, final TraitDefinition... definitions) {
+	public static void registerDynamicNodeType(final String typeName, final boolean changelogEnabled, final boolean isServiceClass, final TraitDefinition... definitions) {
 
 		Traits traits;
 
@@ -59,7 +59,7 @@ public class StructrTraits {
 
 		} else {
 
-			traits = new TraitsImplementation(typeName, false, true, false, changelogEnabled);
+			traits = new TraitsImplementation(typeName, false, true, false, changelogEnabled, isServiceClass);
 
 			// Node types consist of at least the following traits
 			traits.registerImplementation(new PropertyContainerTraitDefinition(), false);
@@ -81,7 +81,7 @@ public class StructrTraits {
 			return;
 		}
 
-		final Traits traits = new TraitsImplementation(typeName, false, false, true, changelogEnabled);
+		final Traits traits = new TraitsImplementation(typeName, false, false, true, changelogEnabled, false);
 
 		// Node types consist of at least the following traits
 		traits.registerImplementation(new PropertyContainerTraitDefinition(), false);
@@ -95,7 +95,7 @@ public class StructrTraits {
 
 	public static void registerNodeType(final String typeName, final TraitDefinition... definitions) {
 
-		final Traits traits = new TraitsImplementation(typeName, true, true, false, false);
+		final Traits traits = new TraitsImplementation(typeName, true, true, false, false, false);
 
 		// Node types consist of at least the following traits
 		traits.registerImplementation(new PropertyContainerTraitDefinition(), false);
@@ -110,7 +110,7 @@ public class StructrTraits {
 
 	public static void registerRelationshipType(final String typeName, final TraitDefinition... definitions) {
 
-		final Traits traits = new TraitsImplementation(typeName, true, false, true, false);
+		final Traits traits = new TraitsImplementation(typeName, true, false, true, false, false);
 
 		// Relationship types consist of at least the following traits
 		traits.registerImplementation(new PropertyContainerTraitDefinition(), false);

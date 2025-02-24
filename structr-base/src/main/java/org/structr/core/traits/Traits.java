@@ -51,6 +51,7 @@ public interface Traits {
 	boolean isInterface();
 	boolean isAbstract();
 	boolean isBuiltInType();
+	boolean isServiceClass();
 	boolean changelogEnabled();
 	Set<String> getViewNames();
 	Set<String> getAllTraits();

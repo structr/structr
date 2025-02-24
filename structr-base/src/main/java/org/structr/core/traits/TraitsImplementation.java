@@ -42,16 +42,18 @@ public class TraitsImplementation implements Traits {
 	private final boolean isNodeType;
 	private final boolean isRelationshipType;
 	private final boolean isBuiltInType;
+	private final boolean isServiceClass;
 	private final boolean changelogEnabled;
 	private final String typeName;
 
-	TraitsImplementation(final String typeName, final boolean isBuiltInType, final boolean isNodeType, final boolean isRelationshipType, final boolean changelogEnabled) {
+	TraitsImplementation(final String typeName, final boolean isBuiltInType, final boolean isNodeType, final boolean isRelationshipType, final boolean changelogEnabled, final boolean isServiceClass) {
 
 		this.typeName           = typeName;
 		this.isNodeType         = isNodeType;
 		this.isBuiltInType      = isBuiltInType;
 		this.isRelationshipType = isRelationshipType;
 		this.changelogEnabled   = changelogEnabled;
+		this.isServiceClass     = isServiceClass;
 
 		globalTypeMap.put(typeName, this);
 	}
@@ -311,6 +313,11 @@ public class TraitsImplementation implements Traits {
 	@Override
 	public boolean isBuiltInType() {
 		return isBuiltInType;
+	}
+
+	@Override
+	public boolean isServiceClass() {
+		return isServiceClass;
 	}
 
 	@Override

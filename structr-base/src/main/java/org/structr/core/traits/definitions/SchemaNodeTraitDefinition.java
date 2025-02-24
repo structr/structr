@@ -168,8 +168,8 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 			PropertyView.Public,
 			newSet(
 				"id", "type", "name", "inheritedTraits", "relatedTo", "relatedFrom", "defaultSortKey",
-				"defaultSortOrder", "hierarchyLevel", "relCount", "isInterface", "isAbstract", "defaultVisibleToPublic",
-				"defaultVisibleToAuth"
+				"defaultSortOrder", "hierarchyLevel", "relCount", "isInterface", "isAbstract",
+				"defaultVisibleToPublic", "defaultVisibleToAuth"
 			),
 
 			PropertyView.Ui,
@@ -177,8 +177,8 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 				"id", "type", "name", "owner", "createdBy", "hidden", "createdDate", "lastModifiedDate",
 				"visibleToPublicUsers", "visibleToAuthenticatedUsers", "schemaProperties", "schemaViews",
 				"schemaMethods", "icon", "changelogDisabled", "relatedTo", "relatedFrom", "defaultSortKey",
-				"defaultSortOrder", "hierarchyLevel", "relCount", "isInterface", "isAbstract", "category",
-				"defaultVisibleToPublic", "defaultVisibleToAuth", "includeInOpenAPI", "inheritedTraits"
+				"defaultSortOrder", "hierarchyLevel", "relCount", "isInterface", "isAbstract",
+				"category", "defaultVisibleToPublic", "defaultVisibleToAuth", "includeInOpenAPI", "inheritedTraits"
 			),
 
 			"schema",
@@ -192,8 +192,8 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 			"export",
 			newSet(
 				"id", "type", "name", "defaultSortKey", "defaultSortOrder", "hierarchyLevel",
-				"relCount", "isInterface", "isAbstract", "defaultVisibleToPublic", "defaultVisibleToAuth",
-				"inheritedTraits"
+				"relCount", "isInterface", "isAbstract",
+				"defaultVisibleToPublic", "defaultVisibleToAuth", "inheritedTraits"
 			)
 		);
 	}

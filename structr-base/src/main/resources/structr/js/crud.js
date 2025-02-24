@@ -94,7 +94,9 @@ let _Crud = {
 
 			let data = await response.json();
 
-			for (let typeObj of data.result) {
+			let crudTypes = data.result.filter(typeObj => !typeObj.isServiceClass);
+
+			for (let typeObj of crudTypes) {
 
 				_Crud.types[typeObj.type] = typeObj;
 			}
@@ -2654,11 +2656,21 @@ let _Crud = {
 
 				if (response.ok) {
 
-					if (data && data.result && data.result[0]) {
+					let typeInfo = data?.result?.[0];
 
-						_Crud.types[type] = data.result[0];
+					if (typeInfo) {
 
-						successCallback?.();
+						if (typeInfo.isServiceClass === false) {
+
+							_Crud.types[type] = typeInfo;
+
+							successCallback?.();
+
+						} else {
+
+							new ErrorMessage().text(`Unable to show data for service class '${type}'`).delayDuration(5000).show();
+							_Crud.helpers.delayedMessage.showMessageAfterDelay(`<span class="mr-1">Unable to show data for service class </span><b>${type}</b>. Please select any other type.`, 500);
+						}
 
 					} else {
 
@@ -2690,7 +2702,7 @@ let _Crud = {
 
 				_Crud.helpers.ensureTypeInfoIsLoaded(type, () => {
 
-					properties = _Crud.types[type].views.all;
+					properties = _Crud.types[type]?.views?.all ?? [];
 
 					if (Object.keys(properties).length === 0) {
 

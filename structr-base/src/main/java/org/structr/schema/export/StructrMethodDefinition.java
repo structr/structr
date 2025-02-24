@@ -816,12 +816,15 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		return schema;
 	}
 
-	public List<Map<String, Object>> getOpenAPIRequestParameters(final Set<String> viewNames) {
+	public List<Map<String, Object>> getOpenAPIRequestParameters(final StructrMethodDefinition method, final Set<String> viewNames) {
 
 		final String verb                    = StringUtils.defaultIfBlank(this.getHttpVerb(), "post").toLowerCase();
 		final List<Map<String, Object>> list = new LinkedList<>();
 
-		list.add(new OpenAPIPathParameter("uuid", "The UUID of the target object", Map.of("type", "string"), true));
+		if (!method.isStatic()) {
+
+			list.add(new OpenAPIPathParameter("uuid", "The UUID of the target object", Map.of("type", "string"), true));
+		}
 
 		if ("get".equals(verb)) {
 

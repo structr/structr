@@ -137,6 +137,8 @@ public final class AbstractSchemaNodeTraitDefinition extends AbstractNodeTraitDe
 		final Property<String>  icon                             = new StringProperty("icon");
 		final Property<String>  summary                          = new StringProperty("summary").indexed();
 		final Property<String>  description                      = new StringProperty("description").indexed();
+		final Property<Boolean> isServiceClass                   = new BooleanProperty("isServiceClass").indexed();
+
 
 		return newSet(
 			schemaProperties,
@@ -147,7 +149,8 @@ public final class AbstractSchemaNodeTraitDefinition extends AbstractNodeTraitDe
 			icon,
 			tags,
 			summary,
-			description
+			description,
+			isServiceClass
 		);
 	}
 
@@ -157,16 +160,16 @@ public final class AbstractSchemaNodeTraitDefinition extends AbstractNodeTraitDe
 		return Map.of(
 
 			PropertyView.Public,
-			newSet("changelogDisabled", "icon", "tags", "summary", "description"),
+			newSet("changelogDisabled", "icon", "tags", "summary", "description", "isServiceClass"),
 
 			PropertyView.Ui,
-			newSet("tags", "summary", "description", "includeInOpenAPI"),
+			newSet("tags", "summary", "description", "includeInOpenAPI", "isServiceClass"),
 
 			"schema",
-			newSet("tags", "summary", "description", "includeInOpenAPI"),
+			newSet("tags", "summary", "description", "includeInOpenAPI", "isServiceClass"),
 
 			"export",
-			newSet("changelogDisabled", "icon", "tags", "summary", "description")
+			newSet("changelogDisabled", "icon", "tags", "summary", "description", "isServiceClass")
 		);
 	}
 

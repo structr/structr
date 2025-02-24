@@ -134,7 +134,7 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 	public Set<PropertyKey> getPropertyKeys() {
 
 		final Property<Iterable<NodeInterface>> parameters         = new EndNodes("parameters", "SchemaMethodParameters");
-		final Property<NodeInterface>      schemaNode              = new StartNode("schemaNode", "SchemaNodeMethod", new PropertySetNotion<>(newSet("id", "name")));
+		final Property<NodeInterface>      schemaNode              = new StartNode("schemaNode", "SchemaNodeMethod", new PropertySetNotion<>(newSet("id", "name", "isServiceClass")));
 		final Property<String>             staticSchemaNodeName    = new StringProperty("staticSchemaNodeName");
 		final Property<String>             signature               = new StringProperty("signature").indexed();
 		final Property<String>             virtualFileName         = new StringProperty("virtualFileName").indexed();
