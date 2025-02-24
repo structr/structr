@@ -31,6 +31,7 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.Notion;
+import org.structr.core.traits.StructrTraits;
 
 import java.util.Collections;
 import java.util.Map;
@@ -61,7 +62,7 @@ public class RelationshipStartNode<T extends NodeInterface> extends AbstractRead
 
 	@Override
 	public String typeName() {
-		return "NodeInterface";
+		return StructrTraits.NODE_INTERFACE;
 	}
 
 	@Override

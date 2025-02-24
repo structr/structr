@@ -29,9 +29,10 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
-import org.structr.storage.StorageProviderFactory;
 import org.structr.schema.action.ActionContext;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.web.common.RenderContext;
 import org.structr.web.datasource.FunctionDataSource;
 import org.structr.web.entity.File;
@@ -73,10 +74,10 @@ public class IncludeFunction extends UiCommunityFunction {
 				return null;
 			}
 
-			final PropertyKey<DOMNode> sharedCompKey = Traits.of("DOMNode").key("sharedComponent");
+			final PropertyKey<DOMNode> sharedCompKey = Traits.of(StructrTraits.DOM_NODE).key("sharedComponent");
 			final SecurityContext securityContext    = ctx.getSecurityContext();
 			final App app                            = StructrApp.getInstance(securityContext);
-			final List<NodeInterface> nodeList       = app.nodeQuery("DOMNode").andName((String)sources[0]).getAsList();
+			final List<NodeInterface> nodeList       = app.nodeQuery(StructrTraits.DOM_NODE).andName((String)sources[0]).getAsList();
 
 
 			RenderContext innerCtx = null;
@@ -176,7 +177,7 @@ public class IncludeFunction extends UiCommunityFunction {
 
 		} else {
 
-			final NodeInterface fileNode = app.nodeQuery("File").andName((String)sources[0]).getFirst();
+			final NodeInterface fileNode = app.nodeQuery(StructrTraits.FILE).andName((String)sources[0]).getFirst();
 			if (fileNode != null) {
 
 				final File file          = fileNode.as(File.class);

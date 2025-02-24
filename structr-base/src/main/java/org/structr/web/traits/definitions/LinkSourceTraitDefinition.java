@@ -27,6 +27,7 @@ import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
@@ -48,7 +49,7 @@ public class LinkSourceTraitDefinition extends AbstractNodeTraitDefinition {
 	*/
 
 	public LinkSourceTraitDefinition() {
-		super("LinkSource");
+		super(StructrTraits.LINK_SOURCE);
 	}
 
 	@Override
@@ -78,7 +79,7 @@ public class LinkSourceTraitDefinition extends AbstractNodeTraitDefinition {
 	public Set<PropertyKey> getPropertyKeys() {
 
 		final Property<NodeInterface> linkableProperty = new EndNode("linkable", "LinkSourceLINKLinkable");
-		final Property<String> linkableIdProperty      = new EntityIdProperty("linkableId", "LinkSource", "linkable", "Linkable");
+		final Property<String> linkableIdProperty      = new EntityIdProperty("linkableId", StructrTraits.LINK_SOURCE, "linkable", StructrTraits.LINKABLE);
 
 		return Set.of(
 			linkableProperty,

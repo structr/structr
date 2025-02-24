@@ -254,14 +254,14 @@ public class StructrTest {
 
 		final PropertyMap map = new PropertyMap();
 
-		map.put(Traits.of("NodeInterface").key("name"), name);
+		map.put(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), name);
 
 		return createTestNode(type, map);
 	}
 
 	protected NodeInterface createTestNode(final String type, final PropertyMap props) throws FrameworkException {
 
-		props.put(Traits.of("GraphObject").key("type"), type);
+		props.put(Traits.of(StructrTraits.GRAPH_OBJECT).key("type"), type);
 
 		try (final Tx tx = app.tx()) {
 

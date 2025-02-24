@@ -19,6 +19,7 @@
 package org.structr.odf.entity.relationship;
 
 import org.structr.core.entity.Relation;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
@@ -35,7 +36,7 @@ public class ODFExporterUSES_TEMPLATEFile extends AbstractRelationshipTraitDefin
 
 	@Override
 	public String getTargetType() {
-		return "File";
+		return StructrTraits.FILE;
 	}
 
 	@Override

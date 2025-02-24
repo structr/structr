@@ -25,6 +25,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.storage.providers.local.LocalFSStorageProvider;
@@ -54,23 +55,23 @@ public class StorageTest extends StructrUiTest {
 
 			final StorageConfiguration local  = StorageProviderFactory.createConfig("local",  LocalFSStorageProvider.class, Map.of());
 			final StorageConfiguration memory = StorageProviderFactory.createConfig("memory", InMemoryStorageProvider.class, Map.of());
-			final Traits folderTraits         = Traits.of("Folder");
-			final Traits fileTraits           = Traits.of("File");
+			final Traits folderTraits         = Traits.of(StructrTraits.FOLDER);
+			final Traits fileTraits           = Traits.of(StructrTraits.FILE);
 
 			PropertyMap folderProps = new PropertyMap();
 			folderProps.put(folderTraits.key("name"), "local");
 			folderProps.put(folderTraits.key("storageConfiguration"), local);
-			NodeInterface folder = app.create("Folder", folderProps);
+			NodeInterface folder = app.create(StructrTraits.FOLDER, folderProps);
 
 			PropertyMap folderProps2 = new PropertyMap();
 			folderProps2.put(folderTraits.key("name"), "memory");
 			folderProps2.put(folderTraits.key("storageConfiguration"), memory);
-			NodeInterface folder2 = app.create("Folder", folderProps2);
+			NodeInterface folder2 = app.create(StructrTraits.FOLDER, folderProps2);
 
 			PropertyMap fileProps = new PropertyMap();
 			fileProps.put(fileTraits.key("name"), "testFile.txt");
 			fileProps.put(fileTraits.key("parent"), folder);
-			File file = app.create("File", fileProps).as(File.class);
+			File file = app.create(StructrTraits.FILE, fileProps).as(File.class);
 
 			final String payload = "test payload written to this file";
 
@@ -104,13 +105,13 @@ public class StorageTest extends StructrUiTest {
 
 			final StorageConfiguration local  = StorageProviderFactory.createConfig("local",  LocalFSStorageProvider.class, null);
 			final StorageConfiguration memory = StorageProviderFactory.createConfig("memory", InMemoryStorageProvider.class, null);
-			final Traits fileTraits           = Traits.of("File");
+			final Traits fileTraits           = Traits.of(StructrTraits.FILE);
 
 			final PropertyKey<StorageConfiguration> storageConfigurationKey = fileTraits.key("storageConfiguration");
 
 			PropertyMap fileProps = new PropertyMap();
 			fileProps.put(fileTraits.key("name"), "testFile.txt");
-			File file = app.create("File", fileProps).as(File.class);
+			File file = app.create(StructrTraits.FILE, fileProps).as(File.class);
 
 			final String payload = "test payload written to this file";
 

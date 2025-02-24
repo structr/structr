@@ -30,6 +30,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.web.agent.ThumbnailTask;
 import org.structr.web.common.FileHelper;
@@ -269,7 +270,7 @@ public class ImageTraitWrapper extends FileTraitWrapper implements Image {
 
 			for (final String uuid : thumbnailUuids) {
 
-				final NodeInterface oldThumbnail = app.nodeQuery("Image").uuid(uuid).getFirst();
+				final NodeInterface oldThumbnail = app.nodeQuery(StructrTraits.IMAGE).uuid(uuid).getFirst();
 				if (oldThumbnail != null) {
 
 					app.delete(oldThumbnail);

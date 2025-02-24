@@ -29,6 +29,7 @@ import org.structr.common.error.UniqueToken;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.files.external.DirectoryWatchService;
@@ -198,7 +199,7 @@ public class AbstractFileTraitWrapper extends AbstractNodeTraitWrapper implement
 			final String originalPath = getPath();
 			final String newName      = getRenamedFilename(getName());
 
-			wrappedObject.setProperty(Traits.of("NodeInterface").key("name"), newName);
+			wrappedObject.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), newName);
 
 			valid = validatePath(securityContext, errorBuffer);
 
@@ -280,7 +281,7 @@ public class AbstractFileTraitWrapper extends AbstractNodeTraitWrapper implement
 		if (filePath != null) {
 
 			final PropertyKey<String> pathKey = traits.key("path");
-			final List<NodeInterface> files   = StructrApp.getInstance().nodeQuery("AbstractFile").and(pathKey, filePath).getAsList();
+			final List<NodeInterface> files   = StructrApp.getInstance().nodeQuery(StructrTraits.ABSTRACT_FILE).and(pathKey, filePath).getAsList();
 
 			for (final NodeInterface file : files) {
 
@@ -288,7 +289,7 @@ public class AbstractFileTraitWrapper extends AbstractNodeTraitWrapper implement
 
 					if (errorBuffer != null) {
 
-						final UniqueToken token = new UniqueToken("AbstractFile", pathKey.jsonName(), file.getUuid(), getUuid(), filePath);
+						final UniqueToken token = new UniqueToken(StructrTraits.ABSTRACT_FILE, pathKey.jsonName(), file.getUuid(), getUuid(), filePath);
 						token.setValue(filePath);
 
 						errorBuffer.add(token);

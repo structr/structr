@@ -33,6 +33,7 @@ import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaMethodParameter;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.schema.openapi.common.OpenAPIResponseReference;
 import org.structr.schema.openapi.operation.OpenAPIMethodOperation;
@@ -352,7 +353,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 
 	SchemaMethod createDatabaseSchema(final App app, final AbstractSchemaNode schemaNode) throws FrameworkException {
 
-		final Traits traits                = Traits.of("SchemaMethod");
+		final Traits traits                = Traits.of(StructrTraits.SCHEMA_METHOD);
 		final PropertyMap updateProperties = new PropertyMap();
 		SchemaMethod method                = null;
 		int index                          = 0;
@@ -379,7 +380,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 			getOrCreateProperties.put(traits.key("callSuper"),             callSuper());
 			getOrCreateProperties.put(traits.key("doExport"),              doExport());
 
-			method = app.create("SchemaMethod", getOrCreateProperties).as(SchemaMethod.class);
+			method = app.create(StructrTraits.SCHEMA_METHOD, getOrCreateProperties).as(SchemaMethod.class);
 		}
 
 		updateProperties.put(traits.key("summary"),               getSummary());

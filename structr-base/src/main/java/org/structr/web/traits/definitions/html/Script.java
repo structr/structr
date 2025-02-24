@@ -27,6 +27,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
@@ -82,7 +83,7 @@ public class Script extends GenericHtmlElementTraitDefinition {
 				@Override
 				public void handleNewChild(final DOMNode node, final DOMNode newChild) throws FrameworkException {
 
-					if (newChild.is("Content")) {
+					if (newChild.is(StructrTraits.CONTENT)) {
 
 						try {
 							final PropertyKey<String> key = node.getTraits().key("_html_type");

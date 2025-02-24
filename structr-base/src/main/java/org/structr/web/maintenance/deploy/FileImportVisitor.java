@@ -28,6 +28,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
@@ -119,7 +120,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 			final Map<String, Object> raw = getRawPropertiesForFileOrFolder(path);
 			if (raw != null) {
 
-				final NodeInterface existingFolder = app.getNodeById("Folder", (String) raw.get("id"));
+				final NodeInterface existingFolder = app.getNodeById(StructrTraits.FOLDER, (String) raw.get("id"));
 				if (existingFolder != null) {
 
 					this.folderCache.put(path, existingFolder);
@@ -135,7 +136,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 	protected void createFolder(final Path folderObj) {
 
 		final String folderPath = harmonizeFileSeparators("/", basePath.relativize(folderObj).toString());
-		final Traits traits     = Traits.of("Folder");
+		final Traits traits     = Traits.of(StructrTraits.FOLDER);
 
 		encounteredPaths.add(folderPath);
 
@@ -161,7 +162,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 			if (existingFolder == null) {
 
-				final NodeInterface newFolder = app.create("Folder", folderProperties);
+				final NodeInterface newFolder = app.create(StructrTraits.FOLDER, folderProperties);
 
 				this.folderCache.put(folderPath, newFolder);
 
@@ -189,7 +190,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 			final String fullPath                   = harmonizeFileSeparators("/", basePath.relativize(path).toString());
 			final Map<String, Object> rawProperties = getRawPropertiesForFileOrFolder(fullPath);
-			final Traits traits                     = Traits.of("File");
+			final Traits traits                     = Traits.of(StructrTraits.FILE);
 			final PropertyKey<String> idProperty    = traits.key("id");
 
 			encounteredPaths.add(fullPath);
@@ -225,7 +226,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 					}
 				}
 
-				NodeInterface file = app.getNodeById("File", fileProperties.get(traits.key("id")));
+				NodeInterface file = app.getNodeById(StructrTraits.FILE, fileProperties.get(traits.key("id")));
 				if (file != null) {
 
 					final Long checksumOfExistingFile = FileHelper.getChecksum(file.as(File.class));
@@ -249,7 +250,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 					try (final FileInputStream fis = new FileInputStream(path.toFile())) {
 
 						final PropertyMap props = new PropertyMap();
-						String fileType         = "File";
+						String fileType         = StructrTraits.FILE;
 
 						props.put(traits.key("name"), fileName);
 
@@ -305,9 +306,9 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 				if (newFileUuid != null) {
 
-					final NodeInterface createdFile = app.getNodeById("File", newFileUuid);
+					final NodeInterface createdFile = app.getNodeById(StructrTraits.FILE, newFileUuid);
 					String type                     = createdFile.getType();
-					boolean isImage                 = createdFile.is("Image");
+					boolean isImage                 = createdFile.is(StructrTraits.IMAGE);
 
 					logger.debug("File {}: {}, isImage? {}", createdFile.getName(), type, isImage);
 

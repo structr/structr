@@ -34,6 +34,7 @@ import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.RelationProperty;
 import org.structr.core.property.StringProperty;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Trait;
 import org.structr.core.traits.Traits;
 import org.structr.rest.resource.SchemaResource;
@@ -454,7 +455,7 @@ public class SchemaHelper {
 
 			// built-in schema views are controlled manually, but all user-generated
 			// schema changes are expected to be added to "custom" view.
-			if (!outRel.getProperty(Traits.of("SchemaRelationshipNode").key("isPartOfBuiltInSchema"))) {
+			if (!outRel.getProperty(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("isPartOfBuiltInSchema"))) {
 				addPropertyToView(PropertyView.Custom, propertyName, viewProperties);
 			}
 
@@ -477,7 +478,7 @@ public class SchemaHelper {
 
 			// built-in schema views are controlled manually, but all user-generated
 			// schema changes are expected to be added to "custom" view.
-			if (!inRel.getProperty(Traits.of("SchemaRelationshipNode").key("isPartOfBuiltInSchema"))) {
+			if (!inRel.getProperty(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("isPartOfBuiltInSchema"))) {
 				SchemaHelper.addPropertyToView(PropertyView.Custom, propertyName, viewProperties);
 			}
 
@@ -704,7 +705,7 @@ public class SchemaHelper {
 							}
 						}
 
-						app.create("SchemaView",
+						app.create(StructrTraits.SCHEMA_VIEW,
 							new NodeAttribute<>(SchemaView.schemaNode, schemaNode),
 							new NodeAttribute<>(SchemaView.schemaProperties, properties),
 							new NodeAttribute<>(SchemaView.name, viewName),
@@ -818,7 +819,7 @@ public class SchemaHelper {
 
 					if (schemaNode.getSchemaMethod(methodName) == null) {
 
-						app.create("SchemaMethod",
+						app.create(StructrTraits.SCHEMA_METHOD,
 							new NodeAttribute<>(SchemaMethod.schemaNode, schemaNode),
 							new NodeAttribute<>(SchemaMethod.name, methodName),
 							new NodeAttribute<>(SchemaMethod.source, value)
@@ -1336,16 +1337,16 @@ public class SchemaHelper {
 
 		// we expect the static schema node name to be a fully-qualified class name
 		if (!fqcn.contains(".")) {
-			throw new FrameworkException(422, "", new SemanticErrorToken("SchemaGrant", "staticSchemaNodeName", "must_be_fully_qualified_class_name").withDetail(fqcn));
+			throw new FrameworkException(422, "", new SemanticErrorToken(StructrTraits.SCHEMA_GRANT, "staticSchemaNodeName", "must_be_fully_qualified_class_name").withDetail(fqcn));
 		}
 
 		final App app = StructrApp.getInstance();
 		final String name = org.apache.commons.lang.StringUtils.substringAfterLast(fqcn, ".");
 
-		SchemaNode node = app.nodeQuery("SchemaNode").andName(fqcn).getFirst();
+		SchemaNode node = app.nodeQuery(StructrTraits.SCHEMA_NODE).andName(fqcn).getFirst();
 		if (node == null) {
 
-			node = app.create("SchemaNode",
+			node = app.create(StructrTraits.SCHEMA_NODE,
 				new NodeAttribute<>(SchemaNode.name, name),
 				new NodeAttribute<>(SchemaNode.extendsClassInternal, fqcn)
 			);
@@ -1688,7 +1689,7 @@ public class SchemaHelper {
 			}
 		}
 
-		errorBuffer.add(new InvalidPropertySchemaToken("SchemaProperty", propertyName, propertyName, "invalid_property_definition", "Unknow value type " + propertyType + ", options are " + Arrays.asList(Type.values()) + "."));
+		errorBuffer.add(new InvalidPropertySchemaToken(StructrTraits.SCHEMA_PROPERTY, propertyName, propertyName, "invalid_property_definition", "Unknow value type " + propertyType + ", options are " + Arrays.asList(Type.values()) + "."));
 		throw new FrameworkException(422, "Invalid property definition for property ‛" + propertyDefinition.getPropertyName() + "‛", errorBuffer);
 	}
 
@@ -1735,22 +1736,22 @@ public class SchemaHelper {
 
 		for (final SchemaRelationshipNode out : schemaNode.getProperty(SchemaNode.relatedTo)) {
 
-			if (propertyName.equals(out.getProperty(Traits.of("SchemaRelationshipNode").key("targetJsonName")))) {
+			if (propertyName.equals(out.getProperty(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetJsonName")))) {
 				return true;
 			}
 
-			if (propertyName.equals(out.getProperty(Traits.of("SchemaRelationshipNode").key("previousTargetJsonName")))) {
+			if (propertyName.equals(out.getProperty(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("previousTargetJsonName")))) {
 				return true;
 			}
 		}
 
 		for (final SchemaRelationshipNode in : schemaNode.getProperty(SchemaNode.relatedFrom)) {
 
-			if (propertyName.equals(in.getProperty(Traits.of("SchemaRelationshipNode").key("sourceJsonName")))) {
+			if (propertyName.equals(in.getProperty(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceJsonName")))) {
 				return true;
 			}
 
-			if (propertyName.equals(in.getProperty(Traits.of("SchemaRelationshipNode").key("previousSourceJsonName")))) {
+			if (propertyName.equals(in.getProperty(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("previousSourceJsonName")))) {
 				return true;
 			}
 		}

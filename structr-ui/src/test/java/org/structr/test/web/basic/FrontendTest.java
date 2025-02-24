@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.test.web.StructrUiTest;
 
@@ -41,8 +42,8 @@ public abstract class FrontendTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			user = app.nodeQuery("User").andName("admin").getFirst();
-			user.setProperty(Traits.of("User").key("localStorage"), null);
+			user = app.nodeQuery(StructrTraits.USER).andName("admin").getFirst();
+			user.setProperty(Traits.of(StructrTraits.USER).key("localStorage"), null);
 			tx.success();
 
 		} catch (Throwable t) {
@@ -54,15 +55,15 @@ public abstract class FrontendTest extends StructrUiTest {
 
 		final PropertyMap properties = new PropertyMap();
 
-		properties.put(Traits.of("User").key("name"), ADMIN_USERNAME);
-		properties.put(Traits.of("User").key("password"), ADMIN_PASSWORD);
-		properties.put(Traits.of("User").key("isAdmin"), true);
+		properties.put(Traits.of(StructrTraits.USER).key("name"), ADMIN_USERNAME);
+		properties.put(Traits.of(StructrTraits.USER).key("password"), ADMIN_PASSWORD);
+		properties.put(Traits.of(StructrTraits.USER).key("isAdmin"), true);
 
 		NodeInterface user = null;
 
 		try (final Tx tx = app.tx()) {
 
-			user = app.create("User", properties);
+			user = app.create(StructrTraits.USER, properties);
 			tx.success();
 
 		} catch (Throwable t) {

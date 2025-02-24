@@ -24,6 +24,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
@@ -58,12 +59,12 @@ import org.w3c.dom.DOMException;
 		if (nodeToClone != null) {
 
 			try {
-				final Page pageToClone = nodeToClone.is("Page") ? nodeToClone.as(Page.class) : null;
+				final Page pageToClone = nodeToClone.is(StructrTraits.PAGE) ? nodeToClone.as(Page.class) : null;
 				if (pageToClone != null) {
 
 					final Page newPage = pageToClone.cloneNode(false).as(Page.class);
 
-					newPage.setProperties(securityContext, new PropertyMap(Traits.of("Page").key("name"), pageToClone.getName() + "-" + newPage.getNode().getId().toString()));
+					newPage.setProperties(securityContext, new PropertyMap(Traits.of(StructrTraits.PAGE).key("name"), pageToClone.getName() + "-" + newPage.getNode().getId().toString()));
 
 //					DOMNode firstChild = (DOMNode) pageToClone.getFirstChild().getNextSibling();
 //

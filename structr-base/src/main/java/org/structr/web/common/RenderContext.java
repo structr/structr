@@ -38,6 +38,7 @@ import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.StructrTraits;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
@@ -425,7 +426,7 @@ public class RenderContext extends ActionContext {
 					// link has two different meanings
 					case "link":
 
-						if (data instanceof NodeInterface node && node.is("LinkSource")) {
+						if (data instanceof NodeInterface node && node.is(StructrTraits.LINK_SOURCE)) {
 
 							hints.reportExistingKey(key);
 
@@ -460,7 +461,7 @@ public class RenderContext extends ActionContext {
 
 					case "template":
 
-						if (entity.is("DOMNode")) {
+						if (entity.is(StructrTraits.DOM_NODE)) {
 							hints.reportExistingKey(key);
 							return entity.as(DOMNode.class).getClosestTemplate(getPage());
 						}
@@ -469,14 +470,14 @@ public class RenderContext extends ActionContext {
 					case "page":
 						hints.reportExistingKey(key);
 						Page page = getPage();
-						if (page == null && entity.is("DOMNode")) {
+						if (page == null && entity.is(StructrTraits.DOM_NODE)) {
 							page = entity.as(DOMNode.class).getOwnerDocument();
 						}
 						return page;
 
 					case "parent":
 
-						if (entity.is("DOMNode")) {
+						if (entity.is(StructrTraits.DOM_NODE)) {
 							hints.reportExistingKey(key);
 							return entity.as(DOMNode.class).getParent();
 						}
@@ -484,7 +485,7 @@ public class RenderContext extends ActionContext {
 
 					case "children":
 
-						if (entity.is("DOMNode")) {
+						if (entity.is(StructrTraits.DOM_NODE)) {
 
 							hints.reportExistingKey(key);
 							return entity.as(DOMNode.class).getChildNodes();
@@ -495,7 +496,7 @@ public class RenderContext extends ActionContext {
 					// link has two different meanings
 					case "link":
 
-						if (entity.is("LinkSource")) {
+						if (entity.is(StructrTraits.LINK_SOURCE)) {
 
 							hints.reportExistingKey(key);
 
@@ -519,7 +520,7 @@ public class RenderContext extends ActionContext {
 	@Override
 	public void print(final Object[] objects, final Object caller) {
 
-		if (caller instanceof NodeInterface n && (n.is("Template") || n.is("Content"))) {
+		if (caller instanceof NodeInterface n && (n.is(StructrTraits.TEMPLATE) || n.is(StructrTraits.CONTENT))) {
 
 			for (final Object obj : objects) {
 

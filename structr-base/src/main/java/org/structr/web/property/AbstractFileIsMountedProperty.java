@@ -23,6 +23,7 @@ import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.property.AbstractReadOnlyProperty;
+import org.structr.core.traits.StructrTraits;
 import org.structr.web.entity.AbstractFile;
 
 import java.util.Map;
@@ -51,7 +52,7 @@ public class AbstractFileIsMountedProperty extends AbstractReadOnlyProperty<Bool
 	@Override
 	public Boolean getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
 
-		if (obj != null && obj.is("AbstractFile")){
+		if (obj != null && obj.is(StructrTraits.ABSTRACT_FILE)){
 
 			return obj.as(AbstractFile.class).isMounted();
 		}

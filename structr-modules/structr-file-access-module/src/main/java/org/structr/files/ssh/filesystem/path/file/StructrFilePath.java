@@ -26,6 +26,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.files.ssh.filesystem.StructrFileAttributes;
 import org.structr.files.ssh.filesystem.StructrFilesystem;
@@ -60,7 +61,7 @@ public class StructrFilePath extends StructrPath {
 	public DirectoryStream<Path> getDirectoryStream(DirectoryStream.Filter<? super Path> filter) {
 
 		final NodeInterface folderNode = getActualFile();
-		if (folderNode != null && folderNode.is("Folder")) {
+		if (folderNode != null && folderNode.is(StructrTraits.FOLDER)) {
 
 			final Folder folder = folderNode.as(Folder.class);
 
@@ -151,7 +152,7 @@ public class StructrFilePath extends StructrPath {
 					}
 				}
 
-				if (actualFile != null && actualFile.is("File")) {
+				if (actualFile != null && actualFile.is(StructrTraits.FILE)) {
 
 					final File file = actualFile.as(File.class);
 
@@ -167,7 +168,7 @@ public class StructrFilePath extends StructrPath {
 
 		} else {
 
-			if (actualFile != null && actualFile.is("File")) {
+			if (actualFile != null && actualFile.is(StructrTraits.FILE)) {
 
 				try (final Tx tx = StructrApp.getInstance(fs.getSecurityContext()).tx()) {
 
@@ -197,7 +198,7 @@ public class StructrFilePath extends StructrPath {
 		try (final Tx tx = app.tx()) {
 
 			final String name             = getFileName().toString();
-			final NodeInterface newFolder = app.create("Folder", new NodeAttribute<>(Traits.of("Folder").key("name"), name));
+			final NodeInterface newFolder = app.create(StructrTraits.FOLDER, new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key("name"), name));
 
 			// set parent folder
 			setParentFolder(newFolder);
@@ -220,7 +221,7 @@ public class StructrFilePath extends StructrPath {
 			final NodeInterface actualFile = getActualFile();
 
 			// if a folder is to be deleted, check contents
-			if (actualFile.is("Folder") && actualFile.as(Folder.class).getChildren().iterator().hasNext()) {
+			if (actualFile.is(StructrTraits.FOLDER) && actualFile.as(Folder.class).getChildren().iterator().hasNext()) {
 
 				throw new DirectoryNotEmptyException(getActualFile().as(Folder.class).getPath());
 
@@ -329,12 +330,12 @@ public class StructrFilePath extends StructrPath {
 
 		final String filePath = toString();
 		final App app         = StructrApp.getInstance(fs.getSecurityContext());
-		final Traits traits   = Traits.of("AbstractFile");
+		final Traits traits   = Traits.of(StructrTraits.ABSTRACT_FILE);
 
 		try (final Tx tx = app.tx()) {
 
 			// remove /files from path since it is a virtual directory
-			final NodeInterface actualFile = app.nodeQuery("AbstractFile").and(traits.key( "path"), filePath).sort(traits.key("name")).getFirst();
+			final NodeInterface actualFile = app.nodeQuery(StructrTraits.ABSTRACT_FILE).and(traits.key( "path"), filePath).sort(traits.key("name")).getFirst();
 
 			tx.success();
 
@@ -354,7 +355,7 @@ public class StructrFilePath extends StructrPath {
 		final byte[] data        = new byte[0];
 		final String contentType = null;
 
-		return FileHelper.createFile(fs.getSecurityContext(), data, contentType, "File", name, false);
+		return FileHelper.createFile(fs.getSecurityContext(), data, contentType, StructrTraits.FILE, name, false);
 	}
 
 	@Override

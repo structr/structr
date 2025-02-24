@@ -27,6 +27,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.PathHelper;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.RenderContext;
@@ -470,11 +471,11 @@ public class ImporterTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final String filename = PathHelper.getName(expectedPath);
-			file = app.nodeQuery("File").andName(filename).getFirst();
+			file = app.nodeQuery(StructrTraits.FILE).andName(filename).getFirst();
 
 			assertNotNull(filename + " file not found", file);
-			assertEquals("Wrong path of " + filename + " file", (String) file.getProperty(Traits.of("File").key("path")), expectedPath);
-			assertEquals("Wrong version of " + filename + " file", (int) file.getProperty(Traits.of("File").key("version")), expectedVersion);
+			assertEquals("Wrong path of " + filename + " file", (String) file.getProperty(Traits.of(StructrTraits.FILE).key("path")), expectedPath);
+			assertEquals("Wrong version of " + filename + " file", (int) file.getProperty(Traits.of(StructrTraits.FILE).key("version")), expectedVersion);
 
 			tx.success();
 
@@ -489,7 +490,7 @@ public class ImporterTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final String filename = PathHelper.getName(expectedPath);
-			file = app.nodeQuery("File").andName(filename).getFirst();
+			file = app.nodeQuery(StructrTraits.FILE).andName(filename).getFirst();
 
 			assertNull("File " + filename + " found", file);
 

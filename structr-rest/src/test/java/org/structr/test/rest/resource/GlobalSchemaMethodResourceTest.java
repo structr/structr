@@ -23,6 +23,7 @@ import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.testng.annotations.Test;
@@ -66,9 +67,9 @@ public class GlobalSchemaMethodResourceTest extends StructrRestTestBase {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create("SchemaMethod",
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("name"), "myTestMethod01"),
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("source"), "'hello world!'")
+			app.create(StructrTraits.SCHEMA_METHOD,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("name"), "myTestMethod01"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "'hello world!'")
 			);
 
 			tx.success();
@@ -95,9 +96,9 @@ public class GlobalSchemaMethodResourceTest extends StructrRestTestBase {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create("SchemaMethod",
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("name"), "myTestMethod02"),
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("source"), "{ return { name: 'test', count: 1 }}")
+			app.create(StructrTraits.SCHEMA_METHOD,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("name"), "myTestMethod02"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "{ return { name: 'test', count: 1 }}")
 			);
 
 			tx.success();
@@ -124,9 +125,9 @@ public class GlobalSchemaMethodResourceTest extends StructrRestTestBase {
 	public void test003UnwrapArrayOfArrays() {
 		try (final Tx tx = app.tx()) {
 
-			app.create("SchemaMethod",
-					new NodeAttribute<>(Traits.of("SchemaMethod").key("name"), "myTestMethod03"),
-					new NodeAttribute<>(Traits.of("SchemaMethod").key("source"), "{ return [ [{'name': 'a'}], [{'name': 'b'}], [{'name': 'c'}] ]; }")
+			app.create(StructrTraits.SCHEMA_METHOD,
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("name"), "myTestMethod03"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "{ return [ [{'name': 'a'}], [{'name': 'b'}], [{'name': 'c'}] ]; }")
 			);
 
 			tx.success();

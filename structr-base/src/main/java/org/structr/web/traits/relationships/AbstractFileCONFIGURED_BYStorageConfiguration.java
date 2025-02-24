@@ -21,6 +21,7 @@ package org.structr.web.traits.relationships;
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
 import org.structr.core.entity.Relation;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
@@ -32,7 +33,7 @@ public class AbstractFileCONFIGURED_BYStorageConfiguration extends AbstractRelat
 
 	@Override
 	public String getSourceType() {
-		return "AbstractFile";
+		return StructrTraits.ABSTRACT_FILE;
 	}
 
 	@Override

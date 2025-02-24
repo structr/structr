@@ -33,6 +33,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.rest.common.StructrGraphQLTest;
@@ -67,11 +68,11 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final PropertyKey<List> membersKey = Traits.of("Group").key("members");
+			final PropertyKey<List> membersKey = Traits.of(StructrTraits.GROUP).key("members");
 
-			tester = app.create("User", new NodeAttribute<>(Traits.of("User").key("name"), "tester"));
-			group  = app.create("Group",
-				new NodeAttribute<>(Traits.of("Group").key("name"), "TestGroup"),
+			tester = app.create(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"), "tester"));
+			group  = app.create(StructrTraits.GROUP,
+				new NodeAttribute<>(Traits.of(StructrTraits.GROUP).key("name"), "TestGroup"),
 				new NodeAttribute<>(membersKey, Arrays.asList(tester))
 			);
 
@@ -97,16 +98,16 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 			.expect()
 				.statusCode(200)
-				.body("Group",                    hasSize(1))
-				.body("Principal",                hasSize(1))
+				.body(StructrTraits.GROUP,                    hasSize(1))
+				.body(StructrTraits.PRINCIPAL,                hasSize(1))
 				.body("Group[0].id",              equalTo(groupId))
-				.body("Group[0].type",            equalTo("Group"))
+				.body("Group[0].type",            equalTo(StructrTraits.GROUP))
 				.body("Group[0].name",            equalTo("TestGroup"))
 				.body("Group[0].members[0].id",   equalTo(testerId))
-				.body("Group[0].members[0].type", equalTo("User"))
+				.body("Group[0].members[0].type", equalTo(StructrTraits.USER))
 				.body("Group[0].members[0].name", equalTo("tester"))
 				.body("Principal[0].id",          equalTo(groupId))
-				.body("Principal[0].type",        equalTo("Group"))
+				.body("Principal[0].type",        equalTo(StructrTraits.GROUP))
 				.body("Principal[0].name",        equalTo("TestGroup"))
 
 			.when()
@@ -137,9 +138,9 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 			.expect()
 				.statusCode(200)
-				.body("Group",                    hasSize(1))
+				.body(StructrTraits.GROUP,                    hasSize(1))
 				.body("Group[0].id",              equalTo(groupId))
-				.body("Group[0].type",            equalTo("Group"))
+				.body("Group[0].type",            equalTo(StructrTraits.GROUP))
 				.body("Group[0].name",            equalTo("TestGroup"))
 
 			.when()
@@ -157,17 +158,17 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final PropertyKey<List> membersKey = Traits.of("Group").key("members");
+			final PropertyKey<List> membersKey = Traits.of(StructrTraits.GROUP).key("members");
 
-			final NodeInterface christian2 = app.create("User", new NodeAttribute<>(Traits.of("User").key("name"), "Christian"));
-			final NodeInterface susanne    = app.create("User", new NodeAttribute<>(Traits.of("User").key("name"), "Susanne"));
-			final NodeInterface lukas      = app.create("User", new NodeAttribute<>(Traits.of("User").key("name"), "Lukas"));
-			final NodeInterface kai        = app.create("User", new NodeAttribute<>(Traits.of("User").key("name"), "Kai"));
-			final NodeInterface michael    = app.create("User", new NodeAttribute<>(Traits.of("User").key("name"), "Michael"));
-			final NodeInterface ines       = app.create("User", new NodeAttribute<>(Traits.of("User").key("name"), "Inès"));
-			final NodeInterface axel       = app.create("User", new NodeAttribute<>(Traits.of("User").key("name"), "Axel"));
-			final NodeInterface christian1 = app.create("User", new NodeAttribute<>(Traits.of("User").key("name"), "Christian"));
-			final NodeInterface tobias     = app.create("User", new NodeAttribute<>(Traits.of("User").key("name"), "Tobias"));
+			final NodeInterface christian2 = app.create(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"), "Christian"));
+			final NodeInterface susanne    = app.create(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"), "Susanne"));
+			final NodeInterface lukas      = app.create(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"), "Lukas"));
+			final NodeInterface kai        = app.create(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"), "Kai"));
+			final NodeInterface michael    = app.create(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"), "Michael"));
+			final NodeInterface ines       = app.create(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"), "Inès"));
+			final NodeInterface axel       = app.create(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"), "Axel"));
+			final NodeInterface christian1 = app.create(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"), "Christian"));
+			final NodeInterface tobias     = app.create(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"), "Tobias"));
 
 			team.add(axel);
 			team.add(christian1);
@@ -179,56 +180,56 @@ public class GraphQLTest extends StructrGraphQLTest {
 			team.add(susanne);
 			team.add(tobias);
 
-			group  = app.create("Group",
-				new NodeAttribute<>(Traits.of("Group").key("name"), "Structr Team"),
+			group  = app.create(StructrTraits.GROUP,
+				new NodeAttribute<>(Traits.of(StructrTraits.GROUP).key("name"), "Structr Team"),
 				new NodeAttribute<>(membersKey, team)
 			);
 
-			app.create("Group",
-				new NodeAttribute<>(Traits.of("Group").key("name"), "All teams"),
+			app.create(StructrTraits.GROUP,
+				new NodeAttribute<>(Traits.of(StructrTraits.GROUP).key("name"), "All teams"),
 				new NodeAttribute<>(membersKey, Arrays.asList(group))
 			);
 
-			templates.add(app.create("MailTemplate",
-				new NodeAttribute<>(Traits.of("MailTemplate").key("text"),   "MailTemplate4"),
-				new NodeAttribute<>(Traits.of("MailTemplate").key("locale"), "de_DE"),
-				new NodeAttribute<>(Traits.of("MailTemplate").key("name"),   "zrtsga"),
-				new NodeAttribute<>(Traits.of("NodeInterface").key("owner"), team.get(2))
+			templates.add(app.create(StructrTraits.MAIL_TEMPLATE,
+				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key("text"),   "MailTemplate4"),
+				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key("locale"), "de_DE"),
+				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key("name"),   "zrtsga"),
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("owner"), team.get(2))
 			));
 
-			templates.add(app.create("MailTemplate",
-				new NodeAttribute<>(Traits.of("MailTemplate").key("text"),   "MailTemplate2"),
-				new NodeAttribute<>(Traits.of("MailTemplate").key("locale"), "de_DE"),
-				new NodeAttribute<>(Traits.of("MailTemplate").key("name"),   "lertdf"),
-				new NodeAttribute<>(Traits.of("NodeInterface").key("owner"), team.get(0))
+			templates.add(app.create(StructrTraits.MAIL_TEMPLATE,
+				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key("text"),   "MailTemplate2"),
+				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key("locale"), "de_DE"),
+				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key("name"),   "lertdf"),
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("owner"), team.get(0))
 			));
 
-			templates.add(app.create("MailTemplate",
-				new NodeAttribute<>(Traits.of("MailTemplate").key("text"),   "MailTemplate5"),
-				new NodeAttribute<>(Traits.of("MailTemplate").key("locale"), "de_DE"),
-				new NodeAttribute<>(Traits.of("MailTemplate").key("name"),   "tzegsg"),
-				new NodeAttribute<>(Traits.of("NodeInterface").key("owner"), team.get(3))
+			templates.add(app.create(StructrTraits.MAIL_TEMPLATE,
+				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key("text"),   "MailTemplate5"),
+				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key("locale"), "de_DE"),
+				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key("name"),   "tzegsg"),
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("owner"), team.get(3))
 			));
 
-			templates.add(app.create("MailTemplate",
-				new NodeAttribute<>(Traits.of("MailTemplate").key("text"),   "MailTemplate3"),
-				new NodeAttribute<>(Traits.of("MailTemplate").key("locale"), "de_DE"),
-				new NodeAttribute<>(Traits.of("MailTemplate").key("name"),   "asgw"),
-				new NodeAttribute<>(Traits.of("NodeInterface").key("owner"), team.get(1))
+			templates.add(app.create(StructrTraits.MAIL_TEMPLATE,
+				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key("text"),   "MailTemplate3"),
+				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key("locale"), "de_DE"),
+				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key("name"),   "asgw"),
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("owner"), team.get(1))
 			));
 
-			templates.add(app.create("MailTemplate",
-				new NodeAttribute<>(Traits.of("MailTemplate").key("text"),   "MailTemplate6"),
-				new NodeAttribute<>(Traits.of("MailTemplate").key("locale"), "de_DE"),
-				new NodeAttribute<>(Traits.of("MailTemplate").key("name"),   "dfjgr"),
-				new NodeAttribute<>(Traits.of("NodeInterface").key("owner"), team.get(4))
+			templates.add(app.create(StructrTraits.MAIL_TEMPLATE,
+				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key("text"),   "MailTemplate6"),
+				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key("locale"), "de_DE"),
+				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key("name"),   "dfjgr"),
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("owner"), team.get(4))
 			));
 
-			templates.add(app.create("MailTemplate",
-				new NodeAttribute<>(Traits.of("MailTemplate").key("text"),   "MailTemplate1"),
-				new NodeAttribute<>(Traits.of("MailTemplate").key("locale"), "de_DE"),
-				new NodeAttribute<>(Traits.of("MailTemplate").key("name"),   "abcdef"),
-				new NodeAttribute<>(Traits.of("NodeInterface").key("owner"), team.get(0))
+			templates.add(app.create(StructrTraits.MAIL_TEMPLATE,
+				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key("text"),   "MailTemplate1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key("locale"), "de_DE"),
+				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key("name"),   "abcdef"),
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("owner"), team.get(0))
 			));
 
 			for (final NodeInterface t : templates) {
@@ -256,7 +257,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 			final Map<String, Object> result = fetchGraphQL("{ Principal(id: \"" + teamIds.get(0) + "\") { id, type, name } }");
 			assertMapPathValueIs(result, "Principal.#",      1);
 			assertMapPathValueIs(result, "Principal.0.id",   teamIds.get(0));
-			assertMapPathValueIs(result, "Principal.0.type", "User");
+			assertMapPathValueIs(result, "Principal.0.type", StructrTraits.USER);
 			assertMapPathValueIs(result, "Principal.0.name", "Axel");
 		}
 
@@ -366,7 +367,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 			final Map<String, Object> result = fetchGraphQL("{ MailTemplate { id, type, text(_contains: \"2\"), owner(_equals: { name: \"Axel\"}) { name } }}");
 			assertMapPathValueIs(result, "MailTemplate.#",             1);
 			assertMapPathValueIs(result, "MailTemplate.0.id",          templateIds.get(1));
-			assertMapPathValueIs(result, "MailTemplate.0.type",        "MailTemplate");
+			assertMapPathValueIs(result, "MailTemplate.0.type",        StructrTraits.MAIL_TEMPLATE);
 			assertMapPathValueIs(result, "MailTemplate.0.text",        "MailTemplate2");
 			assertMapPathValueIs(result, "MailTemplate.0.name",        null);
 			assertMapPathValueIs(result, "MailTemplate.0.owner.name",  "Axel");
@@ -405,11 +406,11 @@ public class GraphQLTest extends StructrGraphQLTest {
 			final Map<String, Object> result = fetchGraphQL("{ MailTemplate(_pageSize: 2, _sort: \"name\", owner: { name: { _contains: \"x\" }} ) { id, type, name, owner { name }}}");
 			assertMapPathValueIs(result, "MailTemplate.#",            2);
 			assertMapPathValueIs(result, "MailTemplate.0.id",         templateIds.get(5));
-			assertMapPathValueIs(result, "MailTemplate.0.type",       "MailTemplate");
+			assertMapPathValueIs(result, "MailTemplate.0.type",       StructrTraits.MAIL_TEMPLATE);
 			assertMapPathValueIs(result, "MailTemplate.0.name",       "abcdef");
 			assertMapPathValueIs(result, "MailTemplate.0.owner.name", "Axel");
 			assertMapPathValueIs(result, "MailTemplate.1.id",         templateIds.get(1));
-			assertMapPathValueIs(result, "MailTemplate.1.type",       "MailTemplate");
+			assertMapPathValueIs(result, "MailTemplate.1.type",       StructrTraits.MAIL_TEMPLATE);
 			assertMapPathValueIs(result, "MailTemplate.1.name",       "lertdf");
 			assertMapPathValueIs(result, "MailTemplate.1.owner.name", "Axel");
 		}
@@ -663,17 +664,17 @@ public class GraphQLTest extends StructrGraphQLTest {
 		// test data setup
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface p1 = app.create("User", "p1");
-			final NodeInterface p2 = app.create("User", "p2");
-			final NodeInterface m1 = app.create("MailTemplate", "m1");
-			final NodeInterface m2 = app.create("MailTemplate", "m2");
-			final NodeInterface m3 = app.create("MailTemplate", "m3");
-			final NodeInterface m4 = app.create("MailTemplate", "m4");
+			final NodeInterface p1 = app.create(StructrTraits.USER, "p1");
+			final NodeInterface p2 = app.create(StructrTraits.USER, "p2");
+			final NodeInterface m1 = app.create(StructrTraits.MAIL_TEMPLATE, "m1");
+			final NodeInterface m2 = app.create(StructrTraits.MAIL_TEMPLATE, "m2");
+			final NodeInterface m3 = app.create(StructrTraits.MAIL_TEMPLATE, "m3");
+			final NodeInterface m4 = app.create(StructrTraits.MAIL_TEMPLATE, "m4");
 
-			m1.setProperty(Traits.of("MailTemplate").key("owner"), p1);
-			m2.setProperty(Traits.of("MailTemplate").key("owner"), p1);
-			m3.setProperty(Traits.of("MailTemplate").key("owner"), p2);
-			m4.setProperty(Traits.of("MailTemplate").key("owner"), p2);
+			m1.setProperty(Traits.of(StructrTraits.MAIL_TEMPLATE).key("owner"), p1);
+			m2.setProperty(Traits.of(StructrTraits.MAIL_TEMPLATE).key("owner"), p1);
+			m3.setProperty(Traits.of(StructrTraits.MAIL_TEMPLATE).key("owner"), p2);
+			m4.setProperty(Traits.of(StructrTraits.MAIL_TEMPLATE).key("owner"), p2);
 
 			tx.success();
 
@@ -696,19 +697,19 @@ public class GraphQLTest extends StructrGraphQLTest {
 		// test data setup
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface p2 = app.create("User", "Second Tester");
-			final NodeInterface p1 = app.create("User", "First Tester");
-			final NodeInterface m3 = app.create("MailTemplate", "Third Template");
-			final NodeInterface m2 = app.create("MailTemplate", "Second Template");
-			final NodeInterface m5 = app.create("MailTemplate", "Fifth Template");
-			final NodeInterface m1 = app.create("MailTemplate", "First Template");
-			final NodeInterface m6 = app.create("MailTemplate", "Sixth Template");
-			final NodeInterface m4 = app.create("MailTemplate", "Fourth Template");
+			final NodeInterface p2 = app.create(StructrTraits.USER, "Second Tester");
+			final NodeInterface p1 = app.create(StructrTraits.USER, "First Tester");
+			final NodeInterface m3 = app.create(StructrTraits.MAIL_TEMPLATE, "Third Template");
+			final NodeInterface m2 = app.create(StructrTraits.MAIL_TEMPLATE, "Second Template");
+			final NodeInterface m5 = app.create(StructrTraits.MAIL_TEMPLATE, "Fifth Template");
+			final NodeInterface m1 = app.create(StructrTraits.MAIL_TEMPLATE, "First Template");
+			final NodeInterface m6 = app.create(StructrTraits.MAIL_TEMPLATE, "Sixth Template");
+			final NodeInterface m4 = app.create(StructrTraits.MAIL_TEMPLATE, "Fourth Template");
 
-			m1.setProperty(Traits.of("MailTemplate").key("owner"), p1);
-			m2.setProperty(Traits.of("MailTemplate").key("owner"), p1);
-			m3.setProperty(Traits.of("MailTemplate").key("owner"), p2);
-			m4.setProperty(Traits.of("MailTemplate").key("owner"), p2);
+			m1.setProperty(Traits.of(StructrTraits.MAIL_TEMPLATE).key("owner"), p1);
+			m2.setProperty(Traits.of(StructrTraits.MAIL_TEMPLATE).key("owner"), p1);
+			m3.setProperty(Traits.of(StructrTraits.MAIL_TEMPLATE).key("owner"), p2);
+			m4.setProperty(Traits.of(StructrTraits.MAIL_TEMPLATE).key("owner"), p2);
 
 			tx.success();
 
@@ -999,7 +1000,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 			type.addFunctionProperty("test3").setReadFunction("int(42)").setTypeHint("Int");
 			type.addFunctionProperty("test4").setReadFunction("12.34").setTypeHint("Double");
 			type.addFunctionProperty("test5").setReadFunction("7465423674522").setTypeHint("Long");
-			type.addFunctionProperty("test6").setReadFunction("this.owner").setTypeHint("Principal");
+			type.addFunctionProperty("test6").setReadFunction("this.owner").setTypeHint(StructrTraits.PRINCIPAL);
 			type.addFunctionProperty("test7").setReadFunction("this.children").setTypeHint("Tmp[]");
 
 			StructrSchema.replaceDatabaseSchema(app, schema);
@@ -1017,7 +1018,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 		// create test node
 		try (final Tx tx = app.tx()) {
 
-			user = app.create("User", "tester");
+			user = app.create(StructrTraits.USER, "tester");
 
 			userId = user.getUuid();
 
@@ -1054,7 +1055,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 		assertMapPathValueIs(result, "Test.0.test4",        12.34);
 		assertMapPathValueIs(result, "Test.0.test5",        7.465423674522E12);
 		assertMapPathValueIs(result, "Test.0.test6.id",     userId);
-		assertMapPathValueIs(result, "Test.0.test6.type",   "User");
+		assertMapPathValueIs(result, "Test.0.test6.type",   StructrTraits.USER);
 		assertMapPathValueIs(result, "Test.0.test6.name",   "tester");
 		assertMapPathValueIs(result, "Test.0.test7.#",      10);
 
@@ -1164,24 +1165,24 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface projectType = app.create("SchemaNode", "Project");
-			final NodeInterface taskType    = app.create("SchemaNode", "Task");
+			final NodeInterface projectType = app.create(StructrTraits.SCHEMA_NODE, "Project");
+			final NodeInterface taskType    = app.create(StructrTraits.SCHEMA_NODE, "Task");
 
-			final NodeInterface rel = app.create("SchemaRelationshipNode",
-				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("sourceNode"), projectType),
-				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("targetNode"), taskType),
-				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("relationshipType"), "TASK"),
-				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("sourceMultiplicity"), "1"),
-				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("targetMultiplicity"), "*"),
-				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("sourceJsonName"), "project"),
-				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("targetJsonName"), "tasks")
+			final NodeInterface rel = app.create(StructrTraits.SCHEMA_RELATIONSHIP_NODE,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceNode"), projectType),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetNode"), taskType),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("relationshipType"), "TASK"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceMultiplicity"), "1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetMultiplicity"), "*"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceJsonName"), "project"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetJsonName"), "tasks")
 			);
 
-			app.create("SchemaProperty",
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaNode"),   projectType),
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("name"),         "taskCount"),
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("propertyType"), "Count"),
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("format"),       "tasks")
+			app.create(StructrTraits.SCHEMA_PROPERTY,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"),   projectType),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"),         "taskCount"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Count"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("format"),       "tasks")
 			);
 
 			tx.success();
@@ -1442,7 +1443,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 			final String projectType = "Project";
 
-			final PropertyKey<String> nameKey = Traits.of("NodeInterface").key("name");
+			final PropertyKey<String> nameKey = Traits.of(StructrTraits.NODE_INTERFACE).key("name");
 			final PropertyKey testBoolean = Traits.of(projectType).key("testBoolean");
 			final PropertyKey testDouble  = Traits.of(projectType).key("testDouble");
 			final PropertyKey testLong    = Traits.of(projectType).key("testLong");
@@ -2596,7 +2597,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 		final String taskType             = "Task";
 		final PropertyKey checkedKey      = Traits.of(baseType).key("isChecked");
 		final PropertyKey projectTasksKey = Traits.of(projectType).key("tasks");
-		final PropertyKey<String> nameKey = Traits.of("NodeInterface").key("name");
+		final PropertyKey<String> nameKey = Traits.of(StructrTraits.NODE_INTERFACE).key("name");
 
 		try (final Tx tx = app.tx()) {
 

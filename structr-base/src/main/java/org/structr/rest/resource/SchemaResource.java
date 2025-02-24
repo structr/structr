@@ -223,7 +223,7 @@ public class SchemaResource extends ExactMatchEndpoint {
 			map.put(htmlSourceTypesPossibleProperty, true);
 			map.put(possibleSourceTypesProperty, null);
 
-		} else if ("DOMNode".equals(sourceType)) {
+		} else if (StructrTraits.DOM_NODE.equals(sourceType)) {
 
 			map.put(allTargetTypesPossibleProperty, false);
 			map.put(htmlTargetTypesPossibleProperty, true);
@@ -243,7 +243,7 @@ public class SchemaResource extends ExactMatchEndpoint {
 			map.put(htmlTargetTypesPossibleProperty, true);
 			map.put(possibleTargetTypesProperty, null);
 
-		} else if ("DOMNode".equals(targetType)) {
+		} else if (StructrTraits.DOM_NODE.equals(targetType)) {
 
 			map.put(allTargetTypesPossibleProperty, false);
 			map.put(htmlTargetTypesPossibleProperty, true);

@@ -27,6 +27,7 @@ import org.structr.api.schema.JsonSchema;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.*;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.common.StructrTest;
@@ -184,10 +185,10 @@ public class MaintenanceTest extends StructrTest {
 					System.out.println();
 
 					assertEquals("Number of labels must be " + labelCount, labelCount,      labels.size());
-					assertTrue("Set of labels must contain PropertyContainer",  labels.contains("PropertyContainer"));
-					assertTrue("Set of labels must contain GraphObject",        labels.contains("GraphObject"));
-					assertTrue("Set of labels must contain NodeInterface",      labels.contains("NodeInterface"));
-					assertTrue("Set of labels must contain AccessControllable", labels.contains("AccessControllable"));
+					assertTrue("Set of labels must contain PropertyContainer",  labels.contains(StructrTraits.PROPERTY_CONTAINER));
+					assertTrue("Set of labels must contain GraphObject",        labels.contains(StructrTraits.GRAPH_OBJECT));
+					assertTrue("Set of labels must contain NodeInterface",      labels.contains(StructrTraits.NODE_INTERFACE));
+					assertTrue("Set of labels must contain AccessControllable", labels.contains(StructrTraits.ACCESS_CONTROLLABLE));
 					assertTrue("Set of labels must contain TestOne",            labels.contains("TestOne"));
 					assertTrue("Set of labels must contain TestEleven",         labels.contains("TestEleven"));
 
@@ -225,10 +226,10 @@ public class MaintenanceTest extends StructrTest {
 
 					assertEquals(labelCount, set.size());
 
-					assertTrue("Set of labels must contain PropertyContainer",  set.contains("PropertyContainer"));
-					assertTrue("Set of labels must contain GraphObject",        set.contains("GraphObject"));
-					assertTrue("Set of labels must contain NodeInterface",      set.contains("NodeInterface"));
-					assertTrue("Set of labels must contain AccessControllable", set.contains("AccessControllable"));
+					assertTrue("Set of labels must contain PropertyContainer",  set.contains(StructrTraits.PROPERTY_CONTAINER));
+					assertTrue("Set of labels must contain GraphObject",        set.contains(StructrTraits.GRAPH_OBJECT));
+					assertTrue("Set of labels must contain NodeInterface",      set.contains(StructrTraits.NODE_INTERFACE));
+					assertTrue("Set of labels must contain AccessControllable", set.contains(StructrTraits.ACCESS_CONTROLLABLE));
 					assertTrue("Set of labels must contain TestEleven",         set.contains("TestEleven"));
 					assertTrue("Set of labels must contain TestOne",            set.contains("TestOne"));
 
@@ -259,12 +260,12 @@ public class MaintenanceTest extends StructrTest {
 			final DatabaseService graphDb    = app.getDatabaseService();
 			final Set<String> expectedLabels = new LinkedHashSet<>();
 
-			expectedLabels.add("Principal");
-			expectedLabels.add("Group");
-			expectedLabels.add("AccessControllable");
-			expectedLabels.add("GraphObject");
-			expectedLabels.add("PropertyContainer");
-			expectedLabels.add("NodeInterface");
+			expectedLabels.add(StructrTraits.PRINCIPAL);
+			expectedLabels.add(StructrTraits.GROUP);
+			expectedLabels.add(StructrTraits.ACCESS_CONTROLLABLE);
+			expectedLabels.add(StructrTraits.GRAPH_OBJECT);
+			expectedLabels.add(StructrTraits.PROPERTY_CONTAINER);
+			expectedLabels.add(StructrTraits.NODE_INTERFACE);
 
 			if (graphDb.getTenantIdentifier() != null) {
 				expectedLabels.add(graphDb.getTenantIdentifier());
@@ -276,14 +277,14 @@ public class MaintenanceTest extends StructrTest {
 				for (int i=0; i<3000; i++) {
 
 					// Create nodes with one label and the type Group, and no properties
-					graphDb.createNode("Group", Set.of("Group", "NodeInterface"), Map.of());
+					graphDb.createNode(StructrTraits.GROUP, Set.of(StructrTraits.GROUP, StructrTraits.NODE_INTERFACE), Map.of());
 				}
 
 				tx.success();
 			}
 
 			// test set UUIDs command
-			final long count = app.command(BulkSetUuidCommand.class).executeWithCount(Map.of("type", "Group"));
+			final long count = app.command(BulkSetUuidCommand.class).executeWithCount(Map.of("type", StructrTraits.GROUP));
 
 			// ensure at least 3000 nodes have been touched
 			assertTrue(count >= 3000);
@@ -292,10 +293,10 @@ public class MaintenanceTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				// check nodes, we should find 3000 Groups here
-				assertEquals(3000, app.nodeQuery("Group").getAsList().size());
+				assertEquals(3000, app.nodeQuery(StructrTraits.GROUP).getAsList().size());
 
 				// check nodes
-				for (final NodeInterface group : app.nodeQuery("Group").getResultStream()) {
+				for (final NodeInterface group : app.nodeQuery(StructrTraits.GROUP).getResultStream()) {
 
 					final Set<String> labels = Iterables.toSet(group.getNode().getLabels());
 					assertNotNull("No UUID was set by BulkSetUUIDCommand", group.getUuid());
@@ -319,12 +320,12 @@ public class MaintenanceTest extends StructrTest {
 			final DatabaseService graphDb    = app.getDatabaseService();
 			final Set<String> expectedLabels = new TreeSet<>();
 
-			expectedLabels.add("PropertyContainer");
-			expectedLabels.add("GraphObject");
-			expectedLabels.add("NodeInterface");
-			expectedLabels.add("AccessControllable");
-			expectedLabels.add("Principal");
-			expectedLabels.add("Group");
+			expectedLabels.add(StructrTraits.PROPERTY_CONTAINER);
+			expectedLabels.add(StructrTraits.GRAPH_OBJECT);
+			expectedLabels.add(StructrTraits.NODE_INTERFACE);
+			expectedLabels.add(StructrTraits.ACCESS_CONTROLLABLE);
+			expectedLabels.add(StructrTraits.PRINCIPAL);
+			expectedLabels.add(StructrTraits.GROUP);
 
 			if (graphDb.getTenantIdentifier() != null) {
 				expectedLabels.add(graphDb.getTenantIdentifier());
@@ -335,10 +336,10 @@ public class MaintenanceTest extends StructrTest {
 
 				for (int i=0; i<3000; i++) {
 
-					final Node test = graphDb.createNode("Group", Collections.EMPTY_SET, Collections.EMPTY_MAP);
+					final Node test = graphDb.createNode(StructrTraits.GROUP, Collections.EMPTY_SET, Collections.EMPTY_MAP);
 
 					// set ID and type so that the rebuild index command identifies it as a Structr node.
-					test.setProperty("type", "Group");
+					test.setProperty("type", StructrTraits.GROUP);
 					test.setProperty("id", UUID.randomUUID().toString().replace("-", ""));
 				}
 
@@ -355,10 +356,10 @@ public class MaintenanceTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				// check nodes, we should find 100 Groups here
-				assertEquals(3000, app.nodeQuery("Group").getAsList().size());
+				assertEquals(3000, app.nodeQuery(StructrTraits.GROUP).getAsList().size());
 
 				// check nodes
-				for (final NodeInterface group : app.nodeQuery("Group").getResultStream()) {
+				for (final NodeInterface group : app.nodeQuery(StructrTraits.GROUP).getResultStream()) {
 
 					final Set<String> labels = new TreeSet<>(Iterables.toSet(group.getNode().getLabels()));
 
@@ -513,7 +514,7 @@ public class MaintenanceTest extends StructrTest {
 			createTestNodes(test1, 100);
 			createTestNodes(test2, 100);
 
-			app.create("Group", "Group1");
+			app.create(StructrTraits.GROUP, "Group1");
 
 			tx.success();
 
@@ -538,12 +539,12 @@ public class MaintenanceTest extends StructrTest {
 		// test 2: verify that nothing except the initial schema is there..
 		try (final Tx tx = app.tx()) {
 
-			assertNull("Database was not cleaned correctly by ClearDatabase command", app.nodeQuery("SchemaNode").andName("Test123").getFirst());
-			assertNull("Database was not cleaned correctly by ClearDatabase command", app.nodeQuery("SchemaNode").andName("OneTwoTreeFour").getFirst());
+			assertNull("Database was not cleaned correctly by ClearDatabase command", app.nodeQuery(StructrTraits.SCHEMA_NODE).andName("Test123").getFirst());
+			assertNull("Database was not cleaned correctly by ClearDatabase command", app.nodeQuery(StructrTraits.SCHEMA_NODE).andName("OneTwoTreeFour").getFirst());
 
 			assertNull("Database was not cleaned correctly by ClearDatabase command", app.nodeQuery(test1).getFirst());
 			assertNull("Database was not cleaned correctly by ClearDatabase command", app.nodeQuery(test2).getFirst());
-			assertNull("Database was not cleaned correctly by ClearDatabase command", app.nodeQuery("Group").getFirst());
+			assertNull("Database was not cleaned correctly by ClearDatabase command", app.nodeQuery(StructrTraits.GROUP).getFirst());
 
 			tx.success();
 

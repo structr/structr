@@ -43,6 +43,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.mail.entity.Mailbox;
 import org.structr.schema.SchemaService;
@@ -266,7 +267,7 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 //			props.put(StructrApp.key(entityType, "folder"), null);
 //			props.put(StructrApp.key(entityType, "receivedDate"), null);
 
-			outgoingMessage = app.create("EMailMessage", props);
+			outgoingMessage = app.create(StructrTraits.EMAIL_MESSAGE, props);
 
 			tx.success();
 
@@ -283,7 +284,7 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 		NodeInterface file = null;
 
 		final DataSource ds   = dma.getDataSource();
-		final String fileType = ds.getContentType().toLowerCase().startsWith("image/") ? "Image" : "File";
+		final String fileType = ds.getContentType().toLowerCase().startsWith("image/") ? StructrTraits.IMAGE : StructrTraits.FILE;
 
 		final App app = StructrApp.getInstance();
 
@@ -298,7 +299,7 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 			final Principal owner = securityContext.getUser(false);
 			if (owner != null) {
 
-				file.as(AccessControllable.class).setProperty(Traits.of("NodeInterface").key("owner"), securityContext.getUser(false));
+				file.as(AccessControllable.class).setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("owner"), securityContext.getUser(false));
 			}
 
 			tx.success();
@@ -332,7 +333,7 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 
 		try {
 
-			final String fileType = p.getContentType().toLowerCase().startsWith("image/") ? "Image" : "File";
+			final String fileType = p.getContentType().toLowerCase().startsWith("image/") ? StructrTraits.IMAGE : StructrTraits.FILE;
 
 			final App app = StructrApp.getInstance();
 
@@ -468,7 +469,7 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 		try (Tx tx = app.tx()) {
 
 			// Fetch mails for each mailbox found
-			app.nodeQuery("Mailbox").getResultStream().forEach(n -> fetchMails(n.as(Mailbox.class)));
+			app.nodeQuery(StructrTraits.MAILBOX).getResultStream().forEach(n -> fetchMails(n.as(Mailbox.class)));
 			tx.success();
 
 		} catch (FrameworkException ex) {
@@ -640,12 +641,12 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 						final String bcc  = message.getRecipients(Message.RecipientType.BCC) != null ? Arrays.stream(message.getRecipients(Message.RecipientType.BCC)).map((a) -> a != null ? decodeText(a.toString()) : "").reduce("", (a, b) -> a.equals("") ? b : a + "," + b) : "";
 
 						// Allow mail instance class to be overriden by custom types to enable special mail handling
-						String entityType   = "EMailMessage";
+						String entityType   = StructrTraits.EMAIL_MESSAGE;
 						String overrideType = mailbox.getOverrideMailEntityType();
 
 						if (StringUtils.isNotBlank(overrideType)) {
 
-							if (Traits.exists(overrideType) && Traits.of(overrideType).contains("EMailMessage")) {
+							if (Traits.exists(overrideType) && Traits.of(overrideType).contains(StructrTraits.EMAIL_MESSAGE)) {
 
 								entityType = overrideType;
 

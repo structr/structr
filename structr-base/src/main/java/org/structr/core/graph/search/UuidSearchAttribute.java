@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.api.search.Occurrence;
 import org.structr.api.search.UuidQuery;
 import org.structr.core.GraphObject;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 
 /**
@@ -30,7 +31,7 @@ import org.structr.core.traits.Traits;
 public class UuidSearchAttribute extends SearchAttribute<String> implements UuidQuery {
 
 	public UuidSearchAttribute(final String value, final Occurrence occur) {
-		super(occur, Traits.of("GraphObject").key("id"), value);
+		super(occur, Traits.of(StructrTraits.GRAPH_OBJECT).key("id"), value);
 	}
 
 	@Override

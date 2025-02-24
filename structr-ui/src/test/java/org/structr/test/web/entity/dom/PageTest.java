@@ -28,6 +28,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.DOMElement;
@@ -61,7 +62,7 @@ public class PageTest extends StructrUiTest {
 				Page page = Page.createNewPage(securityContext, pageName);
 
 				assertTrue(page != null);
-				assertTrue(page.is("Page"));
+				assertTrue(page.is(StructrTraits.PAGE));
 
 				DOMNode html  = page.createElement("html");
 				DOMNode head  = page.createElement("head");
@@ -309,7 +310,7 @@ public class PageTest extends StructrUiTest {
 				Page page = Page.createNewPage(securityContext, "srcPage");
 
 				assertTrue(page != null);
-				assertTrue(page.is("Page"));
+				assertTrue(page.is(StructrTraits.PAGE));
 				DOMElement html = page.createElement("html");
 				DOMElement head = page.createElement("head");
 				DOMElement body = page.createElement("body");
@@ -361,9 +362,9 @@ public class PageTest extends StructrUiTest {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			pageToClone = app.create("Page", "test").as(Page.class);
+			pageToClone = app.create(StructrTraits.PAGE, "test").as(Page.class);
 
-			final Template templ = app.create("Template", "#template").as(Template.class);
+			final Template templ = app.create(StructrTraits.TEMPLATE, "#template").as(Template.class);
 
 			templ.setContent("Template: ${render(children)}");
 			templ.setContentType("text/html");
@@ -411,7 +412,7 @@ public class PageTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// change all templates
-			for (final NodeInterface node : app.nodeQuery("Template").getAsList()) {
+			for (final NodeInterface node : app.nodeQuery(StructrTraits.TEMPLATE).getAsList()) {
 
 				final Template template = node.as(Template.class);
 				final Page page         = template.getOwnerDocument();

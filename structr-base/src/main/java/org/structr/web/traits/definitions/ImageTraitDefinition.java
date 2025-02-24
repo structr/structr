@@ -32,6 +32,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
@@ -55,7 +56,7 @@ import java.util.Set;
 public class ImageTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public ImageTraitDefinition() {
-		super("Image");
+		super(StructrTraits.IMAGE);
 	}
 
 	@Override
@@ -72,7 +73,7 @@ public class ImageTraitDefinition extends AbstractNodeTraitDefinition {
 					final Image thisImage = graphObject.as(Image.class);
 					if ( !thisImage.isThumbnail() && !thisImage.isTemplate() ) {
 
-						if (modificationQueue.isPropertyModified(graphObject, Traits.of("NodeInterface").key("name"))) {
+						if (modificationQueue.isPropertyModified(graphObject, Traits.of(StructrTraits.NODE_INTERFACE).key("name"))) {
 
 							final String newImageName = thisImage.getName();
 
@@ -212,8 +213,8 @@ public class ImageTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<NodeInterface> imageOfUser                  = new EndNode("imageOfUser", "ImagePICTURE_OFUser");
 		final Property<Iterable<NodeInterface>> thumbnailsProperty = new EndNodes("thumbnails", "ImageTHUMBNAILImage");
 		final Property<NodeInterface> originalImageProperty        = new StartNode("originalImage", "ImageTHUMBNAILImage");
-		final Property<NodeInterface> tnMidProperty                = new ThumbnailProperty("tnMid").format("300, 300, false").typeHint("Image");
-		final Property<NodeInterface> tnSmallProperty              = new ThumbnailProperty("tnSmall").format("100, 100, false").typeHint("Image");
+		final Property<NodeInterface> tnMidProperty                = new ThumbnailProperty("tnMid").format("300, 300, false").typeHint(StructrTraits.IMAGE);
+		final Property<NodeInterface> tnSmallProperty              = new ThumbnailProperty("tnSmall").format("100, 100, false").typeHint(StructrTraits.IMAGE);
 		final Property<Boolean> isCreatingThumbProperty            = new BooleanProperty("isCreatingThumb").indexed();
 		final Property<Boolean> isImageProperty                    = new ConstantBooleanProperty("isImage", true).readOnly();
 		final Property<Boolean> isThumbnailProperty                = new BooleanProperty("isThumbnail").indexed();

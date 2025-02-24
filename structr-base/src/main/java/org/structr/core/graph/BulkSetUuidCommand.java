@@ -24,6 +24,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 
 import java.util.Map;
@@ -44,7 +45,7 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 	public long executeWithCount(final Map<String, Object> attributes) throws FrameworkException {
 
-		final PropertyKey<String> idProperty = Traits.of("GraphObject").key("id");
+		final PropertyKey<String> idProperty = Traits.of(StructrTraits.GRAPH_OBJECT).key("id");
 		final String nodeType  = (String) attributes.get("type");
 		final String relType   = (String) attributes.get("relType");
 		final Boolean allNodes = (Boolean) attributes.get("allNodes");

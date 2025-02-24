@@ -24,6 +24,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.web.entity.Site;
 import org.structr.web.entity.path.PagePath;
@@ -88,7 +89,7 @@ public interface Page extends DOMNode {
 	 */
 	static Page createNewPage(final SecurityContext securityContext, final String uuid, final String name) throws FrameworkException {
 
-		final Traits traits                           = Traits.of("Page");
+		final Traits traits                           = Traits.of(StructrTraits.PAGE);
 		final PropertyKey<String> nameKey             = traits.key("name");
 		final PropertyKey<String> typeKey             = traits.key("type");
 		final PropertyKey<String> contentTypeKey      = traits.key("contentType");
@@ -107,7 +108,7 @@ public interface Page extends DOMNode {
 			properties.put(traits.key("id"), uuid);
 		}
 
-		return app.create("Page", properties).as(Page.class);
+		return app.create(StructrTraits.PAGE, properties).as(Page.class);
 	}
 
 	/**

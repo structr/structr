@@ -38,6 +38,7 @@ import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.schema.SchemaHelper;
 import org.structr.web.entity.File;
@@ -965,9 +966,9 @@ public class SecurityContext {
 
 				try (final Tx tx = app.tx()) {
 
-					final List<NodeInterface> jsFiles = app.nodeQuery("File")
-							.and(Traits.key("File", "name"), fileName)
-							.and(Traits.key("File", "useAsJavascriptLibrary"), true)
+					final List<NodeInterface> jsFiles = app.nodeQuery(StructrTraits.FILE)
+							.and(Traits.key(StructrTraits.FILE, "name"), fileName)
+							.and(Traits.key(StructrTraits.FILE, "useAsJavascriptLibrary"), true)
 							.getAsList();
 
 					if (jsFiles.isEmpty()) {

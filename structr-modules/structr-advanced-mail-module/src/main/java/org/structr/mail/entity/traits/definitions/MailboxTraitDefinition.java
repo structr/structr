@@ -32,6 +32,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.LifecycleMethod;
@@ -50,7 +51,7 @@ import java.util.stream.StreamSupport;
 public class MailboxTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public MailboxTraitDefinition() {
-		super("Mailbox");
+		super(StructrTraits.MAILBOX);
 	}
 
 	@Override

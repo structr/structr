@@ -34,6 +34,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.odf.entity.ODTExporter;
@@ -103,8 +104,8 @@ public class ODTExporterTraitDefinition extends AbstractNodeTraitDefinition {
 		try {
 
 			final App app                        = StructrApp.getInstance(securityContext);
-			final ResultStream result            = app.nodeQuery("AbstractNode").and(Traits.of("NodeInterface").key("id"), uuid).getResultStream();
-			final ResultStream transformedResult = transformation.transformOutput(securityContext, "NodeInterface", result);
+			final ResultStream result            = app.nodeQuery("AbstractNode").and(Traits.of(StructrTraits.NODE_INTERFACE).key("id"), uuid).getResultStream();
+			final ResultStream transformedResult = transformation.transformOutput(securityContext, StructrTraits.NODE_INTERFACE, result);
 
 			Map<String, Object> nodeProperties = new HashMap<>();
 			GraphObjectMap node = (GraphObjectMap) Iterables.first(transformedResult);

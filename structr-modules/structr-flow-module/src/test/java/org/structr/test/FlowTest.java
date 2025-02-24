@@ -34,8 +34,6 @@ import org.structr.web.entity.html.*;
 import org.testng.annotations.Test;
 import org.w3c.dom.Node;
 
-import java.lang.Object;
-import java.util.Map;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -139,24 +137,24 @@ public class FlowTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// create admin user
-			createTestNode("User",
+			createTestNode(StructrTraits.USER,
 				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
 				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
 				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"),  true)
 			);
 
 			// create some test data
-			createTestNode("Group", new NodeAttribute<>(Group.name, "group1"));
-			createTestNode("Group", new NodeAttribute<>(Group.name, "group2"));
-			createTestNode("Group", new NodeAttribute<>(Group.name, "group3"));
-			createTestNode("Group", new NodeAttribute<>(Group.name, "group4"));
+			createTestNode(StructrTraits.GROUP, new NodeAttribute<>(Group.name, "group1"));
+			createTestNode(StructrTraits.GROUP, new NodeAttribute<>(Group.name, "group2"));
+			createTestNode(StructrTraits.GROUP, new NodeAttribute<>(Group.name, "group3"));
+			createTestNode(StructrTraits.GROUP, new NodeAttribute<>(Group.name, "group4"));
 
 			// create flow
 			final FlowContainer flowContainer = app.create("FlowContainer", "test");
 			final FlowTypeQuery query         = app.create("FlowTypeQuery", "query");
 			final FlowReturn    ret           = app.create("FlowReturn", "return");
 
-			query.setProperty(StructrApp.key(FlowTypeQuery.class, "dataType"), "Group");
+			query.setProperty(StructrApp.key(FlowTypeQuery.class, "dataType"), StructrTraits.GROUP);
 			query.setProperty(StructrApp.key(FlowTypeQuery.class, "query"), "{\"type\":\"group\",\"op\":\"and\",\"operations\":[{\"type\":\"sort\",\"key\":\"name\",\"order\":\"desc\",\"queryType\":\"Group\"}],\"queryType\":\"Group\"}");
 
 			query.setProperty(FlowAction.flowContainer, flowContainer);

@@ -22,6 +22,7 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.File;
 
@@ -50,7 +51,7 @@ public class AppendContentFunction extends UiAdvancedFunction {
 
 			assertArrayHasMinLengthAndAllElementsNotNull(sources, 2);
 
-			if (sources[0] instanceof NodeInterface n && n.is("File")) {
+			if (sources[0] instanceof NodeInterface n && n.is(StructrTraits.FILE)) {
 
 				final File file       = n.as(File.class);
 				final String encoding = (sources.length == 3 && sources[2] != null) ? sources[2].toString() : "UTF-8";

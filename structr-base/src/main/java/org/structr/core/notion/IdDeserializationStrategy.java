@@ -31,6 +31,7 @@ import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationProperty;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 
 import java.util.*;
@@ -54,7 +55,7 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> extends Deser
 	public T deserialize(final SecurityContext securityContext, final String type, final S source, final Object context) throws FrameworkException {
 
 		final App app = StructrApp.getInstance(securityContext);
-		final PropertyKey<String> idProperty = Traits.of("GraphObject").key("id");
+		final PropertyKey<String> idProperty = Traits.of(StructrTraits.GRAPH_OBJECT).key("id");
 
 		if (source != null) {
 
@@ -105,7 +106,7 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> extends Deser
 				final PropertyMap convertedProperties  = PropertyMap.inputTypeToJavaType(securityContext, actualType.getName(), properties);
 
 				// If property map contains the uuid, search only for uuid
-				if (convertedProperties.containsKey(Traits.of("GraphObject").key("id"))) {
+				if (convertedProperties.containsKey(Traits.of(StructrTraits.GRAPH_OBJECT).key("id"))) {
 
 					// related node is already found
 					if (relatedNode != null) {
@@ -249,7 +250,7 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> extends Deser
 	}
 
 	private boolean isIdentifying(final Traits actualType, final PropertyKey key) {
-		return (actualType.contains("Principal") && ("name".equals(key.jsonName()) || "eMail".equals(key.jsonName())));
+		return (actualType.contains(StructrTraits.PRINCIPAL) && ("name".equals(key.jsonName()) || "eMail".equals(key.jsonName())));
 	}
 
 	private List<T> convert(final Iterable<NodeInterface> iterable) {

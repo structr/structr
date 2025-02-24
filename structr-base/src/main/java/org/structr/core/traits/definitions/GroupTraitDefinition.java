@@ -33,6 +33,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
@@ -50,7 +51,7 @@ import java.util.Set;
 public final class GroupTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public GroupTraitDefinition() {
-		super("Group");
+		super(StructrTraits.GROUP);
 	}
 
 	@Override
@@ -109,7 +110,7 @@ public final class GroupTraitDefinition extends AbstractNodeTraitDefinition {
 			@Override
 			public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
 
-				if (entity.is("Group")) {
+				if (entity.is(StructrTraits.GROUP)) {
 
 					final NodeInterface userNode = (NodeInterface)arguments.get("user");
 					Principal user               = null;
@@ -130,7 +131,7 @@ public final class GroupTraitDefinition extends AbstractNodeTraitDefinition {
 			@Override
 			public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
 
-				if (entity.is("Group")) {
+				if (entity.is(StructrTraits.GROUP)) {
 
 					return entity.as(Group.class).getMembers();
 				}
@@ -144,7 +145,7 @@ public final class GroupTraitDefinition extends AbstractNodeTraitDefinition {
 			@Override
 			public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
 
-				if (entity.is("Group")) {
+				if (entity.is(StructrTraits.GROUP)) {
 
 					final NodeInterface userNode = (NodeInterface)arguments.get("user");
 					Principal user               = null;
@@ -174,7 +175,7 @@ public final class GroupTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Iterable<NodeInterface>> membersProperty = new EndNodes("members", "GroupCONTAINSPrincipal");
+		final Property<Iterable<NodeInterface>> membersProperty = new EndNodes("members", StructrTraits.GROUP_CONTAINS_PRINCIPAL);
 		final Property<String> jwksReferenceIdProperty          = new StringProperty("jwksReferenceId").indexed().unique();
 		final Property<String> nameProperty                     = new StringProperty("name").indexed().notNull().unique();
 		final Property<Boolean> isGroupProperty                 = new ConstantBooleanProperty("isGroup", true);

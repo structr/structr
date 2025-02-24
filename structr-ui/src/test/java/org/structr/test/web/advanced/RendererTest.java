@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.entity.dom.Content;
@@ -49,10 +50,10 @@ public class RendererTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode("User",
-				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
-				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			final Page page1 = Page.createSimplePage(securityContext, "page1");
@@ -71,8 +72,8 @@ public class RendererTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// test markdown content
-			content.setProperty(Traits.of("Content").key("contentType"), "text/markdown");
-			content.setProperty(Traits.of("Content").key("content"),
+			content.setProperty(Traits.of(StructrTraits.CONTENT).key("contentType"), "text/markdown");
+			content.setProperty(Traits.of(StructrTraits.CONTENT).key("content"),
 				"# Title\n" +
 				"This is a test\n\n" +
 				"## Another title\n"
@@ -113,10 +114,10 @@ public class RendererTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode("User",
-				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
-				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			final Page page1 = Page.createSimplePage(securityContext, "page1");
@@ -135,8 +136,8 @@ public class RendererTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// test markdown content
-			content.setProperty(Traits.of("Content").key("contentType"), "text/textile");
-			content.setProperty(Traits.of("Content").key("content"),
+			content.setProperty(Traits.of(StructrTraits.CONTENT).key("contentType"), "text/textile");
+			content.setProperty(Traits.of(StructrTraits.CONTENT).key("content"),
 				"# Title\n" +
 				"This is a test\n\n" +
 				"## Another title\n"
@@ -176,10 +177,10 @@ public class RendererTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode("User",
-				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
-				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			final Page page1 = Page.createSimplePage(securityContext, "page1");
@@ -198,8 +199,8 @@ public class RendererTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// test markdown content
-			content.setProperty(Traits.of("Content").key("contentType"), "text/mediawiki");
-			content.setProperty(Traits.of("Content").key("content"),
+			content.setProperty(Traits.of(StructrTraits.CONTENT).key("contentType"), "text/mediawiki");
+			content.setProperty(Traits.of(StructrTraits.CONTENT).key("content"),
 				"# Title\n" +
 				"This is a test\n\n" +
 				"## Another title\n"
@@ -239,10 +240,10 @@ public class RendererTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode("User",
-				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
-				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			final Page page1 = Page.createSimplePage(securityContext, "page1");
@@ -261,8 +262,8 @@ public class RendererTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// test markdown content
-			content.setProperty(Traits.of("Content").key("contentType"), "text/tracwiki");
-			content.setProperty(Traits.of("Content").key("content"),
+			content.setProperty(Traits.of(StructrTraits.CONTENT).key("contentType"), "text/tracwiki");
+			content.setProperty(Traits.of(StructrTraits.CONTENT).key("content"),
 				"# Title\n" +
 				"This is a test\n\n" +
 				"## Another title\n"
@@ -302,10 +303,10 @@ public class RendererTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode("User",
-				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
-				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			final Page page1 = Page.createSimplePage(securityContext, "page1");
@@ -324,8 +325,8 @@ public class RendererTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// test markdown content
-			content.setProperty(Traits.of("Content").key("contentType"), "text/confluence");
-			content.setProperty(Traits.of("Content").key("content"),
+			content.setProperty(Traits.of(StructrTraits.CONTENT).key("contentType"), "text/confluence");
+			content.setProperty(Traits.of(StructrTraits.CONTENT).key("content"),
 				"# Title\n" +
 				"This is a test\n\n" +
 				"## Another title\n"
@@ -365,10 +366,10 @@ public class RendererTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode("User",
-				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
-				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			final Page page1 = Page.createSimplePage(securityContext, "page1");
@@ -387,8 +388,8 @@ public class RendererTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// test markdown content
-			content.setProperty(Traits.of("Content").key("contentType"), "text/asciidoc");
-			content.setProperty(Traits.of("Content").key("content"),
+			content.setProperty(Traits.of(StructrTraits.CONTENT).key("contentType"), "text/asciidoc");
+			content.setProperty(Traits.of(StructrTraits.CONTENT).key("content"),
 				"# Title\n" +
 				"This is a test\n\n" +
 				"## Another title\n"

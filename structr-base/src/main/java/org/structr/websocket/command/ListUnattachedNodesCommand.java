@@ -28,14 +28,11 @@ import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
-import org.structr.core.graph.search.SearchCommand;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
-import org.structr.web.entity.dom.*;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
-
-import java.util.Set;
 
 /**
  * Websocket command to retrieve DOM nodes which are not attached to a parent
@@ -89,13 +86,13 @@ public class ListUnattachedNodesCommand extends AbstractCommand {
 	 */
 	protected static Iterable<NodeInterface> getUnattachedNodes(final App app, final SecurityContext securityContext, final WebSocketMessage webSocketData) throws FrameworkException {
 
-		final Traits traits        = Traits.of("DOMNode");
+		final Traits traits        = Traits.of(StructrTraits.DOM_NODE);
 		final String sortOrder     = webSocketData.getSortOrder();
 		final String sortKey       = webSocketData.getSortKey();
 		final int pageSize         = webSocketData.getPageSize();
 		final int page             = webSocketData.getPage();
 
-		final Query<NodeInterface> query = app.nodeQuery("DOMNode")
+		final Query<NodeInterface> query = app.nodeQuery(StructrTraits.DOM_NODE)
 			.includeHidden()
 			.pageSize(pageSize)
 			.page(page)
@@ -107,7 +104,7 @@ public class ListUnattachedNodesCommand extends AbstractCommand {
 			query.sort(traits.key(sortKey), "desc".equals(sortOrder));
 		}
 
-		return Iterables.filter(n -> n.getTraits().contains("Page"), query.getResultStream());
+		return Iterables.filter(n -> n.getTraits().contains(StructrTraits.PAGE), query.getResultStream());
 	}
 
 	@Override

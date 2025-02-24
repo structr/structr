@@ -26,6 +26,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 
@@ -58,13 +59,13 @@ public class TemplateFunction extends AdvancedScriptingFunction {
 
 			if (sources[2] instanceof GraphObject) {
 
-				final Traits traits                 = Traits.of("MailTemplate");
+				final Traits traits                 = Traits.of(StructrTraits.MAIL_TEMPLATE);
 				final PropertyKey<String> localeKey = traits.key("locale");
 				final PropertyKey<String> textKey   = traits.key("text");
 				final App app                       = StructrApp.getInstance(ctx.getSecurityContext());
 				final String name                   = sources[0].toString();
 				final String locale                 = sources[1].toString();
-				final GraphObject template          = app.nodeQuery("MailTemplate").andName(name).and(localeKey, locale).getFirst();
+				final GraphObject template          = app.nodeQuery(StructrTraits.MAIL_TEMPLATE).andName(name).and(localeKey, locale).getFirst();
 				final GraphObject templateInstance  = (GraphObject)sources[2];
 
 				if (template != null) {

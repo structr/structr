@@ -26,6 +26,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -60,7 +61,7 @@ public class InsertCommand extends AbstractCommand {
 
 				PropertyMap nodeProperties = PropertyMap.inputTypeToJavaType(securityContext, webSocketData.getNodeData() );
 
-				nodeToInsert = app.create("DOMNode", nodeProperties);
+				nodeToInsert = app.create(StructrTraits.DOM_NODE, nodeProperties);
 
 			} catch (FrameworkException fex) {
 

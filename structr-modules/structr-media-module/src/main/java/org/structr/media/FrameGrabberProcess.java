@@ -28,6 +28,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.util.AbstractProcess;
 import org.structr.web.common.FileHelper;
@@ -79,7 +80,7 @@ public class FrameGrabberProcess extends AbstractProcess<Image> {
 		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
 			// create an empty file to store the converted video
-			newFile = FileHelper.createFile(securityContext, new byte[0], null, "Image", imageName, false);
+			newFile = FileHelper.createFile(securityContext, new byte[0], null, StructrTraits.IMAGE, imageName, false);
 
 			// obtain destination path of new file
 			//outputFileName = newFile.getFileOnDisk().getAbsolutePath();

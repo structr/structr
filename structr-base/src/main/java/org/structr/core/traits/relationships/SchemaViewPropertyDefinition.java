@@ -20,6 +20,7 @@ package org.structr.core.traits.relationships;
 
 import org.structr.core.entity.Relation;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
@@ -30,7 +31,7 @@ import static org.structr.core.entity.Relation.Multiplicity.Many;
 public class SchemaViewPropertyDefinition extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public SchemaViewPropertyDefinition() {
-		super("SchemaViewProperty");
+		super(StructrTraits.SCHEMA_VIEW_PROPERTY);
 	}
 
 	@Override
@@ -40,12 +41,12 @@ public class SchemaViewPropertyDefinition extends AbstractRelationshipTraitDefin
 
 	@Override
 	public String getSourceType() {
-		return "SchemaView";
+		return StructrTraits.SCHEMA_VIEW;
 	}
 
 	@Override
 	public String getTargetType() {
-		return "SchemaProperty";
+		return StructrTraits.SCHEMA_PROPERTY;
 	}
 
 	@Override

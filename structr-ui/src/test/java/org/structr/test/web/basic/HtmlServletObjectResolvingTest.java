@@ -28,6 +28,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.FileHelper;
@@ -172,7 +173,7 @@ public class HtmlServletObjectResolvingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface file = FileHelper.createFile(securityContext, "test".getBytes(), "text/plain", "File", "test.txt", true);
+			final NodeInterface file = FileHelper.createFile(securityContext, "test".getBytes(), "text/plain", StructrTraits.FILE, "test.txt", true);
 
 			uuid = file.getUuid();
 
@@ -189,10 +190,10 @@ public class HtmlServletObjectResolvingTest extends StructrUiTest {
 			query
 				.and()
 					.or()
-					.andTypes(Traits.of("Page"))
-					.andTypes(Traits.of("File"))
+					.andTypes(Traits.of(StructrTraits.PAGE))
+					.andTypes(Traits.of(StructrTraits.FILE))
 					.parent()
-				.and(Traits.of("GraphObject").key("id"), uuid);
+				.and(Traits.of(StructrTraits.GRAPH_OBJECT).key("id"), uuid);
 
 			// Searching for pages needs super user context anyway
 			List<Linkable> results = query.getAsList();

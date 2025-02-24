@@ -30,6 +30,7 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
@@ -76,7 +77,7 @@ public class XmlImportTest extends StructrUiTest {
 				+ "</items>\n";
 
 			final byte[] fileData    = xmlData.getBytes("utf-8");
-			final NodeInterface file = FileHelper.createFile(securityContext, fileData, "application/xml", "File", "test.xml", true);
+			final NodeInterface file = FileHelper.createFile(securityContext, fileData, "application/xml", StructrTraits.FILE, "test.xml", true);
 
 			// extract UUID for later use
 			newFileId = file.getUuid();
@@ -84,7 +85,7 @@ public class XmlImportTest extends StructrUiTest {
 			// create new type
 			final JsonSchema schema = StructrSchema.createEmptySchema();
 			final JsonType newType  = schema.addType("Item");
-			final Traits userTraits = Traits.of("User");
+			final Traits userTraits = Traits.of(StructrTraits.USER);
 
 			newType.addStringProperty("name");
 			newType.addIntegerProperty("originId").isIndexed();
@@ -96,7 +97,7 @@ public class XmlImportTest extends StructrUiTest {
 			StructrSchema.extendDatabaseSchema(app, schema);
 
 			// create test user
-			app.create("User",
+			app.create(StructrTraits.USER,
 				new NodeAttribute<>(userTraits.key("name"),     "admin"),
 				new NodeAttribute<>(userTraits.key("password"), "admin"),
 				new NodeAttribute<>(userTraits.key("isAdmin"),  true)

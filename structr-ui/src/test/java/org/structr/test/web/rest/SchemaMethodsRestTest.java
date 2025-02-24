@@ -25,6 +25,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.test.web.StructrUiTest;
 import org.testng.annotations.Test;
@@ -43,9 +44,9 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// create global schema which does not have any visibility flags
-			app.create("SchemaMethod",
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("name"), "myTestMethod01"),
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("source"), "'hello world!'")
+			app.create(StructrTraits.SCHEMA_METHOD,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("name"), "myTestMethod01"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "'hello world!'")
 			);
 
 			tx.success();
@@ -69,10 +70,10 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 		// Add Grant and allow POST for public users
 		try (final Tx tx = app.tx()) {
 
-			app.create("ResourceAccess",
-				new NodeAttribute<>(Traits.of("ResourceAccess").key("signature"), "myTestMethod01"),
-				new NodeAttribute<>(Traits.of("ResourceAccess").key("flags"), 64L),
-				new NodeAttribute<>(Traits.of("ResourceAccess").key("visibleToPublicUsers"), true)
+			app.create(StructrTraits.RESOURCE_ACCESS,
+				new NodeAttribute<>(Traits.of(StructrTraits.RESOURCE_ACCESS).key("signature"), "myTestMethod01"),
+				new NodeAttribute<>(Traits.of(StructrTraits.RESOURCE_ACCESS).key("flags"), 64L),
+				new NodeAttribute<>(Traits.of(StructrTraits.RESOURCE_ACCESS).key("visibleToPublicUsers"), true)
 			);
 
 			tx.success();
@@ -99,13 +100,13 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface testType = app.create("SchemaNode", "MyTestType");
+			final NodeInterface testType = app.create(StructrTraits.SCHEMA_NODE, "MyTestType");
 
-			app.create("SchemaMethod",
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("schemaNode"),testType),
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("name"),"testTypeMethod01"),
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("source"), "'MyTestType.testTypeMethod01 here'"),
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("isStatic"),true)
+			app.create(StructrTraits.SCHEMA_METHOD,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("schemaNode"),testType),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("name"),"testTypeMethod01"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "'MyTestType.testTypeMethod01 here'"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("isStatic"),true)
 			);
 
 			tx.success();
@@ -129,10 +130,10 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 		// Add Grant and allow POST for public users
 		try (final Tx tx = app.tx()) {
 
-			app.create("ResourceAccess",
-				new NodeAttribute<>(Traits.of("ResourceAccess").key("signature"), "MyTestType/testTypeMethod01"),
-				new NodeAttribute<>(Traits.of("ResourceAccess").key("flags"), 64L),
-				new NodeAttribute<>(Traits.of("ResourceAccess").key("visibleToPublicUsers"), true)
+			app.create(StructrTraits.RESOURCE_ACCESS,
+				new NodeAttribute<>(Traits.of(StructrTraits.RESOURCE_ACCESS).key("signature"), "MyTestType/testTypeMethod01"),
+				new NodeAttribute<>(Traits.of(StructrTraits.RESOURCE_ACCESS).key("flags"), 64L),
+				new NodeAttribute<>(Traits.of(StructrTraits.RESOURCE_ACCESS).key("visibleToPublicUsers"), true)
 			);
 
 			tx.success();
@@ -161,13 +162,13 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface testType = app.create("SchemaNode", new NodeAttribute<>(Traits.of("SchemaNode").key("name"), "TestType"));
+			final NodeInterface testType = app.create(StructrTraits.SCHEMA_NODE, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key("name"), "TestType"));
 
 			// create private method that is not exported via REST
-			app.create("SchemaMethod",
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("name"), "myTestMethod01"),
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("source"), "'hello world!'"),
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("schemaNode"), testType)
+			app.create(StructrTraits.SCHEMA_METHOD,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("name"), "myTestMethod01"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "'hello world!'"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("schemaNode"), testType)
 			);
 
 			tx.success();
@@ -197,13 +198,13 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface testType = app.create("SchemaNode", new NodeAttribute<>(Traits.of("SchemaNode").key("name"), "TestType"));
+			final NodeInterface testType = app.create(StructrTraits.SCHEMA_NODE, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key("name"), "TestType"));
 
 			// create lifecycle method that is not exported via REST
-			app.create("SchemaMethod",
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("name"),"onCreate"),
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("source"), "{ $.log('hello world!'); }"),
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("schemaNode"),testType)
+			app.create(StructrTraits.SCHEMA_METHOD,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("name"),"onCreate"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "{ $.log('hello world!'); }"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("schemaNode"),testType)
 			);
 
 			tx.success();
@@ -235,14 +236,14 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface testType = app.create("SchemaNode", new NodeAttribute<>(Traits.of("SchemaNode").key("name"), "TestType"));
+			final NodeInterface testType = app.create(StructrTraits.SCHEMA_NODE, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key("name"), "TestType"));
 
 			// create private method that is not exported via REST
-			app.create("SchemaMethod",
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("name"),      "testMethod"),
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("isPrivate"), true),
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("source"),    "{ $.log('hello world!'); }"),
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("schemaNode"),testType)
+			app.create(StructrTraits.SCHEMA_METHOD,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("name"),      "testMethod"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("isPrivate"), true),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"),    "{ $.log('hello world!'); }"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("schemaNode"),testType)
 			);
 
 			tx.success();
@@ -274,15 +275,15 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface testType = app.create("SchemaNode", new NodeAttribute<>(Traits.of("SchemaNode").key("name"), "TestType"));
+			final NodeInterface testType = app.create(StructrTraits.SCHEMA_NODE, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key("name"), "TestType"));
 
 			// create private method that is not exported via REST
-			app.create("SchemaMethod",
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("name"),      "testMethod"),
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("isStatic"),  true),
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("isPrivate"), true),
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("source"),    "{ $.log('hello world!'); }"),
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("schemaNode"),testType)
+			app.create(StructrTraits.SCHEMA_METHOD,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("name"),      "testMethod"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("isStatic"),  true),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("isPrivate"), true),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"),    "{ $.log('hello world!'); }"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("schemaNode"),testType)
 			);
 
 			tx.success();
@@ -314,17 +315,17 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface testType = app.create("SchemaNode", new NodeAttribute<>(Traits.of("SchemaNode").key("name"), "TestType"));
-			final NodeInterface testView = app.create("SchemaView",
-				new NodeAttribute<>(Traits.of("SchemaView").key("schemaNode"), testType),
-				new NodeAttribute<>(Traits.of("SchemaView").key("name"), "test")
+			final NodeInterface testType = app.create(StructrTraits.SCHEMA_NODE, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key("name"), "TestType"));
+			final NodeInterface testView = app.create(StructrTraits.SCHEMA_VIEW,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key("schemaNode"), testType),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key("name"), "test")
 			);
 
-			final NodeInterface p1   = app.create("SchemaProperty",
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaNode"), testType),
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaViews"), List.of(testView)),
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("propertyType"), "String"),
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("name"), "moep")
+			final NodeInterface p1   = app.create(StructrTraits.SCHEMA_PROPERTY,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), testType),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaViews"), List.of(testView)),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "String"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"), "moep")
 			);
 
 			tx.success();
@@ -336,15 +337,15 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface testType = app.nodeQuery("SchemaNode").andName("TestType").getFirst();
+			final NodeInterface testType = app.nodeQuery(StructrTraits.SCHEMA_NODE).andName("TestType").getFirst();
 
 			// create private method that is not exported via REST
-			app.create("SchemaMethod",
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("name"),      "test"),
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("isStatic"),  true),
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("isPrivate"), true),
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("source"),    "{ $.log('hello world!'); }"),
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("schemaNode"),testType)
+			app.create(StructrTraits.SCHEMA_METHOD,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("name"),      "test"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("isStatic"),  true),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("isPrivate"), true),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"),    "{ $.log('hello world!'); }"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("schemaNode"),testType)
 			);
 
 			tx.success();
@@ -359,7 +360,7 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 			final ErrorToken token = fex.getErrorBuffer().getErrorTokens().get(0);
 
 			assertEquals("Wrong property name in error response", "name",                                          token.getProperty());
-			assertEquals("Wrong type in error response", "SchemaMethod",                                           token.getType());
+			assertEquals("Wrong type in error response", StructrTraits.SCHEMA_METHOD,                                           token.getType());
 			assertEquals("Wrong token in error response", "already_exists",                                        token.getToken());
 			assertEquals("Wrong detail message in error response", "A method cannot have the same name as a view", token.getDetail());
 		}

@@ -37,6 +37,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
@@ -55,7 +56,7 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 	private static final int permissionResolutionMaxLevel                                                     = Settings.ResolutionDepth.getValue();
 
 	public AccessControllableTraitDefinition() {
-		super("AccessControllable");
+		super(StructrTraits.ACCESS_CONTROLLABLE);
 	}
 
 	@Override
@@ -82,7 +83,7 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 				@Override
 				public Principal getOwnerNode(final NodeInterface nodeInterface) {
 
-					final RelationshipInterface ownership = nodeInterface.getIncomingRelationshipAsSuperUser("PrincipalOwnsNode");
+					final RelationshipInterface ownership = nodeInterface.getIncomingRelationshipAsSuperUser(StructrTraits.PRINCIPAL_OWNS_NODE);
 					if (ownership != null) {
 
 						return ownership.getSourceNode().as(Principal.class);
@@ -156,7 +157,7 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 
 							// ensureCardinality is not neccessary here
 							final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
-							final Traits traits                    = Traits.of("SecurityRelationship");
+							final Traits traits                    = Traits.of(StructrTraits.SECURITY);
 							final PropertyMap properties           = new PropertyMap();
 
 							superUserContext.disablePreventDuplicateRelationships();
@@ -167,7 +168,7 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 							properties.put(traits.key("accessControllableId"), node.getUuid());
 							properties.put(traits.key("allowed"),              permissionSet.toArray(new String[permissionSet.size()]));
 
-							StructrApp.getInstance(superUserContext).create(principal, node, "SecurityRelationship", properties);
+							StructrApp.getInstance(superUserContext).create(principal, node, StructrTraits.SECURITY, properties);
 
 						} catch (FrameworkException ex) {
 
@@ -229,7 +230,7 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 
 								// ensureCardinality is not necessary here
 								final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
-								final Traits traits                    = Traits.of("SecurityRelationship");
+								final Traits traits                    = Traits.of(StructrTraits.SECURITY);
 								final PropertyMap properties           = new PropertyMap();
 
 								superUserContext.disablePreventDuplicateRelationships();
@@ -240,7 +241,7 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 								properties.put(traits.key("accessControllableId"), node.getUuid());
 								properties.put(traits.key("allowed"),              permissionSet.toArray(new String[permissionSet.size()]));
 
-								StructrApp.getInstance(superUserContext).create(principal, node, "SecurityRelationship", properties);
+								StructrApp.getInstance(superUserContext).create(principal, node, StructrTraits.SECURITY, properties);
 
 							} catch (FrameworkException ex) {
 
@@ -260,15 +261,15 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 				@Override
 				public List<Security> getSecurityRelationships(final NodeInterface node) {
 
-					final List<RelationshipInterface> grants = Iterables.toList(node.getIncomingRelationshipsAsSuperUser("SecurityRelationship", null));
+					final List<RelationshipInterface> grants = Iterables.toList(node.getIncomingRelationshipsAsSuperUser(StructrTraits.SECURITY, null));
 
 					// sort list by principal name (important for diff'able export)
 					Collections.sort(grants, (o1, o2) -> {
 
 						final NodeInterface p1 = o1.getSourceNode();
 						final NodeInterface p2 = o2.getSourceNode();
-						final String n1 = p1 != null ? p1.getProperty(Traits.of("NodeInterface").key("name")) : "empty";
-						final String n2 = p2 != null ? p2.getProperty(Traits.of("NodeInterface").key("name")) : "empty";
+						final String n1 = p1 != null ? p1.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name")) : "empty";
+						final String n2 = p2 != null ? p2.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name")) : "empty";
 
 						if (n1 != null && n2 != null) {
 							return n1.compareTo(n2);
@@ -293,7 +294,7 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 
 					return AccessControllableTraitDefinition.getSecurityRelationship(
 						p,
-						AccessControllableTraitDefinition.mapSecurityRelationshipsMapped(node.getIncomingRelationshipsAsSuperUser("SecurityRelationship", null))
+						AccessControllableTraitDefinition.mapSecurityRelationshipsMapped(node.getIncomingRelationshipsAsSuperUser(StructrTraits.SECURITY, null))
 					);
 				}
 			},
@@ -401,7 +402,7 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 				return true;
 			}
 
-			final Map<String, Security> localIncomingSecurityRelationships = incomingSecurityRelationships != null ? incomingSecurityRelationships : mapSecurityRelationshipsMapped(node.getIncomingRelationshipsAsSuperUser("SecurityRelationship", null));
+			final Map<String, Security> localIncomingSecurityRelationships = incomingSecurityRelationships != null ? incomingSecurityRelationships : mapSecurityRelationshipsMapped(node.getIncomingRelationshipsAsSuperUser(StructrTraits.SECURITY, null));
 			final Security security                                        = AccessControllableTraitDefinition.getSecurityRelationship(accessingUser, localIncomingSecurityRelationships);
 
 			if (security != null && security.isAllowed(permission)) {

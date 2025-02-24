@@ -35,6 +35,7 @@ import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.schema.action.Actions;
 
@@ -77,7 +78,7 @@ public class AuthHelper {
 
 			try {
 
-				final NodeInterface node = StructrApp.getInstance().nodeQuery("Principal").and(key, value).disableSorting().isPing(isPing).getFirst();
+				final NodeInterface node = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).and(key, value).disableSorting().isPing(isPing).getFirst();
 				if (node != null) {
 
 					return node.as(Principal.class);
@@ -130,7 +131,7 @@ public class AuthHelper {
 
 			try {
 
-				final NodeInterface node = StructrApp.getInstance().nodeQuery("Principal").and().or(key, value).or(Traits.of("NodeInterface").key("name"), value).disableSorting().getFirst();
+				final NodeInterface node = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).and().or(key, value).or(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), value).disableSorting().getFirst();
 				if (node != null) {
 
 					principal = node.as(Principal.class);
@@ -250,7 +251,7 @@ public class AuthHelper {
 
 	public static Principal getPrincipalForSessionId(final String sessionId, final boolean isPing) {
 
-		return getPrincipalForCredential(Traits.of("Principal").key("sessionIds"), new String[]{ sessionId }, isPing);
+		return getPrincipalForCredential(Traits.of(StructrTraits.PRINCIPAL).key("sessionIds"), new String[]{ sessionId }, isPing);
 
 	}
 
@@ -456,11 +457,11 @@ public class AuthHelper {
 
 		Principal principal = null;
 
-		final PropertyKey<String> twoFactorTokenKey = Traits.of("Principal").key("twoFactorToken");
+		final PropertyKey<String> twoFactorTokenKey = Traits.of(StructrTraits.PRINCIPAL).key("twoFactorToken");
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface node = app.nodeQuery("Principal").and(twoFactorTokenKey, twoFactorIdentificationToken).getFirst();
+			final NodeInterface node = app.nodeQuery(StructrTraits.PRINCIPAL).and(twoFactorTokenKey, twoFactorIdentificationToken).getFirst();
 			if (node != null) {
 
 				principal = node.as(Principal.class);

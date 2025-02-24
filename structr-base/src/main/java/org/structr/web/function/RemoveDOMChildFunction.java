@@ -21,6 +21,7 @@ package org.structr.web.function;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
@@ -46,11 +47,11 @@ public class RemoveDOMChildFunction extends UiAdvancedFunction {
 
 		assertArrayHasMinLengthAndAllElementsNotNull(sources, 2);
 
-		if (sources[0] instanceof NodeInterface n1 && n1.is("DOMElement")) {
+		if (sources[0] instanceof NodeInterface n1 && n1.is(StructrTraits.DOM_ELEMENT)) {
 
 			final DOMElement parent = n1.as(DOMElement.class);
 
-			if (sources[1] instanceof NodeInterface n2 && n2.is("DOMNode")) {
+			if (sources[1] instanceof NodeInterface n2 && n2.is(StructrTraits.DOM_NODE)) {
 
 				final DOMNode child = n2.as(DOMNode.class);
 

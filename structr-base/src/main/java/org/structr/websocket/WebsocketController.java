@@ -36,6 +36,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.websocket.message.MessageBuilder;
@@ -187,7 +188,7 @@ public class WebsocketController implements StructrTransactionListener {
 	private WebSocketMessage getMessageForEvent(final SecurityContext securityContext, final ModificationEvent modificationEvent) throws FrameworkException {
 
 		final String callbackId = modificationEvent.getCallbackId();
-		final PropertyKey<String> idProperty = Traits.of("GraphObject").key("id");
+		final PropertyKey<String> idProperty = Traits.of(StructrTraits.GRAPH_OBJECT).key("id");
 
 		if (modificationEvent.isNode()) {
 
@@ -316,7 +317,7 @@ public class WebsocketController implements StructrTransactionListener {
 					message.setCode(200);
 					message.setCommand("APPEND_CHILD");
 
-					if (endNode.is("DOMNode")) {
+					if (endNode.is(StructrTraits.DOM_NODE)) {
 
 						DOMNode refNode = endNode.as(DOMNode.class).getNextSibling();
 						if (refNode != null) {
@@ -325,12 +326,12 @@ public class WebsocketController implements StructrTransactionListener {
 							message.setNodeData("refId", refNode.getUuid());
 						}
 
-					} else if (endNode.is("User") || endNode.is("Group")) {
+					} else if (endNode.is(StructrTraits.USER) || endNode.is(StructrTraits.GROUP)) {
 
 						message.setCommand("APPEND_MEMBER");
 						message.setNodeData("refId", startNode.getUuid());
 
-					} else if (endNode.is("AbstractFile")) {
+					} else if (endNode.is(StructrTraits.ABSTRACT_FILE)) {
 
 						message.setCommand("APPEND_FILE");
 						message.setNodeData("refId", startNode.getUuid());

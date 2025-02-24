@@ -27,6 +27,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 
 import java.util.Map;
@@ -45,7 +46,7 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
 
 		final DatabaseService graphDb        = (DatabaseService) arguments.get("graphDb");
 		final App app                        = StructrApp.getInstance();
-		final PropertyKey<String> idProperty = Traits.of("GraphObject").key("id");
+		final PropertyKey<String> idProperty = Traits.of(StructrTraits.GRAPH_OBJECT).key("id");
 		String relationshipTypeClass         = "RelationshipInterface";
 
 		if (graphDb != null) {

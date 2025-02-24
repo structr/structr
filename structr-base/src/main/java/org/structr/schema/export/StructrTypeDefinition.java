@@ -33,6 +33,7 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.schema.openapi.common.OpenAPISchemaReference;
 import org.structr.schema.openapi.operation.*;
@@ -990,8 +991,8 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 	AbstractSchemaNode createDatabaseSchema(final Map<String, SchemaNode> schemaNodes, final Map<String, SchemaRelationshipNode> schemaRels, final App app) throws FrameworkException {
 
-		final Traits schemaNodeTraits                      = Traits.of("SchemaNode");
-		final Traits schemaViewTraits                      = Traits.of("SchemaView");
+		final Traits schemaNodeTraits                      = Traits.of(StructrTraits.SCHEMA_NODE);
+		final Traits schemaViewTraits                      = Traits.of(StructrTraits.SCHEMA_VIEW);
 		final Map<String, SchemaProperty> schemaProperties = new TreeMap<>();
 		final PropertyMap createProperties                 = new PropertyMap();
 		final PropertyMap nodeProperties                   = new PropertyMap();
@@ -1039,7 +1040,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 			if (viewNode == null) {
 
 
-				viewNode = app.create("SchemaView",
+				viewNode = app.create(StructrTraits.SCHEMA_VIEW,
 					new NodeAttribute<>(schemaViewTraits.key("schemaNode"), newSchemaNode),
 					new NodeAttribute<>(schemaViewTraits.key("name"), view.getKey())
 				).as(SchemaView.class);

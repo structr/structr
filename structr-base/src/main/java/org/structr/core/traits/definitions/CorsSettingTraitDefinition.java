@@ -25,6 +25,7 @@ import org.structr.core.entity.CorsSetting;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
@@ -41,7 +42,7 @@ import java.util.Set;
 public final class CorsSettingTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public CorsSettingTraitDefinition() {
-		super("CorsSetting");
+		super(StructrTraits.CORS_SETTING);
 	}
 
 	/*

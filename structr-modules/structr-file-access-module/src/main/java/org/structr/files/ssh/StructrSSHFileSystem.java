@@ -28,6 +28,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.AbstractFile;
@@ -230,11 +231,11 @@ public class StructrSSHFileSystem extends FileSystem {
 
 				final App app       = StructrApp.getInstance(securityContext);
 				final String name   = dir.getFileName().toString();
-				final Traits traits = Traits.of("Folder");
+				final Traits traits = Traits.of(StructrTraits.FOLDER);
 
 				try (final Tx tx = app.tx()) {
 
-					final NodeInterface folder = app.create("Folder",
+					final NodeInterface folder = app.create(StructrTraits.FOLDER,
 						new NodeAttribute(traits.key("name"), name),
 						new NodeAttribute(traits.key("parent"), parent != null ? parent.getActualFile() : null)
 					);
@@ -380,9 +381,9 @@ public class StructrSSHFileSystem extends FileSystem {
 
 					final String fileName            = path.getFileName().toString();
 					final NodeInterface parentFolder = parent.getActualFile();
-					final Traits traits              = Traits.of("File");
+					final Traits traits              = Traits.of(StructrTraits.FILE);
 
-					newFile = app.create("File",
+					newFile = app.create(StructrTraits.FILE,
 						new NodeAttribute(traits.key("name"), fileName),
 						new NodeAttribute(traits.key("parent"), parentFolder)
 					);

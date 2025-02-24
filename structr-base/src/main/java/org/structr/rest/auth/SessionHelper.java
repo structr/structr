@@ -36,9 +36,9 @@ import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.rest.service.HttpService;
-import org.structr.web.servlet.HtmlServlet;
 
 import java.time.Instant;
 import java.util.Date;
@@ -121,8 +121,8 @@ public class SessionHelper {
 		}
 
 		final App app                            = StructrApp.getInstance();
-		final PropertyKey<String[]> sessionIdKey = Traits.of("Principal").key("sessionIds");
-		final Query<NodeInterface> query         = app.nodeQuery("Principal").and(sessionIdKey, new String[]{sessionId}).disableSorting();
+		final PropertyKey<String[]> sessionIdKey = Traits.of(StructrTraits.PRINCIPAL).key("sessionIds");
+		final Query<NodeInterface> query         = app.nodeQuery(StructrTraits.PRINCIPAL).and(sessionIdKey, new String[]{sessionId}).disableSorting();
 
 		try {
 
@@ -178,7 +178,7 @@ public class SessionHelper {
 	 */
 	public static void clearAllSessions(final Principal user) {
 
-		if (!user.getTraits().contains("Group")) {
+		if (!user.getTraits().contains(StructrTraits.GROUP)) {
 
 			logger.info("Clearing all sessions for user {} ({})", user.getName(), user.getUuid());
 
@@ -205,7 +205,7 @@ public class SessionHelper {
 
 		try (final Tx tx = StructrApp.getInstance().tx(false, false, false)) {
 
-			for (final NodeInterface user : StructrApp.getInstance().nodeQuery("Principal").getAsList()) {
+			for (final NodeInterface user : StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).getAsList()) {
 				clearAllSessions(user.as(Principal.class));
 			}
 

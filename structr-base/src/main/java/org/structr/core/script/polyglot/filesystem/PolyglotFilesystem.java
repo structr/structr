@@ -29,6 +29,7 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.common.FileHelper;
@@ -76,8 +77,8 @@ public class PolyglotFilesystem implements FileSystem {
 
 		try (final Tx tx = app.tx()) {
 
-			final PropertyKey<String> pathKey = Traits.of("AbstractFile").key("path");
-			final NodeInterface abstractFile  = app.nodeQuery("AbstractFile").and(pathKey, path.toString()).getFirst();
+			final PropertyKey<String> pathKey = Traits.of(StructrTraits.ABSTRACT_FILE).key("path");
+			final NodeInterface abstractFile  = app.nodeQuery(StructrTraits.ABSTRACT_FILE).and(pathKey, path.toString()).getFirst();
 
 			tx.success();
 
@@ -97,8 +98,8 @@ public class PolyglotFilesystem implements FileSystem {
 
 		try (final Tx tx = app.tx()) {
 
-			final PropertyKey<String> pathKey = Traits.of("AbstractFile").key("path");
-			final NodeInterface folder        = app.nodeQuery("Folder").and(pathKey, dir.toString()).getFirst();
+			final PropertyKey<String> pathKey = Traits.of(StructrTraits.ABSTRACT_FILE).key("path");
+			final NodeInterface folder        = app.nodeQuery(StructrTraits.FOLDER).and(pathKey, dir.toString()).getFirst();
 
 			if (folder == null) {
 				FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), dir.toString());
@@ -120,8 +121,8 @@ public class PolyglotFilesystem implements FileSystem {
 		final App app = StructrApp.getInstance();
 		try (final Tx tx = app.tx()) {
 
-			final PropertyKey<String> pathKey = Traits.of("AbstractFile").key("path");
-			final NodeInterface file          = app.nodeQuery("AbstractFile").and(pathKey, path.toString()).getFirst();
+			final PropertyKey<String> pathKey = Traits.of(StructrTraits.ABSTRACT_FILE).key("path");
+			final NodeInterface file          = app.nodeQuery(StructrTraits.ABSTRACT_FILE).and(pathKey, path.toString()).getFirst();
 
 			if (file != null) {
 
@@ -147,11 +148,11 @@ public class PolyglotFilesystem implements FileSystem {
 
 		try (final Tx tx = app.tx()) {
 
-			final Traits traits                        = Traits.of("AbstractFile");
+			final Traits traits                        = Traits.of(StructrTraits.ABSTRACT_FILE);
 			final PropertyKey<String> pathKey          = traits.key("path");
 			final PropertyKey<NodeInterface> parentKey = traits.key("parent");
 
-			NodeInterface file = app.nodeQuery("File").and(pathKey, path.toString()).getFirst();
+			NodeInterface file = app.nodeQuery(StructrTraits.FILE).and(pathKey, path.toString()).getFirst();
 
 			if (file == null) {
 
@@ -159,14 +160,14 @@ public class PolyglotFilesystem implements FileSystem {
 
 					NodeInterface  parent = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), path.getParent().toString());
 
-					file = app.create("File",
+					file = app.create(StructrTraits.FILE,
 						new NodeAttribute<>(traits.key("name"), path.getFileName().toString()),
 						new NodeAttribute<>(parentKey, parent)
 					);
 
 				} else {
 
-					file = app.create("File", new NodeAttribute<>(traits.key("name"), path.getFileName().toString()));
+					file = app.create(StructrTraits.FILE, new NodeAttribute<>(traits.key("name"), path.getFileName().toString()));
 				}
 			}
 
@@ -193,8 +194,8 @@ public class PolyglotFilesystem implements FileSystem {
 
 		try (final Tx tx = app.tx()) {
 
-			final PropertyKey<String> path = Traits.of("AbstractFile").key("path");
-			final NodeInterface folder     = app.nodeQuery("Folder").and(path, dir.toString()).getFirst();
+			final PropertyKey<String> path = Traits.of(StructrTraits.ABSTRACT_FILE).key("path");
+			final NodeInterface folder     = app.nodeQuery(StructrTraits.FOLDER).and(path, dir.toString()).getFirst();
 
 			if (folder != null) {
 				return new VirtualDirectoryStream(dir, filter);
@@ -261,8 +262,8 @@ public class PolyglotFilesystem implements FileSystem {
 				case "lastModifiedTime" -> attributeMap.put("lastModifiedTime", FileTime.fromMillis(file.getLastModifiedDate().getTime()));
 				case "lastAccessTime" -> attributeMap.put("lastAccessTime", FileTime.fromMillis(file.getLastModifiedDate().getTime()));
 				case "isSymbolicLink" -> attributeMap.put("isSymbolicLink", false);
-				case "isRegularFile" -> attributeMap.put("isRegularFile", (file.is("File")));
-				case "size" -> attributeMap.put("size", (file.is("File") ? FileHelper.getSize((File)file) : 0));
+				case "isRegularFile" -> attributeMap.put("isRegularFile", (file.is(StructrTraits.FILE)));
+				case "size" -> attributeMap.put("size", (file.is(StructrTraits.FILE) ? FileHelper.getSize((File)file) : 0));
 			}
 		}
 

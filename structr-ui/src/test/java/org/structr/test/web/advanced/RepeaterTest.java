@@ -31,6 +31,7 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
@@ -70,10 +71,10 @@ public class RepeaterTest extends StructrUiTest {
 			StructrSchema.extendDatabaseSchema(app, schema);
 
 			// create test user
-			createTestNode("User",
-				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
-				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			tx.success();
@@ -94,11 +95,11 @@ public class RepeaterTest extends StructrUiTest {
 
 			final NodeInterface project1 = app.create(project, "Project 1");
 
-			taskIDs.add(app.create(task, new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Task 1"), new NodeAttribute<>(key, project1)).getUuid());
-			taskIDs.add(app.create(task, new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Task 2")).getUuid());
-			taskIDs.add(app.create(task, new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Task 3")).getUuid());
-			taskIDs.add(app.create(task, new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Task 4"), new NodeAttribute<>(key, project1)).getUuid());
-			taskIDs.add(app.create(task, new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Task 5"), new NodeAttribute<>(key, project1)).getUuid());
+			taskIDs.add(app.create(task, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "Task 1"), new NodeAttribute<>(key, project1)).getUuid());
+			taskIDs.add(app.create(task, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "Task 2")).getUuid());
+			taskIDs.add(app.create(task, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "Task 3")).getUuid());
+			taskIDs.add(app.create(task, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "Task 4"), new NodeAttribute<>(key, project1)).getUuid());
+			taskIDs.add(app.create(task, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "Task 5"), new NodeAttribute<>(key, project1)).getUuid());
 
 			// create page
 			final Page page1     = Page.createSimplePage(securityContext, "page1");
@@ -107,12 +108,12 @@ public class RepeaterTest extends StructrUiTest {
 			final DOMNode option = createElement(page1, select, "option", "${task.name}");
 
 
-			select.setProperty(Traits.of("DOMNode").key("functionQuery"),  "find('Project')");
-			select.setProperty(Traits.of("DOMNode").key("dataKey"),        "project");
+			select.setProperty(Traits.of(StructrTraits.DOM_NODE).key("functionQuery"),  "find('Project')");
+			select.setProperty(Traits.of(StructrTraits.DOM_NODE).key("dataKey"),        "project");
 			select.setProperty(Traits.of("Select").key("_html_multiple"), "multiple");
 
-			option.setProperty(Traits.of("DOMNode").key("functionQuery"),  "find('Task', sort('name'))");
-			option.setProperty(Traits.of("DOMNode").key("dataKey"),        "task");
+			option.setProperty(Traits.of(StructrTraits.DOM_NODE).key("functionQuery"),  "find('Task', sort('name'))");
+			option.setProperty(Traits.of(StructrTraits.DOM_NODE).key("dataKey"),        "task");
 			option.setProperty(Traits.of("Option").key("_html_value"),     "${task.id}");
 
 			tx.success();
@@ -157,7 +158,7 @@ public class RepeaterTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface page1 = app.nodeQuery("Page").getFirst();
+			final NodeInterface page1 = app.nodeQuery(StructrTraits.PAGE).getFirst();
 			final DOMNode option      = page1.as(Page.class).getElementsByTagName("option").get(0);
 
 			option.setProperty(Traits.of("Option").key( "selectedValues"), "project.tasks");
@@ -216,10 +217,10 @@ public class RepeaterTest extends StructrUiTest {
 			StructrSchema.extendDatabaseSchema(app, schema);
 
 			// create test user
-			createTestNode("User",
-				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
-				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			tx.success();
@@ -247,11 +248,11 @@ public class RepeaterTest extends StructrUiTest {
 			final DOMNode option = createElement(page1, select, "option", "${test.value}");
 
 
-			select.setProperty(Traits.of("DOMNode").key("functionQuery"), "find('Project')");
-			select.setProperty(Traits.of("DOMNode").key("dataKey"),       "project");
+			select.setProperty(Traits.of(StructrTraits.DOM_NODE).key("functionQuery"), "find('Project')");
+			select.setProperty(Traits.of(StructrTraits.DOM_NODE).key("dataKey"),       "project");
 
-			option.setProperty(Traits.of("DOMNode").key("functionQuery"),  "enum_info('Project', 'test')");
-			option.setProperty(Traits.of("DOMNode").key("dataKey"),        "test");
+			option.setProperty(Traits.of(StructrTraits.DOM_NODE).key("functionQuery"),  "enum_info('Project', 'test')");
+			option.setProperty(Traits.of(StructrTraits.DOM_NODE).key("dataKey"),        "test");
 
 			tx.success();
 
@@ -286,7 +287,7 @@ public class RepeaterTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final Page page1     = app.nodeQuery("Page").getFirst().as(Page.class);
+			final Page page1     = app.nodeQuery(StructrTraits.PAGE).getFirst().as(Page.class);
 			final DOMNode option = (DOMNode)page1.getElementsByTagName("option").get(0);
 
 			option.setProperty(Traits.of("Option").key( "selectedValues"), "project.test");

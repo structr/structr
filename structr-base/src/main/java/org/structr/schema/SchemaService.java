@@ -112,7 +112,7 @@ public class SchemaService implements Service {
 				final Map<String, Map<String, PropertyKey>> removedTypes = Traits.clearDynamicSchema();
 
 				// fetch schema relationships
-				for (final NodeInterface node : app.nodeQuery("SchemaRelationshipNode").getResultStream()) {
+				for (final NodeInterface node : app.nodeQuery(StructrTraits.SCHEMA_RELATIONSHIP_NODE).getResultStream()) {
 
 					final SchemaRelationshipNode schemaRel = node.as(SchemaRelationshipNode.class);
 					final String name                      = schemaRel.getClassName();
@@ -125,7 +125,7 @@ public class SchemaService implements Service {
 				}
 
 				// fetch schema nodes
-				for (final NodeInterface node : app.nodeQuery("SchemaNode").getResultStream()) {
+				for (final NodeInterface node : app.nodeQuery(StructrTraits.SCHEMA_NODE).getResultStream()) {
 
 					final SchemaNode schemaNode         = node.as(SchemaNode.class);
 					final String name                   = schemaNode.getClassName();
@@ -138,7 +138,7 @@ public class SchemaService implements Service {
 				}
 
 				// fetch schema methods that extend the static schema (not attached to a schema node)
-				for (final NodeInterface node : app.nodeQuery("SchemaMethod").and(Traits.of("SchemaMethod").key("schemaNode"), null).getResultStream()) {
+				for (final NodeInterface node : app.nodeQuery(StructrTraits.SCHEMA_METHOD).and(Traits.of(StructrTraits.SCHEMA_METHOD).key("schemaNode"), null).getResultStream()) {
 
 					final SchemaMethod schemaMethod   = node.as(SchemaMethod.class);
 					final String staticSchemaNodeName = schemaMethod.getStaticSchemaNodeName();
@@ -160,7 +160,7 @@ public class SchemaService implements Service {
 				}
 
 				// fetch schema properties that extend the static schema (not attached to a schema node)
-				for (final NodeInterface node : app.nodeQuery("SchemaProperty").and(Traits.of("SchemaProperty").key("schemaNode"), null).getResultStream()) {
+				for (final NodeInterface node : app.nodeQuery(StructrTraits.SCHEMA_PROPERTY).and(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), null).getResultStream()) {
 
 					final SchemaProperty schemaProperty = node.as(SchemaProperty.class);
 					final String staticSchemaNodeName   = schemaProperty.getStaticSchemaNodeName();
@@ -182,7 +182,7 @@ public class SchemaService implements Service {
 				}
 
 				// fetch schema views that extend the static schema (not attached to a schema node)
-				for (final NodeInterface node : app.nodeQuery("SchemaView").and(Traits.of("SchemaView").key("schemaNode"), null).getResultStream()) {
+				for (final NodeInterface node : app.nodeQuery(StructrTraits.SCHEMA_VIEW).and(Traits.of(StructrTraits.SCHEMA_VIEW).key("schemaNode"), null).getResultStream()) {
 
 					final SchemaView schemaView       = node.as(SchemaView.class);
 					final String staticSchemaNodeName = schemaView.getStaticSchemaNodeName();
@@ -204,7 +204,7 @@ public class SchemaService implements Service {
 				}
 
 				// fetch schema grants that extend the static schema (not attached to a schema node)
-				for (final NodeInterface node : app.nodeQuery("SchemaGrant").and(Traits.of("SchemaGrant").key("schemaNode"), null).getResultStream()) {
+				for (final NodeInterface node : app.nodeQuery(StructrTraits.SCHEMA_GRANT).and(Traits.of(StructrTraits.SCHEMA_GRANT).key("schemaNode"), null).getResultStream()) {
 
 					final SchemaGrant schemaGrant     = node.as(SchemaGrant.class);
 					final String staticSchemaNodeName = schemaGrant.getStaticSchemaNodeName();
@@ -384,7 +384,7 @@ public class SchemaService implements Service {
 						}
 
 						// collect list of schema nodes
-						app.nodeQuery("SchemaNode").getAsList().stream().forEach(n -> {
+						app.nodeQuery(StructrTraits.SCHEMA_NODE).getAsList().stream().forEach(n -> {
 							schemaNodes.put(n.getName(), n);
 						});
 
@@ -419,7 +419,7 @@ public class SchemaService implements Service {
 						}
 
 						// collect relationship classes
-						for (final SchemaRelationshipNode schemaRelationship : app.nodeQuery("SchemaRelationshipNode").getAsList()) {
+						for (final SchemaRelationshipNode schemaRelationship : app.nodeQuery(StructrTraits.SCHEMA_RELATIONSHIP_NODE).getAsList()) {
 
 							final String sourceType = schemaRelationship.getSchemaNodeSourceType();
 							final String targetType = schemaRelationship.getSchemaNodeTargetType();
@@ -440,7 +440,7 @@ public class SchemaService implements Service {
 						synchronized (SchemaService.class) {
 
 							// clear propagating relationship cache
-							Traits.of("SchemaRelationshipNode").key("clearPropagatingRelationshipTypes")();
+							Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("clearPropagatingRelationshipTypes")();
 
 							// compile all classes at once and register
 							final Map<String, Class> newTypes = nodeExtender.compile(errorBuffer);
@@ -680,7 +680,7 @@ public class SchemaService implements Service {
 						return;
 					}
 
-					final Set<String> whitelist   = new LinkedHashSet<>(Set.of("GraphObject", "NodeInterface"));
+					final Set<String> whitelist   = new LinkedHashSet<>(Set.of(StructrTraits.GRAPH_OBJECT, StructrTraits.NODE_INTERFACE));
 					final DatabaseService graphDb = StructrApp.getInstance().getDatabaseService();
 
 					final Map<String, Map<String, IndexConfig>> schemaIndexConfig  = new HashMap();
@@ -846,8 +846,8 @@ public class SchemaService implements Service {
 
 	private static String getIndexingTypeName(final String typeName) {
 
-		if ("GraphObject".equals(typeName)) {
-			return "NodeInterface";
+		if (StructrTraits.GRAPH_OBJECT.equals(typeName)) {
+			return StructrTraits.NODE_INTERFACE;
 		}
 
 		final Traits traits = Traits.of(typeName);

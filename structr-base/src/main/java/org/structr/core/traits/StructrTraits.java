@@ -22,6 +22,66 @@ import org.structr.core.traits.definitions.*;
 
 public class StructrTraits {
 
+	// node types
+	public static final String PROPERTY_CONTAINER       = "PropertyContainer";
+	public static final String GRAPH_OBJECT             = "GraphObject";
+	public static final String NODE_INTERFACE           = "NodeInterface";
+	public static final String RELATIONSHIP_INTERFACE   = "RelationshipInterface";
+	public static final String ACCESS_CONTROLLABLE      = "AccessControllable";
+	public static final String PRINCIPAL                = "Principal";
+	public static final String USER                     = "User";
+	public static final String GROUP                    = "Group";
+	public static final String ABSTRACT_FILE            = "AbstractFile";
+	public static final String FOLDER                   = "Folder";
+	public static final String FILE                     = "File";
+	public static final String IMAGE                    = "Image";
+	public static final String ABSTRACT_SCHEMA_NODE     = "AbstractSchemaNode";
+	public static final String SCHEMA_NODE              = "SchemaNode";
+	public static final String SCHEMA_PROPERTY          = "SchemaProperty";
+	public static final String SCHEMA_METHOD            = "SchemaMethod";
+	public static final String SCHEMA_VIEW              = "SchemaView";
+	public static final String SCHEMA_GRANT             = "SchemaGrant";
+	public static final String SCHEMA_RELATIONSHIP_NODE = "SchemaRelationshipNode";
+	public static final String SCHEMA_NODE_METHOD       = "SchemaNodeMethod";
+	public static final String LINK_SOURCE              = "LinkSource";
+	public static final String LINKABLE                 = "Linkable";
+	public static final String DOM_NODE                 = "DOMNode";
+	public static final String DOM_ELEMENT              = "DOMElement";
+	public static final String SHADOW_DOCUMENT          = "ShadowDocument";
+	public static final String PAGE                     = "Page";
+	public static final String PAGE_PATH                = "PagePath";
+	public static final String PAGE_PATH_PARAMETER      = "PagePathParameter";
+	public static final String TEMPLATE                 = "Template";
+	public static final String CONTENT                  = "Content";
+	public static final String ACTION_MAPPING           = "ActionMapping";
+	public static final String PARAMETER_MAPPING        = "ParameterMapping";
+	public static final String LOCALIZATION             = "Localization";
+	public static final String LOCATION                 = "Location";
+	public static final String MAIL_TEMPLATE            = "MailTemplate";
+	public static final String PERSON                   = "Person";
+	public static final String SESSION_DATA_NODE        = "SessionDataNode";
+	public static final String SCHEMA_METHOD_PARAMETER  = "SchemaMethodParameter";
+	public static final String CORS_SETTING             = "CorsSetting";
+	public static final String RESOURCE_ACCESS          = "ResourceAccess";
+	public static final String DYNAMIC_RESOURCE_ACCESS  = "DynamicResourceAccess";
+	public static final String EMAIL_MESSAGE            = "EMailMessage";
+	public static final String MAILBOX                  = "Mailbox";
+
+	// relationship types
+	public static final String SECURITY                              = "Security";
+	public static final String PRINCIPAL_OWNS_NODE                   = "PrincipalOwnsNode";
+	public static final String PRINCIPAL_SCHEMA_GRANT_RELATIONSHIP   = "PrincipalSchemaGrantRelationship";
+	public static final String GROUP_CONTAINS_PRINCIPAL              = "GroupCONTAINSPrincipal";
+	public static final String SCHEMA_EXCLUDED_VIEW_PROPERTY         = "SchemaExcludedViewProperty";
+	public static final String SCHEMA_GRANT_SCHEMA_NODE_RELATIONSHIP = "SchemaGrantSchemaNodeRelationship";
+	public static final String SCHEMA_METHOD_PARAMETERS              = "SchemaMethodParameters";
+	public static final String SCHEMA_NODE_EXTENDS_SCHEMA_NODE       = "SchemaNodeExtendsSchemaNode";
+	public static final String SCHEMA_NODE_PROPERTY                  = "SchemaNodeProperty";
+	public static final String SCHEMA_NODE_VIEW                      = "SchemaNodeView";
+	public static final String SCHEMA_RELATIONSHIP_SOURCE_NODE       = "SchemaRelationshipSourceNode";
+	public static final String SCHEMA_RELATIONSHIP_TARGET_NODE       = "SchemaRelationshipTargetNode";
+	public static final String SCHEMA_VIEW_PROPERTY                  = "SchemaViewProperty";
+
 	public static void registerBaseType(final TraitDefinition definition) {
 
 		final Traits traits = new TraitsImplementation(definition.getName(), true, false, false, false, false);
@@ -31,7 +91,7 @@ public class StructrTraits {
 
 	public static void registerNodeInterface() {
 
-		final Traits traits = new TraitsImplementation("NodeInterface", true, true, false, false, false);
+		final Traits traits = new TraitsImplementation(StructrTraits.NODE_INTERFACE, true, true, false, false, false);
 
 		traits.registerImplementation(new PropertyContainerTraitDefinition(), false);
 		traits.registerImplementation(new GraphObjectTraitDefinition(), false);
@@ -40,7 +100,7 @@ public class StructrTraits {
 
 	public static void registerRelationshipInterface() {
 
-		final Traits traits = new TraitsImplementation("RelationshipInterface", true, false, true, false, false);
+		final Traits traits = new TraitsImplementation(StructrTraits.RELATIONSHIP_INTERFACE, true, false, true, false, false);
 
 		traits.registerImplementation(new PropertyContainerTraitDefinition(), false);
 		traits.registerImplementation(new GraphObjectTraitDefinition(), false);

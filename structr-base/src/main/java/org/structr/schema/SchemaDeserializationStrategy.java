@@ -33,6 +33,7 @@ import org.structr.core.notion.TypeAndPropertySetDeserializationStrategy;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationProperty;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 
 import java.util.*;
@@ -79,7 +80,7 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> extends D
 	private T deserialize(final SecurityContext securityContext, final String type, final PropertyMap attributes, final Object context) throws FrameworkException {
 
 		final App app = StructrApp.getInstance(securityContext);
-		final PropertyKey<String> idProperty = Traits.of("GraphObject").key("id");
+		final PropertyKey<String> idProperty = Traits.of(StructrTraits.GRAPH_OBJECT).key("id");
 
 		if (attributes != null) {
 

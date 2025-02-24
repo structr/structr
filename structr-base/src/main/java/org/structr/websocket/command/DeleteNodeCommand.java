@@ -18,8 +18,6 @@
  */
 package org.structr.websocket.command;
 
-import java.util.LinkedList;
-import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.Permission;
@@ -30,12 +28,16 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 import org.w3c.dom.DOMException;
+
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Websocket command to delete a single node.
@@ -94,13 +96,13 @@ public class DeleteNodeCommand extends AbstractCommand {
 			try {
 
 				final List<NodeInterface> filteredResults = new LinkedList<>();
-				if (obj.is("DOMNode")) {
+				if (obj.is(StructrTraits.DOM_NODE)) {
 
 					DOMNode node = obj.as(DOMNode.class);
 
 					filteredResults.addAll(node.getAllChildNodes());
 
-				} else if (obj.is("Folder")) {
+				} else if (obj.is(StructrTraits.FOLDER)) {
 
 					Folder node = obj.as(Folder.class);
 

@@ -41,6 +41,7 @@ import org.structr.core.script.polyglot.function.DoAsFunction;
 import org.structr.core.script.polyglot.function.DoInNewTransactionFunction;
 import org.structr.core.script.polyglot.function.DoPrivilegedFunction;
 import org.structr.core.script.polyglot.function.IncludeJSFunction;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionContext;
@@ -72,7 +73,7 @@ public abstract class AbstractHintProvider {
 
 		if (StringUtils.isBlank(textAfter) || textAfter.startsWith(" ") || textAfter.startsWith("\t") || textAfter.startsWith("\n") || textAfter.startsWith(";") || textAfter.startsWith(")")) {
 
-			if (isAutoscriptEnv || (currentEntity != null && currentEntity.is("SchemaMethod"))) {
+			if (isAutoscriptEnv || (currentEntity != null && currentEntity.is(StructrTraits.SCHEMA_METHOD))) {
 
 				// we can use the whole text here, the method will always contain script code and nothing else
 				// add ${ to be able to reuse code below
@@ -203,9 +204,9 @@ public abstract class AbstractHintProvider {
 		// add global schema methods to show at the start of the list
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
-			final Traits traits = Traits.of("SchemaMethod");
+			final Traits traits = Traits.of(StructrTraits.SCHEMA_METHOD);
 
-			for (final NodeInterface node : StructrApp.getInstance().nodeQuery("SchemaMethod").and(traits.key("schemaNode"), null).sort(traits.key("name")).getResultStream()) {
+			for (final NodeInterface node : StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_METHOD).and(traits.key("schemaNode"), null).sort(traits.key("name")).getResultStream()) {
 
 				final SchemaMethod method = node.as(SchemaMethod.class);
 
@@ -304,17 +305,17 @@ public abstract class AbstractHintProvider {
 
 				case "page":
 					tokenTypes.add("keyword");
-					type = "Page";
+					type = StructrTraits.PAGE;
 					break;
 
 				case "me":
 					tokenTypes.add("keyword");
-					type = "User";
+					type = StructrTraits.USER;
 					break;
 
 				case "current":
 					tokenTypes.add("keyword");
-					type = "NodeInterface";
+					type = StructrTraits.NODE_INTERFACE;
 					break;
 
 				case "this":
@@ -323,7 +324,7 @@ public abstract class AbstractHintProvider {
 
 						final NodeInterface node = (NodeInterface)currentNode;
 
-						if (node.is("SchemaMethod")) {
+						if (node.is(StructrTraits.SCHEMA_METHOD)) {
 
 							final AbstractSchemaNode schemaNode = node.as(SchemaMethod.class).getSchemaNode();
 							if (schemaNode != null) {
@@ -332,7 +333,7 @@ public abstract class AbstractHintProvider {
 								type = schemaNode.getClassName();
 							}
 
-						} else if (node.is("SchemaProperty") && SchemaHelper.Type.Function.equals(((SchemaProperty) currentNode).getPropertyType())) {
+						} else if (node.is(StructrTraits.SCHEMA_PROPERTY) && SchemaHelper.Type.Function.equals(((SchemaProperty) currentNode).getPropertyType())) {
 
 
 							final AbstractSchemaNode schemaNode = node.as(SchemaProperty.class).getSchemaNode();

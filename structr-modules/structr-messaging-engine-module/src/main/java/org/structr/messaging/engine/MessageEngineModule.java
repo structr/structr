@@ -124,7 +124,7 @@ public class MessageEngineModule implements StructrModule {
 		final Path messagingEngineFile    = target.resolve("messaging-engine.json");
 		final Traits subscriberTraits     = Traits.of("MessageSubscriber");
 		final Traits clientTraits         = Traits.of("MessageClient");
-		final PropertyKey<String> nameKey = Traits.of("NodeInterface").key("name");
+		final PropertyKey<String> nameKey = Traits.of(StructrTraits.NODE_INTERFACE).key("name");
 		final App app                     = StructrApp.getInstance();
 
 

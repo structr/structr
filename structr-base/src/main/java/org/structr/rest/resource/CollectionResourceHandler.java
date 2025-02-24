@@ -38,6 +38,7 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.notion.Notion;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.RESTCall;
@@ -109,7 +110,7 @@ public class CollectionResourceHandler extends RESTCallHandler {
 
 			if (newNode != null) {
 
-				result.addHeader("Location", buildLocationHeader(securityContext, newNode));
+				result.addHeader(StructrTraits.LOCATION, buildLocationHeader(securityContext, newNode));
 				result.addContent(newNode.getUuid());
 			}
 
@@ -149,7 +150,7 @@ public class CollectionResourceHandler extends RESTCallHandler {
 				RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);
 				if (newRelationship != null) {
 
-					result.addHeader("Location", buildLocationHeader(securityContext, newRelationship));
+					result.addHeader(StructrTraits.LOCATION, buildLocationHeader(securityContext, newRelationship));
 					result.addContent(newRelationship.getUuid());
 				}
 

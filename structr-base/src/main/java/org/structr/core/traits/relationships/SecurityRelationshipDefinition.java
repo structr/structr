@@ -29,6 +29,7 @@ import org.structr.core.property.SourceId;
 import org.structr.core.property.TargetId;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
@@ -46,7 +47,7 @@ import static org.structr.core.entity.Relation.Multiplicity.Many;
 public class SecurityRelationshipDefinition extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public SecurityRelationshipDefinition() {
-		super("SecurityRelationship");
+		super(StructrTraits.SECURITY);
 	}
 
 	@Override
@@ -116,12 +117,12 @@ public class SecurityRelationshipDefinition extends AbstractRelationshipTraitDef
 
 	@Override
 	public String getSourceType() {
-		return "Principal";
+		return StructrTraits.PRINCIPAL;
 	}
 
 	@Override
 	public String getTargetType() {
-		return "NodeInterface";
+		return StructrTraits.NODE_INTERFACE;
 	}
 
 	@Override

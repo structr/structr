@@ -439,7 +439,7 @@ public class TraitsImplementation implements Traits {
 	public static Set<PropertyKey> getDefaultKeys() {
 
 		final Set<PropertyKey> keys = new LinkedHashSet<>();
-		final Traits nodeTraits     = Traits.of("NodeInterface");
+		final Traits nodeTraits     = Traits.of(StructrTraits.NODE_INTERFACE);
 
 		keys.add(nodeTraits.key("id"));
 		keys.add(nodeTraits.key("type"));

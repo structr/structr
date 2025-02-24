@@ -19,6 +19,7 @@
 package org.structr.web.traits.relationships;
 
 import org.structr.core.entity.Relation;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
@@ -30,12 +31,12 @@ public class ImagePICTURE_OFUser extends AbstractRelationshipTraitDefinition imp
 
 	@Override
 	public String getSourceType() {
-		return "Image";
+		return StructrTraits.IMAGE;
 	}
 
 	@Override
 	public String getTargetType() {
-		return "User";
+		return StructrTraits.USER;
 	}
 
 	@Override

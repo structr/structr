@@ -19,6 +19,7 @@
 package org.structr.core.traits.relationships;
 
 import org.structr.core.entity.Relation;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
@@ -28,17 +29,17 @@ import static org.structr.core.entity.Relation.Multiplicity.One;
 public class PrincipalOwnsNodeDefinition extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public PrincipalOwnsNodeDefinition() {
-		super("PrincipalOwnsNode");
+		super(StructrTraits.PRINCIPAL_OWNS_NODE);
 	}
 
 	@Override
 	public String getSourceType() {
-		return "Principal";
+		return StructrTraits.PRINCIPAL;
 	}
 
 	@Override
 	public String getTargetType() {
-		return "NodeInterface";
+		return StructrTraits.NODE_INTERFACE;
 	}
 
 	@Override

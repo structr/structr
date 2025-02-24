@@ -31,6 +31,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 
 import java.net.URI;
@@ -490,13 +491,13 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 	@Override
 	SchemaRelationshipNode createSchemaNode(final Map<String, SchemaNode> schemaNodes, final Map<String, SchemaRelationshipNode> schemaRels, final App app, final PropertyMap createProperties) throws FrameworkException {
 
-		final Traits traits                = Traits.of("SchemaRelationshipNode");
+		final Traits traits                = Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE);
 		final PropertyMap properties       = new PropertyMap();
 		SchemaRelationshipNode _schemaNode = schemaRels.get(getName());
 
 		if (_schemaNode == null) {
 
-			_schemaNode = app.create("SchemaRelationshipNode", getName()).as(SchemaRelationshipNode.class);
+			_schemaNode = app.create(StructrTraits.SCHEMA_RELATIONSHIP_NODE, getName()).as(SchemaRelationshipNode.class);
 		}
 
 		properties.put(traits.key("relationshipType"),    getRelationship());

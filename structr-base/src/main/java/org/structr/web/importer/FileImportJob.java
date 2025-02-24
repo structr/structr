@@ -30,6 +30,7 @@ import org.structr.core.entity.Principal;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.scheduler.ScheduledJob;
+import org.structr.core.traits.StructrTraits;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.File;
 
@@ -196,7 +197,7 @@ abstract class FileImportJob extends ScheduledJob {
 
 		try (final Tx tx = app.tx()) {
 
-			final File file = app.getNodeById("File", fileUuid).as(File.class);
+			final File file = app.getNodeById(StructrTraits.FILE, fileUuid).as(File.class);
 			is              = file.getInputStream();
 
 			tx.success();

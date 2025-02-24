@@ -19,6 +19,7 @@
 package org.structr.core.traits.relationships;
 
 import org.structr.core.entity.Relation;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
@@ -28,17 +29,17 @@ import static org.structr.core.entity.Relation.Multiplicity.One;
 public class SchemaNodeExtendsSchemaNodeDefinition extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public SchemaNodeExtendsSchemaNodeDefinition() {
-		super("SchemaNodeExtendsSchemaNode");
+		super(StructrTraits.SCHEMA_NODE_EXTENDS_SCHEMA_NODE);
 	}
 
 	@Override
 	public String getSourceType() {
-		return "SchemaNode";
+		return StructrTraits.SCHEMA_NODE;
 	}
 
 	@Override
 	public String getTargetType() {
-		return "SchemaNode";
+		return StructrTraits.SCHEMA_NODE;
 	}
 
 	@Override

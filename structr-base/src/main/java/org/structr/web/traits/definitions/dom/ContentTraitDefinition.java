@@ -37,6 +37,7 @@ import org.structr.core.property.*;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
@@ -65,7 +66,7 @@ import java.util.Set;
 public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public ContentTraitDefinition() {
-		super("Content");
+		super(StructrTraits.CONTENT);
 	}
 
 	@Override
@@ -136,7 +137,7 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public void updateFromNode(final NodeInterface node, final DOMNode otherNode) throws FrameworkException {
 
-					if (otherNode.getTraits().contains("Content")) {
+					if (otherNode.getTraits().contains(StructrTraits.CONTENT)) {
 
 						final Content thisNode = node.as(Content.class);
 						final Content content = otherNode.as(Content.class);
@@ -303,7 +304,7 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public boolean contentEquals(final DOMNode thisNode, final DOMNode otherNode) {
 
-					if (otherNode.is("Content")) {
+					if (otherNode.is(StructrTraits.CONTENT)) {
 
 						final String content1 = thisNode.as(Content.class).getContent();
 						final String content2 = otherNode.as(Content.class).getContent();

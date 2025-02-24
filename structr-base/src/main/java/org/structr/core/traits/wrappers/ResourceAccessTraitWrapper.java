@@ -23,6 +23,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 
 import java.util.LinkedList;
@@ -95,14 +96,14 @@ public class ResourceAccessTraitWrapper extends AbstractNodeTraitWrapper impleme
 
 	public static List<ResourceAccess> findPermissions(final SecurityContext securityContext, final String signature) throws FrameworkException {
 
-		final Traits traits = Traits.of("ResourceAccess");
+		final Traits traits = Traits.of(StructrTraits.RESOURCE_ACCESS);
 		List<ResourceAccess> permissions = permissionsCache.get(signature);
 		if (permissions == null) {
 
 			permissions = new LinkedList<>();
 
 			// Ignore securityContext here (so we can cache all permissions for a signature independent of a user)
-			final List<NodeInterface> nodes = StructrApp.getInstance().nodeQuery("ResourceAccess").and(traits.key("signature"), signature).getAsList();
+			final List<NodeInterface> nodes = StructrApp.getInstance().nodeQuery(StructrTraits.RESOURCE_ACCESS).and(traits.key("signature"), signature).getAsList();
 
 			for (final NodeInterface node : nodes) {
 

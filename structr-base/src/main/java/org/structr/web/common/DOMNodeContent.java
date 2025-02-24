@@ -21,9 +21,9 @@ package org.structr.web.common;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.property.CustomHtmlAttributeProperty;
@@ -118,7 +118,7 @@ public class DOMNodeContent {
 			if (data != null) {
 
 				// remove existing?
-				target.setProperty(Traits.of("DOMNode").key("children"), Collections.EMPTY_LIST);
+				target.setProperty(Traits.of(StructrTraits.DOM_NODE).key("children"), Collections.EMPTY_LIST);
 
 				// add
 				final List<DOMNode> children = data.getNextSlotElements();

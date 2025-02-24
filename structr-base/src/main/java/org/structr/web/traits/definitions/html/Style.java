@@ -27,6 +27,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
@@ -83,13 +84,13 @@ public class Style extends GenericHtmlElementTraitDefinition {
 				@Override
 				public void handleNewChild(final DOMNode node, final DOMNode newChild) throws FrameworkException {
 
-					if (newChild.is("Content")) {
+					if (newChild.is(StructrTraits.CONTENT)) {
 
 						final Content content = newChild.as(Content.class);
 
 						try {
 
-							final String thisContentType  = node.is("Content") ? node.as(Content.class).getContentType() : null;
+							final String thisContentType  = node.is(StructrTraits.CONTENT) ? node.as(Content.class).getContentType() : null;
 							final String childContentType = content.getContentType();
 
 							if (childContentType == null && thisContentType != null) {

@@ -33,6 +33,7 @@ import org.structr.core.graph.attribute.Name;
 import org.structr.core.notion.TypeAndPropertySetDeserializationStrategy;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.structr.test.rest.common.TestEnum;
@@ -707,11 +708,11 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 			// setup
 			try (final Tx tx = app.tx()) {
 
-				node = app.create("SchemaNode", new Name("TestType"));
+				node = app.create(StructrTraits.SCHEMA_NODE, new Name("TestType"));
 
-				final NodeInterface property = app.create("SchemaProperty", "test");
-				property.setProperty(Traits.of("SchemaProperty").key("schemaNode"), node);
-				property.setProperty(Traits.of("SchemaProperty").key("propertyType"), "Integer");
+				final NodeInterface property = app.create(StructrTraits.SCHEMA_PROPERTY, "test");
+				property.setProperty(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), node);
+				property.setProperty(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Integer");
 
 				tx.success();
 			}
@@ -857,16 +858,16 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 			// setup schema
 			try (final Tx tx = app.tx()) {
 
-				node = app.create("SchemaNode", new Name("TestType"));
+				node = app.create(StructrTraits.SCHEMA_NODE, new Name("TestType"));
 
-				final NodeInterface status = app.create("SchemaProperty", "status");
-				status.setProperty(Traits.of("SchemaProperty").key("schemaNode"),   node);
-				status.setProperty(Traits.of("SchemaProperty").key("propertyType"), "Enum");
-				status.setProperty(Traits.of("SchemaProperty").key("format"),       "one,  two, three");
+				final NodeInterface status = app.create(StructrTraits.SCHEMA_PROPERTY, "status");
+				status.setProperty(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"),   node);
+				status.setProperty(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Enum");
+				status.setProperty(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("format"),       "one,  two, three");
 
-				final NodeInterface view = app.create("SchemaView", "ui");
-				view.setProperty(Traits.of("SchemaView").key("schemaNode"),         node);
-				view.setProperty(Traits.of("SchemaView").key("nonGraphProperties"), "status");
+				final NodeInterface view = app.create(StructrTraits.SCHEMA_VIEW, "ui");
+				view.setProperty(Traits.of(StructrTraits.SCHEMA_VIEW).key("schemaNode"),         node);
+				view.setProperty(Traits.of(StructrTraits.SCHEMA_VIEW).key("nonGraphProperties"), "status");
 
 				tx.success();
 			}

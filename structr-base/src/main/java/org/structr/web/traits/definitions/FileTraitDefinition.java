@@ -37,6 +37,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
@@ -66,7 +67,7 @@ import java.util.Set;
 public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public FileTraitDefinition() {
-		super("File");
+		super(StructrTraits.FILE);
 	}
 
 	@Override
@@ -332,7 +333,7 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 	class Impl { static {
 
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("File");
+		final JsonObjectType type = schema.addType(StructrTraits.FILE);
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/File"));
 		type.setImplements(Linkable.class);
@@ -440,7 +441,7 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 			return;
 		}
 
-		final Traits traits                                             = Traits.of("File");
+		final Traits traits                                             = Traits.of(StructrTraits.FILE);
 		final PropertyKey<StorageConfiguration> storageConfigurationKey = traits.key("storageConfiguration");
 		final PropertyKey<Folder> parentKey                             = traits.key("parent");
 		final PropertyKey<String> parentIdKey                           = traits.key("parentId");
@@ -458,7 +459,7 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 			NodeInterface parentFolder = null;
 			try {
 
-				parentFolder = StructrApp.getInstance().nodeQuery("Folder").uuid((String) value).getFirst();
+				parentFolder = StructrApp.getInstance().nodeQuery(StructrTraits.FOLDER).uuid((String) value).getFirst();
 
 			} catch (FrameworkException ex) {
 
@@ -478,7 +479,7 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 			return;
 		}
 
-		final Traits traits                                      = Traits.of("File");
+		final Traits traits                                      = Traits.of(StructrTraits.FILE);
 		final PropertyKey<NodeInterface> storageConfigurationKey = traits.key("storageConfiguration");
 		final PropertyKey<NodeInterface> parentKey               = traits.key("parent");
 		final PropertyKey<String> parentIdKey                    = traits.key("parentId");
@@ -496,7 +497,7 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 			NodeInterface parentFolder = null;
 			try {
 
-				parentFolder = StructrApp.getInstance().nodeQuery("Folder").uuid(properties.get(parentIdKey)).getFirst();
+				parentFolder = StructrApp.getInstance().nodeQuery(StructrTraits.FOLDER).uuid(properties.get(parentIdKey)).getFirst();
 
 			} catch (FrameworkException ex) {
 

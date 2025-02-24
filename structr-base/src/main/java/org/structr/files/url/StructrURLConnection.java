@@ -26,6 +26,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.web.entity.File;
 
@@ -66,8 +67,8 @@ public class StructrURLConnection extends URLConnection {
 			try (final Tx tx = app.tx()) {
 
 				final NodeInterface node = app
-					.nodeQuery("File")
-					.and(Traits.of("File").key("path"), url.getPath())
+					.nodeQuery(StructrTraits.FILE)
+					.and(Traits.of(StructrTraits.FILE).key("path"), url.getPath())
 					.getFirst();
 
 				if (node != null) {

@@ -26,6 +26,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.AbstractReadOnlyProperty;
 import org.structr.core.property.Property;
+import org.structr.core.traits.StructrTraits;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Image;
 
@@ -61,11 +62,11 @@ public class ThumbnailProperty extends AbstractReadOnlyProperty<NodeInterface> {
 			return null;
 		}
 
-		if (obj.is("File") && obj.as(File.class).isTemplate()) {
+		if (obj.is(StructrTraits.FILE) && obj.as(File.class).isTemplate()) {
 
 			return null;
 
-		} else if (obj.is("Image") && obj.as(Image.class).isThumbnail()) {
+		} else if (obj.is(StructrTraits.IMAGE) && obj.as(Image.class).isThumbnail()) {
 
 			return null;
 		}
@@ -81,7 +82,7 @@ public class ThumbnailProperty extends AbstractReadOnlyProperty<NodeInterface> {
 
 	@Override
 	public String relatedType() {
-		return "Image";
+		return StructrTraits.IMAGE;
 	}
 
 	@Override

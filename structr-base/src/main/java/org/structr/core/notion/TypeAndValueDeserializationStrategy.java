@@ -31,6 +31,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationProperty;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 
 import java.util.LinkedHashMap;
@@ -154,7 +155,7 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> ext
 			PropertyMap attributes = new PropertyMap();
 
 			attributes.put(propertyKey,           convertedSource);
-			attributes.put(Traits.of("GraphObject").key("type"), type);
+			attributes.put(Traits.of(StructrTraits.GRAPH_OBJECT).key("type"), type);
 
 			throw new FrameworkException(404, "No node found for given properties", new PropertiesNotFoundToken(type, null, attributes));
 		}

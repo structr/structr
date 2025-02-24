@@ -28,6 +28,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.converter.Aggregation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.Notion;
+import org.structr.core.traits.StructrTraits;
 
 import java.util.*;
 
@@ -106,7 +107,7 @@ public class AggregatorProperty<T> extends AbstractReadOnlyCollectionProperty<T>
 
 	@Override
 	public String relatedType() {
-		return "NodeInterface";
+		return StructrTraits.NODE_INTERFACE;
 	}
 
 	@Override

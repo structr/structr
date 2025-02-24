@@ -23,6 +23,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
 import org.structr.core.property.PasswordProperty;
 import org.structr.core.property.Property;
+import org.structr.core.traits.StructrTraits;
 
 /**
  *
@@ -40,7 +41,7 @@ public class PasswordPropertyGenerator extends StringPropertyGenerator {
 		final String expression = source.getFormat();
 
 		if ("[]".equals(expression)) {
-			reportError(new InvalidPropertySchemaToken("SchemaNode", source.getPropertyName(), expression, "invalid_validation_expression", "Empty validation expression."));
+			reportError(new InvalidPropertySchemaToken(StructrTraits.SCHEMA_NODE, source.getPropertyName(), expression, "invalid_validation_expression", "Empty validation expression."));
 			return null;
 		}
 

@@ -30,6 +30,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Template;
@@ -124,7 +125,7 @@ public class TemplateImporter extends HtmlFileImporter {
 
 				DeployCommand.checkOwnerAndSecurity(dataMap);
 
-				final PropertyMap propMap = PropertyMap.inputTypeToJavaType(SecurityContext.getSuperUserInstance(), "Template", dataMap);
+				final PropertyMap propMap = PropertyMap.inputTypeToJavaType(SecurityContext.getSuperUserInstance(), StructrTraits.TEMPLATE, dataMap);
 
 				if (isShared) {
 					propMap.put(internalSharedTemplateKey, "true");
@@ -153,7 +154,7 @@ public class TemplateImporter extends HtmlFileImporter {
 			tx.disableChangelog();
 
 			final PropertyMap properties = getPropertiesForTemplate(templateName);
-			final Traits traits          = Traits.of("Template");
+			final Traits traits          = Traits.of(StructrTraits.TEMPLATE);
 
 			if (properties == null) {
 
@@ -169,13 +170,13 @@ public class TemplateImporter extends HtmlFileImporter {
 
 					logger.info("Importing template {} from {}..", new Object[] { templateName, fileName } );
 
-					final NodeInterface existingTemplate = app.getNodeById("DOMNode", templateName);
+					final NodeInterface existingTemplate = app.getNodeById(StructrTraits.DOM_NODE, templateName);
 					if (existingTemplate != null) {
 
 						deleteTemplate(app, existingTemplate.as(DOMNode.class));
 					}
 
-					template = app.create("Template", new NodeAttribute(Traits.of("GraphObject").key("id"), templateName)).as(Template.class);
+					template = app.create(StructrTraits.TEMPLATE, new NodeAttribute(Traits.of(StructrTraits.GRAPH_OBJECT).key("id"), templateName)).as(Template.class);
 
 				} else if (byNameAndId) {
 
@@ -185,13 +186,13 @@ public class TemplateImporter extends HtmlFileImporter {
 
 					logger.info("Importing template {} from {}..", new Object[] { name, fileName } );
 
-					final NodeInterface existingTemplate = app.getNodeById("DOMNode", uuid);
+					final NodeInterface existingTemplate = app.getNodeById(StructrTraits.DOM_NODE, uuid);
 					if (existingTemplate != null) {
 
 						deleteTemplate(app, existingTemplate.as(DOMNode.class));
 					}
 
-					template = app.create("Template", new NodeAttribute(Traits.of("GraphObject").key("id"), uuid)).as(Template.class);
+					template = app.create(StructrTraits.TEMPLATE, new NodeAttribute(Traits.of(StructrTraits.GRAPH_OBJECT).key("id"), uuid)).as(Template.class);
 					properties.put(traits.key("name"), name);
 
 				} else {
@@ -205,7 +206,7 @@ public class TemplateImporter extends HtmlFileImporter {
 						deleteTemplate(app, existingTemplate);
 					}
 
-					template = app.create("Template").as(Template.class);
+					template = app.create(StructrTraits.TEMPLATE).as(Template.class);
 					properties.put(traits.key("name"), templateName);
 				}
 

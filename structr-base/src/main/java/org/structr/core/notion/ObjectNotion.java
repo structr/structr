@@ -22,6 +22,7 @@ import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.RelationProperty;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 
 /**
@@ -63,6 +64,6 @@ public class ObjectNotion extends Notion {
 
 	@Override
 	public PropertyKey getPrimaryPropertyKey() {
-		return Traits.of("GraphObject").key("id");
+		return Traits.of(StructrTraits.GRAPH_OBJECT).key("id");
 	}
 }

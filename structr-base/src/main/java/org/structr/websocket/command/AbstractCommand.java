@@ -31,6 +31,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.web.entity.Widget;
 import org.structr.web.entity.dom.DOMNode;
@@ -66,7 +67,7 @@ public abstract class AbstractCommand {
 
 		final NodeInterface node = getNode(id);
 
-		if (node != null && node.is("Page")) {
+		if (node != null && node.is(StructrTraits.PAGE)) {
 
 			return node.as(Page.class);
 		}
@@ -78,7 +79,7 @@ public abstract class AbstractCommand {
 
 		final NodeInterface node = getNode(id);
 
-		if (node != null && node.is("DOMNode")) {
+		if (node != null && node.is(StructrTraits.DOM_NODE)) {
 
 			return node.as(DOMNode.class);
 		}
@@ -298,18 +299,18 @@ public abstract class AbstractCommand {
 
 		try (final Tx tx = app.tx()) {
 
-			NodeInterface doc = app.nodeQuery("ShadowDocument").includeHidden().getFirst();
+			NodeInterface doc = app.nodeQuery(StructrTraits.SHADOW_DOCUMENT).includeHidden().getFirst();
 			if (doc == null) {
 
 				final PropertyMap properties = new PropertyMap();
-				final Traits traits          = Traits.of("ShadowDocument");
+				final Traits traits          = Traits.of(StructrTraits.SHADOW_DOCUMENT);
 
 				properties.put(traits.key("type"), traits.getName());
 				properties.put(traits.key("name"), "__ShadowDocument__");
 				properties.put(traits.key("hidden"), true);
 				properties.put(traits.key("visibleToAuthenticatedUsers"), true);
 
-				doc = app.create("ShadowDocument", properties);
+				doc = app.create(StructrTraits.SHADOW_DOCUMENT, properties);
 			}
 
 			tx.success();

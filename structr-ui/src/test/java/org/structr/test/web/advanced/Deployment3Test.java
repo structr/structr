@@ -26,6 +26,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.schema.export.StructrSchema;
 import org.structr.web.common.FileHelper;
@@ -76,13 +77,13 @@ public class Deployment3Test extends DeploymentTestBase {
 			final DOMElement table2   = createElement(page, div2, "table");
 
 			// include visibility flags
-			page.setProperty(Traits.of("NodeInterface").key("visibleToAuthenticatedUsers"), true);
-			c1.setProperty(Traits.of("NodeInterface").key("visibleToAuthenticatedUsers"), true);
-			c2.setProperty(Traits.of("NodeInterface").key("visibleToAuthenticatedUsers"), true);
+			page.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToAuthenticatedUsers"), true);
+			c1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToAuthenticatedUsers"), true);
+			c2.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToAuthenticatedUsers"), true);
 
 			// modify visibility to produce two consecutive deployment instruction comments
-			td12.setProperty(Traits.of("NodeInterface").key("visibleToPublicUsers"), true);
-			table2.setProperty(Traits.of("NodeInterface").key("visibleToPublicUsers"), true);
+			td12.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true);
+			table2.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true);
 
 			tx.success();
 
@@ -125,28 +126,28 @@ public class Deployment3Test extends DeploymentTestBase {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface testType = app.create("SchemaNode", "TestType");
+			final NodeInterface testType = app.create(StructrTraits.SCHEMA_NODE, "TestType");
 
 			// create one method with a schema node
-			app.create("SchemaMethod",
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("schemaNode"),                 testType),
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("name"),                       "method1"),
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("source"),                     "source1"),
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("includeInOpenAPI"),           false),
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("tags"),                       new String[] { "tag1", "tag2" }),
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("summary"),                    "summary"),
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("description"),                "description"),
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("isStatic"),                   true),
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("isPrivate"),                  true),
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("returnRawResult"),            true),
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("httpVerb"),                   "GET")
+			app.create(StructrTraits.SCHEMA_METHOD,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("schemaNode"),                 testType),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("name"),                       "method1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"),                     "source1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("includeInOpenAPI"),           false),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("tags"),                       new String[] { "tag1", "tag2" }),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("summary"),                    "summary"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("description"),                "description"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("isStatic"),                   true),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("isPrivate"),                  true),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("returnRawResult"),            true),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("httpVerb"),                   "GET")
 			);
 
 			// and one without (i.e. user-defined function)
-			app.create("SchemaMethod",
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("name"),                      "method2"),
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("source"),                    "source2"),
-				new NodeAttribute<>(Traits.of("SchemaMethod").key("virtualFileName"),           "virtualFileName2")
+			app.create(StructrTraits.SCHEMA_METHOD,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("name"),                      "method2"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"),                    "source2"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("virtualFileName"),           "virtualFileName2")
 			);
 
 			tx.success();
@@ -162,30 +163,30 @@ public class Deployment3Test extends DeploymentTestBase {
 		// check
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface method1 = app.nodeQuery("SchemaMethod").and(Traits.of("SchemaMethod").key("name"), "method1").getFirst();
-			final NodeInterface method2 = app.nodeQuery("SchemaMethod").and(Traits.of("SchemaMethod").key("name"), "method2").getFirst();
+			final NodeInterface method1 = app.nodeQuery(StructrTraits.SCHEMA_METHOD).and(Traits.of(StructrTraits.SCHEMA_METHOD).key("name"), "method1").getFirst();
+			final NodeInterface method2 = app.nodeQuery(StructrTraits.SCHEMA_METHOD).and(Traits.of(StructrTraits.SCHEMA_METHOD).key("name"), "method2").getFirst();
 
 			assertNotNull("Invalid deployment result", method1);
 			assertNotNull("Invalid deployment result", method2);
 
-			assertEquals("Invalid SchemaMethod deployment result", "method1",      method1.getProperty(Traits.of("SchemaMethod").key("name")));
-			assertEquals("Invalid SchemaMethod deployment result", "source1",      method1.getProperty(Traits.of("SchemaMethod").key("source")));
-			assertEquals("Invalid SchemaMethod deployment result", false,          (boolean)method1.getProperty(Traits.of("SchemaMethod").key("includeInOpenAPI")));
-			assertEquals("Invalid SchemaMethod deployment result", "tag1",         ((Object[])method1.getProperty(Traits.of("SchemaMethod").key("tags")))[0]);
-			assertEquals("Invalid SchemaMethod deployment result", "tag2",         ((Object[])method1.getProperty(Traits.of("SchemaMethod").key("tags")))[1]);
-			assertEquals("Invalid SchemaMethod deployment result", "summary",      method1.getProperty(Traits.of("SchemaMethod").key("summary")));
-			assertEquals("Invalid SchemaMethod deployment result", "description",  method1.getProperty(Traits.of("SchemaMethod").key("description")));
-			assertEquals("Invalid SchemaMethod deployment result", true,           (boolean)method1.getProperty(Traits.of("SchemaMethod").key("isStatic")));
-			assertEquals("Invalid SchemaMethod deployment result", true,           (boolean)method1.getProperty(Traits.of("SchemaMethod").key("isPrivate")));
-			assertEquals("Invalid SchemaMethod deployment result", true,           (boolean)method1.getProperty(Traits.of("SchemaMethod").key("returnRawResult")));
-			assertEquals("Invalid SchemaMethod deployment result", "GET",          method1.getProperty(Traits.of("SchemaMethod").key("httpVerb")));
+			assertEquals("Invalid SchemaMethod deployment result", "method1",      method1.getProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key("name")));
+			assertEquals("Invalid SchemaMethod deployment result", "source1",      method1.getProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key("source")));
+			assertEquals("Invalid SchemaMethod deployment result", false,          (boolean)method1.getProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key("includeInOpenAPI")));
+			assertEquals("Invalid SchemaMethod deployment result", "tag1",         ((Object[])method1.getProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key("tags")))[0]);
+			assertEquals("Invalid SchemaMethod deployment result", "tag2",         ((Object[])method1.getProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key("tags")))[1]);
+			assertEquals("Invalid SchemaMethod deployment result", "summary",      method1.getProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key("summary")));
+			assertEquals("Invalid SchemaMethod deployment result", "description",  method1.getProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key("description")));
+			assertEquals("Invalid SchemaMethod deployment result", true,           (boolean)method1.getProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key("isStatic")));
+			assertEquals("Invalid SchemaMethod deployment result", true,           (boolean)method1.getProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key("isPrivate")));
+			assertEquals("Invalid SchemaMethod deployment result", true,           (boolean)method1.getProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key("returnRawResult")));
+			assertEquals("Invalid SchemaMethod deployment result", "GET",          method1.getProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key("httpVerb")));
 
 
 			// Add new SchemaMethod properties here to make sure they are included in the schema import/export!
 
-			assertEquals("Invalid SchemaMethod deployment result", "method2",          method2.getProperty(Traits.of("SchemaMethod").key("name")));
-			assertEquals("Invalid SchemaMethod deployment result", "source2",          method2.getProperty(Traits.of("SchemaMethod").key("source")));
-			assertEquals("Invalid SchemaMethod deployment result", "virtualFileName2", method2.getProperty(Traits.of("SchemaMethod").key("virtualFileName")));
+			assertEquals("Invalid SchemaMethod deployment result", "method2",          method2.getProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key("name")));
+			assertEquals("Invalid SchemaMethod deployment result", "source2",          method2.getProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key("source")));
+			assertEquals("Invalid SchemaMethod deployment result", "virtualFileName2", method2.getProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key("virtualFileName")));
 
 			tx.success();
 
@@ -207,8 +208,8 @@ public class Deployment3Test extends DeploymentTestBase {
 			final DOMElement div       = createElement(testPage, body, "div");
 			final DOMElement div2      = createElement(testPage, body, "div");
 
-			div.setProperty(Traits.of("NodeInterface").key("name"), "WidgetTestPage-Div");
-			div2.setProperty(Traits.of("NodeInterface").key("name"), "WidgetTestPage-Div2");
+			div.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "WidgetTestPage-Div");
+			div2.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "WidgetTestPage-Div2");
 
 			NodeInterface widgetToImport = app.create("Widget",
 					new NodeAttribute<>(Traits.of("Widget").key("name"),"TestWidget"),
@@ -246,7 +247,7 @@ public class Deployment3Test extends DeploymentTestBase {
 
 			NodeInterface obj = div.as(DOMNode.class).treeGetFirstChild();
 
-			assertTrue(obj.is("Template"));
+			assertTrue(obj.is(StructrTraits.TEMPLATE));
 
 			Template template = obj.as(Template.class);
 
@@ -275,8 +276,8 @@ public class Deployment3Test extends DeploymentTestBase {
 			final DOMElement div       = createElement(testPage, body, "div");
 			final DOMElement div2      = createElement(testPage, body, "div");
 
-			div.setProperty(Traits.of("NodeInterface").key("name"), "WidgetTestPage-Div");
-			div2.setProperty(Traits.of("NodeInterface").key("name"), "WidgetTestPage-Div2");
+			div.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "WidgetTestPage-Div");
+			div2.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "WidgetTestPage-Div2");
 
 			NodeInterface widgetToImport = app.create("Widget",
 					new NodeAttribute<>(Traits.of("Widget").key("name"), "TestWidget"),
@@ -347,8 +348,8 @@ public class Deployment3Test extends DeploymentTestBase {
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 			assertNotNull("StructrSchema must return a valid schema object", schema);
 
-			final JsonType pageType = schema.getType("Page");
-			final JsonType fileType = schema.getType("File");
+			final JsonType pageType = schema.getType(StructrTraits.PAGE);
+			final JsonType fileType = schema.getType(StructrTraits.FILE);
 			assertNotNull("Type Page must exist in every schema", pageType);
 			assertNotNull("Type File must exist in every schema", fileType);
 
@@ -372,19 +373,19 @@ public class Deployment3Test extends DeploymentTestBase {
 
 			final Page page = Page.createSimplePage(securityContext, "page1");
 
-			page.setProperty(Traits.of("Page").key("displayPosition"), 12);
-			page.setProperty(Traits.of("Page").key("icon"),            "icon");
+			page.setProperty(Traits.of(StructrTraits.PAGE).key("displayPosition"), 12);
+			page.setProperty(Traits.of(StructrTraits.PAGE).key("icon"),            "icon");
 
-			final NodeInterface folder = app.create("Folder", "files");
-			folder.setProperty(Traits.of("Folder").key("includeInFrontendExport"), true);
+			final NodeInterface folder = app.create(StructrTraits.FOLDER, "files");
+			folder.setProperty(Traits.of(StructrTraits.FOLDER).key("includeInFrontendExport"), true);
 
 			// create test file with custom attributes
-			app.create("File",
-				new NodeAttribute<>(Traits.of("File").key("name"),        "test.txt"),
-				new NodeAttribute<>(Traits.of("File").key("parent"),      folder),
-				new NodeAttribute<>(Traits.of("File").key("contentType"), "text/plain"),
-				new NodeAttribute<>(Traits.of("File").key("test1"),       123),
-				new NodeAttribute<>(Traits.of("File").key("test2"),       "testString")
+			app.create(StructrTraits.FILE,
+				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key("name"),        "test.txt"),
+				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key("parent"),      folder),
+				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key("contentType"), "text/plain"),
+				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key("test1"),       123),
+				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key("test2"),       "testString")
 			);
 
 			tx.success();
@@ -410,7 +411,7 @@ public class Deployment3Test extends DeploymentTestBase {
 				final DOMNode newNode = page.createTextNode("#template");
 				newNode.unlockSystemPropertiesOnce();
 
-				newNode.setProperty(Traits.of("GraphObject").key("type"), "Template");
+				newNode.setProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key("type"), StructrTraits.TEMPLATE);
 
 				// append template
 				div.appendChild(newNode);
@@ -438,15 +439,15 @@ public class Deployment3Test extends DeploymentTestBase {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface node = app.create("SchemaNode",
-				new NodeAttribute<>(Traits.of("SchemaNode").key("name"), "ExtendedFile"),
-				new NodeAttribute<>(Traits.of("SchemaNode").key("inheritedTraits"), new String[] { "File" })
+			final NodeInterface node = app.create(StructrTraits.SCHEMA_NODE,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key("name"), "ExtendedFile"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key("inheritedTraits"), new String[] { StructrTraits.FILE })
 			);
 
-			app.create("SchemaProperty",
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaNode"),   node),
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("name"),         "test"),
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("propertyType"), "String")
+			app.create(StructrTraits.SCHEMA_PROPERTY,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"),   node),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"),         "test"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "String")
 			);
 
 			tx.success();
@@ -465,7 +466,7 @@ public class Deployment3Test extends DeploymentTestBase {
 
 			final NodeInterface node = FileHelper.createFile(securityContext, "test".getBytes("utf-8"), "text/plain", type, "test.txt", true);
 
-			node.setProperty(Traits.of("File").key("includeInFrontendExport"), true);
+			node.setProperty(Traits.of(StructrTraits.FILE).key("includeInFrontendExport"), true);
 			node.setProperty(test, "test");
 
 			tx.success();
@@ -492,7 +493,7 @@ public class Deployment3Test extends DeploymentTestBase {
 			assertNotNull("Root folder should not be null", rootFolder);
 
 			// root folder needs to have "includeInFrontendExport" set
-			rootFolder.setProperty(Traits.of("Folder").key("includeInFrontendExport"), true);
+			rootFolder.setProperty(Traits.of(StructrTraits.FOLDER).key("includeInFrontendExport"), true);
 
 			tx.success();
 
@@ -506,7 +507,7 @@ public class Deployment3Test extends DeploymentTestBase {
 		// check
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface folder = app.nodeQuery("Folder").andName("filesystem").getFirst();
+			final NodeInterface folder = app.nodeQuery(StructrTraits.FOLDER).andName("filesystem").getFirst();
 
 			assertNotNull("Invalid deployment result - empty folder from export was not imported!", folder);
 
@@ -535,7 +536,7 @@ public class Deployment3Test extends DeploymentTestBase {
 			// create first template and give it a name
 			final Template template1 = createTemplate(page1, div1, "template source - öäüÖÄÜß'\"'`");
 			final PropertyMap template1Properties = new PropertyMap();
-			template1Properties.put(Traits.of("Template").key("name"), "Test40Template");
+			template1Properties.put(Traits.of(StructrTraits.TEMPLATE).key("name"), "Test40Template");
 			template1.setProperties(template1.getSecurityContext(), template1Properties);
 
 
@@ -550,7 +551,7 @@ public class Deployment3Test extends DeploymentTestBase {
 			// create second template and give it the same name as the first one
 			final Template template2 = createTemplate(page2, div2, "template source 2 - öäüÖÄÜß'\"'`");
 			final PropertyMap template2Properties = new PropertyMap();
-			template2Properties.put(Traits.of("Template").key("name"), "Test40Template");
+			template2Properties.put(Traits.of(StructrTraits.TEMPLATE).key("name"), "Test40Template");
 			template2.setProperties(template2.getSecurityContext(), template2Properties);
 
 			tx.success();

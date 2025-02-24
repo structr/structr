@@ -28,6 +28,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.AbstractFile;
 
@@ -169,7 +170,7 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 		boolean isRegularFile = false;
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
-			isRegularFile = file.is("File");
+			isRegularFile = file.is(StructrTraits.FILE);
 			tx.success();
 		} catch (FrameworkException fex) {
 			logger.error("", fex);
@@ -188,7 +189,7 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 		boolean isDirectory = false;
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
-			isDirectory = file.is("Folder");
+			isDirectory = file.is(StructrTraits.FOLDER);
 			tx.success();
 		} catch (FrameworkException fex) {
 			logger.error("", fex);
@@ -219,7 +220,7 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			if (file.is("File")) {
+			if (file.is(StructrTraits.FILE)) {
 
 				final Number s = StorageProviderFactory.getStorageProvider(file).size();
 				if (s != null) {
@@ -264,7 +265,7 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 
 		if (file != null) {
 
-			if (file.is("Folder")) {
+			if (file.is(StructrTraits.FOLDER)) {
 				permissions.add(PosixFilePermission.OWNER_EXECUTE);
 			}
 
@@ -275,7 +276,7 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 					permissions.add(PosixFilePermission.OTHERS_READ);
 					permissions.add(PosixFilePermission.OTHERS_WRITE);
 
-					if (file.is("Folder")) {
+					if (file.is(StructrTraits.FOLDER)) {
 						permissions.add(PosixFilePermission.OTHERS_EXECUTE);
 					}
 				}
@@ -285,7 +286,7 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 					permissions.add(PosixFilePermission.GROUP_READ);
 					permissions.add(PosixFilePermission.GROUP_WRITE);
 
-					if (file.is("Folder")) {
+					if (file.is(StructrTraits.FOLDER)) {
 						permissions.add(PosixFilePermission.GROUP_EXECUTE);
 					}
 				}

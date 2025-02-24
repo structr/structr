@@ -19,6 +19,7 @@
 package org.structr.web.traits.relationships;
 
 import org.structr.core.entity.Relation;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
@@ -30,12 +31,12 @@ public class DOMElementRELOADSDOMElement extends AbstractRelationshipTraitDefini
 
 	@Override
 	public String getSourceType() {
-		return "DOMElement";
+		return StructrTraits.DOM_ELEMENT;
 	}
 
 	@Override
 	public String getTargetType() {
-		return "DOMElement";
+		return StructrTraits.DOM_ELEMENT;
 	}
 
 	@Override

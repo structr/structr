@@ -25,6 +25,7 @@ import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.core.traits.StructrTraits;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -71,7 +72,7 @@ public class AppendMemberCommand extends AbstractCommand {
 			return;
 		}
 
-		if (parentNode.is("Group")) {
+		if (parentNode.is(StructrTraits.GROUP)) {
 
 			final Group group       = parentNode.as(Group.class);
 			NodeInterface principal = getNode(id);

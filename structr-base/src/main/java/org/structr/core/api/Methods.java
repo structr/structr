@@ -24,6 +24,7 @@ import org.structr.core.entity.SchemaMethod;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 
 import java.util.LinkedHashMap;
@@ -48,9 +49,9 @@ public class Methods {
 
 			try {
 
-				final PropertyKey<NodeInterface> schemaNodeKey = Traits.of("SchemaMethod").key("schemaNode");
+				final PropertyKey<NodeInterface> schemaNodeKey = Traits.of(StructrTraits.SCHEMA_METHOD).key("schemaNode");
 
-				for (final NodeInterface globalMethod : StructrApp.getInstance().nodeQuery("SchemaMethod").and(schemaNodeKey, null).getResultStream()) {
+				for (final NodeInterface globalMethod : StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_METHOD).and(schemaNodeKey, null).getResultStream()) {
 
 					allMethods.put(globalMethod.getName(), new ScriptMethod(globalMethod.as(SchemaMethod.class)));
 				}
@@ -84,8 +85,8 @@ public class Methods {
 
 				try (final Tx tx = StructrApp.getInstance().tx()) {
 
-					final PropertyKey<NodeInterface> schemaNodeKey = Traits.of("SchemaMethod").key("schemaNode");
-					final NodeInterface method = StructrApp.getInstance().nodeQuery("SchemaMethod").andName(methodName).and(schemaNodeKey, null).getFirst();
+					final PropertyKey<NodeInterface> schemaNodeKey = Traits.of(StructrTraits.SCHEMA_METHOD).key("schemaNode");
+					final NodeInterface method = StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_METHOD).andName(methodName).and(schemaNodeKey, null).getFirst();
 
 					if (method != null) {
 

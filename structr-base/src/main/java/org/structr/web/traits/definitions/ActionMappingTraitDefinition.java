@@ -25,6 +25,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
@@ -37,7 +38,7 @@ import java.util.Set;
 public class ActionMappingTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public ActionMappingTraitDefinition() {
-		super("ActionMapping");
+		super(StructrTraits.ACTION_MAPPING);
 	}
 
 	@Override

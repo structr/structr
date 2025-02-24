@@ -19,14 +19,9 @@
 package org.structr.web.resource;
 
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.Map;
-import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.traits.Traits;
-import org.structr.rest.api.RESTCallHandler;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -35,16 +30,22 @@ import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.MailTemplate;
 import org.structr.core.entity.Principal;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.RESTCall;
+import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.servlet.AbstractDataServlet;
 import org.structr.schema.action.ActionContext;
-import org.structr.web.entity.User;
 import org.structr.web.servlet.HtmlServlet;
+
+import java.util.Map;
+import java.util.Set;
 
 /**
  */
@@ -85,12 +86,12 @@ public class ResetPasswordResourceHandler extends RESTCallHandler {
 			// cleanup user input
 			emailString = emailString.trim().toLowerCase();
 
-			final Traits traits                       = Traits.of("User");
+			final Traits traits                       = Traits.of(StructrTraits.USER);
 			final PropertyKey<String> confirmationKey = traits.key("confirmationKey");
 			final PropertyKey<String> eMail           = traits.key("eMail");
 			final String localeString                 = (String) propertySet.get("locale");
 			final String confKey                      = AuthHelper.getConfirmationKey();
-			final NodeInterface user                  = StructrApp.getInstance().nodeQuery("User").and(eMail, emailString).getFirst();
+			final NodeInterface user                  = StructrApp.getInstance().nodeQuery(StructrTraits.USER).and(eMail, emailString).getFirst();
 
 			if (user != null) {
 
@@ -161,10 +162,10 @@ public class ResetPasswordResourceHandler extends RESTCallHandler {
 
 		try {
 
-			final Query<NodeInterface> query = StructrApp.getInstance().nodeQuery("MailTemplate").andName(key.name());
+			final Query<NodeInterface> query = StructrApp.getInstance().nodeQuery(StructrTraits.MAIL_TEMPLATE).andName(key.name());
 
 			if (localeString != null) {
-				query.and(Traits.of("MailTemplate").key("locale"), localeString);
+				query.and(Traits.of(StructrTraits.MAIL_TEMPLATE).key("locale"), localeString);
 			}
 
 			NodeInterface template = query.getFirst();

@@ -30,6 +30,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.StringRenderBuffer;
@@ -182,7 +183,7 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 		String elementType  = StringUtils.capitalize(tag);
 
 		// Avoid creating an (invalid) 'Content' DOMElement
-		if (elementType == null || "Content".equals(elementType)) {
+		if ((elementType == null) || StructrTraits.CONTENT.equals(elementType)) {
 
 			logger.warn("Blocked attempt to create a DOMElement of type Content");
 
@@ -191,7 +192,7 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 		}
 
 		// Template is already taken => we need to modify the type :(
-		if ("Template".equals(elementType)) {
+		if (StructrTraits.TEMPLATE.equals(elementType)) {
 			elementType = "TemplateElement";
 		}
 
@@ -204,7 +205,7 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 		} else {
 
 			// No HTML type element found so lets try the dynamic DOMElement class
-			traits = Traits.of("DOMElement");
+			traits = Traits.of(StructrTraits.DOM_ELEMENT);
 		}
 
 		try {
@@ -235,7 +236,7 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 			@Override
 			public boolean accept(final DOMNode obj) {
 
-				if (obj.is("DOMElement")) {
+				if (obj.is(StructrTraits.DOM_ELEMENT)) {
 
 					DOMElement elem = obj.as(DOMElement.class);
 
@@ -339,7 +340,7 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 			@Override
 			public boolean accept(DOMNode obj) {
 
-				if (obj.is("DOMElement")) {
+				if (obj.is(StructrTraits.DOM_ELEMENT)) {
 
 					final DOMElement elem = obj.as(DOMElement.class);
 
@@ -373,10 +374,10 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 		try {
 
 			final App app       = StructrApp.getInstance(getSecurityContext());
-			final Traits traits = Traits.of("Content");
+			final Traits traits = Traits.of(StructrTraits.CONTENT);
 
 			// create new content element
-			final Content content = app.create("Content",
+			final Content content = app.create(StructrTraits.CONTENT,
 				new NodeAttribute(traits.key("content"), text)
 			).as(Content.class);
 
@@ -402,7 +403,7 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 		try {
 
 			final App app       = StructrApp.getInstance(getSecurityContext());
-			final Traits traits = Traits.of("Content");
+			final Traits traits = Traits.of(StructrTraits.CONTENT);
 
 			// create new content element
 			final Comment commentNode = app.create("Comment", new NodeAttribute(traits.key("content"), comment)).as(Comment.class);

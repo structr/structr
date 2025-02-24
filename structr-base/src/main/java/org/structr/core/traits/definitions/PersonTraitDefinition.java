@@ -23,6 +23,7 @@ import org.structr.core.entity.Person;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.wrappers.PersonTraitWrapper;
 
 import java.util.Date;
@@ -34,7 +35,7 @@ import java.util.Set;
 public class PersonTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public PersonTraitDefinition() {
-		super("Person");
+		super(StructrTraits.PERSON);
 	}
 
 	@Override

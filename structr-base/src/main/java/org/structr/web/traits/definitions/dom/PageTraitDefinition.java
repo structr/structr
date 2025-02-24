@@ -26,6 +26,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
@@ -48,7 +49,7 @@ import static org.structr.web.entity.dom.DOMNode.PAGE_CATEGORY;
 public class PageTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public PageTraitDefinition() {
-		super("Page");
+		super(StructrTraits.PAGE);
 	}
 
 	@Override
@@ -122,7 +123,7 @@ public class PageTraitDefinition extends AbstractNodeTraitDefinition {
 					}
 					*/
 
-					if (!(otherNode.is("Html") || otherNode.is("Comment") || otherNode.is("Template"))) {
+					if (!(otherNode.is("Html") || otherNode.is("Comment") || otherNode.is(StructrTraits.TEMPLATE))) {
 
 						throw new FrameworkException(422, DOMNode.HIERARCHY_REQUEST_ERR_MESSAGE_ELEMENT);
 					}

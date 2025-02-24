@@ -31,10 +31,13 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.schema.SchemaService;
-import org.structr.web.entity.AbstractFile;
+import org.structr.storage.StorageProvider;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.Folder;
+import org.structr.web.entity.StorageConfiguration;
 
 import java.io.File;
 import java.io.IOException;
@@ -44,9 +47,6 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
-import org.structr.storage.StorageProvider;
-import org.structr.storage.StorageProviderFactory;
-import org.structr.web.entity.StorageConfiguration;
 
 /**
  */
@@ -77,13 +77,13 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 
 	public void mountFolder(final Folder folder) {
 
-		final boolean watchContents     = folder.getProperty(Traits.of("Folder").key("mountWatchContents"));
-		final Integer scanInterval      = folder.getProperty(Traits.of("Folder").key("mountScanInterval"));
+		final boolean watchContents     = folder.getProperty(Traits.of(StructrTraits.FOLDER).key("mountWatchContents"));
+		final Integer scanInterval      = folder.getProperty(Traits.of(StructrTraits.FOLDER).key("mountScanInterval"));
 		final StorageProvider prov      = StorageProviderFactory.getStorageProvider(folder);
 		final StorageConfiguration conf = prov.getConfig();
 		final Map<String, String> data  = conf != null ? conf.getConfiguration() : null;
 		final String mountTarget        = data != null ? data.get("mountTarget") : null;
-		final String folderPath         = folder.getProperty(Traits.of("Folder").key("path"));
+		final String folderPath         = folder.getProperty(Traits.of(StructrTraits.FOLDER).key("path"));
 		final String uuid               = folder.getUuid();
 
 		synchronized (watchedRoots) {
@@ -128,7 +128,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 		final FolderInfo info = watchedRoots.get(uuid);
 
 		// upon creation, set the last scanned date correctly to prevent early scanning
-		final Long lastScanDate       = folder.getProperty(Traits.of("Folder").key("mountLastScanned"));
+		final Long lastScanDate       = folder.getProperty(Traits.of(StructrTraits.FOLDER).key("mountLastScanned"));
 		final boolean wasNeverScanned = (lastScanDate == null);
 
 		if (!wasNeverScanned) {
@@ -282,13 +282,13 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 			logger.error(ExceptionUtils.getStackTrace(ioex));
 		}
 
-		final PropertyKey<String> storageConfigurationKey = Traits.of("AbstractFile").key("storageConfiguration");
+		final PropertyKey<String> storageConfigurationKey = Traits.of(StructrTraits.ABSTRACT_FILE).key("storageConfiguration");
 		final App app                                     = StructrApp.getInstance();
 
 		try (final Tx tx = app.tx(false, false, false)) {
 
 			// find all folders with storageConfigurations and try to mount them
-			for (final NodeInterface folder : app.nodeQuery("Folder").not().blank(storageConfigurationKey).getAsList()) {
+			for (final NodeInterface folder : app.nodeQuery(StructrTraits.FOLDER).not().blank(storageConfigurationKey).getAsList()) {
 
 				mountFolder(folder.as(Folder.class));
 			}
@@ -566,7 +566,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 		@Override
 		public void run() {
 
-			final PropertyKey<Long> lastScannedKey   = Traits.of("Folder").key("mountLastScanned");
+			final PropertyKey<Long> lastScannedKey   = Traits.of(StructrTraits.FOLDER).key("mountLastScanned");
 			boolean canStart                         = false;
 
 			// wait for transaction to finish so we can be
@@ -575,7 +575,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 
 				try (final Tx tx = StructrApp.getInstance().tx()) {
 
-					if (uuid == null || StructrApp.getInstance().nodeQuery("Folder").uuid(uuid).getFirst() != null) {
+					if (uuid == null || StructrApp.getInstance().nodeQuery(StructrTraits.FOLDER).uuid(uuid).getFirst() != null) {
 
 						canStart = true;
 						break;
@@ -611,7 +611,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 
 								try (final Tx tx = StructrApp.getInstance().tx()) {
 
-									final NodeInterface rootFolder = StructrApp.getInstance().nodeQuery("Folder").uuid(uuid).getFirst();
+									final NodeInterface rootFolder = StructrApp.getInstance().nodeQuery(StructrTraits.FOLDER).uuid(uuid).getFirst();
 									if (rootFolder != null) {
 
 										rootFolder.setProperty(lastScannedKey, System.currentTimeMillis());

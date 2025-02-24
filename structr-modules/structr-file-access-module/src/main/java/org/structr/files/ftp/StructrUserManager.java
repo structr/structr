@@ -30,6 +30,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.rest.auth.AuthHelper;
 
@@ -80,7 +81,7 @@ public class StructrUserManager implements UserManager {
 
 			try {
 
-				Iterables.addAll(result, StructrApp.getInstance(securityContext).nodeQuery("Principal").sort(Traits.of("Principal").key("name")).getResultStream());
+				Iterables.addAll(result, StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.PRINCIPAL).sort(Traits.of(StructrTraits.PRINCIPAL).key("name")).getResultStream());
 
 			} catch (FrameworkException ex) {
 
@@ -155,7 +156,7 @@ public class StructrUserManager implements UserManager {
 				userName = authentication.getUsername();
 				password = authentication.getPassword();
 
-				final Principal principal = AuthHelper.getPrincipalForPassword(Traits.of("Principal").key("name"), userName, password);
+				final Principal principal = AuthHelper.getPrincipalForPassword(Traits.of(StructrTraits.PRINCIPAL).key("name"), userName, password);
 				if (principal != null) {
 
 					user = principal.as(org.structr.web.entity.User.class);
@@ -194,7 +195,7 @@ public class StructrUserManager implements UserManager {
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			final Principal user = AuthHelper.getPrincipalForCredential(Traits.of("Principal").key("name"), userName);
+			final Principal user = AuthHelper.getPrincipalForCredential(Traits.of(StructrTraits.PRINCIPAL).key("name"), userName);
 
 			tx.success();
 

@@ -24,6 +24,7 @@ import org.structr.api.search.Occurrence;
 import org.structr.api.search.TypeQuery;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.Relation;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 
 /**
@@ -42,7 +43,7 @@ public class TypeSearchAttribute<S extends GraphObject> extends PropertySearchAt
 
 	public TypeSearchAttribute(final String type, final Occurrence occur, final boolean isExactMatch) {
 
-		super(Traits.of("GraphObject").key("type"), null, occur, isExactMatch);
+		super(Traits.of(StructrTraits.GRAPH_OBJECT).key("type"), null, occur, isExactMatch);
 
 		final Traits traits = Traits.of(type);
 

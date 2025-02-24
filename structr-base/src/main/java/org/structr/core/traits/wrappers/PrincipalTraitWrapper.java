@@ -34,6 +34,7 @@ import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.operations.principal.IsValidPassword;
 import org.structr.core.traits.operations.principal.OnAuthenticate;
@@ -206,7 +207,7 @@ public class PrincipalTraitWrapper extends AbstractNodeTraitWrapper implements P
 		try {
 
 			final App app            = StructrApp.getInstance();
-			final NodeInterface node = app.getNodeById("Principal", wrappedObject.getUuid());
+			final NodeInterface node = app.getNodeById(StructrTraits.PRINCIPAL, wrappedObject.getUuid());
 
 			if (node != null) {
 

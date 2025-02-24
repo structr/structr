@@ -43,6 +43,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.schema.action.Function;
@@ -520,7 +521,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 		while (node != null) {
 
-			if (node.is("Template")) {
+			if (node.is(StructrTraits.TEMPLATE)) {
 
 				final Template template = node.as(Template.class);
 
@@ -562,7 +563,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 		while (node != null) {
 
-			if (node.is("Page")) {
+			if (node.is(StructrTraits.PAGE)) {
 
 				return node.as(Page.class);
 			}
@@ -699,11 +700,11 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 			}
 		}
 
-		if (sourceNode.is("LinkSource")) {
+		if (sourceNode.is(StructrTraits.LINK_SOURCE)) {
 
 			final LinkSource linkSourceElement = (LinkSource)sourceNode;
 
-			properties.put(Traits.of("LinkSource").key("linkable"), linkSourceElement.getLinkable());
+			properties.put(Traits.of(StructrTraits.LINK_SOURCE).key("linkable"), linkSourceElement.getLinkable());
 		}
 
 		// set the properties we collected above
@@ -811,7 +812,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 		Page page = null;
 
-		if (wrappedObject.getTraits().contains("Page")) {
+		if (wrappedObject.getTraits().contains(StructrTraits.PAGE)) {
 
 			page = wrappedObject.as(Page.class);
 
@@ -829,7 +830,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 			if (!ancestors.isEmpty()) {
 
 				final DOMNode rootNode = ancestors.get(ancestors.size() - 1);
-				if (rootNode.is("Page")) {
+				if (rootNode.is(StructrTraits.PAGE)) {
 
 					page = rootNode.as(Page.class);
 
@@ -865,7 +866,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 				errorBuffer.add(new SemanticErrorToken(getType(), "name", "may_not_contain_slashes").withDetail(_name));
 
-			} else if (wrappedObject.getTraits().contains("Page")) {
+			} else if (wrappedObject.getTraits().contains(StructrTraits.PAGE)) {
 
 				if (!_name.equals(_name.replaceAll("[#?\\%;/]", ""))) {
 					errorBuffer.add(new SemanticErrorToken(getType(), "name", "contains_illegal_characters").withDetail(_name));
@@ -1407,7 +1408,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 			Page otherDoc = otherNode.getOwnerDocument();
 
 			// Shadow doc is neutral
-			if (otherDoc != null && !doc.equals(otherDoc) && !(doc.is("ShadowDocument"))) {
+			if (otherDoc != null && !doc.equals(otherDoc) && !(doc.is(StructrTraits.SHADOW_DOCUMENT))) {
 
 				final Logger logger = LoggerFactory.getLogger(DOMNode.class);
 				logger.warn("{} node with UUID {} has owner document {} with UUID {} whereas this node has owner document {} with UUID {}",
@@ -1516,7 +1517,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 			final boolean parentPublic      = _parentNode.isVisibleToPublicUsers();
 			final boolean parentProtected   = _parentNode.isVisibleToAuthenticatedUsers();
 
-			addVisibilityInstructions = (_parentNode.is("ShadowDocument")) || (parentPublic != elementPublic || parentProtected != elementProtected);
+			addVisibilityInstructions = (_parentNode.is(StructrTraits.SHADOW_DOCUMENT)) || (parentPublic != elementPublic || parentProtected != elementProtected);
 		}
 
 		if (addVisibilityInstructions) {
@@ -1543,18 +1544,18 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	@Override
 	public final void getLinkableInstructions(final Set<String> instructions) {
 
-		if (traits.contains("LinkSource")) {
+		if (traits.contains(StructrTraits.LINK_SOURCE)) {
 
 			final LinkSource linkSourceElement = wrappedObject.as(LinkSource.class);
 			final Linkable linkable            = linkSourceElement.getLinkable();
 
 			if (linkable != null) {
 
-				final String linkableInstruction = (linkable.is("Page")) ? "pagelink" : "link";
+				final String linkableInstruction = (linkable.is(StructrTraits.PAGE)) ? "pagelink" : "link";
 
 				String path                = linkable.getPath();
 
-				if (linkable.is("Page") && path == null) {
+				if (linkable.is(StructrTraits.PAGE) && path == null) {
 					path = linkable.getName();
 				}
 
@@ -1574,7 +1575,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	@Override
 	public final void getContentInstructions(final Set<String> instructions) {
 
-		if (is("Content")) {
+		if (is(StructrTraits.CONTENT)) {
 
 			final String _contentType = as(Content.class).getContentType();
 			if (_contentType != null) {
@@ -1583,7 +1584,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 			}
 		}
 
-		if (!is("Template")) {
+		if (!is(StructrTraits.TEMPLATE)) {
 
 			final String _name = wrappedObject.getProperty(traits.key("name"));
 			if (StringUtils.isNotEmpty(_name)) {
@@ -2110,10 +2111,10 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 				}
 			}
 
-			if (traits.contains("LinkSource")) {
+			if (traits.contains(StructrTraits.LINK_SOURCE)) {
 
 				final LinkSource linkSourceElement = this.as(LinkSource.class);
-				final Traits linkSourceTraits      = Traits.of("LinkSource");
+				final Traits linkSourceTraits      = Traits.of(StructrTraits.LINK_SOURCE);
 
 				properties.put(linkSourceTraits.key("linkable"), linkSourceElement.getLinkable());
 			}
@@ -2145,10 +2146,10 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 			DOMNode child = getFirstChild();
 			while (child != null) {
 
-				if (child.is("Content")) {
+				if (child.is(StructrTraits.CONTENT)) {
 
 					DOMNode next = child.getNextSibling();
-					if (next != null && next.is("Content")) {
+					if (next != null && next.is(StructrTraits.CONTENT)) {
 
 						String text1 = child.as(Content.class).getContent();
 						String text2 = next.as(Content.class).getContent();

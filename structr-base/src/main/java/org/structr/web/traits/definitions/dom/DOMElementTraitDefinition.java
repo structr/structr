@@ -46,6 +46,7 @@ import org.structr.core.property.*;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
@@ -211,7 +212,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 
 	public DOMElementTraitDefinition() {
-		super("DOMElement");
+		super(StructrTraits.DOM_ELEMENT);
 	}
 
 	@Override
@@ -437,7 +438,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 									final DOMNode subNode = rel.getTargetNode().as(DOMNode.class);
 
-									if (subNode.is("DOMElement")) {
+									if (subNode.is(StructrTraits.DOM_ELEMENT)) {
 										anyChildNodeCreatesNewLine = (anyChildNodeCreatesNewLine || !(subNode.avoidWhitespace()));
 									}
 
@@ -603,7 +604,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 							case NONE:
 
 								// Get actions in superuser context
-								final DOMElement thisElementWithSuperuserContext = StructrApp.getInstance().getNodeById("DOMElement", uuid).as(DOMElement.class);
+								final DOMElement thisElementWithSuperuserContext = StructrApp.getInstance().getNodeById(StructrTraits.DOM_ELEMENT, uuid).as(DOMElement.class);
 								final Iterable<ActionMapping> triggeredActions   = thisElementWithSuperuserContext.getTriggeredActions();
 								final List<ActionMapping> list                   = Iterables.toList(triggeredActions);
 								boolean outputStructrId = false;
@@ -670,7 +671,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 									}
 									*/
 
-									final Traits parameterMappingTraits = Traits.of("ParameterMapping");
+									final Traits parameterMappingTraits = Traits.of(StructrTraits.PARAMETER_MAPPING);
 									final PropertyKey<String> scriptExpressionKey = parameterMappingTraits.key("scriptExpression");
 									final PropertyKey<String> parameterTypeKey = parameterMappingTraits.key("parameterType");
 									final PropertyKey<String> parameterNameKey = parameterMappingTraits.key("parameterName");
@@ -892,7 +893,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Set.of(
 
-			new InstanceMethod("DOMElement", "event") {
+			new InstanceMethod(StructrTraits.DOM_ELEMENT, "event") {
 
 				@Override
 				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
@@ -907,7 +908,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 					}
 
 					ActionMapping triggeredAction;
-					final NodeInterface domElementNode         = StructrApp.getInstance().getNodeById("DOMElement", entity.getUuid());
+					final NodeInterface domElementNode         = StructrApp.getInstance().getNodeById(StructrTraits.DOM_ELEMENT, entity.getUuid());
 					final DOMElement domElement                = domElementNode.as(DOMElement.class);
 					final List<ActionMapping> triggeredActions = Iterables.toList(domElement.getTriggeredActions());
 
@@ -1225,7 +1226,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		removeInternalDataBindingKeys(parameters);
 
 		final Principal currentUser              = actionContext.getSecurityContext().getUser(false);
-		final LoginResourceHandler loginResource = new LoginResourceHandler(new RESTCall("/login", PropertyView.Public, true, AbstractDataServlet.getTypeOrDefault(currentUser, "User")));
+		final LoginResourceHandler loginResource = new LoginResourceHandler(new RESTCall("/login", PropertyView.Public, true, AbstractDataServlet.getTypeOrDefault(currentUser, StructrTraits.USER)));
 		final Map<String, Object> properties     = new LinkedHashMap<>();
 
 		for (final Entry<String, Object> entry : parameters.entrySet()) {
@@ -1244,7 +1245,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		removeInternalDataBindingKeys(parameters);
 
 		final Principal currentUser                = actionContext.getSecurityContext().getUser(false);
-		final LogoutResourceHandler logoutResource = new LogoutResourceHandler(new RESTCall("/logout", PropertyView.Public, true, AbstractDataServlet.getTypeOrDefault(currentUser, "User")));
+		final LogoutResourceHandler logoutResource = new LogoutResourceHandler(new RESTCall("/logout", PropertyView.Public, true, AbstractDataServlet.getTypeOrDefault(currentUser, StructrTraits.USER)));
 		final Map<String, Object> properties       = new LinkedHashMap<>();
 
 		for (final Entry<String, Object> entry : parameters.entrySet()) {
@@ -1273,7 +1274,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 			if (value != null) properties.put(key, value);
 		}
 
-		final RegistrationResourceHandler registrationResource = new RegistrationResourceHandler(new RESTCall("/registration", PropertyView.Public, true, AbstractDataServlet.getTypeOrDefault(currentUser, "User")));
+		final RegistrationResourceHandler registrationResource = new RegistrationResourceHandler(new RESTCall("/registration", PropertyView.Public, true, AbstractDataServlet.getTypeOrDefault(currentUser, StructrTraits.USER)));
 
 		return registrationResource.doPost(actionContext.getSecurityContext(), properties);
 	}
@@ -1293,7 +1294,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 			if (value != null) properties.put(key, value);
 		}
 
-		final ResetPasswordResourceHandler resetPasswordResource = new ResetPasswordResourceHandler(new RESTCall("/reset-password", PropertyView.Public, true, AbstractDataServlet.getTypeOrDefault(currentUser, "User")));
+		final ResetPasswordResourceHandler resetPasswordResource = new ResetPasswordResourceHandler(new RESTCall("/reset-password", PropertyView.Public, true, AbstractDataServlet.getTypeOrDefault(currentUser, StructrTraits.USER)));
 
 		return resetPasswordResource.doPost(actionContext.getSecurityContext(), properties);
 	}
@@ -1492,7 +1493,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		}
 
 		// load child node
-		final NodeInterface child = StructrApp.getInstance(securityContext).getNodeById("DOMNode", childId);
+		final NodeInterface child = StructrApp.getInstance(securityContext).getNodeById(StructrTraits.DOM_NODE, childId);
 		if (child == null) {
 
 			throw new FrameworkException(422, "Cannot execute append-child action without child (object with ID not found or not a DOMNode).");
@@ -1502,7 +1503,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 		for (final GraphObject target : resolveDataTargets(actionContext, entity, dataTarget)) {
 
-			if (target.is("DOMElement")) {
+			if (target.is(StructrTraits.DOM_ELEMENT)) {
 
 				final DOMElement domTarget = target.as(DOMElement.class);
 
@@ -1535,7 +1536,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		}
 
 		// load child node
-		final NodeInterface child = StructrApp.getInstance(securityContext).getNodeById("DOMNode", childId);
+		final NodeInterface child = StructrApp.getInstance(securityContext).getNodeById(StructrTraits.DOM_NODE, childId);
 		if (child == null) {
 
 			throw new FrameworkException(422, "Cannot execute remove-child action without child (object with ID not found or not a DOMNode).");
@@ -1545,7 +1546,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 		for (final GraphObject target : resolveDataTargets(actionContext, entity, dataTarget)) {
 
-			if (target.is("DOMElement")) {
+			if (target.is(StructrTraits.DOM_ELEMENT)) {
 
 				final DOMElement parent = target.as(DOMElement.class);
 
@@ -1575,7 +1576,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 			throw new FrameworkException(422, "Cannot execute insert-html action without html source object UUID (data-source-object).");
 		}
 
-		final NodeInterface sourceObject = StructrApp.getInstance(securityContext).getNodeById("NodeInterface", sourceObjectId);
+		final NodeInterface sourceObject = StructrApp.getInstance(securityContext).getNodeById(StructrTraits.NODE_INTERFACE, sourceObjectId);
 		if (sourceObject == null) {
 
 			throw new FrameworkException(422, "Cannot execute insert-html action without html source property name (data-source-property).");
@@ -1603,7 +1604,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 		for (final GraphObject target : resolveDataTargets(actionContext, entity, dataTarget)) {
 
-			if (target instanceof NodeInterface node && node.is("DOMElement")) {
+			if (target instanceof NodeInterface node && node.is(StructrTraits.DOM_ELEMENT)) {
 
 				return InsertHtmlFunction.apply(securityContext, node, htmlSource);
 
@@ -1633,7 +1634,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		}
 
 		// load child node
-		final NodeInterface child = StructrApp.getInstance(securityContext).getNodeById("DOMNode", childId);
+		final NodeInterface child = StructrApp.getInstance(securityContext).getNodeById(StructrTraits.DOM_NODE, childId);
 		if (child == null) {
 
 			throw new FrameworkException(422, "Cannot execute replace-html action without child (object with ID not found or not a DOMNode).");
@@ -1645,7 +1646,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 			throw new FrameworkException(422, "Cannot execute replace-html action without html source object UUID (data-source-object).");
 		}
 
-		final NodeInterface sourceObject = StructrApp.getInstance(securityContext).getNodeById("NodeInterface", sourceObjectId);
+		final NodeInterface sourceObject = StructrApp.getInstance(securityContext).getNodeById(StructrTraits.NODE_INTERFACE, sourceObjectId);
 		if (sourceObject == null) {
 
 			throw new FrameworkException(422, "Cannot execute replace-html action without html source property name (data-source-property).");
@@ -1673,7 +1674,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 		for (final GraphObject target : resolveDataTargets(actionContext, entity, dataTarget)) {
 
-			if (target instanceof NodeInterface n && n.is("DOMElement")) {
+			if (target instanceof NodeInterface n && n.is(StructrTraits.DOM_ELEMENT)) {
 
 				final DOMElement parent = n.as(DOMElement.class);
 
@@ -2003,7 +2004,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 				for (final DOMNode possibleReloadTargetNode : page.getElements()) {
 
-					if (possibleReloadTargetNode.is("DOMElement")) {
+					if (possibleReloadTargetNode.is(StructrTraits.DOM_ELEMENT)) {
 
 						final DOMElement possibleTarget       = possibleReloadTargetNode.as(DOMElement.class);
 						final org.jsoup.nodes.Element element = DOMElement.getMatchElement(possibleTarget);

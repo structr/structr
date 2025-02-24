@@ -28,6 +28,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
@@ -41,7 +42,7 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 	private static final String schemaPropertyNamePattern = "[_A-Za-z][\\-_0-9A-Za-z]*";
 
 	public SchemaPropertyTraitDefinition() {
-		super("SchemaProperty");
+		super(StructrTraits.SCHEMA_PROPERTY);
 	}
 
 	@Override
@@ -54,7 +55,7 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 
 				@Override
 				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
-					return ValidationHelper.isValidStringMatchingRegex(obj, Traits.of("NodeInterface").key("name"), schemaPropertyNamePattern, errorBuffer);
+					return ValidationHelper.isValidStringMatchingRegex(obj, Traits.of(StructrTraits.NODE_INTERFACE).key("name"), schemaPropertyNamePattern, errorBuffer);
 				}
 			}
 		);
@@ -71,9 +72,9 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface>           schemaNode    = new StartNode("schemaNode", "SchemaNodeProperty", new PropertySetNotion<>(newSet("id", "name")));
-		final Property<Iterable<NodeInterface>> schemaViews   = new StartNodes("schemaViews", "SchemaViewProperty", new PropertySetNotion<>(newSet("id", "name")));
-		final Property<Iterable<NodeInterface>> excludedViews = new StartNodes("excludedViews", "SchemaExcludedViewProperty", new PropertySetNotion<>(newSet("id", "name")));
+		final Property<NodeInterface>           schemaNode    = new StartNode("schemaNode", StructrTraits.SCHEMA_NODE_PROPERTY, new PropertySetNotion<>(newSet("id", "name")));
+		final Property<Iterable<NodeInterface>> schemaViews   = new StartNodes("schemaViews", StructrTraits.SCHEMA_VIEW_PROPERTY, new PropertySetNotion<>(newSet("id", "name")));
+		final Property<Iterable<NodeInterface>> excludedViews = new StartNodes("excludedViews", StructrTraits.SCHEMA_EXCLUDED_VIEW_PROPERTY, new PropertySetNotion<>(newSet("id", "name")));
 
 		final Property<String>             declaringUuid         = new StringProperty("declaringUuid");
 		final Property<String>             staticSchemaNodeName  = new StringProperty("staticSchemaNodeName");

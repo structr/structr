@@ -28,6 +28,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.DistanceSearchAttribute;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 
 import java.io.IOException;
@@ -55,16 +56,16 @@ public class GeoHelper {
 	 */
 	public static NodeInterface createLocation(final GeoCodingResult coords) throws FrameworkException {
 
-		final Traits traits     = Traits.of("Location");
+		final Traits traits     = Traits.of(StructrTraits.LOCATION);
 		final PropertyMap props = new PropertyMap();
 		double latitude         = coords.getLatitude();
 		double longitude        = coords.getLongitude();
 
-		props.put(Traits.of("GraphObject").key("type"), "Location");
+		props.put(Traits.of(StructrTraits.GRAPH_OBJECT).key("type"), StructrTraits.LOCATION);
 		props.put(traits.key("latitude"),  latitude);
 		props.put(traits.key("longitude"), longitude);
 
-		return StructrApp.getInstance().create("Location", props);
+		return StructrApp.getInstance().create(StructrTraits.LOCATION, props);
 	}
 
 	public static GeoCodingResult geocode(final DistanceSearchAttribute distanceSearch) throws FrameworkException {

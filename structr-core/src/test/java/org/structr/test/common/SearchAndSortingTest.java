@@ -52,6 +52,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.core.script.ScriptTestHelper;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
@@ -91,7 +92,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 					i++;
 
-					node.setProperty(Traits.of("NodeInterface").key("name"), name);
+					node.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), name);
 
 				}
 
@@ -149,7 +150,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 					i++;
 
-					node.setProperty(Traits.of("NodeInterface").key("name"), name);
+					node.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), name);
 
 				}
 
@@ -200,7 +201,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 					i++;
 
-					node.setProperty(Traits.of("NodeInterface").key("name"), name);
+					node.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), name);
 
 				}
 
@@ -251,7 +252,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 					i++;
 
-					node.setProperty(Traits.of("NodeInterface").key("name"), name);
+					node.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), name);
 
 				}
 
@@ -302,7 +303,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 					i++;
 
-					node.setProperty(Traits.of("NodeInterface").key("name"), name);
+					node.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), name);
 
 				}
 
@@ -372,7 +373,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 					final String query         = source.substring(0, 6);
 					final int count            = testResults.get(source);
-					final List<NodeInterface> result = app.nodeQuery("TestOne").and(Traits.of("NodeInterface").key("name"), query, false).getAsList();
+					final List<NodeInterface> result = app.nodeQuery("TestOne").and(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), query, false).getAsList();
 
 					assertEquals("Unexpected query result for special char query " + query, count, result.size());
 				}
@@ -400,7 +401,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				List<NodeInterface> result = app.nodeQuery("NodeInterface").getAsList();
+				List<NodeInterface> result = app.nodeQuery(StructrTraits.NODE_INTERFACE).getAsList();
 
 				countBefore = result.size();
 
@@ -420,13 +421,13 @@ public class SearchAndSortingTest extends StructrTest {
 
 				long t0 = System.currentTimeMillis();
 
-				List<? extends NodeInterface> result = app.nodeQuery("NodeInterface").getAsList();
+				List<? extends NodeInterface> result = app.nodeQuery(StructrTraits.NODE_INTERFACE).getAsList();
 
 				long t1 = System.currentTimeMillis();
 				logger.info("Query with inexact type took {} ms", t1-t0);
 				assertEquals(expectedNumber, result.size());
 
-				result = app.nodeQuery("NodeInterface").getAsList();
+				result = app.nodeQuery(StructrTraits.NODE_INTERFACE).getAsList();
 
 				long t2 = System.currentTimeMillis();
 				logger.info("Query with exact type took {} ms", t2-t1);
@@ -548,7 +549,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 					i++;
 
-					node.setProperty(Traits.of("NodeInterface").key("name"), name);
+					node.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), name);
 
 				}
 
@@ -561,7 +562,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 				assertEquals(number, result.size());
 
-				PropertyKey sortKey = Traits.of("NodeInterface").key("name");
+				PropertyKey sortKey = Traits.of(StructrTraits.NODE_INTERFACE).key("name");
 				boolean sortDesc    = false;
 				int pageSize        = 10;
 				int page            = 1;
@@ -574,7 +575,7 @@ public class SearchAndSortingTest extends StructrTest {
 				for (int j = 0; j < Math.min(result.size(), pageSize); j++) {
 
 					String expectedName = "TestOne-" + (offset + j);
-					String gotName     = result.get(j).getProperty(Traits.of("NodeInterface").key("name"));
+					String gotName     = result.get(j).getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"));
 
 					System.out.println(expectedName + ", got: " + gotName);
 					assertEquals(expectedName, gotName);
@@ -616,7 +617,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 					i++;
 
-					node.setProperty(Traits.of("NodeInterface").key("name"), name);
+					node.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), name);
 
 				}
 
@@ -629,7 +630,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 				assertEquals(number, result.size());
 
-				PropertyKey sortKey = Traits.of("NodeInterface").key("name");
+				PropertyKey sortKey = Traits.of(StructrTraits.NODE_INTERFACE).key("name");
 				boolean sortDesc    = true;
 				int pageSize        = 10;
 				int page            = 1;
@@ -642,7 +643,7 @@ public class SearchAndSortingTest extends StructrTest {
 				for (int j = 0; j < Math.min(result.size(), pageSize); j++) {
 
 					int expectedNumber = number + offset - 1 - j;
-					String gotName     = result.get(j).getProperty(Traits.of("NodeInterface").key("name"));
+					String gotName     = result.get(j).getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"));
 
 					System.out.println(expectedNumber + ", got: " + gotName);
 					assertEquals(Integer.toString(expectedNumber), gotName);
@@ -684,7 +685,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 					i++;
 
-					node.setProperty(Traits.of("NodeInterface").key("name"), "TestOne-" + name);
+					node.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "TestOne-" + name);
 
 					node.setProperty(Traits.of("TestOne").key("aDate"), new Date());
 
@@ -714,7 +715,7 @@ public class SearchAndSortingTest extends StructrTest {
 				for (int j = 0; j < Math.min(result.size(), pageSize); j++) {
 
 					String expectedName = "TestOne-" + (offset + j);
-					String gotName     = result.get(j).getProperty(Traits.of("NodeInterface").key("name"));
+					String gotName     = result.get(j).getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"));
 
 					System.out.println(expectedName + ", got: " + gotName);
 					assertEquals(expectedName, gotName);
@@ -756,7 +757,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 					i++;
 
-					node.setProperty(Traits.of("NodeInterface").key("name"), name);
+					node.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), name);
 
 					// slow down execution speed to make sure distinct changes fall in different milliseconds
 					try { Thread.sleep(2); } catch (Throwable t) {}
@@ -770,7 +771,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 				assertEquals(number, result.size());
 
-				PropertyKey sortKey = Traits.of("NodeInterface").key("lastModifiedDate");
+				PropertyKey sortKey = Traits.of(StructrTraits.NODE_INTERFACE).key("lastModifiedDate");
 				boolean sortDesc    = true;
 				int pageSize        = 10;
 				int page            = 1;
@@ -783,7 +784,7 @@ public class SearchAndSortingTest extends StructrTest {
 				for (int j = 0; j < pageSize; j++) {
 
 					int expectedNumber = number + offset - 1 - j;
-					String gotName     = result.get(j).getProperty(Traits.of("NodeInterface").key("name"));
+					String gotName     = result.get(j).getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"));
 
 					System.out.println(expectedNumber + ", got: " + gotName);
 					assertEquals(Integer.toString(expectedNumber), gotName);
@@ -820,7 +821,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 				for (NodeInterface node : nodes) {
 
-					node.setProperty(Traits.of("NodeInterface").key("name"), Integer.toString(i));
+					node.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), Integer.toString(i));
 					node.setProperty(key, i);
 
 					i++;
@@ -889,7 +890,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 					i++;
 
-					node.setProperty(Traits.of("NodeInterface").key("name"), "TestOne-" + name);
+					node.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "TestOne-" + name);
 
 					if ((i % 2) != 0) {
 						node.setProperty(Traits.of("TestOne").key("aDate"), new Date());
@@ -926,7 +927,7 @@ public class SearchAndSortingTest extends StructrTest {
 				for (int j = 0; j < Math.min(result.size(), pageSize); j++) {
 
 					String expectedName = "TestOne-" + (30 - (j+1)*2);
-					String gotName     = result.get(j).getProperty(Traits.of("NodeInterface").key("name"));
+					String gotName     = result.get(j).getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"));
 
 					System.out.println(j + ": " +  expectedName + ", got: " + gotName);
 					assertEquals(expectedName, gotName);
@@ -961,7 +962,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 				for (NodeInterface node : nodes) {
 
-					node.setProperty(Traits.of("NodeInterface").key("name"), Long.toString(i));
+					node.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), Long.toString(i));
 					if (i < 7) {
 						node.setProperty(Traits.of("TestOne").key("anInt"), i);
 					}
@@ -1039,7 +1040,7 @@ public class SearchAndSortingTest extends StructrTest {
 		try {
 
 			PropertyMap props     = new PropertyMap();
-			final PropertyKey key = Traits.of("NodeInterface").key("name");
+			final PropertyKey key = Traits.of(StructrTraits.NODE_INTERFACE).key("name");
 			final String name     = "89w3hkl sdfghsdkljth";
 
 			props.put(key, name);
@@ -1182,7 +1183,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 			props.put(lat, 50.12284d);
 			props.put(lon, 8.73923d);
-			props.put(Traits.of("NodeInterface").key("name"), "TestSeven-0");
+			props.put(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "TestSeven-0");
 
 			NodeInterface node = createTestNode(type, props);
 
@@ -1217,17 +1218,17 @@ public class SearchAndSortingTest extends StructrTest {
 			final PropertyKey lat   = Traits.of("TestSeven").key("latitude");
 			final PropertyKey lon   = Traits.of("TestSeven").key("longitude");
 
-			props.put(Traits.of("NodeInterface").key("type"), type);
+			props.put(Traits.of(StructrTraits.NODE_INTERFACE).key("type"), type);
 			props.put(lat, 50.12284d);
 			props.put(lon, 8.73923d);
-			props.put(Traits.of("NodeInterface").key("name"), "TestSeven-0");
+			props.put(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "TestSeven-0");
 
 			try (final Tx tx = app.tx()) {
 
 				// this will work
 				NodeInterface node = app.create("TestSeven", props);
 
-				props.remove(Traits.of("NodeInterface").key("name"));
+				props.remove(Traits.of(StructrTraits.NODE_INTERFACE).key("name"));
 				props.put(lat, 50.12285d);
 				props.put(lon, 8.73924d);
 
@@ -1275,7 +1276,7 @@ public class SearchAndSortingTest extends StructrTest {
 		try {
 
 			PropertyMap props     = new PropertyMap();
-			final PropertyKey key = Traits.of("NodeInterface").key("name");
+			final PropertyKey key = Traits.of(StructrTraits.NODE_INTERFACE).key("name");
 			final String name     = "89w3hkl sdfghsdkljth";
 
 			props.put(key, name);
@@ -1309,7 +1310,7 @@ public class SearchAndSortingTest extends StructrTest {
 		try {
 
 			PropertyMap props     = new PropertyMap();
-			final PropertyKey key = Traits.of("NodeInterface").key("name");
+			final PropertyKey key = Traits.of(StructrTraits.NODE_INTERFACE).key("name");
 			final String name     = "89w3hkl sdfghsdkljth";
 
 			props.put(key, name);
@@ -1342,7 +1343,7 @@ public class SearchAndSortingTest extends StructrTest {
 		try {
 
 			PropertyMap props     = new PropertyMap();
-			final PropertyKey key = Traits.of("NodeInterface").key("name");
+			final PropertyKey key = Traits.of(StructrTraits.NODE_INTERFACE).key("name");
 			final String name     = "abc";
 
 			props.put(key, name);
@@ -1530,7 +1531,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 				assertTrue(result.size() == number);
 
-				PropertyKey sortKey = Traits.of("NodeInterface").key("name");
+				PropertyKey sortKey = Traits.of(StructrTraits.NODE_INTERFACE).key("name");
 				boolean sortDesc    = false;
 				int pageSize        = 10;
 				int page            = 1;
@@ -1580,7 +1581,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 					i++;
 
-					node.setProperty(Traits.of("NodeInterface").key("name"), _name);
+					node.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), _name);
 				}
 				tx.success();
 			}
@@ -1591,7 +1592,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 				assertEquals(number, result.size());
 
-				PropertyKey sortKey = Traits.of("NodeInterface").key("name");
+				PropertyKey sortKey = Traits.of(StructrTraits.NODE_INTERFACE).key("name");
 				boolean sortDesc    = false;
 
 
@@ -1641,7 +1642,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 					i++;
 
-					node.setProperty(Traits.of("NodeInterface").key("name"), _name);
+					node.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), _name);
 				}
 				tx.success();
 			}
@@ -1652,7 +1653,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 				assertTrue(result.size() == number);
 
-				PropertyKey sortKey = Traits.of("NodeInterface").key("name");
+				PropertyKey sortKey = Traits.of(StructrTraits.NODE_INTERFACE).key("name");
 				boolean sortDesc    = false;
 				int pageSize        = 2;
 				int page            = 1;
@@ -1670,7 +1671,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				PropertyKey sortKey = Traits.of("NodeInterface").key("name");
+				PropertyKey sortKey = Traits.of(StructrTraits.NODE_INTERFACE).key("name");
 				boolean sortDesc    = false;
 				int pageSize        = 2;
 				int page            = 1;
@@ -1698,8 +1699,8 @@ public class SearchAndSortingTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			// create non-admin user
-			tester1 = app.create("User", "tester1").as(Principal.class);
-			tester2 = app.create("User", "tester2").as(Principal.class);
+			tester1 = app.create(StructrTraits.USER, "tester1").as(Principal.class);
+			tester2 = app.create(StructrTraits.USER, "tester2").as(Principal.class);
 
 			tx.success();
 
@@ -1735,18 +1736,18 @@ public class SearchAndSortingTest extends StructrTest {
 
 					if (rand < 0.3) {
 
-						node.setProperty(Traits.of("NodeInterface").key("owner"), tester1);
+						node.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("owner"), tester1);
 						tester1Nodes.add(node);
 
 					} else if (rand < 0.6) {
 
-						node.setProperty(Traits.of("NodeInterface").key("owner"), tester2);
+						node.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("owner"), tester2);
 						tester2Nodes.add(node);
 					}
 
 					i++;
 
-					node.setProperty(Traits.of("NodeInterface").key("name"), _name);
+					node.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), _name);
 				}
 
 				tx.success();
@@ -1757,7 +1758,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				final PropertyKey sortKey        = Traits.of("NodeInterface").key("name");
+				final PropertyKey sortKey        = Traits.of(StructrTraits.NODE_INTERFACE).key("name");
 				final boolean sortDesc           = false;
 				final int pageSize               = 10;
 				final int page                   = 22;
@@ -1775,7 +1776,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				final PropertyKey sortKey        = Traits.of("NodeInterface").key("name");
+				final PropertyKey sortKey        = Traits.of(StructrTraits.NODE_INTERFACE).key("name");
 				final boolean sortDesc           = false;
 				final int pageSize               = 10;
 				final int page                   = 22;
@@ -1843,9 +1844,9 @@ public class SearchAndSortingTest extends StructrTest {
 			final NodeInterface test2 = testOnes.get(4);
 			final NodeInterface test3 = testOnes.get(7);
 
-			test1.setProperty(Traits.of("NodeInterface").key("hidden"), true);
+			test1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("hidden"), true);
 
-			test3.setProperty(Traits.of("NodeInterface").key("hidden"), true);
+			test3.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("hidden"), true);
 
 			tx.success();
 
@@ -1870,7 +1871,7 @@ public class SearchAndSortingTest extends StructrTest {
 	@Test
 	public void testManyToManyReverseNodeSearch() {
 
-		final String groupType                               = "Group";
+		final String groupType                               = StructrTraits.GROUP;
 		final PropertyKey<Iterable<NodeInterface>> groupsKey = Traits.of(groupType).key("groups");
 		final List<Group> groups                             = new LinkedList<>();
 
@@ -1878,7 +1879,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 			for (int i=0; i<5; i++) {
 
-				groups.add(createTestNode(groupType, "Group" + i).as(Group.class));
+				groups.add(createTestNode(groupType, StructrTraits.GROUP + i).as(Group.class));
 			}
 
 			final Group group1 = groups.get(0);
@@ -1901,15 +1902,15 @@ public class SearchAndSortingTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			// search for a group with empty list of parents
-			final List<NodeInterface> result1 = app.nodeQuery("Group").and(groupsKey, new LinkedList<>()).getAsList();
+			final List<NodeInterface> result1 = app.nodeQuery(StructrTraits.GROUP).and(groupsKey, new LinkedList<>()).getAsList();
 			assertEquals("Invalid search result", 1, result1.size());
 
 			// search for a group with group2 as a parent
-			final List<NodeInterface> result2 = app.nodeQuery("Group").and(groupsKey, Arrays.asList(groups.get(1))).getAsList();
+			final List<NodeInterface> result2 = app.nodeQuery(StructrTraits.GROUP).and(groupsKey, Arrays.asList(groups.get(1))).getAsList();
 			assertEquals("Invalid search result", 2, result2.size());
 
 			// search for a group with group2 as a parent and a given name
-			final List<NodeInterface> result3 = app.nodeQuery("Group").andName("Group3").and(groupsKey, Arrays.asList(groups.get(1))).getAsList();
+			final List<NodeInterface> result3 = app.nodeQuery(StructrTraits.GROUP).andName("Group3").and(groupsKey, Arrays.asList(groups.get(1))).getAsList();
 			assertEquals("Invalid search result", 1, result3.size());
 
 			tx.success();
@@ -1925,7 +1926,7 @@ public class SearchAndSortingTest extends StructrTest {
 		// don't run tests that depend on Cypher being available in the backend
 		if (Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
 
-			final String groupType            = "Group";
+			final String groupType            = StructrTraits.GROUP;
 			final PropertyKey<String> nameKey = Traits.of(groupType).key("name");
 
 			try (final Tx tx = app.tx()) {
@@ -1965,7 +1966,7 @@ public class SearchAndSortingTest extends StructrTest {
 	@Test
 	public void testNestedSearchGroups() {
 
-		final String groupType            = "Group";
+		final String groupType            = StructrTraits.GROUP;
 		final PropertyKey<String> nameKey = Traits.of(groupType).key("name");
 
 		try (final Tx tx = app.tx()) {
@@ -2017,7 +2018,7 @@ public class SearchAndSortingTest extends StructrTest {
 	@Test
 	public void testComparisonSearchAttributes() {
 
-		final String groupType                = "Group";
+		final String groupType                = StructrTraits.GROUP;
 		final Traits traits                   = Traits.of(groupType);
 		final PropertyKey<String> nameKey     = traits.key("name");
 		final PropertyKey<Principal> ownerKey = traits.key("owner");
@@ -2533,7 +2534,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 			final List<AbstractNode> result1 = (List)ScriptTestHelper.testExternalScript(ctx, SearchAndSortingTest.class.getResourceAsStream("/test/scripting/testFindQueryWithOrPredicate.js"));
 
-			assertEquals("Wrong result for predicate list,", "[Project0, Project1, Project3]", result1.stream().map(r -> r.getProperty(Traits.of("NodeInterface").key("name"))).collect(Collectors.toList()).toString());
+			assertEquals("Wrong result for predicate list,", "[Project0, Project1, Project3]", result1.stream().map(r -> r.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"))).collect(Collectors.toList()).toString());
 
 			tx.success();
 
@@ -2548,20 +2549,20 @@ public class SearchAndSortingTest extends StructrTest {
 	@Test
 	public void testSortWithPathResolution() {
 
-		final PropertyKey<String> nameKey = Traits.of("Group").key("name");
+		final PropertyKey<String> nameKey = Traits.of(StructrTraits.GROUP).key("name");
 
 		try (final Tx tx = app.tx()) {
 
-			final Principal ownerC = createTestNode("User", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "C")).as(Principal.class);
-			final Principal ownerD = createTestNode("User", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "D")).as(Principal.class);
-			final Principal ownerA = createTestNode("User", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "A")).as(Principal.class);
-			final Principal ownerE = createTestNode("User", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "E")).as(Principal.class);
+			final Principal ownerC = createTestNode(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "C")).as(Principal.class);
+			final Principal ownerD = createTestNode(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "D")).as(Principal.class);
+			final Principal ownerA = createTestNode(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "A")).as(Principal.class);
+			final Principal ownerE = createTestNode(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "E")).as(Principal.class);
 
-			createTestNode("Group", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "zzz"));
-			createTestNode("Group", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "aaa"), new NodeAttribute<>(Traits.of("NodeInterface").key("owner"), ownerA));
-			createTestNode("Group", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "ttt"), new NodeAttribute<>(Traits.of("NodeInterface").key("owner"), ownerE));
-			createTestNode("Group", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "xxx"), new NodeAttribute<>(Traits.of("NodeInterface").key("owner"), ownerC));
-			createTestNode("Group", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "bbb"), new NodeAttribute<>(Traits.of("NodeInterface").key("owner"), ownerD));
+			createTestNode(StructrTraits.GROUP, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "zzz"));
+			createTestNode(StructrTraits.GROUP, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "aaa"), new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("owner"), ownerA));
+			createTestNode(StructrTraits.GROUP, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "ttt"), new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("owner"), ownerE));
+			createTestNode(StructrTraits.GROUP, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "xxx"), new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("owner"), ownerC));
+			createTestNode(StructrTraits.GROUP, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "bbb"), new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("owner"), ownerD));
 
 			tx.success();
 
@@ -2614,7 +2615,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 					i++;
 
-					node.setProperty(Traits.of("NodeInterface").key("name"), name);
+					node.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), name);
 
 				}
 
@@ -2623,8 +2624,8 @@ public class SearchAndSortingTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				assertEquals(4, app.nodeQuery(type).matches(Traits.of("NodeInterface").key("name"), "(?i).*one.*").getAsList().size());
-				assertEquals(1, app.nodeQuery(type).matches(Traits.of("NodeInterface").key("name"), ".*One\\-11").getAsList().size());
+				assertEquals(4, app.nodeQuery(type).matches(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "(?i).*one.*").getAsList().size());
+				assertEquals(1, app.nodeQuery(type).matches(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), ".*One\\-11").getAsList().size());
 
 				tx.success();
 			}
@@ -2661,7 +2662,7 @@ public class SearchAndSortingTest extends StructrTest {
 		for (int j = 0; j < expectedResultCount; j++) {
 
 			String expectedName = "TestOne-" + (offset + j + startIndex);
-			String gotName      = result.get(j).getProperty(Traits.of("NodeInterface").key("name"));
+			String gotName      = result.get(j).getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"));
 
 			System.out.println(expectedName + ", got: " + gotName);
 			assertEquals(expectedName, gotName);

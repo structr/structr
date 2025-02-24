@@ -23,6 +23,7 @@ import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.testng.annotations.Test;
 
@@ -46,7 +47,7 @@ public class EntityResolverTest extends StructrRestTestBase {
 			try (final Tx tx = app.tx()) {
 
 				// create list of persons to test the resolver resource
-				for (final NodeInterface person : createTestNodes("Person", 10)) {
+				for (final NodeInterface person : createTestNodes(StructrTraits.PERSON, 10)) {
 					personIds.add(person.getUuid());
 				}
 

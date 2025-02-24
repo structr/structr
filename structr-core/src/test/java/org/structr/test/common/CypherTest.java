@@ -37,16 +37,17 @@ import org.structr.common.AccessMode;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.Principal;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.*;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.schema.export.StructrSchema;
 import org.testng.annotations.Test;
@@ -490,7 +491,7 @@ public class CypherTest extends StructrTest {
 				assertEquals("Invalid wrapped cypher query result - both end nodes of relationship are not visible, relationship should also not be visible", 0, result.size());
 
 				final GraphObject t1 = app.getNodeById(testOneId);
-				t1.setProperty(Traits.of("GraphObject").key("visibleToPublicUsers"), true);
+				t1.setProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key("visibleToPublicUsers"), true);
 
 				tx.success();
 
@@ -506,10 +507,10 @@ public class CypherTest extends StructrTest {
 				assertEquals("Invalid wrapped cypher query result - source node of relationship is not visible, relationship should also not be visible", 0, result.size());
 
 				final GraphObject t1 = app.getNodeById(testOneId);
-				t1.setProperty(Traits.of("GraphObject").key("visibleToPublicUsers"), false);
+				t1.setProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key("visibleToPublicUsers"), false);
 
 				final GraphObject t6 = app.getNodeById(testSixId);
-				t6.setProperty(Traits.of("GraphObject").key("visibleToPublicUsers"), true);
+				t6.setProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key("visibleToPublicUsers"), true);
 
 				tx.success();
 
@@ -525,10 +526,10 @@ public class CypherTest extends StructrTest {
 				assertEquals("Invalid wrapped cypher query result - target node of relationship is not visible, relationship should also not be visible", 0, result.size());
 
 				final GraphObject t1 = app.getNodeById(testOneId);
-				t1.setProperty(Traits.of("GraphObject").key("visibleToPublicUsers"), true);
+				t1.setProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key("visibleToPublicUsers"), true);
 
 				final GraphObject t6 = app.getNodeById(testSixId);
-				t6.setProperty(Traits.of("GraphObject").key("visibleToPublicUsers"), true);
+				t6.setProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key("visibleToPublicUsers"), true);
 
 				tx.success();
 
@@ -564,7 +565,7 @@ public class CypherTest extends StructrTest {
 				final List<NodeInterface> testSixs = createTestNodes("TestSix", 10);
 				int count                    = 0;
 
-				tester = app.create("User", "tester").as(Principal.class);
+				tester = app.create(StructrTraits.USER, "tester").as(Principal.class);
 
 				for (final NodeInterface testSix : testSixs) {
 					testSix.as(AccessControllable.class).grant(Permission.read, tester);
@@ -716,13 +717,13 @@ public class CypherTest extends StructrTest {
 				final PropertyKey projectKey = Traits.of(taskType).key("project");
 
 				createTestNode(taskType,
-					new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Task1"),
-					new NodeAttribute<>(projectKey, createTestNode(projectType, new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Project1")))
+					new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "Task1"),
+					new NodeAttribute<>(projectKey, createTestNode(projectType, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "Project1")))
 				);
 
 				createTestNode(taskType,
-					new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Task2"),
-					new NodeAttribute<>(projectKey, createTestNode(projectType, new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Project2")))
+					new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "Task2"),
+					new NodeAttribute<>(projectKey, createTestNode(projectType, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "Project2")))
 				);
 
 			} catch (FrameworkException t) {

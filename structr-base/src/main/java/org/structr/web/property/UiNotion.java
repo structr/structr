@@ -19,6 +19,7 @@
 package org.structr.web.property;
 
 import org.structr.core.notion.PropertySetNotion;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 
 import java.util.Set;
@@ -31,6 +32,6 @@ import java.util.Set;
 public class UiNotion extends PropertySetNotion {
 
 	public UiNotion() {
-		super(Set.of(Traits.of("GraphObject").key("id"), Traits.of("NodeInterface").key("name")));
+		super(Set.of(Traits.of(StructrTraits.GRAPH_OBJECT).key("id"), Traits.of(StructrTraits.NODE_INTERFACE).key("name")));
 	}
 }

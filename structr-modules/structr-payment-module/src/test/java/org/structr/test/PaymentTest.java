@@ -25,6 +25,7 @@ import org.apache.commons.lang.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.test.web.StructrUiTest;
 import org.testng.annotations.Test;
@@ -39,12 +40,12 @@ public class PaymentTest extends StructrUiTest {
 	@Test
 	public void testSimplePayment() {
 
-		final Traits userTraits = Traits.of("User");
+		final Traits userTraits = Traits.of(StructrTraits.USER);
 
 		// create test user
 		try (final Tx tx = app.tx()) {
 
-			app.create("User",
+			app.create(StructrTraits.USER,
 				new NodeAttribute<>(userTraits.key("name"),     "admin"),
 				new NodeAttribute<>(userTraits.key("password"), "admin"),
 				new NodeAttribute<>(userTraits.key("isAdmin"),  true)

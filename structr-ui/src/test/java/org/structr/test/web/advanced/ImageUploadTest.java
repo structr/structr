@@ -24,6 +24,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.test.web.StructrUiTest;
@@ -48,9 +49,9 @@ public class ImageUploadTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create("Image",
-				new NodeAttribute<>(Traits.of("Image").key("name"),      "test01.png"),
-				new NodeAttribute<>(Traits.of("Image").key("imageData"), Base64ImageData)
+			app.create(StructrTraits.IMAGE,
+				new NodeAttribute<>(Traits.of(StructrTraits.IMAGE).key("name"),      "test01.png"),
+				new NodeAttribute<>(Traits.of(StructrTraits.IMAGE).key("imageData"), Base64ImageData)
 			);
 
 			tx.success();
@@ -61,7 +62,7 @@ public class ImageUploadTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<NodeInterface> images = app.nodeQuery("Image").getAsList();
+			final List<NodeInterface> images = app.nodeQuery(StructrTraits.IMAGE).getAsList();
 
 			assertEquals("There should be exactly one image", 1, images.size());
 
@@ -85,9 +86,9 @@ public class ImageUploadTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create("Image",
-				new NodeAttribute<>(Traits.of("Image").key("name"),      "test01.png"),
-				new NodeAttribute<>(Traits.of("Image").key("imageData"), "data:image/jpeg;base64," + Base64ImageData)
+			app.create(StructrTraits.IMAGE,
+				new NodeAttribute<>(Traits.of(StructrTraits.IMAGE).key("name"),      "test01.png"),
+				new NodeAttribute<>(Traits.of(StructrTraits.IMAGE).key("imageData"), "data:image/jpeg;base64," + Base64ImageData)
 			);
 
 			tx.success();
@@ -98,7 +99,7 @@ public class ImageUploadTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<NodeInterface> images = app.nodeQuery("Image").getAsList();
+			final List<NodeInterface> images = app.nodeQuery(StructrTraits.IMAGE).getAsList();
 
 			assertEquals("There should be exactly one image", 1, images.size());
 

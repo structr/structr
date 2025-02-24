@@ -31,6 +31,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.service.HttpServiceServlet;
@@ -170,13 +171,13 @@ public class LoginServlet extends AbstractDataServlet implements HttpServiceServ
 	}
 
 	protected RESTCallHandler getLoginResource(final HttpServletRequest request) throws FrameworkException {
-		return RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), "User");
+		return RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), StructrTraits.USER);
 	}
 
 	// ----- private methods -----
 	private String getRedirectPage(final HttpServletRequest request, final Integer statusCode) throws FrameworkException {
 
-		final NodeInterface errorPage = StructrApp.getInstance().nodeQuery("Page").and(Traits.of("Page").key("showOnErrorCodes"), statusCode.toString(), false).getFirst();
+		final NodeInterface errorPage = StructrApp.getInstance().nodeQuery(StructrTraits.PAGE).and(Traits.of(StructrTraits.PAGE).key("showOnErrorCodes"), statusCode.toString(), false).getFirst();
 		if (errorPage != null && HtmlServlet.isVisibleForSite(request, errorPage.as(Page.class))) {
 
 			final String path = errorPage.as(Page.class).getPagePath();

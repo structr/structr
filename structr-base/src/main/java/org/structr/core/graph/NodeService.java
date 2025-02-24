@@ -35,6 +35,7 @@ import org.structr.api.util.CountResult;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 
 import java.io.File;
@@ -227,14 +228,14 @@ public class NodeService implements SingletonService {
 
 					logger.info("Creating initial user...");
 
-					final Traits userTraits = Traits.of("User");
+					final Traits userTraits = Traits.of(StructrTraits.USER);
 					if (userTraits != null) {
 
 						final App app = StructrApp.getInstance();
 
 						try (final Tx tx = app.tx()) {
 
-							app.create("User",
+							app.create(StructrTraits.USER,
 									new NodeAttribute<>(userTraits.key("name"),     Settings.InitialAdminUserName.getValue()),
 									new NodeAttribute<>(userTraits.key("password"), Settings.InitialAdminUserPassword.getValue()),
 									new NodeAttribute<>(userTraits.key("isAdmin"),  true)

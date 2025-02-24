@@ -37,6 +37,7 @@ import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
@@ -78,12 +79,12 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 		try (final Tx tx = app.tx()) {
 
-			NodeInterface testFileProperty = app.create("SchemaProperty");
+			NodeInterface testFileProperty = app.create(StructrTraits.SCHEMA_PROPERTY);
 
 			final PropertyMap testFileProperties = new PropertyMap();
-			testFileProperties.put(Traits.of("SchemaProperty").key("name"), "testFile");
-			testFileProperties.put(Traits.of("SchemaProperty").key("propertyType"), "String");
-			testFileProperties.put(Traits.of("SchemaProperty").key("staticSchemaNodeName"), "File");
+			testFileProperties.put(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"), "testFile");
+			testFileProperties.put(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "String");
+			testFileProperties.put(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("staticSchemaNodeName"), StructrTraits.FILE);
 			testFileProperty.setProperties(testFileProperty.getSecurityContext(), testFileProperties);
 
 			tx.success();
@@ -110,7 +111,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 					.statusCode(200)
 
 					.body("result", Matchers.hasSize(count1))
-					.body("result", Matchers.hasItem(Matchers.allOf(hasEntry("jsonName", "testFile"), hasEntry("declaringClass", "File"))))
+					.body("result", Matchers.hasItem(Matchers.allOf(hasEntry("jsonName", "testFile"), hasEntry("declaringClass", StructrTraits.FILE))))
 
 				.when()
 					.get("/_schema/File/custom");
@@ -141,7 +142,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 					.statusCode(200)
 
 					.body("result", Matchers.hasSize(count2))
-					.body("result", Matchers.hasItem(Matchers.allOf(hasEntry("jsonName", "testFile"), hasEntry("declaringClass", "File"))))
+					.body("result", Matchers.hasItem(Matchers.allOf(hasEntry("jsonName", "testFile"), hasEntry("declaringClass", StructrTraits.FILE))))
 
 				.when()
 					.get("/_schema/Image/custom");
@@ -170,14 +171,14 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 		try (final Tx tx = app.tx()) {
 
-			NodeInterface fileNodeDef = app.nodeQuery("SchemaNode").andName("File").getFirst();
+			NodeInterface fileNodeDef = app.nodeQuery(StructrTraits.SCHEMA_NODE).andName(StructrTraits.FILE).getFirst();
 
-			NodeInterface testFileProperty = app.create("SchemaProperty");
+			NodeInterface testFileProperty = app.create(StructrTraits.SCHEMA_PROPERTY);
 
 			final PropertyMap changedProperties = new PropertyMap();
-			changedProperties.put(Traits.of("SchemaProperty").key("name"), "testFile");
-			changedProperties.put(Traits.of("SchemaProperty").key("propertyType"), "String");
-			changedProperties.put(Traits.of("SchemaProperty").key("schemaNode"), fileNodeDef);
+			changedProperties.put(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"), "testFile");
+			changedProperties.put(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "String");
+			changedProperties.put(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), fileNodeDef);
 			testFileProperty.setProperties(testFileProperty.getSecurityContext(), changedProperties);
 
 			tx.success();
@@ -189,21 +190,21 @@ public class AdvancedSchemaTest extends FrontendTest {
 		try (final Tx tx = app.tx()) {
 
 			// Create new schema node for dynamic class SubFile which extends File
-			NodeInterface subFile = app.create("SchemaNode");
+			NodeInterface subFile = app.create(StructrTraits.SCHEMA_NODE);
 
 			final PropertyMap subFileProperties = new PropertyMap();
-			subFileProperties.put(Traits.of("SchemaNode").key("name"), "SubFile");
-			subFileProperties.put(Traits.of("SchemaNode").key("inheritedTraits"), new String[] { "File" });
+			subFileProperties.put(Traits.of(StructrTraits.SCHEMA_NODE).key("name"), "SubFile");
+			subFileProperties.put(Traits.of(StructrTraits.SCHEMA_NODE).key("inheritedTraits"), new String[] { StructrTraits.FILE });
 			subFile.setProperties(subFile.getSecurityContext(), subFileProperties);
 
 
 			// Add String property "testSubFile" to new dynamic class
-			NodeInterface testFileProperty = app.create("SchemaProperty");
+			NodeInterface testFileProperty = app.create(StructrTraits.SCHEMA_PROPERTY);
 
 			final PropertyMap testFileProperties = new PropertyMap();
-			testFileProperties.put(Traits.of("SchemaProperty").key("name"), "testSubFile");
-			testFileProperties.put(Traits.of("SchemaProperty").key("propertyType"), "String");
-			testFileProperties.put(Traits.of("SchemaProperty").key("schemaNode"), subFile);
+			testFileProperties.put(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"), "testSubFile");
+			testFileProperties.put(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "String");
+			testFileProperties.put(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), subFile);
 			testFileProperty.setProperties(testFileProperty.getSecurityContext(), testFileProperties);
 
 			tx.success();
@@ -230,7 +231,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 					.statusCode(200)
 
 					.body("result",	hasSize(count1 + 1))
-					.body("result", Matchers.hasItem(Matchers.allOf(hasEntry("jsonName", "testFile"),    hasEntry("declaringClass", "File"))))
+					.body("result", Matchers.hasItem(Matchers.allOf(hasEntry("jsonName", "testFile"),    hasEntry("declaringClass", StructrTraits.FILE))))
 					.body("result", Matchers.hasItem(Matchers.allOf(hasEntry("jsonName", "testSubFile"), hasEntry("declaringClass", "SubFile"))))
 
 				.when()
@@ -261,14 +262,14 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 		try (final Tx tx = app.tx()) {
 
-			NodeInterface fileNodeDef = app.nodeQuery("SchemaNode").andName("File").getFirst();
+			NodeInterface fileNodeDef = app.nodeQuery(StructrTraits.SCHEMA_NODE).andName(StructrTraits.FILE).getFirst();
 
-			NodeInterface testFileProperty = app.create("SchemaProperty");
+			NodeInterface testFileProperty = app.create(StructrTraits.SCHEMA_PROPERTY);
 
 			final PropertyMap testFileProperties = new PropertyMap();
-			testFileProperties.put(Traits.of("SchemaProperty").key("name"), "testFile");
-			testFileProperties.put(Traits.of("SchemaProperty").key("propertyType"), "String");
-			testFileProperties.put(Traits.of("SchemaProperty").key("schemaNode"), fileNodeDef);
+			testFileProperties.put(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"), "testFile");
+			testFileProperties.put(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "String");
+			testFileProperties.put(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), fileNodeDef);
 			testFileProperty.setProperties(testFileProperty.getSecurityContext(), testFileProperties);
 
 			tx.success();
@@ -280,21 +281,21 @@ public class AdvancedSchemaTest extends FrontendTest {
 		try (final Tx tx = app.tx()) {
 
 			// Create new schema node for dynamic class SubFile which extends File
-			NodeInterface subFile = app.create("SchemaNode");
+			NodeInterface subFile = app.create(StructrTraits.SCHEMA_NODE);
 
 			final PropertyMap subFileProperties = new PropertyMap();
-			subFileProperties.put(Traits.of("SchemaNode").key("name"), "SubFile");
-			subFileProperties.put(Traits.of("SchemaNode").key("inheritedTraits"), new String[] { "Image" });
+			subFileProperties.put(Traits.of(StructrTraits.SCHEMA_NODE).key("name"), "SubFile");
+			subFileProperties.put(Traits.of(StructrTraits.SCHEMA_NODE).key("inheritedTraits"), new String[] { StructrTraits.IMAGE });
 			subFile.setProperties(subFile.getSecurityContext(), subFileProperties);
 
 
 			// Add String property "testSubFile" to new dynamic class
-			NodeInterface testFileProperty = app.create("SchemaProperty");
+			NodeInterface testFileProperty = app.create(StructrTraits.SCHEMA_PROPERTY);
 
 			final PropertyMap testFileProperties = new PropertyMap();
-			testFileProperties.put(Traits.of("SchemaProperty").key("name"), "testSubFile");
-			testFileProperties.put(Traits.of("SchemaProperty").key("propertyType"), "String");
-			testFileProperties.put(Traits.of("SchemaProperty").key("schemaNode"), subFile);
+			testFileProperties.put(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"), "testSubFile");
+			testFileProperties.put(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "String");
+			testFileProperties.put(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), subFile);
 			testFileProperty.setProperties(testFileProperty.getSecurityContext(), testFileProperties);
 
 			tx.success();
@@ -322,7 +323,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 					.statusCode(200)
 
 					.body("result",	hasSize(count2 + 1))
-					.body("result", Matchers.hasItem(Matchers.allOf(hasEntry("jsonName", "testFile"),    hasEntry("declaringClass", "File"))))
+					.body("result", Matchers.hasItem(Matchers.allOf(hasEntry("jsonName", "testFile"),    hasEntry("declaringClass", StructrTraits.FILE))))
 					.body("result", Matchers.hasItem(Matchers.allOf(hasEntry("jsonName", "testSubFile"), hasEntry("declaringClass", "SubFile"))))
 
 				.when()
@@ -356,16 +357,16 @@ public class AdvancedSchemaTest extends FrontendTest {
 		try (final Tx tx = app.tx()) {
 
 			// create test type
-			test = app.create("SchemaNode", "Test");
+			test = app.create(StructrTraits.SCHEMA_NODE, "Test");
 
-			app.create("SchemaView",
-				new NodeAttribute<>(Traits.of("SchemaView").key("name"), "myView"),
-				new NodeAttribute<>(Traits.of("SchemaView").key("schemaNode"), test)
+			app.create(StructrTraits.SCHEMA_VIEW,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key("name"), "myView"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key("schemaNode"), test)
 			);
 
-			app.create("SchemaView",
-				new NodeAttribute<>(Traits.of("SchemaView").key("name"), "testView"),
-				new NodeAttribute<>(Traits.of("SchemaView").key("schemaNode"), test)
+			app.create(StructrTraits.SCHEMA_VIEW,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key("name"), "testView"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key("schemaNode"), test)
 			);
 
 			tx.success();
@@ -379,35 +380,35 @@ public class AdvancedSchemaTest extends FrontendTest {
 		try (final Tx tx = app.tx()) {
 
 			// create view with sort order
-			final List<NodeInterface> list = Iterables.toList((Iterable<NodeInterface>)test.getProperty(Traits.of("SchemaNode").key("schemaViews")));
+			final List<NodeInterface> list = Iterables.toList((Iterable<NodeInterface>)test.getProperty(Traits.of(StructrTraits.SCHEMA_NODE).key("schemaViews")));
 
 			// create properties
-			app.create("SchemaProperty",
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaNode"), test),
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaViews"), list),
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("propertyType"), "String"),
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("name"), "one")
+			app.create(StructrTraits.SCHEMA_PROPERTY,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), test),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaViews"), list),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "String"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"), "one")
 			);
 
-			app.create("SchemaProperty",
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaNode"), test),
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaViews"), list),
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("propertyType"), "String"),
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("name"), "two")
+			app.create(StructrTraits.SCHEMA_PROPERTY,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), test),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaViews"), list),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "String"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"), "two")
 			);
 
-			app.create("SchemaProperty",
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaNode"), test),
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaViews"), list),
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("propertyType"), "String"),
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("name"), "three")
+			app.create(StructrTraits.SCHEMA_PROPERTY,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), test),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaViews"), list),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "String"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"), "three")
 			);
 
-			app.create("SchemaProperty",
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaNode"), test),
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaViews"), list),
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("propertyType"), "String"),
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("name"), "four")
+			app.create(StructrTraits.SCHEMA_PROPERTY,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), test),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaViews"), list),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "String"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"), "four")
 			);
 
 			tx.success();
@@ -430,10 +431,10 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface testView : (Iterable<NodeInterface>)test.getProperty(Traits.of("SchemaNode").key("schemaViews"))) {
+			for (final NodeInterface testView : (Iterable<NodeInterface>)test.getProperty(Traits.of(StructrTraits.SCHEMA_NODE).key("schemaViews"))) {
 
 				// modify sort order
-				testView.setProperty(Traits.of("SchemaView").key("sortOrder"), "type, one, id, two, three, four, name");
+				testView.setProperty(Traits.of(StructrTraits.SCHEMA_VIEW).key("sortOrder"), "type, one, id, two, three, four, name");
 			}
 
 			// create test entity
@@ -595,22 +596,22 @@ public class AdvancedSchemaTest extends FrontendTest {
 		try (final Tx tx = app.tx()) {
 
 			// create test type
-			final NodeInterface test = app.create("SchemaNode", "Test");
+			final NodeInterface test = app.create(StructrTraits.SCHEMA_NODE, "Test");
 
 			// create view with sort order
-			testView1 = app.create("SchemaView",
-				new NodeAttribute<>(Traits.of("SchemaView").key("name"), "test"),
-				new NodeAttribute<>(Traits.of("SchemaView").key("schemaNode"), test),
-				new NodeAttribute<>(Traits.of("SchemaView").key("sortOrder"), "one, two, three, four, id, type, name"),
-				new NodeAttribute<>(Traits.of("SchemaView").key("nonGraphProperties"), "id, type, name")
+			testView1 = app.create(StructrTraits.SCHEMA_VIEW,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key("name"), "test"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key("schemaNode"), test),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key("sortOrder"), "one, two, three, four, id, type, name"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key("nonGraphProperties"), "id, type, name")
 			);
 
 			// create view with sort order
-			testView2 = app.create("SchemaView",
-				new NodeAttribute<>(Traits.of("SchemaView").key("name"), "other"),
-				new NodeAttribute<>(Traits.of("SchemaView").key("schemaNode"), test),
-				new NodeAttribute<>(Traits.of("SchemaView").key("sortOrder"), "four, id, type, name, one, three, two"),
-				new NodeAttribute<>(Traits.of("SchemaView").key("nonGraphProperties"), "id, type, name")
+			testView2 = app.create(StructrTraits.SCHEMA_VIEW,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key("name"), "other"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key("schemaNode"), test),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key("sortOrder"), "four, id, type, name, one, three, two"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key("nonGraphProperties"), "id, type, name")
 			);
 
 			final List<NodeInterface> list = new LinkedList<>();
@@ -618,32 +619,32 @@ public class AdvancedSchemaTest extends FrontendTest {
 			list.add(testView2);
 
 			// create properties
-			app.create("SchemaProperty",
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaNode"), test),
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaViews"), list),
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("propertyType"), "String"),
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("name"), "one")
+			app.create(StructrTraits.SCHEMA_PROPERTY,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), test),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaViews"), list),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "String"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"), "one")
 			);
 
-			app.create("SchemaProperty",
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaNode"), test),
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaViews"), list),
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("propertyType"), "String"),
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("name"), "two")
+			app.create(StructrTraits.SCHEMA_PROPERTY,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), test),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaViews"), list),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "String"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"), "two")
 			);
 
-			app.create("SchemaProperty",
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaNode"), test),
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaViews"), list),
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("propertyType"), "String"),
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("name"), "three")
+			app.create(StructrTraits.SCHEMA_PROPERTY,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), test),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaViews"), list),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "String"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"), "three")
 			);
 
-			app.create("SchemaProperty",
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaNode"), test),
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaViews"), list),
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("propertyType"), "String"),
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("name"), "four")
+			app.create(StructrTraits.SCHEMA_PROPERTY,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), test),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaViews"), list),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "String"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"), "four")
 			);
 
 			tx.success();
@@ -667,7 +668,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 		try (final Tx tx = app.tx()) {
 
 			// modify sort order
-			testView1.setProperty(Traits.of("SchemaView").key("sortOrder"), "type, one, id, two, three, four, name");
+			testView1.setProperty(Traits.of(StructrTraits.SCHEMA_VIEW).key("sortOrder"), "type, one, id, two, three, four, name");
 
 			// create test entity
 			final NodeInterface node = app.create("Test");
@@ -827,50 +828,50 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface testBase = app.create("SchemaNode", "TestBase");
-			final NodeInterface test     = app.create("SchemaNode",
-				new NodeAttribute<>(Traits.of("SchemaNode").key("name"), "Test"),
-				new NodeAttribute<>(Traits.of("SchemaNode").key("inheritedTraits"), new String[] { "TestBase" })
+			final NodeInterface testBase = app.create(StructrTraits.SCHEMA_NODE, "TestBase");
+			final NodeInterface test     = app.create(StructrTraits.SCHEMA_NODE,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key("name"), "Test"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key("inheritedTraits"), new String[] { "TestBase" })
 			);
 
 			// create view with sort order
-			testView = app.create("SchemaView",
-				new NodeAttribute<>(Traits.of("SchemaView").key("name"), "test"),
-				new NodeAttribute<>(Traits.of("SchemaView").key("schemaNode"), test),
-				new NodeAttribute<>(Traits.of("SchemaView").key("sortOrder"), "one, two, three, four, id, type, name"),
-				new NodeAttribute<>(Traits.of("SchemaView").key("nonGraphProperties"), "id, type, name")
+			testView = app.create(StructrTraits.SCHEMA_VIEW,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key("name"), "test"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key("schemaNode"), test),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key("sortOrder"), "one, two, three, four, id, type, name"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key("nonGraphProperties"), "id, type, name")
 			);
 
 			final List<NodeInterface> list = new LinkedList<>();
 			list.add(testView);
 
 			// create properties
-			app.create("SchemaProperty",
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaNode"), testBase),
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaViews"), list),
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("propertyType"), "String"),
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("name"), "one")
+			app.create(StructrTraits.SCHEMA_PROPERTY,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), testBase),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaViews"), list),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "String"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"), "one")
 			);
 
-			app.create("SchemaProperty",
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaNode"), testBase),
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaViews"), list),
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("propertyType"), "String"),
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("name"), "two")
+			app.create(StructrTraits.SCHEMA_PROPERTY,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), testBase),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaViews"), list),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "String"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"), "two")
 			);
 
-			app.create("SchemaProperty",
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaNode"), testBase),
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaViews"), list),
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("propertyType"), "String"),
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("name"), "three")
+			app.create(StructrTraits.SCHEMA_PROPERTY,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), testBase),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaViews"), list),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "String"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"), "three")
 			);
 
-			app.create("SchemaProperty",
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaNode"), testBase),
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaViews"), list),
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("propertyType"), "String"),
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("name"), "four")
+			app.create(StructrTraits.SCHEMA_PROPERTY,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), testBase),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaViews"), list),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "String"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"), "four")
 			);
 
 			tx.success();
@@ -895,7 +896,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 		try (final Tx tx = app.tx()) {
 
 			// modify sort order
-			testView.setProperty(Traits.of("SchemaView").key("sortOrder"), "type, one, id, two, three, four, name");
+			testView.setProperty(Traits.of(StructrTraits.SCHEMA_VIEW).key("sortOrder"), "type, one, id, two, three, four, name");
 
 			// create test entity
 			final NodeInterface node = app.create("Test");
@@ -1056,24 +1057,24 @@ public class AdvancedSchemaTest extends FrontendTest {
 		try (final Tx tx = app.tx()) {
 
 			// create test type
-			final NodeInterface test = app.create("SchemaNode", "Test");
+			final NodeInterface test = app.create(StructrTraits.SCHEMA_NODE, "Test");
 
 			// create view with sort order
-			testView = app.create("SchemaView",
-				new NodeAttribute<>(Traits.of("SchemaView").key("name"), "testview"),
-				new NodeAttribute<>(Traits.of("SchemaView").key("sortOrder"), "name"),
-				new NodeAttribute<>(Traits.of("SchemaView").key("schemaNode"), test)
+			testView = app.create(StructrTraits.SCHEMA_VIEW,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key("name"), "testview"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key("sortOrder"), "name"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key("schemaNode"), test)
 			);
 
 			final List<NodeInterface> list = new LinkedList<>();
 			list.add(testView);
 
 			// create a function property to overload the String property "name" defined in {@link NodeInterface}
-			app.create("SchemaProperty",
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaNode"), test),
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaViews"), list),
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("propertyType"), "Function"),
-				new NodeAttribute<>(Traits.of("SchemaProperty").key("name"), "name")
+			app.create(StructrTraits.SCHEMA_PROPERTY,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), test),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaViews"), list),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Function"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"), "name")
 			);
 
 			tx.success();
@@ -1144,15 +1145,15 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create("User",
-				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
-				new NodeAttribute<>(Traits.of("User").key("isAdmin"),  true)
+			app.create(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"),  true)
 			);
 
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 
-			schema.getType("User").overrideMethod("isValidPassword", false, "return true;")
+			schema.getType(StructrTraits.USER).overrideMethod("isValidPassword", false, "return true;")
 				.addParameter("password", "String")
 				.setReturnType("boolean");
 
@@ -1185,7 +1186,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 
-			schema.getType("User").addMethod("onCreate", "log('test')");
+			schema.getType(StructrTraits.USER).addMethod("onCreate", "log('test')");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -1203,7 +1204,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 
-			schema.getType("User").addMethod("simpleTest", "log('test')");
+			schema.getType(StructrTraits.USER).addMethod("simpleTest", "log('test')");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -1242,7 +1243,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 			createAdminUser();
 
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
-			final JsonType type     = schema.getType("File");
+			final JsonType type     = schema.getType(StructrTraits.FILE);
 
 			type.addMethod("onDownload", "{ $.log('DOWNLOAD!'); $.this.onDownloadCalled = true; }");
 			type.addBooleanProperty("onDownloadCalled");
@@ -1257,7 +1258,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final File newFile = app.create("File", "test.txt").as(File.class);
+			final File newFile = app.create(StructrTraits.FILE, "test.txt").as(File.class);
 
 			try (final PrintWriter writer = new PrintWriter(newFile.getOutputStream())) {
 
@@ -1290,11 +1291,11 @@ public class AdvancedSchemaTest extends FrontendTest {
 		// check downloaded flag
 		try (final Tx tx = app.tx()) {
 
-			final PropertyKey<Boolean> key = Traits.of("File").key("onDownloadCalled");
-			final File file                = app.nodeQuery("File").getFirst().as(File.class);
+			final PropertyKey<Boolean> key = Traits.of(StructrTraits.FILE).key("onDownloadCalled");
+			final File file                = app.nodeQuery(StructrTraits.FILE).getFirst().as(File.class);
 
-			// store UUID of SchemaNode with name "File" for later use
-			final NodeInterface fileTypeNode  = app.nodeQuery("SchemaNode").andName("File").getFirst();
+			// store UUID of SchemaNode with name StructrTraits.FILE for later use
+			final NodeInterface fileTypeNode  = app.nodeQuery(StructrTraits.SCHEMA_NODE).andName(StructrTraits.FILE).getFirst();
 			fileTypeId = fileTypeNode.getUuid();
 
 			assertTrue("Lifecycle method onDownload was not called!", file.getProperty(key));
@@ -1323,16 +1324,16 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface node = app.create("SchemaNode",
-					new NodeAttribute<>(Traits.of("SchemaNode").key("name"), serviceClassName),
-					new NodeAttribute<>(Traits.of("SchemaNode").key("isServiceClass"), true)
+			final NodeInterface node = app.create(StructrTraits.SCHEMA_NODE,
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key("name"), serviceClassName),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key("isServiceClass"), true)
 			);
 
 			// we do not even set "isStatic = true" because the backend should do this automatically for service classes
-			final NodeInterface method = app.create("SchemaMethod",
-					new NodeAttribute<>(Traits.of("SchemaMethod").key("name"), serviceMethodName),
-					new NodeAttribute<>(Traits.of("SchemaMethod").key("source"), "{ return 'did stuff'; }"),
-					new NodeAttribute<>(Traits.of("SchemaMethod").key("schemaNode"), node)
+			final NodeInterface method = app.create(StructrTraits.SCHEMA_METHOD,
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("name"), serviceMethodName),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "{ return 'did stuff'; }"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("schemaNode"), node)
 			);
 
 			tx.success();

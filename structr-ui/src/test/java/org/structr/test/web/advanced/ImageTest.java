@@ -32,6 +32,7 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.FileHelper;
@@ -58,31 +59,31 @@ public class ImageTest extends StructrUiTest {
 	@Test
 	public void testThumbnailGeneration() {
 
-		final PropertyKey passwordKey = Traits.of("Principal").key("password");
+		final PropertyKey passwordKey = Traits.of(StructrTraits.PRINCIPAL).key("password");
 		Principal tester1             = null;
 		Principal tester2             = null;
 		Principal tester3             = null;
 
 		try (final Tx tx = app.tx()) {
 
-			tester1 = app.create("User", new NodeAttribute<>(Traits.of("Principal").key("name"), "tester1"), new NodeAttribute<>(passwordKey, "test")).as(Principal.class);
-			tester2 = app.create("User", new NodeAttribute<>(Traits.of("Principal").key("name"), "tester2"), new NodeAttribute<>(passwordKey, "test")).as(Principal.class);
-			tester3 = app.create("User", new NodeAttribute<>(Traits.of("Principal").key("name"), "tester3"), new NodeAttribute<>(passwordKey, "test")).as(Principal.class);
+			tester1 = app.create(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("name"), "tester1"), new NodeAttribute<>(passwordKey, "test")).as(Principal.class);
+			tester2 = app.create(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("name"), "tester2"), new NodeAttribute<>(passwordKey, "test")).as(Principal.class);
+			tester3 = app.create(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("name"), "tester3"), new NodeAttribute<>(passwordKey, "test")).as(Principal.class);
 
 			final AccessControllable folder1 = FileHelper.createFolderPath(securityContext, "/Test1").as(AccessControllable.class);
-			folder1.setProperty(Traits.of("NodeInterface").key("visibleToAuthenticatedUsers"), true);
+			folder1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToAuthenticatedUsers"), true);
 			folder1.grant(Permission.write, tester1);
 			folder1.grant(Permission.write, tester2);
 			folder1.grant(Permission.write, tester3);
 
 			final AccessControllable folder2 = FileHelper.createFolderPath(securityContext, "/Test1/Subtest2").as(AccessControllable.class);
-			folder2.setProperty(Traits.of("NodeInterface").key("visibleToAuthenticatedUsers"), true);
+			folder2.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToAuthenticatedUsers"), true);
 			folder2.grant(Permission.write, tester1);
 			folder2.grant(Permission.write, tester2);
 			folder2.grant(Permission.write, tester3);
 
 			final AccessControllable folder3 = FileHelper.createFolderPath(securityContext, "/Test1/Subtest3").as(AccessControllable.class);
-			folder3.setProperty(Traits.of("NodeInterface").key("visibleToAuthenticatedUsers"), true);
+			folder3.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToAuthenticatedUsers"), true);
 			folder3.grant(Permission.write, tester1);
 			folder3.grant(Permission.write, tester2);
 			folder3.grant(Permission.write, tester3);
@@ -150,10 +151,10 @@ public class ImageTest extends StructrUiTest {
 			boolean allThumbnailsAvailable = true;
 			try (final Tx tx = app.tx()) {
 
-				final List<NodeInterface> images = app.nodeQuery("Image").and(Traits.of("Image").key("isThumbnail"), false).getAsList();
+				final List<NodeInterface> images = app.nodeQuery(StructrTraits.IMAGE).and(Traits.of(StructrTraits.IMAGE).key("isThumbnail"), false).getAsList();
 				for (NodeInterface img : images) {
 
-					allThumbnailsAvailable &= img.getProperty(Traits.of("Image").key("tnMid")) != null;
+					allThumbnailsAvailable &= img.getProperty(Traits.of(StructrTraits.IMAGE).key("tnMid")) != null;
 				}
 
 				tx.success();
@@ -172,7 +173,7 @@ public class ImageTest extends StructrUiTest {
 
 			System.out.println("############# Folders:");
 
-			final List<NodeInterface> folders = app.nodeQuery("Folder").sort(Traits.of("Folder").key("path")).getAsList();
+			final List<NodeInterface> folders = app.nodeQuery(StructrTraits.FOLDER).sort(Traits.of(StructrTraits.FOLDER).key("path")).getAsList();
 
 			folders.stream().forEach(f -> {
 				System.out.println(f.as(Folder.class).getPath());
@@ -204,16 +205,16 @@ public class ImageTest extends StructrUiTest {
 	@Test
 	public void testFolderPaths() {
 
-		final PropertyKey passwordKey = Traits.of("Principal").key("password");
+		final PropertyKey passwordKey = Traits.of(StructrTraits.PRINCIPAL).key("password");
 		Principal tester1             = null;
 		Principal tester2             = null;
 		Principal tester3             = null;
 
 		try (final Tx tx = app.tx()) {
 
-			tester1 = app.create("Principal", new NodeAttribute<>(Traits.of("Principal").key("name"), "tester1"), new NodeAttribute<>(passwordKey, "test"));
-			tester2 = app.create("Principal", new NodeAttribute<>(Traits.of("Principal").key("name"), "tester2"), new NodeAttribute<>(passwordKey, "test"));
-			tester3 = app.create("Principal", new NodeAttribute<>(Traits.of("Principal").key("name"), "tester3"), new NodeAttribute<>(passwordKey, "test"));
+			tester1 = app.create(StructrTraits.PRINCIPAL, new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("name"), "tester1"), new NodeAttribute<>(passwordKey, "test"));
+			tester2 = app.create(StructrTraits.PRINCIPAL, new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("name"), "tester2"), new NodeAttribute<>(passwordKey, "test"));
+			tester3 = app.create(StructrTraits.PRINCIPAL, new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("name"), "tester3"), new NodeAttribute<>(passwordKey, "test"));
 
 			tx.success();
 
@@ -264,7 +265,7 @@ public class ImageTest extends StructrUiTest {
 
 			System.out.println("############# Folders:");
 
-			app.nodeQuery("Folder").getAsList().stream().forEach(f -> {
+			app.nodeQuery(StructrTraits.FOLDER).getAsList().stream().forEach(f -> {
 				System.out.println(f.getPath());
 			});
 
@@ -280,7 +281,7 @@ public class ImageTest extends StructrUiTest {
 
 		try( final InputStream is = ImageTest.class.getResourceAsStream("/test/thumbtest.png")) {
 
-			final NodeInterface image = ImageHelper.createImage(securityContext, is, "image/png", "Image", name, false);
+			final NodeInterface image = ImageHelper.createImage(securityContext, is, "image/png", StructrTraits.IMAGE, name, false);
 			final NodeInterface path  = FileHelper.createFolderPath(securityContext, folderPath);
 
 			// set path
@@ -290,7 +291,7 @@ public class ImageTest extends StructrUiTest {
 			}
 
 			// request thumbnail creation
-			image.getProperty(Traits.of("Image").key("tnMid"));
+			image.getProperty(Traits.of(StructrTraits.IMAGE).key("tnMid"));
 
 		} catch (IOException ioex) {
 			ioex.printStackTrace();

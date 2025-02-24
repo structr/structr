@@ -27,6 +27,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.property.AbstractPrimitiveProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 
 import java.util.Date;
@@ -39,13 +40,13 @@ import java.util.Map.Entry;
  */
 public class CreateRelationshipCommand extends NodeServiceCommand {
 
-	private final PropertyKey<String> idKey                           = Traits.key("GraphObject", "id");
-	private final PropertyKey<String> typeKey                         = Traits.key("GraphObject", "type");
-	private final PropertyKey<Date> createdDateKey                    = Traits.key("GraphObject", "createdDate");
-	private final PropertyKey<Date> lastModifiedDateKey               = Traits.key("GraphObject", "lastModifiedDate");
-	private final PropertyKey<String> createdByKey                    = Traits.key("GraphObject", "createdBy");
-	private final PropertyKey<Boolean> visibleToPublicUsersKey        = Traits.key("GraphObject", "visibleToPublicUsers");
-	private final PropertyKey<Boolean> visibleToAuthenticatedUsersKey = Traits.key("GraphObject", "visibleToAuthenticatedUsers");
+	private final PropertyKey<String> idKey                           = Traits.key(StructrTraits.GRAPH_OBJECT, "id");
+	private final PropertyKey<String> typeKey                         = Traits.key(StructrTraits.GRAPH_OBJECT, "type");
+	private final PropertyKey<Date> createdDateKey                    = Traits.key(StructrTraits.GRAPH_OBJECT, "createdDate");
+	private final PropertyKey<Date> lastModifiedDateKey               = Traits.key(StructrTraits.GRAPH_OBJECT, "lastModifiedDate");
+	private final PropertyKey<String> createdByKey                    = Traits.key(StructrTraits.GRAPH_OBJECT, "createdBy");
+	private final PropertyKey<Boolean> visibleToPublicUsersKey        = Traits.key(StructrTraits.GRAPH_OBJECT, "visibleToPublicUsers");
+	private final PropertyKey<Boolean> visibleToAuthenticatedUsersKey = Traits.key(StructrTraits.GRAPH_OBJECT, "visibleToAuthenticatedUsers");
 
 	public RelationshipInterface execute(final NodeInterface fromNode, final NodeInterface toNode, final String relType) throws FrameworkException {
 		return createRelationship(fromNode, toNode, relType, null);

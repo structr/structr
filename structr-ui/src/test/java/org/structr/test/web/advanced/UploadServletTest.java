@@ -25,6 +25,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
@@ -49,10 +50,10 @@ public class UploadServletTest extends StructrUiTest {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			createTestNode("User",
-				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
-				new NodeAttribute<>(Traits.of("User").key("isAdmin"),  true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"),  true)
 			);
 
 			tx.success();
@@ -82,7 +83,7 @@ public class UploadServletTest extends StructrUiTest {
 		// find file
 		try (final Tx tx = app.tx()) {
 
-			final File file = app.nodeQuery("File").getFirst().as(File.class);
+			final File file = app.nodeQuery(StructrTraits.FILE).getFirst().as(File.class);
 
 			assertEquals("UUID returned from file upload does not match actual UUID", response,    file.getUuid());
 			assertEquals("Name of uploaded file does not match actual name",          "test.txt",  file.getName());
@@ -105,10 +106,10 @@ public class UploadServletTest extends StructrUiTest {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			createTestNode("User",
-				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
-				new NodeAttribute<>(Traits.of("User").key("isAdmin"),  true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"),  true)
 			);
 
 			tx.success();
@@ -140,8 +141,8 @@ public class UploadServletTest extends StructrUiTest {
 		// find file
 		try (final Tx tx = app.tx()) {
 
-			final File file               = app.nodeQuery("File").getFirst().as(File.class);
-			final Folder uploadFolder     = app.nodeQuery("Folder").getFirst().as(Folder.class);
+			final File file               = app.nodeQuery(StructrTraits.FILE).getFirst().as(File.class);
+			final Folder uploadFolder     = app.nodeQuery(StructrTraits.FOLDER).getFirst().as(Folder.class);
 			final String expectedLocation = "/nonexisting-url/" + file.getUuid();
 
 			assertEquals("Location header of file upload response is not correct", expectedLocation,    locationHeader);
@@ -166,16 +167,16 @@ public class UploadServletTest extends StructrUiTest {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			createTestNode("User",
-				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
-				new NodeAttribute<>(Traits.of("User").key("isAdmin"),  true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"),  true)
 			);
 
 			JsonSchema schema   = StructrSchema.createFromDatabase(app);
 			final JsonType ext  = schema.addType("ExtendedFile");
 
-			ext.addTrait("File");
+			ext.addTrait(StructrTraits.FILE);
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -226,10 +227,10 @@ public class UploadServletTest extends StructrUiTest {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			createTestNode("User",
-				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
-				new NodeAttribute<>(Traits.of("User").key("isAdmin"),  true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"),  true)
 			);
 
 			tx.success();
@@ -260,9 +261,9 @@ public class UploadServletTest extends StructrUiTest {
 		// find file
 		try (final Tx tx = app.tx()) {
 
-			final File file               = app.nodeQuery("File").getFirst().as(File.class);
+			final File file               = app.nodeQuery(StructrTraits.FILE).getFirst().as(File.class);
 			final String expectedLocation = "/nonexisting-url/";
-			final Folder uploadFolder     = app.nodeQuery("Folder").getFirst().as(Folder.class);
+			final Folder uploadFolder     = app.nodeQuery(StructrTraits.FOLDER).getFirst().as(Folder.class);
 
 			assertEquals("Location header of file upload response is not correct", expectedLocation,    locationHeader);
 			assertEquals("Name of uploaded file does not match actual name",       "test.txt",          file.getName());
@@ -284,14 +285,14 @@ public class UploadServletTest extends StructrUiTest {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			createTestNode("User",
-				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
-				new NodeAttribute<>(Traits.of("User").key("isAdmin"),  true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"),  true)
 			);
 
 			JsonSchema schema   = StructrSchema.createFromDatabase(app);
-			final JsonType type = schema.getType("File");
+			final JsonType type = schema.getType(StructrTraits.FILE);
 
 			type.addMethod("onCreate", "error('something', 'forbidden', 'nope')");
 

@@ -22,15 +22,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
-import org.structr.schema.SchemaHelper;
-import org.structr.web.entity.AbstractFile;
-import org.structr.web.entity.Image;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
 
@@ -69,9 +66,9 @@ public class ListFilesCommand extends AbstractCommand {
 			.pageSize(pageSize);
 
 		// for image lists, suppress thumbnails
-		if (type.contains("Image")) {
+		if (type.contains(StructrTraits.IMAGE)) {
 
-			query.and(Traits.of("Image").key("isThumbnail"), false);
+			query.and(Traits.of(StructrTraits.IMAGE).key("isThumbnail"), false);
 		}
 
 		try {

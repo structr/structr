@@ -71,7 +71,7 @@ public class AncestorTypesFunction extends AdvancedScriptingFunction {
 				logger.warn("{}(): Type not found: {}" + (caller != null ? " (source of call: " + caller.toString() + ")" : ""), getName(), sources[0]);
 			}
 
-			final List<String> blackList = (sources.length == 2) ? (List)sources[1] : Arrays.asList("NodeInterface");
+			final List<String> blackList = (sources.length == 2) ? (List)sources[1] : Arrays.asList(StructrTraits.NODE_INTERFACE);
 			ancestorTypes.removeAll(blackList);
 
 			return ancestorTypes;

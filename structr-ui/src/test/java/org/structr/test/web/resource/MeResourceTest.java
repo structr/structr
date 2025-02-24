@@ -26,6 +26,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
@@ -49,10 +50,10 @@ public class MeResourceTest extends StructrUiTest {
 		// create 100 test nodes and set names
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface user = app.create("User",
-				new NodeAttribute<>(Traits.of("Principal").key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of("Principal").key("password"), "admin"),
-				new NodeAttribute<>(Traits.of("Principal").key("isAdmin"),  true)
+			final NodeInterface user = app.create(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("isAdmin"),  true)
 			);
 
 			uuid = user.getUuid();
@@ -115,10 +116,10 @@ public class MeResourceTest extends StructrUiTest {
 		// create 100 test nodes and set names
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface user = app.create("User",
-				new NodeAttribute<>(Traits.of("Principal").key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of("Principal").key("password"), "admin"),
-				new NodeAttribute<>(Traits.of("Principal").key("isAdmin"),  true)
+			final NodeInterface user = app.create(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("isAdmin"),  true)
 			);
 
 			uuid = user.getUuid();
@@ -223,17 +224,17 @@ public class MeResourceTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
-			final JsonType type     = schema.getType("User");
+			final JsonType type     = schema.getType(StructrTraits.USER);
 
 			// method must be exported
 			type.addMethod("doTest", "{ return { message: 'success', parameters: $.args }; }").setDoExport(true);
 
 			StructrSchema.replaceDatabaseSchema(app, schema);
 
-			final NodeInterface user = app.create("User",
-				new NodeAttribute<>(Traits.of("Principal").key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of("Principal").key("password"), "admin"),
-				new NodeAttribute<>(Traits.of("Principal").key("isAdmin"),  true)
+			final NodeInterface user = app.create(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("isAdmin"),  true)
 			);
 
 			uuid = user.getUuid();
@@ -288,10 +289,10 @@ public class MeResourceTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create("User",
-				new NodeAttribute<>(Traits.of("Principal").key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of("Principal").key("password"), "admin"),
-				new NodeAttribute<>(Traits.of("Principal").key("isAdmin"),  true)
+			app.create(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("isAdmin"),  true)
 			);
 
 			tx.success();

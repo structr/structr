@@ -23,6 +23,7 @@ import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
@@ -41,12 +42,12 @@ public class ImageTHUMBNAILImage extends AbstractRelationshipTraitDefinition imp
 
 	@Override
 	public String getSourceType() {
-		return "Image";
+		return StructrTraits.IMAGE;
 	}
 
 	@Override
 	public String getTargetType() {
-		return "Image";
+		return StructrTraits.IMAGE;
 	}
 
 	@Override

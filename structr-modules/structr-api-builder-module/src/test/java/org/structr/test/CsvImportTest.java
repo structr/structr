@@ -31,6 +31,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
@@ -66,7 +67,7 @@ public class CsvImportTest extends StructrUiTest {
 				"2;Three;name: three;33;44";
 
 			final byte[] fileData    = csvData.getBytes("utf-8");
-			final NodeInterface file = FileHelper.createFile(securityContext, fileData, "text/csv", "File", "test.csv", true);
+			final NodeInterface file = FileHelper.createFile(securityContext, fileData, "text/csv", StructrTraits.FILE, "test.csv", true);
 
 			// extract UUID for later use
 			newFileId = file.getUuid();
@@ -74,7 +75,7 @@ public class CsvImportTest extends StructrUiTest {
 			// create new type
 			final JsonSchema schema = StructrSchema.createEmptySchema();
 			final JsonType newType  = schema.addType("Item");
-			final Traits userTraits = Traits.of("User");
+			final Traits userTraits = Traits.of(StructrTraits.USER);
 
 			newType.addStringProperty("name");
 			newType.addIntegerProperty("originId").isIndexed();
@@ -85,7 +86,7 @@ public class CsvImportTest extends StructrUiTest {
 			StructrSchema.extendDatabaseSchema(app, schema);
 
 			// create test user
-			app.create("User",
+			app.create(StructrTraits.USER,
 				new NodeAttribute<>(userTraits.key("name"),     "admin"),
 				new NodeAttribute<>(userTraits.key("password"), "admin"),
 				new NodeAttribute<>(userTraits.key("isAdmin"),  true)
@@ -196,7 +197,7 @@ public class CsvImportTest extends StructrUiTest {
 				"'2';'Three';'name: three';'33';'44'";
 
 			final byte[] fileData    = csvData.getBytes("utf-8");
-			final NodeInterface file = FileHelper.createFile(securityContext, fileData, "text/csv", "File", "test.csv", true);
+			final NodeInterface file = FileHelper.createFile(securityContext, fileData, "text/csv", StructrTraits.FILE, "test.csv", true);
 
 			// extract UUID for later use
 			newFileId = file.getUuid();
@@ -204,7 +205,7 @@ public class CsvImportTest extends StructrUiTest {
 			// create new type
 			final JsonSchema schema = StructrSchema.createEmptySchema();
 			final JsonType newType  = schema.addType("Item");
-			final Traits userTraits = Traits.of("User");
+			final Traits userTraits = Traits.of(StructrTraits.USER);
 
 			newType.addStringProperty("name");
 			newType.addIntegerProperty("originId").isIndexed();
@@ -215,7 +216,7 @@ public class CsvImportTest extends StructrUiTest {
 			StructrSchema.extendDatabaseSchema(app, schema);
 
 			// create test user
-			app.create("User",
+			app.create(StructrTraits.USER,
 				new NodeAttribute<>(userTraits.key("name"),     "admin"),
 				new NodeAttribute<>(userTraits.key("password"), "admin"),
 				new NodeAttribute<>(userTraits.key("isAdmin"),  true)
@@ -326,7 +327,7 @@ public class CsvImportTest extends StructrUiTest {
 				"\"2\";\"Three\";\"name: three\";\"33\";\"44\"";
 
 			final byte[] fileData    = csvData.getBytes("utf-8");
-			final NodeInterface file = FileHelper.createFile(securityContext, fileData, "text/csv", "File", "test.csv", true);
+			final NodeInterface file = FileHelper.createFile(securityContext, fileData, "text/csv", StructrTraits.FILE, "test.csv", true);
 
 			// extract UUID for later use
 			newFileId = file.getUuid();
@@ -334,7 +335,7 @@ public class CsvImportTest extends StructrUiTest {
 			// create new type
 			final JsonSchema schema = StructrSchema.createEmptySchema();
 			final JsonType newType  = schema.addType("Item");
-			final Traits userTraits = Traits.of("User");
+			final Traits userTraits = Traits.of(StructrTraits.USER);
 
 			newType.addStringProperty("name");
 			newType.addIntegerProperty("originId").isIndexed();
@@ -345,7 +346,7 @@ public class CsvImportTest extends StructrUiTest {
 			StructrSchema.extendDatabaseSchema(app, schema);
 
 			// create test user
-			app.create("User",
+			app.create(StructrTraits.USER,
 				new NodeAttribute<>(userTraits.key("name"),     "admin"),
 				new NodeAttribute<>(userTraits.key("password"), "admin"),
 				new NodeAttribute<>(userTraits.key("isAdmin"),  true)
@@ -456,7 +457,7 @@ public class CsvImportTest extends StructrUiTest {
 				"'2';'Three';'name: three';'33';'44'";
 
 			final byte[] fileData    = csvData.getBytes("utf-8");
-			final NodeInterface file = FileHelper.createFile(securityContext, fileData, "text/csv", "File", "test.csv", true);
+			final NodeInterface file = FileHelper.createFile(securityContext, fileData, "text/csv", StructrTraits.FILE, "test.csv", true);
 
 			// extract UUID for later use
 			newFileId = file.getUuid();
@@ -464,7 +465,7 @@ public class CsvImportTest extends StructrUiTest {
 			// create new type
 			final JsonSchema schema = StructrSchema.createEmptySchema();
 			final JsonType newType  = schema.addType("Item");
-			final Traits userTraits = Traits.of("User");
+			final Traits userTraits = Traits.of(StructrTraits.USER);
 
 			newType.addStringProperty("name");
 			newType.addIntegerProperty("originId").isIndexed();
@@ -475,7 +476,7 @@ public class CsvImportTest extends StructrUiTest {
 			StructrSchema.extendDatabaseSchema(app, schema);
 
 			// create test user
-			app.create("User",
+			app.create(StructrTraits.USER,
 				new NodeAttribute<>(userTraits.key("name"),     "admin"),
 				new NodeAttribute<>(userTraits.key("password"), "admin"),
 				new NodeAttribute<>(userTraits.key("isAdmin"),  true)
@@ -580,18 +581,18 @@ public class CsvImportTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface customType = createTestNode("SchemaNode", new NodeAttribute<>(Traits.of("SchemaMethod").key("name"), "DummyType"));
+			final NodeInterface customType = createTestNode(StructrTraits.SCHEMA_NODE, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("name"), "DummyType"));
 
 			final List<NodeInterface> properties = new LinkedList<>();
-			properties.add(createTestNode("SchemaProperty", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "testDataString"),                new NodeAttribute<>(Traits.of("SchemaProperty").key("propertyType"), "String")));
-			properties.add(createTestNode("SchemaProperty", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "retrievedImportSourceFileName"), new NodeAttribute<>(Traits.of("SchemaProperty").key("propertyType"), "String")));
-			properties.add(createTestNode("SchemaProperty", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "retrievedCustomString"),         new NodeAttribute<>(Traits.of("SchemaProperty").key("propertyType"), "String")));
-			customType.setProperty(Traits.of("SchemaNode").key("schemaProperties"), properties);
+			properties.add(createTestNode(StructrTraits.SCHEMA_PROPERTY, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "testDataString"),                new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "String")));
+			properties.add(createTestNode(StructrTraits.SCHEMA_PROPERTY, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "retrievedImportSourceFileName"), new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "String")));
+			properties.add(createTestNode(StructrTraits.SCHEMA_PROPERTY, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "retrievedCustomString"),         new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "String")));
+			customType.setProperty(Traits.of(StructrTraits.SCHEMA_NODE).key("schemaProperties"), properties);
 
 			final List<NodeInterface> methods = new LinkedList<>();
-			methods.add(createTestNode("SchemaMethod", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "onCreate"),    new NodeAttribute<>(Traits.of("SchemaMethod").key("source"), "{ var self = Structr.get('this'); self.retrievedImportSourceFileName = Structr.retrieve('" + storeKey1 + "') }")));
-			methods.add(createTestNode("SchemaMethod", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "afterCreate"), new NodeAttribute<>(Traits.of("SchemaMethod").key("source"), "{ var self = Structr.get('this'); self.retrievedCustomString = Structr.retrieve('" + storeKey2 + "') }")));
-			customType.setProperty(Traits.of("SchemaNode").key("schemaMethods"), methods);
+			methods.add(createTestNode(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "onCreate"),    new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "{ var self = Structr.get('this'); self.retrievedImportSourceFileName = Structr.retrieve('" + storeKey1 + "') }")));
+			methods.add(createTestNode(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "afterCreate"), new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "{ var self = Structr.get('this'); self.retrievedCustomString = Structr.retrieve('" + storeKey2 + "') }")));
+			customType.setProperty(Traits.of(StructrTraits.SCHEMA_NODE).key("schemaMethods"), methods);
 
 			final String csvData =
 				"col1,col2,col3\n" +
@@ -599,7 +600,7 @@ public class CsvImportTest extends StructrUiTest {
 				"row2val1,row2val2,row2val3\n";
 
 			final byte[] fileData    = csvData.getBytes("utf-8");
-			final NodeInterface file = FileHelper.createFile(securityContext, fileData, "text/csv", "File", csvFileName, true);
+			final NodeInterface file = FileHelper.createFile(securityContext, fileData, "text/csv", StructrTraits.FILE, csvFileName, true);
 
 			// extract UUID for later use
 			csvFileId = file.getUuid();

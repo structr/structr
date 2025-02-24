@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.web.entity.dom.*;
 import org.structr.websocket.command.CreateComponentCommand;
@@ -43,7 +44,7 @@ public class Deployment0Test extends DeploymentTestBase {
 			final Page page = Page.createSimplePage(securityContext, "test01");
 
 			// test special properties
-			page.setProperty(Traits.of("Page").key("showOnErrorCodes"), "404");
+			page.setProperty(Traits.of(StructrTraits.PAGE).key("showOnErrorCodes"), "404");
 
 			tx.success();
 
@@ -77,7 +78,7 @@ public class Deployment0Test extends DeploymentTestBase {
 				final DOMElement div1 = createElement(page, body, "div");
 				createElement(page, div1, "h1", "private - ${find('User')}");
 
-				div1.setProperty(Traits.of("DOMNode").key("showConditions"), "me.isAdmin");
+				div1.setProperty(Traits.of(StructrTraits.DOM_NODE).key("showConditions"), "me.isAdmin");
 			}
 
 			// create a private div
@@ -85,7 +86,7 @@ public class Deployment0Test extends DeploymentTestBase {
 				final DOMElement div1 = createElement(page, body, "div");
 				 createElement(page, div1, "h1", "private - test abcdefghjiklmnopqrstuvwyzöäüßABCDEFGHIJKLMNOPQRSTUVWXYZÖÄÜ?\"'");
 
-				div1.setProperty(Traits.of("DOMNode").key("showConditions"), "me.isAdmin");
+				div1.setProperty(Traits.of(StructrTraits.DOM_NODE).key("showConditions"), "me.isAdmin");
 			}
 
 			// create a protected div
@@ -144,7 +145,7 @@ public class Deployment0Test extends DeploymentTestBase {
 				final DOMElement div1 = createElement(page, body, "div");
 				createElement(page, div1, "h1", "private - ${find('User')}");
 
-				div1.setProperty(Traits.of("DOMNode").key("showConditions"), "me.isAdmin");
+				div1.setProperty(Traits.of(StructrTraits.DOM_NODE).key("showConditions"), "me.isAdmin");
 			}
 
 			// create a private div
@@ -152,7 +153,7 @@ public class Deployment0Test extends DeploymentTestBase {
 				final DOMElement div1 = createElement(page, body, "div");
 				 createElement(page, div1, "h1", "private - test abcdefghjiklmnopqrstuvwyzöäüßABCDEFGHIJKLMNOPQRSTUVWXYZÖÄÜ?\"'");
 
-				div1.setProperty(Traits.of("DOMNode").key("showConditions"), "me.isAdmin");
+				div1.setProperty(Traits.of(StructrTraits.DOM_NODE).key("showConditions"), "me.isAdmin");
 			}
 
 			// create a protected div
@@ -211,7 +212,7 @@ public class Deployment0Test extends DeploymentTestBase {
 				final DOMElement div1 = createElement(page, body, "div");
 				createElement(page, div1, "h1", "private - ${find('User')}");
 
-				div1.setProperty(Traits.of("DOMNode").key("showConditions"), "me.isAdmin");
+				div1.setProperty(Traits.of(StructrTraits.DOM_NODE).key("showConditions"), "me.isAdmin");
 			}
 
 			// create a private div
@@ -219,7 +220,7 @@ public class Deployment0Test extends DeploymentTestBase {
 				final DOMElement div1 = createElement(page, body, "div");
 				 createElement(page, div1, "h1", "private - test abcdefghjiklmnopqrstuvwyzöäüßABCDEFGHIJKLMNOPQRSTUVWXYZÖÄÜ?\"'");
 
-				div1.setProperty(Traits.of("DOMNode").key("showConditions"), "me.isAdmin");
+				div1.setProperty(Traits.of(StructrTraits.DOM_NODE).key("showConditions"), "me.isAdmin");
 			}
 
 			// create a protected div
@@ -278,7 +279,7 @@ public class Deployment0Test extends DeploymentTestBase {
 				final DOMElement div1 = createElement(page, body, "div");
 				createElement(page, div1, "h1", "private - ${find('User')}");
 
-				div1.setProperty(Traits.of("DOMNode").key("showConditions"), "me.isAdmin");
+				div1.setProperty(Traits.of(StructrTraits.DOM_NODE).key("showConditions"), "me.isAdmin");
 			}
 
 			// create a private div
@@ -286,7 +287,7 @@ public class Deployment0Test extends DeploymentTestBase {
 				final DOMElement div1 = createElement(page, body, "div");
 				 createElement(page, div1, "h1", "private - test abcdefghjiklmnopqrstuvwyzöäüßABCDEFGHIJKLMNOPQRSTUVWXYZÖÄÜ?\"'");
 
-				div1.setProperty(Traits.of("DOMNode").key("showConditions"), "me.isAdmin");
+				div1.setProperty(Traits.of(StructrTraits.DOM_NODE).key("showConditions"), "me.isAdmin");
 			}
 
 			// create a protected div
@@ -348,7 +349,7 @@ public class Deployment0Test extends DeploymentTestBase {
 
 			// workaround for strange importer behaviour
 			script.setProperty(Traits.of("Script").key("_html_type"), "text/javascript");
-			content.setProperty(Traits.of("Content").key("contentType"), "text/javascript");
+			content.setProperty(Traits.of(StructrTraits.CONTENT).key("contentType"), "text/javascript");
 
 			tx.success();
 
@@ -413,8 +414,8 @@ public class Deployment0Test extends DeploymentTestBase {
 			final Template template = createTemplate(page, div1, "template source - öäüÖÄÜß'\"'`");
 
 			final PropertyMap templateProperties = new PropertyMap();
-			templateProperties.put(Traits.of("Template").key("functionQuery"), "find('User')");
-			templateProperties.put(Traits.of("Template").key("dataKey"), "user");
+			templateProperties.put(Traits.of(StructrTraits.TEMPLATE).key("functionQuery"), "find('User')");
+			templateProperties.put(Traits.of(StructrTraits.TEMPLATE).key("dataKey"), "user");
 			template.setProperties(template.getSecurityContext(), templateProperties);
 
 			// append children to template object

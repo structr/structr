@@ -28,27 +28,25 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Value;
-import org.structr.core.app.StructrApp;
 import org.structr.core.datasources.GraphDataSource;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.DefaultSortOrder;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.rest.api.RESTCallHandler;
+import org.structr.rest.api.RESTEndpoints;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
+import org.structr.rest.servlet.AbstractDataServlet;
 import org.structr.rest.servlet.JsonRestServlet;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.HttpServletRequestWrapper;
 import org.structr.web.common.RenderContext;
-import org.structr.web.entity.dom.DOMNode;
 
 import java.util.Collections;
-import org.structr.core.entity.Principal;
-import org.structr.rest.api.RESTCallHandler;
-import org.structr.rest.api.RESTEndpoints;
-import org.structr.rest.servlet.AbstractDataServlet;
-import org.structr.web.entity.User;
 
 /**
  * List data source equivalent to a rest resource.
@@ -66,7 +64,7 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 
 		final RenderContext renderContext = (RenderContext) actionContext;
 
-		final PropertyKey<String> restQueryKey = Traits.of("DOMNode").key("restQuery");
+		final PropertyKey<String> restQueryKey = Traits.of(StructrTraits.DOM_NODE).key("restQuery");
 		String restQuery                       = referenceNode.getPropertyWithVariableReplacement(renderContext, restQueryKey);
 
 		if (restQuery == null || restQuery.isEmpty()) {
@@ -106,7 +104,7 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 		RESTCallHandler handler = null;
 		try {
 
-			handler = RESTEndpoints.resolveRESTCallHandler(wrappedRequest, PropertyView.Public, AbstractDataServlet.getTypeOrDefault(currentUser, "User"));
+			handler = RESTEndpoints.resolveRESTCallHandler(wrappedRequest, PropertyView.Public, AbstractDataServlet.getTypeOrDefault(currentUser, StructrTraits.USER));
 
 		} catch (IllegalPathException | NotFoundException e) {
 

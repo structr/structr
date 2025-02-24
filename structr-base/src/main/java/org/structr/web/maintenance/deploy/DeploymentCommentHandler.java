@@ -27,6 +27,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.Linkable;
@@ -50,43 +51,43 @@ public class DeploymentCommentHandler implements CommentHandler {
 
 		handlers.put("public-only", (final Page page, final DOMNode node, final String parameters) -> {
 			final PropertyMap changedProperties = new PropertyMap();
-			changedProperties.put(Traits.of("NodeInterface").key("visibleToPublicUsers"),        true);
-			changedProperties.put(Traits.of("NodeInterface").key("visibleToAuthenticatedUsers"), false);
+			changedProperties.put(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"),        true);
+			changedProperties.put(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToAuthenticatedUsers"), false);
 			node.setProperties(node.getSecurityContext(), changedProperties);
 		});
 
 		handlers.put("public", (final Page page, final DOMNode node, final String parameters) -> {
 			final PropertyMap changedProperties = new PropertyMap();
-			changedProperties.put(Traits.of("NodeInterface").key("visibleToPublicUsers"),        true);
-			changedProperties.put(Traits.of("NodeInterface").key("visibleToAuthenticatedUsers"), true);
+			changedProperties.put(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"),        true);
+			changedProperties.put(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToAuthenticatedUsers"), true);
 			node.setProperties(node.getSecurityContext(), changedProperties);
 		});
 
 		handlers.put("protected", (final Page page, final DOMNode node, final String parameters) -> {
 			final PropertyMap changedProperties = new PropertyMap();
-			changedProperties.put(Traits.of("NodeInterface").key("visibleToPublicUsers"),        false);
-			changedProperties.put(Traits.of("NodeInterface").key("visibleToAuthenticatedUsers"), true);
+			changedProperties.put(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"),        false);
+			changedProperties.put(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToAuthenticatedUsers"), true);
 			node.setProperties(node.getSecurityContext(), changedProperties);
 		});
 
 		handlers.put("private", (final Page page, final DOMNode node, final String parameters) -> {
 			final PropertyMap changedProperties = new PropertyMap();
-			changedProperties.put(Traits.of("NodeInterface").key("visibleToPublicUsers"),        false);
-			changedProperties.put(Traits.of("NodeInterface").key("visibleToAuthenticatedUsers"), false);
+			changedProperties.put(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"),        false);
+			changedProperties.put(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToAuthenticatedUsers"), false);
 			node.setProperties(node.getSecurityContext(), changedProperties);
 		});
 
 		handlers.put("hidden", (final Page page, final DOMNode node, final String parameters) -> {
 			final PropertyMap changedProperties = new PropertyMap();
-			changedProperties.put(Traits.of("NodeInterface").key("hidden"), true);
+			changedProperties.put(Traits.of(StructrTraits.NODE_INTERFACE).key("hidden"), true);
 			node.setProperties(node.getSecurityContext(), changedProperties);
 		});
 
 		handlers.put("link", (final Page page, final DOMNode node, final String parameters) -> {
 
-			if (node.is("LinkSource")) {
+			if (node.is(StructrTraits.LINK_SOURCE)) {
 
-				final NodeInterface file = StructrApp.getInstance().nodeQuery("Linkable").and(Traits.of("AbstractFile").key("path"), parameters).getFirst();
+				final NodeInterface file = StructrApp.getInstance().nodeQuery(StructrTraits.LINKABLE).and(Traits.of(StructrTraits.ABSTRACT_FILE).key("path"), parameters).getFirst();
 				if (file != null) {
 
 					final LinkSource linkSource = node.as(LinkSource.class);
@@ -98,38 +99,38 @@ public class DeploymentCommentHandler implements CommentHandler {
 
 		handlers.put("pagelink", (final Page page, final DOMNode node, final String parameters) -> {
 
-			if (node.is("LinkSource")) {
+			if (node.is(StructrTraits.LINK_SOURCE)) {
 				DeployCommand.addDeferredPagelink(node.getUuid(), parameters);
 			}
 		});
 
 		handlers.put("content", (final Page page, final DOMNode node, final String parameters) -> {
-			node.setProperty(Traits.of("Content").key("contentType"), parameters);
+			node.setProperty(Traits.of(StructrTraits.CONTENT).key("contentType"), parameters);
 		});
 
 		handlers.put("name", (final Page page, final DOMNode node, final String parameters) -> {
-			node.setProperty(Traits.of("DOMNode").key("name"), DOMNode.unescapeForHtmlAttributes(DOMNode.unescapeForHtmlAttributes(parameters)));
+			node.setProperty(Traits.of(StructrTraits.DOM_NODE).key("name"), DOMNode.unescapeForHtmlAttributes(DOMNode.unescapeForHtmlAttributes(parameters)));
 		});
 
 		handlers.put("show", (final Page page, final DOMNode node, final String parameters) -> {
-			node.setProperty(Traits.of("DOMNode").key("showConditions"), DOMNode.unescapeForHtmlAttributes(DOMNode.unescapeForHtmlAttributes(parameters)));
+			node.setProperty(Traits.of(StructrTraits.DOM_NODE).key("showConditions"), DOMNode.unescapeForHtmlAttributes(DOMNode.unescapeForHtmlAttributes(parameters)));
 		});
 
 		handlers.put("hide", (final Page page, final DOMNode node, final String parameters) -> {
-			node.setProperty(Traits.of("DOMNode").key("hideConditions"), DOMNode.unescapeForHtmlAttributes(DOMNode.unescapeForHtmlAttributes(parameters)));
+			node.setProperty(Traits.of(StructrTraits.DOM_NODE).key("hideConditions"), DOMNode.unescapeForHtmlAttributes(DOMNode.unescapeForHtmlAttributes(parameters)));
 		});
 
 		handlers.put("show-for-locales", (final Page page, final DOMNode node, final String parameters) -> {
-			node.setProperty(Traits.of("DOMNode").key("showForLocales"), DOMNode.unescapeForHtmlAttributes(DOMNode.unescapeForHtmlAttributes(parameters)));
+			node.setProperty(Traits.of(StructrTraits.DOM_NODE).key("showForLocales"), DOMNode.unescapeForHtmlAttributes(DOMNode.unescapeForHtmlAttributes(parameters)));
 		});
 
 		handlers.put("hide-for-locales", (final Page page, final DOMNode node, final String parameters) -> {
-			node.setProperty(Traits.of("DOMNode").key("hideForLocales"), DOMNode.unescapeForHtmlAttributes(DOMNode.unescapeForHtmlAttributes(parameters)));
+			node.setProperty(Traits.of(StructrTraits.DOM_NODE).key("hideForLocales"), DOMNode.unescapeForHtmlAttributes(DOMNode.unescapeForHtmlAttributes(parameters)));
 		});
 
 		handlers.put("owner", (final Page page, final DOMNode node, final String parameters) -> {
 
-			final List<NodeInterface> principals = StructrApp.getInstance().nodeQuery("Principal").andName(parameters).getAsList();
+			final List<NodeInterface> principals = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).andName(parameters).getAsList();
 
 			if (principals.isEmpty()) {
 
@@ -143,7 +144,7 @@ public class DeploymentCommentHandler implements CommentHandler {
 
 			} else {
 
-				node.setProperty(Traits.of("NodeInterface").key("owner"), principals.get(0));
+				node.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("owner"), principals.get(0));
 			}
 		});
 
@@ -152,7 +153,7 @@ public class DeploymentCommentHandler implements CommentHandler {
 			final String[] parts  = parameters.split("[,]+");
 			if (parts.length == 2) {
 
-				final List<NodeInterface> principals = StructrApp.getInstance().nodeQuery("Principal").andName(parts[0]).getAsList();
+				final List<NodeInterface> principals = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).andName(parts[0]).getAsList();
 
 				if (principals.isEmpty()) {
 

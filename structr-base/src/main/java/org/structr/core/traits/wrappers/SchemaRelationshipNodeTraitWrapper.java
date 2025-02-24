@@ -36,6 +36,7 @@ import org.structr.core.notion.ObjectNotion;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.*;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.TraitDefinition;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.operations.graphobject.IsValid;
@@ -82,7 +83,7 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 	@Override
 	public String getClassName() {
 
-		String name = wrappedObject.getProperty(Traits.of("NodeInterface").key("name"));
+		String name = wrappedObject.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"));
 		if (name == null) {
 
 			final String _sourceType = getSchemaNodeSourceType();
@@ -114,7 +115,7 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 			name = buf.toString();
 
 			try {
-				wrappedObject.setProperty(Traits.of("NodeInterface").key("name"), name);
+				wrappedObject.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), name);
 
 			} catch (FrameworkException fex) {
 				logger.warn("Unable to set relationship name to {}.", name);
@@ -415,7 +416,7 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 		if (!PropagationDirection.None.equals(getPermissionPropagation())) {
 
 			src.begin(this, "static {");
-			src.line(this, "Traits.of("SchemaRelationshipNode").key("registerPropagatingRelationshipType")(").append(_className).append(".class, true);");
+			src.line(this, "Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("registerPropagatingRelationshipType")(").append(_className).append(".class, true);");
 			src.end();
 		}
 

@@ -42,6 +42,7 @@ import org.structr.core.property.FunctionProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.module.StructrModule;
 import org.structr.rest.resource.MaintenanceResource;
@@ -724,7 +725,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		logger.info("Exporting files (unchanged files will be skipped)");
 
-		final Traits traits                 = Traits.of("File");
+		final Traits traits                 = Traits.of(StructrTraits.FILE);
 		final PropertyKey<Boolean> inclKey  = traits.key("includeInFrontendExport");
 		final PropertyKey<Boolean> jsKey    = traits.key("useAsJavascriptLibrary");
 		final PropertyKey<Folder> parentKey = traits.key("parent");
@@ -734,12 +735,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		try (final Tx tx = app.tx()) {
 
 			// fetch toplevel folders and recurse
-			for (final NodeInterface folder : app.nodeQuery("Folder").and(parentKey, null).sort(traits.key("name")).and(inclKey, true).getAsList()) {
+			for (final NodeInterface folder : app.nodeQuery(StructrTraits.FOLDER).and(parentKey, null).sort(traits.key("name")).and(inclKey, true).getAsList()) {
 				exportFilesAndFolders(target, folder, config);
 			}
 
 			// fetch toplevel files that are marked for export or for use as a javascript library
-			for (final NodeInterface file : app.nodeQuery("File")
+			for (final NodeInterface file : app.nodeQuery(StructrTraits.FILE)
 				.and(parentKey, null)
 				.sort(traits.key("name"))
 				.and()
@@ -782,7 +783,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			return;
 		}
 
-		final Traits traits                  = Traits.of("Folder");
+		final Traits traits                  = Traits.of(StructrTraits.FOLDER);
 		final String name                    = folder.getName();
 		final Path path                      = target.resolve(name);
 		final Map<String, Object> properties = new TreeMap<>();
@@ -863,7 +864,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface node : app.nodeQuery("Site").sort(Traits.of("NodeInterface").key("name")).getAsList()) {
+			for (final NodeInterface node : app.nodeQuery("Site").sort(Traits.of(StructrTraits.NODE_INTERFACE).key("name")).getAsList()) {
 
 				final Site site                 = node.as(Site.class);
 				final Map<String, Object> entry = new TreeMap<>();
@@ -908,9 +909,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface page : app.nodeQuery("Page").sort(Traits.of("NodeInterface").key("name")).getAsList()) {
+			for (final NodeInterface page : app.nodeQuery(StructrTraits.PAGE).sort(Traits.of(StructrTraits.NODE_INTERFACE).key("name")).getAsList()) {
 
-				if (!page.is("ShadowDocument")) {
+				if (!page.is(StructrTraits.SHADOW_DOCUMENT)) {
 
 					final String content = page.as(Page.class).getContent(RenderContext.EditMode.DEPLOYMENT);
 					if (content != null) {
@@ -949,7 +950,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface shadowDocument = app.nodeQuery("ShadowDocument").getFirst();
+			final NodeInterface shadowDocument = app.nodeQuery(StructrTraits.SHADOW_DOCUMENT).getFirst();
 			if (shadowDocument != null) {
 
 				for (final DOMNode node : shadowDocument.as(ShadowDocument.class).getElements()) {
@@ -990,7 +991,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		try (final Tx tx = app.tx()) {
 
 			// export template nodes anywhere in the pages tree which are not related to shared components
-			for (final NodeInterface node : app.nodeQuery("Template").getAsList()) {
+			for (final NodeInterface node : app.nodeQuery(StructrTraits.TEMPLATE).getAsList()) {
 
 				final Template template = node.as(Template.class);
 				final boolean isShared  = template.hasSharedComponent();
@@ -1044,12 +1045,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		logger.info("Exporting schema grants");
 
 		final List<Map<String, Object>> grants = new LinkedList<>();
-		final Traits traits                    = Traits.of("SchemaGrant");
+		final Traits traits                    = Traits.of(StructrTraits.SCHEMA_GRANT);
 		final App app                          = StructrApp.getInstance();
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface node : app.nodeQuery("SchemaGrant").sort(traits.key("id")).getAsList()) {
+			for (final NodeInterface node : app.nodeQuery(StructrTraits.SCHEMA_GRANT).sort(traits.key("id")).getAsList()) {
 
 				final Map<String, Object> grant = new TreeMap<>();
 				final SchemaGrant schemaGrant   = node.as(SchemaGrant.class);
@@ -1082,7 +1083,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		logger.info("Exporting resource access grants");
 
 		final List<Map<String, Object>> grants = new LinkedList<>();
-		final Traits traits                    = Traits.of("ResourceAccess");
+		final Traits traits                    = Traits.of(StructrTraits.RESOURCE_ACCESS);
 		final PropertyKey<String> signatureKey = traits.key("signature");
 		final PropertyKey<Long> flagsKey       = traits.key("flags");
 		final App app                          = StructrApp.getInstance();
@@ -1091,12 +1092,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface res : app.nodeQuery("ResourceAccess").sort(traits.key("signature")).getAsList()) {
+			for (final NodeInterface res : app.nodeQuery(StructrTraits.RESOURCE_ACCESS).sort(traits.key("signature")).getAsList()) {
 
 				final Map<String, Object> grant = new TreeMap<>();
 				grants.add(grant);
 
-				grant.put("id",                          res.getProperty(Traits.of("GraphObject").key("id")));
+				grant.put("id",                          res.getProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key("id")));
 				grant.put("signature",                   res.getProperty(signatureKey));
 				grant.put("flags",                       res.getProperty(flagsKey));
 				grant.put("visibleToPublicUsers",        res.isVisibleToPublicUsers());
@@ -1136,17 +1137,17 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		logger.info("Exporting CORS Settings");
 
 		final List<Map<String, Object>> corsSettings = new LinkedList<>();
-		final Traits traits                          = Traits.of("CorsSetting");
+		final Traits traits                          = Traits.of(StructrTraits.CORS_SETTING);
 		final App app                                = StructrApp.getInstance();
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface corsSetting : app.nodeQuery("CorsSetting").sort(traits.key("requestUri")).getAsList()) {
+			for (final NodeInterface corsSetting : app.nodeQuery(StructrTraits.CORS_SETTING).sort(traits.key("requestUri")).getAsList()) {
 
 				final Map<String, Object> entry = new LinkedHashMap<>();
 				corsSettings.add(entry);
 
-				putData(entry, "id",               corsSetting.getProperty(Traits.of("GraphObject").key("id")));
+				putData(entry, "id",               corsSetting.getProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key("id")));
 				putData(entry, "requestUri",       corsSetting.getProperty(traits.key("requestUri")));
 				putData(entry, "acceptedOrigins",  corsSetting.getProperty(traits.key("acceptedOrigins")));
 				putData(entry, "maxAge",           corsSetting.getProperty(traits.key("maxAge")));
@@ -1285,11 +1286,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		putData(config, "visibleToPublicUsers",        node.isVisibleToPublicUsers());
 		putData(config, "visibleToAuthenticatedUsers", node.isVisibleToAuthenticatedUsers());
 
-		if (node.is("Content")) {
+		if (node.is(StructrTraits.CONTENT)) {
 			putData(config, "contentType", node.as(Content.class).getContentType());
 		}
 
-		if (node.is("Template")) {
+		if (node.is(StructrTraits.TEMPLATE)) {
 
 			final Template template = node.as(Template.class);
 
@@ -1297,7 +1298,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			putData(config, "shared", Boolean.toString(template.isSharedComponent() && template.getParent() == null));
 		}
 
-		if (node.is("Page")) {
+		if (node.is(StructrTraits.PAGE)) {
 
 			final Linkable linkable = node.as(Linkable.class);
 			final Page page         = node.as(Page.class);
@@ -1341,7 +1342,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		putData(config, "visibleToAuthenticatedUsers", abstractFile.isVisibleToAuthenticatedUsers());
 		putData(config, "type",                        fileType);
 
-		if (abstractFile.is("File")) {
+		if (abstractFile.is(StructrTraits.FILE)) {
 
 			final File file = abstractFile.as(File.class);
 
@@ -1354,7 +1355,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		putData(config, "includeInFrontendExport", abstractFile.includeInFrontendExport());
 
-		if (abstractFile.is("Linkable")) {
+		if (abstractFile.is(StructrTraits.LINKABLE)) {
 
 			final Linkable linkable = abstractFile.as(Linkable.class);
 
@@ -1362,7 +1363,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			putData(config, "enableBasicAuth", linkable.getEnableBasicAuth());
 		}
 
-		if (abstractFile.is("Image")) {
+		if (abstractFile.is(StructrTraits.IMAGE)) {
 
 			final Image image = abstractFile.as(Image.class);
 
@@ -1443,7 +1444,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			if (ownerData != null) {
 
 				final String ownerName               = (String) ownerData.get("name");
-				final List<NodeInterface> principals = StructrApp.getInstance().nodeQuery("Principal").andName(ownerName).getAsList();
+				final List<NodeInterface> principals = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).andName(ownerName).getAsList();
 
 				if (principals.isEmpty()) {
 
@@ -1473,7 +1474,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			for (final Map<String, Object> grantee : grantees) {
 
 				final String granteeName             = (String) grantee.get("name");
-				final List<NodeInterface> principals = StructrApp.getInstance().nodeQuery("Principal").andName(granteeName).getAsList();
+				final List<NodeInterface> principals = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).andName(granteeName).getAsList();
 
 				if (principals.isEmpty()) {
 
@@ -1501,7 +1502,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			if (ownerData != null) {
 
 				final String ownerName               = (String) ((Map)entry.get("principal")).get("name");
-				final List<NodeInterface> principals = StructrApp.getInstance().nodeQuery("Principal").andName(ownerName).getAsList();
+				final List<NodeInterface> principals = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).andName(ownerName).getAsList();
 
 				if (principals.isEmpty()) {
 
@@ -1530,7 +1531,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		logger.info("Exporting mail templates");
 
 		final List<Map<String, Object>> mailTemplates = new LinkedList<>();
-		final Traits traits                           = Traits.of("MailTemplate");
+		final Traits traits                           = Traits.of(StructrTraits.MAIL_TEMPLATE);
 		final App app                                 = StructrApp.getInstance();
 
 		try {
@@ -1539,7 +1540,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			try (final Tx tx = app.tx()) {
 
-				for (final NodeInterface node : app.nodeQuery("MailTemplate").sort(traits.key("name")).getAsList()) {
+				for (final NodeInterface node : app.nodeQuery(StructrTraits.MAIL_TEMPLATE).sort(traits.key("name")).getAsList()) {
 
 					final MailTemplate mailTemplate = node.as(MailTemplate.class);
 
@@ -1593,7 +1594,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface node : app.nodeQuery("Widget").sort(Traits.of("NodeInterface").key("name")).getAsList()) {
+			for (final NodeInterface node : app.nodeQuery("Widget").sort(Traits.of(StructrTraits.NODE_INTERFACE).key("name")).getAsList()) {
 
 				final Widget widget             = node.as(Widget.class);
 				final Map<String, Object> entry = new TreeMap<>();
@@ -1666,13 +1667,13 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		logger.info("Exporting localizations");
 
-		final Traits traits                           = Traits.of("Localization");
+		final Traits traits                           = Traits.of(StructrTraits.LOCALIZATION);
 		final List<Map<String, Object>> localizations = new LinkedList<>();
 		final App app                                 = StructrApp.getInstance();
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface node : app.nodeQuery("Localization").sort(traits.key("name")).getAsList()) {
+			for (final NodeInterface node : app.nodeQuery(StructrTraits.LOCALIZATION).sort(traits.key("name")).getAsList()) {
 
 				final Map<String, Object> entry = new TreeMap<>(new IdFirstComparator());
 				final Localization localization = node.as(Localization.class);
@@ -1718,7 +1719,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface node : app.nodeQuery("ActionMapping").getAsList()) {
+			for (final NodeInterface node : app.nodeQuery(StructrTraits.ACTION_MAPPING).getAsList()) {
 
 				final Map<String, Object> entry   = new TreeMap<>();
 				final ActionMapping actionMapping = node.as(ActionMapping.class);
@@ -1806,12 +1807,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		logger.info("Exporting parameter mapping");
 
 		final List<Map<String, Object>> parameterMappings = new LinkedList<>();
-		final Traits traits                               = Traits.of("ParameterMapping");
+		final Traits traits                               = Traits.of(StructrTraits.PARAMETER_MAPPING);
 		final App app                                     = StructrApp.getInstance();
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface node : app.nodeQuery("ParameterMapping").sort(traits.key("name")).getAsList()) {
+			for (final NodeInterface node : app.nodeQuery(StructrTraits.PARAMETER_MAPPING).sort(traits.key("name")).getAsList()) {
 
 				final ParameterMapping parameterMapping = node.as(ParameterMapping.class);
 				final Map<String, Object> entry = new TreeMap<>();
@@ -1979,7 +1980,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			tx.disableChangelog();
 
-			for (final NodeInterface toDelete : app.nodeQuery("SchemaGrant").getAsList()) {
+			for (final NodeInterface toDelete : app.nodeQuery(StructrTraits.SCHEMA_GRANT).getAsList()) {
 				app.delete(toDelete);
 			}
 
@@ -1987,7 +1988,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				checkOwnerAndSecurity(entry);
 
-				app.create("SchemaGrant", PropertyMap.inputTypeToJavaType(context, "SchemaGrant", entry));
+				app.create(StructrTraits.SCHEMA_GRANT, PropertyMap.inputTypeToJavaType(context, StructrTraits.SCHEMA_GRANT, entry));
 			}
 
 			tx.success();
@@ -2044,7 +2045,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			tx.disableChangelog();
 
-			for (final NodeInterface toDelete : app.nodeQuery("ResourceAccess").getAsList()) {
+			for (final NodeInterface toDelete : app.nodeQuery(StructrTraits.RESOURCE_ACCESS).getAsList()) {
 				app.delete(toDelete);
 			}
 
@@ -2098,9 +2099,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					checkOwnerAndSecurity(entry);
 				}
 
-				final PropertyMap map = PropertyMap.inputTypeToJavaType(context, "ResourceAccess", entry);
+				final PropertyMap map = PropertyMap.inputTypeToJavaType(context, StructrTraits.RESOURCE_ACCESS, entry);
 
-				app.create("ResourceAccess", map);
+				app.create(StructrTraits.RESOURCE_ACCESS, map);
 			}
 
 			tx.success();
@@ -2139,7 +2140,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			logger.info("Reading {}", corsSettingsMetadataFile);
 			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing CORS Settings");
 
-			importListData("CorsSetting", readConfigList(corsSettingsMetadataFile));
+			importListData(StructrTraits.CORS_SETTING, readConfigList(corsSettingsMetadataFile));
 		}
 	}
 
@@ -2169,7 +2170,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				}
 			}
 
-			importListData("MailTemplate", mailTemplatesConf);
+			importListData(StructrTraits.MAIL_TEMPLATE, mailTemplatesConf);
 		}
 	}
 
@@ -2188,7 +2189,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		if (Files.exists(localizationsMetadataFile)) {
 
-			final Traits traits              = Traits.of("Localization");
+			final Traits traits              = Traits.of(StructrTraits.LOCALIZATION);
 			final PropertyMap additionalData = new PropertyMap();
 
 			// Question: shouldn't this be true?
@@ -2200,7 +2201,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			logger.info("Reading {}", localizationsMetadataFile);
 			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing localizations");
 
-			importListData("Localization", readConfigList(localizationsMetadataFile), additionalData);
+			importListData(StructrTraits.LOCALIZATION, readConfigList(localizationsMetadataFile), additionalData);
 		}
 	}
 
@@ -2331,7 +2332,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					logger.info("Removing pages, templates and components");
 					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Removing pages, templates and components");
 
-					app.deleteAllNodesOfType("DOMNode");
+					app.deleteAllNodesOfType(StructrTraits.DOM_NODE);
 
 					if (Files.exists(sitesConfFile)) {
 
@@ -2431,7 +2432,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			logger.info("Reading {}", path);
 			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing action mapping");
 
-			importListData("ActionMapping", readConfigList(path));
+			importListData(StructrTraits.ACTION_MAPPING, readConfigList(path));
 		}
 	}
 
@@ -2443,7 +2444,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			logger.info("Reading {}", parameterMappingPath);
 			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing parameter mapping");
 
-			importListData("ParameterMapping", readConfigList(parameterMappingPath));
+			importListData(StructrTraits.PARAMETER_MAPPING, readConfigList(parameterMappingPath));
 		}
 	}
 
@@ -2502,7 +2503,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final List<NodeInterface> pages = new LinkedList();
 
 				for (final String pageName : (List<String>)entry.get("pages")) {
-					pages.add(app.nodeQuery("Page").andName(pageName).getFirst());
+					pages.add(app.nodeQuery(StructrTraits.PAGE).andName(pageName).getFirst());
 				}
 
 				entry.remove("pages");
@@ -2528,7 +2529,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	private void linkDeferredPages(final App app) throws FrameworkException {
 
-		final Traits traits = Traits.of("Page");
+		final Traits traits = Traits.of(StructrTraits.PAGE);
 
 		try (final Tx tx = app.tx()) {
 
@@ -2537,8 +2538,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			deferredPageLinks.forEach((String linkableUUID, String pagePath) -> {
 
 				try {
-					final NodeInterface linkElementNode = StructrApp.getInstance().getNodeById("DOMNode", linkableUUID);
-					final NodeInterface linkedPageNode  = StructrApp.getInstance().nodeQuery("Linkable").and(traits.key("path"), pagePath).or(traits.key("name"), pagePath).getFirst();
+					final NodeInterface linkElementNode = StructrApp.getInstance().getNodeById(StructrTraits.DOM_NODE, linkableUUID);
+					final NodeInterface linkedPageNode  = StructrApp.getInstance().nodeQuery(StructrTraits.LINKABLE).and(traits.key("path"), pagePath).or(traits.key("name"), pagePath).getFirst();
 
 
 					final LinkSource linkSource = linkElementNode.as(LinkSource.class);

@@ -32,6 +32,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.web.common.FileHelper;
@@ -56,7 +57,7 @@ public class StructrFileSystemView implements FileSystemView {
 
 			org.structr.web.entity.User structrUser = null;
 
-			final Principal principal = AuthHelper.getPrincipalForCredential(Traits.of("Principal").key("name"), user.getName());
+			final Principal principal = AuthHelper.getPrincipalForCredential(Traits.of(StructrTraits.PRINCIPAL).key("name"), user.getName());
 			if (principal != null) {
 
 				structrUser = principal.as(org.structr.web.entity.User.class);
@@ -80,7 +81,7 @@ public class StructrFileSystemView implements FileSystemView {
 
 			org.structr.web.entity.User structrUser = null;
 
-			final Principal principal = AuthHelper.getPrincipalForCredential(Traits.of("Principal").key("name"), user.getName());
+			final Principal principal = AuthHelper.getPrincipalForCredential(Traits.of(StructrTraits.PRINCIPAL).key("name"), user.getName());
 			if (principal != null) {
 
 				structrUser = principal.as(org.structr.web.entity.User.class);
@@ -108,7 +109,7 @@ public class StructrFileSystemView implements FileSystemView {
 
 			tx.success();
 
-			if (structrWorkingDir == null || structrWorkingDir.is("File")) {
+			if (structrWorkingDir == null || structrWorkingDir.is(StructrTraits.FILE)) {
 				return new StructrFtpFolder(securityContext, null);
 			}
 
@@ -190,7 +191,7 @@ public class StructrFileSystemView implements FileSystemView {
 			NodeInterface file = FileHelper.getFileByAbsolutePath(securityContext, requestedPath);
 			if (file != null) {
 
-				if (file.is("Folder")) {
+				if (file.is(StructrTraits.FOLDER)) {
 
 					tx.success();
 					return new StructrFtpFolder(securityContext, file.as(Folder.class));

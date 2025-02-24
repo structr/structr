@@ -24,8 +24,8 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -65,7 +65,7 @@ public class GetTypeInfoCommand extends AbstractCommand {
 		final NodeInterface typeNode;
 		try {
 
-			typeNode = app.nodeQuery("SchemaNode").andName(type).getFirst();
+			typeNode = app.nodeQuery(StructrTraits.SCHEMA_NODE).andName(type).getFirst();
 			if (typeNode != null) {
 
 				webSocketData.setResult(Arrays.asList(typeNode));

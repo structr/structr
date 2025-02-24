@@ -34,6 +34,7 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.AccessControllableTraitDefinition;
 import org.structr.core.traits.operations.accesscontrollable.IsGranted;
@@ -67,7 +68,7 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 		String type = (String)propertyContainer.getProperty("type");
 		if (type == null) {
 
-			type = "NodeInterface";
+			type = StructrTraits.NODE_INTERFACE;
 		}
 
 		this.typeHandler         = Traits.of(type);

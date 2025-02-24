@@ -33,6 +33,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.websocket.StructrWebSocket;
@@ -237,7 +238,7 @@ public class SetPermissionCommand extends AbstractCommand {
 
 				children.addAll(obj.as(DOMNode.class).treeGetChildren());
 
-			} else if (obj.is("Folder")) {
+			} else if (obj.is(StructrTraits.FOLDER)) {
 
 				children.addAll(obj.as(Folder.class).getAllChildNodes());
 			}
@@ -251,7 +252,7 @@ public class SetPermissionCommand extends AbstractCommand {
 
 	private void getSyncedEntities(final Set<DOMNode> entities, final NodeInterface obj, final String syncMode, final Principal principal, final String action, final Set<Permission> permissions) {
 
-		if (obj.is("DOMNode") && syncMode != null) {
+		if (obj.is(StructrTraits.DOM_NODE) && syncMode != null) {
 
 			try {
 

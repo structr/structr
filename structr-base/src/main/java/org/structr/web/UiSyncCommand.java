@@ -28,6 +28,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.*;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.rest.resource.MaintenanceResource;
 import org.structr.web.entity.dom.DOMNode;
@@ -100,13 +101,13 @@ public class UiSyncCommand extends NodeServiceCommand implements MaintenanceComm
 		try (final Tx tx = app.tx()) {
 
 			// collect folders that are marked for export
-			for (final NodeInterface folder : app.nodeQuery("Folder").and(Traits.of("Folder").key("includeInFrontendExport"), true).getResultStream()) {
+			for (final NodeInterface folder : app.nodeQuery(StructrTraits.FOLDER).and(Traits.of(StructrTraits.FOLDER).key("includeInFrontendExport"), true).getResultStream()) {
 
 				collectDataRecursively(app, folder, nodes, rels, filePaths);
 			}
 
 			// collect pages (including files, shared components etc.)
-			for (final NodeInterface page : app.nodeQuery("Page").getResultStream()) {
+			for (final NodeInterface page : app.nodeQuery(StructrTraits.PAGE).getResultStream()) {
 
 				collectDataRecursively(app, page, nodes, rels, filePaths);
 			}
@@ -127,10 +128,10 @@ public class UiSyncCommand extends NodeServiceCommand implements MaintenanceComm
 		// import done, now the ShadowDocument needs some special care. :(
 		try (final Tx tx = app.tx()) {
 
-			final List<NodeInterface> shadowDocuments = app.nodeQuery("ShadowDocument").includeHidden().getAsList();
+			final List<NodeInterface> shadowDocuments = app.nodeQuery(StructrTraits.SHADOW_DOCUMENT).includeHidden().getAsList();
 			if (shadowDocuments.size() > 1) {
 
-				final PropertyKey<List<DOMNode>> elementsKey = Traits.of("Page").key("elements");
+				final PropertyKey<List<DOMNode>> elementsKey = Traits.of(StructrTraits.PAGE).key("elements");
 				final List<DOMNode> collectiveChildren       = new LinkedList<>();
 
 				// sort by node id (higher node ID is newer entity)
@@ -165,7 +166,7 @@ public class UiSyncCommand extends NodeServiceCommand implements MaintenanceComm
 		if (root.isNode()) {
 
 			final NodeInterface node = root.getSyncNode();
-			if (node.is("File")) {
+			if (node.is(StructrTraits.FILE)) {
 
 				final String fileUuid = node.getUuid();
 				files.add(fileUuid);

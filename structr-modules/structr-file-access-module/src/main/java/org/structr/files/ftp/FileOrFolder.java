@@ -31,6 +31,7 @@ import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
@@ -102,11 +103,11 @@ public class FileOrFolder extends AbstractStructrFtpFile {
 			}
 
 			final NodeInterface parentFolder = FileHelper.getFileByAbsolutePath(securityContext, StringUtils.substringBeforeLast(newPath, "/"));
-			final Traits traits              = Traits.of("Folder");
+			final Traits traits              = Traits.of(StructrTraits.FOLDER);
 
 			try {
 				NodeInterface newFolder = app.command(CreateNodeCommand.class).execute(
-					new NodeAttribute(traits.key("type"),   "Folder"),
+					new NodeAttribute(traits.key("type"),   StructrTraits.FOLDER),
 					new NodeAttribute(traits.key("owner"),  owner.getStructrUser()),
 					new NodeAttribute(traits.key("name"),   getName()),
 					new NodeAttribute(traits.key("parent"), parentFolder)
@@ -143,7 +144,7 @@ public class FileOrFolder extends AbstractStructrFtpFile {
 				final NodeInterface parentFolder = FileHelper.getFileByAbsolutePath(securityContext, StringUtils.substringBeforeLast(newPath, "/"));
 
 				try {
-					structrFile = FileHelper.createFile(securityContext, new byte[0], null, "File", getName(), false).as(AbstractFile.class);
+					structrFile = FileHelper.createFile(securityContext, new byte[0], null, StructrTraits.FILE, getName(), false).as(AbstractFile.class);
 
 					structrFile.as(AccessControllable.class).setOwner(owner.getStructrUser());
 

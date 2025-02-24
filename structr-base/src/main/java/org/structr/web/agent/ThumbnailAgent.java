@@ -32,6 +32,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.entity.Image;
@@ -97,7 +98,7 @@ public class ThumbnailAgent extends Agent<ThumbnailWorkObject> {
 		try (final Tx tx = app.tx()) {
 
 			final String thumbnailRel = "ImageTHUMBNAILImage";
-			final NodeInterface node  = app.nodeQuery("Image").uuid(imageUuid).getFirst();
+			final NodeInterface node  = app.nodeQuery(StructrTraits.IMAGE).uuid(imageUuid).getFirst();
 			NodeInterface thumbnail   = null;
 
 			if (node == null) {
@@ -129,7 +130,7 @@ public class ThumbnailAgent extends Agent<ThumbnailWorkObject> {
 					final String thumbnailName = ImageHelper.getThumbnailName(originalImage.getName(), tnWidth, tnHeight);
 
 					// create thumbnail node
-					thumbnail = ImageHelper.createImageNode(securityContext, data, "image/" + ImageHelper.Thumbnail.defaultFormat, "Image", thumbnailName, true);
+					thumbnail = ImageHelper.createImageNode(securityContext, data, "image/" + ImageHelper.Thumbnail.defaultFormat, StructrTraits.IMAGE, thumbnailName, true);
 
 				} catch (IOException ex) {
 
@@ -140,9 +141,9 @@ public class ThumbnailAgent extends Agent<ThumbnailWorkObject> {
 
 					// Create a thumbnail relationship
 					final PropertyMap relProperties = new PropertyMap();
-					relProperties.put(Traits.of("Image").key("width"),                  tnWidth);
-					relProperties.put(Traits.of("Image").key("height"),                 tnHeight);
-					relProperties.put(Traits.of("Image").key("checksum"),               originalImage.getChecksum());
+					relProperties.put(Traits.of(StructrTraits.IMAGE).key("width"),                  tnWidth);
+					relProperties.put(Traits.of(StructrTraits.IMAGE).key("height"),                 tnHeight);
+					relProperties.put(Traits.of(StructrTraits.IMAGE).key("checksum"),               originalImage.getChecksum());
 
 					// We have to store the specs here in order to find existing thumbnails based on the specs they've been created for, not actual dimensions.
 					relProperties.put(new IntProperty("maxWidth"),                           maxWidth);
@@ -153,15 +154,15 @@ public class ThumbnailAgent extends Agent<ThumbnailWorkObject> {
 
 					// Create thumbnail Image node
 					final PropertyMap properties = new PropertyMap();
-					properties.put(Traits.of("Image").key("width"),                               tnWidth);
-					properties.put(Traits.of("Image").key("height"),                              tnHeight);
-					properties.put(Traits.of("NodeInterface").key("hidden"),                      originalImage.isHidden());
-					properties.put(Traits.of("NodeInterface").key("visibleToAuthenticatedUsers"), originalImage.isVisibleToAuthenticatedUsers());
-					properties.put(Traits.of("NodeInterface").key("visibleToPublicUsers"),        originalImage.isVisibleToPublicUsers());
-					properties.put(Traits.of("File").key("size"),                                 Long.valueOf(data.length));
-					properties.put(Traits.of("NodeInterface").key("owner"),                       originalImage.as(AccessControllable.class).getOwnerNode());
-					properties.put(Traits.of("File").key("parent"),                               originalImage.getThumbnailParentFolder(originalImage.getParent(), securityContext));
-					properties.put(Traits.of("File").key("hasParent"),                            originalImage.getProperty(Traits.of("Image").key("hasParent")));
+					properties.put(Traits.of(StructrTraits.IMAGE).key("width"),                               tnWidth);
+					properties.put(Traits.of(StructrTraits.IMAGE).key("height"),                              tnHeight);
+					properties.put(Traits.of(StructrTraits.NODE_INTERFACE).key("hidden"),                      originalImage.isHidden());
+					properties.put(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToAuthenticatedUsers"), originalImage.isVisibleToAuthenticatedUsers());
+					properties.put(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"),        originalImage.isVisibleToPublicUsers());
+					properties.put(Traits.of(StructrTraits.FILE).key("size"),                                 Long.valueOf(data.length));
+					properties.put(Traits.of(StructrTraits.NODE_INTERFACE).key("owner"),                       originalImage.as(AccessControllable.class).getOwnerNode());
+					properties.put(Traits.of(StructrTraits.FILE).key("parent"),                               originalImage.getThumbnailParentFolder(originalImage.getParent(), securityContext));
+					properties.put(Traits.of(StructrTraits.FILE).key("hasParent"),                            originalImage.getProperty(Traits.of(StructrTraits.IMAGE).key("hasParent")));
 
 					thumbnail.unlockSystemPropertiesOnce();
 					thumbnail.setProperties(securityContext, properties);
@@ -172,7 +173,7 @@ public class ThumbnailAgent extends Agent<ThumbnailWorkObject> {
 				logger.warn("Could not create thumbnail for image {} ({})", originalImage.getName(), imageUuid);
 
 				// mark file so we don't try to create a thumbnail again
-				originalImage.setProperty(Traits.of("Image").key("thumbnailCreationFailed"), true);
+				originalImage.setProperty(Traits.of(StructrTraits.IMAGE).key("thumbnailCreationFailed"), true);
 			}
 
 			originalImage.unlockSystemPropertiesOnce();

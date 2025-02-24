@@ -32,8 +32,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Arguments;
+import org.structr.core.api.Methods;
 import org.structr.core.entity.Principal;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.schema.action.EvaluationHints;
 
@@ -41,9 +44,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
-import org.structr.core.api.AbstractMethod;
-import org.structr.core.api.Arguments;
-import org.structr.core.api.Methods;
 
 public abstract class AbstractOAuth2Client implements OAuth2Client {
 
@@ -216,7 +216,7 @@ public abstract class AbstractOAuth2Client implements OAuth2Client {
 	@Override
 	public void invokeOnLoginMethod(final Principal user) throws FrameworkException {
 
-		final AbstractMethod method = Methods.resolveMethod(Traits.of("User"), "onOAuthLogin");
+		final AbstractMethod method = Methods.resolveMethod(Traits.of(StructrTraits.USER), "onOAuthLogin");
 		if (method != null) {
 
 			final Arguments arguments = new Arguments();

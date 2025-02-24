@@ -40,6 +40,7 @@ import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 
 import java.io.File;
@@ -129,7 +130,7 @@ public class JWTHelper {
 
 	public static Principal getPrincipalForRefreshToken(final String refreshToken) throws FrameworkException {
 
-		final Traits traits        = Traits.of("Principal");
+		final Traits traits        = Traits.of(StructrTraits.PRINCIPAL);
 		final String jwtSecretType = Settings.JWTSecretType.getValue();
 		Map<String, Claim> claims  = null;
 
@@ -253,7 +254,7 @@ public class JWTHelper {
 		// if the instance is the same that issued the token, we can lookup the user with uuid claim
 		if (StringUtils.equals(instance, instanceName)) {
 
-			userNode = StructrApp.getInstance().nodeQuery("Principal").and().or(Traits.of("GraphObject").key("id"), uuid).disableSorting().getFirst();
+			userNode = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).and().or(Traits.of(StructrTraits.GRAPH_OBJECT).key("id"), uuid).disableSorting().getFirst();
 			if (userNode != null) {
 
 				user = userNode.as(Principal.class);
@@ -261,7 +262,7 @@ public class JWTHelper {
 
 		} else if (eMail != null && StringUtils.isNotEmpty(eMail)) {
 
-			userNode = StructrApp.getInstance().nodeQuery("Principal").and().or(eMailKey, eMail).disableSorting().getFirst();
+			userNode = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).and().or(eMailKey, eMail).disableSorting().getFirst();
 			if (userNode != null) {
 
 				user = userNode.as(Principal.class);

@@ -24,6 +24,7 @@ import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.traits.StructrTraits;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.auth.UiAuthenticator;
@@ -47,7 +48,7 @@ public class NestedResourcesTest extends StructrUiTest {
 	@Test
 	public void testNodeAssociationOnCreate() {
 
-		this.grant("User",                UiAuthenticator.NON_AUTH_USER_POST, true);
+		this.grant(StructrTraits.USER,                UiAuthenticator.NON_AUTH_USER_POST, true);
 		this.grant("TestThree",           UiAuthenticator.AUTH_USER_POST, false);
 		this.grant("TestFour",            UiAuthenticator.AUTH_USER_POST | UiAuthenticator.AUTH_USER_GET, false);
 		this.grant("TestFour/_TestView",  UiAuthenticator.AUTH_USER_GET, false);
@@ -112,7 +113,7 @@ public class NestedResourcesTest extends StructrUiTest {
 	@Test
 	public void testNodeAssociationOnUpdate() {
 
-		this.grant("User",                UiAuthenticator.NON_AUTH_USER_POST, true);
+		this.grant(StructrTraits.USER,                UiAuthenticator.NON_AUTH_USER_POST, true);
 		this.grant("TestThree",           UiAuthenticator.AUTH_USER_POST, false);
 		this.grant("TestFour",            UiAuthenticator.AUTH_USER_POST | UiAuthenticator.AUTH_USER_PUT, false);
 		this.grant("TestFour/_TestView",  UiAuthenticator.AUTH_USER_GET, false);
@@ -205,7 +206,7 @@ public class NestedResourcesTest extends StructrUiTest {
 	@Test
 	public void testFailingNodeAssociationOnUpdateWithProperties() {
 
-		this.grant("User",                UiAuthenticator.NON_AUTH_USER_POST, true);
+		this.grant(StructrTraits.USER,                UiAuthenticator.NON_AUTH_USER_POST, true);
 		this.grant("TestThree",           UiAuthenticator.AUTH_USER_POST, false);
 		this.grant("TestFour",            UiAuthenticator.AUTH_USER_POST | UiAuthenticator.AUTH_USER_PUT, false);
 		this.grant("TestFour/_TestView",  UiAuthenticator.AUTH_USER_GET, false);
@@ -243,7 +244,7 @@ public class NestedResourcesTest extends StructrUiTest {
 	@Test
 	public void testSuccessfulNodeAssociationOnUpdateWithProperties() {
 
-		this.grant("User",                UiAuthenticator.NON_AUTH_USER_POST, true);
+		this.grant(StructrTraits.USER,                UiAuthenticator.NON_AUTH_USER_POST, true);
 		this.grant("TestThree",           UiAuthenticator.AUTH_USER_POST, false);
 		this.grant("TestFour",            UiAuthenticator.AUTH_USER_POST | UiAuthenticator.AUTH_USER_PUT, false);
 		this.grant("TestFour/_TestView",  UiAuthenticator.AUTH_USER_GET, false);

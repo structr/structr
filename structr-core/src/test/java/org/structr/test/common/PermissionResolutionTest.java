@@ -35,6 +35,7 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.testng.annotations.Test;
 
@@ -61,20 +62,20 @@ public class PermissionResolutionTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			// create a test user
-			user1 = app.create("User", "user1").as(Principal.class);
+			user1 = app.create(StructrTraits.USER, "user1").as(Principal.class);
 
 			// create schema setup with permission propagation
-			final NodeInterface t1 = app.create("SchemaNode", "Type1");
-			final NodeInterface t2 = app.create("SchemaNode", "Type2");
+			final NodeInterface t1 = app.create(StructrTraits.SCHEMA_NODE, "Type1");
+			final NodeInterface t2 = app.create(StructrTraits.SCHEMA_NODE, "Type2");
 
-			rel = app.create("SchemaRelationshipNode",
-				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("sourceNode"), t1),
-				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("targetNode"), t2),
-				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("relationshipType"), "RELATED"),
-				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("sourceMultiplicity"), "1"),
-				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("targetMultiplicity"), "1"),
-				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("sourceJsonName"), "source"),
-				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("targetJsonName"), "target")
+			rel = app.create(StructrTraits.SCHEMA_RELATIONSHIP_NODE,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceNode"), t1),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetNode"), t2),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("relationshipType"), "RELATED"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceMultiplicity"), "1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetMultiplicity"), "1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceJsonName"), "source"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetJsonName"), "target")
 			);
 
 			tx.success();
@@ -134,8 +135,8 @@ public class PermissionResolutionTest extends StructrTest {
 		// because the resolution direction is wrong.
 		try (final Tx tx = app.tx()) {
 
-			rel.setProperty(Traits.of("SchemaRelationshipNode").key("permissionPropagation"), "In");
-			rel.setProperty(Traits.of("SchemaRelationshipNode").key("readPropagation"), "Add");
+			rel.setProperty(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("permissionPropagation"), "In");
+			rel.setProperty(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("readPropagation"), "Add");
 
 			tx.success();
 
@@ -161,8 +162,8 @@ public class PermissionResolutionTest extends StructrTest {
 		// because the resolution direction is correct
 		try (final Tx tx = app.tx()) {
 
-			rel.setProperty(Traits.of("SchemaRelationshipNode").key("permissionPropagation"), "Out");
-			rel.setProperty(Traits.of("SchemaRelationshipNode").key("readPropagation"), "Add");
+			rel.setProperty(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("permissionPropagation"), "Out");
+			rel.setProperty(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("readPropagation"), "Add");
 
 			tx.success();
 
@@ -188,8 +189,8 @@ public class PermissionResolutionTest extends StructrTest {
 		// because both resolution directions are enabled
 		try (final Tx tx = app.tx()) {
 
-			rel.setProperty(Traits.of("SchemaRelationshipNode").key("permissionPropagation"), "Both");
-			rel.setProperty(Traits.of("SchemaRelationshipNode").key("readPropagation"), "Add");
+			rel.setProperty(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("permissionPropagation"), "Both");
+			rel.setProperty(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("readPropagation"), "Add");
 
 			tx.success();
 
@@ -215,8 +216,8 @@ public class PermissionResolutionTest extends StructrTest {
 		// object invisible again.
 		try (final Tx tx = app.tx()) {
 
-			rel.setProperty(Traits.of("SchemaRelationshipNode").key("permissionPropagation"), "None");
-			rel.setProperty(Traits.of("SchemaRelationshipNode").key("readPropagation"), "Add");
+			rel.setProperty(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("permissionPropagation"), "None");
+			rel.setProperty(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("readPropagation"), "Add");
 
 			tx.success();
 
@@ -248,19 +249,19 @@ public class PermissionResolutionTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			// create schema setup with permission propagation
-			final NodeInterface type = app.create("SchemaNode", "Project");
+			final NodeInterface type = app.create(StructrTraits.SCHEMA_NODE, "Project");
 
-			uuid = app.create("SchemaRelationshipNode",
-				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("sourceNode"), type),
-				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("targetNode"), type),
-				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("relationshipType"), "NEXT"),
-				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("sourceMultiplicity"), "1"),
-				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("targetMultiplicity"), "1"),
-				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("sourceJsonName"), "prev"),
-				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("targetJsonName"), "next")
+			uuid = app.create(StructrTraits.SCHEMA_RELATIONSHIP_NODE,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceNode"), type),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetNode"), type),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("relationshipType"), "NEXT"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceMultiplicity"), "1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetMultiplicity"), "1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceJsonName"), "prev"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetJsonName"), "next")
 			).getUuid();
 
-			app.create("User", "tester");
+			app.create(StructrTraits.USER, "tester");
 
 			tx.success();
 
@@ -274,25 +275,25 @@ public class PermissionResolutionTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final Principal tester = app.nodeQuery("User").getFirst().as(Principal.class);
+			final Principal tester = app.nodeQuery(StructrTraits.USER).getFirst().as(Principal.class);
 
 			final NodeInterface p1 = app.create(projectType,
-				new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Project1"),
-				new NodeAttribute<>(Traits.of("NodeInterface").key("owner"), tester)
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "Project1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("owner"), tester)
 			);
 
 			final NodeInterface p2 = app.create(projectType,
-				new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Project2"),
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "Project2"),
 				new NodeAttribute<>(key, p1)
 			);
 
 			final NodeInterface p3 = app.create(projectType,
-				new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Project3"),
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "Project3"),
 				new NodeAttribute<>(key, p2)
 			);
 
 			final NodeInterface p4 = app.create(projectType,
-				new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Project4"),
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "Project4"),
 				new NodeAttribute<>(key, p3)
 			);
 
@@ -304,22 +305,22 @@ public class PermissionResolutionTest extends StructrTest {
 		}
 
 		testGranted(projectType, new boolean[]{false, false, false, false});
-		setPermissionResolution(uuid, Traits.of("SchemaRelationshipNode").key("readPropagation"), "Add");
+		setPermissionResolution(uuid, Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("readPropagation"), "Add");
 		testGranted(projectType, new boolean[]{true, false, false, false});
-		setPermissionResolution(uuid, Traits.of("SchemaRelationshipNode").key("writePropagation"), "Add");
+		setPermissionResolution(uuid, Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("writePropagation"), "Add");
 		testGranted(projectType, new boolean[]{true, true, false, false});
-		setPermissionResolution(uuid, Traits.of("SchemaRelationshipNode").key("deletePropagation"), "Add");
+		setPermissionResolution(uuid, Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("deletePropagation"), "Add");
 		testGranted(projectType, new boolean[]{true, true, true, false});
-		setPermissionResolution(uuid, Traits.of("SchemaRelationshipNode").key("accessControlPropagation"), "Add");
+		setPermissionResolution(uuid, Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("accessControlPropagation"), "Add");
 		testGranted(projectType, new boolean[]{true, true, true, true});
 
-		setPermissionResolution(uuid, Traits.of("SchemaRelationshipNode").key("readPropagation"), "Remove");
+		setPermissionResolution(uuid, Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("readPropagation"), "Remove");
 		testGranted(projectType, new boolean[]{false, true, true, true});
-		setPermissionResolution(uuid, Traits.of("SchemaRelationshipNode").key("writePropagation"), "Remove");
+		setPermissionResolution(uuid, Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("writePropagation"), "Remove");
 		testGranted(projectType, new boolean[]{false, false, true, true});
-		setPermissionResolution(uuid, Traits.of("SchemaRelationshipNode").key("deletePropagation"), "Remove");
+		setPermissionResolution(uuid, Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("deletePropagation"), "Remove");
 		testGranted(projectType, new boolean[]{false, false, false, true});
-		setPermissionResolution(uuid, Traits.of("SchemaRelationshipNode").key("accessControlPropagation"), "Remove");
+		setPermissionResolution(uuid, Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("accessControlPropagation"), "Remove");
 		testGranted(projectType, new boolean[]{false, false, false, false});
 	}
 
@@ -332,25 +333,25 @@ public class PermissionResolutionTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			// create schema setup with permission propagation
-			final NodeInterface type = app.create("SchemaNode", "Project");
+			final NodeInterface type = app.create(StructrTraits.SCHEMA_NODE, "Project");
 
-			uuid = app.create("SchemaRelationshipNode",
-				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("sourceNode"), type),
-				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("targetNode"), type),
-				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("relationshipType"), "NEXT"),
-				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("sourceMultiplicity"), "1"),
-				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("targetMultiplicity"), "1"),
-				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("sourceJsonName"), "prev"),
-				new NodeAttribute<>(Traits.of("SchemaRelationshipNode").key("targetJsonName"), "next")
+			uuid = app.create(StructrTraits.SCHEMA_RELATIONSHIP_NODE,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceNode"), type),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetNode"), type),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("relationshipType"), "NEXT"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceMultiplicity"), "1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetMultiplicity"), "1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceJsonName"), "prev"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetJsonName"), "next")
 			).getUuid();
 
-			final NodeInterface moo  = app.create("SchemaNode", "Moo");
-			final NodeInterface test = app.create("SchemaNode", "Test");
+			final NodeInterface moo  = app.create(StructrTraits.SCHEMA_NODE, "Moo");
+			final NodeInterface test = app.create(StructrTraits.SCHEMA_NODE, "Test");
 
-			moo.setProperty(Traits.of("SchemaNode").key("inheritedTraits"), new String[] { "Project" });
-			test.setProperty(Traits.of("SchemaNode").key("inheritedTraits"), new String[] { "Project" });
+			moo.setProperty(Traits.of(StructrTraits.SCHEMA_NODE).key("inheritedTraits"), new String[] { "Project" });
+			test.setProperty(Traits.of(StructrTraits.SCHEMA_NODE).key("inheritedTraits"), new String[] { "Project" });
 
-			app.create("User", "tester");
+			app.create(StructrTraits.USER, "tester");
 
 			tx.success();
 
@@ -366,25 +367,25 @@ public class PermissionResolutionTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final Principal tester = app.nodeQuery("User").getFirst().as(Principal.class);
+			final Principal tester = app.nodeQuery(StructrTraits.USER).getFirst().as(Principal.class);
 
 			final NodeInterface p1 = app.create(mooType,
-				new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Project1"),
-				new NodeAttribute<>(Traits.of("NodeInterface").key("owner"), tester)
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "Project1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("owner"), tester)
 			);
 
 			final NodeInterface p2 = app.create(testType,
-				new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Project2"),
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "Project2"),
 				new NodeAttribute<>(key, p1)
 			);
 
 			final NodeInterface p3 = app.create(mooType,
-				new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Project3"),
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "Project3"),
 				new NodeAttribute<>(key, p2)
 			);
 
 			final NodeInterface p4 = app.create(testType,
-				new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Project4"),
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "Project4"),
 				new NodeAttribute<>(key, p3)
 			);
 
@@ -396,22 +397,22 @@ public class PermissionResolutionTest extends StructrTest {
 		}
 
 		testGranted(projectType, new boolean[] { false, false, false, false });
-		setPermissionResolution(uuid, Traits.of("SchemaRelationshipNode").key("readPropagation"), "Add");
+		setPermissionResolution(uuid, Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("readPropagation"), "Add");
 		testGranted(projectType, new boolean[] { true, false, false, false });
-		setPermissionResolution(uuid, Traits.of("SchemaRelationshipNode").key("writePropagation"), "Add");
+		setPermissionResolution(uuid, Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("writePropagation"), "Add");
 		testGranted(projectType, new boolean[] { true, true, false, false });
-		setPermissionResolution(uuid, Traits.of("SchemaRelationshipNode").key("deletePropagation"), "Add");
+		setPermissionResolution(uuid, Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("deletePropagation"), "Add");
 		testGranted(projectType, new boolean[] { true, true, true, false });
-		setPermissionResolution(uuid, Traits.of("SchemaRelationshipNode").key("accessControlPropagation"), "Add");
+		setPermissionResolution(uuid, Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("accessControlPropagation"), "Add");
 		testGranted(projectType, new boolean[] { true, true, true, true });
 
-		setPermissionResolution(uuid, Traits.of("SchemaRelationshipNode").key("readPropagation"), "Remove");
+		setPermissionResolution(uuid, Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("readPropagation"), "Remove");
 		testGranted(projectType, new boolean[] { false, true, true, true });
-		setPermissionResolution(uuid, Traits.of("SchemaRelationshipNode").key("writePropagation"), "Remove");
+		setPermissionResolution(uuid, Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("writePropagation"), "Remove");
 		testGranted(projectType, new boolean[] { false, false, true, true });
-		setPermissionResolution(uuid, Traits.of("SchemaRelationshipNode").key("deletePropagation"), "Remove");
+		setPermissionResolution(uuid, Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("deletePropagation"), "Remove");
 		testGranted(projectType, new boolean[] { false, false, false, true });
-		setPermissionResolution(uuid, Traits.of("SchemaRelationshipNode").key("accessControlPropagation"), "Remove");
+		setPermissionResolution(uuid, Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("accessControlPropagation"), "Remove");
 		testGranted(projectType, new boolean[] { false, false, false, false });
 	}
 
@@ -424,8 +425,8 @@ public class PermissionResolutionTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			// create schema setup with permission propagation
-			app.create("SchemaNode", "Project");
-			app.create("User", "tester");
+			app.create(StructrTraits.SCHEMA_NODE, "Project");
+			app.create(StructrTraits.USER, "tester");
 
 			tx.success();
 
@@ -437,10 +438,10 @@ public class PermissionResolutionTest extends StructrTest {
 		// setup 2 - schema grant
 		try (final Tx tx = app.tx()) {
 
-			final Group testGroup1 = app.create("Group", "Group1").as(Group.class);
-			final Group testGroup2 = app.create("Group", "Group2").as(Group.class);
-			final Group testGroup3 = app.create("Group", "Group3").as(Group.class);
-			final Principal tester = app.nodeQuery("User").andName("tester").getFirst().as(Principal.class);
+			final Group testGroup1 = app.create(StructrTraits.GROUP, "Group1").as(Group.class);
+			final Group testGroup2 = app.create(StructrTraits.GROUP, "Group2").as(Group.class);
+			final Group testGroup3 = app.create(StructrTraits.GROUP, "Group3").as(Group.class);
+			final Principal tester = app.nodeQuery(StructrTraits.USER).andName("tester").getFirst().as(Principal.class);
 
 			// create group hierarchy for test user
 			testGroup1.addMember(securityContext, testGroup2);
@@ -448,14 +449,14 @@ public class PermissionResolutionTest extends StructrTest {
 			testGroup3.addMember(securityContext, tester);
 
 			// create grant
-			final NodeInterface projectNode = app.nodeQuery("SchemaNode").andName("Project").getFirst();
-			final NodeInterface grant      = app.create("SchemaGrant",
-				new NodeAttribute<>(Traits.of("SchemaGrant").key("schemaNode"),          projectNode),
-				new NodeAttribute<>(Traits.of("SchemaGrant").key("principal"),           testGroup1),
-				new NodeAttribute<>(Traits.of("SchemaGrant").key("allowRead"),           false),
-				new NodeAttribute<>(Traits.of("SchemaGrant").key("allowWrite"),          false),
-				new NodeAttribute<>(Traits.of("SchemaGrant").key("allowDelete"),         false),
-				new NodeAttribute<>(Traits.of("SchemaGrant").key("allowAccessControl"),  false)
+			final NodeInterface projectNode = app.nodeQuery(StructrTraits.SCHEMA_NODE).andName("Project").getFirst();
+			final NodeInterface grant      = app.create(StructrTraits.SCHEMA_GRANT,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("schemaNode"),          projectNode),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("principal"),           testGroup1),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("allowRead"),           false),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("allowWrite"),          false),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("allowDelete"),         false),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("allowAccessControl"),  false)
 			);
 
 			uuid = grant.getUuid();
@@ -471,12 +472,12 @@ public class PermissionResolutionTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final Principal tester = app.nodeQuery("User").andName("tester").getFirst().as(Principal.class);
+			final Principal tester = app.nodeQuery(StructrTraits.USER).andName("tester").getFirst().as(Principal.class);
 
-			app.create(projectType, new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Project1"), new NodeAttribute<>(Traits.of("NodeInterface").key("owner"), tester));
-			app.create(projectType, new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Project2"));
-			app.create(projectType, new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Project3"));
-			app.create(projectType, new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "Project4"));
+			app.create(projectType, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "Project1"), new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("owner"), tester));
+			app.create(projectType, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "Project2"));
+			app.create(projectType, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "Project3"));
+			app.create(projectType, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "Project4"));
 
 			tx.success();
 
@@ -486,32 +487,32 @@ public class PermissionResolutionTest extends StructrTest {
 		}
 
 		testGranted(projectType, new boolean[] { false, false, false, false });
-		configureSchemaGrant(uuid, Traits.of("SchemaGrant").key("allowRead"), true);
+		configureSchemaGrant(uuid, Traits.of(StructrTraits.SCHEMA_GRANT).key("allowRead"), true);
 		testGranted(projectType, new boolean[] { true, false, false, false });
-		configureSchemaGrant(uuid, Traits.of("SchemaGrant").key("allowWrite"), true);
+		configureSchemaGrant(uuid, Traits.of(StructrTraits.SCHEMA_GRANT).key("allowWrite"), true);
 		testGranted(projectType, new boolean[] { true, true, false, false });
-		configureSchemaGrant(uuid, Traits.of("SchemaGrant").key("allowDelete"), true);
+		configureSchemaGrant(uuid, Traits.of(StructrTraits.SCHEMA_GRANT).key("allowDelete"), true);
 		testGranted(projectType, new boolean[] { true, true, true, false });
-		configureSchemaGrant(uuid, Traits.of("SchemaGrant").key("allowAccessControl"), true);
+		configureSchemaGrant(uuid, Traits.of(StructrTraits.SCHEMA_GRANT).key("allowAccessControl"), true);
 		testGranted(projectType, new boolean[] { true, true, true, true });
 
-		configureSchemaGrant(uuid, Traits.of("SchemaGrant").key("allowRead"), false);
+		configureSchemaGrant(uuid, Traits.of(StructrTraits.SCHEMA_GRANT).key("allowRead"), false);
 		testGranted(projectType, new boolean[] { false, true, true, true });
-		configureSchemaGrant(uuid, Traits.of("SchemaGrant").key("allowWrite"), false);
+		configureSchemaGrant(uuid, Traits.of(StructrTraits.SCHEMA_GRANT).key("allowWrite"), false);
 		testGranted(projectType, new boolean[] { false, false, true, true });
-		configureSchemaGrant(uuid, Traits.of("SchemaGrant").key("allowDelete"), false);
+		configureSchemaGrant(uuid, Traits.of(StructrTraits.SCHEMA_GRANT).key("allowDelete"), false);
 		testGranted(projectType, new boolean[] { false, false, false, true });
 
 		// allow all, but remove group link
-		configureSchemaGrant(uuid, Traits.of("SchemaGrant").key("allowRead"), true);
-		configureSchemaGrant(uuid, Traits.of("SchemaGrant").key("allowWrite"), true);
-		configureSchemaGrant(uuid, Traits.of("SchemaGrant").key("allowDelete"), true);
-		configureSchemaGrant(uuid, Traits.of("SchemaGrant").key("allowAccessControl"), true);
+		configureSchemaGrant(uuid, Traits.of(StructrTraits.SCHEMA_GRANT).key("allowRead"), true);
+		configureSchemaGrant(uuid, Traits.of(StructrTraits.SCHEMA_GRANT).key("allowWrite"), true);
+		configureSchemaGrant(uuid, Traits.of(StructrTraits.SCHEMA_GRANT).key("allowDelete"), true);
+		configureSchemaGrant(uuid, Traits.of(StructrTraits.SCHEMA_GRANT).key("allowAccessControl"), true);
 
 		try (final Tx tx = app.tx()) {
 
 			// delete Group2 which links tester to granted Group1
-			app.delete(app.nodeQuery("Group").andName("Group2").getFirst());
+			app.delete(app.nodeQuery(StructrTraits.GROUP).andName("Group2").getFirst());
 			tx.success();
 
 		} catch (Throwable t) {
@@ -530,9 +531,9 @@ public class PermissionResolutionTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final Group group1 = app.create("Group", new NodeAttribute<>(Traits.of("Group").key("name"), "Group1"));
-			final Group group2 = app.create("Group", new NodeAttribute<>(Traits.of("Group").key("name"), "Group2"));
-			final Group group3 = app.create("Group", new NodeAttribute<>(Traits.of("Group").key("name"), "Group3"));
+			final Group group1 = app.create(StructrTraits.GROUP, new NodeAttribute<>(Traits.of(StructrTraits.GROUP).key("name"), "Group1"));
+			final Group group2 = app.create(StructrTraits.GROUP, new NodeAttribute<>(Traits.of(StructrTraits.GROUP).key("name"), "Group2"));
+			final Group group3 = app.create(StructrTraits.GROUP, new NodeAttribute<>(Traits.of(StructrTraits.GROUP).key("name"), "Group3"));
 
 			// Group1 is the admin group
 			group1.setIsAdmin(true);
@@ -541,7 +542,7 @@ public class PermissionResolutionTest extends StructrTest {
 			group1.addMember(ctx, group2);
 			group2.addMember(ctx, group3);
 
-			final Principal tester = app.create("User", "tester");
+			final Principal tester = app.create(StructrTraits.USER, "tester");
 
 			group3.addMember(ctx, tester);
 
@@ -554,7 +555,7 @@ public class PermissionResolutionTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final Principal user = app.nodeQuery("User").andName("tester").getFirst();
+			final Principal user = app.nodeQuery(StructrTraits.USER).andName("tester").getFirst();
 
 			assertTrue("Database user doesn't inherit isAdmin flag correctly.", user.isAdmin());
 
@@ -574,9 +575,9 @@ public class PermissionResolutionTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final Group group1 = app.create("Group", new NodeAttribute<>(Traits.of("Group").key("name"), "Group1")).as(Group.class);
-			final Group group2 = app.create("Group", new NodeAttribute<>(Traits.of("Group").key("name"), "Group2")).as(Group.class);
-			final Group group3 = app.create("Group", new NodeAttribute<>(Traits.of("Group").key("name"), "Group3")).as(Group.class);
+			final Group group1 = app.create(StructrTraits.GROUP, new NodeAttribute<>(Traits.of(StructrTraits.GROUP).key("name"), "Group1")).as(Group.class);
+			final Group group2 = app.create(StructrTraits.GROUP, new NodeAttribute<>(Traits.of(StructrTraits.GROUP).key("name"), "Group2")).as(Group.class);
+			final Group group3 = app.create(StructrTraits.GROUP, new NodeAttribute<>(Traits.of(StructrTraits.GROUP).key("name"), "Group3")).as(Group.class);
 
 			// Group1 is the admin group
 			group1.setIsAdmin(true);
@@ -586,7 +587,7 @@ public class PermissionResolutionTest extends StructrTest {
 			group2.addMember(ctx, group3);
 
 			// Group3 has jwksReferenceId for ServicePrincipal
-			group3.setProperty(Traits.of("Group").key("jwksReferenceId"), "admin_group");
+			group3.setProperty(Traits.of(StructrTraits.GROUP).key("jwksReferenceId"), "admin_group");
 
 			tx.success();
 
@@ -634,7 +635,7 @@ public class PermissionResolutionTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface access : app.nodeQuery("ResourceAccess").getAsList()) {
+			for (final NodeInterface access : app.nodeQuery(StructrTraits.RESOURCE_ACCESS).getAsList()) {
 				app.delete(access);
 			}
 
@@ -652,9 +653,9 @@ public class PermissionResolutionTest extends StructrTest {
 		// enable permission resolution
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface rel = app.getNodeById("SchemaRelationshipNode", uuid);
+			final NodeInterface rel = app.getNodeById(StructrTraits.SCHEMA_RELATIONSHIP_NODE, uuid);
 
-			rel.setProperty(Traits.of("SchemaRelationshipNode").key("permissionPropagation"), "Both");
+			rel.setProperty(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("permissionPropagation"), "Both");
 			rel.setProperty(key, value);
 
 			tx.success();
@@ -670,7 +671,7 @@ public class PermissionResolutionTest extends StructrTest {
 		// enable permission resolution
 		try (final Tx tx = app.tx()) {
 
-			final SchemaGrant grant = app.getNodeById("SchemaGrant", uuid).as(SchemaGrant.class);
+			final SchemaGrant grant = app.getNodeById(StructrTraits.SCHEMA_GRANT, uuid).as(SchemaGrant.class);
 
 			grant.setProperty(key, value);
 
@@ -686,9 +687,9 @@ public class PermissionResolutionTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final Principal tester            = app.nodeQuery("User").andName("tester").getFirst().as(Principal.class);
+			final Principal tester            = app.nodeQuery(StructrTraits.USER).andName("tester").getFirst().as(Principal.class);
 			final SecurityContext userContext = SecurityContext.getInstance(tester, AccessMode.Backend);
-			final List<NodeInterface> result  = app.nodeQuery(projectType).sort(Traits.of("NodeInterface").key("name")).getAsList();
+			final List<NodeInterface> result  = app.nodeQuery(projectType).sort(Traits.of(StructrTraits.NODE_INTERFACE).key("name")).getAsList();
 
 			assertEquals("Invalid permission resolution result",  true, result.get(0).isGranted(Permission.read,          userContext));
 			assertEquals("Invalid permission resolution result",  true, result.get(0).isGranted(Permission.write,         userContext));

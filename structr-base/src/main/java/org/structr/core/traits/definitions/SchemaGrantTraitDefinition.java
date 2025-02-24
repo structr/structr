@@ -34,6 +34,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
@@ -54,7 +55,7 @@ public final class SchemaGrantTraitDefinition extends AbstractNodeTraitDefinitio
 	private static final Logger logger = LoggerFactory.getLogger(SchemaGrantTraitDefinition.class);
 
 	public SchemaGrantTraitDefinition() {
-		super("SchemaGrant");
+		super(StructrTraits.SCHEMA_GRANT);
 	}
 
 	@Override
@@ -96,8 +97,8 @@ public final class SchemaGrantTraitDefinition extends AbstractNodeTraitDefinitio
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface>  principal    = new StartNode("principal", "PrincipalSchemaGrantRelationship");
-		final Property<NodeInterface> schemaNode    = new EndNode("schemaNode", "SchemaGrantSchemaNodeRelationship");
+		final Property<NodeInterface>  principal    = new StartNode("principal", StructrTraits.PRINCIPAL_SCHEMA_GRANT_RELATIONSHIP);
+		final Property<NodeInterface> schemaNode    = new EndNode("schemaNode", StructrTraits.SCHEMA_GRANT_SCHEMA_NODE_RELATIONSHIP);
 		final Property<String> staticSchemaNodeName = new StringProperty("staticSchemaNodeName");
 		final Property<Boolean> allowRead           = new BooleanProperty("allowRead");
 		final Property<Boolean> allowWrite          = new BooleanProperty("allowWrite");

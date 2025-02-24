@@ -33,6 +33,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
@@ -53,7 +54,7 @@ import java.util.Set;
 public class AbstractFileTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public AbstractFileTraitDefinition() {
-		super("AbstractFile");
+		super(StructrTraits.ABSTRACT_FILE);
 	}
 
 	@Override
@@ -154,7 +155,7 @@ public class AbstractFileTraitDefinition extends AbstractNodeTraitDefinition {
 
 		final Property<NodeInterface> storageConfigurationProperty = new EndNode("storageConfiguration", "AbstractFileCONFIGURED_BYStorageConfiguration");
 		final Property<NodeInterface> parentProperty               = new StartNode("parent", "FolderCONTAINSAbstractFile").updateCallback(AbstractFileTraitDefinition::updateHasParent);
-		final Property<String> parentIdProperty                    = new EntityIdProperty("parentId", "AbstractFile", "parent", "Folder");
+		final Property<String> parentIdProperty                    = new EntityIdProperty("parentId", StructrTraits.ABSTRACT_FILE, "parent", StructrTraits.FOLDER);
 		final Property<Boolean> hasParentProperty                  = new BooleanProperty("hasParent").indexed();
 		final Property<Boolean> includeInFrontendExportProperty    = new BooleanProperty("includeInFrontendExport").indexed();
 		final Property<Boolean> isExternalProperty                 = new BooleanProperty("isExternal").indexed();

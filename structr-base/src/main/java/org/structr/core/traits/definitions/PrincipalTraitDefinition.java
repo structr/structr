@@ -33,6 +33,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
@@ -47,7 +48,7 @@ import java.util.Set;
 public class PrincipalTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public PrincipalTraitDefinition() {
-		super("Principal");
+		super(StructrTraits.PRINCIPAL);
 	}
 
 	@Override
@@ -148,9 +149,9 @@ public class PrincipalTraitDefinition extends AbstractNodeTraitDefinition {
 	public Set<PropertyKey> getPropertyKeys() {
 
 		return newSet(
-			new StartNodes("groups", "GroupCONTAINSPrincipal"),
-			new EndNodes("ownedNodes", "PrincipalOwnsNode"),
-			new EndNodes("grantedNodes", "SecurityRelationship"),
+			new StartNodes("groups", StructrTraits.GROUP_CONTAINS_PRINCIPAL),
+			new EndNodes("ownedNodes", StructrTraits.PRINCIPAL_OWNS_NODE),
+			new EndNodes("grantedNodes", StructrTraits.SECURITY),
 			new BooleanProperty("isAdmin").indexed().readOnly(),
 			new BooleanProperty("blocked"),
 			new ArrayProperty("sessionIds", String.class).indexed(),

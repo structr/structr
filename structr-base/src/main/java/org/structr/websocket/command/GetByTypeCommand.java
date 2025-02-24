@@ -26,6 +26,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
@@ -90,7 +91,7 @@ public class GetByTypeCommand extends AbstractCommand {
 			}
 
 			// for image lists, suppress thumbnails
-			if (traits.contains("Image")) {
+			if (traits.contains(StructrTraits.IMAGE)) {
 				query.and(traits.key("isThumbnail"), false);
 			}
 

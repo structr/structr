@@ -42,6 +42,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.scheduler.JobQueueManager;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.rest.common.XMLStructureAnalyzer;
 import org.structr.schema.action.ActionContext;
@@ -500,7 +501,7 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 		final Principal _owner  = as(AccessControllable.class).getOwnerNode();
 		Folder workingOrHomeDir = null;
 
-		if (_owner != null && _owner.is("User")) {
+		if (_owner != null && _owner.is(StructrTraits.USER)) {
 
 			final User user = _owner.as(User.class);
 

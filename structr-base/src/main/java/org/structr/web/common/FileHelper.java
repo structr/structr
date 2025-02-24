@@ -47,6 +47,7 @@ import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.storage.StorageProvider;
 import org.structr.storage.StorageProviderFactory;
@@ -92,7 +93,7 @@ public class FileHelper {
 		if (existingFile != null) {
 
 			existingFile.unlockSystemPropertiesOnce();
-			existingFile.setProperties(securityContext, new PropertyMap(Traits.of("GraphObject").key("type"), fileType == null ? "File" : fileType));
+			existingFile.setProperties(securityContext, new PropertyMap(Traits.of(StructrTraits.GRAPH_OBJECT).key("type"), fileType == null ? StructrTraits.FILE : fileType));
 
 			return getFileByUuid(securityContext, uuid);
 		}
@@ -153,12 +154,12 @@ public class FileHelper {
 	public static File createFile(final SecurityContext securityContext, final java.io.File existingFileOnDisk, final String contentType, final String name) throws FrameworkException, IOException {
 
 		final PropertyMap props = new PropertyMap();
-		final Traits traits     = Traits.of("File");
+		final Traits traits     = Traits.of(StructrTraits.FILE);
 
 		props.put(traits.key("name"),        name);
 		props.put(traits.key("contentType"), contentType);
 
-		final File newFile = StructrApp.getInstance(securityContext).create("File", props).as(File.class);
+		final File newFile = StructrApp.getInstance(securityContext).create(StructrTraits.FILE, props).as(File.class);
 
 		try (FileInputStream fis = new FileInputStream(existingFileOnDisk); OutputStream os = StorageProviderFactory.getStorageProvider(newFile).getOutputStream()) {
 
@@ -184,7 +185,7 @@ public class FileHelper {
 	public static NodeInterface createFile(final SecurityContext securityContext, final InputStream fileStream, final String contentType, final String fileType, final String name, final Folder parentFolder) throws FrameworkException, IOException {
 
 		final PropertyMap props = new PropertyMap();
-		final Traits traits     = Traits.of("File");
+		final Traits traits     = Traits.of(StructrTraits.FILE);
 
 		props.put(traits.key("name"), name);
 		props.put(traits.key("contentType"), contentType);
@@ -214,7 +215,7 @@ public class FileHelper {
 
 		final File newFile = StructrApp.getInstance(securityContext).create(fileType, props).as(File.class);
 
-		setFileData(newFile, fileStream, props.get(Traits.of("File").key("contentType")));
+		setFileData(newFile, fileStream, props.get(Traits.of(StructrTraits.FILE).key("contentType")));
 
 		// schedule indexing
 		newFile.notifyUploadCompletion();
@@ -239,7 +240,7 @@ public class FileHelper {
 
 		final PropertyMap props = new PropertyMap();
 
-		props.put(Traits.of("File").key("name"), name);
+		props.put(Traits.of(StructrTraits.FILE).key("name"), name);
 
 		final File newFile = StructrApp.getInstance(securityContext).create(type, props).as(File.class);
 
@@ -341,7 +342,7 @@ public class FileHelper {
 	private static void setFilePropertiesOnCreation(final File file, final String contentType) throws IOException, FrameworkException {
 
 		final PropertyMap map = new PropertyMap();
-		final Traits traits   = Traits.of("File");
+		final Traits traits   = Traits.of(StructrTraits.FILE);
 
 		map.put(traits.key("contentType"), contentType != null ? contentType : FileHelper.getContentMimeType(file, file.getName()));
 		map.put(traits.key("size"),        FileHelper.getSize(file));
@@ -349,12 +350,12 @@ public class FileHelper {
 
 		map.putAll(getChecksums(file));
 
-		if (file.is("Image")) {
+		if (file.is(StructrTraits.IMAGE)) {
 
 			try {
 
 				final BufferedImage bufferedImage = ImageIO.read(file.getInputStream());
-				final Traits imageTraits          = Traits.of("Image");
+				final Traits imageTraits          = Traits.of(StructrTraits.IMAGE);
 
 				if (bufferedImage != null) {
 
@@ -388,7 +389,7 @@ public class FileHelper {
 			id = newUuid;
 
 			fileNode.unlockSystemPropertiesOnce();
-			properties.put(Traits.of("GraphObject").key("id"), newUuid);
+			properties.put(Traits.of(StructrTraits.GRAPH_OBJECT).key("id"), newUuid);
 		}
 
 		fileNode.unlockSystemPropertiesOnce();
@@ -406,7 +407,7 @@ public class FileHelper {
 	private static PropertyMap getChecksums(final File file) throws IOException {
 
 		final PropertyMap propertiesWithChecksums = new PropertyMap();
-		final Traits traits                       = Traits.of("File");
+		final Traits traits                       = Traits.of(StructrTraits.FILE);
 
 		Folder parentFolder = file.getParent();
 		String checksums = null;
@@ -495,9 +496,9 @@ public class FileHelper {
 
 				if (contentType != null) {
 
-					// modify type when image type is detected AND the type is "File"
-					if (contentType.startsWith("image/") && !file.getTraits().contains("Image") && "File".equals(file.getType())) {
-						map.put(Traits.of("GraphObject").key("type"), "Image");
+					// modify type when image type is detected AND the type is StructrTraits.FILE
+					if (contentType.startsWith("image/") && !file.getTraits().contains(StructrTraits.IMAGE) && StructrTraits.FILE.equals(file.getType())) {
+						map.put(Traits.of(StructrTraits.GRAPH_OBJECT).key("type"), StructrTraits.IMAGE);
 					}
 				}
 
@@ -730,9 +731,9 @@ public class FileHelper {
 
 		try {
 
-			final Traits traits = Traits.of("AbstractFile");
+			final Traits traits = Traits.of(StructrTraits.ABSTRACT_FILE);
 
-			return StructrApp.getInstance(securityContext).nodeQuery("AbstractFile").and(traits.key("path"), absolutePath).getFirst();
+			return StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.ABSTRACT_FILE).and(traits.key("path"), absolutePath).getFirst();
 
 		} catch (FrameworkException ex) {
 			logger.warn("File not found: {}", absolutePath);
@@ -746,7 +747,7 @@ public class FileHelper {
 		logger.debug("Search for file with uuid: {}", uuid);
 
 		try {
-			return StructrApp.getInstance(securityContext).getNodeById("AbstractFile", uuid);
+			return StructrApp.getInstance(securityContext).getNodeById(StructrTraits.ABSTRACT_FILE, uuid);
 
 		} catch (FrameworkException fex) {
 
@@ -761,7 +762,7 @@ public class FileHelper {
 		logger.debug("Search for file with name: {}", name);
 
 		try {
-			return StructrApp.getInstance(securityContext).nodeQuery("AbstractFile").andName(name).getFirst();
+			return StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.ABSTRACT_FILE).andName(name).getFirst();
 
 		} catch (FrameworkException fex) {
 
@@ -783,7 +784,7 @@ public class FileHelper {
 		logger.debug("Search for file with name: {}", name);
 
 		try {
-			final List<NodeInterface> files = StructrApp.getInstance(securityContext).nodeQuery("AbstractFile").andName(name).getAsList();
+			final List<NodeInterface> files = StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.ABSTRACT_FILE).andName(name).getAsList();
 
 			for (final NodeInterface file : files) {
 
@@ -848,7 +849,7 @@ public class FileHelper {
 
 			if (folder == null) {
 
-				folder = app.create("Folder", part);
+				folder = app.create(StructrTraits.FOLDER, part);
 
 			}
 
@@ -889,7 +890,7 @@ public class FileHelper {
 			try (final Tx tx = app.tx(true, true, true)) {
 
 				// search for existing parent folder
-				final NodeInterface node = app.getNodeById("Folder", parentFolderId);
+				final NodeInterface node = app.getNodeById(StructrTraits.FOLDER, parentFolderId);
 				String parentFolderName = null;
 
 				String msgString = "Unarchiving file {}";
@@ -1051,14 +1052,14 @@ public class FileHelper {
 
 	private static void handleFile(final SecurityContext securityContext, final InputStream in, final Folder existingParentFolder, final String entryPath) throws FrameworkException, IOException {
 
-		final Traits traits                        = Traits.of("AbstractFile");
+		final Traits traits                        = Traits.of(StructrTraits.ABSTRACT_FILE);
 		final PropertyKey<NodeInterface> parentKey = traits.key("parent");
 		final PropertyKey<Boolean> hasParentKey    = traits.key("hasParent");
 		final String filePath                      = (existingParentFolder != null ? existingParentFolder.getPath() : "") + PathHelper.PATH_SEP + PathHelper.clean(entryPath);
 		final String name                          = PathHelper.getName(entryPath);
 		final NodeInterface newFile                = ImageHelper.isImageType(name)
-				? ImageHelper.createImage(securityContext, in, null, "Image", name, false)
-				: FileHelper.createFile(securityContext, in, null, "File", name);
+				? ImageHelper.createImage(securityContext, in, null, StructrTraits.IMAGE, name, false)
+				: FileHelper.createFile(securityContext, in, null, StructrTraits.FILE, name);
 
 		final String folderPath = StringUtils.substringBeforeLast(filePath, PathHelper.PATH_SEP);
 		final NodeInterface parentFolder = FileHelper.createFolderPath(securityContext, folderPath);

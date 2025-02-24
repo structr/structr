@@ -31,6 +31,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.ShadowDocument;
@@ -94,7 +95,7 @@ public class ComponentImporter extends HtmlFileImporter {
 
 			if (DeployCommand.isUuid(name)) {
 
-				result = StructrApp.getInstance().nodeQuery("DOMNode").and(Traits.of("GraphObject").key("id"), name).getFirst();
+				result = StructrApp.getInstance().nodeQuery(StructrTraits.DOM_NODE).and(Traits.of(StructrTraits.GRAPH_OBJECT).key("id"), name).getFirst();
 
 			} else {
 
@@ -140,7 +141,7 @@ public class ComponentImporter extends HtmlFileImporter {
 
 				DeployCommand.checkOwnerAndSecurity(dataMap);
 
-				return PropertyMap.inputTypeToJavaType(SecurityContext.getSuperUserInstance(), "Template", dataMap);
+				return PropertyMap.inputTypeToJavaType(SecurityContext.getSuperUserInstance(), StructrTraits.TEMPLATE, dataMap);
 
 			} catch (FrameworkException ex) {
 				logger.warn("Unable to resolve properties for shared component: {}", ex.getMessage());
@@ -180,14 +181,14 @@ public class ComponentImporter extends HtmlFileImporter {
 
 			if (DeployCommand.isUuid(componentName)) {
 
-				existingComponent = app.getNodeById("DOMNode", componentName);
+				existingComponent = app.getNodeById(StructrTraits.DOM_NODE, componentName);
 
 			} else {
 
 				final String uuidAtEnd = DeployCommand.getUuidOrNullFromEndOfString(componentName);
 				if (uuidAtEnd != null) {
 
-					existingComponent = app.getNodeById("DOMNode", uuidAtEnd);
+					existingComponent = app.getNodeById(StructrTraits.DOM_NODE, uuidAtEnd);
 
 				} else {
 
@@ -205,14 +206,14 @@ public class ComponentImporter extends HtmlFileImporter {
 
 				if (existingComponent != null && isHullMode()) {
 
-					final PropertyKey<String> contentKey = Traits.of("Template").key("content");
+					final PropertyKey<String> contentKey = Traits.of(StructrTraits.TEMPLATE).key("content");
 					final DOMNode component              = existingComponent.as(DOMNode.class);
 
 					properties.put(contentKey, existingComponent.getProperty(contentKey));
 
 					component.setOwnerDocument(null);
 
-					if (component.is("Template")) {
+					if (component.is(StructrTraits.TEMPLATE)) {
 
 						properties.put(contentKey, existingComponent.getProperty(contentKey));
 						component.setOwnerDocument(null);
@@ -223,7 +224,7 @@ public class ComponentImporter extends HtmlFileImporter {
 					}
 				}
 
-				final Traits traits     = Traits.of("NodeInterface");
+				final Traits traits     = Traits.of(StructrTraits.NODE_INTERFACE);
 				final String src        = new String(Files.readAllBytes(file), Charset.forName("UTF-8"));
 				boolean visibleToPublic = get(properties, traits.key("visibleToPublicUsers"), false);
 				boolean visibleToAuth   = get(properties, traits.key("visibleToAuthenticatedUsers"), false);
@@ -268,7 +269,7 @@ public class ComponentImporter extends HtmlFileImporter {
 
 							// set UUID
 							rootElement.unlockSystemPropertiesOnce();
-							rootElement.setProperty(Traits.of("GraphObject").key("id"), componentName);
+							rootElement.setProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key("id"), componentName);
 
 						} else if (byNameAndId) {
 
@@ -279,13 +280,13 @@ public class ComponentImporter extends HtmlFileImporter {
 							DeployCommand.updateDeferredPagelink(rootElement.getUuid(), uuid);
 
 							rootElement.unlockSystemPropertiesOnce();
-							rootElement.setProperty(Traits.of("GraphObject").key("id"), uuid);
-							properties.put(Traits.of("NodeInterface").key("name"), name);
+							rootElement.setProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key("id"), uuid);
+							properties.put(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), name);
 
 						} else {
 
 							// set name
-							rootElement.setProperty(Traits.of("NodeInterface").key("name"), componentName);
+							rootElement.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), componentName);
 						}
 
 						// store properties from components.json if present

@@ -23,6 +23,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.entity.dom.DOMNode;
@@ -42,8 +43,8 @@ public class SiteTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface site1 = createTestNode("Site", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "site1"), new NodeAttribute<>(Traits.of("Site").key("hostname"), "test1.example.com"));
-			final NodeInterface site2 = createTestNode("Site", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "site2"), new NodeAttribute<>(Traits.of("Site").key("hostname"), "test2.example.com"));
+			final NodeInterface site1 = createTestNode("Site", new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "site1"), new NodeAttribute<>(Traits.of("Site").key("hostname"), "test1.example.com"));
+			final NodeInterface site2 = createTestNode("Site", new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "site2"), new NodeAttribute<>(Traits.of("Site").key("hostname"), "test2.example.com"));
 
 			site1.setProperty(Traits.of("Site").key("visibleToAuthenticatedUsers"), true);
 			site2.setProperty(Traits.of("Site").key("visibleToAuthenticatedUsers"), true);
@@ -60,15 +61,15 @@ public class SiteTest extends StructrUiTest {
 			makePublicRecursively(page3);
 			makePublicRecursively(page4);
 
-			page1.setProperty(Traits.of("Page").key("position"), 10);
-			page2.setProperty(Traits.of("Page").key("position"), 10);
-			page3.setProperty(Traits.of("Page").key("position"), 10);
-			page4.setProperty(Traits.of("Page").key("position"), 10);
+			page1.setProperty(Traits.of(StructrTraits.PAGE).key("position"), 10);
+			page2.setProperty(Traits.of(StructrTraits.PAGE).key("position"), 10);
+			page3.setProperty(Traits.of(StructrTraits.PAGE).key("position"), 10);
+			page4.setProperty(Traits.of(StructrTraits.PAGE).key("position"), 10);
 
-			page1.setProperty(Traits.of("Page").key("sites"), Arrays.asList(site1));
-			page2.setProperty(Traits.of("Page").key("sites"), Arrays.asList(site1));
-			page3.setProperty(Traits.of("Page").key("sites"), Arrays.asList(site2));
-			page4.setProperty(Traits.of("Page").key("sites"), Arrays.asList(site2));
+			page1.setProperty(Traits.of(StructrTraits.PAGE).key("sites"), Arrays.asList(site1));
+			page2.setProperty(Traits.of(StructrTraits.PAGE).key("sites"), Arrays.asList(site1));
+			page3.setProperty(Traits.of(StructrTraits.PAGE).key("sites"), Arrays.asList(site2));
+			page4.setProperty(Traits.of(StructrTraits.PAGE).key("sites"), Arrays.asList(site2));
 
 			tx.success();
 
@@ -97,8 +98,8 @@ public class SiteTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface site1 = createTestNode("Site", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "site1"), new NodeAttribute<>(Traits.of("Site").key("hostname"), "test1.example.com"));
-			final NodeInterface site2 = createTestNode("Site", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "site2"), new NodeAttribute<>(Traits.of("Site").key("hostname"), "test2.example.com"));
+			final NodeInterface site1 = createTestNode("Site", new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "site1"), new NodeAttribute<>(Traits.of("Site").key("hostname"), "test1.example.com"));
+			final NodeInterface site2 = createTestNode("Site", new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "site2"), new NodeAttribute<>(Traits.of("Site").key("hostname"), "test2.example.com"));
 
 			site1.setProperty(Traits.of("Site").key("visibleToAuthenticatedUsers"), true);
 			site2.setProperty(Traits.of("Site").key("visibleToAuthenticatedUsers"), true);
@@ -115,15 +116,15 @@ public class SiteTest extends StructrUiTest {
 			//makePublicRecursively(page3);
 			makePublicRecursively(page4);
 
-			page1.setProperty(Traits.of("Page").key("position"), 10);
-			page2.setProperty(Traits.of("Page").key("position"), 10);
-			page3.setProperty(Traits.of("Page").key("position"), 10);
-			page4.setProperty(Traits.of("Page").key("position"), 10);
+			page1.setProperty(Traits.of(StructrTraits.PAGE).key("position"), 10);
+			page2.setProperty(Traits.of(StructrTraits.PAGE).key("position"), 10);
+			page3.setProperty(Traits.of(StructrTraits.PAGE).key("position"), 10);
+			page4.setProperty(Traits.of(StructrTraits.PAGE).key("position"), 10);
 
-			page1.setProperty(Traits.of("Page").key("sites"), Arrays.asList(site1));
-			page2.setProperty(Traits.of("Page").key("sites"), Arrays.asList(site1));
-			page3.setProperty(Traits.of("Page").key("sites"), Arrays.asList(site2));
-			page4.setProperty(Traits.of("Page").key("sites"), Arrays.asList(site2));
+			page1.setProperty(Traits.of(StructrTraits.PAGE).key("sites"), Arrays.asList(site1));
+			page2.setProperty(Traits.of(StructrTraits.PAGE).key("sites"), Arrays.asList(site1));
+			page3.setProperty(Traits.of(StructrTraits.PAGE).key("sites"), Arrays.asList(site2));
+			page4.setProperty(Traits.of(StructrTraits.PAGE).key("sites"), Arrays.asList(site2));
 
 			tx.success();
 
@@ -149,8 +150,8 @@ public class SiteTest extends StructrUiTest {
 
 	private void makePublicRecursively(final DOMNode node) throws FrameworkException {
 
-		node.setProperty(Traits.of("DOMNode").key("visibleToAuthenticatedUsers"), true);
-		node.setProperty(Traits.of("DOMNode").key("visibleToPublicUsers"), true);
+		node.setProperty(Traits.of(StructrTraits.DOM_NODE).key("visibleToAuthenticatedUsers"), true);
+		node.setProperty(Traits.of(StructrTraits.DOM_NODE).key("visibleToPublicUsers"), true);
 
 		for (final DOMNode child : node.getChildren()) {
 

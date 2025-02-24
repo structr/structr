@@ -31,6 +31,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Security;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -83,7 +84,7 @@ public interface NodeInterface extends GraphObject, Comparable<NodeInterface> {
 
 	default void copyPermissionsTo(final SecurityContext ctx, final NodeInterface targetNode, final boolean overwrite) throws FrameworkException {
 
-		for (final RelationshipInterface rel : this.getIncomingRelationships("SecurityRelationship")) {
+		for (final RelationshipInterface rel : this.getIncomingRelationships(StructrTraits.SECURITY)) {
 
 			final Set<Permission> permissions = new HashSet();
 			final Security security           = rel.as(Security.class);

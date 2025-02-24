@@ -31,6 +31,7 @@ import org.structr.common.helper.PathHelper;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.*;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.rest.resource.MaintenanceResource;
 import org.structr.storage.StorageProviderFactory;
@@ -157,7 +158,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 			try (final Tx tx = app.tx()) {
 
-				targetFolder = app.nodeQuery("Folder").and(Traits.of("Folder").key("path"), targetPath).getFirst();
+				targetFolder = app.nodeQuery(StructrTraits.FOLDER).and(Traits.of(StructrTraits.FOLDER).key("path"), targetPath).getFirst();
 				if (targetFolder == null) {
 
 					throw new FrameworkException(422, "Target path " + targetPath + " does not exist.");
@@ -247,9 +248,9 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 			if (attrs.isDirectory()) {
 
-				final NodeInterface newFolder = app.create("Folder",
-						new NodeAttribute(Traits.of("Folder").key("name"), name),
-						new NodeAttribute(Traits.of("File").key("parent"), FileHelper.createFolderPath(securityContext, parentPath))
+				final NodeInterface newFolder = app.create(StructrTraits.FOLDER,
+						new NodeAttribute(Traits.of(StructrTraits.FOLDER).key("name"), name),
+						new NodeAttribute(Traits.of(StructrTraits.FILE).key("parent"), FileHelper.createFolderPath(securityContext, parentPath))
 				);
 
 				folderCount++;
@@ -258,7 +259,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 			} else if (attrs.isRegularFile()) {
 
-				final NodeInterface existingFile = app.nodeQuery("File").and(Traits.of("AbstractFile").key("path"), parentPath + name).getFirst();
+				final NodeInterface existingFile = app.nodeQuery(StructrTraits.FILE).and(Traits.of(StructrTraits.ABSTRACT_FILE).key("path"), parentPath + name).getFirst();
 				if (existingFile != null) {
 
 					switch (existing) {
@@ -274,7 +275,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 						case RENAME:
 							logger.info("Renaming existing file {}, file exists and mode is RENAME.", parentPath + name);
-							existingFile.setProperty(Traits.of("AbstractFile").key("name"), existingFile.getName().concat("_").concat(FileHelper.getDateString()));
+							existingFile.setProperty(Traits.of(StructrTraits.ABSTRACT_FILE).key("name"), existingFile.getName().concat("_").concat(FileHelper.getDateString()));
 							break;
 					}
 
@@ -289,7 +290,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 				if (isImage) {
 
-					traits = Traits.of("Image");
+					traits = Traits.of(StructrTraits.IMAGE);
 
 				} else if (isVideo) {
 
@@ -301,13 +302,13 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 				} else {
 
-					traits = Traits.of("File");
+					traits = Traits.of(StructrTraits.FILE);
 				}
 
 				final NodeInterface newFile = app.create(traits.getName(),
-						new NodeAttribute(Traits.of("File").key("name"), name),
-						new NodeAttribute(Traits.of("File").key("parent"), FileHelper.createFolderPath(securityContext, parentPath)),
-						new NodeAttribute(Traits.of("GraphObject").key("type"), traits.getName())
+						new NodeAttribute(Traits.of(StructrTraits.FILE).key("name"), name),
+						new NodeAttribute(Traits.of(StructrTraits.FILE).key("parent"), FileHelper.createFolderPath(securityContext, parentPath)),
+						new NodeAttribute(Traits.of(StructrTraits.GRAPH_OBJECT).key("type"), traits.getName())
 				);
 
 				try (final InputStream is = new FileInputStream(file.toFile()); final OutputStream os = StorageProviderFactory.getStorageProvider(newFile.as(File.class)).getOutputStream()) {

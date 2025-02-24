@@ -25,6 +25,7 @@ import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.schema.NonIndexed;
 import org.structr.web.common.AsyncBuffer;
@@ -264,7 +265,7 @@ public class DOMElementTraitWrapper extends DOMNodeTraitWrapper implements DOMEl
 		@Override
 		public boolean accept(final DOMNode obj) {
 
-			if (obj.is("DOMElement")) {
+			if (obj.is(StructrTraits.DOM_ELEMENT)) {
 
 				DOMElement elem = obj.as(DOMElement.class);
 
@@ -293,7 +294,7 @@ public class DOMElementTraitWrapper extends DOMNodeTraitWrapper implements DOMEl
 		// create synthetic HtmlProperty
 		final HtmlProperty htmlProperty = new HtmlProperty(name);
 
-		htmlProperty.setDeclaringTrait(Traits.getTrait("DOMElement"));
+		htmlProperty.setDeclaringTrait(Traits.getTrait(StructrTraits.DOM_ELEMENT));
 
 		return htmlProperty;
 	}

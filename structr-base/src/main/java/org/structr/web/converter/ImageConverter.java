@@ -28,6 +28,7 @@ import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.entity.Image;
 
@@ -137,7 +138,7 @@ public class ImageConverter extends PropertyConverter {
 	@Override
 	public Object revert(Object source) {
 
-		if (currentObject.is("Image")) {
+		if (currentObject.is(StructrTraits.IMAGE)) {
 
 			return ImageHelper.getBase64String((currentObject.as(Image.class)));
 

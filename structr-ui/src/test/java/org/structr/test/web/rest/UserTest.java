@@ -20,8 +20,6 @@ package org.structr.test.web.rest;
 
 import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
 import org.structr.common.PropertyView;
@@ -29,6 +27,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.auth.UiAuthenticator;
@@ -128,7 +127,7 @@ public class UserTest extends StructrUiTest {
 
 		final String uuid = createEntityAsSuperUser("/User", "{ 'name': 'user', 'password': 'password'}");
 
-		grant("User",     UiAuthenticator.AUTH_USER_GET, true);
+		grant(StructrTraits.USER,     UiAuthenticator.AUTH_USER_GET, true);
 		grant("User/_Ui", UiAuthenticator.AUTH_USER_GET, false);
 
 		final App app = StructrApp.getInstance();
@@ -136,7 +135,7 @@ public class UserTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final JsonSchema schema  = StructrSchema.createFromDatabase(app);
-			final JsonType principal = schema.addType("User");
+			final JsonType principal = schema.addType(StructrTraits.USER);
 
 			principal.addFunctionProperty("funcTest", PropertyView.Public, PropertyView.Ui).setReadFunction("(me)");
 

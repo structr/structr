@@ -30,6 +30,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.Page;
 import org.structr.websocket.StructrWebSocket;
@@ -67,7 +68,7 @@ public class ListLocalizationsCommand extends AbstractCommand {
 
 		try (final Tx tx = app.tx(true, true, false)) {
 
-			final NodeInterface pageNode                = app.getNodeById("Page", id);
+			final NodeInterface pageNode = app.getNodeById(StructrTraits.PAGE, id);
 			if (pageNode != null) {
 
 				final Page page = pageNode.as(Page.class);

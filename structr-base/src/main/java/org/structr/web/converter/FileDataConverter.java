@@ -28,6 +28,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.CreationContainer;
+import org.structr.core.traits.StructrTraits;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.FileHelper.Base64URIData;
 import org.structr.web.common.ImageHelper;
@@ -110,7 +111,7 @@ public class FileDataConverter extends PropertyConverter {
 	@Override
 	public Object revert(final Object source) {
 
-		if (currentObject != null && currentObject.is("File")) {
+		if (currentObject != null && currentObject.is(StructrTraits.FILE)) {
 
 			final File currentFile = currentObject.as(File.class);
 			return ImageHelper.getBase64String(currentFile);
@@ -129,7 +130,7 @@ public class FileDataConverter extends PropertyConverter {
 			return ((CreationContainer)currentObject).getWrappedObject().as(File.class);
 		}
 
-		if (currentObject != null && currentObject.is("File")) {
+		if (currentObject != null && currentObject.is(StructrTraits.FILE)) {
 			return currentObject.as(File.class);
 		}
 

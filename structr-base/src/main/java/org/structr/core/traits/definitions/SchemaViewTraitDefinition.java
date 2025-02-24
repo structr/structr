@@ -25,6 +25,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.wrappers.SchemaViewTraitWrapper;
 
 import java.util.Map;
@@ -39,7 +40,7 @@ public class SchemaViewTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String schemaViewNamePattern    = "[a-zA-Z_][a-zA-Z0-9_]*";
 
 	public SchemaViewTraitDefinition() {
-		super("SchemaView");
+		super(StructrTraits.SCHEMA_VIEW);
 	}
 
 	@Override
@@ -52,8 +53,8 @@ public class SchemaViewTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface>           schemaNode           = new StartNode("schemaNode", "SchemaNodeView", new PropertySetNotion<>(newSet("id", "name")));
-		final Property<Iterable<NodeInterface>> schemaProperties     = new EndNodes("schemaProperties", "SchemaViewProperty", new PropertySetNotion<>(newSet("id", "name")));
+		final Property<NodeInterface>           schemaNode           = new StartNode("schemaNode", StructrTraits.SCHEMA_NODE_VIEW, new PropertySetNotion<>(newSet("id", "name")));
+		final Property<Iterable<NodeInterface>> schemaProperties     = new EndNodes("schemaProperties", StructrTraits.SCHEMA_VIEW_PROPERTY, new PropertySetNotion<>(newSet("id", "name")));
 		final Property<Boolean>                 isBuiltinView        = new BooleanProperty("isBuiltinView");
 		final Property<String>                  staticSchemaNodeName = new StringProperty("staticSchemaNodeName");
 		final Property<String>                  nonGraphProperties   = new StringProperty("nonGraphProperties");
@@ -115,7 +116,7 @@ public class SchemaViewTraitDefinition extends AbstractNodeTraitDefinition {
 
 		try {
 
-			final List<SchemaView> viewsOnParent = StructrApp.getInstance().nodeQuery("SchemaView").and(SchemaView.name, thisViewName).and(SchemaView.schemaNode, parent).getAsList();
+			final List<SchemaView> viewsOnParent = StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_VIEW).and(SchemaView.name, thisViewName).and(SchemaView.schemaNode, parent).getAsList();
 
 			for (final SchemaView schemaView : viewsOnParent) {
 

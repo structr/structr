@@ -24,6 +24,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
@@ -120,7 +121,7 @@ public class ReplaceWithCommand extends CreateAndAppendDOMNodeCommand {
 				try {
 
 					newNode.unlockSystemPropertiesOnce();
-					newNode.setProperties(newNode.getSecurityContext(), new PropertyMap(Traits.of("GraphObject").key("type"), "Template"));
+					newNode.setProperties(newNode.getSecurityContext(), new PropertyMap(Traits.of(StructrTraits.GRAPH_OBJECT).key("type"), StructrTraits.TEMPLATE));
 
 				} catch (FrameworkException fex) {
 
@@ -155,7 +156,7 @@ public class ReplaceWithCommand extends CreateAndAppendDOMNodeCommand {
 
 				// Remove old node from page
 				final PropertyMap changedProperties = new PropertyMap();
-				final Traits traits                 = Traits.of("DOMNode");
+				final Traits traits                 = Traits.of(StructrTraits.DOM_NODE);
 
 				changedProperties.put(traits.key("syncedNodes"), Collections.EMPTY_LIST);
 				changedProperties.put(traits.key("pageId"),      null);

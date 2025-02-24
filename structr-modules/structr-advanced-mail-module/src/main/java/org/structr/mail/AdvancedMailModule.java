@@ -46,8 +46,8 @@ public class AdvancedMailModule implements StructrModule {
 		StructrTraits.registerRelationshipType("EMailMessageHAS_ATTACHMENTFile", new EMailMessageHAS_ATTACHMENTFile());
 		StructrTraits.registerRelationshipType("MailboxCONTAINS_EMAILMESSAGESEMailMessage", new MailboxCONTAINS_EMAILMESSAGESEMailMessage());
 
-		StructrTraits.registerNodeType("EMailMessage", new EMailMessageTraitDefinition());
-		StructrTraits.registerNodeType("Mailbox",      new MailboxTraitDefinition());
+		StructrTraits.registerNodeType(StructrTraits.EMAIL_MESSAGE, new EMailMessageTraitDefinition());
+		StructrTraits.registerNodeType(StructrTraits.MAILBOX,       new MailboxTraitDefinition());
 
 		Functions.put(licenseManager, new MailBeginFunction(this));
 		Functions.put(licenseManager, new MailSetFromFunction(this));

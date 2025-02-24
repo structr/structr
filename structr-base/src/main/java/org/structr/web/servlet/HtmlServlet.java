@@ -58,6 +58,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.service.HttpServiceServlet;
@@ -151,7 +152,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 		final long t0                                   = System.currentTimeMillis();
 		final Authenticator auth                        = getConfig().getAuthenticator();
-		final Traits pageTraits                         = Traits.of("Page");
+		final Traits pageTraits                         = Traits.of(StructrTraits.PAGE);
 		boolean requestUriContainsUuids                 = false;
 
 		SecurityContext securityContext;
@@ -276,7 +277,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 						if (uriParts.length == 1 && Settings.isValidUuid(uriParts[0])) {
 
 							final NodeInterface node = findNodeByUuid(securityContext, uriParts[0]);
-							if (node != null && node.is("DOMElement")) {
+							if (node != null && node.is(StructrTraits.DOM_ELEMENT)) {
 
 								rootElement = node.as(DOMElement.class);
 
@@ -357,7 +358,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 								final NodeInterface possibleRootNode = findNodeByUuid(securityContext, PathHelper.getName(path));
 
-								if (possibleRootNode.is("DOMNode")) {
+								if (possibleRootNode.is(StructrTraits.DOM_NODE)) {
 									rootElement = possibleRootNode.as(DOMNode.class);
 								}
 							}
@@ -373,7 +374,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 								final NodeInterface possibleRootNode = findNodeByUuid(securityContext, PathHelper.getName(pagePart));
 
 								// check visibleForSite here as well
-								if (possibleRootNode != null && possibleRootNode.is("DOMNode") && (!(possibleRootNode.is("Page")) || isVisibleForSite(request, possibleRootNode.as(Page.class)))) {
+								if (possibleRootNode != null && possibleRootNode.is(StructrTraits.DOM_NODE) && (!(possibleRootNode.is(StructrTraits.PAGE)) || isVisibleForSite(request, possibleRootNode.as(Page.class)))) {
 
 									rootElement = possibleRootNode.as(DOMNode.class);
 								}
@@ -420,13 +421,13 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 						case Authenticated:
 
 							final Linkable result = authResult.getRootElement();
-							if (result.is("Page")) {
+							if (result.is(StructrTraits.PAGE)) {
 
 								rootElement = result.as(DOMNode.class);
 								securityContext = authResult.getSecurityContext();
 								renderContext.pushSecurityContext(securityContext);
 
-							} else if (result.is("File")) {
+							} else if (result.is(StructrTraits.FILE)) {
 
 								streamFile(authResult.getSecurityContext(), result.as(File.class), request, response, EditMode.NONE, true);
 								tx.success();
@@ -438,7 +439,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 						// Page with Basic Auth found but not yet authenticated
 						case MustAuthenticate:
 
-							final NodeInterface errorPage = StructrApp.getInstance().nodeQuery("Page").and(pageTraits.key("showOnErrorCodes"), "401", false).getFirst();
+							final NodeInterface errorPage = StructrApp.getInstance().nodeQuery(StructrTraits.PAGE).and(pageTraits.key("showOnErrorCodes"), "401", false).getFirst();
 							if (errorPage != null && isVisibleForSite(request, errorPage.as(Page.class))) {
 
 								// set error page
@@ -525,7 +526,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 						setCustomResponseHeaders(response);
 
-						final boolean createsRawData = rootElement.is("Page") && rootElement.as(Page.class).pageCreatesRawData();
+						final boolean createsRawData = rootElement.is(StructrTraits.PAGE) && rootElement.as(Page.class).pageCreatesRawData();
 
 						// async or not?
 						if (isAsync && !createsRawData) {
@@ -692,14 +693,14 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 					}
 
-					if (dataNode != null && !(dataNode.is("Linkable"))) {
+					if (dataNode != null && !(dataNode.is(StructrTraits.LINKABLE))) {
 
 						rootElement = findPage(securityContext, StringUtils.substringBeforeLast(path, PathHelper.PATH_SEP), edit);
 
 						renderContext.setDetailsDataObject(dataNode);
 
 						// Start rendering on data node
-						if (rootElement == null && dataNode.is("DOMNode")) {
+						if (rootElement == null && dataNode.is(StructrTraits.DOM_NODE)) {
 
 							rootElement = dataNode.as(DOMNode.class);
 
@@ -719,12 +720,12 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 						// Element with Basic Auth found and authentication succeeded
 						case Authenticated:
 							final Linkable result = authResult.getRootElement();
-							if (result.is("Page")) {
+							if (result.is(StructrTraits.PAGE)) {
 
 								rootElement = result.as(Page.class);
 								renderContext.pushSecurityContext(authResult.getSecurityContext());
 
-							} else if (result.is("File")) {
+							} else if (result.is(StructrTraits.FILE)) {
 
 								streamFile(authResult.getSecurityContext(), result.as(File.class), request, response, EditMode.NONE, true);
 								tx.success();
@@ -981,8 +982,8 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	 */
 	private Page notFound(final HttpServletResponse response, final SecurityContext securityContext) throws IOException, FrameworkException {
 
-		final PropertyKey<String> key        = Traits.of("Page").key("showOnErrorCodes");
-		final List<NodeInterface> errorPages = StructrApp.getInstance(securityContext).nodeQuery("Page").and(key, "404", false).getAsList();
+		final PropertyKey<String> key        = Traits.of(StructrTraits.PAGE).key("showOnErrorCodes");
+		final List<NodeInterface> errorPages = StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.PAGE).and(key, "404", false).getAsList();
 
 		for (final NodeInterface node : errorPages) {
 
@@ -1003,8 +1004,8 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 	private Page getErrorPageForStatus(final HttpServletResponse response, final SecurityContext securityContext) throws IOException, FrameworkException {
 
-		final PropertyKey<String> key        = Traits.of("Page").key("showOnErrorCodes");
-		final List<NodeInterface> errorPages = StructrApp.getInstance(securityContext).nodeQuery("Page").and(key, "" + response.getStatus(), false).getAsList();
+		final PropertyKey<String> key        = Traits.of(StructrTraits.PAGE).key("showOnErrorCodes");
+		final List<NodeInterface> errorPages = StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.PAGE).and(key, "" + response.getStatus(), false).getAsList();
 
 		for (final NodeInterface node : errorPages) {
 
@@ -1037,7 +1038,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 			logger.debug("Requested name: {}", name);
 
-			final Query<NodeInterface> query    = StructrApp.getInstance(securityContext).nodeQuery("NodeInterface");
+			final Query<NodeInterface> query    = StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.NODE_INTERFACE);
 			final ConfigurationProvider config = StructrApp.getConfiguration();
 
 			if (!possiblePropertyNamesForEntityResolving.isEmpty()) {
@@ -1100,7 +1101,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			// prefetch file data
 			FileHelper.prefetchFileData(node.getUuid());
 
-			if (node.is("File") && (path.equals(node.getPath()) || node.getUuid().equals(PathHelper.getName(path)))) {
+			if (node.is(StructrTraits.FILE) && (path.equals(node.getPath()) || node.getUuid().equals(PathHelper.getName(path)))) {
 				return node.as(File.class);
 			}
 		}
@@ -1118,7 +1119,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	 */
 	private DOMNode findPartialByName(final SecurityContext securityContext, final String name) throws FrameworkException {
 
-		for (final NodeInterface node : StructrApp.getInstance(securityContext).nodeQuery("DOMNode").andName(name).not().and(Traits.of("GraphObject").key("type"), "Page").getAsList()) {
+		for (final NodeInterface node : StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.DOM_NODE).andName(name).not().and(Traits.of(StructrTraits.GRAPH_OBJECT).key("type"), StructrTraits.PAGE).getAsList()) {
 
 			final DOMNode potentialPartial = node.as(DOMNode.class);
 
@@ -1143,7 +1144,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	 */
 	private Page findPage(final SecurityContext securityContext, final String path, final EditMode edit) throws FrameworkException {
 
-		final Traits traits               = Traits.of("Page");
+		final Traits traits               = Traits.of(StructrTraits.PAGE);
 		final PropertyKey<String> pathKey = traits.key("path");
 		final PropertyKey<String> nameKey = traits.key("name");
 
@@ -1152,7 +1153,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		attributes.put(nameKey, name);
 
 		// Find pages by path or name
-		final List<NodeInterface> possiblePages = StructrApp.getInstance(securityContext).nodeQuery("Page")
+		final List<NodeInterface> possiblePages = StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.PAGE)
 			.or()
 				.notBlank(pathKey)
 				.and(pathKey, path)
@@ -1178,9 +1179,9 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		// FIXME: the length is different depending on the uuid type setting
 		if (name.length() == 32) {
 
-			final NodeInterface possiblePage = StructrApp.getInstance(securityContext).getNodeById("NodeInterface", name);
+			final NodeInterface possiblePage = StructrApp.getInstance(securityContext).getNodeById(StructrTraits.NODE_INTERFACE, name);
 
-			if (possiblePage != null && possiblePage.is("Page") && (EditMode.CONTENT.equals(edit) || isVisibleForSite(securityContext.getRequest(), possiblePage.as(Page.class)))) {
+			if (possiblePage != null && possiblePage.is(StructrTraits.PAGE) && (EditMode.CONTENT.equals(edit) || isVisibleForSite(securityContext.getRequest(), possiblePage.as(Page.class)))) {
 
 				return possiblePage.as(Page.class);
 			}
@@ -1200,10 +1201,10 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	 */
 	private Page findIndexPage(final SecurityContext securityContext, final EditMode edit) throws FrameworkException {
 
-		final Traits traits                    = Traits.of("Page");
+		final Traits traits                    = Traits.of(StructrTraits.PAGE);
 		final PropertyKey<Integer> positionKey = traits.key("position");
 
-		final List<NodeInterface> possiblePages = StructrApp.getInstance(securityContext).nodeQuery("Page").notBlank(positionKey).sort(positionKey).getAsList();
+		final List<NodeInterface> possiblePages = StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.PAGE).notBlank(positionKey).sort(positionKey).getAsList();
 
 		for (final NodeInterface node : possiblePages) {
 
@@ -1241,7 +1242,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			return false;
 		}
 
-		final PropertyKey<String> confirmationKey = Traits.of("User").key("confirmationKey");
+		final PropertyKey<String> confirmationKey = Traits.of(StructrTraits.USER).key("confirmationKey");
 
 		if (CONFIRM_REGISTRATION_PAGE.equals(path)) {
 
@@ -1250,7 +1251,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			List<NodeInterface> results;
 			try (final Tx tx = app.tx()) {
 
-				results = app.nodeQuery("Principal").and(confirmationKey, key).getAsList();
+				results = app.nodeQuery(StructrTraits.PRINCIPAL).and(confirmationKey, key).getAsList();
 
 				tx.success();
 			}
@@ -1335,7 +1336,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			return false;
 		}
 
-		final PropertyKey<String> confirmationKeyKey = Traits.of("User").key("confirmationKey");
+		final PropertyKey<String> confirmationKeyKey = Traits.of(StructrTraits.USER).key("confirmationKey");
 
 		if (RESET_PASSWORD_PAGE.equals(path)) {
 
@@ -1344,7 +1345,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			List<NodeInterface> results;
 			try (final Tx tx = app.tx()) {
 
-				results = app.nodeQuery("Principal").and(confirmationKeyKey, key).getAsList();
+				results = app.nodeQuery(StructrTraits.PRINCIPAL).and(confirmationKeyKey, key).getAsList();
 
 				tx.success();
 			}
@@ -1405,7 +1406,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 		if (!uuid.isEmpty()) {
 
-			final NodeInterface node = StructrApp.getInstance(securityContext).getNodeById("NodeInterface", uuid);
+			final NodeInterface node = StructrApp.getInstance(securityContext).getNodeById(StructrTraits.NODE_INTERFACE, uuid);
 			if (node != null) {
 
 				return List.of(node.as(Linkable.class));
@@ -1423,7 +1424,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 			final List<Linkable> list = new LinkedList<>();
 
-			for (final NodeInterface node : StructrApp.getInstance(securityContext).nodeQuery("Linkable").and(pathPropertyForSearch, path).getResultStream()) {
+			for (final NodeInterface node : StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.LINKABLE).and(pathPropertyForSearch, path).getResultStream()) {
 
 				list.add(node.as(Linkable.class));
 			}
@@ -1475,7 +1476,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 		response.setHeader("Date", httpDateFormat.format(new Date()));
 
-		final Integer seconds = node.is("Page") ? node.as(Page.class).getCacheForSeconds() : (node.is("File") ? node.as(File.class).getCacheForSeconds() : null);
+		final Integer seconds = node.is(StructrTraits.PAGE) ? node.as(Page.class).getCacheForSeconds() : (node.is(StructrTraits.FILE) ? node.as(File.class).getCacheForSeconds() : null);
 		final Calendar cal    = new GregorianCalendar();
 
 		if (!dontCache && seconds != null) {
@@ -1742,7 +1743,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		for (final String possiblePropertyName : possiblePropertyNamesForEntityResolving) {
 
 			final String[] parts = possiblePropertyName.split("\\.");
-			String className     = "NodeInterface";
+			String className     = StructrTraits.NODE_INTERFACE;
 			String keyName       = "name";
 
 			switch (parts.length) {
@@ -1796,10 +1797,10 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 	private HttpBasicAuthResult checkHttpBasicAuth(final SecurityContext outerSecurityContext, final HttpServletRequest request, final HttpServletResponse response, final String path) throws IOException, FrameworkException {
 
-		final PropertyKey<Boolean> basicAuthKey     = Traits.of("Linkable").key("enableBasicAuth");
-		final PropertyKey<Integer> positionKey      = Traits.of("Page").key("position");
-		final PropertyKey<String> filePathKey       = Traits.of("File").key("path");
-		final PropertyKey<String> pagePathKey       = Traits.of("Page").key("path");
+		final PropertyKey<Boolean> basicAuthKey     = Traits.of(StructrTraits.LINKABLE).key("enableBasicAuth");
+		final PropertyKey<Integer> positionKey      = Traits.of(StructrTraits.PAGE).key("position");
+		final PropertyKey<String> filePathKey       = Traits.of(StructrTraits.FILE).key("path");
+		final PropertyKey<String> pagePathKey       = Traits.of(StructrTraits.PAGE).key("path");
 
 		// Look for renderable objects using a SuperUserSecurityContext,
 		// but dont actually render the page. We're only interested in
@@ -1808,19 +1809,19 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 		// try the different methods..
 		if (possiblePage == null) {
-			possiblePage = StructrApp.getInstance().nodeQuery("Page").and(pagePathKey, path).and(basicAuthKey, true).sort(positionKey).getFirst();
+			possiblePage = StructrApp.getInstance().nodeQuery(StructrTraits.PAGE).and(pagePathKey, path).and(basicAuthKey, true).sort(positionKey).getFirst();
 		}
 
 		if (possiblePage == null) {
-			possiblePage = StructrApp.getInstance().nodeQuery("Page").and(Traits.of("Page").key("name"), PathHelper.getName(path)).and(basicAuthKey, true).sort(positionKey).getFirst();
+			possiblePage = StructrApp.getInstance().nodeQuery(StructrTraits.PAGE).and(Traits.of(StructrTraits.PAGE).key("name"), PathHelper.getName(path)).and(basicAuthKey, true).sort(positionKey).getFirst();
 		}
 
 		if (possiblePage == null) {
-			possiblePage = StructrApp.getInstance().nodeQuery("File").and(filePathKey, path).and(basicAuthKey, true).getFirst();
+			possiblePage = StructrApp.getInstance().nodeQuery(StructrTraits.FILE).and(filePathKey, path).and(basicAuthKey, true).getFirst();
 		}
 
 		if (possiblePage == null) {
-			possiblePage = StructrApp.getInstance().nodeQuery("File").and(Traits.of("File").key("name"), PathHelper.getName(path)).and(basicAuthKey, true).getFirst();
+			possiblePage = StructrApp.getInstance().nodeQuery(StructrTraits.FILE).and(Traits.of(StructrTraits.FILE).key("name"), PathHelper.getName(path)).and(basicAuthKey, true).getFirst();
 		}
 
 		if (possiblePage != null) {
@@ -1842,7 +1843,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 					// find and instantiate the page again so that the SuperUserSecurityContext
 					// can not leak into any of the children of the given page. This is dangerous..
-					final NodeInterface page = StructrApp.getInstance(securityContext).getNodeById("Linkable", possiblePage.getUuid());
+					final NodeInterface page = StructrApp.getInstance(securityContext).getNodeById(StructrTraits.LINKABLE, possiblePage.getUuid());
 					if (page != null) {
 
 						securityContext.setRequest(request);
@@ -1894,7 +1895,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				if (StringUtils.isNoneBlank(username, password)) {
 
 					try {
-						return AuthHelper.getPrincipalForPassword(Traits.of("Principal").key("name"), username, password);
+						return AuthHelper.getPrincipalForPassword(Traits.of(StructrTraits.PRINCIPAL).key("name"), username, password);
 
 					} catch (Throwable t) {
 						// ignore
@@ -1910,7 +1911,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 		String contentType = "text/html;charset=UTF-8";
 
-		if (rootElement.is("Page")) {
+		if (rootElement.is(StructrTraits.PAGE)) {
 
 			final String possibleContentType = rootElement.as(Page.class).getContentType();
 			if (StringUtils.isNotBlank(possibleContentType)) {

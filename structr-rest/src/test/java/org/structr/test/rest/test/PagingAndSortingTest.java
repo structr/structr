@@ -32,6 +32,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.graph.attribute.Name;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.testng.annotations.Test;
@@ -247,8 +248,8 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 				.body("page_size",          equalTo(2))
 				.body("page_count",         equalTo(2))
 				.body("result",             hasSize(2))
-				.body("result[0].type",     equalTo("PrincipalOwnsNode"))
-				.body("result[1].type",     equalTo("SecurityRelationship"))
+				.body("result[0].type",     equalTo(StructrTraits.PRINCIPAL_OWNS_NODE))
+				.body("result[1].type",     equalTo(StructrTraits.SECURITY))
 			.when()
 				.get("/TestOne/in?_pageSize=2");
 
@@ -300,8 +301,8 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 				.body("page_size",          equalTo(2))
 				.body("page_count",         equalTo(2))
 				.body("result",             hasSize(2))
-				.body("result[0].type",     equalTo("PrincipalOwnsNode"))
-				.body("result[1].type",     equalTo("SecurityRelationship"))
+				.body("result[0].type",     equalTo(StructrTraits.PRINCIPAL_OWNS_NODE))
+				.body("result[1].type",     equalTo(StructrTraits.SECURITY))
 			.when()
 				.get("/TestUser/" + uuid + "/out?_pageSize=2");
 

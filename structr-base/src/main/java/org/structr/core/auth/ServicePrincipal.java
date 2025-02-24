@@ -36,6 +36,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
@@ -231,11 +232,11 @@ public class ServicePrincipal implements Principal {
 
 				try {
 
-					final PropertyKey<String> jwksReferenceIdKey = Traits.of("Group").key("jwksReferenceId");
+					final PropertyKey<String> jwksReferenceIdKey = Traits.of(StructrTraits.GROUP).key("jwksReferenceId");
 
 					for (final String id : jwksReferenceIds) {
 
-						for (final NodeInterface node : StructrApp.getInstance().nodeQuery("Group").and(jwksReferenceIdKey, id).getResultStream()) {
+						for (final NodeInterface node : StructrApp.getInstance().nodeQuery(StructrTraits.GROUP).and(jwksReferenceIdKey, id).getResultStream()) {
 
 							groups.add(node.as(Group.class));
 						}

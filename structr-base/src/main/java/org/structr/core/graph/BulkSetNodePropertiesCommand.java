@@ -28,6 +28,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 
 import java.util.Map;
@@ -51,8 +52,8 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 
 	public long executeWithCount(final Map<String, Object> properties) throws FrameworkException {
 
-		final PropertyKey<String> typeProperty = Traits.of("GraphObject").key("type");
-		final PropertyKey<String> idProperty   = Traits.of("GraphObject").key("id");
+		final PropertyKey<String> typeProperty = Traits.of(StructrTraits.GRAPH_OBJECT).key("type");
+		final PropertyKey<String> idProperty   = Traits.of(StructrTraits.GRAPH_OBJECT).key("id");
 		final String type                      = (String)properties.get("type");
 
 		if (StringUtils.isBlank(type)) {

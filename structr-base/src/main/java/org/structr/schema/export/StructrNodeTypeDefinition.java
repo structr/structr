@@ -29,6 +29,7 @@ import org.structr.core.entity.SchemaGrant;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 
 import java.net.URI;
@@ -251,12 +252,12 @@ public class StructrNodeTypeDefinition extends StructrTypeDefinition<SchemaNode>
 			return existingNode;
 		}
 
-		final Traits traits = Traits.of("SchemaNode");
+		final Traits traits = Traits.of(StructrTraits.SCHEMA_NODE);
 
 		createProperties.put(traits.key("name"),            name);
 		createProperties.put(traits.key("inheritedTraits"), inheritedTraits.toArray(new String[0]));
 
-		final SchemaNode newNode = app.create("SchemaNode", createProperties).as(SchemaNode.class);
+		final SchemaNode newNode = app.create(StructrTraits.SCHEMA_NODE, createProperties).as(SchemaNode.class);
 
 		schemaNodes.put(name, newNode);
 

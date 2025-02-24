@@ -32,6 +32,7 @@ import org.structr.core.entity.SchemaProperty;
 import org.structr.core.graph.*;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
@@ -75,7 +76,7 @@ public final class AbstractSchemaNodeTraitDefinition extends AbstractNodeTraitDe
 	*/
 
 	public AbstractSchemaNodeTraitDefinition() {
-		super("AbstractSchemaNode");
+		super(StructrTraits.ABSTRACT_SCHEMA_NODE);
 	}
 
 	@Override
@@ -128,9 +129,9 @@ public final class AbstractSchemaNodeTraitDefinition extends AbstractNodeTraitDe
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Iterable<NodeInterface>> schemaProperties = new EndNodes("schemaProperties", "SchemaNodeProperty");
-		final Property<Iterable<NodeInterface>> schemaMethods    = new EndNodes("schemaMethods", "SchemaNodeMethod");
-		final Property<Iterable<NodeInterface>> schemaViews      = new EndNodes("schemaViews", "SchemaNodeView");
+		final Property<Iterable<NodeInterface>> schemaProperties = new EndNodes("schemaProperties", StructrTraits.SCHEMA_NODE_PROPERTY);
+		final Property<Iterable<NodeInterface>> schemaMethods    = new EndNodes("schemaMethods", StructrTraits.SCHEMA_NODE_METHOD);
+		final Property<Iterable<NodeInterface>> schemaViews      = new EndNodes("schemaViews", StructrTraits.SCHEMA_NODE_VIEW);
 		final Property<String[]> tags                            = new ArrayProperty("tags", String.class).indexed();
 		final Property<Boolean> includeInOpenAPI                 = new BooleanProperty("includeInOpenAPI").indexed();
 		final Property<Boolean> changelogDisabled                = new BooleanProperty("changelogDisabled");
@@ -231,11 +232,11 @@ public final class AbstractSchemaNodeTraitDefinition extends AbstractNodeTraitDe
 				}
 
 				// create view node
-				StructrApp.getInstance(schemaNode.getSecurityContext()).create("SchemaView",
-						new NodeAttribute(Traits.of("SchemaView").key("schemaNode"),       schemaNode),
-						new NodeAttribute(Traits.of("SchemaView").key("name"),             view),
-						new NodeAttribute(Traits.of("SchemaView").key("schemaProperties"), properties),
-						new NodeAttribute(Traits.of("SchemaView").key("isBuiltinView"),    true)
+				StructrApp.getInstance(schemaNode.getSecurityContext()).create(StructrTraits.SCHEMA_VIEW,
+						new NodeAttribute(Traits.of(StructrTraits.SCHEMA_VIEW).key("schemaNode"),       schemaNode),
+						new NodeAttribute(Traits.of(StructrTraits.SCHEMA_VIEW).key("name"),             view),
+						new NodeAttribute(Traits.of(StructrTraits.SCHEMA_VIEW).key("schemaProperties"), properties),
+						new NodeAttribute(Traits.of(StructrTraits.SCHEMA_VIEW).key("isBuiltinView"),    true)
 				);
 			}
 		}

@@ -40,6 +40,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.PersonTraitDefinition;
 import org.structr.rest.RestMethodResult;
@@ -84,9 +85,9 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 
 		if (propertySet.containsKey("eMail")) {
 
-			final PropertyKey<String> confKeyKey  = Traits.of("User").key("confirmationKey");
-			final PropertyKey<String> eMailKey    = Traits.of("User").key("eMail");
-			final PropertyKey<String> passwordKey = Traits.of("User").key("password");
+			final PropertyKey<String> confKeyKey  = Traits.of(StructrTraits.USER).key("confirmationKey");
+			final PropertyKey<String> eMailKey    = Traits.of(StructrTraits.USER).key("eMail");
+			final PropertyKey<String> passwordKey = Traits.of(StructrTraits.USER).key("password");
 			final String emailString              = (String) propertySet.get(eMailKey.jsonName());
 			final String passwordString           = (String) propertySet.get(passwordKey.jsonName());
 
@@ -108,7 +109,7 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 
 			try (final Tx tx = app.tx(true, true, true)) {
 
-				final NodeInterface userNode = app.nodeQuery("User").and(eMailKey, emailString).getFirst();
+				final NodeInterface userNode = app.nodeQuery(StructrTraits.USER).and(eMailKey, emailString).getFirst();
 				if (userNode != null) {
 
 					// For existing users, update confirmation key
@@ -182,7 +183,7 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 
 	private void sendInvitationLink(final SecurityContext securityContext, final Principal user, final Map<String, Object> propertySetFromUserPOST, final String confKey, final String localeString) throws FrameworkException, EmailException {
 
-		final PropertyKey<String> eMailKey = Traits.of("User").key("eMail");
+		final PropertyKey<String> eMailKey = Traits.of(StructrTraits.USER).key("eMail");
 		final String userEmail             = user.getProperty(eMailKey);
 		final ActionContext ctx            = new ActionContext(SecurityContext.getInstance(user, AccessMode.Frontend));
 
@@ -228,10 +229,10 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 
 		try {
 
-			final Query<NodeInterface> query = StructrApp.getInstance().nodeQuery("MailTemplate").andName(key.name());
+			final Query<NodeInterface> query = StructrApp.getInstance().nodeQuery(StructrTraits.MAIL_TEMPLATE).andName(key.name());
 
 			if (localeString != null) {
-				query.and(Traits.of("MailTemplate").key("locale"), localeString);
+				query.and(Traits.of(StructrTraits.MAIL_TEMPLATE).key("locale"), localeString);
 			}
 
 			NodeInterface template = query.getFirst();
@@ -357,7 +358,7 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 	 */
 	public Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final Map<String, Object> propertySet, final boolean autoCreate, final String confKey) throws FrameworkException {
 
-		return createUser(securityContext, credentialKey, credentialValue, propertySet, autoCreate, "User", confKey);
+		return createUser(securityContext, credentialKey, credentialValue, propertySet, autoCreate, StructrTraits.USER, confKey);
 	}
 
 	/**
@@ -376,7 +377,7 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 	 */
 	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final Map<String, Object> propertySet, final boolean autoCreate, final String userClass, final String confKey) throws FrameworkException {
 
-		final PropertyKey<String> confirmationKeyKey = Traits.of("User").key("confirmationKey");
+		final PropertyKey<String> confirmationKeyKey = Traits.of(StructrTraits.USER).key("confirmationKey");
 		Principal user = null;
 
 		// First, search for a person with that e-mail address
@@ -390,7 +391,7 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 			user.unlockSystemPropertiesOnce();
 
 			final PropertyMap changedProperties = new PropertyMap();
-			changedProperties.put(Traits.of("GraphObject").key("type"), "User");
+			changedProperties.put(Traits.of(StructrTraits.GRAPH_OBJECT).key("type"), StructrTraits.USER);
 			changedProperties.put(confirmationKeyKey, confKey);
 			user.setProperties(securityContext, changedProperties);
 
@@ -402,7 +403,7 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 			propertySet.remove(credentialKey.jsonName());
 			propertySet.remove("confirmationKey");
 
-			PropertyMap props = PropertyMap.inputTypeToJavaType(securityContext, "Principal", propertySet);
+			PropertyMap props = PropertyMap.inputTypeToJavaType(securityContext, StructrTraits.PRINCIPAL, propertySet);
 
 			// Remove any property which is not included in configuration
 			// eMail is mandatory and necessary

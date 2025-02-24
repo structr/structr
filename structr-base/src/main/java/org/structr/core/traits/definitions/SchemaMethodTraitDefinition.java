@@ -34,6 +34,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
@@ -57,7 +58,7 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 	*/
 
 	public SchemaMethodTraitDefinition() {
-		super("SchemaMethod");
+		super(StructrTraits.SCHEMA_METHOD);
 	}
 
 	@Override
@@ -92,7 +93,7 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 
 					try {
 
-						final List<NodeInterface> methodsOnCurrentLevel = StructrApp.getInstance().nodeQuery("SchemaMethod").and(schemaNodeKey, parentOrNull).getAsList();
+						final List<NodeInterface> methodsOnCurrentLevel = StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_METHOD).and(schemaNodeKey, parentOrNull).getAsList();
 						final List<SchemaMethodParameter> params        = Iterables.toList(method.getParameters());
 						// param comparison is required because otherwise this would fail for at least "getScaledImage" and "updateFeedTask"
 						final String paramsAsString                     = params.stream().map(p -> p.getName() + ":" + p.getParameterType()).collect(Collectors.joining(";"));
@@ -133,8 +134,8 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Iterable<NodeInterface>> parameters         = new EndNodes("parameters", "SchemaMethodParameters");
-		final Property<NodeInterface>      schemaNode              = new StartNode("schemaNode", "SchemaNodeMethod", new PropertySetNotion<>(newSet("id", "name", "isServiceClass")));
+		final Property<Iterable<NodeInterface>> parameters         = new EndNodes("parameters", StructrTraits.SCHEMA_METHOD_PARAMETERS);
+		final Property<NodeInterface>      schemaNode              = new StartNode("schemaNode", StructrTraits.SCHEMA_NODE_METHOD, new PropertySetNotion<>(newSet("id", "name", "isServiceClass")));
 		final Property<String>             staticSchemaNodeName    = new StringProperty("staticSchemaNodeName");
 		final Property<String>             signature               = new StringProperty("signature").indexed();
 		final Property<String>             virtualFileName         = new StringProperty("virtualFileName").indexed();

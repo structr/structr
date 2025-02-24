@@ -25,6 +25,7 @@ import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.wrappers.MailTemplateTraitWrapper;
 
 import java.util.Map;
@@ -36,7 +37,7 @@ import java.util.Set;
 public final class MailTemplateTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public MailTemplateTraitDefinition() {
-		super("MailTemplate");
+		super(StructrTraits.MAIL_TEMPLATE);
 	}
 
 	@Override

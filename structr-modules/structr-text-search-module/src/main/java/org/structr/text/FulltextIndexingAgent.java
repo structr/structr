@@ -34,6 +34,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.File;
@@ -84,7 +85,7 @@ public class FulltextIndexingAgent extends Agent<String> {
 
 						//SearchCommand.prefetch(Indexable.class, indexableId);
 
-						final NodeInterface indexable = app.nodeQuery("File").and(Traits.of("File").key("id"), indexableId).getFirst();
+						final NodeInterface indexable = app.nodeQuery(StructrTraits.FILE).and(Traits.of(StructrTraits.FILE).key("id"), indexableId).getFirst();
 						if (indexable != null) {
 
 							if (doIndexing(app, indexable.as(File.class))) {

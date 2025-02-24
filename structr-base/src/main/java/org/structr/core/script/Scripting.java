@@ -40,6 +40,7 @@ import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.DateProperty;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.core.script.polyglot.context.ContextFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
@@ -585,7 +586,7 @@ public class Scripting {
 
 			final StringBuilder buf = new StringBuilder();
 			final GraphObject obj   = (GraphObject)value;
-			final String name       = obj.getProperty(Traits.of("NodeInterface").key("name"));
+			final String name       = obj.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"));
 
 			buf.append(obj.getType());
 			buf.append("(");
@@ -693,7 +694,7 @@ public class Scripting {
 				nodeType = codeSource.getTraits().getName();
 				nodeId = codeSource.getUuid();
 
-				if (codeSource.is("SchemaMethod") && codeSource.as(SchemaMethod.class).isStaticMethod()) {
+				if (codeSource.is(StructrTraits.SCHEMA_METHOD) && codeSource.as(SchemaMethod.class).isStaticMethod()) {
 
 					final AbstractSchemaNode node = codeSource.as(SchemaMethod.class).getSchemaNode();
 					final String staticTypeName   = node.getName();

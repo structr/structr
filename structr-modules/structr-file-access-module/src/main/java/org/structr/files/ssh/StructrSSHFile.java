@@ -27,6 +27,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
@@ -180,13 +181,13 @@ public class StructrSSHFile implements Path {
 
 	protected Iterable<Folder> getFolders() throws FrameworkException {
 
-		if (actualFile != null && parent != null && actualFile.is("Folder")) {
+		if (actualFile != null && parent != null && actualFile.is(StructrTraits.FOLDER)) {
 
 			return actualFile.as(Folder.class).getFolders();
 
 		} else {
 
-			final Iterable<NodeInterface> folders = StructrApp.getInstance(getSecurityContext()).nodeQuery("Folder").and(Traits.of("AbstractFile").key("parent"), null).getResultStream();
+			final Iterable<NodeInterface> folders = StructrApp.getInstance(getSecurityContext()).nodeQuery(StructrTraits.FOLDER).and(Traits.of(StructrTraits.ABSTRACT_FILE).key("parent"), null).getResultStream();
 
 			return Iterables.map(n -> n.as(Folder.class), folders);
 		}
@@ -194,13 +195,13 @@ public class StructrSSHFile implements Path {
 
 	protected Iterable<File> getFiles() throws FrameworkException {
 
-		if (actualFile != null && parent != null && actualFile.is("Folder")) {
+		if (actualFile != null && parent != null && actualFile.is(StructrTraits.FOLDER)) {
 
 			return actualFile.as(Folder.class).getFiles();
 
 		} else {
 
-			final Iterable<NodeInterface> files = StructrApp.getInstance(getSecurityContext()).nodeQuery("File").and(Traits.of("AbstractFile").key("parent"), null).getResultStream();
+			final Iterable<NodeInterface> files = StructrApp.getInstance(getSecurityContext()).nodeQuery(StructrTraits.FILE).and(Traits.of(StructrTraits.ABSTRACT_FILE).key("parent"), null).getResultStream();
 
 			return Iterables.map(n -> n.as(File.class), files);
 		}

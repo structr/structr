@@ -25,6 +25,7 @@ import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
 import org.structr.schema.action.ActionContext;
 
 public class RemoveFromGroupFunction extends AdvancedScriptingFunction {
@@ -49,11 +50,11 @@ public class RemoveFromGroupFunction extends AdvancedScriptingFunction {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 2);
 
-			if (!(sources[0] instanceof NodeInterface n1 && n1.is("Group"))) {
+			if (!(sources[0] instanceof NodeInterface n1 && n1.is(StructrTraits.GROUP))) {
 
 				logParameterError(caller, sources, "Expected node of type Group as first argument!", ctx.isJavaScriptContext());
 
-			} else if (!(sources[1] instanceof NodeInterface n2 && n2.is("Principal"))) {
+			} else if (!(sources[1] instanceof NodeInterface n2 && n2.is(StructrTraits.PRINCIPAL))) {
 
 				logParameterError(caller, sources, "Expected node of type Principal as second argument!", ctx.isJavaScriptContext());
 

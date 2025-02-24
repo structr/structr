@@ -35,6 +35,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.*;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.entity.LogEvent;
@@ -112,7 +113,7 @@ public class LogResource extends ExactMatchEndpoint {
 
 		@Override
 		public String getTypeName(final SecurityContext securityContext) {
-			return "GraphObject";
+			return StructrTraits.GRAPH_OBJECT;
 		}
 
 		@Override

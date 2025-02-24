@@ -24,6 +24,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 import org.structr.storage.StorageProviderFactory;
@@ -59,7 +60,7 @@ public class CopyFileContentsFunction extends UiAdvancedFunction {
 			final Object toCopy       = sources[0];
 			final Object toBeReplaced = sources[1];
 
-			if (toCopy instanceof NodeInterface source && toBeReplaced instanceof NodeInterface target && source.is("File") && target.is("File")) {
+			if (toCopy instanceof NodeInterface source && toBeReplaced instanceof NodeInterface target && source.is(StructrTraits.FILE) && target.is(StructrTraits.FILE)) {
 
 				File nodeToCopy       = source.as(File.class);
 				File nodeToBeReplaced = target.as(File.class);
@@ -68,9 +69,9 @@ public class CopyFileContentsFunction extends UiAdvancedFunction {
 
 					IOUtils.copy(is, os);
 
-					final PropertyKey<Integer> versionKey = Traits.of("File").key("version");
-					final PropertyKey<Long> checksumKey   = Traits.of("File").key("checksum");
-					final PropertyKey<Long> sizeKey       = Traits.of("File").key("size");
+					final PropertyKey<Integer> versionKey = Traits.of(StructrTraits.FILE).key("version");
+					final PropertyKey<Long> checksumKey   = Traits.of(StructrTraits.FILE).key("checksum");
+					final PropertyKey<Long> sizeKey       = Traits.of(StructrTraits.FILE).key("size");
 					final PropertyMap changedProperties   = new PropertyMap();
 
 					changedProperties.put(checksumKey, FileHelper.getChecksum(nodeToBeReplaced));

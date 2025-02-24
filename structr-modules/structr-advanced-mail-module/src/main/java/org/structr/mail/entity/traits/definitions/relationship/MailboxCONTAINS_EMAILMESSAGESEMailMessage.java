@@ -19,6 +19,7 @@
 package org.structr.mail.entity.traits.definitions.relationship;
 
 import org.structr.core.entity.Relation;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
@@ -30,12 +31,12 @@ public class MailboxCONTAINS_EMAILMESSAGESEMailMessage extends AbstractRelations
 
 	@Override
 	public String getSourceType() {
-		return "Mailbox";
+		return StructrTraits.MAILBOX;
 	}
 
 	@Override
 	public String getTargetType() {
-		return "EMailMessage";
+		return StructrTraits.EMAIL_MESSAGE;
 	}
 
 	@Override

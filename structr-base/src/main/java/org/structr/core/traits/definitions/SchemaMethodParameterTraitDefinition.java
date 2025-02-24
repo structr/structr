@@ -23,6 +23,7 @@ import org.structr.core.entity.SchemaMethodParameter;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.wrappers.SchemaMethodParameterTraitWrapper;
 
 import java.util.Map;
@@ -34,7 +35,7 @@ import java.util.Set;
 public class SchemaMethodParameterTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public SchemaMethodParameterTraitDefinition() {
-		super("SchemaMethodParameter");
+		super(StructrTraits.SCHEMA_METHOD_PARAMETER);
 	}
 
 	@Override
@@ -48,7 +49,7 @@ public class SchemaMethodParameterTraitDefinition extends AbstractNodeTraitDefin
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> schemaMethod = new StartNode("schemaMethod", "SchemaMethodParameters");
+		final Property<NodeInterface> schemaMethod = new StartNode("schemaMethod", StructrTraits.SCHEMA_METHOD_PARAMETERS);
 		final Property<String> parameterType       = new StringProperty("parameterType");
 		final Property<Integer> index              = new IntProperty("index").defaultValue(0);
 		final Property<String> description         = new StringProperty("description");

@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.entity.dom.DOMNode;
 
@@ -40,7 +41,7 @@ public abstract class DOMTest extends StructrUiTest {
 		
 		try {
 			
-			List<NodeInterface> pages = this.createTestNodes("Page", 1);
+			List<NodeInterface> pages = this.createTestNodes(StructrTraits.PAGE, 1);
 
 			if (!pages.isEmpty()) {
 				
@@ -61,7 +62,7 @@ public abstract class DOMTest extends StructrUiTest {
 		
 		try {
 			
-			List<NodeInterface> contents = this.createTestNodes("Content", 1);
+			List<NodeInterface> contents = this.createTestNodes(StructrTraits.CONTENT, 1);
 
 			if (!contents.isEmpty()) {
 				

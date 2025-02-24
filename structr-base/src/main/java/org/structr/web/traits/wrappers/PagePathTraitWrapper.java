@@ -29,6 +29,7 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.DefaultSortOrder;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.web.entity.dom.Page;
@@ -71,7 +72,7 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 	@Override
 	public Object updatePathAndParameters(final SecurityContext securityContext, final Map<String, Object> arguments) throws FrameworkException {
 
-		final Traits traits  = Traits.of("PagePathParameter");
+		final Traits traits  = Traits.of(StructrTraits.PAGE_PATH_PARAMETER);
 		final Object rawList = arguments.get("names");
 		final Object rawPath = arguments.get("path");
 
@@ -94,7 +95,7 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 					// parameter doesn't exist yet, create
 					if (!parameters.containsKey(parameterName)) {
 
-						app.create("PagePathParameter",
+						app.create(StructrTraits.PAGE_PATH_PARAMETER,
 							new NodeAttribute<>(traits.key("name"),      parameterName),
 							new NodeAttribute<>(traits.key("valueType"), "String"),
 							new NodeAttribute<>(traits.key("position"),  count),
@@ -150,7 +151,7 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 
 		final Map<String, PagePathParameter> map = new LinkedHashMap<>();
 		final List<PagePathParameter> sorted     = Iterables.asList(getParameters());
-		final Traits traits                      = Traits.of("PagePathParameter");
+		final Traits traits                      = Traits.of(StructrTraits.PAGE_PATH_PARAMETER);
 
 		// sort by position
 		Collections.sort(sorted, new DefaultSortOrder(traits.key("position"), false));

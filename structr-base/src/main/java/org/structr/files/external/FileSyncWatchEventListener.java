@@ -28,6 +28,7 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.common.FileHelper;
@@ -60,7 +61,7 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 		}
 
 		final FolderAndFile obj = handle(rootFolderUUID, root, path, true);
-		if (obj != null && obj.file != null && obj.file.is("File")) {
+		if (obj != null && obj.file != null && obj.file.is(StructrTraits.FILE)) {
 
 			final File fileNode           = obj.file.as(File.class);
 			final java.io.File fileOnDisk = path.toFile();
@@ -125,7 +126,7 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 	private FolderAndFile handle(final String rootFolderUUID, final Path root, final Path relativePath, final boolean create) throws FrameworkException {
 
 		// identify mounted folder object
-		final NodeInterface node = StructrApp.getInstance().nodeQuery("Folder").uuid(rootFolderUUID).getFirst();
+		final NodeInterface node = StructrApp.getInstance().nodeQuery(StructrTraits.FOLDER).uuid(rootFolderUUID).getFirst();
 		if (node != null) {
 
 			final Folder folder     = node.as(Folder.class);
@@ -135,7 +136,7 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 			if (targetFileType != null) {
 
 				final Traits traits = Traits.of(targetFileType);
-				if (traits == null || !traits.contains("File")) {
+				if (traits == null || !traits.contains(StructrTraits.FILE)) {
 
 					logger.error("Given target type for mounted files or folders was not extending AbstractFile.");
 				}
@@ -144,7 +145,7 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 			if (targetFolderType != null) {
 
 				final Traits traits = Traits.of(targetFolderType);
-				if (traits == null || !traits.contains("Folder")) {
+				if (traits == null || !traits.contains(StructrTraits.FOLDER)) {
 
 					logger.error("Given target type for mounted files or folders was not extending AbstractFile.");
 				}
@@ -182,12 +183,12 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 
 	private NodeInterface getOrCreate(final NodeInterface parentFolder, final String fileName, final boolean isFile, final boolean doCreate, final String folderType, final String fileType) throws FrameworkException {
 
-		final Traits traits                        = Traits.of("AbstractFile");
+		final Traits traits                        = Traits.of(StructrTraits.ABSTRACT_FILE);
 		final PropertyKey<Boolean> isExternalKey   = traits.key("isExternal");
 		final PropertyKey<NodeInterface> parentKey = traits.key("parent");
 		final PropertyKey<String> nameKey          = traits.key("name");
 		final App app                              = StructrApp.getInstance();
-		final String type                          = isFile ? (fileType != null ? fileType : "File") : (folderType != null ? folderType : "Folder");
+		final String type                          = isFile ? (fileType != null ? fileType : StructrTraits.FILE) : (folderType != null ? folderType : StructrTraits.FOLDER);
 
 		NodeInterface file = app.nodeQuery(type).and(nameKey, fileName).and(parentKey, parentFolder).getFirst();
 		if (file == null && doCreate) {
@@ -214,10 +215,10 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 
 		void handle() throws FrameworkException {
 
-			final PropertyKey<Boolean> doFulltextIndexing = Traits.of("Folder").key("mountDoFulltextIndexing");
-			final PropertyKey<Long> lastSeenMounted       = Traits.of("AbstractFile").key("lastSeenMounted");
+			final PropertyKey<Boolean> doFulltextIndexing = Traits.of(StructrTraits.FOLDER).key("mountDoFulltextIndexing");
+			final PropertyKey<Long> lastSeenMounted       = Traits.of(StructrTraits.ABSTRACT_FILE).key("lastSeenMounted");
 
-			if (file.is("File")) {
+			if (file.is(StructrTraits.FILE)) {
 
 				final File fileBase = file.as(File.class);
 
@@ -227,7 +228,7 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 
 				FileHelper.updateMetadata(fileBase, new PropertyMap(lastSeenMounted, System.currentTimeMillis()), true);
 
-			} else if (file.is("AbstractFile")) {
+			} else if (file.is(StructrTraits.ABSTRACT_FILE)) {
 
 				final AbstractFile abstractFile = (AbstractFile)file;
 

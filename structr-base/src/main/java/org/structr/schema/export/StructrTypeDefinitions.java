@@ -34,6 +34,7 @@ import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.FunctionProperty;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaService;
@@ -124,8 +125,8 @@ public class StructrTypeDefinitions implements StructrDefinition {
 		final Set<String> blacklist                          = SchemaService.getBlacklist();
 
 		// collect list of schema nodes
-		app.nodeQuery("SchemaNode").getAsList().stream().forEach(n -> { schemaNodes.put(n.getName(), n.as(SchemaNode.class)); });
-		app.nodeQuery("SchemaRelationshipNode").getAsList().stream().forEach(n -> { schemaRels.put(n.getName(), n.as(SchemaRelationshipNode.class)); });
+		app.nodeQuery(StructrTraits.SCHEMA_NODE).getAsList().stream().forEach(n -> { schemaNodes.put(n.getName(), n.as(SchemaNode.class)); });
+		app.nodeQuery(StructrTraits.SCHEMA_RELATIONSHIP_NODE).getAsList().stream().forEach(n -> { schemaRels.put(n.getName(), n.as(SchemaRelationshipNode.class)); });
 
 		// iterate type definitions
 		for (final StructrTypeDefinition type : typeDefinitions) {
@@ -319,7 +320,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 	private Map<String, Object> serializeOpenAPIForTypes(final Set<StructrTypeDefinition> typeDefinitions, final Map<String, Object> schemas, final String tag, String view) {
 
-		final Set<String> typeWhiteList = new LinkedHashSet<>(Arrays.asList("User", "File", "Image", "NodeInterface"));
+		final Set<String> typeWhiteList = new LinkedHashSet<>(Arrays.asList(StructrTraits.USER, StructrTraits.FILE, StructrTraits.IMAGE, StructrTraits.NODE_INTERFACE));
 		final Map<String, Object> map   = new TreeMap<>();
 
 		for (final StructrTypeDefinition<?> type : typeDefinitions) {
@@ -439,7 +440,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 		final Map<String, SchemaNode> schemaNodes = new LinkedHashMap<>();
 
 		// collect list of schema nodes
-		app.nodeQuery("SchemaNode").getAsList().stream().forEach(n -> { schemaNodes.put(n.getName(), n.as(SchemaNode.class)); });
+		app.nodeQuery(StructrTraits.SCHEMA_NODE).getAsList().stream().forEach(n -> { schemaNodes.put(n.getName(), n.as(SchemaNode.class)); });
 
 		// iterate
 		for (final SchemaNode schemaNode : schemaNodes.values()) {
@@ -458,7 +459,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 			}
 		}
 
-		for (final NodeInterface node : app.nodeQuery("SchemaRelationshipNode").getAsList()) {
+		for (final NodeInterface node : app.nodeQuery(StructrTraits.SCHEMA_RELATIONSHIP_NODE).getAsList()) {
 
 			final StructrTypeDefinition type = StructrTypeDefinition.deserialize(schemaNodes, root, node.as(SchemaRelationshipNode.class));
 			if (type != null) {

@@ -22,6 +22,7 @@ import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
 import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.schema.Schema;
 import org.structr.schema.export.StructrTypeDefinition;
@@ -39,9 +40,9 @@ public class OpenAPIStructrTypeExample extends TreeMap<String, Object> {
 
 		if (level > 0 && Schema.RestrictedViews.contains(viewName)) {
 
-			handleProperty(type, Traits.of("GraphObject").key("id"),   viewName, level);
-			handleProperty(type, Traits.of("GraphObject").key("type"), viewName, level);
-			handleProperty(type, Traits.of("NodeInterface").key("name"), viewName, level);
+			handleProperty(type, Traits.of(StructrTraits.GRAPH_OBJECT).key("id"),   viewName, level);
+			handleProperty(type, Traits.of(StructrTraits.GRAPH_OBJECT).key("type"), viewName, level);
+			handleProperty(type, Traits.of(StructrTraits.NODE_INTERFACE).key("name"), viewName, level);
 
 		} else {
 

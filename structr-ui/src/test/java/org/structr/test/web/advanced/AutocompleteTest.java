@@ -29,6 +29,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
@@ -214,7 +215,7 @@ public class AutocompleteTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface method = app.nodeQuery("SchemaMethod").and(Traits.of("SchemaMethod").key("name"), "testMethod").getFirst();
+			final NodeInterface method = app.nodeQuery(StructrTraits.SCHEMA_METHOD).and(Traits.of(StructrTraits.SCHEMA_METHOD).key("name"), "testMethod").getFirst();
 
 			// verify that the properties of the Test type are in the autocomplete result
 			final List<GraphObject> result1       = AbstractHintProvider.getHints(actionContext, false, method, "{\n\t$.this.", "", 0, 0);

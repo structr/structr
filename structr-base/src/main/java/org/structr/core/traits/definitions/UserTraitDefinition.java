@@ -39,6 +39,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
@@ -55,7 +56,7 @@ import java.util.Set;
 public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public UserTraitDefinition() {
-		super("User");
+		super(StructrTraits.USER);
 	}
 
 	@Override
@@ -147,8 +148,8 @@ public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 	public void onCreateAndModify(final User user, final SecurityContext securityContext) throws FrameworkException {
 
 		final SecurityContext previousSecurityContext = user.getSecurityContext();
-		final Traits folderTraits                     = Traits.of("Folder");
-		final Traits userTraits                       = Traits.of("User");
+		final Traits folderTraits                     = Traits.of(StructrTraits.FOLDER);
+		final Traits userTraits                       = Traits.of(StructrTraits.USER);
 
 		try {
 
@@ -156,7 +157,7 @@ public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 			final LicenseManager licenseManager = Services.getInstance().getLicenseManager();
 			if (licenseManager != null) {
 
-				final int userCount         = Iterables.count(StructrApp.getInstance().nodeQuery("User").getResultStream());
+				final int userCount         = Iterables.count(StructrApp.getInstance().nodeQuery(StructrTraits.USER).getResultStream());
 				final int licensedUserCount = licenseManager.getNumberOfUsers();
 
 				// -1 means no limit
@@ -168,7 +169,7 @@ public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 
 			user.setSecurityContext(SecurityContext.getSuperUserInstance());
 
-			final PropertyKey<Boolean> skipSecurityRels = Traits.of("User").key("skipSecurityRelationships");
+			final PropertyKey<Boolean> skipSecurityRels = Traits.of(StructrTraits.USER).key("skipSecurityRelationships");
 			if (user.getProperty(skipSecurityRels).equals(Boolean.TRUE) && !user.isAdmin()) {
 
 				TransactionCommand.simpleBroadcastWarning("Info", "This user has the skipSecurityRels flag set to true. This flag only works for admin accounts!", Predicate.only(securityContext.getSessionId()));
@@ -193,18 +194,18 @@ public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 
 						// create home directory
 						final App app            = StructrApp.getInstance();
-						NodeInterface homeFolder = app.nodeQuery("Folder").and(folderTraits.key("name"), "home").and(parentKey, null).getFirst();
+						NodeInterface homeFolder = app.nodeQuery(StructrTraits.FOLDER).and(folderTraits.key("name"), "home").and(parentKey, null).getFirst();
 
 						if (homeFolder == null) {
 
-							homeFolder = app.create("Folder",
+							homeFolder = app.create(StructrTraits.FOLDER,
 								new NodeAttribute(folderTraits.key("name"), "home"),
 								new NodeAttribute(folderTraits.key("owner"), null),
 								new NodeAttribute(folderTraits.key("visibleToAuthenticatedUsers"), true)
 							);
 						}
 
-						app.create("Folder",
+						app.create(StructrTraits.FOLDER,
 							new NodeAttribute(folderTraits.key("name"), user.getUuid()),
 							new NodeAttribute(folderTraits.key("owner"), user),
 							new NodeAttribute(folderTraits.key("visibleToAuthenticatedUsers"), true),

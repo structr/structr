@@ -31,6 +31,7 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.openapi.common.OpenAPISchemaReference;
@@ -332,15 +333,15 @@ public class FunctionProperty<T> extends Property<T> {
 
 	// ----- private methods -----
 	private String getReadFunction() throws FrameworkException {
-		return getCachedSourceCode(Traits.of("SchemaProperty").key("readFunction"), this.readFunction);
+		return getCachedSourceCode(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("readFunction"), this.readFunction);
 	}
 
 	private String getWriteFunction() throws FrameworkException {
-		return getCachedSourceCode(Traits.of("SchemaProperty").key("writeFunction"), this.writeFunction);
+		return getCachedSourceCode(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("writeFunction"), this.writeFunction);
 	}
 
 	private String getOpenAPIReturnType() throws FrameworkException {
-		return getCachedSourceCode(Traits.of("SchemaProperty").key("openAPIReturnType"), this.openAPIReturnType);
+		return getCachedSourceCode(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("openAPIReturnType"), this.openAPIReturnType);
 	}
 
 	public String getCachedSourceCode(final PropertyKey<String> key, final String defaultValue) throws FrameworkException {
@@ -375,7 +376,7 @@ public class FunctionProperty<T> extends Property<T> {
 	}
 
 	public NodeInterface getCodeSource() throws FrameworkException {
-		return StructrApp.getInstance().getNodeById("SchemaProperty", sourceUuid);
+		return StructrApp.getInstance().getNodeById(StructrTraits.SCHEMA_PROPERTY, sourceUuid);
 	}
 
 	// ----- OpenAPI -----

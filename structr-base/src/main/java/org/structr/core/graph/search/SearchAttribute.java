@@ -25,6 +25,7 @@ import org.structr.api.search.SortOrder;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Trait;
 
 import java.util.Comparator;
@@ -145,7 +146,7 @@ public abstract class SearchAttribute<T> extends NodeAttribute<T> implements Pre
 
 				final String name = declaringTrait.getLabel();
 
-				if (!"GraphObject".equals(name)) {
+				if (!StructrTraits.GRAPH_OBJECT.equals(name)) {
 
 					return name;
 				}

@@ -25,6 +25,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.AbstractReadOnlyCollectionProperty;
+import org.structr.core.traits.StructrTraits;
 import org.structr.web.entity.dom.DOMNode;
 
 import java.util.Map;
@@ -53,7 +54,7 @@ public class DOMNodeSortedChildrenProperty extends AbstractReadOnlyCollectionPro
 	@Override
 	public Iterable<DOMNode> getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
 
-		if (obj != null && obj.is("DOMNode")) {
+		if (obj != null && obj.is(StructrTraits.DOM_NODE)) {
 
 			try {
 				return obj.as(DOMNode.class).getChildNodes();

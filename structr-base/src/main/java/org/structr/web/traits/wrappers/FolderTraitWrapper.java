@@ -23,6 +23,7 @@ import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.files.external.DirectoryWatchService;
 import org.structr.web.entity.AbstractFile;
@@ -70,17 +71,17 @@ public class FolderTraitWrapper extends AbstractFileTraitWrapper implements Fold
 
 	@Override
 	public Iterable<File> getFiles() {
-		return Iterables.map(s -> s.as(File.class), Iterables.filter((AbstractFile value) -> value.is("File"), getChildren()));
+		return Iterables.map(s -> s.as(File.class), Iterables.filter((AbstractFile value) -> value.is(StructrTraits.FILE), getChildren()));
 	}
 
 	@Override
 	public Iterable<Folder> getFolders() {
-		return Iterables.map(s -> s.as(Folder.class), Iterables.filter((AbstractFile value) -> value.is("Folder"), getChildren()));
+		return Iterables.map(s -> s.as(Folder.class), Iterables.filter((AbstractFile value) -> value.is(StructrTraits.FOLDER), getChildren()));
 	}
 
 	@Override
 	public Iterable<Image> getImages() {
-		return Iterables.map(s -> s.as(Image.class), Iterables.filter((AbstractFile value) -> value.is("Image"), getChildren()));
+		return Iterables.map(s -> s.as(Image.class), Iterables.filter((AbstractFile value) -> value.is(StructrTraits.IMAGE), getChildren()));
 	}
 
 	@Override

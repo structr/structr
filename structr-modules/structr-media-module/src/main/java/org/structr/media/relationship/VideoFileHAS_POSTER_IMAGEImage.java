@@ -19,6 +19,7 @@
 package org.structr.media.relationship;
 
 import org.structr.core.entity.Relation;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
@@ -35,7 +36,7 @@ public class VideoFileHAS_POSTER_IMAGEImage extends AbstractRelationshipTraitDef
 
 	@Override
 	public String getTargetType() {
-		return "Image";
+		return StructrTraits.IMAGE;
 	}
 
 	@Override

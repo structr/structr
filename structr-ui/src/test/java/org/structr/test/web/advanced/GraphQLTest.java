@@ -23,6 +23,7 @@ import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.ImageHelper;
@@ -47,15 +48,15 @@ public class GraphQLTest extends StructrUiTest {
 
 			try (final InputStream is = GraphQLTest.class.getResourceAsStream("/test/test.png")) {
 
-				image = ImageHelper.createImage(securityContext, is, "image/png", "Image", "test.png", false);
-				image.getProperty(Traits.of("Image").key("tnSmall"));
+				image = ImageHelper.createImage(securityContext, is, "image/png", StructrTraits.IMAGE, "test.png", false);
+				image.getProperty(Traits.of(StructrTraits.IMAGE).key("tnSmall"));
 				is.close();
 			}
 
-			app.create("User",
-				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
-				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
+			app.create(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			tx.success();
@@ -75,7 +76,7 @@ public class GraphQLTest extends StructrUiTest {
 					// so we need to allow this thread to break the transaction isolation..
 					currentImage.getNode().invalidate();
 
-					return currentImage.getProperty(Traits.of("Image").key("tnSmall")) != null;
+					return currentImage.getProperty(Traits.of(StructrTraits.IMAGE).key("tnSmall")) != null;
 				},
 				() -> fail("Exceeded timeout while waiting for thumbnail to be available"),
 				30000, 500);

@@ -34,7 +34,7 @@ export class FlowTypeQuery extends FlowNode {
                 let dataType = new D3NE.Control('<select class="control-select"><option>---- Select type ----</option></select>', (element, control) => {
 
                     let persistence = new Persistence();
-                    persistence.getNodesByClass({type:"SchemaNode"},"ui").then(result => {
+                    persistence.getNodesByClass({type:StructrTraits.SCHEMA_NODE},"ui").then(result => {
 
                         if (result && result.length > 0) {
 

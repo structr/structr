@@ -25,6 +25,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.StringRenderBuffer;
 import org.structr.web.entity.dom.DOMNode;
@@ -91,7 +92,7 @@ public class ImportCommand extends AbstractCommand {
 					if (withTemplate) {
 
 						final App app                   = StructrApp.getInstance(securityContext);
-						final NodeInterface newPageNode = app.getNodeById("Page", pageId);
+						final NodeInterface newPageNode = app.getNodeById(StructrTraits.PAGE, pageId);
 						final RenderContext ctx         = new RenderContext(securityContext);
 						final StringRenderBuffer buffer = new StringRenderBuffer();
 						final Page newPage              = newPageNode.as(Page.class);
@@ -103,7 +104,7 @@ public class ImportCommand extends AbstractCommand {
 						final String renderedContent = buffer.getBuffer().toString();
 						logger.info("Rendered content of page " + pageId + ": " + renderedContent);
 
-						final Template template = app.create("Template", templateName != null ? templateName : "Main Page Template").as(Template.class);
+						final Template template = app.create(StructrTraits.TEMPLATE, templateName != null ? templateName : "Main Page Template").as(Template.class);
 
 						template.setContent(renderedContent);
 						template.setContentType("text/html");

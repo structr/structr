@@ -32,6 +32,7 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
@@ -45,7 +46,7 @@ import java.util.*;
 public final class GraphObjectTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public GraphObjectTraitDefinition() {
-		super("GraphObject");
+		super(StructrTraits.GRAPH_OBJECT);
 	}
 
 	@Override

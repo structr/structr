@@ -30,6 +30,7 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.entity.dom.Content;
@@ -57,10 +58,10 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode("User",
-				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
-				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			final Page page1     = Page.createSimplePage(securityContext, "page1");
@@ -75,18 +76,18 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			uuid = btn.getUuid();
 
-			final NodeInterface eam = app.create("ActionMapping");
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
-			eam.setProperty(Traits.of("ActionMapping").key("event"), "click");
-			eam.setProperty(Traits.of("ActionMapping").key("action"), "create");
-			eam.setProperty(Traits.of("ActionMapping").key("dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
 
 			// success notifications (possible values are system-alert, inline-text-message, custom-dialog, custom-dialog-linked)
-			eam.setProperty(Traits.of("ActionMapping").key("dialogType"), "okcancel");
-			eam.setProperty(Traits.of("ActionMapping").key("dialogTitle"), "example-dialog-title-${me.name}");
-			eam.setProperty(Traits.of("ActionMapping").key("dialogText"), "example-dialog-text-${me.name}");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dialogType"), "okcancel");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dialogTitle"), "example-dialog-title-${me.name}");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dialogText"), "example-dialog-text-${me.name}");
 
 			tx.success();
 
@@ -158,10 +159,10 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode("User",
-				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
-				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			final Page page1     = Page.createSimplePage(securityContext, "page1");
@@ -176,16 +177,16 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			uuid = btn.getUuid();
 
-			final NodeInterface eam = app.create("ActionMapping");
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
-			eam.setProperty(Traits.of("ActionMapping").key("event"), "click");
-			eam.setProperty(Traits.of("ActionMapping").key("action"), "create");
-			eam.setProperty(Traits.of("ActionMapping").key("dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
 
 			// success notifications (possible values are system-alert, inline-text-message, custom-dialog, custom-dialog-linked)
-			eam.setProperty(Traits.of("ActionMapping").key("successNotifications"), "system-alert");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successNotifications"), "system-alert");
 
 			tx.success();
 
@@ -258,10 +259,10 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode("User",
-				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
-				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
@@ -276,16 +277,16 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			uuid = btn.getUuid();
 
-			final NodeInterface eam = app.create("ActionMapping");
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
-			eam.setProperty(Traits.of("ActionMapping").key("event"), "click");
-			eam.setProperty(Traits.of("ActionMapping").key("action"), "create");
-			eam.setProperty(Traits.of("ActionMapping").key("dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
 
 			// success notifications (possible values are system-alert, inline-text-message, custom-dialog, custom-dialog-linked)
-			eam.setProperty(Traits.of("ActionMapping").key("successNotifications"), "inline-text-message");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successNotifications"), "inline-text-message");
 
 			tx.success();
 
@@ -354,16 +355,16 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testSuccessNotificationAttributesForCustomLinkedDialog() {
 
-		final PropertyKey<String> htmlIdKey = Traits.of("DOMElement").key("_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
 		String buttonUuid                   = null;
 		String notificationUuid             = null;
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode("User",
-				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
-				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			final Page page1     = Page.createSimplePage(securityContext, "page1");
@@ -384,15 +385,15 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			notificationUuid = notificationElement.getUuid();
 
-			final NodeInterface eam = app.create("ActionMapping");// base setup
-			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
-			eam.setProperty(Traits.of("ActionMapping").key("event"), "click");
-			eam.setProperty(Traits.of("ActionMapping").key("action"), "create");
-			eam.setProperty(Traits.of("ActionMapping").key("dataType"), "Project");
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);// base setup
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
 
 			// success notifications (possible values are system-alert, inline-text-message, custom-dialog, custom-dialog-linked)
-			eam.setProperty(Traits.of("ActionMapping").key("successNotifications"), "custom-dialog-linked");
-			eam.setProperty(Traits.of("ActionMapping").key("successNotificationElements"), List.of(notificationElement));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successNotifications"), "custom-dialog-linked");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successNotificationElements"), List.of(notificationElement));
 
 			tx.success();
 
@@ -463,15 +464,15 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testSuccessNotificationAttributesForCustomDialog() {
 
-		final PropertyKey<String> htmlIdKey = Traits.of("DOMElement").key("_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
 		String buttonUuid                   = null;
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode("User",
-				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
-				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
@@ -490,17 +491,17 @@ public class EventActionMappingTest extends StructrUiTest {
 			notificationElement.setProperty(htmlIdKey, "notification-element");
 			div.getParent().appendChild(notificationElement);
 
-			final NodeInterface eam = app.create("ActionMapping");
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
-			eam.setProperty(Traits.of("ActionMapping").key("event"), "click");
-			eam.setProperty(Traits.of("ActionMapping").key("action"), "create");
-			eam.setProperty(Traits.of("ActionMapping").key("dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
 
 			// success notifications (possible values are system-alert, inline-text-message, custom-dialog, custom-dialog-linked)
-			eam.setProperty(Traits.of("ActionMapping").key("successNotifications"), "custom-dialog");
-			eam.setProperty(Traits.of("ActionMapping").key("successNotificationsPartial"), "#notification-element");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successNotifications"), "custom-dialog");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successNotificationsPartial"), "#notification-element");
 
 			tx.success();
 
@@ -571,15 +572,15 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testSuccessNotificationAttributesForEvent() {
 
-		final PropertyKey<String> htmlIdKey = Traits.of("DOMElement").key("_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
 		String buttonUuid                   = null;
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode("User",
-				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
-				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
@@ -594,17 +595,17 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			buttonUuid = btn.getUuid();
 
-			final NodeInterface eam = app.create("ActionMapping");
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
-			eam.setProperty(Traits.of("ActionMapping").key("event"), "click");
-			eam.setProperty(Traits.of("ActionMapping").key("action"), "create");
-			eam.setProperty(Traits.of("ActionMapping").key("dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
 
 			// success notifications (possible values are system-alert, inline-text-message, custom-dialog, custom-dialog-linked, fire-event)
-			eam.setProperty(Traits.of("ActionMapping").key("successNotifications"), "fire-event");
-			eam.setProperty(Traits.of("ActionMapping").key("successNotificationsEvent"), "success-notification-event");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successNotifications"), "fire-event");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successNotificationsEvent"), "success-notification-event");
 
 			tx.success();
 
@@ -678,10 +679,10 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode("User",
-				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
-				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
@@ -696,16 +697,16 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			uuid = btn.getUuid();
 
-			final NodeInterface eam = app.create("ActionMapping");
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
-			eam.setProperty(Traits.of("ActionMapping").key("event"), "click");
-			eam.setProperty(Traits.of("ActionMapping").key("action"), "create");
-			eam.setProperty(Traits.of("ActionMapping").key("dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
 
 			// failure notifications (possible values are system-alert, inline-text-message, custom-dialog, custom-dialog-linked)
-			eam.setProperty(Traits.of("ActionMapping").key("failureNotifications"), "system-alert");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failureNotifications"), "system-alert");
 
 			tx.success();
 
@@ -778,10 +779,10 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode("User",
-				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
-				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
@@ -796,16 +797,16 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			uuid = btn.getUuid();
 
-			final NodeInterface eam = app.create("ActionMapping");
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
-			eam.setProperty(Traits.of("ActionMapping").key("event"), "click");
-			eam.setProperty(Traits.of("ActionMapping").key("action"), "create");
-			eam.setProperty(Traits.of("ActionMapping").key("dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
 
 			// failure notifications (possible values are system-alert, inline-text-message, custom-dialog, custom-dialog-linked)
-			eam.setProperty(Traits.of("ActionMapping").key("failureNotifications"), "inline-text-message");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failureNotifications"), "inline-text-message");
 
 			tx.success();
 
@@ -874,16 +875,16 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testFailureNotificationAttributesForCustomLinkedDialog() {
 
-		final PropertyKey<String> htmlIdKey = Traits.of("DOMElement").key("_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
 		String buttonUuid                   = null;
 		String notificationUuid             = null;
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode("User",
-				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
-				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
@@ -904,17 +905,17 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			notificationUuid = notificationElement.getUuid();
 
-			final NodeInterface eam = app.create("ActionMapping");
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
-			eam.setProperty(Traits.of("ActionMapping").key("event"), "click");
-			eam.setProperty(Traits.of("ActionMapping").key("action"), "create");
-			eam.setProperty(Traits.of("ActionMapping").key("dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
 
 			// failure notifications (possible values are system-alert, inline-text-message, custom-dialog, custom-dialog-linked)
-			eam.setProperty(Traits.of("ActionMapping").key("failureNotifications"), "custom-dialog-linked");
-			eam.setProperty(Traits.of("ActionMapping").key("failureNotificationElements"), List.of(notificationElement));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failureNotifications"), "custom-dialog-linked");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failureNotificationElements"), List.of(notificationElement));
 
 			tx.success();
 
@@ -985,15 +986,15 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testFailureNotificationAttributesForEvent() {
 
-		final PropertyKey<String> htmlIdKey = Traits.of("DOMElement").key("_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
 		String buttonUuid                   = null;
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode("User",
-				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
-				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
@@ -1008,17 +1009,17 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			buttonUuid = btn.getUuid();
 
-			final NodeInterface eam = app.create("ActionMapping");
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
-			eam.setProperty(Traits.of("ActionMapping").key("event"), "click");
-			eam.setProperty(Traits.of("ActionMapping").key("action"), "create");
-			eam.setProperty(Traits.of("ActionMapping").key("dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
 
 			// failure notifications (possible values are system-alert, inline-text-message, custom-dialog, custom-dialog-linked)
-			eam.setProperty(Traits.of("ActionMapping").key("failureNotifications"), "fire-event");
-			eam.setProperty(Traits.of("ActionMapping").key("failureNotificationsEvent"), "failure-notification-event");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failureNotifications"), "fire-event");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failureNotificationsEvent"), "failure-notification-event");
 
 			tx.success();
 
@@ -1089,15 +1090,15 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testFailureNotificationAttributesForCustomDialog() {
 
-		final PropertyKey<String> htmlIdKey = Traits.of("DOMElement").key("_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
 		String buttonUuid                   = null;
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode("User",
-				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
-				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
@@ -1116,17 +1117,17 @@ public class EventActionMappingTest extends StructrUiTest {
 			notificationElement.setProperty(htmlIdKey, "notification-element");
 			div.getParent().appendChild(notificationElement);
 
-			final NodeInterface eam = app.create("ActionMapping");
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
-			eam.setProperty(Traits.of("ActionMapping").key("event"), "click");
-			eam.setProperty(Traits.of("ActionMapping").key("action"), "create");
-			eam.setProperty(Traits.of("ActionMapping").key("dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
 
 			// failure notifications (possible values are system-alert, inline-text-message, custom-dialog, custom-dialog-linked)
-			eam.setProperty(Traits.of("ActionMapping").key("failureNotifications"), "custom-dialog");
-			eam.setProperty(Traits.of("ActionMapping").key("failureNotificationsPartial"), "#notification-element");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failureNotifications"), "custom-dialog");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failureNotificationsPartial"), "#notification-element");
 
 			tx.success();
 
@@ -1200,10 +1201,10 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode("User",
-				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
-				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
@@ -1218,17 +1219,17 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			uuid = btn.getUuid();
 
-			final NodeInterface eam = app.create("ActionMapping");
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
-			eam.setProperty(Traits.of("ActionMapping").key("event"), "click");
-			eam.setProperty(Traits.of("ActionMapping").key("action"), "create");
-			eam.setProperty(Traits.of("ActionMapping").key("dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
 
 			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, naviate-to-url, fire-event, full-page-reload, sign-out, none)
-			eam.setProperty(Traits.of("ActionMapping").key("successBehaviour"), "partial-refresh");
-			eam.setProperty(Traits.of("ActionMapping").key("successPartial"), "#name-of-success-partial");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successBehaviour"), "partial-refresh");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successPartial"), "#name-of-success-partial");
 
 			tx.success();
 
@@ -1300,16 +1301,16 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testSuccessBehaviourAttributesForLinkedPartialReload() {
 
-		final PropertyKey<String> htmlIdKey = Traits.of("DOMElement").key("_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
 		String buttonUuid                   = null;
 		String divUuid                      = null;
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode("User",
-				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
-				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
@@ -1326,17 +1327,17 @@ public class EventActionMappingTest extends StructrUiTest {
 			buttonUuid = btn.getUuid();
 			divUuid    = div.getUuid();
 
-			final NodeInterface eam = app.create("ActionMapping");
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
-			eam.setProperty(Traits.of("ActionMapping").key("event"), "click");
-			eam.setProperty(Traits.of("ActionMapping").key("action"), "create");
-			eam.setProperty(Traits.of("ActionMapping").key("dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
 
 			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, naviate-to-url, fire-event, full-page-reload, sign-out, none)
-			eam.setProperty(Traits.of("ActionMapping").key("successBehaviour"), "partial-refresh-linked");
-			eam.setProperty(Traits.of("ActionMapping").key("successTargets"), List.of(div));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successBehaviour"), "partial-refresh-linked");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successTargets"), List.of(div));
 
 			tx.success();
 
@@ -1415,15 +1416,15 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testSuccessBehaviourAttributesForURL() {
 
-		final PropertyKey<String> htmlIdKey = Traits.of("DOMElement").key("_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
 		String buttonUuid                   = null;
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode("User",
-				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
-				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
@@ -1439,17 +1440,17 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			buttonUuid = btn.getUuid();
 
-			final NodeInterface eam = app.create("ActionMapping");
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
-			eam.setProperty(Traits.of("ActionMapping").key("event"), "click");
-			eam.setProperty(Traits.of("ActionMapping").key("action"), "create");
-			eam.setProperty(Traits.of("ActionMapping").key("dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
 
 			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, naviate-to-url, fire-event, full-page-reload, sign-out, none)
-			eam.setProperty(Traits.of("ActionMapping").key("successBehaviour"), "navigate-to-url");
-			eam.setProperty(Traits.of("ActionMapping").key("successURL"), "/success");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successBehaviour"), "navigate-to-url");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successURL"), "/success");
 
 			tx.success();
 
@@ -1522,15 +1523,15 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testSuccessBehaviourAttributesForEvent() {
 
-		final PropertyKey<String> htmlIdKey = Traits.of("DOMElement").key("_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
 		String buttonUuid                   = null;
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode("User",
-				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
-				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
@@ -1546,17 +1547,17 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			buttonUuid = btn.getUuid();
 
-			final NodeInterface eam = app.create("ActionMapping");
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
-			eam.setProperty(Traits.of("ActionMapping").key("event"), "click");
-			eam.setProperty(Traits.of("ActionMapping").key("action"), "create");
-			eam.setProperty(Traits.of("ActionMapping").key("dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
 
 			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, naviate-to-url, fire-event, full-page-reload, sign-out, none)
-			eam.setProperty(Traits.of("ActionMapping").key("successBehaviour"), "fire-event");
-			eam.setProperty(Traits.of("ActionMapping").key("successEvent"), "success-event");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successBehaviour"), "fire-event");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successEvent"), "success-event");
 
 			tx.success();
 
@@ -1629,15 +1630,15 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testSuccessBehaviourAttributesForFullPageReload() {
 
-		final PropertyKey<String> htmlIdKey = Traits.of("DOMElement").key("_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
 		String buttonUuid                   = null;
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode("User",
-				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
-				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
@@ -1653,16 +1654,16 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			buttonUuid = btn.getUuid();
 
-			final NodeInterface eam = app.create("ActionMapping");
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
-			eam.setProperty(Traits.of("ActionMapping").key("event"), "click");
-			eam.setProperty(Traits.of("ActionMapping").key("action"), "create");
-			eam.setProperty(Traits.of("ActionMapping").key("dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
 
 			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, naviate-to-url, fire-event, full-page-reload, sign-out, none)
-			eam.setProperty(Traits.of("ActionMapping").key("successBehaviour"), "full-page-reload");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successBehaviour"), "full-page-reload");
 
 			tx.success();
 
@@ -1735,15 +1736,15 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testSuccessBehaviourAttributesForSignout() {
 
-		final PropertyKey<String> htmlIdKey = Traits.of("DOMElement").key("_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
 		String buttonUuid                   = null;
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode("User",
-				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
-				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
@@ -1759,16 +1760,16 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			buttonUuid = btn.getUuid();
 
-			final NodeInterface eam = app.create("ActionMapping");
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
-			eam.setProperty(Traits.of("ActionMapping").key("event"), "click");
-			eam.setProperty(Traits.of("ActionMapping").key("action"), "create");
-			eam.setProperty(Traits.of("ActionMapping").key("dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
 
 			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, naviate-to-url, fire-event, full-page-reload, sign-out, none)
-			eam.setProperty(Traits.of("ActionMapping").key("successBehaviour"), "sign-out");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successBehaviour"), "sign-out");
 
 			tx.success();
 
@@ -1845,10 +1846,10 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode("User",
-				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
-				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
@@ -1863,16 +1864,16 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			uuid = btn.getUuid();
 
-			final NodeInterface eam = app.create("ActionMapping");
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
-			eam.setProperty(Traits.of("ActionMapping").key("event"), "click");
-			eam.setProperty(Traits.of("ActionMapping").key("action"), "create");
-			eam.setProperty(Traits.of("ActionMapping").key("dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
 
 			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, naviate-to-url, fire-event, full-page-reload, sign-out, none)
-			eam.setProperty(Traits.of("ActionMapping").key("successBehaviour"), "none");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successBehaviour"), "none");
 
 			tx.success();
 
@@ -1945,10 +1946,10 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode("User",
-				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
-				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
@@ -1963,17 +1964,17 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			uuid = btn.getUuid();
 
-			final NodeInterface eam = app.create("ActionMapping");
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
-			eam.setProperty(Traits.of("ActionMapping").key("event"), "click");
-			eam.setProperty(Traits.of("ActionMapping").key("action"), "create");
-			eam.setProperty(Traits.of("ActionMapping").key("dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
 
 			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, naviate-to-url, fire-event, full-page-reload, sign-out, none)
-			eam.setProperty(Traits.of("ActionMapping").key("failureBehaviour"), "partial-refresh");
-			eam.setProperty(Traits.of("ActionMapping").key("failurePartial"), "#name-of-failure-partial");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failureBehaviour"), "partial-refresh");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failurePartial"), "#name-of-failure-partial");
 
 			tx.success();
 
@@ -2045,16 +2046,16 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testFailureBehaviourAttributesForLinkedPartialReload() {
 
-		final PropertyKey<String> htmlIdKey = Traits.of("DOMElement").key("_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
 		String buttonUuid                   = null;
 		String divUuid                      = null;
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode("User",
-				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
-				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
@@ -2071,17 +2072,17 @@ public class EventActionMappingTest extends StructrUiTest {
 			buttonUuid = btn.getUuid();
 			divUuid    = div.getUuid();
 
-			final NodeInterface eam = app.create("ActionMapping");
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
-			eam.setProperty(Traits.of("ActionMapping").key("event"), "click");
-			eam.setProperty(Traits.of("ActionMapping").key("action"), "create");
-			eam.setProperty(Traits.of("ActionMapping").key("dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
 
 			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, naviate-to-url, fire-event, full-page-reload, sign-out, none)
-			eam.setProperty(Traits.of("ActionMapping").key("failureBehaviour"), "partial-refresh-linked");
-			eam.setProperty(Traits.of("ActionMapping").key("failureTargets"), List.of(div));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failureBehaviour"), "partial-refresh-linked");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failureTargets"), List.of(div));
 
 			tx.success();
 
@@ -2160,15 +2161,15 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testFailureBehaviourAttributesForURL() {
 
-		final PropertyKey<String> htmlIdKey = Traits.of("DOMElement").key("_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
 		String buttonUuid                   = null;
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode("User",
-				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
-				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
@@ -2184,17 +2185,17 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			buttonUuid = btn.getUuid();
 
-			final NodeInterface eam = app.create("ActionMapping");
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
-			eam.setProperty(Traits.of("ActionMapping").key("event"), "click");
-			eam.setProperty(Traits.of("ActionMapping").key("action"), "create");
-			eam.setProperty(Traits.of("ActionMapping").key("dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
 
 			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, naviate-to-url, fire-event, full-page-reload, sign-out, none)
-			eam.setProperty(Traits.of("ActionMapping").key("failureBehaviour"), "navigate-to-url");
-			eam.setProperty(Traits.of("ActionMapping").key("failureURL"), "/failure");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failureBehaviour"), "navigate-to-url");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failureURL"), "/failure");
 
 			tx.success();
 
@@ -2267,15 +2268,15 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testFailureBehaviourAttributesForEvent() {
 
-		final PropertyKey<String> htmlIdKey = Traits.of("DOMElement").key("_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
 		String buttonUuid                   = null;
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode("User",
-				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
-				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
@@ -2291,17 +2292,17 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			buttonUuid = btn.getUuid();
 
-			final NodeInterface eam = app.create("ActionMapping");
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
-			eam.setProperty(Traits.of("ActionMapping").key("event"), "click");
-			eam.setProperty(Traits.of("ActionMapping").key("action"), "create");
-			eam.setProperty(Traits.of("ActionMapping").key("dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
 
 			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, naviate-to-url, fire-event, full-page-reload, sign-out, none)
-			eam.setProperty(Traits.of("ActionMapping").key("failureBehaviour"), "fire-event");
-			eam.setProperty(Traits.of("ActionMapping").key("failureEvent"), "failure-event");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failureBehaviour"), "fire-event");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failureEvent"), "failure-event");
 
 			tx.success();
 
@@ -2374,15 +2375,15 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testFailureBehaviourAttributesForFullPageReload() {
 
-		final PropertyKey<String> htmlIdKey = Traits.of("DOMElement").key("_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
 		String buttonUuid                   = null;
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode("User",
-				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
-				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
@@ -2398,16 +2399,16 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			buttonUuid = btn.getUuid();
 
-			final NodeInterface eam = app.create("ActionMapping");
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
-			eam.setProperty(Traits.of("ActionMapping").key("event"), "click");
-			eam.setProperty(Traits.of("ActionMapping").key("action"), "create");
-			eam.setProperty(Traits.of("ActionMapping").key("dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
 
 			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, naviate-to-url, fire-event, full-page-reload, sign-out, none)
-			eam.setProperty(Traits.of("ActionMapping").key("failureBehaviour"), "full-page-reload");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failureBehaviour"), "full-page-reload");
 
 			tx.success();
 
@@ -2480,15 +2481,15 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testFailureBehaviourAttributesForSignout() {
 
-		final PropertyKey<String> htmlIdKey = Traits.of("DOMElement").key("_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
 		String buttonUuid                   = null;
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode("User",
-				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
-				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			final Page page1     = Page.createSimplePage(securityContext, "page1");
@@ -2504,16 +2505,16 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			buttonUuid = btn.getUuid();
 
-			final NodeInterface eam = app.create("ActionMapping");
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
-			eam.setProperty(Traits.of("ActionMapping").key("event"), "click");
-			eam.setProperty(Traits.of("ActionMapping").key("action"), "create");
-			eam.setProperty(Traits.of("ActionMapping").key("dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
 
 			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, naviate-to-url, fire-event, full-page-reload, sign-out, none)
-			eam.setProperty(Traits.of("ActionMapping").key("failureBehaviour"), "sign-out");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failureBehaviour"), "sign-out");
 
 			tx.success();
 
@@ -2590,10 +2591,10 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode("User",
-				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
-				new NodeAttribute<>(Traits.of("User").key("isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
@@ -2608,16 +2609,16 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			uuid = btn.getUuid();
 
-			final NodeInterface eam = app.create("ActionMapping");
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(Traits.of("ActionMapping").key("triggerElements"), List.of(btn));
-			eam.setProperty(Traits.of("ActionMapping").key("event"), "click");
-			eam.setProperty(Traits.of("ActionMapping").key("action"), "create");
-			eam.setProperty(Traits.of("ActionMapping").key("dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
 
 			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, naviate-to-url, fire-event, full-page-reload, sign-out, none)
-			eam.setProperty(Traits.of("ActionMapping").key("failureBehaviour"), "none");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failureBehaviour"), "none");
 
 			tx.success();
 

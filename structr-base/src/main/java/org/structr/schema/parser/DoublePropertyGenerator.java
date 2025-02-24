@@ -25,6 +25,7 @@ import org.structr.common.error.InvalidPropertySchemaToken;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.property.DoubleProperty;
 import org.structr.core.property.Property;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.schema.SchemaHelper.Type;
 
@@ -58,7 +59,7 @@ public class DoublePropertyGenerator extends NumericalPropertyGenerator<Double> 
 
 		} catch (Throwable t) {
 
-			reportError(new InvalidPropertySchemaToken("SchemaNode", propertyName, source, "invalid_" + which +"_bound", StringUtils.capitalize(which) + " bound must be of type Double."));
+			reportError(new InvalidPropertySchemaToken(StructrTraits.SCHEMA_NODE, propertyName, source, "invalid_" + which +"_bound", StringUtils.capitalize(which) + " bound must be of type Double."));
 		}
 
 		return null;

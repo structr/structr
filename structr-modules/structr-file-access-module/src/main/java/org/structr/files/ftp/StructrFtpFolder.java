@@ -29,6 +29,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
@@ -100,7 +101,7 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 
 		final App app                           = StructrApp.getInstance(securityContext);
 		final List<FtpFile> ftpFiles            = new ArrayList();
-		final Traits folderTraits               = Traits.of("Folder");
+		final Traits folderTraits               = Traits.of(StructrTraits.FOLDER);
 		final PropertyKey<String> folderNameKey = folderTraits.key("name");
 
 		try (final Tx tx = app.tx()) {
@@ -112,7 +113,7 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 
 				try {
 
-					try (final ResultStream<NodeInterface> folders = app.nodeQuery("Folder").sort(folderNameKey).getResultStream()) {
+					try (final ResultStream<NodeInterface> folders = app.nodeQuery(StructrTraits.FOLDER).sort(folderNameKey).getResultStream()) {
 
 						for (NodeInterface f : folders) {
 
@@ -128,7 +129,7 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 						}
 					}
 
-					try (final ResultStream<NodeInterface> files = app.nodeQuery("File").sort(folderNameKey).getResultStream()) {
+					try (final ResultStream<NodeInterface> files = app.nodeQuery(StructrTraits.FILE).sort(folderNameKey).getResultStream()) {
 						for (NodeInterface f : files) {
 
 							if (f.as(File.class).getHasParent()) {

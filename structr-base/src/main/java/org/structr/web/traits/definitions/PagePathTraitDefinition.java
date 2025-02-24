@@ -27,6 +27,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
@@ -44,7 +45,7 @@ import java.util.Set;
 public class PagePathTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public PagePathTraitDefinition() {
-		super("PagePath");
+		super(StructrTraits.PAGE_PATH);
 	}
 
 	@Override
@@ -57,7 +58,7 @@ public class PagePathTraitDefinition extends AbstractNodeTraitDefinition {
 
 				@Override
 				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
-					return ValidationHelper.isValidPropertyNotNull(obj, Traits.of("NodeInterface").key("name"), errorBuffer);
+					return ValidationHelper.isValidPropertyNotNull(obj, Traits.of(StructrTraits.NODE_INTERFACE).key("name"), errorBuffer);
 				}
 			}
 		);

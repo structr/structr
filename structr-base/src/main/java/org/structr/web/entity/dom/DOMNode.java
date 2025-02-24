@@ -31,6 +31,7 @@ import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.event.ActionMapping;
@@ -283,7 +284,7 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 		@Override
 		public boolean accept(final DOMNode obj) {
 
-			if (obj.is("Content")) {
+			if (obj.is(StructrTraits.CONTENT)) {
 				textBuffer.append(obj.as(Content.class).getContent());
 			}
 

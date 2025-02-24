@@ -22,6 +22,7 @@ import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.test.web.StructrUiTest;
 import org.testng.annotations.Test;
@@ -38,7 +39,7 @@ public class TestFeeds extends StructrUiTest {
 	@Test
 	public void testFeeds() {
 
-		final Traits userTraits = Traits.of("User");
+		final Traits userTraits = Traits.of(StructrTraits.USER);
 		final Traits feedTraits = Traits.of("DataFeed");
 		final String type       = "DataFeed";
 
@@ -46,7 +47,7 @@ public class TestFeeds extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create("User",
+			app.create(StructrTraits.USER,
 				new NodeAttribute<>(userTraits.key("name"),     "admin"),
 				new NodeAttribute<>(userTraits.key("password"), "admin"),
 				new NodeAttribute<>(userTraits.key("isAdmin"),  true)
@@ -100,14 +101,14 @@ public class TestFeeds extends StructrUiTest {
 	@Test
 	public void testRemoteDocument() {
 
-		final Traits userTraits = Traits.of("User");
+		final Traits userTraits = Traits.of(StructrTraits.USER);
 		final String type       = "RemoteDocument";
 
 		assertNotNull("Type RemoteDocument should exist", type);
 
 		try (final Tx tx = app.tx()) {
 
-			app.create("User",
+			app.create(StructrTraits.USER,
 				new NodeAttribute<>(userTraits.key("name"),     "admin"),
 				new NodeAttribute<>(userTraits.key("password"), "admin"),
 				new NodeAttribute<>(userTraits.key("isAdmin"),  true)

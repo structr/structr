@@ -31,6 +31,7 @@ import org.structr.core.entity.SchemaGrant;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.web.maintenance.DeployCommand;
 
@@ -150,8 +151,8 @@ public class StructrGrantDefinition implements JsonGrant, StructrDefinition {
 
 		final PropertyMap getOrCreateProperties = new PropertyMap();
 		final PropertyMap updateProperties      = new PropertyMap();
-		final List<NodeInterface> principals    = app.nodeQuery("Principal").andName(principalName).getAsList();
-		final Traits traits                     = Traits.of("SchemaGrant");
+		final List<NodeInterface> principals    = app.nodeQuery(StructrTraits.PRINCIPAL).andName(principalName).getAsList();
+		final Traits traits                     = Traits.of(StructrTraits.SCHEMA_GRANT);
 
 		if (principals.isEmpty()) {
 
@@ -172,10 +173,10 @@ public class StructrGrantDefinition implements JsonGrant, StructrDefinition {
 		getOrCreateProperties.put(traits.key("principal"),  principals.get(0));
 		getOrCreateProperties.put(traits.key("schemaNode"), (SchemaNode)schemaNode);
 
-		NodeInterface grant = app.nodeQuery("SchemaGrant").and(getOrCreateProperties).getFirst();
+		NodeInterface grant = app.nodeQuery(StructrTraits.SCHEMA_GRANT).and(getOrCreateProperties).getFirst();
 		if (grant == null) {
 
-			grant = app.create("SchemaGrant", getOrCreateProperties);
+			grant = app.create(StructrTraits.SCHEMA_GRANT, getOrCreateProperties);
 		}
 
 		updateProperties.put(traits.key("allowRead"),          getAllowRead());

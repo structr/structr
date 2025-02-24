@@ -24,6 +24,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.converter.RelationshipEndNodeConverter;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
 
 import java.util.Map;
 
@@ -63,7 +64,7 @@ public class EndNodeProperty<T> extends AbstractPrimitiveProperty<T> {
 
 	@Override
 	public String typeName() {
-		return "NodeInterface";
+		return StructrTraits.NODE_INTERFACE;
 	}
 
 	@Override

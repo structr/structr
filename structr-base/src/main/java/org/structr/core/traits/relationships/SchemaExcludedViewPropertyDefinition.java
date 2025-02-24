@@ -19,6 +19,7 @@
 package org.structr.core.traits.relationships;
 
 import org.structr.core.entity.Relation;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
@@ -27,17 +28,17 @@ import static org.structr.core.entity.Relation.Multiplicity.Many;
 public class SchemaExcludedViewPropertyDefinition extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public SchemaExcludedViewPropertyDefinition() {
-		super("SchemaExcludedViewProperty");
+		super(StructrTraits.SCHEMA_EXCLUDED_VIEW_PROPERTY);
 	}
 
 	@Override
 	public String getSourceType() {
-		return "SchemaView";
+		return StructrTraits.SCHEMA_VIEW;
 	}
 
 	@Override
 	public String getTargetType() {
-		return "SchemaProperty";
+		return StructrTraits.SCHEMA_PROPERTY;
 	}
 
 	@Override

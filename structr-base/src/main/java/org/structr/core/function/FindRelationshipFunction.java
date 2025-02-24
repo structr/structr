@@ -26,6 +26,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
@@ -59,7 +60,7 @@ public class FindRelationshipFunction extends CoreFunction {
 			}
 
 			final SecurityContext securityContext = ctx.getSecurityContext();
-			final Query query  = StructrApp.getInstance(securityContext).relationshipQuery().sort(Traits.of("GraphObject").key("createdDate"));
+			final Query query  = StructrApp.getInstance(securityContext).relationshipQuery().sort(Traits.of(StructrTraits.GRAPH_OBJECT).key("createdDate"));
 
 			// the type to query for
 			Traits traits = null;

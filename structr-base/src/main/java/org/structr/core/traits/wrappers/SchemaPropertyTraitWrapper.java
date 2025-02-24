@@ -25,6 +25,7 @@ import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.schema.SchemaHelper;
@@ -274,7 +275,7 @@ public class SchemaPropertyTraitWrapper extends AbstractNodeTraitWrapper impleme
 	public String getMultiplicity(final String baseProperty) {
 
 		final AbstractSchemaNode abstractSchemaNode = getSchemaNode();
-		if (abstractSchemaNode != null && abstractSchemaNode.is("SchemaNode")) {
+		if (abstractSchemaNode != null && abstractSchemaNode.is(StructrTraits.SCHEMA_NODE)) {
 
 			final SchemaNode schemaNode = abstractSchemaNode.as(SchemaNode.class);
 
@@ -288,7 +289,7 @@ public class SchemaPropertyTraitWrapper extends AbstractNodeTraitWrapper impleme
 	public String getRelatedType(final String baseProperty) {
 
 		final AbstractSchemaNode abstractSchemaNode = getSchemaNode();
-		if (abstractSchemaNode != null && abstractSchemaNode.is("SchemaNode")) {
+		if (abstractSchemaNode != null && abstractSchemaNode.is(StructrTraits.SCHEMA_NODE)) {
 
 			final SchemaNode schemaNode = abstractSchemaNode.as(SchemaNode.class);
 

@@ -32,6 +32,7 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Trait;
 import org.structr.core.traits.Traits;
 
@@ -560,7 +561,7 @@ public class ValidationHelper {
 
 				// use declaring class for inheritance-aware uniqueness
 				final Trait trait = key.getDeclaringTrait();
-				if (trait == null || "NodeInterface".equals(trait.getLabel())) {
+				if (trait == null || StructrTraits.NODE_INTERFACE.equals(trait.getLabel())) {
 
 					// fallback: object type
 					type = object.getTraits().getName();

@@ -26,6 +26,7 @@ import org.structr.console.Console.ConsoleMode;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.entity.User;
@@ -76,12 +77,12 @@ public class ConsoleTest extends StructrUiTest {
 			assertEquals("Invalid console execution result", "User created.\r\n", console.runForTest("user add admin admin@localhost isAdmin"));
 			assertEquals("Invalid console execution result", "User created.\r\n", console.runForTest("user add root isAdmin"));
 
-			final Traits userTraits = Traits.of("User");
+			final Traits userTraits = Traits.of(StructrTraits.USER);
 
 			// check success
 			try (final Tx tx = app.tx()) {
 
-				final User user = app.nodeQuery("User").andName("tester").sort(userTraits.key("name")).getFirst().as(User.class);
+				final User user = app.nodeQuery(StructrTraits.USER).andName("tester").sort(userTraits.key("name")).getFirst().as(User.class);
 
 				assertNotNull("Invalid console execution result",                          user);
 				assertEquals("Invalid console execution result", "tester",         user.getName());
@@ -103,7 +104,7 @@ public class ConsoleTest extends StructrUiTest {
 			// check "root" user
 			try (final Tx tx = app.tx()) {
 
-				final User root = app.nodeQuery("User").andName("root").getFirst().as(User.class);
+				final User root = app.nodeQuery(StructrTraits.USER).andName("root").getFirst().as(User.class);
 
 				assertNotNull("Invalid console execution result",                root);
 				assertEquals("Invalid console execution result", "root", root.getName());
@@ -115,7 +116,7 @@ public class ConsoleTest extends StructrUiTest {
 			// make check "admin" user
 			try (final Tx tx = app.tx()) {
 
-				admin = app.nodeQuery("User").andName("admin").getFirst().as(Principal.class);
+				admin = app.nodeQuery(StructrTraits.USER).andName("admin").getFirst().as(Principal.class);
 
 				uuid = admin.getUuid();
 
@@ -124,8 +125,8 @@ public class ConsoleTest extends StructrUiTest {
 				assertEquals("Invalid console execution result", "admin@localhost", admin.getEMail());
 				assertEquals("Invalid console execution result", Boolean.TRUE,              (Boolean)admin.isAdmin());
 
-				final NodeInterface folder = app.create("Folder", "folder");
-				folder.setProperty(Traits.of("Folder").key("owner"), admin);
+				final NodeInterface folder = app.create(StructrTraits.FOLDER, "folder");
+				folder.setProperty(Traits.of(StructrTraits.FOLDER).key("owner"), admin);
 
 				tx.success();
 			}

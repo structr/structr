@@ -32,6 +32,7 @@ import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.Folder;
@@ -287,7 +288,7 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 					String newParentPath    = StringUtils.substringBeforeLast(path, "/");
 					NodeInterface newParent = FileHelper.getFileByAbsolutePath(securityContext, newParentPath);
 
-					if (newParent != null && newParent.is("Folder")) {
+					if (newParent != null && newParent.is(StructrTraits.FOLDER)) {
 
 						structrFile.setParent(newParent.as(Folder.class));
 

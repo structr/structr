@@ -37,6 +37,7 @@ import org.structr.core.graph.*;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.schema.ConfigurationProvider;
 
@@ -383,26 +384,26 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 					}
 
 					// set node type which is in "name" property
-					propertyMap.put(Traits.of("NodeInterface").key("name"), type);
+					propertyMap.put(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), type);
 
 					// check if there is an existing Structr entity with the same type and make the dynamic class extend the existing class if yes.
 					final Traits existingType = Traits.of(type);
 					if (existingType != null && !existingType.getName().equals("org.structr.dynamic." + type)) {
 
-						final NodeInterface schemaNode = app.nodeQuery("SchemaNode").andName(type).getFirst();
+						final NodeInterface schemaNode = app.nodeQuery(StructrTraits.SCHEMA_NODE).andName(type).getFirst();
 						if (schemaNode != null) {
 
-							propertyMap.put(Traits.of("SchemaNode").key("extendsClass"), schemaNode);
+							propertyMap.put(Traits.of(StructrTraits.SCHEMA_NODE).key("extendsClass"), schemaNode);
 						}
 
 					} else if (!typeInfo.getOtherTypes().isEmpty()) {
 
 						final String superclassName = typeInfo.getSuperclass(reducedTypeInfoMap);
-						final NodeInterface schemaNode = app.nodeQuery("SchemaNode").andName(superclassName).getFirst();
+						final NodeInterface schemaNode = app.nodeQuery(StructrTraits.SCHEMA_NODE).andName(superclassName).getFirst();
 
 						if (schemaNode != null) {
 
-							propertyMap.put(Traits.of("SchemaNode").key("extendsClass"), schemaNode);
+							propertyMap.put(Traits.of(StructrTraits.SCHEMA_NODE).key("extendsClass"), schemaNode);
 						}
 
 						/*
@@ -411,7 +412,7 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 						*/
 					}
 
-					final NodeInterface existingNode = app.nodeQuery("SchemaNode").andName(type).getFirst();
+					final NodeInterface existingNode = app.nodeQuery(StructrTraits.SCHEMA_NODE).andName(type).getFirst();
 					if (existingNode != null) {
 
 						for (final Map.Entry<PropertyKey, Object> entry : propertyMap.entrySet()) {
@@ -424,7 +425,7 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 					} else {
 
 						// create schema node
-						schemaNodes.put(type, app.create("SchemaNode", propertyMap).as(SchemaNode.class));
+						schemaNodes.put(type, app.create(StructrTraits.SCHEMA_NODE, propertyMap).as(SchemaNode.class));
 					}
 				}
 
@@ -453,13 +454,13 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 
 						final String relationshipType = template.getRelType();
 						final PropertyMap propertyMap = new PropertyMap();
-						final Traits traits           = Traits.of("SchemaRelationshipNode");
+						final Traits traits           = Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE);
 
 						propertyMap.put(traits.key("sourceId"),         startNode.getUuid());
 						propertyMap.put(traits.key("targetId"),         endNode.getUuid());
 						propertyMap.put(traits.key("relationshipType"), relationshipType);
 
-						app.create("SchemaRelationshipNode", propertyMap);
+						app.create(StructrTraits.SCHEMA_RELATIONSHIP_NODE, propertyMap);
 
 					} else {
 

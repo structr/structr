@@ -28,6 +28,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
@@ -149,7 +150,7 @@ public class MQTTClientTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public void onDeletion(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final PropertyMap properties) throws FrameworkException {
 
-					final String uuid = properties.get(Traits.of("GraphObject").key("id"));
+					final String uuid = properties.get(Traits.of(StructrTraits.GRAPH_OBJECT).key("id"));
 					if (uuid != null) {
 
 						MQTTContext.delete(uuid);

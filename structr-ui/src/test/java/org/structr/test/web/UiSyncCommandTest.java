@@ -87,8 +87,8 @@ public class UiSyncCommandTest extends StructrUiTest {
 
 			testPage = Page.createSimplePage(securityContext, "TestPage");
 			head     = app.nodeQuery("Head").getFirst();
-			textFile = app.create("File", "testfile.txt");
-			jsFile   = app.create("File", "test.js");
+			textFile = app.create(StructrTraits.FILE, "testfile.txt");
+			jsFile   = app.create(StructrTraits.FILE, "test.js");
 
 			tx.success();
 
@@ -129,10 +129,10 @@ public class UiSyncCommandTest extends StructrUiTest {
 		// verify that the database contains the expected number of nodes
 		try (final Tx tx = app.tx()) {
 
-			assertEquals("Database should contain 1 page",           1, app.nodeQuery("Page").getAsList().size());
-			assertEquals("Database should contain 10 DOM nodes",    11, app.nodeQuery("DOMNode").getAsList().size());
-			assertEquals("Database should contain 3 content nodes",  3, app.nodeQuery("Content").getAsList().size());
-			assertEquals("Database should contain 2 files",          2, app.nodeQuery("File").getAsList().size());
+			assertEquals("Database should contain 1 page",           1, app.nodeQuery(StructrTraits.PAGE).getAsList().size());
+			assertEquals("Database should contain 10 DOM nodes",    11, app.nodeQuery(StructrTraits.DOM_NODE).getAsList().size());
+			assertEquals("Database should contain 3 content nodes",  3, app.nodeQuery(StructrTraits.CONTENT).getAsList().size());
+			assertEquals("Database should contain 2 files",          2, app.nodeQuery(StructrTraits.FILE).getAsList().size());
 
 			tx.success();
 
@@ -178,10 +178,10 @@ public class UiSyncCommandTest extends StructrUiTest {
 		// verify that the database is empty
 		try (final Tx tx = app.tx()) {
 
-			assertEquals("Database should contain no pages",         0, app.nodeQuery("Page").getAsList().size());
-			assertEquals("Database should contain no DOM nodes",     0, app.nodeQuery("DOMNode").getAsList().size());
-			assertEquals("Database should contain no content nodes", 0, app.nodeQuery("Content").getAsList().size());
-			assertEquals("Database should contain no files",         0, app.nodeQuery("File").getAsList().size());
+			assertEquals("Database should contain no pages",         0, app.nodeQuery(StructrTraits.PAGE).getAsList().size());
+			assertEquals("Database should contain no DOM nodes",     0, app.nodeQuery(StructrTraits.DOM_NODE).getAsList().size());
+			assertEquals("Database should contain no content nodes", 0, app.nodeQuery(StructrTraits.CONTENT).getAsList().size());
+			assertEquals("Database should contain no files",         0, app.nodeQuery(StructrTraits.FILE).getAsList().size());
 
 			tx.success();
 
@@ -218,10 +218,10 @@ public class UiSyncCommandTest extends StructrUiTest {
 		// referenced in the page)
 		try (final Tx tx = app.tx()) {
 
-			assertEquals("Database should contain 1 page",           1, app.nodeQuery("Page").getAsList().size());
-			assertEquals("Database should contain 10 DOM nodes",    11, app.nodeQuery("DOMNode").getAsList().size());
-			assertEquals("Database should contain 3 content nodes",  3, app.nodeQuery("Content").getAsList().size());
-			assertEquals("Database should contain 1 file",           1, app.nodeQuery("File").getAsList().size());
+			assertEquals("Database should contain 1 page",           1, app.nodeQuery(StructrTraits.PAGE).getAsList().size());
+			assertEquals("Database should contain 10 DOM nodes",    11, app.nodeQuery(StructrTraits.DOM_NODE).getAsList().size());
+			assertEquals("Database should contain 3 content nodes",  3, app.nodeQuery(StructrTraits.CONTENT).getAsList().size());
+			assertEquals("Database should contain 1 file",           1, app.nodeQuery(StructrTraits.FILE).getAsList().size());
 
 			tx.success();
 

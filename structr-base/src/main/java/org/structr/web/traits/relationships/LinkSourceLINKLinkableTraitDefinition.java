@@ -22,6 +22,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
@@ -38,12 +39,12 @@ public class LinkSourceLINKLinkableTraitDefinition extends AbstractRelationshipT
 
 	@Override
 	public String getSourceType() {
-		return "LinkSource";
+		return StructrTraits.LINK_SOURCE;
 	}
 
 	@Override
 	public String getTargetType() {
-		return "Linkable";
+		return StructrTraits.LINKABLE;
 	}
 
 	@Override

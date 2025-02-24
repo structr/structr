@@ -30,11 +30,11 @@ import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.schema.SchemaHelper.Type;
 import org.structr.schema.SchemaService;
 
-import java.lang.reflect.Field;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
@@ -272,7 +272,7 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 	// ----- package methods -----
 	SchemaProperty createDatabaseSchema(final App app, final AbstractSchemaNode schemaNode) throws FrameworkException {
 
-		final Traits traits     = Traits.of("SchemaProperty");
+		final Traits traits     = Traits.of(StructrTraits.SCHEMA_PROPERTY);
 		SchemaProperty property = schemaNode.getSchemaProperty(getName());
 
 		if (property == null) {
@@ -293,7 +293,7 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 			getOrCreateProperties.put(traits.key("transformers"), listToArray(transformers));
 			getOrCreateProperties.put(traits.key("defaultValue"), defaultValue);
 
-			property = app.create("SchemaProperty", getOrCreateProperties).as(SchemaProperty.class);
+			property = app.create(StructrTraits.SCHEMA_PROPERTY, getOrCreateProperties).as(SchemaProperty.class);
 		}
 
 		final PropertyMap updateProperties = new PropertyMap();

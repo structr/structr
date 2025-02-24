@@ -24,11 +24,11 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.websocket.StructrWebSocket;
@@ -64,7 +64,7 @@ public class RemoveCommand extends AbstractCommand {
 
 			if (node != null) {
 
-				if (node.is("DOMNode")) {
+				if (node.is(StructrTraits.DOM_NODE)) {
 
 					// Use new DOM interface
 					DOMNode domNode = node.as(DOMNode.class);
@@ -136,7 +136,7 @@ public class RemoveCommand extends AbstractCommand {
 
 		// Remove node from page
 		final PropertyMap changedProperties = new PropertyMap();
-		final Traits traits                 = Traits.of("DOMNode");
+		final Traits traits                 = Traits.of(StructrTraits.DOM_NODE);
 
 		changedProperties.put(traits.key("syncedNodes"), Collections.EMPTY_LIST);
 		changedProperties.put(traits.key("pageId"),      null);

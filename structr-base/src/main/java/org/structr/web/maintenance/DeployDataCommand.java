@@ -33,6 +33,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.rest.resource.MaintenanceResource;
 import org.structr.schema.SchemaHelper;
@@ -89,7 +90,7 @@ public class DeployDataCommand extends DeployCommand {
 	private static final String FILES_FILE_PARENTS_PATH = "file-parents.json";
 
 	// is being handled via export of "grantees" and "owner" attributes
-	private final static Set<String> blacklistedRelationshipTypes = Set.of("PrincipalOwnsNode", "Security");
+	private final static Set<String> blacklistedRelationshipTypes = Set.of(StructrTraits.PRINCIPAL_OWNS_NODE, StructrTraits.SECURITY);
 
 	static {
 
@@ -195,7 +196,7 @@ public class DeployDataCommand extends DeployCommand {
 
 			removeInheritingTypesFromExportSet(exportTypes);
 
-			exportFileAndFolderTypes = exportTypes.stream().filter(aClass -> Traits.of(aClass).contains("AbstractFile")).collect(Collectors.toSet());
+			exportFileAndFolderTypes = exportTypes.stream().filter(aClass -> Traits.of(aClass).contains(StructrTraits.ABSTRACT_FILE)).collect(Collectors.toSet());
 			exportTypes.removeAll(exportFileAndFolderTypes);
 
 			final SecurityContext context = getRecommendedSecurityContext();
@@ -586,7 +587,7 @@ public class DeployDataCommand extends DeployCommand {
 
 			final Traits traits = Traits.of(type);
 
-			if (traits.contains("User")) {
+			if (traits.contains(StructrTraits.USER)) {
 
 				logger.warn("User type in export set! Type '{}' is a User type.\n\tIf, on import, the user who is running the import is present in the import data, this can lead to problems.", type);
 				publishWarningMessage("User type in export set", "Type '" + type + "' is a User type.<br>If, on import, the user who is running the import is present in the import data, this can lead to problems.");
@@ -695,7 +696,7 @@ public class DeployDataCommand extends DeployCommand {
 
 			final Path fileSystemPath = filesDir.resolve(path.substring(1));
 
-			if (fileOrFolder.is("Folder")) {
+			if (fileOrFolder.is(StructrTraits.FOLDER)) {
 
 				Files.createDirectories(fileSystemPath);
 

@@ -54,6 +54,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.rest.JsonInputGSONAdapter;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
@@ -282,7 +283,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 						if (isImage) {
 
-							cls = Traits.of("Image");
+							cls = Traits.of(StructrTraits.IMAGE);
 
 						} else if (isVideo) {
 
@@ -294,7 +295,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 						} else {
 
-							cls = Traits.of("File");
+							cls = Traits.of(StructrTraits.FILE);
 						}
 					}
 
@@ -335,7 +336,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 								changedProperties.putAll(PropertyMap.inputTypeToJavaType(securityContext, type, params));
 
 								// Update type as it could have changed
-								changedProperties.put(Traits.of("GraphObject").key("type"), type);
+								changedProperties.put(Traits.of(StructrTraits.GRAPH_OBJECT).key("type"), type);
 
 								newFile.unlockSystemPropertiesOnce();
 								newFile.setProperties(securityContext, changedProperties, true);
@@ -505,7 +506,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 						response.getOutputStream().write("ERROR (404): File not found.\n".getBytes("UTF-8"));
 					}
 
-					if (node instanceof NodeInterface n && n.is("File")) {
+					if (node instanceof NodeInterface n && n.is(StructrTraits.FILE)) {
 
 						final File file = n.as(File.class);
 						if (n.isGranted(Permission.write, securityContext)) {

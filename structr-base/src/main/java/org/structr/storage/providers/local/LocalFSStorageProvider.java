@@ -20,6 +20,7 @@ package org.structr.storage.providers.local;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.storage.AbstractStorageProvider;
 import org.structr.storage.StorageProvider;
 import org.structr.web.entity.AbstractFile;
@@ -91,7 +92,7 @@ public class LocalFSStorageProvider extends AbstractStorageProvider {
 
 		final AbstractFile file = getAbstractFile();
 
-		if (file.is("File")) {
+		if (file.is(StructrTraits.FILE)) {
 
 			return file.as(org.structr.web.entity.File.class).getContentType();
 		}
@@ -135,10 +136,10 @@ public class LocalFSStorageProvider extends AbstractStorageProvider {
 		// Ensure files exist and abstract files are actual files
 		final AbstractFile file = getAbstractFile();
 
-		if (file != null && file.is("File")) {
+		if (file != null && file.is(StructrTraits.FILE)) {
 
 			final AbstractFile otherFile = newFileStorageProvider.getAbstractFile();
-			if (otherFile != null && otherFile.is("File")) {
+			if (otherFile != null && otherFile.is(StructrTraits.FILE)) {
 
 				final String path1 = file.getPath();
 				final String path2 = otherFile.getPath();

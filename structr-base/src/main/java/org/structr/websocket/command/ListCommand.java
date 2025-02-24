@@ -27,11 +27,8 @@ import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
-import org.structr.schema.SchemaHelper;
-import org.structr.web.entity.File;
-import org.structr.web.entity.Folder;
-import org.structr.web.entity.Image;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -83,27 +80,27 @@ public class ListCommand extends AbstractCommand {
 		final PropertyKey sortProperty = type.key(sortKey);
 		final Query query              = StructrApp.getInstance(securityContext).nodeQuery(rawType).sort(sortProperty, "desc".equals(sortOrder)).page(page).pageSize(pageSize);
 
-		if (type.contains("File")) {
+		if (type.contains(StructrTraits.FILE)) {
 
 			if (rootOnly) {
-				query.and(Traits.of("File").key("hasParent"), false);
+				query.and(Traits.of(StructrTraits.FILE).key("hasParent"), false);
 			}
 
 			// inverted as isThumbnail is not necessarily present in all objects inheriting from FileBase
-			query.not().and(Traits.of("Image").key("isThumbnail"), true);
+			query.not().and(Traits.of(StructrTraits.IMAGE).key("isThumbnail"), true);
 
-			TransactionCommand.getCurrentTransaction().prefetch("AbstractFile", "AbstractFile", Set.of(
+			TransactionCommand.getCurrentTransaction().prefetch(StructrTraits.ABSTRACT_FILE, StructrTraits.ABSTRACT_FILE, Set.of(
 				"all/INCOMING/CONTAINS",
 				"all/OUTGOING/CONFIGURED_BY"
 			));
 		}
 
 		// important
-		if (type.contains("Folder") && rootOnly) {
+		if (type.contains(StructrTraits.FOLDER) && rootOnly) {
 
-			query.and(Traits.of("Folder").key("hasParent"), false);
+			query.and(Traits.of(StructrTraits.FOLDER).key("hasParent"), false);
 
-			TransactionCommand.getCurrentTransaction().prefetch("AbstractFile", "AbstractFile", Set.of(
+			TransactionCommand.getCurrentTransaction().prefetch(StructrTraits.ABSTRACT_FILE, StructrTraits.ABSTRACT_FILE, Set.of(
 				"all/INCOMING/CONTAINS",
 				"all/OUTGOING/CONFIGURED_BY"
 			));

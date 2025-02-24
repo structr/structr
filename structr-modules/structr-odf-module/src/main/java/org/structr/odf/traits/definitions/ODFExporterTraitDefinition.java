@@ -36,6 +36,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.EndNode;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.odf.entity.ODFExporter;
@@ -156,7 +157,7 @@ public class ODFExporterTraitDefinition extends AbstractNodeTraitDefinition {
 			// If no result file is given, create one and set it as result document
 			if (output == null) {
 
-				output = FileHelper.createFile(securityContext, new byte[]{}, template.getContentType(), "File", getName().concat("_").concat(template.getName()), false).as(File.class);
+				output = FileHelper.createFile(securityContext, new byte[]{}, template.getContentType(), StructrTraits.FILE, getName().concat("_").concat(template.getName()), false).as(File.class);
 
 				output.setParent(template.getParent());
 
@@ -182,7 +183,7 @@ public class ODFExporterTraitDefinition extends AbstractNodeTraitDefinition {
 		try {
 
 			final App app              = StructrApp.getInstance();
-			final Image result         = app.nodeQuery("Image").and(Traits.of("Image").key("id"), uuid).getFirst().as(Image.class);
+			final Image result         = app.nodeQuery(StructrTraits.IMAGE).and(Traits.of(StructrTraits.IMAGE).key("id"), uuid).getFirst().as(Image.class);
 			final String imageName     = result.getName();
 			final String contentType   = result.getContentType();
 

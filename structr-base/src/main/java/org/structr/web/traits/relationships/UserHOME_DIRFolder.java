@@ -19,6 +19,7 @@
 package org.structr.web.traits.relationships;
 
 import org.structr.core.entity.Relation;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
@@ -30,14 +31,13 @@ public class UserHOME_DIRFolder extends AbstractRelationshipTraitDefinition impl
 
 	@Override
 	public String getSourceType() {
-		return "User";
+		return StructrTraits.USER;
 	}
 
 	@Override
 	public String getTargetType() {
-		return "Folder";
+		return StructrTraits.FOLDER;
 	}
-
 
 	@Override
 	public String getRelationshipType() {

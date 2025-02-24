@@ -29,6 +29,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.test.web.files.SSHTest;
 import org.structr.web.entity.File;
@@ -136,8 +137,8 @@ public class SSHFilesTest extends SSHTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final PropertyKey<String> nameKey = Traits.of("File").key("name");
-			final List<NodeInterface> files   = app.nodeQuery("File").sort(nameKey).getAsList();
+			final PropertyKey<String> nameKey = Traits.of(StructrTraits.FILE).key("name");
+			final List<NodeInterface> files   = app.nodeQuery(StructrTraits.FILE).sort(nameKey).getAsList();
 
 			assertEquals("Invalid number of test files", 2, files.size());
 
@@ -354,8 +355,8 @@ public class SSHFilesTest extends SSHTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final PropertyKey<String> nameKey = Traits.of("File").key("name");
-			final List<NodeInterface> files   = app.nodeQuery("File").sort(nameKey).getAsList();
+			final PropertyKey<String> nameKey = Traits.of(StructrTraits.FILE).key("name");
+			final List<NodeInterface> files   = app.nodeQuery(StructrTraits.FILE).sort(nameKey).getAsList();
 
 			assertEquals("Invalid number of test files", 1, files.size());
 
@@ -415,7 +416,7 @@ public class SSHFilesTest extends SSHTest {
 		Settings.SSHPublicKeyOnly.setValue(false);
 
 		final ChannelSftp sftp            = setupSftpClient("ftpuser1", "ftpuserpw1", true);
-		final PropertyKey<String> nameKey = Traits.of("File").key("name");
+		final PropertyKey<String> nameKey = Traits.of(StructrTraits.FILE).key("name");
 		final String testContent          = "Test Content öäü";
 		final String name                 = "file1.txt";
 
@@ -442,7 +443,7 @@ public class SSHFilesTest extends SSHTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<NodeInterface> files = app.nodeQuery("File").sort(nameKey).getAsList();
+			final List<NodeInterface> files = app.nodeQuery(StructrTraits.FILE).sort(nameKey).getAsList();
 
 			assertEquals("Invalid number of test files", 1, files.size());
 
@@ -476,7 +477,7 @@ public class SSHFilesTest extends SSHTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<NodeInterface> files = app.nodeQuery("File").sort(nameKey).getAsList();
+			final List<NodeInterface> files = app.nodeQuery(StructrTraits.FILE).sort(nameKey).getAsList();
 
 			assertEquals("Invalid number of test files", 0, files.size());
 
@@ -493,7 +494,7 @@ public class SSHFilesTest extends SSHTest {
 		Settings.SSHPublicKeyOnly.setValue(false);
 
 		final ChannelSftp sftp            = setupSftpClient("ftpuser1", "ftpuserpw1", true);
-		final PropertyKey<String> nameKey = Traits.of("File").key("name");
+		final PropertyKey<String> nameKey = Traits.of(StructrTraits.FILE).key("name");
 
 		try {
 
@@ -516,10 +517,10 @@ public class SSHFilesTest extends SSHTest {
 
 		try (final Tx tx = app.tx()) {
 
-			assertEquals("Folder test1 should exist", "test1", app.nodeQuery("Folder").andName("test1").sort(nameKey).getFirst().getName());
-			assertEquals("Folder test2 should exist", "test2", app.nodeQuery("Folder").andName("test2").sort(nameKey).getFirst().getName());
-			assertEquals("Folder nested1 should exist", "nested1", app.nodeQuery("Folder").andName("nested1").sort(nameKey).getFirst().getName());
-			assertNull("Folder nested2 should have been deleted", app.nodeQuery("Folder").andName("nested2").sort(nameKey).getFirst());
+			assertEquals("Folder test1 should exist", "test1", app.nodeQuery(StructrTraits.FOLDER).andName("test1").sort(nameKey).getFirst().getName());
+			assertEquals("Folder test2 should exist", "test2", app.nodeQuery(StructrTraits.FOLDER).andName("test2").sort(nameKey).getFirst().getName());
+			assertEquals("Folder nested1 should exist", "nested1", app.nodeQuery(StructrTraits.FOLDER).andName("nested1").sort(nameKey).getFirst().getName());
+			assertNull("Folder nested2 should have been deleted", app.nodeQuery(StructrTraits.FOLDER).andName("nested2").sort(nameKey).getFirst());
 
 			tx.success();
 

@@ -34,6 +34,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SourceSearchAttribute;
 import org.structr.core.property.AbstractReadOnlyProperty;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.Linkable;
@@ -81,7 +82,7 @@ public class PathProperty extends AbstractReadOnlyProperty<String> {
 	@Override
 	public String getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
 
-		if (obj.is("AbstractFile")) {
+		if (obj.is(StructrTraits.ABSTRACT_FILE)) {
 
 			final AbstractFile file = obj.as(AbstractFile.class);
 
@@ -130,9 +131,9 @@ public class PathProperty extends AbstractReadOnlyProperty<String> {
 	private void searchRecursively(final App app, final NodeInterface parent, final SourceSearchAttribute attr, final ArrayList<String> parts) throws FrameworkException {
 
 		final String currentPart      = parts.remove(0);
-		final Traits traits           = Traits.of("File");
+		final Traits traits           = Traits.of(StructrTraits.FILE);
 
-		final List<NodeInterface> res = app.nodeQuery("AbstractFile").and(Traits.of("AbstractFile").key("parent"), parent).and(traits.key("name"), currentPart).getAsList();
+		final List<NodeInterface> res = app.nodeQuery(StructrTraits.ABSTRACT_FILE).and(Traits.of(StructrTraits.ABSTRACT_FILE).key("parent"), parent).and(traits.key("name"), currentPart).getAsList();
 
 		if (parts.isEmpty()) {
 

@@ -32,6 +32,7 @@ import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.nodeinterface.GetRelationships;
 import org.structr.core.traits.operations.nodeinterface.VisitForUsage;
@@ -42,7 +43,7 @@ import java.util.Set;
 public final class NodeInterfaceTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public NodeInterfaceTraitDefinition() {
-		super("NodeInterface");
+		super(StructrTraits.NODE_INTERFACE);
 	}
 
 	@Override
@@ -238,9 +239,9 @@ public final class NodeInterfaceTraitDefinition extends AbstractNodeTraitDefinit
 		// properties
 		final PropertyKey<String>  nameProperty                     = new StringProperty("name").indexed();
 		final PropertyKey<Boolean> hiddenProperty                   = new BooleanProperty("hidden").indexed();
-		final Property<NodeInterface> ownerProperty                 = new StartNode("owner", "PrincipalOwnsNode");
-		final PropertyKey<String> ownerIdProperty                   = new EntityIdProperty("ownerId", "NodeInterface", "owner", "Principal");
-		final PropertyKey<Iterable<NodeInterface>> granteesProperty = new StartNodes("grantees", "SecurityRelationship");
+		final Property<NodeInterface> ownerProperty                 = new StartNode("owner", StructrTraits.PRINCIPAL_OWNS_NODE);
+		final PropertyKey<String> ownerIdProperty                   = new EntityIdProperty("ownerId", StructrTraits.NODE_INTERFACE, "owner", StructrTraits.PRINCIPAL);
+		final PropertyKey<Iterable<NodeInterface>> granteesProperty = new StartNodes("grantees", StructrTraits.SECURITY);
 		//private static final PropertyKey<String> internalPathProperty              = new InternalPathProperty("internalEntityContextPath");
 
 		return newSet(

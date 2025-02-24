@@ -39,6 +39,7 @@ import org.structr.core.graph.TransactionCommand;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
@@ -59,7 +60,7 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 	private static final String SchemaRemoteAttributeNamePattern = "[a-zA-Z_][a-zA-Z0-9_]*";
 
 	public SchemaRelationshipNodeTraitDefinition() {
-		super("SchemaRelationshipNode");
+		super(StructrTraits.SCHEMA_RELATIONSHIP_NODE);
 	}
 
 	@Override
@@ -232,10 +233,10 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> sourceNode          = new StartNode("sourceNode", "SchemaRelationshipSourceNode");
-		final Property<NodeInterface> targetNode          = new EndNode("targetNode", "SchemaRelationshipTargetNode");
-		final Property<String>     sourceId               = new EntityNotionProperty<>("sourceId", "SchemaRelationshipNode", "sourceNode", "SchemaNode", new PropertyNotion("id"));
-		final Property<String>     targetId               = new EntityNotionProperty<>("targetId", "SchemaRelationshipNode", "targetNode", "SchemaNode", new PropertyNotion("id"));
+		final Property<NodeInterface> sourceNode          = new StartNode("sourceNode", StructrTraits.SCHEMA_RELATIONSHIP_SOURCE_NODE);
+		final Property<NodeInterface> targetNode          = new EndNode("targetNode", StructrTraits.SCHEMA_RELATIONSHIP_TARGET_NODE);
+		final Property<String>     sourceId               = new EntityNotionProperty<>("sourceId", StructrTraits.SCHEMA_RELATIONSHIP_NODE, "sourceNode", StructrTraits.SCHEMA_NODE, new PropertyNotion("id"));
+		final Property<String>     targetId               = new EntityNotionProperty<>("targetId", StructrTraits.SCHEMA_RELATIONSHIP_NODE, "targetNode", StructrTraits.SCHEMA_NODE, new PropertyNotion("id"));
 		final Property<String>     sourceType             = new StringProperty("sourceType");
 		final Property<String>     targetType             = new StringProperty("targetType");
 		final Property<String>     name                   = new StringProperty("name").indexed();
@@ -311,7 +312,7 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 			final SchemaNode sourceNode = node.getSourceNode();
 			final SchemaNode targetNode = node.getTargetNode();
 
-			final Query<NodeInterface> query = StructrApp.getInstance().nodeQuery("SchemaRelationshipNode").and(relTypeKey, node.getRelationshipType(), true);
+			final Query<NodeInterface> query = StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_RELATIONSHIP_NODE).and(relTypeKey, node.getRelationshipType(), true);
 
 			// source node or static type (string-based)
 			if (sourceNode != null) query.and(sourceNodeKey, sourceNode); else query.and(sourceTypeKey, node.getSourceType());
@@ -347,7 +348,7 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 		if (!className.equals(potentialNewClassName)) {
 
 			try {
-				node.setProperty(Traits.of("NodeInterface").key("name"), potentialNewClassName);
+				node.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), potentialNewClassName);
 
 			} catch (FrameworkException fex) {
 				logger.warn("Unable to set relationship name to {}.", potentialNewClassName);
@@ -375,7 +376,7 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 		final SchemaNode _targetNode                 = node.getTargetNode();
 
 		// build schema node map
-		StructrApp.getInstance().nodeQuery("SchemaNode").getAsList().stream().forEach(n -> { schemaNodes.put(n.getName(), n); });
+		StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_NODE).getAsList().stream().forEach(n -> { schemaNodes.put(n.getName(), n); });
 
 		if (_previousSourceJsonName != null && _currentSourceJsonName != null && !_currentSourceJsonName.equals(_previousSourceJsonName)) {
 
@@ -419,7 +420,7 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 
 	private void renameNotionPropertyReferences(final Map<String, NodeInterface> schemaNodes, final SchemaNode schemaNode, final String previousValue, final String currentValue) throws FrameworkException {
 
-		final PropertyKey<String> formatKey = Traits.of("SchemaProperty").key("format");
+		final PropertyKey<String> formatKey = Traits.of(StructrTraits.SCHEMA_PROPERTY).key("format");
 
 		// examine properties of other node
 		for (final SchemaProperty property : schemaNode.getSchemaProperties()) {

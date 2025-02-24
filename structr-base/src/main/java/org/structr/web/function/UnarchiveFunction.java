@@ -23,6 +23,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
@@ -50,8 +51,8 @@ public class UnarchiveFunction extends UiAdvancedFunction {
 
 
 		if (sources == null || sources.length < 1 || sources.length > 2
-				|| (sources[0] != null && !(sources[0] instanceof NodeInterface n && n.is("File"))
-				|| (sources.length == 2 && sources[1] != null && !(sources[1] instanceof NodeInterface n && n.is("Folder"))))) {
+				|| (sources[0] != null && !(sources[0] instanceof NodeInterface n && n.is(StructrTraits.FILE))
+				|| (sources.length == 2 && sources[1] != null && !(sources[1] instanceof NodeInterface n && n.is(StructrTraits.FOLDER))))) {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
@@ -71,11 +72,11 @@ public class UnarchiveFunction extends UiAdvancedFunction {
 			} else {
 
 				final PropertyMap props = new PropertyMap();
-				props.put(Traits.of("Folder").key("name"), StringUtils.substringBeforeLast(archiveFile.getName(), "."));
-				props.put(Traits.of("Folder").key("parent"), archiveFile.getParent());
+				props.put(Traits.of(StructrTraits.FOLDER).key("name"), StringUtils.substringBeforeLast(archiveFile.getName(), "."));
+				props.put(Traits.of(StructrTraits.FOLDER).key("parent"), archiveFile.getParent());
 
 				// Create folder with same name (without extension) and in same folder as file
-				parentFolder = StructrApp.getInstance(ctx.getSecurityContext()).create("Folder", props).as(Folder.class);
+				parentFolder = StructrApp.getInstance(ctx.getSecurityContext()).create(StructrTraits.FOLDER, props).as(Folder.class);
 			}
 
 			FileHelper.unarchive(ctx.getSecurityContext(), archiveFile, parentFolder == null ? null : parentFolder.getUuid());

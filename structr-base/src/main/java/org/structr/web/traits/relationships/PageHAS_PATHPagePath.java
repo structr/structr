@@ -19,6 +19,7 @@
 package org.structr.web.traits.relationships;
 
 import org.structr.core.entity.Relation;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
@@ -30,12 +31,12 @@ public class PageHAS_PATHPagePath extends AbstractRelationshipTraitDefinition im
 
 	@Override
 	public String getSourceType() {
-		return "Page";
+		return StructrTraits.PAGE;
 	}
 
 	@Override
 	public String getTargetType() {
-		return "PagePath";
+		return StructrTraits.PAGE_PATH;
 	}
 
 	@Override

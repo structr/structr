@@ -28,6 +28,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.web.entity.File;
 import org.structr.websocket.StructrWebSocket;
@@ -58,13 +59,13 @@ public class CreateCommand extends AbstractCommand {
 		try {
 
 			final PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, webSocketData.getNodeData());
-			final String rawType         = properties.get(Traits.of("GraphObject").key("type"));
+			final String rawType         = properties.get(Traits.of(StructrTraits.GRAPH_OBJECT).key("type"));
 			final NodeInterface newNode  = app.create(rawType, properties);
 
 			TransactionCommand.registerNodeCallback(newNode, callback);
 
 			// check for File node and store in WebSocket to receive chunks
-			if (newNode.is("File")) {
+			if (newNode.is(StructrTraits.FILE)) {
 
 				getWebSocket().createFileUploadHandler(newNode.as(File.class));
 			}

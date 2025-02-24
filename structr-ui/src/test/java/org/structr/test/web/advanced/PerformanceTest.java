@@ -34,6 +34,7 @@ import org.structr.core.entity.Principal;
 import org.structr.core.graph.*;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
@@ -215,7 +216,7 @@ public class PerformanceTest extends StructrUiTest {
 
 					for (final NodeInterface t : app.nodeQuery("TestOne").getResultStream()) {
 
-						final String name = t.getProperty(Traits.of("NodeInterface").key("name"));
+						final String name = t.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"));
 					}
 
 					tx.success();
@@ -400,7 +401,7 @@ public class PerformanceTest extends StructrUiTest {
 
 					for (final NodeInterface n : createNodes(app, "TestTwo", number)){
 
-						n.setProperty(Traits.of("NodeInterface").key("name"), "Test" + StringUtils.leftPad(Integer.toString(count++), 5, "0"));
+						n.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "Test" + StringUtils.leftPad(Integer.toString(count++), 5, "0"));
 						n.setProperty(Traits.of("TestTwo").key("testFives"), createNodes(app, "TestFive", 3));
 					}
 
@@ -467,7 +468,7 @@ public class PerformanceTest extends StructrUiTest {
 
 					final long t0 = System.currentTimeMillis();
 
-					final Principal user = app.nodeQuery("Principal").getFirst().as(Principal.class);
+					final Principal user = app.nodeQuery(StructrTraits.PRINCIPAL).getFirst().as(Principal.class);
 
 					user.getGroups();
 
@@ -523,7 +524,7 @@ public class PerformanceTest extends StructrUiTest {
 
 			try (final Tx tx = app.tx()) {
 
-				final Page page      = app.nodeQuery("Page").getFirst().as(Page.class);
+				final Page page      = app.nodeQuery(StructrTraits.PAGE).getFirst().as(Page.class);
 				final String content = page.getContent(RenderContext.EditMode.NONE);
 
 				System.out.println("###################################################################################################################");
@@ -599,10 +600,10 @@ public class PerformanceTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			user = app.create("User",
-				new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "admin"),
-				new NodeAttribute<>(Traits.of("User").key("password"),     "admin"),
-				new NodeAttribute<>(Traits.of("User").key("isAdmin"),      true)
+			user = app.create(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"),      true)
 			);
 
 			tx.success();

@@ -32,6 +32,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
@@ -57,7 +58,7 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 	}));
 
 	public SchemaNodeTraitDefinition() {
-		super("SchemaNode");
+		super(StructrTraits.SCHEMA_NODE);
 	}
 
 	@Override
@@ -73,8 +74,8 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 					boolean valid = true;
 
-					valid &= ValidationHelper.isValidUniqueProperty(obj, Traits.of("NodeInterface").key("name"), errorBuffer);
-					valid &= ValidationHelper.isValidStringMatchingRegex(obj, Traits.of("NodeInterface").key("name"), SchemaNode.schemaNodeNamePattern, errorBuffer);
+					valid &= ValidationHelper.isValidUniqueProperty(obj, Traits.of(StructrTraits.NODE_INTERFACE).key("name"), errorBuffer);
+					valid &= ValidationHelper.isValidStringMatchingRegex(obj, Traits.of(StructrTraits.NODE_INTERFACE).key("name"), SchemaNode.schemaNodeNamePattern, errorBuffer);
 
 					return valid;
 				}
@@ -98,7 +99,7 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
-					if (modificationQueue.isPropertyModified(graphObject, Traits.of("NodeInterface").key("name"))) {
+					if (modificationQueue.isPropertyModified(graphObject, Traits.of(StructrTraits.NODE_INTERFACE).key("name"))) {
 						throwExceptionIfTypeAlreadyExists(graphObject);
 					}
 
@@ -129,9 +130,9 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Iterable<NodeInterface>>          relatedTo              = new EndNodes("relatedTo", "SchemaRelationshipSourceNode");
-		final Property<Iterable<NodeInterface>>          relatedFrom            = new StartNodes("relatedFrom", "SchemaRelationshipTargetNode");
-		final Property<Iterable<NodeInterface>>          schemaGrants           = new StartNodes("schemaGrants", "SchemaGrantSchemaNodeRelationship");
+		final Property<Iterable<NodeInterface>>          relatedTo              = new EndNodes("relatedTo", StructrTraits.SCHEMA_RELATIONSHIP_SOURCE_NODE);
+		final Property<Iterable<NodeInterface>>          relatedFrom            = new StartNodes("relatedFrom", StructrTraits.SCHEMA_RELATIONSHIP_TARGET_NODE);
+		final Property<Iterable<NodeInterface>>          schemaGrants           = new StartNodes("schemaGrants", StructrTraits.SCHEMA_GRANT_SCHEMA_NODE_RELATIONSHIP);
 		final Property<String[]>                         inheritedTraits        = new ArrayProperty("inheritedTraits", String.class);
 		final Property<String>                           defaultSortKey         = new StringProperty("defaultSortKey");
 		final Property<String>                           defaultSortOrder       = new StringProperty("defaultSortOrder");
@@ -324,10 +325,10 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 		final Map<String, Class> staticTypes = new LinkedHashMap<>();
 
-		staticTypes.put("User", User.class);
-		staticTypes.put("Page", Page.class);
-		staticTypes.put("MailTemplate", MailTemplate.class);
-		staticTypes.put("Group", Group.class);
+		staticTypes.put(StructrTraits.USER, User.class);
+		staticTypes.put(StructrTraits.PAGE, Page.class);
+		staticTypes.put(StructrTraits.MAIL_TEMPLATE, MailTemplate.class);
+		staticTypes.put(StructrTraits.GROUP, Group.class);
 
 		final String name = getName();
 
@@ -434,7 +435,7 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 		final Map<String, SchemaNode> schemaNodes = new LinkedHashMap<>();
 
 		// collect list of schema nodes
-		StructrApp.getInstance().nodeQuery("SchemaNode").getAsList().stream().forEach(n -> { schemaNodes.put(n.getName(), n); });
+		StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_NODE).getAsList().stream().forEach(n -> { schemaNodes.put(n.getName(), n); });
 
 		// return generated source code for this class
 		SchemaHelper.getSource(sourceFile, this, schemaNodes, SchemaService.getBlacklist(), new ErrorBuffer());
@@ -494,7 +495,7 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 		if (Services.getInstance().isInitialized() && ! Services.getInstance().isOverridingSchemaTypesAllowed()) {
 
-			final String typeName = graphObject.getProperty(Traits.of("NodeInterface").key("name"));
+			final String typeName = graphObject.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"));
 
 			// add type names to list of forbidden entity names
 			if (EntityNameBlacklist.contains(typeName)) {

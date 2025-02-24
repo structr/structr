@@ -38,6 +38,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
@@ -69,7 +70,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 	private static final Set<String> DataAttributeOutputBlacklist = Set.of("data-structr-manual-reload-target");
 
 	public DOMNodeTraitDefinition() {
-		super("DOMNode");
+		super(StructrTraits.DOM_NODE);
 	}
 
 	@Override
@@ -581,12 +582,12 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Iterable<NodeInterface>> successNotificationActionsProperty = new EndNodes("successNotificationActions", "DOMNodeSUCCESS_NOTIFICATION_ELEMENTActionMapping");
 		final Property<Iterable<NodeInterface>> failureNotificationActionsProperty = new EndNodes("failureNotificationActions", "DOMNodeFAILURE_NOTIFICATION_ELEMENTActionMapping");
 		final Property<Iterable<DOMNode>> sortedChildrenProperty                   = new DOMNodeSortedChildrenProperty("sortedChildren").typeHint("DOMNode[]");
-		final Property<String> childrenIdsProperty                                 = new CollectionIdProperty("childrenIds", "DOMNode", "children", "DOMNode").category("Page Structure");
-		final Property<String> nextSiblingIdProperty                               = new EntityIdProperty("nextSiblingId", "DOMNode", "nextSibling", "DOMNode").category("Page Structure");
-		final Property<String> pageIdProperty                                      = new EntityIdProperty("pageId", "DOMNode", "ownerDocument", "Page").category("Page Structure");
-		final Property<String> parentIdProperty                                    = new EntityIdProperty("parentId", "DOMNode", "parent", "DOMNode").category("Page Structure");
-		final Property<String> sharedComponentIdProperty                           = new EntityIdProperty("sharedComponentId", "DOMNode", "sharedComponent", "DOMNode").format("sharedComponent, {},");
-		final Property<String> syncedNodesIdsProperty                              = new CollectionIdProperty("syncedNodesIds", "DOMNode", "syncedNodes", "DOMNode");
+		final Property<String> childrenIdsProperty                                 = new CollectionIdProperty("childrenIds", StructrTraits.DOM_NODE, "children", StructrTraits.DOM_NODE).category("Page Structure");
+		final Property<String> nextSiblingIdProperty                               = new EntityIdProperty("nextSiblingId", StructrTraits.DOM_NODE, "nextSibling", StructrTraits.DOM_NODE).category("Page Structure");
+		final Property<String> pageIdProperty                                      = new EntityIdProperty("pageId", StructrTraits.DOM_NODE, "ownerDocument", StructrTraits.PAGE).category("Page Structure");
+		final Property<String> parentIdProperty                                    = new EntityIdProperty("parentId", StructrTraits.DOM_NODE, "parent", StructrTraits.DOM_NODE).category("Page Structure");
+		final Property<String> sharedComponentIdProperty                           = new EntityIdProperty("sharedComponentId", StructrTraits.DOM_NODE, "sharedComponent", StructrTraits.DOM_NODE).format("sharedComponent, {},");
+		final Property<String> syncedNodesIdsProperty                              = new CollectionIdProperty("syncedNodesIds", StructrTraits.DOM_NODE, "syncedNodes", StructrTraits.DOM_NODE);
 		final Property<String> dataKeyProperty                                     = new StringProperty("dataKey").indexed().category(DOMNode.QUERY_CATEGORY);
 		final Property<String> cypherQueryProperty                                 = new StringProperty("cypherQuery").category(DOMNode.QUERY_CATEGORY);
 		final Property<String> restQueryProperty                                   = new StringProperty("restQuery").category(DOMNode.QUERY_CATEGORY);

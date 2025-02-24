@@ -34,6 +34,7 @@ import org.structr.core.auth.Authenticator;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.common.StatsCallback;
 import org.structr.rest.service.HttpServiceServlet;
@@ -197,7 +198,7 @@ public class EventSourceServlet extends org.eclipse.jetty.servlets.EventSourceSe
 
 		for (Principal principal : targets) {
 
-			if (principal.is("User")) {
+			if (principal.is(StructrTraits.USER)) {
 
 				uniqueUsers.add(principal.as(User.class));
 
@@ -226,7 +227,7 @@ public class EventSourceServlet extends org.eclipse.jetty.servlets.EventSourceSe
 		for (Principal member : group.getMembers()) {
 
 //			if (User.class.isAssignableFrom(member.getClass())) {
-			if (member.is("User")) {
+			if (member.is(StructrTraits.USER)) {
 
 				uniqueUsers.add((User)member);
 

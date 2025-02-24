@@ -26,6 +26,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 
 import java.io.IOException;
@@ -39,7 +40,7 @@ public class TestHelper {
 
 	public static void testViews(final App app, final InputStream specificationSource, final Map<String, List<String>> additionalRequiredAttributes) {
 
-		final Set<String> useLowercaseNameForTypes           = Set.of("SchemaMethod");
+		final Set<String> useLowercaseNameForTypes           = Set.of(StructrTraits.SCHEMA_METHOD);
 		final Map<String, Map<String, List<String>>> viewMap = new LinkedHashMap<>();
 		final Map<String, List<String>> requiredAttributes   = new LinkedHashMap<>();
 		final Map<String, List<String>> baseMap              = new LinkedHashMap<>();
@@ -49,9 +50,9 @@ public class TestHelper {
 		baseMap.put("_html_", Arrays.asList("_html_data", "_html_is", "_html_properties"));
 		baseMap.put("public", Arrays.asList("id", "type"));
 
-		requiredAttributes.put("DynamicResourceAccess", Arrays.asList("signature", "i:flags"));
-		requiredAttributes.put("Localization",          Arrays.asList("locale"));
-		requiredAttributes.put("ResourceAccess",        Arrays.asList("signature", "i:flags"));
+		requiredAttributes.put(StructrTraits.DYNAMIC_RESOURCE_ACCESS, Arrays.asList("signature", "i:flags"));
+		requiredAttributes.put(StructrTraits.LOCALIZATION,          Arrays.asList("locale"));
+		requiredAttributes.put(StructrTraits.RESOURCE_ACCESS,        Arrays.asList("signature", "i:flags"));
 
 		// insert required attributes specified by test class
 		if (additionalRequiredAttributes != null) {
@@ -119,10 +120,10 @@ public class TestHelper {
 		// create test user
 		try (final Tx tx = app.tx()) {
 
-			app.create("User",
-				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
-				new NodeAttribute<>(Traits.of("User").key("isAdmin"),  true)
+			app.create(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"),  true)
 			);
 
 			tx.success();

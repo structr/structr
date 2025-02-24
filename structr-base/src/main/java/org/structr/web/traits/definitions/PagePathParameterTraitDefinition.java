@@ -23,6 +23,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
@@ -48,7 +49,7 @@ public class PagePathParameterTraitDefinition extends AbstractNodeTraitDefinitio
 	*/
 
 	public PagePathParameterTraitDefinition() {
-		super("PagePathParameter");
+		super(StructrTraits.PAGE_PATH_PARAMETER);
 	}
 
 	@Override

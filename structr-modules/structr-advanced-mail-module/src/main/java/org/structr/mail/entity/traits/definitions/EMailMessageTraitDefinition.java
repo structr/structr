@@ -22,6 +22,7 @@ import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 
 import java.util.Date;
@@ -31,7 +32,7 @@ import java.util.Set;
 public class EMailMessageTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public EMailMessageTraitDefinition() {
-		super("EMailMessage");
+		super(StructrTraits.EMAIL_MESSAGE);
 	}
 
 	@Override

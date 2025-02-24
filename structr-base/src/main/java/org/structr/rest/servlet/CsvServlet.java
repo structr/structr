@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.RetryException;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.ResultStream;
+import org.structr.common.PropertyView;
 import org.structr.common.RequestKeywords;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -40,13 +41,17 @@ import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.DefaultSortOrder;
 import org.structr.core.property.DateProperty;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.rest.RestMethodResult;
+import org.structr.rest.api.RESTCallHandler;
+import org.structr.rest.api.RESTEndpoints;
 import org.structr.rest.common.CsvHelper;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.schema.parser.DatePropertyGenerator;
@@ -58,10 +63,6 @@ import java.io.Writer;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.*;
-import org.structr.common.PropertyView;
-import org.structr.core.entity.Principal;
-import org.structr.rest.api.RESTCallHandler;
-import org.structr.rest.api.RESTEndpoints;
 
 /**
  * This servlet produces CSV (comma separated value) lists out of a search
@@ -124,7 +125,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 			// isolate resource authentication
 			try (final Tx tx = app.tx()) {
 
-				handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), getTypeOrDefault(currentUser, "User"));
+				handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), getTypeOrDefault(currentUser, StructrTraits.USER));
 				authenticator.checkResourceAccess(securityContext, request, handler.getResourceSignature(), handler.getRequestedView());
 
 				tx.success();
@@ -267,7 +268,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 				// isolate resource authentication
 				try (final Tx tx = app.tx()) {
 
-					handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), getTypeOrDefault(currentUser, "User"));
+					handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), getTypeOrDefault(currentUser, StructrTraits.USER));
 					authenticator.checkResourceAccess(securityContext, request, handler.getResourceSignature(), handler.getRequestedView());
 					tx.success();
 				}
@@ -409,7 +410,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 
 								// remove Location header if more than one object was
 								// written because it may only contain a single URL
-								result.addHeader("Location", null);
+								result.addHeader(StructrTraits.LOCATION, null);
 							}
 
 							commitResponse(securityContext, request, response, result, handler.getRequestedView(), handler.isCollection());

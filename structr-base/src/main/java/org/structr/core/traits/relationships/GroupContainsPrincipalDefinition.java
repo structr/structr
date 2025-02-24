@@ -20,6 +20,7 @@ package org.structr.core.traits.relationships;
 
 import org.structr.core.entity.Relation;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
@@ -30,7 +31,7 @@ import static org.structr.core.entity.Relation.Multiplicity.Many;
 public class GroupContainsPrincipalDefinition extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public GroupContainsPrincipalDefinition() {
-		super("GroupCONTAINSPrincipal");
+		super(StructrTraits.GROUP_CONTAINS_PRINCIPAL);
 	}
 
 	@Override
@@ -40,12 +41,12 @@ public class GroupContainsPrincipalDefinition extends AbstractRelationshipTraitD
 
 	@Override
 	public String getSourceType() {
-		return "Group";
+		return StructrTraits.GROUP;
 	}
 
 	@Override
 	public String getTargetType() {
-		return "Principal";
+		return StructrTraits.PRINCIPAL;
 	}
 
 	@Override

@@ -19,6 +19,7 @@
 package org.structr.web.traits.relationships;
 
 import org.structr.core.entity.Relation;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
@@ -30,12 +31,12 @@ public class DOMNodeCONTAINS_NEXT_SIBLINGDOMNode extends AbstractRelationshipTra
 
 	@Override
 	public String getSourceType() {
-		return "DOMNode";
+		return StructrTraits.DOM_NODE;
 	}
 
 	@Override
 	public  String getTargetType() {
-		return "DOMNode";
+		return StructrTraits.DOM_NODE;
 	}
 
 	@Override

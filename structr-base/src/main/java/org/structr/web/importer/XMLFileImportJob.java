@@ -30,6 +30,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.module.StructrModule;
 import org.structr.module.xml.XMLModule;
 import org.structr.rest.common.XMLHandler;
@@ -129,7 +130,7 @@ public class XMLFileImportJob extends FileImportJob {
 
 						while (iterator.hasNext() && ++count <= batchSize) {
 
-							app.create("NodeInterface", PropertyMap.inputTypeToJavaType(threadContext, iterator.next()));
+							app.create(StructrTraits.NODE_INTERFACE, PropertyMap.inputTypeToJavaType(threadContext, iterator.next()));
 							overallCount++;
 						}
 

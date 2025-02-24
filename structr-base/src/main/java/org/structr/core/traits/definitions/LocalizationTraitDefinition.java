@@ -30,6 +30,7 @@ import org.structr.core.function.LocalizeFunction;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
@@ -44,7 +45,7 @@ import java.util.Set;
 public final class LocalizationTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public LocalizationTraitDefinition() {
-		super("Localization");
+		super(StructrTraits.LOCALIZATION);
 	}
 
 	@Override

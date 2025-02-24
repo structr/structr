@@ -40,6 +40,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.*;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.PropertyContainerTraitDefinition;
 import org.structr.rest.RestMethodResult;
@@ -206,7 +207,7 @@ public abstract class RESTCallHandler {
 			fex.printStackTrace();
 		}
 
-		return "NodeInterface";
+		return StructrTraits.NODE_INTERFACE;
 	}
 
 	public org.structr.core.graph.NodeInterface createNode(final SecurityContext securityContext, final String typeName, final Map<String, Object> propertySet) throws FrameworkException {

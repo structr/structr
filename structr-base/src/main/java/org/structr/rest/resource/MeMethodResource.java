@@ -21,6 +21,7 @@ package org.structr.rest.resource;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Methods;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
@@ -34,7 +35,7 @@ public class MeMethodResource extends WildcardMatchEndpoint {
 
 	public MeMethodResource() {
 		super(
-			RESTParameter.forStaticString("me", true, "User"),
+			RESTParameter.forStaticString("me", true, StructrTraits.USER),
 			RESTParameter.forPattern("name", "[a-z][a-z_A-Z0-9]*", true)
 		);
 	}

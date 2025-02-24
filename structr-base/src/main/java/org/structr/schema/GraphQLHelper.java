@@ -27,6 +27,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graphql.GraphQLListType;
 import org.structr.core.property.*;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 
 import java.util.*;
@@ -40,7 +41,7 @@ public class GraphQLHelper {
 	public static final String GraphQLNodeReferenceName            = "StructrNodeReference";
 
 	public static final Set<String> InternalTypes = Set.of(
-		"PropertyContainer", "GraphObject", "NodeInterface", "RelationshipInterface", "Principal",
+		StructrTraits.PROPERTY_CONTAINER, StructrTraits.GRAPH_OBJECT, StructrTraits.NODE_INTERFACE, "RelationshipInterface", StructrTraits.PRINCIPAL,
 		"OneToOne", "OneToMany", "ManyToOne", "ManyToMany",
 		"LinkedTreeNode", "LinkedListNode"
 
@@ -125,8 +126,8 @@ public class GraphQLHelper {
 
 		// add static fields (name etc., can be overwritten)
 		fields.putIfAbsent("type", GraphQLFieldDefinition.newFieldDefinition().name("type").type(Scalars.GraphQLString).build());
-		fields.putIfAbsent("name", GraphQLFieldDefinition.newFieldDefinition().name("name").type(Scalars.GraphQLString).arguments(getGraphQLArgumentsForPropertyType(Traits.of("NodeInterface").key("name"))).build());
-		fields.putIfAbsent("owner", GraphQLFieldDefinition.newFieldDefinition().name("owner").type(typeRef("Principal")).arguments(getGraphQLArgumentsForRelatedType(Principal.class)).build());
+		fields.putIfAbsent("name", GraphQLFieldDefinition.newFieldDefinition().name("name").type(Scalars.GraphQLString).arguments(getGraphQLArgumentsForPropertyType(Traits.of(StructrTraits.NODE_INTERFACE).key("name"))).build());
+		fields.putIfAbsent("owner", GraphQLFieldDefinition.newFieldDefinition().name("owner").type(typeRef(StructrTraits.PRINCIPAL)).arguments(getGraphQLArgumentsForRelatedType(Principal.class)).build());
 		fields.putIfAbsent("createdBy", GraphQLFieldDefinition.newFieldDefinition().name("createdBy").type(Scalars.GraphQLString).build());
 		fields.putIfAbsent("createdDate", GraphQLFieldDefinition.newFieldDefinition().name("createdDate").type(Scalars.GraphQLString).build());
 		fields.putIfAbsent("lastModifiedBy", GraphQLFieldDefinition.newFieldDefinition().name("lastModifiedBy").type(Scalars.GraphQLString).build());
@@ -323,7 +324,7 @@ public class GraphQLHelper {
 				// manual registration for built-in relationships that are not dynamic
 				arguments.add(GraphQLArgument.newArgument().name("owner").type(GraphQLInputObjectType.newInputObject()
 					.name(ownerTypeName)
-					.fields(getGraphQLInputFieldsForType(selectionTypes, "Principal"))
+					.fields(getGraphQLInputFieldsForType(selectionTypes, StructrTraits.PRINCIPAL))
 					.build()
 				).build());
 

@@ -30,6 +30,7 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.entity.File;
@@ -139,10 +140,10 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface page : app.nodeQuery("Page").sort(Traits.of("NodeInterface").key("name")).getAsList()) {
+			for (final NodeInterface page : app.nodeQuery(StructrTraits.PAGE).sort(Traits.of(StructrTraits.NODE_INTERFACE).key("name")).getAsList()) {
 
 				// skip shadow document
-				if (page.is("ShadowDocument")) {
+				if (page.is(StructrTraits.SHADOW_DOCUMENT)) {
 					continue;
 				}
 
@@ -153,7 +154,7 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 				calculateHash(page, buf, 1);
 			}
 
-			for (final NodeInterface folder : app.nodeQuery("Folder").sort(Traits.of("NodeInterface").key("name")).getAsList()) {
+			for (final NodeInterface folder : app.nodeQuery(StructrTraits.FOLDER).sort(Traits.of(StructrTraits.NODE_INTERFACE).key("name")).getAsList()) {
 
 				if (folder.as(Folder.class).includeInFrontendExport()) {
 
@@ -165,7 +166,7 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 				}
 			}
 
-			for (final NodeInterface file : app.nodeQuery("File").sort(Traits.of("NodeInterface").key("name")).getAsList()) {
+			for (final NodeInterface file : app.nodeQuery(StructrTraits.FILE).sort(Traits.of(StructrTraits.NODE_INTERFACE).key("name")).getAsList()) {
 
 				if (file.as(File.class).includeInFrontendExport()) {
 
@@ -197,7 +198,7 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 		buf.append(StringUtils.leftPad("", indent*4));
 		hash(start, buf);
 
-		if (start.is("ShadowDocument")) {
+		if (start.is(StructrTraits.SHADOW_DOCUMENT)) {
 
 			for (final DOMNode child : start.as(ShadowDocument.class).getElements()) {
 
@@ -208,7 +209,7 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 				}
 			}
 
-		} else if (start.is("DOMNode")) {
+		} else if (start.is(StructrTraits.DOM_NODE)) {
 
 			for (final DOMNode child : start.as(DOMNode.class).getChildren()) {
 
@@ -224,10 +225,10 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 	protected void hash(final NodeInterface node, final StringBuilder buf) {
 
 		// AbstractNode
-		buf.append(valueOrEmpty(node, Traits.of("NodeInterface").key("type")));
-		buf.append(valueOrEmpty(node, Traits.of("NodeInterface").key("name")));
-		buf.append(valueOrEmpty(node, Traits.of("NodeInterface").key("visibleToPublicUsers")));
-		buf.append(valueOrEmpty(node, Traits.of("NodeInterface").key("visibleToAuthenticatedUsers")));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.NODE_INTERFACE).key("type")));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.NODE_INTERFACE).key("name")));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers")));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToAuthenticatedUsers")));
 
 		// include owner in content hash generation!
 		final AccessControllable ac = node.as(AccessControllable.class);
@@ -235,7 +236,7 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 
 		if (owner != null) {
 
-			buf.append(valueOrEmpty(owner, Traits.of("NodeInterface").key("name")));
+			buf.append(valueOrEmpty(owner, Traits.of(StructrTraits.NODE_INTERFACE).key("name")));
 		}
 
 		// include permissions in content hash generation!
@@ -249,40 +250,40 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 		}
 
 		// DOMNode
-		buf.append(valueOrEmpty(node, Traits.of("DOMNode").key("showConditions")));
-		buf.append(valueOrEmpty(node, Traits.of("DOMNode").key("hideConditions")));
-		buf.append(valueOrEmpty(node, Traits.of("DOMNode").key("showForLocales")));
-		buf.append(valueOrEmpty(node, Traits.of("DOMNode").key("hideForLocales")));
-		buf.append(valueOrEmpty(node, Traits.of("DOMNode").key("sharedComponentConfiguration")));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_NODE).key("showConditions")));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_NODE).key("hideConditions")));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_NODE).key("showForLocales")));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_NODE).key("hideForLocales")));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_NODE).key("sharedComponentConfiguration")));
 
-		if (node.is("DOMNode")) {
+		if (node.is(StructrTraits.DOM_NODE)) {
 
 			final Page ownerDocument = node.as(DOMNode.class).getOwnerDocument();
 			if (ownerDocument != null) {
 
-				buf.append(valueOrEmpty(ownerDocument, Traits.of("NodeInterface").key("name")));
+				buf.append(valueOrEmpty(ownerDocument, Traits.of(StructrTraits.NODE_INTERFACE).key("name")));
 			}
 		}
 
 		// DOMElement
-		buf.append(valueOrEmpty(node, Traits.of("DOMElement").key("dataKey")));
-		buf.append(valueOrEmpty(node, Traits.of("DOMElement").key("restQuery")));
-		buf.append(valueOrEmpty(node, Traits.of("DOMElement").key("cypherQuery")));
-		buf.append(valueOrEmpty(node, Traits.of("DOMElement").key("functionQuery")));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_ELEMENT).key("dataKey")));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_ELEMENT).key("restQuery")));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_ELEMENT).key("cypherQuery")));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_ELEMENT).key("functionQuery")));
 
 		// Content
-		buf.append(valueOrEmpty(node, Traits.of("Content").key("contentType")));
-		buf.append(valueOrEmpty(node, Traits.of("Content").key("content")));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.CONTENT).key("contentType")));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.CONTENT).key("content")));
 
 		// Page
-		buf.append(valueOrEmpty(node, Traits.of("Page").key("cacheForSeconds")));
-		buf.append(valueOrEmpty(node, Traits.of("Page").key("dontCache")));
-		buf.append(valueOrEmpty(node, Traits.of("Page").key("pageCreatesRawData")));
-		buf.append(valueOrEmpty(node, Traits.of("Page").key("position")));
-		buf.append(valueOrEmpty(node, Traits.of("Page").key("showOnErrorCodes")));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.PAGE).key("cacheForSeconds")));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.PAGE).key("dontCache")));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.PAGE).key("pageCreatesRawData")));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.PAGE).key("position")));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.PAGE).key("showOnErrorCodes")));
 
 		// HTML attributes
-		if (node.is("DOMElement")) {
+		if (node.is(StructrTraits.DOM_ELEMENT)) {
 
 			for (final PropertyKey key : node.as(DOMElement.class).getHtmlAttributes()) {
 
@@ -332,9 +333,9 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 
 	protected Template createTemplate(final Page page, final DOMNode parent, final String content) throws FrameworkException {
 
-		final NodeInterface template = StructrApp.getInstance().create("Template",
-			new NodeAttribute<>(Traits.of("Template").key("content"), content),
-			new NodeAttribute<>(Traits.of("Template").key("ownerDocument"), page)
+		final NodeInterface template = StructrApp.getInstance().create(StructrTraits.TEMPLATE,
+			new NodeAttribute<>(Traits.of(StructrTraits.TEMPLATE).key("content"), content),
+			new NodeAttribute<>(Traits.of(StructrTraits.TEMPLATE).key("ownerDocument"), page)
 		);
 
 		if (parent != null) {

@@ -23,21 +23,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.importer.Importer;
 import org.structr.web.maintenance.DeployCommand;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -88,7 +86,7 @@ public class PageImporter extends HtmlFileImporter {
 	// ----- private methods -----
 	private Page getExistingPage(final String name) throws FrameworkException {
 
-		final NodeInterface node = StructrApp.getInstance().nodeQuery("Page").andName(name).getFirst();
+		final NodeInterface node = StructrApp.getInstance().nodeQuery(StructrTraits.PAGE).andName(name).getFirst();
 		if (node != null) {
 
 			return node.as(Page.class);
@@ -119,7 +117,7 @@ public class PageImporter extends HtmlFileImporter {
 
 				DeployCommand.checkOwnerAndSecurity((Map<String, Object>)data);
 
-				return PropertyMap.inputTypeToJavaType(SecurityContext.getSuperUserInstance(), "Page", (Map<String, Object>)data);
+				return PropertyMap.inputTypeToJavaType(SecurityContext.getSuperUserInstance(), StructrTraits.PAGE, (Map<String, Object>)data);
 
 			} catch (FrameworkException ex) {
 				logger.warn("Unable to resolve properties for page: {}", ex.getMessage());
@@ -179,7 +177,7 @@ public class PageImporter extends HtmlFileImporter {
 				}
 
 				final String src         = new String(Files.readAllBytes(file),Charset.forName("UTF-8"));
-				final Traits traits      = Traits.of("Page");
+				final Traits traits      = Traits.of(StructrTraits.PAGE);
 				final String contentType = get(properties, traits.key("contentType"),                 "text/html");
 				boolean visibleToPublic  = get(properties, traits.key("visibleToPublicUsers"),        false);
 				boolean visibleToAuth    = get(properties, traits.key("visibleToAuthenticatedUsers"), false);
@@ -229,7 +227,7 @@ public class PageImporter extends HtmlFileImporter {
 						importer.setCommentHandler(new DeploymentCommentHandler());
 
 						// parse page
-						final Page newPage = app.create("Page", name).as(Page.class);
+						final Page newPage = app.create(StructrTraits.PAGE, name).as(Page.class);
 
 						// store properties from pages.json
 						newPage.setProperties(securityContext, properties);

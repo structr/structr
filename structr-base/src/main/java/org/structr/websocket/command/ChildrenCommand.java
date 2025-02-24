@@ -26,6 +26,7 @@ import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.websocket.StructrWebSocket;
@@ -62,7 +63,7 @@ public class ChildrenCommand extends AbstractCommand {
 
 		final List<GraphObject> result = new LinkedList();
 
-		if (node.is("Page")) {
+		if (node.is(StructrTraits.PAGE)) {
 
 			final Page page = node.as(Page.class);
 
@@ -71,7 +72,7 @@ public class ChildrenCommand extends AbstractCommand {
 				result.add(child);
 			}
 
-		} else  if (node.is("Group")) {
+		} else  if (node.is(StructrTraits.GROUP)) {
 
 			final Group group = node.as(Group.class);
 
@@ -80,7 +81,7 @@ public class ChildrenCommand extends AbstractCommand {
 				result.add(p);
 			}
 
-		} else  if (node.is("Content")) {
+		} else  if (node.is(StructrTraits.CONTENT)) {
 
 			// Content has no children
 

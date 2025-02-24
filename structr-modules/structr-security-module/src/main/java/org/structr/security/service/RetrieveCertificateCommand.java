@@ -43,6 +43,7 @@ import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.rest.resource.MaintenanceResource;
 import org.structr.rest.service.HttpService;
@@ -685,8 +686,8 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 
 					final SecurityContext adminContext = SecurityContext.getSuperUserInstance();
 					final Folder parentFolder = FileHelper.createFolderPath(adminContext, "/.well-known/acme-challenge/").as(Folder.class);
-					final Traits folderTraits = Traits.of("Folder");
-					final Traits fileTraits   = Traits.of("File");
+					final Traits folderTraits = Traits.of(StructrTraits.FOLDER);
+					final Traits fileTraits   = Traits.of(StructrTraits.FILE);
 
 					PropertyMap props = new PropertyMap();
 					props.put(folderTraits.key("visibleToPublicUsers"), true);
@@ -695,7 +696,7 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 					parentFolder.setProperties(adminContext, props);
 					parentFolder.getParent().setProperties(adminContext, props);
 
-					org.structr.web.entity.File challengeFile = FileHelper.createFile(adminContext, new ByteArrayInputStream(content.getBytes()), "text/plain", "File", challenge.get().getToken(), parentFolder).as(org.structr.web.entity.File.class);
+					org.structr.web.entity.File challengeFile = FileHelper.createFile(adminContext, new ByteArrayInputStream(content.getBytes()), "text/plain", StructrTraits.FILE, challenge.get().getToken(), parentFolder).as(org.structr.web.entity.File.class);
 
 					props = new PropertyMap();
 					props.put(fileTraits.key("visibleToPublicUsers"), true);

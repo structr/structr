@@ -24,6 +24,7 @@ import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaMethodParameter;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.LifecycleMethodAdapter;
@@ -241,8 +242,8 @@ public class SchemaMethodTraitWrapper extends AbstractNodeTraitWrapper implement
 
 				final Traits traits = Traits.of(parent.getName());
 
-				inheritsFromFile = traits.contains("AbstractFile");
-				inheritsFromUser = traits.contains("User");
+				inheritsFromFile = traits.contains(StructrTraits.ABSTRACT_FILE);
+				inheritsFromUser = traits.contains(StructrTraits.USER);
 			}
 
 			if (inheritsFromFile) {

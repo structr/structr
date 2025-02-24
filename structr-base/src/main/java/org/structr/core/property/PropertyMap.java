@@ -28,6 +28,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.CreationContainer;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 
 import java.util.*;
@@ -373,11 +374,11 @@ public class PropertyMap {
 
 					if (propertyKey instanceof GenericProperty) {
 
-						if (traits.contains("DOMNode")) {
+						if (traits.contains(StructrTraits.DOM_NODE)) {
 
 							// allow custom attributes on DOMNode
 
-						} else if (traits.contains("Principal") && "allowed".equals(key)) {
+						} else if (traits.contains(StructrTraits.PRINCIPAL) && "allowed".equals(key)) {
 
 							// allow "allowed" property for grantees
 

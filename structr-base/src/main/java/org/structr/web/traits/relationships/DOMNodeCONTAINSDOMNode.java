@@ -22,6 +22,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
@@ -37,12 +38,12 @@ public class DOMNodeCONTAINSDOMNode extends AbstractRelationshipTraitDefinition 
 
 	@Override
 	public String getSourceType() {
-		return "DOMNode";
+		return StructrTraits.DOM_NODE;
 	}
 
 	@Override
 	public String getTargetType() {
-		return "DOMNode";
+		return StructrTraits.DOM_NODE;
 	}
 
 	@Override

@@ -29,6 +29,7 @@ import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnModification;
@@ -45,7 +46,7 @@ import java.util.Set;
 public class SessionDataNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public SessionDataNodeTraitDefinition() {
-		super("SessionDataNode");
+		super(StructrTraits.SESSION_DATA_NODE);
 	}
 
 	@Override
@@ -57,7 +58,7 @@ public class SessionDataNodeTraitDefinition extends AbstractNodeTraitDefinition 
 				@Override
 				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
-					if (graphObject instanceof NodeInterface node && node.is("SessionDataNode")) {
+					if (graphObject instanceof NodeInterface node && node.is(StructrTraits.SESSION_DATA_NODE)) {
 
 						node.as(SessionDataNode.class).incrementVersion();
 					}
@@ -69,7 +70,7 @@ public class SessionDataNodeTraitDefinition extends AbstractNodeTraitDefinition 
 				@Override
 				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
-					if (graphObject instanceof NodeInterface node && node.is("SessionDataNode")) {
+					if (graphObject instanceof NodeInterface node && node.is(StructrTraits.SESSION_DATA_NODE)) {
 
 						node.as(SessionDataNode.class).incrementVersion();
 					}

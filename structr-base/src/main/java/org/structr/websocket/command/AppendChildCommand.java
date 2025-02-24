@@ -21,6 +21,7 @@ package org.structr.websocket.command;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.core.traits.StructrTraits;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
@@ -63,7 +64,7 @@ public class AppendChildCommand extends AbstractCommand {
 			return;
 		}
 
-		if (parentNode.is("DOMNode")) {
+		if (parentNode.is(StructrTraits.DOM_NODE)) {
 
 			final DOMNode parentDOMNode = getDOMNode(parentId);
 			if (parentDOMNode == null) {
@@ -79,10 +80,10 @@ public class AppendChildCommand extends AbstractCommand {
 
 				try {
 
-					if (!(parentDOMNode.is("Page"))) {
+					if (!(parentDOMNode.is(StructrTraits.PAGE))) {
 
 						final boolean isShadowPage = (parentDOMNode.getOwnerDocument() != null && parentDOMNode.getOwnerDocument().equals(CreateComponentCommand.getOrCreateHiddenDocument()));
-						final boolean isTemplate   = (parentDOMNode.is("Template"));
+						final boolean isTemplate   = (parentDOMNode.is(StructrTraits.TEMPLATE));
 
 						if (isShadowPage && isTemplate && parentDOMNode.getParent() == null) {
 

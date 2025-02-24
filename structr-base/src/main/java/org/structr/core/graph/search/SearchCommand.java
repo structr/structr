@@ -42,6 +42,7 @@ import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.property.AbstractPrimitiveProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Trait;
 import org.structr.core.traits.Traits;
 
@@ -82,7 +83,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 		final Factory<S, T> factory = getFactory(securityContext, includeHidden, publicOnly, pageSize, page);
 		final Principal user        = securityContext.getUser(false);
-		final Traits traits         = Traits.of("NodeInterface");
+		final Traits traits         = Traits.of(StructrTraits.NODE_INTERFACE);
 		final SearchConfig config   = new SearchConfig();
 
 		if (user == null) {
@@ -424,7 +425,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 		doNotSort = true;
 
-		return and(Traits.of("GraphObject").key("id"), uuid);
+		return and(Traits.of(StructrTraits.GRAPH_OBJECT).key("id"), uuid);
 	}
 
 	@Override
@@ -453,12 +454,12 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 	@Override
 	public org.structr.core.app.Query<T> andName(final String name) {
-		return and(Traits.of("NodeInterface").key("name"), name);
+		return and(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), name);
 	}
 
 	@Override
 	public org.structr.core.app.Query<T> orName(final String name) {
-		return or(Traits.of("NodeInterface").key("name"), name);
+		return or(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), name);
 	}
 
 	@Override
@@ -486,7 +487,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	@Override
 	public <P> org.structr.core.app.Query<T> and(final PropertyKey<P> key, final P value) {
 
-		if (Traits.of("GraphObject").key("id").equals(key)) {
+		if (Traits.of(StructrTraits.GRAPH_OBJECT).key("id").equals(key)) {
 			this.doNotSort = false;
 		}
 
@@ -496,7 +497,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	@Override
 	public <P> org.structr.core.app.Query<T> and(final PropertyKey<P> key, final P value, final boolean exact) {
 
-		if (Traits.of("GraphObject").key("id").equals(key)) {
+		if (Traits.of(StructrTraits.GRAPH_OBJECT).key("id").equals(key)) {
 
 			this.doNotSort = false;
 		}
@@ -509,7 +510,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	@Override
 	public <P> org.structr.core.app.Query<T> and(final PropertyKey<P> key, final P value, final boolean exact, final Occurrence occur) {
 
-		if (Traits.of("GraphObject").key("id").equals(key)) {
+		if (Traits.of(StructrTraits.GRAPH_OBJECT).key("id").equals(key)) {
 
 			this.doNotSort = false;
 		}
@@ -529,7 +530,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			final PropertyKey key = entry.getKey();
 			final Object value = entry.getValue();
 
-			if (Traits.of("GraphObject").key("id").equals(key)) {
+			if (Traits.of(StructrTraits.GRAPH_OBJECT).key("id").equals(key)) {
 
 				this.doNotSort = false;
 			}

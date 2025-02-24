@@ -26,6 +26,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.CaseHelper;
 import org.structr.core.entity.Principal;
+import org.structr.core.traits.StructrTraits;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.RESTCall;
@@ -44,7 +45,7 @@ import java.util.Set;
 public class MeResource extends ExactMatchEndpoint {
 
 	public MeResource() {
-		super(RESTParameter.forStaticString("me", true, "User"));
+		super(RESTParameter.forStaticString("me", true, StructrTraits.USER));
 	}
 
 	@Override
@@ -89,13 +90,13 @@ public class MeResource extends ExactMatchEndpoint {
 
 		@Override
 		public String getTypeName(final SecurityContext securityContext) {
-			return "User";
+			return StructrTraits.USER;
 		}
 
 		@Override
 		public String getResourceSignature() {
 
-			String signature = "User";
+			String signature = StructrTraits.USER;
 
 			// append requested view to resource signature
 			if (!isDefaultView()) {

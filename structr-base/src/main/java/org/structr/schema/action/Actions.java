@@ -19,12 +19,6 @@
 package org.structr.schema.action;
 
 import jakarta.servlet.http.HttpServletRequest;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +37,10 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.FunctionProperty;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.StructrTraits;
+
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  *
@@ -161,7 +159,7 @@ public class Actions {
 			// we might want to introduce caching here at some point in the future..
 			// Cache can be invalidated when the schema is rebuilt for example..
 
-			final List<NodeInterface> methods = StructrApp.getInstance().nodeQuery("SchemaMethod").andName(key).getAsList();
+			final List<NodeInterface> methods = StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_METHOD).andName(key).getAsList();
 			if (methods.isEmpty()) {
 
 				if (!NOTIFICATION_LOGIN.equals(key) && !NOTIFICATION_LOGOUT.equals(key)) {

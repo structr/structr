@@ -41,6 +41,7 @@ import org.structr.core.graph.*;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.graph.search.SearchRelationshipCommand;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.module.StructrModule;
 import org.structr.schema.ConfigurationProvider;
@@ -93,14 +94,14 @@ public class StructrApp implements App {
 		String finalType                = type;
 
 		// try to identify the actual type from input set (creation wouldn't work otherwise anyway)
-		final String typeFromInput = properties.get(Traits.of("GraphObject").key("type"));
+		final String typeFromInput = properties.get(Traits.of(StructrTraits.GRAPH_OBJECT).key("type"));
 		if (typeFromInput != null) {
 
 			final Traits actualType = Traits.of(typeFromInput);
 			if (actualType == null) {
 
 				// overwrite type information when creating a node (adhere to type specified by resource!)
-				properties.put(Traits.of("GraphObject").key("type"), type);
+				properties.put(Traits.of(StructrTraits.GRAPH_OBJECT).key("type"), type);
 
 			} else if (actualType.isInterface() || actualType.isAbstract()) {
 
@@ -113,7 +114,7 @@ public class StructrApp implements App {
 		}
 
 		// set type
-		properties.put(Traits.of("GraphObject").key("type"), finalType);
+		properties.put(Traits.of(StructrTraits.GRAPH_OBJECT).key("type"), finalType);
 
 		return command.execute(properties);
 	}
@@ -125,7 +126,7 @@ public class StructrApp implements App {
 		final CreateNodeCommand command    = command(CreateNodeCommand.class);
 
 		// add type information when creating a node
-		attrs.add(new NodeAttribute(Traits.of("GraphObject").key("type"), type));
+		attrs.add(new NodeAttribute(Traits.of(StructrTraits.GRAPH_OBJECT).key("type"), type));
 
 		return command.execute(attrs);
 	}

@@ -25,6 +25,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.entity.User;
@@ -48,9 +49,9 @@ public class FilesystemTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create("Image",
-				new NodeAttribute<>(Traits.of("Image").key("name"), "test01.png"),
-				new NodeAttribute<>(Traits.of("Image").key("imageData"), Base64ImageData)
+			app.create(StructrTraits.IMAGE,
+				new NodeAttribute<>(Traits.of(StructrTraits.IMAGE).key("name"), "test01.png"),
+				new NodeAttribute<>(Traits.of(StructrTraits.IMAGE).key("imageData"), Base64ImageData)
 			);
 
 			tx.success();
@@ -62,16 +63,16 @@ public class FilesystemTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<NodeInterface> images = app.nodeQuery("Image").getAsList();
+			final List<NodeInterface> images = app.nodeQuery(StructrTraits.IMAGE).getAsList();
 
 			assertEquals("There should be exactly one image", 1, images.size());
 
 			final NodeInterface image = images.get(0);
 
-			assertEquals("File size of the image does not match",    Long.valueOf(1707),   image.getProperty(Traits.of("Image").key("size")));
-			assertEquals("Width of the image does not match",        Integer.valueOf(100), image.getProperty(Traits.of("Image").key("width")));
-			assertEquals("Height of the image does not match",       Integer.valueOf(59),  image.getProperty(Traits.of("Image").key("height")));
-			assertEquals("Content type of the image does not match", "image/png",    image.getProperty(Traits.of("Image").key("contentType")));
+			assertEquals("File size of the image does not match",    Long.valueOf(1707),   image.getProperty(Traits.of(StructrTraits.IMAGE).key("size")));
+			assertEquals("Width of the image does not match",        Integer.valueOf(100), image.getProperty(Traits.of(StructrTraits.IMAGE).key("width")));
+			assertEquals("Height of the image does not match",       Integer.valueOf(59),  image.getProperty(Traits.of(StructrTraits.IMAGE).key("height")));
+			assertEquals("Content type of the image does not match", "image/png",    image.getProperty(Traits.of(StructrTraits.IMAGE).key("contentType")));
 
 			tx.success();
 
@@ -86,9 +87,9 @@ public class FilesystemTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create("Image",
-				new NodeAttribute<>(Traits.of("Image").key("name"), "test01.png"),
-				new NodeAttribute<>(Traits.of("Image").key("imageData"), "data:image/jpeg;base64," + Base64ImageData)
+			app.create(StructrTraits.IMAGE,
+				new NodeAttribute<>(Traits.of(StructrTraits.IMAGE).key("name"), "test01.png"),
+				new NodeAttribute<>(Traits.of(StructrTraits.IMAGE).key("imageData"), "data:image/jpeg;base64," + Base64ImageData)
 			);
 
 			tx.success();
@@ -99,16 +100,16 @@ public class FilesystemTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<NodeInterface> images = app.nodeQuery("Image").getAsList();
+			final List<NodeInterface> images = app.nodeQuery(StructrTraits.IMAGE).getAsList();
 
 			assertEquals("There should be exactly one image", 1, images.size());
 
 			final NodeInterface image = images.get(0);
 
-			assertEquals("File size of the image does not match",    Long.valueOf(1707),   image.getProperty(Traits.of("Image").key("size")));
-			assertEquals("Width of the image does not match",        Integer.valueOf(100), image.getProperty(Traits.of("Image").key("width")));
-			assertEquals("Height of the image does not match",       Integer.valueOf(59),  image.getProperty(Traits.of("Image").key("height")));
-			assertEquals("Content type of the image does not match", "image/jpeg",         image.getProperty(Traits.of("Image").key("contentType")));
+			assertEquals("File size of the image does not match",    Long.valueOf(1707),   image.getProperty(Traits.of(StructrTraits.IMAGE).key("size")));
+			assertEquals("Width of the image does not match",        Integer.valueOf(100), image.getProperty(Traits.of(StructrTraits.IMAGE).key("width")));
+			assertEquals("Height of the image does not match",       Integer.valueOf(59),  image.getProperty(Traits.of(StructrTraits.IMAGE).key("height")));
+			assertEquals("Content type of the image does not match", "image/jpeg",         image.getProperty(Traits.of(StructrTraits.IMAGE).key("contentType")));
 
 			tx.success();
 
@@ -124,7 +125,7 @@ public class FilesystemTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create("User", "tester");
+			app.create(StructrTraits.USER, "tester");
 			tx.success();
 
 		} catch (Throwable t) {
@@ -134,7 +135,7 @@ public class FilesystemTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final User tester = app.nodeQuery("User").andName("tester").getFirst().as(User.class);
+			final User tester = app.nodeQuery(StructrTraits.USER).andName("tester").getFirst().as(User.class);
 			tester.setEMail("tester@structr.com");
 
 			tx.success();
@@ -146,7 +147,7 @@ public class FilesystemTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final User tester = app.nodeQuery("User").andName("tester").getFirst().as(User.class);
+			final User tester = app.nodeQuery(StructrTraits.USER).andName("tester").getFirst().as(User.class);
 			tester.setEMail("tester2@structr.com");
 
 			tx.success();
@@ -158,7 +159,7 @@ public class FilesystemTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final User tester = app.nodeQuery("User").andName("tester").getFirst().as(User.class);
+			final User tester = app.nodeQuery(StructrTraits.USER).andName("tester").getFirst().as(User.class);
 			tester.setEMail("tester3@structr.com");
 
 			tx.success();
@@ -170,8 +171,8 @@ public class FilesystemTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final User tester              = app.nodeQuery("User").andName("tester").getFirst().as(User.class);
-			final List<NodeInterface> dirs = app.nodeQuery("Folder").getAsList();
+			final User tester              = app.nodeQuery(StructrTraits.USER).andName("tester").getFirst().as(User.class);
+			final List<NodeInterface> dirs = app.nodeQuery(StructrTraits.FOLDER).getAsList();
 			final Set<String> names        = new HashSet<>();
 
 			// there should only be two directories: home, and the home directory of the user

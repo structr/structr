@@ -31,6 +31,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.dom.DOMElement;
@@ -65,8 +66,8 @@ public class MigrationService {
 			// check (and fix) principal nodes
 			logger.info("Checking if principal nodes need migration..");
 
-			for (final NodeInterface p : app.nodeQuery("Principal").getResultStream()) {
-				p.getNode().addLabels(Set.of("Principal"));
+			for (final NodeInterface p : app.nodeQuery(StructrTraits.PRINCIPAL).getResultStream()) {
+				p.getNode().addLabels(Set.of(StructrTraits.PRINCIPAL));
 			}
 
 			tx.success();
@@ -101,7 +102,7 @@ public class MigrationService {
 
 			for (final String name : relationshipNodeNames) {
 
-				final NodeInterface rel1 = app.nodeQuery("SchemaRelationshipNode").andName(name).getFirst();
+				final NodeInterface rel1 = app.nodeQuery(StructrTraits.SCHEMA_RELATIONSHIP_NODE).andName(name).getFirst();
 				if (rel1 != null) {
 
 					app.delete(rel1);
@@ -120,17 +121,17 @@ public class MigrationService {
 			// check (and fix) event action mapping relationships
 			logger.info("Checking if event action mapping relationships need migration..");
 
-			final Traits actionMappingTraits                                          = Traits.of("ActionMapping");
+			final Traits actionMappingTraits                                          = Traits.of(StructrTraits.ACTION_MAPPING);
 			final PropertyKey<Iterable<NodeInterface>> triggerElementsKey             = actionMappingTraits.key("triggerElements");
 			final PropertyKey<Iterable<NodeInterface>> successTargetsKey              = actionMappingTraits.key("successTargets");
 			final PropertyKey<Iterable<NodeInterface>> failureTargetsKey              = actionMappingTraits.key("failureTargets");
 			final PropertyKey<Iterable<NodeInterface>> successNotificationElementsKey = actionMappingTraits.key("successNotificationElements");
 			final PropertyKey<Iterable<NodeInterface>> failureNotificationElementsKey = actionMappingTraits.key("failureNotificationElements");
 
-			final Traits parameterMappingTraits              = Traits.of("ParameterMapping");
+			final Traits parameterMappingTraits              = Traits.of(StructrTraits.PARAMETER_MAPPING);
 			final PropertyKey<NodeInterface> inputElementKey = parameterMappingTraits.key("inputElement");
 
-			for (final NodeInterface eam : app.nodeQuery("ActionMapping").getResultStream()) {
+			for (final NodeInterface eam : app.nodeQuery(StructrTraits.ACTION_MAPPING).getResultStream()) {
 
 				for (final RelationshipInterface rel : eam.getOutgoingRelationships()) {
 
@@ -175,7 +176,7 @@ public class MigrationService {
 				}
 			}
 
-			for (final NodeInterface pm : app.nodeQuery("ParameterMapping").getResultStream()) {
+			for (final NodeInterface pm : app.nodeQuery(StructrTraits.PARAMETER_MAPPING).getResultStream()) {
 
 				for (final RelationshipInterface rel : pm.getOutgoingRelationships()) {
 
@@ -199,14 +200,14 @@ public class MigrationService {
 				}
 			}
 
-			final Traits domElementTraits             = Traits.of("DOMElement");
+			final Traits domElementTraits             = Traits.of(StructrTraits.DOM_ELEMENT);
 			final PropertyKey<String> actionKey       = new StringProperty("data-structr-action");// domElementTraits.key("data-structr-action");
 			final PropertyKey<String> eventMappingKey = domElementTraits.key("eventMapping");
 
 			// check (and fix if possible) structr-app.js implementations
 			logger.info("Checking for structr-app.js implementations that need migration..");
 
-			for (final NodeInterface elem : app.nodeQuery("DOMElement").and().not().and(actionKey, null).getResultStream()) {
+			for (final NodeInterface elem : app.nodeQuery(StructrTraits.DOM_ELEMENT).and().not().and(actionKey, null).getResultStream()) {
 
 				migrateStructrAppMapping(elem, actionKey.jsonName());
 				structrAppJsCount++;
@@ -215,7 +216,7 @@ public class MigrationService {
 			// check (and fix) old event action mappings
 			logger.info("Checking for event mapping implementations that need migration..");
 
-			for (final NodeInterface elem : app.nodeQuery("DOMElement").and().not().and(eventMappingKey, null).getResultStream()) {
+			for (final NodeInterface elem : app.nodeQuery(StructrTraits.DOM_ELEMENT).and().not().and(eventMappingKey, null).getResultStream()) {
 
 				migrateEventMapping(elem, eventMappingKey.jsonName());
 				eventMappingCount++;
@@ -247,7 +248,7 @@ public class MigrationService {
 		final boolean appendId            = getAndClearBooleanValue(elem, "data-structr-append-id");
 		final boolean reload              = getAndClearBooleanValue(elem, "data-structr-reload");
 		final boolean confirm             = getAndClearBooleanValue(elem, "data-structr-confirm");
-		final Traits actionMappingTraits  = Traits.of("ActionMapping");
+		final Traits actionMappingTraits  = Traits.of(StructrTraits.ACTION_MAPPING);
 
 		// structr-app supported click event only
 		properties.put(actionMappingTraits.key("event"), "click");
@@ -322,7 +323,7 @@ public class MigrationService {
 				break;
 		}
 
-		final NodeInterface actionMapping = StructrApp.getInstance().create("ActionMapping", properties);
+		final NodeInterface actionMapping = StructrApp.getInstance().create(StructrTraits.ACTION_MAPPING, properties);
 
 		migrateParameters(elem, actionMapping, data);
 	}
@@ -331,7 +332,7 @@ public class MigrationService {
 
 		final Map<String, String> mapping = getAndClearJsonValue(node, eventMappingKeyName);
 		final PropertyMap properties      = new PropertyMap();
-		final Traits actionMappingTraits  = Traits.of("ActionMapping");
+		final Traits actionMappingTraits  = Traits.of(StructrTraits.ACTION_MAPPING);
 		final DOMElement elem             = node.as(DOMElement.class);
 
 		logger.info("Migrating event mapping {} on {} {}", mapping, elem.getType(), elem.getUuid());
@@ -459,14 +460,14 @@ public class MigrationService {
 			}
 		}
 
-		final NodeInterface actionMapping = StructrApp.getInstance().create("ActionMapping", properties);
+		final NodeInterface actionMapping = StructrApp.getInstance().create(StructrTraits.ACTION_MAPPING, properties);
 
 		migrateParameters(node, actionMapping, data);
 	}
 
 	private static void migrateParameters(final NodeInterface elem, final NodeInterface actionMapping, final Map<String, String> parameters) throws FrameworkException {
 
-		final Traits traits = Traits.of("ParameterMapping");
+		final Traits traits = Traits.of(StructrTraits.PARAMETER_MAPPING);
 
 		for (final String key : parameters.keySet()) {
 
@@ -519,14 +520,14 @@ public class MigrationService {
 				properties.put(traits.key("scriptExpression"), value);
 			}
 
-			StructrApp.getInstance().create("ParameterMapping", properties);
+			StructrApp.getInstance().create(StructrTraits.PARAMETER_MAPPING, properties);
 
 		}
 	}
 
 	private static void updateSharedComponentFlag() {
 
-		final PropertyKey<Boolean> key = Traits.of("DOMElement").key("hasSharedComponent");
+		final PropertyKey<Boolean> key = Traits.of(StructrTraits.DOM_ELEMENT).key("hasSharedComponent");
 		final App app                  = StructrApp.getInstance();
 		long count                     = 0L;
 
@@ -536,12 +537,12 @@ public class MigrationService {
 			logger.info("Checking hasSharedComponent flag..");
 
 			// prefetch dom nodes with sync rels
-			tx.prefetch("DOMElement", "DOMElement",
+			tx.prefetch(StructrTraits.DOM_ELEMENT, StructrTraits.DOM_ELEMENT,
 				Set.of("all/INCOMING/SYNC",
 					"all/OUTGOING/SYNC")
 			);
 
-			for (final NodeInterface node : app.nodeQuery("DOMElement").getResultStream()) {
+			for (final NodeInterface node : app.nodeQuery(StructrTraits.DOM_ELEMENT).getResultStream()) {
 
 				final DOMElement elem = node.as(DOMElement.class);
 
@@ -602,7 +603,7 @@ public class MigrationService {
 
 			for (final DOMNode node : page.getElements()) {
 
-				if (node.is("DOMElement")) {
+				if (node.is(StructrTraits.DOM_ELEMENT)) {
 
 					final DOMElement element   = node.as(DOMElement.class);
 					final Element matchElement = DOMElement.getMatchElement(element);
@@ -627,7 +628,7 @@ public class MigrationService {
 
 		for (final DOMNode domNode : page.getElements()) {
 
-			if (domNode.is("DOMElement")) {
+			if (domNode.is(StructrTraits.DOM_ELEMENT)) {
 
 				final DOMElement element = domNode.as(DOMElement.class);
 
@@ -642,14 +643,14 @@ public class MigrationService {
 
 	private static void warnAboutRestQueryRepeaters() {
 
-		final PropertyKey<String> key = Traits.of("DOMElement").key("restQuery");
+		final PropertyKey<String> key = Traits.of(StructrTraits.DOM_ELEMENT).key("restQuery");
 		final App app                 = StructrApp.getInstance();
 
 		try (final Tx tx = app.tx()) {
 
 			logger.info("Checking for REST query repeaters that need migration..");
 
-			for (final NodeInterface elem : StructrApp.getInstance().nodeQuery("DOMElement").and().not().and(key, null).getResultStream()) {
+			for (final NodeInterface elem : StructrApp.getInstance().nodeQuery(StructrTraits.DOM_ELEMENT).and().not().and(key, null).getResultStream()) {
 
 				final String str     = elem.getProperty(key);
 				final String cleaned = str.replaceAll("[\\W0-9]+", "");
@@ -670,12 +671,12 @@ public class MigrationService {
 	private static void migrateFolderMountTarget() {
 
 		final Traits storageConfigurationTraits = Traits.of("StorageConfiguration");
-		final Traits folderTraits               = Traits.of("Folder");
+		final Traits folderTraits               = Traits.of(StructrTraits.FOLDER);
 		final App app                           = StructrApp.getInstance();
 
 		try (final Tx tx = app.tx()) {
 
-			final List<NodeInterface> mountedFolders = app.nodeQuery("Folder")
+			final List<NodeInterface> mountedFolders = app.nodeQuery(StructrTraits.FOLDER)
 				.notBlank(folderTraits.key("mountTarget"))
 				.getAsList();
 

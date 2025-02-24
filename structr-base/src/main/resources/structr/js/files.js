@@ -1900,7 +1900,7 @@ let _Files = {
 				<div class="inline-flex">
 
 					<select class="select-create-type combined-select-create" id="folder-type">
-						<option value="Folder">Folder</option>
+						<option value=StructrTraits.FOLDER>Folder</option>
 						${config.folderTypes.map(type => '<option value="' + type + '">' + type + '</option>').join('')}
 					</select>
 
@@ -1910,7 +1910,7 @@ let _Files = {
 					</button>
 
 					<select class="select-create-type combined-select-create" id="file-type">
-						<option value="File">File</option>
+						<option value=StructrTraits.FILE>File</option>
 						${config.fileTypes.map(type => '<option value="' + type + '">' + type + '</option>').join('')}
 					</select>
 

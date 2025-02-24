@@ -50,7 +50,7 @@ public class FlowContainerDataSource implements GraphDataSource<Iterable<GraphOb
 
 		final RenderContext renderContext = (RenderContext) actionContext;
 		
-		final AbstractNode flow = referenceNode.getProperty(Traits.of("DOMNode").key("flow"));
+		final AbstractNode flow = referenceNode.getProperty(Traits.of(StructrTraits.DOM_NODE).key("flow"));
 		if (flow == null) {
 
 			return null;

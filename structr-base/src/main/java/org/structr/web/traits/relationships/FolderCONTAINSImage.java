@@ -19,6 +19,7 @@
 package org.structr.web.traits.relationships;
 
 import org.structr.core.entity.Relation;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
@@ -30,12 +31,12 @@ public class FolderCONTAINSImage extends AbstractRelationshipTraitDefinition imp
 
 	@Override
 	public String getSourceType() {
-		return "Folder";
+		return StructrTraits.FOLDER;
 	}
 
 	@Override
 	public String getTargetType() {
-		return "Image";
+		return StructrTraits.IMAGE;
 	}
 
 	@Override

@@ -33,6 +33,7 @@ import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.websocket.StructrWebSocket;
@@ -183,7 +184,7 @@ public class UpdateCommand extends AbstractCommand {
 
 		if (recursive) {
 
-			if (obj.is("DOMNode")) {
+			if (obj.is(StructrTraits.DOM_NODE)) {
 
 				final DOMNode node = obj.as(DOMNode.class);
 
@@ -192,7 +193,7 @@ public class UpdateCommand extends AbstractCommand {
 					collectEntities(entities, child, recursive);
 				}
 
-			} else if (obj.is("Folder")) {
+			} else if (obj.is(StructrTraits.FOLDER)) {
 
 				final Folder folder = obj.as(Folder.class);
 
@@ -203,7 +204,7 @@ public class UpdateCommand extends AbstractCommand {
 
 	private void collectSyncedEntities(final Set<String> entities, final GraphObject obj, final String syncMode, final String attributeName) {
 
-		if (obj.is("DOMNode")) {
+		if (obj.is(StructrTraits.DOM_NODE)) {
 
 			if (syncMode != null) {
 

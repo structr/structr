@@ -24,6 +24,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
@@ -60,7 +61,7 @@ public class TemplateElement extends GenericHtmlElementTraitDefinition {
 
 						// Skip the enclosing template element and render the first child instead
 						final DOMNode node = thisElement.getFirstChild();
-						if (node != null && node.is("DOMElement")) {
+						if (node != null && node.is(StructrTraits.DOM_ELEMENT)) {
 
 							final DOMElement element = node.as(DOMElement.class);
 

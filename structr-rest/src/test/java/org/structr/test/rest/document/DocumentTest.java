@@ -30,6 +30,7 @@ import org.structr.api.schema.JsonType;
 import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.testng.annotations.Test;
@@ -1604,7 +1605,7 @@ public class DocumentTest extends StructrRestTestBase {
 		try (final Tx tx = app.tx()) {
 
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
-			final JsonType type     = schema.getType("GroupCONTAINSPrincipal");
+			final JsonType type     = schema.getType(StructrTraits.GROUP_CONTAINS_PRINCIPAL);
 
 			type.addStringProperty("test", PropertyView.Public);
 
@@ -1617,8 +1618,8 @@ public class DocumentTest extends StructrRestTestBase {
 			fail("Unexpected exception");
 		}
 
-		final String parent = createEntity("Group", "{ name: 'parent' }");
-		final String child  = createEntity("Group", "{ name: 'child' }");
+		final String parent = createEntity(StructrTraits.GROUP, "{ name: 'parent' }");
+		final String child  = createEntity(StructrTraits.GROUP, "{ name: 'child' }");
 
 
 		// create data

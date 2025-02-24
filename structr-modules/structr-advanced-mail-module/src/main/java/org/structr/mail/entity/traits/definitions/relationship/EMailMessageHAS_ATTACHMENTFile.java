@@ -22,6 +22,7 @@ package org.structr.mail.entity.traits.definitions.relationship;
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
 import org.structr.core.entity.Relation;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
@@ -33,12 +34,12 @@ public class EMailMessageHAS_ATTACHMENTFile extends AbstractRelationshipTraitDef
 
 	@Override
 	public String getSourceType() {
-		return "EMailMessage";
+		return StructrTraits.EMAIL_MESSAGE;
 	}
 
 	@Override
 	public String getTargetType() {
-		return "File";
+		return StructrTraits.FILE;
 	}
 
 	@Override

@@ -43,6 +43,7 @@ import org.structr.core.entity.Group;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.schema.SchemaService;
 
@@ -334,7 +335,7 @@ public class LDAPService extends Thread implements SingletonService {
 		logger.info("{} users updated: {}", members.size(), members);
 
 		// update members of group to new state (will remove all members that are not part of the group, as expected)
-		group.setProperty(Traits.of("Group").key("members"), members);
+		group.setProperty(Traits.of(StructrTraits.GROUP).key("members"), members);
 	}
 
 	private void updateWithFilterAndScope(final LDAPGroup group, final LdapConnection connection, final String path, final String groupFilter, final String groupScope) throws IOException, LdapException, CursorException, FrameworkException {
@@ -397,7 +398,7 @@ public class LDAPService extends Thread implements SingletonService {
 		logger.info("{} users updated: {}", members.size(), members);
 
 		// update members of group to new state (will remove all members that are not part of the group, as expected)
-		group.setProperty(Traits.of("Group").key("members"), members);
+		group.setProperty(Traits.of(StructrTraits.GROUP).key("members"), members);
 	}
 
 	// ----- interface SingletonService -----

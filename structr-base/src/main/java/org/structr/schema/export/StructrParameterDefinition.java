@@ -29,6 +29,7 @@ import org.structr.core.app.App;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaMethodParameter;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 
 import java.net.URI;
@@ -171,7 +172,7 @@ public class StructrParameterDefinition implements JsonParameter, StructrDefinit
 	// ----- package methods -----
 	SchemaMethodParameter createDatabaseSchema(final App app, final SchemaMethod schemaMethod, final int index) throws FrameworkException {
 
-		final Traits traits             = Traits.of("SchemaMethodParameter");
+		final Traits traits             = Traits.of(StructrTraits.SCHEMA_METHOD_PARAMETER);
 		SchemaMethodParameter parameter = schemaMethod.getSchemaMethodParameter(getName());
 
 		if (parameter == null) {
@@ -181,7 +182,7 @@ public class StructrParameterDefinition implements JsonParameter, StructrDefinit
 			getOrCreateProperties.put(traits.key("name"),         getName());
 			getOrCreateProperties.put(traits.key("schemaMethod"), schemaMethod);
 
-			parameter = app.create("SchemaMethodParameter", getOrCreateProperties).as(SchemaMethodParameter.class);
+			parameter = app.create(StructrTraits.SCHEMA_METHOD_PARAMETER, getOrCreateProperties).as(SchemaMethodParameter.class);
 		}
 
 		final PropertyMap updateProperties = new PropertyMap();

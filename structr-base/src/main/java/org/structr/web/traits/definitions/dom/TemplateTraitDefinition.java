@@ -27,6 +27,7 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
@@ -46,7 +47,7 @@ import java.util.Set;
 public class TemplateTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public TemplateTraitDefinition() {
-		super("Template");
+		super(StructrTraits.TEMPLATE);
 	}
 
 	@Override

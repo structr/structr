@@ -19,6 +19,7 @@
 package org.structr.web.traits.relationships;
 
 import org.structr.core.entity.Relation;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
@@ -30,12 +31,12 @@ public class ActionMappingPARAMETERParameterMapping extends AbstractRelationship
 
 	@Override
 	public String getSourceType() {
-		return "ActionMapping";
+		return StructrTraits.ACTION_MAPPING;
 	}
 
 	@Override
 	public String getTargetType() {
-		return "ParameterMapping";
+		return StructrTraits.PARAMETER_MAPPING;
 	}
 
 	@Override

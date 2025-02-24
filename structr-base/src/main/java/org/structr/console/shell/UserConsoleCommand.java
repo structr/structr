@@ -28,6 +28,7 @@ import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.util.Writable;
 import org.structr.web.entity.User;
@@ -105,7 +106,7 @@ public class UserConsoleCommand extends AdminConsoleCommand {
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface user : app.nodeQuery("User").sort(Traits.of("NodeInterface").key("name")).getResultStream()) {
+			for (final NodeInterface user : app.nodeQuery(StructrTraits.USER).sort(Traits.of(StructrTraits.NODE_INTERFACE).key("name")).getResultStream()) {
 
 				final String name = user.getName();
 
@@ -134,7 +135,7 @@ public class UserConsoleCommand extends AdminConsoleCommand {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface node = app.create("User", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), name));
+			final NodeInterface node = app.create(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), name));
 			final User user          = node.as(User.class);
 
 			// set e-mail address
@@ -163,10 +164,10 @@ public class UserConsoleCommand extends AdminConsoleCommand {
 
 		try (final Tx tx = app.tx()) {
 
-			NodeInterface user = app.nodeQuery("User").andName(name).getFirst();
+			NodeInterface user = app.nodeQuery(StructrTraits.USER).andName(name).getFirst();
 			if (user == null) {
 
-				user = app.getNodeById("User", name);
+				user = app.getNodeById(StructrTraits.USER, name);
 			}
 
 			if (user != null) {
@@ -219,7 +220,7 @@ public class UserConsoleCommand extends AdminConsoleCommand {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface node = app.nodeQuery("User").andName(name).getFirst();
+			final NodeInterface node = app.nodeQuery(StructrTraits.USER).andName(name).getFirst();
 			if (node != null) {
 
 				final Principal user = node.as(Principal.class);

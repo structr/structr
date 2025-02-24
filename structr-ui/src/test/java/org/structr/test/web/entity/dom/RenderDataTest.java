@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.test.web.advanced.DOMTest;
 import org.structr.web.entity.dom.Content;
@@ -56,33 +57,33 @@ public class RenderDataTest extends DOMTest {
 			final Page doc = getDocument().as(Page.class);
 			name = doc.getName();
 
-			final List<NodeInterface> users = createTestNodes("User", 3);
+			final List<NodeInterface> users = createTestNodes(StructrTraits.USER, 3);
 
 			assertEquals(3, users.size());
 
 			NodeInterface user1 = users.get(0);
-			user1.setProperty(Traits.of("NodeInterface").key("name"), "user1");
+			user1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "user1");
 			NodeInterface user2 = users.get(1);
-			user2.setProperty(Traits.of("NodeInterface").key("name"), "user2");
+			user2.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "user2");
 			NodeInterface user3 = users.get(2);
-			user3.setProperty(Traits.of("NodeInterface").key("name"), "user3");
+			user3.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "user3");
 
-			final List<NodeInterface> files = createTestNodes("File", 6);
+			final List<NodeInterface> files = createTestNodes(StructrTraits.FILE, 6);
 
 			assertEquals(6, files.size());
 
 			NodeInterface nodeA = files.get(0);
-			nodeA.setProperty(Traits.of("NodeInterface").key("name"), "fileA");
+			nodeA.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "fileA");
 			NodeInterface nodeB = files.get(1);
-			nodeB.setProperty(Traits.of("NodeInterface").key("name"), "fileB");
+			nodeB.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "fileB");
 			NodeInterface nodeC = files.get(2);
-			nodeC.setProperty(Traits.of("NodeInterface").key("name"), "fileC");
+			nodeC.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "fileC");
 			NodeInterface nodeD = files.get(3);
-			nodeD.setProperty(Traits.of("NodeInterface").key("name"), "fileD");
+			nodeD.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "fileD");
 			NodeInterface nodeE = files.get(4);
-			nodeE.setProperty(Traits.of("NodeInterface").key("name"), "fileE");
+			nodeE.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "fileE");
 			NodeInterface nodeF = files.get(5);
-			nodeF.setProperty(Traits.of("NodeInterface").key("name"), "fileF");
+			nodeF.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "fileF");
 
 			// create dom tree
 			DOMElement html = doc.createElement("html");
@@ -91,8 +92,8 @@ public class RenderDataTest extends DOMTest {
 			final DOMElement p1 = doc.createElement("p");
 
 			final PropertyMap p1Properties = new PropertyMap();
-			p1Properties.put(Traits.of("DOMElement").key("restQuery"), "User?_sort=name");
-			p1Properties.put(Traits.of("DOMElement").key("dataKey"), "user");
+			p1Properties.put(Traits.of(StructrTraits.DOM_ELEMENT).key("restQuery"), "User?_sort=name");
+			p1Properties.put(Traits.of(StructrTraits.DOM_ELEMENT).key("dataKey"), "user");
 			p1.setProperties(p1.getSecurityContext(), p1Properties);
 
 			Content userNameContentNode = doc.createTextNode("${user.name}");
@@ -103,8 +104,8 @@ public class RenderDataTest extends DOMTest {
 			final DOMElement p2 = doc.createElement("p");
 
 			final PropertyMap p2Properties = new PropertyMap();
-			p2Properties.put(Traits.of("DOMElement").key("restQuery"), "File?_sort=name");
-			p2Properties.put(Traits.of("DOMElement").key("dataKey"), "file");
+			p2Properties.put(Traits.of(StructrTraits.DOM_ELEMENT).key("restQuery"), "File?_sort=name");
+			p2Properties.put(Traits.of(StructrTraits.DOM_ELEMENT).key("dataKey"), "file");
 			p2.setProperties(p2.getSecurityContext(), p2Properties);
 
 			Content fileNameContentNode = doc.createTextNode("${file.name}");

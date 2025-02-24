@@ -24,6 +24,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.test.web.StructrUiTest;
 import org.testng.annotations.Test;
@@ -48,15 +49,15 @@ public class PropertyTest extends StructrUiTest {
 		// schema setup
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface test  = app.create("SchemaNode",
-				new NodeAttribute<>(Traits.of("SchemaNode").key("name"), "Test")
+			final NodeInterface test  = app.create(StructrTraits.SCHEMA_NODE,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key("name"), "Test")
 			);
 
-			app.create("SchemaProperty",
-					new NodeAttribute<>(Traits.of("SchemaProperty").key("name"), "ownerPrincipalEmail"),
-					new NodeAttribute<>(Traits.of("SchemaProperty").key("propertyType"), "Notion"),
-					new NodeAttribute<>(Traits.of("SchemaProperty").key("format"), "owner, User.eMail"),
-					new NodeAttribute<>(Traits.of("SchemaProperty").key("schemaNode"), test)
+			app.create(StructrTraits.SCHEMA_PROPERTY,
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"), "ownerPrincipalEmail"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Notion"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("format"), "owner, User.eMail"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), test)
 			);
 
 			tx.success();

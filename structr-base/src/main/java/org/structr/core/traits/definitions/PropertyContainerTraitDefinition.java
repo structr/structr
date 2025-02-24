@@ -44,6 +44,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.TypeProperty;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.propertycontainer.*;
@@ -55,7 +56,7 @@ public final class PropertyContainerTraitDefinition extends AbstractNodeTraitDef
 	private static final Logger logger = LoggerFactory.getLogger(PropertyContainerTraitDefinition.class);
 
 	public PropertyContainerTraitDefinition() {
-		super("PropertyContainer");
+		super(StructrTraits.PROPERTY_CONTAINER);
 	}
 
 	@Override

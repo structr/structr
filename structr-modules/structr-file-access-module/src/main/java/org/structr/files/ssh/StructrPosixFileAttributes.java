@@ -26,6 +26,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Group;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.AbstractFile;
 
@@ -130,7 +131,7 @@ public class StructrPosixFileAttributes implements PosixFileAttributes {
 		boolean isRegularFile = false;
 
 		try (Tx tx = StructrApp.getInstance().tx()) {
-			isRegularFile = file.is("File");
+			isRegularFile = file.is(StructrTraits.FILE);
 			tx.success();
 		} catch (FrameworkException fex) {
 			logger.error("", fex);
@@ -145,7 +146,7 @@ public class StructrPosixFileAttributes implements PosixFileAttributes {
 		boolean isDirectory = false;
 
 		try (Tx tx = StructrApp.getInstance().tx()) {
-			isDirectory = file.is("Folder");
+			isDirectory = file.is(StructrTraits.FOLDER);
 			tx.success();
 		} catch (FrameworkException fex) {
 			logger.error("", fex);

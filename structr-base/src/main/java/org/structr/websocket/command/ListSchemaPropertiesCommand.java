@@ -29,6 +29,7 @@ import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
@@ -57,7 +58,7 @@ public class ListSchemaPropertiesCommand extends AbstractCommand {
 
 		setDoTransactionNotifications(false);
 
-		final Traits schemaPropertyTraits = Traits.of("SchemaProperty");
+		final Traits schemaPropertyTraits = Traits.of(StructrTraits.SCHEMA_PROPERTY);
 		final String view                 = webSocketData.getNodeDataStringValue("view");
 		final String id                   = webSocketData.getId();
 		final List<GraphObject> result    = new LinkedList();
@@ -73,7 +74,7 @@ public class ListSchemaPropertiesCommand extends AbstractCommand {
 
 						String typeName = schemaObject.getName();
 
-						if (typeName == null && schemaObject.is("SchemaRelationshipNode")) {
+						if (typeName == null && schemaObject.is(StructrTraits.SCHEMA_RELATIONSHIP_NODE)) {
 							typeName = schemaObject.getType();
 						}
 
@@ -86,7 +87,7 @@ public class ListSchemaPropertiesCommand extends AbstractCommand {
 
 							for (final PropertyKey key : allProperties) {
 
-								final String declaringClass   = key.getDeclaringTrait() != null ? key.getDeclaringTrait().getLabel() : "GraphObject";
+								final String declaringClass   = key.getDeclaringTrait() != null ? key.getDeclaringTrait().getLabel() : StructrTraits.GRAPH_OBJECT;
 								final String declaringUuid    = key.getSourceUuid();
 								final String propertyName     = key.jsonName();
 								final GraphObjectMap property = new GraphObjectMap();
@@ -98,8 +99,8 @@ public class ListSchemaPropertiesCommand extends AbstractCommand {
 									valueTypeName = valueType.getSimpleName();
 								}
 
-								property.put(Traits.of("GraphObject").key("id"),                                     key.getSourceUuid());
-								property.put(Traits.of("NodeInterface").key("name"),                                   propertyName);
+								property.put(Traits.of(StructrTraits.GRAPH_OBJECT).key("id"),                                     key.getSourceUuid());
+								property.put(Traits.of(StructrTraits.NODE_INTERFACE).key("name"),                                   propertyName);
 								property.put(isSelected,                                              viewProperties.contains(key));
 								property.put(isDisabled,                                              _isDisabled);
 								property.put(schemaPropertyTraits.key("propertyType"),          valueTypeName);
@@ -113,10 +114,10 @@ public class ListSchemaPropertiesCommand extends AbstractCommand {
 
 									try {
 
-										final GraphObject declaringEntity = StructrApp.getInstance().getNodeById("NodeInterface", declaringUuid);
+										final GraphObject declaringEntity = StructrApp.getInstance().getNodeById(StructrTraits.NODE_INTERFACE, declaringUuid);
 										if (declaringEntity != null) {
 
-											if (declaringEntity.is("SchemaProperty")) {
+											if (declaringEntity.is(StructrTraits.SCHEMA_PROPERTY)) {
 
 												final SchemaProperty schemaProperty = (SchemaProperty) declaringEntity;
 												property.put(new GenericProperty("declaringPropertyType"), schemaProperty.getPropertyType().name());

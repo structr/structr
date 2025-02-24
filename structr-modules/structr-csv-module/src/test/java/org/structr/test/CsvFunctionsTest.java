@@ -65,7 +65,7 @@ public class CsvFunctionsTest extends StructrUiTest {
 			csvTestOnes = createTestNodes("CsvTestOne", 5);
 			csvTestTwo  = createTestNode("CsvTestTwo");
 
-			final Traits localizationTraits                         = Traits.of("Localization");
+			final Traits localizationTraits                         = Traits.of(StructrTraits.LOCALIZATION);
 			final Traits testOneTraits                              = Traits.of("CsvTestOne");
 			final PropertyMap indexLocalizationProperties           = new PropertyMap();
 			final PropertyMap nameLocalizationProperties            = new PropertyMap();
@@ -90,10 +90,10 @@ public class CsvFunctionsTest extends StructrUiTest {
 			nameLocalizationPropertiesWithDomain.put(localizationTraits.key("locale"),         "en");
 			nameLocalizationPropertiesWithDomain.put(localizationTraits.key("domain"),         "CSV TEST Domain");
 
-			app.create("Localization", indexLocalizationProperties);
-			app.create("Localization", nameLocalizationProperties);
-			app.create("Localization", indexLocalizationPropertiesWithDomain);
-			app.create("Localization", nameLocalizationPropertiesWithDomain);
+			app.create(StructrTraits.LOCALIZATION, indexLocalizationProperties);
+			app.create(StructrTraits.LOCALIZATION, nameLocalizationProperties);
+			app.create(StructrTraits.LOCALIZATION, indexLocalizationPropertiesWithDomain);
+			app.create(StructrTraits.LOCALIZATION, nameLocalizationPropertiesWithDomain);
 
 			for (final NodeInterface csvTestOne : csvTestOnes) {
 

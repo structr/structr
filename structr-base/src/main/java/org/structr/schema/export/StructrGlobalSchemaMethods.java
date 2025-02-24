@@ -29,6 +29,7 @@ import org.structr.core.entity.SchemaMethodParameter;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 
 import java.util.*;
@@ -40,12 +41,12 @@ public class StructrGlobalSchemaMethods {
 	public Map<String, Object> serializeOpenAPIOperations(final String tag) {
 
 		final App app                     = StructrApp.getInstance();
-		final Traits traits               = Traits.of("SchemaMethod");
+		final Traits traits               = Traits.of(StructrTraits.SCHEMA_METHOD);
 		final Map<String, Object> methods = new TreeMap<>();
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface node : app.nodeQuery("SchemaMethod").and(traits.key("schemaNode"), null).sort(traits.key("name")).getAsList()) {
+			for (final NodeInterface node : app.nodeQuery(StructrTraits.SCHEMA_METHOD).and(traits.key("schemaNode"), null).sort(traits.key("name")).getAsList()) {
 
 				final StructrMethodDefinition def = StructrMethodDefinition.deserialize(null, node.as(SchemaMethod.class));
 
@@ -67,11 +68,11 @@ public class StructrGlobalSchemaMethods {
 
 	void deserialize(final App app) throws FrameworkException {
 
-		final Traits traits = Traits.of("SchemaMethod");
+		final Traits traits = Traits.of(StructrTraits.SCHEMA_METHOD);
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface node : app.nodeQuery("SchemaMethod").and(traits.key("schemaNode"), null).sort(traits.key("name")).getAsList()) {
+			for (final NodeInterface node : app.nodeQuery(StructrTraits.SCHEMA_METHOD).and(traits.key("schemaNode"), null).sort(traits.key("name")).getAsList()) {
 
 				final Map<String, Object> entry  = new TreeMap<>();
 				final Map<String, Object> params = new LinkedHashMap<>();
@@ -126,14 +127,14 @@ public class StructrGlobalSchemaMethods {
 	public void createDatabaseSchema(final App app, final JsonSchema.ImportMode importMode) throws FrameworkException {
 
 		final SecurityContext context = SecurityContext.getSuperUserInstance();
-		final Traits traits           = Traits.of("SchemaMethod");
+		final Traits traits           = Traits.of(StructrTraits.SCHEMA_METHOD);
 
 		context.setDoTransactionNotifications(false);
 
 		if (JsonSchema.ImportMode.replace.equals(importMode)) {
 			// completely delete all global schema methods and import the methods from file
 
-			for (final NodeInterface method : app.nodeQuery("SchemaMethod").and(traits.key("schemaNode"), null).getAsList()) {
+			for (final NodeInterface method : app.nodeQuery(StructrTraits.SCHEMA_METHOD).and(traits.key("schemaNode"), null).getAsList()) {
 				app.delete(method);
 			}
 
@@ -150,7 +151,7 @@ public class StructrGlobalSchemaMethods {
 
 				final String name = entry.get(JsonSchema.KEY_NAME).toString();
 
-				for (final NodeInterface method : app.nodeQuery("SchemaMethod").and(traits.key("schemaNode"), null).andName(name).getAsList()) {
+				for (final NodeInterface method : app.nodeQuery(StructrTraits.SCHEMA_METHOD).and(traits.key("schemaNode"), null).andName(name).getAsList()) {
 					app.delete(method);
 				}
 
@@ -169,7 +170,7 @@ public class StructrGlobalSchemaMethods {
 			params = Map.of();
 		}
 
-		final NodeInterface method = app.create("SchemaMethod", PropertyMap.inputTypeToJavaType(context, "SchemaMethod", entry));
+		final NodeInterface method = app.create(StructrTraits.SCHEMA_METHOD, PropertyMap.inputTypeToJavaType(context, StructrTraits.SCHEMA_METHOD, entry));
 
 		for (final Map.Entry<String, Map<String, Object>> paramEntry : params.entrySet()) {
 

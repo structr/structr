@@ -27,6 +27,7 @@ import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.RelationProperty;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Trait;
 import org.structr.core.traits.TraitDefinition;
 import org.structr.core.traits.Traits;
@@ -91,10 +92,10 @@ public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper imple
 
 		final Set<String> allTraits = new LinkedHashSet<>();
 
-		allTraits.add("PropertyContainer");
-		allTraits.add("GraphObject");
-		allTraits.add("NodeInterface");
-		allTraits.add("AccessControllable");
+		allTraits.add(StructrTraits.PROPERTY_CONTAINER);
+		allTraits.add(StructrTraits.GRAPH_OBJECT);
+		allTraits.add(StructrTraits.NODE_INTERFACE);
+		allTraits.add(StructrTraits.ACCESS_CONTROLLABLE);
 		allTraits.addAll(getInheritedTraits());
 
 		// check inheritance
@@ -186,7 +187,7 @@ public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper imple
 
 			try {
 
-				final NodeInterface inheritedSchemaNode = StructrApp.getInstance().nodeQuery("SchemaNode").andName(inheritedTrait).getFirst();
+				final NodeInterface inheritedSchemaNode = StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_NODE).andName(inheritedTrait).getFirst();
 				if (inheritedSchemaNode != null) {
 
 					// recurse

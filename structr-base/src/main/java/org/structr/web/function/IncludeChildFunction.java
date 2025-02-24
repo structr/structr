@@ -26,6 +26,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.DOMNode;
@@ -72,12 +73,12 @@ public class IncludeChildFunction extends IncludeFunction {
 			final SecurityContext securityContext    = ctx.getSecurityContext();
 			final App app                            = StructrApp.getInstance(securityContext);
 			final RenderContext innerCtx             = new RenderContext((RenderContext)ctx);
-			final List<NodeInterface> nodeList       = app.nodeQuery("DOMNode").andName((String)sources[0]).getAsList();
+			final List<NodeInterface> nodeList       = app.nodeQuery(StructrTraits.DOM_NODE).andName((String)sources[0]).getAsList();
 
 			DOMNode node = null;
 
 			// Are we are in a Template node?
-			if (caller instanceof NodeInterface n && n.is("Template")) {
+			if (caller instanceof NodeInterface n && n.is(StructrTraits.TEMPLATE)) {
 
 				final Template templateNode = n.as(Template.class);
 

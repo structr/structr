@@ -27,6 +27,7 @@ import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
@@ -45,7 +46,7 @@ public class ParameterMappingTraitDefinition extends AbstractNodeTraitDefinition
 	*/
 
 	public ParameterMappingTraitDefinition() {
-		super("ParameterMapping");
+		super(StructrTraits.PARAMETER_MAPPING);
 	}
 
 	@Override

@@ -29,6 +29,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 
 import java.io.Reader;
 import java.io.StringReader;
@@ -151,13 +152,13 @@ public class StructrSchema {
 
 		try (final Tx tx = app.tx()) {
 
-			app.deleteAllNodesOfType("SchemaRelationshipNode");
-			app.deleteAllNodesOfType("SchemaNode");
-			app.deleteAllNodesOfType("SchemaMethod");
-			app.deleteAllNodesOfType("SchemaMethodParameter");
-			app.deleteAllNodesOfType("SchemaProperty");
-			app.deleteAllNodesOfType("SchemaView");
-			app.deleteAllNodesOfType("SchemaGrant");
+			app.deleteAllNodesOfType(StructrTraits.SCHEMA_RELATIONSHIP_NODE);
+			app.deleteAllNodesOfType(StructrTraits.SCHEMA_NODE);
+			app.deleteAllNodesOfType(StructrTraits.SCHEMA_METHOD);
+			app.deleteAllNodesOfType(StructrTraits.SCHEMA_METHOD_PARAMETER);
+			app.deleteAllNodesOfType(StructrTraits.SCHEMA_PROPERTY);
+			app.deleteAllNodesOfType(StructrTraits.SCHEMA_VIEW);
+			app.deleteAllNodesOfType(StructrTraits.SCHEMA_GRANT);
 
 			newSchema.createDatabaseSchema(JsonSchema.ImportMode.replace);
 
