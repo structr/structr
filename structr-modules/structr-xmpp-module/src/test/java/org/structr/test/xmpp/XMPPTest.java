@@ -20,7 +20,6 @@ package org.structr.test.xmpp;
 
 import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
-import org.jivesoftware.smack.packet.Presence;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.Traits;
@@ -62,7 +61,7 @@ public class XMPPTest extends StructrUiTest {
 				new NodeAttribute<>(clientTraits.key("xmppService"),   "service"),
 				new NodeAttribute<>(clientTraits.key("xmppHost"),      "host"),
 				new NodeAttribute<>(clientTraits.key("xmppPort"),      12345),
-				new NodeAttribute<>(clientTraits.key("presenceMode"),  Presence.Mode.available)
+				new NodeAttribute<>(clientTraits.key("presenceMode"),  "available")
 			);
 
 			tx.success();

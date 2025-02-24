@@ -18,6 +18,7 @@
  */
 package org.structr.core.traits.definitions;
 
+import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -69,16 +70,6 @@ import java.util.Set;
  *
  */
 public class ResourceAccessTraitDefinition extends AbstractNodeTraitDefinition {
-
-	/*
-	public static final View uiView = new View(ResourceAccess.class, PropertyView.Ui,
-		signature, flags, isResourceAccess
-	);
-
-	public static final View publicView = new View(ResourceAccess.class, PropertyView.Public,
-		signature, flags, isResourceAccess
-	);
-	*/
 
 	public ResourceAccessTraitDefinition(final String name) {
 		super(name);
@@ -153,6 +144,21 @@ public class ResourceAccessTraitDefinition extends AbstractNodeTraitDefinition {
 			signature,
 			flags,
 			isResourceAccess
+		);
+	}
+
+	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+			PropertyView.Public,
+			newSet(
+				"signature", "flags", "isResourceAccess"
+			),
+			PropertyView.Ui,
+			newSet(
+				"signature", "flags", "isResourceAccess"
+			)
 		);
 	}
 

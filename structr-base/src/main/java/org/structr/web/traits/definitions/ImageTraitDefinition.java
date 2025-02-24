@@ -252,9 +252,15 @@ public class ImageTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 			PropertyView.Public,
-			newSet("parent"),
+			newSet(
+				"parent", "contentType", "exifIFD0Data", "exifSubIFDData", "gpsData", "height", "isImage", "isMounted",
+				"isThumbnail", "orientation", "tnMid", "tnSmall", "width"
+			),
 			PropertyView.Ui,
-			newSet("parent")
+			newSet(
+				"parent", "contentType", "exifIFD0Data", "exifSubIFDData", "gpsData", "height", "isImage", "isThumbnail",
+				"orientation", "tnMid", "tnSmall", "useAsJavascriptLibrary", "width"
+			)
 		);
 	}
 

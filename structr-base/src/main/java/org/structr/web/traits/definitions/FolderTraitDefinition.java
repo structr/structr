@@ -46,24 +46,6 @@ import java.util.Set;
 
 public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 
-	/*
-		type.addStringProperty("mountTarget", PropertyView.Public).setIndexed(true);
-		type.addIntegerProperty("position").setIndexed(true);
-
-		type.addStringProperty("enabledChecksums",         PropertyView.Public, PropertyView.Ui);
-		type.addStringProperty("mountTarget",              PropertyView.Ui);
-		type.addBooleanProperty("mountDoFulltextIndexing", PropertyView.Public, PropertyView.Ui);
-		type.addBooleanProperty("mountWatchContents",      PropertyView.Public, PropertyView.Ui);
-		type.addIntegerProperty("mountScanInterval",       PropertyView.Public, PropertyView.Ui);
-		type.addLongProperty("mountLastScanned",           PropertyView.Public, PropertyView.Ui);
-		type.addStringProperty("mountTargetFileType",      PropertyView.Public, PropertyView.Ui);
-		type.addStringProperty("mountTargetFolderType",    PropertyView.Public, PropertyView.Ui);
-
-		type.addFunctionProperty("filesCount", "public").setReadFunction("size(this.files)").setTypeHint("int");
-		type.addFunctionProperty("foldersCount", "public").setReadFunction("size(this.folders)").setTypeHint("int");
-	*/
-
-
 	public FolderTraitDefinition() {
 		super("Folder");
 	}
@@ -192,11 +174,15 @@ public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"files", "folders", "parentId"
+				"files", "folders", "parentId", "enabledChecksums", "filesCount", "foldersCount", "isFolder",
+				"isMounted", "mountDoFulltextIndexing", "mountLastScanned", "mountScanInterval", "mountTarget",
+				"mountTargetFileType", "mountTargetFolderType", "mountWatchContents", "owner"
 			),
 			PropertyView.Ui,
 			newSet(
-				"files", "folders", "images"
+				"files", "folders", "images", "enabledChecksums", "isFolder", "mountDoFulltextIndexing",
+				"mountLastScanned", "mountScanInterval", "mountTarget", "mountTargetFileType", "mountTargetFolderType",
+				"mountWatchContents"
 			)
 		);
 	}

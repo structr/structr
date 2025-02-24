@@ -18,6 +18,7 @@
  */
 package org.structr.core.traits.definitions;
 
+import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -41,16 +42,6 @@ import java.util.Map;
 import java.util.Set;
 
 public final class LocalizationTraitDefinition extends AbstractNodeTraitDefinition {
-
-	/*
-	public static final View defaultView = new View(Localization.class, PropertyView.Public,
-		localizedNameProperty, domainProperty, localeProperty, importedProperty
-	);
-
-	public static final View uiView = new View(Localization.class, PropertyView.Ui,
-		localizedNameProperty, domainProperty, localeProperty, importedProperty
-	);
-	*/
 
 	public LocalizationTraitDefinition() {
 		super("Localization");
@@ -130,6 +121,21 @@ public final class LocalizationTraitDefinition extends AbstractNodeTraitDefiniti
 			domainProperty,
 			localeProperty,
 			importedProperty
+		);
+	}
+
+	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+			PropertyView.Public,
+			newSet(
+				"localizedName", "domain", "locale", "imported"
+			),
+			PropertyView.Ui,
+			newSet(
+				"localizedName", "domain", "locale", "imported"
+			)
 		);
 	}
 

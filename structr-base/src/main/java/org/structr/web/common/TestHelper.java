@@ -170,8 +170,6 @@ public class TestHelper {
 						final String viewName    = view.getKey();
 						final List<String> keys  = view.getValue();
 
-						System.out.println("Checking " + typeName + "." + viewName);
-
 						// check entity
 						final Map<String, Object> result = RestAssured
 							.given()

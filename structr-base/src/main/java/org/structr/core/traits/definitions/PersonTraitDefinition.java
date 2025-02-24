@@ -18,6 +18,7 @@
  */
 package org.structr.core.traits.definitions;
 
+import org.structr.common.PropertyView;
 import org.structr.core.entity.Person;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.*;
@@ -31,20 +32,6 @@ import java.util.Set;
 /**
  */
 public class PersonTraitDefinition extends AbstractNodeTraitDefinition {
-
-	/*
-	public static final View defaultView = new View(Person.class, PropertyView.Public,
-		salutationProperty, firstNameProperty, middleNameOrInitialProperty, lastNameProperty,
-		eMailProperty, countryProperty, streetProperty, zipCodeProperty, cityProperty, stateProperty
-	);
-
-	public static final View uiView  = new View(Person.class, PropertyView.Ui,
-		salutationProperty, firstNameProperty, middleNameOrInitialProperty, lastNameProperty,
-		eMailProperty, eMail2Property, phoneNumber1Property, phoneNumber2Property, faxNumber1Property, faxNumber2Property,
-		countryProperty, streetProperty, zipCodeProperty, cityProperty, stateProperty,
-		birthdayProperty, genderProperty, newsletterProperty
-	);
-	*/
 
 	public PersonTraitDefinition() {
 		super("Person");
@@ -99,6 +86,26 @@ public class PersonTraitDefinition extends AbstractNodeTraitDefinition {
 			birthdayProperty,
 			genderProperty,
 			newsletterProperty
+		);
+	}
+
+	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+
+			PropertyView.Public,
+			newSet(
+				"salutation", "firstName", "middleNameOrInitial", "lastName",
+				"eMail", "country", "street", "zipCode", "city", "state"
+			),
+			PropertyView.Ui,
+			newSet(
+				"salutation", "firstName", "middleNameOrInitial", "lastName",
+				"eMail", "eMail2", "phoneNumber1", "phoneNumber2", "faxNumber1", "faxNumber2",
+				"country", "street", "zipCode", "city", "state",
+				"birthday", "gender", "newsletter"
+			)
 		);
 	}
 

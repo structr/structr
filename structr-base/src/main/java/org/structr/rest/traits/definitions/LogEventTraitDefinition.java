@@ -18,6 +18,7 @@
  */
 package org.structr.rest.traits.definitions;
 
+import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.Property;
@@ -44,12 +45,6 @@ public class LogEventTraitDefinition extends AbstractNodeTraitDefinition {
 	public LogEventTraitDefinition() {
 		super("LogEvent");
 	}
-
-	/*
-	public static final View defaultView = new View(LogEvent.class, PropertyView.Public,
-		actionProperty, messageProperty, timestampProperty, subjectProperty, objectProperty
-	);
-	*/
 
 	@Override
 	public Map<Class, LifecycleMethod> getLifecycleMethods() {
@@ -89,6 +84,17 @@ public class LogEventTraitDefinition extends AbstractNodeTraitDefinition {
 			timestampProperty,
 			subjectProperty,
 			objectProperty
+		);
+	}
+
+	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+			PropertyView.Public,
+			newSet(
+				"action", "message", "timestamp", "subject", "object"
+			)
 		);
 	}
 

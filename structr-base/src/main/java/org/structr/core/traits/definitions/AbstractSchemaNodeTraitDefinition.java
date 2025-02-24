@@ -166,7 +166,7 @@ public final class AbstractSchemaNodeTraitDefinition extends AbstractNodeTraitDe
 			newSet("tags", "summary", "description", "includeInOpenAPI"),
 
 			"export",
-			newSet("changelogDisabled", "tags", "summary", "description")
+			newSet("changelogDisabled", "icon", "tags", "summary", "description")
 		);
 	}
 

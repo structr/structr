@@ -166,16 +166,35 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 
 			PropertyView.Public,
-			newSet("id", "type", "name", "inheritedTraits", "relatedTo", "relatedFrom", "defaultSortKey", "defaultSortOrder", "hierarchyLevel", "relCount", "isInterface", "isAbstract", "defaultVisibleToPublic", "defaultVisibleToAuth"),
+			newSet(
+				"id", "type", "name", "inheritedTraits", "relatedTo", "relatedFrom", "defaultSortKey",
+				"defaultSortOrder", "hierarchyLevel", "relCount", "isInterface", "isAbstract", "defaultVisibleToPublic",
+				"defaultVisibleToAuth"
+			),
 
 			PropertyView.Ui,
-			newSet("id", "type", "name", "owner", "createdBy", "hidden", "createdDate", "lastModifiedDate", "visibleToPublicUsers", "visibleToAuthenticatedUsers", "schemaProperties", "schemaViews", "schemaMethods", "icon", "changelogDisabled", "relatedTo", "relatedFrom", "defaultSortKey", "defaultSortOrder", "hierarchyLevel", "relCount", "isInterface", "isAbstract", "category", "defaultVisibleToPublic", "defaultVisibleToAuth", "includeInOpenAPI"),
+			newSet(
+				"id", "type", "name", "owner", "createdBy", "hidden", "createdDate", "lastModifiedDate",
+				"visibleToPublicUsers", "visibleToAuthenticatedUsers", "schemaProperties", "schemaViews",
+				"schemaMethods", "icon", "changelogDisabled", "relatedTo", "relatedFrom", "defaultSortKey",
+				"defaultSortOrder", "hierarchyLevel", "relCount", "isInterface", "isAbstract", "category",
+				"defaultVisibleToPublic", "defaultVisibleToAuth", "includeInOpenAPI", "inheritedTraits"
+			),
 
 			"schema",
-			newSet("id", "type", "name", "schemaProperties", "schemaViews", "schemaMethods", "icon", "changelogDisabled", "relatedTo", "relatedFrom", "defaultSortKey", "defaultSortOrder", "hierarchyLevel", "relCount", "isInterface", "isAbstract", "category", "schemaGrants", "defaultVisibleToPublic", "defaultVisibleToAuth", "includeInOpenAPI"),
+			newSet(
+				"id", "type", "name", "schemaProperties", "schemaViews", "schemaMethods", "icon",
+				"changelogDisabled", "relatedTo", "relatedFrom", "defaultSortKey", "defaultSortOrder",
+				"hierarchyLevel", "relCount", "isInterface", "isAbstract", "category", "schemaGrants",
+				"defaultVisibleToPublic", "defaultVisibleToAuth", "includeInOpenAPI", "inheritedTraits"
+			),
 
 			"export",
-			newSet("id", "type", "name", "defaultSortKey", "defaultSortOrder", "hierarchyLevel", "relCount", "isInterface", "isAbstract", "defaultVisibleToPublic", "defaultVisibleToAuth")
+			newSet(
+				"id", "type", "name", "defaultSortKey", "defaultSortOrder", "hierarchyLevel",
+				"relCount", "isInterface", "isAbstract", "defaultVisibleToPublic", "defaultVisibleToAuth",
+				"inheritedTraits"
+			)
 		);
 	}
 

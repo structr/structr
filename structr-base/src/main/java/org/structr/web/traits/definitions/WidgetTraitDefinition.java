@@ -18,6 +18,7 @@
  */
 package org.structr.web.traits.definitions;
 
+import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
@@ -36,20 +37,6 @@ import java.util.Set;
  *
  */
 public class WidgetTraitDefinition extends AbstractNodeTraitDefinition {
-
-	/*
-	public static final View defaultView = new View(Widget.class, PropertyView.Public,
-		name, sourceProperty, descriptionProperty, configurationProperty, svgIconPathProperty, thumbnailPathProperty, treePathProperty, isWidgetProperty, selectorsProperty, isPageTemplateProperty
-	);
-
-	public static final View uiView = new View(Widget.class, PropertyView.Ui,
-		sourceProperty, descriptionProperty, configurationProperty, svgIconPathProperty, thumbnailPathProperty, treePathProperty, isWidgetProperty, selectorsProperty, isPageTemplateProperty
-	);
-
-	public static final View editWidgetView = new View(Widget.class, "editWidget",
-		selectorsProperty, isPageTemplateProperty
-	);
-	*/
 
 	public WidgetTraitDefinition() {
 		super("Widget");
@@ -102,6 +89,28 @@ public class WidgetTraitDefinition extends AbstractNodeTraitDefinition {
 			isWidgetProperty,
 			selectorsProperty,
 			isPageTemplateProperty
+		);
+	}
+
+	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+
+			PropertyView.Public,
+			newSet(
+				"name", "source", "description", "configuration", "svgIconPath", "thumbnailPath",
+				"treePath", "isWidget", "selectors", "isPageTemplate"
+			),
+			PropertyView.Ui,
+			newSet(
+				"source", "description", "configuration", "svgIconPath", "thumbnailPath",
+				"treePath", "isWidget", "selectors", "isPageTemplate"
+			),
+			"editWidget",
+			newSet(
+				"selectors", "isPageTemplate"
+			)
 		);
 	}
 

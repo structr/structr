@@ -70,8 +70,8 @@ public class LDAPUserTraitDefinition extends AbstractNodeTraitDefinition {
 					final Traits traits = Traits.of("LDAPUser");
 					boolean valid = true;
 
-					valid &= ValidationHelper.isValidUniqueProperty(obj, traits.key("distinguishedNameProperty"), errorBuffer);
-					valid &= ValidationHelper.isValidUniqueProperty(obj, traits.key("originIdProperty"), errorBuffer);
+					valid &= ValidationHelper.isValidUniqueProperty(obj, traits.key("distinguishedName"), errorBuffer);
+					valid &= ValidationHelper.isValidUniqueProperty(obj, traits.key("originId"), errorBuffer);
 
 					return valid;
 				}

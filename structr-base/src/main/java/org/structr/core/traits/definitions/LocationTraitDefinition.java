@@ -18,6 +18,7 @@
  */
 package org.structr.core.traits.definitions;
 
+import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.DoubleProperty;
 import org.structr.core.property.Property;
@@ -36,18 +37,6 @@ public final class LocationTraitDefinition extends AbstractNodeTraitDefinition {
 	public LocationTraitDefinition() {
 		super("Location");
 	}
-
-	/*
-	public static final View defaultView = new View(Location.class, PropertyView.Public,
-		latitudeProperty, longitudeProperty, altitudeProperty, countryProperty, postalCodeProperty, cityProperty,
-		streetProperty, houseNumberProperty, stateProperty, stateDistrictProperty
-	);
-
-	public static final View uiView = new View(Location.class, PropertyView.Ui,
-		latitudeProperty, longitudeProperty, altitudeProperty, countryProperty, postalCodeProperty, cityProperty,
-		streetProperty, houseNumberProperty, stateProperty, stateDistrictProperty
-	);
-	*/
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
@@ -79,6 +68,23 @@ public final class LocationTraitDefinition extends AbstractNodeTraitDefinition {
 			houseNumberProperty,
 			stateProperty,
 			stateDistrictProperty
+		);
+	}
+
+	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+			PropertyView.Public,
+			newSet(
+			"latitude", "longitude", "altitude", "country", "postalCode", "city",
+				"street", "houseNumber", "state", "stateDistrict"
+			),
+			PropertyView.Ui,
+			newSet(
+				"latitude", "longitude", "altitude", "country", "postalCode", "city",
+				"street", "houseNumber", "state", "stateDistrict"
+			)
 		);
 	}
 

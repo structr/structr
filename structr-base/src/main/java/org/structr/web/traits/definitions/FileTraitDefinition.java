@@ -27,6 +27,9 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.GraphObject;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Arguments;
+import org.structr.core.api.JavaMethod;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.ModificationQueue;
@@ -43,6 +46,7 @@ import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnModification;
 import org.structr.core.traits.operations.nodeinterface.OnNodeDeletion;
 import org.structr.core.traits.operations.propertycontainer.SetProperty;
+import org.structr.schema.action.EvaluationHints;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
@@ -196,6 +200,53 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
+	public Set<AbstractMethod> getDynamicMethods() {
+
+		return Set.of(
+
+			new JavaMethod("doCSVImport", false, false) {
+
+				@Override
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
+					return entity.as(File.class).doCSVImport(securityContext, arguments.toMap());
+				}
+			},
+
+			new JavaMethod("doXMLImport", false, false) {
+
+				@Override
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
+					return entity.as(File.class).doXMLImport(securityContext, arguments.toMap());
+				}
+			},
+
+			new JavaMethod("getFirstLines", false, false) {
+
+				@Override
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
+					return entity.as(File.class).getFirstLines(securityContext, arguments.toMap());
+				}
+			},
+
+			new JavaMethod("getCSVHeaders", false, false) {
+
+				@Override
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
+					return entity.as(File.class).getCSVHeaders(securityContext, arguments.toMap());
+				}
+			},
+
+			new JavaMethod("getXMLStructure", false, false) {
+
+				@Override
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
+					return entity.as(File.class).getXMLStructure(securityContext);
+				}
+			}
+		);
+	}
+
+	@Override
 	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
 		return Map.of();
 	}
@@ -260,11 +311,14 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"includeInFrontendExport", "owner"
+				"url", "isFile", "isTemplate", "indexed", "size", "fileModificationDate", "dontCache",
+				"includeInFrontendExport", "owner", "contentType", "isMounted"
 			),
 			PropertyView.Ui,
 			newSet(
-				"hasParent", "path"
+				"url", "isFile", "isTemplate", "indexed", "size", "cacheForSeconds", "version", "checksum",
+				"md5", "dontCache", "includeInFrontendExport", "owner", "hasParent", "path", "contentType",
+				"useAsJavascriptLibrary"
 			)
 		);
 	}

@@ -18,6 +18,7 @@
  */
 package org.structr.web.traits.definitions;
 
+import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
@@ -33,16 +34,6 @@ import java.util.Map;
 import java.util.Set;
 
 public class SiteTraitDefinition extends AbstractNodeTraitDefinition {
-
-	/*
-	public static final View defaultView = new View(Site.class, PropertyView.Public,
-		pagesProperty, hostnameProperty, portProperty
-	);
-
-	public static final View uiView = new View(Site.class, PropertyView.Ui,
-		pagesProperty, hostnameProperty, portProperty
-	);
-	*/
 
 	public SiteTraitDefinition() {
 		super("Site");
@@ -74,12 +65,6 @@ public class SiteTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-	/*
-	TODO: migrate this:
-	1. extract interface, rename original class to SiteTraitDefinition
-	2. implement SiteTraitWrapper extends AbstractTraitWrapper
-	*/
-
 		final Property<Iterable<NodeInterface>> pagesProperty = new EndNodes("pages", "SiteCONTAINSPage");
 		final Property<String> hostnameProperty               = new StringProperty("hostname").indexed();
 		final Property<Integer> portProperty                  = new IntProperty("port").indexed();
@@ -88,6 +73,21 @@ public class SiteTraitDefinition extends AbstractNodeTraitDefinition {
 			pagesProperty,
 			hostnameProperty,
 			portProperty
+		);
+	}
+
+	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+			PropertyView.Public,
+			newSet(
+				"pages", "hostname", "port"
+			),
+			PropertyView.Ui,
+			newSet(
+				"pages", "hostname", "port"
+			)
 		);
 	}
 

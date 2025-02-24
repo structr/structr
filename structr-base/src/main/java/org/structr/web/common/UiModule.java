@@ -95,7 +95,7 @@ public class UiModule implements StructrModule {
 		StructrTraits.registerNodeType("ActionMapping",                    new ActionMappingTraitDefinition());
 		StructrTraits.registerNodeType("ApplicationConfigurationDataNode", new ApplicationConfigurationDataNodeTraitDefinition());
 		StructrTraits.registerNodeType("Comment",                          new DOMNodeTraitDefinition(), new ContentTraitDefinition(), new CommentTraitDefinition());
-		StructrTraits.registerNodeType("Component",                        new DOMNodeTraitDefinition(), new ComponentTraitDefinition());
+		StructrTraits.registerNodeType("Component",                        new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new ComponentTraitDefinition());
 		StructrTraits.registerNodeType("Content",                          new DOMNodeTraitDefinition(), new ContentTraitDefinition());
 		StructrTraits.registerNodeType("CssDeclaration",                   new CssDeclarationTraitDefinition());
 		StructrTraits.registerNodeType("CssRule",                          new CssRuleTraitDefinition());
@@ -192,7 +192,7 @@ public class UiModule implements StructrModule {
 		StructrTraits.registerNodeType("Meter",           new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new GenericHtmlElementTraitDefinition("Meter"));
 		StructrTraits.registerNodeType("Nav",             new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new GenericHtmlElementTraitDefinition("Nav"));
 		StructrTraits.registerNodeType("Noscript",        new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new GenericHtmlElementTraitDefinition("Noscript"));
-		StructrTraits.registerNodeType("Object",          new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new GenericHtmlElementTraitDefinition("Object"));
+		StructrTraits.registerNodeType("Object",          new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new org.structr.web.traits.definitions.html.Object());
 		StructrTraits.registerNodeType("Ol",              new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new Ol());
 		StructrTraits.registerNodeType("Optgroup",        new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new Optgroup());
 		StructrTraits.registerNodeType("Option",          new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new Option());

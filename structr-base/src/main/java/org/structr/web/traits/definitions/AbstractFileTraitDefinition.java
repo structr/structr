@@ -183,11 +183,11 @@ public class AbstractFileTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"name", "isExternal", "lastSeenMounted", "path"
+				"name", "isExternal", "lastSeenMounted", "path", "visibleToPublicUsers", "visibleToAuthenticatedUsers"
 			),
 			PropertyView.Ui,
 			newSet(
-				"includeInFrontendExport", "isExternal", "lastSeenMounted", "path", "parent", "storageConfiguration"
+				"isMounted", "includeInFrontendExport", "isExternal", "lastSeenMounted", "path", "parent", "storageConfiguration"
 			)
 		);
 	}

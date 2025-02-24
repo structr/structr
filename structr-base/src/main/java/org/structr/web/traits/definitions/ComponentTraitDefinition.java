@@ -18,6 +18,7 @@
  */
 package org.structr.web.traits.definitions;
 
+import org.structr.common.PropertyView;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.IntProperty;
@@ -37,16 +38,6 @@ import java.util.Set;
  * Represents a component. A component is an assembly of elements
  */
 public class ComponentTraitDefinition extends AbstractNodeTraitDefinition {
-
-	/*
-	public static final View defaultView = new View(Component.class,PropertyView.Public,
-		kindProperty
-	);
-
-	public static final View uiView = new View(Component.class,PropertyView.Ui,
-		kindProperty
-	);
-	*/
 
 	public ComponentTraitDefinition() {
 		super("Component");
@@ -86,6 +77,17 @@ public class ComponentTraitDefinition extends AbstractNodeTraitDefinition {
 		return Set.of(
 			kindProperty,
 			positionProperty
+		);
+	}
+
+	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+			PropertyView.Public,
+			newSet("kind"),
+			PropertyView.Ui,
+			newSet("kind")
 		);
 	}
 
