@@ -1239,12 +1239,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 		try (final Tx tx = app.tx()) {
 
-			// create admin user
-			app.create("User",
-				new NodeAttribute<>(Traits.of("User").key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of("User").key("password"), "admin"),
-				new NodeAttribute<>(Traits.of("User").key("isAdmin"),  true)
-			);
+			createAdminUser();
 
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 			final JsonType type     = schema.getType("File");
@@ -1278,8 +1273,8 @@ public class AdvancedSchemaTest extends FrontendTest {
 		RestAssured.basePath = "/";
 		RestAssured
 			.given()
-				.header("X-User",     "admin")
-				.header("X-Password", "admin")
+				.header("X-User",     ADMIN_USERNAME)
+				.header("X-Password", ADMIN_PASSWORD)
 			.expect()
 				.statusCode(200)
 				.body(equalTo("test!"))
@@ -1308,6 +1303,100 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 		} catch (FrameworkException fex) {
 			fex.printStackTrace();
+		}
+	}
+
+	@Test
+	public void testServiceClassBehavior() {
+
+		try (final Tx tx = app.tx()) {
+
+			createAdminUser();
+			tx.success();
+
+		} catch (Exception ex) {
+			logger.error("", ex);
+		}
+
+		final String serviceClassName  = "MyService";
+		final String serviceMethodName = "doStuff";
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface node = app.create("SchemaNode",
+					new NodeAttribute<>(Traits.of("SchemaNode").key("name"), serviceClassName),
+					new NodeAttribute<>(Traits.of("SchemaNode").key("isServiceClass"), true)
+			);
+
+			// we do not even set "isStatic = true" because the backend should do this automatically for service classes
+			final NodeInterface method = app.create("SchemaMethod",
+					new NodeAttribute<>(Traits.of("SchemaMethod").key("name"), serviceMethodName),
+					new NodeAttribute<>(Traits.of("SchemaMethod").key("source"), "{ return 'did stuff'; }"),
+					new NodeAttribute<>(Traits.of("SchemaMethod").key("schemaNode"), node)
+			);
+
+			tx.success();
+
+		} catch (Exception ex) {
+			logger.error("", ex);
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			RestAssured
+
+					.given()
+					.contentType("application/json; charset=UTF-8")
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+					.headers("X-User", ADMIN_USERNAME , "X-Password", ADMIN_PASSWORD)
+
+					.expect()
+					.statusCode(422)
+
+					.when()
+					.post("/" + serviceClassName);
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+
+			logger.error(ex.toString());
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			RestAssured
+
+					.given()
+					.contentType("application/json; charset=UTF-8")
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+					.headers("X-User", ADMIN_USERNAME , "X-Password", ADMIN_PASSWORD)
+
+					.expect()
+					.statusCode(200)
+
+					.body("result",	equalTo("did stuff"))
+
+					.when()
+					.post("/" + serviceClassName + "/" + serviceMethodName);
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+
+			logger.error(ex.toString());
+			fail("Unexpected exception");
 		}
 	}
 }

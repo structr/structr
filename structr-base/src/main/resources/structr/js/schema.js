@@ -1002,8 +1002,8 @@ let _Schema = {
 
 			fetch(`${Structr.rootUrl}SchemaNode/ui?${Structr.getRequestParameterName('sort')}=name`).then(response => response.json()).then(schemaNodeData => {
 
-				let customTypes  = schemaNodeData.result.filter(cls => ((!cls.category || cls.category !== 'html') && !cls.isAbstract && !cls.isInterface && !cls.isBuiltinType) && (cls.id !== entity.id));
-				let builtinTypes = schemaNodeData.result.filter(cls => ((!cls.category || cls.category !== 'html') && !cls.isAbstract && !cls.isInterface && cls.isBuiltinType) && (cls.id !== entity.id));
+				let customTypes  = schemaNodeData.result.filter(cls => ((!cls.category || cls.category !== 'html') && !cls.isAbstract && !cls.isInterface && !cls.isServiceClass && !cls.isBuiltinType) && (cls.id !== entity.id));
+				let builtinTypes = schemaNodeData.result.filter(cls => ((!cls.category || cls.category !== 'html') && !cls.isAbstract && !cls.isInterface && !cls.isServiceClass && cls.isBuiltinType) && (cls.id !== entity.id));
 
 				let getOptionsForListOfSchemaNodes = (list) => list.map(cls => `<option ${((entity.extendsClass?.id === cls.id) ? 'selected' : '')} value="${cls.id}">${cls.name}</option>`).join('');
 
@@ -3848,7 +3848,7 @@ let _Schema = {
 				let element = container.querySelector(`[data-property="${attributeName}"]`);
 				element?.closest('.method-config-element')?.classList.toggle('hidden', (canSeeAttr === false));
 			};
-console.trace(methodData)
+
 			let isTypeMethod         = (!!methodData.schemaNode);
 			let isServiceClassMethod = (isTypeMethod && methodData.schemaNode.isServiceClass === true);
 			let isLifecycleMethod    = LifecycleMethods.isLifecycleMethod(methodData);
