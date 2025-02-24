@@ -28,8 +28,6 @@ import org.structr.core.entity.Group;
 import org.structr.core.graph.Tx;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.AbstractFile;
-import org.structr.web.entity.File;
-import org.structr.web.entity.Folder;
 
 import java.nio.file.attribute.*;
 import java.util.HashSet;
@@ -132,7 +130,7 @@ public class StructrPosixFileAttributes implements PosixFileAttributes {
 		boolean isRegularFile = false;
 
 		try (Tx tx = StructrApp.getInstance().tx()) {
-			isRegularFile = file instanceof File;
+			isRegularFile = file.is("File");
 			tx.success();
 		} catch (FrameworkException fex) {
 			logger.error("", fex);
@@ -147,7 +145,7 @@ public class StructrPosixFileAttributes implements PosixFileAttributes {
 		boolean isDirectory = false;
 
 		try (Tx tx = StructrApp.getInstance().tx()) {
-			isDirectory = file instanceof Folder;
+			isDirectory = file.is("Folder");
 			tx.success();
 		} catch (FrameworkException fex) {
 			logger.error("", fex);

@@ -97,7 +97,7 @@ public class FeedItemContentTraitDefinition extends AbstractNodeTraitDefinition 
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"owner, mode", "itemType", "value"
+				"owner", "mode", "itemType", "value"
 			),
 			PropertyView.Ui,
 			newSet(

@@ -18,21 +18,27 @@
  */
 package org.structr.excel;
 
-import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.*;
+import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.DateUtil;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFCell;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
-import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.GenericProperty;
-import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.File;
 
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 public class FromExcelFunction extends Function<Object, Object> {
 
@@ -61,9 +67,9 @@ public class FromExcelFunction extends Function<Object, Object> {
 
 			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2);
 
-			if (sources[0] instanceof File) {
+			if (sources[0] instanceof NodeInterface n && n.is("File")) {
 
-				final File file = (File)sources[0];
+				final File file = n.as(File.class);
 
 				if (StorageProviderFactory.getStorageProvider(file).size() == 0) {
 					return "";

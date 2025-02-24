@@ -255,7 +255,7 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 		buf.append(valueOrEmpty(node, Traits.of("DOMNode").key("hideForLocales")));
 		buf.append(valueOrEmpty(node, Traits.of("DOMNode").key("sharedComponentConfiguration")));
 
-		if (node instanceof DOMNode) {
+		if (node.is("DOMNode")) {
 
 			final Page ownerDocument = node.as(DOMNode.class).getOwnerDocument();
 			if (ownerDocument != null) {
@@ -282,9 +282,9 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 		buf.append(valueOrEmpty(node, Traits.of("Page").key("showOnErrorCodes")));
 
 		// HTML attributes
-		if (node instanceof DOMElement) {
+		if (node.is("DOMElement")) {
 
-			for (final PropertyKey key : ((DOMElement)node).getHtmlAttributes()) {
+			for (final PropertyKey key : node.as(DOMElement.class).getHtmlAttributes()) {
 
 				buf.append(valueOrEmpty(node, key));
 			}

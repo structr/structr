@@ -194,7 +194,7 @@ public class StructrSSHFile implements Path {
 
 	protected Iterable<File> getFiles() throws FrameworkException {
 
-		if (actualFile != null && parent != null && actualFile instanceof Folder) {
+		if (actualFile != null && parent != null && actualFile.is("Folder")) {
 
 			return actualFile.as(Folder.class).getFiles();
 

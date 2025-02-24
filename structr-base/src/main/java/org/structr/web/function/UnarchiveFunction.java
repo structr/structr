@@ -21,6 +21,7 @@ package org.structr.web.function;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
 import org.structr.schema.ConfigurationProvider;
@@ -49,8 +50,8 @@ public class UnarchiveFunction extends UiAdvancedFunction {
 
 
 		if (sources == null || sources.length < 1 || sources.length > 2
-				|| (sources[0] != null && !(sources[0] instanceof File)
-				|| (sources.length == 2 && sources[1] != null && !(sources[1] instanceof Folder)))) {
+				|| (sources[0] != null && !(sources[0] instanceof NodeInterface n && n.is("File"))
+				|| (sources.length == 2 && sources[1] != null && !(sources[1] instanceof NodeInterface n && n.is("Folder"))))) {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
@@ -60,12 +61,12 @@ public class UnarchiveFunction extends UiAdvancedFunction {
 		final ConfigurationProvider config = StructrApp.getConfiguration();
 
 		try {
-			final File archiveFile    = (File) sources[0];
+			final File archiveFile = ((NodeInterface)sources[0]).as(File.class);
 			Folder parentFolder;
 
 			if (sources.length == 2 && sources[1] != null) {
 
-				parentFolder = (Folder) sources[2];
+				parentFolder = ((NodeInterface) sources[2]).as(Folder.class);
 
 			} else {
 
@@ -77,7 +78,7 @@ public class UnarchiveFunction extends UiAdvancedFunction {
 				parentFolder = StructrApp.getInstance(ctx.getSecurityContext()).create("Folder", props).as(Folder.class);
 			}
 
-			FileHelper.unarchive(ctx.getSecurityContext(), (File) sources[0], parentFolder == null ? null : parentFolder.getUuid());
+			FileHelper.unarchive(ctx.getSecurityContext(), archiveFile, parentFolder == null ? null : parentFolder.getUuid());
 
 		} catch (final Exception e) {
 

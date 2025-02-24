@@ -241,7 +241,7 @@ public class CsvHelper {
 						targetKey = propertyMapping.get(key);
 					}
 
-					if (traits.key(targetKey).isCollection()) {
+					if (traits.contains(targetKey) && traits.key(targetKey).isCollection()) {
 
 						// if the current property is a collection, split it into its parts
 						jsonInput.add(key, extractArrayContentsFromArray(fields[i], key));

@@ -589,8 +589,8 @@ public class CsvImportTest extends StructrUiTest {
 			customType.setProperty(Traits.of("SchemaNode").key("schemaProperties"), properties);
 
 			final List<NodeInterface> methods = new LinkedList<>();
-			methods.add(createTestNode("SchemaMethod", new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "onCreate"),    new NodeAttribute<>(Traits.of("SchemaMethod").key("source"), "{ var self = Structr.get('this'); self.retrievedImportSourceFileName = Structr.retrieve('" + storeKey1 + "') }")));
-			methods.add(createTestNode("SchemaMethod", new NodeAttribute<>(Traits.of("AbstractNode").key("name"), "afterCreate"), new NodeAttribute<>(Traits.of("SchemaMethod").key("source"), "{ var self = Structr.get('this'); self.retrievedCustomString = Structr.retrieve('" + storeKey2 + "') }")));
+			methods.add(createTestNode("SchemaMethod", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "onCreate"),    new NodeAttribute<>(Traits.of("SchemaMethod").key("source"), "{ var self = Structr.get('this'); self.retrievedImportSourceFileName = Structr.retrieve('" + storeKey1 + "') }")));
+			methods.add(createTestNode("SchemaMethod", new NodeAttribute<>(Traits.of("NodeInterface").key("name"), "afterCreate"), new NodeAttribute<>(Traits.of("SchemaMethod").key("source"), "{ var self = Structr.get('this'); self.retrievedCustomString = Structr.retrieve('" + storeKey2 + "') }")));
 			customType.setProperty(Traits.of("SchemaNode").key("schemaMethods"), methods);
 
 			final String csvData =

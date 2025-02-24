@@ -43,12 +43,14 @@ public class RemoteDocumentTraitDefinition extends AbstractNodeTraitDefinition {
 	public Set<PropertyKey> getPropertyKeys() {
 
 		final Property<String> urlProperty              = new StringProperty("url");
+		final Property<String> contentTypeProperty      = new StringProperty("contentType");
 		final Property<Long> checksumProperty           = new LongProperty("checksum").readOnly();
 		final Property<Integer> cacheForSecondsProperty = new IntProperty("cacheForSeconds");
 		final Property<Integer> versionProperty         = new IntProperty("version").readOnly();
 
 		return newSet(
 			urlProperty,
+			contentTypeProperty,
 			checksumProperty,
 			cacheForSecondsProperty,
 			versionProperty
@@ -61,11 +63,11 @@ public class RemoteDocumentTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"name", "owner", "url"
+				"name", "owner", "url", "contentType"
 			),
 			PropertyView.Ui,
 			newSet(
-				"url", "checksum", "cacheForSeconds", "version"
+				"url", "checksum", "cacheForSeconds", "version", "contentType"
 			)
 		);
 	}

@@ -29,6 +29,7 @@ import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.Traits;
@@ -53,7 +54,13 @@ public class StructrFileSystemView implements FileSystemView {
 
 		try (Tx tx = StructrApp.getInstance().tx()) {
 
-			org.structr.web.entity.User structrUser = (org.structr.web.entity.User) AuthHelper.getPrincipalForCredential(Traits.of("Principal").key("name"), user.getName());
+			org.structr.web.entity.User structrUser = null;
+
+			final Principal principal = AuthHelper.getPrincipalForCredential(Traits.of("Principal").key("name"), user.getName());
+			if (principal != null) {
+
+				structrUser = principal.as(org.structr.web.entity.User.class);
+			}
 
 			securityContext = SecurityContext.getInstance(structrUser, AccessMode.Backend);
 
@@ -71,7 +78,13 @@ public class StructrFileSystemView implements FileSystemView {
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			org.structr.web.entity.User structrUser = (org.structr.web.entity.User) AuthHelper.getPrincipalForCredential(Traits.of("Principal").key("name"), user.getName());
+			org.structr.web.entity.User structrUser = null;
+
+			final Principal principal = AuthHelper.getPrincipalForCredential(Traits.of("Principal").key("name"), user.getName());
+			if (principal != null) {
+
+				structrUser = principal.as(org.structr.web.entity.User.class);
+			}
 
 			final Folder homeDir = structrUser.getHomeDirectory();
 

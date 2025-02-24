@@ -90,7 +90,7 @@ public class VirtualTypeTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"name, filterExpression", "sourceType", "position", "properties"
+				"name", "filterExpression", "sourceType", "position", "properties"
 			),
 			PropertyView.Ui,
 			newSet(

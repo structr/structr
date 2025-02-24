@@ -148,7 +148,7 @@ public class VideoFileTraitDefinition extends AbstractNodeTraitDefinition {
 			newSet(
 				"convertedVideos", "parent", "posterImage", "isVideo", "videoCodecName", "videoCodec",
 				"pixelFormat", "audioCodecName", "audioCodec", "audioChannels", "sampleRate", "duration",
-				"width", "height"
+				"width", "height", "originalVideo"
 			)
 		);
 	}

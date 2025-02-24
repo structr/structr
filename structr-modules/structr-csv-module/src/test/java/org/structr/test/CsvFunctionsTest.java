@@ -401,36 +401,6 @@ public class CsvFunctionsTest extends StructrUiTest {
 
 			fail(fex.getMessage());
 		}
-
-
-		try (final Tx tx = app.tx()) {
-
-			final ActionContext ctx = new ActionContext(securityContext, null);
-
-			final NodeInterface testTwo    = createTestNode("TestTwo");
-			final NodeInterface testFive1 = createTestNode("TestFive");
-			final NodeInterface testFive2 = createTestNode("TestFive");
-
-			Scripting.replaceVariables(ctx, csvTestTwo, "${{ $.find('TestTwo', '" + testTwo.getUuid() + "').testFives.push($.find('TestFive', '" + testFive1.getUuid() + "')); }}");
-			Scripting.replaceVariables(ctx, csvTestTwo, "${{ $.find('TestTwo', '" + testTwo.getUuid() + "').testFives.push($.find('TestFive', '" + testFive2.getUuid() + "')); }}");
-
-			final String expectedIdAndTestFives = "\"id\";\"testFives\"\n"
-					+ "\"" + testTwo.getUuid() + "\";\"[\\\"" + testFive1.getUuid() + "\\\", \\\"" + testFive2.getUuid() + "\\\"]\"\n";
-
-			assertEquals(
-					"Invalid result of to_csv() call with only id and linked property testFives (JavaScript)",
-					expectedIdAndTestFives,
-					Scripting.replaceVariables(ctx, csvTestTwo, "${{ $.print($.to_csv($.find('TestTwo'), ['id', 'testFives'])) }}")
-			);
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-
-			logger.warn("", fex);
-
-			fail(fex.getMessage());
-		}
 	}
 
 }

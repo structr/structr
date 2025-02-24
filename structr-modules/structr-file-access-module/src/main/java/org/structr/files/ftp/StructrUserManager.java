@@ -155,7 +155,11 @@ public class StructrUserManager implements UserManager {
 				userName = authentication.getUsername();
 				password = authentication.getPassword();
 
-				user = (org.structr.web.entity.User) AuthHelper.getPrincipalForPassword(Traits.of("Principal").key("name"), userName, password);
+				final Principal principal = AuthHelper.getPrincipalForPassword(Traits.of("Principal").key("name"), userName, password);
+				if (principal != null) {
+
+					user = principal.as(org.structr.web.entity.User.class);
+				}
 
 				securityContext = SecurityContext.getInstance(user, AccessMode.Backend);
 

@@ -18,13 +18,17 @@
  */
 package org.structr.feed.traits.relationship;
 
+import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.StringProperty;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.feed.entity.AbstractFeedItem;
 import org.structr.feed.traits.wrappers.AbstractFeedItemTraitWrapper;
 
 import java.util.Map;
+import java.util.Set;
 
 public class AbstractFeedItemTraitDefinition extends AbstractNodeTraitDefinition {
 
@@ -37,6 +41,27 @@ public class AbstractFeedItemTraitDefinition extends AbstractNodeTraitDefinition
 
 		return Map.of(
 			AbstractFeedItem.class, (traits, node) -> new AbstractFeedItemTraitWrapper(traits, node)
+		);
+	}
+
+	@Override
+	public Set<PropertyKey> getPropertyKeys() {
+
+		final PropertyKey<String> contentType = new StringProperty("contentType");
+
+		return newSet(
+			contentType
+		);
+	}
+
+	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+			PropertyView.Public,
+			newSet("contentType"),
+			PropertyView.Ui,
+			newSet("contentType")
 		);
 	}
 

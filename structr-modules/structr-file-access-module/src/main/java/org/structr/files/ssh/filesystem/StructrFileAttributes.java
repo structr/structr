@@ -30,8 +30,6 @@ import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.AbstractFile;
-import org.structr.web.entity.File;
-import org.structr.web.entity.Folder;
 
 import java.io.IOException;
 import java.nio.file.attribute.*;
@@ -171,7 +169,7 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 		boolean isRegularFile = false;
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
-			isRegularFile = file instanceof File;
+			isRegularFile = file.is("File");
 			tx.success();
 		} catch (FrameworkException fex) {
 			logger.error("", fex);
@@ -190,7 +188,7 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 		boolean isDirectory = false;
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
-			isDirectory = file instanceof Folder;
+			isDirectory = file.is("Folder");
 			tx.success();
 		} catch (FrameworkException fex) {
 			logger.error("", fex);
@@ -221,7 +219,7 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			if (file instanceof File) {
+			if (file.is("File")) {
 
 				final Number s = StorageProviderFactory.getStorageProvider(file).size();
 				if (s != null) {
@@ -266,7 +264,7 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 
 		if (file != null) {
 
-			if (file instanceof Folder) {
+			if (file.is("Folder")) {
 				permissions.add(PosixFilePermission.OWNER_EXECUTE);
 			}
 
@@ -277,7 +275,7 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 					permissions.add(PosixFilePermission.OTHERS_READ);
 					permissions.add(PosixFilePermission.OTHERS_WRITE);
 
-					if (file instanceof Folder) {
+					if (file.is("Folder")) {
 						permissions.add(PosixFilePermission.OTHERS_EXECUTE);
 					}
 				}
@@ -287,7 +285,7 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 					permissions.add(PosixFilePermission.GROUP_READ);
 					permissions.add(PosixFilePermission.GROUP_WRITE);
 
-					if (file instanceof Folder) {
+					if (file.is("Folder")) {
 						permissions.add(PosixFilePermission.GROUP_EXECUTE);
 					}
 				}

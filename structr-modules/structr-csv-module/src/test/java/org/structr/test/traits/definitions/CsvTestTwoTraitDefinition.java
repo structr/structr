@@ -18,7 +18,6 @@
  */
 package org.structr.test.traits.definitions;
 
-import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
@@ -81,7 +80,7 @@ public class CsvTestTwoTraitDefinition extends AbstractNodeTraitDefinition {
 
 
 		return Map.of(
-			PropertyView.Protected,
+			"csv",
 			newSet(
 				"name", "index", "type", "stringArrayProperty"
 			)

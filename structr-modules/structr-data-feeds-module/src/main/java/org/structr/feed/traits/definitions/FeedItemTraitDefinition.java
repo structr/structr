@@ -93,9 +93,9 @@ public class FeedItemTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Iterable<NodeInterface>> contentsProperty     = new EndNodes("contents", "FeedItemFEED_ITEM_CONTENTSFeedItemContent");
+		final Property<Iterable<NodeInterface>> contentsProperty   = new EndNodes("contents", "FeedItemFEED_ITEM_CONTENTSFeedItemContent");
 		final Property<Iterable<NodeInterface>> enclosuresProperty = new EndNodes("enclosures", "FeedItemFEED_ITEM_ENCLOSURESFeedItemEnclosure");
-		final Property<NodeInterface> feedProperty                          = new StartNode("feed", "DataFeedHAS_FEED_ITEMSFeedItem");
+		final Property<NodeInterface> feedProperty                 = new StartNode("feed", "DataFeedHAS_FEED_ITEMSFeedItem");
 
 		final Property<String> urlProperty              = new StringProperty("url").indexed().notNull();
 		final Property<String> authorProperty           = new StringProperty("author");

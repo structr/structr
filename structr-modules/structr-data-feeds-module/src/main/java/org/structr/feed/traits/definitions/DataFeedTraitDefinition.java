@@ -35,7 +35,6 @@ import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.core.traits.operations.graphobject.OnCreation;
-import org.structr.feed.entity.AbstractFeedItem;
 import org.structr.feed.entity.DataFeed;
 import org.structr.feed.traits.wrappers.DataFeedTraitWrapper;
 import org.structr.schema.action.EvaluationHints;
@@ -72,7 +71,7 @@ public class DataFeedTraitDefinition extends AbstractNodeTraitDefinition {
 
 				@Override
 				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
-					graphObject.as(AbstractFeedItem.class).updateIndex(securityContext);
+					graphObject.as(DataFeed.class).updateFeed(securityContext);
 				}
 			}
 		);

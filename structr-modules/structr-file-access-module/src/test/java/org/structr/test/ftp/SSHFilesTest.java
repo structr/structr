@@ -510,6 +510,7 @@ public class SSHFilesTest extends SSHTest {
 			sftp.disconnect();
 
 		} catch (SftpException ex) {
+			ex.printStackTrace();
 			fail("Unexpected exception: " + ex.getMessage());
 		}
 

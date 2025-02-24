@@ -59,8 +59,10 @@ public class StructrFilePath extends StructrPath {
 	@Override
 	public DirectoryStream<Path> getDirectoryStream(DirectoryStream.Filter<? super Path> filter) {
 
-		final Folder folder = (Folder)getActualFile();
-		if (folder != null) {
+		final NodeInterface folderNode = getActualFile();
+		if (folderNode != null && folderNode.is("Folder")) {
+
+			final Folder folder = folderNode.as(Folder.class);
 
 			return new DirectoryStream() {
 
@@ -165,7 +167,7 @@ public class StructrFilePath extends StructrPath {
 
 		} else {
 
-			if (actualFile != null && actualFile instanceof File) {
+			if (actualFile != null && actualFile.is("File")) {
 
 				try (final Tx tx = StructrApp.getInstance(fs.getSecurityContext()).tx()) {
 
@@ -220,7 +222,7 @@ public class StructrFilePath extends StructrPath {
 			// if a folder is to be deleted, check contents
 			if (actualFile.is("Folder") && actualFile.as(Folder.class).getChildren().iterator().hasNext()) {
 
-				throw new DirectoryNotEmptyException(getActualFile().as(File.class).getPath());
+				throw new DirectoryNotEmptyException(getActualFile().as(Folder.class).getPath());
 
 			} else {
 
@@ -230,7 +232,7 @@ public class StructrFilePath extends StructrPath {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.warn("Unable to delete file {}: {}", getActualFile().as(File.class).getPath(), fex.getMessage());
+			logger.warn("Unable to delete file {}: {}", getActualFile().as(Folder.class).getPath(), fex.getMessage());
 		}
 	}
 
@@ -245,7 +247,7 @@ public class StructrFilePath extends StructrPath {
 		final NodeInterface actualFile = getActualFile();
 		if (actualFile != null) {
 
-			return new StructrFileAttributes(fs.getSecurityContext(), actualFile.as(File.class)).toMap(attributes);
+			return new StructrFileAttributes(fs.getSecurityContext(), actualFile.as(AbstractFile.class)).toMap(attributes);
 		}
 
 		throw new NoSuchFileException(toString());
@@ -257,7 +259,7 @@ public class StructrFilePath extends StructrPath {
 		final NodeInterface actualFile = getActualFile();
 		if (actualFile != null) {
 
-			return (T)new StructrFileAttributes(fs.getSecurityContext(), actualFile.as(File.class));
+			return (T)new StructrFileAttributes(fs.getSecurityContext(), actualFile.as(AbstractFile.class));
 		}
 
 		throw new NoSuchFileException(toString());
