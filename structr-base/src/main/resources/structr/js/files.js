@@ -230,29 +230,32 @@ let _Files = {
 
 		} else {
 
-			let size                  = node.isFolder ? (node.foldersCount + node.filesCount) : node.size;
-			let modifiedDate          = _Files.getFormattedDate(node.lastModifiedDate);
-			let name                  = node.name || '[unnamed]';
-			let listModeActive        = _Files.isViewModeActive('list');
-			let tilesModeActive       = _Files.isViewModeActive('tiles');
-			let imageModeActive       = _Files.isViewModeActive('img');
-			let iconSize              = (tilesModeActive || imageModeActive) ? 40 : 16;
-			let fileIcon              = (node.isFolder ? _Icons.getFolderIconSVG(node) : _Icons.getFileIconSVG(node));
-			let fileIconHTML          = _Icons.getSvgIcon(fileIcon, iconSize, iconSize);
-			let ownerString           = (node.owner ? (node.owner.name ? node.owner.name : '[unnamed]') : '');
+			let listModeActive  = _Files.isViewModeActive('list');
+			let tilesModeActive = _Files.isViewModeActive('tiles');
+			let imageModeActive = _Files.isViewModeActive('img');
+			let container       = document.querySelector('#' + (listModeActive ? 'row' : 'tile') + node.id);
 
-			let container             = document.querySelector('#' + (listModeActive ? 'row' : 'tile') + node.id);
+			if (container) {
 
-			container.querySelector('[data-key=name]')?.replaceChildren(name);
-			container.querySelector('[data-key=name]')?.setAttribute('title', name);
-			container.querySelector('[data-key=lastModifiedDate]')?.replaceChildren(modifiedDate);
-			container.querySelector('[data-key=size]')?.replaceChildren(size);
-			container.querySelector('[data-key=contentType]')?.replaceChildren(node.contentType);
-			container.querySelector('[data-key=owner]')?.replaceChildren(ownerString);
+				let size         = node.isFolder ? (node.foldersCount + node.filesCount) : node.size;
+				let modifiedDate = _Files.getFormattedDate(node.lastModifiedDate);
+				let name         = node.name ?? '[unnamed]';
+				let iconSize     = (tilesModeActive || imageModeActive) ? 40 : 16;
+				let fileIcon     = (node.isFolder ? _Icons.getFolderIconSVG(node) : _Icons.getFileIconSVG(node));
+				let fileIconHTML = _Icons.getSvgIcon(fileIcon, iconSize, iconSize);
+				let ownerString  = (node.owner ? (node.owner.name ? node.owner.name : '[unnamed]') : '');
 
-			let svgIcon = container.querySelector('.file-icon a svg');
-			if (svgIcon) {
-				_Icons.replaceSvgElementWithRawSvg(svgIcon, fileIconHTML);
+				container.querySelector('[data-key=name]')?.replaceChildren(name);
+				container.querySelector('[data-key=name]')?.setAttribute('title', name);
+				container.querySelector('[data-key=lastModifiedDate]')?.replaceChildren(modifiedDate);
+				container.querySelector('[data-key=size]')?.replaceChildren(size);
+				container.querySelector('[data-key=contentType]')?.replaceChildren(node.contentType);
+				container.querySelector('[data-key=owner]')?.replaceChildren(ownerString);
+
+				let svgIcon = container.querySelector('.file-icon a svg');
+				if (svgIcon) {
+					_Icons.replaceSvgElementWithRawSvg(svgIcon, fileIconHTML);
+				}
 			}
 		}
 	},
@@ -1490,7 +1493,7 @@ let _Files = {
 
 		let monacoEditor = _Editors.getMonacoEditor(file, 'content', editorContainer.querySelector('.editor'), fileMonacoConfig);
 
-		_Editors.addEscapeKeyHandlersToPreventPopupClose(monacoEditor);
+		_Editors.addEscapeKeyHandlersToPreventPopupClose(file.id, 'content', monacoEditor);
 
 		let editorInfo = dialogMeta.querySelector('.editor-info');
 		_Editors.appendEditorOptionsElement(editorInfo);

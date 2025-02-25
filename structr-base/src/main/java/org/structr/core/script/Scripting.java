@@ -705,6 +705,7 @@ public class Scripting {
 					eventData.put("isStaticMethod",   true);
 
 					exceptionPrefix.append(staticTypeName).append("[static]:");
+
 				} else {
 
 					if (entity == null) {

@@ -32,8 +32,8 @@ import java.util.Map;
 
 public class FromCsvFunction extends CsvFunction {
 
-	public static final String ERROR_MESSAGE_FROM_CSV    = "Usage: ${from_csv(source[, delimiterChar[, quoteChar[, recordSeparator[, header[, escapeChar]]]]])}. Example: ${from_csv('COL1;COL2;COL3\none;two;three')}";
-	public static final String ERROR_MESSAGE_FROM_CSV_JS = "Usage: ${{Structr.from_csv(source[, delimiterChar[, quoteChar[, recordSeparator[, header[, escapeChar]]]]])}}. Example: ${{Structr.from_csv('COL1;COL2;COL3\none;two;three')}}";
+	public static final String ERROR_MESSAGE_FROM_CSV    = "Usage: ${from_csv(source[, delimiterChar [, quoteChar [, recordSeparator [, header [, escapeChar ]]]]])}. Example: ${from_csv('COL1;COL2;COL3\none;two;three')}";
+	public static final String ERROR_MESSAGE_FROM_CSV_JS = "Usage: ${{Structr.from_csv(source [, delimiterChar [, quoteChar [, recordSeparator [, header [, escapeChar ]]]]])}}. Example: ${{Structr.from_csv('COL1;COL2;COL3\none;two;three')}}";
 
 	@Override
 	public String getName() {
@@ -42,7 +42,7 @@ public class FromCsvFunction extends CsvFunction {
 
 	@Override
 	public String getSignature() {
-		return "source [, delimiterChar[, quoteChar[, recordSeparator[, header[, escapeChar]]]]]";
+		return "source [, delimiterChar = ';' [, quoteChar = '\"' [, recordSeparator = '\\n' [, header [, escapeChar = '\\\\' ]]]]]";
 	}
 
 	@Override
