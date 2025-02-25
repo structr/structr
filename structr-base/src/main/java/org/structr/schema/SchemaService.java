@@ -131,7 +131,7 @@ public class SchemaService implements Service {
 					final String name                   = schemaNode.getClassName();
 					final TraitDefinition[] definitions = schemaNode.getTraitDefinitions();
 
-					StructrTraits.registerDynamicNodeType(name, schemaNode.isServiceClass(), !schemaNode.changelogDisabled(), definitions);
+					StructrTraits.registerDynamicNodeType(name, !schemaNode.changelogDisabled(), schemaNode.isServiceClass(), definitions);
 
 					// type still exists, was not removed, so we remove it from the map of removed types
 					removedTypes.remove(name);
