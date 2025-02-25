@@ -178,11 +178,11 @@ public class PulsarClientTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"servers", "enabled", "subscribers"
+				"servers", "enabled"
 			),
 			PropertyView.Ui,
 			newSet(
-				"servers", "enabled", "subscribers"
+				"servers", "enabled"
 			)
 		);
 	}

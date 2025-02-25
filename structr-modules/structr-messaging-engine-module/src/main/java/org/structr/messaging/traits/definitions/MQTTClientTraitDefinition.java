@@ -42,6 +42,7 @@ import org.structr.messaging.implementation.mqtt.MQTTClientConnection;
 import org.structr.messaging.implementation.mqtt.MQTTContext;
 import org.structr.messaging.implementation.mqtt.entity.MQTTClient;
 import org.structr.messaging.traits.operations.MessageClientOperations;
+import org.structr.messaging.traits.wrappers.MQTTClientTraitWrapper;
 import org.structr.rest.RestMethodResult;
 
 import java.util.Map;
@@ -64,7 +65,7 @@ public class MQTTClientTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
 
-					return ValidationHelper.isValidPropertyNotNull(obj, obj.getTraits().key("mainBrokerURLProperty"), errorBuffer);
+					return ValidationHelper.isValidPropertyNotNull(obj, obj.getTraits().key("mainBrokerURL"), errorBuffer);
 				}
 			},
 
@@ -229,7 +230,10 @@ public class MQTTClientTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
-		return super.getNodeTraitFactories();
+
+		return Map.of(
+			MQTTClient.class, (traits, node) -> new MQTTClientTraitWrapper(traits, node)
+		);
 	}
 
 	@Override

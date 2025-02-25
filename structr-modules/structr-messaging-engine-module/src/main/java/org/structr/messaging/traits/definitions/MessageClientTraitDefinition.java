@@ -23,8 +23,10 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
+import org.structr.core.api.JavaMethod;
 import org.structr.core.api.Methods;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -51,6 +53,47 @@ public class MessageClientTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public MessageClientTraitDefinition() {
 		super("MessageClient");
+	}
+
+	@Override
+	public Set<AbstractMethod> getDynamicMethods() {
+
+		return newSet(
+
+			new JavaMethod("sendMessage", false, false) {
+
+				@Override
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
+
+					final String topic   = (String) arguments.get(0);
+					final String message = (String) arguments.get(1);
+
+					return entity.as(MessageClient.class).sendMessage(securityContext, topic, message);
+				}
+			},
+
+			new JavaMethod("subscribeTopic", false, false) {
+
+				@Override
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
+
+					final String topic = (String) arguments.get(0);
+
+					return entity.as(MessageClient.class).subscribeTopic(securityContext, topic);
+				}
+			},
+
+			new JavaMethod("unsubscribeTopic", false, false) {
+
+				@Override
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
+
+					final String topic   = (String) arguments.get(0);
+
+					return entity.as(MessageClient.class).unsubscribeTopic(securityContext, topic);
+				}
+			}
+		);
 	}
 
 	@Override
@@ -86,6 +129,10 @@ public class MessageClientTraitDefinition extends AbstractNodeTraitDefinition {
 											params.add("message", message);
 
 											method.execute(securityContext, sub, params, new EvaluationHints());
+
+										} else {
+
+											throw new RuntimeException("No such method onMessage!");
 										}
 
 									} catch (FrameworkException e) {
@@ -117,6 +164,15 @@ public class MessageClientTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
+	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
+		return Map.of(
+
+			MessageClient.class, (traits, node) -> new MessageClientTraitWrapper(traits, node)
+		);
+	}
+
+	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
 		final Property<Iterable<NodeInterface>> subscribersProperty = new EndNodes("subscribers", "MessageClientHASMessageSubscriber");
@@ -138,15 +194,6 @@ public class MessageClientTraitDefinition extends AbstractNodeTraitDefinition {
 			newSet(
 				"subscribers"
 			)
-		);
-	}
-
-	@Override
-	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
-
-		return Map.of(
-
-			MessageClient.class, (traits, node) -> new MessageClientTraitWrapper(traits, node)
 		);
 	}
 

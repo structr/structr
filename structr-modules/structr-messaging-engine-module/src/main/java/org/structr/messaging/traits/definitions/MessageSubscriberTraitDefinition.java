@@ -23,6 +23,9 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Arguments;
+import org.structr.core.api.JavaMethod;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
@@ -30,16 +33,50 @@ import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StartNodes;
 import org.structr.core.property.StringProperty;
+import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnModification;
 import org.structr.messaging.engine.entities.MessageSubscriber;
+import org.structr.messaging.traits.wrappers.MessageSubscriberTraitWrapper;
+import org.structr.schema.action.EvaluationHints;
 
 import java.util.Map;
 import java.util.Set;
 
 public class MessageSubscriberTraitDefinition extends AbstractNodeTraitDefinition {
+
+	public MessageSubscriberTraitDefinition() {
+		super("MessageSubscriber");
+	}
+
+	@Override
+	public Set<AbstractMethod> getDynamicMethods() {
+
+		return newSet(
+
+			new JavaMethod("onMessage", false, false) {
+
+				@Override
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
+
+					final String topic   = (String) arguments.get(0);
+					final String message = (String) arguments.get(1);
+
+					return entity.as(MessageSubscriber.class).onMessage(securityContext, topic, message);
+				}
+			}
+		);
+	}
+
+	@Override
+	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
+		return Map.of(
+			MessageSubscriber.class, (traits, node) -> new MessageSubscriberTraitWrapper(traits, node)
+		);
+	}
 
 	@Override
 	public Map<Class, LifecycleMethod> getLifecycleMethods() {
@@ -105,10 +142,6 @@ public class MessageSubscriberTraitDefinition extends AbstractNodeTraitDefinitio
 				"topic", "callback", "clients"
 			)
 		);
-	}
-
-	public MessageSubscriberTraitDefinition() {
-		super("MessageSubscriber");
 	}
 
 	@Override

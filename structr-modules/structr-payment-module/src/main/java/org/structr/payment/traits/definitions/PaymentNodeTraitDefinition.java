@@ -24,6 +24,12 @@
 package org.structr.payment.traits.definitions;
 
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Arguments;
+import org.structr.core.api.JavaMethod;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
@@ -32,6 +38,7 @@ import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.payment.api.PaymentState;
 import org.structr.payment.entity.PaymentNode;
 import org.structr.payment.traits.wrappers.PaymentNodeTraitWrapper;
+import org.structr.schema.action.EvaluationHints;
 
 import java.util.Map;
 import java.util.Set;
@@ -43,6 +50,54 @@ public class PaymentNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public PaymentNodeTraitDefinition() {
 		super("PaymentNode");
+	}
+
+	@Override
+	public Set<AbstractMethod> getDynamicMethods() {
+
+		return newSet(
+
+			new JavaMethod("beginCheckout", false, false) {
+
+				@Override
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
+
+					final String providerName = (String)arguments.get("providerName");
+					final String successUrl   = (String)arguments.get("successUrl");
+					final String cancelUrl    = (String)arguments.get("cancelUrl");
+
+					return entity.as(PaymentNode.class).beginCheckout(providerName, successUrl, cancelUrl);
+				}
+			},
+
+			new JavaMethod("cancelCheckout", false, false) {
+
+				@Override
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
+
+					final String providerName = (String)arguments.get("providerName");
+					final String token        = (String)arguments.get("token");
+
+					entity.as(PaymentNode.class).cancelCheckout(providerName, token);
+
+					return null;
+				}
+			},
+
+			new JavaMethod("confirmCheckout", false, false) {
+
+				@Override
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
+
+					final String providerName = (String)arguments.get("providerName");
+					final String notifyUrl    = (String)arguments.get("notifyUrl");
+					final String token        = (String)arguments.get("token");
+					final String payerId      = (String)arguments.get("payerId");
+
+					return entity.as(PaymentNode.class).confirmCheckout(providerName, notifyUrl, token, payerId);
+				}
+			}
+		);
 	}
 
 	@Override
@@ -114,7 +169,7 @@ public class PaymentNodeTraitDefinition extends AbstractNodeTraitDefinition {
 				"state", "description", "currency", "token", "billingAgreementId", "note", "billingAddressName", "billingAddressStreet1",
 				"billingAddressStreet2", "billingAddressZip", "billingAddressCity", "billingAddressCountry", "invoiceId", "payerAddressName",
 				"payerAddressStreet1", "payerAddressStreet2", "payerAddressZip", "payerAddressCity", "payerAddressCountry", "payer", "payerBusiness",
-				"item"
+				"items"
 			),
 			PropertyView.Ui,
 			newSet(

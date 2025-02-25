@@ -36,11 +36,25 @@ public class ODFExporterTraitWrapper extends AbstractNodeTraitWrapper implements
 	}
 
 	public File getDocumentTemplate() {
-		return wrappedObject.getProperty(traits.key("documentTemplate"));
+
+		final NodeInterface node = wrappedObject.getProperty(traits.key("documentTemplate"));
+		if (node != null) {
+
+			return node.as(File.class);
+		}
+
+		return null;
 	}
 
 	public File getResultDocument() {
-		return wrappedObject.getProperty(traits.key("resultDocument"));
+
+		final NodeInterface node = wrappedObject.getProperty(traits.key("resultDocument"));
+		if (node != null) {
+
+			return node.as(File.class);
+		}
+
+		return null;
 	}
 
 	public void setResultDocument(final File resultDocument) throws FrameworkException {
@@ -48,6 +62,13 @@ public class ODFExporterTraitWrapper extends AbstractNodeTraitWrapper implements
 	}
 
 	public VirtualType getTransformationProvider() {
-		return getProperty(traits.key("transformationProvider"));
+
+		final NodeInterface node = getProperty(traits.key("transformationProvider"));
+		if (node != null) {
+
+			return node.as(VirtualType.class);
+		}
+
+		return null;
 	}
 }

@@ -241,12 +241,12 @@ public class PaymentNodeTraitWrapper extends AbstractNodeTraitWrapper implements
 	}
 
 	@Override
-	public PaymentState getPaymentState() {
+	public String getPaymentState() {
 		return getProperty(traits.key("state"));
 	}
 
 	@Override
-	public void setPaymentState(final PaymentState state) throws FrameworkException {
+	public void setPaymentState(final String state) throws FrameworkException {
 		setProperty(traits.key("state"), state);
 	}
 

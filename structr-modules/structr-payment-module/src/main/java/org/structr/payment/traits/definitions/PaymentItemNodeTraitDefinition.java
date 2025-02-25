@@ -57,8 +57,8 @@ public class PaymentItemNodeTraitDefinition extends AbstractNodeTraitDefinition 
 					final Traits traits = obj.getTraits();
 					boolean valid       = true;
 
-					valid &= ValidationHelper.isValidPropertyNotNull(obj, traits.key("amountProperty"), errorBuffer);
-					valid &= ValidationHelper.isValidPropertyNotNull(obj, traits.key("quantityProperty"), errorBuffer);
+					valid &= ValidationHelper.isValidPropertyNotNull(obj, traits.key("amount"), errorBuffer);
+					valid &= ValidationHelper.isValidPropertyNotNull(obj, traits.key("quantity"), errorBuffer);
 
 					return valid;
 				}
@@ -100,7 +100,7 @@ public class PaymentItemNodeTraitDefinition extends AbstractNodeTraitDefinition 
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"name, amount", "quantity", "description", "number", "url"
+				"name", "amount", "quantity", "description", "number", "url"
 			),
 			PropertyView.Ui,
 			newSet(

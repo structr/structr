@@ -18,15 +18,22 @@
  */
 package org.structr.messaging;
 
-import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.TestHelper;
 import org.testng.annotations.Test;
 
-public class ViewTest extends StructrUiTest {
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+public class ViewTest extends MessagingTestBase {
 
 	@Test
 	public void testViews() {
 
-		TestHelper.testViews(app, ViewTest.class.getResourceAsStream("/views.properties"), null);
+		final Map<String, List<String>> additionalRequiredAttributes = new HashMap<>();
+
+		additionalRequiredAttributes.put("MQTTClient", List.of("mainBrokerURL"));
+
+		TestHelper.testViews(app, ViewTest.class.getResourceAsStream("/views.properties"), additionalRequiredAttributes);
 	}
 }

@@ -120,11 +120,13 @@ public class ODFExporterTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"transformationProvider", "documentTemplate", "resultDocument"
+				"createdDate", "hidden", "lastModifiedBy", "lastModifiedDate",
+				"visibleToAuthenticatedUsers", "visibleToPublicUsers", "transformationProvider",
+				"documentTemplate", "resultDocument"
 			),
 			PropertyView.Ui,
 			newSet(
-				"transformationProvider", "documentTemplate", "resultDocument"
+				"lastModifiedBy", "transformationProvider", "documentTemplate", "resultDocument"
 			)
 		);
 	}
@@ -157,7 +159,7 @@ public class ODFExporterTraitDefinition extends AbstractNodeTraitDefinition {
 			// If no result file is given, create one and set it as result document
 			if (output == null) {
 
-				output = FileHelper.createFile(securityContext, new byte[]{}, template.getContentType(), StructrTraits.FILE, getName().concat("_").concat(template.getName()), false).as(File.class);
+				output = FileHelper.createFile(securityContext, new byte[]{}, template.getContentType(), StructrTraits.FILE, entity.getName().concat("_").concat(template.getName()), false).as(File.class);
 
 				output.setParent(template.getParent());
 

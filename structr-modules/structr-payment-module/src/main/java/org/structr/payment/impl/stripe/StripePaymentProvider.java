@@ -61,37 +61,37 @@ public class StripePaymentProvider implements PaymentProvider {
 
 			Charge.create(chargeParams);
 
-			payment.setPaymentState(PaymentState.completed);
+			payment.setPaymentState("completed");
 
 			return new ConfirmResponse(CheckoutState.Success);
 
 		} catch (APIException ex) {
 
-			payment.setPaymentState(PaymentState.error);
+			payment.setPaymentState("error");
 
 			return new ConfirmResponse(CheckoutState.Failure, "1", "APIException", ex.getMessage());
 
 		} catch (APIConnectionException ex) {
 
-			payment.setPaymentState(PaymentState.error);
+			payment.setPaymentState("error");
 
 			return new ConfirmResponse(CheckoutState.Failure, "1", "APIConnectionException", ex.getMessage());
 
 		} catch (InvalidRequestException ex) {
 
-			payment.setPaymentState(PaymentState.error);
+			payment.setPaymentState("error");
 
 			return new ConfirmResponse(CheckoutState.Failure, "1", "InvalidRequestException", ex.getMessage());
 
 		} catch (AuthenticationException ex) {
 
-			payment.setPaymentState(PaymentState.error);
+			payment.setPaymentState("error");
 
 			return new ConfirmResponse(CheckoutState.Failure, "1", "AuthenticationException", ex.getMessage());
 
 		} catch (CardException e) {
 
-			payment.setPaymentState(PaymentState.error);
+			payment.setPaymentState("error");
 
 			return new ConfirmResponse(CheckoutState.Failure, e.getCode(), e.getCharge(), e.getMessage());
 		}
@@ -104,7 +104,7 @@ public class StripePaymentProvider implements PaymentProvider {
 		try {
 
 			payment.setToken(null);
-			payment.setPaymentState(PaymentState.cancelled);
+			payment.setPaymentState("cancelled");
 
 		} catch (FrameworkException fex) {
 			logger.warn("", fex);

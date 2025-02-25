@@ -40,7 +40,7 @@ public class TestPaymentProvider implements PaymentProvider {
 
 		final String token = RandomStringUtils.randomAlphabetic(32);
 
-		payment.setPaymentState(PaymentState.open);
+		payment.setPaymentState("open");
 		payment.setToken(token);
 
 		return new BeginCheckoutResponse() {
@@ -66,7 +66,7 @@ public class TestPaymentProvider implements PaymentProvider {
 
 		if (payment.getToken().equals(token)) {
 
-			payment.setPaymentState(PaymentState.completed);
+			payment.setPaymentState("completed");
 			payment.setPayer(payerId);
 			payment.setToken(null);
 
@@ -84,7 +84,7 @@ public class TestPaymentProvider implements PaymentProvider {
 
 		} else {
 
-			payment.setPaymentState(PaymentState.error);
+			payment.setPaymentState("error");
 			payment.setToken(null);
 
 			return new ConfirmCheckoutResponse() {
@@ -125,7 +125,7 @@ public class TestPaymentProvider implements PaymentProvider {
 		try {
 
 			payment.setToken(null);
-			payment.setPaymentState(PaymentState.cancelled);
+			payment.setPaymentState("cancelled");
 
 		} catch (FrameworkException fex) {
 			logger.warn("", fex);
