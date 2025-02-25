@@ -19,6 +19,7 @@
 package org.structr.schema;
 
 import org.apache.commons.lang3.StringUtils;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.ValidationHelper;
@@ -39,6 +40,7 @@ import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
 
 import java.util.*;
+import org.structr.core.traits.operations.graphobject.OnCreation;
 
 public abstract class AbstractDynamicTraitDefinition<T extends AbstractSchemaNode> implements TraitDefinition {
 
@@ -155,6 +157,20 @@ public abstract class AbstractDynamicTraitDefinition<T extends AbstractSchemaNod
 
 		if (validator.hasValidators()) {
 			lifecycleMethods.put(IsValid.class, validator);
+		}
+
+		if (schemaNode.isServiceClass()) {
+
+			lifecycleMethods.put(
+					OnCreation.class,
+					new OnCreation() {
+						@Override
+						public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+
+							throw new FrameworkException(422, "Cannot instantiate service class");
+						}
+					}
+			);
 		}
 
 		// collect methods

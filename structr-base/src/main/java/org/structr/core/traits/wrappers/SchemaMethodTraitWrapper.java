@@ -208,6 +208,12 @@ public class SchemaMethodTraitWrapper extends AbstractNodeTraitWrapper implement
 
 		if (hasParent) {
 
+			if (parent.isServiceClass()) {
+
+				// prevent service classes from having lifecycle methods
+				return null;
+			}
+
 			final Map<String, Class<? extends LifecycleMethod>> typeBasedLifecycleMethods = new LinkedHashMap<>();
 
 			typeBasedLifecycleMethods.put("onNodeCreation",    OnNodeCreation.class);
