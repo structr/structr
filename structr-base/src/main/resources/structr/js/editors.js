@@ -683,7 +683,7 @@ let _Editors = {
 		}
 		monaco.editor.setModelLanguage(editor.getModel(), newLanguage);
 	},
-	addEscapeKeyHandlersToPreventPopupClose: (editor) => {
+	addEscapeKeyHandlersToPreventPopupClose: (id, propertyName, editor) => {
 
 		let contextActions = {
 			suggestWidgetVisible:           () => { editor.trigger('keyboard', 'hideSuggestWidget'); },
@@ -691,18 +691,25 @@ let _Editors = {
 			referenceSearchVisible:         () => { editor.trigger('keyboard', 'closeReferenceSearch'); },
 			markersNavigationVisible:       () => { editor.trigger('keyboard', 'closeMarkersNavigation'); },
 			renameInputVisible:             () => { editor.trigger('keyboard', 'cancelRenameInput'); },
-			accessibilityHelpWidgetVisible: () => { editor.trigger('keyboard', 'closeAccessibilityHelp'); },
 			// command palette should also be here... if I could only find out the correct "context" name for this thing
 		};
 
+		let container = _Editors.getContainerForIdAndProperty(id, propertyName);
+
 		for (let [context, action] of Object.entries(contextActions)) {
 
-			editor.addCommand(monaco.KeyCode.Escape, () => {
+			let commandDisposable = editor.addAction({
+				label: '',
+				id: context,
+				keybindings: [monaco.KeyCode.Escape],
+				keybindingContext: context,
+				run: (editor) => {
+					Structr.ignoreKeyUp = true;
+					action();
+				}
+			});
 
-				Structr.ignoreKeyUp = true;
-				action();
-
-			}, context);
+			container.instanceDisposables.push(commandDisposable);
 		}
 	},
 	getDefaultEditorOptionsForStorage: () => {

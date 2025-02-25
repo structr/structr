@@ -2641,9 +2641,6 @@ let _Crud = {
 			}
 			return displayName;
 		},
-		getCSSClassForKey: (key) => {
-			return '___' + key.replace(/\s/g, '_whitespace_');
-		},
 		getCSSSelectorForKey: (key) => `[data-key="${key}"]`,
 		// TODO: _Schema.getTypeInfo is pretty similar... merge and make global so that schema information is always present and loaded at the beginning (and only ever re-requested if the schema changes)
 		ensureTypeInfoIsLoaded: (type, successCallback, failureCallback) => {
@@ -2674,8 +2671,8 @@ let _Crud = {
 
 					} else {
 
-						new ErrorMessage().text(`No type information found for type: ${type}`).delayDuration(5000).show();
-						_Crud.helpers.delayedMessage.showMessageAfterDelay(`<span class="mr-1">No type information found for type: </span><b>${type}</b>`, 500);
+						new ErrorMessage().text(`No type information found for type '${type}'`).delayDuration(5000).show();
+						_Crud.helpers.delayedMessage.showMessageAfterDelay(`<span class="mr-1">No type information found for type </span><b>${type}</b>. Please select any other type.`, 500);
 					}
 
 				} else {

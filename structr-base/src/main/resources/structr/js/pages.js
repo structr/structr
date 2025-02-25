@@ -1395,6 +1395,34 @@ let _Pages = {
 	isDropAllowed: (dropzone) => {
 		return (dropzone?.classList.contains(_Pages.dropzoneDropAllowedClass) ?? false);
 	},
+	getEventActionMappingAvailableEvents: () => {
+
+		// add more events here
+		return [
+			"none",
+			"click",
+			"change",
+			"copy",
+			"cut",
+			"drop",
+			"focusout",
+			"input",
+			"keydown",
+			"keyup",
+			"keypress",
+			"load",
+			"mousemove",
+			"mouseover",
+			"mouseenter",
+			"mouseout",
+			"mouseleave",
+			"offline",
+			"online",
+			"paste",
+			"submit",
+		];
+
+	},
 	eventActionMappingDialog: (entity, container, typeInfo) => {
 
 		_Helpers.activateCommentsInElement(container);
@@ -2221,7 +2249,7 @@ let _Pages = {
 
 						window.location.href = '#code';
 						window.setTimeout(() => {
-							_Code.findAndOpenNode(pathToOpen, false);
+							_Code.tree.findAndOpenNode(pathToOpen, false);
 						}, 1000);
 					}
 				});
@@ -4235,50 +4263,10 @@ let _Pages = {
 								<input type="text" class="combined-input-select-field" id="data-event-input" placeholder="Browser event (click, keydown, focusout etc.)">
 								<select class="required combined-input-select-field" id="data-event-select">
 									<option value="">Select event from list</option>
-									<option value="none">None</option>
-									<option value="click">Click</option>
-									<option value="change">Change</option>
-									<option value="focusout">Focus out</option>
-									<option value="keydown">Key down</option>
-									<option value="keyup">Key up</option>
-									<option value="keypress">Key press</option>
-									<option value="mousemove">Mouse move</option>
-									<option value="mouseover">Mouse over</option>
-									<option value="mouseenter">Mouse enter</option>
-									<option value="mouseout">Mouse out</option>
-									<option value="mouseleave">Mouse leave</option>
-									<option value="input">Input</option>
-									<option value="load">Page load</option>
-									<option value="drop">Drop</option>
-									<option value="copy">Copy</option>
-									<option value="cut">Cut</option>
-									<option value="paste">Paste</option>
-									<option value="offline">Offline</option>
-									<option value="online">Online</option>
-									<!-- add more events here? -->
+									${_Pages.getEventActionMappingAvailableEvents().map(event => `<option value="${event}">${event}</option>`).join('')}
 								</select>
 								<ul class="combined-input-select-field hidden">
-									<li data-value="none">None</li>
-									<li data-value="click">Click</li>
-									<li data-value="change">Change</li>
-									<li data-value="focusout">Focus out</li>
-									<li data-value="keydown">Key down</li>
-									<li data-value="keyup">Key up</li>
-									<li data-value="keypress">Key press</li>
-									<li data-value="mousemove">Mouse move</li>
-									<li data-value="mouseover">Mouse over</li>
-									<li data-value="mouseenter">Mouse enter</li>
-									<li data-value="mouseout">Mouse out</li>
-									<li data-value="mouseleave">Mouse leave</li>
-									<li data-value="input">Input</li>
-									<li data-value="load">Page load</li>
-									<li data-value="drop">Drop</li>
-									<li data-value="copy">Copy</li>
-									<li data-value="cut">Cut</li>
-									<li data-value="paste">Paste</li>
-									<li data-value="offline">Offline</li>
-									<li data-value="online">Online</li>
-									<!-- add more events here? -->
+									${_Pages.getEventActionMappingAvailableEvents().map(event => `<li data-value="${event}">${event}</li>`).join('')}
 								</ul>
 							</div>
 						</div>

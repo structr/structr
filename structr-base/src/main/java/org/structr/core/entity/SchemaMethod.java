@@ -18,7 +18,11 @@
  */
 package org.structr.core.entity;
 
+import org.apache.commons.lang3.StringUtils;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.core.traits.operations.LifecycleMethod;
 
 public interface SchemaMethod extends NodeInterface {
@@ -59,27 +63,32 @@ public interface SchemaMethod extends NodeInterface {
 
 	SchemaMethodParameter getSchemaMethodParameter(final String name);
 
-	/*
-	default void handleAutomaticCorrectionOfAttributes(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+	default void handleAutomaticCorrectionOfAttributes() throws FrameworkException {
 
-		final boolean isLifeCycleMethod = isLifecycleMethod();
-		final boolean isTypeMethod = (getProperty(SchemaMethod.schemaNode) != null || StringUtils.isNotBlank(getProperty(SchemaMethodTraitDefinition.staticSchemaNodeName)));
+		final NodeInterface schemaNode      = getProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key("schemaNode"));
+		final boolean isLifeCycleMethod     = isLifecycleMethod();
+		final boolean isTypeMethod          = (schemaNode != null) || StringUtils.isNotBlank(getProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key("staticSchemaNodeName")));
+		final boolean isServiceClassMethod  = (schemaNode != null) && Boolean.TRUE.equals(schemaNode.getProperty(Traits.of(StructrTraits.SCHEMA_NODE).key("isServiceClass")));
 
 		// - lifecycle methods can never be static
 		// - user-defined functions can also not be static (? or should always be static?)
 		if (!isTypeMethod || isLifeCycleMethod) {
-			setProperty(SchemaMethod.isStatic, false);
+			setProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key("isStatic"), false);
+		}
+
+		// - service class methods must be static
+		if (isServiceClassMethod) {
+			setProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key("isStatic"), true);
 		}
 
 		// lifecycle methods are NEVER callable via REST
 		if (isLifeCycleMethod) {
-			setProperty(SchemaMethod.isPrivate, true);
+			setProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key("isPrivate"), true);
 		}
 
 		// a method which is not callable via REST should not be present in OpenAPI
-		if (getProperty(SchemaMethod.isPrivate) == true) {
-			setProperty(SchemaMethod.includeInOpenAPI, false);
+		if (isPrivateMethod() == true) {
+			setProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key("includeInOpenAPI"), false);
 		}
 	}
-	*/
 }
