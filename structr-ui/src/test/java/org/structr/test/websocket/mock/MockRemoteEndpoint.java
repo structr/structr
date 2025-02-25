@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.test.websocket.setup;
+package org.structr.test.websocket.mock;
 
 import org.eclipse.jetty.websocket.api.BatchMode;
 import org.eclipse.jetty.websocket.api.RemoteEndpoint;
@@ -28,7 +28,7 @@ import java.nio.ByteBuffer;
 import java.util.LinkedList;
 import java.util.List;
 
-public class TestableRemoteEndpoint implements RemoteEndpoint {
+public class MockRemoteEndpoint implements RemoteEndpoint {
 
 	private final List<String> sentStrings = new LinkedList<>();
 

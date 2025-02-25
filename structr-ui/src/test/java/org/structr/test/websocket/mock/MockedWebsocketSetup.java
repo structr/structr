@@ -16,30 +16,32 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.test.websocket.setup;
+package org.structr.test.websocket.mock;
 
 import org.structr.websocket.StructrWebSocket;
-import org.testng.annotations.Test;
 
 import java.util.Map;
 
-public class BasicWebsocketTest extends StructrWebsocketBaseTest {
+public class MockedWebsocketSetup {
 
-	@Test
-	public void testWebsocketLogin() {
+	private final MockWebsocketSession session;
+	private final StructrWebSocket webSocket;
 
-		createEntityAsSuperUser("/User","{ name: admin, password: admin, isAdmin: true }");
+	public MockedWebsocketSetup(final MockWebsocketSession session, final StructrWebSocket webSocket) {
 
-		final StructrWebSocket websocket = getWebsocket();
+		this.session   = session;
+		this.webSocket = webSocket;
+	}
 
-		websocket.onWebSocketText(toJson(Map.of(
-			"command", "LOGIN",
-			"sessionId", "TESTSESSION",
-			"nodeData", Map.of(
-				"username", "admin",
-				"password", "admin"
-			)
-		)));
+	public MockWebsocketSession getSession() {
+		return session;
+	}
 
+	public StructrWebSocket getWebSocket() {
+		return webSocket;
+	}
+
+	public Map<String, Object> getLastWebsocketResponse() {
+		return session.getLastWebsocketResponse();
 	}
 }

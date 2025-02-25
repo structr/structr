@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.test.websocket.setup;
+package org.structr.test.websocket.mock;
 
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
@@ -27,7 +27,7 @@ import java.io.UnsupportedEncodingException;
 import java.security.Principal;
 import java.util.*;
 
-public class TestableServletRequest implements HttpServletRequest {
+public class MockServletRequest implements HttpServletRequest {
 
 	@Override
 	public String getAuthType() {
