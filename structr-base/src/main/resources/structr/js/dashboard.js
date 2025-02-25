@@ -1919,7 +1919,7 @@ let _Dashboard = {
 						<option value="Maintenance">Maintenance</option>
 						<option value="Scripting">Scripting events</option>
 						<option value="Rest">REST requests</option>
-						<option value=StructrTraits.RESOURCE_ACCESS>ResourceAccess events</option>
+						<option value="ResourceAccess">ResourceAccess events</option>
 						<option value="Transaction">Transactions</option>
 						<option value="SystemInfo">SystemInfo</option>
 					</select>

@@ -296,7 +296,7 @@ let _Schema = {
 
 		Command.get(id, null, (entity) => {
 
-			let isRelationship = (entity.type === StructrTraits.SCHEMA_RELATIONSHIP_NODE);
+			let isRelationship = (entity.type === "SchemaRelationshipNode");
 			let title          = isRelationship ? `(:${_Schema.nodeData[entity.sourceId].name})—[:${entity.relationshipType}]—►(:${_Schema.nodeData[entity.targetId].name})` : entity.name;
 
 			let callbackCancel = () => {

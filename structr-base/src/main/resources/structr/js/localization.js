@@ -202,7 +202,7 @@ let _Localization = {
 				<span class="mr-1">Filters:</span>
 				<input type="text" class="filter w75 localization-key" data-attribute="name" placeholder="Key">
 				<input type="text" class="filter w75 localization-domain" data-attribute="domain" placeholder="Domain">
-				<input type="text" class="filter w75 localization-text" data-attribute="localizedName" placeholder=StructrTraits.CONTENT>
+				<input type="text" class="filter w75 localization-text" data-attribute="localizedName" placeholder="Content">
 			`);
 			_Localization.keyAndDomainPager.activateFilterElements();
 		}

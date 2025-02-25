@@ -210,7 +210,7 @@ let _Security = {
 			<div class="flex items-center mb-8">
 
 				<select class="select-create-type hover:bg-gray-100 focus:border-gray-666 active:border-green combined-select-create" id="group-type">
-					<option value=StructrTraits.GROUP>Group</option>
+					<option value="Group">Group</option>
 					${config.types.map(type => `<option value="${type}">${type}</option>`).join('')}
 				</select>
 
@@ -224,7 +224,7 @@ let _Security = {
 			<div class="flex items-center mb-8">
 
 				<select class="select-create-type hover:bg-gray-100 focus:border-gray-666 active:border-green combined-select-create" id="user-type">
-					<option value=StructrTraits.USER>User</option>
+					<option value="User">User</option>
 					${config.types.map(type => `<option value="${type}">${type}</option>`).join('')}
 				</select>
 
@@ -985,7 +985,7 @@ let _ResourceAccessPermissions = {
 
 			let bitmaskInput = $('.bitmask', tr);
 			bitmaskInput.on('blur', function() {
-				_ResourceAccessPermissions.updateResourceAccessFlags(Traits.of(StructrTraits.RESOURCE_ACCESS).key("id"), $(this).val());
+				_ResourceAccessPermissions.updateResourceAccessFlags(Traits.of("ResourceAccess").key("id"), $(this).val());
 			});
 
 			bitmaskInput.keypress(function(e) {
@@ -1002,7 +1002,7 @@ let _ResourceAccessPermissions = {
 			tr.find('input.resource-access-flag:checked').each(function(i, input) {
 				newFlags += parseInt($(input).attr('data-flag'));
 			});
-			_ResourceAccessPermissions.updateResourceAccessFlags(Traits.of(StructrTraits.RESOURCE_ACCESS).key("id"), newFlags);
+			_ResourceAccessPermissions.updateResourceAccessFlags(Traits.of("ResourceAccess").key("id"), newFlags);
 		});
 
 		$('input[type=checkbox].resource-access-visibility', tr).on('change', function() {
@@ -1010,7 +1010,7 @@ let _ResourceAccessPermissions = {
 			let visibilityOptionName  = $(this).attr('name');
 			let visibilityOptionValue = $(this).prop('checked');
 
-			Command.setProperty(Traits.of(StructrTraits.RESOURCE_ACCESS).key("id"), visibilityOptionName, visibilityOptionValue, false, function() {
+			Command.setProperty(Traits.of("ResourceAccess").key("id"), visibilityOptionName, visibilityOptionValue, false, function() {
 				_ResourceAccessPermissions.updateResourcesAccessRow(resourceAccess.id);
 			});
 		});

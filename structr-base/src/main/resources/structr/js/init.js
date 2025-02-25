@@ -1929,13 +1929,13 @@ let Structr = {
 								<li data-name="Graph"><a id="graph_" href="#graph" data-activate-module="graph">Graph</a></li>
 								<li data-name="Pages"><a id="pages_" href="#pages" data-activate-module="pages">Pages</a></li>
 								<li data-name="Files"><a id="files_" href="#files" data-activate-module="files">Files</a></li>
-								<li data-name=StructrTraits.SECURITY_RELATIONSHIP><a id="security_" href="#security" data-activate-module="security">Security</a></li>
+								<li data-name="Security"><a id="security_" href="#security" data-activate-module="security">Security</a></li>
 								<li data-name="Schema"><a id="schema_" href="#schema" data-activate-module="schema">Schema</a></li>
 								<li data-name="Code"><a id="code_" href="#code" data-activate-module="code">Code</a></li>
 								<li data-name="Flows" class="module-dependent" data-structr-module="api-builder"><a id="flows_" href="#flows" data-activate-module="flows">Flows</a></li>
 								<li data-name="Data"><a id="crud_" href="#crud" data-activate-module="crud">Data</a></li>
 								<li data-name="Importer"><a id="importer_" href="#importer" data-activate-module="importer">Importer</a></li>
-								<li data-name=StructrTraits.LOCALIZATION><a id="localization_" href="#localization" data-activate-module="localization">Localization</a></li>
+								<li data-name="Localization"><a id="localization_" href="#localization" data-activate-module="localization">Localization</a></li>
 								<li data-name="Virtual Types" class="module-dependent" data-structr-module="api-builder"><a id="virtual-types_" href="#virtual-types" data-activate-module="virtual-types">Virtual Types</a></li>
 								<li data-name="Mail Templates" class="edition-dependent" data-structr-edition="Enterprise"><a id="mail-templates_" href="#mail-templates" data-activate-module="mail-templates">Mail Templates</a></li>
 								<li data-name="Login"><a id="logout_" href="javascript:void(0)">Login</a></li>
