@@ -20,6 +20,7 @@ package org.structr.core.traits.definitions;
 
 import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.SemanticErrorToken;
@@ -30,6 +31,7 @@ import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaMethodParameter;
+import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.*;
@@ -38,6 +40,8 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
+import org.structr.core.traits.operations.graphobject.OnCreation;
+import org.structr.core.traits.operations.graphobject.OnModification;
 import org.structr.core.traits.wrappers.SchemaMethodTraitWrapper;
 
 import java.util.List;
@@ -126,6 +130,28 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 					}
 
 					return valid;
+				}
+			},
+
+			OnCreation.class,
+			new OnCreation() {
+				@Override
+				public void onCreation(GraphObject graphObject, SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+
+					final SchemaMethod schemaMethod = graphObject.as(SchemaMethod.class);
+
+					schemaMethod.handleAutomaticCorrectionOfAttributes();
+				}
+			},
+
+			OnModification.class,
+			new OnModification() {
+				@Override
+				public void onModification(GraphObject graphObject, SecurityContext securityContext, ErrorBuffer errorBuffer, ModificationQueue modificationQueue) throws FrameworkException {
+
+					final SchemaMethod schemaMethod = graphObject.as(SchemaMethod.class);
+
+					schemaMethod.handleAutomaticCorrectionOfAttributes();
 				}
 			}
 		);
