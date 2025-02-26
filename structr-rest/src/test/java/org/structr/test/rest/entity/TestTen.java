@@ -33,7 +33,7 @@ import org.structr.core.property.Property;
 public class TestTen extends AbstractNode {
 
 	public static final Property<TestSeven> testSeven 		= new EndNode<>("testSeven", TenSevenOneToOne.class, new PropertySetNotion(true, TestSeven.id, TestSeven.aString));
-	public static final Property<Object> functionTest 		= new FunctionProperty<>("functionTest").readFunction("{ { name: 'test', value: 123, me: Structr.this }; }");
+	public static final Property<Object> functionTest 		= new FunctionProperty<>("functionTest").readFunction("{ ({ name: 'test', value: 123, me: Structr.this }); }");
 	public static final Property<Object> getNameProperty 	= new FunctionProperty<>("getNameProperty").readFunction("{ Structr.this.name; }").cachingEnabled(true);
 	public static final Property<Object> getRandomNumProp	= new FunctionProperty<>("getRandomNumProp").readFunction("{ Math.random()*10000; }").cachingEnabled(true);
 

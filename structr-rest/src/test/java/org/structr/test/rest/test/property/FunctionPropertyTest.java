@@ -250,7 +250,7 @@ public class FunctionPropertyTest extends StructrRestTestBase {
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			.body("{ readFunction: '{ return \"changed\"; }' }")
+			.body("{ readFunction: '{ \"changed\"; }' }")
 			.expect()
 			.statusCode(200)
 			.when()
