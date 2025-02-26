@@ -19,6 +19,7 @@
 package org.structr.core.function;
 
 import org.apache.commons.configuration2.PropertiesConfiguration;
+import org.apache.commons.configuration2.builder.FileBasedConfigurationBuilder;
 import org.structr.api.config.Settings;
 import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
@@ -115,7 +116,8 @@ public class StructrEnvFunction extends AdvancedScriptingFunction {
 		final GraphObjectMap configFileInfo = new GraphObjectMap();
 		final GraphObjectMap runtimeInfo    = new GraphObjectMap();
 
-		final PropertiesConfiguration conf = Settings.getDefaultPropertiesConfiguration();
+		final FileBasedConfigurationBuilder<PropertiesConfiguration> conf = Settings.getDefaultPropertiesConfigurationBuilder();
+
 		configFileInfo.setProperty(new StringProperty("actualPermissions"),    Settings.getActualConfigurationFilePermissionsAsString(conf));
 		configFileInfo.setProperty(new StringProperty("expectedPermissions"),  Settings.getExpectedConfigurationFilePermissionsAsString());
 		configFileInfo.setProperty(new BooleanProperty("permissionsOk"), Settings.checkConfigurationFilePermissions(conf, false));

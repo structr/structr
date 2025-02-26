@@ -28,9 +28,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
@@ -814,11 +814,10 @@ public class Settings {
 		try {
 
 			FileBasedConfigurationBuilder<PropertiesConfiguration> builder = new FileBasedConfigurationBuilder<>(PropertiesConfiguration.class)
-					.configure(new Parameters().properties()
+					.configure(new Parameters().fileBased()
 							.setFileName(fileName)
 							.setThrowExceptionOnMissing(true)
 							.setListDelimiterHandler(new DefaultListDelimiterHandler('\0'))
-							.setIncludesAllowed(false)
 					);
 
 			final PropertiesConfiguration config = builder.getConfiguration();
@@ -833,9 +832,7 @@ public class Settings {
 			}
 
 
-			FileHandler fileHandler = new FileHandler(config);
-
-
+			FileHandler fileHandler = builder.getFileHandler();
 
 			if(config.getFile().getFreeSpace() < 1024 * 1024){
 				logger.error("Refusing to start with less than 1 MB of disk space.");
@@ -856,23 +853,23 @@ public class Settings {
 
 			} else {
 
-				checkConfigurationFilePermissions(config, warnForNotRecommendedPermissions);
+				checkConfigurationFilePermissions(builder, warnForNotRecommendedPermissions);
 			}
 
 		} catch (ConfigurationException ex) {
 
-			logger.error("Unable to store configuration: " + ex.getMessage());
+            logger.error("Unable to store configuration: {}", ex.getMessage());
 		}
 	}
 
-	public static PropertiesConfiguration getDefaultPropertiesConfiguration() {
+	public static FileBasedConfigurationBuilder<PropertiesConfiguration> getDefaultPropertiesConfigurationBuilder() {
 
-		final PropertiesConfiguration config = new PropertiesConfiguration();
-
-		FileHandler fileHandler = new FileHandler(config);
-		fileHandler.setFileName(Settings.ConfigFileName);
-
-		return config;
+        return new FileBasedConfigurationBuilder<>(PropertiesConfiguration.class)
+                .configure(new Parameters().fileBased()
+                        .setFileName(Settings.ConfigFileName)
+                        .setThrowExceptionOnMissing(true)
+                        .setListDelimiterHandler(new DefaultListDelimiterHandler('\0'))
+                );
 	}
 
 	public static String getExpectedConfigurationFilePermissionsAsString () {
@@ -880,11 +877,11 @@ public class Settings {
 		return PosixFilePermissions.toString(expectedConfigFilePermissions);
 	}
 
-	public static String getActualConfigurationFilePermissionsAsString (final PropertiesConfiguration config) {
+	public static String getActualConfigurationFilePermissionsAsString (final FileBasedConfigurationBuilder<?> builder) {
 
 		try {
 
-			final Set<PosixFilePermission> actualPermissions = getActualConfigurationFilePermissions(config);
+			final Set<PosixFilePermission> actualPermissions = getActualConfigurationFilePermissions(builder);
 
 			return PosixFilePermissions.toString(actualPermissions);
 
@@ -895,27 +892,34 @@ public class Settings {
 		return "";
 	}
 
-	private static Set<PosixFilePermission> getActualConfigurationFilePermissions (final PropertiesConfiguration config) throws UnsupportedOperationException, IOException{
+	private static Set<PosixFilePermission> getActualConfigurationFilePermissions (final FileBasedConfigurationBuilder<?> builder) throws UnsupportedOperationException, IOException{
 
-		FileHandler fileHandler = new FileHandler(config);
-		return Files.getPosixFilePermissions(Paths.get(fileHandler.getFile().toURI()));
+		if (builder != null) {
+
+			final FileHandler fileHandler = builder.getFileHandler();
+			final String pathString = fileHandler.getURL().getPath();
+			if (pathString != null) {
+				return Files.getPosixFilePermissions(Path.of(pathString));
+			}
+		}
+
+		return null;
 	}
 
-	public static boolean checkConfigurationFilePermissions(final PropertiesConfiguration config, final boolean warn) {
+	public static boolean checkConfigurationFilePermissions(final FileBasedConfigurationBuilder<?> builder, final boolean warn) {
 
 		// default to true for non-POSIX filesystems
 		boolean isOk = true;
 
 		try {
 
-			final Set<PosixFilePermission> actualPermissions = getActualConfigurationFilePermissions(config);
+			final Set<PosixFilePermission> actualPermissions = getActualConfigurationFilePermissions(builder);
 
-			isOk = actualPermissions.equals(Settings.expectedConfigFilePermissions);
+			isOk = actualPermissions != null && actualPermissions.equals(Settings.expectedConfigFilePermissions);
 
 			if (!isOk && warn) {
 
-				FileHandler fileHandler = new FileHandler(config);
-				logger.warn("Permissions for configuration file '{}' do not match the expected permissions (Actual: {}, Expected: {}). Please check if this should be the case and otherwise fix the permissions", fileHandler.getFileName(), PosixFilePermissions.toString(actualPermissions), PosixFilePermissions.toString(expectedConfigFilePermissions));
+				logger.warn("Permissions for configuration file '{}' do not match the expected permissions (Actual: {}, Expected: {}). Please check if this should be the case and otherwise fix the permissions", builder.getFileHandler().getFileName(), PosixFilePermissions.toString(actualPermissions), PosixFilePermissions.toString(expectedConfigFilePermissions));
 			}
 
 		} catch (UnsupportedOperationException | IOException e) {
@@ -928,18 +932,20 @@ public class Settings {
 	public static void loadConfiguration(final String fileName) {
 
 		try {
+
+			final File configFile = new File(fileName);
+
 			FileBasedConfigurationBuilder<PropertiesConfiguration> builder = new FileBasedConfigurationBuilder<>(PropertiesConfiguration.class)
-					.configure(new Parameters().properties()
-							.setFileName(fileName)
+					.configure(new Parameters().fileBased()
+							.setFile(configFile)
 							.setThrowExceptionOnMissing(true)
 							.setListDelimiterHandler(new DefaultListDelimiterHandler('\0'))
-							.setIncludesAllowed(false)
 					);
 
 			final PropertiesConfiguration config = builder.getConfiguration();
-			final Iterator<String> keys          = config.getKeys();
+            final Iterator<String> keys          = config.getKeys();
 
-			Settings.checkConfigurationFilePermissions(config, true);
+			Settings.checkConfigurationFilePermissions(builder, true);
 
 			while (keys.hasNext()) {
 
