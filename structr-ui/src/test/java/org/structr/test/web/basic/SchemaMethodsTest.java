@@ -439,7 +439,7 @@ public class SchemaMethodsTest extends FrontendTest {
 				"\n" +
 				"	newGroup.addMember({ user: newUser });\n" +
 				"\n" +
-				"	return newGroup.members.length;" +
+				"	newGroup.members.length;" +
 				"}}";
 
 		try (final Tx tx = app.tx()) {
@@ -465,7 +465,7 @@ public class SchemaMethodsTest extends FrontendTest {
 				"\n" +
 				"	group.removeMember({ user: user });\n" +
 				"\n" +
-				"	return beforeRemove + ' - after: ' + group.members.length;" +
+				"	(beforeRemove + ' - after: ' + group.members.length);" +
 				"}}";
 
 		try (final Tx tx = app.tx()) {

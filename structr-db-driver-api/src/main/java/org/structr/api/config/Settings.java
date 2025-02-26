@@ -820,6 +820,9 @@ public class Settings {
 							.setListDelimiterHandler(new DefaultListDelimiterHandler('\0'))
 					);
 
+			// Touch file, if it doesn't exist
+			Path.of(fileName).toFile().createNewFile();
+
 			final PropertiesConfiguration config = builder.getConfiguration();
 
 			for (final Setting setting : settings.values()) {

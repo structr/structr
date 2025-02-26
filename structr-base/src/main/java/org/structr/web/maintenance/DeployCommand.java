@@ -2823,13 +2823,17 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 							.setIncludesAllowed(false)
 					);
 
+
+			// Touch file, if it doesn't exist
+			confFile.toFile().createNewFile();
+
 			final PropertiesConfiguration config = builder.getConfiguration();
 
 			config.setProperty(DEPLOYMENT_VERSION_KEY,                         VersionHelper.getFullVersionInfo());
 			config.setProperty(DEPLOYMENT_DOM_NODE_VISIBILITY_RELATIVE_TO_KEY, DEPLOYMENT_DOM_NODE_VISIBILITY_RELATIVE_TO_PARENT_VALUE);
 			config.setProperty(DEPLOYMENT_UUID_FORMAT_KEY,                     Settings.UUIDv4AllowedFormats.getValue());
 
-			final FileHandler fileHandler = new FileHandler(config);
+			final FileHandler fileHandler = builder.getFileHandler();
 			fileHandler.save();
 
 		} catch (Throwable t) {
