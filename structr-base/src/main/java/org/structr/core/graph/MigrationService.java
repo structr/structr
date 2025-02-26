@@ -45,9 +45,65 @@ public class MigrationService {
 
 	private static final Logger logger = LoggerFactory.getLogger(MigrationService.class);
 
+	private static final Set<String> StaticTypeMigrationBlacklist = Set.of(
+		"ConceptGroup", "ConceptGroupLabel", "ContentContainer", "ContentItem",
+		"CustomConceptAttribute", "CustomNote", "CustomTermAttribute", "Note",
+		"SimpleNonPreferredTerm", "StructuredDocument", "StructuredTextNode",
+		"Thesaurus", "ThesaurusArray", "ThesaurusTerm", "VersionHistory",
+		"Definition", "MetadataNode", "NodeLabel", "ThesaurusConcept",
+		"Favoritable", "Indexable", "IndexedWord", "JavaScriptSource",
+		"MinifiedCssFile", "MinifiedJavaScriptFile"
+	);
+
+	private static final Set<String> FQCNBlacklist = Set.of(
+		"org.structr.web.property.ContentPathProperty",
+		"org.structr.core.entity.Favoritable$FavoriteContentProperty",
+		"org.structr.core.entity.Favoritable$FavoriteContextProperty",
+		"org.structr.core.entity.Favoritable$FavoriteContentTypeProperty"
+	);
+
+	private static final Set<String> SchemaPropertyMigrationBlacklist = Set.of(
+		"AbstractFile.nextSiblingId",
+		"Audio._html_mediagroup",
+		"DOMElement.",
+		"DOMElement.data-structr-action",
+		"DOMElement.data-structr-append-id",
+		"DOMElement.data-structr-attr",
+		"DOMElement.data-structr-attributes",
+		"DOMElement.data-structr-confirm",
+		"DOMElement.data-structr-custom-options-query",
+		"DOMElement.data-structr-edit-class",
+		"DOMElement.data-structr-format",
+		"DOMElement.data-structr-hide",
+		"DOMElement.data-structr-name",
+		"DOMElement.data-structr-options",
+		"DOMElement.data-structr-options-key",
+		"DOMElement.data-structr-placeholder",
+		"DOMElement.data-structr-raw-value",
+		"DOMElement.data-structr-reload",
+		"DOMElement.data-structr-return",
+		"DOMNode.flow",
+		"DOMNode.hideOnDetail",
+		"DOMNode.hideOnIndex",
+		"DOMNode.renderDetails",
+		"DOMNode.xpathQuery",
+		"DOMElement.data-structr-target",
+		"DOMElement.data-structr-type",
+		"Localization.description",
+		"Person.twitterName",
+		"Principal.customPermissionQueryAccessControl",
+		"Principal.customPermissionQueryDelete",
+		"Principal.customPermissionQueryRead",
+		"Principal.customPermissionQueryWrite",
+		"Textarea._html_maxlenght",
+		"User.twitterName",
+		"Video._html_mediagroup"
+	);
+
 	public static void execute() {
 
-		if (!Services.isTesting() && Services.getInstance().hasExclusiveDatabaseAccess()) {
+		//if (!Services.isTesting() && Services.getInstance().hasExclusiveDatabaseAccess()) {
+		if (Services.getInstance().hasExclusiveDatabaseAccess()) {
 
 			migrateStaticSchema();
 			migratePrincipalToPrincipalInterface();

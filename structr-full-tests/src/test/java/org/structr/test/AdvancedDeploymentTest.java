@@ -71,6 +71,47 @@ public class AdvancedDeploymentTest extends FullStructrTest {
 			fail("Unexpected exception");
 		}
 	}
+
+	@Test
+	public void testSchemaImportFromVersion52() {
+
+		try (final Reader reader = new InputStreamReader(AdvancedDeploymentTest.class.getResourceAsStream("/test/schema5.2.json"))) {
+
+			final JsonSchema schema = StructrSchema.createFromSource(reader);
+			StructrSchema.replaceDatabaseSchema(app, schema);
+
+		} catch (Exception ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// check existing schema nodes after import
+		try (final Tx tx = app.tx()) {
+
+			final Set<String> remainingTypes = new LinkedHashSet<>();
+
+			StructrApp.getInstance().nodeQuery("SchemaNode").getResultStream().forEach(n -> remainingTypes.add(n.getName()));
+
+			for (final String type : remainingTypes) {
+
+				System.out.println(type);
+			}
+
+			/*
+			assertEquals("Invalid number of remaining types after schema import", 2, remainingTypes.size());
+			assertTrue(remainingTypes.contains("Project"));
+			assertTrue(remainingTypes.contains("Page"));
+			*/
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
 }
 
 
