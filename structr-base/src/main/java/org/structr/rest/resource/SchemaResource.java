@@ -19,7 +19,6 @@
 package org.structr.rest.resource;
 
 
-import java.lang.reflect.Constructor;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.search.SortOrder;
