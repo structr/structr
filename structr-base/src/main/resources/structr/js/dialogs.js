@@ -497,7 +497,7 @@ let _Dialogs = {
 			}
 		},
 		isDialogOpen: () => {
-			return (_Dialogs.custom.elements.dialogBox && _Dialogs.custom.elements.dialogBox.offsetParent);
+			return (!!_Dialogs.custom.elements.dialogBox && !!_Dialogs.custom.elements.dialogBox.offsetParent);
 		},
 		setDialogSize: (windowWidth, windowHeight, dialogWidth, dialogHeight) => {
 

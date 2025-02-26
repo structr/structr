@@ -44,7 +44,7 @@ public class OpenAPIMethodOperation extends OpenAPIOperation {
 			Set.of(method.getParent().getName()),
 
 			// parameters
-			method.getOpenAPIRequestParameters(viewNames),
+			method.getOpenAPIRequestParameters(method, viewNames),
 
 			// request body
 			method.getOpenAPIRequestBody(),

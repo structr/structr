@@ -1610,7 +1610,7 @@ let Structr = {
 
 					if (data.nodeId && data.nodeType) {
 
-						Command.get(data.nodeId, 'id,type,name,content,ownerDocument,schemaNode', function (obj) {
+						Command.get(data.nodeId, _Code.helpers.getAttributesToFetchForErrorObject(), (obj) => {
 
 							let name     = data.name.slice(data.name.indexOf('_html_') === 0 ? 6 : 0);
 							let property = 'Property';
@@ -1618,15 +1618,17 @@ let Structr = {
 
 							switch (obj.type) {
 
+								case 'SchemaProperty':
+									property = 'Property';
+									title    = 'Schema Property';
+									break;
+
 								case 'SchemaMethod':
-									if (obj.schemaNode && data.isStaticMethod) {
-										title = `type "${data.staticType}"`;
-										property ='StaticMethod';
-									} else if (obj.schemaNode) {
-										title = `type "${obj.schemaNode.name}"`;
-										property = 'Method';
+									if (obj.schemaNode) {
+										title    = `type "${obj.schemaNode.name}"`;
+										property = (obj.isStatic === true) ? 'Static Method' : 'Method';
 									} else {
-										title = 'global schema method';
+										title    = 'user-defined function';
 										property = 'Method';
 									}
 									break;
@@ -1669,15 +1671,9 @@ let Structr = {
 
 							if (data.nodeType === 'SchemaMethod' || data.nodeType === 'SchemaProperty') {
 
-								let pathToOpen = (obj.schemaNode) ? `/root/custom/${obj.schemaNode.id}/methods/${obj.id}` : `/globals/${obj.id}`;
+								builder.specialInteractionButton(`Go to code`, () => {
 
-								builder.specialInteractionButton(`Go to ${data.nodeType === 'SchemaMethod' ? 'method' : 'property'}`, () => {
-
-									window.location.href = '#code';
-
-									window.setTimeout(() => {
-										_Code.findAndOpenNode(pathToOpen, false);
-									}, 1000);
+									_Code.helpers.navigateToSchemaObjectFromAnywhere(obj);
 
 								}, 'Dismiss');
 
@@ -2135,16 +2131,18 @@ let _TreeHelper = {
 
 			} else {
 
-				// no anchor found
-				if (node.data.svgIcon && newStateIsOpen) {
+				// no anchor found (previous parts of the tree are not yet expanded, directly edit the svgIcon of the data node, keeping the width and height)
+				if (node.data.svgIcon) {
 
-					if (
-						node.data.svgIcon.indexOf(`"#${_Icons.iconFolderOpen}"`) !== -1 ||
-						node.data.svgIcon.indexOf(`"#${_Icons.iconFolderClosed}"`) !== -1 ||
-						node.data.svgIcon.indexOf(`"#${_Icons.iconMountedFolderOpen}"`) !== -1 ||
-						node.data.svgIcon.indexOf(`"#${_Icons.iconMountedFolderClosed}"`) !== -1
-					) {
-						node.data.svgIcon = _Icons.getSvgIcon(_Icons.iconFolderOpen);
+					if (newStateIsOpen) {
+
+						node.data.svgIcon = node.data.svgIcon.replace(`"#${_Icons.iconFolderClosed}"`,        `"#${_Icons.iconFolderOpen}"`);
+						node.data.svgIcon = node.data.svgIcon.replace(`"#${_Icons.iconMountedFolderClosed}"`, `"#${_Icons.iconMountedFolderOpen}"`);
+
+					} else {
+
+						node.data.svgIcon = node.data.svgIcon.replace(`"#${_Icons.iconFolderOpen}"`,        `"#${_Icons.iconFolderClosed}"`);
+						node.data.svgIcon = node.data.svgIcon.replace(`"#${_Icons.iconMountedFolderOpen}"`, `"#${_Icons.iconMountedFolderClosed}"`);
 					}
 				}
 			}
@@ -2152,7 +2150,7 @@ let _TreeHelper = {
 
 		tree.on('after_open.jstree', (event, data) => {
 
-			if (data.node.id !== 'root') {
+			if (data.node.id !== '/root') {
 
 				let svgIcon = getSvgIconFromNode(data.node);
 				if (svgIcon) {
@@ -2235,11 +2233,6 @@ let _TreeHelper = {
 	getNode: (tree, node) => {
 		return $(tree).jstree('get_node', node);
 	},
-	isNodeOpened: (tree, node) => {
-		let n = _TreeHelper.getNode(tree, node);
-
-		return n?.state.opened;
-	},
 	makeAllTreeElementsDroppable: (tree, dragndropFunction) => {
 
 		for (let node of tree[0].querySelectorAll('.jstree-node:not(.has-drop-behavior)')) {
@@ -2262,7 +2255,7 @@ let _TreeHelper = {
 
 class LifecycleMethods {
 
-	static onlyAvailableInSchemaNodeContext(schemaNode)      { return (schemaNode ?? null) !== null; }
+	static onlyAvailableInSchemaNodeContext(schemaNode)      { return ((schemaNode ?? null) !== null && schemaNode?.isServiceClass === false); }
 	static onlyAvailableWithoutSchemaNodeContext(schemaNode) { return (schemaNode ?? null) === null; }
 
 	// TODO: these functions must be able to detect schemaNodes that inherit from User/File (or any other possible way these lifecycle methods should be available there)
@@ -2362,7 +2355,8 @@ class LifecycleMethods {
 			available: LifecycleMethods.onlyAvailableWithFileNodeContext,
 			comment: `Is called after a file has been uploaded. This method is being called without parameters.`,
 			isPrefix: false
-		}, {
+		},
+		{
 			name: 'onDownload',
 			available: LifecycleMethods.onlyAvailableWithFileNodeContext,
 			comment: `Is called after a file has been requested for download. This function can not prevent the download of a file. This method is being called without parameters.`,

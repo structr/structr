@@ -372,7 +372,7 @@ let _Entities = {
 
 		let editor = _Editors.getMonacoEditor(entity, 'source', dialogText.querySelector('.editor'), emptyDivMonacoConfig);
 
-		_Editors.addEscapeKeyHandlersToPreventPopupClose(editor);
+		_Editors.addEscapeKeyHandlersToPreventPopupClose(entity.id, 'source', editor);
 
 		dialogSaveButton.addEventListener('click', (e) => {
 			e.stopPropagation();
@@ -525,7 +525,7 @@ let _Entities = {
 			}
 		});
 	},
-	appendPropTab: (entity, tabsEl, contentEl, name, label, isActive, showCallback, refreshOnShow = false, tabHidden = false) => {
+	appendPropTab: (entity, tabsEl, contentEl, name, label, isActive, showCallback = null, refreshOnShow = false, tabHidden = false) => {
 
 		let tabId      = `tab-${name}`;
 		let ul         = tabsEl.querySelector('ul');

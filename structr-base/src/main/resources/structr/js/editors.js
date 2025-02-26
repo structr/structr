@@ -239,6 +239,26 @@ let _Editors = {
 			}
 		}
 	},
+	getErrorPropertyNameForLinting: (entity, propertyName) => {
+
+		let errorPropertyNameForLinting = propertyName;
+
+		if (entity.type === 'SchemaMethod') {
+			errorPropertyNameForLinting = entity.name;
+		} else if (entity.type === 'SchemaProperty') {
+			if (propertyName === 'readFunction') {
+				errorPropertyNameForLinting = `getProperty(${entity.name})`;
+			} else if (propertyName === 'writeFunction') {
+				errorPropertyNameForLinting = `setProperty(${entity.name})`;
+			}
+		} else if (entity.type === 'Content' || entity.type === 'Template') {
+			errorPropertyNameForLinting = 'content';
+		} else if (entity.type === 'File') {
+			errorPropertyNameForLinting = 'getInputStream';
+		}
+
+		return errorPropertyNameForLinting;
+	},
 	getScriptErrors: async (entity, errorAttributeName) => {
 
 		let schemaType = entity?.type ?? '';
@@ -528,7 +548,7 @@ let _Editors = {
 			monacoInstance.restoreViewState(viewState);
 		}
 
-		let errorPropertyNameForLinting = _Code.getErrorPropertyNameForLinting(entity, propertyName);
+		let errorPropertyNameForLinting = _Editors.getErrorPropertyNameForLinting(entity, propertyName);
 		if (customConfig.lint === true) {
 
 			_Editors.updateMonacoLintingDecorations(entity, propertyName, errorPropertyNameForLinting, true);
@@ -663,7 +683,7 @@ let _Editors = {
 		}
 		monaco.editor.setModelLanguage(editor.getModel(), newLanguage);
 	},
-	addEscapeKeyHandlersToPreventPopupClose: (editor) => {
+	addEscapeKeyHandlersToPreventPopupClose: (id, propertyName, editor) => {
 
 		let contextActions = {
 			suggestWidgetVisible:           () => { editor.trigger('keyboard', 'hideSuggestWidget'); },
@@ -671,18 +691,25 @@ let _Editors = {
 			referenceSearchVisible:         () => { editor.trigger('keyboard', 'closeReferenceSearch'); },
 			markersNavigationVisible:       () => { editor.trigger('keyboard', 'closeMarkersNavigation'); },
 			renameInputVisible:             () => { editor.trigger('keyboard', 'cancelRenameInput'); },
-			accessibilityHelpWidgetVisible: () => { editor.trigger('keyboard', 'closeAccessibilityHelp'); },
 			// command palette should also be here... if I could only find out the correct "context" name for this thing
 		};
 
+		let container = _Editors.getContainerForIdAndProperty(id, propertyName);
+
 		for (let [context, action] of Object.entries(contextActions)) {
 
-			editor.addCommand(monaco.KeyCode.Escape, () => {
+			let commandDisposable = editor.addAction({
+				label: '',
+				id: context,
+				keybindings: [monaco.KeyCode.Escape],
+				keybindingContext: context,
+				run: (editor) => {
+					Structr.ignoreKeyUp = true;
+					action();
+				}
+			});
 
-				Structr.ignoreKeyUp = true;
-				action();
-
-			}, context);
+			container.instanceDisposables.push(commandDisposable);
 		}
 	},
 	getDefaultEditorOptionsForStorage: () => {

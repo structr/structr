@@ -70,7 +70,7 @@ public class OpenAPIStaticMethodOperation extends OpenAPIOperation {
 				// tags
 				Set.of(method.getParent().getName()),
 
-				method.getOpenAPIRequestParameters(viewNames),
+				method.getOpenAPIRequestParameters(method, viewNames),
 
 				// request body
 				method.getOpenAPIRequestBody(),
