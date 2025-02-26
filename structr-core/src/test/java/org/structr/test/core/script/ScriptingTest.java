@@ -6433,8 +6433,8 @@ public class ScriptingTest extends StructrTest {
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 			final JsonType type     = schema.addType("Test");
 
-			type.addMethod("method1", "{ let map = new Map(); map.set('key1', 'value1'); $.this.method2({ test: map }); }");
-			type.addMethod("method2", "{ let map = $.methodParameters.test; map.get('key1'); }");
+			type.addMethod("method1", "{ let testMap = new Map(); testMap.set('key1', 'value1'); $.this.method2({ test: testMap }); }");
+			type.addMethod("method2", "{ let testMap2 = $.methodParameters.test; testMap2.get('key1'); }");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
