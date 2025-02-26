@@ -34,7 +34,6 @@ module structr.base {
     requires com.twelvemonkeys.common.image;
     requires commons.collections;
     requires commons.email;
-    requires commons.lang3;
     requires cssparser;
     requires diff.match.patch;
     requires dom4j;
@@ -60,6 +59,7 @@ module structr.base {
     requires org.antlr.antlr4.runtime;
     requires org.apache.commons.compress;
     requires org.apache.commons.io;
+    requires org.apache.commons.lang3;
     requires org.apache.httpcomponents.httpclient;
     requires org.apache.httpcomponents.httpcore;
     requires org.apache.httpcomponents.httpmime;
