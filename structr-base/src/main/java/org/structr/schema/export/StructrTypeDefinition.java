@@ -54,6 +54,16 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	public static final Set<String> VIEW_BLACKLIST = new LinkedHashSet<>(Arrays.asList("_html_", "all", "category", "custom", "editWidget", "effectiveNameView", "export", "fav", "schema", "ui"));
 	public static final Set<String> TagBlacklist   = new LinkedHashSet<>(Arrays.asList("core", "default", "html", "ui"));
 
+	private static final Set<String> StaticTypeMigrationBlacklist = Set.of(
+		"ConceptGroup", "ConceptGroupLabel", "ContentContainer", "ContentItem",
+		"CustomConceptAttribute", "CustomNote", "CustomTermAttribute", "Note",
+		"SimpleNonPreferredTerm", "StructuredDocument", "StructuredTextNode",
+		"Thesaurus", "ThesaurusArray", "ThesaurusTerm", "VersionHistory",
+		"Definition", "MetadataNode", "NodeLabel", "ThesaurusConcept",
+		"Favoritable", "Indexable", "IndexedWord", "JavaScriptSource",
+		"MinifiedCssFile", "MinifiedJavaScriptFile"
+	);
+
 	private static final Logger logger = LoggerFactory.getLogger(StructrTypeDefinition.class);
 
 	private final Set<String> filterPropertyBlacklist             = new LinkedHashSet<>(Arrays.asList("id", "type", "hidden"));
@@ -1228,6 +1238,14 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 						deserializedProperties.put(property.getName(), property);
 						typeDefinition.getProperties().add(property);
+
+					} else {
+
+						if (requiredPropertyNames != null && requiredPropertyNames.contains(propertyName)) {
+
+							logger.debug("######## Removing property {} from required properties because it was ignored during import.", propertyName);
+							requiredPropertyNames.remove(propertyName);
+						}
 					}
 
 				} else {
@@ -1388,6 +1406,28 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		if (icon != null) {
 
 			typeDefinition.setIcon(icon.toString());
+		}
+
+		// do not create empty built-in types
+		if (Boolean.TRUE.equals(source.get("isBuiltinType"))) {
+
+			if (StaticTypeMigrationBlacklist.contains(name)) {
+
+				logger.debug("######################## IGNORING empty built-in type {} because it is blacklisted.", name);
+				return null;
+			}
+
+			if (typeDefinition.getProperties().isEmpty() && typeDefinition.getMethods().isEmpty()) {
+
+				logger.debug("######################## IGNORING empty built-in type {} because it has no dynamic properties or methods.", name);
+				return null;
+
+			} else {
+
+				logger.info("######################## NOT ignoring built-in type {} because it has dynamic properties or methods.", name);
+				logger.info("properties: {}", typeDefinition.getProperties());
+				logger.info("methods: {}", typeDefinition.getMethods());
+			}
 		}
 
 		return typeDefinition;

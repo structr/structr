@@ -28,6 +28,7 @@ import org.structr.common.helper.CaseHelper;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.SchemaNode;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
@@ -48,6 +49,7 @@ public class MigrationService {
 
 		if (!Services.isTesting() && Services.getInstance().hasExclusiveDatabaseAccess()) {
 
+			migrateStaticSchema();
 			migratePrincipalToPrincipalInterface();
 			migrateFolderMountTarget();
 			migrateEventActionMapping();
@@ -57,6 +59,35 @@ public class MigrationService {
 	}
 
 	// ----- private methods -----
+	private static void migrateStaticSchema() {
+
+		final App app = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			// check (and fix) principal nodes
+			logger.info("Checking if static schema needs migration..");
+
+			for (final NodeInterface p : app.nodeQuery(StructrTraits.SCHEMA_NODE).getResultStream()) {
+
+				final SchemaNode schemaNode = p.as(SchemaNode.class);
+
+				if (Boolean.TRUE.equals(schemaNode.getNode().getProperty("isBuiltinType"))) {
+
+					logger.warn("Found built-in schema node {}", schemaNode.getName());
+				}
+			}
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			logger.warn("Unable to migrate principal nodes: {}", fex.getMessage());
+			fex.printStackTrace();
+		}
+
+	}
+
+
 	private static void migratePrincipalToPrincipalInterface() {
 
 		final App app = StructrApp.getInstance();

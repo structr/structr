@@ -18,6 +18,8 @@
  */
 package org.structr.schema.export;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
@@ -44,6 +46,8 @@ import java.util.TreeMap;
  *
  */
 public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<SchemaRelationshipNode> implements JsonReferenceType {
+
+	private static final Logger logger = LoggerFactory.getLogger(StructrRelationshipTypeDefinition.class);
 
 	private JsonReferenceProperty sourceReference      = null;
 	private JsonReferenceProperty targetReference      = null;
@@ -597,7 +601,8 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 
 				} else {
 
-					throw new IllegalStateException("Unable to resolve schema node endpoints for type " + getName() + ": " + sourceType);
+					//throw new IllegalStateException("Unable to resolve schema node endpoints for type " + getName() + ": " + sourceType);
+					StructrApp.getInstance().delete(schemaNode);
 				}
 			}
 
@@ -619,7 +624,8 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 
 				} else {
 
-					throw new IllegalStateException("Unable to resolve schema node endpoints for type " + getName() + ": " + targetType);
+					//throw new IllegalStateException("Unable to resolve schema node endpoints for type " + getName() + ": " + targetType);
+					StructrApp.getInstance().delete(schemaNode);
 				}
 			}
 
@@ -695,8 +701,6 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 
 			this.targetReference = new TargetPropertyReference((StructrTypeDefinition)type, targetPropertyName);
 		}
-
-		this.targetType = targetType;
 	}
 
 	// ----- private methods -----
