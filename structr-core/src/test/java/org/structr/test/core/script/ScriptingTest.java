@@ -6185,10 +6185,10 @@ public class ScriptingTest extends StructrTest {
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 			final JsonType type     = schema.addType("Test");
 
-			type.addMethod("createObject", "{ { key1: 'value1' }; }").setIsStatic(true);
+			type.addMethod("createObject", "{ let baseMap = { key1: 'value1' }; baseMap; }").setIsStatic(true);
 			type.addMethod("createDate",   "{ new Date(); }").setIsStatic(true);
 			type.addMethod("createMap",    "{ new Map(); }").setIsStatic(true);
-			type.addMethod("createSet",    "{ let mySet = new Set(); mySet.add('initialValue'); mySet; }").setIsStatic(true);
+			type.addMethod("createSet",    "{ let baseSet = new Set(); baseSet.add('initialValue'); baseSet; }").setIsStatic(true);
 
 			// native object created inline
 			type.addMethod("test0",      "{ let map = { key1: 'value1' }; map.key2 = 123; map; }").setIsStatic(true); // success
