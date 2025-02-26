@@ -446,7 +446,7 @@ public class SchemaMethodsTest extends FrontendTest {
 				"\n" +
 				"	newGroup.addMember({ user: newUser });\n" +
 				"\n" +
-				"	return newGroup.members.length;" +
+				"	newGroup.members.length;" +
 				"}}";
 
 		try (final Tx tx = app.tx()) {
@@ -472,7 +472,7 @@ public class SchemaMethodsTest extends FrontendTest {
 				"\n" +
 				"	group.removeMember({ user: user });\n" +
 				"\n" +
-				"	return beforeRemove + ' - after: ' + group.members.length;" +
+				"	(beforeRemove + ' - after: ' + group.members.length);" +
 				"}}";
 
 		try (final Tx tx = app.tx()) {
@@ -598,7 +598,7 @@ public class SchemaMethodsTest extends FrontendTest {
 			// create global schema method for JavaScript
 			app.create(SchemaMethod.class,
 				new NodeAttribute<>(SchemaMethod.name,   "globalTest1"),
-				new NodeAttribute<>(SchemaMethod.source, "{ { success: true, value: 123 }; }")
+				new NodeAttribute<>(SchemaMethod.source, "{ ({ success: true, value: 123 }); }")
 			);
 
 			// create admin user to call global schema methods with

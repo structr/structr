@@ -1356,7 +1356,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 			// we do not even need to set "isStatic = true" because the backend should do this automatically for service classes
 			final SchemaMethod method = app.create(SchemaMethod.class,
 					new NodeAttribute<>(SchemaMethod.name, serviceMethodName),
-					new NodeAttribute<>(SchemaMethod.source, "{ return 'did stuff'; }"),
+					new NodeAttribute<>(SchemaMethod.source, "{ 'did stuff'; }"),
 					new NodeAttribute<>(SchemaMethod.schemaNode, node)
 			);
 
