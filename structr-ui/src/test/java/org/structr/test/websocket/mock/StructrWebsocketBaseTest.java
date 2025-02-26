@@ -83,6 +83,13 @@ public class StructrWebsocketBaseTest extends StructrUiTest {
 		return gson.toJson(data);
 	}
 
+	protected Map<String, Object> fromJson(final String src) {
+
+		final Gson gson = new GsonBuilder().create();
+
+		return gson.fromJson(src, Map.class);
+	}
+
 	protected void login(final StructrWebSocket websocket, final String username, final String password, final String sessionId) {
 
 		websocket.onWebSocketText(toJson(Map.of(
@@ -99,9 +106,9 @@ public class StructrWebsocketBaseTest extends StructrUiTest {
 
 		final Map<String, Object> data = mock.getLastWebsocketResponse();
 
-		assertEquals("sessionValid flag in websocket ping response was false", sessionValid, data.get("sessionValid"));
-		assertEquals("Invalid command in websocket ping response",             command,      data.get("command"));
-		assertEquals("Invalid status code in websocket ping response",         statusCode,   data.get("code"));
+		assertEquals("sessionValid flag in websocket response was false", sessionValid, data.get("sessionValid"));
+		assertEquals("Invalid command in websocket response",             command,      data.get("command"));
+		assertEquals("Invalid status code in websocket response",         statusCode,   data.get("code"));
 
 		return data;
 	}

@@ -18,22 +18,30 @@
  */
 package org.structr.test.websocket.mock;
 
+import org.apache.pulsar.shade.org.apache.commons.io.IOUtils;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Principal;
+import org.structr.core.graph.Tx;
+import org.structr.web.entity.File;
 import org.structr.websocket.StructrWebSocket;
+import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
+import java.io.IOException;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
 import static graphql.Assert.assertNotNull;
 import static graphql.Assert.assertNull;
+import static org.testng.Assert.fail;
 import static org.testng.AssertJUnit.assertEquals;
 
 public class BasicWebsocketTest extends StructrWebsocketBaseTest {
 
 	@Test
-	public void testWebsocketLoginSuccess() {
+	public void testLoginSuccess() {
 
 		createEntityAsSuperUser("/User","{ name: admin, password: admin, isAdmin: true }");
 
@@ -58,7 +66,7 @@ public class BasicWebsocketTest extends StructrWebsocketBaseTest {
 	}
 
 	@Test
-	public void testWebsocketLoginFailure() {
+	public void testLoginFailure() {
 
 		createEntityAsSuperUser("/User","{ name: admin, password: admin, isAdmin: true }");
 
@@ -76,7 +84,7 @@ public class BasicWebsocketTest extends StructrWebsocketBaseTest {
 	}
 
 	@Test
-	public void testWebsocketPingWithoutSession() {
+	public void testPingWithoutSession() {
 
 		final MockedWebsocketSetup mock = getMockedWebsocketSetup();
 		final StructrWebSocket websocket = mock.getWebSocket();
@@ -91,7 +99,7 @@ public class BasicWebsocketTest extends StructrWebsocketBaseTest {
 	}
 
 	@Test
-	public void testWebsocketPingWithSession() {
+	public void testPingWithSession() {
 
 		createEntityAsSuperUser("/User", "{ name: admin, password: admin, isAdmin: true }");
 		createEntityAsSuperUser("/SessionDataNode", "{ vhost: '0.0.0.0', sessionId: 'TESTSESSION' }");
@@ -102,7 +110,7 @@ public class BasicWebsocketTest extends StructrWebsocketBaseTest {
 
 		login(websocket, "admin", "admin", sessionId);
 
-		try { Thread.sleep(1000); } catch (Throwable t) {}
+		try { Thread.sleep(200); } catch (Throwable t) {}
 
 		websocket.onWebSocketText(toJson(Map.of(
 			"command", "PING",
@@ -124,7 +132,7 @@ public class BasicWebsocketTest extends StructrWebsocketBaseTest {
 	}
 
 	@Test
-	public void testWebsocketGetWithDefaultView() {
+	public void testGetWithDefaultView() {
 
 		createEntityAsSuperUser("/User", "{ name: admin, password: admin, isAdmin: true }");
 		createEntityAsSuperUser("/SessionDataNode", "{ vhost: '0.0.0.0', sessionId: 'TESTSESSION' }");
@@ -138,7 +146,7 @@ public class BasicWebsocketTest extends StructrWebsocketBaseTest {
 
 		login(websocket, "admin", "admin", sessionId);
 
-		try { Thread.sleep(1000); } catch (Throwable t) {}
+		try { Thread.sleep(200); } catch (Throwable t) {}
 
 		websocket.onWebSocketText(toJson(Map.of(
 			"command", "GET",
@@ -166,7 +174,7 @@ public class BasicWebsocketTest extends StructrWebsocketBaseTest {
 	}
 
 	@Test
-	public void testWebsocketGetWithCustomView() {
+	public void testGetWithCustomView() {
 
 		final String sessionId = "TESTSESSION";
 
@@ -181,7 +189,7 @@ public class BasicWebsocketTest extends StructrWebsocketBaseTest {
 
 		login(websocket, "admin", "admin", sessionId);
 
-		try { Thread.sleep(1000); } catch (Throwable t) {}
+		try { Thread.sleep(200); } catch (Throwable t) {}
 
 		websocket.onWebSocketText(toJson(Map.of(
 			"command", "GET",
@@ -211,6 +219,155 @@ public class BasicWebsocketTest extends StructrWebsocketBaseTest {
 		assertEquals(null,        first.get("blocked"));
 		assertEquals(null,        first.get("isGroup"));
 		assertEquals(null,        first.get("members"));
+	}
 
+	@Test
+	public void testCreate() {
+
+		final Map<String, String> data = Map.of(
+			"File", "test_create.txt",
+			"Folder", "TestFolder",
+			"User", "TestUser",
+			"Group", "TestGroup",
+			"Page", "TestPage"
+		);
+
+		final String sessionId = "TESTSESSION";
+
+		createEntityAsSuperUser("/User", "{ name: admin, password: admin, isAdmin: true }");
+		createEntityAsSuperUser("/SessionDataNode", "{ vhost: '0.0.0.0', sessionId: '" + sessionId + "' }");
+
+		final MockedWebsocketSetup mock = getMockedWebsocketSetup();
+		final StructrWebSocket websocket = mock.getWebSocket();
+
+		login(websocket, "admin", "admin", sessionId);
+
+		try {
+			Thread.sleep(200);
+		} catch (Throwable t) {
+		}
+
+		// iterate over the above data map which contains type -> name mappings
+		// for all the different objects we want to create
+
+		for (final String type : data.keySet()) {
+
+			final String name = data.get(type);
+
+			websocket.onWebSocketText(toJson(Map.of(
+				"command", "CREATE",
+				"sessionId", sessionId,
+				"data", Map.of(
+					"name", name
+				)
+			)));
+
+			final Map<String, Object> createResponse = assertResponse(mock, "STATUS", 422, true);
+			assertEquals("Empty type (null). Please supply a valid class name in the type property.", createResponse.get("message"));
+
+			websocket.onWebSocketText(toJson(Map.of(
+				"command", "CREATE",
+				"sessionId", sessionId,
+				"data", Map.of(
+					"name", name,
+					"type", type
+				)
+			)));
+
+			// successful create does not send a response, so no response check here,
+			// but we can check that the object exists
+			try (final Tx tx = app.tx()) {
+
+				AssertJUnit.assertNotNull(type + " " + name + " was not created correctly", app.nodeQuery(type).andName(name).getFirst());
+
+				tx.success();
+
+			} catch (FrameworkException t) {
+				fail("Unexpected exception: " + t.getMessage());
+			}
+		}
+	}
+
+	@Test
+	public void testModificationAndDeletionOfExistingFile() {
+
+		final String sessionId      = "TESTSESSION";
+		final String testContent    = "This is a test string!";
+		final double expectedLength = testContent.length();
+		final String base64Data     = Base64.getEncoder().encodeToString(testContent.getBytes());
+
+		createEntityAsSuperUser("/User", "{ name: admin, password: admin, isAdmin: true }");
+		createEntityAsSuperUser("/SessionDataNode", "{ vhost: '0.0.0.0', sessionId: '" + sessionId + "' }");
+
+		// create file to work with
+		final String fileId = createEntityAsUser("admin", "admin", "/File", "{ name: test.txt }");
+
+		final MockedWebsocketSetup mock = getMockedWebsocketSetup();
+		final StructrWebSocket websocket = mock.getWebSocket();
+
+		login(websocket, "admin", "admin", sessionId);
+
+		try { Thread.sleep(200); } catch (Throwable t) {}
+
+		// #####################################################################################################
+		// change file contents using the CHUNK command
+
+		websocket.onWebSocketText(toJson(Map.of(
+			"command", "CHUNK",
+			"sessionId", sessionId,
+			"id", fileId,
+			"data", Map.of(
+				"chunkId", 0,
+				"chunkSize", 65536,
+				"chunk", base64Data,
+				"chunks", 1
+			)
+		)));
+
+		final Map<String, Object> editResponse = assertResponse(mock, "STATUS", 200, true);
+		final String message                   = (String) editResponse.get("message");
+		final Map<String, Object> data         = fromJson(message);
+
+		// check properties given above
+		assertEquals(fileId, data.get("id"));
+		assertEquals("test.txt", data.get("name"));
+		assertEquals(expectedLength, data.get("size"));
+
+		// check that file has given content
+		try (final Tx tx = app.tx()) {
+
+			final File file          = app.getNodeById(fileId).as(File.class);
+			final List<String> lines = IOUtils.readLines(file.getInputStream(), "utf-8");
+
+			assertEquals(1, lines.size());
+			assertEquals(testContent, lines.get(0));
+
+			tx.success();
+
+		} catch (FrameworkException | IOException t) {
+			fail("Unexpected exception: " + t.getMessage());
+		}
+
+		// #####################################################################################################
+		// delete the file
+
+		websocket.onWebSocketText(toJson(Map.of(
+			"command", "DELETE",
+			"sessionId", sessionId,
+			"id", fileId
+		)));
+
+		// delete command does not send a response, so no check here..
+
+		// verify that the file is gone
+		try (final Tx tx = app.tx()) {
+
+			assertNull(app.getNodeById(fileId));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception: " + fex.getMessage());
+		}
 	}
 }

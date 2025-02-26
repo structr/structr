@@ -28,7 +28,6 @@ import org.structr.core.graph.TransactionCommand;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.util.Base64;
 import org.structr.web.common.FileHelper;
-import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
@@ -82,7 +81,22 @@ public class ChunkCommand extends AbstractCommand {
 
 			//org.structr.core.graph.search.SearchCommand.prefetch(AbstractFile.class, uuid);
 
-			final File file = (File) getNode(uuid);
+			final NodeInterface fileNode = getNode(uuid);
+			if (fileNode == null) {
+
+				logger.warn("Node {} does not exist", uuid);
+				getWebSocket().send(MessageBuilder.status().message("Node " + uuid + " does not exist").code(404).build(), true);
+				return;
+			}
+
+			if (!fileNode.is("File")) {
+				logger.warn("Node {} is not a file", uuid);
+				getWebSocket().send(MessageBuilder.status().message("Node " + uuid + " is not a filee").code(400).build(), true);
+				return;
+			}
+
+			final File file = fileNode.as(File.class);
+
 			if (file.isTemplate()) {
 
 				logger.warn("No write permission, file is in template mode: {}", new Object[] {file.toString()});

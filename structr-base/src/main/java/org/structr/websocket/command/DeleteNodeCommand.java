@@ -62,7 +62,7 @@ public class DeleteNodeCommand extends AbstractCommand {
 
 		if (obj != null) {
 
-			TransactionCommand.registerNodeCallback((NodeInterface) obj, callback);
+			TransactionCommand.registerNodeCallback(obj, callback);
 
 			deleteNode(getWebSocket(), obj, recursive);
 		}
@@ -135,7 +135,6 @@ public class DeleteNodeCommand extends AbstractCommand {
 		}
 	}
 
-	//~--- get methods ----------------------------------------------------
 	@Override
 	public String getCommand() {
 		return "DELETE";
