@@ -206,12 +206,6 @@
 			</dependency>
 			<dependency>
 				<groupId>org.apache.tika</groupId>
-				<artifactId>tika-parser-scientific-package</artifactId>
-				<version>${tika.version}</version>
-				<optional>true</optional>
-			</dependency>
-			<dependency>
-				<groupId>org.apache.tika</groupId>
 				<artifactId>tika-langdetect</artifactId>
 				<version>${tika.version}</version>
 				<type>pom</type>

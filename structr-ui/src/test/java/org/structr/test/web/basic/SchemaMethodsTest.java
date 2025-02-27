@@ -435,7 +435,7 @@ public class SchemaMethodsTest extends FrontendTest {
 				"\n" +
 				"	newGroup.addMember({ user: newUser });\n" +
 				"\n" +
-				"	return newGroup.members.length;" +
+				"	newGroup.members.length;" +
 				"}}";
 
 		try (final Tx tx = app.tx()) {
@@ -461,7 +461,7 @@ public class SchemaMethodsTest extends FrontendTest {
 				"\n" +
 				"	group.removeMember({ user: user });\n" +
 				"\n" +
-				"	return beforeRemove + ' - after: ' + group.members.length;" +
+				"	(beforeRemove + ' - after: ' + group.members.length);" +
 				"}}";
 
 		try (final Tx tx = app.tx()) {
@@ -587,7 +587,7 @@ public class SchemaMethodsTest extends FrontendTest {
 			// create global schema method for JavaScript
 			app.create(StructrTraits.SCHEMA_METHOD,
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("name"), "globalTest1"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "{ return { success: true, value: 123 }; }")
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "{ ({ success: true, value: 123 }); }")
 			);
 
 			// create admin user to call global schema methods with
@@ -635,7 +635,7 @@ public class SchemaMethodsTest extends FrontendTest {
 
 			testFooFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key("id"), schemaMethodId);
 			testFooFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key("name"), schemaMethodName);
-			testFooFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "{ return 'test'; }");
+			testFooFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "{ 'test'; }");
 			testFooFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key("schemaNode"), fooFileDef);
 			testFooFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key("isStatic"), true);
 
@@ -688,7 +688,7 @@ public class SchemaMethodsTest extends FrontendTest {
 				.contentType("application/json; charset=UTF-8")
 				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 				.headers("X-User", ADMIN_USERNAME , "X-Password", ADMIN_PASSWORD)
-				.body("{ source: '{ return \"test2\"; }' }")
+				.body("{ source: '{ \"test2\"; }' }")
 				.expect()
 				.statusCode(200)
 				.when()
