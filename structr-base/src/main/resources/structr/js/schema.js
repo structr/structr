@@ -4979,12 +4979,12 @@ let _Schema = {
 	clearTypeInfoCache: () => {
 		_Schema.typeInfoCache = {};
 	},
-	invalidateTypeInfoCache: (type) => {
+	invalidateTypeInfoCache: (typeName) => {
 
-		delete _Schema.typeInfoCache[type];
+		delete _Schema.typeInfoCache[typeName];
 
 		// clear type cache for this type and derived types
-		_Schema.getDerivedTypes(type, [], false).then(derivedTypes => {
+		_Schema.getDerivedTypeNames(typeName, []).then(derivedTypes => {
 
 			for (let derivedType of derivedTypes) {
 				delete _Schema.typeInfoCache[derivedType];
@@ -5012,55 +5012,37 @@ let _Schema = {
 			});
 		}
 	},
-	getDerivedTypes: async (baseType, blacklist = [], baseTypeIsFQCN = true) => {
-
-		// TODO: This does not work anymore!
-		// TODO: If we are searching for a baseTrait, then we need to find all types with that trait (and then all types with those traits... and so on)
+	getDerivedTypeNames: async (searchTrait, blacklist = []) => {
 
 		let response = await fetch(`${Structr.rootUrl}_schema`);
 
 		if (response.ok) {
 
-			let data      = await response.json();
-			let result    = data.result;
-			let fileTypes = [];
-			let maxDepth  = 5;
-			let types     = {};
+			let data                 = await response.json();
+			let result               = data.result;
+			let typesWithSearchTrait = new Set();
 
-			if (baseTypeIsFQCN === false) {
+			let repeat = false;
+			do {
 
-				// first get FQCN for type name (if exists)
-				let exactTypeNameMatches = result.filter(typeInfo => typeInfo.name === baseType);
-				baseType = exactTypeNameMatches[0]?.className ?? baseType;
-			}
+				let countBefore = typesWithSearchTrait.size;
 
-			let collect = (list, type) => {
+				for (let type of result) {
 
-				for (let n of list) {
+					let isSameType         = (type.name === searchTrait);
+					let isBlacklisted      = blacklist.includes(type.name);
+					let typeHasSearchTrait = (type.traits ?? []).includes(searchTrait);
 
-					if (n.extendsClass === type) {
-
-						fileTypes.push(Structr.getFQCNForDynamicTypeName(n.name));
-
-						if (!n.isAbstract && !blacklist.includes(n.name)) {
-							types[n.name] = 1;
-						}
-					} else {
-						// console.log({ ext: n.extendsClass, type: type });
+					if (!isSameType && !isBlacklisted && typeHasSearchTrait) {
+						typesWithSearchTrait.add(type.name);
 					}
 				}
-			};
 
-			collect(result, baseType);
+				repeat = (countBefore !== typesWithSearchTrait.size);
 
-			for (let i = 0; i < maxDepth; i++) {
+			} while (repeat);
 
-				for (let type of fileTypes) {
-					collect(result, type);
-				}
-			}
-
-			return Object.keys(types);
+			return [...typesWithSearchTrait];
 
 		} else {
 			return [];
