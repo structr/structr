@@ -18,7 +18,7 @@
  */
 package org.structr.ldap.traits.wrappers;
 
-import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.directory.api.ldap.model.cursor.CursorException;
 import org.apache.directory.api.ldap.model.entry.Attribute;
 import org.apache.directory.api.ldap.model.entry.Entry;

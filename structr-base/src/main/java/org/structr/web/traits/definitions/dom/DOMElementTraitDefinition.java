@@ -20,7 +20,7 @@ package org.structr.web.traits.definitions.dom;
 
 import com.google.common.base.CaseFormat;
 import jakarta.servlet.http.HttpServletRequest;
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -568,7 +568,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 								final String eventMapping = node.getEventMapping();
 								if (eventMapping != null) {
 
-									out.append(" ").append("data-structr-meta-event-mapping").append("=\"").append(StringEscapeUtils.escapeHtml(eventMapping)).append("\"");
+									out.append(" ").append("data-structr-meta-event-mapping").append("=\"").append(StringEscapeUtils.escapeHtml4(eventMapping)).append("\"");
 								}
 								break;
 

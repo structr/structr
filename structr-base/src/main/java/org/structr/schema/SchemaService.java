@@ -20,7 +20,7 @@ package org.structr.schema;
 
 import graphql.Scalars;
 import graphql.schema.*;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
