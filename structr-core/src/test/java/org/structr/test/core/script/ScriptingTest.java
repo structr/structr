@@ -2350,7 +2350,7 @@ public class ScriptingTest extends StructrTest {
 
 			app.create(StructrTraits.SCHEMA_METHOD,
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("name"),   "testReturnValueOfGlobalSchemaMethod"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "{ ({ name: 'test', value: 123, me: Structr.me };) }")
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "{ ({ name: 'test', value: 123, me: Structr.me }); }")
 			);
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
@@ -4235,7 +4235,7 @@ public class ScriptingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			List<NodeInterface> result = (List<NodeInterface>) Scripting.evaluate(ctx, null, "${{ ($.find('Test', $.predicate.sort('test2.test3.name', false)); })}", "testFindNewSyntax");
+			List<NodeInterface> result = (List<NodeInterface>) Scripting.evaluate(ctx, null, "${{ $.find('Test', $.predicate.sort('test2.test3.name', false)); }}", "testFindNewSyntax");
 
 			assertEquals("Advanced find() returns wrong result", 10, result.size());
 			assertEquals("Advanced find() sorted incorrectly", "test1_0", result.get(0).getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name")));
@@ -4243,7 +4243,7 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Advanced find() sorted incorrectly", "test2_0", ((NodeInterface)result.get(0).getProperty(Traits.of(testType).key("test2"))).getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name")));
 			assertEquals("Advanced find() sorted incorrectly", "test3_0", ((NodeInterface)((NodeInterface)result.get(0).getProperty(Traits.of(testType).key("test2"))).getProperty(Traits.of(test2Type).key("test3"))).getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name")));
 
-			result = (List<NodeInterface>) Scripting.evaluate(ctx, null, "${{($.find('Test', $.predicate.sort('test2.test3.name', true)); })}", "testFindNewSyntax");
+			result = (List<NodeInterface>) Scripting.evaluate(ctx, null, "${{ $.find('Test', $.predicate.sort('test2.test3.name', true)); }}", "testFindNewSyntax");
 
 			assertEquals("Advanced find() sorted incorrectly", "test1_9", result.get(0).getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name")));
 			assertEquals("Advanced find() sorted incorrectly", "test1_8", result.get(1).getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name")));
