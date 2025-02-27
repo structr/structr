@@ -26,11 +26,13 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
-import org.structr.web.entity.dom.Page;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -77,7 +79,7 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			final Date date = structrFile.getProperty(Folder.lastModifiedDate);
+			final Date date = structrFile.getLastModifiedDate();
 
 			tx.success();
 
@@ -97,9 +99,10 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 	@Override
 	public List<FtpFile> listFiles() {
 
-		final List<FtpFile> ftpFiles = new ArrayList();
-
-		final App app = StructrApp.getInstance(securityContext);
+		final App app                           = StructrApp.getInstance(securityContext);
+		final List<FtpFile> ftpFiles            = new ArrayList();
+		final Traits folderTraits               = Traits.of(StructrTraits.FOLDER);
+		final PropertyKey<String> folderNameKey = folderTraits.key("name");
 
 		try (final Tx tx = app.tx()) {
 
@@ -110,15 +113,15 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 
 				try {
 
-					try (final ResultStream<Folder> folders = app.nodeQuery(Folder.class).sort(AbstractNode.name).getResultStream()) {
+					try (final ResultStream<NodeInterface> folders = app.nodeQuery(StructrTraits.FOLDER).sort(folderNameKey).getResultStream()) {
 
-						for (Folder f : folders) {
+						for (NodeInterface f : folders) {
 
-							if (f.getHasParent()) {
+							if (f.as(Folder.class).getHasParent()) {
 								continue;
 							}
 
-							FtpFile ftpFile = new StructrFtpFolder(securityContext, f);
+							FtpFile ftpFile = new StructrFtpFolder(securityContext, f.as(Folder.class));
 							logger.debug("Folder found: {}", ftpFile.getAbsolutePath());
 
 							ftpFiles.add(ftpFile);
@@ -126,30 +129,19 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 						}
 					}
 
-					try (final ResultStream<File> files = app.nodeQuery(File.class).sort(AbstractNode.name).getResultStream()) {
-						for (File f : files) {
+					try (final ResultStream<NodeInterface> files = app.nodeQuery(StructrTraits.FILE).sort(folderNameKey).getResultStream()) {
+						for (NodeInterface f : files) {
 
-							if (f.getHasParent()) {
+							if (f.as(File.class).getHasParent()) {
 								continue;
 							}
 
 							logger.debug("Structr file found: {}", f);
 
-							FtpFile ftpFile = new StructrFtpFile(securityContext, f);
+							FtpFile ftpFile = new StructrFtpFile(securityContext, f.as(File.class));
 							logger.debug("File found: {}", ftpFile.getAbsolutePath());
 
 							ftpFiles.add(ftpFile);
-
-						}
-					}
-
-					try (final ResultStream<Page> pages = app.nodeQuery(Page.class).sort(AbstractNode.name).getResultStream()) {
-
-						for (Page p : pages) {
-
-							logger.debug("Structr page found: {}", p);
-
-							ftpFiles.add(new FtpFilePageWrapper(p));
 
 						}
 					}
@@ -162,7 +154,7 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 
 			}
 
-			Iterable<Folder> folders = ((Folder) structrFile).getFolders();
+			Iterable<Folder> folders = structrFile.as(Folder.class).getFolders();
 
 			for (Folder f : folders) {
 
@@ -172,7 +164,7 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 				ftpFiles.add(ftpFile);
 			}
 
-			Iterable<File> files = ((Folder) structrFile).getFiles();
+			Iterable<File> files = structrFile.as(Folder.class).getFiles();
 
 			for (File f : files) {
 

@@ -26,9 +26,10 @@ import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.rest.service.HttpService;
 import org.structr.test.web.StructrUiTest;
-import org.structr.web.entity.User;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Optional;
 import org.testng.annotations.Parameters;
@@ -133,10 +134,10 @@ public class ProxyServletTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
-					new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
-					new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-					new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+					new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+					new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+					new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 			tx.success();
 

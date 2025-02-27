@@ -19,16 +19,17 @@
 package org.structr.test.web.resource;
 
 import io.restassured.RestAssured;
+import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
-import org.structr.web.entity.User;
 import org.testng.annotations.Test;
 
 import static org.hamcrest.Matchers.equalTo;
@@ -49,10 +50,10 @@ public class MeResourceTest extends StructrUiTest {
 		// create 100 test nodes and set names
 		try (final Tx tx = app.tx()) {
 
-			final User user = app.create(User.class,
-				new NodeAttribute<>(StructrApp.key(PrincipalInterface.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(PrincipalInterface.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(PrincipalInterface.class, "isAdmin"),  true)
+			final NodeInterface user = app.create(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("isAdmin"),  true)
 			);
 
 			uuid = user.getUuid();
@@ -69,6 +70,7 @@ public class MeResourceTest extends StructrUiTest {
 			.given()
 				.contentType("application/json; charset=UTF-8")
 				.headers("x-user", "admin", "x-password", "admin")
+				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 
 			.expect()
 				.statusCode(200)
@@ -114,10 +116,10 @@ public class MeResourceTest extends StructrUiTest {
 		// create 100 test nodes and set names
 		try (final Tx tx = app.tx()) {
 
-			final User user = app.create(User.class,
-				new NodeAttribute<>(StructrApp.key(PrincipalInterface.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(PrincipalInterface.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(PrincipalInterface.class, "isAdmin"),  true)
+			final NodeInterface user = app.create(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("isAdmin"),  true)
 			);
 
 			uuid = user.getUuid();
@@ -222,17 +224,17 @@ public class MeResourceTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
-			final JsonType type     = schema.getType("User");
+			final JsonType type     = schema.getType(StructrTraits.USER);
 
 			// method must be exported
 			type.addMethod("doTest", "{ ({ message: 'success', parameters: $.args }); }").setDoExport(true);
 
 			StructrSchema.replaceDatabaseSchema(app, schema);
 
-			final User user = app.create(User.class,
-				new NodeAttribute<>(StructrApp.key(PrincipalInterface.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(PrincipalInterface.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(PrincipalInterface.class, "isAdmin"),  true)
+			final NodeInterface user = app.create(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("isAdmin"),  true)
 			);
 
 			uuid = user.getUuid();
@@ -287,10 +289,10 @@ public class MeResourceTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(User.class,
-				new NodeAttribute<>(StructrApp.key(PrincipalInterface.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(PrincipalInterface.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(PrincipalInterface.class, "isAdmin"),  true)
+			app.create(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("isAdmin"),  true)
 			);
 
 			tx.success();

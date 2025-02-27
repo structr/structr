@@ -21,8 +21,8 @@ package org.structr.core.notion;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.property.PropertyKey;
 import org.structr.core.property.RelationProperty;
+import org.structr.core.traits.Traits;
 
 /**
  * Serializes a {@link GraphObject} using a property value.
@@ -31,24 +31,27 @@ import org.structr.core.property.RelationProperty;
  */
 public class PropertySerializationStrategy implements SerializationStrategy {
 
-	private PropertyKey propertyKey    = null;
+	private String propertyKeyName = null;
 
-	public PropertySerializationStrategy(PropertyKey propertyKey) {
-		this.propertyKey = propertyKey;
+	public PropertySerializationStrategy(final String propertyKeyName) {
 
-		if (propertyKey == null) {
+		this.propertyKeyName = propertyKeyName;
+
+		if (propertyKeyName == null) {
 			throw new IllegalStateException("PropertySerializationStrategy must contain at least one property.");
 		}
 	}
 
 	@Override
-	public void setRelationProperty(RelationProperty relationProperty) {
+	public void setRelationProperty(final RelationProperty relationProperty) {
 	}
 
 	@Override
-	public Object serialize(SecurityContext securityContext, Class type, GraphObject source) throws FrameworkException {
+	public Object serialize(final SecurityContext securityContext, final String type, final GraphObject source) throws FrameworkException {
+
 		if(source != null) {
-			return source.getProperty(propertyKey);
+
+			return source.getProperty(Traits.of(type).key(propertyKeyName));
 		}
 
 		return null;

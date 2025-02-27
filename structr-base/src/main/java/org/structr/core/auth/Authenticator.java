@@ -23,7 +23,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.auth.exception.AuthenticationException;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
+import org.structr.core.traits.Traits;
 
 /**
  * An authenticator interface that defines how the system can obtain a principal
@@ -43,7 +44,7 @@ public interface Authenticator {
 	 * Return user class
 	 * @return userClass
 	 */
-	public Class getUserClass();
+	public String getUserClass();
 
 	/**
 	 * Initializes the authenticator with data from the given request.
@@ -77,7 +78,7 @@ public interface Authenticator {
 	 * @throws AuthenticationException
 	 * @throws FrameworkException
 	 */
-	public PrincipalInterface doLogin(final HttpServletRequest request, final String emailOrUsername, final String password) throws AuthenticationException, FrameworkException;
+	public Principal doLogin(final HttpServletRequest request, final String emailOrUsername, final String password) throws AuthenticationException, FrameworkException;
 
 	/**
 	 * Logs the given request out.
@@ -95,5 +96,5 @@ public interface Authenticator {
 	 * @return the logged-in user or null
 	 * @throws FrameworkException
 	 */
-	public PrincipalInterface getUser(final HttpServletRequest request, final boolean tryLogin) throws FrameworkException;
+	public Principal getUser(final HttpServletRequest request, final boolean tryLogin) throws FrameworkException;
 }

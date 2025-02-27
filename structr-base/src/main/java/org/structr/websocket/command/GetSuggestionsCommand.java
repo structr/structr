@@ -25,7 +25,9 @@ import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.Traits;
 import org.structr.web.entity.Widget;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
@@ -53,7 +55,7 @@ public class GetSuggestionsCommand extends AbstractCommand {
 		setDoTransactionNotifications(false);
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
-		final PropertyKey selectorsKey        = StructrApp.key(Widget.class, "selectors");
+		final PropertyKey selectorsKey        = Traits.of("Widget").key("selectors");
 		final List<String> classes            = webSocketData.getNodeDataStringList("classes");
 		final String name                     = webSocketData.getNodeDataStringValue("name");
 		final String htmlId                   = webSocketData.getNodeDataStringValue("htmlId");
@@ -64,8 +66,8 @@ public class GetSuggestionsCommand extends AbstractCommand {
 
 			try {
 
-				final List<Widget> result    = new LinkedList<>();
-				final Element element        = new Element(tag);
+				final List<NodeInterface> result = new LinkedList<>();
+				final Element element            = new Element(tag);
 
 				for (final String css : classes) {
 					element.addClass(css);
@@ -74,10 +76,11 @@ public class GetSuggestionsCommand extends AbstractCommand {
 				if (name != null) {   element.attr("name", name); }
 				if (htmlId != null) { element.attr("id",   htmlId); }
 
-				try (final ResultStream<Widget> resultStream = app.nodeQuery(Widget.class).getResultStream()) {
+				try (final ResultStream<NodeInterface> resultStream = app.nodeQuery("Widget").getResultStream()) {
 
-					for (final Widget widget : resultStream) {
+					for (final NodeInterface node : resultStream) {
 
+						final Widget widget      = node.as(Widget.class);
 						final String[] selectors = getSelectors(widget, selectorsKey);
 						if (selectors != null) {
 
@@ -119,7 +122,8 @@ public class GetSuggestionsCommand extends AbstractCommand {
 	// ----- private methods -----
 	private String[] getSelectors(final Widget widget, final PropertyKey selectorsKey) {
 
-		final Object value = widget.getProperty(selectorsKey);
+		final Object value = widget.getSelectors();
+
 		if (value != null && value instanceof String[]) {
 
 			return (String[])value;

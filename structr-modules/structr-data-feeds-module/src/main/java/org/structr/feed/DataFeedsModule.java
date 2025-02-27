@@ -20,6 +20,12 @@ package org.structr.feed;
 
 import org.structr.api.service.LicenseManager;
 import org.structr.core.entity.AbstractSchemaNode;
+import org.structr.core.traits.StructrTraits;
+import org.structr.feed.traits.definitions.*;
+import org.structr.feed.traits.relationship.AbstractFeedItemTraitDefinition;
+import org.structr.feed.traits.relationship.DataFeedHAS_FEED_ITEMSFeedItem;
+import org.structr.feed.traits.relationship.FeedItemFEED_ITEM_CONTENTSFeedItemContent;
+import org.structr.feed.traits.relationship.FeedItemFEED_ITEM_ENCLOSURESFeedItemEnclosure;
 import org.structr.module.StructrModule;
 import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
@@ -33,6 +39,17 @@ public class DataFeedsModule implements StructrModule {
 
 	@Override
 	public void onLoad(final LicenseManager licenseManager) {
+
+		StructrTraits.registerRelationshipType("DataFeedHAS_FEED_ITEMSFeedItem",                new DataFeedHAS_FEED_ITEMSFeedItem());
+		StructrTraits.registerRelationshipType("FeedItemFEED_ITEM_CONTENTSFeedItemContent",     new FeedItemFEED_ITEM_CONTENTSFeedItemContent());
+		StructrTraits.registerRelationshipType("FeedItemFEED_ITEM_ENCLOSURESFeedItemEnclosure", new FeedItemFEED_ITEM_ENCLOSURESFeedItemEnclosure());
+
+		StructrTraits.registerNodeType("AbstractFeedItem",  new AbstractFeedItemTraitDefinition());
+		StructrTraits.registerNodeType("DataFeed",          new DataFeedTraitDefinition());
+		StructrTraits.registerNodeType("FeedItem",          new AbstractFeedItemTraitDefinition(), new FeedItemTraitDefinition());
+		StructrTraits.registerNodeType("FeedItemContent",   new AbstractFeedItemTraitDefinition(), new FeedItemContentTraitDefinition());
+		StructrTraits.registerNodeType("FeedItemEnclosure", new AbstractFeedItemTraitDefinition(), new FeedItemEnclosureTraitDefinition());
+		StructrTraits.registerNodeType("RemoteDocument",    new RemoteDocumentTraitDefinition());
 	}
 
 	@Override
@@ -46,7 +63,7 @@ public class DataFeedsModule implements StructrModule {
 
 	@Override
 	public Set<String> getDependencies() {
-		return null;
+		return Set.of("ui");
 	}
 
 	@Override

@@ -27,15 +27,14 @@ import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.traits.Traits;
 import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.api.parameter.RESTParameter;
-import org.structr.schema.SchemaHelper;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -62,16 +61,16 @@ public class CollectionRelationshipsResource extends ExactMatchEndpoint {
 		if (typeName != null && direction != null) {
 
 			// test if resource class exists
-			final Class entityClass = SchemaHelper.getEntityClassForRawType(typeName);
-			if (entityClass != null && NodeInterface.class.isAssignableFrom(entityClass)) {
+			final Traits traits = Traits.of(typeName);
+			if (traits != null && traits.isNodeType()) {
 
 				if ("in".equals(direction)) {
 
-					return new RelationshipsResourceHandler(call, entityClass, typeName, Direction.INCOMING);
+					return new RelationshipsResourceHandler(call, typeName, Direction.INCOMING);
 
 				} else {
 
-					return new RelationshipsResourceHandler(call, entityClass, typeName, Direction.OUTGOING);
+					return new RelationshipsResourceHandler(call, typeName, Direction.OUTGOING);
 				}
 			}
 		}
@@ -86,9 +85,9 @@ public class CollectionRelationshipsResource extends ExactMatchEndpoint {
 
 		private Direction direction = null;
 
-		public RelationshipsResourceHandler(final RESTCall call, final Class entityClass, final String typeName, final Direction direction) {
+		public RelationshipsResourceHandler(final RESTCall call, final String typeName, final Direction direction) {
 
-			super(call, entityClass, typeName, true);
+			super(call, typeName, true);
 
 			this.direction = direction;
 		}
@@ -100,7 +99,8 @@ public class CollectionRelationshipsResource extends ExactMatchEndpoint {
 
 			for (final Object obj : super.doGet(securityContext, sortOrder, pageSize, page)) {
 
-				if (obj instanceof AbstractNode node) {
+				if (obj instanceof NodeInterface node) {
+					
 					List<? extends RelationshipInterface> relationships = null;
 
 					switch (direction) {
@@ -138,7 +138,7 @@ public class CollectionRelationshipsResource extends ExactMatchEndpoint {
 
 							for (final RelationshipInterface rel : relationships) {
 
-								if (!rel.isInternal()) {
+								if (!rel.getRelation().isInternal()) {
 									resultList.add(rel);
 								}
 							}
@@ -160,7 +160,7 @@ public class CollectionRelationshipsResource extends ExactMatchEndpoint {
 		}
 
 		@Override
-		public Class getEntityClass(final SecurityContext securityContext) {
+		public String getTypeName(final SecurityContext securityContext) {
 			return null;
 		}
 	}

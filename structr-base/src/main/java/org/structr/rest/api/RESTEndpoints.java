@@ -20,9 +20,9 @@ package org.structr.rest.api;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.rest.resource.*;
 import org.structr.web.resource.*;
+import org.structr.core.traits.Traits;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -75,7 +75,7 @@ public class RESTEndpoints {
 		ENDPOINTS.add(new SortedByUsageCount(endpoint));
 	}
 
-	public static RESTCallHandler resolveRESTCallHandler(final HttpServletRequest request, final String defaultView, final Class userType) throws FrameworkException {
+	public static RESTCallHandler resolveRESTCallHandler(final HttpServletRequest request, final String defaultView, final String userType) throws FrameworkException {
 
 		final List<String> viewHolder = new LinkedList<>();
 		final String pathInfo         = RESTEndpoints.getCleanedRequestPath(request);
@@ -118,7 +118,7 @@ public class RESTEndpoints {
 	// ----- private static methods -----
 	private static String removeTrailingViewName(final String path, final List<String> propertyView) {
 
-		final Set<String> propertyViews = Services.getInstance().getConfigurationProvider().getPropertyViews();
+		final Set<String> propertyViews = Traits.getAllViews();
 		final int positionOfLastSlash   = path.lastIndexOf("/");
 
 		if (positionOfLastSlash > -1) {

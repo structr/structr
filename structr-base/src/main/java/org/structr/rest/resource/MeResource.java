@@ -25,14 +25,14 @@ import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.CaseHelper;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
+import org.structr.core.traits.StructrTraits;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.api.parameter.RESTParameter;
 import org.structr.rest.exception.NotAllowedException;
-import org.structr.web.entity.User;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -45,7 +45,7 @@ import java.util.Set;
 public class MeResource extends ExactMatchEndpoint {
 
 	public MeResource() {
-		super(RESTParameter.forStaticString("me", true, "User"));
+		super(RESTParameter.forStaticString("me", true, StructrTraits.USER));
 	}
 
 	@Override
@@ -62,7 +62,7 @@ public class MeResource extends ExactMatchEndpoint {
 		@Override
 		public ResultStream doGet(final SecurityContext securityContext, final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
 
-			PrincipalInterface user = securityContext.getUser(true);
+			Principal user = securityContext.getUser(true);
 			if (user != null) {
 
 				return new PagingIterable<>(getURL(), Arrays.asList(user));
@@ -89,14 +89,14 @@ public class MeResource extends ExactMatchEndpoint {
 		}
 
 		@Override
-		public Class getEntityClass(final SecurityContext securityContext) {
-			return User.class;
+		public String getTypeName(final SecurityContext securityContext) {
+			return StructrTraits.USER;
 		}
 
 		@Override
 		public String getResourceSignature() {
 
-			String signature = "User";
+			String signature = StructrTraits.USER;
 
 			// append requested view to resource signature
 			if (!isDefaultView()) {

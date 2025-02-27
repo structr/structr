@@ -20,12 +20,11 @@ package org.structr.test;
 
 import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
-import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
-import org.structr.feed.entity.DataFeed;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.test.web.StructrUiTest;
-import org.structr.web.entity.User;
 import org.testng.annotations.Test;
 
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -40,16 +39,18 @@ public class TestFeeds extends StructrUiTest {
 	@Test
 	public void testFeeds() {
 
-		final Class type = StructrApp.getConfiguration().getNodeEntityClass("DataFeed");
+		final Traits userTraits = Traits.of(StructrTraits.USER);
+		final Traits feedTraits = Traits.of("DataFeed");
+		final String type       = "DataFeed";
 
 		assertNotNull("Type DataFeed should exist", type);
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"),  true)
+			app.create(StructrTraits.USER,
+				new NodeAttribute<>(userTraits.key("name"),     "admin"),
+				new NodeAttribute<>(userTraits.key("password"), "admin"),
+				new NodeAttribute<>(userTraits.key("isAdmin"),  true)
 			);
 
 			tx.success();
@@ -62,9 +63,9 @@ public class TestFeeds extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create(type,
-				new NodeAttribute<>(StructrApp.key(DataFeed.class, "url"),            "https://structr.com/blog/rss"),
-				new NodeAttribute<>(StructrApp.key(DataFeed.class, "updateInterval"), 86400000),
-				new NodeAttribute<>(StructrApp.key(DataFeed.class, "maxItems"),       3)
+				new NodeAttribute<>(feedTraits.key("url"),            "https://structr.com/blog/rss"),
+				new NodeAttribute<>(feedTraits.key("updateInterval"), 86400000),
+				new NodeAttribute<>(feedTraits.key("maxItems"),       3)
 			);
 
 			tx.success();
@@ -100,16 +101,17 @@ public class TestFeeds extends StructrUiTest {
 	@Test
 	public void testRemoteDocument() {
 
-		final Class type = StructrApp.getConfiguration().getNodeEntityClass("RemoteDocument");
+		final Traits userTraits = Traits.of(StructrTraits.USER);
+		final String type       = "RemoteDocument";
 
 		assertNotNull("Type RemoteDocument should exist", type);
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"),  true)
+			app.create(StructrTraits.USER,
+				new NodeAttribute<>(userTraits.key("name"),     "admin"),
+				new NodeAttribute<>(userTraits.key("password"), "admin"),
+				new NodeAttribute<>(userTraits.key("isAdmin"),  true)
 			);
 
 			tx.success();
@@ -122,7 +124,7 @@ public class TestFeeds extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create(type,
-				new NodeAttribute<>(StructrApp.key(type, "url"), "https://structr.com/blog")
+				new NodeAttribute<>(Traits.of(type).key("url"), "https://structr.com/blog")
 			);
 
 			tx.success();

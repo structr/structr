@@ -35,6 +35,7 @@ import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.Traits;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.RESTCall;
@@ -69,11 +70,11 @@ public class TypedIdResource extends ExactMatchEndpoint {
 
 		if (typeName != null && uuid != null) {
 
-			// test if resource class exists
-			final Class entityClass = SchemaHelper.getEntityClassForRawType(typeName);
-			if (entityClass != null) {
+			// test if type exists
+			final Traits traits = Traits.of(typeName);
+			if (traits != null) {
 
-				return new EntityResourceHandler(call, entityClass, typeName, uuid);
+				return new EntityResourceHandler(call, typeName, uuid);
 			}
 		}
 
@@ -83,22 +84,20 @@ public class TypedIdResource extends ExactMatchEndpoint {
 
 	private class EntityResourceHandler extends RESTCallHandler {
 
-		private Class entityClass = null;
-		private String typeName   = null;
-		private String uuid       = null;
+		private String typeName    = null;
+		private String uuid        = null;
 
-		public EntityResourceHandler(final RESTCall call, final Class entityClass, final String typeName, final String uuid) {
+		public EntityResourceHandler(final RESTCall call, final String typeName, final String uuid) {
 
 			super(call);
 
-			this.entityClass = entityClass;
 			this.typeName    = typeName;
 			this.uuid        = uuid;
 		}
 
 		@Override
 		public ResultStream doGet(final SecurityContext securityContext, final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
-			return new PagingIterable<>(getURL(), Arrays.asList(getEntity(securityContext, entityClass, typeName, uuid)));
+			return new PagingIterable<>(getURL(), Arrays.asList(getEntity(securityContext, typeName, uuid)));
 		}
 
 		@Override
@@ -133,7 +132,7 @@ public class TypedIdResource extends ExactMatchEndpoint {
 
 			try (final Tx tx = app.tx(true, true, false)) {
 
-				final GraphObject obj = getEntity(securityContext, entityClass, typeName, uuid);
+				final GraphObject obj = getEntity(securityContext, typeName, uuid);
 
 				if (obj.isNode()) {
 
@@ -161,8 +160,8 @@ public class TypedIdResource extends ExactMatchEndpoint {
 		}
 
 		@Override
-		public Class getEntityClass(final SecurityContext securityContext) {
-			return entityClass;
+		public String getTypeName(final SecurityContext securityContext) {
+			return typeName;
 		}
 
 		@Override

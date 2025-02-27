@@ -23,9 +23,9 @@ import org.structr.schema.SchemaHelper.Type;
 
 public interface PropertyDefinition extends CodeSource {
 
+	String getClassName();
 	String getPropertyName();
 	Type getPropertyType();
-	String getRawSource();
 	String getSource();
 	String getDbName();
 	String getFormat();
@@ -38,7 +38,6 @@ public interface PropertyDefinition extends CodeSource {
 	boolean isUnique();
 	boolean isIndexed();
 	boolean isReadOnly();
-	boolean isPartOfBuiltInSchema();
 	boolean isCachingEnabled();
 	String getDefaultValue();
 	String getContentType();
@@ -47,4 +46,7 @@ public interface PropertyDefinition extends CodeSource {
 	String getOpenAPIReturnType();
 	String[] getTransformators();
 	String[] getValidators();
+
+	String getMultiplicity(final String baseProperty);
+	String getRelatedType(final String baseProperty);
 }

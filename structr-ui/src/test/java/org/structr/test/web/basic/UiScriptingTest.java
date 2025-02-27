@@ -39,27 +39,24 @@ import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Methods;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.*;
+import org.structr.core.entity.Group;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.property.StringProperty;
 import org.structr.core.script.ScriptTestHelper;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
-import org.structr.test.web.entity.TestOne;
-import org.structr.test.web.entity.TestTwo;
 import org.structr.web.common.RenderContext;
-import org.structr.web.entity.Folder;
 import org.structr.web.entity.User;
 import org.structr.web.entity.dom.*;
-import org.structr.web.entity.html.Div;
-import org.structr.web.entity.html.Table;
 import org.structr.websocket.command.CreateComponentCommand;
 import org.testng.annotations.Test;
 
@@ -85,8 +82,8 @@ public class UiScriptingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			Page page         = (Page) app.create(Page.class, new NodeAttribute(Page.name, "test"), new NodeAttribute(Page.visibleToPublicUsers, true));
-			Template template = (Template) app.create(Template.class, new NodeAttribute(Page.visibleToPublicUsers, true));
+			Page page         = app.create(StructrTraits.PAGE, new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key("name"), "test"), new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key("visibleToPublicUsers"), true)).as(Page.class);
+			Template template = app.create(StructrTraits.TEMPLATE, new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key("visibleToPublicUsers"), true)).as(Template.class);
 
 			template.setContent("${request.param}");
 
@@ -132,8 +129,8 @@ public class UiScriptingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			Page page         = (Page) app.create(Page.class, new NodeAttribute(Page.name, "test"), new NodeAttribute(Page.visibleToPublicUsers, true));
-			Template template = (Template) app.create(Template.class, new NodeAttribute(Page.visibleToPublicUsers, true));
+			Page page         = app.create(StructrTraits.PAGE, new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key("name"), "test"), new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key("visibleToPublicUsers"), true)).as(Page.class);
+			Template template = app.create(StructrTraits.TEMPLATE, new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key("visibleToPublicUsers"), true)).as(Template.class);
 
 			template.setContent("${if (\n" +
 				"	is_collection(request.param),\n" +
@@ -214,8 +211,8 @@ public class UiScriptingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			Page page         = (Page) app.create(Page.class, new NodeAttribute(Page.name, "test"), new NodeAttribute(Page.visibleToPublicUsers, true));
-			Template template = (Template) app.create(Template.class, new NodeAttribute(Page.visibleToPublicUsers, true));
+			Page page         = app.create(StructrTraits.PAGE, new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key("name"), "test"), new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key("visibleToPublicUsers"), true)).as(Page.class);
+			Template template = app.create(StructrTraits.TEMPLATE, new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key("visibleToPublicUsers"), true)).as(Template.class);
 
 			template.setContent("${{ $.print($.get('request').param.join('')); }}");
 
@@ -271,21 +268,21 @@ public class UiScriptingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			detailsDataObject = app.create(TestOne.class, "TestOne");
+			detailsDataObject = app.create("TestOne", "TestOne");
 			page              = Page.createNewPage(securityContext, "testpage");
 
-			page.setProperties(page.getSecurityContext(), new PropertyMap(Page.visibleToPublicUsers, true));
+			page.setProperties(page.getSecurityContext(), new PropertyMap(Traits.of(StructrTraits.PAGE).key("visibleToPublicUsers"), true));
 
 			assertTrue(page != null);
-			assertTrue(page instanceof Page);
+			assertTrue(page.is(StructrTraits.PAGE));
 
-			html  = (DOMNode) page.createElement("html");
-			head  = (DOMNode) page.createElement("head");
-			body  = (DOMNode) page.createElement("body");
-			title = (DOMNode) page.createElement("title");
-			div   = (DOMNode) page.createElement("div");
-			p     = (DOMNode) page.createElement("p");
-			text  = (DOMNode) page.createTextNode("x");
+			html  = page.createElement("html");
+			head  = page.createElement("head");
+			body  = page.createElement("body");
+			title = page.createElement("title");
+			div   = page.createElement("div");
+			p     = page.createElement("p");
+			text  = page.createTextNode("x");
 
 			// add HTML element to page
 			page.appendChild(html);
@@ -301,8 +298,8 @@ public class UiScriptingTest extends StructrUiTest {
 			div.appendChild(p);
 
 			final PropertyMap changedProperties = new PropertyMap();
-			changedProperties.put(StructrApp.key(DOMElement.class, "restQuery"), "/Div");
-			changedProperties.put(StructrApp.key(DOMElement.class, "dataKey"), "div");
+			changedProperties.put(Traits.of(StructrTraits.DOM_ELEMENT).key("restQuery"), "/Div");
+			changedProperties.put(Traits.of(StructrTraits.DOM_ELEMENT).key("dataKey"), "div");
 			p.setProperties(p.getSecurityContext(), changedProperties);
 
 			p.appendChild(text);
@@ -355,29 +352,32 @@ public class UiScriptingTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// create list of 100 folders
-			final List<Folder> folders = new LinkedList<>();
+			final List<NodeInterface> folders = new LinkedList<>();
 			for (int i=0; i<100; i++) {
 
-				folders.add(createTestNode(Folder.class, new NodeAttribute<>(StructrApp.key(AbstractNode.class, "name"), "Folder" + i)));
+				folders.add(createTestNode(StructrTraits.FOLDER, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), StructrTraits.FOLDER + i)));
 			}
 
 			// create parent folder
-			final Folder parent = createTestNode(Folder.class,
-				new NodeAttribute<>(StructrApp.key(AbstractNode.class, "name"), "Parent"),
-				new NodeAttribute<>(StructrApp.key(Folder.class, "folders"), folders)
+			final NodeInterface parent = createTestNode(StructrTraits.FOLDER,
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "Parent"),
+				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key("folders"), folders)
 			);
 
 			uuid = parent.getUuid();
 
-			// create function property that returns folder children
-			final SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName("Folder").getFirst();
-			schemaNode.setProperty(new StringProperty("_testFunction"), "Function(this.folders)");
+			app.create(StructrTraits.SCHEMA_PROPERTY,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("staticSchemaNodeName"), StructrTraits.FOLDER),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"),                 "testFunction"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"),         "Function"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("readFunction"),         "this.folders")
+			);
 
 			// create admin user
-			createTestNode(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"),  true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"),  true)
 			);
 
 			tx.success();
@@ -420,39 +420,43 @@ public class UiScriptingTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// create list of 100 folders
-			final List<Folder> folders = new LinkedList<>();
+			final List<NodeInterface> folders = new LinkedList<>();
 			for (int i=0; i<100; i++) {
 
-				folders.add(createTestNode(Folder.class,
-						new NodeAttribute<>(StructrApp.key(AbstractNode.class, "name"), "Folder" + i),
-						new NodeAttribute<>(StructrApp.key(AbstractNode.class, "visibleToAuthenticatedUsers"), true)
+				folders.add(createTestNode(StructrTraits.FOLDER,
+						new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), StructrTraits.FOLDER + i),
+						new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToAuthenticatedUsers"), true)
 				));
 			}
 
 			// create parent folder
-			final Folder parent = createTestNode(Folder.class,
-					new NodeAttribute<>(StructrApp.key(AbstractNode.class, "name"), "Parent"),
-					new NodeAttribute<>(StructrApp.key(Folder.class, "folders"), folders),
-					new NodeAttribute<>(StructrApp.key(AbstractNode.class, "visibleToAuthenticatedUsers"), true)
+			final NodeInterface parent = createTestNode(StructrTraits.FOLDER,
+					new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "Parent"),
+					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key("folders"), folders),
+					new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToAuthenticatedUsers"), true)
 			);
 
 			uuid = parent.getUuid();
 
 			// create function property that returns folder children
-			final SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName("Folder").getFirst();
-			schemaNode.setProperty(new StringProperty("_testFunction"), "Function(this.folders)");
+			app.create(StructrTraits.SCHEMA_PROPERTY,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("staticSchemaNodeName"), StructrTraits.FOLDER),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"),                 "testFunction"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"),         "Function"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("readFunction"),         "this.folders")
+			);
 
 			// create admin user
-			createTestNode(User.class,
-					new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
-					new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-					new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"),  true)
+			createTestNode(StructrTraits.USER,
+					new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+					new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+					new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"),  true)
 			);
 
 			// create non-admin user
-			createTestNode(User.class,
-					new NodeAttribute<>(StructrApp.key(User.class, "name"),     "testuser"),
-					new NodeAttribute<>(StructrApp.key(User.class, "password"), "testuser")
+			createTestNode(StructrTraits.USER,
+					new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "testuser"),
+					new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "testuser")
 			);
 
 			tx.success();
@@ -465,23 +469,21 @@ public class UiScriptingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName("Folder").getFirst();
-
 			// create view without property "folders"
-			final SchemaProperty testFn = app.nodeQuery(SchemaProperty.class).and(SchemaProperty.schemaNode, schemaNode).andName("testFunction").getFirst();
+			final NodeInterface testFn = app.nodeQuery(StructrTraits.SCHEMA_PROPERTY).and(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("staticSchemaNodeName"), StructrTraits.FOLDER).andName("testFunction").getFirst();
 
-			app.create(SchemaView.class,
-					new NodeAttribute<>(SchemaView.name, "someprops"),
-					new NodeAttribute<>(SchemaView.schemaNode, schemaNode),
-					new NodeAttribute<>(SchemaView.schemaProperties, List.of(testFn)),
-					new NodeAttribute<>(SchemaView.nonGraphProperties, "id,type,name")
+			app.create(StructrTraits.SCHEMA_VIEW,
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key("name"), "someprops"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key("staticSchemaNodeName"), StructrTraits.FOLDER),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key("schemaProperties"), List.of(testFn)),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key("nonGraphProperties"), "id,type,name")
 			);
 
 			// create resource access grant for user
-			createTestNode(ResourceAccess.class,
-					new NodeAttribute<>(StructrApp.key(ResourceAccess.class, "signature"), "Folder/_Someprops"),
-					new NodeAttribute<>(StructrApp.key(ResourceAccess.class, "flags"), 1L),
-					new NodeAttribute<>(StructrApp.key(ResourceAccess.class, "visibleToAuthenticatedUsers"), true)
+			createTestNode(StructrTraits.RESOURCE_ACCESS,
+					new NodeAttribute<>(Traits.of(StructrTraits.RESOURCE_ACCESS).key("signature"), "Folder/_Someprops"),
+					new NodeAttribute<>(Traits.of(StructrTraits.RESOURCE_ACCESS).key("flags"), 1L),
+					new NodeAttribute<>(Traits.of(StructrTraits.RESOURCE_ACCESS).key("visibleToAuthenticatedUsers"), true)
 			);
 
 			tx.success();
@@ -497,7 +499,7 @@ public class UiScriptingTest extends StructrUiTest {
 		RestAssured
 				.given()
 				.contentType("application/json; charset=UTF-8")
-				.accept("application/json; properties=id,type,name,folders,testFunction")	// folders is not included in the someprops view BUT should not be returned because it is run by admin
+				.accept("application/json; properties=id,type,name,folders,testFunction")	// folders is included in the someprops view BUT should not be returned because it is run by admin
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
@@ -539,19 +541,19 @@ public class UiScriptingTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final Page page       = Page.createSimplePage(securityContext, "test");
-			final Div div         = (Div)page.getElementsByTagName("div").item(0);
-			final Content content = (Content)div.getFirstChild();
+			final DOMNode div     = page.getElementsByTagName("div").get(0);
+			final DOMNode content = div.getFirstChild();
 
 			// setup repeater
-			content.setProperty(StructrApp.key(DOMNode.class, "functionQuery"), "{ var arr = []; for (var i=0; i<10; i++) { arr.push({ name: 'test' + i }); }; arr; }");
-			content.setProperty(StructrApp.key(DOMNode.class, "dataKey"), "test");
-			content.setProperty(StructrApp.key(Content.class, "content"), "${test.name}");
+			content.setProperty(Traits.of(StructrTraits.DOM_NODE).key("functionQuery"), "{ var arr = []; for (var i=0; i<10; i++) { arr.push({ name: 'test' + i }); }; arr; }");
+			content.setProperty(Traits.of(StructrTraits.DOM_NODE).key("dataKey"), "test");
+			content.setProperty(Traits.of(StructrTraits.CONTENT).key("content"), "${test.name}");
 
 			// create admin user
-			createTestNode(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"),  true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"),  true)
 			);
 
 			tx.success();
@@ -590,27 +592,27 @@ public class UiScriptingTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final Page page       = Page.createSimplePage(securityContext, "test");
-			final Div div         = (Div)page.getElementsByTagName("div").item(0);
-			final Content content = (Content)div.getFirstChild();
+			final DOMNode div         = page.getElementsByTagName("div").get(0);
+			final DOMNode content = div.getFirstChild();
 
 			// setup scripting repeater
-			content.setProperty(StructrApp.key(Content.class, "content"), "${{ var arr = []; for (var i=0; i<10; i++) { arr.push({name: 'test' + i}); } Structr.include('item', arr, 'test'); }}");
-			content.setProperty(StructrApp.key(Content.class, "contentType"), "text/html");
+			content.setProperty(Traits.of(StructrTraits.CONTENT).key("content"), "${{ var arr = []; for (var i=0; i<10; i++) { arr.push({name: 'test' + i}); } Structr.include('item', arr, 'test'); }}");
+			content.setProperty(Traits.of(StructrTraits.CONTENT).key("contentType"), "text/html");
 
 			// setup shared component with name "table" to include
 			final ShadowDocument shadowDoc = CreateComponentCommand.getOrCreateHiddenDocument();
 
-			final Div item    = (Div)shadowDoc.createElement("div");
-			final Content txt = (Content)shadowDoc.createTextNode("${test.name}");
+			final DOMElement item = shadowDoc.createElement("div");
+			final Content txt     = shadowDoc.createTextNode("${test.name}");
 
-			item.setProperty(StructrApp.key(Table.class, "name"), "item");
+			item.setProperty(Traits.of("Table").key("name"), "item");
 			item.appendChild(txt);
 
 			// create admin user
-			createTestNode(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "name"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			tx.success();
@@ -659,24 +661,24 @@ public class UiScriptingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final Page page       = Page.createSimplePage(securityContext, "test");
-			final Div div         = (Div) page.getElementsByTagName("div").item(0);
-			final Content content = (Content) div.getFirstChild();
-			final Group group     = app.create(Group.class, "TestGroup");
+			final Page page           = Page.createSimplePage(securityContext, "test");
+			final DOMNode div         = page.getElementsByTagName("div").get(0);
+			final DOMNode content     = div.getFirstChild();
+			final NodeInterface group = app.create(StructrTraits.GROUP, "TestGroup");
 
 			// setup scripting repeater
-			content.setProperty(StructrApp.key(Content.class, "restQuery"), "/Group/${current.id}");
-			content.setProperty(StructrApp.key(Content.class, "dataKey"), "test");
-			content.setProperty(StructrApp.key(Content.class, "content"), "${test.id}");
+			content.setProperty(Traits.of(StructrTraits.CONTENT).key("restQuery"), "/Group/${current.id}");
+			content.setProperty(Traits.of(StructrTraits.CONTENT).key("dataKey"), "test");
+			content.setProperty(Traits.of(StructrTraits.CONTENT).key("content"), "${test.id}");
 
 			// store UUID for later use
 			uuid = group.getUuid();
 
 			// create admin user
-			createTestNode(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "name"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			tx.success();
@@ -717,26 +719,26 @@ public class UiScriptingTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final Page page       = Page.createSimplePage(securityContext, "test");
-			final Div div         = (Div) page.getElementsByTagName("div").item(0);
-			final Content content = (Content) div.getFirstChild();
+			final DOMNode div         =  page.getElementsByTagName("div").get(0);
+			final DOMNode content =  div.getFirstChild();
 
 			// Create second div without children
-			Div div2 = (Div) div.cloneNode(false);
+			DOMNode div2 =  div.cloneNode(false);
 			div.getUuid();
 
 			// setup scripting repeater to repeat over (non-existing) children of second div
-			content.setProperty(StructrApp.key(Content.class, "restQuery"), "/Div/" + div2.getUuid()+ "/children");
-			content.setProperty(StructrApp.key(Content.class, "dataKey"), "test");
-			content.setProperty(StructrApp.key(Content.class, "content"), "foo${test}");
+			content.setProperty(Traits.of(StructrTraits.CONTENT).key("restQuery"), "/Div/" + div2.getUuid()+ "/children");
+			content.setProperty(Traits.of(StructrTraits.CONTENT).key("dataKey"), "test");
+			content.setProperty(Traits.of(StructrTraits.CONTENT).key("content"), "foo${test}");
 
 			// store UUID for later use
 			uuid = page.getUuid();
 
 			// create admin user
-			createTestNode(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "name"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			tx.success();
@@ -777,17 +779,17 @@ public class UiScriptingTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// create admin user
-			createTestNode(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "name"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			// create test user
-			tester = createTestNode(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "name"), "tester"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "test")
-			);
+			tester = createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"), "tester"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "test")
+			).as(User.class);
 
 			tx.success();
 
@@ -846,13 +848,13 @@ public class UiScriptingTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// create test user
-			tester = createTestNode(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "name"), "tester"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "test")
-			);
+			tester = createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"), "tester"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "test")
+			).as(User.class);
 
 			// create test group
-			group = createTestNode(Group.class, new NodeAttribute<>(StructrApp.key(Group.class, "name"), "test"));
+			group = createTestNode(StructrTraits.GROUP, new NodeAttribute<>(Traits.of(StructrTraits.GROUP).key("name"), "test")).as(Group.class);
 
 			tx.success();
 
@@ -876,7 +878,7 @@ public class UiScriptingTest extends StructrUiTest {
 			Scripting.evaluate(renderContext, null, "${add_to_group(first(find('Group')), first(find('User')))}", "test");
 
 			// check that the user is in the group after the call to add_to_group
-			final List<PrincipalInterface> members = Iterables.toList(group.getMembers());
+			final List<Principal> members = Iterables.toList(group.getMembers());
 			assertTrue("User should be in the test group now", members.contains(tester));
 
 			// check that is_in_group returns the correct result
@@ -906,11 +908,11 @@ public class UiScriptingTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// create admin user
-			createTestNode(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "id"),       "d7b5f5008fdf4066a1b9c2a74479ba5f"),
-				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"),  true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("id"),       "d7b5f5008fdf4066a1b9c2a74479ba5f"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"),  true)
 			);
 
 			tx.success();
@@ -933,8 +935,8 @@ public class UiScriptingTest extends StructrUiTest {
 
 			assertEquals("Invalid result for Structr.toJson() on Javascript object", "{\n\t\"name\": \"Test\"\n}", result1);
 			assertEquals("Invalid result for Structr.toJson() on Javascript array",  "[\n\t{\n\t\t\"name\": \"Test\"\n\t}\n]", result2);
-			assertEquals("Invalid result for Structr.toJson() on GraphObject",       "{\n\t\"id\": \"d7b5f5008fdf4066a1b9c2a74479ba5f\",\n\t\"type\": \"User\",\n\t\"isUser\": true,\n\t\"name\": \"admin\"\n}", result3);
-			assertEquals("Invalid result for Structr.toJson() on GraphObject array", "[\n\t{\n\t\t\"id\": \"d7b5f5008fdf4066a1b9c2a74479ba5f\",\n\t\t\"type\": \"User\",\n\t\t\"isUser\": true,\n\t\t\"name\": \"admin\"\n\t}\n]", result4);
+			assertEquals("Invalid result for Structr.toJson() on GraphObject",       "{\n\t\"id\": \"d7b5f5008fdf4066a1b9c2a74479ba5f\",\n\t\"type\": \"User\",\n\t\"name\": \"admin\",\n\t\"isUser\": true\n}", result3);
+			assertEquals("Invalid result for Structr.toJson() on GraphObject array", "[\n\t{\n\t\t\"id\": \"d7b5f5008fdf4066a1b9c2a74479ba5f\",\n\t\t\"type\": \"User\",\n\t\t\"name\": \"admin\",\n\t\t\"isUser\": true\n\t}\n]", result4);
 
 			tx.success();
 
@@ -951,35 +953,35 @@ public class UiScriptingTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// create admin user
-			createTestNode(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "id"),       "d7b5f5008fdf4066a1b9c2a74479ba5f"),
-				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"),  true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("id"),       "d7b5f5008fdf4066a1b9c2a74479ba5f"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"),  true)
 			);
 
 			final Page page = Page.createNewPage(securityContext, "testpage");
 
-			page.setProperties(page.getSecurityContext(), new PropertyMap(Page.visibleToPublicUsers, true));
+			page.setProperties(page.getSecurityContext(), new PropertyMap(Traits.of(StructrTraits.PAGE).key("visibleToPublicUsers"), true));
 
 			assertTrue(page != null);
-			assertTrue(page instanceof Page);
+			assertTrue(page.is(StructrTraits.PAGE));
 
-			final DOMNode html  = (DOMNode) page.createElement("html");
-			final DOMNode head  = (DOMNode) page.createElement("head");
-			final DOMNode body  = (DOMNode) page.createElement("body");
-			final DOMNode title = (DOMNode) page.createElement("title");
-			final DOMNode div01 = (DOMNode) page.createElement("div");
-			final DOMNode div02 = (DOMNode) page.createElement("div");
-			final DOMNode div03 = (DOMNode) page.createElement("div");
-			final DOMNode div04 = (DOMNode) page.createElement("div");
-			final DOMNode div05 = (DOMNode) page.createElement("div");
-			final DOMNode div06 = (DOMNode) page.createElement("div");
-			final DOMNode div07 = (DOMNode) page.createElement("div");
-			final DOMNode div08 = (DOMNode) page.createElement("div");
-			final DOMNode div09 = (DOMNode) page.createElement("div");
-			final DOMNode div10 = (DOMNode) page.createElement("div");
-			final DOMNode div11 = (DOMNode) page.createElement("div");
+			final DOMNode html  = page.createElement("html");
+			final DOMNode head  = page.createElement("head");
+			final DOMNode body  = page.createElement("body");
+			final DOMNode title = page.createElement("title");
+			final DOMNode div01 = page.createElement("div");
+			final DOMNode div02 = page.createElement("div");
+			final DOMNode div03 = page.createElement("div");
+			final DOMNode div04 = page.createElement("div");
+			final DOMNode div05 = page.createElement("div");
+			final DOMNode div06 = page.createElement("div");
+			final DOMNode div07 = page.createElement("div");
+			final DOMNode div08 = page.createElement("div");
+			final DOMNode div09 = page.createElement("div");
+			final DOMNode div10 = page.createElement("div");
+			final DOMNode div11 = page.createElement("div");
 
 			// add HTML element to page
 			page.appendChild(html);
@@ -1003,19 +1005,19 @@ public class UiScriptingTest extends StructrUiTest {
 			body.appendChild(div10);
 			body.appendChild(div11);
 
-			div01.setProperty(StructrApp.key(Div.class, "_html_class"), "test");
-			div02.setProperty(StructrApp.key(Div.class, "_html_class"), "${if(false, 'false', null)}");
-			div03.setProperty(StructrApp.key(Div.class, "_html_class"), "${if(true, 'true', null)}");
-			div04.setProperty(StructrApp.key(Div.class, "_html_class"), "${is(true, null)}");
-			div05.setProperty(StructrApp.key(Div.class, "_html_class"), "${is(true, 'true')}");
+			div01.setProperty(Traits.of("Div").key("_html_class"), "test");
+			div02.setProperty(Traits.of("Div").key("_html_class"), "${if(false, 'false', null)}");
+			div03.setProperty(Traits.of("Div").key("_html_class"), "${if(true, 'true', null)}");
+			div04.setProperty(Traits.of("Div").key("_html_class"), "${is(true, null)}");
+			div05.setProperty(Traits.of("Div").key("_html_class"), "${is(true, 'true')}");
 
-			div06.setProperty(StructrApp.key(Div.class, "_html_class"), "other ${if(false, 'false', null)}");
-			div07.setProperty(StructrApp.key(Div.class, "_html_class"), "other ${if(true, 'true', null)}");
-			div08.setProperty(StructrApp.key(Div.class, "_html_class"), "other ${is(true, null)}");
-			div09.setProperty(StructrApp.key(Div.class, "_html_class"), "other ${is(true, 'true')}");
+			div06.setProperty(Traits.of("Div").key("_html_class"), "other ${if(false, 'false', null)}");
+			div07.setProperty(Traits.of("Div").key("_html_class"), "other ${if(true, 'true', null)}");
+			div08.setProperty(Traits.of("Div").key("_html_class"), "other ${is(true, null)}");
+			div09.setProperty(Traits.of("Div").key("_html_class"), "other ${is(true, 'true')}");
 
-			div10.setProperty(StructrApp.key(Div.class, "_html_class"), "");
-			div11.setProperty(StructrApp.key(Div.class, "_html_class"), "${invalid_script(code..");
+			div10.setProperty(Traits.of("Div").key("_html_class"), "");
+			div11.setProperty(Traits.of("Div").key("_html_class"), "${invalid_script(code..");
 
 			tx.success();
 
@@ -1072,9 +1074,9 @@ public class UiScriptingTest extends StructrUiTest {
 			StructrSchema.replaceDatabaseSchema(app, schema);
 
 			// create global schema method for JavaScript
-			app.create(SchemaMethod.class,
-				new NodeAttribute<>(SchemaMethod.name,   "globalTest1"),
-				new NodeAttribute<>(SchemaMethod.source,
+			app.create(StructrTraits.SCHEMA_METHOD,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("name"), "globalTest1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"),
 					  "{"
 					+ "	var test = Structr.create('Test');\n"
 					+ "	var log  = '';\n"
@@ -1113,8 +1115,8 @@ public class UiScriptingTest extends StructrUiTest {
 
 			Scripting.evaluate(renderContext, null, "${{ Structr.call('globalTest1'); }}", "test");
 
-			final GraphObject obj = app.nodeQuery(StructrApp.getConfiguration().getNodeEntityClass("Test")).getFirst();
-			final Object result   = obj.getProperty("log");
+			final GraphObject obj = app.nodeQuery("Test").getFirst();
+			final Object result   = obj.getProperty(Traits.of("Test").key("log"));
 
 			assertEquals("Invalid conversion of boolean values in scripting", "b1 is true,b2 is false,b3 is true,b4 is false,", result);
 
@@ -1133,18 +1135,18 @@ public class UiScriptingTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final Page page       = Page.createSimplePage(securityContext, "test");
-			final Div div         = (Div)page.getElementsByTagName("div").item(0);
-			final Content content = (Content)div.getFirstChild();
+			final DOMNode div     = page.getElementsByTagName("div").get(0);
+			final DOMNode content = div.getFirstChild();
 
 			// setup scripting repeater
-			content.setProperty(StructrApp.key(Content.class, "content"), "{${42}${print('123')}${{ 'test'; }}$$${page.name}}${{ 99; }}");
+			content.setProperty(Traits.of(StructrTraits.CONTENT).key("content"), "{${42}${print('123')}${{ 'test'; }}$$${page.name}}${{ 99; }}");
 
 
 			// create admin user
-			createTestNode(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "name"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			tx.success();
@@ -1185,10 +1187,10 @@ public class UiScriptingTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final Page page       = Page.createSimplePage(securityContext, "test");
-			final Div div         = (Div)page.getElementsByTagName("div").item(0);
-			final Content content = (Content)div.getFirstChild();
+			final DOMNode div     = page.getElementsByTagName("div").get(0);
+			final DOMNode content = div.getFirstChild();
 
-			content.setProperty(StructrApp.key(Content.class, "content"),
+			content.setProperty(Traits.of(StructrTraits.CONTENT).key("content"),
 				"${{ ($.eq($.current,                $.get('current')))           ? 'A' : 'a'; }}" +
 				"${{ ($.eq($.baseUrl,                $.get('baseUrl')))           ? 'B' : 'b'; }}" +
 				"${{ ($.eq($.base_url,               $.get('base_url')))          ? 'C' : 'c'; }}" +
@@ -1215,11 +1217,11 @@ public class UiScriptingTest extends StructrUiTest {
 			);
 
 			// create admin user
-			final User user = createTestNode(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "name"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"), true)
-			);
+			final User user = createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
+			).as(User.class);
 
 			userId = user.getUuid();
 
@@ -1286,7 +1288,7 @@ public class UiScriptingTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			for (int i=14; i>=0; i--) {
-				app.create(TestOne.class, new NodeAttribute<>(TestOne.aString, "string" + StringUtils.leftPad(Integer.toString(i), 2, "0")));
+				app.create("TestOne", new NodeAttribute<>(Traits.of("TestOne").key("aString"), "string" + StringUtils.leftPad(Integer.toString(i), 2, "0")));
 			}
 
 			tx.success();
@@ -1298,9 +1300,9 @@ public class UiScriptingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<AbstractNode> result1 = (List)ScriptTestHelper.testExternalScript(ctx, UiScriptingTest.class.getResourceAsStream("/test/scripting/testJavaScriptFindWithPredicateList.js"));
+			final List<NodeInterface> result1 = (List)ScriptTestHelper.testExternalScript(ctx, UiScriptingTest.class.getResourceAsStream("/test/scripting/testJavaScriptFindWithPredicateList.js"));
 
-			assertEquals("Wrong result for predicate list,", "[string01, string03, string13]", result1.stream().map(r -> r.getProperty(TestOne.aString)).collect(Collectors.toList()).toString());
+			assertEquals("Wrong result for predicate list,", "[string01, string03, string13]", result1.stream().map(r -> r.getProperty(Traits.of("TestOne").key("aString"))).collect(Collectors.toList()).toString());
 
 			tx.success();
 
@@ -1319,8 +1321,8 @@ public class UiScriptingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(TestOne.class);
-			createTestNode(TestTwo.class);
+			createTestNode("TestOne");
+			createTestNode("TestTwo");
 
 			tx.success();
 
@@ -1330,8 +1332,8 @@ public class UiScriptingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final TestOne testOne = app.nodeQuery(TestOne.class).getFirst();
-			final TestTwo testTwo = app.nodeQuery(TestTwo.class).getFirst();
+			final NodeInterface testOne = app.nodeQuery("TestOne").getFirst();
+			final NodeInterface testTwo = app.nodeQuery("TestTwo").getFirst();
 
 			ctx.setConstant("existing", testOne);
 			ctx.setDetailsDataObject(testTwo);
@@ -1489,9 +1491,9 @@ public class UiScriptingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			Page page         = (Page) app.create(Page.class, new NodeAttribute(Page.name, "test"), new NodeAttribute(Page.visibleToPublicUsers, true));
-			Template template1 = (Template) app.create(Template.class, new NodeAttribute(Page.visibleToPublicUsers, true));
-			Template template2 = (Template) app.create(Template.class, new NodeAttribute(Page.visibleToPublicUsers, true));
+			Page page         = app.create(StructrTraits.PAGE, new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key("name"), "test"), new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key("visibleToPublicUsers"), true)).as(Page.class);
+			Template template1 = app.create(StructrTraits.TEMPLATE, new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key("visibleToPublicUsers"), true)).as(Template.class);
+			Template template2 = app.create(StructrTraits.TEMPLATE, new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key("visibleToPublicUsers"), true)).as(Template.class);
 
 			String script = "${{ let session = $.session; if ($.empty(session['test'])) { session['test'] = 123; } else { session['test'] = 456; } $.session['test']; }}";
 			template1.setContent(script);
@@ -1549,9 +1551,9 @@ public class UiScriptingTest extends StructrUiTest {
 			// Test 1: JavaScript: print - render - print
 			{
 
-				final Page page          = (Page) app.create(Page.class, new NodeAttribute(AbstractNode.name, test1PageName), new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
-				final Template template1 = (Template) app.create(Template.class, new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
-				final Template template2 = (Template) app.create(Template.class, new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
+				final Page page          = app.create(StructrTraits.PAGE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), test1PageName), new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true)).as(Page.class);
+				final Template template1 = app.create(StructrTraits.TEMPLATE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true)).as(Template.class);
+				final Template template2 = app.create(StructrTraits.TEMPLATE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true)).as(Template.class);
 
 				template1.setContent("${{\n" +
 					"	$.print('TEST1 BEFORE');\n" +
@@ -1567,9 +1569,9 @@ public class UiScriptingTest extends StructrUiTest {
 
 			// Test 2: JavaScript: print - include_child - print
 			{
-				final Page page          = (Page) app.create(Page.class, new NodeAttribute(AbstractNode.name, test2PageName), new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
-				final Template template1 = (Template) app.create(Template.class, new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
-				final Template template2 = (Template) app.create(Template.class, new NodeAttribute(AbstractNode.name, "MY_CHILD"), new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
+				final Page page          = app.create(StructrTraits.PAGE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), test2PageName), new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true)).as(Page.class);
+				final Template template1 = app.create(StructrTraits.TEMPLATE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true)).as(Template.class);
+				final Template template2 = app.create(StructrTraits.TEMPLATE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "MY_CHILD"), new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true)).as(Template.class);
 
 				template1.setContent("${{\n" +
 					"	$.print('TEST2 BEFORE');\n" +
@@ -1585,9 +1587,9 @@ public class UiScriptingTest extends StructrUiTest {
 
 			// Test 3: StructrScript: print - render - print
 			{
-				final Page page          = (Page) app.create(Page.class, new NodeAttribute(AbstractNode.name, test3PageName), new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
-				final Template template1 = (Template) app.create(Template.class, new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
-				final Template template2 = (Template) app.create(Template.class, new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
+				final Page page          = app.create(StructrTraits.PAGE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), test3PageName), new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true)).as(Page.class);
+				final Template template1 = app.create(StructrTraits.TEMPLATE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true)).as(Template.class);
+				final Template template2 = app.create(StructrTraits.TEMPLATE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true)).as(Template.class);
 
 				template1.setContent("${\n" +
 					"	(\n" +
@@ -1605,9 +1607,9 @@ public class UiScriptingTest extends StructrUiTest {
 
 			// Test 4: StructrScript: print - include_child - print
 			{
-				final Page page          = (Page) app.create(Page.class, new NodeAttribute(AbstractNode.name, test4PageName), new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
-				final Template template1 = (Template) app.create(Template.class, new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
-				final Template template2 = (Template) app.create(Template.class, new NodeAttribute(AbstractNode.name, "MY_CHILD"), new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
+				final Page page          = app.create(StructrTraits.PAGE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), test4PageName), new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true)).as(Page.class);
+				final Template template1 = app.create(StructrTraits.TEMPLATE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true)).as(Template.class);
+				final Template template2 = app.create(StructrTraits.TEMPLATE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "MY_CHILD"), new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true)).as(Template.class);
 
 				template1.setContent("${\n" +
 					"	(\n" +
@@ -1658,8 +1660,8 @@ public class UiScriptingTest extends StructrUiTest {
 
 			// Test 1: print - implicit return - print (implicit return in StructrScript: the result of all scripting expressions is printed upon evaluation of the expression. this makes interleaved prints impossible to order correctly/logically)
 			{
-				final Page page         = (Page) app.create(Page.class, new NodeAttribute(AbstractNode.name, test1PageName), new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
-				final Template template = (Template) app.create(Template.class, new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
+				final Page page         = app.create(StructrTraits.PAGE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), test1PageName), new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true)).as(Page.class);
+				final Template template = app.create(StructrTraits.TEMPLATE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true)).as(Template.class);
 
 				template.setContent("${(\n" +
 					"	print('BEFORE'),\n" +
@@ -1672,8 +1674,8 @@ public class UiScriptingTest extends StructrUiTest {
 
 			// Test 2: print - return
 			{
-				final Page page         = (Page) app.create(Page.class, new NodeAttribute(AbstractNode.name, test2PageName), new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
-				final Template template = (Template) app.create(Template.class, new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
+				final Page page         = app.create(StructrTraits.PAGE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), test2PageName), new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true)).as(Page.class);
+				final Template template = app.create(StructrTraits.TEMPLATE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true)).as(Template.class);
 
 				template.setContent("${{\n" +
 					"	$.print('BEFORE');\n" +
@@ -1705,56 +1707,59 @@ public class UiScriptingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(SchemaMethod.class, new NodeAttribute<>(SchemaMethod.name,   "testSinglePrintJS"),
-				new NodeAttribute<>(SchemaMethod.source, "{ $.print('testPrint'); }")
+			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("name"), "testSinglePrintJS"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "{ $.print('testPrint'); }")
 			);
 
-			app.create(SchemaMethod.class, new NodeAttribute<>(SchemaMethod.name,   "testMultiPrintJS"),
-				new NodeAttribute<>(SchemaMethod.source, "{ $.print('testPrint1'); $.print('testPrint2'); }")
+			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("name"), "testMultiPrintJS"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "{ $.print('testPrint1'); $.print('testPrint2'); }")
 			);
 
-			app.create(SchemaMethod.class, new NodeAttribute<>(SchemaMethod.name,   "testPrintReturnJS"),
-				new NodeAttribute<>(SchemaMethod.source, "{ $.print('testPrint'); 'returnValue'; }")
+			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("name"), "testPrintReturnJS"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "{ $.print('testPrint'); 'returnValue'; }")
 			);
 
-			app.create(SchemaMethod.class, new NodeAttribute<>(SchemaMethod.name,   "testSinglePrintSS"),
-				new NodeAttribute<>(SchemaMethod.source, "print('testPrint')")
+			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("name"), "testPrintReturnUnreachablePrintJS"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "{ $.print('testPrint'); 'returnValue'; $.print('unreachable print'); }")
 			);
 
-			app.create(SchemaMethod.class, new NodeAttribute<>(SchemaMethod.name,   "testMultiPrintSS"),
-				new NodeAttribute<>(SchemaMethod.source, "(print('testPrint1'), print('testPrint2'))")
+			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("name"), "testSinglePrintSS"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "print('testPrint')")
 			);
 
-			app.create(SchemaMethod.class, new NodeAttribute<>(SchemaMethod.name,   "testPrintReturnSS"),
-				new NodeAttribute<>(SchemaMethod.source, "(print('testPrint'), 'implicitStructrScriptReturn')")
+			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("name"), "testMultiPrintSS"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "(print('testPrint1'), print('testPrint2'))")
 			);
 
-			app.create(SchemaMethod.class, new NodeAttribute<>(SchemaMethod.name,   "testPrintImplicitReturnPrintSS"),
-				new NodeAttribute<>(SchemaMethod.source, "(print('testPrint1'), 'implicitStructrScriptReturn', print('testPrint2'))")
+			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("name"), "testPrintReturnSS"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "(print('testPrint'), 'implicitStructrScriptReturn')")
 			);
 
-			app.create(SchemaMethod.class, new NodeAttribute<>(SchemaMethod.name,   "testPrintImplicitReturnPrintMixedSS"),
-				new NodeAttribute<>(SchemaMethod.source, "(print('testPrint1'), 'implicitStructrScriptReturn1', print('testPrint2'), 'implicitStructrScriptReturn2'), print('testPrint2')")
+			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("name"), "testPrintImplicitReturnPrintSS"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "(print('testPrint1'), 'implicitStructrScriptReturn', print('testPrint2'))")
 			);
 
+			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("name"), "testPrintImplicitReturnPrintMixedSS"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "(print('testPrint1'), 'implicitStructrScriptReturn1', print('testPrint2'), 'implicitStructrScriptReturn2'), print('testPrint2')")
+			);
 
-			app.create(SchemaMethod.class, new NodeAttribute<>(SchemaMethod.name,   "testIncludeJS"),
-				new NodeAttribute<>(SchemaMethod.source, "{ let val = $.include('namedDOMNode'); val; }")
+			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("name"), "testIncludeJS"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "{ let val = $.include('namedDOMNode'); val; }")
 			);
 
 			// can not yield result - schema method has no children
-			app.create(SchemaMethod.class, new NodeAttribute<>(SchemaMethod.name,   "testIncludeChildJS"),
-				new NodeAttribute<>(SchemaMethod.source, "{ let val = $.include_child('namedDOMNode'); val; }")
+			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("name"), "testIncludeChildJS"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "{ let val = $.include_child('namedDOMNode'); val; }")
 			);
 
-			app.create(SchemaMethod.class, new NodeAttribute<>(SchemaMethod.name,   "testRenderJS"),
-				new NodeAttribute<>(SchemaMethod.source, "{ let val = $.render($.find('DOMNode', 'name', 'namedDOMNode')); val; }")
+			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("name"), "testRenderJS"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "{ let val = $.render($.find('DOMNode', 'name', 'namedDOMNode')); val; }")
 			);
 
 			{
-				final Page page          = (Page) app.create(Page.class, new NodeAttribute(AbstractNode.name, "irrelevant"), new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
-				final Template template1 = (Template) app.create(Template.class, new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
-				final Template template2 = (Template) app.create(Template.class, new NodeAttribute(AbstractNode.name, "namedDOMNode"), new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
+				final Page page          = app.create(StructrTraits.PAGE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "irrelevant"), new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true)).as(Page.class);
+				final Template template1 = app.create(StructrTraits.TEMPLATE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true)).as(Template.class);
+				final Template template2 = app.create(StructrTraits.TEMPLATE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "namedDOMNode"), new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true)).as(Template.class);
 
 				template1.setContent("Template not including child ;)");
 				template2.setContent("-X-");
@@ -1825,15 +1830,15 @@ public class UiScriptingTest extends StructrUiTest {
 			fail("Unexpected exception");
 		}
 
-		final Class projectType = StructrApp.getConfiguration().getNodeEntityClass("Project");
-		final Class taskType    = StructrApp.getConfiguration().getNodeEntityClass("Task");
+		final String projectType = "Project";
+		final String taskType    = "Task";
 
 		try (final Tx tx = app.tx()) {
 
 			app.create(projectType, "Project 1");
 			app.create(projectType,
-				new NodeAttribute<>(AbstractNode.name, "Project 2"),
-				new NodeAttribute<>(StructrApp.key(projectType, "raiseError"), true)
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "Project 2"),
+				new NodeAttribute<>(Traits.of(projectType).key("raiseError"), true)
 			);
 
 			for (int i=0; i<5; i++) {
@@ -1850,7 +1855,7 @@ public class UiScriptingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final AbstractNode project1 = (AbstractNode)app.nodeQuery(projectType).andName("Project 1").getFirst();
+			final NodeInterface project1 = app.nodeQuery(projectType).andName("Project 1").getFirst();
 			invokeMethod(securityContext, project1, "doTest", new LinkedHashMap<>(), false, new EvaluationHints());
 
 			tx.success();
@@ -1861,7 +1866,7 @@ public class UiScriptingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final AbstractNode project2 = (AbstractNode)app.nodeQuery(projectType).andName("Project 2").getFirst();
+			final NodeInterface project2 = app.nodeQuery(projectType).andName("Project 2").getFirst();
 			invokeMethod(securityContext, project2, "doTest", new LinkedHashMap<>(), false, new EvaluationHints());
 
 			tx.success();
@@ -1873,7 +1878,7 @@ public class UiScriptingTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final GraphObject project2 = app.nodeQuery(projectType).andName("Project 2").getFirst();
-			final List tasks           = Iterables.toList((Iterable)project2.getProperty("tasks"));
+			final List tasks           = Iterables.toList((Iterable)project2.getProperty(Traits.of(projectType).key("tasks")));
 
 			assertEquals("Project should not have tasks after a failed assertion rolls back the transaction", 0, tasks.size());
 
@@ -1889,7 +1894,7 @@ public class UiScriptingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final PrincipalInterface testUser = createTestNode(User.class, new NodeAttribute<>(AbstractNode.name, "testuser"));
+			final Principal testUser = createTestNode(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "testuser")).as(Principal.class);
 			final ActionContext ctx = new ActionContext(SecurityContext.getInstance(testUser, AccessMode.Backend));
 
 			//assertEquals("Invalid python scripting evaluation result", "Hello World from Python!\n", Scripting.evaluate(ctx, null, "${python{print \"Hello World from Python!\"}}"));
@@ -1924,7 +1929,7 @@ public class UiScriptingTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final JsonSchema schema    = StructrSchema.createFromDatabase(app);
-			schema.getType("User").addMethod(methodName, "{ $.log('onOAuthLogin'); return true; }");
+			schema.getType(StructrTraits.USER).addMethod(methodName, "{ $.log('onOAuthLogin'); return true; }");
 
 			StructrSchema.replaceDatabaseSchema(app, schema);
 
@@ -1936,16 +1941,12 @@ public class UiScriptingTest extends StructrUiTest {
 			fail("Unexpected exception");
 		}
 
-		/**
-		 * We currently have a discrepancy in looking up methods. This test should reflect this (or should be updated after that discrepancy is resolved)
-		 */
 		try (final Tx tx = app.tx()) {
 
-			final AbstractMethod shouldBeNull  = Methods.resolveMethod(User.class, methodName);
-			assertEquals(true, shouldBeNull == null);
-
-			final AbstractMethod shouldBeFound = Methods.resolveMethod(StructrApp.getConfiguration().getNodeEntityClass("User"), methodName);
+			final AbstractMethod shouldBeFound = Methods.resolveMethod(Traits.of(StructrTraits.USER), methodName);
 			assertEquals(true, shouldBeFound != null);
+
+			tx.success();
 
 		} catch (FrameworkException fex) {
 
@@ -1962,7 +1963,7 @@ public class UiScriptingTest extends StructrUiTest {
 
 	private void test(final DOMNode p, final DOMNode text, final String content, final String expected, final RenderContext context) throws FrameworkException {
 
-		text.setTextContent(content);
+		text.as(Content.class).setContent(content);
 
 		// clear queue
 		context.getBuffer().getQueue().clear();

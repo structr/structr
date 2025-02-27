@@ -90,8 +90,8 @@ public class RuntimeEventLogResource extends ExactMatchEndpoint {
 		}
 
 		@Override
-		public Class getEntityClass(final SecurityContext securityContext) {
-			return null;
+		public String getTypeName(final SecurityContext securityContext) {
+			return "RuntimeEvent";
 		}
 
 		@Override

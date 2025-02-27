@@ -32,9 +32,9 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.entity.Group;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.common.StatsCallback;
 import org.structr.rest.service.HttpServiceServlet;
@@ -55,9 +55,6 @@ public class EventSourceServlet extends org.eclipse.jetty.servlets.EventSourceSe
 
 	protected final StructrHttpServiceConfig config                     = new StructrHttpServiceConfig();
 	protected StatsCallback stats                                       = null;
-
-	static PropertyKey<String[]> sessionIdsPropertyKey = null;
-	static PropertyKey<Iterable<PrincipalInterface>> membersKey = null;
 
 	private SecurityContext securityContext;
 
@@ -150,7 +147,7 @@ public class EventSourceServlet extends org.eclipse.jetty.servlets.EventSourceSe
 
 				if (shouldReceive == null) {
 
-					final PrincipalInterface user = AuthHelper.getPrincipalForSessionId(sessionId);
+					final Principal user = AuthHelper.getPrincipalForSessionId(sessionId);
 
 					if (user == null) {
 						checkedSessionIds.put(sessionId, true);
@@ -177,7 +174,7 @@ public class EventSourceServlet extends org.eclipse.jetty.servlets.EventSourceSe
 
 				if (shouldReceive == null) {
 
-					final PrincipalInterface user = AuthHelper.getPrincipalForSessionId(sessionId);
+					final Principal user = AuthHelper.getPrincipalForSessionId(sessionId);
 
 					if (user != null) {
 						checkedSessionIds.put(sessionId, true);
@@ -194,18 +191,20 @@ public class EventSourceServlet extends org.eclipse.jetty.servlets.EventSourceSe
 		}
 	}
 
-	public static boolean sendEvent(final String name, final String data, final Set<PrincipalInterface> targets) {
+	public static boolean sendEvent(final String name, final String data, final Set<Principal> targets) {
 
 		final Set<User> uniqueUsers = new HashSet<>();
-		final Set<PrincipalInterface> seenGroups  = new HashSet<>();
+		final Set<Principal> seenGroups  = new HashSet<>();
 
-		for (PrincipalInterface principal : targets) {
+		for (Principal principal : targets) {
 
-			if (principal instanceof User) {
-//			if (User.class.isAssignableFrom(principal.getClass())) {
-				uniqueUsers.add((User)principal);
+			if (principal.is(StructrTraits.USER)) {
+
+				uniqueUsers.add(principal.as(User.class));
+
 			} else {
-				uniqueUsers.addAll(getUniqueUsersForGroup(principal, seenGroups, true));
+
+				uniqueUsers.addAll(getUniqueUsersForGroup(principal.as(Group.class), seenGroups, true));
 			}
 		}
 
@@ -219,27 +218,24 @@ public class EventSourceServlet extends org.eclipse.jetty.servlets.EventSourceSe
 		return oneTargetSeen;
 	}
 
-	private static Set<User> getUniqueUsersForGroup(final PrincipalInterface group, final Set<PrincipalInterface> seenGroups, final boolean recurse) {
+	private static Set<User> getUniqueUsersForGroup(final Group group, final Set<Principal> seenGroups, final boolean recurse) {
 
 		seenGroups.add(group);
 
 		final Set<User> uniqueUsers = new HashSet<>();
 
-		if (membersKey == null) {
-			membersKey = StructrApp.key(Group.class, "members");
-		}
-
-		for (PrincipalInterface member : group.getProperty(membersKey)) {
+		for (Principal member : group.getMembers()) {
 
 //			if (User.class.isAssignableFrom(member.getClass())) {
-			if (member instanceof User) {
+			if (member.is(StructrTraits.USER)) {
 
 				uniqueUsers.add((User)member);
 
 			} else if (recurse) {
 
 				if (!seenGroups.contains(member)) {
-					uniqueUsers.addAll(getUniqueUsersForGroup(member, seenGroups, recurse));
+
+					uniqueUsers.addAll(getUniqueUsersForGroup(member.as(Group.class), seenGroups, recurse));
 				}
 			}
 		}
@@ -269,11 +265,7 @@ public class EventSourceServlet extends org.eclipse.jetty.servlets.EventSourceSe
 
 	private static boolean shouldReceiveMessage(final StructrEventSource es, final User target) {
 
-		if (sessionIdsPropertyKey == null) {
-			sessionIdsPropertyKey = StructrApp.key(PrincipalInterface.class, "sessionIds");
-		}
-
-		final String[] ids = target.getProperty(sessionIdsPropertyKey);
+		final String[] ids = target.getSessionIds();
 
 		if (ids != null && Arrays.asList(ids).contains(es.getSessionId())) {
 			return true;

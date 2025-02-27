@@ -24,8 +24,10 @@ import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.SchemaMethod;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -165,7 +167,7 @@ public class RemoveExportedMethodsWithoutSecurityContext implements MigrationHan
 
 	private void deleteSchemaMethodWithSignature (final App app, final String signature) throws FrameworkException {
 
-		for (SchemaMethod method : app.nodeQuery(SchemaMethod.class).and(SchemaMethod.signature, signature).getAsList()) {
+		for (final NodeInterface method : app.nodeQuery(StructrTraits.SCHEMA_METHOD).and(Traits.of(StructrTraits.SCHEMA_METHOD).key("signature"), signature).getAsList()) {
 			app.delete(method);
 		}
 	}

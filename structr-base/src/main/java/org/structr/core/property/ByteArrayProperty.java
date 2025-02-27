@@ -46,8 +46,6 @@ import java.util.Map;
  */
 public class ByteArrayProperty extends AbstractPrimitiveProperty<Byte[]> {
 
-	private static final Logger logger = LoggerFactory.getLogger(ByteArrayProperty.class.getName());
-
 	public ByteArrayProperty(final String name) {
 		super(name);
 	}
@@ -72,12 +70,6 @@ public class ByteArrayProperty extends AbstractPrimitiveProperty<Byte[]> {
 
 	@Override
 	public Class valueType() {
-		// This trick results in returning the proper array class for array properties.
-		// Necessary because of and since commit 1db80071543018a0766efa2dc895b7bc3e9a0e34
-		try {
-			return Class.forName("[L" + Byte.class.getName() + ";");
-		} catch (ClassNotFoundException ex) {}
-
 		return Byte[].class;
 	}
 
@@ -87,28 +79,28 @@ public class ByteArrayProperty extends AbstractPrimitiveProperty<Byte[]> {
 	}
 
 	@Override
-	public PropertyConverter<Byte[], byte[]> databaseConverter(SecurityContext securityContext) {
+	public PropertyConverter<Byte[], byte[]> databaseConverter(final SecurityContext securityContext) {
 		return databaseConverter(securityContext, null);
 	}
 
 	@Override
-	public PropertyConverter<Byte[], byte[]> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+	public PropertyConverter<Byte[], byte[]> databaseConverter(final SecurityContext securityContext, final GraphObject entity) {
 		return new ArrayDatabaseConverter(securityContext, entity);
 	}
 
 	@Override
-	public PropertyConverter<?, Byte[]> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, Byte[]> inputConverter(final SecurityContext securityContext) {
 		return new ArrayInputConverter(securityContext);
 	}
 
 	private class ArrayDatabaseConverter extends PropertyConverter<Byte[], byte[]> {
 
-		public ArrayDatabaseConverter(SecurityContext securityContext, GraphObject entity) {
+		public ArrayDatabaseConverter(final SecurityContext securityContext, final GraphObject entity) {
 			super(securityContext, entity);
 		}
 
 		@Override
-		public byte[] convert(Byte[] source) throws FrameworkException {
+		public byte[] convert(final Byte[] source) throws FrameworkException {
 
 			if (source != null) {
 
@@ -120,7 +112,7 @@ public class ByteArrayProperty extends AbstractPrimitiveProperty<Byte[]> {
 		}
 
 		@Override
-		public Byte[] revert(byte[] source) throws FrameworkException {
+		public Byte[] revert(final byte[] source) throws FrameworkException {
 
 			try {
 
@@ -143,7 +135,7 @@ public class ByteArrayProperty extends AbstractPrimitiveProperty<Byte[]> {
 
 	private class ArrayInputConverter extends PropertyConverter<Object, Byte[]> {
 
-		public ArrayInputConverter(SecurityContext securityContext) {
+		public ArrayInputConverter(final SecurityContext securityContext) {
 			super(securityContext, null);
 		}
 
@@ -163,7 +155,7 @@ public class ByteArrayProperty extends AbstractPrimitiveProperty<Byte[]> {
 		}
 
 		@Override
-		public Byte[] convert(Object source) throws FrameworkException {
+		public Byte[] convert(final Object source) throws FrameworkException {
 
 			if (source == null) {
 				return null;
@@ -198,7 +190,7 @@ public class ByteArrayProperty extends AbstractPrimitiveProperty<Byte[]> {
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occurrence occur, Byte[] searchValue, boolean exactMatch, Query query) {
+	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final Occurrence occur, final Byte[] searchValue, final boolean exactMatch, final Query query) {
 
 		// early exit, return empty search attribute
 		if (searchValue == null) {
@@ -216,7 +208,7 @@ public class ByteArrayProperty extends AbstractPrimitiveProperty<Byte[]> {
 	}
 
 	@Override
-	public Object getExampleValue(String type, String viewName) {
+	public Object getExampleValue(final String type, final String viewName) {
 		return null;
 	}
 
@@ -225,9 +217,14 @@ public class ByteArrayProperty extends AbstractPrimitiveProperty<Byte[]> {
 		return false;
 	}
 
+	@Override
+	public boolean isArray() {
+		return true;
+	}
+
 	// ----- OpenAPI -----
 	@Override
-	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+	public Map<String, Object> describeOpenAPIOutputSchema(final String type, final String viewName) {
 		return null;
 	}
 

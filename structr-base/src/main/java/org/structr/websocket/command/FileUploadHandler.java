@@ -106,7 +106,7 @@ public class FileUploadHandler {
 		try {
 
 			file.unlockSystemPropertiesOnce();
-			file.setProperty(StructrApp.key(File.class, "size"), size);
+			file.setSize(size);
 
 		} catch (FrameworkException ex) {
 

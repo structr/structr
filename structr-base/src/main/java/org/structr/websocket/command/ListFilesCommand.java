@@ -22,13 +22,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
-import org.structr.schema.SchemaHelper;
-import org.structr.web.entity.AbstractFile;
-import org.structr.web.entity.Image;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
 
@@ -49,27 +48,27 @@ public class ListFilesCommand extends AbstractCommand {
 
 		setDoTransactionNotifications(false);
 
-		final SecurityContext securityContext  = getWebSocket().getSecurityContext();
-		final String rawType                   = webSocketData.getNodeDataStringValue("type");
-		final Class type                       = SchemaHelper.getEntityClassForRawType(rawType);
-		final String sortOrder                 = webSocketData.getSortOrder();
-		final String sortKey                   = webSocketData.getSortKey();
-		final int pageSize                     = webSocketData.getPageSize();
-		final int page                         = webSocketData.getPage();
-		final PropertyKey sortProperty         = StructrApp.key(type, sortKey);
+		final SecurityContext securityContext = getWebSocket().getSecurityContext();
+		final String rawType                  = webSocketData.getNodeDataStringValue("type");
+		final Traits type                     = Traits.of(rawType);
+		final String sortOrder                = webSocketData.getSortOrder();
+		final String sortKey                  = webSocketData.getSortKey();
+		final int pageSize                    = webSocketData.getPageSize();
+		final int page                        = webSocketData.getPage();
+		final PropertyKey sortProperty        = type.key(sortKey);
 
-		final Query<GraphObject> query = StructrApp.getInstance(securityContext)
-			.nodeQuery(type)
+		final Query<NodeInterface> query = StructrApp.getInstance(securityContext)
+			.nodeQuery(rawType)
 			.includeHidden()
 			.sort(sortProperty, "desc".equals(sortOrder))
-			.and(AbstractFile.parentProperty, null)
+			.and(type.key("parent"), null)
 			.page(page)
 			.pageSize(pageSize);
 
 		// for image lists, suppress thumbnails
-		if (type.equals(Image.class)) {
+		if (type.contains(StructrTraits.IMAGE)) {
 
-			query.and(StructrApp.key(Image.class, "isThumbnail"), false);
+			query.and(Traits.of(StructrTraits.IMAGE).key("isThumbnail"), false);
 		}
 
 		try {

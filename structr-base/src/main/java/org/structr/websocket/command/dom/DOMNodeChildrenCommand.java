@@ -19,6 +19,7 @@
 package org.structr.websocket.command.dom;
 
 import org.structr.common.PropertyView;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.web.entity.dom.DOMNode;
@@ -42,7 +43,7 @@ public class DOMNodeChildrenCommand extends AbstractCommand {
 	}
 
 	@Override
-	public void processMessage(final WebSocketMessage webSocketData) {
+	public void processMessage(final WebSocketMessage webSocketData) throws FrameworkException {
 
 		setDoTransactionNotifications(false);
 
@@ -57,7 +58,7 @@ public class DOMNodeChildrenCommand extends AbstractCommand {
 		prefetch(webSocketData.getId());
 
 		final List<GraphObject> result = new LinkedList<>();
-		DOMNode currentNode      = (DOMNode) node.getFirstChild();
+		DOMNode currentNode            = node.getFirstChild();
 
 		while (currentNode != null) {
 

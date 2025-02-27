@@ -1,0 +1,186 @@
+/*
+ * Copyright (C) 2010-2024 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package org.structr.core.traits.definitions;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.api.graph.Node;
+import org.structr.common.PropertyView;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
+import org.structr.common.helper.ValidationHelper;
+import org.structr.core.GraphObject;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Principal;
+import org.structr.core.entity.Relation;
+import org.structr.core.entity.SchemaGrant;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.TransactionCommand;
+import org.structr.core.property.*;
+import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.core.traits.operations.graphobject.IsValid;
+import org.structr.core.traits.operations.graphobject.OnCreation;
+import org.structr.core.traits.operations.graphobject.OnModification;
+import org.structr.core.traits.wrappers.SchemaGrantTraitWrapper;
+
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
+
+/**
+ *
+ *
+ */
+public final class SchemaGrantTraitDefinition extends AbstractNodeTraitDefinition {
+
+	private static final Logger logger = LoggerFactory.getLogger(SchemaGrantTraitDefinition.class);
+
+	public SchemaGrantTraitDefinition() {
+		super(StructrTraits.SCHEMA_GRANT);
+	}
+
+	@Override
+	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+
+		return Map.of(
+
+			IsValid.class,
+			new IsValid() {
+
+				@Override
+				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
+
+					final Set<PropertyKey> keys = new LinkedHashSet<>();
+					final Traits traits         = obj.getTraits();
+
+					// preserve order (for testing)
+					keys.add(traits.key("principal"));
+					keys.add(traits.key("schemaNode"));
+					keys.add(traits.key("staticSchemaNodeName"));
+
+					return ValidationHelper.areValidCompoundUniqueProperties(obj, errorBuffer, keys);
+				}
+			},
+
+			OnCreation.class, (OnCreation) (graphObject, securityContext, errorBuffer) -> checkRelationshipsAndDeleteSelf(graphObject.as(SchemaGrant.class), true),
+			OnModification.class, (OnModification) (graphObject, securityContext, errorBuffer, modificationQueue) -> checkRelationshipsAndDeleteSelf(graphObject.as(SchemaGrant.class), false)
+		);
+	}
+
+	@Override
+	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
+		return Map.of(
+			SchemaGrant.class, (traits, node) -> new SchemaGrantTraitWrapper(traits, node)
+		);
+	}
+
+	@Override
+	public Set<PropertyKey> getPropertyKeys() {
+
+		final Property<NodeInterface>  principal    = new StartNode("principal", StructrTraits.PRINCIPAL_SCHEMA_GRANT_RELATIONSHIP);
+		final Property<NodeInterface> schemaNode    = new EndNode("schemaNode", StructrTraits.SCHEMA_GRANT_SCHEMA_NODE_RELATIONSHIP);
+		final Property<String> staticSchemaNodeName = new StringProperty("staticSchemaNodeName");
+		final Property<Boolean> allowRead           = new BooleanProperty("allowRead");
+		final Property<Boolean> allowWrite          = new BooleanProperty("allowWrite");
+		final Property<Boolean> allowDelete         = new BooleanProperty("allowDelete");
+		final Property<Boolean> allowAccessControl  = new BooleanProperty("allowAccessControl");
+
+		return newSet(
+			principal,
+			schemaNode,
+			staticSchemaNodeName,
+			allowAccessControl,
+			allowDelete,
+			allowRead,
+			allowWrite
+		);
+	}
+
+	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+			PropertyView.Public,
+			newSet(
+				"principal", "schemaNode", "staticSchemaNodeName", "allowRead", "allowWrite", "allowDelete", "allowAccessControl"
+			),
+			PropertyView.Ui,
+			newSet(
+				"principal", "schemaNode", "staticSchemaNodeName", "allowRead", "allowWrite", "allowDelete", "allowAccessControl"
+			),
+			"schema",
+			newSet(
+				"id", "principal", "schemaNode", "staticSchemaNodeName", "allowRead", "allowWrite", "allowDelete", "allowAccessControl"
+			),
+			"export",
+			newSet(
+				"principal", "schemaNode", "staticSchemaNodeName", "allowRead", "allowWrite", "allowDelete", "allowAccessControl"
+			)
+		);
+	}
+
+	/*
+	*/
+
+	@Override
+	public Relation getRelation() {
+		return null;
+	}
+
+	// ----- private methods -----
+	private void checkRelationshipsAndDeleteSelf(final SchemaGrant grant, final boolean isCreation) throws FrameworkException {
+
+		final NodeInterface node = grant;
+		final Node dbNode        = node.getNode();
+		final Principal p        = grant.getPrincipal();
+
+		if (!TransactionCommand.isDeleted(dbNode)) {
+
+			if (p == null) {
+
+				// no principal => delete
+				SchemaGrantTraitDefinition.logger.warn("Deleting SchemaGrant {} because it is not linked to a principal.", grant.getUuid());
+				StructrApp.getInstance().delete(node);
+			}
+
+			// silently delete this node if all settings are set to false
+			if (!isCreation && !grant.allowRead() && !grant.allowWrite() && !grant.allowDelete() && !grant.allowAccessControl()) {
+
+				SchemaGrantTraitDefinition.logger.warn("Deleting SchemaGrant {} because it doesn't allow anything.", grant.getUuid());
+				StructrApp.getInstance().delete(node);
+			}
+
+			// delete this node if schema node is missing
+			if (grant.getSchemaNode() == null) {
+
+				// schema grant can be associated with a static type as well
+				final String fqcn = grant.getStaticSchemaNodeName();
+				if (fqcn == null) {
+
+					SchemaGrantTraitDefinition.logger.warn("Deleting SchemaGrant {} because it is not linked to a schema node.", node.getUuid());
+					StructrApp.getInstance().delete(node);
+				}
+			}
+		}
+	}
+}

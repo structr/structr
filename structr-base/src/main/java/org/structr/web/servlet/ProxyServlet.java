@@ -34,15 +34,16 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.rest.common.HttpHelper;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.rest.servlet.AbstractServletBase;
 import org.structr.web.auth.UiAuthenticator;
-import org.structr.web.entity.User;
 
 import java.io.IOException;
 import java.net.URI;
@@ -101,9 +102,10 @@ public class ProxyServlet extends AbstractServletBase implements HttpServiceServ
 
 		setCustomResponseHeaders(response);
 
-		final PropertyKey<String> proxyUrlKey      = StructrApp.key(User.class, "proxyUrl");
-		final PropertyKey<String> proxyUsernameKey = StructrApp.key(User.class, "proxyUsername");
-		final PropertyKey<String> proxyPasswordKey = StructrApp.key(User.class, "proxyPassword");
+		final Traits traits                        = Traits.of(StructrTraits.USER);
+		final PropertyKey<String> proxyUrlKey      = traits.key("proxyUrl");
+		final PropertyKey<String> proxyUsernameKey = traits.key("proxyUsername");
+		final PropertyKey<String> proxyPasswordKey = traits.key("proxyPassword");
 
 		final Authenticator auth = getConfig().getAuthenticator();
 
@@ -180,14 +182,14 @@ public class ProxyServlet extends AbstractServletBase implements HttpServiceServ
 
 			if (StringUtils.isBlank(proxyUrl)) {
 
-				final PrincipalInterface user = securityContext.getCachedUser();
+				final Principal user = securityContext.getCachedUser();
 				if (user != null) {
 
 					try (final Tx tx = StructrApp.getInstance().tx()) {
 
-						proxyUrl = user.getProperty(proxyUrlKey);
-						proxyUsername = user.getProperty(proxyUsernameKey);
-						proxyPassword = user.getProperty(proxyPasswordKey);
+						proxyUrl =      user.getProxyUrl();
+						proxyUsername = user.getProxUsername();
+						proxyPassword = user.getProxyPassword();
 
 						tx.success();
 

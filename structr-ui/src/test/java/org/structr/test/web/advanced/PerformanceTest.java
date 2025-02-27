@@ -30,18 +30,15 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.GenericNode;
-import org.structr.core.entity.GenericRelationship;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.*;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
-import org.structr.test.web.entity.TestFive;
-import org.structr.test.web.entity.TestOne;
-import org.structr.test.web.entity.TestTwo;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.User;
 import org.structr.web.entity.dom.Page;
@@ -75,8 +72,8 @@ public class PerformanceTest extends StructrUiTest {
 	@Test
 	public void testPerformanceOfNodeCreation() {
 
-		final List<TestOne> nodes = new LinkedList<>();
-		final long number         = 1000;
+		final List<NodeInterface> nodes = new LinkedList<>();
+		final long number               = 1000;
 
 		// start measuring
 		final long t0 = System.currentTimeMillis();
@@ -90,12 +87,12 @@ public class PerformanceTest extends StructrUiTest {
 
 				for (int i=0; i<number; i++) {
 
-					nodes.add(app.create(TestOne.class,
-						new NodeAttribute(TestOne.name, "TestOne" + i),
-						new NodeAttribute(TestOne.aDate, new Date()),
-						new NodeAttribute(TestOne.aDouble, 1.234),
-						new NodeAttribute(TestOne.aLong, 12345L),
-						new NodeAttribute(TestOne.anInt, 123)
+					nodes.add(app.create("TestOne",
+						new NodeAttribute(Traits.of("TestOne").key("name"), "TestOne" + i),
+						new NodeAttribute(Traits.of("TestOne").key("aDate"), new Date()),
+						new NodeAttribute(Traits.of("TestOne").key("aDouble"), 1.234),
+						new NodeAttribute(Traits.of("TestOne").key("aLong"), 12345L),
+						new NodeAttribute(Traits.of("TestOne").key("anInt"), 123)
 					));
 				}
 
@@ -140,20 +137,21 @@ public class PerformanceTest extends StructrUiTest {
 
 		try {
 
-			int expected                   = 1000;
-			final App app                  = StructrApp.getInstance(setupSecurityContext());
-			final List<GenericNode> nodes  = new ArrayList<>(createNodes(app, GenericNode.class, expected + 1));
-			List<GenericRelationship> rels = new LinkedList<>();
+			int expected                     = 1000;
+			final App app                    = StructrApp.getInstance(setupSecurityContext());
+			final List<NodeInterface> threes = new ArrayList<>(createNodes(app, "TestThree", expected));
+			final List<NodeInterface> fours  = new ArrayList<>(createNodes(app, "TestFour", expected));
+			List<RelationshipInterface> rels = new LinkedList<>();
 			long t0                        = System.nanoTime();
 
  			try (final Tx tx = app.tx()) {
 
 				for (int i=0 ;i<expected; i++) {
 
-					final GenericNode n1 = nodes.get(i);
-					final GenericNode n2 = nodes.get(i+1);
+					final NodeInterface n1 = fours.get(i);
+					final NodeInterface n2 = threes.get(i);
 
-					rels.add(app.create(n1, n2, GenericRelationship.class));
+					rels.add(app.create(n1, n2, "FourThreeOneToOne"));
 				}
 
 				tx.success();
@@ -202,7 +200,7 @@ public class PerformanceTest extends StructrUiTest {
 
 			logger.info("Creating {} nodes..", number);
 
-			createNodes(app, TestOne.class, number);
+			createNodes(app, "TestOne", number);
 
 			long t0 = System.nanoTime();
 
@@ -216,9 +214,9 @@ public class PerformanceTest extends StructrUiTest {
 
 				try (final Tx tx = app.tx()) {
 
-					for (final TestOne t : app.nodeQuery(TestOne.class).getResultStream()) {
+					for (final NodeInterface t : app.nodeQuery("TestOne").getResultStream()) {
 
-						final String name = t.getProperty(AbstractNode.name);
+						final String name = t.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"));
 					}
 
 					tx.success();
@@ -267,9 +265,9 @@ public class PerformanceTest extends StructrUiTest {
 
 				for (int i=0; i<number; i++) {
 
-					app.create(TestFive.class,
-						new NodeAttribute<>(TestFive.name, "TestFive" + i),
-						new NodeAttribute<>(TestFive.testTwo, app.create(TestTwo.class, "TestTwo" + i))
+					app.create("TestFive",
+						new NodeAttribute<>(Traits.of("TestFive").key("name"), "TestFive" + i),
+						new NodeAttribute<>(Traits.of("TestFive").key("testTwo"), app.create("TestTwo", "TestTwo" + i))
 					);
 				}
 
@@ -293,12 +291,14 @@ public class PerformanceTest extends StructrUiTest {
 						"all/OUTGOING/TEST"
 					));
 
-					for (final TestTwo t : app.nodeQuery(TestTwo.class).getAsList()) {
+					for (final NodeInterface t : app.nodeQuery("TestTwo").getAsList()) {
 
 						t.getName();
 
-						final List<TestFive> list = Iterables.toList(t.getProperty(TestTwo.testFives));
-						for (final TestFive f : list) {
+						final PropertyKey<Iterable<NodeInterface>> key = Traits.of("TestTwo").key("testFives");
+						final List<NodeInterface> list                 = Iterables.toList(t.getProperty(key));
+
+						for (final NodeInterface f : list) {
 
 							f.getName();
 						}
@@ -339,7 +339,7 @@ public class PerformanceTest extends StructrUiTest {
 
 			try (final Tx tx = app.tx()) {
 
-				nodes.addAll(createNodes(app, TestOne.class, number));
+				nodes.addAll(createNodes(app, "TestOne", number));
 				tx.success();
 			}
 
@@ -399,10 +399,10 @@ public class PerformanceTest extends StructrUiTest {
 				logger.info("Creating {} nodes for user admin, count is {}", number, count);
 				try (final Tx tx = app.tx()) {
 
-					for (final NodeInterface n : createNodes(app, TestTwo.class, number)){
+					for (final NodeInterface n : createNodes(app, "TestTwo", number)){
 
-						n.setProperty(AbstractNode.name, "Test" + StringUtils.leftPad(Integer.toString(count++), 5, "0"));
-						n.setProperty(StructrApp.key(TestTwo.class, "testFives"), createNodes(app, TestFive.class, 3));
+						n.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "Test" + StringUtils.leftPad(Integer.toString(count++), 5, "0"));
+						n.setProperty(Traits.of("TestTwo").key("testFives"), createNodes(app, "TestFive", 3));
 					}
 
 					tx.success();
@@ -431,12 +431,12 @@ public class PerformanceTest extends StructrUiTest {
 					final long t0 = System.currentTimeMillis();
 
 					final int r               = randm.nextInt(10000);
-					final List<TestTwo> nodes = app.nodeQuery(TestTwo.class).andName("Test" + StringUtils.leftPad(Integer.toString(r), 5, "0")).getAsList();
+					final List<NodeInterface> nodes = app.nodeQuery("TestTwo").andName("Test" + StringUtils.leftPad(Integer.toString(r), 5, "0")).getAsList();
 
 					assertEquals(1, nodes.size());
 
-					final TestTwo testOne = nodes.get(0);
-					final List<TestFive> testFives = Iterables.toList((Iterable)testOne.getProperty(StructrApp.key(TestTwo.class, "testFives")));
+					final NodeInterface testOne = nodes.get(0);
+					final List<NodeInterface> testFives = Iterables.toList((Iterable)testOne.getProperty(Traits.of("TestTwo").key("testFives")));
 
 					assertEquals(3, testFives.size());
 
@@ -468,7 +468,7 @@ public class PerformanceTest extends StructrUiTest {
 
 					final long t0 = System.currentTimeMillis();
 
-					final PrincipalInterface user = app.nodeQuery(PrincipalInterface.class).getFirst();
+					final Principal user = app.nodeQuery(StructrTraits.PRINCIPAL).getFirst().as(Principal.class);
 
 					user.getGroups();
 
@@ -524,9 +524,11 @@ public class PerformanceTest extends StructrUiTest {
 
 			try (final Tx tx = app.tx()) {
 
-				final Page page      = app.nodeQuery(Page.class).getFirst();
+				final Page page      = app.nodeQuery(StructrTraits.PAGE).getFirst().as(Page.class);
 				final String content = page.getContent(RenderContext.EditMode.NONE);
 
+				System.out.println("###################################################################################################################");
+				System.out.println(content);
 				System.out.println("Content length: " + content.length());
 
 				tx.success();
@@ -556,8 +558,8 @@ public class PerformanceTest extends StructrUiTest {
 			final JsonObjectType type2    = schema.addType("Type2");
 			final JsonObjectType linked   = schema.addType("LinkedType");
 
-			type1.setExtends(baseType);
-			type2.setExtends(baseType);
+			type1.addTrait("BaseType");
+			type2.addTrait("BaseType");
 
 			baseType.relate(linked, "LINKED", Cardinality.ManyToOne, "baseTypes", "linked");
 
@@ -593,15 +595,15 @@ public class PerformanceTest extends StructrUiTest {
 	// ----- private methods -----
 	private SecurityContext setupSecurityContext() {
 
-		final App app = StructrApp.getInstance();
-		User user     = null;
+		final App app      = StructrApp.getInstance();
+		NodeInterface user = null;
 
 		try (final Tx tx = app.tx()) {
 
-			user = app.create(User.class,
-				new NodeAttribute<>(StructrApp.key(AbstractNode.class, "name"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"),      true)
+			user = app.create(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"),      true)
 			);
 
 			tx.success();
@@ -612,12 +614,12 @@ public class PerformanceTest extends StructrUiTest {
 			fail("Unexpected exception");
 		}
 
-		return SecurityContext.getInstance(user, AccessMode.Backend);
+		return SecurityContext.getInstance(user.as(User.class), AccessMode.Backend);
 	}
 
-	private <T extends NodeInterface> List<T> createNodes(final App app, final Class<T> type, final int number) throws FrameworkException {
+	private List<NodeInterface> createNodes(final App app, final String type, final int number) throws FrameworkException {
 
-		final List<T> nodes = new LinkedList<>();
+		final List<NodeInterface> nodes = new LinkedList<>();
 
 		try (final Tx tx = app.tx()) {
 

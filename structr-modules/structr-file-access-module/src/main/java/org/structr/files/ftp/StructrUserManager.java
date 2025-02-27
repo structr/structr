@@ -27,9 +27,11 @@ import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.rest.auth.AuthHelper;
 
 import java.util.ArrayList;
@@ -51,13 +53,18 @@ public class StructrUserManager implements UserManager {
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			org.structr.web.entity.User structrUser = getStructrUser(userName);
+			Principal structrUser = getStructrUser(userName);
 			tx.success();
+
 			if (structrUser != null) {
+
 				return new StructrFtpUser(securityContext, structrUser);
+
 			} else {
+
 				return null;
 			}
+
 		} catch (FrameworkException fex) {
 			logger.error("Unable to get user by its name", fex);
 		}
@@ -69,12 +76,12 @@ public class StructrUserManager implements UserManager {
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			final List<String> userNames = new ArrayList();
-			final List<PrincipalInterface> result = new LinkedList<>();
+			final List<String> userNames     = new ArrayList();
+			final List<NodeInterface> result = new LinkedList<>();
 
 			try {
 
-				Iterables.addAll(result, StructrApp.getInstance(securityContext).nodeQuery(PrincipalInterface.class).sort(AbstractNode.name).getResultStream());
+				Iterables.addAll(result, StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.PRINCIPAL).sort(Traits.of(StructrTraits.PRINCIPAL).key("name")).getResultStream());
 
 			} catch (FrameworkException ex) {
 
@@ -84,9 +91,9 @@ public class StructrUserManager implements UserManager {
 
 			if (!result.isEmpty()) {
 
-				for (PrincipalInterface p : result) {
+				for (NodeInterface p : result) {
 
-					userNames.add(p.getProperty(PrincipalInterface.name));
+					userNames.add(p.getName());
 				}
 			}
 
@@ -149,14 +156,18 @@ public class StructrUserManager implements UserManager {
 				userName = authentication.getUsername();
 				password = authentication.getPassword();
 
-				user = (org.structr.web.entity.User) AuthHelper.getPrincipalForPassword(PrincipalInterface.name, userName, password);
+				final Principal principal = AuthHelper.getPrincipalForPassword(Traits.of(StructrTraits.PRINCIPAL).key("name"), userName, password);
+				if (principal != null) {
+
+					user = principal.as(org.structr.web.entity.User.class);
+				}
 
 				securityContext = SecurityContext.getInstance(user, AccessMode.Backend);
 
 				tx.success();
 
 			} catch (FrameworkException ex) {
-				logger.warn("FTP authentication attempt failed with username {} and password {}", new Object[]{userName, password});
+				logger.warn("FTP authentication attempt failed with username {} and password {}", userName, password);
 			}
 
 			if (user != null) {
@@ -180,11 +191,11 @@ public class StructrUserManager implements UserManager {
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
-	private org.structr.web.entity.User getStructrUser(final String userName) {
+	private Principal getStructrUser(final String userName) {
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			final org.structr.web.entity.User user = (org.structr.web.entity.User) AuthHelper.getPrincipalForCredential(PrincipalInterface.name, userName);
+			final Principal user = AuthHelper.getPrincipalForCredential(Traits.of(StructrTraits.PRINCIPAL).key("name"), userName);
 
 			tx.success();
 

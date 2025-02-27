@@ -24,14 +24,15 @@ import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.SchemaNode;
-import org.structr.rest.api.ExactMatchEndpoint;
-import org.structr.rest.api.RESTCall;
-import org.structr.rest.api.RESTCallHandler;
-import org.structr.rest.api.parameter.RESTParameter;
+import org.structr.core.traits.Traits;
 import org.structr.schema.SchemaHelper;
 
-import java.util.Set;
+import java.util.*;
+import org.structr.core.entity.SchemaNode;
+import org.structr.rest.api.RESTCall;
+import org.structr.rest.api.RESTCallHandler;
+import org.structr.rest.api.ExactMatchEndpoint;
+import org.structr.rest.api.parameter.RESTParameter;
 
 /**
  *
@@ -56,16 +57,16 @@ public class SchemaTypeResource extends ExactMatchEndpoint {
 		final String typeName = call.get("type");
 		if (typeName != null) {
 
-			final Class entityClass = SchemaHelper.getEntityClassForRawType(typeName);
-			if (entityClass != null) {
+			final Traits traits = Traits.of(typeName);
+			if (traits != null) {
 
 				if (call.isDefaultView()) {
 
-					return new SchemaTypeResourceHandler(call, entityClass, typeName, null);
+					return new SchemaTypeResourceHandler(call, typeName, null);
 
 				} else {
 
-					return new SchemaTypeResourceHandler(call, entityClass, typeName, call.getViewName());
+					return new SchemaTypeResourceHandler(call, typeName, call.getViewName());
 				}
 			}
 		}
@@ -74,32 +75,30 @@ public class SchemaTypeResource extends ExactMatchEndpoint {
 	}
 
 	// ----- public static methods -----
-	public static ResultStream getSchemaTypeResult(final SecurityContext securityContext, final String rawType, final Class type, final String propertyView) throws FrameworkException {
-		return new PagingIterable<>("getSchemaTypeResult(" + rawType + ")", SchemaHelper.getSchemaTypeInfo(securityContext, rawType, type, propertyView));
+	public static ResultStream getSchemaTypeResult(final SecurityContext securityContext, final String type, final String propertyView) throws FrameworkException {
+		return new PagingIterable<>("getSchemaTypeResult(" + type + ")", SchemaHelper.getSchemaTypeInfo(securityContext, type, propertyView));
 	}
 
 	private class SchemaTypeResourceHandler extends RESTCallHandler {
 
-		private Class entityClass = null;
 		private String typeName   = null;
 		private String viewName   = null;
 
-		public SchemaTypeResourceHandler(final RESTCall call, final Class entityClass, final String typeName, final String viewName) {
+		public SchemaTypeResourceHandler(final RESTCall call, final String typeName, final String viewName) {
 
 			super(call);
 
-			this.entityClass = entityClass;
 			this.typeName    = typeName;
 			this.viewName    = viewName;
 		}
 
 		@Override
 		public ResultStream doGet(final SecurityContext securityContext, final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
-			return SchemaTypeResource.getSchemaTypeResult(securityContext, typeName, entityClass, viewName);
+			return SchemaTypeResource.getSchemaTypeResult(securityContext, typeName, viewName);
 		}
 
 		@Override
-		public Class getEntityClass(final SecurityContext securityContext) {
+		public String getTypeName(final SecurityContext securityContext) {
 			return null;
 		}
 

@@ -18,18 +18,7 @@
  */
 package org.structr.web.entity.css;
 
-import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.EndNodes;
-import org.structr.core.property.Property;
-import org.structr.web.entity.css.relationship.CssSemanticClassMAPS_TOCssSelector;
+import org.structr.core.graph.NodeInterface;
 
-public class CssSemanticClass extends AbstractNode {
-
-	public static final Property<Iterable<CssSelector>> selectorsProperty = new EndNodes<>("selectors", CssSemanticClassMAPS_TOCssSelector.class).partOfBuiltInSchema();
-
-	public static final View uiView = new View(CssSemanticClass.class, PropertyView.Ui,
-		selectorsProperty
-	);
+public interface CssSemanticClass extends NodeInterface {
 }

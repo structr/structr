@@ -21,11 +21,10 @@ package org.structr.test.web.advanced;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
 import org.structr.test.web.StructrUiTest;
-import org.structr.web.entity.dom.Content;
-import org.structr.web.entity.dom.Page;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
+import org.structr.web.entity.dom.DOMNode;
 
 import java.util.List;
 
@@ -38,11 +37,11 @@ public abstract class DOMTest extends StructrUiTest {
 	
 	private static final Logger logger = LoggerFactory.getLogger(DOMTest.class.getName());
 	
-	protected Document getDocument() {
+	protected NodeInterface getDocument() {
 		
 		try {
 			
-			List<Page> pages = this.createTestNodes(Page.class, 1);
+			List<NodeInterface> pages = this.createTestNodes(StructrTraits.PAGE, 1);
 
 			if (!pages.isEmpty()) {
 				
@@ -59,11 +58,11 @@ public abstract class DOMTest extends StructrUiTest {
 		
 	}
 	
-	protected Content getContentNode() {
+	protected NodeInterface getContentNode() {
 		
 		try {
 			
-			List<Content> contents = this.createTestNodes(Content.class, 1);
+			List<NodeInterface> contents = this.createTestNodes(StructrTraits.CONTENT, 1);
 
 			if (!contents.isEmpty()) {
 				
@@ -78,15 +77,16 @@ public abstract class DOMTest extends StructrUiTest {
 		return null;
 	 }
 	
-	protected void printNode(Node node, int depth) {
+	protected void printNode(final DOMNode node, final int depth) throws FrameworkException {
 		
 		for (int i=0; i<depth; i++) {
 			System.out.print("    ");
 		}
 		
-		System.out.println(node.getNodeName());
+		System.out.println(node.getName());
 		
-		Node child = node.getFirstChild();
+		DOMNode child = node.getFirstChild();
+
 		while (child != null) {
 			printNode(child, depth + 1);
 			child = child.getNextSibling();

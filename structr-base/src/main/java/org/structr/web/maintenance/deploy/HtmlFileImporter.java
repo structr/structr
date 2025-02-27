@@ -28,7 +28,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 
 public abstract class HtmlFileImporter {
 
-    private static final Logger logger        = LoggerFactory.getLogger(HtmlFileImporter.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(HtmlFileImporter.class.getName());
 
     public void processFolderContentsSorted(final Path folder) throws IOException {
 

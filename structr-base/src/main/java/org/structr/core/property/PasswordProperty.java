@@ -23,11 +23,14 @@ import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.*;
 import org.structr.core.GraphObject;
-import org.structr.core.app.StructrApp;
 import org.structr.core.auth.HashHelper;
 import org.structr.core.converter.ValidationInfo;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.CreationContainer;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Trait;
+import org.structr.core.traits.Traits;
 
 import java.util.Date;
 
@@ -53,7 +56,7 @@ public class PasswordProperty extends StringProperty {
 	}
 
 	@Override
-	public void registrationCallback(Class entityType) {
+	public void registrationCallback(final Trait trait) {
 
 		if (validationInfo != null && validationInfo.getErrorKey() == null) {
 			validationInfo.setErrorKey(this);
@@ -68,6 +71,7 @@ public class PasswordProperty extends StringProperty {
 	@Override
 	public Object setProperty(SecurityContext securityContext, GraphObject obj, String clearTextPassword) throws FrameworkException {
 
+		final Traits traits = Traits.of(StructrTraits.PRINCIPAL);
 		final Object returnValue;
 		GraphObject wrappedObject = null;
 
@@ -90,28 +94,28 @@ public class PasswordProperty extends StringProperty {
 
 				wrappedObject = ((CreationContainer)obj).getWrappedObject();
 
-				if (wrappedObject != null && wrappedObject instanceof PrincipalInterface) {
+				if (wrappedObject != null && wrappedObject instanceof NodeInterface node) {
 
-					final PrincipalInterface principal   = (PrincipalInterface)wrappedObject;
+					final Principal principal   = node.as(Principal.class);
 					final String oldSalt        = principal.getSalt();
 					final String oldEncPassword = principal.getEncryptedPassword();
 
 					boolean passwordChangedOrFirstPassword = (oldEncPassword == null || oldSalt == null || !oldEncPassword.equals(HashHelper.getHash(clearTextPassword, oldSalt)));
 					if (passwordChangedOrFirstPassword) {
 
-						obj.setProperty(StructrApp.key(PrincipalInterface.class, "passwordChangeDate"), new Date().getTime());
+						obj.setProperty(traits.key("passwordChangeDate"), new Date().getTime());
 					}
 				}
 			}
 
 			final String salt = RandomStringUtils.randomAlphanumeric(16);
 
-			obj.setProperty(StructrApp.key(PrincipalInterface.class, "salt"), salt);
+			obj.setProperty(traits.key("salt"), salt);
 
 			returnValue = super.setProperty(securityContext, obj, HashHelper.getHash(clearTextPassword, salt));
 
-			if (Settings.PasswordClearSessionsOnChange.getValue() && wrappedObject != null && wrappedObject instanceof PrincipalInterface) {
-				wrappedObject.removeProperty(StructrApp.key(PrincipalInterface.class, "sessionIds"));
+			if (Settings.PasswordClearSessionsOnChange.getValue() && wrappedObject != null && wrappedObject.is(StructrTraits.PRINCIPAL)) {
+				wrappedObject.removeProperty(traits.key("sessionIds"));
 			}
 
 		} else {
@@ -119,8 +123,8 @@ public class PasswordProperty extends StringProperty {
 			returnValue = super.setProperty(securityContext, obj, null);
 		}
 
-		if (Settings.PasswordClearSessionsOnChange.getValue() && wrappedObject != null && wrappedObject instanceof PrincipalInterface) {
-			wrappedObject.removeProperty(StructrApp.key(PrincipalInterface.class, "sessionIds"));
+		if (Settings.PasswordClearSessionsOnChange.getValue() && wrappedObject != null && wrappedObject.is(StructrTraits.PRINCIPAL)) {
+			wrappedObject.removeProperty(traits.key("sessionIds"));
 		}
 
 		if (Settings.PasswordComplexityEnforce.getValue()) {
@@ -152,23 +156,23 @@ public class PasswordProperty extends StringProperty {
 		final int otherCharactersInPassword     = (passwordLength - upperCaseCharactersInPassword - lowerCaseCharactersInPassword - digitsInPassword);
 
 		if (passwordLength < passwordMinLength) {
-			errorBuffer.add(new TooShortToken("User", "password", passwordMinLength));
+			errorBuffer.add(new TooShortToken(StructrTraits.USER, "password", passwordMinLength));
 		}
 
 		if (enforceMinUpperCase && upperCaseCharactersInPassword == 0) {
-			errorBuffer.add(new SemanticErrorToken("User", "password", "must_contain_uppercase"));
+			errorBuffer.add(new SemanticErrorToken(StructrTraits.USER, "password", "must_contain_uppercase"));
 		}
 
 		if (enforceMinLowerCase && lowerCaseCharactersInPassword == 0) {
-			errorBuffer.add(new SemanticErrorToken("User", "password", "must_contain_lowercase"));
+			errorBuffer.add(new SemanticErrorToken(StructrTraits.USER, "password", "must_contain_lowercase"));
 		}
 
 		if (enforceMinDigits && digitsInPassword == 0) {
-			errorBuffer.add(new SemanticErrorToken("User", "password", "must_contain_digits"));
+			errorBuffer.add(new SemanticErrorToken(StructrTraits.USER, "password", "must_contain_digits"));
 		}
 
 		if (enforceMinNonAlphaNumeric && otherCharactersInPassword == 0) {
-			errorBuffer.add(new SemanticErrorToken("User", "password", "must_contain_non_alpha_numeric"));
+			errorBuffer.add(new SemanticErrorToken(StructrTraits.USER, "password", "must_contain_non_alpha_numeric"));
 		}
 
 		if (errorBuffer.hasError()) {

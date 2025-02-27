@@ -985,7 +985,7 @@ let _ResourceAccessPermissions = {
 
 			let bitmaskInput = $('.bitmask', tr);
 			bitmaskInput.on('blur', function() {
-				_ResourceAccessPermissions.updateResourceAccessFlags(resourceAccess.id, $(this).val());
+				_ResourceAccessPermissions.updateResourceAccessFlags(Traits.of("ResourceAccess").key("id"), $(this).val());
 			});
 
 			bitmaskInput.keypress(function(e) {
@@ -1002,7 +1002,7 @@ let _ResourceAccessPermissions = {
 			tr.find('input.resource-access-flag:checked').each(function(i, input) {
 				newFlags += parseInt($(input).attr('data-flag'));
 			});
-			_ResourceAccessPermissions.updateResourceAccessFlags(resourceAccess.id, newFlags);
+			_ResourceAccessPermissions.updateResourceAccessFlags(Traits.of("ResourceAccess").key("id"), newFlags);
 		});
 
 		$('input[type=checkbox].resource-access-visibility', tr).on('change', function() {
@@ -1010,7 +1010,7 @@ let _ResourceAccessPermissions = {
 			let visibilityOptionName  = $(this).attr('name');
 			let visibilityOptionValue = $(this).prop('checked');
 
-			Command.setProperty(resourceAccess.id, visibilityOptionName, visibilityOptionValue, false, function() {
+			Command.setProperty(Traits.of("ResourceAccess").key("id"), visibilityOptionName, visibilityOptionValue, false, function() {
 				_ResourceAccessPermissions.updateResourcesAccessRow(resourceAccess.id);
 			});
 		});

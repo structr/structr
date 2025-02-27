@@ -80,7 +80,7 @@ public class ChunkCommand extends AbstractCommand {
 
 			}
 
-			org.structr.core.graph.search.SearchCommand.prefetch(AbstractFile.class, uuid);
+			//org.structr.core.graph.search.SearchCommand.prefetch(AbstractFile.class, uuid);
 
 			final File file = (File) getNode(uuid);
 			if (file.isTemplate()) {

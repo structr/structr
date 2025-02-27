@@ -24,8 +24,9 @@ import org.structr.api.search.QueryPredicate;
 import org.structr.api.search.SortOrder;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Trait;
 
 import java.util.Comparator;
 import java.util.LinkedHashSet;
@@ -43,11 +44,11 @@ public abstract class SearchAttribute<T> extends NodeAttribute<T> implements Pre
 	public static final String WILDCARD = "*";
 
 	private Comparator<GraphObject> comparator = null;
- 	private Set<GraphObject> result            = new LinkedHashSet<>();
-	private Occurrence occur                   = null;
-	private SortOrder sortOrder                = null;
+ 	private Set<org.structr.core.GraphObject> result          = new LinkedHashSet<>();
+	private Occurrence occur                 = null;
+	private SortOrder sortOrder              = null;
 
-	public abstract boolean includeInResult(GraphObject entity);
+	public abstract boolean includeInResult(final GraphObject entity);
 
 	public SearchAttribute() {
 		this(null, null);
@@ -67,19 +68,19 @@ public abstract class SearchAttribute<T> extends NodeAttribute<T> implements Pre
 		this.occur = occur;
 	}
 
-	public void setResult(final Set<GraphObject> result) {
+	public void setResult(final Set<org.structr.core.GraphObject> result) {
 		this.result = result;
 	}
 
-	public Set<GraphObject> getResult() {
+	public Set<org.structr.core.GraphObject> getResult() {
 		return result;
 	}
 
-	public void addToResult(final GraphObject graphObject) {
+	public void addToResult(final org.structr.core.GraphObject graphObject) {
 		result.add(graphObject);
 	}
 
-	public void addToResult(final Set<GraphObject> list) {
+	public void addToResult(final Set<org.structr.core.GraphObject> list) {
 		result.addAll(list);
 	}
 
@@ -139,10 +140,16 @@ public abstract class SearchAttribute<T> extends NodeAttribute<T> implements Pre
 		final PropertyKey key = getKey();
 		if (key != null) {
 
-			final Class declaringClass = key.getDeclaringClass();
-			if (declaringClass != null && !GraphObject.class.equals(declaringClass) && !RelationshipInterface.class.isAssignableFrom(declaringClass)) {
+			final Trait declaringTrait = key.getDeclaringTrait();
 
-				return declaringClass.getSimpleName();
+			if (declaringTrait != null && !declaringTrait.isRelationship()) {
+
+				final String name = declaringTrait.getLabel();
+
+				if (!StructrTraits.GRAPH_OBJECT.equals(name)) {
+
+					return name;
+				}
 			}
 		}
 

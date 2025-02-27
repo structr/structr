@@ -29,17 +29,19 @@ import org.structr.common.helper.MailHelper;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.MailTemplate;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.servlet.AbstractDataServlet;
 import org.structr.schema.action.ActionContext;
-import org.structr.web.entity.User;
 import org.structr.web.servlet.HtmlServlet;
 
 import java.util.Map;
@@ -84,18 +86,19 @@ public class ResetPasswordResourceHandler extends RESTCallHandler {
 			// cleanup user input
 			emailString = emailString.trim().toLowerCase();
 
-			final PropertyKey<String> confirmationKey = StructrApp.key(User.class, "confirmationKey");
-			final PropertyKey<String> eMail           = StructrApp.key(User.class, "eMail");
+			final Traits traits                       = Traits.of(StructrTraits.USER);
+			final PropertyKey<String> confirmationKey = traits.key("confirmationKey");
+			final PropertyKey<String> eMail           = traits.key("eMail");
 			final String localeString                 = (String) propertySet.get("locale");
 			final String confKey                      = AuthHelper.getConfirmationKey();
-			final PrincipalInterface user                      = StructrApp.getInstance().nodeQuery(User.class).and(eMail, emailString).getFirst();
+			final NodeInterface user                  = StructrApp.getInstance().nodeQuery(StructrTraits.USER).and(eMail, emailString).getFirst();
 
 			if (user != null) {
 
 				// update confirmation key
 				user.setProperties(SecurityContext.getSuperUserInstance(), new PropertyMap(confirmationKey, confKey));
 
-				if (!sendResetPasswordLink(securityContext, user, propertySet, localeString, confKey)) {
+				if (!sendResetPasswordLink(securityContext, user.as(Principal.class), propertySet, localeString, confKey)) {
 
 					throw new FrameworkException(503, "Unable to send confirmation e-mail.");
 				}
@@ -116,9 +119,9 @@ public class ResetPasswordResourceHandler extends RESTCallHandler {
 		}
 	}
 
-	private boolean sendResetPasswordLink(final SecurityContext securityContext, final PrincipalInterface user, final Map<String, Object> propertySetFromUserPOST, final String localeString, final String confKey) throws FrameworkException {
+	private boolean sendResetPasswordLink(final SecurityContext securityContext, final Principal user, final Map<String, Object> propertySetFromUserPOST, final String localeString, final String confKey) throws FrameworkException {
 
-		final String userEmail  = user.getProperty("eMail");
+		final String userEmail  = user.getEMail();
 		final ActionContext ctx = new ActionContext(SecurityContext.getInstance(user, AccessMode.Frontend));
 
 		// Populate the replacement map with all POSTed values
@@ -159,16 +162,16 @@ public class ResetPasswordResourceHandler extends RESTCallHandler {
 
 		try {
 
-			final Query<MailTemplate> query = StructrApp.getInstance().nodeQuery(MailTemplate.class).andName(key.name());
+			final Query<NodeInterface> query = StructrApp.getInstance().nodeQuery(StructrTraits.MAIL_TEMPLATE).andName(key.name());
 
 			if (localeString != null) {
-				query.and("locale", localeString);
+				query.and(Traits.of(StructrTraits.MAIL_TEMPLATE).key("locale"), localeString);
 			}
 
-			MailTemplate template = query.getFirst();
+			NodeInterface template = query.getFirst();
 			if (template != null) {
 
-				final String text = template.getProperty("text");
+				final String text = template.as(MailTemplate.class).getText();
 				return text != null ? text : defaultValue;
 
 			} else {
@@ -201,7 +204,7 @@ public class ResetPasswordResourceHandler extends RESTCallHandler {
 	}
 
 	@Override
-	public Class getEntityClass(final SecurityContext securityContext) {
+	public String getTypeName(final SecurityContext securityContext) {
 		return null;
 	}
 

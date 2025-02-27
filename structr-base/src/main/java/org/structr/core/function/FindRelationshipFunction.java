@@ -26,6 +26,8 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 
@@ -58,20 +60,19 @@ public class FindRelationshipFunction extends CoreFunction {
 			}
 
 			final SecurityContext securityContext = ctx.getSecurityContext();
-			final ConfigurationProvider config = StructrApp.getConfiguration();
-			final Query query = StructrApp.getInstance(securityContext).relationshipQuery().sort(GraphObject.createdDate);
+			final Query query  = StructrApp.getInstance(securityContext).relationshipQuery().sort(Traits.of(StructrTraits.GRAPH_OBJECT).key("createdDate"));
 
 			// the type to query for
-			Class type = null;
+			Traits traits = null;
 
 			if (sources.length >= 1 && sources[0] != null) {
 
 				final String typeString = sources[0].toString();
-				type = config.getRelationshipEntityClass(typeString);
+				traits = Traits.of(typeString);
 
-				if (type != null) {
+				if (traits != null) {
 
-					query.andTypes(type);
+					query.andTypes(traits);
 
 				} else {
 
@@ -81,7 +82,7 @@ public class FindRelationshipFunction extends CoreFunction {
 			}
 
 			// exit gracefully instead of crashing..
-			if (type == null) {
+			if (traits == null) {
 
 				logger.warn("Error in find_relationship(): no type specified. Parameters: {}", getParametersAsString(sources));
 				return ERROR_MESSAGE_FIND_RELATIONSHIP_NO_TYPE_SPECIFIED;
@@ -90,7 +91,7 @@ public class FindRelationshipFunction extends CoreFunction {
 			// extension for native javascript objects
 			if (sources.length == 2 && sources[1] instanceof Map) {
 
-				query.and(PropertyMap.inputTypeToJavaType(securityContext, type, (Map)sources[1]));
+				query.and(PropertyMap.inputTypeToJavaType(securityContext, traits.getName(), (Map)sources[1]));
 
 			} else if (sources.length == 2) {
 
@@ -100,7 +101,7 @@ public class FindRelationshipFunction extends CoreFunction {
 				}
 
 				// special case: second parameter is a UUID
-				final PropertyKey key = StructrApp.key(type, "id");
+				final PropertyKey key = traits.key("id");
 
 				query.and(key, sources[1].toString());
 
@@ -121,7 +122,7 @@ public class FindRelationshipFunction extends CoreFunction {
 						throw new IllegalArgumentException();
 					}
 
-					final PropertyKey key = StructrApp.key(type, sources[c].toString());
+					final PropertyKey key = traits.key(sources[c].toString());
 
 					if (key != null) {
 

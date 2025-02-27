@@ -145,6 +145,11 @@ public class StringProperty extends AbstractPrimitiveProperty<String> {
 		return null;
 	}
 
+	@Override
+	public boolean isArray() {
+		return false;
+	}
+
 	// ----- private methods -----
 	private static ContentType parse(final String contentTypeString) {
 

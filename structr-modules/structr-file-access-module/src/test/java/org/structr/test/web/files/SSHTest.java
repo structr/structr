@@ -19,25 +19,19 @@
 package org.structr.test.web.files;
 
 import com.jcraft.jsch.*;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.net.ftp.FTPClient;
-import org.apache.commons.net.ftp.FTPFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
-import org.structr.web.common.FileHelper;
-import org.structr.web.entity.AbstractFile;
-import org.structr.web.entity.File;
-import org.structr.web.entity.Folder;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.web.entity.User;
 
 import java.io.IOException;
 
-import static org.testng.AssertJUnit.*;
+import static org.testng.AssertJUnit.fail;
 
 /**
  * Common class for FTP tests
@@ -51,69 +45,14 @@ public abstract class SSHTest extends StructrFileTestBase {
 	protected User ftpUser;
 
 	protected User createFTPUser(final String username, final String password) throws FrameworkException {
-		PropertyMap props = new PropertyMap();
-		props.put(StructrApp.key(PrincipalInterface.class, "name"), username);
-		props.put(StructrApp.key(PrincipalInterface.class, "password"), password);
-		return (User)createTestNodes(User.class, 1, props).get(0);
-	}
 
-	protected Folder createFTPDirectory(final String path, final String name) throws FrameworkException {
-		PropertyMap props = new PropertyMap();
-		props.put(Folder.name, name);
-		props.put(Folder.owner, ftpUser);
-		Folder dir = (Folder)createTestNodes(Folder.class, 1, props).get(0);
+		final PropertyMap props = new PropertyMap();
+		final Traits traits     = Traits.of(StructrTraits.USER);
 
-		if (StringUtils.isNotBlank(path)) {
-			AbstractFile parent = FileHelper.getFileByAbsolutePath(securityContext, path);
-			if (parent != null && parent instanceof Folder) {
-				Folder parentFolder = (Folder)parent;
-				dir.setParent(parentFolder);
-			}
-		}
+		props.put(traits.key("name"), username);
+		props.put(traits.key("password"), password);
 
-		logger.info("FTP directory {} created successfully.", dir);
-
-		return dir;
-	}
-
-	protected File createFTPFile(final String path, final String name) throws FrameworkException {
-		PropertyMap props = new PropertyMap();
-		props.put(StructrApp.key(File.class, "name"), name);
-		props.put(StructrApp.key(File.class, "size"), 0L);
-		props.put(StructrApp.key(File.class, "owner"), ftpUser);
-		File file = (File)createTestNodes(File.class, 1, props).get(0);
-
-		if (StringUtils.isNotBlank(path)) {
-			AbstractFile parent = FileHelper.getFileByAbsolutePath(securityContext, path);
-			if (parent != null && parent instanceof Folder) {
-				Folder parentFolder = (Folder)parent;
-				file.setParent(parentFolder);
-			}
-		}
-
-		logger.info("FTP file {} created successfully.", file);
-
-		return file;
-	}
-
-	protected void assertEmptyDirectory(final FTPClient ftp) {
-
-		FTPFile[] dirs = null;
-
-		try {
-
-			dirs = ftp.listDirectories();
-
-		} catch (IOException ex) {
-
-			logger.error("Error in FTP test", ex);
-			fail("Unexpected exception: " + ex.getMessage());
-
-		}
-
-		assertNotNull(dirs);
-		assertEquals(0, dirs.length);
-
+		return createTestNodes(StructrTraits.USER, 1, props).get(0).as(User.class);
 	}
 
 	/**

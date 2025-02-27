@@ -26,22 +26,19 @@ import org.structr.api.config.Settings;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.*;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.rest.RestMethodResult;
-import org.structr.rest.api.ExactMatchEndpoint;
-import org.structr.rest.api.RESTCall;
-import org.structr.rest.api.RESTCallHandler;
-import org.structr.rest.api.parameter.RESTParameter;
-import org.structr.rest.logging.entity.LogEvent;
+import org.structr.rest.entity.LogEvent;
 
 import java.io.File;
 import java.io.IOException;
@@ -57,6 +54,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.structr.common.SecurityContext;
+import org.structr.rest.api.ExactMatchEndpoint;
+import org.structr.rest.api.RESTCall;
+import org.structr.rest.api.RESTCallHandler;
+import org.structr.rest.api.parameter.RESTParameter;
 
 /**
  *
@@ -101,16 +103,17 @@ public class LogResource extends ExactMatchEndpoint {
 
 			super(call);
 
-			subjectProperty.setDeclaringClass(LogResource.class);
-			objectProperty.setDeclaringClass(LogResource.class);
-			actionProperty.setDeclaringClass(LogResource.class);
-			messageProperty.setDeclaringClass(LogResource.class);
-			timestampProperty.setDeclaringClass(LogResource.class);
+			// fixme: this might create an NPE in case of validation errors (test maybe?)
+			//subjectProperty.setDeclaringClass(LogResource.class);
+			//objectProperty.setDeclaringClass(LogResource.class);
+			//actionProperty.setDeclaringClass(LogResource.class);
+			//messageProperty.setDeclaringClass(LogResource.class);
+			//timestampProperty.setDeclaringClass(LogResource.class);
 		}
 
 		@Override
-		public Class<? extends GraphObject> getEntityClass(final SecurityContext securityContext) {
-			return GraphObject.class;
+		public String getTypeName(final SecurityContext securityContext) {
+			return StructrTraits.GRAPH_OBJECT;
 		}
 
 		@Override
@@ -126,27 +129,28 @@ public class LogResource extends ExactMatchEndpoint {
 
 				final String subjectId           = request.getParameter(subjectProperty.jsonName());
 				final String objectId            = request.getParameter(objectProperty.jsonName());
+				final Traits traits              = Traits.of("LogEvent");
 				final GraphObjectMap overviewMap = new GraphObjectMap();
 				final LogState logState          = new LogState(request);
 
 				if (StringUtils.isNotEmpty(subjectId) && StringUtils.isNotEmpty(objectId)) {
 
 					processData(logState, StructrApp.getInstance(securityContext)
-						.nodeQuery(LogEvent.class)
-						.and(LogEvent.subjectProperty, subjectId)
-						.and(LogEvent.objectProperty, objectId)
-						.and(LogEvent.actionProperty, logState.logAction)
-						.andRange(LogEvent.timestampProperty, new Date(logState.beginTimestamp()), new Date(logState.endTimestamp()))
+						.nodeQuery("LogEvent")
+						.and(traits.key("subject"), subjectId)
+						.and(traits.key("object"), objectId)
+						.and(traits.key("action"), logState.logAction)
+						.andRange(traits.key("timestamp"), new Date(logState.beginTimestamp()), new Date(logState.endTimestamp()))
 						.getAsList()
 					);
 
 				} else if (StringUtils.isNotEmpty(subjectId) && StringUtils.isEmpty(objectId)) {
 
 					processData(logState, StructrApp.getInstance(securityContext)
-						.nodeQuery(LogEvent.class)
-						.and(LogEvent.subjectProperty, subjectId)
-						.and(LogEvent.actionProperty, logState.logAction)
-						.andRange(LogEvent.timestampProperty, new Date(logState.beginTimestamp()), new Date(logState.endTimestamp()))
+						.nodeQuery("LogEvent")
+						.and(traits.key("subject"), subjectId)
+						.and(traits.key("action"), logState.logAction)
+						.andRange(traits.key("timestamp"), new Date(logState.beginTimestamp()), new Date(logState.endTimestamp()))
 						.getAsList()
 					);
 
@@ -155,10 +159,10 @@ public class LogResource extends ExactMatchEndpoint {
 					logState.inverse(true);
 
 					processData(logState, StructrApp.getInstance(securityContext)
-						.nodeQuery(LogEvent.class)
-						.and(LogEvent.objectProperty, objectId)
-						.and(LogEvent.actionProperty, logState.logAction)
-						.andRange(LogEvent.timestampProperty, new Date(logState.beginTimestamp()), new Date(logState.endTimestamp()))
+						.nodeQuery("LogEvent")
+						.and(traits.key("object"), objectId)
+						.and(traits.key("action"), logState.logAction)
+						.andRange(traits.key("timestamp"), new Date(logState.beginTimestamp()), new Date(logState.endTimestamp()))
 						.getAsList()
 					);
 
@@ -172,7 +176,7 @@ public class LogResource extends ExactMatchEndpoint {
 					logState.overview(true);
 
 					processData(logState, StructrApp.getInstance(securityContext)
-						.nodeQuery(LogEvent.class)
+						.nodeQuery("LogEvent")
 						.getAsList()
 					);
 				}
@@ -239,21 +243,22 @@ public class LogResource extends ExactMatchEndpoint {
 
 				if (subjectId != null && objectId != null && action != null) {
 
-					final App app  = StructrApp.getInstance(securityContext);
-					LogEvent event = null;
+					final Traits traits = Traits.of("LogEvent");
+					final App app       = StructrApp.getInstance(securityContext);
+					NodeInterface event = null;
 
 					try (final Tx tx = app.tx()) {
 
 						final PropertyMap properties = new PropertyMap();
-						properties.put(LogEvent.timestampProperty,           new Date());
-						properties.put(LogEvent.actionProperty,              action);
-						properties.put(LogEvent.subjectProperty,             subjectId);
-						properties.put(LogEvent.objectProperty,              objectId);
-						properties.put(LogEvent.messageProperty,             message);
-						properties.put(LogEvent.visibleToPublicUsers,        true);
-						properties.put(LogEvent.visibleToAuthenticatedUsers, true);
+						properties.put(traits.key("timestampProperty"),           new Date());
+						properties.put(traits.key("actionProperty"),              action);
+						properties.put(traits.key("subjectProperty"),             subjectId);
+						properties.put(traits.key("objectProperty"),              objectId);
+						properties.put(traits.key("messageProperty"),             message);
+						properties.put(traits.key("visibleToPublicUsers"),        true);
+						properties.put(traits.key("visibleToAuthenticatedUsers"), true);
 
-						event = app.create(LogEvent.class, properties);
+						event = app.create("LogEvent", properties);
 
 						tx.success();
 					}
@@ -331,16 +336,19 @@ public class LogResource extends ExactMatchEndpoint {
 
 		private void processData(final SecurityContext securityContext, final LogState state) throws FrameworkException {
 
+			final Traits traits = Traits.of("LogEvent");
+
 			if (state.doCorrelate()) {
 
 				// get the basic correlation set (pds_click in the test case)
-				final List<LogEvent> correlationResult = StructrApp.getInstance(securityContext)
-					.nodeQuery(LogEvent.class)
-					.and(LogEvent.actionProperty, state.correlationAction)
+				final List<NodeInterface> correlationResult = StructrApp.getInstance(securityContext)
+					.nodeQuery("LogEvent")
+					.and(traits.key("action"), state.correlationAction)
 					.getAsList();
 
-				for (final LogEvent entry : correlationResult) {
+				for (final NodeInterface node : correlationResult) {
 
+					final LogEvent entry       = node.as(LogEvent.class);
 					final String pathSubjectId = state.inverse() ? entry.getObjectId() : entry.getSubjectId();
 					final String pathObjectId  = state.inverse() ? entry.getSubjectId() : entry.getObjectId();
 					final String entryMessage  = entry.getMessage();
@@ -363,20 +371,21 @@ public class LogResource extends ExactMatchEndpoint {
 
 			logger.debug("No. of correlations: {}", state.getCorrelations().entrySet().size());
 
-			final List<LogEvent> result = StructrApp.getInstance(securityContext).nodeQuery(LogEvent.class)
-				.and(LogEvent.actionProperty, state.logAction)
-				.andRange(LogEvent.timestampProperty, new Date(state.beginTimestamp()), new Date(state.endTimestamp()))
+			final List<NodeInterface> result = StructrApp.getInstance(securityContext).nodeQuery("LogEvent")
+				.and(traits.key("action"), state.logAction)
+				.andRange(traits.key("timestamp"), new Date(state.beginTimestamp()), new Date(state.endTimestamp()))
 				.getAsList();
 
 			processData(state, result);
 		}
 
-		private void processData(final LogState state, final Iterable<LogEvent> result) throws FrameworkException {
+		private void processData(final LogState state, final Iterable<NodeInterface> result) throws FrameworkException {
 
 			int count = 0;
 
-			for (final LogEvent event : result) {
+			for (final NodeInterface node : result) {
 
+				final LogEvent event       = node.as(LogEvent.class);
 				final String pathSubjectId = state.inverse() ? event.getObjectId() : event.getSubjectId();
 				final String pathObjectId  = state.inverse() ? event.getSubjectId() : event.getObjectId();
 				final long timestamp       = event.getTimestamp();
@@ -427,6 +436,7 @@ public class LogResource extends ExactMatchEndpoint {
 
 			final App app          = StructrApp.getInstance(securityContext);
 			final String fileName  = path.getFileName().toString();
+			final Traits traits    = Traits.of("LogEvent");
 			int count              = 0;
 
 			if (fileName.length() == 64) {
@@ -448,15 +458,15 @@ public class LogResource extends ExactMatchEndpoint {
 
 					final PropertyMap properties = new PropertyMap();
 
-					properties.put(LogEvent.messageProperty,             message);
-					properties.put(LogEvent.actionProperty,              action);
-					properties.put(LogEvent.subjectProperty,             subjectId);
-					properties.put(LogEvent.objectProperty,              objectId);
-					properties.put(LogEvent.timestampProperty,           new Date(timestamp));
-					properties.put(LogEvent.visibleToPublicUsers,        true);
-					properties.put(LogEvent.visibleToAuthenticatedUsers, true);
+					properties.put(traits.key("message"),                     message);
+					properties.put(traits.key("action"),                      action);
+					properties.put(traits.key("subject"),                     subjectId);
+					properties.put(traits.key("object"),                      objectId);
+					properties.put(traits.key("timestamp"),                   new Date(timestamp));
+					properties.put(traits.key("visibleToPublicUsers"),        true);
+					properties.put(traits.key("visibleToAuthenticatedUsers"), true);
 
-					app.create(LogEvent.class, properties);
+					app.create("LogEvent", properties);
 
 					count++;
 				}

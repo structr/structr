@@ -28,6 +28,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.websocket.StructrWebSocket;
@@ -95,17 +96,17 @@ public class DeleteNodeCommand extends AbstractCommand {
 			try {
 
 				final List<NodeInterface> filteredResults = new LinkedList<>();
-				if (obj instanceof DOMNode) {
+				if (obj.is(StructrTraits.DOM_NODE)) {
 
-					DOMNode node = (DOMNode) obj;
+					DOMNode node = obj.as(DOMNode.class);
 
-					filteredResults.addAll(DOMNode.getAllChildNodes(node));
+					filteredResults.addAll(node.getAllChildNodes());
 
-				} else if (obj instanceof Folder) {
+				} else if (obj.is(StructrTraits.FOLDER)) {
 
-					Folder node = (Folder) obj;
+					Folder node = obj.as(Folder.class);
 
-					filteredResults.addAll(Folder.getAllChildNodes(node));
+					filteredResults.addAll(node.getAllChildNodes());
 				}
 
 				for (NodeInterface node : filteredResults) {

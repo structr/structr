@@ -19,24 +19,15 @@
 package org.structr.core.graph;
 
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
-import org.structr.common.AccessControllable;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-
-import java.lang.reflect.InvocationTargetException;
+import org.structr.core.entity.AbstractNode;
 
 /**
  * A factory for Structr nodes.
- *
- * @param <T>
  */
-public class NodeFactory<T extends NodeInterface & AccessControllable> extends Factory<Node, T> {
-
-	private static final Logger logger = LoggerFactory.getLogger(NodeFactory.class.getName());
+public class NodeFactory extends Factory<Node, NodeInterface> {
 
 	public NodeFactory(final SecurityContext securityContext) {
 		super(securityContext);
@@ -55,66 +46,24 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 	}
 
 	@Override
-	public T instantiate(final Node node) {
-		return instantiate(node, null);
-	}
+	public NodeInterface instantiateWithType(final Node node, final Identity pathSegmentId, boolean isCreation) {
 
-	@Override
-	public T instantiate(final Node node, final Identity pathSegmentId) {
-
-		if (node == null) {
-			return null;
-		}
-
+		// check deletion first
 		if (TransactionCommand.isDeleted(node)) {
-			return (T)instantiateWithType(node, null, pathSegmentId, false);
-		}
-
-		return (T) instantiateWithType(node, factoryDefinition.determineNodeType(node), pathSegmentId, false);
-	}
-
-	@Override
-	public T instantiateWithType(final Node node, final Class<T> nodeClass, final Identity pathSegmentId, boolean isCreation) {
-
-		// cannot instantiate node without type
-		if (nodeClass == null) {
 			return null;
 		}
 
-		SecurityContext securityContext = factoryProfile.getSecurityContext();
-		T newNode                       = null;
+		final AbstractNode newNode = new AbstractNode(securityContext, node, TransactionCommand.getCurrentTransactionId());
 
-		try {
-			newNode = nodeClass.getDeclaredConstructor().newInstance();
-
-		} catch (NoSuchMethodException|NoClassDefFoundError|InvocationTargetException|InstantiationException|IllegalAccessException itex) {
-			itex.printStackTrace();
-			newNode = null;
-		}
-
-		if (newNode == null) {
-			newNode = (T)factoryDefinition.createGenericNode();
-		}
-
-		newNode.init(factoryProfile.getSecurityContext(), node, nodeClass, TransactionCommand.getCurrentTransactionId());
 		newNode.setRawPathSegmentId(pathSegmentId);
 		newNode.onNodeInstantiation(isCreation);
 
 		// check access
-		if (isCreation || securityContext.isReadable(newNode, factoryProfile.includeHidden(), factoryProfile.publicOnly())) {
+		if (isCreation || securityContext.isReadable(newNode, includeHidden, publicOnly)) {
 
 			return newNode;
 		}
 
 		return null;
-	}
-
-	@Override
-	public T instantiate(final Node node, final boolean includeHidden, final boolean publicOnly) throws FrameworkException {
-
-		factoryProfile.setIncludeHidden(includeHidden);
-		factoryProfile.setPublicOnly(publicOnly);
-
-		return instantiate(node);
 	}
 }

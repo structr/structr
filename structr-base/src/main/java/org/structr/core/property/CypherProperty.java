@@ -42,10 +42,6 @@ public class CypherProperty<T> extends AbstractPrimitiveProperty<T> {
 		super(name);
 
 		this.handler = handler;
-
-		// make us known to the entity context
-		StructrApp.getConfiguration().registerConvertedProperty(this);
-
 	}
 
 	@Override
@@ -81,6 +77,11 @@ public class CypherProperty<T> extends AbstractPrimitiveProperty<T> {
 	@Override
 	public Object fixDatabaseProperty(final Object value) {
 		return null;
+	}
+
+	@Override
+	public boolean isArray() {
+		return false;
 	}
 
 	// ----- OpenAPI -----

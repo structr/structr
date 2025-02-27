@@ -40,8 +40,11 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Group;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.schema.SchemaService;
 
 import java.io.IOException;
@@ -206,13 +209,13 @@ public class LDAPService extends Thread implements SingletonService {
 
 			try (final Tx tx = app.tx()) {
 
-				for (final LDAPUser member : app.nodeQuery(LDAPUser.class).getResultStream()) {
+				for (final NodeInterface member : app.nodeQuery("LDAPUser").getResultStream()) {
 
 					boolean hasLDAPGroups = false;
 
-					for (final Group group : member.getGroups()) {
+					for (final Group group : member.as(LDAPUser.class).getGroups()) {
 
-						if (group instanceof LDAPGroup) {
+						if (group.is("LDAPGroup")) {
 
 							hasLDAPGroups = true;
 							break;
@@ -240,27 +243,30 @@ public class LDAPService extends Thread implements SingletonService {
 
 		final App app                = StructrApp.getInstance();
 		final PropertyMap attributes = new PropertyMap();
+		final Traits userTraits      = Traits.of("LDAPUser");
 		final String originId        = getOriginId(userEntry);
 
 		if (originId != null) {
 
-			attributes.put(StructrApp.key(LDAPUser.class, "originId"), originId);
+			attributes.put(userTraits.key("originId"), originId);
 
-			LDAPUser user = app.nodeQuery(LDAPUser.class).and(attributes).getFirst();
-			if (user == null) {
+			NodeInterface userNode = app.nodeQuery("LDAPUser").and(attributes).getFirst();
+			if (userNode == null) {
 
 				logger.debug("Creating new user for originId {}", originId);
 
-				user = app.create(LDAPUser.class, attributes);
-				if (user != null) {
+				userNode = app.create("LDAPUser", attributes);
+				if (userNode != null) {
 
-					logger.debug("User created: {}", user.getUuid());
+					logger.debug("User created: {}", userNode.getUuid());
 				}
 
 			} else {
 
-				logger.debug("Existing user {} found for originId {}", user.getUuid(), originId);
+				logger.debug("Existing user {} found for originId {}", userNode.getUuid(), originId);
 			}
+
+			final LDAPUser user = userNode.as(LDAPUser.class);
 
 			// update user
 			user.initializeFrom(userEntry);
@@ -329,7 +335,7 @@ public class LDAPService extends Thread implements SingletonService {
 		logger.info("{} users updated: {}", members.size(), members);
 
 		// update members of group to new state (will remove all members that are not part of the group, as expected)
-		group.setProperty(StructrApp.key(Group.class, "members"), members);
+		group.setProperty(Traits.of(StructrTraits.GROUP).key("members"), members);
 	}
 
 	private void updateWithFilterAndScope(final LDAPGroup group, final LdapConnection connection, final String path, final String groupFilter, final String groupScope) throws IOException, LdapException, CursorException, FrameworkException {
@@ -392,7 +398,7 @@ public class LDAPService extends Thread implements SingletonService {
 		logger.info("{} users updated: {}", members.size(), members);
 
 		// update members of group to new state (will remove all members that are not part of the group, as expected)
-		group.setProperty(StructrApp.key(Group.class, "members"), members);
+		group.setProperty(Traits.of(StructrTraits.GROUP).key("members"), members);
 	}
 
 	// ----- interface SingletonService -----

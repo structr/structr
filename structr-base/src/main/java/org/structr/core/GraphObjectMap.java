@@ -20,9 +20,12 @@ package org.structr.core;
 
 import org.structr.api.Predicate;
 import org.structr.api.graph.PropertyContainer;
+import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.entity.Relation;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
@@ -31,6 +34,11 @@ import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitDefinition;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.operations.FrameworkMethod;
+import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 
@@ -46,12 +54,167 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 
 	@Override
 	public String getUuid() {
-		return getProperty(GraphObject.id);
+		return getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("id"));
+	}
+
+	@Override
+	public void clearCaches() {
+
+	}
+
+	@Override
+	public Traits getTraits() {
+
+		return new Traits() {
+
+			@Override
+			public Set<String> getLabels() {
+				return Set.of("GraphObjectMap");
+			}
+
+			@Override
+			public boolean contains(final String type) {
+				return false;
+			}
+
+			@Override
+			public <T> PropertyKey<T> key(final String name) {
+
+				for (final PropertyKey key : properties.keySet()) {
+
+					if (key.jsonName().equals(name)) {
+
+						return key;
+					}
+				}
+
+				return null;
+			}
+
+			@Override
+			public boolean hasKey(final String name) {
+				return key(name) != null;
+			}
+
+			@Override
+			public String getName() {
+				return "GraphObjectMap";
+			}
+
+			@Override
+			public boolean isNodeType() {
+				return false;
+			}
+
+			@Override
+			public boolean isRelationshipType() {
+				return false;
+			}
+
+			@Override
+			public Set<PropertyKey> getAllPropertyKeys() {
+				return properties.keySet();
+			}
+
+			@Override
+			public Set<PropertyKey> getPropertyKeysForView(final String propertyView) {
+				return Set.of();
+			}
+
+			@Override
+			public <T extends LifecycleMethod> Set<T> getMethods(final Class<T> type) {
+				return Set.of();
+			}
+
+			@Override
+			public <T extends FrameworkMethod> T getMethod(final Class<T> type) {
+				return null;
+			}
+
+			@Override
+			public Map<String, AbstractMethod> getDynamicMethods() {
+				return Map.of();
+			}
+
+			@Override
+			public <T> T as(final Class<T> type, final GraphObject obj) {
+				return null;
+			}
+
+			@Override
+			public void registerImplementation(final TraitDefinition trait, final boolean isDynamic) {
+			}
+
+			@Override
+			public Relation getRelation() {
+				return null;
+			}
+
+			@Override
+			public Set<TraitDefinition> getTraitDefinitions() {
+				return Set.of();
+			}
+
+			@Override
+			public boolean isInterface() {
+				return false;
+			}
+
+			@Override
+			public boolean isAbstract() {
+				return false;
+			}
+
+			@Override
+			public boolean isBuiltInType() {
+				return true;
+			}
+
+			@Override
+			public boolean isServiceClass() {
+				return false;
+			}
+
+			@Override
+			public boolean changelogEnabled() {
+				return false;
+			}
+
+			@Override
+			public Set<String> getViewNames() {
+				return Set.of();
+			}
+
+			@Override
+			public Set<String> getAllTraits() {
+				return Set.of();
+			}
+
+			@Override
+			public boolean isBuiltinType() {
+				return false;
+			}
+
+			@Override
+			public Map<String, Map<String, PropertyKey>> removeDynamicTraits() {
+				return Map.of();
+			}
+		};
+	}
+
+	@Override
+	public <T> T as(Class<T> type) {
+		return null;
+	}
+
+	@Override
+	public boolean is(String type) {
+		return false;
 	}
 
 	@Override
 	public String getType() {
-		return getProperty(GraphObject.id);
+		return getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("type"));
 	}
 
 	@Override
@@ -91,8 +254,18 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	}
 
 	@Override
-	public <T> Comparable getComparableProperty(final PropertyKey<T> key) {
-		return (Comparable)getProperty(key);
+	public boolean isGranted(Permission permission, SecurityContext securityContext) {
+		return false;
+	}
+
+	@Override
+	public boolean isGranted(Permission permission, SecurityContext securityContext, boolean isCreation) {
+		return false;
+	}
+
+	@Override
+	public boolean isValid(ErrorBuffer errorBuffer) {
+		return false;
 	}
 
 	@Override
@@ -101,7 +274,17 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	}
 
 	@Override
+	public boolean systemPropertiesUnlocked() {
+		return false;
+	}
+
+	@Override
 	public void unlockReadOnlyPropertiesOnce() {
+	}
+
+	@Override
+	public void lockReadOnlyProperties() {
+
 	}
 
 	@Override
@@ -109,48 +292,13 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	}
 
 	@Override
-	public void onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+	public void lockSystemProperties() {
+
 	}
 
 	@Override
-	public void onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
-	}
-
-	@Override
-	public void onDeletion(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final PropertyMap properties) throws FrameworkException {
-	}
-
-	@Override
-	public void afterCreation(final SecurityContext securityContext) {
-	}
-
-	@Override
-	public void afterModification(final SecurityContext securityContext) throws FrameworkException {
-	}
-
-	@Override
-	public void afterDeletion(final SecurityContext securityContext, PropertyMap properties) {
-	}
-
-	@Override
-	public void ownerModified(final SecurityContext securityContext) {
-	}
-
-	@Override
-	public void securityModified(final SecurityContext securityContext) {
-	}
-
-	@Override
-	public void locationModified(final SecurityContext securityContext) {
-	}
-
-	@Override
-	public void propagatedModification(final SecurityContext securityContext) {
-	}
-
-	@Override
-	public boolean isValid(final ErrorBuffer errorBuffer) {
-		return true;
+	public boolean readOnlyPropertiesUnlocked() {
+		return false;
 	}
 
 	public static GraphObjectMap fromMap(final Map<String, Object> map) {
@@ -186,12 +334,7 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 		return newMap;
 	}
 
-	@Override
-	public Class getEntityType() {
-		throw new UnsupportedOperationException("Not supported.");
-	}
-
-	// ----- interface map -----
+	// ----- interface Map -----
 	@Override
 	public int size() {
 		return properties.size();
@@ -203,7 +346,7 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	}
 
 	@Override
-	public Object put(PropertyKey key, Object value) {
+	public Object put(final PropertyKey key, final Object value) {
 		return properties.put(key, value);
 	}
 
@@ -233,7 +376,85 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	}
 
 	@Override
+	public Set<PropertyKey> getFullPropertySet() {
+		return properties.keySet();
+	}
+
+	@Override
 	public void addToIndex() {
+	}
+
+	@Override
+	public boolean isVisibleToPublicUsers() {
+		return false;
+	}
+
+	@Override
+	public boolean isVisibleToAuthenticatedUsers() {
+		return false;
+	}
+
+	@Override
+	public boolean isHidden() {
+		return false;
+	}
+
+	@Override
+	public void setHidden(final boolean hidden) throws FrameworkException {
+	}
+
+	@Override
+	public Date getCreatedDate() {
+		return null;
+	}
+
+	@Override
+	public Date getLastModifiedDate() {
+		return null;
+	}
+
+	@Override
+	public void setLastModifiedDate(final Date date) throws FrameworkException {
+	}
+
+	@Override
+	public void onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+	}
+
+	@Override
+	public void onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+	}
+
+	@Override
+	public void onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
+	}
+
+	@Override
+	public void afterCreation(SecurityContext securityContext) throws FrameworkException {
+	}
+
+	@Override
+	public void afterModification(SecurityContext securityContext) throws FrameworkException {
+	}
+
+	@Override
+	public void afterDeletion(SecurityContext securityContext, PropertyMap properties) {
+	}
+
+	@Override
+	public void ownerModified(SecurityContext securityContext) {
+	}
+
+	@Override
+	public void securityModified(SecurityContext securityContext) {
+	}
+
+	@Override
+	public void locationModified(SecurityContext securityContext) {
+	}
+
+	@Override
+	public void propagatedModification(SecurityContext securityContext) {
 	}
 
 	@Override

@@ -19,11 +19,10 @@
 package org.structr.websocket.command;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.core.traits.StructrTraits;
 import org.structr.web.entity.dom.DOMNode;
-import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.dom.Template;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -36,7 +35,7 @@ public class AppendChildCommand extends AbstractCommand {
 	}
 
 	@Override
-	public void processMessage(final WebSocketMessage webSocketData) {
+	public void processMessage(final WebSocketMessage webSocketData) throws FrameworkException {
 
 		setDoTransactionNotifications(true);
 
@@ -58,18 +57,16 @@ public class AppendChildCommand extends AbstractCommand {
 		}
 
 		// check if parent node with given ID exists
-		final AbstractNode parentNode = getNode(parentId);
-
+		final NodeInterface parentNode = getNode(parentId);
 		if (parentNode == null) {
 
 			getWebSocket().send(MessageBuilder.status().code(404).message("Parent node not found").build(), true);
 			return;
 		}
 
-		if (parentNode instanceof DOMNode) {
+		if (parentNode.is(StructrTraits.DOM_NODE)) {
 
 			final DOMNode parentDOMNode = getDOMNode(parentId);
-
 			if (parentDOMNode == null) {
 
 				getWebSocket().send(MessageBuilder.status().code(422).message("Parent node is no DOM node").build(), true);
@@ -83,10 +80,10 @@ public class AppendChildCommand extends AbstractCommand {
 
 				try {
 
-					if (!(parentDOMNode instanceof Page)) {
+					if (!(parentDOMNode.is(StructrTraits.PAGE))) {
 
 						final boolean isShadowPage = (parentDOMNode.getOwnerDocument() != null && parentDOMNode.getOwnerDocument().equals(CreateComponentCommand.getOrCreateHiddenDocument()));
-						final boolean isTemplate   = (parentDOMNode instanceof Template);
+						final boolean isTemplate   = (parentDOMNode.is(StructrTraits.TEMPLATE));
 
 						if (isShadowPage && isTemplate && parentDOMNode.getParent() == null) {
 

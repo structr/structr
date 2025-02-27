@@ -34,8 +34,6 @@ import org.structr.web.entity.html.*;
 import org.testng.annotations.Test;
 import org.w3c.dom.Node;
 
-import java.lang.Object;
-import java.util.Map;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -53,21 +51,21 @@ public class FlowTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			FlowContainer container = app.create(FlowContainer.class, "testFlow");
+			FlowContainer container = app.create("FlowContainer", "testFlow");
 
 			result = container.evaluate(securityContext, flowParameters);
 
 			assertNotNull(result);
 
-			FlowAction action = app.create(FlowAction.class, "createAction");
+			FlowAction action = app.create("FlowAction", "createAction");
 			action.setProperty(FlowAction.script, "{ ['a','b','c'].forEach( data => Structr.create('User','name',data)) }");
 			action.setProperty(FlowAction.flowContainer, container);
 
-			FlowDataSource ds = app.create(FlowDataSource.class, "ds");
+			FlowDataSource ds = app.create("FlowDataSource", "ds");
 			ds.setProperty(FlowDataSource.query, "find('User')");
 			ds.setProperty(FlowAction.flowContainer, container);
 
-			FlowReturn ret = app.create(FlowReturn.class, "ds");
+			FlowReturn ret = app.create("FlowReturn", "ds");
 			ret.setProperty(FlowReturn.dataSource, ds);
 			ret.setProperty(FlowAction.flowContainer, container);
 
@@ -99,22 +97,22 @@ public class FlowTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			FlowContainer container = app.create(FlowContainer.class, "testFlowForEach");
+			FlowContainer container = app.create("FlowContainer", "testFlowForEach");
 
-			FlowForEach forEach = app.create(FlowForEach.class);
+			FlowForEach forEach = app.create("FlowForEach");
 			forEach.setProperty(FlowForEach.flowContainer, container);
 			container.setProperty(FlowContainer.startNode, forEach);
 
-			FlowDataSource ds = app.create(FlowDataSource.class);
-			ds.setProperty(FlowDataSource.query, "{[1,2,3,4,5];}");
+			FlowDataSource ds = app.create("FlowDataSource");
+			ds.setProperty(FlowDataSource.query, "{return [1,2,3,4,5];}");
 			ds.setProperty(FlowDataSource.flowContainer, container);
 			forEach.setProperty(FlowForEach.dataSource, ds);
 
-			FlowDataSource ds2 = app.create(FlowDataSource.class);
+			FlowDataSource ds2 = app.create("FlowDataSource");
 			ds2.setProperty(FlowDataSource.query, "now");
 			ds2.setProperty(FlowDataSource.flowContainer, container);
 
-			FlowAggregate agg = app.create(FlowAggregate.class);
+			FlowAggregate agg = app.create("FlowAggregate");
 			agg.setProperty(FlowAggregate.flowContainer, container);
 			agg.setProperty(FlowAggregate.dataSource, ds2);
 			agg.setProperty(FlowAggregate.script, "{let data = $.get('data'); let currentData = $.get('currentData'); if (data === currentData || $.empty(currentData)) { throw 'ForEach scoping problem! Values should not be the same.' } }");
@@ -139,24 +137,24 @@ public class FlowTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// create admin user
-			createTestNode(User.class,
+			createTestNode(StructrTraits.USER,
 				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
 				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
 				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"),  true)
 			);
 
 			// create some test data
-			createTestNode(Group.class, new NodeAttribute<>(Group.name, "group1"));
-			createTestNode(Group.class, new NodeAttribute<>(Group.name, "group2"));
-			createTestNode(Group.class, new NodeAttribute<>(Group.name, "group3"));
-			createTestNode(Group.class, new NodeAttribute<>(Group.name, "group4"));
+			createTestNode(StructrTraits.GROUP, new NodeAttribute<>(Group.name, "group1"));
+			createTestNode(StructrTraits.GROUP, new NodeAttribute<>(Group.name, "group2"));
+			createTestNode(StructrTraits.GROUP, new NodeAttribute<>(Group.name, "group3"));
+			createTestNode(StructrTraits.GROUP, new NodeAttribute<>(Group.name, "group4"));
 
 			// create flow
-			final FlowContainer flowContainer = app.create(FlowContainer.class, "test");
-			final FlowTypeQuery query         = app.create(FlowTypeQuery.class, "query");
-			final FlowReturn    ret           = app.create(FlowReturn.class, "return");
+			final FlowContainer flowContainer = app.create("FlowContainer", "test");
+			final FlowTypeQuery query         = app.create("FlowTypeQuery", "query");
+			final FlowReturn    ret           = app.create("FlowReturn", "return");
 
-			query.setProperty(StructrApp.key(FlowTypeQuery.class, "dataType"), "Group");
+			query.setProperty(StructrApp.key(FlowTypeQuery.class, "dataType"), StructrTraits.GROUP);
 			query.setProperty(StructrApp.key(FlowTypeQuery.class, "query"), "{\"type\":\"group\",\"op\":\"and\",\"operations\":[{\"type\":\"sort\",\"key\":\"name\",\"order\":\"desc\",\"queryType\":\"Group\"}],\"queryType\":\"Group\"}");
 
 			query.setProperty(FlowAction.flowContainer, flowContainer);

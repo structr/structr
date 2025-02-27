@@ -117,8 +117,4 @@ public class CypherTabCompletionProvider extends AbstractTabCompletionProvider {
 
 		return results;
 	}
-
-	private Set<String> getNodeTypes() {
-		return StructrApp.getConfiguration().getNodeEntities().keySet();
-	}
 }

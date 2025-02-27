@@ -27,7 +27,6 @@ import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.SchemaMethod.HttpVerb;
 import org.structr.core.graph.Tx;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.RESTCall;
@@ -43,15 +42,13 @@ import java.util.Set;
  */
 public class InstanceMethodResourceHandler extends RESTMethodCallHandler {
 
-	private Class entityClass = null;
 	private String typeName   = null;
 	private String uuid       = null;
 
-	public InstanceMethodResourceHandler(final RESTCall call, final Class entityClass, final String typeName, final String uuid, final AbstractMethod method) {
+	public InstanceMethodResourceHandler(final RESTCall call, final String typeName, final String uuid, final AbstractMethod method) {
 
 		super(call, method);
 
-		this.entityClass = entityClass;
 		this.typeName    = typeName;
 		this.uuid        = uuid;
 	}
@@ -59,9 +56,9 @@ public class InstanceMethodResourceHandler extends RESTMethodCallHandler {
 	@Override
 	public ResultStream doGet(final SecurityContext securityContext, final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
 
-		if (HttpVerb.GET.equals(method.getHttpVerb())) {
+		if ("GET".equals(method.getHttpVerb())) {
 
-			final GraphObject entity      = getEntity(securityContext, entityClass, typeName, uuid);
+			final GraphObject entity      = getEntity(securityContext, typeName, uuid);
 			final RestMethodResult result = executeMethod(securityContext, entity, Arguments.fromPath(call.getPathParameters()));
 
 			return new PagingIterable("GET " + getURL(), result.getContent());
@@ -75,9 +72,9 @@ public class InstanceMethodResourceHandler extends RESTMethodCallHandler {
 	@Override
 	public RestMethodResult doPost(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
 
-		if (HttpVerb.POST.equals(method.getHttpVerb())) {
+		if ("POST".equals(method.getHttpVerb())) {
 
-			final GraphObject entity = getEntity(securityContext, entityClass, typeName, uuid);
+			final GraphObject entity = getEntity(securityContext, typeName, uuid);
 
 			return executeMethod(securityContext, entity, Arguments.fromMap(propertySet));
 
@@ -90,9 +87,9 @@ public class InstanceMethodResourceHandler extends RESTMethodCallHandler {
 	@Override
 	public RestMethodResult doPut(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
 
-		if (HttpVerb.PUT.equals(method.getHttpVerb())) {
+		if ("PUT".equals(method.getHttpVerb())) {
 
-			final GraphObject entity = getEntity(securityContext, entityClass, typeName, uuid);
+			final GraphObject entity = getEntity(securityContext, typeName, uuid);
 
 			return executeMethod(securityContext, entity, Arguments.fromMap(propertySet));
 
@@ -105,9 +102,9 @@ public class InstanceMethodResourceHandler extends RESTMethodCallHandler {
 	@Override
 	public RestMethodResult doPatch(final SecurityContext securityContext, final List<Map<String, Object>> propertySet) throws FrameworkException {
 
-		if (HttpVerb.PATCH.equals(method.getHttpVerb())) {
+		if ("PATCH".equals(method.getHttpVerb())) {
 
-			final GraphObject entity = getEntity(securityContext, entityClass, typeName, uuid);
+			final GraphObject entity = getEntity(securityContext, typeName, uuid);
 
 			// FIXME, only the first property set is used, we need to test this
 			return executeMethod(securityContext, entity, Arguments.fromMap(propertySet.get(0)));
@@ -123,18 +120,18 @@ public class InstanceMethodResourceHandler extends RESTMethodCallHandler {
 
 		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			if (!HttpVerb.DELETE.equals(method.getHttpVerb())) {
+			if ("DELETE".equals(method.getHttpVerb())) {
 
-				throw new IllegalMethodException("DELETE not allowed on " + getURL(), getAllowedHttpMethodsForOptionsCall());
-
-			} else {
-
-				final GraphObject entity      = getEntity(securityContext, entityClass, typeName, uuid);
+				final GraphObject entity = getEntity(securityContext, typeName, uuid);
 				final RestMethodResult result = executeMethod(securityContext, entity, Arguments.fromPath(call.getPathParameters()));
 
 				tx.success();
 
 				return result;
+
+			} else {
+
+				throw new IllegalMethodException("DELETE not allowed on " + getURL(), getAllowedHttpMethodsForOptionsCall());
 			}
 		}
 	}
@@ -145,12 +142,12 @@ public class InstanceMethodResourceHandler extends RESTMethodCallHandler {
 	}
 
 	@Override
-	public Class getEntityClass(final SecurityContext securityContext) throws FrameworkException {
+	public String getTypeName(final SecurityContext securityContext) throws FrameworkException {
 
-		final GraphObject entity = getEntity(securityContext, entityClass, typeName, uuid);
+		final GraphObject entity = getEntity(securityContext, typeName, uuid);
 		if (entity != null) {
 
-			return entity.getClass();
+			return entity.getType();
 		}
 
 		return null;
@@ -158,6 +155,6 @@ public class InstanceMethodResourceHandler extends RESTMethodCallHandler {
 
 	@Override
 	public Set<String> getAllowedHttpMethodsForOptionsCall() {
-		return Set.of(method.getHttpVerb().name());
+		return Set.of(method.getHttpVerb());
 	}
 }

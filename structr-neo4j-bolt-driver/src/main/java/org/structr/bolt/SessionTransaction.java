@@ -18,6 +18,8 @@
  */
 package org.structr.bolt;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.driver.Record;
@@ -680,7 +682,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 					if (query.contains("extractedContent")) {
 						logger.info("{}: {}\t\t SET on extractedContent - value suppressed", Thread.currentThread().getId(), query);
 					} else {
-						logger.info("{}: {} - {}\t\t Parameters: {}", Thread.currentThread().getId(), transactionId + ": " + nodes.size() + "/" + rels.size(), query, map.toString());
+						logger.info("{}: {} - {}\t\t Parameters: {}", Thread.currentThread().getId(), transactionId + ": " + nodes.size() + "/" + rels.size(), query, stringify(map));
 					}
 
 				} else {
@@ -721,14 +723,14 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 		rels.clear();
 	}
 
-	private String createPatternFromDetails(final Class type, final Set<String> relTypes, final boolean outgoing) {
+	private String createPatternFromDetails(final String type, final Set<String> relTypes, final boolean outgoing) {
 
 		final String rawTenantIdentifier = db.getTenantIdentifier();
 		final String tenantIdentifier    = StringUtils.isNotBlank(rawTenantIdentifier) ? ":" + rawTenantIdentifier : "";
 		final StringBuilder pattern      = new StringBuilder();
 
 		pattern.append("(n:");
-		pattern.append(type.getSimpleName());
+		pattern.append(type);
 		pattern.append(tenantIdentifier);
 		pattern.append(")");
 
@@ -754,7 +756,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 
 		final String rawTenantIdentifier = db.getTenantIdentifier();
 		final String tenantIdentifier    = StringUtils.isNotBlank(rawTenantIdentifier) ? ":" + rawTenantIdentifier : "";
-		final Class type                 = query.getType();
+		final String type                = query.getType();
 		final String relType             = query.getRelationshipType();
 		final boolean isOutgoing         = query.isOutgoing();
 		final StringBuilder buf          = new StringBuilder();
@@ -772,7 +774,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 				pattern = "<" + pattern + "(m)";
 			}
 
-			pattern = "(n:" + type.getSimpleName() + tenantIdentifier + ")" + pattern;
+			pattern = "(n:" + type + tenantIdentifier + ")" + pattern;
 
 			return pattern;
 		}
@@ -794,12 +796,12 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 			final Set<PrefetchInfo> infos = prefetchInfos.get(prefetchHint);
 			if (infos != null) {
 
-				final Map<Class, Set<PrefetchInfo>> typesOutgoing = new LinkedHashMap<>();
-				final Map<Class, Set<PrefetchInfo>> typesIncoming = new LinkedHashMap<>();
+				final Map<String, Set<PrefetchInfo>> typesOutgoing = new LinkedHashMap<>();
+				final Map<String, Set<PrefetchInfo>> typesIncoming = new LinkedHashMap<>();
 
 				for (final PrefetchInfo info : infos) {
 
-					final Class type = info.getType();
+					final String type = info.getType();
 
 					if (info.isOutgoing()) {
 
@@ -812,7 +814,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 					}
 				}
 
-				for (final Class type : typesOutgoing.keySet()) {
+				for (final String type : typesOutgoing.keySet()) {
 
 					final Set<PrefetchInfo> entriesToReplace = typesOutgoing.get(type);
 					if (entriesToReplace.size() > 1) {
@@ -840,7 +842,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 					}
 				}
 
-				for (final Class type : typesIncoming.keySet()) {
+				for (final String type : typesIncoming.keySet()) {
 
 					final Set<PrefetchInfo> entriesToReplace = typesIncoming.get(type);
 					if (entriesToReplace.size() > 1) {
@@ -913,10 +915,10 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 
 			if (info1 != null && info2 != null) {
 
-				final Class type1 = info1.getType();
-				final Class type2 = info2.getType();
+				final String type1 = info1.getType();
+				final String type2 = info2.getType();
 
-				final Class commonBaseType = getHighestCommonBaseType(type1, type2);
+				final String commonBaseType = getHighestCommonBaseType(type1, type2);
 				if (commonBaseType != null) {
 
 					hasChanges = true;
@@ -951,10 +953,10 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 
 			if (info1 != null && info2 != null) {
 
-				final Class type1 = info1.getType();
-				final Class type2 = info2.getType();
+				final String type1 = info1.getType();
+				final String type2 = info2.getType();
 
-				final Class commonBaseType = getHighestCommonBaseType(type1, type2);
+				final String commonBaseType = getHighestCommonBaseType(type1, type2);
 				if (commonBaseType != null) {
 
 					hasChanges = true;
@@ -975,31 +977,39 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 		}
 	}
 
-	private Class getHighestCommonBaseType(final Class type1, final Class type2) {
+	private String getHighestCommonBaseType(final String type1, final String type2) {
 
-		final Set<Class> types1 = getBaseTypes(type1);
-		final Set<Class> types2 = getBaseTypes(type2);
+		final Set<String> types1 = getBaseTypes(type1);
+		final Set<String> types2 = getBaseTypes(type2);
 
 		types1.retainAll(types2);
 
 		return Iterables.first(types1);
 	}
 
-	private Set<Class> getBaseTypes(final Class type) {
+	private String stringify(final Map map) {
+
+		final Gson gson = new GsonBuilder().create();
+
+		return gson.toJson(map);
+	}
+
+	private Set<String> getBaseTypes(final String type) {
 
 		final Set<String> blacklist = Set.of("NodeInterface", "AbstractNode", "AbstractFile");
-		final Set<Class> baseTypes = new LinkedHashSet<>();
-		final Queue<Class> queue   = new LinkedList<>();
+		final Set<String> baseTypes = new LinkedHashSet<>();
+		final Queue<String> queue   = new LinkedList<>();
 
 		queue.add(type);
 
 		while (!queue.isEmpty()) {
 
-			final Class c = queue.remove();
+			final String c = queue.remove();
 
 			baseTypes.add(c);
 
-			final Class superClass = c.getSuperclass();
+			/*
+			final String superClass = c.getSuperclass();
 			if (superClass != null && Object.class != superClass && !blacklist.contains(superClass.getSimpleName())) {
 
 				queue.add(superClass);
@@ -1013,6 +1023,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 					queue.add(iface);
 				}
 			}
+			*/
 		}
 
 		return baseTypes;
@@ -1023,7 +1034,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 		private final Set<String> outgoingSet = new LinkedHashSet<>();
 		private final Set<String> incomingSet = new LinkedHashSet<>();
 		private final Set<String> relTypes    = new LinkedHashSet<>();
-		private Class type                    = null;
+		private String type                   = null;
 		private String pattern                = null;
 		private boolean outgoing              = false;
 		private int count                     = 1;
@@ -1034,13 +1045,13 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 			this.type     = query.getType();
 			this.outgoing = query.isOutgoing();
 
-			outgoingSet.add(type.getSimpleName() + "/all/OUTGOING/" + query.getRelationshipType());
-			incomingSet.add(type.getSimpleName() + "/all/INCOMING/" + query.getRelationshipType());
+			outgoingSet.add(type + "/all/OUTGOING/" + query.getRelationshipType());
+			incomingSet.add(type + "/all/INCOMING/" + query.getRelationshipType());
 
 			relTypes.add(query.getRelationshipType());
 		}
 
-		public PrefetchInfo(final String pattern, final Class type, final boolean isOutgoing, final Set<String> outgoingSet, final Set<String> incomingSet, final Set<String> relTypes) {
+		public PrefetchInfo(final String pattern, final String type, final boolean isOutgoing, final Set<String> outgoingSet, final Set<String> incomingSet, final Set<String> relTypes) {
 
 			this.pattern  = pattern;
 			this.type     = type;
@@ -1072,7 +1083,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 			return count;
 		}
 
-		public Class getType() {
+		public String getType() {
 			return type;
 		}
 

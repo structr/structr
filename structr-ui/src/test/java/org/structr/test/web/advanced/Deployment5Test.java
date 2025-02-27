@@ -27,10 +27,12 @@ import org.structr.common.AccessMode;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.*;
+import org.structr.core.entity.Group;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.schema.export.StructrSchema;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
@@ -39,12 +41,10 @@ import org.structr.web.entity.User;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.html.*;
 import org.structr.websocket.command.CreateComponentCommand;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
-import java.lang.Object;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Function;
@@ -65,25 +65,24 @@ public class Deployment5Test extends DeploymentTestBase {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			// Create a group with name "SchemaAccess" and allow access to all nodes of type "MailTemplate"
-			final SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName("MailTemplate").getFirst();
-			final Group group           = app.create(Group.class, "SchemaAccess");
-			final User user             = app.create(User.class, "tester");
+			// Create a group with name "SchemaAccess" and allow access to all nodes of type StructrTraits.MAIL_TEMPLATE
+			final NodeInterface group = app.create(StructrTraits.GROUP, "SchemaAccess");
+			final NodeInterface user  = app.create(StructrTraits.USER, "tester");
 
-			group.addMember(securityContext, user);
+			group.as(Group.class).addMember(securityContext, user.as(User.class));
 
 			// create schema grant object
-			app.create(SchemaGrant.class,
-				new NodeAttribute<>(SchemaGrant.schemaNode,  schemaNode),
-				new NodeAttribute<>(SchemaGrant.principal,   group),
-				new NodeAttribute<>(SchemaGrant.allowRead,   true),
-				new NodeAttribute<>(SchemaGrant.allowWrite,  true),
-				new NodeAttribute<>(SchemaGrant.allowDelete, true)
+			app.create(StructrTraits.SCHEMA_GRANT,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("staticSchemaNodeName"), StructrTraits.MAIL_TEMPLATE),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("principal"),            group),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("allowRead"),            true),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("allowWrite"),           true),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("allowDelete"),          true)
 			);
 
 			// create MailTemplate instances
-			app.create(MailTemplate.class, "TEMPLATE1");
-			app.create(MailTemplate.class, "TEMPLATE2");
+			app.create(StructrTraits.MAIL_TEMPLATE, "TEMPLATE1");
+			app.create(StructrTraits.MAIL_TEMPLATE, "TEMPLATE2");
 
 			tx.success();
 
@@ -95,10 +94,10 @@ public class Deployment5Test extends DeploymentTestBase {
 		// test1: verify that user is allowed to access MailTemplates
 		try (final Tx tx = app.tx()) {
 
-			final User user                   = app.nodeQuery(User.class).andName("tester").getFirst();
-			final SecurityContext userContext = SecurityContext.getInstance(user, AccessMode.Backend);
+			final NodeInterface user          = app.nodeQuery(StructrTraits.USER).andName("tester").getFirst();
+			final SecurityContext userContext = SecurityContext.getInstance(user.as(User.class), AccessMode.Backend);
 
-			for (final MailTemplate template : app.nodeQuery(MailTemplate.class).getAsList()) {
+			for (final NodeInterface template : app.nodeQuery(StructrTraits.MAIL_TEMPLATE).getAsList()) {
 
 				assertTrue("User should have read access to all mail templates", template.isGranted(Permission.read, userContext));
 				assertTrue("User should have write access to all mail templates", template.isGranted(Permission.write, userContext));
@@ -120,10 +119,10 @@ public class Deployment5Test extends DeploymentTestBase {
 
 				try (final Tx tx = app.tx()) {
 
-					final Group group = app.create(Group.class, "SchemaAccess");
-					final User user   = app.create(User.class, "tester");
+					final NodeInterface group = app.create(StructrTraits.GROUP, "SchemaAccess");
+					final NodeInterface user   = app.create(StructrTraits.USER, "tester");
 
-					group.addMember(securityContext, user);
+					group.as(Group.class).addMember(securityContext, user.as(User.class));
 
 					tx.success();
 
@@ -139,10 +138,10 @@ public class Deployment5Test extends DeploymentTestBase {
 		// test2: verify that new user is allowed to access MailTemplates
 		try (final Tx tx = app.tx()) {
 
-			final User user                   = app.nodeQuery(User.class).andName("tester").getFirst();
-			final SecurityContext userContext = SecurityContext.getInstance(user, AccessMode.Backend);
+			final NodeInterface user          = app.nodeQuery(StructrTraits.USER).andName("tester").getFirst();
+			final SecurityContext userContext = SecurityContext.getInstance(user.as(User.class), AccessMode.Backend);
 
-			for (final MailTemplate template : app.nodeQuery(MailTemplate.class).getAsList()) {
+			for (final NodeInterface template : app.nodeQuery(StructrTraits.MAIL_TEMPLATE).getAsList()) {
 
 				assertTrue("User should have read access to all mail templates", template.isGranted(Permission.read, userContext));
 				assertTrue("User should have write access to all mail templates", template.isGranted(Permission.write, userContext));
@@ -165,47 +164,47 @@ public class Deployment5Test extends DeploymentTestBase {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			app.create(User.class,
-				new NodeAttribute<>(AbstractNode.name, "admin"),
-				new NodeAttribute<>(StructrApp.key(PrincipalInterface.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(PrincipalInterface.class, "isAdmin"), true)
+			app.create(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("isAdmin"), true)
 			);
 
-			final Group parent       = app.create(Group.class, "parent");
-			final List<Group> groups = new LinkedList<>();
+			final Group parent               = app.create(StructrTraits.GROUP, "parent").as(Group.class);
+			final List<NodeInterface> groups = new LinkedList<>();
 
 			for (int i=0; i<8; i++) {
-				groups.add(app.create(Group.class, "group0" + i));
+				groups.add(app.create(StructrTraits.GROUP, "group0" + i));
 			}
 
 			uuid = parent.getUuid();
 
 			// add some members
-			parent.addMember(securityContext, groups.get(1));
-			parent.addMember(securityContext, groups.get(3));
-			parent.addMember(securityContext, groups.get(4));
-			parent.addMember(securityContext, groups.get(6));
+			parent.addMember(securityContext, groups.get(1).as(Group.class));
+			parent.addMember(securityContext, groups.get(3).as(Group.class));
+			parent.addMember(securityContext, groups.get(4).as(Group.class));
+			parent.addMember(securityContext, groups.get(6).as(Group.class));
 
 			// create first page
 			final Page page1 = Page.createNewPage(securityContext,   "test52_1");
-			final Html html1 = createElement(page1, page1, "html");
-			final Head head1 = createElement(page1, html1, "head");
+			final DOMElement html1 = createElement(page1, page1, "html");
+			final DOMElement head1 = createElement(page1, html1, "head");
 			createElement(page1, head1, "title", "test52_1");
 
-			final Body body1 =  createElement(page1, html1, "body");
-			final Div div1   =  createElement(page1, body1, "div");
-			final Select sel1 = createElement(page1, div1,  "select");
-			final Option opt1 = createElement(page1, sel1,  "option", "${group.name}");
+			final DOMElement body1 =  createElement(page1, html1, "body");
+			final DOMElement div1   =  createElement(page1, body1, "div");
+			final DOMElement sel1 = createElement(page1, div1,  "select");
+			final DOMElement opt1 = createElement(page1, sel1,  "option", "${group.name}");
 
-			sel1.setProperty(StructrApp.key(Select.class, "_html_multiple"), "multiple");
+			sel1.setProperty(Traits.of("Select").key("_html_multiple"), "multiple");
 
 			// repeater config
-			opt1.setProperty(StructrApp.key(DOMElement.class, "functionQuery"), "find('Group', sort('name'))");
-			opt1.setProperty(StructrApp.key(DOMElement.class, "dataKey"),       "group");
+			opt1.setProperty(Traits.of(StructrTraits.DOM_ELEMENT).key("functionQuery"), "find('Group', sort('name'))");
+			opt1.setProperty(Traits.of(StructrTraits.DOM_ELEMENT).key("dataKey"),       "group");
 
 			// special keys for Option element
-			opt1.setProperty(StructrApp.key(Option.class, "selectedValues"), "current.members");
-			opt1.setProperty(StructrApp.key(Option.class, "_html_value"),    "${group.id}");
+			opt1.setProperty(Traits.of("Option").key("selectedValues"), "current.members");
+			opt1.setProperty(Traits.of("Option").key("_html_value"),    "${group.id}");
 
 			tx.success();
 
@@ -248,26 +247,26 @@ public class Deployment5Test extends DeploymentTestBase {
 		// user must be created again...
 		try (final Tx tx = app.tx()) {
 
-			app.create(User.class,
-				new NodeAttribute<>(AbstractNode.name, "admin"),
-				new NodeAttribute<>(StructrApp.key(PrincipalInterface.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(PrincipalInterface.class, "isAdmin"), true)
+			app.create(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("isAdmin"), true)
 			);
 
-			final Group parent       = app.create(Group.class, "parent");
-			final List<Group> groups = new LinkedList<>();
+			final Group parent               = app.create(StructrTraits.GROUP, "parent").as(Group.class);
+			final List<NodeInterface> groups = new LinkedList<>();
 
 			for (int i=0; i<8; i++) {
-				groups.add(app.create(Group.class, "group0" + i));
+				groups.add(app.create(StructrTraits.GROUP, "group0" + i));
 			}
 
 			uuid = parent.getUuid();
 
 			// add some members
-			parent.addMember(securityContext, groups.get(1));
-			parent.addMember(securityContext, groups.get(3));
-			parent.addMember(securityContext, groups.get(4));
-			parent.addMember(securityContext, groups.get(6));
+			parent.addMember(securityContext, groups.get(1).as(Group.class));
+			parent.addMember(securityContext, groups.get(3).as(Group.class));
+			parent.addMember(securityContext, groups.get(4).as(Group.class));
+			parent.addMember(securityContext, groups.get(6).as(Group.class));
 
 			tx.success();
 
@@ -315,10 +314,10 @@ public class Deployment5Test extends DeploymentTestBase {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			app.create(User.class,
-					new NodeAttribute<>(StructrApp.key(PrincipalInterface.class,     "name"), "admin"),
-					new NodeAttribute<>(StructrApp.key(PrincipalInterface.class, "password"), "admin"),
-					new NodeAttribute<>(StructrApp.key(PrincipalInterface.class,  "isAdmin"),    true)
+			app.create(StructrTraits.USER,
+					new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("name"), "admin"),
+					new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("password"), "admin"),
+					new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("isAdmin"),    true)
 			);
 
 			tx.success();
@@ -333,14 +332,14 @@ public class Deployment5Test extends DeploymentTestBase {
 			final Page shadowPage = CreateComponentCommand.getOrCreateHiddenDocument();
 
 			final Page page = Page.createNewPage(securityContext, "test52");
-			final Html html = createElement(page, page, "html");
-			final Head head = createElement(page, html, "head");
+			final DOMElement html = createElement(page, page, "html");
+			final DOMElement head = createElement(page, html, "head");
 			createElement(page, head, "title", "test52");
 
-			final Body body       = createElement(page, html, "body");
+			final DOMElement body       = createElement(page, html, "body");
 
-			final Div div1        = createElement(page, body, "div");
-			final Div div2        = createElement(page, body, "div");
+			final DOMElement div1        = createElement(page, body, "div");
+			final DOMElement div2        = createElement(page, body, "div");
 
 			final DOMNode comp1   = createComponent(div1);
 			final DOMNode comp2   = createComponent(div2);
@@ -349,11 +348,11 @@ public class Deployment5Test extends DeploymentTestBase {
 			body.removeChild(div1);
 			body.removeChild(div2);
 
-			comp1.setProperty(AbstractNode.name, "shared-component-one");
-			comp1.setProperty(StructrApp.key(DOMNode.class, "hideConditions"), "{ $.requestStore['SC1_render_count'] > 3; }");
+			comp1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "shared-component-one");
+			comp1.setProperty(Traits.of(StructrTraits.DOM_NODE).key("hideConditions"), "{ return $.requestStore['SC1_render_count'] > 3; }");
 
-			comp2.setProperty(AbstractNode.name, "shared-component-two");
-			comp2.setProperty(StructrApp.key(DOMNode.class, "hideConditions"), "{ $.requestStore['SCS_render_count'] > 3; }");
+			comp2.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "shared-component-two");
+			comp2.setProperty(Traits.of(StructrTraits.DOM_NODE).key("hideConditions"), "{ return $.requestStore['SCS_render_count'] > 3; }");
 
 			createContent(shadowPage, comp1, "shared-component-one\n" +
 					"${{\n" +
@@ -397,10 +396,10 @@ public class Deployment5Test extends DeploymentTestBase {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			app.create(User.class,
-					new NodeAttribute<>(StructrApp.key(PrincipalInterface.class,     "name"), "admin"),
-					new NodeAttribute<>(StructrApp.key(PrincipalInterface.class, "password"), "admin"),
-					new NodeAttribute<>(StructrApp.key(PrincipalInterface.class,  "isAdmin"),    true)
+			app.create(StructrTraits.USER,
+					new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("name"),     "admin"),
+					new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("password"), "admin"),
+					new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("isAdmin"),  true)
 			);
 
 			tx.success();
@@ -413,20 +412,20 @@ public class Deployment5Test extends DeploymentTestBase {
 		try (final Tx tx = app.tx()) {
 
 			// create page with visibility false/true
-			final Page page       = Page.createNewPage(securityContext,   "test54");
-			final Html html       = createElement(page, page, "html");
-			final Head head       = createElement(page, html, "head");
-			final DOMNode title   = createElement(page, head, "title", "test54");
-			final Body body       = createElement(page, html, "body");
-			final Div div1        = createElement(page, head, "div");
-			final Div div11       = createElement(page, div1, "div");
+			final Page page         = Page.createNewPage(securityContext,   "test54");
+			final DOMElement html   = createElement(page, page, "html");
+			final DOMElement head   = createElement(page, html, "head");
+			final DOMNode title     = createElement(page, head, "title", "test54");
+			final DOMElement body   = createElement(page, html, "body");
+			final DOMElement div1   = createElement(page, head, "div");
+			final DOMElement div11  = createElement(page, div1, "div");
 
 			// this one will be set to delayed rendering
-			final Div testDiv     = createElement(page, div1, "div");
-			final Div div111      = createElement(page, div11, "div", "content 1");
-			final Div div121      = createElement(page, div11, "div", "content 2");
+			final DOMElement testDiv = createElement(page, div1, "div");
+			final DOMElement div111  = createElement(page, div11, "div", "content 1");
+			final DOMElement div121  = createElement(page, div11, "div", "content 2");
 
-			testDiv.setProperty(StructrApp.key(DOMElement.class, "data-structr-rendering-mode"), "visible");
+			testDiv.setProperty(Traits.of(StructrTraits.DOM_ELEMENT).key("data-structr-rendering-mode"), "visible");
 
 			tx.success();
 
@@ -466,13 +465,13 @@ public class Deployment5Test extends DeploymentTestBase {
 		// check
 		try (final Tx tx = app.tx()) {
 
-			final SchemaMethod method1 = app.nodeQuery(SchemaMethod.class).and(SchemaMethod.name, "test").getFirst();
+			final NodeInterface method1 = app.nodeQuery(StructrTraits.SCHEMA_METHOD).and(Traits.of(StructrTraits.SCHEMA_METHOD).key("name"), "test").getFirst();
 
 			assertNotNull("Invalid deployment result", method1);
 
-			assertEquals("Invalid SchemaMethod deployment result", "test",                                         method1.getProperty(SchemaMethod.name));
-			assertEquals("Invalid SchemaMethod deployment result", "System.out.println(parameters); return null;", method1.getProperty(SchemaMethod.source));
-			assertEquals("Invalid SchemaMethod deployment result", "java",                                         method1.getProperty(SchemaMethod.codeType));
+			assertEquals("Invalid SchemaMethod deployment result", "test",                                         method1.getProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key("name")));
+			assertEquals("Invalid SchemaMethod deployment result", "System.out.println(parameters); return null;", method1.getProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key("source")));
+			assertEquals("Invalid SchemaMethod deployment result", "java",                                         method1.getProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key("codeType")));
 
 			tx.success();
 
@@ -503,17 +502,17 @@ public class Deployment5Test extends DeploymentTestBase {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			final String folderPath = "/" + v2FolderName + "/js/";
-			final Folder folder     = FileHelper.createFolderPath(securityContext, folderPath);
-			final File file         = FileHelper.createFile(securityContext, "/* app.min.js */".getBytes("utf-8"), "text/javascript", File.class, v2FileName, true);
-			final Folder rootFolder = getRootFolder(folder);
+			final String folderPath        = "/" + v2FolderName + "/js/";
+			final NodeInterface folder     = FileHelper.createFolderPath(securityContext, folderPath);
+			final NodeInterface file       = FileHelper.createFile(securityContext, "/* app.min.js */".getBytes("utf-8"), "text/javascript", StructrTraits.FILE, v2FileName, true);
+			final NodeInterface rootFolder = getRootFolder(folder.as(Folder.class));
 
 			assertNotNull("Root folder should not be null", rootFolder);
 
 			// root folder needs to have "includeInFrontendExport" set
-			rootFolder.setProperty(StructrApp.key(Folder.class, "includeInFrontendExport"), true);
+			rootFolder.setProperty(Traits.of(StructrTraits.FOLDER).key("includeInFrontendExport"), true);
 
-			file.setProperty(StructrApp.key(File.class, "parent"), folder);
+			file.setProperty(Traits.of(StructrTraits.FILE).key("parent"), folder);
 
 			tx.success();
 
@@ -528,11 +527,11 @@ public class Deployment5Test extends DeploymentTestBase {
 
 			try (final Tx tx = app.tx()) {
 
-				final Folder folder = app.nodeQuery(Folder.class).andName(v2FolderName).getFirst();
-				folder.setProperty(AbstractNode.name, v1FolderName);
+				final NodeInterface folder = app.nodeQuery(StructrTraits.FOLDER).andName(v2FolderName).getFirst();
+				folder.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), v1FolderName);
 
-				final File file = app.nodeQuery(File.class).andName(v2FileName).getFirst();
-				file.setProperty(AbstractNode.name, v1FileName);
+				final NodeInterface file = app.nodeQuery(StructrTraits.FILE).andName(v2FileName).getFirst();
+				file.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), v1FileName);
 
 				tx.success();
 
@@ -544,8 +543,8 @@ public class Deployment5Test extends DeploymentTestBase {
 
 			try (final Tx tx = app.tx()) {
 
-				final Folder folder = app.nodeQuery(Folder.class).andName(v1FolderName).getFirst();
-				final File file = app.nodeQuery(File.class).andName(v1FileName).getFirst();
+				final NodeInterface folder = app.nodeQuery(StructrTraits.FOLDER).andName(v1FolderName).getFirst();
+				final NodeInterface file = app.nodeQuery(StructrTraits.FILE).andName(v1FileName).getFirst();
 
 				assertNotNull("Folder rename did not work", folder);
 				assertNotNull("File rename did not work", file);
@@ -564,15 +563,15 @@ public class Deployment5Test extends DeploymentTestBase {
 		// check that the correct file/folder name is set
 		try (final Tx tx = app.tx()) {
 
-			final Folder folder = app.nodeQuery(Folder.class).andName(v2FolderName).getFirst();
+			final NodeInterface folder = app.nodeQuery(StructrTraits.FOLDER).andName(v2FolderName).getFirst();
 
 			assertNotNull("Invalid deployment result", folder);
 
-			final File file = app.nodeQuery(File.class).andName(v2FileName).getFirst();
+			final NodeInterface file = app.nodeQuery(StructrTraits.FILE).andName(v2FileName).getFirst();
 
 			assertNotNull("Invalid deployment result", file);
 
-			assertEquals("Deployment import does not restore parent attribute correctly", folder, file.getParent().getParent());
+			assertEquals("Deployment import does not restore parent attribute correctly", folder, file.as(File.class).getParent().getParent());
 
 			tx.success();
 

@@ -25,8 +25,6 @@ import org.structr.module.StructrModule;
 import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
 
-import java.util.Arrays;
-import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
@@ -53,8 +51,7 @@ public class CSVModule implements StructrModule {
 
 	@Override
 	public Set<String> getDependencies() {
-		// CSV import depends on the API builder now
-		return new LinkedHashSet<>(Arrays.asList(new String[] { "api-builder" } ));
+		return Set.of("ui", "api-builder");
 	}
 
 	@Override

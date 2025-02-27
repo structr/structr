@@ -27,6 +27,7 @@ public enum TestEnum {
 	Status1,
 	Status2,
 	Status3,
-	Status4
+	Status4,
+	Status5
 	
 }

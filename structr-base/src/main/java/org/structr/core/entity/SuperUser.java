@@ -23,7 +23,6 @@ import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.graph.RelationshipType;
-import org.structr.common.AccessControllable;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -32,10 +31,9 @@ import org.structr.core.GraphObject;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.schema.NonIndexed;
+import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 
@@ -45,82 +43,11 @@ import java.util.*;
  * The SuperUser entity. Please note that this class is not persistent but will
  * be instantiated when needed.
  */
-public class SuperUser implements PrincipalInterface, AccessControllable, NonIndexed {
-
-	@Override
-	public void removeProperty(PropertyKey key) throws FrameworkException {}
-
-	@Override
-	public void grant(Permission permission, PrincipalInterface obj) {}
-
-	@Override
-	public void grant(final Set<Permission> permissions, final PrincipalInterface principal) {};
-
-	@Override
-	public void grant(final Set<Permission> permissions, final PrincipalInterface principal, final SecurityContext ctx) {}
-
-	@Override
-	public void revoke(Permission permission, PrincipalInterface obj) {}
-
-	@Override
-	public void revoke(final Set<Permission> permissions, final PrincipalInterface principal) {}
-
-	@Override
-	public void revoke(final Set<Permission> permissions, final PrincipalInterface principal, final SecurityContext ctx) {}
-
-	@Override
-	public void setAllowed(final Set<Permission> permissions, final PrincipalInterface principal) throws FrameworkException {}
-
-	@Override
-	public void setAllowed(final Set<Permission> permissions, final PrincipalInterface principal, final SecurityContext ctx) {}
-
-	@Override
-	public void unlockSystemPropertiesOnce() {}
-
-	@Override
-	public void unlockReadOnlyPropertiesOnce() {}
-
-	@Override
-	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
-	}
-
-	@Override
-	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
-	}
-
-	@Override
-	public void onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
-	}
-
-	@Override
-	public void afterCreation(SecurityContext securityContext) {}
-
-	@Override
-	public void afterModification(SecurityContext securityContext) throws FrameworkException {}
-
-	@Override
-	public void afterDeletion(SecurityContext securityContext, PropertyMap properties) {}
-
-	@Override
-	public void ownerModified(SecurityContext securityContext) {}
-
-	@Override
-	public void securityModified(SecurityContext securityContext) {}
-
-	@Override
-	public void locationModified(SecurityContext securityContext) {}
-
-	@Override
-	public void propagatedModification(SecurityContext securityContext) {}
+public class SuperUser implements Principal {
 
 	@Override
 	public boolean isAdmin() {
 		return true;
-	}
-
-	@Override
-	public boolean isDeleted() {
-		return false;
 	}
 
 	public String getRealName() {
@@ -140,51 +67,173 @@ public class SuperUser implements PrincipalInterface, AccessControllable, NonInd
 	}
 
 	@Override
+	public SecurityContext getSecurityContext() {
+		return null;
+	}
+
+	@Override
+	public PropertyContainer getPropertyContainer() {
+		return null;
+	}
+
+	@Override
+	public Set<PropertyKey> getFullPropertySet() {
+		return Set.of();
+	}
+
+	@Override
+	public Set<PropertyKey> getPropertyKeys(String propertyView) {
+		return Set.of();
+	}
+
+	@Override
+	public long getSourceTransactionId() {
+		return 0;
+	}
+
+	@Override
+	public <T> Object setProperty(PropertyKey<T> key, T value) throws FrameworkException {
+		return null;
+	}
+
+	@Override
+	public <T> Object setProperty(PropertyKey<T> key, T value, boolean isCreation) throws FrameworkException {
+		return null;
+	}
+
+	@Override
+	public void setProperties(SecurityContext securityContext, PropertyMap properties) throws FrameworkException {
+
+	}
+
+	@Override
+	public void setProperties(SecurityContext securityContext, PropertyMap properties, boolean isCreation) throws FrameworkException {
+
+	}
+
+	@Override
+	public boolean isNode() {
+		return false;
+	}
+
+	@Override
+	public boolean isRelationship() {
+		return false;
+	}
+
+	@Override
+	public <V> V getProperty(PropertyKey<V> propertyKey) {
+		return null;
+	}
+
+	@Override
+	public <V> V getProperty(PropertyKey<V> propertyKey, Predicate<GraphObject> filter) {
+		return null;
+	}
+
+	@Override
+	public void removeProperty(PropertyKey key) throws FrameworkException {
+
+	}
+
+	@Override
+	public boolean systemPropertiesUnlocked() {
+		return false;
+	}
+
+	@Override
+	public void unlockSystemPropertiesOnce() {
+
+	}
+
+	@Override
+	public void lockSystemProperties() {
+
+	}
+
+	@Override
+	public boolean readOnlyPropertiesUnlocked() {
+		return false;
+	}
+
+	@Override
+	public void unlockReadOnlyPropertiesOnce() {
+
+	}
+
+	@Override
+	public void lockReadOnlyProperties() {
+
+	}
+
+	@Override
+	public boolean isGranted(Permission permission, SecurityContext securityContext) {
+		return false;
+	}
+
+	@Override
+	public boolean isGranted(Permission permission, SecurityContext securityContext, boolean isCreation) {
+		return false;
+	}
+
+	@Override
+	public boolean isValid(ErrorBuffer errorBuffer) {
+		return false;
+	}
+
+	@Override
+	public void indexPassiveProperties() {
+
+	}
+
+	@Override
+	public void addToIndex() {
+
+	}
+
+	@Override
+	public Traits getTraits() {
+		return null;
+	}
+
+	@Override
+	public <T> T as(Class<T> type) {
+		return null;
+	}
+
+	@Override
+	public boolean is(String type) {
+		return false;
+	}
+
+	@Override
 	public String getType() {
 		return null;
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys(String propertyView) {
-		return null;
-	}
-
-	@Override
-	public <T> T getProperty(PropertyKey<T> key) {
-		return null;
-	}
-
-	@Override
-	public <T> T getProperty(PropertyKey<T> key, Predicate<GraphObject> predicate) {
-		return null;
-	}
-
-	@Override
-	public void setProperties(final SecurityContext securityContext, final PropertyMap properties) throws FrameworkException {
-	}
-
-	@Override
-	public void setProperties(final SecurityContext securityContext, final PropertyMap properties, final boolean isCreation) throws FrameworkException {
-	}
-
-	@Override
-	public <T> Comparable getComparableProperty(PropertyKey<T> key) {
-		return null;
-	}
-
-	@Override
-	public List<PrincipalInterface> getParents() {
+	public List<Group> getParents() {
 		return Collections.emptyList();
 	}
 
 	@Override
-	public List<PrincipalInterface> getParentsPrivileged() {
+	public List<Group> getParentsPrivileged() {
 		return Collections.emptyList();
 	}
 
 	@Override
 	public String getUuid() {
-		return PrincipalInterface.SUPERUSER_ID;
+		return Principal.SUPERUSER_ID;
+	}
+
+	@Override
+	public void clearCaches() {
+
+	}
+
+	@Override
+	public void setSecurityContext(SecurityContext securityContext) {
+
 	}
 
 	public boolean shouldSkipSecurityRelationships() {
@@ -203,56 +252,28 @@ public class SuperUser implements PrincipalInterface, AccessControllable, NonInd
 	public void setConfirmationKey(String value) throws FrameworkException {}
 
 	@Override
-	public Object setProperty(PropertyKey key, Object value) throws FrameworkException {
-		return null;
+	public void onNodeCreation(SecurityContext securityContext) throws FrameworkException {
+
 	}
 
 	@Override
-	public Object setProperty(PropertyKey key, Object value, final boolean isCreation) throws FrameworkException {
-		return null;
-	}
+	public void onNodeInstantiation(boolean isCreation) {
 
-	@Override
-	public PropertyContainer getPropertyContainer() {
-		return null;
-	}
-
-	@Override
-	public void addToIndex() {
-	}
-
-	@Override
-	public void indexPassiveProperties() {
-	}
-
-	@Override
-	public void init(SecurityContext securityContext, Node dbNode, final Class entityType, final long transactionId) {
-		throw new UnsupportedOperationException("Not supported.");
-	}
-
-	@Override
-	public void setSecurityContext(SecurityContext securityContext) {
-		throw new UnsupportedOperationException("Not supported.");
-	}
-
-	@Override
-	public void onNodeCreation(final SecurityContext securityContext) {
-		throw new UnsupportedOperationException("Not supported.");
-	}
-
-	@Override
-	public void onNodeInstantiation(final boolean isCreation) {
-		throw new UnsupportedOperationException("Not supported.");
 	}
 
 	@Override
 	public void onNodeDeletion(SecurityContext securityContext) throws FrameworkException {
-		throw new UnsupportedOperationException("Not supported.");
+
 	}
 
 	@Override
 	public Node getNode() {
-		throw new UnsupportedOperationException("Not supported.");
+		return null;
+	}
+
+	@Override
+	public boolean isDeleted() {
+		return false;
 	}
 
 	@Override
@@ -261,108 +282,237 @@ public class SuperUser implements PrincipalInterface, AccessControllable, NonInd
 	}
 
 	@Override
-	public boolean hasRelationshipTo(final RelationshipType relType, final NodeInterface targetNode) {
-		throw new UnsupportedOperationException("Not supported.");
+	public void setName(String name) throws FrameworkException {
+
 	}
 
 	@Override
-	public <R extends AbstractRelationship> R getRelationshipTo(final RelationshipType relType, final NodeInterface targetNode) {
-		throw new UnsupportedOperationException("Not supported.");
+	public Object getPath(SecurityContext securityContext) {
+		return null;
 	}
 
 	@Override
-	public <R extends AbstractRelationship> Iterable<R> getRelationships() {
-		throw new UnsupportedOperationException("Not supported.");
+	public boolean hasRelationshipTo(RelationshipType type, NodeInterface targetNode) {
+		return false;
 	}
 
 	@Override
-	public <R extends AbstractRelationship> Iterable<R> getIncomingRelationships() {
-		throw new UnsupportedOperationException("Not supported.");
+	public RelationshipInterface getRelationshipTo(RelationshipType type, NodeInterface targetNode) {
+		return null;
 	}
 
 	@Override
-	public <R extends AbstractRelationship> Iterable<R> getOutgoingRelationships() {
-		throw new UnsupportedOperationException("Not supported.");
+	public Iterable<RelationshipInterface> getRelationships() {
+		return null;
 	}
 
 	@Override
-	public <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> Iterable<R> getRelationships(Class<R> type) {
-		throw new UnsupportedOperationException("Not supported.");
+	public Iterable<RelationshipInterface> getRelationshipsAsSuperUser() {
+		return null;
 	}
 
 	@Override
-	public <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, OneStartpoint<A>, T>> R getIncomingRelationship(Class<R> type) {
-		throw new UnsupportedOperationException("Not supported.");
+	public Iterable<RelationshipInterface> getRelationshipsAsSuperUser(String type) {
+		return null;
 	}
 
 	@Override
-	public <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, ManyStartpoint<A>, T>> Iterable<R> getIncomingRelationships(Class<R> type) {
-		throw new UnsupportedOperationException("Not supported.");
+	public Iterable<RelationshipInterface> getIncomingRelationships() {
+		return null;
 	}
 
 	@Override
-	public <A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, OneEndpoint<B>>> R getOutgoingRelationship(Class<R> type) {
-		throw new UnsupportedOperationException("Not supported.");
+	public Iterable<RelationshipInterface> getOutgoingRelationships() {
+		return null;
 	}
 
 	@Override
-	public <A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, ManyEndpoint<B>>> Iterable<R> getOutgoingRelationships(Class<R> type) {
-		throw new UnsupportedOperationException("Not supported.");
+	public boolean hasRelationship(String type) {
+		return false;
 	}
 
 	@Override
-	public int compareTo(Object o) {
-		throw new UnsupportedOperationException("Not supported.");
+	public boolean hasIncomingRelationships(String type) {
+		return false;
 	}
 
 	@Override
-	public PrincipalInterface getOwnerNode() {
-		throw new UnsupportedOperationException("Not supported.");
+	public boolean hasOutgoingRelationships(String type) {
+		return false;
 	}
 
 	@Override
-	public boolean isGranted(Permission permission, SecurityContext context) {
-		return true;
+	public Iterable<RelationshipInterface> getRelationships(String type) {
+		return null;
 	}
 
 	@Override
-	public Security getSecurityRelationship(PrincipalInterface principal) {
-		throw new UnsupportedOperationException("Not supported.");
+	public RelationshipInterface getIncomingRelationship(String type) {
+		return null;
+	}
+
+	@Override
+	public RelationshipInterface getIncomingRelationshipAsSuperUser(String type) {
+		return null;
+	}
+
+	@Override
+	public Iterable<RelationshipInterface> getIncomingRelationships(String type) {
+		return null;
+	}
+
+	@Override
+	public Iterable<RelationshipInterface> getIncomingRelationshipsAsSuperUser(String type, Predicate<GraphObject> predicate) {
+		return null;
+	}
+
+	@Override
+	public RelationshipInterface getOutgoingRelationship(String type) {
+		return null;
+	}
+
+	@Override
+	public RelationshipInterface getOutgoingRelationshipAsSuperUser(String type) {
+		return null;
+	}
+
+	@Override
+	public Iterable<RelationshipInterface> getOutgoingRelationships(String type) {
+		return null;
+	}
+
+	@Override
+	public void setRawPathSegmentId(Identity pathSegmentId) {
+
+	}
+
+	@Override
+	public Map<String, Object> getTemporaryStorage() {
+		return Map.of();
+	}
+
+	@Override
+	public void visitForUsage(Map<String, Object> data) {
+
 	}
 
 	@Override
 	public boolean isVisibleToPublicUsers() {
-		throw new UnsupportedOperationException("Not supported.");
+		return false;
 	}
 
 	@Override
 	public boolean isVisibleToAuthenticatedUsers() {
-		throw new UnsupportedOperationException("Not supported.");
-	}
-
-	@Override
-	public boolean isNotHidden() {
-		throw new UnsupportedOperationException("Not supported.");
+		return false;
 	}
 
 	@Override
 	public boolean isHidden() {
-		throw new UnsupportedOperationException("Not supported.");
+		return false;
+	}
+
+	@Override
+	public void setHidden(boolean hidden) throws FrameworkException {
+
 	}
 
 	@Override
 	public Date getCreatedDate() {
-		throw new UnsupportedOperationException("Not supported.");
+		return null;
 	}
 
 	@Override
 	public Date getLastModifiedDate() {
-		throw new UnsupportedOperationException("Not supported.");
+		return null;
 	}
 
 	@Override
-	public boolean isValid(ErrorBuffer errorBuffer) {
-		throw new UnsupportedOperationException("Not supported.");
+	public void setLastModifiedDate(final Date date) throws FrameworkException {
+	}
+
+	@Override
+	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+
+	}
+
+	@Override
+	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, ModificationQueue modificationQueue) throws FrameworkException {
+
+	}
+
+	@Override
+	public void onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
+
+	}
+
+	@Override
+	public void afterCreation(SecurityContext securityContext) throws FrameworkException {
+
+	}
+
+	@Override
+	public void afterModification(SecurityContext securityContext) throws FrameworkException {
+
+	}
+
+	@Override
+	public void afterDeletion(SecurityContext securityContext, PropertyMap properties) {
+
+	}
+
+	@Override
+	public void ownerModified(SecurityContext securityContext) {
+
+	}
+
+	@Override
+	public void securityModified(SecurityContext securityContext) {
+
+	}
+
+	@Override
+	public void locationModified(SecurityContext securityContext) {
+
+	}
+
+	@Override
+	public void propagatedModification(SecurityContext securityContext) {
+
+	}
+
+	@Override
+	public String getPropertyWithVariableReplacement(ActionContext renderContext, PropertyKey<String> key) throws FrameworkException {
+		return "";
+	}
+
+	@Override
+	public Object evaluate(ActionContext actionContext, String key, String defaultValue, EvaluationHints hints, int row, int column) throws FrameworkException {
+		return null;
+	}
+
+	@Override
+	public List<GraphObject> getSyncData() throws FrameworkException {
+		return List.of();
+	}
+
+	@Override
+	public NodeInterface getSyncNode() {
+		return null;
+	}
+
+	@Override
+	public RelationshipInterface getSyncRelationship() {
+		return null;
+	}
+
+	@Override
+	public boolean changelogEnabled() {
+		return false;
+	}
+
+	@Override
+	public Iterable<NodeInterface> getOwnedNodes() {
+		return null;
 	}
 
 	@Override
@@ -381,6 +531,11 @@ public class SuperUser implements PrincipalInterface, AccessControllable, NonInd
 	}
 
 	@Override
+	public String[] getRefreshTokens() {
+		return new String[0];
+	}
+
+	@Override
 	public void removeRefreshToken(String refreshToken) {
 		throw new UnsupportedOperationException("Not supported.");
 	}
@@ -388,46 +543,6 @@ public class SuperUser implements PrincipalInterface, AccessControllable, NonInd
 	@Override
 	public void clearTokens() {
 
-	}
-
-	@Override
-	public SecurityContext getSecurityContext() {
-		throw new UnsupportedOperationException("Not supported.");
-	}
-
-	@Override
-	public String getPropertyWithVariableReplacement(ActionContext renderContext, PropertyKey<String> key) throws FrameworkException {
-		throw new UnsupportedOperationException("Not supported.");
-	}
-
-	@Override
-	public Object evaluate(final ActionContext actionContext, final String key, final String defaultValue, EvaluationHints hints, final int row, final int column) throws FrameworkException {
-		return null;
-	}
-
-	@Override
-	public List<GraphObject> getSyncData() {
-		return new ArrayList<>();
-	}
-
-	@Override
-	public boolean isNode() {
-		return false;
-	}
-
-	@Override
-	public boolean isRelationship() {
-		return false;
-	}
-
-	@Override
-	public NodeInterface getSyncNode() {
-		return null;
-	}
-
-	@Override
-	public RelationshipInterface getSyncRelationship() {
-		return null;
 	}
 
 	@Override
@@ -456,18 +571,73 @@ public class SuperUser implements PrincipalInterface, AccessControllable, NonInd
 	}
 
 	@Override
-	public void setRawPathSegmentId(final Identity rawSegmentId) {
-		// nothing to do for SuperUser
+	public void setTwoFactorConfirmed(boolean b) throws FrameworkException {
+
 	}
 
 	@Override
-	public <R extends AbstractRelationship> Iterable<R> getRelationshipsAsSuperUser() {
+	public void setTwoFactorToken(String token) throws FrameworkException {
+
+	}
+
+	@Override
+	public boolean isTwoFactorUser() {
+		return false;
+	}
+
+	@Override
+	public void setIsTwoFactorUser(boolean b) throws FrameworkException {
+
+	}
+
+	@Override
+	public boolean isTwoFactorConfirmed() {
+		return false;
+	}
+
+	@Override
+	public Integer getPasswordAttempts() {
+		return 0;
+	}
+
+	@Override
+	public Date getPasswordChangeDate() {
 		return null;
 	}
 
 	@Override
-	public Class getEntityType() {
-		return SuperUser.class;
+	public void setPasswordAttempts(int num) throws FrameworkException {
+
+	}
+
+	@Override
+	public void setLastLoginDate(Date date) throws FrameworkException {
+
+	}
+
+	@Override
+	public String[] getSessionIds() {
+		return new String[0];
+	}
+
+	@Override
+	public String getProxyUrl() {
+		return "";
+	}
+
+	@Override
+	public String getProxUsername() {
+		return "";
+	}
+
+	@Override
+	public String getProxyPassword() {
+		return "";
+	}
+
+	@Override
+	public void onAuthenticate() {
+
 	}
 
 	@Override
@@ -506,51 +676,6 @@ public class SuperUser implements PrincipalInterface, AccessControllable, NonInd
 	}
 
 	@Override
-	public List<Security> getSecurityRelationships() {
-		return null;
-	}
-
-	@Override
-	public List<Favoritable> getFavorites() {
-		return null;
-	}
-
-	@Override
-	public void setFavorites(final Iterable<Favoritable> favorites) throws FrameworkException {
-		// nothing to do
-	}
-
-	@Override
-	public <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target> boolean hasRelationship(Class<? extends Relation<A, B, S, T>> type) {
-		return false;
-	}
-
-	@Override
-	public <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> boolean hasIncomingRelationships(Class<R> type) {
-		return false;
-	}
-
-	@Override
-	public <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> boolean hasOutgoingRelationships(Class<R> type) {
-		return false;
-	}
-
-	@Override
-	public <A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, OneEndpoint<B>>> R getOutgoingRelationshipAsSuperUser(Class<R> type) {
-		return null;
-	}
-
-	@Override
-	public <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, OneStartpoint<A>, T>> R getIncomingRelationshipAsSuperUser(Class<R> type) {
-		return null;
-	}
-
-	@Override
-	public Map<String, Object> getTemporaryStorage() {
-		throw new UnsupportedOperationException("Not supported.");
-	}
-
-	@Override
 	public String getEMail() {
 		return null;
 	}
@@ -561,12 +686,7 @@ public class SuperUser implements PrincipalInterface, AccessControllable, NonInd
 	}
 
 	@Override
-	public long getSourceTransactionId() {
-		return TransactionCommand.getCurrentTransactionId();
-	}
-
-	@Override
-	public boolean changelogEnabled() {
-		return true;
+	public int compareTo(final NodeInterface o) {
+		return 0;
 	}
 }

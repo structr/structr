@@ -149,7 +149,7 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> implements
 
 					throw new PropertyInputParsingException(
 						jsonName(),
-						new NumberFormatToken(declaringClass.getSimpleName(), jsonName(), source)
+						new NumberFormatToken(declaringTrait.getLabel(), jsonName(), source)
 					);
 				}
 			}
@@ -182,6 +182,11 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> implements
 		}
 
 		return null;
+	}
+
+	@Override
+	public boolean isArray() {
+		return false;
 	}
 
 	@Override

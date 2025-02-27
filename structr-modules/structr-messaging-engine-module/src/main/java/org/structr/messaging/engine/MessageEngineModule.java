@@ -28,16 +28,22 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.function.Functions;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.messaging.engine.entities.MessageClient;
 import org.structr.messaging.engine.entities.MessageSubscriber;
+import org.structr.messaging.engine.relation.MessageClientHASMessageSubscriber;
 import org.structr.messaging.implementation.kafka.entity.KafkaClient;
 import org.structr.messaging.implementation.mqtt.entity.MQTTClient;
 import org.structr.messaging.implementation.mqtt.function.MQTTPublishFunction;
 import org.structr.messaging.implementation.mqtt.function.MQTTSubscribeTopicFunction;
 import org.structr.messaging.implementation.mqtt.function.MQTTUnsubscribeTopicFunction;
 import org.structr.messaging.implementation.pulsar.PulsarClient;
+import org.structr.messaging.traits.definitions.*;
 import org.structr.module.StructrModule;
 import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
@@ -52,8 +58,16 @@ public class MessageEngineModule implements StructrModule {
 
 	private static final Logger logger = LoggerFactory.getLogger(MessageEngineModule.class.getName());
 
-    @Override
-    public void onLoad(LicenseManager licenseManager) {
+	@Override
+	public void onLoad(LicenseManager licenseManager) {
+
+		StructrTraits.registerRelationshipType("MessageClientHASMessageSubscriber", new MessageClientHASMessageSubscriber());
+
+		StructrTraits.registerNodeType("MessageClient",     new MessageClientTraitDefinition());
+		StructrTraits.registerNodeType("MessageSubscriber", new MessageSubscriberTraitDefinition());
+		StructrTraits.registerNodeType("KafkaClient",       new MessageClientTraitDefinition(), new KafkaClientTraitDefinition());
+		StructrTraits.registerNodeType("MQTTClient",        new MessageClientTraitDefinition(), new MQTTClientTraitDefinition());
+		StructrTraits.registerNodeType("PulsarClient",      new MessageClientTraitDefinition(), new PulsarClientTraitDefinition());
 	}
 
 	@Override
@@ -62,62 +76,67 @@ public class MessageEngineModule implements StructrModule {
 		Functions.put(licenseManager, new MQTTPublishFunction());
 		Functions.put(licenseManager, new MQTTSubscribeTopicFunction());
 		Functions.put(licenseManager, new MQTTUnsubscribeTopicFunction());
-    }
+	}
 
-    @Override
-    public String getName() {
-        return "messaging-module";
-    }
+	@Override
+	public String getName() {
+		return "messaging-module";
+	}
 
-    @Override
-    public Set<String> getDependencies() {
-        return null;
-    }
+	@Override
+	public Set<String> getDependencies() {
+		return Set.of("ui");
+	}
 
-    @Override
-    public Set<String> getFeatures() {
-        return null;
-    }
+	@Override
+	public Set<String> getFeatures() {
+		return null;
+	}
 
-    @Override
-    public void insertImportStatements(final AbstractSchemaNode schemaNode, final SourceFile buf) {
-	    // nothing to do
-    }
+	@Override
+	public void insertImportStatements(final AbstractSchemaNode schemaNode, final SourceFile buf) {
+		// nothing to do
+	}
 
-    @Override
-    public void insertSourceCode(final AbstractSchemaNode schemaNode, final SourceFile buf) {
-	    // nothing to do
-    }
+	@Override
+	public void insertSourceCode(final AbstractSchemaNode schemaNode, final SourceFile buf) {
+		// nothing to do
+	}
 
-    @Override
-    public Set<String> getInterfacesForType(final AbstractSchemaNode schemaNode) {
-        return null;
-    }
+	@Override
+	public Set<String> getInterfacesForType(final AbstractSchemaNode schemaNode) {
+		return null;
+	}
 
-    @Override
-    public void insertSaveAction(final AbstractSchemaNode schemaNode, final SourceFile buf, final Actions.Type type) {
-	    // nothing to do
-    }
+	@Override
+	public void insertSaveAction(final AbstractSchemaNode schemaNode, final SourceFile buf, final Actions.Type type) {
+		// nothing to do
+	}
 
-    @Override
-    public boolean hasDeploymentData () {
-        return true;
-    }
+	@Override
+	public boolean hasDeploymentData() {
+		return true;
+	}
 
-    @Override
-	public void exportDeploymentData (final Path target, final Gson gson) throws FrameworkException {
-		final App app = StructrApp.getInstance();
-		final Path messagingEngineFile = target.resolve("messaging-engine.json");
+	@Override
+	public void exportDeploymentData(final Path target, final Gson gson) throws FrameworkException {
+
+		final Path messagingEngineFile    = target.resolve("messaging-engine.json");
+		final Traits subscriberTraits     = Traits.of("MessageSubscriber");
+		final Traits clientTraits         = Traits.of("MessageClient");
+		final PropertyKey<String> nameKey = Traits.of(StructrTraits.NODE_INTERFACE).key("name");
+		final App app                     = StructrApp.getInstance();
 
 
 		final List<Map<String, Object>> entities = new LinkedList();
 		try (final Tx tx = app.tx()) {
 
-			for (final MessageSubscriber sub : app.nodeQuery(MessageSubscriber.class).sort(MessageSubscriber.name).getAsList()) {
+			for (final NodeInterface subscriberNode : app.nodeQuery("MessageSubscriber").sort(nameKey).getAsList()) {
 
+				final MessageSubscriber sub     = subscriberNode.as(MessageSubscriber.class);
 				final Map<String, Object> entry = new TreeMap<>();
 
-				entry.put("type",sub.getType());
+				entry.put("type", sub.getType());
 				entry.put("id", sub.getUuid());
 				entry.put("name", sub.getName());
 				entry.put("topic", sub.getTopic());
@@ -127,14 +146,16 @@ public class MessageEngineModule implements StructrModule {
 			}
 
 
-			for (final MessageClient client : app.nodeQuery(MessageClient.class).andType(MessageClient.class).and("type", "MessageClient").sort(MessageClient.name).getAsList()) {
+			for (final NodeInterface clientNode : app.nodeQuery("MessageClient").andType("MessageClient").sort(nameKey).getAsList()) {
 
+				final MessageClient client      = clientNode.as(MessageClient.class);
 				final Map<String, Object> entry = new TreeMap<>();
 
-				entry.put("type",client.getType());
+				entry.put("type", client.getType());
 				entry.put("name", client.getName());
 
 				List<String> subIds = new ArrayList<>();
+
 				for (MessageSubscriber sub : client.getSubscribers()) {
 					subIds.add(sub.getUuid());
 				}
@@ -145,11 +166,12 @@ public class MessageEngineModule implements StructrModule {
 
 			}
 
-			for (final MQTTClient client : app.nodeQuery(MQTTClient.class).andType(MQTTClient.class).sort(MQTTClient.name).getAsList()) {
+			for (final NodeInterface clientNode : app.nodeQuery("MQTTClient").sort(nameKey).getAsList()) {
 
+				final MQTTClient client = clientNode.as(MQTTClient.class);
 				final Map<String, Object> entry = new TreeMap<>();
 
-				entry.put("type",client.getType());
+				entry.put("type", client.getType());
 				entry.put("name", client.getName());
 
 				entry.put("mainBrokerURL", client.getMainBrokerURL());
@@ -170,16 +192,17 @@ public class MessageEngineModule implements StructrModule {
 
 			}
 
-			for (final KafkaClient client : app.nodeQuery(KafkaClient.class).andType(KafkaClient.class).sort(KafkaClient.name).getAsList()) {
+			for (final NodeInterface clientNode : app.nodeQuery("KafkaClient").sort(nameKey).getAsList()) {
 
+				final KafkaClient client = clientNode.as(KafkaClient.class);
 				final Map<String, Object> entry = new TreeMap<>();
 
-				entry.put("type",client.getType());
-				entry.put("name", client.getProperty(KafkaClient.name));
+				entry.put("type", client.getType());
+				entry.put("name", client.getName());
 
 				entry.put("servers", client.getServers());
 				entry.put("groupId", client.getGroupId());
-				entry.put("enabled", client.getEnabled());
+				entry.put("enabled", client.getIsEnabled());
 
 				List<String> subIds = new ArrayList<>();
 				for (MessageSubscriber sub : client.getSubscribers()) {
@@ -192,12 +215,13 @@ public class MessageEngineModule implements StructrModule {
 
 			}
 
-			for (final PulsarClient client : app.nodeQuery(PulsarClient.class).andType(PulsarClient.class).sort(PulsarClient.name).getAsList()) {
+			for (final NodeInterface clientNode : app.nodeQuery("PulsarClient").sort(nameKey).getAsList()) {
 
+				final PulsarClient client = clientNode.as(PulsarClient.class);
 				final Map<String, Object> entry = new TreeMap<>();
 
-				entry.put("type",client.getType());
-				entry.put("name", client.getProperty(KafkaClient.name));
+				entry.put("type", client.getType());
+				entry.put("name", client.getName());
 
 				entry.put("servers", client.getServers());
 				entry.put("enabled", client.getEnabled());
@@ -226,7 +250,7 @@ public class MessageEngineModule implements StructrModule {
 	}
 
 	@Override
-	public void importDeploymentData (final Path source, final Gson gson) throws FrameworkException {
+	public void importDeploymentData(final Path source, final Gson gson) throws FrameworkException {
 
 		final Path messagingEngineConf = source.resolve("messaging-engine.json");
 		if (Files.exists(messagingEngineConf)) {
@@ -244,23 +268,23 @@ public class MessageEngineModule implements StructrModule {
 
 				try (final Tx tx = app.tx()) {
 
-					for (final MessageClient toDelete : app.nodeQuery(MessageClient.class).getAsList()) {
+					for (final NodeInterface toDelete : app.nodeQuery("MessageClient").getAsList()) {
 						app.delete(toDelete);
 					}
 
-					for (final KafkaClient toDelete : app.nodeQuery(KafkaClient.class).getAsList()) {
+					for (final NodeInterface toDelete : app.nodeQuery("KafkaClient").getAsList()) {
 						app.delete(toDelete);
 					}
 
-					for (final PulsarClient toDelete : app.nodeQuery(PulsarClient.class).getAsList()) {
+					for (final NodeInterface toDelete : app.nodeQuery("PulsarClient").getAsList()) {
 						app.delete(toDelete);
 					}
 
-					for (final MQTTClient toDelete : app.nodeQuery(MQTTClient.class).getAsList()) {
+					for (final NodeInterface toDelete : app.nodeQuery("MQTTClient").getAsList()) {
 						app.delete(toDelete);
 					}
 
-					for (final MessageSubscriber toDelete : app.nodeQuery(MessageSubscriber.class).getAsList()) {
+					for (final NodeInterface toDelete : app.nodeQuery("MessageSubscriber").getAsList()) {
 						app.delete(toDelete);
 					}
 
@@ -268,36 +292,36 @@ public class MessageEngineModule implements StructrModule {
 
 						List<String> subIds = null;
 						if (entry.containsKey("subscribers")) {
-							subIds = (List<String>)entry.get("subscribers");
+							subIds = (List<String>) entry.get("subscribers");
 							entry.remove("subscribers");
 						}
 
 						final PropertyMap map;
 						MessageClient client;
-						switch ((String)entry.get("type")) {
+						switch ((String) entry.get("type")) {
 							case "MessageClient":
-								map = PropertyMap.inputTypeToJavaType(context, MessageClient.class, entry);
-								client = app.create(MessageClient.class, map);
+								map = PropertyMap.inputTypeToJavaType(context, "MessageClient", entry);
+								client = app.create("MessageClient", map).as(MessageClient.class);
 								client.setSubscribers(getSubscribersByIds(subIds));
 								break;
 							case "KafkaClient":
-								map = PropertyMap.inputTypeToJavaType(context, KafkaClient.class, entry);
-								client = app.create(KafkaClient.class, map);
+								map = PropertyMap.inputTypeToJavaType(context, "KafkaClient", entry);
+								client = app.create("KafkaClient", map).as(MessageClient.class);
 								client.setSubscribers(getSubscribersByIds(subIds));
 								break;
 							case "PulsarClient":
-								map = PropertyMap.inputTypeToJavaType(context, PulsarClient.class, entry);
-								client = app.create(PulsarClient.class, map);
+								map = PropertyMap.inputTypeToJavaType(context, "PulsarClient", entry);
+								client = app.create("PulsarClient", map).as(MessageClient.class);
 								client.setSubscribers(getSubscribersByIds(subIds));
 								break;
 							case "MQTTClient":
-								map = PropertyMap.inputTypeToJavaType(context, MQTTClient.class, entry);
-								client = app.create(MQTTClient.class, map);
+								map = PropertyMap.inputTypeToJavaType(context, "MQTTClient", entry);
+								client = app.create("MQTTClient", map).as(MessageClient.class);
 								client.setSubscribers(getSubscribersByIds(subIds));
 								break;
 							case "MessageSubscriber":
-								map = PropertyMap.inputTypeToJavaType(context, MessageSubscriber.class, entry);
-								app.create(MessageSubscriber.class, map);
+								map = PropertyMap.inputTypeToJavaType(context, "MessageSubscriber", entry);
+								app.create("MessageSubscriber", map);
 								break;
 						}
 
@@ -323,7 +347,7 @@ public class MessageEngineModule implements StructrModule {
 			try (Tx tx = app.tx()) {
 
 				for (final String id : ids) {
-					MessageSubscriber sub = (MessageSubscriber) app.getNodeById(MessageSubscriber.class, id);
+					MessageSubscriber sub = (MessageSubscriber) app.getNodeById("MessageSubscriber", id);
 					result.add(sub);
 				}
 

@@ -162,7 +162,7 @@ public class FtpAccessTest extends FtpTest {
 			dir2 = createFTPDirectory(dir1.getPath(), name2);
 
 			// Make dir1 visible to authenticated users
-			dir1.setProperty(Folder.visibleToAuthenticatedUsers, true);
+			dir1.setVisibleToAuthenticatedUsers(true);
 
 			tx.success();
 

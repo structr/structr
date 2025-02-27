@@ -52,7 +52,7 @@ public class ExcelModule implements StructrModule {
 	public Set<String> getDependencies() {
 //		// Excel import depends on the API builder now
 //		return new LinkedHashSet<>(Arrays.asList(new String[] { "api-builder" } ));
-		return null;
+		return Set.of("ui", "api-builder");
 	}
 
 	@Override

@@ -49,7 +49,7 @@ public class SaveLocalStorageCommand extends AbstractCommand {
 
 			try {
 
-				final User me = (User) securityContext.getUser(false);
+				final User me = securityContext.getUser(false).as(User.class);
 				me.setLocalStorage(localStorageString);
 
 				getWebSocket().send(MessageBuilder.forName(getCommand()).callback(webSocketData.getCallback()).build(), true);

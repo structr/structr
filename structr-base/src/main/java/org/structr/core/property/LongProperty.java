@@ -45,6 +45,10 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> implements Num
 		super(name);
 	}
 
+	public LongProperty(final String name, final String dbName) {
+		super(name, dbName);
+	}
+
 	@Override
 	public String typeName() {
 		return "Long";
@@ -116,7 +120,7 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> implements Num
 
 					throw new PropertyInputParsingException(
 						jsonName(),
-						new NumberFormatToken(declaringClass.getSimpleName(), jsonName(), source)
+						new NumberFormatToken(declaringTrait.getLabel(), jsonName(), source)
 					);
 				}
 			}
@@ -149,6 +153,11 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> implements Num
 		}
 
 		return null;
+	}
+
+	@Override
+	public boolean isArray() {
+		return false;
 	}
 
 	@Override

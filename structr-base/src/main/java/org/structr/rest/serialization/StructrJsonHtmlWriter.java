@@ -29,8 +29,9 @@ import org.structr.common.PropertyView;
 import org.structr.common.RequestKeywords;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
-import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -112,8 +113,8 @@ public class StructrJsonHtmlWriter implements RestWriter {
 				.replace(StringUtils.removeEnd(Settings.RestServletPath.getValue(), "/*") + "/", "")	// remove REST path (without applicationRootPah)
 				.replace("/" + propertyView, "");																// remove current view
 
-		final Class typeClass   = StructrApp.getConfiguration().getNodeEntityClass(currentType);
-		final Set<String> views = (typeClass != null) ? StructrApp.getConfiguration().getPropertyViewsForType(typeClass) : StructrApp.getConfiguration().getPropertyViews();
+		final Traits traits     = Traits.of(currentType);
+		final Set<String> views = (traits != null) ? traits.getViewNames() : Traits.getAllViews();
 
 		for (String view : views.stream().sorted().toList()) {
 
@@ -250,7 +251,7 @@ public class StructrJsonHtmlWriter implements RestWriter {
 
 			} else if (currentObject instanceof AbstractRelationship) {
 
-				currentElement.inline("a").css("id").attr(new Href(restPath + "/" + currentObject.getProperty(AbstractRelationship.type) + "/" + value + propertyView + pagingParameterString)).text("\"", value, "\"");
+				currentElement.inline("a").css("id").attr(new Href(restPath + "/" + currentObject.getProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key("type")) + "/" + value + propertyView + pagingParameterString)).text("\"", value, "\"");
 
 			} else {
 

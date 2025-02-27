@@ -25,22 +25,19 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Location;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.DistanceSearchAttribute;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  * Helper class to create location nodes from coordinates or by using
  * online geocoding service.
- *
- *
  */
 public class GeoHelper {
 
@@ -57,21 +54,21 @@ public class GeoHelper {
 	 *
 	 * @throws FrameworkException
 	 */
-	public static Location createLocation(final GeoCodingResult coords) throws FrameworkException {
+	public static NodeInterface createLocation(final GeoCodingResult coords) throws FrameworkException {
 
+		final Traits traits     = Traits.of(StructrTraits.LOCATION);
 		final PropertyMap props = new PropertyMap();
 		double latitude         = coords.getLatitude();
 		double longitude        = coords.getLongitude();
-		String type             = Location.class.getSimpleName();
 
-		props.put(AbstractNode.type,  type);
-		props.put(StructrApp.key(Location.class, "latitude"),  latitude);
-		props.put(StructrApp.key(Location.class, "longitude"), longitude);
+		props.put(Traits.of(StructrTraits.GRAPH_OBJECT).key("type"), StructrTraits.LOCATION);
+		props.put(traits.key("latitude"),  latitude);
+		props.put(traits.key("longitude"), longitude);
 
-		return StructrApp.getInstance().create(Location.class, props);
+		return StructrApp.getInstance().create(StructrTraits.LOCATION, props);
 	}
 
-	public static GeoCodingResult geocode(DistanceSearchAttribute distanceSearch) throws FrameworkException {
+	public static GeoCodingResult geocode(final DistanceSearchAttribute distanceSearch) throws FrameworkException {
 
 		String street     = distanceSearch.getStreet();
 		String house      = distanceSearch.getHouse();

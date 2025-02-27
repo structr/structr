@@ -83,7 +83,7 @@ public class UserDefinedFunctionsResource extends WildcardMatchEndpoint {
 		@Override
 		public ResultStream doGet(final SecurityContext securityContext, final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
 
-			if (SchemaMethod.HttpVerb.GET.equals(method.getHttpVerb())) {
+			if ("GET".equals(method.getHttpVerb())) {
 
 				final RestMethodResult result = executeMethod(securityContext, null, Arguments.fromPath(call.getPathParameters()));
 
@@ -98,7 +98,7 @@ public class UserDefinedFunctionsResource extends WildcardMatchEndpoint {
 		@Override
 		public RestMethodResult doPost(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
 
-			if (SchemaMethod.HttpVerb.POST.equals(method.getHttpVerb())) {
+			if ("POST".equals(method.getHttpVerb())) {
 
 				return executeMethod(securityContext, null, Arguments.fromMap(propertySet));
 
@@ -111,7 +111,7 @@ public class UserDefinedFunctionsResource extends WildcardMatchEndpoint {
 		@Override
 		public RestMethodResult doPut(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
 
-			if (SchemaMethod.HttpVerb.PUT.equals(method.getHttpVerb())) {
+			if ("PUT".equals(method.getHttpVerb())) {
 
 				return executeMethod(securityContext, null, Arguments.fromMap(propertySet));
 
@@ -124,7 +124,7 @@ public class UserDefinedFunctionsResource extends WildcardMatchEndpoint {
 		@Override
 		public RestMethodResult doPatch(final SecurityContext securityContext, final List<Map<String, Object>> propertySet) throws FrameworkException {
 
-			if (SchemaMethod.HttpVerb.PATCH.equals(method.getHttpVerb())) {
+			if ("PATCH".equals(method.getHttpVerb())) {
 
 				// FIXME, only the first property set is used, we need to test this
 				return executeMethod(securityContext, null, Arguments.fromMap(propertySet.get(0)));
@@ -140,28 +140,28 @@ public class UserDefinedFunctionsResource extends WildcardMatchEndpoint {
 
 			try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-				if (!SchemaMethod.HttpVerb.DELETE.equals(method.getHttpVerb())) {
-
-					throw new IllegalMethodException("DELETE not allowed on " + getURL(), getAllowedHttpMethodsForOptionsCall());
-
-				} else {
+				if ("DELETE".equals(method.getHttpVerb())) {
 
 					final RestMethodResult result = executeMethod(securityContext, null, Arguments.fromPath(call.getPathParameters()));
 
 					tx.success();
 
 					return result;
+
+				} else {
+
+					throw new IllegalMethodException("DELETE not allowed on " + getURL(), getAllowedHttpMethodsForOptionsCall());
 				}
 			}
 		}
 
 		@Override
 		public Set<String> getAllowedHttpMethodsForOptionsCall() {
-			return Set.of(method.getHttpVerb().name());
+			return Set.of(method.getHttpVerb());
 		}
 
 		@Override
-		public Class getEntityClass(final SecurityContext securityContext) {
+		public String getTypeName(final SecurityContext securityContext) {
 			return null;
 		}
 

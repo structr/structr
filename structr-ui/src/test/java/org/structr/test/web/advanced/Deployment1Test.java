@@ -25,24 +25,18 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.web.common.FileHelper;
-import org.structr.web.entity.File;
-import org.structr.web.entity.Folder;
-import org.structr.web.entity.User;
-import org.structr.web.entity.dom.Content;
-import org.structr.web.entity.dom.DOMNode;
-import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.dom.Template;
-import org.structr.web.entity.html.*;
+import org.structr.web.entity.*;
+import org.structr.web.entity.dom.*;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
-import java.lang.Object;
 import java.util.function.Function;
 
 import static org.testng.AssertJUnit.*;
@@ -59,19 +53,19 @@ public class Deployment1Test extends DeploymentTestBase {
 
 			// create first page
 			final Page page1 = Page.createNewPage(securityContext,   "test11");
-			final Html html1 = createElement(page1, page1, "html");
-			final Head head1 = createElement(page1, html1, "head");
+			final DOMElement html1 = createElement(page1, page1, "html");
+			final DOMElement head1 = createElement(page1, html1, "head");
 			createElement(page1, head1, "title", "test11_1");
 
-			final Body body1  = createElement(page1, html1, "body");
-			final Table table = createElement(page1, body1, "table");
-			final Tbody tbody = createElement(page1, table, "tbody");
+			final DOMElement body1  = createElement(page1, html1, "body");
+			final DOMElement table = createElement(page1, body1, "table");
+			final DOMElement tbody = createElement(page1, table, "tbody");
 
 			final Template template1 = createTemplate(page1, tbody, "<tr><td>${user.name}</td></tr>");
 
 			final PropertyMap template1Properties = new PropertyMap();
-			template1Properties.put(StructrApp.key(DOMNode.class, "functionQuery"), "find('User')");
-			template1Properties.put(StructrApp.key(DOMNode.class, "dataKey"), "user");
+			template1Properties.put(Traits.of(StructrTraits.DOM_NODE).key("functionQuery"), "find('User')");
+			template1Properties.put(Traits.of(StructrTraits.DOM_NODE).key("dataKey"), "user");
 			template1.setProperties(template1.getSecurityContext(), template1Properties);
 
 			tx.success();
@@ -92,15 +86,15 @@ public class Deployment1Test extends DeploymentTestBase {
 
 			// create first page
 			final Page page = Page.createNewPage(securityContext,   "test12");
-			final Html html = createElement(page, page, "html");
-			final Head head = createElement(page, html, "head");
+			final DOMElement html = createElement(page, page, "html");
+			final DOMElement head = createElement(page, html, "head");
 			createElement(page, head, "title", "test12");
 
-			final Body body      = createElement(page, html, "body");
-			final Script script1 = createElement(page, body, "script");
-			final Script script2 = createElement(page, body, "script");
+			final DOMElement body      = createElement(page, html, "body");
+			final DOMElement script1 = createElement(page, body, "script");
+			final DOMElement script2 = createElement(page, body, "script");
 
-			script1.setProperty(StructrApp.key(Script.class, "_html_type"), "text/javascript");
+			script1.setProperty(Traits.of("Script").key("_html_type"), "text/javascript");
 
 			createContent(page, script1, "");
 
@@ -122,12 +116,12 @@ public class Deployment1Test extends DeploymentTestBase {
 
 			// create first page
 			final Page page = Page.createNewPage(securityContext,   "test13");
-			final Html html = createElement(page, page, "html");
-			final Head head = createElement(page, html, "head");
+			final DOMElement html = createElement(page, page, "html");
+			final DOMElement head = createElement(page, html, "head");
 			createElement(page, head, "title", "test13");
 
-			final Body body      = createElement(page, html, "body");
-			final Script script1 = createElement(page, body, "script", "");
+			final DOMElement body      = createElement(page, html, "body");
+			final DOMElement script1 = createElement(page, body, "script", "");
 
 			tx.success();
 
@@ -136,7 +130,7 @@ public class Deployment1Test extends DeploymentTestBase {
 		}
 
 		// test
-		compare(calculateHash(), false);
+		compare(calculateHash(), true);
 	}
 
 	@Test
@@ -148,20 +142,20 @@ public class Deployment1Test extends DeploymentTestBase {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			final Folder folder     = FileHelper.createFolderPath(securityContext, folderPath);
-			final File file         = FileHelper.createFile(securityContext, "test".getBytes("utf-8"), "text/plain", File.class, fileName, true);
-			final Folder rootFolder = getRootFolder(folder);
+			final NodeInterface folder     = FileHelper.createFolderPath(securityContext, folderPath);
+			final NodeInterface file       = FileHelper.createFile(securityContext, "test".getBytes("utf-8"), "text/plain", StructrTraits.FILE, fileName, true);
+			final NodeInterface rootFolder = getRootFolder(folder.as(Folder.class));
 
 			assertNotNull("Root folder should not be null", rootFolder);
 
 			// root folder needs to have "includeInFrontendExport" set
-			rootFolder.setProperty(StructrApp.key(Folder.class, "includeInFrontendExport"), true);
+			rootFolder.setProperty(Traits.of(StructrTraits.FOLDER).key("includeInFrontendExport"), true);
 
-			file.setProperty(StructrApp.key(File.class, "parent"), folder);
-			file.setProperty(StructrApp.key(File.class, "visibleToPublicUsers"), true);
-			file.setProperty(StructrApp.key(File.class, "visibleToAuthenticatedUsers"), true);
-			file.setProperty(StructrApp.key(File.class, "enableBasicAuth"), true);
-			file.setProperty(StructrApp.key(File.class, "useAsJavascriptLibrary"), true);
+			file.setProperty(Traits.of(StructrTraits.FILE).key("parent"), folder);
+			file.setProperty(Traits.of(StructrTraits.FILE).key("visibleToPublicUsers"), true);
+			file.setProperty(Traits.of(StructrTraits.FILE).key("visibleToAuthenticatedUsers"), true);
+			file.setProperty(Traits.of(StructrTraits.FILE).key("enableBasicAuth"), true);
+			file.setProperty(Traits.of(StructrTraits.FILE).key("useAsJavascriptLibrary"), true);
 
 			tx.success();
 
@@ -176,19 +170,19 @@ public class Deployment1Test extends DeploymentTestBase {
 		// check
 		try (final Tx tx = app.tx()) {
 
-			final Folder folder = app.nodeQuery(Folder.class).andName("with spaces").getFirst();
+			final NodeInterface folder = app.nodeQuery(StructrTraits.FOLDER).andName("with spaces").getFirst();
 
-			assertNotNull("Invalid deployment result", folder);
+			assertNotNull("Folder was not created correctly", folder);
 
-			final File file     = app.nodeQuery(File.class).and(StructrApp.key(File.class, "parent"), folder).and(File.name, fileName).getFirst();
+			final NodeInterface file = app.nodeQuery(StructrTraits.FILE).and(Traits.of(StructrTraits.FILE).key("parent"), folder).and(Traits.of(StructrTraits.FILE).key("name"), fileName).getFirst();
 
-			assertNotNull("Invalid deployment result", file);
+			assertNotNull("File was not created correctly", file);
 
-			assertEquals("Deployment import does not restore attributes correctly", folder, file.getParent());
-			assertTrue("Deployment import does not restore attributes correctly",   file.getProperty(StructrApp.key(File.class, "visibleToPublicUsers")));
-			assertTrue("Deployment import does not restore attributes correctly",   file.getProperty(StructrApp.key(File.class, "visibleToAuthenticatedUsers")));
-			assertTrue("Deployment import does not restore attributes correctly",   file.getProperty(StructrApp.key(File.class, "enableBasicAuth")));
-			assertTrue("Deployment import does not restore attributes correctly",   file.getProperty(StructrApp.key(File.class, "useAsJavascriptLibrary")));
+			assertEquals("Deployment import does not restore attributes correctly", folder, file.as(File.class).getParent());
+			assertTrue("Deployment import does not restore attributes correctly",  file.getProperty(Traits.of(StructrTraits.FILE).key("visibleToPublicUsers")));
+			assertTrue("Deployment import does not restore attributes correctly",  file.getProperty(Traits.of(StructrTraits.FILE).key("visibleToAuthenticatedUsers")));
+			assertTrue("Deployment import does not restore attributes correctly",  file.getProperty(Traits.of(StructrTraits.FILE).key("enableBasicAuth")));
+			assertTrue("Deployment import does not restore attributes correctly",  file.getProperty(Traits.of(StructrTraits.FILE).key("useAsJavascriptLibrary")));
 
 			tx.success();
 
@@ -207,21 +201,21 @@ public class Deployment1Test extends DeploymentTestBase {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			final Folder folder     = FileHelper.createFolderPath(securityContext, folderPath);
-			final File file     = FileHelper.createFile(securityContext, "test".getBytes("utf-8"), "text/plain", File.class, fileName, true);
-			final Folder rootFolder = getRootFolder(folder);
+			final NodeInterface folder     = FileHelper.createFolderPath(securityContext, folderPath);
+			final NodeInterface file       = FileHelper.createFile(securityContext, "test".getBytes("utf-8"), "text/plain", StructrTraits.FILE, fileName, true);
+			final NodeInterface rootFolder = getRootFolder(folder.as(Folder.class));
 
 			assertNotNull("Root folder should not be null", rootFolder);
 
 			// root folder needs to have "includeInFrontendExport" set
-			rootFolder.setProperty(StructrApp.key(Folder.class, "includeInFrontendExport"), true);
+			rootFolder.setProperty(Traits.of(StructrTraits.FOLDER).key("includeInFrontendExport"), true);
 
-			file.setProperty(StructrApp.key(File.class, "parent"), folder);
-			file.setProperty(StructrApp.key(File.class, "visibleToPublicUsers"), true);
-			file.setProperty(StructrApp.key(File.class, "visibleToAuthenticatedUsers"), true);
-			file.setProperty(StructrApp.key(File.class, "enableBasicAuth"), true);
-			file.setProperty(StructrApp.key(File.class, "useAsJavascriptLibrary"), true);
-			file.setProperty(StructrApp.key(File.class, "includeInFrontendExport"), true);
+			file.setProperty(Traits.of(StructrTraits.FILE).key("parent"), folder);
+			file.setProperty(Traits.of(StructrTraits.FILE).key("visibleToPublicUsers"), true);
+			file.setProperty(Traits.of(StructrTraits.FILE).key("visibleToAuthenticatedUsers"), true);
+			file.setProperty(Traits.of(StructrTraits.FILE).key("enableBasicAuth"), true);
+			file.setProperty(Traits.of(StructrTraits.FILE).key("useAsJavascriptLibrary"), true);
+			file.setProperty(Traits.of(StructrTraits.FILE).key("includeInFrontendExport"), true);
 
 			tx.success();
 
@@ -238,12 +232,12 @@ public class Deployment1Test extends DeploymentTestBase {
 
 				try (final Tx tx = app.tx()) {
 
-					final File file = app.nodeQuery(File.class).and(File.name, fileName).getFirst();
-					file.setProperty(StructrApp.key(File.class, "visibleToPublicUsers"), false);
-					file.setProperty(StructrApp.key(File.class, "visibleToAuthenticatedUsers"), false);
-					file.setProperty(StructrApp.key(File.class, "enableBasicAuth"), false);
-					file.setProperty(StructrApp.key(File.class, "useAsJavascriptLibrary"), false);
-					file.setProperty(StructrApp.key(File.class, "includeInFrontendExport"), false);
+					final NodeInterface file = app.nodeQuery(StructrTraits.FILE).and(Traits.of(StructrTraits.FILE).key("name"), fileName).getFirst();
+					file.setProperty(Traits.of(StructrTraits.FILE).key("visibleToPublicUsers"), false);
+					file.setProperty(Traits.of(StructrTraits.FILE).key("visibleToAuthenticatedUsers"), false);
+					file.setProperty(Traits.of(StructrTraits.FILE).key("enableBasicAuth"), false);
+					file.setProperty(Traits.of(StructrTraits.FILE).key("useAsJavascriptLibrary"), false);
+					file.setProperty(Traits.of(StructrTraits.FILE).key("includeInFrontendExport"), false);
 
 					tx.success();
 
@@ -257,20 +251,20 @@ public class Deployment1Test extends DeploymentTestBase {
 		// check
 		try (final Tx tx = app.tx()) {
 
-			final Folder folder = app.nodeQuery(Folder.class).andName("with spaces").getFirst();
+			final NodeInterface folder = app.nodeQuery(StructrTraits.FOLDER).andName("with spaces").getFirst();
 
-			assertNotNull("Invalid deployment result", folder);
+			assertNotNull("Folder was not created", folder);
 
-			final File file     = app.nodeQuery(File.class).and(StructrApp.key(File.class, "parent"), folder).and(File.name, fileName).getFirst();
+			final NodeInterface file = app.nodeQuery(StructrTraits.FILE).and(Traits.of(StructrTraits.FILE).key("parent"), folder).and(Traits.of(StructrTraits.FILE).key("name"), fileName).getFirst();
 
-			assertNotNull("Invalid deployment result", file);
+			assertNotNull("File was not created", file);
 
-			assertEquals("Deployment import of existing file does not restore attributes correctly", folder, file.getParent());
-			assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(StructrApp.key(File.class, "visibleToPublicUsers")));
-			assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(StructrApp.key(File.class, "visibleToAuthenticatedUsers")));
-			assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(StructrApp.key(File.class, "enableBasicAuth")));
-			assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(StructrApp.key(File.class, "useAsJavascriptLibrary")));
-			assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(StructrApp.key(File.class, "includeInFrontendExport")));
+			assertEquals("Deployment import of existing file does not restore attributes correctly", folder, file.as(File.class).getParent());
+			assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(Traits.of(StructrTraits.FILE).key("visibleToPublicUsers")));
+			assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(Traits.of(StructrTraits.FILE).key("visibleToAuthenticatedUsers")));
+			assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(Traits.of(StructrTraits.FILE).key("enableBasicAuth")));
+			assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(Traits.of(StructrTraits.FILE).key("useAsJavascriptLibrary")));
+			assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(Traits.of(StructrTraits.FILE).key("includeInFrontendExport")));
 
 			tx.success();
 
@@ -287,12 +281,12 @@ public class Deployment1Test extends DeploymentTestBase {
 		try (final Tx tx = app.tx()) {
 
 			final Page page = Page.createNewPage(securityContext,   "test16");
-			final Html html = createElement(page, page, "html");
-			final Head head = createElement(page, html, "head");
+			final DOMElement html = createElement(page, page, "html");
+			final DOMElement head = createElement(page, html, "head");
 			createElement(page, head, "title", "test16");
 
-			final Body body = createElement(page, html, "body");
-			final Div div1  = createElement(page, body, "div");
+			final DOMElement body = createElement(page, html, "body");
+			final DOMElement div1  = createElement(page, body, "div");
 
 			final Template template = createTemplate(page, div1, "template source - öäüÖÄÜß'\"'`");
 
@@ -321,16 +315,16 @@ public class Deployment1Test extends DeploymentTestBase {
 		try (final Tx tx = app.tx()) {
 
 			final Page page = Page.createNewPage(securityContext,   "test17");
-			final Html html = createElement(page, page, "html");
-			final Head head = createElement(page, html, "head");
+			final DOMElement html = createElement(page, page, "html");
+			final DOMElement head = createElement(page, html, "head");
 			createElement(page, head, "title", "test17");
 
-			final Body body = createElement(page, html, "body");
+			final DOMElement body = createElement(page, html, "body");
 
 			final Template template = createTemplate(page, body, "${render(children)}");
-			template.setProperty(AbstractNode.name, "a-template");
+			template.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "a-template");
 
-			final Template sharedTemplate = createComponent(template);
+			final DOMNode sharedTemplate = createComponent(template);
 
 			// remove original template from page
 			app.delete(template);
@@ -354,15 +348,15 @@ public class Deployment1Test extends DeploymentTestBase {
 		try (final Tx tx = app.tx()) {
 
 			final Page page = Page.createNewPage(securityContext,   "test18");
-			final Html html = createElement(page, page, "html");
-			final Head head = createElement(page, html, "head");
+			final DOMElement html = createElement(page, page, "html");
+			final DOMElement head = createElement(page, html, "head");
 			createElement(page, head, "title", "test18");
 
-			final Body body = createElement(page, html, "body");
+			final DOMElement body = createElement(page, html, "body");
 
 			final Template template = createTemplate(page, body, "${render(children)}");
 
-			final Template sharedTemplate = createComponent(template);
+			final DOMNode sharedTemplate = createComponent(template);
 
 			// remove original template from page
 			app.delete(template);
@@ -386,15 +380,15 @@ public class Deployment1Test extends DeploymentTestBase {
 		try (final Tx tx = app.tx()) {
 
 			final Page page = Page.createNewPage(securityContext,   "test19");
-			final Html html = createElement(page, page, "html");
-			final Head head = createElement(page, html, "head");
+			final DOMElement html = createElement(page, page, "html");
+			final DOMElement head = createElement(page, html, "head");
 			createElement(page, head, "title", "test19");
 
-			final Body body = createElement(page, html, "body");
-			final Div div1  = createElement(page, body, "div");
+			final DOMElement body = createElement(page, html, "body");
+			final DOMElement div1  = createElement(page, body, "div");
 
 			final Content content = createContent(page, div1, "<b>Test</b>");
-			content.setProperty(StructrApp.key(Content.class, "contentType"), "text/html");
+			content.setProperty(Traits.of(StructrTraits.CONTENT).key("contentType"), "text/html");
 
 			tx.success();
 
@@ -409,13 +403,13 @@ public class Deployment1Test extends DeploymentTestBase {
 	@Test
 	public void test20ExportOwnership() {
 
-		PrincipalInterface user1 = null;
-		PrincipalInterface user2 = null;
+		NodeInterface user1 = null;
+		NodeInterface user2 = null;
 
 		try (final Tx tx = app.tx()) {
 
-			user1 = createTestNode(User.class, new NodeAttribute<>(AbstractNode.name, "user1"));
-			user2 = createTestNode(User.class, new NodeAttribute<>(AbstractNode.name, "user2"));
+			user1 = createTestNode(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "user1"));
+			user2 = createTestNode(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "user2"));
 
 			tx.success();
 
@@ -427,25 +421,25 @@ public class Deployment1Test extends DeploymentTestBase {
 		assertNotNull("User was not created, test cannot continue", user2);
 
 		// setup
-		final SecurityContext context1 = SecurityContext.getInstance(user1, AccessMode.Backend);
+		final SecurityContext context1 = SecurityContext.getInstance(user1.as(User.class), AccessMode.Backend);
 		final App app1                 = StructrApp.getInstance(context1);
 
 		try (final Tx tx = app1.tx()) {
 
-			final Page page      = Page.createNewPage(context1,   "test20");
-			final Html html      = createElement(page, page, "html");
-			final Head head      = createElement(page, html, "head");
+			final Page page       = Page.createNewPage(context1,   "test20");
+			final DOMElement html = createElement(page, page, "html");
+			final DOMElement head = createElement(page, html, "head");
 			createElement(page, head, "title", "test20");
 
-			final Body body = createElement(page, html, "body");
-			final Div div1  = createElement(page, body, "div");
+			final DOMElement body = createElement(page, html, "body");
+			final DOMElement div1 = createElement(page, body, "div");
 
 			final Content content = createContent(page, div1, "<b>Test</b>");
-			content.setProperty(StructrApp.key(Content.class, "contentType"), "text/html");
+			content.setProperty(Traits.of(StructrTraits.CONTENT).key("contentType"), "text/html");
 
 			// set owner to different user
-			div1.setProperty(AbstractNode.owner, user2);
-			content.setProperty(AbstractNode.owner, user2);
+			div1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("owner"), user2);
+			content.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("owner"), user2);
 
 			tx.success();
 
@@ -468,17 +462,20 @@ public class Deployment1Test extends DeploymentTestBase {
 
 			final Page page       = Page.createNewPage(securityContext,   "test02");
 			pageId                = page.getUuid();
-			final Html html       = createElement(page, page, "html");
-			final Head head       = createElement(page, html, "head");
+			final DOMElement html = createElement(page, page, "html");
+			final DOMElement head = createElement(page, html, "head");
+
 			createElement(page, head, "title", "test11");
 
-			final Body body       = createElement(page, html, "body");
+			final DOMElement body       = createElement(page, html, "body");
 
 			// create a link which links to same page
 			{
-				final A a = createElement(page, body, "a");
+				final DOMElement a = createElement(page, body, "a");
+
 				createElement(page, a, "a", "link to self");
-				a.setLinkable(page);
+
+				a.as(LinkSource.class).setLinkable(page.as(Linkable.class));
 
 				a_uuid = a.getUuid();
 			}
@@ -494,7 +491,8 @@ public class Deployment1Test extends DeploymentTestBase {
 		// check
 		try (final Tx tx = app.tx()) {
 
-			final A a = (A)app.getNodeById(A.class, a_uuid);
+			final NodeInterface node = app.getNodeById("A", a_uuid);
+			final LinkSource a       = node.as(LinkSource.class);
 
 			assertNotNull("A element was not created!", a);
 			assertNotNull("A has no linked page!", a.getLinkable());

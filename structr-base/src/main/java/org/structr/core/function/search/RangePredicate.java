@@ -23,6 +23,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.Query;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.Traits;
 
 /**
  */
@@ -42,9 +43,10 @@ public class RangePredicate implements SearchFunctionPredicate {
 	}
 
 	@Override
-	public void configureQuery(final SecurityContext securityContext, final Class type, final PropertyKey key, final Query query, final boolean exact) throws FrameworkException {
+	public void configureQuery(final SecurityContext securityContext, final Traits type, final PropertyKey key, final Query query, final boolean exact) throws FrameworkException {
 
 		Object effectiveRangeStart = rangeStart;
+
 		if (key != null && rangeStart != null && !key.valueType().isAssignableFrom(rangeStart.getClass())) {
 			Object converted = key.inputConverter(securityContext).convert(rangeStart);
 			if (converted != null) {
@@ -53,6 +55,7 @@ public class RangePredicate implements SearchFunctionPredicate {
 		}
 
 		Object effectiveRangeEnd = rangeEnd;
+
 		if (key != null && rangeEnd != null && !key.valueType().isAssignableFrom(rangeEnd.getClass())) {
 			Object converted = key.inputConverter(securityContext).convert(rangeEnd);
 			if (converted != null) {

@@ -20,13 +20,13 @@ package org.structr.test.web.advanced;
 
 import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
-import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.ImageHelper;
-import org.structr.web.entity.Image;
-import org.structr.web.entity.User;
 import org.testng.annotations.Test;
 
 import java.io.InputStream;
@@ -42,21 +42,21 @@ public class GraphQLTest extends StructrUiTest {
 	@Test
 	public void testDataPropertyOnThumbnail() {
 
-		Image image = null;
+		NodeInterface image = null;
 		// setup
 		try (final Tx tx = app.tx()) {
 
 			try (final InputStream is = GraphQLTest.class.getResourceAsStream("/test/test.png")) {
 
-				image = ImageHelper.createImage(securityContext, is, "image/png", Image.class, "test.png", false);
-				image.getProperty(StructrApp.key(Image.class, "tnSmall"));
+				image = ImageHelper.createImage(securityContext, is, "image/png", StructrTraits.IMAGE, "test.png", false);
+				image.getProperty(Traits.of(StructrTraits.IMAGE).key("tnSmall"));
 				is.close();
 			}
 
-			app.create(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"), true)
+			app.create(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			tx.success();
@@ -68,7 +68,7 @@ public class GraphQLTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final Image currentImage = image;
+			final NodeInterface currentImage = image;
 
 			tryWithTimeout(
 				() -> {
@@ -76,7 +76,7 @@ public class GraphQLTest extends StructrUiTest {
 					// so we need to allow this thread to break the transaction isolation..
 					currentImage.getNode().invalidate();
 
-					return currentImage.getProperty(StructrApp.key(Image.class, "tnSmall")) != null;
+					return currentImage.getProperty(Traits.of(StructrTraits.IMAGE).key("tnSmall")) != null;
 				},
 				() -> fail("Exceeded timeout while waiting for thumbnail to be available"),
 				30000, 500);

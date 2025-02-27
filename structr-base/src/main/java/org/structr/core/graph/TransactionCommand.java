@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.*;
 import org.structr.api.graph.Node;
+import org.structr.api.graph.PropertyContainer;
 import org.structr.api.graph.Relationship;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.DatabaseServiceNetworkException;
@@ -34,8 +35,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.StructrTransactionListener;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.scheduler.TransactionPostProcessQueue;
 
@@ -272,7 +272,7 @@ public class TransactionCommand {
 
 	}
 
-	public static void nodeCreated(final PrincipalInterface user, final NodeInterface node) {
+	public static void nodeCreated(final Principal user, final NodeInterface node) {
 
 		TransactionCommand command = commands.get();
 		if (command != null) {
@@ -298,7 +298,7 @@ public class TransactionCommand {
 		}
 	}
 
-	public static void nodeModified(final PrincipalInterface user, final AbstractNode node, final PropertyKey key, final Object previousValue, final Object newValue) {
+	public static void nodeModified(final Principal user, final NodeInterface node, final PropertyKey key, final Object previousValue, final Object newValue) {
 
 		TransactionCommand command = commands.get();
 		if (command != null) {
@@ -322,7 +322,7 @@ public class TransactionCommand {
 		}
 	}
 
-	public static void nodeDeleted(final PrincipalInterface user, final NodeInterface node) {
+	public static void nodeDeleted(final Principal user, final NodeInterface node) {
 
 		TransactionCommand command = commands.get();
 		if (command != null) {
@@ -346,7 +346,7 @@ public class TransactionCommand {
 		}
 	}
 
-	public static void relationshipCreated(final PrincipalInterface user, final RelationshipInterface relationship) {
+	public static void relationshipCreated(final Principal user, final RelationshipInterface relationship) {
 
 		TransactionCommand command = commands.get();
 		if (command != null) {
@@ -370,7 +370,7 @@ public class TransactionCommand {
 		}
 	}
 
-	public static void relationshipModified(final PrincipalInterface user, final RelationshipInterface relationship, final PropertyKey key, final Object previousValue, final Object newValue) {
+	public static void relationshipModified(final Principal user, final RelationshipInterface relationship, final PropertyKey key, final Object previousValue, final Object newValue) {
 
 		TransactionCommand command = commands.get();
 		if (command != null) {
@@ -394,7 +394,7 @@ public class TransactionCommand {
 		}
 	}
 
-	public static void relationshipDeleted(final PrincipalInterface user, final RelationshipInterface relationship, final boolean passive) {
+	public static void relationshipDeleted(final Principal user, final RelationshipInterface relationship, final boolean passive) {
 
 		TransactionCommand command = commands.get();
 		if (command != null) {
@@ -519,6 +519,15 @@ public class TransactionCommand {
 
 		RuntimeEventLog.transaction("Not in transaction");
 		throw new NotInTransactionException("Not in transaction.");
+	}
+
+	public static boolean isDeleted(final PropertyContainer propertyContainer) {
+
+		if (propertyContainer.isNode()) {
+			return isDeleted((Node)propertyContainer);
+		}
+
+		return isDeleted((Relationship)propertyContainer);
 	}
 
 	public static boolean isDeleted(final Node node) {

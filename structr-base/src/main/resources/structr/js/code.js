@@ -2819,7 +2819,7 @@ let _Code = {
 			if (_Code.persistence.isDirty()) {
 				new WarningMessage().text('No save action is defined - but the editor has unsaved changes!').requiresConfirmation().show();
 			}
-		},		
+		},
 	},
 	search: {
 		searchThreshold: 3,

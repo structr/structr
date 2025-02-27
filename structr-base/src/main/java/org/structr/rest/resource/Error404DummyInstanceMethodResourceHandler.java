@@ -25,7 +25,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.SchemaMethod.HttpVerb;
 import org.structr.core.graph.Tx;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.RESTCall;
@@ -42,15 +41,13 @@ import java.util.Set;
  */
 public class Error404DummyInstanceMethodResourceHandler extends RESTMethodCallHandler {
 
-	private Class entityClass = null;
 	private String typeName   = null;
 	private String uuid       = null;
 
-	public Error404DummyInstanceMethodResourceHandler(final RESTCall call, final Class entityClass, final String typeName, final String uuid, final AbstractMethod method) {
+	public Error404DummyInstanceMethodResourceHandler(final RESTCall call, final String typeName, final String uuid, final AbstractMethod method) {
 
 		super(call, method);
 
-		this.entityClass = entityClass;
 		this.typeName    = typeName;
 		this.uuid        = uuid;
 	}
@@ -58,7 +55,7 @@ public class Error404DummyInstanceMethodResourceHandler extends RESTMethodCallHa
 	@Override
 	public ResultStream doGet(final SecurityContext securityContext, final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
 
-		if (HttpVerb.GET.equals(method.getHttpVerb())) {
+		if ("GET".equals(method.getHttpVerb())) {
 
 			throw new NotFoundException("Entity with ID " + uuid + " not found");
 
@@ -71,7 +68,7 @@ public class Error404DummyInstanceMethodResourceHandler extends RESTMethodCallHa
 	@Override
 	public RestMethodResult doPost(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
 
-		if (HttpVerb.POST.equals(method.getHttpVerb())) {
+		if ("POST".equals(method.getHttpVerb())) {
 
 			throw new NotFoundException("Entity with ID " + uuid + " not found");
 
@@ -84,7 +81,7 @@ public class Error404DummyInstanceMethodResourceHandler extends RESTMethodCallHa
 	@Override
 	public RestMethodResult doPut(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
 
-		if (HttpVerb.PUT.equals(method.getHttpVerb())) {
+		if ("PUT".equals(method.getHttpVerb())) {
 
 			throw new NotFoundException("Entity with ID " + uuid + " not found");
 
@@ -97,7 +94,7 @@ public class Error404DummyInstanceMethodResourceHandler extends RESTMethodCallHa
 	@Override
 	public RestMethodResult doPatch(final SecurityContext securityContext, final List<Map<String, Object>> propertySet) throws FrameworkException {
 
-		if (HttpVerb.PATCH.equals(method.getHttpVerb())) {
+		if ("PATCH".equals(method.getHttpVerb())) {
 
 			throw new NotFoundException("Entity with ID " + uuid + " not found");
 
@@ -112,13 +109,13 @@ public class Error404DummyInstanceMethodResourceHandler extends RESTMethodCallHa
 
 		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			if (!HttpVerb.DELETE.equals(method.getHttpVerb())) {
+			if ("DELETE".equals(method.getHttpVerb())) {
 
-				throw new IllegalMethodException("DELETE not allowed on " + getURL(), getAllowedHttpMethodsForOptionsCall());
+				throw new NotFoundException("Entity with ID " + uuid + " not found");
 
 			} else {
 
-				throw new NotFoundException("Entity with ID " + uuid + " not found");
+				throw new IllegalMethodException("DELETE not allowed on " + getURL(), getAllowedHttpMethodsForOptionsCall());
 			}
 		}
 	}
@@ -129,12 +126,12 @@ public class Error404DummyInstanceMethodResourceHandler extends RESTMethodCallHa
 	}
 
 	@Override
-	public Class getEntityClass(final SecurityContext securityContext) throws FrameworkException {
+	public String getTypeName(final SecurityContext securityContext) throws FrameworkException {
 
-		final GraphObject entity = getEntity(securityContext, entityClass, typeName, uuid);
+		final GraphObject entity = getEntity(securityContext, typeName, uuid);
 		if (entity != null) {
 
-			return entity.getClass();
+			return entity.getType();
 		}
 
 		return null;
@@ -142,6 +139,6 @@ public class Error404DummyInstanceMethodResourceHandler extends RESTMethodCallHa
 
 	@Override
 	public Set<String> getAllowedHttpMethodsForOptionsCall() {
-		return Set.of(method.getHttpVerb().name());
+		return Set.of(method.getHttpVerb());
 	}
 }

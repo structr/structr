@@ -27,12 +27,12 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.property.PropertyMap;
-import org.structr.schema.SchemaService;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 
 import java.net.URI;
 import java.util.Map;
@@ -61,7 +61,6 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 	private PropagationMode deletePropagation          = PropagationMode.Remove;
 	private PropagationMode accessControlPropagation   = PropagationMode.Remove;
 	private String aclHiddenProperties                 = null;
-	private boolean isPartOfBuiltInSchema              = false;
 
 	public StructrRelationshipTypeDefinition(final StructrSchemaDefinition root, final String name) {
 
@@ -424,48 +423,47 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 
 		super.deserialize(schemaNodes, schemaNode);
 
-		final SchemaNode sourceNode = schemaNode.getProperty(SchemaRelationshipNode.sourceNode);
-		final SchemaNode targetNode = schemaNode.getProperty(SchemaRelationshipNode.targetNode);
-		final String sourceNodeType = sourceNode != null ? sourceNode.getClassName() : schemaNode.getProperty(SchemaRelationshipNode.sourceType);
-		final String targetNodeType = targetNode != null ? targetNode.getClassName() : schemaNode.getProperty(SchemaRelationshipNode.targetType);
+		final SchemaNode sourceNode = schemaNode.getSourceNode();
+		final SchemaNode targetNode = schemaNode.getTargetNode();
+		final String sourceNodeType = sourceNode != null ? sourceNode.getClassName() : schemaNode.getSourceType();
+		final String targetNodeType = targetNode != null ? targetNode.getClassName() : schemaNode.getTargetType();
 
 		this.sourceType                = sourceNode != null ? root.getId().resolve("definitions/" + sourceNodeType) : StructrApp.getSchemaBaseURI().resolve("static/" + sourceNodeType);
 		this.targetType                = targetNode != null ? root.getId().resolve("definitions/" + targetNodeType) : StructrApp.getSchemaBaseURI().resolve("static/" + targetNodeType);
 
-		this.relationshipType          = schemaNode.getProperty(SchemaRelationshipNode.relationshipType);
-		this.sourcePropertyName        = schemaNode.getProperty(SchemaRelationshipNode.sourceJsonName);
-		this.targetPropertyName        = schemaNode.getProperty(SchemaRelationshipNode.targetJsonName);
-		this.permissionPropagation     = schemaNode.getProperty(SchemaRelationshipNode.permissionPropagation);
-		this.readPropagation           = schemaNode.getProperty(SchemaRelationshipNode.readPropagation);
-		this.writePropagation          = schemaNode.getProperty(SchemaRelationshipNode.writePropagation);
-		this.deletePropagation         = schemaNode.getProperty(SchemaRelationshipNode.deletePropagation);
-		this.accessControlPropagation  = schemaNode.getProperty(SchemaRelationshipNode.accessControlPropagation);
-		this.aclHiddenProperties       = schemaNode.getProperty(SchemaRelationshipNode.propertyMask);
-		this.isPartOfBuiltInSchema     = schemaNode.getProperty(SchemaRelationshipNode.isPartOfBuiltInSchema);
+		this.relationshipType          = schemaNode.getRelationshipType();
+		this.sourcePropertyName        = schemaNode.getSourceJsonName();
+		this.targetPropertyName        = schemaNode.getTargetJsonName();
+		this.permissionPropagation     = schemaNode.getPermissionPropagation();
+		this.readPropagation           = schemaNode.getReadPropagation();
+		this.writePropagation          = schemaNode.getWritePropagation();
+		this.deletePropagation         = schemaNode.getDeletePropagation();
+		this.accessControlPropagation  = schemaNode.getAccessControlPropagation();
+		this.aclHiddenProperties       = schemaNode.getPropertyMask();
 
 		if (sourcePropertyName == null) {
-			sourcePropertyName = schemaNode.getPropertyName(sourceNodeType, root.getExistingPropertyNames(), false);
+			sourcePropertyName = schemaNode.getPropertyName(root.getExistingPropertyNames(), false);
 		}
 
 		if (targetPropertyName == null) {
-			targetPropertyName = schemaNode.getPropertyName(targetNodeType, root.getExistingPropertyNames(), true);
+			targetPropertyName = schemaNode.getPropertyName(root.getExistingPropertyNames(), true);
 		}
 
 
-		final Long cascadingDeleteFlag = schemaNode.getProperty(SchemaRelationshipNode.cascadingDeleteFlag);
+		final Long cascadingDeleteFlag = schemaNode.getCascadingDeleteFlag();
 		if (cascadingDeleteFlag != null) {
 
 			this.cascadingDelete = getCascadingString(cascadingDeleteFlag.intValue());
 		}
 
-		final Long cascadingCreateFlag = schemaNode.getProperty(SchemaRelationshipNode.autocreationFlag);
+		final Long cascadingCreateFlag = schemaNode.getAutocreationFlag();
 		if (cascadingCreateFlag != null) {
 
 			this.cascadingCreate = getCascadingString(cascadingCreateFlag.intValue());
 		}
 
-		final String sourceMultiplicity = schemaNode.getProperty(SchemaRelationshipNode.sourceMultiplicity);
-		final String targetMultiplicity = schemaNode.getProperty(SchemaRelationshipNode.targetMultiplicity);
+		final String sourceMultiplicity = schemaNode.getSourceMultiplicity();
+		final String targetMultiplicity = schemaNode.getTargetMultiplicity();
 
 		if ("1".equals(sourceMultiplicity)) {
 
@@ -493,67 +491,50 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 	@Override
 	SchemaRelationshipNode createSchemaNode(final Map<String, SchemaNode> schemaNodes, final Map<String, SchemaRelationshipNode> schemaRels, final App app, final PropertyMap createProperties) throws FrameworkException {
 
+		final Traits traits                = Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE);
 		final PropertyMap properties       = new PropertyMap();
 		SchemaRelationshipNode _schemaNode = schemaRels.get(getName());
+
 		if (_schemaNode == null) {
 
-			_schemaNode = app.create(SchemaRelationshipNode.class, getName());
+			_schemaNode = app.create(StructrTraits.SCHEMA_RELATIONSHIP_NODE, getName()).as(SchemaRelationshipNode.class);
 		}
 
-		properties.put(SchemaRelationshipNode.relationshipType, getRelationship());
-		properties.put(SchemaRelationshipNode.sourceJsonName, sourcePropertyName);
-		properties.put(SchemaRelationshipNode.targetJsonName, targetPropertyName);
-		properties.put(SchemaRelationshipNode.sourceMultiplicity, getSourceMultiplicity(cardinality));
-		properties.put(SchemaRelationshipNode.targetMultiplicity, getTargetMultiplicity(cardinality));
-		properties.put(SchemaRelationshipNode.cascadingDeleteFlag, getCascadingFlag(cascadingDelete));
-		properties.put(SchemaRelationshipNode.autocreationFlag, getCascadingFlag(cascadingCreate));
+		properties.put(traits.key("relationshipType"),    getRelationship());
+		properties.put(traits.key("sourceJsonName"),      sourcePropertyName);
+		properties.put(traits.key("targetJsonName"),      targetPropertyName);
+		properties.put(traits.key("sourceMultiplicity"),  getSourceMultiplicity(cardinality));
+		properties.put(traits.key("targetMultiplicity"),  getTargetMultiplicity(cardinality));
+		properties.put(traits.key("cascadingDeleteFlag"), getCascadingFlag(cascadingDelete));
+		properties.put(traits.key("autocreationFlag"),    getCascadingFlag(cascadingCreate));
 
 		if (permissionPropagation != null) {
-			properties.put(SchemaRelationshipNode.permissionPropagation, permissionPropagation);
+			properties.put(traits.key("permissionPropagation"), permissionPropagation.name());
 		}
 
 		if (readPropagation != null) {
-			properties.put(SchemaRelationshipNode.readPropagation, readPropagation);
+			properties.put(traits.key("readPropagation"), readPropagation.name());
 		}
 
 		if (writePropagation != null) {
-			properties.put(SchemaRelationshipNode.writePropagation, writePropagation);
+			properties.put(traits.key("writePropagation"), writePropagation.name());
 		}
 
 		if (deletePropagation != null) {
-			properties.put(SchemaRelationshipNode.deletePropagation, deletePropagation);
+			properties.put(traits.key("deletePropagation"), deletePropagation.name());
 		}
 
 		if (accessControlPropagation != null)  {
-			properties.put(SchemaRelationshipNode.accessControlPropagation, accessControlPropagation);
+			properties.put(traits.key("accessControlPropagation"), accessControlPropagation.name());
 		}
 
 		if (aclHiddenProperties != null) {
-			properties.put(SchemaRelationshipNode.propertyMask, aclHiddenProperties);
-		}
-
-		if (root != null) {
-
-			if (SchemaService.DynamicSchemaRootURI.equals(root.getId())) {
-
-				this.isPartOfBuiltInSchema = true;
-				properties.put(SchemaRelationshipNode.isPartOfBuiltInSchema, true);
-			}
+			properties.put(traits.key("propertyMask"), aclHiddenProperties);
 		}
 
 		_schemaNode.setProperties(SecurityContext.getSuperUserInstance(), properties);
 
 		return _schemaNode;
-	}
-
-	@Override
-	public boolean isBuiltinType() {
-		return isPartOfBuiltInSchema;
-	}
-
-	@Override
-	public void setIsBuiltinType() {
-		this.isPartOfBuiltInSchema = true;
 	}
 
 	@Override
@@ -593,7 +574,7 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 		final SchemaNode sourceSchemaNode = resolveSchemaNode(schemaNodes, app, sourceType);
 		final SchemaNode targetSchemaNode = resolveSchemaNode(schemaNodes, app, targetType);
 
-		final AbstractSchemaNode thisSchemaRelationship = getSchemaNode();
+		final SchemaRelationshipNode thisSchemaRelationship = getSchemaNode();
 		if (thisSchemaRelationship != null) {
 
 			final String prefix = "static/";
@@ -601,7 +582,7 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 
 			if (sourceSchemaNode != null) {
 
-				thisSchemaRelationship.setProperty(SchemaRelationshipNode.sourceNode, sourceSchemaNode);
+				thisSchemaRelationship.setSourceNode(sourceSchemaNode);
 
 			} else {
 
@@ -612,7 +593,7 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 
 				if (path.startsWith(prefix)) {
 
-					thisSchemaRelationship.setProperty(SchemaRelationshipNode.sourceType, path.substring(start));
+					thisSchemaRelationship.setSourceType(path.substring(start));
 
 				} else {
 
@@ -622,7 +603,7 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 
 			if (targetSchemaNode != null) {
 
-				thisSchemaRelationship.setProperty(SchemaRelationshipNode.targetNode, targetSchemaNode);
+				thisSchemaRelationship.setTargetNode(targetSchemaNode);
 
 			} else {
 
@@ -634,7 +615,7 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 
 				if (path.startsWith(prefix)) {
 
-					thisSchemaRelationship.setProperty(SchemaRelationshipNode.targetType, path.substring(start));
+					thisSchemaRelationship.setTargetType(path.substring(start));
 
 				} else {
 

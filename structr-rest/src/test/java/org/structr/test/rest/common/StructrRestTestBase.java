@@ -29,18 +29,20 @@ import org.structr.api.config.Settings;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.SuperUserAuthenticator;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.schema.SchemaService;
 import org.structr.schema.export.StructrSchema;
-import org.structr.web.entity.User;
+import org.structr.test.rest.traits.definitions.*;
+import org.structr.test.rest.traits.definitions.relationships.*;
 import org.testng.annotations.*;
 
 import java.io.File;
@@ -51,6 +53,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
 
 /**
@@ -115,6 +118,39 @@ public abstract class StructrRestTestBase {
 		RestAssured.port     = httpPort;
 	}
 
+	@BeforeMethod(firstTimeOnly = true)
+	public void createSchema() {
+
+		StructrTraits.registerRelationshipType("ElevenTwoOneToMany",  new ElevenTwoOneToMany());
+		StructrTraits.registerRelationshipType("FiveOneManyToMany",   new FiveOneManyToMany());
+		StructrTraits.registerRelationshipType("FiveOneManyToOne",    new FiveOneManyToOne());
+		StructrTraits.registerRelationshipType("FiveOneOneToMany",    new FiveOneOneToMany());
+		StructrTraits.registerRelationshipType("FiveThreeOneToOne",   new FiveThreeOneToOne());
+		StructrTraits.registerRelationshipType("FourOneManyToMany",   new FourOneManyToMany());
+		StructrTraits.registerRelationshipType("FourOneOneToMany",    new FourOneOneToMany());
+		StructrTraits.registerRelationshipType("FourThreeOneToOne",   new FourThreeOneToOne());
+		StructrTraits.registerRelationshipType("NineEightManyToMany", new NineEightManyToMany());
+		StructrTraits.registerRelationshipType("SevenSixOneToMany",   new SevenSixOneToMany());
+		StructrTraits.registerRelationshipType("SixEightManyToMany",  new SixEightManyToMany());
+		StructrTraits.registerRelationshipType("TenSevenOneToOne",    new TenSevenOneToOne());
+		StructrTraits.registerRelationshipType("ThreeFiveOneToMany",  new ThreeFiveOneToMany());
+		StructrTraits.registerRelationshipType("ThreeFourOneToMany",  new ThreeFourOneToMany());
+		StructrTraits.registerRelationshipType("TwoOneOneToMany",     new TwoOneOneToMany());
+
+		StructrTraits.registerNodeType("TestOne",      new TestOneTraitDefinition());
+		StructrTraits.registerNodeType("TestTwo",      new TestTwoTraitDefinition());
+		StructrTraits.registerNodeType("TestThree",    new TestThreeTraitDefinition());
+		StructrTraits.registerNodeType("TestFour",     new TestFourTraitDefinition());
+		StructrTraits.registerNodeType("TestFive",     new TestFiveTraitDefinition());
+		StructrTraits.registerNodeType("TestSix",      new TestSixTraitDefinition());
+		StructrTraits.registerNodeType("TestSeven",    new TestSevenTraitDefinition());
+		StructrTraits.registerNodeType("TestEight",    new TestEightTraitDefinition());
+		StructrTraits.registerNodeType("TestNine",     new TestNineTraitDefinition());
+		StructrTraits.registerNodeType("TestTen",      new TestTenTraitDefinition());
+		StructrTraits.registerNodeType("TestEleven",   new TestElevenTraitDefinition());
+		StructrTraits.registerNodeType("TestObject",   new TestObjectTraitDefinition());
+	}
+
 	@AfterClass(alwaysRun = true)
 	public void teardown() {
 
@@ -163,19 +199,8 @@ public abstract class StructrRestTestBase {
 				logger.error("Exception while trying to clean database: {}", t.getMessage());
 			}
 
-
-			try {
-
-				FlushCachesCommand.flushAll();
-
-				SchemaService.ensureBuiltinTypesExist(app);
-
-			} catch (Throwable t) {
-
-				t.printStackTrace();
-				logger.error("Exception while trying to create built-in schema for tenant identifier {}: {}", randomTenantId, t.getMessage());
-
-			}
+			SchemaService.reloadSchema(new ErrorBuffer(), null, false, false);
+			FlushCachesCommand.flushAll();
 		}
 
 		first = false;
@@ -257,10 +282,10 @@ public abstract class StructrRestTestBase {
 	}
 
 	// ----- non-static methods -----
-	protected <T extends NodeInterface> List<T> createTestNodes(final Class<T> type, final int number) throws FrameworkException {
+	protected List<NodeInterface> createTestNodes(final String type, final int number) throws FrameworkException {
 
-		final App app       = StructrApp.getInstance(securityContext);
-		final List<T> nodes = new LinkedList<>();
+		final App app                   = StructrApp.getInstance(securityContext);
+		final List<NodeInterface> nodes = new LinkedList<>();
 
 		try (final Tx tx = app.tx()) {
 
@@ -274,7 +299,7 @@ public abstract class StructrRestTestBase {
 		return nodes;
 	}
 
-	protected String createEntity(String resource, String... body) {
+	protected String createEntity(final String resource, final String... body) {
 		
 		RestAssured.basePath = "/structr/rest";
 
@@ -307,7 +332,7 @@ public abstract class StructrRestTestBase {
 			.when().post(resource).getBody().as(Map.class);
 	}
 
-	protected String concat(String... parts) {
+	protected String concat(final String... parts) {
 
 		StringBuilder buf = new StringBuilder();
 
@@ -318,11 +343,11 @@ public abstract class StructrRestTestBase {
 		return buf.toString();
 	}
 
-	protected String getUuidFromLocation(String location) {
+	protected String getUuidFromLocation(final String location) {
 		return location.substring(location.lastIndexOf("/") + 1);
 	}
 
-	protected Matcher isEntity(Class<? extends AbstractNode> type) {
+	protected Matcher isEntity(final String type) {
 		return new EntityMatcher(type);
 	}
 
@@ -353,14 +378,14 @@ public abstract class StructrRestTestBase {
 		return map;
 	}
 
-	protected Class createTestUserType() {
+	protected String createTestUserType() {
 
 		try (final Tx tx = app.tx()) {
 
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 			final JsonType type     = schema.addType("TestUser");
 
-			type.setExtends(User.class);
+			type.addTrait(StructrTraits.USER);
 			type.overrideMethod("onCreate", true, "set(this, 'name', concat('test', now));");
 
 			StructrSchema.replaceDatabaseSchema(app, schema);
@@ -372,6 +397,73 @@ public abstract class StructrRestTestBase {
 			fail("Unexpected exception.");
 		}
 
-		return StructrApp.getConfiguration().getNodeEntityClass("TestUser");
+		return "TestUser";
+	}
+
+	// ----- static methods -----
+	public static void assertMapPathValueIs(final Map<String, Object> map, final String mapPath, final Object value) {
+
+		final String[] parts = mapPath.split("[\\.]+");
+		Object current       = map;
+
+		for (int i=0; i<parts.length; i++) {
+
+			final String part = parts[i];
+			if (StringUtils.isNumeric(part)) {
+
+				int index = Integer.valueOf(part);
+				if (current instanceof List) {
+
+					final List list = (List)current;
+					if (index >= list.size()) {
+
+						// value for nonexisting fields must be null
+						assertEquals("Invalid map path result for " + mapPath, value, null);
+
+						// nothing more to check here
+						return;
+
+					} else {
+
+						current = list.get(index);
+					}
+				}
+
+			} else if ("#".equals(part)) {
+
+				if (current instanceof List) {
+
+					assertEquals("Invalid collection size for " + mapPath, value, ((List)current).size());
+
+					// nothing more to check here
+					return;
+				}
+
+				if (current instanceof Map) {
+
+					assertEquals("Invalid map size for " + mapPath, value, ((Map)current).size());
+
+					// nothing more to check here
+					return;
+				}
+
+			} else {
+
+				if (current instanceof Map) {
+
+					current = ((Map)current).get(part);
+				}
+			}
+		}
+
+		// ignore type of value if numerical (GSON defaults to double...)
+		if (value instanceof Number && current instanceof Number) {
+
+			assertEquals("Invalid map path result for " + mapPath, ((Number)value).doubleValue(), ((Number)current).doubleValue(), 0.0);
+
+		} else {
+
+			assertEquals("Invalid map path result for " + mapPath, value, current);
+		}
 	}
 }

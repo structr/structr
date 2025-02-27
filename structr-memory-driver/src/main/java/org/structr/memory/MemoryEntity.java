@@ -116,14 +116,14 @@ public abstract class MemoryEntity implements PropertyContainer {
 		return false;
 	}
 
-	public void addLabel(final String label) {
-		addLabel(label, true);
+	public void addLabels(final Set<String> labels) {
+		addLabels(labels, true);
 	}
 
-	void addLabel(final String label, final boolean updateCache) {
+	void addLabels(final Set<String> labels, final boolean updateCache) {
 
 		lock();
-		labels.add(label);
+		this.labels.addAll(labels);
 
 		if (updateCache) {
 			updateCache();

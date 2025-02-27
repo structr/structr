@@ -20,23 +20,24 @@ package org.structr.test.web.advanced;
 
 import io.restassured.RestAssured;
 import org.jsoup.Jsoup;
+import org.jsoup.nodes.Attribute;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.test.web.StructrUiTest;
-import org.structr.web.entity.User;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
+import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.event.ActionMapping;
-import org.structr.web.entity.html.Button;
-import org.structr.web.entity.html.Div;
 import org.testng.annotations.Test;
-import org.w3c.dom.Element;
 
 import java.util.*;
 
@@ -57,36 +58,36 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
-			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Element div  = (Element)page1.getElementsByTagName("div").item(0);
-			final Button btn   = (Button)page1.createElement("button");
-			final Content text = (Content)page1.createTextNode("Create");
+			final Page page1     = Page.createSimplePage(securityContext, "page1");
+			final DOMNode div    = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
 
 			div.appendChild(btn);
 			btn.appendChild(text);
 
-			btn.setProperty(StructrApp.key(Button.class, "_html_id"), "button");
+			btn.setProperty(Traits.of("Button").key("_html_id"), "button");
 
 			uuid = btn.getUuid();
 
-			final ActionMapping eam = app.create(ActionMapping.class);
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(StructrApp.key(ActionMapping.class, "triggerElements"), List.of(btn));
-			eam.setProperty(StructrApp.key(ActionMapping.class, "event"), "click");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "action"), "create");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
 
 			// success notifications (possible values are system-alert, inline-text-message, custom-dialog, custom-dialog-linked)
-			eam.setProperty(StructrApp.key(ActionMapping.class, "dialogType"), "okcancel");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "dialogTitle"), "example-dialog-title-${me.name}");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "dialogText"), "example-dialog-text-${me.name}");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dialogType"), "okcancel");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dialogTitle"), "example-dialog-title-${me.name}");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dialogText"), "example-dialog-text-${me.name}");
 
 			tx.success();
 
@@ -112,9 +113,9 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		System.out.println(html);
 
-		final org.jsoup.nodes.Document doc   = Jsoup.parse(html);
-		final org.jsoup.nodes.Element button = doc.getElementById("button");
-		final Map<String, String> attrs      = getAttributes(button);
+		final Document doc              = Jsoup.parse(html);
+		final Element button            = doc.getElementById("button");
+		final Map<String, String> attrs = getAttributes(button);
 
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
 
@@ -158,34 +159,34 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
-			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Element div  = (Element)page1.getElementsByTagName("div").item(0);
-			final Button btn   = (Button)page1.createElement("button");
-			final Content text = (Content)page1.createTextNode("Create");
+			final Page page1     = Page.createSimplePage(securityContext, "page1");
+			final DOMNode div    = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
 
 			div.appendChild(btn);
 			btn.appendChild(text);
 
-			btn.setProperty(StructrApp.key(Button.class, "_html_id"), "button");
+			btn.setProperty(Traits.of("Button").key("_html_id"), "button");
 
 			uuid = btn.getUuid();
 
-			final ActionMapping eam = app.create(ActionMapping.class);
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(StructrApp.key(ActionMapping.class, "triggerElements"), List.of(btn));
-			eam.setProperty(StructrApp.key(ActionMapping.class, "event"), "click");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "action"), "create");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
 
 			// success notifications (possible values are system-alert, inline-text-message, custom-dialog, custom-dialog-linked)
-			eam.setProperty(StructrApp.key(ActionMapping.class, "successNotifications"), "system-alert");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successNotifications"), "system-alert");
 
 			tx.success();
 
@@ -211,8 +212,8 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		System.out.println(html);
 
-		final org.jsoup.nodes.Document doc   = Jsoup.parse(html);
-		final org.jsoup.nodes.Element button = doc.getElementById("button");
+		final Document doc   = Jsoup.parse(html);
+		final Element button = doc.getElementById("button");
 		final Map<String, String> attrs      = getAttributes(button);
 
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
@@ -258,34 +259,34 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Element div  = (Element)page1.getElementsByTagName("div").item(0);
-			final Button btn   = (Button)page1.createElement("button");
-			final Content text = (Content)page1.createTextNode("Create");
+			final DOMNode div  = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
 
 			div.appendChild(btn);
 			btn.appendChild(text);
 
-			btn.setProperty(StructrApp.key(Button.class, "_html_id"), "button");
+			btn.setProperty(Traits.of("Button").key("_html_id"), "button");
 
 			uuid = btn.getUuid();
 
-			final ActionMapping eam = app.create(ActionMapping.class);
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(StructrApp.key(ActionMapping.class, "triggerElements"), List.of(btn));
-			eam.setProperty(StructrApp.key(ActionMapping.class, "event"), "click");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "action"), "create");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
 
 			// success notifications (possible values are system-alert, inline-text-message, custom-dialog, custom-dialog-linked)
-			eam.setProperty(StructrApp.key(ActionMapping.class, "successNotifications"), "inline-text-message");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successNotifications"), "inline-text-message");
 
 			tx.success();
 
@@ -311,8 +312,8 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		System.out.println(html);
 
-		final org.jsoup.nodes.Document doc   = Jsoup.parse(html);
-		final org.jsoup.nodes.Element button = doc.getElementById("button");
+		final Document doc   = Jsoup.parse(html);
+		final Element button = doc.getElementById("button");
 		final Map<String, String> attrs      = getAttributes(button);
 
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
@@ -354,22 +355,22 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testSuccessNotificationAttributesForCustomLinkedDialog() {
 
-		final PropertyKey<String> htmlIdKey = StructrApp.key(DOMElement.class, "_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
 		String buttonUuid                   = null;
 		String notificationUuid             = null;
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
-			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Element div  = (Element)page1.getElementsByTagName("div").item(0);
-			final Button btn   = (Button)page1.createElement("button");
-			final Content text = (Content)page1.createTextNode("Create");
+			final Page page1     = Page.createSimplePage(securityContext, "page1");
+			final DOMNode div    = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
 
 			div.appendChild(btn);
 			btn.appendChild(text);
@@ -378,23 +379,21 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			buttonUuid = btn.getUuid();
 
-			final Div notificationElement = (Div)page1.createElement("div");
+			final DOMElement notificationElement = page1.createElement("div");
 			notificationElement.setProperty(htmlIdKey, "notification-element");
-			div.getParentNode().appendChild(notificationElement);
+			div.getParent().appendChild(notificationElement);
 
 			notificationUuid = notificationElement.getUuid();
 
-			final ActionMapping eam = app.create(ActionMapping.class);
-
-			// base setup
-			eam.setProperty(StructrApp.key(ActionMapping.class, "triggerElements"), List.of(btn));
-			eam.setProperty(StructrApp.key(ActionMapping.class, "event"), "click");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "action"), "create");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "dataType"), "Project");
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);// base setup
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
 
 			// success notifications (possible values are system-alert, inline-text-message, custom-dialog, custom-dialog-linked)
-			eam.setProperty(StructrApp.key(ActionMapping.class, "successNotifications"), "custom-dialog-linked");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "successNotificationElements"), List.of(notificationElement));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successNotifications"), "custom-dialog-linked");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successNotificationElements"), List.of(notificationElement));
 
 			tx.success();
 
@@ -420,8 +419,8 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		System.out.println(html);
 
-		final org.jsoup.nodes.Document doc   = Jsoup.parse(html);
-		final org.jsoup.nodes.Element button = doc.getElementById("button");
+		final Document doc   = Jsoup.parse(html);
+		final Element button = doc.getElementById("button");
 		final Map<String, String> attrs      = getAttributes(button);
 
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
@@ -465,21 +464,21 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testSuccessNotificationAttributesForCustomDialog() {
 
-		final PropertyKey<String> htmlIdKey = StructrApp.key(DOMElement.class, "_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
 		String buttonUuid                   = null;
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Element div  = (Element)page1.getElementsByTagName("div").item(0);
-			final Button btn   = (Button)page1.createElement("button");
-			final Content text = (Content)page1.createTextNode("Create");
+			final DOMNode div  = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn   = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
 
 			div.appendChild(btn);
 			btn.appendChild(text);
@@ -488,21 +487,21 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			buttonUuid = btn.getUuid();
 
-			final Div notificationElement = (Div)page1.createElement("div");
+			final DOMElement notificationElement = page1.createElement("div");
 			notificationElement.setProperty(htmlIdKey, "notification-element");
-			div.getParentNode().appendChild(notificationElement);
+			div.getParent().appendChild(notificationElement);
 
-			final ActionMapping eam = app.create(ActionMapping.class);
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(StructrApp.key(ActionMapping.class, "triggerElements"), List.of(btn));
-			eam.setProperty(StructrApp.key(ActionMapping.class, "event"), "click");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "action"), "create");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
 
 			// success notifications (possible values are system-alert, inline-text-message, custom-dialog, custom-dialog-linked)
-			eam.setProperty(StructrApp.key(ActionMapping.class, "successNotifications"), "custom-dialog");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "successNotificationsPartial"), "#notification-element");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successNotifications"), "custom-dialog");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successNotificationsPartial"), "#notification-element");
 
 			tx.success();
 
@@ -528,8 +527,8 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		System.out.println(html);
 
-		final org.jsoup.nodes.Document doc   = Jsoup.parse(html);
-		final org.jsoup.nodes.Element button = doc.getElementById("button");
+		final Document doc   = Jsoup.parse(html);
+		final Element button = doc.getElementById("button");
 		final Map<String, String> attrs      = getAttributes(button);
 
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
@@ -573,21 +572,21 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testSuccessNotificationAttributesForEvent() {
 
-		final PropertyKey<String> htmlIdKey = StructrApp.key(DOMElement.class, "_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
 		String buttonUuid                   = null;
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Element div  = (Element)page1.getElementsByTagName("div").item(0);
-			final Button btn   = (Button)page1.createElement("button");
-			final Content text = (Content)page1.createTextNode("Create");
+			final DOMNode div  = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn   = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
 
 			div.appendChild(btn);
 			btn.appendChild(text);
@@ -596,17 +595,17 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			buttonUuid = btn.getUuid();
 
-			final ActionMapping eam = app.create(ActionMapping.class);
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(StructrApp.key(ActionMapping.class, "triggerElements"), List.of(btn));
-			eam.setProperty(StructrApp.key(ActionMapping.class, "event"), "click");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "action"), "create");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
 
 			// success notifications (possible values are system-alert, inline-text-message, custom-dialog, custom-dialog-linked, fire-event)
-			eam.setProperty(StructrApp.key(ActionMapping.class, "successNotifications"), "fire-event");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "successNotificationsEvent"), "success-notification-event");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successNotifications"), "fire-event");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successNotificationsEvent"), "success-notification-event");
 
 			tx.success();
 
@@ -632,8 +631,8 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		System.out.println(html);
 
-		final org.jsoup.nodes.Document doc   = Jsoup.parse(html);
-		final org.jsoup.nodes.Element button = doc.getElementById("button");
+		final Document doc   = Jsoup.parse(html);
+		final Element button = doc.getElementById("button");
 		final Map<String, String> attrs      = getAttributes(button);
 
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
@@ -680,34 +679,34 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Element div  = (Element)page1.getElementsByTagName("div").item(0);
-			final Button btn   = (Button)page1.createElement("button");
-			final Content text = (Content)page1.createTextNode("Create");
+			final DOMNode div  = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn   = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
 
 			div.appendChild(btn);
 			btn.appendChild(text);
 
-			btn.setProperty(StructrApp.key(Button.class, "_html_id"), "button");
+			btn.setProperty(Traits.of("Button").key("_html_id"), "button");
 
 			uuid = btn.getUuid();
 
-			final ActionMapping eam = app.create(ActionMapping.class);
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(StructrApp.key(ActionMapping.class, "triggerElements"), List.of(btn));
-			eam.setProperty(StructrApp.key(ActionMapping.class, "event"), "click");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "action"), "create");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
 
 			// failure notifications (possible values are system-alert, inline-text-message, custom-dialog, custom-dialog-linked)
-			eam.setProperty(StructrApp.key(ActionMapping.class, "failureNotifications"), "system-alert");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failureNotifications"), "system-alert");
 
 			tx.success();
 
@@ -733,8 +732,8 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		System.out.println(html);
 
-		final org.jsoup.nodes.Document doc   = Jsoup.parse(html);
-		final org.jsoup.nodes.Element button = doc.getElementById("button");
+		final Document doc   = Jsoup.parse(html);
+		final Element button = doc.getElementById("button");
 		final Map<String, String> attrs      = getAttributes(button);
 
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
@@ -780,34 +779,34 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Element div  = (Element)page1.getElementsByTagName("div").item(0);
-			final Button btn   = (Button)page1.createElement("button");
-			final Content text = (Content)page1.createTextNode("Create");
+			final DOMNode div  = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn   = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
 
 			div.appendChild(btn);
 			btn.appendChild(text);
 
-			btn.setProperty(StructrApp.key(Button.class, "_html_id"), "button");
+			btn.setProperty(Traits.of("Button").key("_html_id"), "button");
 
 			uuid = btn.getUuid();
 
-			final ActionMapping eam = app.create(ActionMapping.class);
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(StructrApp.key(ActionMapping.class, "triggerElements"), List.of(btn));
-			eam.setProperty(StructrApp.key(ActionMapping.class, "event"), "click");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "action"), "create");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
 
 			// failure notifications (possible values are system-alert, inline-text-message, custom-dialog, custom-dialog-linked)
-			eam.setProperty(StructrApp.key(ActionMapping.class, "failureNotifications"), "inline-text-message");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failureNotifications"), "inline-text-message");
 
 			tx.success();
 
@@ -833,8 +832,8 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		System.out.println(html);
 
-		final org.jsoup.nodes.Document doc   = Jsoup.parse(html);
-		final org.jsoup.nodes.Element button = doc.getElementById("button");
+		final Document doc   = Jsoup.parse(html);
+		final Element button = doc.getElementById("button");
 		final Map<String, String> attrs      = getAttributes(button);
 
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
@@ -876,22 +875,22 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testFailureNotificationAttributesForCustomLinkedDialog() {
 
-		final PropertyKey<String> htmlIdKey = StructrApp.key(DOMElement.class, "_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
 		String buttonUuid                   = null;
 		String notificationUuid             = null;
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Element div  = (Element)page1.getElementsByTagName("div").item(0);
-			final Button btn   = (Button)page1.createElement("button");
-			final Content text = (Content)page1.createTextNode("Create");
+			final DOMNode div  = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn   = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
 
 			div.appendChild(btn);
 			btn.appendChild(text);
@@ -900,23 +899,23 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			buttonUuid = btn.getUuid();
 
-			final Div notificationElement = (Div)page1.createElement("div");
+			final DOMElement notificationElement = page1.createElement("div");
 			notificationElement.setProperty(htmlIdKey, "notification-element");
-			div.getParentNode().appendChild(notificationElement);
+			div.getParent().appendChild(notificationElement);
 
 			notificationUuid = notificationElement.getUuid();
 
-			final ActionMapping eam = app.create(ActionMapping.class);
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(StructrApp.key(ActionMapping.class, "triggerElements"), List.of(btn));
-			eam.setProperty(StructrApp.key(ActionMapping.class, "event"), "click");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "action"), "create");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
 
 			// failure notifications (possible values are system-alert, inline-text-message, custom-dialog, custom-dialog-linked)
-			eam.setProperty(StructrApp.key(ActionMapping.class, "failureNotifications"), "custom-dialog-linked");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "failureNotificationElements"), List.of(notificationElement));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failureNotifications"), "custom-dialog-linked");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failureNotificationElements"), List.of(notificationElement));
 
 			tx.success();
 
@@ -942,8 +941,8 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		System.out.println(html);
 
-		final org.jsoup.nodes.Document doc   = Jsoup.parse(html);
-		final org.jsoup.nodes.Element button = doc.getElementById("button");
+		final Document doc   = Jsoup.parse(html);
+		final Element button = doc.getElementById("button");
 		final Map<String, String> attrs      = getAttributes(button);
 
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
@@ -987,21 +986,21 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testFailureNotificationAttributesForEvent() {
 
-		final PropertyKey<String> htmlIdKey = StructrApp.key(DOMElement.class, "_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
 		String buttonUuid                   = null;
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Element div  = (Element)page1.getElementsByTagName("div").item(0);
-			final Button btn   = (Button)page1.createElement("button");
-			final Content text = (Content)page1.createTextNode("Create");
+			final DOMNode div  = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn   = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
 
 			div.appendChild(btn);
 			btn.appendChild(text);
@@ -1010,17 +1009,17 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			buttonUuid = btn.getUuid();
 
-			final ActionMapping eam = app.create(ActionMapping.class);
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(StructrApp.key(ActionMapping.class, "triggerElements"), List.of(btn));
-			eam.setProperty(StructrApp.key(ActionMapping.class, "event"), "click");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "action"), "create");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
 
 			// failure notifications (possible values are system-alert, inline-text-message, custom-dialog, custom-dialog-linked)
-			eam.setProperty(StructrApp.key(ActionMapping.class, "failureNotifications"), "fire-event");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "failureNotificationsEvent"), "failure-notification-event");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failureNotifications"), "fire-event");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failureNotificationsEvent"), "failure-notification-event");
 
 			tx.success();
 
@@ -1046,8 +1045,8 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		System.out.println(html);
 
-		final org.jsoup.nodes.Document doc   = Jsoup.parse(html);
-		final org.jsoup.nodes.Element button = doc.getElementById("button");
+		final Document doc   = Jsoup.parse(html);
+		final Element button = doc.getElementById("button");
 		final Map<String, String> attrs      = getAttributes(button);
 
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
@@ -1091,21 +1090,21 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testFailureNotificationAttributesForCustomDialog() {
 
-		final PropertyKey<String> htmlIdKey = StructrApp.key(DOMElement.class, "_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
 		String buttonUuid                   = null;
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Element div  = (Element)page1.getElementsByTagName("div").item(0);
-			final Button btn   = (Button)page1.createElement("button");
-			final Content text = (Content)page1.createTextNode("Create");
+			final DOMNode div  = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn   = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
 
 			div.appendChild(btn);
 			btn.appendChild(text);
@@ -1114,21 +1113,21 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			buttonUuid = btn.getUuid();
 
-			final Div notificationElement = (Div)page1.createElement("div");
+			final DOMElement notificationElement = page1.createElement("div");
 			notificationElement.setProperty(htmlIdKey, "notification-element");
-			div.getParentNode().appendChild(notificationElement);
+			div.getParent().appendChild(notificationElement);
 
-			final ActionMapping eam = app.create(ActionMapping.class);
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(StructrApp.key(ActionMapping.class, "triggerElements"), List.of(btn));
-			eam.setProperty(StructrApp.key(ActionMapping.class, "event"), "click");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "action"), "create");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
 
 			// failure notifications (possible values are system-alert, inline-text-message, custom-dialog, custom-dialog-linked)
-			eam.setProperty(StructrApp.key(ActionMapping.class, "failureNotifications"), "custom-dialog");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "failureNotificationsPartial"), "#notification-element");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failureNotifications"), "custom-dialog");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failureNotificationsPartial"), "#notification-element");
 
 			tx.success();
 
@@ -1154,8 +1153,8 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		System.out.println(html);
 
-		final org.jsoup.nodes.Document doc   = Jsoup.parse(html);
-		final org.jsoup.nodes.Element button = doc.getElementById("button");
+		final Document doc   = Jsoup.parse(html);
+		final Element button = doc.getElementById("button");
 		final Map<String, String> attrs      = getAttributes(button);
 
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
@@ -1202,35 +1201,35 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Element div  = (Element)page1.getElementsByTagName("div").item(0);
-			final Button btn   = (Button)page1.createElement("button");
-			final Content text = (Content)page1.createTextNode("Create");
+			final DOMNode div  = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn   = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
 
 			div.appendChild(btn);
 			btn.appendChild(text);
 
-			btn.setProperty(StructrApp.key(Button.class, "_html_id"), "button");
+			btn.setProperty(Traits.of("Button").key("_html_id"), "button");
 
 			uuid = btn.getUuid();
 
-			final ActionMapping eam = app.create(ActionMapping.class);
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(StructrApp.key(ActionMapping.class, "triggerElements"), List.of(btn));
-			eam.setProperty(StructrApp.key(ActionMapping.class, "event"), "click");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "action"), "create");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
 
 			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, naviate-to-url, fire-event, full-page-reload, sign-out, none)
-			eam.setProperty(StructrApp.key(ActionMapping.class, "successBehaviour"), "partial-refresh");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "successPartial"), "#name-of-success-partial");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successBehaviour"), "partial-refresh");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successPartial"), "#name-of-success-partial");
 
 			tx.success();
 
@@ -1256,8 +1255,8 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		System.out.println(html);
 
-		final org.jsoup.nodes.Document doc   = Jsoup.parse(html);
-		final org.jsoup.nodes.Element button = doc.getElementById("button");
+		final Document doc   = Jsoup.parse(html);
+		final Element button = doc.getElementById("button");
 		final Map<String, String> attrs      = getAttributes(button);
 
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
@@ -1302,22 +1301,22 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testSuccessBehaviourAttributesForLinkedPartialReload() {
 
-		final PropertyKey<String> htmlIdKey = StructrApp.key(DOMElement.class, "_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
 		String buttonUuid                   = null;
 		String divUuid                      = null;
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Div div      = (Div)page1.getElementsByTagName("div").item(0);
-			final Button btn   = (Button)page1.createElement("button");
-			final Content text = (Content)page1.createTextNode("Create");
+			final DOMNode div      = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn   = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
 
 			div.appendChild(btn);
 			btn.appendChild(text);
@@ -1328,17 +1327,17 @@ public class EventActionMappingTest extends StructrUiTest {
 			buttonUuid = btn.getUuid();
 			divUuid    = div.getUuid();
 
-			final ActionMapping eam = app.create(ActionMapping.class);
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(StructrApp.key(ActionMapping.class, "triggerElements"), List.of(btn));
-			eam.setProperty(StructrApp.key(ActionMapping.class, "event"), "click");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "action"), "create");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
 
 			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, naviate-to-url, fire-event, full-page-reload, sign-out, none)
-			eam.setProperty(StructrApp.key(ActionMapping.class, "successBehaviour"), "partial-refresh-linked");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "successTargets"), List.of(div));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successBehaviour"), "partial-refresh-linked");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successTargets"), List.of(div));
 
 			tx.success();
 
@@ -1364,9 +1363,9 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		System.out.println(html);
 
-		final org.jsoup.nodes.Document doc    = Jsoup.parse(html);
-		final org.jsoup.nodes.Element div     = doc.getElementById("parent-container");
-		final org.jsoup.nodes.Element button  = doc.getElementById("button");
+		final Document doc    = Jsoup.parse(html);
+		final Element div     = doc.getElementById("parent-container");
+		final Element button  = doc.getElementById("button");
 		final Map<String, String> buttonAttrs = getAttributes(button);
 
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
@@ -1417,21 +1416,21 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testSuccessBehaviourAttributesForURL() {
 
-		final PropertyKey<String> htmlIdKey = StructrApp.key(DOMElement.class, "_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
 		String buttonUuid                   = null;
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Div div      = (Div)page1.getElementsByTagName("div").item(0);
-			final Button btn   = (Button)page1.createElement("button");
-			final Content text = (Content)page1.createTextNode("Create");
+			final DOMNode div      = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn   = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
 
 			div.appendChild(btn);
 			btn.appendChild(text);
@@ -1441,17 +1440,17 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			buttonUuid = btn.getUuid();
 
-			final ActionMapping eam = app.create(ActionMapping.class);
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(StructrApp.key(ActionMapping.class, "triggerElements"), List.of(btn));
-			eam.setProperty(StructrApp.key(ActionMapping.class, "event"), "click");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "action"), "create");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
 
 			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, naviate-to-url, fire-event, full-page-reload, sign-out, none)
-			eam.setProperty(StructrApp.key(ActionMapping.class, "successBehaviour"), "navigate-to-url");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "successURL"), "/success");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successBehaviour"), "navigate-to-url");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successURL"), "/success");
 
 			tx.success();
 
@@ -1477,9 +1476,9 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		System.out.println(html);
 
-		final org.jsoup.nodes.Document doc    = Jsoup.parse(html);
-		final org.jsoup.nodes.Element div     = doc.getElementById("parent-container");
-		final org.jsoup.nodes.Element button  = doc.getElementById("button");
+		final Document doc    = Jsoup.parse(html);
+		final Element div     = doc.getElementById("parent-container");
+		final Element button  = doc.getElementById("button");
 		final Map<String, String> buttonAttrs = getAttributes(button);
 
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
@@ -1524,21 +1523,21 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testSuccessBehaviourAttributesForEvent() {
 
-		final PropertyKey<String> htmlIdKey = StructrApp.key(DOMElement.class, "_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
 		String buttonUuid                   = null;
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Div div      = (Div)page1.getElementsByTagName("div").item(0);
-			final Button btn   = (Button)page1.createElement("button");
-			final Content text = (Content)page1.createTextNode("Create");
+			final DOMNode div      = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn   = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
 
 			div.appendChild(btn);
 			btn.appendChild(text);
@@ -1548,17 +1547,17 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			buttonUuid = btn.getUuid();
 
-			final ActionMapping eam = app.create(ActionMapping.class);
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(StructrApp.key(ActionMapping.class, "triggerElements"), List.of(btn));
-			eam.setProperty(StructrApp.key(ActionMapping.class, "event"), "click");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "action"), "create");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
 
 			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, naviate-to-url, fire-event, full-page-reload, sign-out, none)
-			eam.setProperty(StructrApp.key(ActionMapping.class, "successBehaviour"), "fire-event");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "successEvent"), "success-event");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successBehaviour"), "fire-event");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successEvent"), "success-event");
 
 			tx.success();
 
@@ -1584,9 +1583,9 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		System.out.println(html);
 
-		final org.jsoup.nodes.Document doc    = Jsoup.parse(html);
-		final org.jsoup.nodes.Element div     = doc.getElementById("parent-container");
-		final org.jsoup.nodes.Element button  = doc.getElementById("button");
+		final Document doc    = Jsoup.parse(html);
+		final Element div     = doc.getElementById("parent-container");
+		final Element button  = doc.getElementById("button");
 		final Map<String, String> buttonAttrs = getAttributes(button);
 
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
@@ -1631,21 +1630,21 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testSuccessBehaviourAttributesForFullPageReload() {
 
-		final PropertyKey<String> htmlIdKey = StructrApp.key(DOMElement.class, "_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
 		String buttonUuid                   = null;
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Div div      = (Div)page1.getElementsByTagName("div").item(0);
-			final Button btn   = (Button)page1.createElement("button");
-			final Content text = (Content)page1.createTextNode("Create");
+			final DOMNode div      = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn   = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
 
 			div.appendChild(btn);
 			btn.appendChild(text);
@@ -1655,16 +1654,16 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			buttonUuid = btn.getUuid();
 
-			final ActionMapping eam = app.create(ActionMapping.class);
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(StructrApp.key(ActionMapping.class, "triggerElements"), List.of(btn));
-			eam.setProperty(StructrApp.key(ActionMapping.class, "event"), "click");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "action"), "create");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
 
 			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, naviate-to-url, fire-event, full-page-reload, sign-out, none)
-			eam.setProperty(StructrApp.key(ActionMapping.class, "successBehaviour"), "full-page-reload");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successBehaviour"), "full-page-reload");
 
 			tx.success();
 
@@ -1690,9 +1689,9 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		System.out.println(html);
 
-		final org.jsoup.nodes.Document doc    = Jsoup.parse(html);
-		final org.jsoup.nodes.Element div     = doc.getElementById("parent-container");
-		final org.jsoup.nodes.Element button  = doc.getElementById("button");
+		final Document doc    = Jsoup.parse(html);
+		final Element div     = doc.getElementById("parent-container");
+		final Element button  = doc.getElementById("button");
 		final Map<String, String> buttonAttrs = getAttributes(button);
 
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
@@ -1737,21 +1736,21 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testSuccessBehaviourAttributesForSignout() {
 
-		final PropertyKey<String> htmlIdKey = StructrApp.key(DOMElement.class, "_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
 		String buttonUuid                   = null;
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Div div      = (Div)page1.getElementsByTagName("div").item(0);
-			final Button btn   = (Button)page1.createElement("button");
-			final Content text = (Content)page1.createTextNode("Create");
+			final DOMNode div      = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn   = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
 
 			div.appendChild(btn);
 			btn.appendChild(text);
@@ -1761,16 +1760,16 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			buttonUuid = btn.getUuid();
 
-			final ActionMapping eam = app.create(ActionMapping.class);
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(StructrApp.key(ActionMapping.class, "triggerElements"), List.of(btn));
-			eam.setProperty(StructrApp.key(ActionMapping.class, "event"), "click");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "action"), "create");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
 
 			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, naviate-to-url, fire-event, full-page-reload, sign-out, none)
-			eam.setProperty(StructrApp.key(ActionMapping.class, "successBehaviour"), "sign-out");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successBehaviour"), "sign-out");
 
 			tx.success();
 
@@ -1796,9 +1795,9 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		System.out.println(html);
 
-		final org.jsoup.nodes.Document doc    = Jsoup.parse(html);
-		final org.jsoup.nodes.Element div     = doc.getElementById("parent-container");
-		final org.jsoup.nodes.Element button  = doc.getElementById("button");
+		final Document doc    = Jsoup.parse(html);
+		final Element div     = doc.getElementById("parent-container");
+		final Element button  = doc.getElementById("button");
 		final Map<String, String> buttonAttrs = getAttributes(button);
 
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
@@ -1847,34 +1846,34 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Element div  = (Element)page1.getElementsByTagName("div").item(0);
-			final Button btn   = (Button)page1.createElement("button");
-			final Content text = (Content)page1.createTextNode("Create");
+			final DOMNode div  = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn   = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
 
 			div.appendChild(btn);
 			btn.appendChild(text);
 
-			btn.setProperty(StructrApp.key(Button.class, "_html_id"), "button");
+			btn.setProperty(Traits.of("Button").key("_html_id"), "button");
 
 			uuid = btn.getUuid();
 
-			final ActionMapping eam = app.create(ActionMapping.class);
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(StructrApp.key(ActionMapping.class, "triggerElements"), List.of(btn));
-			eam.setProperty(StructrApp.key(ActionMapping.class, "event"), "click");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "action"), "create");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
 
 			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, naviate-to-url, fire-event, full-page-reload, sign-out, none)
-			eam.setProperty(StructrApp.key(ActionMapping.class, "successBehaviour"), "none");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successBehaviour"), "none");
 
 			tx.success();
 
@@ -1900,8 +1899,8 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		System.out.println(html);
 
-		final org.jsoup.nodes.Document doc   = Jsoup.parse(html);
-		final org.jsoup.nodes.Element button = doc.getElementById("button");
+		final Document doc   = Jsoup.parse(html);
+		final Element button = doc.getElementById("button");
 		final Map<String, String> attrs      = getAttributes(button);
 
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
@@ -1947,35 +1946,35 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Element div  = (Element)page1.getElementsByTagName("div").item(0);
-			final Button btn   = (Button)page1.createElement("button");
-			final Content text = (Content)page1.createTextNode("Create");
+			final DOMNode div  = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn   = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
 
 			div.appendChild(btn);
 			btn.appendChild(text);
 
-			btn.setProperty(StructrApp.key(Button.class, "_html_id"), "button");
+			btn.setProperty(Traits.of("Button").key("_html_id"), "button");
 
 			uuid = btn.getUuid();
 
-			final ActionMapping eam = app.create(ActionMapping.class);
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(StructrApp.key(ActionMapping.class, "triggerElements"), List.of(btn));
-			eam.setProperty(StructrApp.key(ActionMapping.class, "event"), "click");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "action"), "create");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
 
 			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, naviate-to-url, fire-event, full-page-reload, sign-out, none)
-			eam.setProperty(StructrApp.key(ActionMapping.class, "failureBehaviour"), "partial-refresh");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "failurePartial"), "#name-of-failure-partial");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failureBehaviour"), "partial-refresh");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failurePartial"), "#name-of-failure-partial");
 
 			tx.success();
 
@@ -2001,8 +2000,8 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		System.out.println(html);
 
-		final org.jsoup.nodes.Document doc   = Jsoup.parse(html);
-		final org.jsoup.nodes.Element button = doc.getElementById("button");
+		final Document doc   = Jsoup.parse(html);
+		final Element button = doc.getElementById("button");
 		final Map<String, String> attrs      = getAttributes(button);
 
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
@@ -2047,22 +2046,22 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testFailureBehaviourAttributesForLinkedPartialReload() {
 
-		final PropertyKey<String> htmlIdKey = StructrApp.key(DOMElement.class, "_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
 		String buttonUuid                   = null;
 		String divUuid                      = null;
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Div div      = (Div)page1.getElementsByTagName("div").item(0);
-			final Button btn   = (Button)page1.createElement("button");
-			final Content text = (Content)page1.createTextNode("Create");
+			final DOMNode div      = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn   = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
 
 			div.appendChild(btn);
 			btn.appendChild(text);
@@ -2073,17 +2072,17 @@ public class EventActionMappingTest extends StructrUiTest {
 			buttonUuid = btn.getUuid();
 			divUuid    = div.getUuid();
 
-			final ActionMapping eam = app.create(ActionMapping.class);
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(StructrApp.key(ActionMapping.class, "triggerElements"), List.of(btn));
-			eam.setProperty(StructrApp.key(ActionMapping.class, "event"), "click");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "action"), "create");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
 
 			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, naviate-to-url, fire-event, full-page-reload, sign-out, none)
-			eam.setProperty(StructrApp.key(ActionMapping.class, "failureBehaviour"), "partial-refresh-linked");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "failureTargets"), List.of(div));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failureBehaviour"), "partial-refresh-linked");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failureTargets"), List.of(div));
 
 			tx.success();
 
@@ -2109,9 +2108,9 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		System.out.println(html);
 
-		final org.jsoup.nodes.Document doc    = Jsoup.parse(html);
-		final org.jsoup.nodes.Element div     = doc.getElementById("parent-container");
-		final org.jsoup.nodes.Element button  = doc.getElementById("button");
+		final Document doc    = Jsoup.parse(html);
+		final Element div     = doc.getElementById("parent-container");
+		final Element button  = doc.getElementById("button");
 		final Map<String, String> buttonAttrs = getAttributes(button);
 
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
@@ -2162,21 +2161,21 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testFailureBehaviourAttributesForURL() {
 
-		final PropertyKey<String> htmlIdKey = StructrApp.key(DOMElement.class, "_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
 		String buttonUuid                   = null;
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Div div      = (Div)page1.getElementsByTagName("div").item(0);
-			final Button btn   = (Button)page1.createElement("button");
-			final Content text = (Content)page1.createTextNode("Create");
+			final DOMNode div      = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn   = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
 
 			div.appendChild(btn);
 			btn.appendChild(text);
@@ -2186,17 +2185,17 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			buttonUuid = btn.getUuid();
 
-			final ActionMapping eam = app.create(ActionMapping.class);
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(StructrApp.key(ActionMapping.class, "triggerElements"), List.of(btn));
-			eam.setProperty(StructrApp.key(ActionMapping.class, "event"), "click");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "action"), "create");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
 
 			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, naviate-to-url, fire-event, full-page-reload, sign-out, none)
-			eam.setProperty(StructrApp.key(ActionMapping.class, "failureBehaviour"), "navigate-to-url");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "failureURL"), "/failure");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failureBehaviour"), "navigate-to-url");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failureURL"), "/failure");
 
 			tx.success();
 
@@ -2222,9 +2221,9 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		System.out.println(html);
 
-		final org.jsoup.nodes.Document doc    = Jsoup.parse(html);
-		final org.jsoup.nodes.Element div     = doc.getElementById("parent-container");
-		final org.jsoup.nodes.Element button  = doc.getElementById("button");
+		final Document doc    = Jsoup.parse(html);
+		final Element div     = doc.getElementById("parent-container");
+		final Element button  = doc.getElementById("button");
 		final Map<String, String> buttonAttrs = getAttributes(button);
 
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
@@ -2269,21 +2268,21 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testFailureBehaviourAttributesForEvent() {
 
-		final PropertyKey<String> htmlIdKey = StructrApp.key(DOMElement.class, "_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
 		String buttonUuid                   = null;
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Div div      = (Div)page1.getElementsByTagName("div").item(0);
-			final Button btn   = (Button)page1.createElement("button");
-			final Content text = (Content)page1.createTextNode("Create");
+			final DOMNode div      = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn   = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
 
 			div.appendChild(btn);
 			btn.appendChild(text);
@@ -2293,17 +2292,17 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			buttonUuid = btn.getUuid();
 
-			final ActionMapping eam = app.create(ActionMapping.class);
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(StructrApp.key(ActionMapping.class, "triggerElements"), List.of(btn));
-			eam.setProperty(StructrApp.key(ActionMapping.class, "event"), "click");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "action"), "create");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
 
 			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, naviate-to-url, fire-event, full-page-reload, sign-out, none)
-			eam.setProperty(StructrApp.key(ActionMapping.class, "failureBehaviour"), "fire-event");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "failureEvent"), "failure-event");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failureBehaviour"), "fire-event");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failureEvent"), "failure-event");
 
 			tx.success();
 
@@ -2329,9 +2328,9 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		System.out.println(html);
 
-		final org.jsoup.nodes.Document doc    = Jsoup.parse(html);
-		final org.jsoup.nodes.Element div     = doc.getElementById("parent-container");
-		final org.jsoup.nodes.Element button  = doc.getElementById("button");
+		final Document doc    = Jsoup.parse(html);
+		final Element div     = doc.getElementById("parent-container");
+		final Element button  = doc.getElementById("button");
 		final Map<String, String> buttonAttrs = getAttributes(button);
 
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
@@ -2376,21 +2375,21 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testFailureBehaviourAttributesForFullPageReload() {
 
-		final PropertyKey<String> htmlIdKey = StructrApp.key(DOMElement.class, "_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
 		String buttonUuid                   = null;
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Div div      = (Div)page1.getElementsByTagName("div").item(0);
-			final Button btn   = (Button)page1.createElement("button");
-			final Content text = (Content)page1.createTextNode("Create");
+			final DOMNode div      = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn   = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
 
 			div.appendChild(btn);
 			btn.appendChild(text);
@@ -2400,16 +2399,16 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			buttonUuid = btn.getUuid();
 
-			final ActionMapping eam = app.create(ActionMapping.class);
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(StructrApp.key(ActionMapping.class, "triggerElements"), List.of(btn));
-			eam.setProperty(StructrApp.key(ActionMapping.class, "event"), "click");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "action"), "create");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
 
 			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, naviate-to-url, fire-event, full-page-reload, sign-out, none)
-			eam.setProperty(StructrApp.key(ActionMapping.class, "failureBehaviour"), "full-page-reload");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failureBehaviour"), "full-page-reload");
 
 			tx.success();
 
@@ -2435,9 +2434,9 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		System.out.println(html);
 
-		final org.jsoup.nodes.Document doc    = Jsoup.parse(html);
-		final org.jsoup.nodes.Element div     = doc.getElementById("parent-container");
-		final org.jsoup.nodes.Element button  = doc.getElementById("button");
+		final Document doc    = Jsoup.parse(html);
+		final Element div     = doc.getElementById("parent-container");
+		final Element button  = doc.getElementById("button");
 		final Map<String, String> buttonAttrs = getAttributes(button);
 
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
@@ -2482,21 +2481,21 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testFailureBehaviourAttributesForSignout() {
 
-		final PropertyKey<String> htmlIdKey = StructrApp.key(DOMElement.class, "_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
 		String buttonUuid                   = null;
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
-			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Div div      = (Div)page1.getElementsByTagName("div").item(0);
-			final Button btn   = (Button)page1.createElement("button");
-			final Content text = (Content)page1.createTextNode("Create");
+			final Page page1     = Page.createSimplePage(securityContext, "page1");
+			final DOMNode div    = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
 
 			div.appendChild(btn);
 			btn.appendChild(text);
@@ -2506,16 +2505,16 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			buttonUuid = btn.getUuid();
 
-			final ActionMapping eam = app.create(ActionMapping.class);
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(StructrApp.key(ActionMapping.class, "triggerElements"), List.of(btn));
-			eam.setProperty(StructrApp.key(ActionMapping.class, "event"), "click");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "action"), "create");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
 
 			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, naviate-to-url, fire-event, full-page-reload, sign-out, none)
-			eam.setProperty(StructrApp.key(ActionMapping.class, "failureBehaviour"), "sign-out");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failureBehaviour"), "sign-out");
 
 			tx.success();
 
@@ -2541,9 +2540,9 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		System.out.println(html);
 
-		final org.jsoup.nodes.Document doc    = Jsoup.parse(html);
-		final org.jsoup.nodes.Element div     = doc.getElementById("parent-container");
-		final org.jsoup.nodes.Element button  = doc.getElementById("button");
+		final Document doc    = Jsoup.parse(html);
+		final Element div     = doc.getElementById("parent-container");
+		final Element button  = doc.getElementById("button");
 		final Map<String, String> buttonAttrs = getAttributes(button);
 
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
@@ -2592,34 +2591,34 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"), true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
 			);
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final Element div  = (Element)page1.getElementsByTagName("div").item(0);
-			final Button btn   = (Button)page1.createElement("button");
-			final Content text = (Content)page1.createTextNode("Create");
+			final DOMNode div  = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn   = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
 
 			div.appendChild(btn);
 			btn.appendChild(text);
 
-			btn.setProperty(StructrApp.key(Button.class, "_html_id"), "button");
+			btn.setProperty(Traits.of("Button").key("_html_id"), "button");
 
 			uuid = btn.getUuid();
 
-			final ActionMapping eam = app.create(ActionMapping.class);
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(StructrApp.key(ActionMapping.class, "triggerElements"), List.of(btn));
-			eam.setProperty(StructrApp.key(ActionMapping.class, "event"), "click");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "action"), "create");
-			eam.setProperty(StructrApp.key(ActionMapping.class, "dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
 
 			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, naviate-to-url, fire-event, full-page-reload, sign-out, none)
-			eam.setProperty(StructrApp.key(ActionMapping.class, "failureBehaviour"), "none");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failureBehaviour"), "none");
 
 			tx.success();
 
@@ -2645,8 +2644,8 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		System.out.println(html);
 
-		final org.jsoup.nodes.Document doc   = Jsoup.parse(html);
-		final org.jsoup.nodes.Element button = doc.getElementById("button");
+		final Document doc   = Jsoup.parse(html);
+		final Element button = doc.getElementById("button");
 		final Map<String, String> attrs      = getAttributes(button);
 
 		final Map<String, String> expectedValues = new LinkedHashMap<>();
@@ -2685,11 +2684,11 @@ public class EventActionMappingTest extends StructrUiTest {
 		}
 	}
 	// ----- private methods -----
-	final Map<String, String> getAttributes(final org.jsoup.nodes.Element element) {
+	final Map<String, String> getAttributes(final Element element) {
 
 		final Map<String, String> map = new LinkedHashMap<>();
 
-		for (final org.jsoup.nodes.Attribute attr : element.attributes()) {
+		for (final Attribute attr : element.attributes()) {
 
 			map.put(attr.getKey(), attr.getValue());
 		}

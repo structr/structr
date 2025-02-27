@@ -24,6 +24,9 @@ import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationProperty;
+import org.structr.core.traits.Traits;
+
+import java.util.Set;
 
 /**
  * Serializes a {@link GraphObject} using a set of properties.
@@ -32,28 +35,33 @@ import org.structr.core.property.RelationProperty;
  */
 public class PropertySetSerializationStrategy implements SerializationStrategy {
 
-	private PropertyKey[] propertyKeys = null;
+	private final Set<String> propertyKeys;
 
-	public PropertySetSerializationStrategy(PropertyKey... propertyKeys) {
+	public PropertySetSerializationStrategy(final Set<String> propertyKeys) {
 
 		this.propertyKeys = propertyKeys;
 
-		if (propertyKeys == null || propertyKeys.length == 0) {
+		if (propertyKeys == null || propertyKeys.isEmpty()) {
 			throw new IllegalStateException("PropertySetDeserializationStrategy must contain at least one property.");
 		}
 	}
 
 	@Override
-	public void setRelationProperty(RelationProperty relationProperty) {
+	public void setRelationProperty(final RelationProperty relationProperty) {
 	}
 
 	@Override
-	public Object serialize(SecurityContext securityContext, Class type, GraphObject source) throws FrameworkException {
+	public Object serialize(final SecurityContext securityContext, final String type, final GraphObject source) throws FrameworkException {
 
 		if (source != null) {
 
-			PropertyMap propertyMap = new PropertyMap();
-			for (PropertyKey key : propertyKeys) {
+			final PropertyMap propertyMap = new PropertyMap();
+			final Traits traits           = Traits.of(type);
+
+			for (String name : propertyKeys) {
+
+				final PropertyKey key = traits.key(name);
+
 				propertyMap.put(key, source.getProperty(key));
 			}
 

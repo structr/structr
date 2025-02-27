@@ -33,7 +33,7 @@ import org.structr.console.tabcompletion.*;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.function.Functions;
 import org.structr.core.graph.Tx;
 import org.structr.core.script.Scripting;
@@ -167,7 +167,7 @@ public class Console {
 
 	public String getPrompt() {
 
-		final PrincipalInterface principal = actionContext.getSecurityContext().getUser(false);
+		final Principal principal = actionContext.getSecurityContext().getUser(false);
 		final StringBuilder buf   = new StringBuilder();
 
 		switch (mode) {

@@ -28,8 +28,8 @@ import org.structr.api.util.RangesIterator;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.JsonInput;
-import org.structr.core.app.StructrApp;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.core.traits.Traits;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -42,11 +42,11 @@ public class CsvHelper {
 
 	private static final Logger logger = LoggerFactory.getLogger(CsvHelper.class);
 
-	public static Iterable<JsonInput> cleanAndParseCSV(final SecurityContext securityContext, final Reader input, final Class type, final Character fieldSeparator, final Character quoteCharacter, final String range) throws FrameworkException, IOException {
+	public static Iterable<JsonInput> cleanAndParseCSV(final SecurityContext securityContext, final Reader input, final String type, final Character fieldSeparator, final Character quoteCharacter, final String range) throws FrameworkException, IOException {
 		return cleanAndParseCSV(securityContext, input, type, fieldSeparator, quoteCharacter, range, null, false, true);
 	}
 
-	public static Iterable<JsonInput> cleanAndParseCSV(final SecurityContext securityContext, final Reader input, final Class type, final Character fieldSeparator, final Character quoteCharacter, final String range, final Map<String, String> propertyMapping, final boolean rfc4180Mode, final boolean strictQuotes) throws FrameworkException, IOException {
+	public static Iterable<JsonInput> cleanAndParseCSV(final SecurityContext securityContext, final Reader input, final String type, final Character fieldSeparator, final Character quoteCharacter, final String range, final Map<String, String> propertyMapping, final boolean rfc4180Mode, final boolean strictQuotes) throws FrameworkException, IOException {
 
 		final CSVReader reader;
 
@@ -185,9 +185,9 @@ public class CsvHelper {
 		private String[] propertyNames              = null;
 		private String userName                     = null;
 		private String[] fields                     = null;
-		private Class type                          = null;
+		private String type                         = null;
 
-		public CsvIterator(final CSVReader reader, final String[] propertyNames, final Map<String, String> propertMapping, final Class type, final String userName) {
+		public CsvIterator(final CSVReader reader, final String[] propertyNames, final Map<String, String> propertMapping, final String type, final String userName) {
 
 			this.propertyMapping = propertMapping;
 			this.propertyNames   = propertyNames;
@@ -223,6 +223,7 @@ public class CsvHelper {
 		public JsonInput next() {
 
 			try {
+				final Traits traits       = Traits.of(type);
 				final JsonInput jsonInput = new JsonInput();
 				final int len             = fields.length;
 
@@ -240,7 +241,7 @@ public class CsvHelper {
 						targetKey = propertyMapping.get(key);
 					}
 
-					if (StructrApp.getConfiguration().getPropertyKeyForJSONName(type, targetKey).isCollection()) {
+					if (traits.contains(targetKey) && traits.key(targetKey).isCollection()) {
 
 						// if the current property is a collection, split it into its parts
 						jsonInput.add(key, extractArrayContentsFromArray(fields[i], key));

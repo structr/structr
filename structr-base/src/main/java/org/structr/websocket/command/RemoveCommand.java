@@ -24,10 +24,12 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
@@ -62,14 +64,14 @@ public class RemoveCommand extends AbstractCommand {
 
 			if (node != null) {
 
-				if (node instanceof DOMNode) {
+				if (node.is(StructrTraits.DOM_NODE)) {
 
 					// Use new DOM interface
-					DOMNode domNode = (DOMNode) node;
+					DOMNode domNode = node.as(DOMNode.class);
 
 					try {
 
-						domNode.getParentNode().removeChild(domNode);
+						domNode.getParent().removeChild(domNode);
 
 						// remove pageId from node and all children ("move to trash")
 						RemoveCommand.recursivelyRemoveNodesFromPage(domNode, securityContext);
@@ -93,7 +95,7 @@ public class RemoveCommand extends AbstractCommand {
 					try {
 
 						// Old style: Delete all incoming CONTAINS rels
-						for (AbstractRelationship rel : node.getIncomingRelationships()) {
+						for (RelationshipInterface rel : node.getIncomingRelationships()) {
 
 							if ("CONTAINS".equals(rel.getType())) {
 
@@ -134,9 +136,10 @@ public class RemoveCommand extends AbstractCommand {
 
 		// Remove node from page
 		final PropertyMap changedProperties = new PropertyMap();
+		final Traits traits                 = Traits.of(StructrTraits.DOM_NODE);
 
-		changedProperties.put(StructrApp.key(DOMNode.class, "syncedNodes"), Collections.EMPTY_LIST);
-		changedProperties.put(StructrApp.key(DOMNode.class, "pageId"),      null);
+		changedProperties.put(traits.key("syncedNodes"), Collections.EMPTY_LIST);
+		changedProperties.put(traits.key("pageId"),      null);
 
 		parent.setProperties(securityContext, changedProperties);
 

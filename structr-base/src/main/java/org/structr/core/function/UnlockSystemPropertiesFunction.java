@@ -21,7 +21,7 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.schema.action.ActionContext;
 
 public class UnlockSystemPropertiesFunction extends AdvancedScriptingFunction {
@@ -46,9 +46,9 @@ public class UnlockSystemPropertiesFunction extends AdvancedScriptingFunction {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
-			if (sources[0] instanceof AbstractNode) {
+			if (sources[0] instanceof NodeInterface n) {
 
-				((AbstractNode)sources[0]).unlockSystemPropertiesOnce();
+				n.unlockSystemPropertiesOnce();
 				return "";
 
 			} else {

@@ -94,12 +94,12 @@ public abstract class AbstractDatabaseService implements DatabaseService {
 		}
 
 		@Override
-		public Class<?> getSourceType() {
+		public String getSourceType() {
 			return null;
 		}
 
 		@Override
-		public Class<?> getTargetType() {
+		public String getTargetType() {
 			return null;
 		}
 

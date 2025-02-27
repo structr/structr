@@ -38,11 +38,7 @@ public interface JsonSchema {
 		replace, extend
 	}
 
-	public static final String KEY_SCHEMA                   = "$schema";
-	public static final String KEY_SIZE_OF                  = "$size";
 	public static final String KEY_REFERENCE                = "$ref";
-	public static final String KEY_EXTENDS                  = "$extends";
-	public static final String KEY_IMPLEMENTS               = "$implements";
 	public static final String KEY_LINK                     = "$link";
 	public static final String KEY_LINK_SOURCE              = "$source";
 	public static final String KEY_LINK_TARGET              = "$target";
@@ -50,6 +46,7 @@ public interface JsonSchema {
 	public static final String KEY_ID                       = "id";
 	public static final String KEY_TYPE                     = "type";
 	public static final String KEY_NAME                     = "name";
+	public static final String KEY_TRAITS                   = "traits";
 	public static final String KEY_TITLE                    = "title";
 	public static final String KEY_DESCRIPTION              = "description";
 	public static final String KEY_ICON                     = "icon";
@@ -65,7 +62,6 @@ public interface JsonSchema {
 	public static final String KEY_ITEMS                    = "items";
 	public static final String KEY_IS_ABSTRACT              = "isAbstract";
 	public static final String KEY_IS_INTERFACE             = "isInterface";
-	public static final String KEY_IS_BUILTIN_TYPE          = "isBuiltinType";
 	public static final String KEY_IS_SERVICE_CLASS         = "isServiceClass";
 	public static final String KEY_CHANGELOG_DISABLED       = "changelogDisabled";
 	public static final String KEY_VISIBLE_TO_PUBLIC        = "visibleToPublicUsers";

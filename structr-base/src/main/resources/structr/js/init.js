@@ -1624,10 +1624,14 @@ let Structr = {
 									break;
 
 								case 'SchemaMethod':
+
 									if (obj.schemaNode) {
+
 										title    = `type "${obj.schemaNode.name}"`;
 										property = (obj.isStatic === true) ? 'Static Method' : 'Method';
+
 									} else {
+
 										title    = 'user-defined function';
 										property = 'Method';
 									}
@@ -2131,18 +2135,16 @@ let _TreeHelper = {
 
 			} else {
 
-				// no anchor found (previous parts of the tree are not yet expanded, directly edit the svgIcon of the data node, keeping the width and height)
-				if (node.data.svgIcon) {
+				// no anchor found
+				if (node.data.svgIcon && newStateIsOpen) {
 
-					if (newStateIsOpen) {
-
-						node.data.svgIcon = node.data.svgIcon.replace(`"#${_Icons.iconFolderClosed}"`,        `"#${_Icons.iconFolderOpen}"`);
-						node.data.svgIcon = node.data.svgIcon.replace(`"#${_Icons.iconMountedFolderClosed}"`, `"#${_Icons.iconMountedFolderOpen}"`);
-
-					} else {
-
-						node.data.svgIcon = node.data.svgIcon.replace(`"#${_Icons.iconFolderOpen}"`,        `"#${_Icons.iconFolderClosed}"`);
-						node.data.svgIcon = node.data.svgIcon.replace(`"#${_Icons.iconMountedFolderOpen}"`, `"#${_Icons.iconMountedFolderClosed}"`);
+					if (
+						node.data.svgIcon.indexOf(`"#${_Icons.iconFolderOpen}"`) !== -1 ||
+						node.data.svgIcon.indexOf(`"#${_Icons.iconFolderClosed}"`) !== -1 ||
+						node.data.svgIcon.indexOf(`"#${_Icons.iconMountedFolderOpen}"`) !== -1 ||
+						node.data.svgIcon.indexOf(`"#${_Icons.iconMountedFolderClosed}"`) !== -1
+					) {
+						node.data.svgIcon = _Icons.getSvgIcon(_Icons.iconFolderOpen);
 					}
 				}
 			}
@@ -2150,7 +2152,7 @@ let _TreeHelper = {
 
 		tree.on('after_open.jstree', (event, data) => {
 
-			if (data.node.id !== '/root') {
+			if (data.node.id !== 'root') {
 
 				let svgIcon = getSvgIconFromNode(data.node);
 				if (svgIcon) {
@@ -2232,6 +2234,11 @@ let _TreeHelper = {
 	},
 	getNode: (tree, node) => {
 		return $(tree).jstree('get_node', node);
+	},
+	isNodeOpened: (tree, node) => {
+		let n = _TreeHelper.getNode(tree, node);
+
+		return n?.state.opened;
 	},
 	makeAllTreeElementsDroppable: (tree, dragndropFunction) => {
 

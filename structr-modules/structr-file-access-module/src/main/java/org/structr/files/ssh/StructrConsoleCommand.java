@@ -36,7 +36,9 @@ import org.structr.console.Console.ConsoleMode;
 import org.structr.console.tabcompletion.TabCompletionResult;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.util.Writable;
 import org.structr.web.entity.User;
 
@@ -111,7 +113,11 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 			final App app = StructrApp.getInstance();
 			try (final Tx tx = app.tx()) {
 
-				user = app.nodeQuery(User.class).andName(userName).getFirst();
+				final NodeInterface userNode = app.nodeQuery(StructrTraits.USER).andName(userName).getFirst();
+				if (userNode != null && userNode.is(StructrTraits.USER)) {
+
+					user = userNode.as(User.class);
+				}
 
 				tx.success();
 

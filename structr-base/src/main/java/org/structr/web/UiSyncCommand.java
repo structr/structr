@@ -28,12 +28,10 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.*;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.rest.resource.MaintenanceResource;
-import org.structr.web.entity.File;
-import org.structr.web.entity.Folder;
 import org.structr.web.entity.dom.DOMNode;
-import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.dom.ShadowDocument;
 
 import java.util.*;
 
@@ -103,13 +101,13 @@ public class UiSyncCommand extends NodeServiceCommand implements MaintenanceComm
 		try (final Tx tx = app.tx()) {
 
 			// collect folders that are marked for export
-			for (final Folder folder : app.nodeQuery(Folder.class).and(StructrApp.key(Folder.class, "includeInFrontendExport"), true).getAsList()) {
+			for (final NodeInterface folder : app.nodeQuery(StructrTraits.FOLDER).and(Traits.of(StructrTraits.FOLDER).key("includeInFrontendExport"), true).getResultStream()) {
 
 				collectDataRecursively(app, folder, nodes, rels, filePaths);
 			}
 
 			// collect pages (including files, shared components etc.)
-			for (final Page page : app.nodeQuery(Page.class).getAsList()) {
+			for (final NodeInterface page : app.nodeQuery(StructrTraits.PAGE).getResultStream()) {
 
 				collectDataRecursively(app, page, nodes, rels, filePaths);
 			}
@@ -130,23 +128,23 @@ public class UiSyncCommand extends NodeServiceCommand implements MaintenanceComm
 		// import done, now the ShadowDocument needs some special care. :(
 		try (final Tx tx = app.tx()) {
 
-			final List<ShadowDocument> shadowDocuments = app.nodeQuery(ShadowDocument.class).includeHidden().getAsList();
+			final List<NodeInterface> shadowDocuments = app.nodeQuery(StructrTraits.SHADOW_DOCUMENT).includeHidden().getAsList();
 			if (shadowDocuments.size() > 1) {
 
-				final PropertyKey<List<DOMNode>> elementsKey = StructrApp.key(Page.class, "elements");
+				final PropertyKey<List<DOMNode>> elementsKey = Traits.of(StructrTraits.PAGE).key("elements");
 				final List<DOMNode> collectiveChildren       = new LinkedList<>();
 
 				// sort by node id (higher node ID is newer entity)
-				Collections.sort(shadowDocuments, new Comparator<ShadowDocument>() {
+				Collections.sort(shadowDocuments, new Comparator<>() {
 
 					@Override
-					public int compare(final ShadowDocument t1, final ShadowDocument t2) {
+					public int compare(final NodeInterface t1, final NodeInterface t2) {
 						return t2.getPropertyContainer().getId().compareTo(t1.getPropertyContainer().getId());
 					}
 				});
 
-				final ShadowDocument previousShadowDoc = shadowDocuments.get(0);
-				final ShadowDocument newShadowDoc      = shadowDocuments.get(1);
+				final NodeInterface previousShadowDoc = shadowDocuments.get(0);
+				final NodeInterface newShadowDoc      = shadowDocuments.get(1);
 
 				// collect children of both shadow documents
 				collectiveChildren.addAll(previousShadowDoc.getProperty(elementsKey));
@@ -168,7 +166,7 @@ public class UiSyncCommand extends NodeServiceCommand implements MaintenanceComm
 		if (root.isNode()) {
 
 			final NodeInterface node = root.getSyncNode();
-			if (node instanceof File) {
+			if (node.is(StructrTraits.FILE)) {
 
 				final String fileUuid = node.getUuid();
 				files.add(fileUuid);

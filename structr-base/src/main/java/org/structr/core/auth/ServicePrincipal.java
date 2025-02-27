@@ -23,26 +23,27 @@ import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.graph.RelationshipType;
-import org.structr.common.AccessControllable;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.*;
+import org.structr.core.entity.Group;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.schema.NonIndexed;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 
 import java.util.*;
 
-public class ServicePrincipal implements PrincipalInterface, AccessControllable, NonIndexed {
+public class ServicePrincipal implements Principal {
 
 	private final Map<String, Object> data  = new LinkedHashMap<>();
 	private SecurityContext securityContext = null;
@@ -60,21 +61,152 @@ public class ServicePrincipal implements PrincipalInterface, AccessControllable,
 	}
 
 	@Override
+	public SecurityContext getSecurityContext() {
+		return null;
+	}
+
+	@Override
+	public PropertyContainer getPropertyContainer() {
+		return null;
+	}
+
+	@Override
+	public Set<PropertyKey> getFullPropertySet() {
+		return Set.of();
+	}
+
+	@Override
+	public Set<PropertyKey> getPropertyKeys(String propertyView) {
+		return Set.of();
+	}
+
+	@Override
+	public long getSourceTransactionId() {
+		return 0;
+	}
+
+	@Override
+	public <T> Object setProperty(PropertyKey<T> key, T value) throws FrameworkException {
+		return null;
+	}
+
+	@Override
+	public <T> Object setProperty(PropertyKey<T> key, T value, boolean isCreation) throws FrameworkException {
+		return null;
+	}
+
+	@Override
+	public void setProperties(SecurityContext securityContext, PropertyMap properties) throws FrameworkException {
+
+	}
+
+	@Override
+	public void setProperties(SecurityContext securityContext, PropertyMap properties, boolean isCreation) throws FrameworkException {
+
+	}
+
+	@Override
+	public boolean isNode() {
+		return false;
+	}
+
+	@Override
+	public boolean isRelationship() {
+		return false;
+	}
+
+	@Override
+	public <V> V getProperty(PropertyKey<V> propertyKey) {
+		return null;
+	}
+
+	@Override
+	public <V> V getProperty(PropertyKey<V> propertyKey, Predicate<GraphObject> filter) {
+		return null;
+	}
+
+	@Override
+	public void removeProperty(PropertyKey key) throws FrameworkException {
+
+	}
+
+	@Override
+	public boolean systemPropertiesUnlocked() {
+		return false;
+	}
+
+	@Override
+	public void unlockSystemPropertiesOnce() {
+
+	}
+
+	@Override
+	public void lockSystemProperties() {
+
+	}
+
+	@Override
+	public boolean readOnlyPropertiesUnlocked() {
+		return false;
+	}
+
+	@Override
+	public void unlockReadOnlyPropertiesOnce() {
+
+	}
+
+	@Override
+	public void lockReadOnlyProperties() {
+
+	}
+
+	@Override
+	public boolean isGranted(Permission permission, SecurityContext securityContext) {
+		return false;
+	}
+
+	@Override
+	public boolean isGranted(Permission permission, SecurityContext securityContext, boolean isCreation) {
+		return false;
+	}
+
+	@Override
+	public boolean isValid(ErrorBuffer errorBuffer) {
+		return false;
+	}
+
+	@Override
+	public void indexPassiveProperties() {
+
+	}
+
+	@Override
+	public void addToIndex() {
+
+	}
+
+	@Override
+	public Traits getTraits() {
+		return null;
+	}
+
+	@Override
+	public <T> T as(Class<T> type) {
+		return null;
+	}
+
+	@Override
+	public boolean is(String type) {
+		return false;
+	}
+
+	@Override
 	public String getType() {
 		return "ServicePrincipal";
 	}
 
 	@Override
-	public int compareTo(final Object other) {
-
-		// provoke ClassCastException
-		final ServicePrincipal u = (ServicePrincipal)other;
-
-		return getUuid().compareTo(u.getUuid());
-	}
-
-	@Override
-	public Iterable<Favoritable> getFavorites() {
+	public Iterable<NodeInterface> getOwnedNodes() {
 		return Collections.EMPTY_LIST;
 	}
 
@@ -84,12 +216,12 @@ public class ServicePrincipal implements PrincipalInterface, AccessControllable,
 	}
 
 	@Override
-	public Iterable<PrincipalInterface> getParents() {
+	public Iterable<Group> getParents() {
 		return Collections.EMPTY_LIST;
 	}
 
 	@Override
-	public Iterable<PrincipalInterface> getParentsPrivileged() {
+	public Iterable<Group> getParentsPrivileged() {
 
 		// if the list of reference IDs is set, we search for groups with the given IDs and associate this principal with them
 		if (jwksReferenceIds != null) {
@@ -100,9 +232,14 @@ public class ServicePrincipal implements PrincipalInterface, AccessControllable,
 
 				try {
 
+					final PropertyKey<String> jwksReferenceIdKey = Traits.of(StructrTraits.GROUP).key("jwksReferenceId");
+
 					for (final String id : jwksReferenceIds) {
 
-						groups.addAll(StructrApp.getInstance().nodeQuery(Group.class).and(StructrApp.key(Group.class, "jwksReferenceId"), id).getAsList());
+						for (final NodeInterface node : StructrApp.getInstance().nodeQuery(StructrTraits.GROUP).and(jwksReferenceIdKey, id).getResultStream()) {
+
+							groups.add(node.as(Group.class));
+						}
 					}
 
 				} catch (FrameworkException fex) {
@@ -112,7 +249,7 @@ public class ServicePrincipal implements PrincipalInterface, AccessControllable,
 
 			if (groups != null) {
 
-				return (Iterable) groups;
+				return groups;
 			}
 		}
 
@@ -145,6 +282,75 @@ public class ServicePrincipal implements PrincipalInterface, AccessControllable,
 	}
 
 	@Override
+	public void setTwoFactorConfirmed(boolean b) throws FrameworkException {
+
+	}
+
+	@Override
+	public void setTwoFactorToken(String token) throws FrameworkException {
+
+	}
+
+	@Override
+	public boolean isTwoFactorUser() {
+		return false;
+	}
+
+	@Override
+	public void setIsTwoFactorUser(boolean b) throws FrameworkException {
+
+	}
+
+	@Override
+	public boolean isTwoFactorConfirmed() {
+		return false;
+	}
+
+	@Override
+	public Integer getPasswordAttempts() {
+		return 0;
+	}
+
+	@Override
+	public Date getPasswordChangeDate() {
+		return null;
+	}
+
+	@Override
+	public void setPasswordAttempts(int num) throws FrameworkException {
+
+	}
+
+	@Override
+	public void setLastLoginDate(Date date) throws FrameworkException {
+
+	}
+
+	@Override
+	public String[] getSessionIds() {
+		return new String[0];
+	}
+
+	@Override
+	public String getProxyUrl() {
+		return "";
+	}
+
+	@Override
+	public String getProxUsername() {
+		return "";
+	}
+
+	@Override
+	public String getProxyPassword() {
+		return "";
+	}
+
+	@Override
+	public void onAuthenticate() {
+	}
+
+	@Override
 	public boolean addSessionId(String sessionId) {
 		return false;
 	}
@@ -156,6 +362,11 @@ public class ServicePrincipal implements PrincipalInterface, AccessControllable,
 	@Override
 	public boolean addRefreshToken(String refreshToken) {
 		return false;
+	}
+
+	@Override
+	public String[] getRefreshTokens() {
+		return new String[0];
 	}
 
 	@Override
@@ -196,10 +407,6 @@ public class ServicePrincipal implements PrincipalInterface, AccessControllable,
 	}
 
 	@Override
-	public void setFavorites(Iterable<Favoritable> favorites) throws FrameworkException {
-	}
-
-	@Override
 	public void setIsAdmin(boolean isAdmin) throws FrameworkException {
 	}
 
@@ -222,20 +429,18 @@ public class ServicePrincipal implements PrincipalInterface, AccessControllable,
 	}
 
 	@Override
-	public void init(SecurityContext securityContext, Node dbNode, Class type, long sourceTransactionId) {
-		this.securityContext = securityContext;
-	}
+	public void onNodeCreation(SecurityContext securityContext) throws FrameworkException {
 
-	@Override
-	public void onNodeCreation(final SecurityContext securityContext) {
 	}
 
 	@Override
 	public void onNodeInstantiation(boolean isCreation) {
+
 	}
 
 	@Override
 	public void onNodeDeletion(SecurityContext securityContext) throws FrameworkException {
+
 	}
 
 	@Override
@@ -254,92 +459,108 @@ public class ServicePrincipal implements PrincipalInterface, AccessControllable,
 	}
 
 	@Override
+	public void setName(String name) throws FrameworkException {
+
+	}
+
+	@Override
+	public Object getPath(SecurityContext securityContext) {
+		return null;
+	}
+
+	@Override
 	public boolean hasRelationshipTo(RelationshipType type, NodeInterface targetNode) {
 		return false;
 	}
 
 	@Override
-	public <R extends AbstractRelationship> R getRelationshipTo(RelationshipType type, NodeInterface targetNode) {
+	public RelationshipInterface getRelationshipTo(RelationshipType type, NodeInterface targetNode) {
 		return null;
 	}
 
 	@Override
-	public <R extends AbstractRelationship> Iterable<R> getRelationships() {
+	public Iterable<RelationshipInterface> getRelationships() {
 		return null;
 	}
 
 	@Override
-	public <R extends AbstractRelationship> Iterable<R> getRelationshipsAsSuperUser() {
+	public Iterable<RelationshipInterface> getRelationshipsAsSuperUser() {
 		return null;
 	}
 
 	@Override
-	public <R extends AbstractRelationship> Iterable<R> getIncomingRelationships() {
+	public Iterable<RelationshipInterface> getRelationshipsAsSuperUser(String type) {
 		return null;
 	}
 
 	@Override
-	public <R extends AbstractRelationship> Iterable<R> getOutgoingRelationships() {
+	public Iterable<RelationshipInterface> getIncomingRelationships() {
 		return null;
 	}
 
 	@Override
-	public <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target> boolean hasRelationship(Class<? extends Relation<A, B, S, T>> type) {
+	public Iterable<RelationshipInterface> getOutgoingRelationships() {
+		return null;
+	}
+
+	@Override
+	public boolean hasRelationship(String type) {
 		return false;
 	}
 
 	@Override
-	public <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> boolean hasIncomingRelationships(Class<R> type) {
+	public boolean hasIncomingRelationships(String type) {
 		return false;
 	}
 
 	@Override
-	public <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> boolean hasOutgoingRelationships(Class<R> type) {
+	public boolean hasOutgoingRelationships(String type) {
 		return false;
 	}
 
 	@Override
-	public <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> Iterable<R> getRelationships(Class<R> type) {
+	public Iterable<RelationshipInterface> getRelationships(String type) {
 		return null;
 	}
 
 	@Override
-	public <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, OneStartpoint<A>, T>> R getIncomingRelationship(Class<R> type) {
+	public RelationshipInterface getIncomingRelationship(String type) {
 		return null;
 	}
 
 	@Override
-	public <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, OneStartpoint<A>, T>> R getIncomingRelationshipAsSuperUser(Class<R> type) {
+	public RelationshipInterface getIncomingRelationshipAsSuperUser(String type) {
 		return null;
 	}
 
 	@Override
-	public <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, ManyStartpoint<A>, T>> Iterable<R> getIncomingRelationships(Class<R> type) {
+	public Iterable<RelationshipInterface> getIncomingRelationships(String type) {
 		return null;
 	}
 
 	@Override
-	public <A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, OneEndpoint<B>>> R getOutgoingRelationship(Class<R> type) {
+	public Iterable<RelationshipInterface> getIncomingRelationshipsAsSuperUser(String type, Predicate<GraphObject> predicate) {
 		return null;
 	}
 
 	@Override
-	public <A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, OneEndpoint<B>>> R getOutgoingRelationshipAsSuperUser(Class<R> type) {
+	public RelationshipInterface getOutgoingRelationship(String type) {
 		return null;
 	}
 
 	@Override
-	public <A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, ManyEndpoint<B>>> Iterable<R> getOutgoingRelationships(Class<R> type) {
+	public RelationshipInterface getOutgoingRelationshipAsSuperUser(String type) {
+		return null;
+	}
+
+	@Override
+	public Iterable<RelationshipInterface> getOutgoingRelationships(String type) {
 		return null;
 	}
 
 	@Override
 	public void setRawPathSegmentId(Identity pathSegmentId) {
-	}
 
-	@Override
-	public List<Security> getSecurityRelationships() {
-		return List.of();
 	}
 
 	@Override
@@ -348,50 +569,8 @@ public class ServicePrincipal implements PrincipalInterface, AccessControllable,
 	}
 
 	@Override
-	public PrincipalInterface getOwnerNode() {
-		return null;
-	}
+	public void visitForUsage(Map<String, Object> data) {
 
-	@Override
-	public boolean isGranted(Permission permission, SecurityContext securityContext) {
-		return false;
-	}
-
-	@Override
-	public void grant(Permission permission, PrincipalInterface principal) throws FrameworkException {
-	}
-
-	@Override
-	public void grant(Set<Permission> permissions, PrincipalInterface principal) throws FrameworkException {
-	}
-
-	@Override
-	public void grant(Set<Permission> permissions, PrincipalInterface principal, SecurityContext ctx) throws FrameworkException {
-	}
-
-	@Override
-	public void revoke(Permission permission, PrincipalInterface principal) throws FrameworkException {
-	}
-
-	@Override
-	public void revoke(Set<Permission> permissions, PrincipalInterface principal) throws FrameworkException {
-	}
-
-	@Override
-	public void revoke(Set<Permission> permissions, PrincipalInterface principal, SecurityContext ctx) throws FrameworkException {
-	}
-
-	@Override
-	public void setAllowed(Set<Permission> permissions, PrincipalInterface principal) throws FrameworkException {
-	}
-
-	@Override
-	public void setAllowed(Set<Permission> permissions, PrincipalInterface principal, SecurityContext ctx) throws FrameworkException {
-	}
-
-	@Override
-	public Security getSecurityRelationship(PrincipalInterface principal) {
-		return null;
 	}
 
 	@Override
@@ -405,13 +584,13 @@ public class ServicePrincipal implements PrincipalInterface, AccessControllable,
 	}
 
 	@Override
-	public boolean isNotHidden() {
+	public boolean isHidden() {
 		return false;
 	}
 
 	@Override
-	public boolean isHidden() {
-		return false;
+	public void setHidden(boolean hidden) throws FrameworkException {
+
 	}
 
 	@Override
@@ -425,151 +604,72 @@ public class ServicePrincipal implements PrincipalInterface, AccessControllable,
 	}
 
 	@Override
-	public void setSecurityContext(SecurityContext securityContext) {
-		this.securityContext = securityContext;
-	}
-
-	@Override
-	public SecurityContext getSecurityContext() {
-		return securityContext;
-	}
-
-	@Override
-	public PropertyContainer getPropertyContainer() {
-		return null;
-	}
-
-	@Override
-	public Set<PropertyKey> getPropertyKeys(String propertyView) {
-		return Set.of();
-	}
-
-	@Override
-	public long getSourceTransactionId() {
-		return 0;
-	}
-
-	@Override
-	public <T> Object setProperty(PropertyKey<T> key, T value) throws FrameworkException {
-		throw new UnsupportedOperationException("This object is read-only.");
-	}
-
-	@Override
-	public <T> Object setProperty(PropertyKey<T> key, T value, boolean isCreation) throws FrameworkException {
-		throw new UnsupportedOperationException("This object is read-only.");
-	}
-
-	@Override
-	public void setProperties(SecurityContext securityContext, PropertyMap properties) throws FrameworkException {
-		throw new UnsupportedOperationException("This object is read-only.");
-	}
-
-	@Override
-	public void setProperties(SecurityContext securityContext, PropertyMap properties, boolean isCreation) throws FrameworkException {
-		throw new UnsupportedOperationException("This object is read-only.");
-	}
-
-	@Override
-	public <T> T getProperty(PropertyKey<T> propertyKey) {
-		return (T)data.get(propertyKey.jsonName());
-	}
-
-	@Override
-	public <T> T getProperty(PropertyKey<T> propertyKey, Predicate<GraphObject> filter) {
-		return getProperty(propertyKey);
-	}
-
-	@Override
-	public <T> Comparable getComparableProperty(PropertyKey<T> key) {
-		return null;
-	}
-
-	@Override
-	public void removeProperty(PropertyKey key) throws FrameworkException {
-		throw new UnsupportedOperationException("This object is read-only.");
-	}
-
-	@Override
-	public void unlockSystemPropertiesOnce() {
-	}
-
-	@Override
-	public void unlockReadOnlyPropertiesOnce() {
-	}
-
-	@Override
-	public boolean isValid(ErrorBuffer errorBuffer) {
-		return false;
+	public void setLastModifiedDate(final Date date) throws FrameworkException {
 	}
 
 	@Override
 	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+
 	}
 
 	@Override
 	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, ModificationQueue modificationQueue) throws FrameworkException {
+
 	}
 
 	@Override
 	public void onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
+
 	}
 
 	@Override
 	public void afterCreation(SecurityContext securityContext) throws FrameworkException {
+
 	}
 
 	@Override
 	public void afterModification(SecurityContext securityContext) throws FrameworkException {
+
 	}
 
 	@Override
 	public void afterDeletion(SecurityContext securityContext, PropertyMap properties) {
+
 	}
 
 	@Override
 	public void ownerModified(SecurityContext securityContext) {
+
 	}
 
 	@Override
 	public void securityModified(SecurityContext securityContext) {
+
 	}
 
 	@Override
 	public void locationModified(SecurityContext securityContext) {
+
 	}
 
 	@Override
 	public void propagatedModification(SecurityContext securityContext) {
+
 	}
 
 	@Override
 	public String getPropertyWithVariableReplacement(ActionContext renderContext, PropertyKey<String> key) throws FrameworkException {
-		throw new UnsupportedOperationException("Not supported.");
+		return "";
 	}
 
 	@Override
 	public Object evaluate(ActionContext actionContext, String key, String defaultValue, EvaluationHints hints, int row, int column) throws FrameworkException {
-		throw new UnsupportedOperationException("Not supported.");
-	}
-
-	@Override
-	public Class getEntityType() {
-		return this.getClass();
+		return null;
 	}
 
 	@Override
 	public List<GraphObject> getSyncData() throws FrameworkException {
 		return List.of();
-	}
-
-	@Override
-	public boolean isNode() {
-		return false;
-	}
-
-	@Override
-	public boolean isRelationship() {
-		return false;
 	}
 
 	@Override
@@ -588,14 +688,88 @@ public class ServicePrincipal implements PrincipalInterface, AccessControllable,
 	}
 
 	@Override
+	public void setVisibleToAuthenticatedUsers(boolean visible) throws FrameworkException {
+
+	}
+
+	@Override
+	public void setVisibleToPublicUsers(boolean visible) throws FrameworkException {
+
+	}
+
+	/*
+	@Override
+	public Principal getOwnerNode() {
+		return null;
+	}
+
+	@Override
+	public boolean allowedBySchema(Principal principal, Permission permission) {
+		return false;
+	}
+
+	@Override
+	public boolean isGranted(Permission permission, SecurityContext securityContext) {
+		return false;
+	}
+
+	@Override
+	public void grant(Permission permission, Principal principal) throws FrameworkException {
+	}
+
+	@Override
+	public void grant(Set<Permission> permissions, Principal principal) throws FrameworkException {
+	}
+
+	@Override
+	public void grant(Set<Permission> permissions, Principal principal, SecurityContext ctx) throws FrameworkException {
+	}
+
+	@Override
+	public void revoke(Permission permission, Principal principal) throws FrameworkException {
+	}
+
+	@Override
+	public void revoke(Set<Permission> permissions, Principal principal) throws FrameworkException {
+	}
+
+	@Override
+	public void revoke(Set<Permission> permissions, Principal principal, SecurityContext ctx) throws FrameworkException {
+	}
+
+	@Override
+	public void setAllowed(Set<Permission> permissions, Principal principal) throws FrameworkException {
+	}
+
+	@Override
+	public void setAllowed(Set<Permission> permissions, Principal principal, SecurityContext ctx) throws FrameworkException {
+	}
+	*/
+
+	@Override
 	public String getUuid() {
 		return (String)data.get("id");
 	}
 
-	// ----- private methods -----
-	private boolean recursivelyCheckForAdminPermissions(final Iterable<PrincipalInterface> parents) {
+	@Override
+	public void clearCaches() {
 
-		for (final PrincipalInterface parent : parents) {
+	}
+
+	@Override
+	public void setSecurityContext(SecurityContext securityContext) {
+
+	}
+
+	@Override
+	public int compareTo(final NodeInterface o) {
+		return 0;
+	}
+
+	// ----- private methods -----
+	private boolean recursivelyCheckForAdminPermissions(final Iterable<Group> parents) {
+
+		for (final Group parent : parents) {
 
 			if (parent.isAdmin()) {
 				return true;

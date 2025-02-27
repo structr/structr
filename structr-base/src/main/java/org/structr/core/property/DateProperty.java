@@ -28,7 +28,7 @@ import org.structr.common.error.PropertyInputParsingException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.converter.TemporalDateConverter;
-import org.structr.schema.parser.DatePropertyParser;
+import org.structr.schema.parser.DatePropertyGenerator;
 
 import java.text.SimpleDateFormat;
 import java.time.Instant;
@@ -117,13 +117,18 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 
 			try {
 
-				return DatePropertyParser.parse(value.toString(), format).getTime();
+				return DatePropertyGenerator.parse(value.toString(), format).getTime();
 
 			} catch (Throwable t) {
 			}
 		}
 
 		return null;
+	}
+
+	@Override
+	public boolean isArray() {
+		return false;
 	}
 
 	private class DatabaseConverter extends PropertyConverter<Date, Long> {
@@ -179,7 +184,7 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 
 					if (StringUtils.isNotBlank((String)source)) {
 
-						Date result = DatePropertyParser.parse((String)source, format);
+						Date result = DatePropertyGenerator.parse((String)source, format);
 
 						if (result != null) {
 							return result;
@@ -187,14 +192,14 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 
 						throw new PropertyInputParsingException(
 							jsonName(),
-							new DateFormatToken(declaringClass.getSimpleName(), jsonName()).withDetail(source)
+							new DateFormatToken(declaringTrait.getLabel(), jsonName()).withDetail(source)
 						);
 
 					}
 
 				} else {
 
-					throw new FrameworkException(422, "Unknown input type for date property ‛" + jsonName() + "‛: " + (source.getClass().getName()), new DateFormatToken(declaringClass.getSimpleName(), jsonName()).withDetail(source));
+					throw new FrameworkException(422, "Unknown input type for date property ‛" + jsonName() + "‛: " + (source.getClass().getName()), new DateFormatToken(declaringTrait.getLabel(), jsonName()).withDetail(source));
 
 				}
 			}
@@ -205,7 +210,7 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 		@Override
 		public String revert(Date source) throws FrameworkException {
 
-			return DatePropertyParser.format(source, format);
+			return DatePropertyGenerator.format(source, format);
 		}
 
 	}

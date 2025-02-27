@@ -39,8 +39,7 @@ let _Schema = {
 	hiddenSchemaNodesKey: 'structrHiddenSchemaNodes_' + location.port,
 	schemaPositionsKey: 'structrSchemaPositions_' + location.port,
 	showSchemaOverlaysKey: 'structrShowSchemaOverlays_' + location.port,
-	showSchemaInheritanceKey: 'structrShowSchemaInheritance_' + location.port,
-	showBuiltinTypesInInheritanceTreeKey: 'showBuiltinTypesInInheritanceTreeKey_' + location.port,
+	showSchemaInheritanceArrowsKey: 'structrShowSchemaInheritance_' + location.port,
 	schemaMethodsHeightsKey: 'structrSchemaMethodsHeights_' + location.port,
 	schemaActiveTabLeftKey: 'structrSchemaActiveTabLeft_' + location.port,
 	activeSchemaToolsSelectedTabLevel1Key: 'structrSchemaToolsSelectedTabLevel1_' + location.port,
@@ -49,8 +48,6 @@ let _Schema = {
 	schemaConnectorStyleKey: '_schema_' + location.port + 'connectorStyle',
 	schemaNodePositionKeySuffix: '_schema_' + location.port + 'node-position',
 	currentNodeDialogId: null,
-	inheritanceTree: undefined,
-	inheritanceSlideout: undefined,
 	onload: () => {
 
 		_Code.helpers.preloadAvailableTagsForEntities().then(() => {
@@ -58,8 +55,6 @@ let _Schema = {
 			Structr.setMainContainerHTML(_Schema.templates.main());
 			_Helpers.activateCommentsInElement(Structr.mainContainer);
 
-			_Schema.inheritanceSlideout     = $('#inheritance-tree');
-			_Schema.inheritanceTree         = $('#inheritance-tree-container');
 			_Schema.ui.canvas               = $('#schema-graph');
 
 			_Schema.ui.canvas[0].addEventListener('mousedown', (e) => {
@@ -78,23 +73,6 @@ let _Schema = {
 			_Schema.ui.canvas[0].addEventListener('mouseup', (e) => {
 				_Schema.ui.selectionStop();
 			});
-
-			let inheritanceTab = document.querySelector('#inheritanceTab');
-			inheritanceTab.addEventListener('click', () => {
-				Structr.slideouts.leftSlideoutTrigger(inheritanceTab, _Schema.inheritanceSlideout, [], () => {
-					LSWrapper.setItem(_Schema.schemaActiveTabLeftKey, inheritanceTab.id);
-					_Schema.inheritanceTree.show();
-				}, () => {
-					LSWrapper.removeItem(_Schema.schemaActiveTabLeftKey);
-					_Schema.inheritanceTree.hide();
-				});
-			});
-
-			if (LSWrapper.getItem(_Schema.schemaActiveTabLeftKey)) {
-				_Helpers.requestAnimationFrameWrapper('schema_resize_slideout_correctly', () => {
-					$('#' + LSWrapper.getItem(_Schema.schemaActiveTabLeftKey)).click();
-				});
-			}
 
 			_Schema.init(null,() => {
 				Structr.resize();
@@ -138,10 +116,10 @@ let _Schema = {
 	},
 	init: (scrollPosition, callback) => {
 
-		_Schema.schemaLoading      = false;
-		_Schema.ui.connectorStyle  = LSWrapper.getItem(_Schema.schemaConnectorStyleKey) || 'Flowchart';
-		_Schema.ui.zoomLevel       = parseFloat(LSWrapper.getItem(_Schema.schemaZoomLevelKey)) || 1.0;
-		_Schema.ui.showInheritance = LSWrapper.getItem(_Schema.showSchemaInheritanceKey, true) || true;
+		_Schema.schemaLoading            = false;
+		_Schema.ui.connectorStyle        = LSWrapper.getItem(_Schema.schemaConnectorStyleKey) || 'Flowchart';
+		_Schema.ui.zoomLevel             = parseFloat(LSWrapper.getItem(_Schema.schemaZoomLevelKey)) || 1.0;
+		_Schema.ui.showInheritanceArrows = LSWrapper.getItem(_Schema.showSchemaInheritanceArrowsKey, true) ?? true;
 
 		Structr.setFunctionBarHTML(_Schema.templates.functions());
 
@@ -234,8 +212,8 @@ let _Schema = {
 			let showSchemaOverlays = LSWrapper.getItem(_Schema.showSchemaOverlaysKey, true);
 			_Schema.ui.updateOverlayVisibility(showSchemaOverlays);
 
-			let showSchemaInheritance = LSWrapper.getItem(_Schema.showSchemaInheritanceKey, true);
-			_Schema.ui.updateInheritanceVisibility(showSchemaInheritance);
+			let showSchemaInheritance = LSWrapper.getItem(_Schema.showSchemaInheritanceArrowsKey, true);
+			_Schema.ui.updateInheritanceArrowsVisibility(showSchemaInheritance);
 
 			if (scrollPosition) {
 				window.scrollTo(scrollPosition.x, scrollPosition.y);
@@ -636,8 +614,6 @@ let _Schema = {
 					}
 				}
 
-				_Schema.loadClassTree(data.result);
-
 				_Schema.availableTypeNames = [];
 
 				for (let entity of data.result) {
@@ -871,6 +847,7 @@ let _Schema = {
 				}
 
 			} else {
+
 				throw new Error("Loading of Schema nodes failed");
 			}
 		},
@@ -989,6 +966,7 @@ let _Schema = {
 				delete nameInput.dataset['property'];
 				nameInput.disabled = true;
 				nameInput.classList.add('disabled');
+			} else {
 			}
 
 			if (entity.extendsClass || entity.extendsClassInternal || entity.isBuiltinType === false) {
@@ -1069,7 +1047,6 @@ let _Schema = {
 
 				let typeInfo    = _Schema.nodes.getTypeDefinitionDataFromForm(tabContent, entity);
 				let changedData = _Schema.nodes.getTypeDefinitionChanges(entity, typeInfo);
-
 				let hasChanges  = Object.keys(changedData).length > 0;
 
 				_Schema.bulkDialogsGeneral.dataChangedInTab(tabContent, hasChanges);
@@ -3671,7 +3648,7 @@ let _Schema = {
 						name:       (isPrefix ? _Schema.methods.getFirstFreeMethodName(name) : name),
 						id:         'new' + (addedMethodsCounter++),
 						schemaNode: entity,
-						httpVerb: 'POST'
+						httpVerb:   'POST'
 					};
 
 					_Schema.methods.appendNewMethod(gridBody, baseMethodConfig, entity);
@@ -4590,7 +4567,7 @@ let _Schema = {
 		});
 
 		document.getElementById('schema-show-inheritance').addEventListener('change', (e) => {
-			_Schema.ui.updateInheritanceVisibility(e.target.checked);
+			_Schema.ui.updateInheritanceArrowsVisibility(e.target.checked);
 		});
 
 		for (let edgeStyleOption of document.querySelectorAll('.edge-style')) {
@@ -4613,43 +4590,43 @@ let _Schema = {
 
 		let activateLayoutFunctions = async () => {
 
-			let layoutSelector        = $('#saved-layout-selector');
-			let layoutNameInput       = $('#layout-name');
-			let createNewLayoutButton = $('#create-new-layout');
-			let saveLayoutButton      = $('#save-layout');
-			let loadLayoutButton      = $('#load-layout');
-			let deleteLayoutButton    = $('#delete-layout');
+			let layoutSelector        = document.querySelector('#saved-layout-selector');
+			let layoutNameInput       = document.querySelector('#layout-name');
+			let createNewLayoutButton = document.querySelector('#create-new-layout');
+			let saveLayoutButton      = document.querySelector('#save-layout');
+			let loadLayoutButton      = document.querySelector('#load-layout');
+			let deleteLayoutButton    = document.querySelector('#delete-layout');
 
 			let layoutSelectorChangeHandler = () => {
 
-				let selectedOption = $(':selected:not(:disabled)', layoutSelector);
+				let selectedOption = layoutSelector.querySelector(':checked:not(:disabled)');
 
-				if (selectedOption.length === 0) {
+				if (!selectedOption) {
 
-					_Helpers.disableElements(true, saveLayoutButton[0], loadLayoutButton[0], deleteLayoutButton[0]);
+					_Helpers.disableElements(true, saveLayoutButton, loadLayoutButton, deleteLayoutButton);
 
 				} else {
 
-					_Helpers.enableElement(loadLayoutButton[0]);
+					_Helpers.enableElement(loadLayoutButton);
 
 					let optGroup    = selectedOption.closest('optgroup');
-					let username    = optGroup.prop('label');
-					let isOwnerless = optGroup.data('ownerless') === true;
+					let username    = optGroup.label;
+					let isOwnerless = (optGroup.dataset['ownerless'] === 'true');
 
-					_Helpers.disableElements(!(isOwnerless || username === StructrWS.me.username), saveLayoutButton[0], deleteLayoutButton[0]);
+					_Helpers.disableElements(!(isOwnerless || username === StructrWS.me.username), saveLayoutButton, deleteLayoutButton);
 				}
 			};
 			layoutSelectorChangeHandler();
 
-			layoutSelector[0].addEventListener('change', layoutSelectorChangeHandler);
+			layoutSelector.addEventListener('change', layoutSelectorChangeHandler);
 
-			saveLayoutButton.click(async () => {
+			saveLayoutButton.addEventListener('click', async () => {
 
-				let selectedLayout = layoutSelector.val();
-				let selectedOption = $(':selected:not(:disabled)', layoutSelector);
+				let selectedLayout = layoutSelector.value;
+				let selectedOption = layoutSelector.querySelector(':checked:not(:disabled)');
 
 				let confirm = await _Dialogs.confirmation.showPromise(`
-					<h3>Overwrite stored schema layout "${selectedOption.text()}"?</h3>
+					<h3>Overwrite stored schema layout "${selectedOption.text}"?</h3>
 				`);
 
 				if (confirm === true) {
@@ -4670,24 +4647,32 @@ let _Schema = {
 				}
 			});
 
-			loadLayoutButton.click(() => {
-				_Schema.restoreLayout(layoutSelector);
+			loadLayoutButton.addEventListener('click', () => {
+				_Schema.restoreLayout(layoutSelector.value);
 			});
 
-			deleteLayoutButton.click(() => {
+			deleteLayoutButton.addEventListener('click', async () => {
 
-				let selectedLayout = layoutSelector.val();
+				let selectedLayout = layoutSelector.value;
+				let selectedOption = layoutSelector.querySelector(':checked:not(:disabled)');
 
-				Command.deleteNode(selectedLayout, false, async () => {
-					await _Schema.updateGroupedLayoutSelector(layoutSelector);
-					layoutSelectorChangeHandler();
-					_Helpers.blinkGreen(layoutSelector);
-				});
+				let confirm = await _Dialogs.confirmation.showPromise(`
+					<h3>Delete stored schema layout "${selectedOption.text}"?</h3>
+				`);
+
+				if (confirm === true) {
+
+					Command.deleteNode(selectedLayout, false, async () => {
+						await _Schema.updateGroupedLayoutSelector(layoutSelector);
+						layoutSelectorChangeHandler();
+						_Helpers.blinkGreen(layoutSelector);
+					});
+				}
 			});
 
-			createNewLayoutButton.on('click', () => {
+			createNewLayoutButton.addEventListener('click', () => {
 
-				let layoutName = layoutNameInput.val();
+				let layoutName = layoutNameInput.value;
 
 				if (layoutName && layoutName.length) {
 
@@ -4699,7 +4684,7 @@ let _Schema = {
 
 							await _Schema.updateGroupedLayoutSelector(layoutSelector);
 							layoutSelectorChangeHandler();
-							layoutNameInput.val('');
+							layoutNameInput.value = '';
 
 							_Helpers.blinkGreen(layoutSelector);
 
@@ -4746,15 +4731,13 @@ let _Schema = {
 					`).join('');
 				}
 
-				layoutSelector.html(html);
+				layoutSelector.innerHTML = html;
 
 				resolve();
 			});
 		});
 	},
-	restoreLayout: (layoutSelector) => {
-
-		let selectedLayout = layoutSelector.val();
+	restoreLayout: (selectedLayout) => {
 
 		if (selectedLayout) {
 
@@ -4917,7 +4900,6 @@ let _Schema = {
 
 		Command.query('SchemaNode', 2000, 1, 'name', 'asc', { isServiceClass: false }, (schemaNodes) => {
 
-			console.log(schemaNodes);
 			schemaNodes = schemaNodes.filter(s => !s.isServiceClass);
 
 			let tabsHtml = visibilityTables.map(visType => `<li id="tab" data-name="${visType.caption}">${visType.caption}</li>`).join('');
@@ -5002,6 +4984,7 @@ let _Schema = {
 			let activeTab = LSWrapper.getItem(_Schema.activeSchemaToolsSelectedVisibilityTab) || visibilityTables[0].caption;
 			activateTab(activeTab);
 		}, false, null, 'id,name,isBuiltinType,category');
+
 	},
 	updateHiddenSchemaTypes: () => {
 
@@ -5030,247 +5013,6 @@ let _Schema = {
 			LSWrapper.setItem(_Schema.hiddenSchemaNodesKey, JSON.stringify(_Schema.hiddenSchemaNodes));
 			_Schema.reload();
 		}
-	},
-	loadClassTree: (schemaNodes) => {
-
-		let classTree       = {};
-		let tmpHierarchy    = {};
-		let classnameToId   = {};
-		let schemaNodesById = {};
-
-		let searchInheritanceTypesInput = document.querySelector('#search-types');
-		let showBuiltinTypesCheckbox    = document.querySelector('#show-builtin-types');
-		let showBuiltinTypes            = showBuiltinTypesCheckbox.checked;
-
-		let insertClassInClassTree = (classObj, tree) => {
-			let classes = Object.keys(tree);
-
-			let position = classes.indexOf(classObj.parent);
-			if (position !== -1) {
-
-				if (classTree[classObj.name]) {
-					tree[classes[position]][classObj.name] = classTree[classObj.name];
-					delete(classTree[classObj.name]);
-				} else {
-					tree[classes[position]][classObj.name] = {};
-				}
-
-				return true;
-
-			} else {
-				let done = false;
-				for (let className of classes) {
-					if (!done) {
-						done = insertClassInClassTree(classObj, tree[className]);
-					}
-				}
-				return done;
-			}
-		};
-
-		let printClassTree = ($elem, classTree) => {
-
-			let requiredTypes = 0;
-			let classes       = Object.keys(classTree).sort();
-
-			if (classes.length > 0) {
-
-				let $newUl = $('<ul></ul>').appendTo($elem);
-
-				for (let classname of classes) {
-
-					let idForClassname = classnameToId[classname];
-					let isCustomType   = !schemaNodesById?.[idForClassname]?.isBuiltinType;
-
-					let icons = `
-						<div class="flex items-center icons-container absolute right-0 top-1">
-							${(idForClassname ? _Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['mr-1', 'node-action-icon', 'edit-type-icon']), 'Edit') : '')}
-							${(idForClassname && isCustomType ? _Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'mr-1', 'node-action-icon', 'delete-type-icon']), 'Delete') : '')}
-						</div>
-					`;
-
-					let $newLi               = $(`<li data-id="${classnameToId[classname]}">${classname}${icons}</li>`).appendTo($newUl);
-					let requiredSubTypeCount = printClassTree($newLi, classTree[classname]);
-					let iconId               = (Object.keys(classTree[classname]).length > 0) ? _Icons.iconFolderOpen : _Icons.iconFolderClosed;
-
-					let data = {
-						opened: true,
-						hidden: (showBuiltinTypes === false && isCustomType === false && requiredSubTypeCount === 0),
-						icon: _Icons.nonExistentEmptyIcon,
-						svgIcon: _Icons.getSvgIcon(iconId, 16, 24),
-						requiredIfBuiltinTypesHidden: (isCustomType || requiredSubTypeCount > 0),
-						subs: requiredSubTypeCount
-					};
-
-					if (isCustomType || requiredSubTypeCount > 0) {
-						requiredTypes++;
-					}
-
-					$newLi[0].dataset['jstree'] = JSON.stringify(data);
-				}
-			}
-
-			return requiredTypes;
-		};
-
-		let getParentClassName = (str) => {
-			if (str.slice(-1) === '>') {
-				let res = str.match("([^<]*)<([^>]*)>");
-				return getParentClassName(res[1]) + "&lt;" + getParentClassName(res[2]) + "&gt;";
-
-			} else {
-				return str.slice(str.lastIndexOf('.') + 1);
-			}
-		};
-
-		for (let schemaNode of schemaNodes) {
-
-			schemaNodesById[schemaNode.id] = schemaNode;
-
-			let classObj = {
-				name: schemaNode.name,
-				parent: schemaNode.extendsClass ? schemaNode.extendsClass.name : 'AbstractNode'
-			};
-
-			classnameToId[classObj.name] = schemaNode.id;
-
-			let inserted = insertClassInClassTree(classObj, tmpHierarchy);
-
-			if (!inserted) {
-				let insertedTmp = insertClassInClassTree(classObj, classTree);
-
-				if (!insertedTmp) {
-					if (classTree[classObj.name]) {
-						classTree[classObj.parent] = {};
-						classTree[classObj.parent][classObj.name] = classTree[classObj.name];
-						delete(classTree[classObj.name]);
-					} else {
-						classTree[classObj.parent] = {};
-						classTree[classObj.parent][classObj.name] = {};
-					}
-				}
-			}
-		}
-
-		let eventsInitialized = false;
-		let initEvents = (force = false) => {
-
-			if (eventsInitialized === false || force === true) {
-
-				eventsInitialized = true;
-
-				for (let editIcon of document.querySelectorAll('#inheritance-tree .edit-type-icon')) {
-
-					editIcon.addEventListener('click', () => {
-						let nodeId = editIcon.closest('li').dataset['id'];
-						if (nodeId) {
-							_Schema.openEditDialog(nodeId);
-						}
-					});
-				}
-
-				for (let delIcon of document.querySelectorAll('#inheritance-tree .delete-type-icon')) {
-
-					delIcon.addEventListener('click', async (e) => {
-
-						// otherwise the node on the canvas is focused and ESC does not work
-						e.stopPropagation();
-
-						let nodeId = delIcon.closest('li').dataset['id'];
-						if (nodeId) {
-
-							let confirm = await _Dialogs.confirmation.showPromise(`
-								<h3>Delete schema node '${delIcon.closest('a').textContent.trim()}'?</h3>
-								<p>This will delete all incoming and outgoing schema relationships as well,<br> but no data will be removed.</p>
-							`);
-
-							if (confirm === true) {
-
-								await _Schema.deleteNode(nodeId);
-							}
-						}
-					});
-				}
-			}
-		};
-
-		let initJsTree = () => {
-
-			eventsInitialized = false;
-
-			$.jstree.destroy();
-			printClassTree(_Schema.inheritanceTree, classTree);
-			_Schema.inheritanceTree.jstree({
-				core: {
-					animation: 0,
-					multiple: false,
-					themes: {
-						dots: false
-					}
-				},
-				plugins: ["search"]
-			}).on('ready.jstree', (e, data) => {
-
-				initEvents();
-
-				// in case we are switching builtin type visibility, react to search input
-				if (searchInheritanceTypesInput.value) {
-					searchInheritanceTypesInput.dispatchEvent(new Event('keyup'));
-				}
-
-			}).on('search.jstree', (e, data) => {
-
-				initEvents(true);
-
-			}).on('clear_search.jstree', (e, data) => {
-
-				initEvents(true);
-
-			}).on('changed.jstree', function(e, data) {
-
-				if (data.node) {
-					let $node = $('#id_' + data.node.data.id);
-					if ($node.length > 0) {
-						$('.selected').removeClass('selected');
-						$node.addClass('selected');
-						_Schema.ui.selectedNodes = [$node];
-					}
-				}
-			});
-
-			_TreeHelper.addSvgIconReplacementBehaviorToTree(_Schema.inheritanceTree);
-
-			_Schema.inheritanceTree.jstree(true).refresh();
-		};
-		initJsTree();
-
-		let searchTimeout;
-		searchInheritanceTypesInput?.addEventListener('keyup', (e) => {
-			if (e.which === 27) {
-
-				searchInheritanceTypesInput.value = '';
-				_Schema.inheritanceTree.jstree(true).clear_search();
-
-			} else {
-
-				if (searchTimeout) {
-					clearTimeout(searchTimeout);
-				}
-
-				searchTimeout = window.setTimeout(() => {
-					let query = searchInheritanceTypesInput.value;
-					_Schema.inheritanceTree.jstree(true).search(query, true, true);
-				}, 250);
-			}
-		});
-
-		showBuiltinTypesCheckbox.addEventListener('change', (e) => {
-			showBuiltinTypes = showBuiltinTypesCheckbox.checked;
-
-			LSWrapper.setItem(_Schema.showBuiltinTypesInInheritanceTreeKey, showBuiltinTypes);
-
-			initJsTree();
-		});
 	},
 	overlapsExistingNodes: (position) => {
 		if (!position) {
@@ -5374,7 +5116,7 @@ let _Schema = {
 	ui: {
 		canvas: undefined,
 		jsPlumbInstance: undefined,
-		showInheritance: true,
+		showInheritanceArrows: true,
 		showSchemaOverlays: true,
 		connectorStyle: undefined,
 		zoomLevel: undefined,
@@ -5541,9 +5283,10 @@ let _Schema = {
 				_Schema.ui.canvas.addClass('hide-relationship-labels');
 			}
 		},
-		updateInheritanceVisibility: (show) => {
-			_Schema.ui.showInheritance = show;
-			LSWrapper.setItem(_Schema.showSchemaInheritanceKey, show);
+		updateInheritanceArrowsVisibility: (show) => {
+
+			_Schema.ui.showInheritanceArrows = show;
+			LSWrapper.setItem(_Schema.showSchemaInheritanceArrowsKey, show);
 
 			$('#schema-show-inheritance').prop('checked', show);
 			if (show) {
@@ -5609,27 +5352,6 @@ let _Schema = {
 		main: config => `
 			<link rel="stylesheet" type="text/css" media="screen" href="css/schema.css">
 
-			<div class="slideout-activator left" id="inheritanceTab">
-				<svg viewBox="0 0 28 28" height="28" width="28" xmlns="http://www.w3.org/2000/svg">
-					<g transform="matrix(1.1666666666666667,0,0,1.1666666666666667,0,0)"><path d="M22.5,11.25A5.24,5.24,0,0,0,19.45,6.5,2.954,2.954,0,0,0,16.5,3c-.063,0-.122.015-.185.019a5.237,5.237,0,0,0-8.63,0C7.622,3.015,7.563,3,7.5,3A2.954,2.954,0,0,0,4.55,6.5a5.239,5.239,0,0,0,1.106,9.885A4.082,4.082,0,0,0,12,17.782a4.082,4.082,0,0,0,6.344-1.4A5.248,5.248,0,0,0,22.5,11.25Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M12 8.25L12 23.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M12,15q4.5,0,4.5-4.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M12,12A3.543,3.543,0,0,1,8.25,8.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g>
-				</svg>
-				Inheri&shy;tance
-			</div>
-
-			<div id="inheritance-tree" class="slideOut slideOutLeft">
-				<div class="flex items-center justify-between m-4 gap-2">
-					<label>
-						Search:
-						<input type="text" id="search-types" autocomplete="one-time-code">
-					</label>
-					<label class="flex" data-comment="Built-in types will still be shown if they are ancestors of custom types.">
-						<input type="checkbox" id="show-builtin-types" ${(LSWrapper.getItem(_Schema.showBuiltinTypesInInheritanceTreeKey, false) ? 'checked' : '')}>
-						<span class="whitespace-nowrap">Show built-in types</span>
-					</label>
-				</div>
-				<div id="inheritance-tree-container" class="ver-scrollable h-full hidden"></div>
-			</div>
-
 			<div id="schema-container">
 				<div class="canvas noselect" id="schema-graph"></div>
 			</div>
@@ -5669,7 +5391,7 @@ let _Schema = {
 								<label class="block"><input ${_Schema.ui.showSchemaOverlays ? 'checked' : ''} type="checkbox" id="schema-show-overlays" name="schema-show-overlays"> Relationship labels</label>
 							</div>
 							<div class="row">
-								<label class="block"><input ${_Schema.ui.showInheritance    ? 'checked' : ''} type="checkbox" id="schema-show-inheritance" name="schema-show-inheritance"> Inheritance arrows</label>
+								<label class="block"><input ${_Schema.ui.showInheritanceArrows ? 'checked' : ''} type="checkbox" id="schema-show-inheritance" name="schema-show-inheritance"> Inheritance arrows</label>
 							</div>
 
 							<div class="separator"></div>

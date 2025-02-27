@@ -27,8 +27,10 @@ import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.schema.SchemaHelper.Type;
-import org.structr.schema.parser.LongPropertyParser;
+import org.structr.schema.parser.LongPropertyGenerator;
 
 import java.util.Map;
 
@@ -164,7 +166,7 @@ public class StructrLongProperty extends StructrPropertyDefinition implements Js
 
 		super.deserialize(schemaNodes, property);
 
-		final LongPropertyParser longPropertyParser = property.getLongPropertyParser(schemaNodes);
+		final LongPropertyGenerator longPropertyParser = property.getLongPropertyParser();
 		if (longPropertyParser != null) {
 
 			this.exclusiveMinimum = longPropertyParser.isLowerExclusive();
@@ -186,9 +188,10 @@ public class StructrLongProperty extends StructrPropertyDefinition implements Js
 	SchemaProperty createDatabaseSchema(final App app, final AbstractSchemaNode schemaNode) throws FrameworkException {
 
 		final SchemaProperty property = super.createDatabaseSchema(app, schemaNode);
+		final Traits traits           = Traits.of(StructrTraits.SCHEMA_PROPERTY);
 		final PropertyMap properties  = new PropertyMap();
 
-		properties.put(SchemaProperty.propertyType, Type.Long.name());
+		properties.put(traits.key("propertyType"), Type.Long.name());
 
 		if (minimum != null && maximum != null) {
 
@@ -210,7 +213,7 @@ public class StructrLongProperty extends StructrPropertyDefinition implements Js
 				range.append("]");
 			}
 
-			properties.put(SchemaProperty.format, range.toString());
+			properties.put(traits.key("format"), range.toString());
 		}
 
 		property.setProperties(SecurityContext.getSuperUserInstance(), properties);

@@ -95,9 +95,9 @@ public class GlobalSchemaMethodResourceTest extends StructrRestTestBase {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(SchemaMethod.class,
-				new NodeAttribute<>(SchemaMethod.name, "myTestMethod02"),
-				new NodeAttribute<>(SchemaMethod.source, "{ ({ name: 'test', count: 1 }) }")
+			app.create(StructrTraits.SCHEMA_METHOD,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("name"), "myTestMethod02"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "{ ({ name: 'test', count: 1 }) }")
 			);
 
 			tx.success();
@@ -124,9 +124,9 @@ public class GlobalSchemaMethodResourceTest extends StructrRestTestBase {
 	public void test003UnwrapArrayOfArrays() {
 		try (final Tx tx = app.tx()) {
 
-			app.create(SchemaMethod.class,
-					new NodeAttribute<>(SchemaMethod.name, "myTestMethod03"),
-					new NodeAttribute<>(SchemaMethod.source, "{ [ [{'name': 'a'}], [{'name': 'b'}], [{'name': 'c'}] ]; }")
+			app.create(StructrTraits.SCHEMA_METHOD,
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("name"), "myTestMethod03"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "{ [ [{'name': 'a'}], [{'name': 'b'}], [{'name': 'c'}] ]; }")
 			);
 
 			tx.success();

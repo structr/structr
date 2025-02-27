@@ -26,9 +26,13 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.util.AbstractProcess;
 import org.structr.web.common.FileHelper;
+import org.structr.web.entity.File;
 import org.structr.web.entity.Image;
 
 import java.io.IOException;
@@ -51,15 +55,15 @@ public class FrameGrabberProcess extends AbstractProcess<Image> {
 
 	private static final Logger logger = LoggerFactory.getLogger(FrameGrabberProcess.class.getName());
 
-	private Image newFile         = null;
-	private VideoFile inputFile   = null;
-	private String outputFileName = null;
-	private String imageName      = null;
-	private String scriptName     = null;
-	private String fileExtension  = null;
-	private long timeIndex        = -1;
+	private NodeInterface newFile   = null;
+	private NodeInterface inputFile = null;
+	private String outputFileName   = null;
+	private String imageName        = null;
+	private String scriptName       = null;
+	private String fileExtension    = null;
+	private long timeIndex          = -1;
 
-	public FrameGrabberProcess(final SecurityContext securityContext, final VideoFile inputFile, final String imageName, final long timeIndex, final String scriptName) {
+	public FrameGrabberProcess(final SecurityContext securityContext, final NodeInterface inputFile, final String imageName, final long timeIndex, final String scriptName) {
 
 		super(securityContext);
 
@@ -76,7 +80,7 @@ public class FrameGrabberProcess extends AbstractProcess<Image> {
 		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
 			// create an empty file to store the converted video
-			newFile = FileHelper.createFile(securityContext, new byte[0], null, Image.class, imageName, false);
+			newFile = FileHelper.createFile(securityContext, new byte[0], null, StructrTraits.IMAGE, imageName, false);
 
 			// obtain destination path of new file
 			//outputFileName = newFile.getFileOnDisk().getAbsolutePath();
@@ -137,10 +141,10 @@ public class FrameGrabberProcess extends AbstractProcess<Image> {
 				if (diskFile.exists()) {
 
 					Files.move(diskFile.toPath(), dstFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-					FileHelper.updateMetadata(newFile, true);
+					FileHelper.updateMetadata(newFile.as(File.class), true);
 
 					// create link between the two videos
-					inputFile.setProperty(StructrApp.key(VideoFile.class, "posterImage"), newFile);
+					inputFile.setProperty(Traits.of("VideoFile").key("posterImage"), newFile);
 				}
 
 				tx.success();
@@ -163,6 +167,6 @@ public class FrameGrabberProcess extends AbstractProcess<Image> {
 
 		}
 
-		return newFile;
+		return newFile.as(Image.class);
 	}
 }

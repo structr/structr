@@ -37,11 +37,11 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.Notion;
 import org.structr.core.property.*;
+import org.structr.core.traits.Traits;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.exception.IllegalPathException;
-import org.structr.schema.SchemaHelper;
 
 import java.util.*;
 
@@ -54,19 +54,18 @@ public class PropertyResource extends AbstractTypeIdLowercaseNameResource {
 	@Override
 	public RESTCallHandler handleTypeIdName(final RESTCall call, final String typeName, final String uuid, final String name) {
 
-		final Class entityClass = SchemaHelper.getEntityClassForRawType(typeName);
-		if (entityClass != null) {
+		final Traits traits = Traits.of(typeName);
+		if (traits != null) {
 
-			PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(entityClass, name, false);
-			if (key == null) {
+			if (traits.hasKey(name)) {
 
-				// try to convert raw name into lower-case variable name
-				key = StructrApp.getConfiguration().getPropertyKeyForJSONName(entityClass, CaseHelper.toLowerCamelCase(name), false);
+				return new PropertyResourceHandler(call, typeName, uuid, traits.key(name));
 			}
 
-			if (key != null) {
+			final String lowerCaseName = CaseHelper.toLowerCamelCase(name);
+			if ( traits.hasKey(lowerCaseName)) {
 
-				return new PropertyResourceHandler(call, entityClass, uuid, key);
+				return new PropertyResourceHandler(call, typeName, uuid, traits.key(lowerCaseName));
 			}
 		}
 
@@ -79,17 +78,15 @@ public class PropertyResource extends AbstractTypeIdLowercaseNameResource {
 		private static final Logger logger = LoggerFactory.getLogger(PropertyResourceHandler.class);
 
 		private PropertyKey propertyKey = null;
-		private Class entityClass       = null;
 		private String typeName         = null;
 		private String keyName          = null;
 		private String uuid             = null;
 
-		public PropertyResourceHandler(final RESTCall call, final Class entityClass, final String uuid, final PropertyKey propertyKey) {
+		public PropertyResourceHandler(final RESTCall call, final String typeName, final String uuid, final PropertyKey propertyKey) {
 
 			super(call);
 
-			this.typeName    = entityClass.getSimpleName();
-			this.entityClass = entityClass;
+			this.typeName    = typeName;
 			this.uuid        = uuid;
 			this.propertyKey = propertyKey;
 			this.keyName     = propertyKey.jsonName();
@@ -101,11 +98,11 @@ public class PropertyResource extends AbstractTypeIdLowercaseNameResource {
 			final Query query = StructrApp.getInstance(securityContext).nodeQuery();
 
 			// use search context from type resource
-			collectSearchAttributes(securityContext, entityClass, query);
+			collectSearchAttributes(securityContext, typeName, query);
 
 			final Predicate<GraphObject> predicate = query.toPredicate();
 
-			final GraphObject sourceEntity = getEntity(securityContext, entityClass, typeName, uuid);
+			final GraphObject sourceEntity = getEntity(securityContext, typeName, uuid);
 			final Object value             = sourceEntity.getProperty(propertyKey, predicate);
 
 			if (value != null) {
@@ -212,7 +209,7 @@ public class PropertyResource extends AbstractTypeIdLowercaseNameResource {
 		@Override
 		public RestMethodResult doPut(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
 
-			final GraphObject sourceEntity = getEntity(securityContext, entityClass, typeName, uuid);
+			final GraphObject sourceEntity = getEntity(securityContext, typeName, uuid);
 			final App app                  = StructrApp.getInstance(securityContext);
 
 			// fetch static relationship definition
@@ -243,13 +240,13 @@ public class PropertyResource extends AbstractTypeIdLowercaseNameResource {
 		@Override
 		public RestMethodResult doPost(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
 
-			final GraphObject sourceEntity = getEntity(securityContext, entityClass, typeName, uuid);
+			final GraphObject sourceEntity = getEntity(securityContext, typeName, uuid);
 			RestMethodResult result        = null;
 
 			if (sourceEntity != null && propertyKey instanceof RelationProperty) {
 
 				final RelationProperty relationProperty = (RelationProperty) propertyKey;
-				final Class sourceNodeType              = sourceEntity.getClass();
+				final String sourceNodeType             = sourceEntity.getType();
 				NodeInterface newNode                   = null;
 
 				if (propertyKey.isReadOnly()) {
@@ -262,7 +259,7 @@ public class PropertyResource extends AbstractTypeIdLowercaseNameResource {
 				// fetch notion
 				final Notion notion                  = relationProperty.getNotion();
 				final PropertyKey primaryPropertyKey = notion.getPrimaryPropertyKey();
-				final Class relatedType              = relationProperty.getTargetType();
+				final String relatedType             = relationProperty.getTargetType();
 
 				// apply notion if the property set contains the ID property as the only element
 				if (primaryPropertyKey != null && propertySet.containsKey(primaryPropertyKey.jsonName()) && propertySet.size() == 1) {
@@ -275,10 +272,10 @@ public class PropertyResource extends AbstractTypeIdLowercaseNameResource {
 
 					// the notion can not deserialize objects with a single key, or the POSTed propertySet did not contain a key to deserialize,
 					// so we create a new node from the POSTed properties and link the source node to it. (this is the "old" implementation)
-					newNode = createNode(securityContext, relatedType, relatedType.getSimpleName(), propertySet);
+					newNode = createNode(securityContext, relatedType, propertySet);
 					if (newNode != null) {
 
-						relationProperty.addSingleElement(securityContext, sourceEntity, newNode);
+						relationProperty.addSingleElement(securityContext, (NodeInterface) sourceEntity, newNode);
 					}
 				}
 
@@ -304,14 +301,14 @@ public class PropertyResource extends AbstractTypeIdLowercaseNameResource {
 		}
 
 		@Override
-		public Class getEntityClass(final SecurityContext securityContext) {
+		public String getTypeName(final SecurityContext securityContext) {
 
-			if (entityClass == null && propertyKey != null) {
+			if (typeName == null && propertyKey != null) {
 
 				return propertyKey.relatedType();
 			}
 
-			return entityClass;
+			return typeName;
 		}
 
 		@Override

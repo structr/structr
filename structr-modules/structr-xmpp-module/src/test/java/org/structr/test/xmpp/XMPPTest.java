@@ -20,13 +20,11 @@ package org.structr.test.xmpp;
 
 import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
-import org.jivesoftware.smack.packet.Presence;
-import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.test.web.StructrUiTest;
-import org.structr.web.entity.User;
-import org.structr.xmpp.XMPPClient;
 import org.testng.annotations.Test;
 
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -38,14 +36,16 @@ public class XMPPTest extends StructrUiTest {
 	@Test
 	public void testMQTT() {
 
-		final Class clientType = StructrApp.getConfiguration().getNodeEntityClass("XMPPClient");
+		final String clientType   = "XMPPClient";
+		final Traits userTraits   = Traits.of(StructrTraits.USER);
+		final Traits clientTraits = Traits.of("XMPPClient");
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"),  true)
+			app.create(StructrTraits.USER,
+				new NodeAttribute<>(userTraits.key("name"),     "admin"),
+				new NodeAttribute<>(userTraits.key("password"), "admin"),
+				new NodeAttribute<>(userTraits.key("isAdmin"),  true)
 			);
 
 			tx.success();
@@ -57,12 +57,12 @@ public class XMPPTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create(clientType,
-				new NodeAttribute<>(StructrApp.key(XMPPClient.class, "xmppUsername"),  "username"),
-				new NodeAttribute<>(StructrApp.key(XMPPClient.class, "xmppPassword"),  "password"),
-				new NodeAttribute<>(StructrApp.key(XMPPClient.class, "xmppService"),   "service"),
-				new NodeAttribute<>(StructrApp.key(XMPPClient.class, "xmppHost"),      "host"),
-				new NodeAttribute<>(StructrApp.key(XMPPClient.class, "xmppPort"),      12345),
-				new NodeAttribute<>(StructrApp.key(XMPPClient.class, "presenceMode"),  Presence.Mode.available)
+				new NodeAttribute<>(clientTraits.key("xmppUsername"),  "username"),
+				new NodeAttribute<>(clientTraits.key("xmppPassword"),  "password"),
+				new NodeAttribute<>(clientTraits.key("xmppService"),   "service"),
+				new NodeAttribute<>(clientTraits.key("xmppHost"),      "host"),
+				new NodeAttribute<>(clientTraits.key("xmppPort"),      12345),
+				new NodeAttribute<>(clientTraits.key("presenceMode"),  "available")
 			);
 
 			tx.success();

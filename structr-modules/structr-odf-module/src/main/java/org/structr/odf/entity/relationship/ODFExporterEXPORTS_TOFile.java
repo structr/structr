@@ -18,24 +18,54 @@
  */
 package org.structr.odf.entity.relationship;
 
-import org.structr.core.entity.OneToOne;
-import org.structr.odf.entity.ODFExporter;
-import org.structr.web.entity.File;
+import org.structr.core.entity.Relation;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
+import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
-public class ODFExporterEXPORTS_TOFile extends OneToOne<ODFExporter, File> {
+public class ODFExporterEXPORTS_TOFile extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
-	@Override
-	public Class<ODFExporter> getSourceType() {
-		return ODFExporter.class;
+	public ODFExporterEXPORTS_TOFile() {
+		super("ODFExporterEXPORTS_TOFile");
 	}
 
 	@Override
-	public Class<File> getTargetType() {
-		return File.class;
+	public String getSourceType() {
+		return "ODFExporter";
 	}
 
 	@Override
-	public String name() {
+	public String getTargetType() {
+		return StructrTraits.FILE;
+	}
+
+	@Override
+	public String getRelationshipType() {
 		return "EXPORTS_TO";
+	}
+
+	@Override
+	public Relation.Multiplicity getSourceMultiplicity() {
+		return Relation.Multiplicity.One;
+	}
+
+	@Override
+	public Relation.Multiplicity getTargetMultiplicity() {
+		return Relation.Multiplicity.One;
+	}
+
+	@Override
+	public int getCascadingDeleteFlag() {
+		return Relation.NONE;
+	}
+
+	@Override
+	public int getAutocreationFlag() {
+		return Relation.NONE;
+	}
+
+	@Override
+	public boolean isInternal() {
+		return false;
 	}
 }

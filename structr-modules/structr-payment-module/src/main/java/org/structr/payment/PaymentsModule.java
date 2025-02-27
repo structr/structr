@@ -24,7 +24,11 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.service.LicenseManager;
 import org.structr.core.entity.AbstractSchemaNode;
+import org.structr.core.traits.StructrTraits;
 import org.structr.module.StructrModule;
+import org.structr.payment.entity.relationship.PaymentNodepaymentItemPaymentItem;
+import org.structr.payment.traits.definitions.PaymentItemNodeTraitDefinition;
+import org.structr.payment.traits.definitions.PaymentNodeTraitDefinition;
 import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
 
@@ -37,6 +41,11 @@ public class PaymentsModule implements StructrModule {
 
 	@Override
 	public void onLoad(final LicenseManager licenseManager) {
+
+		StructrTraits.registerRelationshipType("PaymentNodepaymentItemPaymentItem", new PaymentNodepaymentItemPaymentItem());
+
+		StructrTraits.registerNodeType("PaymentNode",     new PaymentNodeTraitDefinition());
+		StructrTraits.registerNodeType("PaymentItemNode", new PaymentItemNodeTraitDefinition());
 
 		// read configuration..
 		checkString("paypal.mode",      Settings.getOrCreateStringSetting("paypal", "mode").getValue(),      "paypal.mode not set, please set to either sandbox or live.");
@@ -58,7 +67,7 @@ public class PaymentsModule implements StructrModule {
 
 	@Override
 	public Set<String> getDependencies() {
-		return null;
+		return Set.of("ui");
 	}
 
 	@Override

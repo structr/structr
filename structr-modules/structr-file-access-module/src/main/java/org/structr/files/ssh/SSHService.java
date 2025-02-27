@@ -48,9 +48,12 @@ import org.structr.common.error.FrameworkException;
 import org.structr.console.Console.ConsoleMode;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.exception.UnauthorizedException;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.files.ssh.filesystem.StructrFilesystem;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.schema.SchemaService;
@@ -203,7 +206,8 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 
 				try {
 
-					PrincipalInterface principal = AuthHelper.getPrincipalForPassword(AbstractNode.name, username, password);
+					final PropertyKey<String> nameKey = Traits.of(StructrTraits.NODE_INTERFACE).key("name");
+					Principal principal = AuthHelper.getPrincipalForPassword(nameKey, username, password);
 
 					if (principal != null) {
 
@@ -262,15 +266,16 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 
 			try {
 
-				final PrincipalInterface principal = StructrApp.getInstance().nodeQuery(PrincipalInterface.class).andName(username).getFirst();
-				if (principal != null) {
+				final NodeInterface principalNode = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).andName(username).getFirst();
+				if (principalNode != null) {
 
+					final Principal principal = principalNode.as(Principal.class);
 					if (principal.isAdmin()) {
 
 						securityContext = SecurityContext.getInstance(principal, AccessMode.Backend);
 
 						// check single (main) pubkey
-						final String pubKeyData = principal.getProperty(StructrApp.key(PrincipalInterface.class, "publicKey"));
+						final String pubKeyData = principal.getProperty(principal.getTraits().key("publicKey"));
 						if (pubKeyData != null) {
 
 							final PublicKey pubKey = PublicKeyEntry.parsePublicKeyEntry(pubKeyData).resolvePublicKey(session, Collections.emptyMap(), PublicKeyEntryResolver.FAILING);
@@ -279,7 +284,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 						}
 
 						// check array of pubkeys for this user
-						final String[] pubKeysData = principal.getProperty(StructrApp.key(PrincipalInterface.class, "publicKeys"));
+						final String[] pubKeysData = principal.getProperty(principal.getTraits().key( "publicKeys"));
 						if (pubKeysData != null) {
 
 							for (final String k : pubKeysData) {

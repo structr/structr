@@ -20,13 +20,17 @@ package org.structr.schema.openapi.schema;
 
 import org.structr.common.PropertyView;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.export.StructrTypeDefinition;
 import org.structr.schema.openapi.common.OpenAPISchemaReference;
 
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
 public class OpenAPIStructrTypeSchemaOutput extends TreeMap<String, Object> {
 
@@ -64,7 +68,8 @@ public class OpenAPIStructrTypeSchemaOutput extends TreeMap<String, Object> {
 
 	}
 
-	public OpenAPIStructrTypeSchemaOutput(final Class type, final String viewName, final int level)  {
+	public OpenAPIStructrTypeSchemaOutput(final String type, final String viewName, final int level)  {
+
 		final Set<String> builtInViews = Set.of( "ui", "public", "all", "custom" );
 
 		// if viewName is a builtin view, we only render public view of connected nodes
@@ -84,14 +89,15 @@ public class OpenAPIStructrTypeSchemaOutput extends TreeMap<String, Object> {
 		}
 
 		final Map<String, Object> properties = new LinkedHashMap<>();
-		final String typeName                = type.getSimpleName();
+		final String typeName                = type;
 
 		put("type",        "object");
 		put("description", typeName);
 		put("properties",  properties);
 
 		final ConfigurationProvider config = StructrApp.getConfiguration();
-		final Set<PropertyKey> keys        = config.getPropertySet(type, viewName);
+		final Traits traits                = Traits.of(type);
+		final Set<PropertyKey> keys        = traits.getPropertyKeysForView(viewName);
 
 		if (keys != null && !keys.isEmpty()) {
 
@@ -102,11 +108,14 @@ public class OpenAPIStructrTypeSchemaOutput extends TreeMap<String, Object> {
 
 		} else {
 
-			// default properties
-			List.of(AbstractNode.id, AbstractNode.type, AbstractNode.name).stream().forEach(key -> {
+			final PropertyKey idKey   = Traits.of(StructrTraits.GRAPH_OBJECT).key("id");
+			final PropertyKey typeKey = Traits.of(StructrTraits.GRAPH_OBJECT).key("type");
+			final PropertyKey nameKey = Traits.of(StructrTraits.NODE_INTERFACE).key("name");
 
-				properties.put(key.jsonName(), key.describeOpenAPIOutputType(typeName, viewName, level));
-			});
+			// default properties
+			properties.put("id",   idKey.describeOpenAPIOutputType(typeName, viewName, level));
+			properties.put("type", typeKey.describeOpenAPIOutputType(typeName, viewName, level));
+			properties.put("name", nameKey.describeOpenAPIOutputType(typeName, viewName, level));
 		}
 	}
 }

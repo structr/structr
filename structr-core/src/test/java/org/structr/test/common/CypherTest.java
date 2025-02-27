@@ -32,6 +32,7 @@ import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonReferenceType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.util.Iterables;
+import org.structr.common.AccessControllable;
 import org.structr.common.AccessMode;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
@@ -41,17 +42,14 @@ import org.structr.core.GraphObjectMap;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.*;
+import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.schema.export.StructrSchema;
-import org.structr.test.core.entity.SixOneManyToMany;
-import org.structr.test.core.entity.SixOneOneToOne;
-import org.structr.test.core.entity.TestOne;
-import org.structr.test.core.entity.TestSix;
-import org.structr.web.entity.User;
 import org.testng.annotations.Test;
 
 import java.util.*;
@@ -73,16 +71,16 @@ public class CypherTest extends StructrTest {
 
 			try {
 
-				final TestSix testSix = this.createTestNode(TestSix.class);
-				final TestOne testOne = this.createTestNode(TestOne.class);
-				SixOneOneToOne rel            = null;
+				final NodeInterface testSix = this.createTestNode("TestSix");
+				final NodeInterface testOne = this.createTestNode("TestOne");
+				RelationshipInterface rel   = null;
 
 				assertNotNull(testSix);
 				assertNotNull(testOne);
 
 				try (final Tx tx = app.tx()) {
 
-					rel = app.create(testSix, testOne, SixOneOneToOne.class);
+					rel = app.create(testSix, testOne, "SixOneOneToOne");
 					tx.success();
 				}
 
@@ -128,9 +126,9 @@ public class CypherTest extends StructrTest {
 
 		try {
 
-			final TestOne testOne  = createTestNode(TestOne.class);
-			final TestSix testSix  = createTestNode(TestSix.class);
-			SixOneOneToOne rel     = null;
+			final NodeInterface testOne  = createTestNode("TestOne");
+			final NodeInterface testSix  = createTestNode("TestSix");
+			RelationshipInterface rel    = null;
 			String uuid = null;
 
 			assertNotNull(testOne);
@@ -138,7 +136,7 @@ public class CypherTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				rel = app.create(testSix, testOne, SixOneOneToOne.class);
+				rel = app.create(testSix, testOne, "SixOneOneToOne");
 				uuid = rel.getUuid();
 				tx.success();
 			}
@@ -178,16 +176,16 @@ public class CypherTest extends StructrTest {
 
 			try {
 
-				final TestOne testOne  = createTestNode(TestOne.class);
-				final TestSix testSix  = createTestNode(TestSix.class);
-				SixOneOneToOne rel     = null;
+				final NodeInterface testOne  = createTestNode("TestOne");
+				final NodeInterface testSix  = createTestNode("TestSix");
+				RelationshipInterface rel    = null;
 
 				assertNotNull(testOne);
 				assertNotNull(testSix);
 
 				try (final Tx tx = app.tx()) {
 
-					rel = app.create(testSix, testOne, SixOneOneToOne.class);
+					rel = app.create(testSix, testOne, "SixOneOneToOne");
 					tx.success();
 				}
 
@@ -235,17 +233,17 @@ public class CypherTest extends StructrTest {
 
 			try {
 
-				final TestOne testOne = createTestNode(TestOne.class);
-				final TestSix testSix = createTestNode(TestSix.class);
-				String relId          = null;
-				SixOneOneToOne rel    = null;
+				final NodeInterface testOne  = createTestNode("TestOne");
+				final NodeInterface testSix  = createTestNode("TestSix");
+				String relId                 = null;
+				RelationshipInterface rel    = null;
 
 				assertNotNull(testOne);
 				assertNotNull(testSix);
 
 				try (final Tx tx = app.tx()) {
 
-					rel   = app.create(testSix, testOne, SixOneOneToOne.class);
+					rel   = app.create(testSix, testOne, "SixOneOneToOne");
 					relId = rel.getUuid();
 					tx.success();
 				}
@@ -283,12 +281,12 @@ public class CypherTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				List<TestOne> testOnes = createTestNodes(TestOne.class, 10);
-				List<TestSix> testSixs = createTestNodes(TestSix.class, 10);
+				List<NodeInterface> testOnes = createTestNodes("TestOne", 10);
+				List<NodeInterface> testSixs = createTestNodes("TestSix", 10);
 
-				for (final TestOne testOne : testOnes) {
+				for (final NodeInterface testOne : testOnes) {
 
-					testOne.setProperty(TestOne.manyToManyTestSixs, testSixs);
+					testOne.setProperty(Traits.of("TestOne").key("manyToManyTestSixs"), testSixs);
 				}
 
 				tx.success();
@@ -308,7 +306,7 @@ public class CypherTest extends StructrTest {
 				for (final GraphObject obj : result) {
 
 					System.out.println(obj);
-					assertEquals("Invalid wrapped cypher query result", TestOne.class, obj.getClass());
+					assertEquals("Invalid wrapped cypher query result", "TestOne", obj.getType());
 				}
 
 				tx.success();
@@ -327,12 +325,12 @@ public class CypherTest extends StructrTest {
 
 				while (rit.hasNext()) {
 
-					final Iterable tuple = (Iterable)rit.next();
-					final Iterator it    = tuple.iterator();
+					final Iterable<GraphObject> tuple = (Iterable)rit.next();
+					final Iterator<GraphObject> it    = tuple.iterator();
 
-					assertEquals("Invalid wrapped cypher query result", TestOne.class, it.next().getClass());		// n
-					assertEquals("Invalid wrapped cypher query result", SixOneManyToMany.class, it.next().getClass());	// r
-					assertEquals("Invalid wrapped cypher query result", TestSix.class, it.next().getClass());		// m
+					assertEquals("Invalid wrapped cypher query result", "TestOne", it.next().getType());		// n
+					assertEquals("Invalid wrapped cypher query result", "SixOneManyToMany", it.next().getType());	// r
+					assertEquals("Invalid wrapped cypher query result", "TestSix", it.next().getType());		// m
 				}
 
 				tx.success();
@@ -350,12 +348,12 @@ public class CypherTest extends StructrTest {
 
 				while (rit.hasNext()) {
 
-					final Iterable tuple = (Iterable)rit.next();
-					final Iterator it    = tuple.iterator();
+					final Iterable<GraphObject> tuple = (Iterable)rit.next();
+					final Iterator<GraphObject> it    = tuple.iterator();
 
-					assertEquals("Invalid wrapped cypher query result", TestOne.class, it.next().getClass());		// n
-					assertEquals("Invalid wrapped cypher query result", SixOneManyToMany.class, it.next().getClass());	// r
-					assertEquals("Invalid wrapped cypher query result", TestSix.class, it.next().getClass());		// m
+					assertEquals("Invalid wrapped cypher query result", "TestOne", it.next().getType());		// n
+					assertEquals("Invalid wrapped cypher query result", "SixOneManyToMany", it.next().getType());	// r
+					assertEquals("Invalid wrapped cypher query result", "TestSix", it.next().getType());		// m
 
 					resultCount++;
 				}
@@ -379,21 +377,21 @@ public class CypherTest extends StructrTest {
 
 					assertEquals("Invalid wrapped cypher query result", GraphObjectMap.class, obj.getClass());
 
-					final Object nodes = obj.getProperty(new StringProperty("nodes"));
-					final Object rels  = obj.getProperty(new StringProperty("rels"));
+					final Object nodes = obj.getProperty(new GenericProperty("nodes"));
+					final Object rels  = obj.getProperty(new GenericProperty("rels"));
 
 					assertTrue("Invalid wrapped cypher query result", nodes instanceof Collection);
 					assertTrue("Invalid wrapped cypher query result", rels instanceof Collection);
 
-					final Iterator it = ((Collection)nodes).iterator();
+					final Iterator<GraphObject> it = ((Collection)nodes).iterator();
 					while (it.hasNext()) {
 
-						assertEquals("Invalid wrapped cypher query result", TestOne.class, it.next().getClass());
-						assertEquals("Invalid wrapped cypher query result", TestSix.class, it.next().getClass());
+						assertEquals("Invalid wrapped cypher query result", "TestOne", it.next().getType());
+						assertEquals("Invalid wrapped cypher query result", "TestSix", it.next().getType());
 					}
 
-					for (final Object node : ((Collection)rels)) {
-						assertEquals("Invalid wrapped cypher query result", SixOneManyToMany.class, node.getClass());
+					for (final GraphObject node : ((Collection<GraphObject>)rels)) {
+						assertEquals("Invalid wrapped cypher query result", "SixOneManyToMany", node.getType());
 					}
 
 				}
@@ -439,16 +437,16 @@ public class CypherTest extends StructrTest {
 
 					assertEquals("Invalid wrapped cypher query result", GraphObjectMap.class, obj.getClass());
 
-					final Object nodes = obj.getProperty(new StringProperty("nodes"));
+					final Object nodes = obj.getProperty(new GenericProperty("nodes"));
 					assertTrue("Invalid wrapped cypher query result", nodes instanceof GraphObjectMap);
 
-					final Object x = ((GraphObjectMap)nodes).getProperty(new StringProperty("x"));
+					final Object x = ((GraphObjectMap)nodes).getProperty(new GenericProperty("x"));
 					assertTrue("Invalid wrapped cypher query result", x instanceof GraphObjectMap);
 
-					final Object y = ((GraphObjectMap)x).getProperty(new StringProperty("y"));
+					final Object y = ((GraphObjectMap)x).getProperty(new GenericProperty("y"));
 					assertTrue("Invalid wrapped cypher query result", y instanceof GraphObjectMap);
 
-					final Object z = ((GraphObjectMap)y).getProperty(new StringProperty("z"));
+					final Object z = ((GraphObjectMap)y).getProperty(new GenericProperty("z"));
 					assertTrue("Invalid wrapped cypher query result", z instanceof Collection);
 
 				}
@@ -467,10 +465,10 @@ public class CypherTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				final TestOne t1 = createTestNode(TestOne.class, "singleTestOne");
-				final TestSix t6 = createTestNode(TestSix.class, "singleTestSix");
+				final NodeInterface t1 = createTestNode("TestOne", "singleTestOne");
+				final NodeInterface t6 = createTestNode("TestSix", "singleTestSix");
 
-				t1.setProperty(TestOne.manyToManyTestSixs, Arrays.asList(t6));
+				t1.setProperty(Traits.of("TestOne").key("manyToManyTestSixs"), Arrays.asList(t6));
 
 				testOneId = t1.getUuid();
 				testSixId = t6.getUuid();
@@ -493,7 +491,7 @@ public class CypherTest extends StructrTest {
 				assertEquals("Invalid wrapped cypher query result - both end nodes of relationship are not visible, relationship should also not be visible", 0, result.size());
 
 				final GraphObject t1 = app.getNodeById(testOneId);
-				t1.setProperty(GraphObject.visibleToPublicUsers, true);
+				t1.setProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key("visibleToPublicUsers"), true);
 
 				tx.success();
 
@@ -509,10 +507,10 @@ public class CypherTest extends StructrTest {
 				assertEquals("Invalid wrapped cypher query result - source node of relationship is not visible, relationship should also not be visible", 0, result.size());
 
 				final GraphObject t1 = app.getNodeById(testOneId);
-				t1.setProperty(GraphObject.visibleToPublicUsers, false);
+				t1.setProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key("visibleToPublicUsers"), false);
 
 				final GraphObject t6 = app.getNodeById(testSixId);
-				t6.setProperty(GraphObject.visibleToPublicUsers, true);
+				t6.setProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key("visibleToPublicUsers"), true);
 
 				tx.success();
 
@@ -528,10 +526,10 @@ public class CypherTest extends StructrTest {
 				assertEquals("Invalid wrapped cypher query result - target node of relationship is not visible, relationship should also not be visible", 0, result.size());
 
 				final GraphObject t1 = app.getNodeById(testOneId);
-				t1.setProperty(GraphObject.visibleToPublicUsers, true);
+				t1.setProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key("visibleToPublicUsers"), true);
 
 				final GraphObject t6 = app.getNodeById(testSixId);
-				t6.setProperty(GraphObject.visibleToPublicUsers, true);
+				t6.setProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key("visibleToPublicUsers"), true);
 
 				tx.success();
 
@@ -559,26 +557,26 @@ public class CypherTest extends StructrTest {
 
 		if (Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
 
-			PrincipalInterface tester = null;
+			Principal tester = null;
 
 			try (final Tx tx = app.tx()) {
 
-				final List<TestOne> testOnes = createTestNodes(TestOne.class, 10);
-				final List<TestSix> testSixs = createTestNodes(TestSix.class, 10);
+				final List<NodeInterface> testOnes = createTestNodes("TestOne", 10);
+				final List<NodeInterface> testSixs = createTestNodes("TestSix", 10);
 				int count                    = 0;
 
-				tester = app.create(User.class, "tester");
+				tester = app.create(StructrTraits.USER, "tester").as(Principal.class);
 
-				for (final TestSix testSix : testSixs) {
-					testSix.grant(Permission.read, tester);
+				for (final NodeInterface testSix : testSixs) {
+					testSix.as(AccessControllable.class).grant(Permission.read, tester);
 				}
 
-				for (final TestOne testOne : testOnes) {
+				for (final NodeInterface testOne : testOnes) {
 
-					testOne.setProperty(TestOne.manyToManyTestSixs, testSixs);
+					testOne.setProperty(Traits.of("TestOne").key("manyToManyTestSixs"), testSixs);
 
 					if (count++ < 3) {
-						testOne.grant(Permission.read, tester);
+						testOne.as(AccessControllable.class).grant(Permission.read, tester);
 					}
 				}
 
@@ -598,12 +596,12 @@ public class CypherTest extends StructrTest {
 
 				while (rit.hasNext()) {
 
-					final Iterable tuple = (Iterable)rit.next();
-					final Iterator it    = tuple.iterator();
+					final Iterable<GraphObject> tuple = (Iterable)rit.next();
+					final Iterator<GraphObject> it    = tuple.iterator();
 
-					assertEquals("Invalid wrapped cypher query result", TestOne.class, it.next().getClass());		// n
-					assertEquals("Invalid wrapped cypher query result", SixOneManyToMany.class, it.next().getClass());	// r
-					assertEquals("Invalid wrapped cypher query result", TestSix.class, it.next().getClass());		// m
+					assertEquals("Invalid wrapped cypher query result", "TestOne",          it.next().getType());		// n
+					assertEquals("Invalid wrapped cypher query result", "SixOneManyToMany", it.next().getType());	// r
+					assertEquals("Invalid wrapped cypher query result", "TestSix",          it.next().getType());		// m
 
 					resultCount++;
 				}
@@ -628,12 +626,12 @@ public class CypherTest extends StructrTest {
 
 				while (rit.hasNext()) {
 
-					final Iterable tuple = (Iterable)rit.next();
-					final Iterator it    = tuple.iterator();
+					final Iterable<GraphObject> tuple = (Iterable)rit.next();
+					final Iterator<GraphObject> it    = tuple.iterator();
 
-					assertEquals("Invalid wrapped cypher query result", TestOne.class, it.next().getClass());		// n
-					assertEquals("Invalid wrapped cypher query result", SixOneManyToMany.class, it.next().getClass());	// r
-					assertEquals("Invalid wrapped cypher query result", TestSix.class, it.next().getClass());		// m
+					assertEquals("Invalid wrapped cypher query result", "TestOne",          it.next().getType());		// n
+					assertEquals("Invalid wrapped cypher query result", "SixOneManyToMany", it.next().getType());	// r
+					assertEquals("Invalid wrapped cypher query result", "TestSix",          it.next().getType());		// m
 
 					resultCount++;
 				}
@@ -658,22 +656,22 @@ public class CypherTest extends StructrTest {
 
 				try (final Tx tx = app.tx()) {
 
-					final TestSix testSix = this.createTestNode(TestSix.class, "testnode");
+					final NodeInterface testSix = this.createTestNode("TestSix", "testnode");
 					final String uuid     = testSix.getUuid();
 
 					assertNotNull(testSix);
 
-					final Iterable result = app.command(NativeQueryCommand.class).execute("MATCH path = (x:" + randomTenantId + ") WHERE x.name = 'testnode' RETURN path");
-					final Iterator rit    = result.iterator();
+					final Iterable<GraphObject> result = app.command(NativeQueryCommand.class).execute("MATCH path = (x:" + randomTenantId + ") WHERE x.name = 'testnode' RETURN path");
+					final Iterator<GraphObject> rit    = result.iterator();
 
 					while (rit.hasNext()) {
 
-						final Iterable tuple = (Iterable)rit.next();
-						final Iterator it    = tuple.iterator();
-						final TestSix test   = (TestSix)it.next();
+						final Iterable<GraphObject> tuple = (Iterable)rit.next();
+						final Iterator<GraphObject> it    = tuple.iterator();
+						final GraphObject test            = it.next();
 
-						assertEquals("Invalid wrapped cypher query result", TestSix.class, test.getClass());
-						assertEquals("Invalid wrapped cypher query result", uuid,          test.getUuid());
+						assertEquals("Invalid wrapped cypher query result", "TestSix", test.getType());
+						assertEquals("Invalid wrapped cypher query result", uuid,      test.getUuid());
 					}
 
 					tx.success();
@@ -714,18 +712,18 @@ public class CypherTest extends StructrTest {
 
 			try {
 
-				final Class projectType      = StructrApp.getConfiguration().getNodeEntityClass("Project");
-				final Class taskType         = StructrApp.getConfiguration().getNodeEntityClass("Task");
-				final PropertyKey projectKey = StructrApp.key(taskType, "project");
+				final String projectType     = "Project";
+				final String taskType        = "Task";
+				final PropertyKey projectKey = Traits.of(taskType).key("project");
 
 				createTestNode(taskType,
-					new NodeAttribute<>(AbstractNode.name, "Task1"),
-					new NodeAttribute<>(projectKey, createTestNode(projectType, new NodeAttribute<>(AbstractNode.name, "Project1")))
+					new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "Task1"),
+					new NodeAttribute<>(projectKey, createTestNode(projectType, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "Project1")))
 				);
 
 				createTestNode(taskType,
-					new NodeAttribute<>(AbstractNode.name, "Task2"),
-					new NodeAttribute<>(projectKey, createTestNode(projectType, new NodeAttribute<>(AbstractNode.name, "Project2")))
+					new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "Task2"),
+					new NodeAttribute<>(projectKey, createTestNode(projectType, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "Project2")))
 				);
 
 			} catch (FrameworkException t) {

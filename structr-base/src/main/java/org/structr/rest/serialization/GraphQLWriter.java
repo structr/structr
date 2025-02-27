@@ -281,7 +281,7 @@ public class GraphQLWriter {
 				final GraphQLQueryConfiguration subkeyConfig = query.getQueryConfiguration(path);
 				if (subkeyConfig != null) {
 
-					return subkeyConfig.getPredicateForPropertyKey(key);
+					return subkeyConfig.getPredicateForPropertyKey(key.jsonName());
 				}
 			}
 
@@ -338,7 +338,7 @@ public class GraphQLWriter {
 		public void serialize(final RestWriter writer, final PropertyKey key, final Iterable value, final GraphQLQuery graphQLQuery, final String path) throws IOException {
 
 			final GraphQLQueryConfiguration config = graphQLQuery.getQueryConfiguration(path);
-			final Predicate predicate              = config.getPredicateForPropertyKey(key);
+			final Predicate predicate              = config.getPredicateForPropertyKey(key.jsonName());
 			final SecurityContext securityContext  = writer.getSecurityContext();
 			int pageSize                           = Integer.MAX_VALUE;
 			int start                              = 0;

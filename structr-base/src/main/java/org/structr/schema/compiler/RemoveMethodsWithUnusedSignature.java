@@ -24,9 +24,10 @@ import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.SchemaMethod;
-import org.structr.core.entity.SchemaNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -56,7 +57,8 @@ public class RemoveMethodsWithUnusedSignature implements MigrationHandler {
 
 				try {
 
-					final App app = StructrApp.getInstance();
+					final App app       = StructrApp.getInstance();
+					final Traits traits = Traits.of(StructrTraits.SCHEMA_NODE);
 
 					// extract info
 					final String methodName = matcher.group(1);
@@ -65,18 +67,18 @@ public class RemoveMethodsWithUnusedSignature implements MigrationHandler {
 
 					try (final Tx tx = app.tx()) {
 
-						SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName(type).getFirst();
+						NodeInterface schemaNode = app.nodeQuery(StructrTraits.SCHEMA_NODE).andName(type).getFirst();
 
 						if (schemaNode == null) {
 
-							schemaNode = app.nodeQuery(SchemaNode.class).andName(fqcn.substring(fqcn.lastIndexOf(".") + 1)).getFirst();
+							schemaNode = app.nodeQuery(StructrTraits.SCHEMA_NODE).andName(fqcn.substring(fqcn.lastIndexOf(".") + 1)).getFirst();
 						}
 
 						if (schemaNode != null) {
 
-							for (final SchemaMethod method : app.nodeQuery(SchemaMethod.class)
-								.and(SchemaMethod.schemaNode, schemaNode)
-								.and(SchemaMethod.name,       methodName)
+							for (final NodeInterface method : app.nodeQuery(StructrTraits.SCHEMA_METHOD)
+								.and(traits.key("schemaNode"), schemaNode)
+								.and(traits.key("name"),       methodName)
 								.getAsList()) {
 
 								app.delete(method);

@@ -26,12 +26,9 @@ import org.structr.core.property.RelationProperty;
 /**
  * Defines a strategy for serializing a {@link GraphObject} into an output
  * object.
- *
- *
  */
 public interface SerializationStrategy<S extends GraphObject, T> {
 
-	public T serialize(SecurityContext securityContext, Class<S> type, S source) throws FrameworkException;
-
-	public void setRelationProperty(final RelationProperty<T> parentProperty);
+	T serialize(SecurityContext securityContext, String type, S source) throws FrameworkException;
+	void setRelationProperty(final RelationProperty parentProperty);
 }

@@ -26,6 +26,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.Traits;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 
@@ -63,12 +64,12 @@ public class GetOrCreateFunction extends CoreFunction {
 			final PropertyMap properties          = new PropertyMap();
 
 			// the type to query for
-			Class type = null;
+			Traits type = null;
 
 			if (sources.length >= 1 && sources[0] != null) {
 
 				final String typeString = sources[0].toString();
-				type = config.getNodeEntityClass(typeString);
+				type = Traits.of(typeString);
 
 				if (type == null) {
 
@@ -87,7 +88,7 @@ public class GetOrCreateFunction extends CoreFunction {
 			// extension for native javascript objects
 			if (sources.length == 2 && sources[1] instanceof Map) {
 
-				properties.putAll(PropertyMap.inputTypeToJavaType(securityContext, type, (Map)sources[1]));
+				properties.putAll(PropertyMap.inputTypeToJavaType(securityContext, type.getName(), (Map)sources[1]));
 
 			} else {
 
@@ -104,7 +105,7 @@ public class GetOrCreateFunction extends CoreFunction {
 						throw new IllegalArgumentException();
 					}
 
-					final PropertyKey key = StructrApp.key(type, sources[c].toString());
+					final PropertyKey key = type.key(sources[c].toString());
 					if (key != null) {
 
 						final PropertyConverter inputConverter = key.inputConverter(securityContext);
@@ -120,7 +121,7 @@ public class GetOrCreateFunction extends CoreFunction {
 				}
 			}
 
-			final GraphObject obj = app.nodeQuery(type).disableSorting().pageSize(1).and(properties).getFirst();
+			final GraphObject obj = app.nodeQuery(type.getName()).disableSorting().pageSize(1).and(properties).getFirst();
 			if (obj != null) {
 
 				// return existing object
@@ -128,7 +129,7 @@ public class GetOrCreateFunction extends CoreFunction {
 			}
 
 			// create new object
-			return app.create(type, properties);
+			return app.create(type.getName(), properties);
 
 		} catch (final IllegalArgumentException e) {
 

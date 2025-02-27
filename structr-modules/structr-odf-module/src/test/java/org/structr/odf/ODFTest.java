@@ -39,15 +39,14 @@ package org.structr.odf;
 
 import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
-import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
-import org.structr.odf.entity.ODFExporter;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
-import org.structr.web.entity.User;
 import org.testng.annotations.Test;
 
 import java.io.InputStream;
@@ -61,31 +60,34 @@ public class ODFTest extends StructrUiTest {
 	@Test
 	public void testODS() {
 
-		final Class type = StructrApp.getConfiguration().getNodeEntityClass("ODSExporter");
-		File template    = null;
-		String uuid      = null;
+		final String type = "ODSExporter";
+		File template     = null;
+		String uuid       = null;
 
 		assertNotNull("Type ODSExporter should exist", type);
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"),  true)
+			final Traits userTraits = Traits.of(StructrTraits.USER);
+			final Traits odfTraits  = Traits.of("ODFExporter");
+
+			app.create(StructrTraits.USER,
+				new NodeAttribute<>(userTraits.key("name"),     "admin"),
+				new NodeAttribute<>(userTraits.key("password"), "admin"),
+				new NodeAttribute<>(userTraits.key("isAdmin"),  true)
 			);
 
 			// read test file from sources
 			try (final InputStream is = ODFTest.class.getResourceAsStream("/test.odt")) {
 
-				template = FileHelper.createFile(securityContext, is, "", File.class, "template");
+				template = FileHelper.createFile(securityContext, is, "", StructrTraits.FILE, "template").as(File.class);
 			}
 
 			assertNotNull("Test file must exist", template);
 
 			final NodeInterface node = app.create(type,
-				new NodeAttribute<>(StructrApp.key(ODFExporter.class, "name"),             "test.ods"),
-				new NodeAttribute<>(StructrApp.key(ODFExporter.class, "documentTemplate"), template)
+				new NodeAttribute<>(odfTraits.key("name"),             "test.ods"),
+				new NodeAttribute<>(odfTraits.key("documentTemplate"), template)
 			);
 
 			uuid = node.getUuid();
@@ -131,10 +133,10 @@ public class ODFTest extends StructrUiTest {
 			.expect()
 			.statusCode(200)
 			.body("result[0].type",                  equalTo("ODSExporter"))
-			.body("result[0].documentTemplate.type", equalTo("File"))
+			.body("result[0].documentTemplate.type", equalTo(StructrTraits.FILE))
 			.body("result[0].documentTemplate.name", equalTo("template"))
 			.body("result[0].documentTemplate.path", equalTo("/template"))
-			.body("result[0].resultDocument.type",   equalTo("File"))
+			.body("result[0].resultDocument.type",   equalTo(StructrTraits.FILE))
 			.body("result[0].resultDocument.name",   equalTo("test.ods_template"))
 			.body("result[0].resultDocument.path",   equalTo("/test.ods_template"))
 			.when()

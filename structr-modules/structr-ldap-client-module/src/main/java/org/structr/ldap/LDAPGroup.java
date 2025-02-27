@@ -18,108 +18,16 @@
  */
 package org.structr.ldap;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.api.Predicate;
-import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.View;
-import org.structr.common.error.ErrorBuffer;
-import org.structr.common.error.FrameworkException;
-import org.structr.common.helper.ValidationHelper;
-import org.structr.core.Export;
-import org.structr.core.Services;
 import org.structr.core.entity.Group;
-import org.structr.core.graph.ModificationQueue;
-import org.structr.core.graph.TransactionCommand;
-import org.structr.core.property.Property;
-import org.structr.core.property.StringProperty;
 
 /**
  */
-public class LDAPGroup extends Group {
+public interface LDAPGroup extends Group {
 
-	static final Logger logger = LoggerFactory.getLogger(LDAPGroup.class);
-
-	public static final Property<String> distinguishedNameProperty = new StringProperty("distinguishedName").unique().indexed();
-	public static final Property<String> pathProperty              = new StringProperty("path");
-	public static final Property<String> filterProperty            = new StringProperty("filter");
-	public static final Property<String> scopeProperty             = new StringProperty("scope");
-
-	public static final View defaultView = new View(LDAPGroup.class, PropertyView.Public,
-		distinguishedNameProperty, pathProperty, filterProperty, scopeProperty
-	);
-
-	public static final View uiView      = new View(LDAPGroup.class, PropertyView.Ui,
-		distinguishedNameProperty, pathProperty, filterProperty, scopeProperty
-	);
-
-	@Override
-	public boolean isValid(final ErrorBuffer errorBuffer) {
-
-		boolean valid = super.isValid(errorBuffer);
-
-		valid &= ValidationHelper.isValidUniqueProperty(this, LDAPGroup.distinguishedNameProperty, errorBuffer);
-
-		return valid;
-	}
-
-	public void setDistinguishedName(final String distinguishedName) throws FrameworkException {
-		setProperty(distinguishedNameProperty, distinguishedName);
-	}
-
-	public String getDistinguishedName() {
-		return getProperty(distinguishedNameProperty);
-	}
-
-	public String getPath() {
-		return getProperty(pathProperty);
-	}
-
-	public String getFilter() {
-		return getProperty(filterProperty);
-	}
-
-	public String getScope() {
-		return getProperty(scopeProperty);
-	}
-
-	@Override
-	public void onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
-
-		super.onCreation(securityContext, errorBuffer);
-		update(securityContext);
-	}
-
-	@Override
-	public void onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
-
-		super.onModification(securityContext, errorBuffer, modificationQueue);
-		update(securityContext);
-	}
-
-	@Export
-	public void update(final SecurityContext securityContext) {
-
-		final LDAPService ldapService = Services.getInstance().getService(LDAPService.class, "default");
-		if (ldapService != null) {
-
-			try {
-
-				ldapService.synchronizeGroup(this);
-
-			} catch (Throwable t) {
-
-				logger.warn("Unable to sync group " + this.getName(), t.getMessage());
-			}
-
-		} else {
-
-			final String message = "LDAPService not available, is it configured in structr.conf?<br /><a href=\"/structr/config\" target=\"_blank\">Open Structr Configuration</a>";
-
-			TransactionCommand.simpleBroadcastWarning("Service not configured", message, Predicate.only(securityContext.getSessionId()));
-
-			logger.warn(message);
-		}
-	}
+	String getDistinguishedName();
+	String getPath();
+	String getFilter();
+	String getScope();
+	void update(final SecurityContext securityContext);
 }

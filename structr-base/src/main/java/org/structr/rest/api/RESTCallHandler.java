@@ -37,17 +37,19 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.*;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.PropertyContainerTraitDefinition;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
 import org.structr.rest.exception.IllegalPathException;
-import org.structr.schema.SchemaHelper;
 
 import java.util.*;
+
+import static java.lang.Boolean.parseBoolean;
 
 /**
  *
@@ -57,8 +59,8 @@ public abstract class RESTCallHandler {
 	private static final Logger logger = LoggerFactory.getLogger(RESTCallHandler.class.getName());
 
 	private GraphObject cachedEntity = null;
-	protected String requestedView   = null;
-	protected RESTCall call          = null;
+	protected String requestedView  = null;
+	protected RESTCall call         = null;
 
 	public RESTCallHandler(final RESTCall call) {
 		this.call = call;
@@ -66,7 +68,7 @@ public abstract class RESTCallHandler {
 
 	public abstract Set<String> getAllowedHttpMethodsForOptionsCall();
 	public abstract boolean isCollection();
-	public abstract Class getEntityClass(final SecurityContext securityContext) throws FrameworkException;
+	public abstract String getTypeName(final SecurityContext securityContext) throws FrameworkException;
 
 	public void setRequestedView(final String view) {
 		this.requestedView = view;
@@ -109,7 +111,7 @@ public abstract class RESTCallHandler {
 	 * @return
 	 * @throws org.structr.common.error.FrameworkException
 	 */
-	public ResultStream doGet(final SecurityContext securityContext, final SortOrder sortOrder, final int pageSize, final int page) throws FrameworkException {
+	public <T> ResultStream<T> doGet(final SecurityContext securityContext, final SortOrder sortOrder, final int pageSize, final int page) throws FrameworkException {
 		throw new IllegalMethodException("GET not allowed on " + getURL(), getAllowedHttpMethodsForOptionsCall());
 	}
 
@@ -190,14 +192,14 @@ public abstract class RESTCallHandler {
 		return true;
 	}
 
-	public Class getEntityClassOrDefault(final SecurityContext securityContext) {
+	public String getEntityClassOrDefault(final SecurityContext securityContext) {
 
 		try {
 
-			final Class entityClass = getEntityClass(securityContext);
-			if (entityClass != null) {
+			final String typeName = getTypeName(securityContext);
+			if (typeName != null) {
 
-				return entityClass;
+				return typeName;
 			}
 
 		} catch (FrameworkException fex) {
@@ -205,35 +207,37 @@ public abstract class RESTCallHandler {
 			fex.printStackTrace();
 		}
 
-		return AbstractNode.class;
+		return StructrTraits.NODE_INTERFACE;
 	}
 
-	public NodeInterface createNode(final SecurityContext securityContext, final Class entityClass, final String typeName, final Map<String, Object> propertySet) throws FrameworkException {
+	public org.structr.core.graph.NodeInterface createNode(final SecurityContext securityContext, final String typeName, final Map<String, Object> propertySet) throws FrameworkException {
 
-		if (entityClass != null) {
+		final Traits traits = Traits.of(typeName);
+		if (traits != null) {
 
 			// experimental: instruct deserialization strategies to set properties on related nodes
 			securityContext.setAttribute("setNestedProperties", true);
 
 			final App app                = StructrApp.getInstance(securityContext);
-			final PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, entityClass, propertySet);
+			final PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, typeName, propertySet);
 
-			return app.create(entityClass, properties);
+			return app.create(typeName, properties);
 		}
 
 		throw new NotFoundException("Type " + typeName + " does not exist");
 	}
 
 	// ----- protected methods -----
-	protected GraphObject getEntity(final SecurityContext securityContext, final Class entityClass, final String typeName, final String uuid) throws FrameworkException {
+	protected GraphObject getEntity(final SecurityContext securityContext, final String typeName, final String uuid) throws FrameworkException {
 
 		if (cachedEntity != null) {
 			return cachedEntity;
 		}
 
 		final App app = StructrApp.getInstance(securityContext);
+		final Traits traits = Traits.of(typeName);
 
-		if (entityClass == null) {
+		if (traits == null) {
 
 			if (uuid != null) {
 
@@ -245,9 +249,10 @@ public abstract class RESTCallHandler {
 			}
 		}
 
-		if (AbstractRelationship.class.isAssignableFrom(entityClass)) {
 
-			final GraphObject entity = app.relationshipQuery(entityClass).uuid(uuid).getFirst();
+		if (traits.isNodeType()) {
+
+			final NodeInterface entity = app.nodeQuery(typeName).uuid(uuid).getFirst();
 			if (entity != null) {
 
 				cachedEntity = entity;
@@ -257,7 +262,7 @@ public abstract class RESTCallHandler {
 
 		} else {
 
-			final GraphObject entity = app.nodeQuery(entityClass).uuid(uuid).getFirst();
+			final RelationshipInterface entity = app.relationshipQuery(typeName).uuid(uuid).getFirst();
 			if (entity != null) {
 
 				cachedEntity = entity;
@@ -269,7 +274,7 @@ public abstract class RESTCallHandler {
 		throw new FrameworkException(404, "Entity with ID ‛" + uuid + "‛ of type ‛" +  typeName +  "‛ does not exist");
 	}
 
-	protected String buildLocationHeader(final SecurityContext securityContext, final GraphObject newObject) {
+	protected String buildLocationHeader(final SecurityContext securityContext, final org.structr.core.GraphObject newObject) {
 
 		final StringBuilder uriBuilder = securityContext.getBaseURI();
 
@@ -284,7 +289,7 @@ public abstract class RESTCallHandler {
 		return uriBuilder.toString();
 	}
 
-	protected void applyDefaultSorting(final List<? extends GraphObject> list, final SortOrder sortOrder) {
+	protected void applyDefaultSorting(final List<? extends org.structr.core.GraphObject> list, final SortOrder sortOrder) {
 
 		if (sortOrder != null && !sortOrder.isEmpty()) {
 
@@ -292,7 +297,7 @@ public abstract class RESTCallHandler {
 		}
 	}
 
-	protected void collectSearchAttributes(final SecurityContext securityContext, final Class entityClass, final Query query) throws FrameworkException {
+	protected void collectSearchAttributes(final SecurityContext securityContext, final String entityClass, final Query query) throws FrameworkException {
 
 		final HttpServletRequest request = securityContext.getRequest();
 
@@ -368,17 +373,28 @@ public abstract class RESTCallHandler {
 		}
 	}
 
-	protected void extractSearchableAttributes(final SecurityContext securityContext, final Class type, final HttpServletRequest request, final Query query) throws FrameworkException {
+	protected void extractSearchableAttributes(final SecurityContext securityContext, final String type, final HttpServletRequest request, final Query query) throws FrameworkException {
 
 		if (type != null && request != null && !request.getParameterMap().isEmpty()) {
 
-			final boolean exactSearch          = !(parseInteger(request.getParameter(RequestKeywords.Inexact.keyword())) == 1);
+			if (request.getParameter(RequestKeywords.Inexact_Deprecated.keyword()) != null) {
+
+				logger.warn("Usage of deprecated request keyword {} detected. This keyword is deprecated and will be removed in the future. Please use {} instead.",
+					RequestKeywords.Inexact_Deprecated.keyword(),
+					RequestKeywords.Inexact.keyword()
+				);
+			}
+
+			boolean exactSearch                = !getTruthyValueFromRequestParameters(request, RequestKeywords.Inexact_Deprecated, RequestKeywords.Inexact);
 			final List<PropertyKey> searchKeys = new LinkedList<>();
+			final Traits traits                = Traits.of(type);
 
 			for (final String name : request.getParameterMap().keySet()) {
 
-				final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, getFirstPartOfString(name), false);
-				if (key != null) {
+				final String firstPart = getFirstPartOfString(name);
+				if (traits.hasKey(firstPart)) {
+
+					final PropertyKey key = traits.key(firstPart);
 
 					// add to list of searchable keys
 					searchKeys.add(key);
@@ -442,22 +458,22 @@ public abstract class RESTCallHandler {
 
 	public RestMethodResult genericPut(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
 
-		final List<GraphObject> results = Iterables.toList(doGet(securityContext, null, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE));
+		final List<org.structr.core.GraphObject> results = Iterables.toList(doGet(securityContext, null, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE));
 
 		if (results != null && !results.isEmpty()) {
 
-			final Class type = results.get(0).getClass();
+			final Traits traits = results.get(0).getTraits();
 
 			// instruct deserialization strategies to set properties on related nodes
 			securityContext.setAttribute("setNestedProperties", true);
 
-			PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, type, propertySet);
+			PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, traits.getName(), propertySet);
 
-			for (final GraphObject obj : results) {
+			for (final org.structr.core.GraphObject obj : results) {
 
 				if (obj.isNode() && !obj.getSyncNode().isGranted(Permission.write, securityContext)) {
 
-					throw new FrameworkException(403, AbstractNode.getModificationNotPermittedExceptionString(obj, securityContext));
+					throw new FrameworkException(403, PropertyContainerTraitDefinition.getModificationNotPermittedExceptionString(obj, securityContext));
 				}
 
 				obj.setProperties(securityContext, properties);
@@ -487,9 +503,9 @@ public abstract class RESTCallHandler {
 				chunk++;
 
 				// always fetch the first page
-				try (final ResultStream<GraphObject> result = doGet(securityContext, null, pageSize, 1)) {
+				try (final ResultStream<org.structr.core.GraphObject> result = doGet(securityContext, null, pageSize, 1)) {
 
-					for (final GraphObject obj : result) {
+					for (final org.structr.core.GraphObject obj : result) {
 
 						if (obj.isNode()) {
 
@@ -537,7 +553,7 @@ public abstract class RESTCallHandler {
 		return new RestMethodResult(HttpServletResponse.SC_OK);
 	}
 
-	protected RestMethodResult genericPatch(final SecurityContext securityContext, final List<Map<String, Object>> propertySets, final Class entityClass, final String typeName) throws FrameworkException {
+	protected RestMethodResult genericPatch(final SecurityContext securityContext, final List<Map<String, Object>> propertySets,final String typeName) throws FrameworkException {
 
 		final RestMethodResult result                = new RestMethodResult(HttpServletResponse.SC_OK);
 		final App app                                = StructrApp.getInstance(securityContext);
@@ -554,7 +570,7 @@ public abstract class RESTCallHandler {
 				while (iterator.hasNext() && count++ < batchSize) {
 
 					final Map<String, Object> propertySet = iterator.next();
-					Class localType                       = entityClass;
+					String localType                      = typeName;
 
 					overallCount++;
 
@@ -563,11 +579,10 @@ public abstract class RESTCallHandler {
 					if (typeSource != null && typeSource instanceof String) {
 
 						final String typeString = (String)typeSource;
+						final Traits traits     = Traits.of(typeString);
+						if (traits != null) {
 
-						Class type = SchemaHelper.getEntityClassForRawType(typeString);
-						if (type != null) {
-
-							localType = type;
+							localType = traits.getName();
 						}
 					}
 
@@ -577,13 +592,18 @@ public abstract class RESTCallHandler {
 
 						if (idSource instanceof String) {
 
-							final String id       = (String)idSource;
-							final GraphObject obj = app.get(localType, id);
+							final String id = (String)idSource;
+
+							org.structr.core.GraphObject obj = app.getNodeById(localType, id);
+							if (obj == null) {
+
+								obj = app.getRelationshipById(localType, id);
+							}
 
 							if (obj != null) {
 
 								// test
-								localType = obj.getClass();
+								localType = obj.getType();
 
 								propertySet.remove("id");
 
@@ -603,7 +623,7 @@ public abstract class RESTCallHandler {
 
 					} else {
 
-						createNode(securityContext, entityClass, typeName, propertySet);
+						createNode(securityContext, typeName, propertySet);
 					}
 				}
 
@@ -646,6 +666,26 @@ public abstract class RESTCallHandler {
 		}
 
 		return defaultValue;
+	}
+
+	private boolean getTruthyValueFromRequestParameters(final HttpServletRequest request, final RequestKeywords... requestKeywords) {
+
+		for (final RequestKeywords k : requestKeywords) {
+
+			final String value = request.getParameter(k.keyword());
+			if (value != null) {
+
+				if (parseInteger(value) == 1) {
+					return true;
+				}
+
+				if (parseBoolean(value)) {
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 
 	// ----- nested classes -----

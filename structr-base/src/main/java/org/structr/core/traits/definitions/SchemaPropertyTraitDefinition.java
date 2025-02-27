@@ -1,0 +1,265 @@
+/*
+ * Copyright (C) 2010-2024 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package org.structr.core.traits.definitions;
+
+import org.structr.common.PropertyView;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.helper.ValidationHelper;
+import org.structr.core.GraphObject;
+import org.structr.core.entity.Relation;
+import org.structr.core.entity.SchemaProperty;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.notion.PropertySetNotion;
+import org.structr.core.property.*;
+import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.core.traits.operations.graphobject.IsValid;
+import org.structr.core.traits.wrappers.SchemaPropertyTraitWrapper;
+
+import java.util.Map;
+import java.util.Set;
+
+public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
+
+	private static final String schemaPropertyNamePattern = "[_A-Za-z][\\-_0-9A-Za-z]*";
+
+	public SchemaPropertyTraitDefinition() {
+		super(StructrTraits.SCHEMA_PROPERTY);
+	}
+
+	@Override
+	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+
+		return Map.of(
+
+			IsValid.class,
+			new IsValid() {
+
+				@Override
+				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
+					return ValidationHelper.isValidStringMatchingRegex(obj, Traits.of(StructrTraits.NODE_INTERFACE).key("name"), schemaPropertyNamePattern, errorBuffer);
+				}
+			}
+		);
+	}
+
+	@Override
+	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
+		return Map.of(
+			SchemaProperty.class, (traits, node) -> new SchemaPropertyTraitWrapper(traits, node)
+		);
+	}
+
+	@Override
+	public Set<PropertyKey> getPropertyKeys() {
+
+		final Property<NodeInterface>           schemaNode    = new StartNode("schemaNode", StructrTraits.SCHEMA_NODE_PROPERTY, new PropertySetNotion<>(newSet("id", "name")));
+		final Property<Iterable<NodeInterface>> schemaViews   = new StartNodes("schemaViews", StructrTraits.SCHEMA_VIEW_PROPERTY, new PropertySetNotion<>(newSet("id", "name")));
+		final Property<Iterable<NodeInterface>> excludedViews = new StartNodes("excludedViews", StructrTraits.SCHEMA_EXCLUDED_VIEW_PROPERTY, new PropertySetNotion<>(newSet("id", "name")));
+
+		final Property<String>             declaringUuid         = new StringProperty("declaringUuid");
+		final Property<String>             staticSchemaNodeName  = new StringProperty("staticSchemaNodeName");
+		final Property<String>             declaringClass        = new StringProperty("declaringClass");
+		final Property<String>             defaultValue          = new StringProperty("defaultValue");
+		final Property<String>             propertyType          = new StringProperty("propertyType").indexed();
+		final Property<String>             contentType           = new StringProperty("contentType");
+		final Property<String>             dbName                = new StringProperty("dbName");
+		final Property<String>             fqcn                  = new StringProperty("fqcn");
+		final Property<String>             format                = new StringProperty("format");
+		final Property<String>             typeHint              = new StringProperty("typeHint");
+		final Property<String>             hint                  = new StringProperty("hint");
+		final Property<String>             category              = new StringProperty("category");
+		final Property<Boolean>            notNull               = new BooleanProperty("notNull");
+		final Property<Boolean>            compound              = new BooleanProperty("compound");
+		final Property<Boolean>            unique                = new BooleanProperty("unique");
+		final Property<Boolean>            indexed               = new BooleanProperty("indexed");
+		final Property<Boolean>            readOnly              = new BooleanProperty("readOnly");
+		final Property<Boolean>            isDynamic             = new BooleanProperty("isDynamic");
+		final Property<Boolean>            isBuiltinProperty     = new BooleanProperty("isBuiltinProperty");
+		final Property<Boolean>            isPartOfBuiltInSchema = new BooleanProperty("isPartOfBuiltInSchema");
+		final Property<Boolean>            isDefaultInUi         = new BooleanProperty("isDefaultInUi");
+		final Property<Boolean>            isDefaultInPublic     = new BooleanProperty("isDefaultInPublic");
+		final Property<Boolean>            isCachingEnabled      = new BooleanProperty("isCachingEnabled").defaultValue(false);
+		final Property<String>             contentHash           = new StringProperty("contentHash");
+		final Property<String>             readFunction          = new StringProperty("readFunction");
+		final Property<String>             writeFunction         = new StringProperty("writeFunction");
+		final Property<String>             openAPIReturnType     = new StringProperty("openAPIReturnType");
+		final Property<String[]>           validators            = new ArrayProperty("validators", String.class);
+		final Property<String[]>           transformers          = new ArrayProperty("transformers", String.class);
+
+		return newSet(
+
+			schemaNode,
+			staticSchemaNodeName,
+			schemaViews,
+			excludedViews,
+			declaringUuid,
+			declaringClass,
+			defaultValue,
+			propertyType,
+			contentType,
+			dbName,
+			fqcn,
+			format,
+			typeHint,
+			hint,
+			category,
+			notNull,
+			compound,
+			unique,
+			indexed,
+			readOnly,
+			isDynamic,
+			isBuiltinProperty,
+			isPartOfBuiltInSchema,
+			isDefaultInUi,
+			isDefaultInPublic,
+			isCachingEnabled,
+			contentHash,
+			readFunction,
+			writeFunction,
+			openAPIReturnType,
+			validators,
+			transformers
+		);
+	}
+
+	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+
+				PropertyView.Public,
+				newSet(
+						"id", "typeHandler", "name", "dbName", "schemaNode", "schemaViews", "excludedViews", "propertyType", "contentType", "format", "fqcn", "typeHint", "hint", "category", "notNull", "compound", "unique", "indexed", "readOnly", "defaultValue", "isBuiltinProperty", "declaringClass", "isDynamic", "readFunction", "writeFunction", "openAPIReturnType", "validators", "transformers", "isCachingEnabled"
+				),
+
+				PropertyView.Ui,
+				newSet(
+						"id", "typeHandler", "name", "dbName", "createdBy", "hidden", "createdDate", "lastModifiedDate", "visibleToPublicUsers", "visibleToAuthenticatedUsers", "schemaNode", "schemaViews", "excludedViews", "propertyType", "contentType", "fqcn", "format", "typeHint", "hint", "category", "notNull", "compound", "unique", "indexed", "readOnly", "defaultValue", "isBuiltinProperty", "declaringClass", "isDynamic", "readFunction", "writeFunction", "openAPIReturnType", "validators", "transformers", "isCachingEnabled"
+				),
+
+				"schema",
+				newSet(
+						"id", "typeHandler", "name", "dbName", "schemaNode", "excludedViews", "schemaViews", "propertyType", "contentType", "format", "fqcn", "typeHint", "hint", "category", "notNull", "compound", "unique", "indexed", "readOnly", "defaultValue", "isBuiltinProperty", "isDefaultInUi", "isDefaultInPublic", "declaringClass", "isDynamic", "readFunction", "writeFunction", "openAPIReturnType", "validators", "transformers", "isCachingEnabled"
+				),
+
+				"export",
+				newSet(
+						"id", "typeHandler", "name", "schemaNode", "schemaViews", "excludedViews", "dbName", "propertyType", "contentType", "format", "fqcn", "typeHint", "hint", "category", "notNull", "compound", "unique", "indexed", "readOnly", "defaultValue", "isBuiltinProperty", "isDefaultInUi", "isDefaultInPublic", "declaringClass", "isDynamic", "readFunction", "writeFunction", "openAPIReturnType", "validators", "transformers", "isCachingEnabled"
+				)
+		);
+	}
+
+	@Override
+	public Relation getRelation() {
+		return null;
+	}
+
+	/*
+	@Override
+	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+
+		super.onCreation(securityContext, errorBuffer);
+
+		// automatically add new property to the Ui or Custom view
+		final AbstractSchemaNode parent = getProperty(SchemaProperty.schemaNode);
+		if (parent != null) {
+
+			// register property (so we have a chance to back up an existing builtin property)
+			final ConfigurationProvider conf = StructrApp.getConfiguration();
+			final Class type = conf.getNodeEntityClass(parent.getName());
+
+			if (type != null) {
+				conf.registerProperty(type, conf.getPropertyKeyForJSONName(type, getPropertyName()));
+			}
+
+			final String viewToAddTo;
+			if (getProperty(isBuiltinProperty)) {
+				viewToAddTo = PropertyView.Ui;
+			} else {
+				viewToAddTo = PropertyView.Custom;
+			}
+
+			for (final SchemaView view : parent.getProperty(AbstractSchemaNode.schemaViews)) {
+
+				if (viewToAddTo.equals(view.getName())) {
+
+					final Set<SchemaProperty> properties = Iterables.toSet(view.getProperty(SchemaView.schemaProperties));
+
+					properties.add(this);
+
+					view.setProperty(SchemaView.schemaProperties, new LinkedList<>(properties));
+
+					break;
+				}
+			}
+		}
+	}
+
+	@Override
+	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
+		super.onModification(securityContext, errorBuffer, modificationQueue);
+
+		final String uuid = getUuid();
+		if (uuid != null) {
+
+			// acknowledge all events for this node when it is modified
+			RuntimeEventLog.getEvents(e -> uuid.equals(e.getData().get("id"))).stream().forEach(e -> e.acknowledge());
+		}
+
+		if (getProperty(schemaNode) == null) {
+			StructrApp.getInstance().delete(this);
+		} else {
+
+			// prevent modification of properties using a content hash value
+			if (getProperty(isBuiltinProperty) && !getContentHash().equals(getProperty(contentHash))) {
+				throw new FrameworkException(403, "Modification of built-in properties not permitted.");
+			}
+		}
+	}
+
+	@Override
+	public void onNodeDeletion(SecurityContext securityContext) throws FrameworkException {
+
+		super.onNodeDeletion(securityContext);
+
+		final String thisName = getName();
+
+		// remove property from the sortOrder of views it is used in (directly)
+		for (SchemaView view : getProperty(SchemaProperty.schemaViews)) {
+
+			final String sortOrder = view.getProperty(SchemaView.sortOrder);
+
+			if (sortOrder != null) {
+
+				try {
+					view.setProperty(SchemaView.sortOrder, StringUtils.join(Arrays.stream(sortOrder.split(",")).filter(propertyName -> !thisName.equals(propertyName)).toArray(), ","));
+				} catch (FrameworkException ex) {
+					logger.error("Unable to remove property '{}' from view '{}'", thisName, view.getUuid());
+				}
+			}
+		}
+	}
+	*/
+}

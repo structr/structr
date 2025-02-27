@@ -34,13 +34,14 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.schema.SchemaHelper;
-import org.structr.schema.action.JavaScriptSource;
+import org.structr.web.entity.File;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -89,7 +90,7 @@ public class SecurityContext {
 	private AccessMode accessMode                  = AccessMode.Frontend;
 	private final List<Object> creationDetails     = new LinkedList<>();
 	private Authenticator authenticator            = null;
-	private PrincipalInterface cachedUser                   = null;
+	private Principal cachedUser                   = null;
 	private HttpServletRequest request             = null;
 	private HttpServletResponse response           = null;
 	private Set<String> customView                 = null;
@@ -104,7 +105,7 @@ public class SecurityContext {
 	/*
 	 * Alternative constructor for stateful context, e.g. WebSocket
 	 */
-	private SecurityContext(PrincipalInterface user, AccessMode accessMode) {
+	private SecurityContext(Principal user, AccessMode accessMode) {
 
 		this.cachedUser     = user;
 		this.accessMode     = accessMode;
@@ -113,7 +114,7 @@ public class SecurityContext {
 	/*
 	 * Alternative constructor for stateful context, e.g. WebSocket
 	 */
-	private SecurityContext(PrincipalInterface user, HttpServletRequest request, AccessMode accessMode) {
+	private SecurityContext(final Principal user, final HttpServletRequest request, final AccessMode accessMode) {
 
 		this(request);
 
@@ -121,7 +122,7 @@ public class SecurityContext {
 		this.accessMode = accessMode;
 	}
 
-	private SecurityContext(HttpServletRequest request) {
+	private SecurityContext(final HttpServletRequest request) {
 
 		this.request = request;
 
@@ -256,6 +257,7 @@ public class SecurityContext {
 		}
 	}
 
+	/*
 	public static void clearResourceFlag(final String resource, long flag) {
 
 		final String name     = SchemaHelper.normalizeEntityName(resource);
@@ -271,6 +273,7 @@ public class SecurityContext {
 
 		resourceFlags.put(name, flags);
 	}
+	*/
 
 	public static SecurityContext getSuperUserInstance(HttpServletRequest request) {
 		return new SuperUserSecurityContext(request);
@@ -280,29 +283,30 @@ public class SecurityContext {
 		return new SuperUserSecurityContext();
 	}
 
-	public static SecurityContext getInstance(PrincipalInterface user, AccessMode accessMode) {
+	public static SecurityContext getInstance(Principal user, AccessMode accessMode) {
 		return new SecurityContext(user, accessMode);
 	}
 
-	public static SecurityContext getInstance(PrincipalInterface user, HttpServletRequest request, AccessMode accessMode) {
+	public static SecurityContext getInstance(Principal user, HttpServletRequest request, AccessMode accessMode) {
 		return new SecurityContext(user, request, accessMode);
 	}
 
-	public void removeForbiddenNodes(List<? extends GraphObject> nodes, final boolean includeHidden, final boolean publicOnly) {
+	public void removeForbiddenNodes(final List<? extends GraphObject> nodes, final boolean includeHidden, final boolean publicOnly) {
 
 		boolean readableByUser = false;
 
 		for (Iterator<? extends GraphObject> it = nodes.iterator(); it.hasNext();) {
 
-			GraphObject obj = it.next();
+			final GraphObject obj = it.next();
 
-			if (obj instanceof AbstractNode) {
+			if (obj.isNode()) {
 
-				AbstractNode n = (AbstractNode) obj;
+				final NodeInterface node = (NodeInterface) obj;
+				final AccessControllable ac = node.as(AccessControllable.class);
 
-				readableByUser = n.isGranted(Permission.read, this);
+				readableByUser = ac.isGranted(Permission.read, this);
 
-				if (!(readableByUser && includeHidden && (n.isVisibleToPublicUsers() || !publicOnly))) {
+				if (!(readableByUser && includeHidden && (node.isVisibleToPublicUsers() || !publicOnly))) {
 
 					it.remove();
 				}
@@ -336,18 +340,18 @@ public class SecurityContext {
 		return cachedUserName;
 	}
 
-	public PrincipalInterface getCachedUser() {
+	public Principal getCachedUser() {
 		return cachedUser;
 	}
 
-	public void setCachedUser(final PrincipalInterface user) {
+	public void setCachedUser(final Principal user) {
 
 		this.cachedUser     = user;
 		this.cachedUserId   = user.getUuid();
 		this.cachedUserName = user.getName();
 	}
 
-	public PrincipalInterface getUser(final boolean tryLogin) {
+	public Principal getUser(final boolean tryLogin) {
 
 		// If we've got a user, return it! Easiest and fastest!!
 		if (cachedUser != null) {
@@ -434,7 +438,7 @@ public class SecurityContext {
 		return defaultValue;
 	}
 
-	public static long getResourceFlags(String resource) {
+	public static long getResourceFlags(final String resource) {
 
 		final String name     = SchemaHelper.normalizeEntityName(resource);
 		final Long flagObject = resourceFlags.get(name);
@@ -459,7 +463,7 @@ public class SecurityContext {
 
 	public boolean isSuperUser() {
 
-		PrincipalInterface user = getUser(false);
+		Principal user = getUser(false);
 
 		return ((user != null) && (user instanceof SuperUser || user.isAdmin()));
 	}
@@ -468,7 +472,7 @@ public class SecurityContext {
 		return false;
 	}
 
-	public boolean isVisible(AccessControllable node) {
+	public boolean isVisible(final GraphObject node) {
 
 		switch (accessMode) {
 
@@ -515,7 +519,7 @@ public class SecurityContext {
 			return true;
 		}
 
-		return node.isGranted(Permission.read, this);
+		return node.as(AccessControllable.class).isGranted(Permission.read, this);
 	}
 
 	public MergeMode getRemoteCollectionMergeMode() {
@@ -523,7 +527,7 @@ public class SecurityContext {
 	}
 
 	// ----- private methods -----
-	private boolean isVisibleInBackend(AccessControllable node) {
+	private boolean isVisibleInBackend(final GraphObject node) {
 
 		if (isVisibleInFrontend(node)) {
 
@@ -537,7 +541,7 @@ public class SecurityContext {
 		}
 
 		// fetch user
-		final PrincipalInterface user = getUser(false);
+		final Principal user = getUser(false);
 
 		// anonymous users may not see any nodes in backend
 		if (user == null) {
@@ -551,7 +555,7 @@ public class SecurityContext {
 			return true;
 		}
 
-		return node.isGranted(Permission.read, this);
+		return node.as(AccessControllable.class).isGranted(Permission.read, this);
 	}
 
 	/**
@@ -563,13 +567,10 @@ public class SecurityContext {
 	 * It should *not* be used to check accessibility of child nodes because
 	 * it might send a 401 along with a request for basic authentication.
 	 *
-	 * For those, use
-	 * {@link SecurityContext#isReadable(org.structr.core.entity.AbstractNode, boolean, boolean)}
-	 *
 	 * @param node
 	 * @return isVisible
 	 */
-	private boolean isVisibleInFrontend(AccessControllable node) {
+	private boolean isVisibleInFrontend(final GraphObject node) {
 
 		if (node == null) {
 
@@ -583,7 +584,7 @@ public class SecurityContext {
 		}
 
 		// Fetch already logged-in user, if present (don't try to login)
-		final PrincipalInterface user = getUser(false);
+		final Principal user = getUser(false);
 
 		if (user != null && user.isAdmin()) {
 			return true;
@@ -606,16 +607,18 @@ public class SecurityContext {
 
 		if (user != null) {
 
-			final PrincipalInterface owner = node.getOwnerNode();
+			final Principal owner         = node.as(AccessControllable.class).getOwnerNode();
+			final NodeInterface ownerNode = owner != null ? owner : null;
+			final NodeInterface userNode  = user;
 
 			// owner is always allowed to do anything with its nodes
-			if (user.equals(node) || user.equals(owner) || Iterables.toList(user.getParents()).contains(owner)) {
+			if (userNode.equals(node) || userNode.equals(ownerNode) || Iterables.toList(user.getParents()).contains(owner)) {
 
 				return true;
 			}
 		}
 
-		return node.isGranted(Permission.read, this);
+		return node.as(AccessControllable.class).isGranted(Permission.read, this);
 	}
 
 	public void setRequest(HttpServletRequest request) {
@@ -963,9 +966,9 @@ public class SecurityContext {
 
 				try (final Tx tx = app.tx()) {
 
-					final List<JavaScriptSource> jsFiles = app.nodeQuery(JavaScriptSource.class)
-							.and(JavaScriptSource.name, fileName)
-							.and(StructrApp.key(JavaScriptSource.class, "useAsJavascriptLibrary"), true)
+					final List<NodeInterface> jsFiles = app.nodeQuery(StructrTraits.FILE)
+							.and(Traits.key(StructrTraits.FILE, "name"), fileName)
+							.and(Traits.key(StructrTraits.FILE, "useAsJavascriptLibrary"), true)
 							.getAsList();
 
 					if (jsFiles.isEmpty()) {
@@ -977,9 +980,11 @@ public class SecurityContext {
 						logger.warn("Multiple JavaScript library files found with fileName: {}. This may cause problems!", fileName );
 					}
 
-					for (final JavaScriptSource jsLibraryFile : jsFiles) {
+					for (final NodeInterface node : jsFiles) {
 
+						final File jsLibraryFile = node.as(File.class);
 						final String contentType = jsLibraryFile.getContentType();
+
 						if (contentType != null) {
 
 							final String lowerCaseContentType = contentType.toLowerCase();
@@ -992,12 +997,12 @@ public class SecurityContext {
 
 							} else {
 
-								logger.info("Ignoring file {} for use as a Javascript library, content type {} not allowed. Use text/javascript, application/javascript or application/javascript+module for ES modules.", new Object[] { jsLibraryFile.getName(), contentType } );
+								logger.info("Ignoring file {} for use as a Javascript library, content type {} not allowed. Use text/javascript, application/javascript or application/javascript+module for ES modules.", new Object[] { node.getName(), contentType } );
 							}
 
 						} else {
 
-							logger.info("Ignoring file {} for use as a Javascript library, content type not set. Use text/javascript or application/javascript.", new Object[] { jsLibraryFile.getName(), contentType } );
+							logger.info("Ignoring file {} for use as a Javascript library, content type not set. Use text/javascript or application/javascript.", new Object[] { node.getName(), contentType } );
 						}
 					}
 
@@ -1046,19 +1051,19 @@ public class SecurityContext {
 		}
 
 		@Override
-		public PrincipalInterface getUser(final boolean tryLogin) {
+		public Principal getUser(final boolean tryLogin) {
 
 			return new SuperUser();
 		}
 
 		@Override
-		public PrincipalInterface getCachedUser() {
+		public Principal getCachedUser() {
 			return superUser;
 		}
 
 		@Override
 		public String getCachedUserId() {
-			return PrincipalInterface.SUPERUSER_ID;
+			return Principal.SUPERUSER_ID;
 		}
 
 		@Override
@@ -1078,8 +1083,7 @@ public class SecurityContext {
 		}
 
 		@Override
-		public boolean isVisible(AccessControllable node) {
-
+		public boolean isVisible(final GraphObject node) {
 			return true;
 		}
 

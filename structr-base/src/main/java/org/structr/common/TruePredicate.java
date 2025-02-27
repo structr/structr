@@ -20,6 +20,7 @@ package org.structr.common;
 
 import org.structr.api.Predicate;
 import org.structr.core.GraphObject;
+import org.structr.core.graph.NodeInterface;
 
 import java.util.Comparator;
 

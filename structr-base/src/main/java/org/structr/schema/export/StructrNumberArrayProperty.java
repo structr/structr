@@ -18,7 +18,7 @@
  */
 package org.structr.schema.export;
 
-import org.structr.api.schema.JsonNumberArrayProperty;
+import org.structr.api.schema.JsonDoubleArrayProperty;
 import org.structr.api.schema.JsonSchema;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -27,8 +27,10 @@ import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.schema.SchemaHelper.Type;
-import org.structr.schema.parser.DoubleArrayPropertyParser;
+import org.structr.schema.parser.DoublePropertyGenerator;
 
 import java.util.Map;
 import java.util.TreeMap;
@@ -37,7 +39,7 @@ import java.util.TreeMap;
  *
  *
  */
-public class StructrNumberArrayProperty extends StructrPropertyDefinition implements JsonNumberArrayProperty {
+public class StructrNumberArrayProperty extends StructrPropertyDefinition implements JsonDoubleArrayProperty {
 
 	private boolean exclusiveMinimum = false;
 	private boolean exclusiveMaximum = false;
@@ -54,7 +56,7 @@ public class StructrNumberArrayProperty extends StructrPropertyDefinition implem
 	}
 
 	@Override
-	public JsonNumberArrayProperty setExclusiveMinimum(final boolean exclusiveMinimum) {
+	public JsonDoubleArrayProperty setExclusiveMinimum(final boolean exclusiveMinimum) {
 
 		this.exclusiveMinimum = exclusiveMinimum;
 		return this;
@@ -66,7 +68,7 @@ public class StructrNumberArrayProperty extends StructrPropertyDefinition implem
 	}
 
 	@Override
-	public JsonNumberArrayProperty setExclusiveMaximum(final boolean exclusiveMaximum) {
+	public JsonDoubleArrayProperty setExclusiveMaximum(final boolean exclusiveMaximum) {
 
 		this.exclusiveMaximum = exclusiveMaximum;
 		return this;
@@ -78,12 +80,12 @@ public class StructrNumberArrayProperty extends StructrPropertyDefinition implem
 	}
 
 	@Override
-	public JsonNumberArrayProperty setMinimum(final double minimum) {
+	public JsonDoubleArrayProperty setMinimum(final double minimum) {
 		return setMinimum(minimum, false);
 	}
 
 	@Override
-	public JsonNumberArrayProperty setMinimum(final double minimum, final boolean exclusive) {
+	public JsonDoubleArrayProperty setMinimum(final double minimum, final boolean exclusive) {
 
 		this.exclusiveMinimum = exclusive;
 		this.minimum          = minimum;
@@ -97,12 +99,12 @@ public class StructrNumberArrayProperty extends StructrPropertyDefinition implem
 	}
 
 	@Override
-	public JsonNumberArrayProperty setMaximum(final double maximum) {
+	public JsonDoubleArrayProperty setMaximum(final double maximum) {
 		return this.setMaximum(maximum, false);
 	}
 
 	@Override
-	public JsonNumberArrayProperty setMaximum(final double maximum, final boolean exclusive) {
+	public JsonDoubleArrayProperty setMaximum(final double maximum, final boolean exclusive) {
 
 		this.exclusiveMaximum = exclusive;
 		this.maximum          = maximum;
@@ -175,7 +177,7 @@ public class StructrNumberArrayProperty extends StructrPropertyDefinition implem
 
 		super.deserialize(schemaNodes, property);
 
-		final DoubleArrayPropertyParser doublePropertyParser = property.getDoubleArrayPropertyParser(schemaNodes);
+		final DoublePropertyGenerator doublePropertyParser = property.getDoublePropertyParser();
 		if (doublePropertyParser != null) {
 
 			this.exclusiveMinimum = doublePropertyParser.isLowerExclusive();
@@ -197,9 +199,10 @@ public class StructrNumberArrayProperty extends StructrPropertyDefinition implem
 	SchemaProperty createDatabaseSchema(final App app, final AbstractSchemaNode schemaNode) throws FrameworkException {
 
 		final SchemaProperty property = super.createDatabaseSchema(app, schemaNode);
+		final Traits traits           = Traits.of(StructrTraits.SCHEMA_PROPERTY);
 		final PropertyMap properties  = new PropertyMap();
 
-		properties.put(SchemaProperty.propertyType, Type.DoubleArray.name());
+		properties.put(traits.key("propertyType"), Type.DoubleArray.name());
 
 		if (minimum != null && maximum != null) {
 
@@ -221,7 +224,7 @@ public class StructrNumberArrayProperty extends StructrPropertyDefinition implem
 				range.append("]");
 			}
 
-			properties.put(SchemaProperty.format, range.toString());
+			properties.put(traits.key("format"), range.toString());
 		}
 
 		property.setProperties(SecurityContext.getSuperUserInstance(), properties);

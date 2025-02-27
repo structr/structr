@@ -18,61 +18,16 @@
  */
 package org.structr.feed.entity;
 
-import org.apache.commons.io.IOUtils;
-import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
-import org.structr.common.View;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.property.LongProperty;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNode;
-import org.structr.core.property.StringProperty;
-import org.structr.feed.entity.relationship.FeedItemFEED_ITEM_ENCLOSURESFeedItemEnclosure;
-
 import java.io.InputStream;
-import java.nio.charset.Charset;
 
 /**
  * Represents feed enclosures
  */
-public class FeedItemEnclosure extends AbstractFeedItem {
+public interface FeedItemEnclosure extends AbstractFeedItem {
 
-	public static final Property<FeedItem> itemProperty        = new StartNode<>("item", FeedItemFEED_ITEM_ENCLOSURESFeedItemEnclosure.class);
-	public static final Property<String> urlProperty           = new StringProperty("url");
-	public static final Property<Long> enclosureLengthProperty = new LongProperty("enclosureLength");
-	public static final Property<String> enclosureTypeProperty = new StringProperty("enclosureType");
+	String getUrl();
+	InputStream getInputStream();
+	String getExtractedContent();
+	String getContentType();
 
-	public static final View defaultView = new View(FeedItemEnclosure.class, PropertyView.Public,
-		urlProperty, enclosureLengthProperty, enclosureTypeProperty, itemProperty, owner
-	);
-
-	public static final View uiView      = new View(FeedItemEnclosure.class, PropertyView.Ui,
-		urlProperty, enclosureLengthProperty, enclosureTypeProperty, itemProperty
-	);
-
-	@Override
-	public void afterCreation(final SecurityContext securityContext) throws FrameworkException {
-
-		super.afterCreation(securityContext);
-		updateIndex(securityContext);
-	}
-
-	public String getUrl() {
-		return getProperty(urlProperty);
-	}
-
-	@Override
-	public InputStream getInputStream() {
-		return IOUtils.toInputStream(getUrl(), Charset.forName("utf-8"));
-	}
-
-	@Override
-	public String getExtractedContent() {
-		return getProperty(extractedContentProperty);
-	}
-
-	@Override
-	public String getContentType() {
-		return getProperty(contentTypeProperty);
-	}
 }

@@ -1,0 +1,61 @@
+/*
+ * Copyright (C) 2010-2024 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package org.structr.web.traits.definitions.html;
+
+import org.structr.common.PropertyView;
+import org.structr.core.property.PropertyKey;
+import org.structr.web.common.HtmlProperty;
+
+import java.util.Map;
+import java.util.Set;
+
+public class Select extends GenericHtmlElementTraitDefinition {
+
+	public Select() {
+		super("Select");
+	}
+
+	@Override
+	public Set<PropertyKey> getPropertyKeys() {
+
+		final PropertyKey<String> nameProperty = new HtmlProperty("name");
+		final PropertyKey<String> disabledProperty = new HtmlProperty("disabled");
+		final PropertyKey<String> acceptProperty = new HtmlProperty("accept");
+		final PropertyKey<String> formProperty = new HtmlProperty("form");
+		final PropertyKey<String> sizeProperty = new HtmlProperty("size");
+		final PropertyKey<String> multipleProperty = new HtmlProperty("multiple");
+		final PropertyKey<String> autofocusProperty = new HtmlProperty("autofocus");
+		final PropertyKey<String> requiredProperty = new HtmlProperty("required");
+
+		return newSet(
+			nameProperty, disabledProperty, acceptProperty, formProperty, sizeProperty, multipleProperty, autofocusProperty, requiredProperty
+		);
+	}
+
+	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+			PropertyView.Html,
+			newSet(
+				"_html_name", "_html_disabled", "_html_accept", "_html_form", "_html_size", "_html_multiple", "_html_autofocus", "_html_required"
+			)
+		);
+	}
+}

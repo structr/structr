@@ -24,7 +24,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaMethod;
-import org.structr.core.entity.SchemaMethod.HttpVerb;
 import org.structr.core.script.Scripting;
 import org.structr.core.script.Snippet;
 import org.structr.schema.action.Actions;
@@ -42,14 +41,14 @@ public class ScriptMethod extends AbstractMethod {
 	private boolean isPrivateMethod = false;
 	private boolean isStaticMethod  = false;
 	private boolean returnRawResult = false;
-	private HttpVerb httpVerb       = null;
+	private String httpVerb         = null;
 
 	public ScriptMethod(final SchemaMethod method) {
 
-		super(method.getName(), method.getProperty(SchemaMethod.summary), method.getProperty(SchemaMethod.description));
+		super(method.getName(), method.getSummary(), method.getDescription());
 
 		this.parameters      = Parameters.fromSchemaMethod(method);
-		this.source          = method.getProperty(SchemaMethod.source);
+		this.source          = method.getSource();
 		this.uuid            = method.getUuid();
 		this.name            = method.getName();
 		this.isPrivateMethod = method.isPrivateMethod();
@@ -57,7 +56,7 @@ public class ScriptMethod extends AbstractMethod {
 		this.returnRawResult = method.returnRawResult();
 		this.httpVerb        = method.getHttpVerb();
 
-		final AbstractSchemaNode declaringClass = method.getProperty(SchemaMethod.schemaNode);
+		final AbstractSchemaNode declaringClass = method.getSchemaNode();
 		if (declaringClass == null) {
 
 			fullName = "user-defined function ‛" + name + "‛";
@@ -107,7 +106,7 @@ public class ScriptMethod extends AbstractMethod {
 	}
 
 	@Override
-	public HttpVerb getHttpVerb() {
+	public String getHttpVerb() {
 		return httpVerb;
 	}
 
@@ -123,7 +122,6 @@ public class ScriptMethod extends AbstractMethod {
 
 	@Override
 	public boolean shouldReturnRawResult() {
-
 		return this.returnRawResult;
 	}
 

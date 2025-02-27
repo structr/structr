@@ -47,16 +47,14 @@ public class LastFunction extends CoreFunction {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
-			if (sources[0] instanceof Iterable) {
+			if (sources[0] instanceof List l && !l.isEmpty()) {
 
-				final Iterable iterable = (Iterable)sources[0];
-				return Iterables.last(iterable);
+				return l.get(l.size() - 1);
 			}
 
-			if (sources[0] instanceof List && !((List)sources[0]).isEmpty()) {
+			if (sources[0] instanceof Iterable i) {
 
-				final List list = (List)sources[0];
-				return list.get(list.size() - 1);
+				return Iterables.last(i);
 			}
 
 			if (sources[0].getClass().isArray()) {

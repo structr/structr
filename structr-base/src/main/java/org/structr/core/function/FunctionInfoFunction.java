@@ -21,6 +21,7 @@ package org.structr.core.function;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Methods;
+import org.structr.core.traits.Traits;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionContext;
 
@@ -59,11 +60,12 @@ public class FunctionInfoFunction extends AdvancedScriptingFunction {
 
 				final String typeName     = sources[0].toString();
 				final String functionName = sources[1].toString();
-				final Class type          = SchemaHelper.getEntityClassForRawType(typeName);
 
-				if (type != null) {
+				if (Traits.exists(typeName)) {
 
+					final Traits type           = Traits.of(typeName);
 					final AbstractMethod method = Methods.resolveMethod(type, functionName);
+
 					if (method != null) {
 
 						return getFunctionInfo(method);
@@ -111,7 +113,7 @@ public class FunctionInfoFunction extends AdvancedScriptingFunction {
 		info.put("name",        method.getName());
 		info.put("isPrivate",   method.isPrivate());
 		info.put("isStatic",    method.isStatic());
-		info.put("httpVerb",    method.getHttpVerb().name());
+		info.put("httpVerb",    method.getHttpVerb());
 
 		if (method.getSummary() != null) {
 			info.put("summary", method.getSummary());

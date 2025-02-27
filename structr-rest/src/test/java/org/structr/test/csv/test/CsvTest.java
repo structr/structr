@@ -25,11 +25,11 @@ import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.Traits;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.servlet.CsvServlet;
-import org.structr.test.rest.entity.TestOne;
 import org.testng.annotations.Test;
 
 import java.lang.reflect.InvocationTargetException;
@@ -251,7 +251,7 @@ public class CsvTest extends StructrCsvTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final int testOneCount = app.nodeQuery(TestOne.class).getAsList().size();
+			final int testOneCount = app.nodeQuery("TestOne").getAsList().size();
 			assertEquals(5, testOneCount);
 
 			tx.success();
@@ -281,7 +281,7 @@ public class CsvTest extends StructrCsvTest {
 		try (final Tx tx = app.tx()) {
 
 
-			final List<TestOne> result = app.nodeQuery(TestOne.class).sort(AbstractNode.name).getAsList();
+			final List<NodeInterface> result = app.nodeQuery("TestOne").sort(Traits.of("TestOne").key("name")).getAsList();
 
 			assertEquals(2, result.size());
 			assertEquals("a3e07672b1064c28a1093b7024c7087d", result.get(0).getUuid());
@@ -313,7 +313,7 @@ public class CsvTest extends StructrCsvTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<TestOne> result = app.nodeQuery(TestOne.class).sort(AbstractNode.name).getAsList();
+			final List<NodeInterface> result = app.nodeQuery("TestOne").sort(Traits.of("TestOne").key("name")).getAsList();
 
 			assertEquals(3, result.size());
 			assertEquals("0979aebeb9ae42a7b3594db3da12875e", result.get(0).getUuid());
@@ -346,7 +346,7 @@ public class CsvTest extends StructrCsvTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final int testOneCount = app.nodeQuery(TestOne.class).getAsList().size();
+			final int testOneCount = app.nodeQuery("TestOne").getAsList().size();
 			assertEquals(5, testOneCount);
 
 			tx.success();
@@ -376,7 +376,7 @@ public class CsvTest extends StructrCsvTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final int testOneCount = app.nodeQuery(TestOne.class).getAsList().size();
+			final int testOneCount = app.nodeQuery("TestOne").getAsList().size();
 			assertEquals(5, testOneCount);
 
 			tx.success();
@@ -400,7 +400,7 @@ public class CsvTest extends StructrCsvTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final int testOneCount = app.nodeQuery(TestOne.class).getAsList().size();
+			final int testOneCount = app.nodeQuery("TestOne").getAsList().size();
 			assertEquals(0, testOneCount);
 
 			tx.success();
@@ -436,7 +436,7 @@ public class CsvTest extends StructrCsvTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final int testOneCount = app.nodeQuery(TestOne.class).getAsList().size();
+			final int testOneCount = app.nodeQuery("TestOne").getAsList().size();
 			assertEquals(shouldCreateNumberOfObjects, testOneCount);
 
 			tx.success();
@@ -472,7 +472,7 @@ public class CsvTest extends StructrCsvTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final int testOneCount = app.nodeQuery(TestOne.class).getAsList().size();
+			final int testOneCount = app.nodeQuery("TestOne").getAsList().size();
 			assertEquals(expectedNumberOfObjects, testOneCount);
 
 			tx.success();

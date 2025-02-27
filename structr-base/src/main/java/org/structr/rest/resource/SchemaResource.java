@@ -19,8 +19,6 @@
 package org.structr.rest.resource;
 
 
-import java.util.stream.Collectors;
-import org.apache.commons.lang3.StringUtils;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
@@ -28,30 +26,20 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.Relation.Multiplicity;
-import org.structr.core.entity.SchemaRelationshipNode;
-import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.*;
+import org.structr.core.traits.Traits;
 import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.api.parameter.RESTParameter;
-
 import org.structr.schema.ConfigurationProvider;
-import org.structr.schema.SchemaHelper;
 
-import java.lang.reflect.Modifier;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-
-import org.structr.schema.export.StructrSchema;
-import org.structr.schema.export.StructrSchemaDefinition;
-import org.structr.schema.export.StructrTypeDefinition;
 
 /**
  *
@@ -63,10 +51,11 @@ public class SchemaResource extends ExactMatchEndpoint {
 	public static final StringProperty typeProperty                     = new StringProperty("type");
 	public static final StringProperty nameProperty                     = new StringProperty("name");
 	public static final StringProperty classNameProperty                = new StringProperty("className");
-	public static final StringProperty extendsClassNameProperty         = new StringProperty("extendsClass");
+	public static final StringProperty traitsProperty                   = new StringProperty("traits");
 	public static final BooleanProperty isRelProperty                   = new BooleanProperty("isRel");
 	public static final BooleanProperty isAbstractProperty              = new BooleanProperty("isAbstract");
 	public static final BooleanProperty isInterfaceProperty             = new BooleanProperty("isInterface");
+	public static final BooleanProperty isBuiltinProperty               = new BooleanProperty("isBuiltin");
 	public static final BooleanProperty isServiceClassProperty          = new BooleanProperty("isServiceClass");
 	public static final LongProperty flagsProperty                      = new LongProperty("flags");
 	public static final GenericProperty viewsProperty                   = new GenericProperty("views");
@@ -78,6 +67,9 @@ public class SchemaResource extends ExactMatchEndpoint {
 	public static final BooleanProperty allTargetTypesPossibleProperty  = new BooleanProperty("allTargetTypesPossible");
 	public static final BooleanProperty htmlSourceTypesPossibleProperty = new BooleanProperty("htmlSourceTypesPossible");
 	public static final BooleanProperty htmlTargetTypesPossibleProperty = new BooleanProperty("htmlTargetTypesPossible");
+	private static final StringProperty sourceMultiplicityProperty      = new StringProperty("sourceMultiplicity");
+	private static final StringProperty targetMultiplicityProperty      = new StringProperty("targetMultiplicity");
+	private static final StringProperty relationshipTypeProperty        = new StringProperty("relationshipType");
 
 	public enum UriPart {
 		_schema
@@ -99,19 +91,17 @@ public class SchemaResource extends ExactMatchEndpoint {
 		final ConfigurationProvider config    = StructrApp.getConfiguration();
 
 		// extract types from ModuleService
-		final Set<String> nodeEntityKeys = config.getNodeEntities().keySet();
-		final Set<String> relEntityKeys  = config.getRelationshipEntities().keySet();
+		final Set<String> nodeEntityKeys = Traits.getAllTypes(t -> t.isNodeType());
+		final Set<String> relEntityKeys  = Traits.getAllTypes(t -> t.isRelationshipType());
 
 		Set<String> entityKeys = new HashSet<>();
 		entityKeys.addAll(nodeEntityKeys);
 		entityKeys.addAll(relEntityKeys);
 
-		final StructrSchemaDefinition schemaDef = (StructrSchemaDefinition) StructrSchema.createFromDatabase(StructrApp.getInstance());
-
 		for (String rawType : entityKeys) {
 
 			// create & add schema information
-			Class type            = SchemaHelper.getEntityClassForRawType(rawType);
+			Traits type           = Traits.of(rawType);
 			GraphObjectMap schema = new GraphObjectMap();
 			resultList.add(schema);
 
@@ -119,17 +109,17 @@ public class SchemaResource extends ExactMatchEndpoint {
 
 				String url = "/".concat(rawType);
 
-				final boolean isRel = AbstractRelationship.class.isAssignableFrom(type);
-				final int modifiers = type.getModifiers();
-
 				schema.setProperty(urlProperty, url);
-				schema.setProperty(typeProperty, type.getSimpleName());
-				schema.setProperty(nameProperty, type.getSimpleName());
+				schema.setProperty(typeProperty, type.getName());
+				schema.setProperty(nameProperty, type.getName());
 				schema.setProperty(classNameProperty, type.getName());
-				schema.setProperty(extendsClassNameProperty, type.getSuperclass().getName());
-				schema.setProperty(isRelProperty, isRel);
-				schema.setProperty(isAbstractProperty, Modifier.isAbstract(modifiers));
-				schema.setProperty(isInterfaceProperty, Modifier.isInterface(modifiers));
+				schema.setProperty(traitsProperty, type.getAllTraits());
+				schema.setProperty(isBuiltinProperty, type.isBuiltinType());
+				schema.setProperty(isServiceClassProperty, type.isServiceClass());
+				//schema.setProperty(extendsClassNameProperty, type.getSuperclass().getName());
+				schema.setProperty(isRelProperty, type.isRelationshipType());
+				schema.setProperty(isAbstractProperty, type.isAbstract());
+				schema.setProperty(isInterfaceProperty, type.isInterface());
 				schema.setProperty(flagsProperty, SecurityContext.getResourceFlags(rawType));
 
 				// adding schema views to the global resource would blow it up immensely... rethink this
@@ -146,17 +136,14 @@ public class SchemaResource extends ExactMatchEndpoint {
 //
 //				schema.setProperty(new GenericProperty("attributes"), SchemaHelper.getPropertiesForView(SecurityContext.getSuperUserInstance(), type, PropertyView.All));
 
-				if (isRel) {
+				if (type.isRelationshipType()) {
 
-					schema.setProperty(new GenericProperty("relInfo"), relationToMap(config, Relation.getInstance(type)));
+					if (!"RelationshipInterface".equals(type.getName())) {
+
+						schema.setProperty(new GenericProperty("relInfo"), relationToMap(config, type.getRelation()));
+					}
 
 				} else {
-
-					final List<StructrTypeDefinition> matchingTypeDefs = schemaDef.getTypeDefinitions().stream().filter(typeDef -> typeDef.getName().equals(rawType)).collect(Collectors.toList());
-
-					if (matchingTypeDefs.size() > 0) {
-						schema.setProperty(isServiceClassProperty, matchingTypeDefs.get(0).isServiceClass());
-					}
 
 //					final List<GraphObjectMap> relatedTo   = new LinkedList<>();
 //					final List<GraphObjectMap> relatedFrom = new LinkedList<>();
@@ -217,22 +204,26 @@ public class SchemaResource extends ExactMatchEndpoint {
 		 *
 		 */
 
-		map.put(SchemaRelationshipNode.sourceMultiplicity, multiplictyToString(relation.getSourceMultiplicity()));
-		map.put(SchemaRelationshipNode.targetMultiplicity, multiplictyToString(relation.getTargetMultiplicity()));
-		map.put(typeProperty, relation.getClass().getSimpleName());
-		map.put(SchemaRelationshipNode.relationshipType, relation.name());
+		map.put(sourceMultiplicityProperty, multiplictyToString(relation.getSourceMultiplicity()));
+		map.put(targetMultiplicityProperty, multiplictyToString(relation.getTargetMultiplicity()));
+		map.put(typeProperty,               relation.getClass().getSimpleName());
+		map.put(relationshipTypeProperty,   relation.name());
 
-		final Class sourceType = relation.getSourceType();
-		final Class targetType = relation.getTargetType();
+		final String sourceType = relation.getSourceType();
+		final String targetType = relation.getTargetType();
 
-		// select AbstractNode and SUPERCLASSES (not subclasses!)
-		if (sourceType.isAssignableFrom(AbstractNode.class)) {
+		/*
+
+		FIXME: this needs to be changed
+
+		// select NodeInterface and SUPERCLASSES (not subclasses!)
+		if (sourceType.isAssignableFrom(NodeInterface.class)) {
 
 			map.put(allSourceTypesPossibleProperty, true);
 			map.put(htmlSourceTypesPossibleProperty, true);
 			map.put(possibleSourceTypesProperty, null);
 
-		} else if ("DOMNode".equals(sourceType.getSimpleName())) {
+		} else if (StructrTraits.DOM_NODE.equals(sourceType)) {
 
 			map.put(allTargetTypesPossibleProperty, false);
 			map.put(htmlTargetTypesPossibleProperty, true);
@@ -245,14 +236,14 @@ public class SchemaResource extends ExactMatchEndpoint {
 			map.put(possibleSourceTypesProperty, StringUtils.join(SearchCommand.getAllSubtypesAsStringSet(sourceType.getSimpleName()), ","));
 		}
 
-		// select AbstractNode and SUPERCLASSES (not subclasses!)
-		if (targetType.isAssignableFrom(AbstractNode.class)) {
+		// select NodeInterface and SUPERCLASSES (not subclasses!)
+		if (targetType.isAssignableFrom(NodeInterface.class)) {
 
 			map.put(allTargetTypesPossibleProperty, true);
 			map.put(htmlTargetTypesPossibleProperty, true);
 			map.put(possibleTargetTypesProperty, null);
 
-		} else if ("DOMNode".equals(targetType.getSimpleName())) {
+		} else if (StructrTraits.DOM_NODE.equals(targetType)) {
 
 			map.put(allTargetTypesPossibleProperty, false);
 			map.put(htmlTargetTypesPossibleProperty, true);
@@ -264,6 +255,8 @@ public class SchemaResource extends ExactMatchEndpoint {
 			map.put(htmlTargetTypesPossibleProperty, false);
 			map.put(possibleTargetTypesProperty, StringUtils.join(SearchCommand.getAllSubtypesAsStringSet(targetType.getSimpleName()), ","));
 		}
+
+		 */
 
 		return map;
 	}
@@ -294,7 +287,7 @@ public class SchemaResource extends ExactMatchEndpoint {
 		}
 
 		@Override
-		public Class getEntityClass(final SecurityContext securityContext) {
+		public String getTypeName(final SecurityContext securityContext) {
 			return null;
 		}
 

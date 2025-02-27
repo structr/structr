@@ -22,13 +22,13 @@ import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.media.AVConv;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.FileHelper;
-import org.structr.web.entity.User;
 import org.testng.annotations.Test;
 
 import java.io.InputStream;
@@ -49,14 +49,15 @@ public class MediaTest extends StructrUiTest {
 			return;
 		}
 
-		final Class type = StructrApp.getConfiguration().getNodeEntityClass("VideoFile");
+		final Traits userTraits = Traits.of(StructrTraits.USER);
+		final String type       = "VideoFile";
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"),  true)
+			app.create(StructrTraits.USER,
+				new NodeAttribute<>(userTraits.key("name"),     "admin"),
+				new NodeAttribute<>(userTraits.key("password"), "admin"),
+				new NodeAttribute<>(userTraits.key("isAdmin"),  true)
 			);
 
 			// create AutoClosable input stream

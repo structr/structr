@@ -19,6 +19,7 @@
 package org.structr.core.notion;
 
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.Traits;
 
 /**
  * Combines a {@link PropertySerializationStrategy} and an {@link IdDeserializationStrategy}
@@ -28,20 +29,20 @@ import org.structr.core.property.PropertyKey;
  */
 public class RelationshipNotion extends Notion {
 
-	private PropertyKey propertyKey = null;
+	private String propertyKeyName = null;
 
-	public RelationshipNotion(PropertyKey propertyKey) {
+	public RelationshipNotion(final String propertyKeyName) {
 
 		super(
-			new PropertySerializationStrategy(propertyKey),
+			new PropertySerializationStrategy(propertyKeyName),
 			new IdDeserializationStrategy()
 		);
 
-		this.propertyKey = propertyKey;
+		this.propertyKeyName = propertyKeyName;
 	}
 
 	@Override
 	public PropertyKey getPrimaryPropertyKey() {
-		return propertyKey;
+		return Traits.of("RelationshipInterface").key(propertyKeyName);
 	}
 }

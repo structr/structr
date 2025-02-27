@@ -21,19 +21,16 @@ package org.structr.websocket.command;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
-import org.structr.web.diff.InvertibleModificationOperation;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.importer.Importer;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
-
-import java.util.List;
 
 /**
  *
@@ -56,43 +53,31 @@ public class SaveNodeCommand extends AbstractCommand {
 
 		final String nodeId       = webSocketData.getId();
 		final String modifiedHtml = webSocketData.getNodeDataStringValue("source");
-		
-		final App app = StructrApp.getInstance(securityContext);
+		final App app             = StructrApp.getInstance(securityContext);
+		final NodeInterface node  = getNode(nodeId);
 
-		Page modifiedNode = null;
+		if (node != null) {
 
-		DOMNode sourceNode = (DOMNode) getNode(nodeId);
+			TransactionCommand.registerNodeCallback(node, callback);
 
-		if (sourceNode != null) {
-
-			TransactionCommand.registerNodeCallback(sourceNode, callback);
+			final DOMNode sourceNode = node.as(DOMNode.class);
 
 			try {
 
 				// parse page from modified source
-				modifiedNode = Importer.parsePageFromSource(securityContext, modifiedHtml, "__SaveNodeCommand_Temporary_Page__");
+				final Page importedPage = Importer.parsePageFromSource(securityContext, modifiedHtml, "__SaveNodeCommand_Temporary_Page__");
 				
-				if (modifiedNode == null) {
+				if (importedPage == null) {
+
 					final String errorMessage = "Unable to parse " + modifiedHtml;
 					logger.warn(errorMessage);
 					getWebSocket().send(MessageBuilder.status().code(422).message(errorMessage).build(), true);
-				}
 
-				DOMNode targetNode = modifiedNode;
+				} else {
 
-				if (!(sourceNode instanceof Page)) {
+					app.delete(importedPage);
 
-					targetNode = (DOMNode) modifiedNode.getFirstChild().getNextSibling().getFirstChild().getNextSibling().getFirstChild();
-
-				}
-
-				final List<InvertibleModificationOperation> changeSet = Importer.diffNodes(sourceNode, targetNode);
-
-				for (final InvertibleModificationOperation op : changeSet) {
-
-					// execute operation
-					op.apply(app, sourceNode.getClosestPage(), modifiedNode);
-
+					throw new RuntimeException("TODO: pencil edit must be reimplemented");
 				}
 
 
@@ -102,15 +87,6 @@ public class SaveNodeCommand extends AbstractCommand {
 
 				// send exception
 				getWebSocket().send(MessageBuilder.status().code(422).message(t.toString()).build(), true);
-			}
-
-			try {
-
-				app.delete(modifiedNode);
-
-			} catch (FrameworkException ex) {
-
-				logger.warn("", ex);
 			}
 
 		} else {

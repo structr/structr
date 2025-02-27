@@ -19,6 +19,8 @@
 package org.structr.web.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.importer.Importer;
@@ -43,9 +45,9 @@ public class ImportHtmlFunction extends UiAdvancedFunction {
 
 		assertArrayHasMinLengthAndAllElementsNotNull(sources, 2);
 
-		if (sources[0] instanceof DOMElement) {
+		if (sources[0] instanceof NodeInterface n && n.is(StructrTraits.DOM_ELEMENT)) {
 
-			final DOMElement parent = (DOMElement) sources[0];
+			final DOMElement parent = n.as(DOMElement.class);
 
 			if (sources[1] instanceof String) {
 

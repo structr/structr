@@ -74,7 +74,7 @@ public abstract class DeletingFileImportVisitor extends FileImportVisitor {
 
 				tx.disableChangelog();
 
-				final Folder folder = getExistingFolder(folderPath);
+				final NodeInterface folder = getExistingFolder(folderPath);
 				if (folder != null) {
 
 					this.folderCache.remove(folderPath);

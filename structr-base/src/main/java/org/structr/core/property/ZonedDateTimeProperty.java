@@ -26,162 +26,168 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.ZonedDateTimeFormatToken;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.schema.parser.ZonedDateTimePropertyParser;
+import org.structr.schema.parser.ZonedDateTimePropertyGenerator;
 
 import java.time.ZonedDateTime;
 import java.util.Map;
 
 public class ZonedDateTimeProperty extends AbstractPrimitiveProperty<ZonedDateTime> {
 
-    public ZonedDateTimeProperty(final String name) {
-        super(name);
-    }
+	public ZonedDateTimeProperty(final String name) {
+		super(name);
+	}
 
-    public ZonedDateTimeProperty(final String jsonName, final String dbName) {
-        super(jsonName, dbName);
-    }
+	public ZonedDateTimeProperty(final String jsonName, final String dbName) {
+		super(jsonName, dbName);
+	}
 
-    public ZonedDateTimeProperty(final String jsonName, final String dbName, final String format) {
-        super(jsonName);
-    }
-    @Override
-    public String typeName() {
-        return "ZonedDateTime";
-    }
+	public ZonedDateTimeProperty(final String jsonName, final String dbName, final String format) {
+		super(jsonName);
+	}
 
-    @Override
-    public Class valueType() {
-        return ZonedDateTime.class;
-    }
+	@Override
+	public String typeName() {
+		return "ZonedDateTime";
+	}
 
-    @Override
-    public PropertyConverter<ZonedDateTime, ?> databaseConverter(SecurityContext securityContext) {
-        return new DatabaseConverter(securityContext, null);
-    }
+	@Override
+	public Class valueType() {
+		return ZonedDateTime.class;
+	}
 
-    @Override
-    public PropertyConverter<ZonedDateTime, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
-        return new DatabaseConverter(securityContext, entity);
-    }
+	@Override
+	public PropertyConverter<ZonedDateTime, ?> databaseConverter(final SecurityContext securityContext) {
+		return new DatabaseConverter(securityContext, null);
+	}
 
-    @Override
-    public PropertyConverter<?, ZonedDateTime> inputConverter(SecurityContext securityContext) {
-        return new InputConverter(securityContext);
-    }
+	@Override
+	public PropertyConverter<ZonedDateTime, ?> databaseConverter(final SecurityContext securityContext, final GraphObject entity) {
+		return new DatabaseConverter(securityContext, entity);
+	}
 
-    @Override
-    public Object fixDatabaseProperty(Object value) {
-        if (value != null) {
+	@Override
+	public PropertyConverter<?, ZonedDateTime> inputConverter(final SecurityContext securityContext) {
+		return new InputConverter(securityContext);
+	}
 
-            try {
+	@Override
+	public Object fixDatabaseProperty(Object value) {
+		if (value != null) {
 
-                if (value instanceof  String) {
+			try {
 
-                    return ZonedDateTimePropertyParser.parse(value.toString(), format);
-                } else if (value instanceof ZonedDateTime) {
+				if (value instanceof String) {
 
-                    return value;
-                }
+					return ZonedDateTimePropertyGenerator.parse(value.toString(), format);
+				} else if (value instanceof ZonedDateTime) {
 
-            } catch (Throwable t) {
-            }
+					return value;
+				}
 
-            return value.toString();
-        }
+			} catch (Throwable t) {
+			}
 
-        return null;
-    }
+			return value.toString();
+		}
 
-    @Override
-    public SortType getSortType() {
-        return SortType.Default;
-    }
+		return null;
+	}
+
+	@Override
+	public boolean isArray() {
+		return false;
+	}
+
+	@Override
+	public SortType getSortType() {
+		return SortType.Default;
+	}
 
 
-    // Converters
-    private class DatabaseConverter extends PropertyConverter<ZonedDateTime, ZonedDateTime> {
+	// Converters
+	private class DatabaseConverter extends PropertyConverter<ZonedDateTime, ZonedDateTime> {
 
-        public DatabaseConverter(SecurityContext securityContext, GraphObject entity) {
-            super(securityContext, entity);
-        }
+		public DatabaseConverter(SecurityContext securityContext, GraphObject entity) {
+			super(securityContext, entity);
+		}
 
-        @Override
-        public ZonedDateTime convert(ZonedDateTime source) throws FrameworkException {
+		@Override
+		public ZonedDateTime convert(ZonedDateTime source) throws FrameworkException {
 
-            if (source != null) {
+			if (source != null) {
 
-                return source;
-            }
+				return source;
+			}
 
-            return null;
-        }
+			return null;
+		}
 
-        @Override
-        public ZonedDateTime revert(ZonedDateTime source) throws FrameworkException {
+		@Override
+		public ZonedDateTime revert(ZonedDateTime source) throws FrameworkException {
 
-            if (source != null) {
+			if (source != null) {
 
-                return source;
-            }
+				return source;
+			}
 
-            return null;
+			return null;
 
-        }
-    }
+		}
+	}
 
-    private class InputConverter extends PropertyConverter<Object, ZonedDateTime> {
+	private class InputConverter extends PropertyConverter<Object, ZonedDateTime> {
 
-        public InputConverter(SecurityContext securityContext) {
-            super(securityContext, null);
-        }
+		public InputConverter(SecurityContext securityContext) {
+			super(securityContext, null);
+		}
 
-        @Override
-        public ZonedDateTime convert(Object source) throws FrameworkException {
+		@Override
+		public ZonedDateTime convert(Object source) throws FrameworkException {
 
-            if (source != null) {
+			if (source != null) {
 
-                if (source instanceof ZonedDateTime) {
+				if (source instanceof ZonedDateTime) {
 
-                    return (ZonedDateTime)source;
+					return (ZonedDateTime) source;
 
-                } else if (source instanceof String sourceString) {
+				} else if (source instanceof String sourceString) {
 
-                    if (StringUtils.isNotBlank(sourceString)) {
+					if (StringUtils.isNotBlank(sourceString)) {
 
-                        return ZonedDateTimePropertyParser.parse(sourceString);
+						return ZonedDateTimePropertyGenerator.parse(sourceString);
 
-                    }
+					}
 
-                } else {
+				} else {
 
-                    throw new FrameworkException(422, "Incompatible input type for zoneddatetime property " + jsonName() + ": " + (source.getClass().getName()), new ZonedDateTimeFormatToken(declaringClass.getSimpleName(), ZonedDateTimeProperty.this));
+					throw new FrameworkException(422, "Incompatible input type for zoneddatetime property " + jsonName() + ": " + (source.getClass().getName()), new ZonedDateTimeFormatToken(declaringTrait.getLabel(), ZonedDateTimeProperty.this));
 
-                }
-            }
+				}
+			}
 
-            return null;
-        }
+			return null;
+		}
 
-        @Override
-        public String revert(ZonedDateTime source) throws FrameworkException {
+		@Override
+		public String revert(ZonedDateTime source) throws FrameworkException {
 
-            return source.toString();
-        }
+			return source.toString();
+		}
 
-    }
+	}
 
-    // Open API
-    @Override
-    public Object getExampleValue(String type, String viewName) {
-        return ZonedDateTime.now();
-    }
+	// Open API
+	@Override
+	public Object getExampleValue(String type, String viewName) {
+		return ZonedDateTime.now();
+	}
 
-    @Override
-    public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
-        return null;
-    }
+	@Override
+	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+		return null;
+	}
 
-    public static String getDefaultFormat() {
-        return Settings.DefaultZonedDateTimeFormat.getValue();
-    }
+	public static String getDefaultFormat() {
+		return Settings.DefaultZonedDateTimeFormat.getValue();
+	}
 }

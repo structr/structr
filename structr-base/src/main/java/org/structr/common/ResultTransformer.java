@@ -30,8 +30,8 @@ public interface ResultTransformer {
 
 	String getSourceType();
 
-	ResultStream transformOutput(final SecurityContext securityContext, final Class sourceType, final ResultStream result) throws FrameworkException;
-	void transformInput(final SecurityContext securityContext, final Class type, final Map<String, Object> propertySet) throws FrameworkException;
+	ResultStream transformOutput(final SecurityContext securityContext, final String sourceType, final ResultStream result) throws FrameworkException;
+	void transformInput(final SecurityContext securityContext, final String type, final Map<String, Object> propertySet) throws FrameworkException;
 
 	boolean isPrimitiveArray();
 }

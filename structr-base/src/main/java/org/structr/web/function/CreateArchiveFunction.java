@@ -23,11 +23,11 @@ import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.commons.compress.utils.IOUtils;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
-import org.structr.schema.ConfigurationProvider;
+import org.structr.core.GraphObject;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.FileHelper;
-import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 
@@ -54,14 +54,12 @@ public class CreateArchiveFunction extends UiAdvancedFunction {
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
-		if (!(sources[1] instanceof File || sources[1] instanceof Folder || sources[1] instanceof Collection || sources.length < 2)) {
+		if (!(sources[1] instanceof NodeInterface || sources[1] instanceof Collection || sources.length < 2)) {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
 			return usage(ctx.isJavaScriptContext());
 		}
-
-		final ConfigurationProvider config    = StructrApp.getConfiguration();
 
 		try {
 
@@ -73,30 +71,34 @@ public class CreateArchiveFunction extends UiAdvancedFunction {
 			zaps.setCreateUnicodeExtraFields(ZipArchiveOutputStream.UnicodeExtraFieldPolicy.ALWAYS);
 			zaps.setFallbackToUTF8(true);
 
-			if (sources[1] instanceof File) {
+			if (sources[1] instanceof NodeInterface n && n.is(StructrTraits.FILE)) {
 
-				File file = (File) sources[1];
-				addFileToZipArchive(file.getProperty(AbstractFile.name), file, zaps);
+				File file = n.as(File.class);
+				addFileToZipArchive(file.getName(), file, zaps);
 
-			} else if (sources[1] instanceof Folder) {
+			} else if (sources[1] instanceof NodeInterface n && n.is(StructrTraits.FOLDER)) {
 
-				Folder folder = (Folder) sources[1];
-				addFilesToArchive(folder.getProperty(Folder.name) + "/", folder.getFiles(), zaps);
-				addFoldersToArchive(folder.getProperty(Folder.name) + "/", folder.getFolders(), zaps);
+				Folder folder = n.as(Folder.class);
+				addFilesToArchive(folder.getName() + "/", folder.getFiles(), zaps);
+				addFoldersToArchive(folder.getName() + "/", folder.getFolders(), zaps);
 
 			} else 	if (sources[1] instanceof Collection) {
 
-				for (Object fileOrFolder : (Collection) sources[1]) {
+				final Collection<GraphObject> coll = (Collection)sources[1];
 
-					if (fileOrFolder instanceof File) {
+				for (GraphObject fileOrFolder : coll) {
 
-						File file = (File) fileOrFolder;
-						addFileToZipArchive(file.getProperty(AbstractFile.name), file, zaps);
-					} else if (fileOrFolder instanceof Folder) {
+					if (fileOrFolder.is(StructrTraits.FILE)) {
 
-						Folder folder = (Folder) fileOrFolder;
-						addFilesToArchive(folder.getProperty(Folder.name) + "/", folder.getFiles(), zaps);
-						addFoldersToArchive(folder.getProperty(Folder.name) + "/", folder.getFolders(), zaps);
+						File file = fileOrFolder.as(File.class);
+						addFileToZipArchive(file.getName(), file, zaps);
+
+					} else if (fileOrFolder.is("folder")) {
+
+						Folder folder = fileOrFolder.as(Folder.class);
+						addFilesToArchive(folder.getName(), folder.getFiles(), zaps);
+						addFoldersToArchive(folder.getName(), folder.getFolders(), zaps);
+
 					} else {
 
 						logParameterError(caller, sources, ctx.isJavaScriptContext());
@@ -111,17 +113,17 @@ public class CreateArchiveFunction extends UiAdvancedFunction {
 
 			zaps.close();
 
-			Class archiveClass = null;
+			String archiveClass = null;
 
 			if (sources.length > 2) {
 
-				archiveClass = config.getNodeEntityClass(sources[2].toString());
+				archiveClass = sources[2].toString();
 
 			}
 
 			if (archiveClass == null) {
 
-				archiveClass = org.structr.web.entity.File.class;
+				archiveClass = StructrTraits.FILE;
 			}
 
 			try (final FileInputStream fis = new FileInputStream(newArchive)) {
@@ -166,7 +168,7 @@ public class CreateArchiveFunction extends UiAdvancedFunction {
 
 		for (final File fileForArchive : list) {
 
-			addFileToZipArchive(path + fileForArchive.getProperty(AbstractFile.name), fileForArchive,  aps);
+			addFileToZipArchive(path + fileForArchive.getName(), fileForArchive,  aps);
 		}
 	}
 
@@ -174,8 +176,8 @@ public class CreateArchiveFunction extends UiAdvancedFunction {
 
 		for (final Folder folder : list) {
 
-			addFilesToArchive(path + folder.getProperty(Folder.name) + "/", folder.getFiles(), aps);
-			addFoldersToArchive(path + folder.getProperty(Folder.name) + "/", folder.getFolders(), aps);
+			addFilesToArchive(path + folder.getName(), folder.getFiles(), aps);
+			addFoldersToArchive(path + folder.getName(), folder.getFolders(), aps);
 		}
 	}
 }

@@ -23,5 +23,6 @@ import org.structr.core.GraphObject;
 
 @FunctionalInterface
 public interface UpdateCallback<V> {
+
 	void notifyUpdated(final GraphObject obj, final V value) throws FrameworkException;
 }

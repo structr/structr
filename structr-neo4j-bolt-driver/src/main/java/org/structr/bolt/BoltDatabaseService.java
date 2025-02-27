@@ -787,12 +787,12 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 		}
 
 		@Override
-		public Class getSourceType() {
+		public String getSourceType() {
 			return null;
 		}
 
 		@Override
-		public Class getTargetType() {
+		public String getTargetType() {
 			return null;
 		}
 

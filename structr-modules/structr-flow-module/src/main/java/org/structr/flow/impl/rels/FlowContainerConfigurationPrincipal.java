@@ -22,11 +22,11 @@ import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
 import org.structr.common.PermissionPropagation;
 import org.structr.core.entity.ManyToOne;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation;
 import org.structr.flow.impl.FlowContainerConfiguration;
 
-public class FlowContainerConfigurationPrincipal extends ManyToOne<FlowContainerConfiguration, PrincipalInterface> implements PermissionPropagation {
+public class FlowContainerConfigurationPrincipal extends ManyToOne<FlowContainerConfiguration, Principal> implements PermissionPropagation {
 
 	@Override
 	public Class<FlowContainerConfiguration> getSourceType() {
@@ -34,8 +34,8 @@ public class FlowContainerConfigurationPrincipal extends ManyToOne<FlowContainer
 	}
 
 	@Override
-	public Class<PrincipalInterface> getTargetType() {
-		return PrincipalInterface.class;
+	public Class<Principal> getTargetType() {
+		return Principal.class;
 	}
 
 	@Override

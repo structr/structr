@@ -22,9 +22,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
-import org.structr.schema.ConfigurationProvider;
+import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 
@@ -100,15 +100,14 @@ public class PathResolvingComparator implements Comparator<GraphObject> {
 	// ----- private methods -----
 	private Comparable resolve(final GraphObject obj, final String path) {
 
-		final ConfigurationProvider config = StructrApp.getConfiguration();
-		final String[] parts               = path.split("[\\.]+");
-		GraphObject current                = obj;
-		int pos                            = 0;
+		final String[] parts = path.split("[\\.]+");
+		GraphObject current  = obj;
+		int pos              = 0;
 
 		for (final String part : parts) {
 
-			final Class type      = current.getClass();
-			final PropertyKey key = config.getPropertyKeyForJSONName(type, part);
+			final Traits type     = current.getTraits();
+			final PropertyKey key = type.key(part);
 
 			if (key == null) {
 
@@ -123,18 +122,22 @@ public class PathResolvingComparator implements Comparator<GraphObject> {
 					// last part of path?
 					if (++pos == parts.length) {
 
-						if (value instanceof Comparable) {
+						if (value instanceof Comparable c) {
 
-							return (Comparable)value;
+							return c;
 						}
 
 						logger.warn("Path evaluation result of component {} of type {} in {} cannot be used for sorting.", part, value.getClass().getSimpleName(), path);
 						return null;
 					}
 
-					if (value instanceof GraphObject) {
+					if (value instanceof GraphObject o) {
 
-						current = (GraphObject)value;
+						current = o;
+
+					} else if (value instanceof NodeInterface t) {
+
+						current = t;
 
 					} else {
 

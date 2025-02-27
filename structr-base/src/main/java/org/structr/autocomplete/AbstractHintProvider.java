@@ -18,7 +18,7 @@
  */
 package org.structr.autocomplete;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,16 +41,16 @@ import org.structr.core.script.polyglot.function.DoAsFunction;
 import org.structr.core.script.polyglot.function.DoInNewTransactionFunction;
 import org.structr.core.script.polyglot.function.DoPrivilegedFunction;
 import org.structr.core.script.polyglot.function.IncludeJSFunction;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.schema.SchemaHelper;
-import org.structr.schema.SchemaHelper.Type;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
-import org.structr.web.entity.dom.Content;
-import org.structr.web.entity.dom.Content.ContentHandler;
+import org.structr.web.ContentHandler;
+import org.structr.web.traits.wrappers.dom.ContentTraitWrapper;
 
 import java.io.IOException;
 import java.util.*;
-
 
 
 public abstract class AbstractHintProvider {
@@ -73,7 +73,7 @@ public abstract class AbstractHintProvider {
 
 		if (StringUtils.isBlank(textAfter) || textAfter.startsWith(" ") || textAfter.startsWith("\t") || textAfter.startsWith("\n") || textAfter.startsWith(";") || textAfter.startsWith(")")) {
 
-			if (isAutoscriptEnv || currentEntity instanceof SchemaMethod) {
+			if (isAutoscriptEnv || (currentEntity != null && currentEntity.is(StructrTraits.SCHEMA_METHOD))) {
 
 				// we can use the whole text here, the method will always contain script code and nothing else
 				// add ${ to be able to reuse code below
@@ -84,7 +84,7 @@ public abstract class AbstractHintProvider {
 				try {
 
 					final AutocompleteContentHandler handler = new AutocompleteContentHandler();
-					Content.renderContentWithScripts(textBefore, handler);
+					ContentTraitWrapper.renderContentWithScripts(textBefore, handler);
 
 					if (handler.inScript()) {
 
@@ -204,10 +204,13 @@ public abstract class AbstractHintProvider {
 		// add global schema methods to show at the start of the list
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
-			final List<SchemaMethod> methods = StructrApp.getInstance().nodeQuery(SchemaMethod.class).and(SchemaMethod.schemaNode, null).sort(SchemaMethod.name, true).getAsList();
+			final Traits traits = Traits.of(StructrTraits.SCHEMA_METHOD);
 
-			for (final SchemaMethod method : methods) {
-				hints.add(0, new UserDefinedFunctionHint(method.getName(), method.getProperty(SchemaMethod.summary), method.getProperty(SchemaMethod.description)));
+			for (final NodeInterface node : StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_METHOD).and(traits.key("schemaNode"), null).sort(traits.key("name")).getResultStream()) {
+
+				final SchemaMethod method = node.as(SchemaMethod.class);
+
+				hints.add(0, new UserDefinedFunctionHint(method.getName(), method.getSummary(), method.getDescription()));
 			}
 
 			tx.success();
@@ -225,14 +228,14 @@ public abstract class AbstractHintProvider {
 		}
 	}
 
-	protected void addHintsForType(final ActionContext actionContext, final Class type, final List<AbstractHint> hints, final ParseResult result) {
+	protected void addHintsForType(final ActionContext actionContext, final String type, final List<AbstractHint> hints, final ParseResult result) {
 
 		final List<AbstractHint> methodHints = new LinkedList<>();
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
 			// entity properties
-			final List<GraphObjectMap> typeInfo = SchemaHelper.getSchemaTypeInfo(actionContext.getSecurityContext(), type.getSimpleName(), type, PropertyView.All);
+			final List<GraphObjectMap> typeInfo = SchemaHelper.getSchemaTypeInfo(actionContext.getSecurityContext(), type, PropertyView.All);
 			for (final GraphObjectMap property : typeInfo) {
 
 				final Map<String, Object> map = property.toMap();
@@ -257,7 +260,7 @@ public abstract class AbstractHintProvider {
 
 			// entity methods
 			// go into their own collection, are sorted and the appended to the list
-			final Collection<AbstractMethod> methods = Methods.getAllMethods(type).values();
+			final Collection<AbstractMethod> methods = Methods.getAllMethods(Traits.of(type)).values();
 			for (final AbstractMethod method : methods) {
 
 				final String name              = method.getName();
@@ -284,7 +287,7 @@ public abstract class AbstractHintProvider {
 	protected boolean handleTokens(final ActionContext actionContext, final List<String> tokens, final GraphObject currentNode, final List<AbstractHint> hints, final ParseResult result) {
 
 		List<String> tokenTypes = new LinkedList<>();
-		Class type              = null;
+		String type             = null;
 
 		for (final String token : tokens) {
 
@@ -302,43 +305,49 @@ public abstract class AbstractHintProvider {
 
 				case "page":
 					tokenTypes.add("keyword");
-					type      = StructrApp.getConfiguration().getNodeEntityClass("Page");
+					type = StructrTraits.PAGE;
 					break;
 
 				case "me":
 					tokenTypes.add("keyword");
-					type      = StructrApp.getConfiguration().getNodeEntityClass("User");
+					type = StructrTraits.USER;
 					break;
 
 				case "current":
 					tokenTypes.add("keyword");
-					type      = StructrApp.getConfiguration().getNodeEntityClass("AbstractNode");
+					type = StructrTraits.NODE_INTERFACE;
 					break;
 
 				case "this":
-					if(currentNode instanceof SchemaMethod) {
 
-						final AbstractSchemaNode node = currentNode.getProperty(SchemaMethod.schemaNode);
-						if (node != null) {
+					if (currentNode.isNode()) {
+
+						final NodeInterface node = (NodeInterface)currentNode;
+
+						if (node.is(StructrTraits.SCHEMA_METHOD)) {
+
+							final AbstractSchemaNode schemaNode = node.as(SchemaMethod.class).getSchemaNode();
+							if (schemaNode != null) {
+
+								tokenTypes.add("keyword");
+								type = schemaNode.getClassName();
+							}
+
+						} else if (node.is(StructrTraits.SCHEMA_PROPERTY) && SchemaHelper.Type.Function.equals(((SchemaProperty) currentNode).getPropertyType())) {
+
+
+							final AbstractSchemaNode schemaNode = node.as(SchemaProperty.class).getSchemaNode();
+							if (schemaNode != null) {
+
+								tokenTypes.add("keyword");
+								type = schemaNode.getClassName();
+							}
+
+						} else if (currentNode != null) {
 
 							tokenTypes.add("keyword");
-							type = StructrApp.getConfiguration().getNodeEntityClass(node.getClassName());
+							type = currentNode.getType();
 						}
-
-					} else if (currentNode instanceof SchemaProperty && Type.Function.equals(((SchemaProperty)currentNode).getPropertyType())) {
-
-
-						final AbstractSchemaNode node = currentNode.getProperty(SchemaMethod.schemaNode);
-						if (node != null) {
-
-							tokenTypes.add("keyword");
-							type = StructrApp.getConfiguration().getNodeEntityClass(node.getClassName());
-						}
-
-					} else if (currentNode != null) {
-
-						tokenTypes.add("keyword");
-						type      = StructrApp.getConfiguration().getNodeEntityClass(currentNode.getType());
 					}
 					break;
 
@@ -346,12 +355,14 @@ public abstract class AbstractHintProvider {
 					// skip numbers
 					if (!StringUtils.isNumeric(token)) {
 
-						if (type != null) {
+						if (type != null && Traits.exists(type)) {
 
+							final Traits traits   = Traits.of(type);
 							final String cleaned  = token.replaceAll("[\\W\\d]+", "");
-							final PropertyKey key = StructrApp.key(type, cleaned, false);
 
-							if (key != null && key.relatedType() != null) {
+							if (traits.hasKey(cleaned)) {
+
+								final PropertyKey key = traits.key(cleaned);
 
 								tokenTypes.add("keyword");
 								type = key.relatedType();

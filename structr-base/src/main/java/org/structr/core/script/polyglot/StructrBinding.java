@@ -29,18 +29,16 @@ import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Methods;
-import org.structr.core.app.StructrApp;
 import org.structr.core.function.Functions;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.script.polyglot.function.*;
 import org.structr.core.script.polyglot.wrappers.*;
+import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 
 import java.time.ZonedDateTime;
 import java.util.Arrays;
-import java.util.Map;
 import java.util.Set;
 
 import static org.structr.core.script.polyglot.PolyglotWrapper.wrap;
@@ -162,12 +160,8 @@ public class StructrBinding implements ProxyObject {
 				}
 
 				// static type?
-				final Map<String, Class<? extends NodeInterface>> entityClasses = StructrApp.getConfiguration().getNodeEntities();
-				final Class nodeType                                            = entityClasses.get(name);
-
-				if (nodeType != null) {
-
-					return new StaticTypeWrapper(actionContext, nodeType);
+				if (Traits.exists(name)) {
+					return new StaticTypeWrapper(actionContext, Traits.of(name));
 				}
 
 				// look for user-defined function with the given name

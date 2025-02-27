@@ -31,6 +31,7 @@ import org.geotools.data.shapefile.shp.ShapefileReader.Record;
 import org.geotools.geometry.jts.JTS;
 import org.geotools.referencing.CRS;
 import org.opengis.referencing.FactoryException;
+import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.MathTransform;
 import org.slf4j.Logger;
@@ -206,6 +207,8 @@ public class ReadShapefileFunction extends GeoFunction {
 				return CRS.decode("EPSG:28992");
 
 			} catch (FactoryException ex) {
+				logger.error("", ex);
+			} catch (NoSuchAuthorityCodeException ex) {
 				logger.error("", ex);
 			}
 		}

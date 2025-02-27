@@ -20,9 +20,13 @@ package org.structr.xmpp;
 
 import org.structr.api.service.LicenseManager;
 import org.structr.core.entity.AbstractSchemaNode;
+import org.structr.core.traits.StructrTraits;
 import org.structr.module.StructrModule;
 import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
+import org.structr.xmpp.traits.definitions.XMPPClientTraitDefinition;
+import org.structr.xmpp.traits.definitions.XMPPRequestTraitDefinition;
+import org.structr.xmpp.traits.relationships.XMPPClientRequest;
 
 import java.util.Set;
 
@@ -33,6 +37,11 @@ public class XMPPModule implements StructrModule {
 
 	@Override
 	public void onLoad(final LicenseManager licenseManager) {
+
+		StructrTraits.registerRelationshipType("XMPPClientRequest", new XMPPClientRequest());
+
+		StructrTraits.registerNodeType("XMPPClient", new XMPPClientTraitDefinition());
+		StructrTraits.registerNodeType("XMPPRequest", new XMPPRequestTraitDefinition());
 	}
 
 	@Override
@@ -46,7 +55,7 @@ public class XMPPModule implements StructrModule {
 
 	@Override
 	public Set<String> getDependencies() {
-		return null;
+		return Set.of("ui");
 	}
 
 	@Override

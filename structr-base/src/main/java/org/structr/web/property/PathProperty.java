@@ -30,11 +30,13 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SourceSearchAttribute;
 import org.structr.core.property.AbstractReadOnlyProperty;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.web.entity.AbstractFile;
-import org.structr.web.entity.Folder;
 import org.structr.web.entity.Linkable;
 
 import java.util.ArrayList;
@@ -58,7 +60,7 @@ public class PathProperty extends AbstractReadOnlyProperty<String> {
 	}
 
 	@Override
-	public Class relatedType() {
+	public String relatedType() {
 		return null;
 	}
 
@@ -80,9 +82,10 @@ public class PathProperty extends AbstractReadOnlyProperty<String> {
 	@Override
 	public String getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
 
-		if (obj instanceof AbstractFile) {
+		if (obj.is(StructrTraits.ABSTRACT_FILE)) {
 
-			final AbstractFile file = (AbstractFile)obj;
+			final AbstractFile file = obj.as(AbstractFile.class);
+
 			return file.getFolderPath();
 		}
 
@@ -91,6 +94,11 @@ public class PathProperty extends AbstractReadOnlyProperty<String> {
 
 	@Override
 	public boolean isCollection() {
+		return false;
+	}
+
+	@Override
+	public boolean isArray() {
 		return false;
 	}
 
@@ -120,20 +128,24 @@ public class PathProperty extends AbstractReadOnlyProperty<String> {
 		return attr;
 	}
 
-	private void searchRecursively(final App app, final Folder parent, final SourceSearchAttribute attr, final ArrayList<String> parts) throws FrameworkException {
+	private void searchRecursively(final App app, final NodeInterface parent, final SourceSearchAttribute attr, final ArrayList<String> parts) throws FrameworkException {
 
-		final String currentPart = parts.remove(0);
-		final List<AbstractFile> res = app.nodeQuery(AbstractFile.class).and(StructrApp.key(AbstractFile.class, "parent"), (parent == null) ? null : parent).and(AbstractFile.name, currentPart).getAsList();
+		final String currentPart      = parts.remove(0);
+		final Traits traits           = Traits.of(StructrTraits.FILE);
+
+		final List<NodeInterface> res = app.nodeQuery(StructrTraits.ABSTRACT_FILE).and(Traits.of(StructrTraits.ABSTRACT_FILE).key("parent"), parent).and(traits.key("name"), currentPart).getAsList();
 
 		if (parts.isEmpty()) {
-			for (final AbstractFile fileOrFolder : res) {
+
+			for (final NodeInterface fileOrFolder : res) {
 
 				attr.addToResult(fileOrFolder);
 			}
 
 		} else {
-			for (final AbstractFile folder : res) {
-				searchRecursively(app, (Folder)folder, attr, (ArrayList<String>) parts.clone());
+
+			for (final NodeInterface folder : res) {
+				searchRecursively(app, folder, attr, (ArrayList<String>) parts.clone());
 			}
 		}
 	}

@@ -44,7 +44,6 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer {
 	}
 
 	protected abstract String getQueryPrefix();
-	protected abstract boolean isNode();
 
 	@Override
 	public int hashCode() {

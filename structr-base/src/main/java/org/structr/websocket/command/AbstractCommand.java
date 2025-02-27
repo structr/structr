@@ -27,10 +27,12 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.web.entity.Widget;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
@@ -63,11 +65,11 @@ public abstract class AbstractCommand {
 
 	public Page getPage(final String id) {
 
-		final AbstractNode node = getNode(id);
+		final NodeInterface node = getNode(id);
 
-		if (node != null && node instanceof Page) {
+		if (node != null && node.is(StructrTraits.PAGE)) {
 
-			return (Page) node;
+			return node.as(Page.class);
 		}
 
 		return null;
@@ -75,11 +77,11 @@ public abstract class AbstractCommand {
 
 	public DOMNode getDOMNode(final String id) {
 
-		final AbstractNode node = getNode(id);
+		final NodeInterface node = getNode(id);
 
-		if (node != null && node instanceof DOMNode) {
+		if (node != null && node.is(StructrTraits.DOM_NODE)) {
 
-			return (DOMNode) node;
+			return node.as(DOMNode.class);
 		}
 
 		return null;
@@ -87,11 +89,11 @@ public abstract class AbstractCommand {
 
 	public Widget getWidget(final String id) {
 
-		final AbstractNode node = getNode(id);
+		final NodeInterface node = getNode(id);
 
-		if (node != null && node instanceof Widget) {
+		if (node != null && node.is("Widget")) {
 
-			return (Widget) node;
+			return node.as(Widget.class);
 		}
 
 		return null;
@@ -104,7 +106,6 @@ public abstract class AbstractCommand {
 	 * @return the graph object
 	 */
 	public GraphObject getGraphObject(final String id) {
-
 		return getGraphObject(id, null);
 	}
 
@@ -123,7 +124,7 @@ public abstract class AbstractCommand {
 
 		if (isValidUuid(id)) {
 
-			final AbstractNode node = getNode(id);
+			final NodeInterface node = getNode(id);
 			if (node != null) {
 
 				return node;
@@ -134,7 +135,7 @@ public abstract class AbstractCommand {
 					logger.warn("Relationship access by UUID can take a very long time. Please examine the following stack trace and amend.");
 				}
 
-				final AbstractRelationship rel = getRelationship(id, nodeId);
+				final RelationshipInterface rel = getRelationship(id, nodeId);
 				if (rel != null) {
 
 					return rel;
@@ -155,14 +156,14 @@ public abstract class AbstractCommand {
 	 * @param id
 	 * @return the node
 	 */
-	public AbstractNode getNode(final String id) {
+	public NodeInterface getNode(final String id) {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
-		final App app = StructrApp.getInstance(securityContext);
+		final App app                         = StructrApp.getInstance(securityContext);
 
 		try (final Tx tx = app.tx()) {
 
-			final AbstractNode node = (AbstractNode) app.getNodeById(id);
+			final NodeInterface node = app.getNodeById(id);
 
 			tx.success();
 
@@ -185,7 +186,7 @@ public abstract class AbstractCommand {
 	 * @param nodeId
 	 * @return the node
 	 */
-	public AbstractRelationship getRelationship(final String id, final String nodeId) {
+	public RelationshipInterface getRelationship(final String id, final String nodeId) {
 
 		if (id == null) {
 			return null;
@@ -200,9 +201,9 @@ public abstract class AbstractCommand {
 
 		try (final Tx tx = app.tx()) {
 
-			final AbstractNode node = (AbstractNode) app.getNodeById(nodeId);
+			final NodeInterface node = app.getNodeById(nodeId);
 
-			for (final AbstractRelationship rel : node.getRelationships()) {
+			for (final RelationshipInterface rel : node.getRelationships()) {
 
 				if (rel.getUuid().equals(id)) {
 					return rel;
@@ -226,7 +227,7 @@ public abstract class AbstractCommand {
 	 * @param id
 	 * @return the node
 	 */
-	public AbstractRelationship getRelationship(final String id) {
+	public RelationshipInterface getRelationship(final String id) {
 
 		if (id == null) {
 			return null;
@@ -237,7 +238,7 @@ public abstract class AbstractCommand {
 
 		try (final Tx tx = app.tx()) {
 
-			final AbstractRelationship rel = (AbstractRelationship) app.getRelationshipById(id);
+			final RelationshipInterface rel = app.getRelationshipById(id);
 
 			tx.success();
 
@@ -266,9 +267,9 @@ public abstract class AbstractCommand {
 	 * @param sourceNode
 	 * @param targetNode
 	 */
-	protected void moveChildNodes(final DOMNode sourceNode, final DOMNode targetNode) {
+	protected void moveChildNodes(final DOMNode sourceNode, final DOMNode targetNode) throws FrameworkException {
 
-		DOMNode child = (DOMNode) sourceNode.getFirstChild();
+		DOMNode child = sourceNode.getFirstChild();
 
 		while (child != null) {
 
@@ -298,21 +299,23 @@ public abstract class AbstractCommand {
 
 		try (final Tx tx = app.tx()) {
 
-			ShadowDocument doc = app.nodeQuery(ShadowDocument.class).includeHidden().getFirst();
+			NodeInterface doc = app.nodeQuery(StructrTraits.SHADOW_DOCUMENT).includeHidden().getFirst();
 			if (doc == null) {
 
 				final PropertyMap properties = new PropertyMap();
-				properties.put(AbstractNode.type, ShadowDocument.class.getSimpleName());
-				properties.put(AbstractNode.name, "__ShadowDocument__");
-				properties.put(AbstractNode.hidden, true);
-				properties.put(AbstractNode.visibleToAuthenticatedUsers, true);
+				final Traits traits          = Traits.of(StructrTraits.SHADOW_DOCUMENT);
 
-				doc = app.create(ShadowDocument.class, properties);
+				properties.put(traits.key("type"), traits.getName());
+				properties.put(traits.key("name"), "__ShadowDocument__");
+				properties.put(traits.key("hidden"), true);
+				properties.put(traits.key("visibleToAuthenticatedUsers"), true);
+
+				doc = app.create(StructrTraits.SHADOW_DOCUMENT, properties);
 			}
 
 			tx.success();
 
-			return doc;
+			return doc.as(ShadowDocument.class);
 
 		} catch (FrameworkException fex) {
 			logger.warn("Unable to create container for shared components: {}", fex.getMessage());

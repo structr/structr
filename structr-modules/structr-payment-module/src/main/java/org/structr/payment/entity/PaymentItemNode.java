@@ -18,71 +18,11 @@
  */
 package org.structr.payment.entity;
 
-import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.common.error.ErrorBuffer;
-import org.structr.common.helper.ValidationHelper;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.IntProperty;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNode;
-import org.structr.core.property.StringProperty;
+import org.structr.core.graph.NodeInterface;
 import org.structr.payment.api.PaymentItem;
-import org.structr.payment.entity.relationship.PaymentNodepaymentItemPaymentItem;
 
 /**
  *
  */
-public class PaymentItemNode extends AbstractNode implements PaymentItem {
-
-	public static final Property<PaymentNode> paymentProperty = new StartNode<>("payment", PaymentNodepaymentItemPaymentItem.class);
-	public static final Property<Integer> amountProperty      = new IntProperty("amount").indexed();
-	public static final Property<Integer> quantityProperty    = new IntProperty("quantity").indexed();
-	public static final Property<String> descriptionProperty  = new StringProperty("description");
-	public static final Property<String> numberProperty       = new StringProperty("number");
-	public static final Property<String> urlProperty          = new StringProperty("url");
-
-	public static final View defaultView = new View(PaymentItemNode.class, PropertyView.Public,
-		name, amountProperty, quantityProperty, descriptionProperty, numberProperty, urlProperty
-	);
-
-	public static final View uiView = new View(PaymentItemNode.class, PropertyView.Ui,
-		amountProperty, quantityProperty, descriptionProperty, numberProperty, urlProperty
-	);
-
-	@Override
-	public boolean isValid(final ErrorBuffer errorBuffer) {
-
-		boolean valid = super.isValid(errorBuffer);
-
-		valid &= ValidationHelper.isValidPropertyNotNull(this, PaymentItemNode.amountProperty, errorBuffer);
-		valid &= ValidationHelper.isValidPropertyNotNull(this, PaymentItemNode.quantityProperty, errorBuffer);
-
-		return valid;
-	}
-
-	@Override
-	public int getAmount() {
-		return getProperty(amountProperty);
-	}
-
-	@Override
-	public int getQuantity() {
-		return getProperty(quantityProperty);
-	}
-
-	@Override
-	public String getDescription() {
-		return getProperty(descriptionProperty);
-	}
-
-	@Override
-	public String getItemNumber() {
-		return getProperty(numberProperty);
-	}
-
-	@Override
-	public String getItemUrl() {
-		return getProperty(urlProperty);
-	}
+public interface PaymentItemNode extends NodeInterface, PaymentItem {
 }

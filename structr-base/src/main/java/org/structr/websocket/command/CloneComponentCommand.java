@@ -22,6 +22,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.websocket.StructrWebSocket;
@@ -139,14 +141,15 @@ public class CloneComponentCommand extends AbstractCommand {
 
 	public static DOMNode cloneComponent(final DOMNode node, final DOMNode parentNode) throws FrameworkException {
 
-		final DOMNode clonedNode = (DOMNode) node.cloneNode(false);
+		final DOMNode clonedNode = node.cloneNode(false);
 
 		parentNode.appendChild(clonedNode);
 
 		final PropertyMap changedProperties = new PropertyMap();
+		final Traits traits                 = Traits.of(StructrTraits.DOM_NODE);
 
-		changedProperties.put(StructrApp.key(DOMNode.class, "sharedComponent"), node);
-		changedProperties.put(StructrApp.key(DOMNode.class, "ownerDocument"), (parentNode instanceof Page ? (Page) parentNode : parentNode.getOwnerDocument()));
+		changedProperties.put(traits.key("sharedComponent"), node);
+		changedProperties.put(traits.key("ownerDocument"), (parentNode.is(StructrTraits.PAGE) ? parentNode.as(Page.class) : parentNode.getOwnerDocument()));
 
 		clonedNode.setProperties(clonedNode.getSecurityContext(), changedProperties);
 

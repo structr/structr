@@ -23,6 +23,7 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.Traits;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionContext;
@@ -54,15 +55,11 @@ public class PropertyInfoFunction extends AdvancedScriptingFunction {
 			final String typeName = sources[0].toString();
 			final String keyName = sources[1].toString();
 
-			Class type = config.getNodeEntityClass(typeName);
-			if (type == null) {
+			Traits traits = Traits.of(typeName);
 
-				type = config.getRelationshipEntityClass(typeName);
-			}
+			if (traits != null) {
 
-			if (type != null) {
-
-				final PropertyKey key = StructrApp.key(type, keyName);
+				final PropertyKey key = traits.key(keyName);
 				if (key != null) {
 
 					return SchemaHelper.getPropertyInfo(ctx.getSecurityContext(), key);

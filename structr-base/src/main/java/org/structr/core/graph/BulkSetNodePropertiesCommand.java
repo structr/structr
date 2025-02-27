@@ -24,13 +24,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.PropertyKey;
-import org.structr.schema.SchemaHelper;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 
 import java.util.Map;
 import java.util.Map.Entry;
@@ -53,30 +52,33 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 
 	public long executeWithCount(final Map<String, Object> properties) throws FrameworkException {
 
-		final String type = (String)properties.get("type");
+		final PropertyKey<String> typeProperty = Traits.of(StructrTraits.GRAPH_OBJECT).key("type");
+		final PropertyKey<String> idProperty   = Traits.of(StructrTraits.GRAPH_OBJECT).key("id");
+		final String type                      = (String)properties.get("type");
+
 		if (StringUtils.isBlank(type)) {
 
 			throw new FrameworkException(422, "Type must not be empty");
 		}
 
-		final App app     = StructrApp.getInstance();
-		final Class clazz = SchemaHelper.getEntityClassForRawType(type);
-		if (clazz == null) {
+		if (!Traits.exists(type)) {
 
 			throw new FrameworkException(422, "Invalid type " + type);
 		}
+
+		final App app = StructrApp.getInstance();
 
 		// remove "type" so it won't be set later
 		properties.remove("type");
 
 		// to be able to change the type (i.e. the labels) of a node, we cannot rely on the node query here, hence we need to fetch ALL nodes
-		final long count = bulkGraphOperation(securityContext, app.nodeQuery(), 1000, "SetNodeProperties", new BulkGraphOperation<AbstractNode>() {
+		final long count = bulkGraphOperation(securityContext, app.nodeQuery(), 1000, "SetNodeProperties", new BulkGraphOperation<NodeInterface>() {
 
 			@Override
-			public boolean handleGraphObject(final SecurityContext securityContext, final AbstractNode node) {
+			public boolean handleGraphObject(final SecurityContext securityContext, final NodeInterface node) {
 
 				// Treat only "our" nodes
-				if (node.getProperty(GraphObject.id) != null && node.getProperty(AbstractNode.type).equals(type)) {
+				if (node.getProperty(idProperty) != null && type.equals(node.getProperty(typeProperty))) {
 
 					for (Entry entry : properties.entrySet()) {
 
@@ -88,7 +90,7 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 							key = "type";
 						}
 
-						PropertyKey propertyKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key);
+						PropertyKey propertyKey = node.getTraits().key(key);
 						if (propertyKey != null) {
 
 							final PropertyConverter inputConverter = propertyKey.inputConverter(securityContext);
@@ -123,7 +125,7 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 			}
 
 			@Override
-			public void handleThrowable(SecurityContext securityContext, Throwable t, AbstractNode node) {
+			public void handleThrowable(SecurityContext securityContext, Throwable t, NodeInterface node) {
 				logger.warn("Unable to set properties of node {}: {}", new Object[] { node.getUuid(), t.getMessage() } );
 			}
 

@@ -40,6 +40,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.xmpp.handler.*;
 
@@ -78,7 +79,9 @@ public class XMPPContext {
 
 				try (final Tx tx = app.tx()) {
 
-					for (final XMPPClient client : app.nodeQuery(XMPPClient.class).getAsList()) {
+					for (final NodeInterface clientNode : app.nodeQuery("XMPPClient").getAsList()) {
+
+						final XMPPClient client = clientNode.as(XMPPClient.class);
 
 						client.setIsConnected(false);
 

@@ -23,7 +23,7 @@ package org.structr.core;
  *
  *
  */
-public interface Decorator<AbstractNode> {
+public interface Decorator<NodeInterface> {
 	
-	public void decorate(AbstractNode t);
+	public void decorate(NodeInterface t);
 }

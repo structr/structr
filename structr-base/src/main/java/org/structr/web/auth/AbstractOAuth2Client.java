@@ -35,8 +35,9 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
 import org.structr.core.api.Methods;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.schema.action.EvaluationHints;
 
 import java.io.IOException;
@@ -213,9 +214,9 @@ public abstract class AbstractOAuth2Client implements OAuth2Client {
 	}
 
 	@Override
-	public void invokeOnLoginMethod(PrincipalInterface user) throws FrameworkException {
+	public void invokeOnLoginMethod(final Principal user) throws FrameworkException {
 
-		final AbstractMethod method = Methods.resolveMethod(StructrApp.getConfiguration().getNodeEntityClass("User"), "onOAuthLogin");
+		final AbstractMethod method = Methods.resolveMethod(Traits.of(StructrTraits.USER), "onOAuthLogin");
 		if (method != null) {
 
 			final Arguments arguments = new Arguments();
@@ -228,7 +229,7 @@ public abstract class AbstractOAuth2Client implements OAuth2Client {
 	}
 
 	@Override
-	public void initializeAutoCreatedUser(PrincipalInterface user) {
+	public void initializeAutoCreatedUser(Principal user) {
 
 	}
 }

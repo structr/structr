@@ -30,7 +30,7 @@ import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.schema.SchemaHelper;
+import org.structr.core.traits.Traits;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -66,7 +66,7 @@ public class QueryCommand extends AbstractCommand {
 		final String notProperties            = webSocketData.getNodeDataStringValue("notProperties");
 		final Boolean exact                   = webSocketData.getNodeDataBooleanValue("exact");
 		final String customView               = webSocketData.getNodeDataStringValue("customView");
-		final Class type                      = SchemaHelper.getEntityClassForRawType(rawType);
+		final Traits type                     = Traits.of(rawType);
 
 		if (type == null) {
 			getWebSocket().send(MessageBuilder.status().code(404).message("Type " + rawType + " not found").build(), true);
@@ -82,13 +82,13 @@ public class QueryCommand extends AbstractCommand {
 		final int page                 = webSocketData.getPage();
 
 		final Query query = StructrApp.getInstance(securityContext)
-			.nodeQuery(type)
+			.nodeQuery(rawType)
 			.page(page)
 			.pageSize(pageSize);
 
 		if (sortKey != null) {
 
-			final PropertyKey sortProperty = StructrApp.key(type, sortKey);
+			final PropertyKey sortProperty = type.key(sortKey);
 			final String sortOrder         = webSocketData.getSortOrder();
 
 			query.sort(sortProperty, "desc".equals(sortOrder));
@@ -100,10 +100,10 @@ public class QueryCommand extends AbstractCommand {
 				final Gson gson                          = new GsonBuilder().create();
 
 				final Map<String, Object> andQuerySource = gson.fromJson(andProperties, new TypeToken<Map<String, Object>>() {}.getType());
-				final PropertyMap andQueryMap            = PropertyMap.inputTypeToJavaType(securityContext, type, andQuerySource);
+				final PropertyMap andQueryMap            = PropertyMap.inputTypeToJavaType(securityContext, rawType, andQuerySource);
 
 				final Map<String, Object> notQuerySource = gson.fromJson(notProperties, new TypeToken<Map<String, Object>>() {}.getType());
-				final PropertyMap notQueryMap            = PropertyMap.inputTypeToJavaType(securityContext, type, notQuerySource);
+				final PropertyMap notQueryMap            = PropertyMap.inputTypeToJavaType(securityContext, rawType, notQuerySource);
 
 				final boolean inexactQuery               = exact != null && exact == false;
 

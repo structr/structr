@@ -25,19 +25,18 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseFeature;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.PrincipalInterface;
-import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.graph.attribute.Name;
 import org.structr.core.notion.TypeAndPropertySetDeserializationStrategy;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.structr.test.rest.common.TestEnum;
-import org.structr.test.rest.entity.TestThree;
-import org.structr.test.rest.entity.TestTwo;
 import org.testng.annotations.Test;
 
 import java.util.LinkedList;
@@ -704,20 +703,23 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 
 		try {
 
-			SchemaNode node = null;
+			NodeInterface node = null;
 
 			// setup
 			try (final Tx tx = app.tx()) {
 
-				node = app.create(SchemaNode.class, new NodeAttribute(SchemaNode.name, "TestType"));
-				node.setProperty(new StringProperty("_test"), "Integer");
+				node = app.create(StructrTraits.SCHEMA_NODE, new Name("TestType"));
+
+				final NodeInterface property = app.create(StructrTraits.SCHEMA_PROPERTY, "test");
+				property.setProperty(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), node);
+				property.setProperty(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Integer");
 
 				tx.success();
 			}
 
 			// fetch dynamic type info
-			final Class dynamicType   = StructrApp.getConfiguration().getNodeEntityClass("TestType");
-			final PropertyKey testKey = StructrApp.key(dynamicType, "test");
+			final String dynamicType  = "TestType";
+			final PropertyKey testKey = Traits.of(dynamicType).key("test");
 
 			// modify schema node but keep reference to "old" type
 			try (final Tx tx = app.tx()) {
@@ -767,27 +769,31 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 	@Test
 	public void testSearchWithOwnerAndEnum() {
 
-		final Class testUserType = createTestUserType();
+		final String testUserType = createTestUserType();
 
 		try {
 
-			final List<PrincipalInterface> users      = createTestNodes(testUserType, 3);
-			final List<TestThree> testThrees = new LinkedList<>();
-			final Random random              = new Random();
-			String uuid                      = null;
-			int count                        = 0;
+			final List<NodeInterface> users      = createTestNodes(testUserType, 3);
+			final List<NodeInterface> testThrees = new LinkedList<>();
+			final String[] enumValues            = new String[] { "Status1", "Status2", "Status3", "Status4" };
+			final Traits traits                  = Traits.of("TestThree");
+			final Random random                  = new Random();
+			String uuid                          = null;
+			int count                            = 0;
 
 			try (final Tx tx = app.tx()) {
 
-				for (final PrincipalInterface user : users) {
+				for (final NodeInterface user : users) {
 
 					// create 20 entities for every user
 					for (int i=0; i<20; i++) {
 
-						testThrees.add(app.create(TestThree.class,
-							new NodeAttribute(AbstractNode.name, "test" + count++),
-							new NodeAttribute(AbstractNode.owner, user),
-							new NodeAttribute(TestThree.enumProperty, TestEnum.values()[random.nextInt(TestEnum.values().length)])
+						final String randomEnumValue = enumValues[random.nextInt(4)];
+
+						testThrees.add(app.create("TestThree",
+							new NodeAttribute(traits.key("name"), "test" + count++),
+							new NodeAttribute(traits.key("owner"), user),
+							new NodeAttribute(traits.key("enumProperty"), randomEnumValue)
 						));
 					}
 				}
@@ -800,10 +806,10 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 			// test with core API
 			try (final Tx tx = app.tx()) {
 
-				for (final PrincipalInterface user : users) {
+				for (final NodeInterface user : users) {
 
-					for (final TestThree test : app.nodeQuery(TestThree.class).and(AbstractNode.owner, user).and(TestThree.enumProperty, TestEnum.Status1).getAsList()) {
-						assertEquals("Invalid enum query result", TestEnum.Status1, test.getProperty(TestThree.enumProperty));
+					for (final NodeInterface test : app.nodeQuery("TestThree").and(traits.key("owner"), user).and(traits.key("enumProperty"), "Status1").getAsList()) {
+						assertEquals("Invalid enum query result", "Status1", test.getProperty(traits.key("enumProperty")));
 					}
 				}
 
@@ -847,14 +853,21 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 			final String user2 = createEntity("/TestUser", "{ name: user2 }");
 			final String user3 = createEntity("/TestUser", "{ name: user3 }");
 
-			SchemaNode node = null;
+			NodeInterface node = null;
 
 			// setup schema
 			try (final Tx tx = app.tx()) {
 
-				node = app.create(SchemaNode.class, new NodeAttribute(SchemaNode.name, "TestType"));
-				node.setProperty(new StringProperty("_status"), "Enum(one, two, three)");
-				node.setProperty(new StringProperty("__ui"), "status");
+				node = app.create(StructrTraits.SCHEMA_NODE, new Name("TestType"));
+
+				final NodeInterface status = app.create(StructrTraits.SCHEMA_PROPERTY, "status");
+				status.setProperty(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"),   node);
+				status.setProperty(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Enum");
+				status.setProperty(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("format"),       "one,  two, three");
+
+				final NodeInterface view = app.create(StructrTraits.SCHEMA_VIEW, "ui");
+				view.setProperty(Traits.of(StructrTraits.SCHEMA_VIEW).key("schemaNode"),         node);
+				view.setProperty(Traits.of(StructrTraits.SCHEMA_VIEW).key("nonGraphProperties"), "status");
 
 				tx.success();
 			}
@@ -1231,10 +1244,10 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result_count",               equalTo(1))
 				.body("result",                     hasSize(1))
 
-				.body("result[0]",                  isEntity(TestTwo.class))
+				.body("result[0]",                  isEntity("TestTwo"))
 
 				.body("result[0].id",               equalTo(uuid))
-				.body("result[0].type",	            equalTo(TestTwo.class.getSimpleName()))
+				.body("result[0].type",	            equalTo("TestTwo"))
 				.body("result[0].name",             equalTo("TestTwo-0"))
 				.body("result[0].anInt",            equalTo(0))
 				.body("result[0].aLong",            equalTo(0))
@@ -1258,10 +1271,10 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result_count",                          equalTo(1))
 				.body("result",                                hasSize(1))
 
-				.body("result[0]",                             isEntity(TestTwo.class))
+				.body("result[0]",                             isEntity("TestTwo"))
 
 				.body("result[0].id",                          equalTo(uuid))
-				.body("result[0].type",	                       equalTo(TestTwo.class.getSimpleName()))
+				.body("result[0].type",	                       equalTo("TestTwo"))
 				.body("result[0].name",                        equalTo("TestTwo-0"))
 				.body("result[0].anInt",                       equalTo(0))
 				.body("result[0].aLong",                       equalTo(0))
@@ -1274,7 +1287,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[0].visibleToAuthenticatedUsers", equalTo(false))
 				.body("result[0].visibilityStartDate",         nullValue())
 				.body("result[0].visibilityEndDate",           nullValue())
-				.body("result[0].createdBy",                   nullValue())
+				.body("result[0].createdBy",                   equalTo(Principal.SUPERUSER_ID))
 				.body("result[0].hidden",                      equalTo(false))
 				.body("result[0].owner",                       nullValue())
 				.body("result[0].ownerId",                     nullValue())

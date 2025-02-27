@@ -72,7 +72,7 @@ public class GetOrNullFunction extends CoreFunction {
 			if (dataObject != null) {
 
 				final String keyName = sources[1].toString();
-				final PropertyKey key = StructrApp.key(dataObject.getClass(), keyName);
+				final PropertyKey key = dataObject.getTraits().key(keyName);
 
 				if (key != null) {
 

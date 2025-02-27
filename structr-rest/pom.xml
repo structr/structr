@@ -42,7 +42,13 @@
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
 		</dependency>
-	</dependencies>
+        <dependency>
+            <groupId>org.structr</groupId>
+            <artifactId>structr-core</artifactId>
+            <version>6.0-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 
 	<build>
 		<plugins>

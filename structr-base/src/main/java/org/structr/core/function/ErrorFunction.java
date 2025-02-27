@@ -21,6 +21,7 @@ package org.structr.core.function;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.SemanticErrorToken;
 import org.structr.core.GraphObject;
+import org.structr.core.traits.StructrTraits;
 import org.structr.schema.action.ActionContext;
 
 public class ErrorFunction extends AdvancedScriptingFunction {
@@ -41,7 +42,7 @@ public class ErrorFunction extends AdvancedScriptingFunction {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		Class entityType = GraphObject.class;
-		String type      = "GraphObject";
+		String type      = StructrTraits.GRAPH_OBJECT;
 
 		if (caller != null && caller instanceof GraphObject) {
 

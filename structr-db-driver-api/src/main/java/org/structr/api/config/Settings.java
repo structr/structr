@@ -18,19 +18,15 @@
  */
 package org.structr.api.config;
 
-import org.apache.commons.configuration2.PropertiesConfiguration;
-import org.apache.commons.configuration2.builder.FileBasedConfigurationBuilder;
-import org.apache.commons.configuration2.builder.fluent.Parameters;
-import org.apache.commons.configuration2.convert.DefaultListDelimiterHandler;
-import org.apache.commons.configuration2.ex.ConfigurationException;
-import org.apache.commons.configuration2.io.FileHandler;
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
@@ -102,7 +98,6 @@ public class Settings {
 
 	// scripting related settings
 	public static final Setting<Boolean> ScriptingDebugger          = new BooleanSetting(generalGroup,         "Scripting",   "application.scripting.debugger",               false, "Enables <b>Chrome</b> debugger initialization in scripting engine. The current debugger URL will be shown in the server log and also made available on the dashboard.");
-	public static final Setting<Boolean> WrapJSInMainFunction      = new BooleanSetting(generalGroup,                      "Scripting", "application.scripting.js.wrapinmainfunction", false, "Forces js scripts to be wrapped in a main function for legacy behaviour.");
 
 	public static final Setting<String> AllowedHostClasses          = new StringSetting(generalGroup,          "Scripting",   "application.scripting.allowedhostclasses",     "", "Space-separated list of fully-qualified Java class names that you can load dynamically in a scripting environment.");
 
@@ -367,7 +362,7 @@ public class Settings {
 	public static final Setting<String> HtmlDefaultView           = new StringSetting(servletsGroup,  "HtmlServlet", "htmlservlet.defaultview",           "public", "Not used for HtmlServlet");
 	public static final Setting<Integer> HtmlOutputDepth          = new IntegerSetting(servletsGroup, "HtmlServlet", "htmlservlet.outputdepth",           3, "Not used for HtmlServlet");
 	public static final Setting<String> HtmlResourceProvider      = new StringSetting(servletsGroup,  "hidden", "htmlservlet.resourceprovider",      "org.structr.web.common.UiResourceProvider", "FQCN of resource provider class to use in the HTTP server. Do not change unless you know what you are doing.");
-	public static final Setting<String> HtmlResolveProperties     = new StringSetting(servletsGroup,  "HtmlServlet", "htmlservlet.resolveproperties",     "AbstractNode.name", "Specifies the list of properties that are be used to resolve entities from URL paths.");
+	public static final Setting<String> HtmlResolveProperties     = new StringSetting(servletsGroup,  "HtmlServlet", "htmlservlet.resolveproperties",     "NodeInterface.name", "Specifies the list of properties that are be used to resolve entities from URL paths.");
 	public static final Setting<String> HtmlCustomResponseHeaders = new TextSetting(servletsGroup,    "HtmlServlet", "htmlservlet.customresponseheaders", "Strict-Transport-Security:max-age=60,X-Content-Type-Options:nosniff,X-Frame-Options:SAMEORIGIN,X-XSS-Protection:1;mode=block", "List of custom response headers that will be added to every HTTP response");
 
 	public static final Setting<String> PdfServletPath           = new StringSetting(servletsGroup,  "hidden", "pdfservlet.path",                  "/structr/pdf/*", "The URI under which requests are accepted by the servlet. Needs to include a wildcard at the end.");
@@ -376,7 +371,7 @@ public class Settings {
 	public static final Setting<String> PdfDefaultView           = new StringSetting(servletsGroup,  "PdfServlet", "pdfservlet.defaultview",           "public", "Default view to use when no view is given in the URL.");
 	public static final Setting<Integer> PdfOutputDepth          = new IntegerSetting(servletsGroup, "PdfServlet", "pdfservlet.outputdepth",           3, "Maximum nesting depth of JSON output.");
 	public static final Setting<String> PdfResourceProvider      = new StringSetting(servletsGroup,  "hidden", "pdfservlet.resourceprovider",      "org.structr.web.common.UiResourceProvider");
-	public static final Setting<String> PdfResolveProperties     = new StringSetting(servletsGroup,  "PdfServlet", "pdfservlet.resolveproperties",     "AbstractNode.name", "Specifies the list of properties that are be used to resolve entities from URL paths.");
+	public static final Setting<String> PdfResolveProperties     = new StringSetting(servletsGroup,  "PdfServlet", "pdfservlet.resolveproperties",     "NodeInterface.name", "Specifies the list of properties that are be used to resolve entities from URL paths.");
 	public static final Setting<String> PdfCustomResponseHeaders = new TextSetting(servletsGroup,    "PdfServlet", "pdfservlet.customresponseheaders", "Strict-Transport-Security:max-age=60,X-Content-Type-Options:nosniff,X-Frame-Options:SAMEORIGIN,X-XSS-Protection:1;mode=block", "List of custom response headers that will be added to every HTTP response");
 
 	public static final Setting<String> WebsocketServletPath       = new StringSetting(servletsGroup,  "hidden", "websocketservlet.path",              "/structr/ws/*", "URL pattern for WebSockets. Do not change unless you know what you are doing.");
@@ -813,17 +808,10 @@ public class Settings {
 
 		try {
 
-			FileBasedConfigurationBuilder<PropertiesConfiguration> builder = new FileBasedConfigurationBuilder<>(PropertiesConfiguration.class)
-					.configure(new Parameters().fileBased()
-							.setFileName(fileName)
-							.setThrowExceptionOnMissing(true)
-							.setListDelimiterHandler(new DefaultListDelimiterHandler('\0'))
-					);
+			PropertiesConfiguration.setDefaultListDelimiter('\0');
 
-			// Touch file, if it doesn't exist
-			Path.of(fileName).toFile().createNewFile();
-
-			final PropertiesConfiguration config = builder.getConfiguration();
+			final PropertiesConfiguration config = new PropertiesConfiguration();
+			config.setFileName(fileName);
 
 			for (final Setting setting : settings.values()) {
 
@@ -834,23 +822,20 @@ public class Settings {
 				}
 			}
 
+			final boolean isFileCreation = !config.getFile().exists();
 
-			FileHandler fileHandler = builder.getFileHandler();
-
-			final boolean isFileCreation = !fileHandler.getFile().exists();
-
-			if(fileHandler.getFile().getFreeSpace() < 1024 * 1024){
+			if(config.getFile().getFreeSpace() < 1024 * 1024){
 				logger.error("Refusing to start with less than 1 MB of disk space.");
 				System.exit(1);
 			}
 
-			fileHandler.save();
+			config.save();
 
 			if (isFileCreation) {
 
 				try {
 
-					Files.setPosixFilePermissions(Paths.get(fileHandler.getFile().toURI()), Settings.expectedConfigFilePermissions);
+					Files.setPosixFilePermissions(Paths.get(config.getFile().toURI()), Settings.expectedConfigFilePermissions);
 
 				} catch (UnsupportedOperationException | IOException e) {
 					// happens on non-POSIX filesystems, ignore
@@ -858,23 +843,21 @@ public class Settings {
 
 			} else {
 
-				checkConfigurationFilePermissions(builder, warnForNotRecommendedPermissions);
+				checkConfigurationFilePermissions(config, warnForNotRecommendedPermissions);
 			}
 
 		} catch (ConfigurationException ex) {
 
-            logger.error("Unable to store configuration: {}", ex.getMessage());
+			logger.error("Unable to store configuration: " + ex.getMessage());
 		}
 	}
 
-	public static FileBasedConfigurationBuilder<PropertiesConfiguration> getDefaultPropertiesConfigurationBuilder() {
+	public static PropertiesConfiguration getDefaultPropertiesConfiguration() {
 
-        return new FileBasedConfigurationBuilder<>(PropertiesConfiguration.class)
-                .configure(new Parameters().fileBased()
-                        .setFileName(Settings.ConfigFileName)
-                        .setThrowExceptionOnMissing(true)
-                        .setListDelimiterHandler(new DefaultListDelimiterHandler('\0'))
-                );
+		final PropertiesConfiguration config = new PropertiesConfiguration();
+		config.setFileName(Settings.ConfigFileName);
+
+		return config;
 	}
 
 	public static String getExpectedConfigurationFilePermissionsAsString () {
@@ -882,11 +865,11 @@ public class Settings {
 		return PosixFilePermissions.toString(expectedConfigFilePermissions);
 	}
 
-	public static String getActualConfigurationFilePermissionsAsString (final FileBasedConfigurationBuilder<?> builder) {
+	public static String getActualConfigurationFilePermissionsAsString (final PropertiesConfiguration config) {
 
 		try {
 
-			final Set<PosixFilePermission> actualPermissions = getActualConfigurationFilePermissions(builder);
+			final Set<PosixFilePermission> actualPermissions = getActualConfigurationFilePermissions(config);
 
 			return PosixFilePermissions.toString(actualPermissions);
 
@@ -897,34 +880,25 @@ public class Settings {
 		return "";
 	}
 
-	private static Set<PosixFilePermission> getActualConfigurationFilePermissions (final FileBasedConfigurationBuilder<?> builder) throws UnsupportedOperationException, IOException{
+	private static Set<PosixFilePermission> getActualConfigurationFilePermissions (final PropertiesConfiguration config) throws UnsupportedOperationException, IOException{
 
-		if (builder != null) {
-
-			final FileHandler fileHandler = builder.getFileHandler();
-			final String pathString = fileHandler.getURL().getPath();
-			if (pathString != null) {
-				return Files.getPosixFilePermissions(Path.of(pathString));
-			}
-		}
-
-		return null;
+		return Files.getPosixFilePermissions(Paths.get(config.getFile().toURI()));
 	}
 
-	public static boolean checkConfigurationFilePermissions(final FileBasedConfigurationBuilder<?> builder, final boolean warn) {
+	public static boolean checkConfigurationFilePermissions(final PropertiesConfiguration config, final boolean warn) {
 
 		// default to true for non-POSIX filesystems
 		boolean isOk = true;
 
 		try {
 
-			final Set<PosixFilePermission> actualPermissions = getActualConfigurationFilePermissions(builder);
+			final Set<PosixFilePermission> actualPermissions = getActualConfigurationFilePermissions(config);
 
-			isOk = actualPermissions != null && actualPermissions.equals(Settings.expectedConfigFilePermissions);
+			isOk = actualPermissions.equals(Settings.expectedConfigFilePermissions);
 
 			if (!isOk && warn) {
 
-				logger.warn("Permissions for configuration file '{}' do not match the expected permissions (Actual: {}, Expected: {}). Please check if this should be the case and otherwise fix the permissions", builder.getFileHandler().getFileName(), PosixFilePermissions.toString(actualPermissions), PosixFilePermissions.toString(expectedConfigFilePermissions));
+				logger.warn("Permissions for configuration file '{}' do not match the expected permissions (Actual: {}, Expected: {}). Please check if this should be the case and otherwise fix the permissions", config.getFileName(), PosixFilePermissions.toString(actualPermissions), PosixFilePermissions.toString(expectedConfigFilePermissions));
 			}
 
 		} catch (UnsupportedOperationException | IOException e) {
@@ -938,19 +912,12 @@ public class Settings {
 
 		try {
 
-			final File configFile = new File(fileName);
+			PropertiesConfiguration.setDefaultListDelimiter('\0');
 
-			FileBasedConfigurationBuilder<PropertiesConfiguration> builder = new FileBasedConfigurationBuilder<>(PropertiesConfiguration.class)
-					.configure(new Parameters().fileBased()
-							.setFile(configFile)
-							.setThrowExceptionOnMissing(true)
-							.setListDelimiterHandler(new DefaultListDelimiterHandler('\0'))
-					);
+			final PropertiesConfiguration config = new PropertiesConfiguration(fileName);
+			final Iterator<String> keys          = config.getKeys();
 
-			final PropertiesConfiguration config = builder.getConfiguration();
-            final Iterator<String> keys          = config.getKeys();
-
-			Settings.checkConfigurationFilePermissions(builder, true);
+			Settings.checkConfigurationFilePermissions(config, true);
 
 			while (keys.hasNext()) {
 

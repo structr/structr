@@ -238,10 +238,10 @@ public class DatePropertyRestTest extends StructrRestTestBase {
 			datePropertyType.addDateProperty("value", PropertyView.Public);
 			stringPropertyType.addStringProperty("value", PropertyView.Public);
 
-			actualType.setExtends(baseType);
-			propertyBase.setExtends(baseType);
-			datePropertyType.setExtends(propertyBase);
-			stringPropertyType.setExtends(propertyBase);
+			actualType.addTrait("BaseType");
+			propertyBase.addTrait("BaseType");
+			datePropertyType.addTrait("PropertyBaseType");
+			stringPropertyType.addTrait("PropertyBaseType");
 
 			actualType.relate(propertyBase, "HAS_PROPERTY", Cardinality.OneToMany, "base", "properties");
 			actualType.addViewProperty(PropertyView.Public, "properties");
@@ -310,18 +310,18 @@ public class DatePropertyRestTest extends StructrRestTestBase {
 			.patch("/ActualType");
 
 
-		final Class<NodeInterface> stringType = StructrApp.getConfiguration().getNodeEntityClass("StringType");
-		final Class<NodeInterface> dateType   = StructrApp.getConfiguration().getNodeEntityClass("DateType");
+		final String stringType = "StringType";
+		final String dateType   = "DateType";
 
 		// verify result
 		try (final Tx tx = app.tx()) {
 
 			for (final NodeInterface n : StructrApp.getInstance().nodeQuery(dateType).getResultStream()) {
-				assertTrue("Date values must be of type Date", n.getProperty("value") instanceof Date);
+				assertTrue("Date values must be of type Date", n.getProperty(n.getTraits().key("value")) instanceof Date);
 			}
 
 			for (final NodeInterface n : StructrApp.getInstance().nodeQuery(stringType).getResultStream()) {
-				assertTrue("String values must be of type String", n.getProperty("value") instanceof String);
+				assertTrue("String values must be of type String", n.getProperty(n.getTraits().key("value")) instanceof String);
 			}
 
 			tx.success();
@@ -354,10 +354,10 @@ public class DatePropertyRestTest extends StructrRestTestBase {
 			datePropertyType.addDateProperty("value", PropertyView.Public);
 			stringPropertyType.addStringProperty("value", PropertyView.Public);
 
-			actualType.setExtends(baseType);
-			propertyBase.setExtends(baseType);
-			datePropertyType.setExtends(propertyBase);
-			stringPropertyType.setExtends(propertyBase);
+			actualType.addTrait("BaseType");
+			propertyBase.addTrait("BaseType");
+			datePropertyType.addTrait("PropertyBaseType");
+			stringPropertyType.addTrait("PropertyBaseType");
 
 			actualType.relate(propertyBase, "HAS_PROPERTY", Cardinality.OneToMany, "base", "properties");
 			actualType.addViewProperty(PropertyView.Public, "properties");
@@ -429,18 +429,18 @@ public class DatePropertyRestTest extends StructrRestTestBase {
 			.patch("/ActualType");
 
 
-		final Class<NodeInterface> stringType = StructrApp.getConfiguration().getNodeEntityClass("StringType");
-		final Class<NodeInterface> dateType   = StructrApp.getConfiguration().getNodeEntityClass("DateType");
+		final String stringType = "StringType";
+		final String dateType   = "DateType";
 
 		// verify result
 		try (final Tx tx = app.tx()) {
 
 			for (final NodeInterface n : StructrApp.getInstance().nodeQuery(dateType).getResultStream()) {
-				assertTrue("Date values must be of type Date", n.getProperty("value") instanceof Date);
+				assertTrue("Date values must be of type Date", n.getProperty(n.getTraits().key("value")) instanceof Date);
 			}
 
 			for (final NodeInterface n : StructrApp.getInstance().nodeQuery(stringType).getResultStream()) {
-				assertTrue("String values must be of type String", n.getProperty("value") instanceof String);
+				assertTrue("String values must be of type String", n.getProperty(n.getTraits().key("value")) instanceof String);
 			}
 
 			tx.success();
@@ -473,10 +473,10 @@ public class DatePropertyRestTest extends StructrRestTestBase {
 			datePropertyType.addDateProperty("value", PropertyView.Public);
 			stringPropertyType.addStringProperty("value", PropertyView.Public);
 
-			actualType.setExtends(baseType);
-			propertyBase.setExtends(baseType);
-			datePropertyType.setExtends(propertyBase);
-			stringPropertyType.setExtends(propertyBase);
+			actualType.addTrait("BaseType");
+			propertyBase.addTrait("BaseType");
+			datePropertyType.addTrait("PropertyBaseType");
+			stringPropertyType.addTrait("PropertyBaseType");
 
 			actualType.relate(propertyBase, "HAS_PROPERTY", Cardinality.OneToMany, "base", "properties");
 			actualType.addViewProperty(PropertyView.Public, "properties");
@@ -540,18 +540,18 @@ public class DatePropertyRestTest extends StructrRestTestBase {
 		.when()
 			.patch("/PropertyBaseType");
 
-		final Class<NodeInterface> stringType = StructrApp.getConfiguration().getNodeEntityClass("StringType");
-		final Class<NodeInterface> dateType   = StructrApp.getConfiguration().getNodeEntityClass("DateType");
+		final String stringType = "StringType";
+		final String dateType   = "DateType";
 
 		// verify result
 		try (final Tx tx = app.tx()) {
 
 			for (final NodeInterface n : StructrApp.getInstance().nodeQuery(dateType).getResultStream()) {
-				assertTrue("Date values must be of type Date", n.getProperty("value") instanceof Date);
+				assertTrue("Date values must be of type Date", n.getProperty(n.getTraits().key("value")) instanceof Date);
 			}
 
 			for (final NodeInterface n : StructrApp.getInstance().nodeQuery(stringType).getResultStream()) {
-				assertTrue("String values must be of type String", n.getProperty("value") instanceof String);
+				assertTrue("String values must be of type String", n.getProperty(n.getTraits().key("value")) instanceof String);
 			}
 
 			tx.success();
@@ -584,10 +584,10 @@ public class DatePropertyRestTest extends StructrRestTestBase {
 			datePropertyType.addDateProperty("value", PropertyView.Public);
 			stringPropertyType.addStringProperty("value", PropertyView.Public);
 
-			actualType.setExtends(baseType);
-			propertyBase.setExtends(baseType);
-			datePropertyType.setExtends(propertyBase);
-			stringPropertyType.setExtends(propertyBase);
+			actualType.addTrait("BaseType");
+			propertyBase.addTrait("BaseType");
+			datePropertyType.addTrait("PropertyBaseType");
+			stringPropertyType.addTrait("PropertyBaseType");
 
 			actualType.relate(propertyBase, "HAS_PROPERTY", Cardinality.OneToMany, "base", "properties").setCascadingCreate(JsonSchema.Cascade.sourceToTarget);
 			actualType.addViewProperty(PropertyView.Public, "properties");
@@ -676,18 +676,18 @@ public class DatePropertyRestTest extends StructrRestTestBase {
 			.when()
 				.get("/ActualType");
 
-			final Class<NodeInterface> stringType = StructrApp.getConfiguration().getNodeEntityClass("StringType");
-			final Class<NodeInterface> dateType   = StructrApp.getConfiguration().getNodeEntityClass("DateType");
+			final String stringType = "StringType";
+			final String dateType   = "DateType";
 
 			// verify result
 			try (final Tx tx = app.tx()) {
 
 				for (final NodeInterface n : StructrApp.getInstance().nodeQuery(dateType).getResultStream()) {
-					assertTrue("Date values must be of type Date", n.getProperty("value") instanceof Date);
+					assertTrue("Date values must be of type Date", n.getProperty(n.getTraits().key("value")) instanceof Date);
 				}
 
 				for (final NodeInterface n : StructrApp.getInstance().nodeQuery(stringType).getResultStream()) {
-					assertTrue("String values must be of type String", n.getProperty("value") instanceof String);
+					assertTrue("String values must be of type String", n.getProperty(n.getTraits().key("value")) instanceof String);
 				}
 
 				tx.success();
@@ -755,18 +755,18 @@ public class DatePropertyRestTest extends StructrRestTestBase {
 			.when()
 				.get("/ActualType");
 
-			final Class<NodeInterface> stringType = StructrApp.getConfiguration().getNodeEntityClass("StringType");
-			final Class<NodeInterface> dateType   = StructrApp.getConfiguration().getNodeEntityClass("DateType");
+			final String stringType = "StringType";
+			final String dateType   = "DateType";
 
 			// verify result
 			try (final Tx tx = app.tx()) {
 
 				for (final NodeInterface n : StructrApp.getInstance().nodeQuery(dateType).getResultStream()) {
-					assertTrue("Date values must be of type Date", n.getProperty("value") instanceof Date);
+					assertTrue("Date values must be of type Date", n.getProperty(n.getTraits().key("value")) instanceof Date);
 				}
 
 				for (final NodeInterface n : StructrApp.getInstance().nodeQuery(stringType).getResultStream()) {
-					assertTrue("String values must be of type String", n.getProperty("value") instanceof String);
+					assertTrue("String values must be of type String", n.getProperty(n.getTraits().key("value")) instanceof String);
 				}
 
 				tx.success();

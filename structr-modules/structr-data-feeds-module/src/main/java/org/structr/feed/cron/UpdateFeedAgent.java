@@ -46,7 +46,7 @@ public class UpdateFeedAgent<T extends DataFeed> extends Agent<T> {
 
 			for (DataFeed feed : task.getWorkObjects()) {
 
-				logger.debug("Updating data feed {} if due", feed.getProperty(DataFeed.name));
+				logger.debug("Updating data feed {} if due", (Object)feed.getProperty(feed.getTraits().key("name")));
 
 				feed.updateIfDue(SecurityContext.getSuperUserInstance());
 			}

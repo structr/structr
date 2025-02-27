@@ -18,6 +18,7 @@
  */
 package org.structr.core.property;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.search.Occurrence;
@@ -98,13 +99,15 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 
 	@Override
 	public Class valueType() {
-		// This trick results in returning the proper array class for array properties.
-		// Neccessary because of and since commit 1db80071543018a0766efa2dc895b7bc3e9a0e34
-		try {
-			return Class.forName("[L" + componentType.getName() + ";");
-		} catch (ClassNotFoundException ex) {}
 
-		return componentType;
+		try {
+			// This trick results in returning the proper array class for array properties.
+			// Neccessary because of and since commit 1db80071543018a0766efa2dc895b7bc3e9a0e34
+			return Class.forName("[L" + componentType.getName() + ";");
+
+		} catch (ClassNotFoundException e) {}
+
+		return null;
 	}
 
 	@Override
@@ -223,29 +226,104 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 		public Object[] convert(T[] source) throws FrameworkException {
 			return source;
 		}
-
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occurrence occur, T[] searchValue, boolean exactMatch, Query query) {
+	protected void determineSearchType(final SecurityContext securityContext, final String requestParameter, final boolean exactMatch, final Query query) throws FrameworkException {
+
+		if (requestParameter.contains(",") || requestParameter.contains(";")) {
+
+			if (requestParameter.contains(";")) {
+
+				if (exactMatch) {
+
+					query.and();
+
+					for (final Object part : trimFilterAndConvert(securityContext, requestParameter.split(";"))) {
+
+						query.or(this, part, false);
+					}
+
+					query.parent();
+
+				} else {
+
+					query.and();
+
+					for (final Object part : trimFilterAndConvert(securityContext, requestParameter.split(";"))) {
+
+						query.or(this, part, false);
+					}
+
+					query.parent();
+				}
+
+			} else {
+
+				query.and(this, convertSearchValue(securityContext, requestParameter), exactMatch);
+			}
+
+			return;
+		}
+
+		if (StringUtils.isEmpty(requestParameter)) {
+
+			query.and(this, null);
+
+			return;
+		}
+
+		// use default implementation
+		super.determineSearchType(securityContext, requestParameter, exactMatch, query);
+	}
+
+	@Override
+	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occurrence occur, T[] valueInput, boolean exactMatch, Query query) {
+
+		T[] searchValue = null;
+
+		// we need to apply the database converter (at least for Date properties)
+		final PropertyConverter conv = databaseConverter(securityContext);
+		if (conv != null) {
+
+			try {
+				searchValue = (T[])conv.convert(valueInput);
+
+			} catch (FrameworkException fex) {
+				fex.printStackTrace();
+			}
+
+		} else {
+
+			searchValue = valueInput;
+		}
 
 		// early exit, return empty search attribute
 		if (searchValue == null) {
 			return new ArraySearchAttribute(this, "", exactMatch ? occur : Occurrence.OPTIONAL, exactMatch);
 		}
 
-		final SearchAttributeGroup group = new SearchAttributeGroup(occur);
+		if (!exactMatch) {
 
-		for (T value : searchValue) {
+			final SearchAttributeGroup group = new SearchAttributeGroup(occur);
+			for (T value : searchValue) {
 
-			group.add(new ArraySearchAttribute(this, value, exactMatch ? occur : Occurrence.OPTIONAL, exactMatch));
+				group.add(new ArraySearchAttribute(this, value, Occurrence.REQUIRED, false));
+			}
+
+			return group;
 		}
 
-		return group;
+		return new ArraySearchAttribute(this, searchValue, Occurrence.REQUIRED, exactMatch);
 	}
 
 	@Override
 	public boolean isCollection() {
+		return true;
+	}
+
+	@Override
+	public boolean isArray() {
 		return true;
 	}
 
@@ -319,7 +397,7 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 
 					throw new PropertyInputParsingException(
 						jsonName(),
-						new NumberFormatToken(declaringClass.getSimpleName(), jsonName(), source)
+						new NumberFormatToken(declaringTrait.getLabel(), jsonName(), source)
 					);
 				}
 
@@ -359,5 +437,22 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 		} catch (Throwable t) {}
 
 		return null;
+	}
+
+	private Object[] trimFilterAndConvert(final SecurityContext securityContext, final String[] input) throws FrameworkException {
+
+		final ArrayList trimmed = new ArrayList<>();
+
+		for (final String part : input) {
+
+			final String trimmedString = part.trim();
+
+			if (StringUtils.isNotBlank(trimmedString)) {
+
+				trimmed.add(convertSearchValue(securityContext, trimmedString));
+			}
+		}
+
+		return trimmed.toArray();
 	}
 }

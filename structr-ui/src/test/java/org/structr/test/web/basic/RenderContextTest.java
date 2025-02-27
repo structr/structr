@@ -25,30 +25,27 @@ import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.*;
 import org.structr.core.function.GetFunction;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.test.web.StructrUiTest;
-import org.structr.test.web.entity.TestOne;
 import org.structr.web.common.RenderContext;
+import org.structr.web.entity.LinkSource;
+import org.structr.web.entity.Linkable;
 import org.structr.web.entity.User;
-import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.html.A;
 import org.testng.annotations.Test;
-import org.w3c.dom.NodeList;
 
 import java.net.HttpCookie;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -64,25 +61,25 @@ public class RenderContextTest extends StructrUiTest {
 	@Test
 	public void testVariableReplacementInDynamicTypes() {
 
-		SchemaNode itemNode  = null;
-		NodeInterface parent = null;
-		NodeInterface child1 = null;
-		NodeInterface child2 = null;
+		NodeInterface itemNode = null;
+		NodeInterface parent   = null;
+		NodeInterface child1   = null;
+		NodeInterface child2   = null;
 
 		try (final Tx tx = app.tx()) {
 
-			itemNode = app.create(SchemaNode.class, new NodeAttribute(SchemaNode.name, "Item"));
+			itemNode = app.create(StructrTraits.SCHEMA_NODE, new NodeAttribute(Traits.of(StructrTraits.SCHEMA_NODE).key("name"), "Item"));
 
 			final PropertyMap properties = new PropertyMap();
-			properties.put(SchemaRelationshipNode.sourceId, itemNode.getUuid());
-			properties.put(SchemaRelationshipNode.targetId, itemNode.getUuid());
-			properties.put(SchemaRelationshipNode.relationshipType, "CHILD");
-			properties.put(SchemaRelationshipNode.sourceMultiplicity, "1");
-			properties.put(SchemaRelationshipNode.targetMultiplicity, "*");
-			properties.put(SchemaRelationshipNode.sourceJsonName, "parentItem");
-			properties.put(SchemaRelationshipNode.targetJsonName, "children");
+			properties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceId"), itemNode.getUuid());
+			properties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetId"), itemNode.getUuid());
+			properties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("relationshipType"), "CHILD");
+			properties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceMultiplicity"), "1");
+			properties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetMultiplicity"), "*");
+			properties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceJsonName"), "parentItem");
+			properties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetJsonName"), "children");
 
-			app.create(SchemaRelationshipNode.class, properties);
+			app.create(StructrTraits.SCHEMA_RELATIONSHIP_NODE, properties);
 
 			// compile the stuff
 			tx.success();
@@ -95,8 +92,8 @@ public class RenderContextTest extends StructrUiTest {
 		}
 
 		final ConfigurationProvider config = StructrApp.getConfiguration();
-		final Class itemClass              = config.getNodeEntityClass("Item");
-		final PropertyKey childrenProperty = StructrApp.key(itemClass, "children");
+		final String itemClass             = "Item";
+		final PropertyKey childrenProperty = Traits.of(itemClass).key("children");
 
 		// create parent/child relationship
 		try (final Tx tx = app.tx()) {
@@ -165,10 +162,18 @@ public class RenderContextTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(SchemaNode.class,
-				new NodeAttribute(SchemaNode.name, "Item"),
-				new NodeAttribute(new StringProperty("_testMethodCalled"), "Boolean"),
-				new NodeAttribute(new StringProperty("___testMethod"), "set(this, 'testMethodCalled', true)")
+			final NodeInterface schemaNode = app.create(StructrTraits.SCHEMA_NODE, "Item");
+
+			app.create(StructrTraits.SCHEMA_PROPERTY,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), schemaNode),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"), "testMethodCalled"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Boolean")
+			);
+
+			app.create(StructrTraits.SCHEMA_METHOD,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("schemaNode"), schemaNode),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("name"), "testMethod"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "set(this, 'testMethodCalled', true)")
 			);
 
 			// compile the stuff
@@ -180,12 +185,12 @@ public class RenderContextTest extends StructrUiTest {
 		}
 
 		final ConfigurationProvider config = StructrApp.getConfiguration();
-		final Class itemClass              = config.getNodeEntityClass("Item");
+		final String itemClass              = "Item";
 
 		// create parent/child relationship
 		try (final Tx tx = app.tx()) {
 
-			item = app.create(itemClass, new NodeAttribute(SchemaNode.name, "Item"));
+			item = app.create(itemClass, new NodeAttribute(Traits.of(StructrTraits.SCHEMA_NODE).key("name"), "Item"));
 
 			tx.success();
 
@@ -227,40 +232,50 @@ public class RenderContextTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final SchemaNode projectNode = app.create(SchemaNode.class,
-				new NodeAttribute(SchemaNode.name, "Project"),
-				new NodeAttribute(new StringProperty("_taskList"), "Notion(tasks, id, name)"),
-				new NodeAttribute(new StringProperty("_taskNames"), "Notion(tasks, name)")
+			final NodeInterface projectNode = app.create(StructrTraits.SCHEMA_NODE, "Project");
+
+			app.create(StructrTraits.SCHEMA_PROPERTY,
+				new NodeAttribute(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), projectNode),
+				new NodeAttribute(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"), "taskList"),
+				new NodeAttribute(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Notion"),
+				new NodeAttribute(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("format"), "tasks, id, name")
 			);
 
-			final SchemaNode taskNode = app.create(SchemaNode.class,
-				new NodeAttribute(SchemaNode.name, "Task")
+			app.create(StructrTraits.SCHEMA_PROPERTY,
+				new NodeAttribute(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), projectNode),
+				new NodeAttribute(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"), "taskNames"),
+				new NodeAttribute(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Notion"),
+				new NodeAttribute(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("format"), "tasks, name")
+			);
+
+			final NodeInterface taskNode = app.create(StructrTraits.SCHEMA_NODE,
+				new NodeAttribute(Traits.of(StructrTraits.SCHEMA_NODE).key("name"), "Task")
 			);
 
 			// create schema relationship
 			final PropertyMap taskProperties = new PropertyMap();
-			taskProperties.put(SchemaRelationshipNode.sourceNode, projectNode);
-			taskProperties.put(SchemaRelationshipNode.targetNode, taskNode);
-			taskProperties.put(SchemaRelationshipNode.relationshipType, "TASK");
-			taskProperties.put(SchemaRelationshipNode.relationshipType, "TASK");
-			taskProperties.put(SchemaRelationshipNode.sourceMultiplicity, "1");
-			taskProperties.put(SchemaRelationshipNode.targetMultiplicity, "*");
-			taskProperties.put(SchemaRelationshipNode.sourceJsonName, "project");
-			taskProperties.put(SchemaRelationshipNode.targetJsonName, "tasks");
+			taskProperties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceNode"), projectNode);
+			taskProperties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetNode"), taskNode);
+			taskProperties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("relationshipType"), "TASK");
+			taskProperties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("relationshipType"), "TASK");
+			taskProperties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceMultiplicity"), "1");
+			taskProperties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetMultiplicity"), "*");
+			taskProperties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceJsonName"), "project");
+			taskProperties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetJsonName"), "tasks");
 
-			app.create(SchemaRelationshipNode.class, taskProperties);
+			app.create(StructrTraits.SCHEMA_RELATIONSHIP_NODE, taskProperties);
 
 			// create schema relationship
 			final PropertyMap currentTaskProperties = new PropertyMap();
-			currentTaskProperties.put(SchemaRelationshipNode.sourceNode, projectNode);
-			currentTaskProperties.put(SchemaRelationshipNode.targetNode, taskNode);
-			currentTaskProperties.put(SchemaRelationshipNode.relationshipType, "CURRENT");
-			currentTaskProperties.put(SchemaRelationshipNode.sourceMultiplicity, "1");
-			currentTaskProperties.put(SchemaRelationshipNode.targetMultiplicity, "1");
-			currentTaskProperties.put(SchemaRelationshipNode.sourceJsonName, "projectOfCurrentTask");
-			currentTaskProperties.put(SchemaRelationshipNode.targetJsonName, "currentTask");
+			currentTaskProperties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceNode"), projectNode);
+			currentTaskProperties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetNode"), taskNode);
+			currentTaskProperties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("relationshipType"), "CURRENT");
+			currentTaskProperties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceMultiplicity"), "1");
+			currentTaskProperties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetMultiplicity"), "1");
+			currentTaskProperties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceJsonName"), "projectOfCurrentTask");
+			currentTaskProperties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetJsonName"), "currentTask");
 
-			app.create(SchemaRelationshipNode.class, currentTaskProperties);
+			app.create(StructrTraits.SCHEMA_RELATIONSHIP_NODE, currentTaskProperties);
 
 			// compile the stuff
 			tx.success();
@@ -273,18 +288,18 @@ public class RenderContextTest extends StructrUiTest {
 		}
 
 		final ConfigurationProvider config = StructrApp.getConfiguration();
-		final Class projectClass           = config.getNodeEntityClass("Project");
-		final Class taskClass              = config.getNodeEntityClass("Task");
-		final PropertyKey currentTaskKey   = StructrApp.key(projectClass, "currentTask");
-		final PropertyKey tasksKey         = StructrApp.key(projectClass, "tasks");
+		final String projectClass           = "Project";
+		final String taskClass              = "Task";
+		final PropertyKey currentTaskKey   = Traits.of(projectClass).key("currentTask");
+		final PropertyKey tasksKey         = Traits.of(projectClass).key("tasks");
 
 		// create parent/child relationship
 		try (final Tx tx = app.tx()) {
 
-			project = app.create(projectClass, new NodeAttribute(SchemaNode.name, "Project1"));
-			task1    = app.create(taskClass, new NodeAttribute(SchemaNode.name, "Task1"));
-			task2    = app.create(taskClass, new NodeAttribute(SchemaNode.name, "Task2"));
-			task3    = app.create(taskClass, new NodeAttribute(SchemaNode.name, "Task3"));
+			project = app.create(projectClass, new NodeAttribute(Traits.of(StructrTraits.SCHEMA_NODE).key("name"), "Project1"));
+			task1   = app.create(taskClass, new NodeAttribute(Traits.of(StructrTraits.SCHEMA_NODE).key("name"), "Task1"));
+			task2   = app.create(taskClass, new NodeAttribute(Traits.of(StructrTraits.SCHEMA_NODE).key("name"), "Task2"));
+			task3   = app.create(taskClass, new NodeAttribute(Traits.of(StructrTraits.SCHEMA_NODE).key("name"), "Task3"));
 
 			// add task to project
 			final List tasks = new LinkedList<>();
@@ -324,6 +339,10 @@ public class RenderContextTest extends StructrUiTest {
 			assertEquals("Invalid dot syntax result: ", "Task2", Scripting.replaceVariables(renderContext, project, "${project.taskNames[1]}"));
 			assertEquals("Invalid dot syntax result: ", "Task3", Scripting.replaceVariables(renderContext, project, "${project.taskNames[2]}"));
 
+			assertEquals("Invalid dot syntax result: ", task1.getUuid(), Scripting.replaceVariables(renderContext, project, "${project.taskList[0].id}"));
+			assertEquals("Invalid dot syntax result: ", task2.getUuid(), Scripting.replaceVariables(renderContext, project, "${project.taskList[1].id}"));
+			assertEquals("Invalid dot syntax result: ", task3.getUuid(), Scripting.replaceVariables(renderContext, project, "${project.taskList[2].id}"));
+
 			assertEquals("Invalid dot syntax result: ", "Task3", Scripting.replaceVariables(renderContext, project, "${project.currentTask.name}"));
 
 			tx.success();
@@ -348,44 +367,44 @@ public class RenderContextTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			Page page                       = null;
-			DOMNode html                    = null;
-			DOMNode head                    = null;
-			DOMNode body                    = null;
-			DOMNode title                   = null;
-			DOMNode h1                      = null;
-			DOMNode div1                    = null;
-			DOMNode p1                      = null;
-			DOMNode div2                    = null;
-			DOMNode p2                      = null;
-			DOMNode div3                    = null;
-			DOMNode p3                      = null;
-			A a                             = null;
-			DOMNode div4                    = null;
-			DOMNode p4                      = null;
+			Page page     = null;
+			DOMNode html  = null;
+			DOMNode head  = null;
+			DOMNode body  = null;
+			DOMNode title = null;
+			DOMNode h1    = null;
+			DOMNode div1  = null;
+			DOMNode p1    = null;
+			DOMNode div2  = null;
+			DOMNode p2    = null;
+			DOMNode div3  = null;
+			DOMNode p3    = null;
+			DOMNode a     = null;
+			DOMNode div4  = null;
+			DOMNode p4    = null;
 
-			detailsId = app.create(TestOne.class, "TestOne").getUuid();
+			detailsId = app.create("TestOne", "TestOne").getUuid();
 			page      = Page.createNewPage(securityContext, "testpage");
 
-			page.setProperties(page.getSecurityContext(), new PropertyMap(Page.visibleToPublicUsers, true));
+			page.setProperties(page.getSecurityContext(), new PropertyMap(Traits.of(StructrTraits.PAGE).key("visibleToPublicUsers"), true));
 
 			assertTrue(page != null);
-			assertTrue(page instanceof Page);
+			assertTrue(page.is(StructrTraits.PAGE));
 
-			html  = (DOMNode) page.createElement("html");
-			head  = (DOMNode) page.createElement("head");
-			body  = (DOMNode) page.createElement("body");
-			title = (DOMNode) page.createElement("title");
-			h1    = (DOMNode) page.createElement("h1");
-			div1  = (DOMNode) page.createElement("div");
-			p1    = (DOMNode) page.createElement("p");
-			div2  = (DOMNode) page.createElement("div");
-			p2    = (DOMNode) page.createElement("p");
-			div3  = (DOMNode) page.createElement("div");
-			p3    = (DOMNode) page.createElement("p");
-			a     = (A) page.createElement("a");
-			div4  = (DOMNode) page.createElement("div");
-			p4    = (DOMNode) page.createElement("p");
+			html  = page.createElement("html");
+			head  = page.createElement("head");
+			body  = page.createElement("body");
+			title = page.createElement("title");
+			h1    = page.createElement("h1");
+			div1  = page.createElement("div");
+			p1    = page.createElement("p");
+			div2  = page.createElement("div");
+			p2    = page.createElement("p");
+			div3  = page.createElement("div");
+			p3    = page.createElement("p");
+			a     = page.createElement("a");
+			div4  = page.createElement("div");
+			p4    = page.createElement("p");
 
 			// add HTML element to page
 			page.appendChild(html);
@@ -414,36 +433,36 @@ public class RenderContextTest extends StructrUiTest {
 
 			// add link to p3
 			p3.appendChild(a);
-			a.setLinkable(page);
+			a.as(LinkSource.class).setLinkable(page.as(Linkable.class));
 
 			body.appendChild(div4);
 			div4.appendChild(p4);
 
 			final PropertyMap p4Properties = new PropertyMap();
-			p4Properties.put(StructrApp.key(DOMElement.class, "restQuery"), "/divs");
-			p4Properties.put(StructrApp.key(DOMElement.class, "dataKey"), "div");
+			p4Properties.put(Traits.of(StructrTraits.DOM_ELEMENT).key("restQuery"), "/divs");
+			p4Properties.put(Traits.of(StructrTraits.DOM_ELEMENT).key("dataKey"), "div");
 			p4.setProperties(p4.getSecurityContext(), p4Properties);
 
-			NodeList paragraphs = page.getElementsByTagName("p");
-			assertEquals(p1, paragraphs.item(0));
-			assertEquals(p2, paragraphs.item(1));
-			assertEquals(p3, paragraphs.item(2));
-			assertEquals(p4, paragraphs.item(3));
+			final List<DOMNode> paragraphs = page.getElementsByTagName("p");
+			assertEquals(p1, paragraphs.get(0));
+			assertEquals(p2, paragraphs.get(1));
+			assertEquals(p3, paragraphs.get(2));
+			assertEquals(p4, paragraphs.get(3));
 
 			// create users
-			final User tester1 = app.create(User.class, new NodeAttribute<>(StructrApp.key(User.class, "name"), "tester1"), new NodeAttribute<>(StructrApp.key(User.class, "eMail"), "tester1@test.com"));
-			final User tester2 = app.create(User.class, new NodeAttribute<>(StructrApp.key(User.class, "name"), "tester2"), new NodeAttribute<>(StructrApp.key(User.class, "eMail"), "tester2@test.com"));
+			final User tester1 = app.create(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"), "tester1"), new NodeAttribute<>(Traits.of(StructrTraits.USER).key("eMail"), "tester1@test.com")).as(User.class);
+			final User tester2 = app.create(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"), "tester2"), new NodeAttribute<>(Traits.of(StructrTraits.USER).key("eMail"), "tester2@test.com")).as(User.class);
 
 			assertNotNull("User tester1 should exist.", tester1);
 			assertNotNull("User tester2 should exist.", tester2);
 
 			// create admin user for later use
 			final PropertyMap adminProperties = new PropertyMap();
-			adminProperties.put(StructrApp.key(User.class, "name"),     "admin");
-			adminProperties.put(StructrApp.key(User.class, "password"), "admin");
-			adminProperties.put(StructrApp.key(User.class, "isAdmin"),   true);
+			adminProperties.put(Traits.of(StructrTraits.USER).key("name"),     "admin");
+			adminProperties.put(Traits.of(StructrTraits.USER).key("password"), "admin");
+			adminProperties.put(Traits.of(StructrTraits.USER).key("isAdmin"),   true);
 
-			app.create(User.class, adminProperties);
+			app.create(StructrTraits.USER, adminProperties);
 
 			pageId = page.getUuid();
 			p1Id   = p1.getUuid();
@@ -461,14 +480,14 @@ public class RenderContextTest extends StructrUiTest {
 
 			final RenderContext ctx               = new RenderContext(securityContext);
 			final NodeInterface detailsDataObject = app.getNodeById(detailsId);
-			final Page page                       = app.get(Page.class, pageId);
-			final DOMNode p1                      = app.get(DOMNode.class, p1Id);
-			final DOMNode p2                      = app.get(DOMNode.class, p2Id);
-			final DOMNode a                       = app.get(DOMNode.class, aId);
-			TestOne testOne                       = null;
+			final NodeInterface page              = app.getNodeById(StructrTraits.PAGE, pageId);
+			final NodeInterface p1                = app.getNodeById(StructrTraits.DOM_NODE, p1Id);
+			final NodeInterface p2                = app.getNodeById(StructrTraits.DOM_NODE, p2Id);
+			final NodeInterface a                 = app.getNodeById(StructrTraits.DOM_NODE, aId);
+			NodeInterface testOne                 = null;
 
 			ctx.setDetailsDataObject(detailsDataObject);
-			ctx.setPage(page);
+			ctx.setPage(page.as(Page.class));
 
 			// test for "empty" return value
 			assertEquals("", Scripting.replaceVariables(ctx, p1, "${err}"));
@@ -523,8 +542,8 @@ public class RenderContextTest extends StructrUiTest {
 			assertEquals("true", Scripting.replaceVariables(ctx, p1, "${equal(42, this.null!42)}"));
 
 
-			final User tester1 = app.nodeQuery(User.class).andName("tester1").getFirst();
-			final User tester2 = app.nodeQuery(User.class).andName("tester2").getFirst();
+			final User tester1 = app.nodeQuery(StructrTraits.USER).andName("tester1").getFirst().as(User.class);
+			final User tester2 = app.nodeQuery(StructrTraits.USER).andName("tester2").getFirst().as(User.class);
 
 			assertNotNull("User tester1 should exist.", tester1);
 			assertNotNull("User tester2 should exist.", tester2);
@@ -542,7 +561,7 @@ public class RenderContextTest extends StructrUiTest {
 			// test GET REST access
 			assertEquals("Invalid GET notation result", page.getName(), Scripting.replaceVariables(ctx, p1, "${from_json(GET('http://localhost:" + httpPort + "/structr/rest/Page/ui').body).result[0].name}"));
 
-			grant("Folder", 64, true);
+			grant(StructrTraits.FOLDER, 64, true);
 			grant("_login", 64, false);
 
 			assertEquals("Invalid POST result", "201",                            Scripting.replaceVariables(ctx, page, "${POST('http://localhost:" + httpPort + "/structr/rest/Folder', '{name:status}').status}"));
@@ -566,20 +585,20 @@ public class RenderContextTest extends StructrUiTest {
 			assertEquals("Invalid locale result", localeString, Scripting.replaceVariables(ctx, page, "${locale}"));
 
 			// set new details object
-			final TestOne detailsDataObject2 = app.create(TestOne.class, "TestOne");
+			final NodeInterface detailsDataObject2 = app.create("TestOne", "TestOne");
 			Scripting.replaceVariables(ctx, p1, "${set_details_object(first(find('TestOne', 'id', '" + detailsDataObject2.getUuid() + "')))}");
 			assertEquals("${current.id} should resolve to new details object", detailsDataObject2.getUuid(), Scripting.replaceVariables(ctx, p1, "${current.id}"));
 
 			// test values() with single parameter
 			assertEquals("Invalid values() result", "[test]", Scripting.replaceVariables(ctx, page, "${values(from_json('{name:test}'))}"));
 
-			testOne = createTestNode(TestOne.class);
-			testOne.setProperty(TestOne.htmlString, "<a b=\"c\">&d</a>");
+			testOne = createTestNode("TestOne");
+			testOne.setProperty(Traits.of("TestOne").key("htmlString"), "<a b=\"c\">&d</a>");
 
 			// escape_html
 			assertEquals("Invalid escape_html() result", "&lt;a b=&quot;c&quot;&gt;&amp;d&lt;/a&gt;", Scripting.replaceVariables(ctx, testOne, "${escape_html(this.htmlString)}"));
 
-			testOne.setProperty(TestOne.htmlString, "&lt;a b=&quot;c&quot;&gt;&amp;d&lt;/a&gt;");
+			testOne.setProperty(Traits.of("TestOne").key("htmlString"), "&lt;a b=&quot;c&quot;&gt;&amp;d&lt;/a&gt;");
 
 			// unescape_html
 			assertEquals("Invalid unescape_html() result", "<a b=\"c\">&d</a>", Scripting.replaceVariables(ctx, testOne, "${unescape_html(this.htmlString)}"));
@@ -588,8 +607,7 @@ public class RenderContextTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
-
+			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
 	}
@@ -597,14 +615,14 @@ public class RenderContextTest extends StructrUiTest {
 	@Test
 	public void testFiltering() {
 
-		final List<TestOne> testOnes = new LinkedList<>();
+		final List<NodeInterface> testOnes = new LinkedList<>();
 
 		try (final Tx tx = app.tx()) {
 
-			testOnes.addAll(createTestNodes(TestOne.class, 20));
+			testOnes.addAll(createTestNodes("TestOne", 20));
 
 			final RenderContext ctx = new RenderContext(securityContext);
-			final TestOne testOne   = testOnes.get(0);
+			final NodeInterface testOne   = testOnes.get(0);
 
 			// test filtering
 			ctx.setDetailsDataObject(testOnes.get(5));
@@ -629,23 +647,26 @@ public class RenderContextTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// create a Project type
-			final SchemaNode projectNode = createTestNode(SchemaNode.class, new NodeAttribute<>(StructrApp.key(AbstractNode.class, "name"), "Project"));
+			final NodeInterface projectNode = app.create(StructrTraits.SCHEMA_NODE, "Project");
 
 			// create a Task type with a string property "task"
-			final SchemaNode taskNode    = createTestNode(SchemaNode.class,
-				new NodeAttribute<>(StructrApp.key(AbstractNode.class, "name"), "Task"),
-				new NodeAttribute<>(new StringProperty("_task"), "String")
+			final NodeInterface taskNode  = app.create(StructrTraits.SCHEMA_NODE, "Task");
+
+			app.create(StructrTraits.SCHEMA_PROPERTY,
+				new NodeAttribute(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), taskNode),
+				new NodeAttribute(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"), "task"),
+				new NodeAttribute(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "String")
 			);
 
 			// create a schema relationship between them
-			createTestNode(SchemaRelationshipNode.class,
-				new NodeAttribute<>(StructrApp.key(SchemaRelationshipNode.class, "sourceNode"), projectNode),
-				new NodeAttribute<>(StructrApp.key(SchemaRelationshipNode.class, "targetNode"), taskNode),
-				new NodeAttribute<>(StructrApp.key(SchemaRelationshipNode.class, "relationshipType"), "has"),
-				new NodeAttribute<>(StructrApp.key(SchemaRelationshipNode.class, "sourceMultiplicity"), "1"),
-				new NodeAttribute<>(StructrApp.key(SchemaRelationshipNode.class, "targetMultiplicity"), "*"),
-				new NodeAttribute<>(StructrApp.key(SchemaRelationshipNode.class, "sourceJsonName"), "project"),
-				new NodeAttribute<>(StructrApp.key(SchemaRelationshipNode.class, "targetJsonName"), "tasks")
+			createTestNode(StructrTraits.SCHEMA_RELATIONSHIP_NODE,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceNode"), projectNode),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetNode"), taskNode),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("relationshipType"), "has"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceMultiplicity"), "1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetMultiplicity"), "*"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceJsonName"), "project"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetJsonName"), "tasks")
 			);
 
 			tx.success();
@@ -661,25 +682,25 @@ public class RenderContextTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// obtain class objects to create instances of the above types
-			final Class projectType    = StructrApp.getConfiguration().getNodeEntityClass("Project");
-			final Class taskType       = StructrApp.getConfiguration().getNodeEntityClass("Task");
-			final PropertyKey taskKey  = StructrApp.key(taskType, "task");
-			final PropertyKey tasksKey = StructrApp.key(projectType, "tasks");
+			final String projectType    = "Project";
+			final String taskType       = "Task";
+			final PropertyKey taskKey  = Traits.of(taskType).key("task");
+			final PropertyKey tasksKey = Traits.of(projectType).key("tasks");
 
 			final List<NodeInterface> tasks = new LinkedList<>();
 
-			tasks.add(app.create(taskType, new NodeAttribute<>(StructrApp.key(AbstractNode.class, "name"), "Task 1"), new NodeAttribute<>(taskKey, "Task 1")));
-			tasks.add(app.create(taskType, new NodeAttribute<>(StructrApp.key(AbstractNode.class, "name"), "Task 2"), new NodeAttribute<>(taskKey, "Task 2")));
-			tasks.add(app.create(taskType, new NodeAttribute<>(StructrApp.key(AbstractNode.class, "name"), "Task 3"), new NodeAttribute<>(taskKey, "Task 3")));
+			tasks.add(app.create(taskType, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "Task 1"), new NodeAttribute<>(taskKey, "Task 1")));
+			tasks.add(app.create(taskType, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "Task 2"), new NodeAttribute<>(taskKey, "Task 2")));
+			tasks.add(app.create(taskType, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "Task 3"), new NodeAttribute<>(taskKey, "Task 3")));
 
 			// create a project and a task
 			final NodeInterface project = app.create(projectType,
-				new NodeAttribute<>(StructrApp.key(AbstractNode.class, "name"), "project"),
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "project"),
 				new NodeAttribute<>(tasksKey, tasks)
 			);
 
 			// create an additional test task without a project
-			final NodeInterface testTask = app.create(taskType, new NodeAttribute<>(StructrApp.key(AbstractNode.class, "name"), "test task"), new NodeAttribute<>(taskKey, "test task"));
+			final NodeInterface testTask = app.create(taskType, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "test task"), new NodeAttribute<>(taskKey, "test task"));
 			final RenderContext renderContext = new RenderContext(securityContext);
 
 			renderContext.putDataObject("project", project);
@@ -718,30 +739,30 @@ public class RenderContextTest extends StructrUiTest {
 	public void testAnyAllAndNoneFunctions1() {
 
 		final ActionContext ctx = new ActionContext(securityContext, null);
-		PrincipalInterface user          = null;
-		TestOne test            = null;
+		NodeInterface user          = null;
+		NodeInterface test            = null;
 
 		try (final Tx tx = app.tx()) {
 
-			user = app.create(User.class, "user1");
-			test = app.create(TestOne.class, "test1");
+			user = app.create(StructrTraits.USER, "user1");
+			test = app.create("TestOne", "test1");
 
-			app.create(Group.class,
-				new NodeAttribute<>(StructrApp.key(AbstractNode.class, "name"), "group1"),
-				new NodeAttribute<>(StructrApp.key(Group.class, "members"), Arrays.asList(new PrincipalInterface[] { user } ))
+			app.create(StructrTraits.GROUP,
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "group1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.GROUP).key("members"), List.of(user))
 			);
 
-			final Group group2 = app.create(Group.class,
-				new NodeAttribute<>(StructrApp.key(AbstractNode.class, "name"), "group2"),
-				new NodeAttribute<>(StructrApp.key(Group.class, "members"), Arrays.asList(new PrincipalInterface[] { user } ))
+			final NodeInterface group2 = app.create(StructrTraits.GROUP,
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "group2"),
+				new NodeAttribute<>(Traits.of(StructrTraits.GROUP).key("members"), List.of(user))
 			);
 
-			app.create(Group.class,
-				new NodeAttribute<>(StructrApp.key(AbstractNode.class, "name"), "group3"),
-				new NodeAttribute<>(StructrApp.key(Group.class, "members"), Arrays.asList(new PrincipalInterface[] { user } ))
+			app.create(StructrTraits.GROUP,
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "group3"),
+				new NodeAttribute<>(Traits.of(StructrTraits.GROUP).key("members"), List.of(user))
 			);
 
-			test.setProperty(AbstractNode.owner, group2);
+			test.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("owner"), group2);
 
 			tx.success();
 

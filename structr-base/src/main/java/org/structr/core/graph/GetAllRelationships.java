@@ -31,7 +31,7 @@ import java.util.Collections;
  */
 public class GetAllRelationships extends NodeServiceCommand {
 
-	public Iterable<AbstractRelationship> execute() throws FrameworkException {
+	public Iterable<RelationshipInterface> execute() throws FrameworkException {
 
 		RelationshipFactory relationshipFactory = new RelationshipFactory(securityContext);
 		DatabaseService graphDb                 = (DatabaseService)arguments.get("graphDb");

@@ -20,23 +20,25 @@ package org.structr.test.web.advanced;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.AccessControllable;
 import org.structr.common.AccessMode;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
+import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
-import org.structr.web.entity.Image;
-import org.structr.web.entity.User;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -57,31 +59,31 @@ public class ImageTest extends StructrUiTest {
 	@Test
 	public void testThumbnailGeneration() {
 
-		final PropertyKey passwordKey = StructrApp.key(PrincipalInterface.class, "password");
-		PrincipalInterface tester1             = null;
-		PrincipalInterface tester2             = null;
-		PrincipalInterface tester3             = null;
+		final PropertyKey passwordKey = Traits.of(StructrTraits.PRINCIPAL).key("password");
+		Principal tester1             = null;
+		Principal tester2             = null;
+		Principal tester3             = null;
 
 		try (final Tx tx = app.tx()) {
 
-			tester1 = app.create(User.class, new NodeAttribute<>(PrincipalInterface.name, "tester1"), new NodeAttribute<>(passwordKey, "test"));
-			tester2 = app.create(User.class, new NodeAttribute<>(PrincipalInterface.name, "tester2"), new NodeAttribute<>(passwordKey, "test"));
-			tester3 = app.create(User.class, new NodeAttribute<>(PrincipalInterface.name, "tester3"), new NodeAttribute<>(passwordKey, "test"));
+			tester1 = app.create(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("name"), "tester1"), new NodeAttribute<>(passwordKey, "test")).as(Principal.class);
+			tester2 = app.create(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("name"), "tester2"), new NodeAttribute<>(passwordKey, "test")).as(Principal.class);
+			tester3 = app.create(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("name"), "tester3"), new NodeAttribute<>(passwordKey, "test")).as(Principal.class);
 
-			final Folder folder1 = FileHelper.createFolderPath(securityContext, "/Test1");
-			folder1.setProperty(AbstractNode.visibleToAuthenticatedUsers, true);
+			final AccessControllable folder1 = FileHelper.createFolderPath(securityContext, "/Test1").as(AccessControllable.class);
+			folder1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToAuthenticatedUsers"), true);
 			folder1.grant(Permission.write, tester1);
 			folder1.grant(Permission.write, tester2);
 			folder1.grant(Permission.write, tester3);
 
-			final Folder folder2 = FileHelper.createFolderPath(securityContext, "/Test1/Subtest2");
-			folder2.setProperty(AbstractNode.visibleToAuthenticatedUsers, true);
+			final AccessControllable folder2 = FileHelper.createFolderPath(securityContext, "/Test1/Subtest2").as(AccessControllable.class);
+			folder2.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToAuthenticatedUsers"), true);
 			folder2.grant(Permission.write, tester1);
 			folder2.grant(Permission.write, tester2);
 			folder2.grant(Permission.write, tester3);
 
-			final Folder folder3 = FileHelper.createFolderPath(securityContext, "/Test1/Subtest3");
-			folder3.setProperty(AbstractNode.visibleToAuthenticatedUsers, true);
+			final AccessControllable folder3 = FileHelper.createFolderPath(securityContext, "/Test1/Subtest3").as(AccessControllable.class);
+			folder3.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToAuthenticatedUsers"), true);
 			folder3.grant(Permission.write, tester1);
 			folder3.grant(Permission.write, tester2);
 			folder3.grant(Permission.write, tester3);
@@ -149,10 +151,10 @@ public class ImageTest extends StructrUiTest {
 			boolean allThumbnailsAvailable = true;
 			try (final Tx tx = app.tx()) {
 
-				final List<Image> images = app.nodeQuery(Image.class).and("isThumbnail", false).getAsList();
-				for (Image img : images) {
+				final List<NodeInterface> images = app.nodeQuery(StructrTraits.IMAGE).and(Traits.of(StructrTraits.IMAGE).key("isThumbnail"), false).getAsList();
+				for (NodeInterface img : images) {
 
-					allThumbnailsAvailable &= img.getProperty(StructrApp.key(Image.class, "tnMid")) != null;
+					allThumbnailsAvailable &= img.getProperty(Traits.of(StructrTraits.IMAGE).key("tnMid")) != null;
 				}
 
 				tx.success();
@@ -171,21 +173,21 @@ public class ImageTest extends StructrUiTest {
 
 			System.out.println("############# Folders:");
 
-			final List<Folder> folders = app.nodeQuery(Folder.class).sort(StructrApp.key(Folder.class, "path")).getAsList();
+			final List<NodeInterface> folders = app.nodeQuery(StructrTraits.FOLDER).sort(Traits.of(StructrTraits.FOLDER).key("path")).getAsList();
 
 			folders.stream().forEach(f -> {
-				System.out.println(f.getPath());
+				System.out.println(f.as(Folder.class).getPath());
 			});
 
 			assertEquals("Invalid number of folders after thumbnail creation", 7, folders.size());
 
-			assertEquals("Invalid folder path", "/._structr_thumbnails",                folders.get(0).getPath());
-			assertEquals("Invalid folder path", "/._structr_thumbnails/Test1",          folders.get(1).getPath());
-			assertEquals("Invalid folder path", "/._structr_thumbnails/Test1/Subtest2", folders.get(2).getPath());
-			assertEquals("Invalid folder path", "/._structr_thumbnails/Test1/Subtest3", folders.get(3).getPath());
-			assertEquals("Invalid folder path", "/Test1",                               folders.get(4).getPath());
-			assertEquals("Invalid folder path", "/Test1/Subtest2",                      folders.get(5).getPath());
-			assertEquals("Invalid folder path", "/Test1/Subtest3",                      folders.get(6).getPath());
+			assertEquals("Invalid folder path", "/._structr_thumbnails",                folders.get(0).as(Folder.class).getPath());
+			assertEquals("Invalid folder path", "/._structr_thumbnails/Test1",          folders.get(1).as(Folder.class).getPath());
+			assertEquals("Invalid folder path", "/._structr_thumbnails/Test1/Subtest2", folders.get(2).as(Folder.class).getPath());
+			assertEquals("Invalid folder path", "/._structr_thumbnails/Test1/Subtest3", folders.get(3).as(Folder.class).getPath());
+			assertEquals("Invalid folder path", "/Test1",                               folders.get(4).as(Folder.class).getPath());
+			assertEquals("Invalid folder path", "/Test1/Subtest2",                      folders.get(5).as(Folder.class).getPath());
+			assertEquals("Invalid folder path", "/Test1/Subtest3",                      folders.get(6).as(Folder.class).getPath());
 
 			tx.success();
 
@@ -203,16 +205,16 @@ public class ImageTest extends StructrUiTest {
 	@Test
 	public void testFolderPaths() {
 
-		final PropertyKey passwordKey = StructrApp.key(Principal.class, "password");
+		final PropertyKey passwordKey = Traits.of(StructrTraits.PRINCIPAL).key("password");
 		Principal tester1             = null;
 		Principal tester2             = null;
 		Principal tester3             = null;
 
 		try (final Tx tx = app.tx()) {
 
-			tester1 = app.create(Principal.class, new NodeAttribute<>(Principal.name, "tester1"), new NodeAttribute<>(passwordKey, "test"));
-			tester2 = app.create(Principal.class, new NodeAttribute<>(Principal.name, "tester2"), new NodeAttribute<>(passwordKey, "test"));
-			tester3 = app.create(Principal.class, new NodeAttribute<>(Principal.name, "tester3"), new NodeAttribute<>(passwordKey, "test"));
+			tester1 = app.create(StructrTraits.PRINCIPAL, new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("name"), "tester1"), new NodeAttribute<>(passwordKey, "test"));
+			tester2 = app.create(StructrTraits.PRINCIPAL, new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("name"), "tester2"), new NodeAttribute<>(passwordKey, "test"));
+			tester3 = app.create(StructrTraits.PRINCIPAL, new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("name"), "tester3"), new NodeAttribute<>(passwordKey, "test"));
 
 			tx.success();
 
@@ -263,7 +265,7 @@ public class ImageTest extends StructrUiTest {
 
 			System.out.println("############# Folders:");
 
-			app.nodeQuery(Folder.class).getAsList().stream().forEach(f -> {
+			app.nodeQuery(StructrTraits.FOLDER).getAsList().stream().forEach(f -> {
 				System.out.println(f.getPath());
 			});
 
@@ -279,14 +281,17 @@ public class ImageTest extends StructrUiTest {
 
 		try( final InputStream is = ImageTest.class.getResourceAsStream("/test/thumbtest.png")) {
 
-			final Image image = ImageHelper.createImage(securityContext, is, "image/png", Image.class, name, false);
-			final Folder path = FileHelper.createFolderPath(securityContext, folderPath);
+			final NodeInterface image = ImageHelper.createImage(securityContext, is, "image/png", StructrTraits.IMAGE, name, false);
+			final NodeInterface path  = FileHelper.createFolderPath(securityContext, folderPath);
 
 			// set path
-			image.setParent(path);
+			if (path != null) {
+
+				image.as(File.class).setParent(path.as(Folder.class));
+			}
 
 			// request thumbnail creation
-			image.getProperty(StructrApp.key(Image.class, "tnMid"));
+			image.getProperty(Traits.of(StructrTraits.IMAGE).key("tnMid"));
 
 		} catch (IOException ioex) {
 			ioex.printStackTrace();

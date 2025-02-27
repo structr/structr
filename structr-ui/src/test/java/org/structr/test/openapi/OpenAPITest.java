@@ -25,11 +25,10 @@ import org.structr.api.config.Settings;
 import org.structr.api.schema.JsonMethod;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.SchemaMethod;
-import org.structr.core.entity.SchemaMethodParameter;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
 import org.structr.test.web.advanced.HttpFunctionsTest;
@@ -113,9 +112,9 @@ public class OpenAPITest extends StructrUiTest {
 		assertNotNull("Missing response example for 422 Unprocessable Entity", HttpFunctionsTest.getMapPathValue(response, "components.responses.validationError.content.application/json.example"));
 
 		// schemas
-		HttpFunctionsTest.assertMapPathValueIs(response, "components.schemas.#",  40);
+		HttpFunctionsTest.assertMapPathValueIs(response, "components.schemas.#",  14);
 
-		assertNotNull("Missing schema for AbstractNode",  HttpFunctionsTest.getMapPathValue(response, "components.schemas.AbstractNode"));
+		assertNotNull("Missing schema for NodeInterface", HttpFunctionsTest.getMapPathValue(response, "components.schemas.NodeInterface"));
 		assertNotNull("Missing schema for ErrorToken",    HttpFunctionsTest.getMapPathValue(response, "components.schemas.ErrorToken"));
 		assertNotNull("Missing schema for User",          HttpFunctionsTest.getMapPathValue(response, "components.schemas.User"));
 		assertNotNull("Missing schema for RESTResponse",  HttpFunctionsTest.getMapPathValue(response, "components.schemas.RESTResponse"));
@@ -197,12 +196,11 @@ public class OpenAPITest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final String returnTypeJson = "{ \"type\": \"object\", \"properties\": { \"name\": \"string\" } }";
-
-			final JsonSchema schema = StructrSchema.createFromDatabase(app);
-
-			// add two types
-			final JsonType contact  = schema.addType("Contact").setExtends(schema.getType("Principal"));
-			final JsonType customer = schema.addType("Customer").setExtends(contact);
+			final JsonSchema schema     = StructrSchema.createFromDatabase(app);
+			final JsonType contact      = schema.addType("Contact").addTrait(StructrTraits.PRINCIPAL);
+			final JsonType customer     = schema.addType("Customer").addTrait("Contact");
+			final Traits paramTraits    = Traits.of(StructrTraits.SCHEMA_METHOD_PARAMETER);
+			final Traits methodTraits   = Traits.of(StructrTraits.SCHEMA_METHOD);
 
 			contact.setIncludeInOpenAPI(true);
 			contact.addTags("test", "contact");
@@ -246,41 +244,41 @@ public class OpenAPITest extends StructrUiTest {
 					.addParameter("id", "string").setDescription("The ID of the test object.");
 
 			// add global schema methods (no way of doing this with JsonSchema.. :'()
-			app.create(SchemaMethod.class,
-					new NodeAttribute<>(AbstractNode.name, "globalTest"),
-					new NodeAttribute<>(SchemaMethod.source, "log('GlobalTest')"),
-					new NodeAttribute<>(SchemaMethod.includeInOpenAPI, true),
-					new NodeAttribute<>(SchemaMethod.tags, new String[] { "test", "customer" })
+			app.create(StructrTraits.SCHEMA_METHOD,
+					new NodeAttribute<>(methodTraits.key("name"), "globalTest"),
+					new NodeAttribute<>(methodTraits.key("source"), "log('GlobalTest')"),
+					new NodeAttribute<>(methodTraits.key("includeInOpenAPI"), true),
+					new NodeAttribute<>(methodTraits.key("tags"), new String[] { "test", "customer" })
 			);
 
-			app.create(SchemaMethod.class,
-					new NodeAttribute<>(AbstractNode.name, "globalTestParams"),
-					new NodeAttribute<>(SchemaMethod.source, "log('GlobalTest')"),
-					new NodeAttribute<>(SchemaMethod.includeInOpenAPI, true),
-					new NodeAttribute<>(SchemaMethod.tags, new String[] { "test", "customer" }),
-					new NodeAttribute<>(SchemaMethod.parameters, List.of(
-							app.create(SchemaMethodParameter.class, new NodeAttribute<>(SchemaMethodParameter.name, "id"), new NodeAttribute<>(SchemaMethodParameter.parameterType, "string")),
-							app.create(SchemaMethodParameter.class, new NodeAttribute<>(SchemaMethodParameter.name, "index"), new NodeAttribute<>(SchemaMethodParameter.parameterType, "integer"))
+			app.create(StructrTraits.SCHEMA_METHOD,
+					new NodeAttribute<>(methodTraits.key("name"), "globalTestParams"),
+					new NodeAttribute<>(methodTraits.key("source"), "log('GlobalTest')"),
+					new NodeAttribute<>(methodTraits.key("includeInOpenAPI"), true),
+					new NodeAttribute<>(methodTraits.key("tags"), new String[] { "test", "customer" }),
+					new NodeAttribute<>(methodTraits.key("parameters"), List.of(
+							app.create(StructrTraits.SCHEMA_METHOD_PARAMETER, new NodeAttribute<>(paramTraits.key("name"), "id"), new NodeAttribute<>(paramTraits.key("parameterType"), "string")),
+							app.create(StructrTraits.SCHEMA_METHOD_PARAMETER, new NodeAttribute<>(paramTraits.key("name"), "index"), new NodeAttribute<>(paramTraits.key("parameterType"), "integer"))
 					))
 			);
 
-			app.create(SchemaMethod.class,
-					new NodeAttribute<>(AbstractNode.name, "globalTestParamsReturn"),
-					new NodeAttribute<>(SchemaMethod.source, "log('GlobalTest')"),
-					new NodeAttribute<>(SchemaMethod.includeInOpenAPI, true),
-					new NodeAttribute<>(SchemaMethod.tags, new String[] { "test", "customer" }),
-					new NodeAttribute<>(SchemaMethod.parameters, List.of(
-							app.create(SchemaMethodParameter.class, new NodeAttribute<>(SchemaMethodParameter.name, "id"), new NodeAttribute<>(SchemaMethodParameter.parameterType, "string")),
-							app.create(SchemaMethodParameter.class, new NodeAttribute<>(SchemaMethodParameter.name, "index"), new NodeAttribute<>(SchemaMethodParameter.parameterType, "integer"))
+			app.create(StructrTraits.SCHEMA_METHOD,
+					new NodeAttribute<>(methodTraits.key("name"), "globalTestParamsReturn"),
+					new NodeAttribute<>(methodTraits.key("source"), "log('GlobalTest')"),
+					new NodeAttribute<>(methodTraits.key("includeInOpenAPI"), true),
+					new NodeAttribute<>(methodTraits.key("tags"), new String[] { "test", "customer" }),
+					new NodeAttribute<>(methodTraits.key("parameters"), List.of(
+							app.create(StructrTraits.SCHEMA_METHOD_PARAMETER, new NodeAttribute<>(paramTraits.key("name"), "id"), new NodeAttribute<>(paramTraits.key("parameterType"), "string")),
+							app.create(StructrTraits.SCHEMA_METHOD_PARAMETER, new NodeAttribute<>(paramTraits.key("name"), "index"), new NodeAttribute<>(paramTraits.key("parameterType"), "integer"))
 					)),
-					new NodeAttribute<>(SchemaMethod.returnType, returnTypeJson)
+					new NodeAttribute<>(methodTraits.key("returnType"), returnTypeJson)
 			);
 
-			app.create(SchemaMethod.class,
-					new NodeAttribute<>(AbstractNode.name, "globalOther"),
-					new NodeAttribute<>(SchemaMethod.source, "log('GlobalOther')"),
-					new NodeAttribute<>(SchemaMethod.includeInOpenAPI, true),
-					new NodeAttribute<>(SchemaMethod.tags, new String[] { "test", "contact" })
+			app.create(StructrTraits.SCHEMA_METHOD,
+					new NodeAttribute<>(methodTraits.key("name"), "globalOther"),
+					new NodeAttribute<>(methodTraits.key("source"), "log('GlobalOther')"),
+					new NodeAttribute<>(methodTraits.key("includeInOpenAPI"), true),
+					new NodeAttribute<>(methodTraits.key("tags"), new String[] { "test", "contact" })
 			);
 
 			StructrSchema.extendDatabaseSchema(app, schema);
@@ -359,9 +357,9 @@ public class OpenAPITest extends StructrUiTest {
 			assertNotNull("Missing response example for 422 Unprocessable Entity", HttpFunctionsTest.getMapPathValue(response, "components.responses.validationError.content.application/json.example"));
 
 			// schemas
-			HttpFunctionsTest.assertMapPathValueIs(response, "components.schemas.#",  85);
+			HttpFunctionsTest.assertMapPathValueIs(response, "components.schemas.#",  62);
 
-			assertNotNull("Missing schema for AbstractNode",  HttpFunctionsTest.getMapPathValue(response, "components.schemas.AbstractNode"));
+			assertNotNull("Missing schema for NodeInterface", HttpFunctionsTest.getMapPathValue(response, "components.schemas.NodeInterface"));
 			assertNotNull("Missing schema for ErrorToken",    HttpFunctionsTest.getMapPathValue(response, "components.schemas.ErrorToken"));
 			assertNotNull("Missing schema for User",          HttpFunctionsTest.getMapPathValue(response, "components.schemas.User"));
 			assertNotNull("Missing schema for RESTResponse",  HttpFunctionsTest.getMapPathValue(response, "components.schemas.RESTResponse"));
@@ -528,9 +526,9 @@ public class OpenAPITest extends StructrUiTest {
 			assertNotNull("Missing response example for 422 Unprocessable Entity", HttpFunctionsTest.getMapPathValue(response, "components.responses.validationError.content.application/json.example"));
 
 			// schemas
-			HttpFunctionsTest.assertMapPathValueIs(response, "components.schemas.#",  79);
+			HttpFunctionsTest.assertMapPathValueIs(response, "components.schemas.#",  62);
 
-			assertNotNull("Missing schema for AbstractNode",  HttpFunctionsTest.getMapPathValue(response, "components.schemas.AbstractNode"));
+			assertNotNull("Missing schema for NodeInterface", HttpFunctionsTest.getMapPathValue(response, "components.schemas.NodeInterface"));
 			assertNotNull("Missing schema for ErrorToken",    HttpFunctionsTest.getMapPathValue(response, "components.schemas.ErrorToken"));
 			assertNotNull("Missing schema for User",          HttpFunctionsTest.getMapPathValue(response, "components.schemas.User"));
 			assertNotNull("Missing schema for RESTResponse",  HttpFunctionsTest.getMapPathValue(response, "components.schemas.RESTResponse"));
@@ -682,9 +680,9 @@ public class OpenAPITest extends StructrUiTest {
 			assertNotNull("Missing response example for 422 Unprocessable Entity", HttpFunctionsTest.getMapPathValue(response, "components.responses.validationError.content.application/json.example"));
 
 			// schemas
-			HttpFunctionsTest.assertMapPathValueIs(response, "components.schemas.#",  52);
+			HttpFunctionsTest.assertMapPathValueIs(response, "components.schemas.#",  32);
 
-			assertNotNull("Missing schema for AbstractNode",  HttpFunctionsTest.getMapPathValue(response, "components.schemas.AbstractNode"));
+			assertNotNull("Missing schema for NodeInterface", HttpFunctionsTest.getMapPathValue(response, "components.schemas.NodeInterface"));
 			assertNotNull("Missing schema for ErrorToken",    HttpFunctionsTest.getMapPathValue(response, "components.schemas.ErrorToken"));
 			assertNotNull("Missing schema for User",          HttpFunctionsTest.getMapPathValue(response, "components.schemas.User"));
 			assertNotNull("Missing schema for RESTResponse",  HttpFunctionsTest.getMapPathValue(response, "components.schemas.RESTResponse"));
@@ -784,6 +782,7 @@ public class OpenAPITest extends StructrUiTest {
 		return RestAssured
 				.given()
 				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 
 				.header("X-User",     username)
 				.header("X-Password", password)

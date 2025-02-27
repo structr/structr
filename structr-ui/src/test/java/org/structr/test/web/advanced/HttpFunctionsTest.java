@@ -24,16 +24,15 @@ import com.google.gson.GsonBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.rest.common.HttpHelper;
 import org.structr.schema.action.ActionContext;
 import org.structr.test.web.StructrUiTest;
-import org.structr.web.entity.User;
 import org.testng.annotations.Test;
 
 import java.util.Collection;
@@ -52,10 +51,10 @@ public class HttpFunctionsTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(User.class,
-				new NodeAttribute<>(StructrApp.key(PrincipalInterface.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(PrincipalInterface.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(PrincipalInterface.class, "isAdmin"),  true)
+			app.create(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("isAdmin"),  true)
 			);
 
 			tx.success();
@@ -67,7 +66,7 @@ public class HttpFunctionsTest extends StructrUiTest {
 		}
 
 		// allow all access to group resource
-		grant("Group", 16383, true);
+		grant(StructrTraits.GROUP, 16383, true);
 
 		try {
 
@@ -83,7 +82,7 @@ public class HttpFunctionsTest extends StructrUiTest {
 			// extract response headers
 			final Map<String, Object> response = postResponse.toMap();
 			final Map<String, Object> headers  = (Map)response.get("headers");
-			final String location              = (String)headers.get("Location");
+			final String location              = (String)headers.get(StructrTraits.LOCATION);
 
 			// test PUT
 			Scripting.evaluate(ctx, null, "${PUT('" + location + "', '{ name: put }')}", "test");

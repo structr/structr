@@ -27,6 +27,8 @@ import org.structr.core.app.App;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.schema.SchemaHelper;
 
 import java.net.URI;
@@ -66,10 +68,11 @@ class IdNotionReferenceProperty extends StructrReferenceProperty {
 	SchemaProperty createDatabaseSchema(final App app, final AbstractSchemaNode schemaNode) throws FrameworkException {
 
 		final SchemaProperty property = super.createDatabaseSchema(app, schemaNode);
+		final Traits traits           = Traits.of(StructrTraits.SCHEMA_PROPERTY);
 		final PropertyMap properties  = new PropertyMap();
 
-		properties.put(SchemaProperty.format, referenceName + ", " + StringUtils.join(properties, ", "));
-		properties.put(SchemaProperty.propertyType, SchemaHelper.Type.IdNotion.name());
+		properties.put(traits.key("format"), referenceName + ", " + StringUtils.join(properties, ", "));
+		properties.put(traits.key("propertyType"), SchemaHelper.Type.IdNotion.name());
 
 		property.setProperties(SecurityContext.getSuperUserInstance(), properties);
 

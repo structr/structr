@@ -22,6 +22,8 @@ import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.RelationProperty;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 
 /**
  * Combines an {@link ObjectSerializationStrategy} and an
@@ -40,7 +42,7 @@ public class ObjectNotion extends Notion {
 		);
 	}
 
-	public ObjectNotion(SerializationStrategy serializationStrategy, DeserializationStrategy deserializationStrategy) {
+	public ObjectNotion(final SerializationStrategy serializationStrategy, final DeserializationStrategy deserializationStrategy) {
 		super(serializationStrategy, deserializationStrategy);
 	}
 
@@ -48,19 +50,20 @@ public class ObjectNotion extends Notion {
 	 * Identity serialization strategy. This class returns the object unmodified.
 	 */
 	public static class ObjectSerializationStrategy implements SerializationStrategy {
+
 		@Override
-		public Object serialize(SecurityContext securityContext, Class type, GraphObject source) {
+		public Object serialize(final SecurityContext securityContext, final String type, final GraphObject source) {
 			return source;
 		}
 
 		@Override
-		public void setRelationProperty(RelationProperty relationProperty) {
+		public void setRelationProperty(final RelationProperty relationProperty) {
 			// not interested yet..
 		}
 	}
 
 	@Override
 	public PropertyKey getPrimaryPropertyKey() {
-		return GraphObject.id;
+		return Traits.of(StructrTraits.GRAPH_OBJECT).key("id");
 	}
 }

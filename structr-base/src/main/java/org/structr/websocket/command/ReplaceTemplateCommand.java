@@ -20,6 +20,7 @@ package org.structr.websocket.command;
 
 
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Template;
@@ -100,8 +101,8 @@ public class ReplaceTemplateCommand extends AbstractCommand {
 			parent.insertBefore(newClonedTemplate, templateToBeReplaced);
 
 			// 3: Move child nodes from existing template to new template
-			for (final DOMNode child : templateToBeReplaced.getAllChildNodes()) {
-				newClonedTemplate.appendChild(child);
+			for (final NodeInterface child : templateToBeReplaced.getAllChildNodes()) {
+				newClonedTemplate.appendChild(child.as(DOMNode.class));
 			}
 			
 			// 4: Remove old template node

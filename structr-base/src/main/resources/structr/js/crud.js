@@ -290,12 +290,13 @@ let _Crud = {
 				return Object.keys(_Crud.types).sort().filter(typeName => {
 
 					let type            = _Crud.types[typeName];
-					let isRelType       = type.isRel === true;
-					let isBuiltInRel    = isRelType && !(type.className.startsWith('org.structr.dynamic'));
-					let isCustomRelType = isRelType && (type.className.startsWith('org.structr.dynamic'));
-					let isDynamicType   = !isRelType && (type.className.startsWith('org.structr.dynamic'));
-					let isHtmlType      = !isRelType && (type.extendsClass.startsWith('org.structr.web.entity.dom'));
-					let isFlowType      = !isRelType && type.className.startsWith('org.structr.flow');
+					let isRelType       = (type.isRel === true);
+					let isBuiltInRel    = isRelType && type.isBuiltin;
+					let isCustomRelType = isRelType && !type.isBuiltin;
+
+					let isDynamicType   = !isRelType && !type.isBuiltin;
+					let isHtmlType      = type.traits.includes('DOMNode');
+					let isFlowType      = type.traits.includes('FlowNode');
 					let isOtherType     = !(isRelType || isDynamicType || isHtmlType || isFlowType);
 
 					let hide = (!typeVisibility.rels && isBuiltInRel) || (!typeVisibility.customRels && isCustomRelType) || (!typeVisibility.custom && isDynamicType) ||

@@ -41,7 +41,7 @@ public class RuntimeEventLogTest extends StructrRestTestBase {
 			.expect()
 				.statusCode(200)
 			.when()
-				.get("/_runtimeEventLog?_order=absoluteTimestamp&_sort=desc&_pageSize=100");
+				.get("/_runtimeEventLog?_order=absoluteTimestamp&_sort=description&_pageSize=100");
 
 	}
 }

@@ -30,13 +30,12 @@ import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
-import org.structr.core.app.StructrApp;
 import org.structr.core.function.LocalizeFunction;
 import org.structr.core.property.DateProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
-import org.structr.schema.parser.DatePropertyParser;
+import org.structr.schema.parser.DatePropertyGenerator;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -259,7 +258,7 @@ public class ToExcelFunction extends Function<Object, Object> {
 
 					for (final String colName : properties) {
 
-						final PropertyKey key = StructrApp.key(obj.getClass(), colName);
+						final PropertyKey key = graphObj.getTraits().key(colName);
 						final Object value    = graphObj.getProperty(key);
 						cell                  = currentRow.createCell(cellCount++);
 
@@ -309,7 +308,7 @@ public class ToExcelFunction extends Function<Object, Object> {
 
 		} else if (value instanceof Date) {
 
-			result = DatePropertyParser.format((Date) value, DateProperty.getDefaultFormat());
+			result = DatePropertyGenerator.format((Date) value, DateProperty.getDefaultFormat());
 
 		} else {
 

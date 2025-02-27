@@ -24,16 +24,13 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
-import org.structr.schema.SchemaHelper;
-import org.structr.web.entity.User;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -43,7 +40,7 @@ public class TestHelper {
 
 	public static void testViews(final App app, final InputStream specificationSource, final Map<String, List<String>> additionalRequiredAttributes) {
 
-		final Set<String> useLowercaseNameForTypes           = Set.of("SchemaMethod");
+		final Set<String> useLowercaseNameForTypes           = Set.of(StructrTraits.SCHEMA_METHOD);
 		final Map<String, Map<String, List<String>>> viewMap = new LinkedHashMap<>();
 		final Map<String, List<String>> requiredAttributes   = new LinkedHashMap<>();
 		final Map<String, List<String>> baseMap              = new LinkedHashMap<>();
@@ -53,9 +50,9 @@ public class TestHelper {
 		baseMap.put("_html_", Arrays.asList("_html_data", "_html_is", "_html_properties"));
 		baseMap.put("public", Arrays.asList("id", "type"));
 
-		requiredAttributes.put("DynamicResourceAccess", Arrays.asList("signature", "i:flags"));
-		requiredAttributes.put("Localization",          Arrays.asList("locale"));
-		requiredAttributes.put("ResourceAccess",        Arrays.asList("signature", "i:flags"));
+		requiredAttributes.put(StructrTraits.DYNAMIC_RESOURCE_ACCESS, Arrays.asList("signature", "i:flags"));
+		requiredAttributes.put(StructrTraits.LOCALIZATION,          Arrays.asList("locale"));
+		requiredAttributes.put(StructrTraits.RESOURCE_ACCESS,        Arrays.asList("signature", "i:flags"));
 
 		// insert required attributes specified by test class
 		if (additionalRequiredAttributes != null) {
@@ -123,10 +120,10 @@ public class TestHelper {
 		// create test user
 		try (final Tx tx = app.tx()) {
 
-			app.create(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"),  true)
+			app.create(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"),  true)
 			);
 
 			tx.success();
@@ -141,12 +138,12 @@ public class TestHelper {
 
 			final String typeName                   = entry.getKey();
 			final Map<String, List<String>> typeMap = entry.getValue();
-			final Class type                        = SchemaHelper.getEntityClassForRawType(typeName);
+			final Traits type                       = Traits.of(typeName);
 
 			if (type != null) {
 
 				// only test node types for now..
-				if (!Modifier.isAbstract(type.getModifiers()) && !type.isInterface() && !RelationshipInterface.class.isAssignableFrom(type)) {
+				if (!type.isAbstract() && !type.isInterface() && !type.isRelationshipType()) {
 
 					final String namePrefix = useLowercaseNameForTypes.contains(typeName) ? "test" : "Test";
 					final String body       = createPostBody(requiredAttributes.get(typeName), namePrefix);
@@ -179,6 +176,7 @@ public class TestHelper {
 							.given()
 							.header("X-User",     "admin")
 							.header("X-Password", "admin")
+							.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 							.expect()
 							.statusCode(200)
 							.when()
@@ -195,7 +193,7 @@ public class TestHelper {
 
 						if (!expectedKeys.isEmpty()) {
 
-							System.out.println(type.getSimpleName() + "." + viewName + " is missing the following keys: " + expectedKeys);
+							System.out.println(type.getName() + "." + viewName + " is missing the following keys: " + expectedKeys);
 							fail = true;
 						}
 
@@ -206,7 +204,7 @@ public class TestHelper {
 
 						if (!itemKeySet.isEmpty()) {
 
-							System.out.println(type.getSimpleName() + "." + viewName + " contains keys that are not listed in the specification: " + itemKeySet);
+							System.out.println(type.getName() + "." + viewName + " contains keys that are not listed in the specification: " + itemKeySet);
 							fail = true;
 						}
 					}
