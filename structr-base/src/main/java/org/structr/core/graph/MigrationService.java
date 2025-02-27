@@ -23,12 +23,16 @@ import org.apache.commons.lang3.StringUtils;
 import org.jsoup.nodes.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.CaseHelper;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractSchemaNode;
+import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.SchemaProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
@@ -45,16 +49,6 @@ public class MigrationService {
 
 	private static final Logger logger = LoggerFactory.getLogger(MigrationService.class);
 
-	private static final Set<String> StaticTypeMigrationBlacklist = Set.of(
-		"ConceptGroup", "ConceptGroupLabel", "ContentContainer", "ContentItem",
-		"CustomConceptAttribute", "CustomNote", "CustomTermAttribute", "Note",
-		"SimpleNonPreferredTerm", "StructuredDocument", "StructuredTextNode",
-		"Thesaurus", "ThesaurusArray", "ThesaurusTerm", "VersionHistory",
-		"Definition", "MetadataNode", "NodeLabel", "ThesaurusConcept",
-		"Favoritable", "Indexable", "IndexedWord", "JavaScriptSource",
-		"MinifiedCssFile", "MinifiedJavaScriptFile"
-	);
-
 	private static final Set<String> FQCNBlacklist = Set.of(
 		"org.structr.web.property.ContentPathProperty",
 		"org.structr.core.entity.Favoritable$FavoriteContentProperty",
@@ -64,6 +58,7 @@ public class MigrationService {
 
 	private static final Set<String> SchemaPropertyMigrationBlacklist = Set.of(
 		"AbstractFile.nextSiblingId",
+		"AbstractFile.parentId",
 		"Audio._html_mediagroup",
 		"DOMElement.",
 		"DOMElement.data-structr-action",
@@ -89,15 +84,33 @@ public class MigrationService {
 		"DOMNode.xpathQuery",
 		"DOMElement.data-structr-target",
 		"DOMElement.data-structr-type",
+		"LDAPUser.commonName",
+		"LDAPUser.description",
+		"LDAPUser.entryUuid",
+		"LDAPUser.uid",
 		"Localization.description",
+		"MQTTClient.port",
+		"MQTTClient.protocol",
+		"MQTTClient.url",
 		"Person.twitterName",
 		"Principal.customPermissionQueryAccessControl",
 		"Principal.customPermissionQueryDelete",
 		"Principal.customPermissionQueryRead",
 		"Principal.customPermissionQueryWrite",
+		"Principal.twoFactorCode",
 		"Textarea._html_maxlenght",
 		"User.twitterName",
 		"Video._html_mediagroup"
+	);
+
+	private static final Set<String> StaticTypeMigrationBlacklist = Set.of(
+		"ConceptGroup", "ConceptGroupLabel", "ContentContainer", "ContentItem",
+		"CustomConceptAttribute", "CustomNote", "CustomTermAttribute", "Note",
+		"SimpleNonPreferredTerm", "StructuredDocument", "StructuredTextNode",
+		"Thesaurus", "ThesaurusArray", "ThesaurusTerm", "VersionHistory",
+		"Definition", "MetadataNode", "NodeLabel", "ThesaurusConcept",
+		"Favoritable", "Indexable", "IndexedWord", "JavaScriptSource",
+		"MinifiedCssFile", "MinifiedJavaScriptFile"
 	);
 
 	public static void execute() {
@@ -112,6 +125,89 @@ public class MigrationService {
 			updateSharedComponentFlag();
 			warnAboutRestQueryRepeaters();
 		}
+	}
+
+	public static boolean typeShouldBeRemoved(final String name) {
+
+		if (MigrationService.StaticTypeMigrationBlacklist.contains(name)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	public static boolean propertyShouldBeRemoved(final SchemaProperty property) {
+
+		final AbstractSchemaNode parent  = property.getSchemaNode();
+		final String propertyName        = property.getName();
+		final String propertyType        = property.getPropertyType().toString().toLowerCase();
+		final String fqcn                = property.getFqcn();
+
+		return propertyShouldBeRemoved(parent.getClassName(), propertyName, propertyType, fqcn);
+	}
+
+	public static boolean propertyShouldBeRemoved(final String type, final String name, final String propertyType, final String fqcn) {
+
+		if (MigrationService.SchemaPropertyMigrationBlacklist.contains(type + "." + name)) {
+			return true;
+		}
+
+		// check if property already exists in the static schema
+		if (Traits.exists(type)) {
+
+			final Traits traits = Traits.of(type);
+			if (traits.hasKey(name)) {
+
+				return true;
+			}
+		}
+
+		// check if property has been blacklisted
+		if ("custom".equals(propertyType)) {
+
+			if (fqcn != null && FQCNBlacklist.contains(fqcn)) {
+
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public static boolean methodShouldBeRemoved(final SchemaMethod method) {
+
+		final AbstractSchemaNode parent = method.getSchemaNode();
+		final String name               = method.getName();
+		final String codeType           = method.getCodeType();
+
+		if (parent != null) {
+
+			return methodShouldBeRemoved(parent.getClassName(), name, codeType);
+		}
+
+		// methods with no parent are user-defined functions
+		return false;
+	}
+
+	public static boolean methodShouldBeRemoved(final String type, final String name, final String codeType) {
+
+		// we don't support Java methods anymore
+		if ("java".equals(codeType)) {
+
+			return true;
+		}
+
+		// check if property already exists in the static schema
+		if (Traits.exists(type)) {
+
+			final Traits traits = Traits.of(type);
+			if (traits.hasDynamicMethod(name)) {
+
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	// ----- private methods -----
@@ -131,6 +227,31 @@ public class MigrationService {
 				if (Boolean.TRUE.equals(schemaNode.getNode().getProperty("isBuiltinType"))) {
 
 					logger.warn("Found built-in schema node {}", schemaNode.getName());
+
+					for (final SchemaProperty property : schemaNode.getSchemaProperties()) {
+
+						if (propertyShouldBeRemoved(property)) {
+
+							logger.info("DELETING schema property {}.{}", schemaNode.getName(), property.getName());
+							app.delete(property);
+						}
+					}
+
+					for (final SchemaMethod method : schemaNode.getSchemaMethods()) {
+
+						if (MigrationService.methodShouldBeRemoved(method)) {
+
+							logger.info("DELETING schema method {}.{}", schemaNode.getName(), method.getName());
+							app.delete(method);
+						}
+					}
+
+					// remove empty schema nodes
+					if (Iterables.isEmpty(schemaNode.getSchemaProperties()) && Iterables.isEmpty(schemaNode.getSchemaMethods())) {
+
+						logger.info("DELETING empty schema node {}", schemaNode.getName());
+						app.delete(schemaNode);
+					}
 				}
 			}
 
@@ -140,9 +261,7 @@ public class MigrationService {
 			logger.warn("Unable to migrate principal nodes: {}", fex.getMessage());
 			fex.printStackTrace();
 		}
-
 	}
-
 
 	private static void migratePrincipalToPrincipalInterface() {
 

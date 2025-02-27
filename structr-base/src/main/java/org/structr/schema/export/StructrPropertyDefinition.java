@@ -29,6 +29,7 @@ import org.structr.core.app.App;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
+import org.structr.core.graph.MigrationService;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
@@ -46,59 +47,6 @@ import java.util.*;
 public abstract class StructrPropertyDefinition implements JsonProperty, StructrDefinition {
 
 	private static final Logger logger = LoggerFactory.getLogger(StructrPropertyDefinition.class.getName());
-
-	private static final Set<String> FQCNBlacklist = Set.of(
-		"org.structr.web.property.ContentPathProperty",
-		"org.structr.core.entity.Favoritable$FavoriteContentProperty",
-		"org.structr.core.entity.Favoritable$FavoriteContextProperty",
-		"org.structr.core.entity.Favoritable$FavoriteContentTypeProperty"
-	);
-
-	private static final Set<String> SchemaPropertyMigrationBlacklist = Set.of(
-		"AbstractFile.nextSiblingId",
-		"Audio._html_mediagroup",
-		"DOMElement.",
-		"DOMElement.data-structr-action",
-		"DOMElement.data-structr-append-id",
-		"DOMElement.data-structr-attr",
-		"DOMElement.data-structr-attributes",
-		"DOMElement.data-structr-confirm",
-		"DOMElement.data-structr-custom-options-query",
-		"DOMElement.data-structr-edit-class",
-		"DOMElement.data-structr-format",
-		"DOMElement.data-structr-hide",
-		"DOMElement.data-structr-name",
-		"DOMElement.data-structr-options",
-		"DOMElement.data-structr-options-key",
-		"DOMElement.data-structr-placeholder",
-		"DOMElement.data-structr-raw-value",
-		"DOMElement.data-structr-reload",
-		"DOMElement.data-structr-return",
-		"DOMNode.flow",
-		"DOMNode.hideOnDetail",
-		"DOMNode.hideOnIndex",
-		"DOMNode.renderDetails",
-		"DOMNode.xpathQuery",
-		"DOMElement.data-structr-target",
-		"DOMElement.data-structr-type",
-		"LDAPUser.commonName",
-		"LDAPUser.description",
-		"LDAPUser.entryUuid",
-		"LDAPUser.uid",
-		"Localization.description",
-		"MQTTClient.port",
-		"MQTTClient.protocol",
-		"MQTTClient.url",
-		"Person.twitterName",
-		"Principal.customPermissionQueryAccessControl",
-		"Principal.customPermissionQueryDelete",
-		"Principal.customPermissionQueryRead",
-		"Principal.customPermissionQueryWrite",
-		"Principal.twoFactorCode",
-		"Textarea._html_maxlenght",
-		"User.twitterName",
-		"Video._html_mediagroup"
-	);
 
 	protected SchemaProperty schemaProperty = null;
 	protected Set<String> transformers      = new LinkedHashSet<>();
@@ -514,38 +462,14 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 	// ----- static methods -----
 	static StructrPropertyDefinition deserialize(final StructrTypeDefinition parent, final String name, final Map<String, Object> source) {
 
-		final String typeAndPropertyName = parent.getName() + "." + name;
-
-		if (SchemaPropertyMigrationBlacklist.contains(typeAndPropertyName)) {
+		if (MigrationService.propertyShouldBeRemoved(parent.getName(), name, (String) source.get(JsonSchema.KEY_TYPE), (String) source.get(JsonSchema.KEY_FQCN))) {
 			return null;
-		}
-
-		// check if property already exists in the static schema
-		if (Traits.exists(parent.getName())) {
-
-			final Traits traits = Traits.of(parent.getName());
-			if (traits.hasKey(name)) {
-
-				logger.debug("######## IGNORING property {} of type {} because it already exists in the static schema.", name, parent.getName());
-				return null;
-			}
 		}
 
 		final String propertyType = (String)source.get(JsonSchema.KEY_TYPE);
 		StructrPropertyDefinition newProperty = null;
 
 		if (propertyType != null) {
-
-			// check if property has been blacklisted
-			if ("custom".equals(propertyType)) {
-
-				final String fqcn = (String)source.get(JsonSchema.KEY_FQCN);
-				if (fqcn != null && FQCNBlacklist.contains(fqcn)) {
-
-					logger.debug("######## IGNORING property {} of type {} because its type is blacklisted.", name, parent.getName());
-					return null;
-				}
-			}
 
 			final boolean isDate   = source.containsKey(JsonSchema.KEY_FORMAT) && JsonSchema.FORMAT_DATE_TIME.equals(source.get(JsonSchema.KEY_FORMAT));
 			final boolean isEnum   = source.containsKey(JsonSchema.KEY_ENUM) || source.containsKey(JsonSchema.KEY_FQCN);

@@ -29,6 +29,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.*;
+import org.structr.core.graph.MigrationService;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
@@ -53,16 +54,6 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 	public static final Set<String> VIEW_BLACKLIST = new LinkedHashSet<>(Arrays.asList("_html_", "all", "category", "custom", "editWidget", "effectiveNameView", "export", "fav", "schema", "ui"));
 	public static final Set<String> TagBlacklist   = new LinkedHashSet<>(Arrays.asList("core", "default", "html", "ui"));
-
-	private static final Set<String> StaticTypeMigrationBlacklist = Set.of(
-		"ConceptGroup", "ConceptGroupLabel", "ContentContainer", "ContentItem",
-		"CustomConceptAttribute", "CustomNote", "CustomTermAttribute", "Note",
-		"SimpleNonPreferredTerm", "StructuredDocument", "StructuredTextNode",
-		"Thesaurus", "ThesaurusArray", "ThesaurusTerm", "VersionHistory",
-		"Definition", "MetadataNode", "NodeLabel", "ThesaurusConcept",
-		"Favoritable", "Indexable", "IndexedWord", "JavaScriptSource",
-		"MinifiedCssFile", "MinifiedJavaScriptFile"
-	);
 
 	private static final Logger logger = LoggerFactory.getLogger(StructrTypeDefinition.class);
 
@@ -1243,7 +1234,6 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 						if (requiredPropertyNames != null && requiredPropertyNames.contains(propertyName)) {
 
-							logger.debug("######## Removing property {} from required properties because it was ignored during import.", propertyName);
 							requiredPropertyNames.remove(propertyName);
 						}
 					}
@@ -1411,22 +1401,12 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		// do not create empty built-in types
 		if (Boolean.TRUE.equals(source.get("isBuiltinType"))) {
 
-			if (StaticTypeMigrationBlacklist.contains(name)) {
-
-				logger.debug("######################## IGNORING empty built-in type {} because it is blacklisted.", name);
+			if (MigrationService.typeShouldBeRemoved(name)) {
 				return null;
 			}
 
 			if (typeDefinition.getProperties().isEmpty() && typeDefinition.getMethods().isEmpty()) {
-
-				logger.debug("######################## IGNORING empty built-in type {} because it has no dynamic properties or methods.", name);
 				return null;
-
-			} else {
-
-				logger.info("######################## NOT ignoring built-in type {} because it has dynamic properties or methods.", name);
-				logger.info("properties: {}", typeDefinition.getProperties());
-				logger.info("methods: {}", typeDefinition.getMethods());
 			}
 		}
 

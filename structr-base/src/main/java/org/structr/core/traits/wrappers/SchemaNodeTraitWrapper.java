@@ -20,10 +20,10 @@ package org.structr.core.traits.wrappers;
 
 import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Relation;
-import org.structr.core.entity.SchemaNode;
-import org.structr.core.entity.SchemaRelationshipNode;
+import org.structr.core.entity.*;
+import org.structr.core.graph.MigrationService;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.RelationProperty;
@@ -33,10 +33,7 @@ import org.structr.core.traits.TraitDefinition;
 import org.structr.core.traits.Traits;
 import org.structr.schema.DynamicNodeTraitDefinition;
 
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper implements SchemaNode {
 
@@ -176,6 +173,30 @@ public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper imple
 		final ArrayList<TraitDefinition> definitions = new ArrayList<>(recursivelyResolveTraitInheritance(this));
 
 		return definitions.toArray(new TraitDefinition[0]);
+	}
+
+	@Override
+	public void handleMigration() throws FrameworkException {
+
+		final List<SchemaProperty> properties = Iterables.toList(getSchemaProperties());
+		final List<SchemaMethod> methods      = Iterables.toList(getSchemaMethods());
+		final App app                         = StructrApp.getInstance();
+
+		for (final SchemaProperty property : properties) {
+
+			if (MigrationService.propertyShouldBeRemoved(property)) {
+
+				app.delete(property);
+			}
+		}
+
+		for (final SchemaMethod method : methods) {
+
+			if (MigrationService.methodShouldBeRemoved(method)) {
+
+				app.delete(method);
+			}
+		}
 	}
 
 	// ----- private methods -----

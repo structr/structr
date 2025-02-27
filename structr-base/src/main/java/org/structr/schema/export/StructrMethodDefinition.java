@@ -32,6 +32,7 @@ import org.structr.core.app.App;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaMethodParameter;
+import org.structr.core.graph.MigrationService;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
@@ -875,21 +876,9 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	// ----- static methods -----
 	static StructrMethodDefinition deserialize(final StructrTypeDefinition parent, final String name, final Map<String, Object> source) {
 
-		if ("java".equals(source.get("codeType"))) {
+		if (MigrationService.methodShouldBeRemoved(parent.getName(), name, (String) source.get("codeType"))) {
 
-			logger.debug("######## IGNORING method {} of type {} because it has codeType set to 'java' and we don't support Java methods any more.", name, parent.getName());
 			return null;
-		}
-
-		// check if property already exists in the static schema
-		if (Traits.exists(parent.getName())) {
-
-			final Traits traits = Traits.of(parent.getName());
-			if (traits.hasDynamicMethod(name)) {
-
-				logger.debug("######## IGNORING method {} of type {} because it already exists in the static schema.", name, parent.getName());
-				return null;
-			}
 		}
 
 		final StructrMethodDefinition newMethod = new StructrMethodDefinition(parent, name);
