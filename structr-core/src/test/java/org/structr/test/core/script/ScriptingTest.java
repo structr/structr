@@ -2358,9 +2358,7 @@ public class ScriptingTest extends StructrTest {
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"),         "returnTest"),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Function"),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("readFunction"), "{ ({ name: 'test', value: 123, me: Structr.this }); }")
-			);
-
-			tx.success();
+			);            	tx.success();
 
 		} catch (FrameworkException fex) {
 

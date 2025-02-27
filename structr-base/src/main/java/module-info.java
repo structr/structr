@@ -23,7 +23,6 @@ module structr.base {
     requires jdk.xml.dom;
     requires transitive java.compiler;
 
-    requires transitive java.xml;
     requires transitive structr.db.driver.api;
     requires asciidoctor.java.integration;
     requires com.google.common;
@@ -57,7 +56,6 @@ module structr.base {
     requires org.antlr.antlr4.runtime;
     requires org.apache.commons.compress;
     requires org.apache.commons.io;
-    requires org.apache.commons.lang3;
     requires org.apache.httpcomponents.httpclient;
     requires org.apache.httpcomponents.httpcore;
     requires org.apache.httpcomponents.httpmime;
@@ -99,13 +97,15 @@ module structr.base {
     requires org.apache.commons.configuration2;
     requires org.apache.commons.codec;
     requires java.sql;
-    requires java.desktop;
     requires org.apache.groovy;
     requires org.apache.poi.poi;
     requires org.glassfish.jaxb.runtime;
     requires org.eclipse.jgit;
     requires api.all;
     requires org.json;
+    requires org.apache.commons.text;
+    requires org.apache.commons.lang3;
+    requires java.desktop;
 
     exports org.structr;
     exports org.structr.agent;
@@ -129,7 +129,6 @@ module structr.base {
     exports org.structr.core.cypher;
     exports org.structr.core.datasources;
     exports org.structr.core.entity;
-    exports org.structr.core.entity.relationship;
     exports org.structr.core.function;
     exports org.structr.core.function.search;
     exports org.structr.core.graph;
@@ -193,13 +192,10 @@ module structr.base {
     exports org.structr.web.common.microformat;
     exports org.structr.web.converter;
     exports org.structr.web.datasource;
-    exports org.structr.web.diff;
     exports org.structr.web.entity;
     exports org.structr.web.entity.css;
     exports org.structr.web.entity.dom;
     exports org.structr.web.entity.event;
-    exports org.structr.web.entity.html;
-    exports org.structr.web.entity.mail;
     exports org.structr.web.error;
     exports org.structr.web.function;
     exports org.structr.web.importer;

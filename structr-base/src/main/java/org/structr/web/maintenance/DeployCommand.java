@@ -35,7 +35,6 @@ import org.structr.api.util.Iterables;
 import org.structr.common.AccessControllable;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.fulltext.Indexable;
 import org.structr.common.helper.VersionHelper;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;

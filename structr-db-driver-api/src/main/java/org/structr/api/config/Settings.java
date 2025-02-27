@@ -18,8 +18,12 @@
  */
 package org.structr.api.config;
 
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.commons.configuration2.builder.FileBasedConfigurationBuilder;
+import org.apache.commons.configuration2.builder.fluent.Parameters;
+import org.apache.commons.configuration2.convert.DefaultListDelimiterHandler;
+import org.apache.commons.configuration2.ex.ConfigurationException;
+import org.apache.commons.configuration2.PropertiesConfiguration;
+import org.apache.commons.configuration2.io.FileHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
@@ -98,6 +103,7 @@ public class Settings {
 
 	// scripting related settings
 	public static final Setting<Boolean> ScriptingDebugger          = new BooleanSetting(generalGroup,         "Scripting",   "application.scripting.debugger",               false, "Enables <b>Chrome</b> debugger initialization in scripting engine. The current debugger URL will be shown in the server log and also made available on the dashboard.");
+	public static final Setting<Boolean> WrapJSInMainFunction       = new BooleanSetting(generalGroup,                      "Scripting", "application.scripting.js.wrapinmainfunction", false, "Forces js scripts to be wrapped in a main function for legacy behaviour.");
 
 	public static final Setting<String> AllowedHostClasses          = new StringSetting(generalGroup,          "Scripting",   "application.scripting.allowedhostclasses",     "", "Space-separated list of fully-qualified Java class names that you can load dynamically in a scripting environment.");
 
@@ -808,10 +814,17 @@ public class Settings {
 
 		try {
 
-			PropertiesConfiguration.setDefaultListDelimiter('\0');
+			final FileBasedConfigurationBuilder<PropertiesConfiguration> builder = new FileBasedConfigurationBuilder<>(PropertiesConfiguration.class)
+					.configure(new Parameters().fileBased()
+							.setFileName(fileName)
+							.setThrowExceptionOnMissing(true)
+							.setListDelimiterHandler(new DefaultListDelimiterHandler('\0'))
+					);
 
-			final PropertiesConfiguration config = new PropertiesConfiguration();
-			config.setFileName(fileName);
+			// Touch file, if it doesn't exist
+			Path.of(fileName).toFile().createNewFile();
+
+			final PropertiesConfiguration config = builder.getConfiguration();
 
 			for (final Setting setting : settings.values()) {
 
@@ -822,20 +835,24 @@ public class Settings {
 				}
 			}
 
-			final boolean isFileCreation = !config.getFile().exists();
 
-			if(config.getFile().getFreeSpace() < 1024 * 1024){
+			FileHandler fileHandler = builder.getFileHandler();
+
+			final boolean isFileCreation = !fileHandler.getFile().exists();
+
+			if (fileHandler.getFile().getFreeSpace() < 1024 * 1024) {
 				logger.error("Refusing to start with less than 1 MB of disk space.");
 				System.exit(1);
 			}
 
-			config.save();
+
+			fileHandler.save();
 
 			if (isFileCreation) {
 
 				try {
 
-					Files.setPosixFilePermissions(Paths.get(config.getFile().toURI()), Settings.expectedConfigFilePermissions);
+					Files.setPosixFilePermissions(Paths.get(fileHandler.getFile().toURI()), Settings.expectedConfigFilePermissions);
 
 				} catch (UnsupportedOperationException | IOException e) {
 					// happens on non-POSIX filesystems, ignore
@@ -843,7 +860,7 @@ public class Settings {
 
 			} else {
 
-				checkConfigurationFilePermissions(config, warnForNotRecommendedPermissions);
+				checkConfigurationFilePermissions(builder, warnForNotRecommendedPermissions);
 			}
 
 		} catch (ConfigurationException ex) {
@@ -852,12 +869,14 @@ public class Settings {
 		}
 	}
 
-	public static PropertiesConfiguration getDefaultPropertiesConfiguration() {
+	public static FileBasedConfigurationBuilder<PropertiesConfiguration> getDefaultPropertiesConfigurationBuilder() {
 
-		final PropertiesConfiguration config = new PropertiesConfiguration();
-		config.setFileName(Settings.ConfigFileName);
-
-		return config;
+		return new FileBasedConfigurationBuilder<>(PropertiesConfiguration.class)
+				.configure(new Parameters().fileBased()
+						.setFileName(Settings.ConfigFileName)
+						.setThrowExceptionOnMissing(true)
+						.setListDelimiterHandler(new DefaultListDelimiterHandler('\0'))
+				);
 	}
 
 	public static String getExpectedConfigurationFilePermissionsAsString () {
@@ -865,11 +884,11 @@ public class Settings {
 		return PosixFilePermissions.toString(expectedConfigFilePermissions);
 	}
 
-	public static String getActualConfigurationFilePermissionsAsString (final PropertiesConfiguration config) {
+	public static String getActualConfigurationFilePermissionsAsString (final FileBasedConfigurationBuilder<?> builder) {
 
 		try {
 
-			final Set<PosixFilePermission> actualPermissions = getActualConfigurationFilePermissions(config);
+			final Set<PosixFilePermission> actualPermissions = getActualConfigurationFilePermissions(builder);
 
 			return PosixFilePermissions.toString(actualPermissions);
 
@@ -880,25 +899,34 @@ public class Settings {
 		return "";
 	}
 
-	private static Set<PosixFilePermission> getActualConfigurationFilePermissions (final PropertiesConfiguration config) throws UnsupportedOperationException, IOException{
+	private static Set<PosixFilePermission> getActualConfigurationFilePermissions (final FileBasedConfigurationBuilder<?> builder) throws UnsupportedOperationException, IOException{
 
-		return Files.getPosixFilePermissions(Paths.get(config.getFile().toURI()));
+		if (builder != null) {
+
+			final FileHandler fileHandler = builder.getFileHandler();
+			final String pathString = fileHandler.getURL().getPath();
+			if (pathString != null) {
+				return Files.getPosixFilePermissions(Path.of(pathString));
+			}
+		}
+
+		return null;
 	}
 
-	public static boolean checkConfigurationFilePermissions(final PropertiesConfiguration config, final boolean warn) {
+	public static boolean checkConfigurationFilePermissions(final FileBasedConfigurationBuilder<?> builder, final boolean warn) {
 
 		// default to true for non-POSIX filesystems
 		boolean isOk = true;
 
 		try {
 
-			final Set<PosixFilePermission> actualPermissions = getActualConfigurationFilePermissions(config);
+			final Set<PosixFilePermission> actualPermissions = getActualConfigurationFilePermissions(builder);
 
-			isOk = actualPermissions.equals(Settings.expectedConfigFilePermissions);
+			isOk = actualPermissions != null && actualPermissions.equals(Settings.expectedConfigFilePermissions);
 
 			if (!isOk && warn) {
 
-				logger.warn("Permissions for configuration file '{}' do not match the expected permissions (Actual: {}, Expected: {}). Please check if this should be the case and otherwise fix the permissions", config.getFileName(), PosixFilePermissions.toString(actualPermissions), PosixFilePermissions.toString(expectedConfigFilePermissions));
+				logger.warn("Permissions for configuration file '{}' do not match the expected permissions (Actual: {}, Expected: {}). Please check if this should be the case and otherwise fix the permissions", builder.getFileHandler().getFileName(), PosixFilePermissions.toString(actualPermissions), PosixFilePermissions.toString(expectedConfigFilePermissions));
 			}
 
 		} catch (UnsupportedOperationException | IOException e) {
@@ -912,12 +940,19 @@ public class Settings {
 
 		try {
 
-			PropertiesConfiguration.setDefaultListDelimiter('\0');
+			final File configFile = new File(fileName);
 
-			final PropertiesConfiguration config = new PropertiesConfiguration(fileName);
+			FileBasedConfigurationBuilder<PropertiesConfiguration> builder = new FileBasedConfigurationBuilder<>(PropertiesConfiguration.class)
+					.configure(new Parameters().fileBased()
+							.setFile(configFile)
+							.setThrowExceptionOnMissing(true)
+							.setListDelimiterHandler(new DefaultListDelimiterHandler('\0'))
+					);
+
+			final PropertiesConfiguration config = builder.getConfiguration();
 			final Iterator<String> keys          = config.getKeys();
 
-			Settings.checkConfigurationFilePermissions(config, true);
+			Settings.checkConfigurationFilePermissions(builder, true);
 
 			while (keys.hasNext()) {
 

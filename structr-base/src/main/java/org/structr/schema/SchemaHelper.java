@@ -1341,7 +1341,7 @@ public class SchemaHelper {
 		}
 
 		final App app = StructrApp.getInstance();
-		final String name = org.apache.commons.lang.StringUtils.substringAfterLast(fqcn, ".");
+		final String name = org.apache.commons.lang3.StringUtils.substringAfterLast(fqcn, ".");
 
 		SchemaNode node = app.nodeQuery(StructrTraits.SCHEMA_NODE).andName(fqcn).getFirst();
 		if (node == null) {

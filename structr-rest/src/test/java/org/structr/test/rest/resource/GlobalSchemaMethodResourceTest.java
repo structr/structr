@@ -24,6 +24,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.testng.annotations.Test;
 
@@ -66,9 +68,9 @@ public class GlobalSchemaMethodResourceTest extends StructrRestTestBase {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(SchemaMethod.class,
-				new NodeAttribute<>(SchemaMethod.name, "myTestMethod01"),
-				new NodeAttribute<>(SchemaMethod.source, "'hello world!'")
+			app.create(StructrTraits.SCHEMA_METHOD,
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("name"), "myTestMethod01"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "'hello world!'")
 			);
 
 			tx.success();
