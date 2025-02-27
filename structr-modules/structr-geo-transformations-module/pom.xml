@@ -12,7 +12,7 @@
     <packaging>jar</packaging>
 
     <properties>
-        <geotools.version>22.2</geotools.version>
+        <geotools.version>19.4</geotools.version>
     </properties>
 
     <repositories>
