@@ -560,6 +560,16 @@ let _Schema = {
 	},
 	prevAnimFrameReqId_dragNode: undefined,
 	nodes: {
+		populateInheritancePairMap: (list) => {
+
+			let nameKeyedList = Object.fromEntries(list.map(entity => {
+				return [entity.name, entity];
+			}));
+
+			return Object.fromEntries(list.map(entity => {
+				return [entity.id, (entity.inheritedTraits ?? []).map(traitName => nameKeyedList[traitName]?.id).filter(parent => !!parent)]
+			}));
+		},
 		loadNodes: async () => {
 
 			_Schema.hiddenSchemaNodes = JSON.parse(LSWrapper.getItem(_Schema.hiddenSchemaNodesKey));
@@ -576,7 +586,7 @@ let _Schema = {
 
 				let data             = await response.json();
 				let entities         = {};
-				let inheritancePairs = {};
+				let inheritanceObject = _Schema.nodes.populateInheritancePairMap(data.result);
 				let hierarchy        = {};
 				let x = 0, y = 0;
 
@@ -586,33 +596,6 @@ let _Schema = {
 				}
 
 				_Schema.nodePositions = LSWrapper.getItem(_Schema.schemaPositionsKey);
-				if (!_Schema.nodePositions) {
-
-					let nodePositions = {};
-
-					// positions are stored the 'old' way => convert to the 'new' way
-					let typeNames = data.result.map(entity => entity.name);
-					for (let typeName of typeNames) {
-
-						let nodePos = JSON.parse(LSWrapper.getItem(typeName + _Schema.schemaNodePositionKeySuffix));
-						if (nodePos) {
-							nodePositions[typeName] = nodePos.position;
-
-							LSWrapper.removeItem(typeName + _Schema.schemaNodePositionKeySuffix);
-						}
-					}
-
-					_Schema.nodePositions = nodePositions;
-					LSWrapper.setItem(_Schema.schemaPositionsKey, _Schema.nodePositions);
-
-					// After we have converted all types we try to find *all* outdated type positions and delete them
-					for (let key in JSON.parse(LSWrapper.getAsJSON())) {
-
-						if (key.endsWith('node-position')) {
-							LSWrapper.removeItem(key);
-						}
-					}
-				}
 
 				_Schema.availableTypeNames = [];
 
@@ -643,18 +626,10 @@ let _Schema = {
 						level += 10;
 					}
 
-					if (!hierarchy[level]) { hierarchy[level] = []; }
+					hierarchy[level] ??= [];
 					hierarchy[level].push(entity);
 
 					entities[entity.id] = entity.id;
-				}
-
-				for (let entity of data.result) {
-
-					// TODO: get rid of this
-					if (entity.extendsClass && entity.extendsClass.id && entities[entity.extendsClass.id]) {
-						inheritancePairs[entity.id] = entities[entity.extendsClass.id];
-					}
 				}
 
 				for (let entitiesAtHierarchyLevel of Object.values(hierarchy)) {
@@ -821,30 +796,35 @@ let _Schema = {
 					x = 0;
 				}
 
-				for (let [source, target] of Object.entries(inheritancePairs)) {
+				for (let [sourceId, targetIds] of Object.entries(inheritanceObject)) {
 
-					let sourceEntity = _Schema.nodeData[source];
-					let targetEntity = _Schema.nodeData[target];
+					let sourceEntity = _Schema.nodeData[sourceId];
+					let sourceHidden = _Schema.hiddenSchemaNodes.includes(sourceEntity?.name);
 
-					let i1 = _Schema.hiddenSchemaNodes.indexOf(sourceEntity.name);
-					let i2 = _Schema.hiddenSchemaNodes.indexOf(targetEntity.name);
+					if (sourceEntity && !sourceHidden) {
 
-					if (_Schema.hiddenSchemaNodes.length > 0 && (i1 > -1 || i2 > -1)) {
-						continue;
+						for (let targetId of targetIds) {
+
+							let targetEntity = _Schema.nodeData[targetId];
+							let targetHidden = _Schema.hiddenSchemaNodes.includes(targetEntity?.name);
+
+							if (targetEntity && !targetHidden) {
+
+								_Schema.ui.jsPlumbInstance.connect({
+									source: 'id_' + sourceId,
+									target: 'id_' + targetId,
+									endpoint: 'Blank',
+									anchors: [
+										[ 'Perimeter', { shape: 'Rectangle' } ],
+										[ 'Perimeter', { shape: 'Rectangle' } ]
+									],
+									connector: [ 'Straight', { curviness: 200, cornerRadius: 25, gap: 0 }],
+									paintStyle: { lineWidth: 4, strokeStyle: "#dddddd", dashstyle: '2 2' },
+									cssClass: "dashed-inheritance-relationship"
+								});
+							}
+						}
 					}
-
-					_Schema.ui.jsPlumbInstance.connect({
-						source: 'id_' + source,
-						target: 'id_' + target,
-						endpoint: 'Blank',
-						anchors: [
-							[ 'Perimeter', { shape: 'Rectangle' } ],
-							[ 'Perimeter', { shape: 'Rectangle' } ]
-						],
-						connector: [ 'Straight', { curviness: 200, cornerRadius: 25, gap: 0 }],
-						paintStyle: { lineWidth: 4, strokeStyle: "#dddddd", dashstyle: '2 2' },
-						cssClass: "dashed-inheritance-relationship"
-					});
 				}
 
 			} else {
@@ -5360,7 +5340,7 @@ let _Schema = {
 								<label class="block"><input ${_Schema.ui.showSchemaOverlays ? 'checked' : ''} type="checkbox" id="schema-show-overlays" name="schema-show-overlays"> Relationship labels</label>
 							</div>
 							<div class="row">
-								<label class="block"><input ${_Schema.ui.showInheritanceArrows ? 'checked' : ''} type="checkbox" id="schema-show-inheritance" name="schema-show-inheritance"> Inheritance arrows</label>
+								<label class="block"><input ${_Schema.ui.showInheritanceArrows ? 'checked' : ''} type="checkbox" id="schema-show-inheritance" name="schema-show-inheritance"> Trait Inheritance arrows</label>
 							</div>
 
 							<div class="separator"></div>
