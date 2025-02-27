@@ -55,13 +55,29 @@ public class AdvancedDeploymentTest extends FullStructrTest {
 		// check existing schema nodes after import
 		try (final Tx tx = app.tx()) {
 
-			final Set<String> remainingTypes = new LinkedHashSet<>();
+			final Set<String> nodeTypes  = new LinkedHashSet<>();
+			final Set<String> relTypes   = new LinkedHashSet<>();
+			final Set<String> properties = new LinkedHashSet<>();
+			final Set<String> methods    = new LinkedHashSet<>();
 
-			StructrApp.getInstance().nodeQuery("SchemaNode").getResultStream().forEach(n -> remainingTypes.add(n.getName()));
+			StructrApp.getInstance().nodeQuery("SchemaRelationshipNode").getResultStream().forEach(n -> relTypes.add(n.getName()));
+			StructrApp.getInstance().nodeQuery("SchemaProperty").getResultStream().forEach(n -> properties.add(n.getName()));
+			StructrApp.getInstance().nodeQuery("SchemaMethod").getResultStream().forEach(n -> methods.add(n.getName()));
+			StructrApp.getInstance().nodeQuery("SchemaNode").getResultStream().forEach(n -> nodeTypes.add(n.getName()));
 
-			assertEquals("Invalid number of remaining types after schema import", 2, remainingTypes.size());
-			assertTrue(remainingTypes.contains("Project"));
-			assertTrue(remainingTypes.contains("Page"));
+			assertEquals("Invalid number of remaining types after schema import", 2, nodeTypes.size());
+			assertTrue(nodeTypes.contains("Project"));
+			assertTrue(nodeTypes.contains("Page"));
+
+			assertEquals("Invalid number of remaining relationship types after schema import", 0, relTypes.size());
+
+			assertEquals("Invalid number of remaining methods after schema import", 1, methods.size());
+			assertTrue(methods.contains("onCreate"));
+
+			assertEquals("Invalid number of remaining properties after schema import", 3, properties.size());
+			assertTrue(properties.contains("title"));
+			assertTrue(properties.contains("description"));
+			assertTrue(properties.contains("index"));
 
 			tx.success();
 
@@ -89,20 +105,79 @@ public class AdvancedDeploymentTest extends FullStructrTest {
 		// check existing schema nodes after import
 		try (final Tx tx = app.tx()) {
 
-			final Set<String> remainingTypes = new LinkedHashSet<>();
+			final Set<String> nodeTypes  = new LinkedHashSet<>();
+			final Set<String> relTypes   = new LinkedHashSet<>();
+			final Set<String> properties = new LinkedHashSet<>();
+			final Set<String> methods    = new LinkedHashSet<>();
 
-			StructrApp.getInstance().nodeQuery("SchemaNode").getResultStream().forEach(n -> remainingTypes.add(n.getName()));
+			StructrApp.getInstance().nodeQuery("SchemaRelationshipNode").getResultStream().forEach(n -> relTypes.add(n.getName()));
+			StructrApp.getInstance().nodeQuery("SchemaProperty").getResultStream().forEach(n -> properties.add(n.getName()));
+			StructrApp.getInstance().nodeQuery("SchemaMethod").getResultStream().forEach(n -> methods.add(n.getName()));
+			StructrApp.getInstance().nodeQuery("SchemaNode").getResultStream().forEach(n -> nodeTypes.add(n.getName()));
 
-			for (final String type : remainingTypes) {
+			assertEquals("Invalid number of remaining types after schema import", 110, nodeTypes.size());
+			assertEquals("Invalid number of remaining relationship types after schema import", 126, relTypes.size());
+			assertEquals("Invalid number of remaining methods after schema import", 125, methods.size());
+			assertEquals("Invalid number of remaining properties after schema import", 397, properties.size());
 
-				System.out.println(type);
-			}
+			tx.success();
 
-			/*
-			assertEquals("Invalid number of remaining types after schema import", 2, remainingTypes.size());
-			assertTrue(remainingTypes.contains("Project"));
-			assertTrue(remainingTypes.contains("Page"));
-			*/
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testSchemaImportFromVersion60() {
+
+		try (final Reader reader = new InputStreamReader(AdvancedDeploymentTest.class.getResourceAsStream("/test/schema6.0.json"))) {
+
+			final JsonSchema schema = StructrSchema.createFromSource(reader);
+			StructrSchema.replaceDatabaseSchema(app, schema);
+
+		} catch (Exception ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// check existing schema nodes after import
+		try (final Tx tx = app.tx()) {
+
+			final Set<String> nodeTypes  = new LinkedHashSet<>();
+			final Set<String> relTypes   = new LinkedHashSet<>();
+			final Set<String> properties = new LinkedHashSet<>();
+			final Set<String> methods    = new LinkedHashSet<>();
+
+			StructrApp.getInstance().nodeQuery("SchemaRelationshipNode").getResultStream().forEach(n -> relTypes.add(n.getName()));
+			StructrApp.getInstance().nodeQuery("SchemaProperty").getResultStream().forEach(n -> properties.add(n.getName()));
+			StructrApp.getInstance().nodeQuery("SchemaMethod").getResultStream().forEach(n -> methods.add(n.getName()));
+			StructrApp.getInstance().nodeQuery("SchemaNode").getResultStream().forEach(n -> nodeTypes.add(n.getName()));
+
+			assertEquals("Invalid number of remaining node types after schema import", 3, nodeTypes.size());
+			assertTrue(nodeTypes.contains("Project"));
+			assertTrue(nodeTypes.contains("Task"));
+			assertTrue(nodeTypes.contains("User"));
+
+			assertEquals("Invalid number of remaining relationship types after schema import", 3, relTypes.size());
+			assertTrue(relTypes.contains("GroupHASFiles"));
+			assertTrue(relTypes.contains("ProjectTASKTask"));
+			assertTrue(relTypes.contains("TaskHASFiles"));
+
+			assertEquals("Invalid number of remaining methods after schema import", 7, methods.size());
+			assertTrue(methods.contains("afterCreate"));
+			assertTrue(methods.contains("afterDelete"));
+			assertTrue(methods.contains("afterSave"));
+			assertTrue(methods.contains("customMethod"));
+			assertTrue(methods.contains("onCreate"));
+			assertTrue(methods.contains("onDelete"));
+			assertTrue(methods.contains("onSave"));
+
+			assertEquals("Invalid number of remaining properties after schema import", 2, properties.size());
+			assertTrue(properties.contains("customDateProperty"));
+			assertTrue(properties.contains("customStringProperty"));
 
 			tx.success();
 
