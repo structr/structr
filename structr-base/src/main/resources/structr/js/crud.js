@@ -293,7 +293,6 @@ let _Crud = {
 					let isRelType       = (type.isRel === true);
 					let isBuiltInRel    = isRelType && type.isBuiltin;
 					let isCustomRelType = isRelType && !type.isBuiltin;
-
 					let isDynamicType   = !isRelType && !type.isBuiltin;
 					let isHtmlType      = type.traits.includes('DOMNode');
 					let isFlowType      = type.traits.includes('FlowNode');
