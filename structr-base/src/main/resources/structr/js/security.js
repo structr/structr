@@ -333,7 +333,7 @@ let _UsersAndGroups = {
 
 	refreshUsers: async () => {
 
-		let types = await _Schema.getDerivedTypes(Structr.getFQCNForDynamicTypeName('User'), []);
+		let types = await _Schema.getDerivedTypeNames('User', []);
 
 		_Helpers.fastRemoveAllChildren(_UsersAndGroups.getUsersListElement());
 
@@ -529,7 +529,7 @@ let _UsersAndGroups = {
 	},
 	refreshGroups: async () => {
 
-		let types = await _Schema.getDerivedTypes(Structr.getFQCNForDynamicTypeName('Group'), []);
+		let types = await _Schema.getDerivedTypeNames('Group', []);
 
 		_Helpers.fastRemoveAllChildren(_UsersAndGroups.getGroupsListElement());
 

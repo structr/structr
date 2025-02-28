@@ -293,7 +293,6 @@ let _Crud = {
 					let isRelType       = (type.isRel === true);
 					let isBuiltInRel    = isRelType && type.isBuiltin;
 					let isCustomRelType = isRelType && !type.isBuiltin;
-
 					let isDynamicType   = !isRelType && !type.isBuiltin;
 					let isHtmlType      = type.traits.includes('DOMNode');
 					let isFlowType      = type.traits.includes('FlowNode');
@@ -1830,7 +1829,13 @@ let _Crud = {
 			const hiddenKeysForImageTypes     = [ 'base64Data', 'imageData', 'favoriteContent', 'favoriteContext', 'favoriteUsers', 'resultDocumentForExporter', 'documentTemplateForExporter', 'isFile', 'position', 'extractedContent', 'indexedWords', 'fileModificationDate' ];
 			const hiddenKeysForPrincipalTypes = [ 'isUser', 'isAdmin', 'createdBy', 'sessionIds', 'publicKeys', 'sessionData', 'password', 'passwordChangeDate', 'salt', 'twoFactorSecret', 'twoFactorToken', 'isTwoFactorUser', 'twoFactorConfirmed', 'ownedNodes', 'localStorage' ];
 
-			if (_Crud.helpers.isPrincipalType(_Crud.types[type])) {
+			let typeDef = _Crud.types[type];
+
+			let hasPrincipalTrait = typeDef.traits.includes['Principal'];
+			let hasImageTrait     = typeDef.traits.includes['AbstractFile'];
+			let hasFileTrait      = typeDef.traits.includes['Image'];
+
+			if (hasPrincipalTrait) {
 
 				for (let key of hiddenKeysForPrincipalTypes) {
 					if (!hiddenKeys.includes(key)) {
@@ -1839,7 +1844,7 @@ let _Crud = {
 				}
 			}
 
-			if (_Crud.helpers.isImageType(_Crud.types[type])) {
+			if (hasImageTrait) {
 
 				for (let key of hiddenKeysForImageTypes) {
 					if (!hiddenKeys.includes(key)) {
@@ -1848,7 +1853,7 @@ let _Crud = {
 				}
 			}
 
-			if (_Crud.helpers.isFileType(_Crud.types[type])) {
+			if (hasFileTrait) {
 
 				for (let key of hiddenKeysForFileTypes) {
 					if (!hiddenKeys.includes(key)) {
@@ -2729,18 +2734,6 @@ let _Crud = {
 		getFormat: (type, key) => {
 			return _Crud.types[type].views.all[key].format;
 		},
-		isPrincipalType: (typeDef) => {
-			let cls = Structr.getFQCNForDynamicTypeName('Principal');
-			return typeDef.className === cls || _Crud.helpers.inheritsFromAncestorType(typeDef, cls);
-		},
-		isFileType: (typeDef) => {
-			let cls = Structr.getFQCNForDynamicTypeName('AbstractFile');
-			return typeDef.className === cls || _Crud.helpers.inheritsFromAncestorType(typeDef, cls);
-		},
-		isImageType: (typeDef) => {
-			let cls = Structr.getFQCNForDynamicTypeName('Image');
-			return typeDef.className === cls || _Crud.helpers.inheritsFromAncestorType(typeDef, cls);
-		},
 		isRelType: (type) => {
 			return (_Crud.types[type]?.isRel === true);
 		},
@@ -2818,24 +2811,6 @@ let _Crud = {
 
 				return info;
 			}
-		},
-		inheritsFromAncestorType: (typeDef, ancestorFQCN) => {
-
-			if (typeDef.extendsClass === ancestorFQCN) {
-
-				return true;
-
-			} else {
-
-				// search parent type
-				let parentType = Object.values(_Crud.types).filter(t => (t.className === typeDef.extendsClass));
-
-				if (parentType.length === 1) {
-					return _Crud.helpers.inheritsFromAncestorType(parentType[0], ancestorFQCN);
-				}
-			}
-
-			return false;
 		},
 		extractIds: (result) => {
 

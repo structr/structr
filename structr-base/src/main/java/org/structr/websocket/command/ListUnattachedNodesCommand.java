@@ -96,15 +96,15 @@ public class ListUnattachedNodesCommand extends AbstractCommand {
 			.includeHidden()
 			.pageSize(pageSize)
 			.page(page)
-			.and(traits.key("ownerDocumentProperty"), null)
-			.and(traits.key("parentProperty"), null);
+			.and(traits.key("ownerDocument"), null)
+			.and(traits.key("parent"), null);
 
 		if (sortKey != null) {
 
 			query.sort(traits.key(sortKey), "desc".equals(sortOrder));
 		}
 
-		return Iterables.filter(n -> n.getTraits().contains(StructrTraits.PAGE), query.getResultStream());
+		return Iterables.filter(n -> !n.getTraits().contains(StructrTraits.PAGE), query.getResultStream());
 	}
 
 	@Override
