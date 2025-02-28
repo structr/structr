@@ -947,11 +947,10 @@ let _Schema = {
 				delete nameInput.dataset['property'];
 				nameInput.disabled = true;
 				nameInput.classList.add('disabled');
-			} else {
 			}
 
 			let select = container.querySelector('[data-property="inheritedTraits"]');
-			select.insertAdjacentHTML('beforeend', (entity.inheritedTraits ?? []).map(trait => `<option>${trait}</option>`).join(''));
+			select?.insertAdjacentHTML('beforeend', (entity.inheritedTraits ?? []).map(trait => `<option>${trait}</option>`).join(''));
 
 			let schemaNodeFlags = ['isServiceClass', 'changelogDisabled', 'defaultVisibleToPublic', 'defaultVisibleToAuth'];
 
