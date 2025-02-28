@@ -964,7 +964,6 @@ let _Schema = {
 		},
 		appendTypeHierarchy: (container, entity = {}, changeFn) => {
 
-			// TODO: need to collect all traits
 			fetch(`${Structr.rootUrl}_schema`).then(response => response.json()).then(schemaData => {
 
 				let isHtmlType = (type) => type.traits.includes('DOMNode');
@@ -972,7 +971,9 @@ let _Schema = {
 				let customTypes  = schemaData.result.filter(type => !isHtmlType(type) && !type.isAbstract && !type.isRel && !type.isInterface && !type.isServiceClass && !type.isBuiltin && type.name !== entity.name);
 				let builtinTypes = schemaData.result.filter(type => !isHtmlType(type) && !type.isAbstract && !type.isRel && !type.isInterface && !type.isServiceClass && type.isBuiltin && type.name !== entity.name);
 
-				let getOptionsForListOfTypes = (list) => list.map(type => `<option ${(entity.inheritedTraits ?? []).includes(type.name) ? 'selected' : ''} value="${type.name}">${type.name}</option>`).join('');
+				let getOptionsForListOfTypes = (typeList) => {
+					return typeList.map(type => type.name).sort().map(name => `<option ${(entity.inheritedTraits ?? []).includes(name) ? 'selected' : ''} value="${name}">${name}</option>`).join('');
+				};
 
 				let classSelect = container.querySelector('[data-property="inheritedTraits"]');
 				classSelect.insertAdjacentHTML('beforeend', `
