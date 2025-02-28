@@ -18,12 +18,11 @@
  */
 package org.structr.test;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.schema.JsonSchema;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.schema.export.StructrSchema;
 import org.testng.annotations.Test;
 
@@ -35,8 +34,6 @@ import java.util.Set;
 import static org.testng.AssertJUnit.*;
 
 public class AdvancedDeploymentTest extends FullStructrTest {
-
-	private static final Logger logger = LoggerFactory.getLogger(AdvancedDeploymentTest.class.getName());
 
 	@Test
 	public void testSchemaImportFromVersion40() {
@@ -60,10 +57,10 @@ public class AdvancedDeploymentTest extends FullStructrTest {
 			final Set<String> properties = new LinkedHashSet<>();
 			final Set<String> methods    = new LinkedHashSet<>();
 
-			StructrApp.getInstance().nodeQuery("SchemaRelationshipNode").getResultStream().forEach(n -> relTypes.add(n.getName()));
-			StructrApp.getInstance().nodeQuery("SchemaProperty").getResultStream().forEach(n -> properties.add(n.getName()));
-			StructrApp.getInstance().nodeQuery("SchemaMethod").getResultStream().forEach(n -> methods.add(n.getName()));
-			StructrApp.getInstance().nodeQuery("SchemaNode").getResultStream().forEach(n -> nodeTypes.add(n.getName()));
+			app.nodeQuery(StructrTraits.SCHEMA_RELATIONSHIP_NODE).getResultStream().forEach(n -> relTypes.add(n.getName()));
+			app.nodeQuery(StructrTraits.SCHEMA_PROPERTY).getResultStream().forEach(n -> properties.add(n.getName()));
+			app.nodeQuery(StructrTraits.SCHEMA_METHOD).getResultStream().forEach(n -> methods.add(n.getName()));
+			app.nodeQuery(StructrTraits.SCHEMA_NODE).getResultStream().forEach(n -> nodeTypes.add(n.getName()));
 
 			assertEquals("Invalid number of remaining types after schema import", 2, nodeTypes.size());
 			assertTrue(nodeTypes.contains("Project"));
@@ -110,15 +107,32 @@ public class AdvancedDeploymentTest extends FullStructrTest {
 			final Set<String> properties = new LinkedHashSet<>();
 			final Set<String> methods    = new LinkedHashSet<>();
 
-			StructrApp.getInstance().nodeQuery("SchemaRelationshipNode").getResultStream().forEach(n -> relTypes.add(n.getName()));
-			StructrApp.getInstance().nodeQuery("SchemaProperty").getResultStream().forEach(n -> properties.add(n.getName()));
-			StructrApp.getInstance().nodeQuery("SchemaMethod").getResultStream().forEach(n -> methods.add(n.getName()));
-			StructrApp.getInstance().nodeQuery("SchemaNode").getResultStream().forEach(n -> nodeTypes.add(n.getName()));
+			app.nodeQuery("SchemaRelationshipNode").getResultStream().forEach(n -> relTypes.add(n.getName()));
+			app.nodeQuery("SchemaProperty").getResultStream().forEach(n -> properties.add(n.getName()));
+			app.nodeQuery("SchemaMethod").getResultStream().forEach(n -> methods.add(n.getName()));
+			app.nodeQuery("SchemaNode").getResultStream().forEach(n -> nodeTypes.add(n.getName()));
 
-			assertEquals("Invalid number of remaining types after schema import", 110, nodeTypes.size());
+			assertEquals("Invalid number of remaining types after schema import",              110, nodeTypes.size());
 			assertEquals("Invalid number of remaining relationship types after schema import", 126, relTypes.size());
-			assertEquals("Invalid number of remaining methods after schema import", 125, methods.size());
-			assertEquals("Invalid number of remaining properties after schema import", 397, properties.size());
+			assertEquals("Invalid number of remaining methods after schema import",            125, methods.size());
+			assertEquals("Invalid number of remaining properties after schema import",         397, properties.size());
+
+			// check some node types
+			assertTrue("Imported schema is missing type Contact",       nodeTypes.contains("Contact"));
+			assertTrue("Imported schema is missing type CreditMemo",    nodeTypes.contains("CreditMemo"));
+			assertTrue("Imported schema is missing type CreditNote",    nodeTypes.contains("CreditNote"));
+			assertTrue("Imported schema is missing type Lead",          nodeTypes.contains("Lead"));
+			assertTrue("Imported schema is missing type MarketingTask", nodeTypes.contains("MarketingTask"));
+
+			// check inheritance of imported schema
+			assertTrue("Imported type CreditMemo does not inherit from Invoice", getSchemaNodeTraits("CreditMemo").contains("Invoice"));
+			assertTrue("Imported type CreditNote does not inherit from File",    getSchemaNodeTraits("CreditNote").contains("File"));
+			assertTrue("Imported type Contact does not inherit from Person",     getSchemaNodeTraits("Contact").contains("Person"));
+			assertTrue("Imported type Lead does not inherit from MarketingTask", getSchemaNodeTraits("Lead").contains("MarketingTask"));
+
+			// check key from inherited trait
+			assertTrue("Imported type Contact does not have eMail property", Traits.of("Contact").hasKey("eMail"));
+			assertTrue("Imported type Person does not have eMail property", Traits.of("Person").hasKey("eMail"));
 
 			tx.success();
 
@@ -151,10 +165,10 @@ public class AdvancedDeploymentTest extends FullStructrTest {
 			final Set<String> properties = new LinkedHashSet<>();
 			final Set<String> methods    = new LinkedHashSet<>();
 
-			StructrApp.getInstance().nodeQuery("SchemaRelationshipNode").getResultStream().forEach(n -> relTypes.add(n.getName()));
-			StructrApp.getInstance().nodeQuery("SchemaProperty").getResultStream().forEach(n -> properties.add(n.getName()));
-			StructrApp.getInstance().nodeQuery("SchemaMethod").getResultStream().forEach(n -> methods.add(n.getName()));
-			StructrApp.getInstance().nodeQuery("SchemaNode").getResultStream().forEach(n -> nodeTypes.add(n.getName()));
+			app.nodeQuery("SchemaRelationshipNode").getResultStream().forEach(n -> relTypes.add(n.getName()));
+			app.nodeQuery("SchemaProperty").getResultStream().forEach(n -> properties.add(n.getName()));
+			app.nodeQuery("SchemaMethod").getResultStream().forEach(n -> methods.add(n.getName()));
+			app.nodeQuery("SchemaNode").getResultStream().forEach(n -> nodeTypes.add(n.getName()));
 
 			assertEquals("Invalid number of remaining node types after schema import", 3, nodeTypes.size());
 			assertTrue(nodeTypes.contains("Project"));

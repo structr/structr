@@ -35,8 +35,10 @@ import org.structr.core.api.Arguments;
 import org.structr.core.api.Methods;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.*;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.csv.CSVModule;
 import org.structr.excel.ExcelModule;
 import org.structr.feed.DataFeedsModule;
@@ -749,5 +751,13 @@ public abstract class FullStructrTest {
 		}
 
 		return null;
+	}
+
+	protected SchemaNode getSchemaNode(final String name) throws FrameworkException {
+		return app.nodeQuery(StructrTraits.SCHEMA_NODE).andName(name).getFirst().as(SchemaNode.class);
+	}
+
+	protected Set<String> getSchemaNodeTraits(final String name) throws FrameworkException {
+		return getSchemaNode(name).getInheritedTraits();
 	}
 }

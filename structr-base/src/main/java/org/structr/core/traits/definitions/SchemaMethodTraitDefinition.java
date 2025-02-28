@@ -87,10 +87,12 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 					final Set<String> propertyViews = Traits.getAllViews();
 					final String thisMethodName     = method.getName();
 
+					/* FIXME
 					if (thisMethodName != null && propertyViews.contains(thisMethodName)) {
 						errorBuffer.add(new SemanticErrorToken(method.getType(), "name", "already_exists").withValue(thisMethodName).withDetail("A method cannot have the same name as a view"));
 						valid = false;
 					}
+					*/
 
 					// check case-insensitive name uniqueness on current level (type or user-defined functions)
 					final AbstractSchemaNode parentOrNull = method.getSchemaNode();

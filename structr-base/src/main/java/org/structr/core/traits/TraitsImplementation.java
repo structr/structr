@@ -130,12 +130,14 @@ public class TraitsImplementation implements Traits {
 	@Override
 	public boolean hasDynamicMethod(final String name) {
 
+		/*
 		for (final Trait trait : getTraits()) {
 
 			if (trait.getDynamicMethods().containsKey(name)) {
 				return true;
 			}
 		}
+		*/
 
 		return false;
 	}

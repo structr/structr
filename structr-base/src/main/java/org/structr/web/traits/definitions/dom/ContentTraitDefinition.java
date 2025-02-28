@@ -347,7 +347,7 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<String> contentProperty     = new StringProperty("content").indexed();
+		final Property<String> contentProperty     = new StringProperty("content");
 		final Property<String> contentTypeProperty = new StringProperty("contentType").indexed();
 		final Property<Boolean> isContentProperty  = new ConstantBooleanProperty("isContent", true);
 

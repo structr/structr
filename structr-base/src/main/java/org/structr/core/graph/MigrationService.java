@@ -42,12 +42,31 @@ import org.structr.web.entity.Folder;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
+import org.structr.web.entity.event.ActionMapping;
 
 import java.util.*;
 
 public class MigrationService {
 
 	private static final Logger logger = LoggerFactory.getLogger(MigrationService.class);
+
+	private static final Set<String> EventActionMappingActions = Set.of(
+		"create",
+		"update",
+		"delete",
+		"append-child",
+		"remove-child",
+		"insert-html",
+		"replace-html",
+		"open-tree-item",
+		"close-tree-item",
+		"toggle-tree-item",
+		"sign-in",
+		"sign-out",
+		"sign-up",
+		"reset-password",
+		"method"
+	);
 
 	private static final Set<String> FQCNBlacklist = Set.of(
 		"org.structr.web.property.ContentPathProperty",
@@ -156,7 +175,7 @@ public class MigrationService {
 		if (Traits.exists(type)) {
 
 			final Traits traits = Traits.of(type);
-			if (traits.hasKey(name)) {
+			if (traits.hasKey(name) && !traits.key(name).isDynamic()) {
 
 				return true;
 			}
@@ -197,16 +216,6 @@ public class MigrationService {
 			return true;
 		}
 
-		// check if property already exists in the static schema
-		if (Traits.exists(type)) {
-
-			final Traits traits = Traits.of(type);
-			if (traits.hasDynamicMethod(name)) {
-
-				return true;
-			}
-		}
-
 		return false;
 	}
 
@@ -233,7 +242,7 @@ public class MigrationService {
 						if (propertyShouldBeRemoved(property)) {
 
 							logger.info("DELETING schema property {}.{}", schemaNode.getName(), property.getName());
-							app.delete(property);
+							//app.delete(property);
 						}
 					}
 
@@ -242,7 +251,7 @@ public class MigrationService {
 						if (MigrationService.methodShouldBeRemoved(method)) {
 
 							logger.info("DELETING schema method {}.{}", schemaNode.getName(), method.getName());
-							app.delete(method);
+							//app.delete(method);
 						}
 					}
 
@@ -250,7 +259,7 @@ public class MigrationService {
 					if (Iterables.isEmpty(schemaNode.getSchemaProperties()) && Iterables.isEmpty(schemaNode.getSchemaMethods())) {
 
 						logger.info("DELETING empty schema node {}", schemaNode.getName());
-						app.delete(schemaNode);
+						//app.delete(schemaNode);
 					}
 				}
 			}
@@ -407,7 +416,9 @@ public class MigrationService {
 			}
 
 			final Traits domElementTraits             = Traits.of(StructrTraits.DOM_ELEMENT);
-			final PropertyKey<String> actionKey       = new StringProperty("data-structr-action");// domElementTraits.key("data-structr-action");
+			final PropertyKey<String> actionKey       = new StringProperty("data-structr-action");
+			final PropertyKey<String> newActionKey    = actionMappingTraits.key("action");
+			final PropertyKey<String> methodKey       = actionMappingTraits.key("method");
 			final PropertyKey<String> eventMappingKey = domElementTraits.key("eventMapping");
 
 			// check (and fix if possible) structr-app.js implementations
@@ -426,6 +437,14 @@ public class MigrationService {
 
 				migrateEventMapping(elem, eventMappingKey.jsonName());
 				eventMappingCount++;
+			}
+
+			// check and fix custom actions that call methods (action => "method", method => action)
+			for (final NodeInterface action : app.nodeQuery(StructrTraits.ACTION_MAPPING).and().not().and(newActionKey, null).getResultStream()) {
+
+				if (migrateCustomEventAction(action)) {
+					eventMappingCount++;
+				}
 			}
 
 			tx.success();
@@ -532,6 +551,26 @@ public class MigrationService {
 		final NodeInterface actionMapping = StructrApp.getInstance().create(StructrTraits.ACTION_MAPPING, properties);
 
 		migrateParameters(elem, actionMapping, data);
+	}
+
+	private static boolean migrateCustomEventAction(final NodeInterface node) throws FrameworkException {
+
+		final ActionMapping actionMapping = node.as(ActionMapping.class);
+		final String action               = actionMapping.getAction();
+
+		if (action != null) {
+
+			if (!EventActionMappingActions.contains(action)) {
+
+				// move unknown action name to method property
+				actionMapping.setAction("method");
+				actionMapping.setMethod(action);
+
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	private static void migrateEventMapping(final NodeInterface node, final String eventMappingKeyName) throws FrameworkException {

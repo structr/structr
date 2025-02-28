@@ -18,6 +18,7 @@
  */
 package org.structr.core.traits.wrappers;
 
+import org.structr.api.graph.Relationship;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -182,6 +183,7 @@ public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper imple
 		final List<SchemaMethod> methods      = Iterables.toList(getSchemaMethods());
 		final App app                         = StructrApp.getInstance();
 
+		// remove properties from static schema
 		for (final SchemaProperty property : properties) {
 
 			if (MigrationService.propertyShouldBeRemoved(property)) {
@@ -190,11 +192,39 @@ public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper imple
 			}
 		}
 
+		// remove methods from static schema
 		for (final SchemaMethod method : methods) {
 
 			if (MigrationService.methodShouldBeRemoved(method)) {
 
 				app.delete(method);
+			}
+		}
+
+		// move extendsClass values to inheriting traits
+		final String extendsClassInternal = (String) getNode().getProperty("extendsClassInternal");
+		final List<Relationship> rels     = Iterables.toList(getNode().getRelationships());
+
+		if (extendsClassInternal != null) {
+
+			System.out.println("FOUND extendsClassInternal: " + extendsClassInternal);
+		}
+
+		if (!rels.isEmpty()) {
+
+			for (final Relationship rel : rels) {
+
+				final String relType = rel.getType().name();
+
+				if ("EXTENDS".equals(relType)) {
+
+					final String superType = (String) rel.getEndNode().getProperty("name");
+
+					System.out.println("FOUND extendsClass relationship: " + getName() + ": " + superType);
+
+					// delete
+					//rel.delete(true);
+				}
 			}
 		}
 	}
@@ -211,19 +241,16 @@ public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper imple
 				final NodeInterface inheritedSchemaNode = StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_NODE).andName(inheritedTrait).getFirst();
 				if (inheritedSchemaNode != null) {
 
-					// recurse
-					definitions.addAll(recursivelyResolveTraitInheritance(inheritedSchemaNode.as(SchemaNode.class)));
-
-				} else {
-
-					// try to find internal trait
+					// try to find internal trait first
 					if (Traits.exists(inheritedTrait)) {
 
 						final Traits traits = Traits.of(inheritedTrait);
 
 						definitions.addAll(traits.getTraitDefinitions());
-
 					}
+
+					// recurse
+					definitions.addAll(recursivelyResolveTraitInheritance(inheritedSchemaNode.as(SchemaNode.class)));
 				}
 
 			} catch (FrameworkException fex) {
