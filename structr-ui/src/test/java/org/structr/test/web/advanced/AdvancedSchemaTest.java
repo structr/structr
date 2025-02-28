@@ -30,6 +30,7 @@ import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.entity.SchemaView;
@@ -1328,5 +1329,100 @@ public class AdvancedSchemaTest extends FrontendTest {
 				.body("result", startsWith("package org.structr.dynamic;"))
 			.when()
 				.post("/SchemaNode/" + fileTypeId + "/getGeneratedSourceCode");
+	}
+
+	@Test
+	public void testServiceClassBehavior() {
+
+		try (final Tx tx = app.tx()) {
+
+			createAdminUser();
+			tx.success();
+
+		} catch (Exception ex) {
+			logger.error("", ex);
+		}
+
+		final String serviceClassName  = "MyService";
+		final String serviceMethodName = "doStuff";
+
+		try (final Tx tx = app.tx()) {
+
+			final SchemaNode node = app.create(SchemaNode.class,
+					new NodeAttribute<>(SchemaNode.name, serviceClassName),
+					new NodeAttribute<>(SchemaNode.isServiceClass, true)
+			);
+
+			// we do not even need to set "isStatic = true" because the backend should do this automatically for service classes
+			final SchemaMethod method = app.create(SchemaMethod.class,
+					new NodeAttribute<>(SchemaMethod.name, serviceMethodName),
+					new NodeAttribute<>(SchemaMethod.source, "{ return 'did stuff'; }"),
+					new NodeAttribute<>(SchemaMethod.schemaNode, node)
+			);
+
+			tx.success();
+
+		} catch (Exception ex) {
+			logger.error("", ex);
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			RestAssured
+
+					.given()
+					.contentType("application/json; charset=UTF-8")
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+					.headers("X-User", ADMIN_USERNAME , "X-Password", ADMIN_PASSWORD)
+
+					.expect()
+					.statusCode(422)
+
+					.when()
+					.post("/" + serviceClassName);
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+
+			logger.error(ex.toString());
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			RestAssured
+
+					.given()
+					.contentType("application/json; charset=UTF-8")
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+					.headers("X-User", ADMIN_USERNAME , "X-Password", ADMIN_PASSWORD)
+
+					.expect()
+					.statusCode(200)
+
+					.body("result",	equalTo("did stuff"))
+
+					.when()
+					.post("/" + serviceClassName + "/" + serviceMethodName);
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+
+			logger.error(ex.toString());
+			fail("Unexpected exception");
+		}
+
 	}
 }
