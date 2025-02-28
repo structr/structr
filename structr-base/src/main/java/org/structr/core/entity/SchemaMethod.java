@@ -65,30 +65,27 @@ public interface SchemaMethod extends NodeInterface {
 
 	default void handleAutomaticCorrectionOfAttributes() throws FrameworkException {
 
-		final NodeInterface schemaNode      = getProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key("schemaNode"));
-		final boolean isLifeCycleMethod     = isLifecycleMethod();
-		final boolean isTypeMethod          = (schemaNode != null) || StringUtils.isNotBlank(getProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key("staticSchemaNodeName")));
+		final Traits schemaMethodTraits     = Traits.of(StructrTraits.SCHEMA_METHOD);
+		final NodeInterface schemaNode      = getProperty(schemaMethodTraits.key("schemaNode"));
+		final boolean isTypeMethod          = (schemaNode != null) || StringUtils.isNotBlank(getProperty(schemaMethodTraits.key("staticSchemaNodeName")));
 		final boolean isServiceClassMethod  = (schemaNode != null) && Boolean.TRUE.equals(schemaNode.getProperty(Traits.of(StructrTraits.SCHEMA_NODE).key("isServiceClass")));
 
 		// - lifecycle methods can never be static
-		// - user-defined functions can also not be static (? or should always be static?)
-		if (!isTypeMethod || isLifeCycleMethod) {
-			setProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key("isStatic"), false);
+		// - lifecycle methods are never callable via REST
+		if (isLifecycleMethod()) {
+			setProperty(schemaMethodTraits.key("isStatic"), false);
+			setProperty(schemaMethodTraits.key("isPrivate"), true);
 		}
 
 		// - service class methods must be static
-		if (isServiceClassMethod) {
-			setProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key("isStatic"), true);
-		}
-
-		// lifecycle methods are NEVER callable via REST
-		if (isLifeCycleMethod) {
-			setProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key("isPrivate"), true);
+		// - user-defined functions must also be static
+		if (!isTypeMethod || isServiceClassMethod) {
+			setProperty(schemaMethodTraits.key("isStatic"), true);
 		}
 
 		// a method which is not callable via REST should not be present in OpenAPI
 		if (isPrivateMethod() == true) {
-			setProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key("includeInOpenAPI"), false);
+			setProperty(schemaMethodTraits.key("includeInOpenAPI"), false);
 		}
 	}
 }
