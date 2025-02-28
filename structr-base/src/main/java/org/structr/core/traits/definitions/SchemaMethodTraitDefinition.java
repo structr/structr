@@ -24,6 +24,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.SemanticErrorToken;
+import org.structr.common.event.RuntimeEventLog;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
@@ -150,8 +151,23 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 				public void onModification(GraphObject graphObject, SecurityContext securityContext, ErrorBuffer errorBuffer, ModificationQueue modificationQueue) throws FrameworkException {
 
 					final SchemaMethod schemaMethod = graphObject.as(SchemaMethod.class);
+					final Traits traits             = graphObject.getTraits();
 
-					schemaMethod.handleAutomaticCorrectionOfAttributes();
+					if (Boolean.TRUE.equals(schemaMethod.getProperty(traits.key("deleteMethod")))) {
+
+						StructrApp.getInstance().delete(schemaMethod);
+
+					} else {
+
+						schemaMethod.handleAutomaticCorrectionOfAttributes();
+					}
+
+					final String uuid = schemaMethod.getUuid();
+					if (uuid != null) {
+
+						// acknowledge all events for this node when it is modified
+						RuntimeEventLog.getEvents(e -> uuid.equals(e.getData().get("id"))).stream().forEach(e -> e.acknowledge());
+					}
 				}
 			}
 		);
