@@ -42,6 +42,7 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.core.traits.operations.graphobject.OnCreation;
+import org.structr.core.traits.operations.graphobject.OnDeletion;
 import org.structr.core.traits.operations.graphobject.OnModification;
 import org.structr.core.traits.wrappers.SchemaMethodTraitWrapper;
 
@@ -168,6 +169,31 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 						// acknowledge all events for this node when it is modified
 						RuntimeEventLog.getEvents(e -> uuid.equals(e.getData().get("id"))).stream().forEach(e -> e.acknowledge());
 					}
+
+					// FIXME: need to clear schema method cache if this method was deleted (see Actions.methodCache)
+//					// Ensure AbstractSchemaNode methodCache is invalidated when a schema method changes
+//					if (!TransactionCommand.isDeleted(getNode())) {
+//
+//						final AbstractSchemaNode schemaNode = getProperty(SchemaMethod.schemaNode);
+//						if (schemaNode != null) {
+//
+//							schemaNode.clearCachedSchemaMethodsForInstance();
+//
+//							this.clearMethodCacheOfExtendingNodes();
+//						}
+//					}
+				}
+			},
+
+			OnDeletion.class,
+			new OnDeletion() {
+
+				@Override
+				public void onDeletion(GraphObject graphObject, SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
+
+					// FIXME: need to clear schema method cache (see Actions.methodCache)
+//					super.onNodeDeletion(securityContext);
+//					AbstractSchemaNode.clearCachedSchemaMethods();
 				}
 			}
 		);
