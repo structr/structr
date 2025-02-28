@@ -49,7 +49,7 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 		final List<AbstractHint> hints = new LinkedList<>();
 		final String quoteChar = lastToken.startsWith("'") ? "'" : lastToken.startsWith("\"") ? "\"" : "'";
 
-		for (final String type : Traits.getAllTypes(t -> t.isNodeType())) {
+		for (final String type : Traits.getAllTypes(t -> t.isNodeType() && !t.isServiceClass())) {
 
 			hints.add(new TypeNameHint(quoteChar + type + quoteChar, type));
 		}
