@@ -55,7 +55,6 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.service.*;
 import org.structr.core.Services;
-import org.structr.core.traits.StructrTraits;
 import org.structr.rest.auth.SessionHelper;
 import org.structr.rest.common.MetricsFilter;
 import org.structr.rest.common.Stats;
@@ -1001,7 +1000,7 @@ public class HttpService implements RunnableService, StatsCallback {
 
 				// redirect to setup wizard
 				response.resetBuffer();
-				response.setHeader(StructrTraits.LOCATION, Settings.ApplicationRootPath.getValue() + "/structr/config");
+				response.setHeader("Location", Settings.ApplicationRootPath.getValue() + "/structr/config");
 				response.setStatus(HttpServletResponse.SC_FOUND);
 				response.flushBuffer();
 
