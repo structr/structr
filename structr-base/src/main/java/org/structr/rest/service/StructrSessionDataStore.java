@@ -33,6 +33,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.rest.auth.AuthHelper;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -66,10 +67,8 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 			tx.prefetchHint("StructrSessionDataStore store");
 
-			final Traits sessionTraits   = Traits.of(StructrTraits.SESSION_DATA_NODE);
-			final Traits principalTraits = Traits.of(StructrTraits.PRINCIPAL);
-			final String[] value         = new String[] { id };
-			final NodeInterface user     = app.nodeQuery(StructrTraits.PRINCIPAL).and(principalTraits.key("sessionIds"), value).disableSorting().getFirst();
+			final Traits sessionTraits = Traits.of(StructrTraits.SESSION_DATA_NODE);
+			final NodeInterface user   = AuthHelper.getPrincipalForSessionId(id);
 
 			if (user != null) {
 
