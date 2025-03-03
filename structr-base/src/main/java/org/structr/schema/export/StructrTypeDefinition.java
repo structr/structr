@@ -29,6 +29,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.*;
+import org.structr.core.graph.MigrationService;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
@@ -68,6 +69,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	protected boolean visibleToPublicUsers                        = false;
 	protected boolean includeInOpenAPI                            = false;
 	protected boolean isInterface                                 = false;
+	protected boolean isBuiltinType                               = false;
 	protected boolean isAbstract                                  = false;
 	protected boolean isServiceClass                              = false;
 	protected boolean changelogDisabled                           = false;
@@ -871,6 +873,10 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 			this.isInterface = (Boolean)source.get(JsonSchema.KEY_IS_INTERFACE);
 		}
 
+		if (source.containsKey(JsonSchema.KEY_IS_BUILTIN_TYPE)) {
+			this.isBuiltinType = (Boolean)source.get(JsonSchema.KEY_IS_BUILTIN_TYPE);
+		}
+
 		if (source.containsKey(JsonSchema.KEY_IS_SERVICE_CLASS)) {
 			this.isServiceClass = (Boolean)source.get(JsonSchema.KEY_IS_SERVICE_CLASS);
 		}
@@ -888,7 +894,53 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		}
 
 		if (source.containsKey(JsonSchema.KEY_TRAITS)) {
-			this.inheritedTraits.addAll((Collection)source.get(JsonSchema.KEY_TRAITS));
+			this.inheritedTraits.addAll((List)source.get(JsonSchema.KEY_TRAITS));
+		}
+
+		// migrate $extends to traits
+		if (source.containsKey(JsonSchema.KEY_EXTENDS)) {
+
+			final Object extendsValue = source.get(JsonSchema.KEY_EXTENDS);
+
+			// "old" schema
+			String jsonPointerFormat = (String)extendsValue;
+			if (jsonPointerFormat.startsWith("#")) {
+
+				jsonPointerFormat = jsonPointerFormat.substring(1);
+			}
+
+			final String uri = root.getId().relativize(URI.create(jsonPointerFormat)).toString();
+			final String type = StringUtils.substringAfterLast(uri, "/");
+
+			if (!MigrationService.typeShouldBeRemoved(type) && !type.equals(name)) {
+
+				this.inheritedTraits.add(type);
+			}
+		}
+
+		if (source.containsKey(JsonSchema.KEY_IMPLEMENTS)) {
+
+			final Object implementsValue = source.get(JsonSchema.KEY_IMPLEMENTS);
+			if (implementsValue instanceof List) {
+
+				// "new" schema
+				final List<String> impl = (List<String>)implementsValue;
+				for (String jsonPointerFormat : impl) {
+
+					if (jsonPointerFormat.startsWith("#")) {
+
+						jsonPointerFormat = jsonPointerFormat.substring(1);
+					}
+
+					final String uri = root.getId().relativize(URI.create(jsonPointerFormat)).toString();
+					final String type = StringUtils.substringAfterLast(uri, "/");
+
+					if (!MigrationService.typeShouldBeRemoved(type) && !type.equals(name)) {
+
+						this.inheritedTraits.add(type);
+					}
+				}
+			}
 		}
 
 		if (source.containsKey(JsonSchema.KEY_TAGS)) {
@@ -1228,6 +1280,13 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 						deserializedProperties.put(property.getName(), property);
 						typeDefinition.getProperties().add(property);
+
+					} else {
+
+						if (requiredPropertyNames != null && requiredPropertyNames.contains(propertyName)) {
+
+							requiredPropertyNames.remove(propertyName);
+						}
 					}
 
 				} else {
@@ -1388,6 +1447,18 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		if (icon != null) {
 
 			typeDefinition.setIcon(icon.toString());
+		}
+
+		// do not create empty built-in types
+		if (Boolean.TRUE.equals(source.get("isBuiltinType"))) {
+
+			if (MigrationService.typeShouldBeRemoved(name)) {
+				return null;
+			}
+
+			if (typeDefinition.getProperties().isEmpty() && typeDefinition.getMethods().isEmpty()) {
+				return null;
+			}
 		}
 
 		return typeDefinition;

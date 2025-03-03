@@ -127,7 +127,12 @@ public class SchemaService implements Service {
 				// fetch schema nodes
 				for (final NodeInterface node : app.nodeQuery(StructrTraits.SCHEMA_NODE).getResultStream()) {
 
-					final SchemaNode schemaNode         = node.as(SchemaNode.class);
+					final SchemaNode schemaNode = node.as(SchemaNode.class);
+
+					// migration entry point
+					schemaNode.handleMigration();
+
+					// create traits
 					final String name                   = schemaNode.getClassName();
 					final TraitDefinition[] definitions = schemaNode.getTraitDefinitions();
 

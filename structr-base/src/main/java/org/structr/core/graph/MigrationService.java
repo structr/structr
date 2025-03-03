@@ -23,11 +23,16 @@ import org.apache.commons.lang3.StringUtils;
 import org.jsoup.nodes.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.CaseHelper;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractSchemaNode;
+import org.structr.core.entity.SchemaMethod;
+import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.SchemaProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
@@ -37,6 +42,7 @@ import org.structr.web.entity.Folder;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
+import org.structr.web.entity.event.ActionMapping;
 
 import java.util.*;
 
@@ -44,10 +50,94 @@ public class MigrationService {
 
 	private static final Logger logger = LoggerFactory.getLogger(MigrationService.class);
 
+	private static final Set<String> EventActionMappingActions = Set.of(
+		"create",
+		"update",
+		"delete",
+		"append-child",
+		"remove-child",
+		"insert-html",
+		"replace-html",
+		"open-tree-item",
+		"close-tree-item",
+		"toggle-tree-item",
+		"sign-in",
+		"sign-out",
+		"sign-up",
+		"reset-password",
+		"method"
+	);
+
+	private static final Set<String> FQCNBlacklist = Set.of(
+		"org.structr.web.property.ContentPathProperty",
+		"org.structr.core.entity.Favoritable$FavoriteContentProperty",
+		"org.structr.core.entity.Favoritable$FavoriteContextProperty",
+		"org.structr.core.entity.Favoritable$FavoriteContentTypeProperty"
+	);
+
+	private static final Set<String> SchemaPropertyMigrationBlacklist = Set.of(
+		"AbstractFile.nextSiblingId",
+		"AbstractFile.parentId",
+		"Audio._html_mediagroup",
+		"DOMElement.",
+		"DOMElement.data-structr-action",
+		"DOMElement.data-structr-append-id",
+		"DOMElement.data-structr-attr",
+		"DOMElement.data-structr-attributes",
+		"DOMElement.data-structr-confirm",
+		"DOMElement.data-structr-custom-options-query",
+		"DOMElement.data-structr-edit-class",
+		"DOMElement.data-structr-format",
+		"DOMElement.data-structr-hide",
+		"DOMElement.data-structr-name",
+		"DOMElement.data-structr-options",
+		"DOMElement.data-structr-options-key",
+		"DOMElement.data-structr-placeholder",
+		"DOMElement.data-structr-raw-value",
+		"DOMElement.data-structr-reload",
+		"DOMElement.data-structr-return",
+		"DOMNode.flow",
+		"DOMNode.hideOnDetail",
+		"DOMNode.hideOnIndex",
+		"DOMNode.renderDetails",
+		"DOMNode.xpathQuery",
+		"DOMElement.data-structr-target",
+		"DOMElement.data-structr-type",
+		"LDAPUser.commonName",
+		"LDAPUser.description",
+		"LDAPUser.entryUuid",
+		"LDAPUser.uid",
+		"Localization.description",
+		"MQTTClient.port",
+		"MQTTClient.protocol",
+		"MQTTClient.url",
+		"Person.twitterName",
+		"Principal.customPermissionQueryAccessControl",
+		"Principal.customPermissionQueryDelete",
+		"Principal.customPermissionQueryRead",
+		"Principal.customPermissionQueryWrite",
+		"Principal.twoFactorCode",
+		"Textarea._html_maxlenght",
+		"User.twitterName",
+		"Video._html_mediagroup"
+	);
+
+	private static final Set<String> StaticTypeMigrationBlacklist = Set.of(
+		"ConceptGroup", "ConceptGroupLabel", "ContentContainer", "ContentItem",
+		"CustomConceptAttribute", "CustomNote", "CustomTermAttribute", "Note",
+		"SimpleNonPreferredTerm", "StructuredDocument", "StructuredTextNode",
+		"Thesaurus", "ThesaurusArray", "ThesaurusTerm", "VersionHistory",
+		"Definition", "MetadataNode", "NodeLabel", "ThesaurusConcept",
+		"Favoritable", "Indexable", "IndexedWord", "JavaScriptSource",
+		"MinifiedCssFile", "MinifiedJavaScriptFile"
+	);
+
 	public static void execute() {
 
-		if (!Services.isTesting() && Services.getInstance().hasExclusiveDatabaseAccess()) {
+		//if (!Services.isTesting() && Services.getInstance().hasExclusiveDatabaseAccess()) {
+		if (Services.getInstance().hasExclusiveDatabaseAccess()) {
 
+			migrateStaticSchema();
 			migratePrincipalToPrincipalInterface();
 			migrateFolderMountTarget();
 			migrateEventActionMapping();
@@ -56,7 +146,132 @@ public class MigrationService {
 		}
 	}
 
+	public static boolean typeShouldBeRemoved(final String name) {
+
+		if (MigrationService.StaticTypeMigrationBlacklist.contains(name)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	public static boolean propertyShouldBeRemoved(final SchemaProperty property) {
+
+		final AbstractSchemaNode parent  = property.getSchemaNode();
+		final String propertyName        = property.getName();
+		final String propertyType        = property.getPropertyType().toString().toLowerCase();
+		final String fqcn                = property.getFqcn();
+
+		return propertyShouldBeRemoved(parent.getClassName(), propertyName, propertyType, fqcn);
+	}
+
+	public static boolean propertyShouldBeRemoved(final String type, final String name, final String propertyType, final String fqcn) {
+
+		if (MigrationService.SchemaPropertyMigrationBlacklist.contains(type + "." + name)) {
+			return true;
+		}
+
+		// check if property already exists in the static schema
+		if (Traits.exists(type)) {
+
+			final Traits traits = Traits.of(type);
+			if (traits.hasKey(name) && !traits.key(name).isDynamic()) {
+
+				return true;
+			}
+		}
+
+		// check if property has been blacklisted
+		if ("custom".equals(propertyType)) {
+
+			if (fqcn != null && FQCNBlacklist.contains(fqcn)) {
+
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public static boolean methodShouldBeRemoved(final SchemaMethod method) {
+
+		final AbstractSchemaNode parent = method.getSchemaNode();
+		final String name               = method.getName();
+		final String codeType           = method.getCodeType();
+
+		if (parent != null) {
+
+			return methodShouldBeRemoved(parent.getClassName(), name, codeType);
+		}
+
+		// methods with no parent are user-defined functions
+		return false;
+	}
+
+	public static boolean methodShouldBeRemoved(final String type, final String name, final String codeType) {
+
+		// we don't support Java methods anymore
+		if ("java".equals(codeType)) {
+
+			return true;
+		}
+
+		return false;
+	}
+
 	// ----- private methods -----
+	private static void migrateStaticSchema() {
+
+		final App app = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			// check (and fix) principal nodes
+			logger.info("Checking if static schema needs migration..");
+
+			for (final NodeInterface p : app.nodeQuery(StructrTraits.SCHEMA_NODE).getResultStream()) {
+
+				final SchemaNode schemaNode = p.as(SchemaNode.class);
+
+				if (Boolean.TRUE.equals(schemaNode.getNode().getProperty("isBuiltinType"))) {
+
+					logger.warn("Found built-in schema node {}", schemaNode.getName());
+
+					for (final SchemaProperty property : schemaNode.getSchemaProperties()) {
+
+						if (propertyShouldBeRemoved(property)) {
+
+							logger.info("DELETING schema property {}.{}", schemaNode.getName(), property.getName());
+							//app.delete(property);
+						}
+					}
+
+					for (final SchemaMethod method : schemaNode.getSchemaMethods()) {
+
+						if (MigrationService.methodShouldBeRemoved(method)) {
+
+							logger.info("DELETING schema method {}.{}", schemaNode.getName(), method.getName());
+							//app.delete(method);
+						}
+					}
+
+					// remove empty schema nodes
+					if (Iterables.isEmpty(schemaNode.getSchemaProperties()) && Iterables.isEmpty(schemaNode.getSchemaMethods())) {
+
+						logger.info("DELETING empty schema node {}", schemaNode.getName());
+						//app.delete(schemaNode);
+					}
+				}
+			}
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			logger.warn("Unable to migrate principal nodes: {}", fex.getMessage());
+			fex.printStackTrace();
+		}
+	}
+
 	private static void migratePrincipalToPrincipalInterface() {
 
 		final App app = StructrApp.getInstance();
@@ -201,7 +416,9 @@ public class MigrationService {
 			}
 
 			final Traits domElementTraits             = Traits.of(StructrTraits.DOM_ELEMENT);
-			final PropertyKey<String> actionKey       = new StringProperty("data-structr-action");// domElementTraits.key("data-structr-action");
+			final PropertyKey<String> actionKey       = new StringProperty("data-structr-action");
+			final PropertyKey<String> newActionKey    = actionMappingTraits.key("action");
+			final PropertyKey<String> methodKey       = actionMappingTraits.key("method");
 			final PropertyKey<String> eventMappingKey = domElementTraits.key("eventMapping");
 
 			// check (and fix if possible) structr-app.js implementations
@@ -220,6 +437,14 @@ public class MigrationService {
 
 				migrateEventMapping(elem, eventMappingKey.jsonName());
 				eventMappingCount++;
+			}
+
+			// check and fix custom actions that call methods (action => "method", method => action)
+			for (final NodeInterface action : app.nodeQuery(StructrTraits.ACTION_MAPPING).and().not().and(newActionKey, null).getResultStream()) {
+
+				if (migrateCustomEventAction(action)) {
+					eventMappingCount++;
+				}
 			}
 
 			tx.success();
@@ -326,6 +551,26 @@ public class MigrationService {
 		final NodeInterface actionMapping = StructrApp.getInstance().create(StructrTraits.ACTION_MAPPING, properties);
 
 		migrateParameters(elem, actionMapping, data);
+	}
+
+	private static boolean migrateCustomEventAction(final NodeInterface node) throws FrameworkException {
+
+		final ActionMapping actionMapping = node.as(ActionMapping.class);
+		final String action               = actionMapping.getAction();
+
+		if (action != null) {
+
+			if (!EventActionMappingActions.contains(action)) {
+
+				// move unknown action name to method property
+				actionMapping.setAction("method");
+				actionMapping.setMethod(action);
+
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	private static void migrateEventMapping(final NodeInterface node, final String eventMappingKeyName) throws FrameworkException {

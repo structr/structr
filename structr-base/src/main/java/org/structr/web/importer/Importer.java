@@ -893,10 +893,11 @@ public class Importer {
 								if (value != null) {
 
 									// store value using actual input converter
-									final PropertyKey actualKey = newNodeType.key(camelCaseKey);
-									if (actualKey != null) {
+									if (newNodeType.hasKey(camelCaseKey)) {
 
+										final PropertyKey actualKey       = newNodeType.key(camelCaseKey);
 										final PropertyConverter converter = actualKey.inputConverter(securityContext);
+
 										if (converter != null) {
 
 											final Object convertedValue = converter.convert(value);

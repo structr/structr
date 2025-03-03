@@ -35,6 +35,7 @@ public interface Traits {
 	boolean contains(final String type);
 	<T> PropertyKey<T> key(final String name);
 	boolean hasKey(final String name);
+	boolean hasDynamicMethod(final String name);
 	String getName();
 	boolean isNodeType();
 	boolean isRelationshipType();

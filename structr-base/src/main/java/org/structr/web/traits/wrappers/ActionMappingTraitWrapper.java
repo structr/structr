@@ -19,6 +19,7 @@
 package org.structr.web.traits.wrappers;
 
 import org.structr.api.util.Iterables;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
@@ -50,8 +51,18 @@ public class ActionMappingTraitWrapper extends AbstractNodeTraitWrapper implemen
 	}
 
 	@Override
+	public void setAction(final String action) throws FrameworkException {
+		wrappedObject.setProperty(traits.key("action"), action);
+	}
+
+	@Override
 	public String getMethod() {
 		return wrappedObject.getProperty(traits.key("method"));
+	}
+
+	@Override
+	public void setMethod(final String method) throws FrameworkException {
+		wrappedObject.setProperty(traits.key("method"), method);
 	}
 
 	@Override

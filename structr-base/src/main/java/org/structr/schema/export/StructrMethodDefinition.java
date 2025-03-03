@@ -32,6 +32,7 @@ import org.structr.core.app.App;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaMethodParameter;
+import org.structr.core.graph.MigrationService;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
@@ -677,22 +678,23 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 
 				if (!isPrivate()) {
 
-					if (isStatic()) {
+					if (isTypeMethod) {
 
-						operations.put(createPath(verb, true), Map.of(verb, new OpenAPIStaticMethodOperation(this, parentType, viewNames)));
+						if (isStatic()) {
 
-					} else {
-
-						if (isTypeMethod) {
-
-							operations.put(createPath(verb, false), Map.of(verb, new OpenAPIMethodOperation(this, parentType, viewNames)));
+							operations.put(createPath(verb, true), Map.of(verb, new OpenAPIStaticMethodOperation(this, parentType, viewNames)));
 
 						} else {
 
-							final String path = "/" + getName();
+							operations.put(createPath(verb, false), Map.of(verb, new OpenAPIMethodOperation(this, parentType, viewNames)));
 
-							operations.put(path, Map.of(verb, new OpenAPIUserDefinedFunctionOperation(this)));
 						}
+
+					} else {
+
+						final String path = "/" + getName();
+
+						operations.put(path, Map.of(verb, new OpenAPIUserDefinedFunctionOperation(this)));
 					}
 				}
 			}
@@ -865,9 +867,6 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 			} catch (Throwable ignore) {}
 
 			return new OpenAPIResultSchema(schemaFromJsonString, false);
-			/*return new OpenAPIRequestResponse("The request was executed successfully.",
-
-			);*/
 
 		} else {
 
@@ -877,6 +876,11 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 
 	// ----- static methods -----
 	static StructrMethodDefinition deserialize(final StructrTypeDefinition parent, final String name, final Map<String, Object> source) {
+
+		if (MigrationService.methodShouldBeRemoved(parent.getName(), name, (String) source.get("codeType"))) {
+
+			return null;
+		}
 
 		final StructrMethodDefinition newMethod = new StructrMethodDefinition(parent, name);
 

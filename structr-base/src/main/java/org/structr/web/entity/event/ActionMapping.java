@@ -18,6 +18,7 @@
  */
 package org.structr.web.entity.event;
 
+import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
@@ -34,6 +35,9 @@ public interface ActionMapping extends NodeInterface {
 	String getDialogType();
 	String getDialogTitle();
 	String getDialogText();
+
+	void setAction(final String action) throws FrameworkException;
+	void setMethod(final String method) throws FrameworkException;
 
 	Iterable<ParameterMapping> getParameterMappings();
 	Iterable<DOMElement> getTriggerElements();

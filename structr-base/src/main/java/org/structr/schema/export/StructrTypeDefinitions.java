@@ -19,8 +19,6 @@
 package org.structr.schema.export;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
@@ -36,7 +34,6 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.FunctionProperty;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
-import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaService;
 import org.structr.schema.openapi.common.OpenAPIAllOf;
 import org.structr.schema.openapi.common.OpenAPISchemaReference;
@@ -55,8 +52,6 @@ import java.util.concurrent.ConcurrentSkipListSet;
  *
  */
 public class StructrTypeDefinitions implements StructrDefinition {
-
-	private static final Logger logger = LoggerFactory.getLogger(StructrTypeDefinitions.class);
 
 	private final Set<StructrRelationshipTypeDefinition> relationships = new TreeSet<>();
 	private final Set<StructrTypeDefinition> typeDefinitions           = new TreeSet<>();
@@ -237,8 +232,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 	public Map<String, Object> serializeOpenAPIResponses(final Map<String, Object> responses, final String tag) {
 
-		final ConfigurationProvider configuration = StructrApp.getConfiguration();
-		final Map<String, Object> map             = new TreeMap<>();
+		final Map<String, Object> map = new TreeMap<>();
 
 		for (final StructrTypeDefinition<?> type : typeDefinitions) {
 
@@ -418,6 +412,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 					typeDefinitions.add(type);
 
 					if (type instanceof StructrRelationshipTypeDefinition r) {
+
 						relationships.add(r);
 					}
 

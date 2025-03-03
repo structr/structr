@@ -29,6 +29,7 @@ import org.structr.core.app.App;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
+import org.structr.core.graph.MigrationService;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
@@ -460,6 +461,10 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 
 	// ----- static methods -----
 	static StructrPropertyDefinition deserialize(final StructrTypeDefinition parent, final String name, final Map<String, Object> source) {
+
+		if (MigrationService.propertyShouldBeRemoved(parent.getName(), name, (String) source.get(JsonSchema.KEY_TYPE), (String) source.get(JsonSchema.KEY_FQCN))) {
+			return null;
+		}
 
 		final String propertyType = (String)source.get(JsonSchema.KEY_TYPE);
 		StructrPropertyDefinition newProperty = null;
