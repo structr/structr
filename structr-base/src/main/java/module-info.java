@@ -108,8 +108,9 @@ module structr.base {
     requires org.eclipse.jgit;
     requires api.all;
     requires org.json;
+	requires pulsar.client;
 
-    exports org.structr;
+	exports org.structr;
     exports org.structr.agent;
     exports org.structr.autocomplete;
     exports org.structr.common;

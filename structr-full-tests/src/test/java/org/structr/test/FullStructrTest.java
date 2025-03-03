@@ -760,4 +760,43 @@ public abstract class FullStructrTest {
 	protected Set<String> getSchemaNodeTraits(final String name) throws FrameworkException {
 		return getSchemaNode(name).getInheritedTraits();
 	}
+
+	protected String createNodeWithCypher(final Set<String> labels, final Map<String, Object> nodeData) throws FrameworkException {
+
+		final Map<String, Object> data = new LinkedHashMap<>();
+		final String uuid              = NodeServiceCommand.getNextUuid();
+		final String labelsString      = org.apache.commons.lang.StringUtils.join(labels, ":");
+
+		data.put("id", uuid);
+		data.putAll(nodeData);
+
+		// create database contents manually
+		app.query("CREATE (n:" + randomTenantId + ":PropertyContainer:GraphObject:NodeInterface:AccessControllable:" + labelsString + " $data)",
+			Map.of("data", data)
+		);
+
+		return uuid;
+	}
+
+	protected String createRelationshipWithCypher(final String id1, final String id2, final String type, final String relType, final Map<String, Object> relData) throws FrameworkException {
+
+		final Map<String, Object> data = new LinkedHashMap<>();
+		final String uuid              = NodeServiceCommand.getNextUuid();
+
+		data.put("id", uuid);
+		data.putAll(relData);
+
+		// create database contents manually
+		app.query("MATCH (n:NodeInterface:" + randomTenantId + " { id: $id1 }), (m:NodeInterface:" + randomTenantId + " { id: $id2 }) MERGE (n)-[r:" + relType + " { id: $uuid, type: $type }]->(m) RETURN r",
+			Map.of(
+				"relData", data,
+				"id1", id1,
+				"id2", id2,
+				"uuid", uuid,
+				"type", type
+			)
+		);
+
+		return uuid;
+	}
 }
