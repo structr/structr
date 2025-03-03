@@ -551,7 +551,7 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 		final Object source = root.resolveURI(sourceType);
 		if (source instanceof JsonType) {
 
-			final JsonType t = (JsonType)source;
+			final JsonType t = (JsonType) source;
 
 			if (blacklist.contains(t.getName())) {
 				return true;
@@ -561,7 +561,7 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 		final Object target = root.resolveURI(targetType);
 		if (target instanceof JsonType) {
 
-			final JsonType t = (JsonType)target;
+			final JsonType t = (JsonType) target;
 
 			if (blacklist.contains(t.getName())) {
 				return true;
@@ -701,6 +701,8 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 
 			this.targetReference = new TargetPropertyReference((StructrTypeDefinition)type, targetPropertyName);
 		}
+
+		this.targetType = targetType;
 	}
 
 	// ----- private methods -----

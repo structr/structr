@@ -173,6 +173,11 @@ public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper imple
 
 		final ArrayList<TraitDefinition> definitions = new ArrayList<>(recursivelyResolveTraitInheritance(this));
 
+		for (final TraitDefinition def: definitions) {
+
+			System.out.println(def.getName());
+		};
+
 		return definitions.toArray(new TraitDefinition[0]);
 	}
 
@@ -241,16 +246,15 @@ public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper imple
 				final NodeInterface inheritedSchemaNode = StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_NODE).andName(inheritedTrait).getFirst();
 				if (inheritedSchemaNode != null) {
 
-					// try to find internal trait first
-					if (Traits.exists(inheritedTrait)) {
-
-						final Traits traits = Traits.of(inheritedTrait);
-
-						definitions.addAll(traits.getTraitDefinitions());
-					}
-
 					// recurse
 					definitions.addAll(recursivelyResolveTraitInheritance(inheritedSchemaNode.as(SchemaNode.class)));
+				}
+
+				if (Traits.exists(inheritedTrait)) {
+
+					final Traits traits = Traits.of(inheritedTrait);
+
+					definitions.addAll(traits.getTraitDefinitions());
 				}
 
 			} catch (FrameworkException fex) {

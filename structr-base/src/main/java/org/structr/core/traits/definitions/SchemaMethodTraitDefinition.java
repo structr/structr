@@ -79,6 +79,7 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
 
 					final SchemaMethod method                      = obj.as(SchemaMethod.class);
+					final AbstractSchemaNode schemaNode            = method.getSchemaNode();
 					final Traits traits                            = obj.getTraits();
 					final PropertyKey<NodeInterface> schemaNodeKey = traits.key("schemaNode");
 					final PropertyKey<String> nameKey              = traits.key("name");
@@ -86,15 +87,17 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 
 					valid &= ValidationHelper.isValidStringMatchingRegex(obj, nameKey, SchemaMethod.schemaMethodNamePattern, errorBuffer);
 
-					final Set<String> propertyViews = Traits.getAllViews();
+					final Set<String> propertyViews = schemaNode != null ? schemaNode.getViewNames() : Set.of();
 					final String thisMethodName     = method.getName();
 
-					/* FIXME
 					if (thisMethodName != null && propertyViews.contains(thisMethodName)) {
-						errorBuffer.add(new SemanticErrorToken(method.getType(), "name", "already_exists").withValue(thisMethodName).withDetail("A method cannot have the same name as a view"));
+						errorBuffer.add(
+							new SemanticErrorToken(method.getType(), "name", "already_exists")
+								.withValue(thisMethodName)
+								.withDetail("A view with name '" + thisMethodName + "' already exists, cannot create method with the same name")
+						);
 						valid = false;
 					}
-					*/
 
 					// check case-insensitive name uniqueness on current level (type or user-defined functions)
 					final AbstractSchemaNode parentOrNull = method.getSchemaNode();

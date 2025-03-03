@@ -678,22 +678,23 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 
 				if (!isPrivate()) {
 
-					if (isStatic()) {
+					if (isTypeMethod) {
 
-						operations.put(createPath(verb, true), Map.of(verb, new OpenAPIStaticMethodOperation(this, parentType, viewNames)));
+						if (isStatic()) {
 
-					} else {
-
-						if (isTypeMethod) {
-
-							operations.put(createPath(verb, false), Map.of(verb, new OpenAPIMethodOperation(this, parentType, viewNames)));
+							operations.put(createPath(verb, true), Map.of(verb, new OpenAPIStaticMethodOperation(this, parentType, viewNames)));
 
 						} else {
 
-							final String path = "/" + getName();
+							operations.put(createPath(verb, false), Map.of(verb, new OpenAPIMethodOperation(this, parentType, viewNames)));
 
-							operations.put(path, Map.of(verb, new OpenAPIUserDefinedFunctionOperation(this)));
 						}
+
+					} else {
+
+						final String path = "/" + getName();
+
+						operations.put(path, Map.of(verb, new OpenAPIUserDefinedFunctionOperation(this)));
 					}
 				}
 			}

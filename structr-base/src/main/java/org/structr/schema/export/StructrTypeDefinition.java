@@ -893,6 +893,10 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 			this.visibleToAuthenticatedUsers = (Boolean)source.get(JsonSchema.KEY_VISIBLE_TO_AUTHENTICATED);
 		}
 
+		if (source.containsKey(JsonSchema.KEY_TRAITS)) {
+			this.inheritedTraits.addAll((List)source.get(JsonSchema.KEY_TRAITS));
+		}
+
 		// migrate $extends to traits
 		if (source.containsKey(JsonSchema.KEY_EXTENDS)) {
 

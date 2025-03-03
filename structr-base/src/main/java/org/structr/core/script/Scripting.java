@@ -697,7 +697,7 @@ public class Scripting {
 				if (codeSource.is(StructrTraits.SCHEMA_METHOD) && codeSource.as(SchemaMethod.class).isStaticMethod()) {
 
 					final AbstractSchemaNode node = codeSource.as(SchemaMethod.class).getSchemaNode();
-					final String staticTypeName   = node.getName();
+					final String staticTypeName   = codeSource.getName();
 
 					messageData.put("staticType",     staticTypeName);
 					messageData.put("isStaticMethod", true);

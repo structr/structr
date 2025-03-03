@@ -34,7 +34,6 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.FunctionProperty;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
-import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaService;
 import org.structr.schema.openapi.common.OpenAPIAllOf;
 import org.structr.schema.openapi.common.OpenAPISchemaReference;
@@ -233,8 +232,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 	public Map<String, Object> serializeOpenAPIResponses(final Map<String, Object> responses, final String tag) {
 
-		final ConfigurationProvider configuration = StructrApp.getConfiguration();
-		final Map<String, Object> map             = new TreeMap<>();
+		final Map<String, Object> map = new TreeMap<>();
 
 		for (final StructrTypeDefinition<?> type : typeDefinitions) {
 
@@ -411,12 +409,12 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 				if (type != null) {
 
+					typeDefinitions.add(type);
+
 					if (type instanceof StructrRelationshipTypeDefinition r) {
 
 						relationships.add(r);
 					}
-
-					typeDefinitions.add(type);
 
 				}
 
