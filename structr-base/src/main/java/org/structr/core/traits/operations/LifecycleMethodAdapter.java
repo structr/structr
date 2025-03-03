@@ -48,21 +48,27 @@ public class LifecycleMethodAdapter implements OnCreation, OnModification, OnDel
 	@Override
 	public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
+		final String type = graphObject.getTraits().getName();
+
 		for (final String source : sources) {
-			Actions.execute(securityContext, graphObject, "${" + source + "}", "onCreate");
+			Actions.execute(securityContext, graphObject, "${" + source + "}", type + ".onCreate");
 		}
 	}
 
 	@Override
 	public void afterCreation(final GraphObject graphObject, final SecurityContext securityContext) throws FrameworkException {
 
+		final String type = graphObject.getTraits().getName();
+
 		for (final String source : sources) {
-			Actions.execute(securityContext, graphObject, "${" + source + "}", "afterCreate");
+			Actions.execute(securityContext, graphObject, "${" + source + "}", type + ".afterCreate");
 		}
 	}
 
 	@Override
 	public void afterDeletion(final GraphObject graphObject, final SecurityContext securityContext, final PropertyMap properties) {
+
+		final String type = graphObject.getTraits().getName();
 
 		try {
 
@@ -71,7 +77,7 @@ public class LifecycleMethodAdapter implements OnCreation, OnModification, OnDel
 			// entity is null because it is deleted, properties are available via "data" keyword
 			for (final String source : sources) {
 
-				Actions.execute(securityContext, null, "${" + source + "}", "afterDelete");
+				Actions.execute(securityContext, null, "${" + source + "}", type + ".afterDelete");
 			}
 
 		} catch (FrameworkException ex) {
@@ -82,40 +88,50 @@ public class LifecycleMethodAdapter implements OnCreation, OnModification, OnDel
 	@Override
 	public void afterModification(final GraphObject graphObject, final SecurityContext securityContext) throws FrameworkException {
 
+		final String type = graphObject.getTraits().getName();
+
 		for (final String source : sources) {
-			Actions.execute(securityContext, graphObject, "${" + source + "}", "afterSave");
+			Actions.execute(securityContext, graphObject, "${" + source + "}", type + ".afterSave");
 		}
 	}
 
 	@Override
 	public void onDeletion(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final PropertyMap properties) throws FrameworkException {
 
+		final String type = graphObject.getTraits().getName();
+
 		for (final String source : sources) {
-			Actions.execute(securityContext, graphObject, "${" + source + "}", "onDelete");
+			Actions.execute(securityContext, graphObject, "${" + source + "}", type + ".onDelete");
 		}
 	}
 
 	@Override
 	public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
+		final String type = graphObject.getTraits().getName();
+
 		for (final String source : sources) {
-			Actions.execute(securityContext, graphObject, "${" + source + "}", "onSave", modificationQueue, null);
+			Actions.execute(securityContext, graphObject, "${" + source + "}", type + ".onSave", modificationQueue, null);
 		}
 	}
 
 	@Override
 	public void onNodeCreation(final NodeInterface nodeInterface, final SecurityContext securityContext) throws FrameworkException {
 
+		final String type = nodeInterface.getTraits().getName();
+
 		for (final String source : sources) {
-			Actions.execute(securityContext, nodeInterface, "${" + source + "}", "onNodeCreation");
+			Actions.execute(securityContext, nodeInterface, "${" + source + "}", type + ".onNodeCreation");
 		}
 	}
 
 	@Override
 	public void onNodeDeletion(final NodeInterface nodeInterface, final SecurityContext securityContext) throws FrameworkException {
 
+		final String type = nodeInterface.getTraits().getName();
+
 		for (final String source : sources) {
-			Actions.execute(securityContext, nodeInterface, "${" + source + "}", "onNodeDeletion");
+			Actions.execute(securityContext, nodeInterface, "${" + source + "}", type + ".onNodeDeletion");
 		}
 	}
 }

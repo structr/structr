@@ -242,7 +242,7 @@ public class MigrationService {
 						if (propertyShouldBeRemoved(property)) {
 
 							logger.info("DELETING schema property {}.{}", schemaNode.getName(), property.getName());
-							//app.delete(property);
+							app.delete(property);
 						}
 					}
 
@@ -251,7 +251,7 @@ public class MigrationService {
 						if (MigrationService.methodShouldBeRemoved(method)) {
 
 							logger.info("DELETING schema method {}.{}", schemaNode.getName(), method.getName());
-							//app.delete(method);
+							app.delete(method);
 						}
 					}
 
@@ -259,7 +259,7 @@ public class MigrationService {
 					if (Iterables.isEmpty(schemaNode.getSchemaProperties()) && Iterables.isEmpty(schemaNode.getSchemaMethods())) {
 
 						logger.info("DELETING empty schema node {}", schemaNode.getName());
-						//app.delete(schemaNode);
+						app.delete(schemaNode);
 					}
 				}
 			}
