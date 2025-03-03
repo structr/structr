@@ -16,16 +16,37 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.test.websocket.setup;
+package org.structr.test.websocket.mock;
 
+import com.google.gson.Gson;
 import org.eclipse.jetty.websocket.api.*;
 
 import java.net.SocketAddress;
 import java.time.Duration;
+import java.util.List;
+import java.util.Map;
 
-public class TestableWebsocketSession implements Session {
+public class MockWebsocketSession implements Session {
 
-	private final TestableRemoteEndpoint endpoint = new TestableRemoteEndpoint();
+	private final MockRemoteEndpoint endpoint = new MockRemoteEndpoint();
+	private final Gson gson;
+
+	public MockWebsocketSession(final Gson gson) {
+		this.gson = gson;
+	}
+
+	public Map<String, Object> getLastWebsocketResponse() {
+
+		final List<String> messages = endpoint.getSentStrings();
+		if (!messages.isEmpty()) {
+
+			final String last = messages.get(messages.size() - 1);
+
+			return gson.fromJson(last, Map.class);
+		}
+
+		return null;
+	}
 
 	@Override
 	public void close() {

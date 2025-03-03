@@ -69,16 +69,20 @@ public class AuthHelper {
 	public static <T> Principal getPrincipalForCredential(final PropertyKey<T> key, final T value) {
 
 		return getPrincipalForCredential(key, value, false);
-
 	}
 
 	public static <T> Principal getPrincipalForCredential(final PropertyKey<T> key, final T value, final boolean isPing) {
+
+		return getPrincipalForCredential(key, value, isPing, true);
+	}
+
+	public static <T> Principal getPrincipalForCredential(final PropertyKey<T> key, final T value, final boolean isPing, final boolean isExact) {
 
 		if (value != null) {
 
 			try {
 
-				final NodeInterface node = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).and(key, value).disableSorting().isPing(isPing).getFirst();
+				final NodeInterface node = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).and(key, value, isExact).disableSorting().isPing(isPing).getFirst();
 				if (node != null) {
 
 					return node.as(Principal.class);
@@ -246,13 +250,11 @@ public class AuthHelper {
 	public static Principal getPrincipalForSessionId(final String sessionId) {
 
 		return getPrincipalForSessionId(sessionId, false);
-
 	}
 
 	public static Principal getPrincipalForSessionId(final String sessionId, final boolean isPing) {
 
-		return getPrincipalForCredential(Traits.of(StructrTraits.PRINCIPAL).key("sessionIds"), new String[]{ sessionId }, isPing);
-
+		return getPrincipalForCredential(Traits.of(StructrTraits.PRINCIPAL).key("sessionIds"), new String[]{ sessionId }, isPing, false);
 	}
 
 	public static void doLogin(final HttpServletRequest request, final Principal user) throws FrameworkException {

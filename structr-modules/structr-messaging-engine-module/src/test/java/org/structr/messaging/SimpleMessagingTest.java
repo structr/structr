@@ -25,7 +25,6 @@ import org.structr.core.traits.Traits;
 import org.structr.messaging.engine.entities.MessageClient;
 import org.structr.messaging.engine.entities.MessageSubscriber;
 import org.structr.schema.action.ActionContext;
-import org.structr.test.web.StructrUiTest;
 import org.testng.annotations.Test;
 
 import java.util.ArrayList;
@@ -34,16 +33,16 @@ import java.util.List;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
 
-public class SimpleMessagingTest extends StructrUiTest {
+public class SimpleMessagingTest extends MessagingTestBase  {
 
 	@Test
 	public void test01() {
 
 		try(final Tx tx = app.tx()) {
 
+			final List<MessageSubscriber> subList = new ArrayList<>();
 			final MessageClient client1           = app.create("MessageClient", "client1").as(MessageClient.class);
 			final MessageSubscriber sub           = app.create("MessageSubscriber", "sub").as(MessageSubscriber.class);
-			final List<MessageSubscriber> subList = new ArrayList<>();
 			final Traits subscriberTraits         = Traits.of("MessageSubscriber");
 			final Traits clientTraits             = Traits.of("MessageClient");
 

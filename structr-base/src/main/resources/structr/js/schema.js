@@ -514,8 +514,8 @@ let _Schema = {
 
 					if (Structr.isModuleActive(_Schema)) {
 
-						// Reload is only necessary for changes in the "basic" tab for types (name and extendsClass) and relationships (relType and cardinality)
-						let typeChangeRequiresReload = (bulkInfo?.basic?.changes?.name || bulkInfo?.basic?.changes?.extendsClass)
+						// Schema reload is only necessary for changes in the "basic" tab for types (name and inheritedTraits) and relationships (relType and cardinality)
+						let typeChangeRequiresReload = (bulkInfo?.basic?.changes?.name || bulkInfo?.basic?.changes?.inheritedTraits)
 						let relChangeRequiresReload  = (bulkInfo?.basic?.changes?.relationshipType || bulkInfo?.basic?.changes?.sourceMultiplicity || bulkInfo?.basic?.changes?.targetMultiplicity)
 
 						if (typeChangeRequiresReload || relChangeRequiresReload) {
@@ -560,6 +560,16 @@ let _Schema = {
 	},
 	prevAnimFrameReqId_dragNode: undefined,
 	nodes: {
+		populateInheritancePairMap: (list) => {
+
+			let nameKeyedList = Object.fromEntries(list.map(entity => {
+				return [entity.name, entity];
+			}));
+
+			return Object.fromEntries(list.map(entity => {
+				return [entity.id, (entity.inheritedTraits ?? []).map(traitName => nameKeyedList[traitName]?.id).filter(parent => !!parent)]
+			}));
+		},
 		loadNodes: async () => {
 
 			_Schema.hiddenSchemaNodes = JSON.parse(LSWrapper.getItem(_Schema.hiddenSchemaNodesKey));
@@ -576,7 +586,7 @@ let _Schema = {
 
 				let data             = await response.json();
 				let entities         = {};
-				let inheritancePairs = {};
+				let inheritanceObject = _Schema.nodes.populateInheritancePairMap(data.result);
 				let hierarchy        = {};
 				let x = 0, y = 0;
 
@@ -586,33 +596,6 @@ let _Schema = {
 				}
 
 				_Schema.nodePositions = LSWrapper.getItem(_Schema.schemaPositionsKey);
-				if (!_Schema.nodePositions) {
-
-					let nodePositions = {};
-
-					// positions are stored the 'old' way => convert to the 'new' way
-					let typeNames = data.result.map(entity => entity.name);
-					for (let typeName of typeNames) {
-
-						let nodePos = JSON.parse(LSWrapper.getItem(typeName + _Schema.schemaNodePositionKeySuffix));
-						if (nodePos) {
-							nodePositions[typeName] = nodePos.position;
-
-							LSWrapper.removeItem(typeName + _Schema.schemaNodePositionKeySuffix);
-						}
-					}
-
-					_Schema.nodePositions = nodePositions;
-					LSWrapper.setItem(_Schema.schemaPositionsKey, _Schema.nodePositions);
-
-					// After we have converted all types we try to find *all* outdated type positions and delete them
-					for (let key in JSON.parse(LSWrapper.getAsJSON())) {
-
-						if (key.endsWith('node-position')) {
-							LSWrapper.removeItem(key);
-						}
-					}
-				}
 
 				_Schema.availableTypeNames = [];
 
@@ -643,17 +626,10 @@ let _Schema = {
 						level += 10;
 					}
 
-					if (!hierarchy[level]) { hierarchy[level] = []; }
+					hierarchy[level] ??= [];
 					hierarchy[level].push(entity);
 
 					entities[entity.id] = entity.id;
-				}
-
-				for (let entity of data.result) {
-
-					if (entity.extendsClass && entity.extendsClass.id && entities[entity.extendsClass.id]) {
-						inheritancePairs[entity.id] = entities[entity.extendsClass.id];
-					}
 				}
 
 				for (let entitiesAtHierarchyLevel of Object.values(hierarchy)) {
@@ -820,30 +796,35 @@ let _Schema = {
 					x = 0;
 				}
 
-				for (let [source, target] of Object.entries(inheritancePairs)) {
+				for (let [sourceId, targetIds] of Object.entries(inheritanceObject)) {
 
-					let sourceEntity = _Schema.nodeData[source];
-					let targetEntity = _Schema.nodeData[target];
+					let sourceEntity = _Schema.nodeData[sourceId];
+					let sourceHidden = _Schema.hiddenSchemaNodes.includes(sourceEntity?.name);
 
-					let i1 = _Schema.hiddenSchemaNodes.indexOf(sourceEntity.name);
-					let i2 = _Schema.hiddenSchemaNodes.indexOf(targetEntity.name);
+					if (sourceEntity && !sourceHidden) {
 
-					if (_Schema.hiddenSchemaNodes.length > 0 && (i1 > -1 || i2 > -1)) {
-						continue;
+						for (let targetId of targetIds) {
+
+							let targetEntity = _Schema.nodeData[targetId];
+							let targetHidden = _Schema.hiddenSchemaNodes.includes(targetEntity?.name);
+
+							if (targetEntity && !targetHidden) {
+
+								_Schema.ui.jsPlumbInstance.connect({
+									source: 'id_' + sourceId,
+									target: 'id_' + targetId,
+									endpoint: 'Blank',
+									anchors: [
+										[ 'Perimeter', { shape: 'Rectangle' } ],
+										[ 'Perimeter', { shape: 'Rectangle' } ]
+									],
+									connector: [ 'Straight', { curviness: 200, cornerRadius: 25, gap: 0 }],
+									paintStyle: { lineWidth: 4, strokeStyle: "#dddddd", dashstyle: '2 2' },
+									cssClass: "dashed-inheritance-relationship"
+								});
+							}
+						}
 					}
-
-					_Schema.ui.jsPlumbInstance.connect({
-						source: 'id_' + source,
-						target: 'id_' + target,
-						endpoint: 'Blank',
-						anchors: [
-							[ 'Perimeter', { shape: 'Rectangle' } ],
-							[ 'Perimeter', { shape: 'Rectangle' } ]
-						],
-						connector: [ 'Straight', { curviness: 200, cornerRadius: 25, gap: 0 }],
-						paintStyle: { lineWidth: 4, strokeStyle: "#dddddd", dashstyle: '2 2' },
-						cssClass: "dashed-inheritance-relationship"
-					});
 				}
 
 			} else {
@@ -966,27 +947,10 @@ let _Schema = {
 				delete nameInput.dataset['property'];
 				nameInput.disabled = true;
 				nameInput.classList.add('disabled');
-			} else {
 			}
 
-			if (entity.extendsClass || entity.extendsClassInternal || entity.isBuiltinType === false) {
-
-				let select = container.querySelector('[data-property="extendsClass"]');
-				if (entity.isBuiltinType === true) {
-					select.insertAdjacentHTML('beforeend', `<option>${entity.extendsClass?.name ?? entity.extendsClassInternal}</option>`);
-					delete select.dataset['property'];
-					select.disabled = true;
-					select.classList.add('disabled');
-				}
-
-				if (!entity.extendsClass || !Structr.isModuleActive(_Schema)) {
-					_Helpers.fastRemoveElement(container.querySelector('.edit-parent-type'));
-				}
-
-			} else {
-
-				_Helpers.fastRemoveElement(container.querySelector('.extends-type'));
-			}
+			let select = container.querySelector('[data-property="inheritedTraits"]');
+			select?.insertAdjacentHTML('beforeend', (entity.inheritedTraits ?? []).map(trait => `<option>${trait}</option>`).join(''));
 
 			let schemaNodeFlags = ['isServiceClass', 'changelogDisabled', 'defaultVisibleToPublic', 'defaultVisibleToAuth'];
 
@@ -1000,20 +964,21 @@ let _Schema = {
 		},
 		appendTypeHierarchy: (container, entity = {}, changeFn) => {
 
-			fetch(`${Structr.rootUrl}SchemaNode/ui?${Structr.getRequestParameterName('sort')}=name`).then(response => response.json()).then(schemaNodeData => {
+			fetch(`${Structr.rootUrl}_schema`).then(response => response.json()).then(schemaData => {
 
-				let customTypes  = schemaNodeData.result.filter(cls => ((!cls.category || cls.category !== 'html') && !cls.isAbstract && !cls.isInterface && !cls.isServiceClass && !cls.isBuiltinType) && (cls.id !== entity.id));
-				let builtinTypes = schemaNodeData.result.filter(cls => ((!cls.category || cls.category !== 'html') && !cls.isAbstract && !cls.isInterface && !cls.isServiceClass && cls.isBuiltinType) && (cls.id !== entity.id));
+				let isHtmlType = (type) => type.traits.includes('DOMNode');
 
-				let getOptionsForListOfSchemaNodes = (list) => list.map(cls => `<option ${((entity.extendsClass?.id === cls.id) ? 'selected' : '')} value="${cls.id}">${cls.name}</option>`).join('');
+				let customTypes  = schemaData.result.filter(type => !isHtmlType(type) && !type.isAbstract && !type.isRel && !type.isInterface && !type.isServiceClass && !type.isBuiltin && type.name !== entity.name);
+				let builtinTypes = schemaData.result.filter(type => !isHtmlType(type) && !type.isAbstract && !type.isRel && !type.isInterface && !type.isServiceClass && type.isBuiltin && type.name !== entity.name);
 
-				let classSelect = container.querySelector('.extends-class-select');
+				let getOptionsForListOfTypes = (typeList) => {
+					return typeList.map(type => type.name).sort().map(name => `<option ${(entity.inheritedTraits ?? []).includes(name) ? 'selected' : ''} value="${name}">${name}</option>`).join('');
+				};
+
+				let classSelect = container.querySelector('[data-property="inheritedTraits"]');
 				classSelect.insertAdjacentHTML('beforeend', `
-					<optgroup label="Default Type">
-						<option value="">AbstractNode - Structr default base type</option>
-					</optgroup>
-					${(customTypes.length > 0) ? `<optgroup id="for-custom-types" label="Custom Types">${getOptionsForListOfSchemaNodes(customTypes)}</optgroup>` : ''}
-					${(builtinTypes.length > 0) ? `<optgroup id="for-builtin-types" label="System Types">${getOptionsForListOfSchemaNodes(builtinTypes)}</optgroup>` : ''}
+					${(customTypes.length > 0) ? `<optgroup label="Custom Traits">${getOptionsForListOfTypes(customTypes)}</optgroup>` : ''}
+					${(builtinTypes.length > 0) ? `<optgroup label="System Traits">${getOptionsForListOfTypes(builtinTypes)}</optgroup>` : ''}
 				`);
 
 				$(classSelect).select2({
@@ -1058,25 +1023,9 @@ let _Schema = {
 				property.addEventListener('input', updateChangeStatus);
 			}
 
-			if (entity.isBuiltinType === false && entity.isServiceClass === false) {
+			if (entity.isServiceClass === false) {
 
 				_Schema.nodes.appendTypeHierarchy(tabContent, entity, updateChangeStatus);
-			}
-
-			if (entity?.extendsClass?.id) {
-
-				tabContent.querySelector('.edit-parent-type')?.addEventListener('click', async () => {
-
-					let okToNavigate = !_Schema.bulkDialogsGeneral.hasUnsavedChangesInTabs(mainTabs) || (await _Dialogs.confirmation.showPromise("There are unsaved changes - really navigate to parent type?"));
-					if (okToNavigate) {
-						_Schema.openEditDialog(entity.extendsClass.id, undefined, () => {
-
-							window.setTimeout(() => {
-								_Schema.openEditDialog(entity.id);
-							}, 250);
-						});
-					}
-				});
 			}
 
 			_Schema.nodes.activateTagsSelect(tabContent.querySelector('#openapi-options'), updateChangeStatus);
@@ -1232,9 +1181,9 @@ let _Schema = {
 						shouldDelete = (difference.length === 0);
 					}
 
-				} else if (key === 'extendsClass') {
+				} else if (key === 'inheritedTraits') {
 
-					shouldDelete = (entity.extendsClass && entity.extendsClass.id === newData.extendsClass) || (!entity.extendsClass && newData.extendsClass === '');
+					shouldDelete = (entity.inheritedTraits === null && newData.inheritedTraits.length === 0);
 				}
 
 				if (shouldDelete) {
@@ -1251,9 +1200,10 @@ let _Schema = {
 
 			container.insertAdjacentHTML('beforeend', _Schema.templates.typeBasicTab({ isCreate: true, ...config }));
 
-			_Helpers.fastRemoveElement(container.querySelector('.edit-parent-type'));
+			if (config.isServiceClass === false) {
+				_Schema.nodes.appendTypeHierarchy(container, {}, updateFunction);
+			}
 
-			_Schema.nodes.appendTypeHierarchy(container, {}, updateFunction);
 			_Schema.nodes.activateTagsSelect(container);
 			_Code.mainArea.populateOpenAPIBaseConfig(container, {}, _Code.availableTags);
 
@@ -5029,12 +4979,12 @@ let _Schema = {
 	clearTypeInfoCache: () => {
 		_Schema.typeInfoCache = {};
 	},
-	invalidateTypeInfoCache: (type) => {
+	invalidateTypeInfoCache: (typeName) => {
 
-		delete _Schema.typeInfoCache[type];
+		delete _Schema.typeInfoCache[typeName];
 
 		// clear type cache for this type and derived types
-		_Schema.getDerivedTypes(type, [], false).then(derivedTypes => {
+		_Schema.getDerivedTypeNames(typeName, []).then(derivedTypes => {
 
 			for (let derivedType of derivedTypes) {
 				delete _Schema.typeInfoCache[derivedType];
@@ -5062,52 +5012,37 @@ let _Schema = {
 			});
 		}
 	},
-	getDerivedTypes: async (baseType, blacklist = [], baseTypeIsFQCN = true) => {
+	getDerivedTypeNames: async (searchTrait, blacklist = []) => {
 
 		let response = await fetch(`${Structr.rootUrl}_schema`);
 
 		if (response.ok) {
 
-			let data      = await response.json();
-			let result    = data.result;
-			let fileTypes = [];
-			let maxDepth  = 5;
-			let types     = {};
+			let data                 = await response.json();
+			let result               = data.result;
+			let typesWithSearchTrait = new Set();
 
-			if (baseTypeIsFQCN === false) {
+			let repeat = false;
+			do {
 
-				// first get FQCN for type name (if exists)
-				let exactTypeNameMatches = result.filter(typeInfo => typeInfo.name === baseType);
-				baseType = exactTypeNameMatches[0]?.className ?? baseType;
-			}
+				let countBefore = typesWithSearchTrait.size;
 
-			let collect = (list, type) => {
+				for (let type of result) {
 
-				for (let n of list) {
+					let isSameType         = (type.name === searchTrait);
+					let isBlacklisted      = blacklist.includes(type.name);
+					let typeHasSearchTrait = (type.traits ?? []).includes(searchTrait);
 
-					if (n.extendsClass === type) {
-
-						fileTypes.push(Structr.getFQCNForDynamicTypeName(n.name));
-
-						if (!n.isAbstract && !blacklist.includes(n.name)) {
-							types[n.name] = 1;
-						}
-					} else {
-						// console.log({ ext: n.extendsClass, type: type });
+					if (!isSameType && !isBlacklisted && typeHasSearchTrait) {
+						typesWithSearchTrait.add(type.name);
 					}
 				}
-			};
 
-			collect(result, baseType);
+				repeat = (countBefore !== typesWithSearchTrait.size);
 
-			for (let i = 0; i < maxDepth; i++) {
+			} while (repeat);
 
-				for (let type of fileTypes) {
-					collect(result, type);
-				}
-			}
-
-			return Object.keys(types);
+			return [...typesWithSearchTrait];
 
 		} else {
 			return [];
@@ -5283,17 +5218,13 @@ let _Schema = {
 				_Schema.ui.canvas.addClass('hide-relationship-labels');
 			}
 		},
-		updateInheritanceArrowsVisibility: (show) => {
+		updateInheritanceArrowsVisibility: (showArrows) => {
 
-			_Schema.ui.showInheritanceArrows = show;
-			LSWrapper.setItem(_Schema.showSchemaInheritanceArrowsKey, show);
+			_Schema.ui.showInheritanceArrows = showArrows;
+			LSWrapper.setItem(_Schema.showSchemaInheritanceArrowsKey, showArrows);
 
-			$('#schema-show-inheritance').prop('checked', show);
-			if (show) {
-				_Schema.ui.canvas.removeClass('hide-inheritance-arrows');
-			} else {
-				_Schema.ui.canvas.addClass('hide-inheritance-arrows');
-			}
+			$('#schema-show-inheritance').prop('checked', showArrows);
+			_Schema.ui.canvas[0]?.classList.toggle('hide-inheritance-arrows', !showArrows)
 		},
 		getNodeXPosition: (x, y) => {
 			return (x * 300) + ((y % 2) * 150) + 140;
@@ -5391,7 +5322,7 @@ let _Schema = {
 								<label class="block"><input ${_Schema.ui.showSchemaOverlays ? 'checked' : ''} type="checkbox" id="schema-show-overlays" name="schema-show-overlays"> Relationship labels</label>
 							</div>
 							<div class="row">
-								<label class="block"><input ${_Schema.ui.showInheritanceArrows ? 'checked' : ''} type="checkbox" id="schema-show-inheritance" name="schema-show-inheritance"> Inheritance arrows</label>
+								<label class="block"><input ${_Schema.ui.showInheritanceArrows ? 'checked' : ''} type="checkbox" id="schema-show-inheritance" name="schema-show-inheritance"> Trait Inheritance arrows</label>
 							</div>
 
 							<div class="separator"></div>
@@ -5551,10 +5482,9 @@ let _Schema = {
 					<input data-property="name" class="flex-grow" placeholder="Type Name...">
 
 					${!config.isServiceClass ? `
-						<div class="extends-type flex items-center gap-2">
-							extends
-							<select class="extends-class-select" data-property="extendsClass"></select>
-							${_Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['edit-parent-type']), 'Edit parent type')}
+						<div class="flex items-center gap-2">
+							has traits
+							<select multiple data-property="inheritedTraits"></select>
 						</div>
 					` : ''}
 				</div>

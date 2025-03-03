@@ -21,6 +21,7 @@ package org.structr.messaging.traits.wrappers;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.api.AbstractMethod;
@@ -54,7 +55,10 @@ public class MessageSubscriberTraitWrapper extends AbstractNodeTraitWrapper impl
 	}
 
 	public Iterable<MessageClient> getClients() {
-		return wrappedObject.getProperty(traits.key("clients"));
+
+		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key("clients"));
+
+		return Iterables.map(n -> n.as(MessageClient.class), nodes);
 	}
 
 	@Override
