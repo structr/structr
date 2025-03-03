@@ -44,7 +44,7 @@ public class CypherFunction extends CoreFunction {
 
 	@Override
 	public String getSignature() {
-		return "query [, parameterMap]";
+		return "query [, parameterMap, runInNewTransaction]";
 	}
 
 	@Override
@@ -62,7 +62,7 @@ public class CypherFunction extends CoreFunction {
 			final Map<String, Object> params = new LinkedHashMap<>();
 			final String query = sources[0].toString();
 
-			boolean runInNewTransaction = false;
+			boolean runInNewTransaction = (sources.length > 2 && sources[2] instanceof Boolean && (Boolean)sources[2]);
 
 			// parameters?
 			if (sources.length > 1) {
