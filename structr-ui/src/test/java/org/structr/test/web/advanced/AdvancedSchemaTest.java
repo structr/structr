@@ -1153,7 +1153,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 
-			schema.getType(StructrTraits.USER).overrideMethod("isValidPassword", false, "return true;")
+			schema.getType(StructrTraits.USER).overrideMethod("isValidPassword", false, "true;")
 				.addParameter("password", "String")
 				.setReturnType("boolean");
 
@@ -1332,7 +1332,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 			// we do not even set "isStatic = true" because the backend should do this automatically for service classes
 			final NodeInterface method = app.create(StructrTraits.SCHEMA_METHOD,
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("name"), serviceMethodName),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "{ return 'did stuff'; }"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "{ 'did stuff'; }"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("schemaNode"), node)
 			);
 
