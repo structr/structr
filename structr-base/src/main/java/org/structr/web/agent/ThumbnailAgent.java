@@ -34,6 +34,7 @@ import org.structr.core.property.IntProperty;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.entity.Image;
 
@@ -156,11 +157,11 @@ public class ThumbnailAgent extends Agent<ThumbnailWorkObject> {
 					final PropertyMap properties = new PropertyMap();
 					properties.put(Traits.of(StructrTraits.IMAGE).key("width"),                               tnWidth);
 					properties.put(Traits.of(StructrTraits.IMAGE).key("height"),                              tnHeight);
-					properties.put(Traits.of(StructrTraits.NODE_INTERFACE).key("hidden"),                      originalImage.isHidden());
+					properties.put(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.HIDDEN_PROPERTY),                      originalImage.isHidden());
 					properties.put(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToAuthenticatedUsers"), originalImage.isVisibleToAuthenticatedUsers());
 					properties.put(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"),        originalImage.isVisibleToPublicUsers());
 					properties.put(Traits.of(StructrTraits.FILE).key("size"),                                 Long.valueOf(data.length));
-					properties.put(Traits.of(StructrTraits.NODE_INTERFACE).key("owner"),                       originalImage.as(AccessControllable.class).getOwnerNode());
+					properties.put(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY),                       originalImage.as(AccessControllable.class).getOwnerNode());
 					properties.put(Traits.of(StructrTraits.FILE).key("parent"),                               originalImage.getThumbnailParentFolder(originalImage.getParent(), securityContext));
 					properties.put(Traits.of(StructrTraits.FILE).key("hasParent"),                            originalImage.getProperty(Traits.of(StructrTraits.IMAGE).key("hasParent")));
 

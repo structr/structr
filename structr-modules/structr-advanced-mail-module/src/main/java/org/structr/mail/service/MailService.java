@@ -45,6 +45,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.mail.entity.Mailbox;
 import org.structr.schema.SchemaService;
 import org.structr.web.common.FileHelper;
@@ -299,7 +300,7 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 			final Principal owner = securityContext.getUser(false);
 			if (owner != null) {
 
-				file.as(AccessControllable.class).setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("owner"), securityContext.getUser(false));
+				file.as(AccessControllable.class).setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), securityContext.getUser(false));
 			}
 
 			tx.success();

@@ -35,6 +35,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.openapi.common.OpenAPISchemaReference;
 import org.structr.schema.openapi.operation.*;
 import org.structr.schema.openapi.parameter.OpenAPIPropertyQueryParameter;
@@ -1042,7 +1043,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 				viewNode = app.create(StructrTraits.SCHEMA_VIEW,
 					new NodeAttribute<>(schemaViewTraits.key("schemaNode"), newSchemaNode),
-					new NodeAttribute<>(schemaViewTraits.key("name"), view.getKey())
+					new NodeAttribute<>(schemaViewTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), view.getKey())
 				).as(SchemaView.class);
 			}
 

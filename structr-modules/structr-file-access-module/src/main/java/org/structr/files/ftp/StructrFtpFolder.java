@@ -31,6 +31,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 
@@ -102,7 +103,7 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 		final App app                           = StructrApp.getInstance(securityContext);
 		final List<FtpFile> ftpFiles            = new ArrayList();
 		final Traits folderTraits               = Traits.of(StructrTraits.FOLDER);
-		final PropertyKey<String> folderNameKey = folderTraits.key("name");
+		final PropertyKey<String> folderNameKey = folderTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 
 		try (final Tx tx = app.tx()) {
 

@@ -38,6 +38,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 
 /**
  * Deserializes a {@link GraphObject} using a type and a property value.
@@ -155,7 +156,7 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> ext
 			PropertyMap attributes = new PropertyMap();
 
 			attributes.put(propertyKey,           convertedSource);
-			attributes.put(Traits.of(StructrTraits.GRAPH_OBJECT).key("type"), type);
+			attributes.put(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY), type);
 
 			throw new FrameworkException(404, "No node found for given properties", new PropertiesNotFoundToken(type, null, attributes));
 		}

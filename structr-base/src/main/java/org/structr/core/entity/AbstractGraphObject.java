@@ -37,6 +37,8 @@ import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.AccessControllableTraitDefinition;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.accesscontrollable.IsGranted;
 import org.structr.core.traits.operations.graphobject.*;
 import org.structr.core.traits.operations.propertycontainer.*;
@@ -110,7 +112,7 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 
 	@Override
 	public String getUuid() {
-		return getProperty(typeHandler.key("id"));
+		return getProperty(typeHandler.key(GraphObjectTraitDefinition.ID_PROPERTY));
 	}
 
 	@Override
@@ -338,12 +340,12 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	 */
 	@Override
 	public boolean isHidden() {
-		return getProperty(typeHandler.key("hidden"));
+		return getProperty(typeHandler.key(NodeInterfaceTraitDefinition.HIDDEN_PROPERTY));
 	}
 
 	@Override
 	public void setHidden(final boolean hidden) throws FrameworkException {
-		setProperty(typeHandler.key("hidden"), hidden);
+		setProperty(typeHandler.key(NodeInterfaceTraitDefinition.HIDDEN_PROPERTY), hidden);
 	}
 
 	@Override

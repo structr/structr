@@ -32,6 +32,7 @@ import org.structr.core.entity.SchemaProperty;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.SchemaHelper.Type;
 import org.structr.schema.SchemaService;
 
@@ -279,7 +280,7 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 
 			final PropertyMap getOrCreateProperties = new PropertyMap();
 
-			getOrCreateProperties.put(traits.key("name"), getName());
+			getOrCreateProperties.put(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), getName());
 			getOrCreateProperties.put(traits.key("schemaNode"), schemaNode);
 			getOrCreateProperties.put(traits.key("compound"), isCompoundUnique());
 			getOrCreateProperties.put(traits.key("unique"), isUnique());

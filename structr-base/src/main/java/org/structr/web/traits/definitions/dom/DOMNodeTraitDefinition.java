@@ -41,6 +41,7 @@ import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
@@ -435,7 +436,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 						if (RenderContext.EditMode.DEPLOYMENT.equals(editMode)) {
 
 							// export name property if set
-							final String name = wrappedNode.getProperty(traits.key("name"));
+							final String name = wrappedNode.getProperty(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY));
 							if (name != null) {
 
 								out.append(" data-structr-meta-name=\"").append(DOMNode.escapeForHtmlAttributes(name)).append("\"");

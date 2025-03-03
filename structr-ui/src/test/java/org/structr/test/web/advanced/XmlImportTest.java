@@ -32,6 +32,8 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.FileHelper;
@@ -98,9 +100,9 @@ public class XmlImportTest extends StructrUiTest {
 
 			// create test user
 			app.create(StructrTraits.USER,
-				new NodeAttribute<>(userTraits.key("name"),     "admin"),
+				new NodeAttribute<>(userTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     "admin"),
 				new NodeAttribute<>(userTraits.key("password"), "admin"),
-				new NodeAttribute<>(userTraits.key("isAdmin"),  true)
+				new NodeAttribute<>(userTraits.key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY),  true)
 			);
 
 			tx.success();
@@ -168,7 +170,7 @@ public class XmlImportTest extends StructrUiTest {
 			final String type                   = "Item";
 			final PropertyKey<Integer> originId = Traits.of(type).key("originId");
 			final PropertyKey<String> typeName  = Traits.of(type).key("typeName");
-			final PropertyKey<String> name      = Traits.of(type).key("name");
+			final PropertyKey<String> name      = Traits.of(type).key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 			final PropertyKey<String> test1     = Traits.of(type).key("test1");
 			final PropertyKey<String> test2     = Traits.of(type).key("test2");
 			final PropertyKey<String> test3     = Traits.of(type).key("test3");

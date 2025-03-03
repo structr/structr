@@ -49,6 +49,7 @@ import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
@@ -273,7 +274,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 				public String getContextName(final NodeInterface node) {
 
 					final Traits traits = node.getTraits();
-					final String _name = node.getProperty(traits.key("name"));
+					final String _name = node.getProperty(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY));
 
 					if (_name != null) {
 
@@ -499,7 +500,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 						out.append("<structr:component src=\"");
 
-						final String _name = _sharedComponentElement.getProperty(traits.key("name"));
+						final String _name = _sharedComponentElement.getProperty(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY));
 						out.append(_name != null ? _name.concat("-").concat(_sharedComponentElement.getUuid()) : _sharedComponentElement.getUuid());
 
 						out.append("\"");

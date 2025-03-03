@@ -24,6 +24,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.RelationProperty;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 
 /**
  * Combines an {@link ObjectSerializationStrategy} and an
@@ -64,6 +65,6 @@ public class ObjectNotion extends Notion {
 
 	@Override
 	public PropertyKey getPrimaryPropertyKey() {
-		return Traits.of(StructrTraits.GRAPH_OBJECT).key("id");
+		return Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY);
 	}
 }

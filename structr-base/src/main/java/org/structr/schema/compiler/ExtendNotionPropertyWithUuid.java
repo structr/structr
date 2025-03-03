@@ -27,6 +27,7 @@ import org.structr.core.entity.SchemaProperty;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 
 /**
  *
@@ -56,7 +57,7 @@ public class ExtendNotionPropertyWithUuid implements MigrationHandler {
 
 						final NodeInterface property = app.nodeQuery(StructrTraits.SCHEMA_PROPERTY)
 							.and(traits.key("schemaNode"), type)
-							.and(traits.key("name"), propertyName).getFirst();
+							.and(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), propertyName).getFirst();
 
 						if (property != null) {
 

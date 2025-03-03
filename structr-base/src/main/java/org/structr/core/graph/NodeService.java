@@ -39,6 +39,8 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 
 import java.io.File;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 
 /**
  * The graph/node service.
@@ -236,9 +238,9 @@ public class NodeService implements SingletonService {
 						try (final Tx tx = app.tx()) {
 
 							app.create(StructrTraits.USER,
-									new NodeAttribute<>(userTraits.key("name"),     Settings.InitialAdminUserName.getValue()),
+									new NodeAttribute<>(userTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     Settings.InitialAdminUserName.getValue()),
 									new NodeAttribute<>(userTraits.key("password"), Settings.InitialAdminUserPassword.getValue()),
-									new NodeAttribute<>(userTraits.key("isAdmin"),  true)
+									new NodeAttribute<>(userTraits.key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY),  true)
 							);
 
 							tx.success();

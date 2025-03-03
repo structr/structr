@@ -28,6 +28,7 @@ import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
 
@@ -51,7 +52,7 @@ public class TestSevenTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
 
-					final PropertyKey<String> name = obj.getTraits().key("name");
+					final PropertyKey<String> name = obj.getTraits().key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 
 					return ValidationHelper.isValidStringNotBlank(obj, name, errorBuffer);
 				}

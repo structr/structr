@@ -26,6 +26,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.action.ActionContext;
 import org.structr.test.common.StructrTest;
 import org.testng.annotations.Test;
@@ -46,7 +47,7 @@ public class LocalizationTest extends StructrTest {
 		final PropertyKey<String> localizedName = Traits.of(StructrTraits.LOCALIZATION).key("localizedName");
 		final PropertyKey<String> domain        = Traits.of(StructrTraits.LOCALIZATION).key("domain");
 		final PropertyKey<String> locale        = Traits.of(StructrTraits.LOCALIZATION).key("locale");
-		final PropertyKey<String> name        = Traits.of(StructrTraits.LOCALIZATION).key("name");
+		final PropertyKey<String> name        = Traits.of(StructrTraits.LOCALIZATION).key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 
 		// create
 		try (final Tx tx = app.tx()) {

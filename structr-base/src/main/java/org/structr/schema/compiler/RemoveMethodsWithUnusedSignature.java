@@ -31,6 +31,7 @@ import org.structr.core.traits.Traits;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 
 /**
  * A migration handler that removes old methods which signature is already
@@ -78,7 +79,7 @@ public class RemoveMethodsWithUnusedSignature implements MigrationHandler {
 
 							for (final NodeInterface method : app.nodeQuery(StructrTraits.SCHEMA_METHOD)
 								.and(traits.key("schemaNode"), schemaNode)
-								.and(traits.key("name"),       methodName)
+								.and(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),       methodName)
 								.getAsList()) {
 
 								app.delete(method);

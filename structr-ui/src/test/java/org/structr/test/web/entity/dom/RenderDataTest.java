@@ -27,6 +27,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.test.web.advanced.DOMTest;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
@@ -62,28 +63,28 @@ public class RenderDataTest extends DOMTest {
 			assertEquals(3, users.size());
 
 			NodeInterface user1 = users.get(0);
-			user1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "user1");
+			user1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "user1");
 			NodeInterface user2 = users.get(1);
-			user2.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "user2");
+			user2.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "user2");
 			NodeInterface user3 = users.get(2);
-			user3.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "user3");
+			user3.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "user3");
 
 			final List<NodeInterface> files = createTestNodes(StructrTraits.FILE, 6);
 
 			assertEquals(6, files.size());
 
 			NodeInterface nodeA = files.get(0);
-			nodeA.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "fileA");
+			nodeA.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "fileA");
 			NodeInterface nodeB = files.get(1);
-			nodeB.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "fileB");
+			nodeB.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "fileB");
 			NodeInterface nodeC = files.get(2);
-			nodeC.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "fileC");
+			nodeC.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "fileC");
 			NodeInterface nodeD = files.get(3);
-			nodeD.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "fileD");
+			nodeD.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "fileD");
 			NodeInterface nodeE = files.get(4);
-			nodeE.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "fileE");
+			nodeE.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "fileE");
 			NodeInterface nodeF = files.get(5);
-			nodeF.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "fileF");
+			nodeF.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "fileF");
 
 			// create dom tree
 			DOMElement html = doc.createElement("html");

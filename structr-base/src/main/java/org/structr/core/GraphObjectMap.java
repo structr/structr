@@ -37,6 +37,7 @@ import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.TraitDefinition;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.schema.action.ActionContext;
@@ -54,7 +55,7 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 
 	@Override
 	public String getUuid() {
-		return getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("id"));
+		return getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.ID_PROPERTY));
 	}
 
 	@Override
@@ -214,7 +215,7 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 
 	@Override
 	public String getType() {
-		return getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("type"));
+		return getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.TYPE_PROPERTY));
 	}
 
 	@Override

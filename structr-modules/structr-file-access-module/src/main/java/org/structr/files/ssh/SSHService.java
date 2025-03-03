@@ -54,6 +54,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.files.ssh.filesystem.StructrFilesystem;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.schema.SchemaService;
@@ -206,7 +207,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 
 				try {
 
-					final PropertyKey<String> nameKey = Traits.of(StructrTraits.NODE_INTERFACE).key("name");
+					final PropertyKey<String> nameKey = Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 					Principal principal = AuthHelper.getPrincipalForPassword(nameKey, username, password);
 
 					if (principal != null) {

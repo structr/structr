@@ -31,6 +31,8 @@ import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -99,8 +101,8 @@ public class ListSchemaPropertiesCommand extends AbstractCommand {
 									valueTypeName = valueType.getSimpleName();
 								}
 
-								property.put(Traits.of(StructrTraits.GRAPH_OBJECT).key("id"),                                     key.getSourceUuid());
-								property.put(Traits.of(StructrTraits.NODE_INTERFACE).key("name"),                                   propertyName);
+								property.put(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY),                                     key.getSourceUuid());
+								property.put(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),                                   propertyName);
 								property.put(isSelected,                                              viewProperties.contains(key));
 								property.put(isDisabled,                                              _isDisabled);
 								property.put(schemaPropertyTraits.key("propertyType"),          valueTypeName);

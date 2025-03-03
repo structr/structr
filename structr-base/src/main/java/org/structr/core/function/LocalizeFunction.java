@@ -31,6 +31,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.action.ActionContext;
 
 import java.util.ArrayList;
@@ -286,7 +287,7 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 	private static NodeInterface getLocalizationFromDatabase(final String key, final String domain, final String locale) throws FrameworkException {
 
 		final Traits traits                 = Traits.of(StructrTraits.LOCALIZATION);
-		final PropertyKey<String> nameKey   = traits.key("name");
+		final PropertyKey<String> nameKey   = traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 		final PropertyKey<String> domainKey = traits.key("domain");
 		final PropertyKey<String> localeKey = traits.key("locale");
 

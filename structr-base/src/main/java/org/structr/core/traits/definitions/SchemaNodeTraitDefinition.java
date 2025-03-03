@@ -74,8 +74,8 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 					boolean valid = true;
 
-					valid &= ValidationHelper.isValidUniqueProperty(obj, Traits.of(StructrTraits.NODE_INTERFACE).key("name"), errorBuffer);
-					valid &= ValidationHelper.isValidStringMatchingRegex(obj, Traits.of(StructrTraits.NODE_INTERFACE).key("name"), SchemaNode.schemaNodeNamePattern, errorBuffer);
+					valid &= ValidationHelper.isValidUniqueProperty(obj, Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), errorBuffer);
+					valid &= ValidationHelper.isValidStringMatchingRegex(obj, Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), SchemaNode.schemaNodeNamePattern, errorBuffer);
 
 					return valid;
 				}
@@ -99,7 +99,7 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
-					if (modificationQueue.isPropertyModified(graphObject, Traits.of(StructrTraits.NODE_INTERFACE).key("name"))) {
+					if (modificationQueue.isPropertyModified(graphObject, Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY))) {
 						throwExceptionIfTypeAlreadyExists(graphObject);
 					}
 
@@ -495,7 +495,7 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 		if (Services.getInstance().isInitialized() && ! Services.getInstance().isOverridingSchemaTypesAllowed()) {
 
-			final String typeName = graphObject.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"));
+			final String typeName = graphObject.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY));
 
 			// add type names to list of forbidden entity names
 			if (EntityNameBlacklist.contains(typeName)) {

@@ -26,6 +26,7 @@ import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.traits.wrappers.dom.DOMNodeTraitWrapper;
@@ -121,7 +122,7 @@ public class ReplaceWithCommand extends CreateAndAppendDOMNodeCommand {
 				try {
 
 					newNode.unlockSystemPropertiesOnce();
-					newNode.setProperties(newNode.getSecurityContext(), new PropertyMap(Traits.of(StructrTraits.GRAPH_OBJECT).key("type"), StructrTraits.TEMPLATE));
+					newNode.setProperties(newNode.getSecurityContext(), new PropertyMap(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY), StructrTraits.TEMPLATE));
 
 				} catch (FrameworkException fex) {
 

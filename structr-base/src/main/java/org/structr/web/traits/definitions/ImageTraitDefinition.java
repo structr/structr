@@ -35,6 +35,7 @@ import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.accesscontrollable.IsGranted;
@@ -73,7 +74,7 @@ public class ImageTraitDefinition extends AbstractNodeTraitDefinition {
 					final Image thisImage = graphObject.as(Image.class);
 					if ( !thisImage.isThumbnail() && !thisImage.isTemplate() ) {
 
-						if (modificationQueue.isPropertyModified(graphObject, Traits.of(StructrTraits.NODE_INTERFACE).key("name"))) {
+						if (modificationQueue.isPropertyModified(graphObject, Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY))) {
 
 							final String newImageName = thisImage.getName();
 

@@ -28,6 +28,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.entity.User;
 import org.testng.annotations.Test;
@@ -82,7 +83,7 @@ public class ConsoleTest extends StructrUiTest {
 			// check success
 			try (final Tx tx = app.tx()) {
 
-				final User user = app.nodeQuery(StructrTraits.USER).andName("tester").sort(userTraits.key("name")).getFirst().as(User.class);
+				final User user = app.nodeQuery(StructrTraits.USER).andName("tester").sort(userTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getFirst().as(User.class);
 
 				assertNotNull("Invalid console execution result",                          user);
 				assertEquals("Invalid console execution result", "tester",         user.getName());
@@ -126,7 +127,7 @@ public class ConsoleTest extends StructrUiTest {
 				assertEquals("Invalid console execution result", Boolean.TRUE,              (Boolean)admin.isAdmin());
 
 				final NodeInterface folder = app.create(StructrTraits.FOLDER, "folder");
-				folder.setProperty(Traits.of(StructrTraits.FOLDER).key("owner"), admin);
+				folder.setProperty(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), admin);
 
 				tx.success();
 			}

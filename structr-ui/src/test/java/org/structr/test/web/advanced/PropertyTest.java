@@ -26,6 +26,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.test.web.StructrUiTest;
 import org.testng.annotations.Test;
 
@@ -50,11 +51,11 @@ public class PropertyTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface test  = app.create(StructrTraits.SCHEMA_NODE,
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key("name"), "Test")
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Test")
 			);
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"), "ownerPrincipalEmail"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "ownerPrincipalEmail"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Notion"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("format"), "owner, User.eMail"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), test)

@@ -27,6 +27,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.test.web.basic.FrontendTest;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.Template;
@@ -60,12 +61,12 @@ public class DynamicPathsTest extends FrontendTest {
 			{
 				final NodeInterface path = app.create(StructrTraits.PAGE_PATH,
 					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key("page"), page),
-					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key("name"), "/test1/prefix_{key1}/{key2}")
+					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "/test1/prefix_{key1}/{key2}")
 				);
 
 				app.create(StructrTraits.PAGE_PATH_PARAMETER,
 					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key("path"),          path),
-					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key("name"),          "key1"),
+					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),          "key1"),
 					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key("position"),      0),
 					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key("valueType"),     "String"),
 					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key("defaultValue"),  "defaultValue1")
@@ -73,7 +74,7 @@ public class DynamicPathsTest extends FrontendTest {
 
 				app.create(StructrTraits.PAGE_PATH_PARAMETER,
 					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key("path"),          path),
-					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key("name"),          "key2"),
+					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),          "key2"),
 					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key("position"),      1),
 					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key("valueType"),     "Integer"),
 					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key("defaultValue"),  "1")
@@ -83,12 +84,12 @@ public class DynamicPathsTest extends FrontendTest {
 			{
 				final NodeInterface path = app.create(StructrTraits.PAGE_PATH,
 					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key("page"), page),
-					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key("name"), "/test2/{key1}_{key2}_{key3}")
+					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "/test2/{key1}_{key2}_{key3}")
 				);
 
 				app.create(StructrTraits.PAGE_PATH_PARAMETER,
 					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key("path"),          path),
-					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key("name"),          "key1"),
+					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),          "key1"),
 					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key("position"),      0),
 					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key("valueType"),     "String"),
 					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key("defaultValue"),  "defaultValue2")
@@ -98,14 +99,14 @@ public class DynamicPathsTest extends FrontendTest {
 			{
 				app.create(StructrTraits.PAGE_PATH,
 					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key("page"), page),
-					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key("name"), "/test3/{key1}/{key2}/{key3}")
+					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "/test3/{key1}/{key2}/{key3}")
 				);
 			}
 
 			{
 				app.create(StructrTraits.PAGE_PATH,
 					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key("page"), page),
-					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key("name"), "/{key1}/test4/{key2}/{key3}")
+					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "/{key1}/test4/{key2}/{key3}")
 				);
 			}
 
@@ -205,12 +206,12 @@ public class DynamicPathsTest extends FrontendTest {
 				{
 					final NodeInterface path = app.create(StructrTraits.PAGE_PATH,
 						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key("page"), page),
-						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key("name"), "/test" + pageNumber + "_1/prefix_{key1}/{key2}")
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "/test" + pageNumber + "_1/prefix_{key1}/{key2}")
 					);
 
 					app.create(StructrTraits.PAGE_PATH_PARAMETER,
 						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key("path"),          path),
-						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key("name"),          "key1"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),          "key1"),
 						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key("position"),      0),
 						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key("valueType"),     "String"),
 						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key("defaultValue"),  "defaultValue1")
@@ -218,7 +219,7 @@ public class DynamicPathsTest extends FrontendTest {
 
 					app.create(StructrTraits.PAGE_PATH_PARAMETER,
 						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key("path"),          path),
-						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key("name"),          "key2"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),          "key2"),
 						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key("position"),      1),
 						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key("valueType"),     "Integer"),
 						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key("defaultValue"),  "1")
@@ -228,12 +229,12 @@ public class DynamicPathsTest extends FrontendTest {
 				{
 					final NodeInterface path = app.create(StructrTraits.PAGE_PATH,
 						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key("page"), page),
-						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key("name"), "/test" + pageNumber + "_2/{key1}_{key2}_{key3}")
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "/test" + pageNumber + "_2/{key1}_{key2}_{key3}")
 					);
 
 					app.create(StructrTraits.PAGE_PATH_PARAMETER,
 						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key("path"),          path),
-						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key("name"),          "key1"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),          "key1"),
 						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key("position"),      0),
 						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key("valueType"),     "String"),
 						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key("defaultValue"),  "defaultValue2")
@@ -243,14 +244,14 @@ public class DynamicPathsTest extends FrontendTest {
 				{
 					app.create(StructrTraits.PAGE_PATH,
 						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key("page"), page),
-						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key("name"), "/test" + pageNumber + "_3/{key1}/{key2}/{key3}")
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "/test" + pageNumber + "_3/{key1}/{key2}/{key3}")
 					);
 				}
 
 				{
 					app.create(StructrTraits.PAGE_PATH,
 						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key("page"), page),
-						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key("name"), "/{key1}/test" + pageNumber + "_4/{key2}/{key3}")
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "/{key1}/test" + pageNumber + "_4/{key2}/{key3}")
 					);
 				}
 			}
@@ -365,7 +366,7 @@ public class DynamicPathsTest extends FrontendTest {
 
 			final NodeInterface path = app.create(StructrTraits.PAGE_PATH,
 				new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key("page"), page),
-				new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key("name"), "/test1/{key1}/{key2}")
+				new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "/test1/{key1}/{key2}")
 			);
 
 			tx.success();

@@ -34,6 +34,8 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.test.web.StructrUiTest;
@@ -68,7 +70,7 @@ public class RenderContextTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			itemNode = app.create(StructrTraits.SCHEMA_NODE, new NodeAttribute(Traits.of(StructrTraits.SCHEMA_NODE).key("name"), "Item"));
+			itemNode = app.create(StructrTraits.SCHEMA_NODE, new NodeAttribute(Traits.of(StructrTraits.SCHEMA_NODE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Item"));
 
 			final PropertyMap properties = new PropertyMap();
 			properties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceId"), itemNode.getUuid());
@@ -166,13 +168,13 @@ public class RenderContextTest extends StructrUiTest {
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), schemaNode),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"), "testMethodCalled"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testMethodCalled"),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Boolean")
 			);
 
 			app.create(StructrTraits.SCHEMA_METHOD,
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("schemaNode"), schemaNode),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("name"), "testMethod"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testMethod"),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "set(this, 'testMethodCalled', true)")
 			);
 
@@ -190,7 +192,7 @@ public class RenderContextTest extends StructrUiTest {
 		// create parent/child relationship
 		try (final Tx tx = app.tx()) {
 
-			item = app.create(itemClass, new NodeAttribute(Traits.of(StructrTraits.SCHEMA_NODE).key("name"), "Item"));
+			item = app.create(itemClass, new NodeAttribute(Traits.of(StructrTraits.SCHEMA_NODE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Item"));
 
 			tx.success();
 
@@ -236,20 +238,20 @@ public class RenderContextTest extends StructrUiTest {
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
 				new NodeAttribute(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), projectNode),
-				new NodeAttribute(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"), "taskList"),
+				new NodeAttribute(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "taskList"),
 				new NodeAttribute(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Notion"),
 				new NodeAttribute(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("format"), "tasks, id, name")
 			);
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
 				new NodeAttribute(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), projectNode),
-				new NodeAttribute(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"), "taskNames"),
+				new NodeAttribute(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "taskNames"),
 				new NodeAttribute(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Notion"),
 				new NodeAttribute(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("format"), "tasks, name")
 			);
 
 			final NodeInterface taskNode = app.create(StructrTraits.SCHEMA_NODE,
-				new NodeAttribute(Traits.of(StructrTraits.SCHEMA_NODE).key("name"), "Task")
+				new NodeAttribute(Traits.of(StructrTraits.SCHEMA_NODE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Task")
 			);
 
 			// create schema relationship
@@ -296,10 +298,10 @@ public class RenderContextTest extends StructrUiTest {
 		// create parent/child relationship
 		try (final Tx tx = app.tx()) {
 
-			project = app.create(projectClass, new NodeAttribute(Traits.of(StructrTraits.SCHEMA_NODE).key("name"), "Project1"));
-			task1   = app.create(taskClass, new NodeAttribute(Traits.of(StructrTraits.SCHEMA_NODE).key("name"), "Task1"));
-			task2   = app.create(taskClass, new NodeAttribute(Traits.of(StructrTraits.SCHEMA_NODE).key("name"), "Task2"));
-			task3   = app.create(taskClass, new NodeAttribute(Traits.of(StructrTraits.SCHEMA_NODE).key("name"), "Task3"));
+			project = app.create(projectClass, new NodeAttribute(Traits.of(StructrTraits.SCHEMA_NODE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Project1"));
+			task1   = app.create(taskClass, new NodeAttribute(Traits.of(StructrTraits.SCHEMA_NODE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Task1"));
+			task2   = app.create(taskClass, new NodeAttribute(Traits.of(StructrTraits.SCHEMA_NODE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Task2"));
+			task3   = app.create(taskClass, new NodeAttribute(Traits.of(StructrTraits.SCHEMA_NODE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Task3"));
 
 			// add task to project
 			final List tasks = new LinkedList<>();
@@ -450,17 +452,17 @@ public class RenderContextTest extends StructrUiTest {
 			assertEquals(p4, paragraphs.get(3));
 
 			// create users
-			final User tester1 = app.create(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"), "tester1"), new NodeAttribute<>(Traits.of(StructrTraits.USER).key("eMail"), "tester1@test.com")).as(User.class);
-			final User tester2 = app.create(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"), "tester2"), new NodeAttribute<>(Traits.of(StructrTraits.USER).key("eMail"), "tester2@test.com")).as(User.class);
+			final User tester1 = app.create(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "tester1"), new NodeAttribute<>(Traits.of(StructrTraits.USER).key("eMail"), "tester1@test.com")).as(User.class);
+			final User tester2 = app.create(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "tester2"), new NodeAttribute<>(Traits.of(StructrTraits.USER).key("eMail"), "tester2@test.com")).as(User.class);
 
 			assertNotNull("User tester1 should exist.", tester1);
 			assertNotNull("User tester2 should exist.", tester2);
 
 			// create admin user for later use
 			final PropertyMap adminProperties = new PropertyMap();
-			adminProperties.put(Traits.of(StructrTraits.USER).key("name"),     "admin");
+			adminProperties.put(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     "admin");
 			adminProperties.put(Traits.of(StructrTraits.USER).key("password"), "admin");
-			adminProperties.put(Traits.of(StructrTraits.USER).key("isAdmin"),   true);
+			adminProperties.put(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY),   true);
 
 			app.create(StructrTraits.USER, adminProperties);
 
@@ -654,7 +656,7 @@ public class RenderContextTest extends StructrUiTest {
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
 				new NodeAttribute(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), taskNode),
-				new NodeAttribute(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"), "task"),
+				new NodeAttribute(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "task"),
 				new NodeAttribute(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "String")
 			);
 
@@ -689,18 +691,18 @@ public class RenderContextTest extends StructrUiTest {
 
 			final List<NodeInterface> tasks = new LinkedList<>();
 
-			tasks.add(app.create(taskType, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "Task 1"), new NodeAttribute<>(taskKey, "Task 1")));
-			tasks.add(app.create(taskType, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "Task 2"), new NodeAttribute<>(taskKey, "Task 2")));
-			tasks.add(app.create(taskType, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "Task 3"), new NodeAttribute<>(taskKey, "Task 3")));
+			tasks.add(app.create(taskType, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Task 1"), new NodeAttribute<>(taskKey, "Task 1")));
+			tasks.add(app.create(taskType, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Task 2"), new NodeAttribute<>(taskKey, "Task 2")));
+			tasks.add(app.create(taskType, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Task 3"), new NodeAttribute<>(taskKey, "Task 3")));
 
 			// create a project and a task
 			final NodeInterface project = app.create(projectType,
-				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "project"),
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "project"),
 				new NodeAttribute<>(tasksKey, tasks)
 			);
 
 			// create an additional test task without a project
-			final NodeInterface testTask = app.create(taskType, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "test task"), new NodeAttribute<>(taskKey, "test task"));
+			final NodeInterface testTask = app.create(taskType, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test task"), new NodeAttribute<>(taskKey, "test task"));
 			final RenderContext renderContext = new RenderContext(securityContext);
 
 			renderContext.putDataObject("project", project);
@@ -748,21 +750,21 @@ public class RenderContextTest extends StructrUiTest {
 			test = app.create("TestOne", "test1");
 
 			app.create(StructrTraits.GROUP,
-				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "group1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "group1"),
 				new NodeAttribute<>(Traits.of(StructrTraits.GROUP).key("members"), List.of(user))
 			);
 
 			final NodeInterface group2 = app.create(StructrTraits.GROUP,
-				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "group2"),
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "group2"),
 				new NodeAttribute<>(Traits.of(StructrTraits.GROUP).key("members"), List.of(user))
 			);
 
 			app.create(StructrTraits.GROUP,
-				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "group3"),
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "group3"),
 				new NodeAttribute<>(Traits.of(StructrTraits.GROUP).key("members"), List.of(user))
 			);
 
-			test.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("owner"), group2);
+			test.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), group2);
 
 			tx.success();
 

@@ -254,7 +254,7 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 
 						RelationshipInterface rel = app.create(fromNode, toNode, type);
 						rel.unlockSystemPropertiesOnce();
-						rel.setProperty(rel.getTraits().key("id"), relPropsData.get("id").toString());
+						rel.setProperty(rel.getTraits().key(GraphObjectTraitDefinition.ID_PROPERTY), relPropsData.get("id").toString());
 
 					} else if (!Arrays.asList(FLOW_IGNORE_WARNING_FOR_RELS).contains(type)) {
 

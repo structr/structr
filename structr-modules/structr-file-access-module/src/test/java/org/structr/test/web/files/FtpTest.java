@@ -31,6 +31,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
@@ -56,7 +57,7 @@ public abstract class FtpTest extends StructrFileTestBase {
 		final PropertyMap props = new PropertyMap();
 		final Traits traits     = Traits.of(StructrTraits.USER);
 
-		props.put(traits.key("name"), username);
+		props.put(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), username);
 		props.put(traits.key("password"), password);
 
 		return createTestNodes(StructrTraits.USER, 1, props).get(0).as(User.class);
@@ -67,8 +68,8 @@ public abstract class FtpTest extends StructrFileTestBase {
 		final PropertyMap props = new PropertyMap();
 		final Traits traits     = Traits.of(StructrTraits.FOLDER);
 
-		props.put(traits.key("name"), name);
-		props.put(traits.key("owner"), ftpUser);
+		props.put(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name);
+		props.put(traits.key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), ftpUser);
 
 		Folder dir = createTestNodes(StructrTraits.FOLDER, 1, props).get(0).as(Folder.class);
 
@@ -92,9 +93,9 @@ public abstract class FtpTest extends StructrFileTestBase {
 		final PropertyMap props = new PropertyMap();
 		final Traits traits     = Traits.of(StructrTraits.FILE);
 
-		props.put(traits.key("name"), name);
+		props.put(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name);
 		props.put(traits.key("size"), 0L);
-		props.put(traits.key("owner"), ftpUser);
+		props.put(traits.key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), ftpUser);
 
 		File file = createTestNodes(StructrTraits.FILE, 1, props).get(0).as(File.class);
 

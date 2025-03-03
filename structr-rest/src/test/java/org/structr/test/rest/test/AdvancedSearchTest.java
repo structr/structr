@@ -35,6 +35,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.structr.test.rest.common.TestEnum;
 import org.testng.annotations.Test;
@@ -791,8 +792,8 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 						final String randomEnumValue = enumValues[random.nextInt(4)];
 
 						testThrees.add(app.create("TestThree",
-							new NodeAttribute(traits.key("name"), "test" + count++),
-							new NodeAttribute(traits.key("owner"), user),
+							new NodeAttribute(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test" + count++),
+							new NodeAttribute(traits.key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), user),
 							new NodeAttribute(traits.key("enumProperty"), randomEnumValue)
 						));
 					}
@@ -808,7 +809,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 
 				for (final NodeInterface user : users) {
 
-					for (final NodeInterface test : app.nodeQuery("TestThree").and(traits.key("owner"), user).and(traits.key("enumProperty"), "Status1").getAsList()) {
+					for (final NodeInterface test : app.nodeQuery("TestThree").and(traits.key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), user).and(traits.key("enumProperty"), "Status1").getAsList()) {
 						assertEquals("Invalid enum query result", "Status1", test.getProperty(traits.key("enumProperty")));
 					}
 				}

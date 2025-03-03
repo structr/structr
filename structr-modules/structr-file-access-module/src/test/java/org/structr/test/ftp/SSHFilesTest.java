@@ -31,6 +31,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.test.web.files.SSHTest;
 import org.structr.web.entity.File;
 import org.testng.annotations.Test;
@@ -137,7 +138,7 @@ public class SSHFilesTest extends SSHTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final PropertyKey<String> nameKey = Traits.of(StructrTraits.FILE).key("name");
+			final PropertyKey<String> nameKey = Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 			final List<NodeInterface> files   = app.nodeQuery(StructrTraits.FILE).sort(nameKey).getAsList();
 
 			assertEquals("Invalid number of test files", 2, files.size());
@@ -355,7 +356,7 @@ public class SSHFilesTest extends SSHTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final PropertyKey<String> nameKey = Traits.of(StructrTraits.FILE).key("name");
+			final PropertyKey<String> nameKey = Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 			final List<NodeInterface> files   = app.nodeQuery(StructrTraits.FILE).sort(nameKey).getAsList();
 
 			assertEquals("Invalid number of test files", 1, files.size());
@@ -416,7 +417,7 @@ public class SSHFilesTest extends SSHTest {
 		Settings.SSHPublicKeyOnly.setValue(false);
 
 		final ChannelSftp sftp            = setupSftpClient("ftpuser1", "ftpuserpw1", true);
-		final PropertyKey<String> nameKey = Traits.of(StructrTraits.FILE).key("name");
+		final PropertyKey<String> nameKey = Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 		final String testContent          = "Test Content öäü";
 		final String name                 = "file1.txt";
 
@@ -494,7 +495,7 @@ public class SSHFilesTest extends SSHTest {
 		Settings.SSHPublicKeyOnly.setValue(false);
 
 		final ChannelSftp sftp            = setupSftpClient("ftpuser1", "ftpuserpw1", true);
-		final PropertyKey<String> nameKey = Traits.of(StructrTraits.FILE).key("name");
+		final PropertyKey<String> nameKey = Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 
 		try {
 

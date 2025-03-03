@@ -49,6 +49,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.export.StructrSchema;
 import org.testng.annotations.Test;
 
@@ -717,13 +718,13 @@ public class CypherTest extends StructrTest {
 				final PropertyKey projectKey = Traits.of(taskType).key("project");
 
 				createTestNode(taskType,
-					new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "Task1"),
-					new NodeAttribute<>(projectKey, createTestNode(projectType, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "Project1")))
+					new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Task1"),
+					new NodeAttribute<>(projectKey, createTestNode(projectType, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Project1")))
 				);
 
 				createTestNode(taskType,
-					new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "Task2"),
-					new NodeAttribute<>(projectKey, createTestNode(projectType, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "Project2")))
+					new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Task2"),
+					new NodeAttribute<>(projectKey, createTestNode(projectType, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Project2")))
 				);
 
 			} catch (FrameworkException t) {

@@ -44,6 +44,8 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.module.StructrModule;
 import org.structr.rest.resource.MaintenanceResource;
 import org.structr.schema.action.ActionContext;
@@ -735,14 +737,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		try (final Tx tx = app.tx()) {
 
 			// fetch toplevel folders and recurse
-			for (final NodeInterface folder : app.nodeQuery(StructrTraits.FOLDER).and(parentKey, null).sort(traits.key("name")).and(inclKey, true).getAsList()) {
+			for (final NodeInterface folder : app.nodeQuery(StructrTraits.FOLDER).and(parentKey, null).sort(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).and(inclKey, true).getAsList()) {
 				exportFilesAndFolders(target, folder, config);
 			}
 
 			// fetch toplevel files that are marked for export or for use as a javascript library
 			for (final NodeInterface file : app.nodeQuery(StructrTraits.FILE)
 				.and(parentKey, null)
-				.sort(traits.key("name"))
+				.sort(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY))
 				.and()
 					.or(inclKey, true)
 					.or(jsKey, true)
@@ -798,7 +800,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 
 		final List<Folder> folders    = Iterables.toList(folder.getFolders());
-		final PropertyKey<String> key = traits.key("name");
+		final PropertyKey<String> key = traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 		final Comparator comp         = (Comparator) key.sorted(false);
 
 		Collections.sort(folders, comp);
@@ -864,7 +866,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface node : app.nodeQuery("Site").sort(Traits.of(StructrTraits.NODE_INTERFACE).key("name")).getAsList()) {
+			for (final NodeInterface node : app.nodeQuery("Site").sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getAsList()) {
 
 				final Site site                 = node.as(Site.class);
 				final Map<String, Object> entry = new TreeMap<>();
@@ -909,7 +911,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface page : app.nodeQuery(StructrTraits.PAGE).sort(Traits.of(StructrTraits.NODE_INTERFACE).key("name")).getAsList()) {
+			for (final NodeInterface page : app.nodeQuery(StructrTraits.PAGE).sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getAsList()) {
 
 				if (!page.is(StructrTraits.SHADOW_DOCUMENT)) {
 
@@ -1020,7 +1022,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		if (content != null) {
 
 			// name with uuid or just uuid
-			String name = node.getProperty(node.getTraits().key("name"));
+			String name = node.getProperty(node.getTraits().key(NodeInterfaceTraitDefinition.NAME_PROPERTY));
 			if (name != null) {
 
 				name += "-" + node.getUuid();
@@ -1050,7 +1052,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface node : app.nodeQuery(StructrTraits.SCHEMA_GRANT).sort(traits.key("id")).getAsList()) {
+			for (final NodeInterface node : app.nodeQuery(StructrTraits.SCHEMA_GRANT).sort(traits.key(GraphObjectTraitDefinition.ID_PROPERTY)).getAsList()) {
 
 				final Map<String, Object> grant = new TreeMap<>();
 				final SchemaGrant schemaGrant   = node.as(SchemaGrant.class);
@@ -1097,7 +1099,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final Map<String, Object> grant = new TreeMap<>();
 				grants.add(grant);
 
-				grant.put("id",                          res.getProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key("id")));
+				grant.put("id",                          res.getProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY)));
 				grant.put("signature",                   res.getProperty(signatureKey));
 				grant.put("flags",                       res.getProperty(flagsKey));
 				grant.put("visibleToPublicUsers",        res.isVisibleToPublicUsers());
@@ -1147,7 +1149,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final Map<String, Object> entry = new LinkedHashMap<>();
 				corsSettings.add(entry);
 
-				putData(entry, "id",               corsSetting.getProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key("id")));
+				putData(entry, "id",               corsSetting.getProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY)));
 				putData(entry, "requestUri",       corsSetting.getProperty(traits.key("requestUri")));
 				putData(entry, "acceptedOrigins",  corsSetting.getProperty(traits.key("acceptedOrigins")));
 				putData(entry, "maxAge",           corsSetting.getProperty(traits.key("maxAge")));
@@ -1540,7 +1542,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			try (final Tx tx = app.tx()) {
 
-				for (final NodeInterface node : app.nodeQuery(StructrTraits.MAIL_TEMPLATE).sort(traits.key("name")).getAsList()) {
+				for (final NodeInterface node : app.nodeQuery(StructrTraits.MAIL_TEMPLATE).sort(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getAsList()) {
 
 					final MailTemplate mailTemplate = node.as(MailTemplate.class);
 
@@ -1594,7 +1596,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface node : app.nodeQuery("Widget").sort(Traits.of(StructrTraits.NODE_INTERFACE).key("name")).getAsList()) {
+			for (final NodeInterface node : app.nodeQuery(StructrTraits.WIDGET).sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getAsList()) {
 
 				final Widget widget             = node.as(Widget.class);
 				final Map<String, Object> entry = new TreeMap<>();
@@ -1673,7 +1675,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface node : app.nodeQuery(StructrTraits.LOCALIZATION).sort(traits.key("name")).getAsList()) {
+			for (final NodeInterface node : app.nodeQuery(StructrTraits.LOCALIZATION).sort(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getAsList()) {
 
 				final Map<String, Object> entry = new TreeMap<>(new IdFirstComparator());
 				final Localization localization = node.as(Localization.class);
@@ -1812,7 +1814,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface node : app.nodeQuery(StructrTraits.PARAMETER_MAPPING).sort(traits.key("name")).getAsList()) {
+			for (final NodeInterface node : app.nodeQuery(StructrTraits.PARAMETER_MAPPING).sort(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getAsList()) {
 
 				final ParameterMapping parameterMapping = node.as(ParameterMapping.class);
 				final Map<String, Object> entry = new TreeMap<>();
@@ -2181,7 +2183,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			logger.info("Reading {}", widgetsMetadataFile);
 			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing widgets");
 
-			importListData("Widget", readConfigList(widgetsMetadataFile));
+			importListData(StructrTraits.WIDGET, readConfigList(widgetsMetadataFile));
 		}
 	}
 
@@ -2539,7 +2541,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				try {
 					final NodeInterface linkElementNode = StructrApp.getInstance().getNodeById(StructrTraits.DOM_NODE, linkableUUID);
-					final NodeInterface linkedPageNode  = StructrApp.getInstance().nodeQuery(StructrTraits.LINKABLE).and(traits.key("path"), pagePath).or(traits.key("name"), pagePath).getFirst();
+					final NodeInterface linkedPageNode  = StructrApp.getInstance().nodeQuery(StructrTraits.LINKABLE).and(traits.key("path"), pagePath).or(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), pagePath).getFirst();
 
 
 					final LinkSource linkSource = linkElementNode.as(LinkSource.class);

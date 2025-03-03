@@ -34,6 +34,7 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.xmpp.traits.definitions.XMPPClientTraitDefinition;
 
@@ -98,7 +99,7 @@ public interface XMPPClient extends NodeInterface, XMPPInfo {
 				app.create("XMPPRequest",
 					new NodeAttribute(traits.key("client"),      client),
 					new NodeAttribute(traits.key("sender"),      request.getFrom()),
-					new NodeAttribute(traits.key("owner"),       client.as(AccessControllable.class).getOwnerNode()),
+					new NodeAttribute(traits.key(NodeInterfaceTraitDefinition.OWNER_PROPERTY),       client.as(AccessControllable.class).getOwnerNode()),
 					new NodeAttribute(traits.key("content"),     request.toXML("").toString()),
 					new NodeAttribute(traits.key("requestType"), request.getType())
 				);

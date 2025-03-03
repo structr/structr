@@ -39,6 +39,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 
 /**
  * Deserializes a {@link GraphObject} using a type and a set of property values.
@@ -103,9 +104,9 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 			final List<T> result = new LinkedList<>();
 
 			// Check if properties contain the UUID attribute
-			if (attributes.containsKey(Traits.of(StructrTraits.GRAPH_OBJECT).key("id"))) {
+			if (attributes.containsKey(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY))) {
 
-				result.add((T)app.getNodeById(attributes.get(Traits.of(StructrTraits.GRAPH_OBJECT).key("id"))));
+				result.add((T)app.getNodeById(attributes.get(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY))));
 
 			} else {
 

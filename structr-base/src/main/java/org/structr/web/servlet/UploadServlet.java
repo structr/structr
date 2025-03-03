@@ -56,6 +56,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.rest.JsonInputGSONAdapter;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.rest.servlet.AbstractServletBase;
@@ -336,7 +337,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 								changedProperties.putAll(PropertyMap.inputTypeToJavaType(securityContext, type, params));
 
 								// Update type as it could have changed
-								changedProperties.put(Traits.of(StructrTraits.GRAPH_OBJECT).key("type"), type);
+								changedProperties.put(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY), type);
 
 								newFile.unlockSystemPropertiesOnce();
 								newFile.setProperties(securityContext, changedProperties, true);

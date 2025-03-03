@@ -35,6 +35,7 @@ import org.structr.core.entity.SchemaMethodParameter;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.openapi.common.OpenAPIResponseReference;
 import org.structr.schema.openapi.operation.OpenAPIMethodOperation;
 import org.structr.schema.openapi.operation.OpenAPIStaticMethodOperation;
@@ -370,7 +371,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		if (method == null) {
 
 			final PropertyMap getOrCreateProperties = new PropertyMap();
-			getOrCreateProperties.put(traits.key("name"),                  getName());
+			getOrCreateProperties.put(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),                  getName());
 			getOrCreateProperties.put(traits.key("signature"),             getSignature());
 			getOrCreateProperties.put(traits.key("codeType"),              getCodeType());
 			getOrCreateProperties.put(traits.key("returnType"),            getReturnType());

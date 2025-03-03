@@ -38,6 +38,8 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -54,7 +56,7 @@ public class WebsocketController implements StructrTransactionListener {
 	private static final Logger logger                                   = LoggerFactory.getLogger(WebsocketController.class.getName());
 	private static final Set<String> BroadcastCommands                   = Set.of("UPDATE", "ADD", "CREATE");
 	private static final Set<String> BroadcastBlacklistForNodeTypes      = Set.of("IndexedWord");
-	private static final Set<String> BroadcastBlacklistForNodeProperties = Set.of("grantedNodes", "ownedNodes");
+	private static final Set<String> BroadcastBlacklistForNodeProperties = Set.of(PrincipalTraitDefinition.GRANTED_NODES_PROPERTY, PrincipalTraitDefinition.OWNED_NODES_PROPERTY);
 	private static final Set<String> BroadcastBlacklistForRelTypes       = Set.of("INDEXED_WORD");
 
 	private final Set<StructrWebSocket> clients = ConcurrentHashMap.newKeySet();
@@ -188,7 +190,7 @@ public class WebsocketController implements StructrTransactionListener {
 	private WebSocketMessage getMessageForEvent(final SecurityContext securityContext, final ModificationEvent modificationEvent) throws FrameworkException {
 
 		final String callbackId = modificationEvent.getCallbackId();
-		final PropertyKey<String> idProperty = Traits.of(StructrTraits.GRAPH_OBJECT).key("id");
+		final PropertyKey<String> idProperty = Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY);
 
 		if (modificationEvent.isNode()) {
 

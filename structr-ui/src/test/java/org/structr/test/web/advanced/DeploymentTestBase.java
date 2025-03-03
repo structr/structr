@@ -32,6 +32,8 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
@@ -140,7 +142,7 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface page : app.nodeQuery(StructrTraits.PAGE).sort(Traits.of(StructrTraits.NODE_INTERFACE).key("name")).getAsList()) {
+			for (final NodeInterface page : app.nodeQuery(StructrTraits.PAGE).sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getAsList()) {
 
 				// skip shadow document
 				if (page.is(StructrTraits.SHADOW_DOCUMENT)) {
@@ -154,7 +156,7 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 				calculateHash(page, buf, 1);
 			}
 
-			for (final NodeInterface folder : app.nodeQuery(StructrTraits.FOLDER).sort(Traits.of(StructrTraits.NODE_INTERFACE).key("name")).getAsList()) {
+			for (final NodeInterface folder : app.nodeQuery(StructrTraits.FOLDER).sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getAsList()) {
 
 				if (folder.as(Folder.class).includeInFrontendExport()) {
 
@@ -166,7 +168,7 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 				}
 			}
 
-			for (final NodeInterface file : app.nodeQuery(StructrTraits.FILE).sort(Traits.of(StructrTraits.NODE_INTERFACE).key("name")).getAsList()) {
+			for (final NodeInterface file : app.nodeQuery(StructrTraits.FILE).sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getAsList()) {
 
 				if (file.as(File.class).includeInFrontendExport()) {
 
@@ -225,8 +227,8 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 	protected void hash(final NodeInterface node, final StringBuilder buf) {
 
 		// AbstractNode
-		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.NODE_INTERFACE).key("type")));
-		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.NODE_INTERFACE).key("name")));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.TYPE_PROPERTY)));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)));
 		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers")));
 		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToAuthenticatedUsers")));
 
@@ -236,7 +238,7 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 
 		if (owner != null) {
 
-			buf.append(valueOrEmpty(owner, Traits.of(StructrTraits.NODE_INTERFACE).key("name")));
+			buf.append(valueOrEmpty(owner, Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)));
 		}
 
 		// include permissions in content hash generation!
@@ -261,7 +263,7 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 			final Page ownerDocument = node.as(DOMNode.class).getOwnerDocument();
 			if (ownerDocument != null) {
 
-				buf.append(valueOrEmpty(ownerDocument, Traits.of(StructrTraits.NODE_INTERFACE).key("name")));
+				buf.append(valueOrEmpty(ownerDocument, Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)));
 			}
 		}
 

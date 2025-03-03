@@ -26,6 +26,7 @@ import org.structr.core.traits.Traits;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 
 /**
  *
@@ -39,7 +40,7 @@ public class AbstractSchemaNodeTraitWrapper extends AbstractNodeTraitWrapper imp
 
 	@Override
 	public String getName() {
-		return wrappedObject.getProperty(traits.key("name"));
+		return wrappedObject.getProperty(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY));
 	}
 
 	@Override

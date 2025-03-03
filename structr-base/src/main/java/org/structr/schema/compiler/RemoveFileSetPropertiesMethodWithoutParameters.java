@@ -31,6 +31,7 @@ import org.structr.core.traits.Traits;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 
 /**
  * A migration handler that removes old setProperties method on the File class which needed to be more explicit to work correctly
@@ -64,7 +65,7 @@ public class RemoveFileSetPropertiesMethodWithoutParameters implements Migration
 
                         if (schemaNode != null) {
 
-                            for (final NodeInterface method : app.nodeQuery(StructrTraits.SCHEMA_METHOD).and(traits.key("schemaNode"), schemaNode).and(traits.key("name"), "setProperties").getAsList()) {
+                            for (final NodeInterface method : app.nodeQuery(StructrTraits.SCHEMA_METHOD).and(traits.key("schemaNode"), schemaNode).and(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "setProperties").getAsList()) {
                                 app.delete(method);
                             }
                         }

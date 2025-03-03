@@ -30,6 +30,8 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.auth.UiAuthenticator;
@@ -83,7 +85,7 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 			assertNotNull("User was not created", user);
 
 			// store ID for later user
-			id      = user.getProperty(Traits.of(StructrTraits.USER).key("id"));
+			id      = user.getProperty(Traits.of(StructrTraits.USER).key(GraphObjectTraitDefinition.ID_PROPERTY));
 			confKey = user.getProperty(Traits.of(StructrTraits.USER).key("confirmationKey"));
 
 			assertNotNull("Confirmation key was not set", confKey);
@@ -114,7 +116,7 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 			assertNotNull("User was not created", user);
 
 			// store ID for later user
-			id      = user.getProperty(Traits.of(StructrTraits.USER).key("id"));
+			id      = user.getProperty(Traits.of(StructrTraits.USER).key(GraphObjectTraitDefinition.ID_PROPERTY));
 			confKey = user.getProperty(Traits.of(StructrTraits.USER).key("confirmationKey"));
 
 			assertNull("Confirmation key was set after confirmation", confKey);
@@ -165,7 +167,7 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 			assertNotNull("User was not created", user);
 
 			// store ID for later user
-			id      = user.getProperty(Traits.of(StructrTraits.USER).key("id"));
+			id      = user.getProperty(Traits.of(StructrTraits.USER).key(GraphObjectTraitDefinition.ID_PROPERTY));
 			confKey = user.getProperty(Traits.of(StructrTraits.USER).key("confirmationKey"));
 
 			assertNotNull("Confirmation key was not set", confKey);
@@ -244,7 +246,7 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface user = app.create(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"), "tester"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "tester"),
 				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("eMail"), eMail),
 				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "correct")
 			);

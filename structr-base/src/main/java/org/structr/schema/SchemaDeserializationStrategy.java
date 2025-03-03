@@ -38,6 +38,7 @@ import org.structr.core.traits.Traits;
 
 import java.util.*;
 import java.util.Map.Entry;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 
 /**
  * Deserializes a {@link GraphObject} using a type and a set of property values.
@@ -80,7 +81,7 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> extends D
 	private T deserialize(final SecurityContext securityContext, final String type, final PropertyMap attributes, final Object context) throws FrameworkException {
 
 		final App app = StructrApp.getInstance(securityContext);
-		final PropertyKey<String> idProperty = Traits.of(StructrTraits.GRAPH_OBJECT).key("id");
+		final PropertyKey<String> idProperty = Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY);
 
 		if (attributes != null) {
 

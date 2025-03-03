@@ -28,6 +28,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.files.ssh.filesystem.StructrFileAttributes;
 import org.structr.files.ssh.filesystem.StructrFilesystem;
 import org.structr.files.ssh.filesystem.StructrPath;
@@ -198,7 +199,7 @@ public class StructrFilePath extends StructrPath {
 		try (final Tx tx = app.tx()) {
 
 			final String name             = getFileName().toString();
-			final NodeInterface newFolder = app.create(StructrTraits.FOLDER, new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key("name"), name));
+			final NodeInterface newFolder = app.create(StructrTraits.FOLDER, new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name));
 
 			// set parent folder
 			setParentFolder(newFolder);
@@ -335,7 +336,7 @@ public class StructrFilePath extends StructrPath {
 		try (final Tx tx = app.tx()) {
 
 			// remove /files from path since it is a virtual directory
-			final NodeInterface actualFile = app.nodeQuery(StructrTraits.ABSTRACT_FILE).and(traits.key( "path"), filePath).sort(traits.key("name")).getFirst();
+			final NodeInterface actualFile = app.nodeQuery(StructrTraits.ABSTRACT_FILE).and(traits.key( "path"), filePath).sort(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getFirst();
 
 			tx.success();
 

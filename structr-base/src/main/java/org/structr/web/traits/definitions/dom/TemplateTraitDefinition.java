@@ -30,6 +30,7 @@ import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.web.common.AsyncBuffer;
@@ -86,13 +87,13 @@ public class TemplateTraitDefinition extends AbstractNodeTraitDefinition {
 						if (_syncedNode != null) {
 
 							// use name of synced node
-							final String _name = _syncedNode.getProperty(traits.key("name"));
+							final String _name = _syncedNode.getProperty(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY));
 							out.append(_name != null ? _name.concat("-").concat(_syncedNode.getUuid()) : _syncedNode.getUuid());
 
 						} else {
 
 							// use name of local template
-							final String _name = node.getProperty(traits.key("name"));
+							final String _name = node.getProperty(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY));
 							out.append(_name != null ? _name.concat("-").concat(node.getUuid()) : node.getUuid());
 						}
 

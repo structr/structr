@@ -27,6 +27,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.entity.User;
 import org.testng.annotations.Test;
@@ -50,7 +51,7 @@ public class FilesystemTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create(StructrTraits.IMAGE,
-				new NodeAttribute<>(Traits.of(StructrTraits.IMAGE).key("name"), "test01.png"),
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test01.png"),
 				new NodeAttribute<>(Traits.of(StructrTraits.IMAGE).key("imageData"), Base64ImageData)
 			);
 
@@ -88,7 +89,7 @@ public class FilesystemTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create(StructrTraits.IMAGE,
-				new NodeAttribute<>(Traits.of(StructrTraits.IMAGE).key("name"), "test01.png"),
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test01.png"),
 				new NodeAttribute<>(Traits.of(StructrTraits.IMAGE).key("imageData"), "data:image/jpeg;base64," + Base64ImageData)
 			);
 

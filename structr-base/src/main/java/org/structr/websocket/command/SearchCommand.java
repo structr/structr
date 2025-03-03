@@ -31,6 +31,7 @@ import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.web.common.RenderContext;
 import org.structr.web.datasource.RestDataSource;
 import org.structr.websocket.StructrWebSocket;
@@ -160,7 +161,7 @@ public class SearchCommand extends AbstractCommand {
 		final PropertyKey sortProperty = type.key(sortKey);
 		final Query query              = StructrApp.getInstance(securityContext).nodeQuery().includeHidden().sort(sortProperty, "desc".equals(sortOrder));
 
-		query.and(type.key("name"), searchString, exactSearch);
+		query.and(type.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), searchString, exactSearch);
 
 		if (type != null) {
 			query.andTypes(type);

@@ -39,6 +39,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.ConfigurationProvider;
 
 import java.io.File;
@@ -384,7 +385,7 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 					}
 
 					// set node type which is in "name" property
-					propertyMap.put(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), type);
+					propertyMap.put(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), type);
 
 					// check if there is an existing Structr entity with the same type and make the dynamic class extend the existing class if yes.
 					final Traits existingType = Traits.of(type);

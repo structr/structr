@@ -37,6 +37,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 
 /**
  * Abstract implementation of the basic functions of the Interface QueryFunction.
@@ -158,7 +159,7 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 					if (Settings.isValidUuid(uuid)) {
 
 						// special case: second parameter is a UUID
-						final PropertyKey key = traits.key("id");
+						final PropertyKey key = traits.key(GraphObjectTraitDefinition.ID_PROPERTY);
 
 						query.and(key, sources[1].toString());
 

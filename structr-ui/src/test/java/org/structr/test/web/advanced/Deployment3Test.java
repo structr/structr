@@ -28,6 +28,8 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.export.StructrSchema;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.Folder;
@@ -131,7 +133,7 @@ public class Deployment3Test extends DeploymentTestBase {
 			// create one method with a schema node
 			app.create(StructrTraits.SCHEMA_METHOD,
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("schemaNode"),                 testType),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("name"),                       "method1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),                       "method1"),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"),                     "source1"),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("includeInOpenAPI"),           false),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("tags"),                       new String[] { "tag1", "tag2" }),
@@ -145,7 +147,7 @@ public class Deployment3Test extends DeploymentTestBase {
 
 			// and one without (i.e. user-defined function)
 			app.create(StructrTraits.SCHEMA_METHOD,
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("name"),                      "method2"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),                      "method2"),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"),                    "source2"),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("virtualFileName"),           "virtualFileName2")
 			);
@@ -163,13 +165,13 @@ public class Deployment3Test extends DeploymentTestBase {
 		// check
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface method1 = app.nodeQuery(StructrTraits.SCHEMA_METHOD).and(Traits.of(StructrTraits.SCHEMA_METHOD).key("name"), "method1").getFirst();
-			final NodeInterface method2 = app.nodeQuery(StructrTraits.SCHEMA_METHOD).and(Traits.of(StructrTraits.SCHEMA_METHOD).key("name"), "method2").getFirst();
+			final NodeInterface method1 = app.nodeQuery(StructrTraits.SCHEMA_METHOD).and(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "method1").getFirst();
+			final NodeInterface method2 = app.nodeQuery(StructrTraits.SCHEMA_METHOD).and(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "method2").getFirst();
 
 			assertNotNull("Invalid deployment result", method1);
 			assertNotNull("Invalid deployment result", method2);
 
-			assertEquals("Invalid SchemaMethod deployment result", "method1",      method1.getProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key("name")));
+			assertEquals("Invalid SchemaMethod deployment result", "method1",      method1.getProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)));
 			assertEquals("Invalid SchemaMethod deployment result", "source1",      method1.getProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key("source")));
 			assertEquals("Invalid SchemaMethod deployment result", false,          (boolean)method1.getProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key("includeInOpenAPI")));
 			assertEquals("Invalid SchemaMethod deployment result", "tag1",         ((Object[])method1.getProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key("tags")))[0]);
@@ -184,7 +186,7 @@ public class Deployment3Test extends DeploymentTestBase {
 
 			// Add new SchemaMethod properties here to make sure they are included in the schema import/export!
 
-			assertEquals("Invalid SchemaMethod deployment result", "method2",          method2.getProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key("name")));
+			assertEquals("Invalid SchemaMethod deployment result", "method2",          method2.getProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)));
 			assertEquals("Invalid SchemaMethod deployment result", "source2",          method2.getProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key("source")));
 			assertEquals("Invalid SchemaMethod deployment result", "virtualFileName2", method2.getProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key("virtualFileName")));
 
@@ -208,22 +210,22 @@ public class Deployment3Test extends DeploymentTestBase {
 			final DOMElement div       = createElement(testPage, body, "div");
 			final DOMElement div2      = createElement(testPage, body, "div");
 
-			div.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "WidgetTestPage-Div");
-			div2.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "WidgetTestPage-Div2");
+			div.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "WidgetTestPage-Div");
+			div2.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "WidgetTestPage-Div2");
 
-			NodeInterface widgetToImport = app.create("Widget",
-					new NodeAttribute<>(Traits.of("Widget").key("name"),"TestWidget"),
-					new NodeAttribute<>(Traits.of("Widget").key("source"),                      "<!-- @structr:content(text/html) --><structr:template>${{Structr.print(\"<div>Test</div>\");}}</structr:template>"),
-					new NodeAttribute<>(Traits.of("Widget").key("configuration"),               "{\"processDeploymentInfo\": true}"),
-					new NodeAttribute<>(Traits.of("Widget").key("visibleToPublicUsers"),        true),
-					new NodeAttribute<>(Traits.of("Widget").key("visibleToAuthenticatedUsers"), true)
+			NodeInterface widgetToImport = app.create(StructrTraits.WIDGET,
+					new NodeAttribute<>(Traits.of(StructrTraits.WIDGET).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),"TestWidget"),
+					new NodeAttribute<>(Traits.of(StructrTraits.WIDGET).key("source"),                      "<!-- @structr:content(text/html) --><structr:template>${{Structr.print(\"<div>Test</div>\");}}</structr:template>"),
+					new NodeAttribute<>(Traits.of(StructrTraits.WIDGET).key("configuration"),               "{\"processDeploymentInfo\": true}"),
+					new NodeAttribute<>(Traits.of(StructrTraits.WIDGET).key("visibleToPublicUsers"),        true),
+					new NodeAttribute<>(Traits.of(StructrTraits.WIDGET).key("visibleToAuthenticatedUsers"), true)
 			);
 
 			Map<String,Object> paramMap = new HashMap<>();
 
 			paramMap.put("widgetHostBaseUrl",    "https://widgets.structr.org/structr/rest/widgets");
-			paramMap.put("parentId",              widgetToImport.getProperty(Traits.of("Widget").key("owner")));
-			paramMap.put("source",                widgetToImport.getProperty(Traits.of("Widget").key("source")));
+			paramMap.put("parentId",              widgetToImport.getProperty(Traits.of(StructrTraits.WIDGET).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY)));
+			paramMap.put("source",                widgetToImport.getProperty(Traits.of(StructrTraits.WIDGET).key("source")));
 			paramMap.put("processDeploymentInfo", true);
 
 			Widget.expandWidget(securityContext, testPage, div, baseUri, paramMap, true);
@@ -276,27 +278,27 @@ public class Deployment3Test extends DeploymentTestBase {
 			final DOMElement div       = createElement(testPage, body, "div");
 			final DOMElement div2      = createElement(testPage, body, "div");
 
-			div.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "WidgetTestPage-Div");
-			div2.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "WidgetTestPage-Div2");
+			div.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "WidgetTestPage-Div");
+			div2.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "WidgetTestPage-Div2");
 
-			NodeInterface widgetToImport = app.create("Widget",
-					new NodeAttribute<>(Traits.of("Widget").key("name"), "TestWidget"),
-					new NodeAttribute<>(Traits.of("Widget").key("source"),
+			NodeInterface widgetToImport = app.create(StructrTraits.WIDGET,
+					new NodeAttribute<>(Traits.of(StructrTraits.WIDGET).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "TestWidget"),
+					new NodeAttribute<>(Traits.of(StructrTraits.WIDGET).key("source"),
 						"<structr:component src=\"TestComponent\">\n" +
 						"	<div data-structr-meta-name=\"TestComponent\">\n" +
 						"		Test123\n" +
 						"	</div>\n" +
 						"</structr:component>"),
-					new NodeAttribute<>(Traits.of("Widget").key("configuration"), ""),
-					new NodeAttribute<>(Traits.of("Widget").key("visibleToPublicUsers"), true),
-					new NodeAttribute<>(Traits.of("Widget").key("visibleToAuthenticatedUsers"), true)
+					new NodeAttribute<>(Traits.of(StructrTraits.WIDGET).key("configuration"), ""),
+					new NodeAttribute<>(Traits.of(StructrTraits.WIDGET).key("visibleToPublicUsers"), true),
+					new NodeAttribute<>(Traits.of(StructrTraits.WIDGET).key("visibleToAuthenticatedUsers"), true)
 
 			);
 
 			Map<String,Object> paramMap = new HashMap<>();
 			paramMap.put("widgetHostBaseUrl",     "https://widgets.structr.org/structr/rest/widgets");
-			paramMap.put("parentId",              widgetToImport.getProperty(Traits.of("Widget").key("owner")));
-			paramMap.put("source",                widgetToImport.getProperty(Traits.of("Widget").key("source")));
+			paramMap.put("parentId",              widgetToImport.getProperty(Traits.of(StructrTraits.WIDGET).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY)));
+			paramMap.put("source",                widgetToImport.getProperty(Traits.of(StructrTraits.WIDGET).key("source")));
 			paramMap.put("processDeploymentInfo", false);
 
 			Widget.expandWidget(securityContext, testPage, div, baseUri, paramMap, false);
@@ -381,7 +383,7 @@ public class Deployment3Test extends DeploymentTestBase {
 
 			// create test file with custom attributes
 			app.create(StructrTraits.FILE,
-				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key("name"),        "test.txt"),
+				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),        "test.txt"),
 				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key("parent"),      folder),
 				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key("contentType"), "text/plain"),
 				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key("test1"),       123),
@@ -411,7 +413,7 @@ public class Deployment3Test extends DeploymentTestBase {
 				final DOMNode newNode = page.createTextNode("#template");
 				newNode.unlockSystemPropertiesOnce();
 
-				newNode.setProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key("type"), StructrTraits.TEMPLATE);
+				newNode.setProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY), StructrTraits.TEMPLATE);
 
 				// append template
 				div.appendChild(newNode);
@@ -440,13 +442,13 @@ public class Deployment3Test extends DeploymentTestBase {
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface node = app.create(StructrTraits.SCHEMA_NODE,
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key("name"), "ExtendedFile"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "ExtendedFile"),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key("inheritedTraits"), new String[] { StructrTraits.FILE })
 			);
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"),   node),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"),         "test"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),         "test"),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "String")
 			);
 
@@ -536,7 +538,7 @@ public class Deployment3Test extends DeploymentTestBase {
 			// create first template and give it a name
 			final Template template1 = createTemplate(page1, div1, "template source - öäüÖÄÜß'\"'`");
 			final PropertyMap template1Properties = new PropertyMap();
-			template1Properties.put(Traits.of(StructrTraits.TEMPLATE).key("name"), "Test40Template");
+			template1Properties.put(Traits.of(StructrTraits.TEMPLATE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Test40Template");
 			template1.setProperties(template1.getSecurityContext(), template1Properties);
 
 
@@ -551,7 +553,7 @@ public class Deployment3Test extends DeploymentTestBase {
 			// create second template and give it the same name as the first one
 			final Template template2 = createTemplate(page2, div2, "template source 2 - öäüÖÄÜß'\"'`");
 			final PropertyMap template2Properties = new PropertyMap();
-			template2Properties.put(Traits.of(StructrTraits.TEMPLATE).key("name"), "Test40Template");
+			template2Properties.put(Traits.of(StructrTraits.TEMPLATE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Test40Template");
 			template2.setProperties(template2.getSecurityContext(), template2Properties);
 
 			tx.success();

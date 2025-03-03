@@ -31,6 +31,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.*;
 import org.structr.web.entity.dom.*;
@@ -174,7 +175,7 @@ public class Deployment1Test extends DeploymentTestBase {
 
 			assertNotNull("Folder was not created correctly", folder);
 
-			final NodeInterface file = app.nodeQuery(StructrTraits.FILE).and(Traits.of(StructrTraits.FILE).key("parent"), folder).and(Traits.of(StructrTraits.FILE).key("name"), fileName).getFirst();
+			final NodeInterface file = app.nodeQuery(StructrTraits.FILE).and(Traits.of(StructrTraits.FILE).key("parent"), folder).and(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), fileName).getFirst();
 
 			assertNotNull("File was not created correctly", file);
 
@@ -232,7 +233,7 @@ public class Deployment1Test extends DeploymentTestBase {
 
 				try (final Tx tx = app.tx()) {
 
-					final NodeInterface file = app.nodeQuery(StructrTraits.FILE).and(Traits.of(StructrTraits.FILE).key("name"), fileName).getFirst();
+					final NodeInterface file = app.nodeQuery(StructrTraits.FILE).and(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), fileName).getFirst();
 					file.setProperty(Traits.of(StructrTraits.FILE).key("visibleToPublicUsers"), false);
 					file.setProperty(Traits.of(StructrTraits.FILE).key("visibleToAuthenticatedUsers"), false);
 					file.setProperty(Traits.of(StructrTraits.FILE).key("enableBasicAuth"), false);
@@ -255,7 +256,7 @@ public class Deployment1Test extends DeploymentTestBase {
 
 			assertNotNull("Folder was not created", folder);
 
-			final NodeInterface file = app.nodeQuery(StructrTraits.FILE).and(Traits.of(StructrTraits.FILE).key("parent"), folder).and(Traits.of(StructrTraits.FILE).key("name"), fileName).getFirst();
+			final NodeInterface file = app.nodeQuery(StructrTraits.FILE).and(Traits.of(StructrTraits.FILE).key("parent"), folder).and(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), fileName).getFirst();
 
 			assertNotNull("File was not created", file);
 
@@ -322,7 +323,7 @@ public class Deployment1Test extends DeploymentTestBase {
 			final DOMElement body = createElement(page, html, "body");
 
 			final Template template = createTemplate(page, body, "${render(children)}");
-			template.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "a-template");
+			template.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "a-template");
 
 			final DOMNode sharedTemplate = createComponent(template);
 
@@ -408,8 +409,8 @@ public class Deployment1Test extends DeploymentTestBase {
 
 		try (final Tx tx = app.tx()) {
 
-			user1 = createTestNode(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "user1"));
-			user2 = createTestNode(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "user2"));
+			user1 = createTestNode(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "user1"));
+			user2 = createTestNode(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "user2"));
 
 			tx.success();
 
@@ -438,8 +439,8 @@ public class Deployment1Test extends DeploymentTestBase {
 			content.setProperty(Traits.of(StructrTraits.CONTENT).key("contentType"), "text/html");
 
 			// set owner to different user
-			div1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("owner"), user2);
-			content.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("owner"), user2);
+			div1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), user2);
+			content.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), user2);
 
 			tx.success();
 

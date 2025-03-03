@@ -39,6 +39,7 @@ import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.odf.entity.ODFExporter;
 import org.structr.odf.traits.wrappers.ODFExporterTraitWrapper;
 import org.structr.schema.action.EvaluationHints;
@@ -185,7 +186,7 @@ public class ODFExporterTraitDefinition extends AbstractNodeTraitDefinition {
 		try {
 
 			final App app              = StructrApp.getInstance();
-			final Image result         = app.nodeQuery(StructrTraits.IMAGE).and(Traits.of(StructrTraits.IMAGE).key("id"), uuid).getFirst().as(Image.class);
+			final Image result         = app.nodeQuery(StructrTraits.IMAGE).and(Traits.of(StructrTraits.IMAGE).key(GraphObjectTraitDefinition.ID_PROPERTY), uuid).getFirst().as(Image.class);
 			final String imageName     = result.getName();
 			final String contentType   = result.getContentType();
 

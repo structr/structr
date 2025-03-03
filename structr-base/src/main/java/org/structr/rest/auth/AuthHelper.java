@@ -37,6 +37,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.action.Actions;
 
 import java.math.BigInteger;
@@ -135,7 +136,7 @@ public class AuthHelper {
 
 			try {
 
-				final NodeInterface node = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).and().or(key, value).or(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), value).disableSorting().getFirst();
+				final NodeInterface node = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).and().or(key, value).or(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), value).disableSorting().getFirst();
 				if (node != null) {
 
 					principal = node.as(Principal.class);

@@ -34,6 +34,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
@@ -57,7 +58,7 @@ public class StructrFileSystemView implements FileSystemView {
 
 			org.structr.web.entity.User structrUser = null;
 
-			final Principal principal = AuthHelper.getPrincipalForCredential(Traits.of(StructrTraits.PRINCIPAL).key("name"), user.getName());
+			final Principal principal = AuthHelper.getPrincipalForCredential(Traits.of(StructrTraits.PRINCIPAL).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), user.getName());
 			if (principal != null) {
 
 				structrUser = principal.as(org.structr.web.entity.User.class);
@@ -81,7 +82,7 @@ public class StructrFileSystemView implements FileSystemView {
 
 			org.structr.web.entity.User structrUser = null;
 
-			final Principal principal = AuthHelper.getPrincipalForCredential(Traits.of(StructrTraits.PRINCIPAL).key("name"), user.getName());
+			final Principal principal = AuthHelper.getPrincipalForCredential(Traits.of(StructrTraits.PRINCIPAL).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), user.getName());
 			if (principal != null) {
 
 				structrUser = principal.as(org.structr.web.entity.User.class);

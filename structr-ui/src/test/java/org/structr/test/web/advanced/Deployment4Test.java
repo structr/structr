@@ -37,6 +37,8 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
 import org.structr.web.auth.UiAuthenticator;
@@ -105,7 +107,7 @@ public class Deployment4Test extends DeploymentTestBase {
 			final DOMElement div1        = createElement(page, body, "div");
 
 			final Content content = createContent(page, div1, "my content text");
-			content.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "myNamedConentElement");
+			content.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "myNamedConentElement");
 
 			tx.success();
 
@@ -176,7 +178,7 @@ public class Deployment4Test extends DeploymentTestBase {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface page = app.nodeQuery(StructrTraits.PAGE).and(Traits.of(StructrTraits.PAGE).key("name"), testName).getFirst();
+			final NodeInterface page = app.nodeQuery(StructrTraits.PAGE).and(Traits.of(StructrTraits.PAGE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), testName).getFirst();
 
 			assertTrue("Expected page to have the hidden flag!", page.isHidden());
 
@@ -221,7 +223,7 @@ public class Deployment4Test extends DeploymentTestBase {
 			final NodeInterface test3 = FileHelper.createFile(securityContext, "test3".getBytes(), "text/plain", StructrTraits.FILE, "test3.txt", true);
 			final NodeInterface test4 = FileHelper.createFile(securityContext, "test4".getBytes(), "text/plain", StructrTraits.FILE, "test4.txt", true);
 
-			test1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("owner"), p1);
+			test1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), p1);
 			test1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"),                     true);
 			test1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToAuthenticatedUsers"),              true);
 			test1.setProperty(Traits.of(StructrTraits.FILE).key("includeInFrontendExport"), true);
@@ -235,7 +237,7 @@ public class Deployment4Test extends DeploymentTestBase {
 			test2.setProperty(Traits.of(StructrTraits.FILE).key("isTemplate"),              false);
 			test2.setProperty(Traits.of(StructrTraits.FILE).key("dontCache"),               true);
 
-			test3.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("owner"), p2);
+			test3.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), p2);
 			test3.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"),                     true);
 			test3.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToAuthenticatedUsers"),              false);
 			test3.setProperty(Traits.of(StructrTraits.FILE).key("includeInFrontendExport"), true);
@@ -297,7 +299,7 @@ public class Deployment4Test extends DeploymentTestBase {
 				ac.grant(Permission.delete,        p2);
 				ac.grant(Permission.accessControl, p2);
 
-				test.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("owner"),                       p3);		// set wrong owner, to be corrected by deployment import
+				test.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY),                       p3);		// set wrong owner, to be corrected by deployment import
 				test.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"),        true);
 				test.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToAuthenticatedUsers"), true);
 				test.setProperty(Traits.of(StructrTraits.FILE).key("isTemplate"), true);
@@ -349,7 +351,7 @@ public class Deployment4Test extends DeploymentTestBase {
 				assertFalse("Permissions are not restored by deployment import", isAllowedByGrant(test1, Permission.accessControl, p2));
 
 				// test properties
-				assertEquals("Owner is not set correctly by deployment import",         p1, test1.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("owner")));
+				assertEquals("Owner is not set correctly by deployment import",         p1, test1.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY)));
 				assertEquals("Visibility is not set correctly by deployment import",  true, (Object)test1.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers")));
 				assertEquals("Visibility is not set correctly by deployment import",  true, (Object)test1.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToAuthenticatedUsers")));
 				assertEquals("isTemplate is not set correctly by deployment import",  true, (Object)test1.getProperty(Traits.of(StructrTraits.FILE).key("isTemplate")));
@@ -367,7 +369,7 @@ public class Deployment4Test extends DeploymentTestBase {
 				assertFalse("Permissions are not restored by deployment import", isAllowedByGrant(test2, Permission.delete,        p2));
 				assertFalse("Permissions are not restored by deployment import", isAllowedByGrant(test2, Permission.accessControl, p2));
 
-				assertEquals("Owner is not set correctly by deployment import",       (NodeInterface)null, test2.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("owner")));
+				assertEquals("Owner is not set correctly by deployment import",       (NodeInterface)null, test2.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY)));
 				assertEquals("Visibility is not set correctly by deployment import", false, (Object)test2.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers")));
 				assertEquals("Visibility is not set correctly by deployment import",  true, (Object)test2.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToAuthenticatedUsers")));
 				assertEquals("isTemplate is not set correctly by deployment import", false, (Object)test2.getProperty(Traits.of(StructrTraits.FILE).key("isTemplate")));
@@ -385,7 +387,7 @@ public class Deployment4Test extends DeploymentTestBase {
 				assertFalse("Permissions are not restored by deployment import", isAllowedByGrant(test3, Permission.delete,        p2));
 				assertFalse("Permissions are not restored by deployment import", isAllowedByGrant(test3, Permission.accessControl, p2));
 
-				assertEquals("Owner is not set correctly by deployment import",         p2, test3.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("owner")));
+				assertEquals("Owner is not set correctly by deployment import",         p2, test3.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY)));
 				assertEquals("Visibility is not set correctly by deployment import",  true, (Object)test3.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers")));
 				assertEquals("Visibility is not set correctly by deployment import", false, (Object)test3.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToAuthenticatedUsers")));
 				assertEquals("isTemplate is not set correctly by deployment import",  true, (Object)test3.getProperty(Traits.of(StructrTraits.FILE).key("isTemplate")));
@@ -403,7 +405,7 @@ public class Deployment4Test extends DeploymentTestBase {
 				assertFalse("Permissions are not restored by deployment import", isAllowedByGrant(test4, Permission.delete,        p2));
 				assertFalse("Permissions are not restored by deployment import", isAllowedByGrant(test4, Permission.accessControl, p2));
 
-				assertEquals("Owner is not set correctly by deployment import",      (NodeInterface) null, test4.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("owner")));
+				assertEquals("Owner is not set correctly by deployment import",      (NodeInterface) null, test4.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY)));
 				assertEquals("Visibility is not set correctly by deployment import", false, (Object)test4.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers")));
 				assertEquals("Visibility is not set correctly by deployment import", false, (Object)test4.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToAuthenticatedUsers")));
 				assertEquals("isTemplate is not set correctly by deployment import", false, (Object)test4.getProperty(Traits.of(StructrTraits.FILE).key("isTemplate")));
@@ -433,9 +435,9 @@ public class Deployment4Test extends DeploymentTestBase {
 		try (final Tx tx = app.tx()) {
 
 			app.create(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("name"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "admin"),
 				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("isAdmin"),    true)
+				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY),    true)
 			);
 
 			tx.success();
@@ -470,8 +472,8 @@ public class Deployment4Test extends DeploymentTestBase {
 			final DOMNode comp1   = createComponent(div1);
 			final DOMNode comp2   = createComponent(div3);
 
-			comp1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "xyz-component");
-			comp2.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "abc-component");
+			comp1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "xyz-component");
+			comp2.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "abc-component");
 
 			tx.success();
 
@@ -490,9 +492,9 @@ public class Deployment4Test extends DeploymentTestBase {
 		try (final Tx tx = app.tx()) {
 
 			app.create(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("name"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "admin"),
 				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("isAdmin"),    true)
+				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY),    true)
 			);
 
 			tx.success();
@@ -529,7 +531,7 @@ public class Deployment4Test extends DeploymentTestBase {
 			testGroup2.addMember(securityContext, testGroup3);
 
 			final NodeInterface user = app.create(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "user"),
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "user"),
 				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "password")
 			);
 
@@ -720,7 +722,7 @@ public class Deployment4Test extends DeploymentTestBase {
 
 			final NodeInterface node = app.create(type, "test");
 
-			node.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "modified");
+			node.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "modified");
 
 			tx.success();
 
@@ -751,9 +753,9 @@ public class Deployment4Test extends DeploymentTestBase {
 		try (final Tx tx = app.tx()) {
 
 			app.create(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("name"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "admin"),
 				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("isAdmin"),    true)
+				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY),    true)
 			);
 
 			tx.success();
@@ -797,7 +799,7 @@ public class Deployment4Test extends DeploymentTestBase {
 			app.create(bothClass, "both2");
 
 			app.create(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "user"),
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "user"),
 				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "password")
 			);
 

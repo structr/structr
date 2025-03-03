@@ -27,6 +27,7 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.storage.providers.local.LocalFSStorageProvider;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.Folder;
@@ -57,7 +58,7 @@ public abstract class StorageProviderFactory {
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface node = app.create("StorageConfiguration",
-				new NodeAttribute<>(traits.key("name"),     name),
+				new NodeAttribute<>(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     name),
 				new NodeAttribute<>(traits.key("provider"), impl.getName())
 			);
 

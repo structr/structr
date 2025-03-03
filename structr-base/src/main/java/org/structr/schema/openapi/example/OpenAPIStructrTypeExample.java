@@ -24,6 +24,8 @@ import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.Schema;
 import org.structr.schema.export.StructrTypeDefinition;
 
@@ -40,9 +42,9 @@ public class OpenAPIStructrTypeExample extends TreeMap<String, Object> {
 
 		if (level > 0 && Schema.RestrictedViews.contains(viewName)) {
 
-			handleProperty(type, Traits.of(StructrTraits.GRAPH_OBJECT).key("id"),   viewName, level);
-			handleProperty(type, Traits.of(StructrTraits.GRAPH_OBJECT).key("type"), viewName, level);
-			handleProperty(type, Traits.of(StructrTraits.NODE_INTERFACE).key("name"), viewName, level);
+			handleProperty(type, Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY),   viewName, level);
+			handleProperty(type, Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY), viewName, level);
+			handleProperty(type, Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), viewName, level);
 
 		} else {
 

@@ -29,6 +29,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.files.ssh.filesystem.StructrFilesystem;
 import org.structr.files.ssh.filesystem.StructrPath;
 import org.structr.files.ssh.filesystem.StructrRootAttributes;
@@ -73,7 +74,7 @@ public class StructrFilesRootPath extends StructrPath {
 
 					final App app                           = StructrApp.getInstance(fs.getSecurityContext());
 					final Traits traits                     = Traits.of(StructrTraits.ABSTRACT_FILE);
-					final PropertyKey<String> nameKey       = traits.key("name");
+					final PropertyKey<String> nameKey       = traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 					final PropertyKey<Boolean> hasParentKey = traits.key("hasParent");
 					final List<Path> files                  = new LinkedList<>();
 

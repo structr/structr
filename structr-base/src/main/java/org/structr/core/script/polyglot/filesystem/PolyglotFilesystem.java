@@ -31,6 +31,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
@@ -161,13 +162,13 @@ public class PolyglotFilesystem implements FileSystem {
 					NodeInterface  parent = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), path.getParent().toString());
 
 					file = app.create(StructrTraits.FILE,
-						new NodeAttribute<>(traits.key("name"), path.getFileName().toString()),
+						new NodeAttribute<>(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), path.getFileName().toString()),
 						new NodeAttribute<>(parentKey, parent)
 					);
 
 				} else {
 
-					file = app.create(StructrTraits.FILE, new NodeAttribute<>(traits.key("name"), path.getFileName().toString()));
+					file = app.create(StructrTraits.FILE, new NodeAttribute<>(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), path.getFileName().toString()));
 				}
 			}
 

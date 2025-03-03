@@ -31,6 +31,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.files.external.DirectoryWatchService;
 import org.structr.storage.StorageProvider;
@@ -199,7 +200,7 @@ public class AbstractFileTraitWrapper extends AbstractNodeTraitWrapper implement
 			final String originalPath = getPath();
 			final String newName      = getRenamedFilename(getName());
 
-			wrappedObject.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), newName);
+			wrappedObject.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), newName);
 
 			valid = validatePath(securityContext, errorBuffer);
 

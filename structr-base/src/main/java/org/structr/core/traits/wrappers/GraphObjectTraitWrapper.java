@@ -31,6 +31,7 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 
@@ -233,11 +234,11 @@ public class GraphObjectTraitWrapper<T extends GraphObject> implements GraphObje
 	}
 
 	public String getName() {
-		return wrappedObject.getProperty(traits.key("name"));
+		return wrappedObject.getProperty(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY));
 	}
 
 	public void setName(final String name) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("name"), name);
+		wrappedObject.setProperty(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name);
 	}
 
 	public Date getCreatedDate() {
@@ -342,12 +343,12 @@ public class GraphObjectTraitWrapper<T extends GraphObject> implements GraphObje
 
 	@Override
 	public boolean isHidden() {
-		return wrappedObject.getProperty(traits.key("hidden"));
+		return wrappedObject.getProperty(traits.key(NodeInterfaceTraitDefinition.HIDDEN_PROPERTY));
 	}
 
 	@Override
 	public void setHidden(final boolean hidden) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("hidden"), hidden);
+		wrappedObject.setProperty(traits.key(NodeInterfaceTraitDefinition.HIDDEN_PROPERTY), hidden);
 	}
 
 	public void setVisibleToPublicUsers(final boolean visible) throws FrameworkException {

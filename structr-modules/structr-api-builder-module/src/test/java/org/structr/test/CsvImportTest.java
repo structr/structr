@@ -33,6 +33,8 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
@@ -87,9 +89,9 @@ public class CsvImportTest extends StructrUiTest {
 
 			// create test user
 			app.create(StructrTraits.USER,
-				new NodeAttribute<>(userTraits.key("name"),     "admin"),
+				new NodeAttribute<>(userTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     "admin"),
 				new NodeAttribute<>(userTraits.key("password"), "admin"),
-				new NodeAttribute<>(userTraits.key("isAdmin"),  true)
+				new NodeAttribute<>(userTraits.key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY),  true)
 			);
 
 			tx.success();
@@ -141,7 +143,7 @@ public class CsvImportTest extends StructrUiTest {
 			final String type                   = "Item";
 			final PropertyKey<Integer> originId = Traits.of(type).key("originId");
 			final PropertyKey<String> typeName  = Traits.of(type).key("typeName");
-			final PropertyKey<String> name      = Traits.of(type).key("name");
+			final PropertyKey<String> name      = Traits.of(type).key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 			final PropertyKey<String> test1     = Traits.of(type).key("test1");
 			final PropertyKey<String> test2     = Traits.of(type).key("test2");
 			final List<NodeInterface> items     = app.nodeQuery(type).sort(originId).getAsList();
@@ -217,9 +219,9 @@ public class CsvImportTest extends StructrUiTest {
 
 			// create test user
 			app.create(StructrTraits.USER,
-				new NodeAttribute<>(userTraits.key("name"),     "admin"),
+				new NodeAttribute<>(userTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     "admin"),
 				new NodeAttribute<>(userTraits.key("password"), "admin"),
-				new NodeAttribute<>(userTraits.key("isAdmin"),  true)
+				new NodeAttribute<>(userTraits.key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY),  true)
 			);
 
 			tx.success();
@@ -271,7 +273,7 @@ public class CsvImportTest extends StructrUiTest {
 			final String type                   = "Item";
 			final PropertyKey<Integer> originId = Traits.of(type).key("originId");
 			final PropertyKey<String> typeName  = Traits.of(type).key("typeName");
-			final PropertyKey<String> name      = Traits.of(type).key("name");
+			final PropertyKey<String> name      = Traits.of(type).key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 			final PropertyKey<String> test1     = Traits.of(type).key("test1");
 			final PropertyKey<String> test2     = Traits.of(type).key("test2");
 			final List<NodeInterface> items     = app.nodeQuery(type).sort(originId).getAsList();
@@ -347,9 +349,9 @@ public class CsvImportTest extends StructrUiTest {
 
 			// create test user
 			app.create(StructrTraits.USER,
-				new NodeAttribute<>(userTraits.key("name"),     "admin"),
+				new NodeAttribute<>(userTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     "admin"),
 				new NodeAttribute<>(userTraits.key("password"), "admin"),
-				new NodeAttribute<>(userTraits.key("isAdmin"),  true)
+				new NodeAttribute<>(userTraits.key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY),  true)
 			);
 
 			tx.success();
@@ -401,7 +403,7 @@ public class CsvImportTest extends StructrUiTest {
 			final String type                   = "Item";
 			final PropertyKey<Integer> originId = Traits.of(type).key("originId");
 			final PropertyKey<String> typeName  = Traits.of(type).key("typeName");
-			final PropertyKey<String> name      = Traits.of(type).key("name");
+			final PropertyKey<String> name      = Traits.of(type).key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 			final PropertyKey<String> test1     = Traits.of(type).key("test1");
 			final PropertyKey<String> test2     = Traits.of(type).key("test2");
 			final List<NodeInterface> items     = app.nodeQuery(type).sort(originId).getAsList();
@@ -477,9 +479,9 @@ public class CsvImportTest extends StructrUiTest {
 
 			// create test user
 			app.create(StructrTraits.USER,
-				new NodeAttribute<>(userTraits.key("name"),     "admin"),
+				new NodeAttribute<>(userTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     "admin"),
 				new NodeAttribute<>(userTraits.key("password"), "admin"),
-				new NodeAttribute<>(userTraits.key("isAdmin"),  true)
+				new NodeAttribute<>(userTraits.key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY),  true)
 			);
 
 			tx.success();
@@ -531,7 +533,7 @@ public class CsvImportTest extends StructrUiTest {
 			final String type                   = "Item";
 			final PropertyKey<Integer> originId = Traits.of(type).key("originId");
 			final PropertyKey<String> typeName  = Traits.of(type).key("typeName");
-			final PropertyKey<String> name      = Traits.of(type).key("name");
+			final PropertyKey<String> name      = Traits.of(type).key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 			final PropertyKey<String> test1     = Traits.of(type).key("test1");
 			final PropertyKey<String> test2     = Traits.of(type).key("test2");
 			final List<NodeInterface> items     = app.nodeQuery(type).sort(originId).getAsList();
@@ -581,17 +583,17 @@ public class CsvImportTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface customType = createTestNode(StructrTraits.SCHEMA_NODE, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("name"), "DummyType"));
+			final NodeInterface customType = createTestNode(StructrTraits.SCHEMA_NODE, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "DummyType"));
 
 			final List<NodeInterface> properties = new LinkedList<>();
-			properties.add(createTestNode(StructrTraits.SCHEMA_PROPERTY, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "testDataString"),                new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "String")));
-			properties.add(createTestNode(StructrTraits.SCHEMA_PROPERTY, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "retrievedImportSourceFileName"), new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "String")));
-			properties.add(createTestNode(StructrTraits.SCHEMA_PROPERTY, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "retrievedCustomString"),         new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "String")));
+			properties.add(createTestNode(StructrTraits.SCHEMA_PROPERTY, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testDataString"),                new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "String")));
+			properties.add(createTestNode(StructrTraits.SCHEMA_PROPERTY, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "retrievedImportSourceFileName"), new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "String")));
+			properties.add(createTestNode(StructrTraits.SCHEMA_PROPERTY, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "retrievedCustomString"),         new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "String")));
 			customType.setProperty(Traits.of(StructrTraits.SCHEMA_NODE).key("schemaProperties"), properties);
 
 			final List<NodeInterface> methods = new LinkedList<>();
-			methods.add(createTestNode(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "onCreate"),    new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "{ var self = Structr.get('this'); self.retrievedImportSourceFileName = Structr.retrieve('" + storeKey1 + "') }")));
-			methods.add(createTestNode(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "afterCreate"), new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "{ var self = Structr.get('this'); self.retrievedCustomString = Structr.retrieve('" + storeKey2 + "') }")));
+			methods.add(createTestNode(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "onCreate"),    new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "{ var self = Structr.get('this'); self.retrievedImportSourceFileName = Structr.retrieve('" + storeKey1 + "') }")));
+			methods.add(createTestNode(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "afterCreate"), new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "{ var self = Structr.get('this'); self.retrievedCustomString = Structr.retrieve('" + storeKey2 + "') }")));
 			customType.setProperty(Traits.of(StructrTraits.SCHEMA_NODE).key("schemaMethods"), methods);
 
 			final String csvData =
