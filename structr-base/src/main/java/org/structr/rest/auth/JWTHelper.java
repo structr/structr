@@ -172,7 +172,7 @@ public class JWTHelper {
 
 		}
 
-		Principal user = AuthHelper.getPrincipalForCredential(traits.key("refreshTokens"), new String[]{tokenId}, false);
+		final Principal user = AuthHelper.getPrincipalForCredential(traits.key("refreshTokens"), new String[]{ tokenId }, false, false);
 
 		if (user == null) {
 			return null;
