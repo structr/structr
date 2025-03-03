@@ -44,13 +44,13 @@ public class CypherFunction extends CoreFunction {
 
 	@Override
 	public String getSignature() {
-		return "query [, parameterMap ]";
+		return "query [, parameterMap]";
 	}
 
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		try(final Tx tx = StructrApp.getInstance().tx()) {
+		try {
 
 			if (sources.length < 1) {
 				throw ArgumentCountException.tooFew(sources.length, 1);
@@ -62,7 +62,7 @@ public class CypherFunction extends CoreFunction {
 			final Map<String, Object> params = new LinkedHashMap<>();
 			final String query = sources[0].toString();
 
-			boolean dontFlushCaches = false;
+			boolean runInNewTransaction = false;
 
 			// parameters?
 			if (sources.length > 1) {
@@ -70,35 +70,16 @@ public class CypherFunction extends CoreFunction {
 				if (sources[1] instanceof Map) {
 
 					params.putAll((Map)sources[1]);
-
-					if (sources.length > 2 && sources[2] instanceof Boolean) {
-						dontFlushCaches = ((boolean)sources[2]);
-					}
-
 				} else if (sources[1] instanceof GraphObjectMap) {
 
 					params.putAll(((GraphObjectMap)sources[1]).toMap());
-
-					if (sources.length > 2 && sources[2] instanceof Boolean) {
-						dontFlushCaches = ((boolean)sources[2]);
-					}
-
 				} else {
 
 					int parameter_count = sources.length;
 
 					if (parameter_count % 2 == 0) {
 
-						// count indicates trailing parameter. If this is a boolean, interpret it as dontFlushCaches flag. otherwise throw error
-						if (sources[parameter_count - 1] instanceof Boolean) {
-
-							dontFlushCaches = ((boolean)sources[parameter_count - 1]);
-							parameter_count--;
-
-						} else {
-
-							throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + usage(ctx.isJavaScriptContext()));
-						}
+						throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + usage(ctx.isJavaScriptContext()));
 					}
 
 					for (int c = 1; c < parameter_count; c += 2) {
@@ -109,14 +90,9 @@ public class CypherFunction extends CoreFunction {
 			}
 
 			final NativeQueryCommand nqc = StructrApp.getInstance(ctx.getSecurityContext()).command(NativeQueryCommand.class);
+			nqc.setRunInNewTransaction(runInNewTransaction);
 
-			if (Boolean.TRUE.equals(dontFlushCaches)) {
-				nqc.setDontFlushCachesIfKeywordsInQuery(dontFlushCaches);
-			}
-
-			tx.success();
-			final Iterable result = nqc.execute(query, params);
-			return result;
+			return nqc.execute(query, params);
 
 		} catch (ArgumentNullException pe) {
 

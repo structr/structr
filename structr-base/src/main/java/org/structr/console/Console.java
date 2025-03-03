@@ -35,6 +35,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.core.function.Functions;
+import org.structr.core.graph.NativeQueryCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.script.Scripting;
 import org.structr.core.script.Snippet;
@@ -232,7 +233,11 @@ public class Console {
 		try (final Tx tx = app.tx()) {
 
 			final long t0                  = System.currentTimeMillis();
-			final List<GraphObject> result = Iterables.toList(app.query(line, Collections.emptyMap()));
+
+			final NativeQueryCommand nqc = app.command(NativeQueryCommand.class);
+			nqc.setRunInNewTransaction(true);
+
+			final List<GraphObject> result = Iterables.toList(nqc.execute(line));
 			final long t1                  = System.currentTimeMillis();
 			final int size                 = result.size();
 			final int maxResults           = Settings.CypherConsoleMaxResults.getValue();
