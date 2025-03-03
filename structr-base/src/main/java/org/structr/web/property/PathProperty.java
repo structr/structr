@@ -36,6 +36,7 @@ import org.structr.core.graph.search.SourceSearchAttribute;
 import org.structr.core.property.AbstractReadOnlyProperty;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.Linkable;
 
@@ -133,7 +134,7 @@ public class PathProperty extends AbstractReadOnlyProperty<String> {
 		final String currentPart      = parts.remove(0);
 		final Traits traits           = Traits.of(StructrTraits.FILE);
 
-		final List<NodeInterface> res = app.nodeQuery(StructrTraits.ABSTRACT_FILE).and(Traits.of(StructrTraits.ABSTRACT_FILE).key("parent"), parent).and(traits.key("name"), currentPart).getAsList();
+		final List<NodeInterface> res = app.nodeQuery(StructrTraits.ABSTRACT_FILE).and(Traits.of(StructrTraits.ABSTRACT_FILE).key("parent"), parent).and(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), currentPart).getAsList();
 
 		if (parts.isEmpty()) {
 

@@ -21,6 +21,7 @@ package org.structr.web.traits.wrappers;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.web.entity.StorageConfiguration;
 import org.structr.web.entity.StorageConfigurationEntry;
@@ -41,7 +42,7 @@ public class StorageConfigurationEntryTraitWrapper extends AbstractNodeTraitWrap
 	}
 
 	public void setName(final String name) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("name"), name);
+		wrappedObject.setProperty(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name);
 	}
 
 	public String getValue() {

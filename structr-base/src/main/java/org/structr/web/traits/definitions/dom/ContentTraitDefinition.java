@@ -40,6 +40,7 @@ import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
@@ -110,7 +111,7 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 					// sync content only
 					map.put(traits.key("content"),     content.getContent());
 					map.put(traits.key("contentType"), content.getContentType());
-					map.put(traits.key("name"),        obj.getProperty(traits.key("name")));
+					map.put(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),        obj.getProperty(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY)));
 
 					for (final DOMNode syncedNode : domNode.getSyncedNodes()) {
 
@@ -164,7 +165,7 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 
 					final Traits traits = node.getTraits();
 
-					return StringUtils.defaultString(node.getProperty(traits.key("name")), "#text");
+					return StringUtils.defaultString(node.getProperty(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY)), "#text");
 				}
 			},
 

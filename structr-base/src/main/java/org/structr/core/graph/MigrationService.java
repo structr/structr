@@ -38,6 +38,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
@@ -934,12 +935,12 @@ public class MigrationService {
 				final Folder folder = node.as(Folder.class);
 
 				final NodeInterface config = app.create("StorageConfiguration",
-					new NodeAttribute<>(storageConfigurationTraits.key("name"), folder.getFolderPath())
+					new NodeAttribute<>(storageConfigurationTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), folder.getFolderPath())
 				);
 
 				app.create("StorageConfigurationEntry",
 					new NodeAttribute<>(storageConfigurationTraits.key("configuration"), config),
-					new NodeAttribute<>(storageConfigurationTraits.key("name"),          "mountTarget"),
+					new NodeAttribute<>(storageConfigurationTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),          "mountTarget"),
 					new NodeAttribute<>(storageConfigurationTraits.key("value"),         folder.getMountTarget())
 				);
 

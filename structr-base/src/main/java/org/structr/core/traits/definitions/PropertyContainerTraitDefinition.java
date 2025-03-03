@@ -208,7 +208,7 @@ public final class PropertyContainerTraitDefinition extends AbstractNodeTraitDef
 						// no old value exists  OR  old value exists and is NOT equal => set property
 						if (isCreation || ((oldValue == null) && (value != null)) || ((oldValue != null) && (!Objects.deepEquals(oldValue, value)) || (key instanceof FunctionProperty)) ) {
 
-							if (!key.equals(traits.key("id"))) {
+							if (!key.equals(traits.key(GraphObjectTraitDefinition.ID_PROPERTY))) {
 
 								// check for system properties
 								if (key.isSystemInternal() && !graphObject.systemPropertiesUnlocked()) {

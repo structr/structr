@@ -36,6 +36,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.core.traits.operations.principal.IsValidPassword;
 import org.structr.core.traits.operations.principal.OnAuthenticate;
 
@@ -56,13 +57,13 @@ public class PrincipalTraitWrapper extends AbstractNodeTraitWrapper implements P
 
 	@Override
 	public Iterable<NodeInterface> getOwnedNodes() {
-		return wrappedObject.getProperty(traits.key("ownedNodes"));
+		return wrappedObject.getProperty(traits.key(PrincipalTraitDefinition.OWNED_NODES_PROPERTY));
 	}
 
 	@Override
 	public Iterable<Group> getGroups() {
 
-		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key("groups"));
+		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key(PrincipalTraitDefinition.GROUPS_PROPERTY));
 
 		return Iterables.map(n -> n.as(Group.class), nodes);
 	}
@@ -84,7 +85,7 @@ public class PrincipalTraitWrapper extends AbstractNodeTraitWrapper implements P
 
 	@Override
 	public boolean isAdmin() {
-		return wrappedObject.getProperty(traits.key("isAdmin"));
+		return wrappedObject.getProperty(traits.key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY));
 	}
 
 	public boolean isBlocked() {
@@ -93,7 +94,7 @@ public class PrincipalTraitWrapper extends AbstractNodeTraitWrapper implements P
 
 	@Override
 	public void setIsAdmin(final boolean isAdmin) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("isAdmin"), isAdmin);
+		wrappedObject.setProperty(traits.key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY), isAdmin);
 	}
 
 	@Override
@@ -198,7 +199,7 @@ public class PrincipalTraitWrapper extends AbstractNodeTraitWrapper implements P
 
 	@Override
 	public Iterable<Group> getParents() {
-		return wrappedObject.getProperty(traits.key("groups"));
+		return wrappedObject.getProperty(traits.key(PrincipalTraitDefinition.GROUPS_PROPERTY));
 	}
 
 	@Override

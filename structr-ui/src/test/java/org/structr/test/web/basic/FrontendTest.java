@@ -27,6 +27,8 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.test.web.StructrUiTest;
 
 public abstract class FrontendTest extends StructrUiTest {
@@ -55,9 +57,9 @@ public abstract class FrontendTest extends StructrUiTest {
 
 		final PropertyMap properties = new PropertyMap();
 
-		properties.put(Traits.of(StructrTraits.USER).key("name"), ADMIN_USERNAME);
+		properties.put(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), ADMIN_USERNAME);
 		properties.put(Traits.of(StructrTraits.USER).key("password"), ADMIN_PASSWORD);
-		properties.put(Traits.of(StructrTraits.USER).key("isAdmin"), true);
+		properties.put(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY), true);
 
 		NodeInterface user = null;
 

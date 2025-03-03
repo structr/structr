@@ -33,6 +33,8 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.*;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.rest.resource.MaintenanceResource;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.common.FileHelper;
@@ -249,7 +251,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 			if (attrs.isDirectory()) {
 
 				final NodeInterface newFolder = app.create(StructrTraits.FOLDER,
-						new NodeAttribute(Traits.of(StructrTraits.FOLDER).key("name"), name),
+						new NodeAttribute(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name),
 						new NodeAttribute(Traits.of(StructrTraits.FILE).key("parent"), FileHelper.createFolderPath(securityContext, parentPath))
 				);
 
@@ -275,7 +277,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 						case RENAME:
 							logger.info("Renaming existing file {}, file exists and mode is RENAME.", parentPath + name);
-							existingFile.setProperty(Traits.of(StructrTraits.ABSTRACT_FILE).key("name"), existingFile.getName().concat("_").concat(FileHelper.getDateString()));
+							existingFile.setProperty(Traits.of(StructrTraits.ABSTRACT_FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), existingFile.getName().concat("_").concat(FileHelper.getDateString()));
 							break;
 					}
 
@@ -306,9 +308,9 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 				}
 
 				final NodeInterface newFile = app.create(traits.getName(),
-						new NodeAttribute(Traits.of(StructrTraits.FILE).key("name"), name),
+						new NodeAttribute(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name),
 						new NodeAttribute(Traits.of(StructrTraits.FILE).key("parent"), FileHelper.createFolderPath(securityContext, parentPath)),
-						new NodeAttribute(Traits.of(StructrTraits.GRAPH_OBJECT).key("type"), traits.getName())
+						new NodeAttribute(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY), traits.getName())
 				);
 
 				try (final InputStream is = new FileInputStream(file.toFile()); final OutputStream os = StorageProviderFactory.getStorageProvider(newFile.as(File.class)).getOutputStream()) {

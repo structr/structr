@@ -26,6 +26,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.traits.wrappers.dom.DOMNodeTraitWrapper;
@@ -64,7 +65,7 @@ import org.w3c.dom.DOMException;
 
 					final Page newPage = pageToClone.cloneNode(false).as(Page.class);
 
-					newPage.setProperties(securityContext, new PropertyMap(Traits.of(StructrTraits.PAGE).key("name"), pageToClone.getName() + "-" + newPage.getNode().getId().toString()));
+					newPage.setProperties(securityContext, new PropertyMap(Traits.of(StructrTraits.PAGE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), pageToClone.getName() + "-" + newPage.getNode().getId().toString()));
 
 //					DOMNode firstChild = (DOMNode) pageToClone.getFirstChild().getNextSibling();
 //

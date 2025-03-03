@@ -29,6 +29,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.common.StructrTest;
 import org.testng.annotations.Test;
@@ -89,7 +90,7 @@ public class LifecycleMethodsTest extends StructrTest {
 
 			final NodeInterface customer = app.nodeQuery(customerType).getFirst();
 
-			customer.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "Tester");
+			customer.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Tester");
 
 			tx.success();
 
@@ -115,7 +116,7 @@ public class LifecycleMethodsTest extends StructrTest {
 		// check results
 		try (final Tx tx = app.tx()) {
 
-			final List<AbstractNode> logEntries = (List)app.nodeQuery(logEntryType).sort(Traits.of(StructrTraits.NODE_INTERFACE).key("name")).getAsList();
+			final List<AbstractNode> logEntries = (List)app.nodeQuery(logEntryType).sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getAsList();
 
 			final AbstractNode afterCreate    = logEntries.get(0);
 			final AbstractNode afterDelete    = logEntries.get(1);
@@ -226,7 +227,7 @@ public class LifecycleMethodsTest extends StructrTest {
 
 			final NodeInterface customer = app.nodeQuery(customerType).getFirst();
 
-			customer.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "Tester");
+			customer.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Tester");
 
 			tx.success();
 
@@ -281,7 +282,7 @@ public class LifecycleMethodsTest extends StructrTest {
 
 			final NodeInterface customer = app.nodeQuery(customerType).getFirst();
 
-			customer.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "Tester");
+			customer.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Tester");
 
 			tx.success();
 
@@ -367,7 +368,7 @@ public class LifecycleMethodsTest extends StructrTest {
 		// check results
 		try (final Tx tx = app.tx()) {
 
-			final List<AbstractNode> logEntries = (List)app.nodeQuery(logEntryType).sort(Traits.of(StructrTraits.NODE_INTERFACE).key("name")).getAsList();
+			final List<AbstractNode> logEntries = (List)app.nodeQuery(logEntryType).sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getAsList();
 
 			final AbstractNode afterDelete = logEntries.get(0);
 

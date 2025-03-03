@@ -27,6 +27,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.web.entity.User;
 
 import java.io.IOException;
@@ -49,7 +50,7 @@ public abstract class SSHTest extends StructrFileTestBase {
 		final PropertyMap props = new PropertyMap();
 		final Traits traits     = Traits.of(StructrTraits.USER);
 
-		props.put(traits.key("name"), username);
+		props.put(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), username);
 		props.put(traits.key("password"), password);
 
 		return createTestNodes(StructrTraits.USER, 1, props).get(0).as(User.class);

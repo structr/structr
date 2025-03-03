@@ -31,6 +31,7 @@ import org.structr.core.graph.search.DefaultSortOrder;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.path.PagePath;
@@ -81,7 +82,7 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 			if (rawList instanceof List rawNames) {
 
 				// update path
-				wrappedObject.setProperty(traits.key("name"), path);
+				wrappedObject.setProperty(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), path);
 
 				// update parameters
 				final App app                                   = StructrApp.getInstance(securityContext);
@@ -96,7 +97,7 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 					if (!parameters.containsKey(parameterName)) {
 
 						app.create(StructrTraits.PAGE_PATH_PARAMETER,
-							new NodeAttribute<>(traits.key("name"),      parameterName),
+							new NodeAttribute<>(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),      parameterName),
 							new NodeAttribute<>(traits.key("valueType"), "String"),
 							new NodeAttribute<>(traits.key("position"),  count),
 							new NodeAttribute<>(traits.key("path"),      wrappedObject)

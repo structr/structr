@@ -36,6 +36,7 @@ import java.net.URI;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 
 /**
  *
@@ -254,7 +255,7 @@ public class StructrNodeTypeDefinition extends StructrTypeDefinition<SchemaNode>
 
 		final Traits traits = Traits.of(StructrTraits.SCHEMA_NODE);
 
-		createProperties.put(traits.key("name"),            name);
+		createProperties.put(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),            name);
 		createProperties.put(traits.key("inheritedTraits"), inheritedTraits.toArray(new String[0]));
 
 		final SchemaNode newNode = app.create(StructrTraits.SCHEMA_NODE, createProperties).as(SchemaNode.class);

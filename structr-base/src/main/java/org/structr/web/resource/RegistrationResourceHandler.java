@@ -42,6 +42,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.PersonTraitDefinition;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.RESTCall;
@@ -391,7 +392,7 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 			user.unlockSystemPropertiesOnce();
 
 			final PropertyMap changedProperties = new PropertyMap();
-			changedProperties.put(Traits.of(StructrTraits.GRAPH_OBJECT).key("type"), StructrTraits.USER);
+			changedProperties.put(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY), StructrTraits.USER);
 			changedProperties.put(confirmationKeyKey, confKey);
 			user.setProperties(securityContext, changedProperties);
 

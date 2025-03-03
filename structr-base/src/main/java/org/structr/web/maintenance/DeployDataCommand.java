@@ -35,6 +35,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.rest.resource.MaintenanceResource;
 import org.structr.schema.SchemaHelper;
 import org.structr.web.entity.AbstractFile;

@@ -47,6 +47,12 @@ import java.util.Set;
 
 public class PrincipalTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String GROUPS_PROPERTY      = "groups";
+	public static final String OWNED_NODES_PROPERTY = "ownedNodes";
+	public static final String GRANTED_NODES_PROPERTY = "grantedNodes";
+	public static final String IS_ADMIN_PROPERTY = "isAdmin";
+
+
 	public PrincipalTraitDefinition() {
 		super(StructrTraits.PRINCIPAL);
 	}
@@ -149,10 +155,10 @@ public class PrincipalTraitDefinition extends AbstractNodeTraitDefinition {
 	public Set<PropertyKey> getPropertyKeys() {
 
 		return newSet(
-			new StartNodes("groups", StructrTraits.GROUP_CONTAINS_PRINCIPAL),
-			new EndNodes("ownedNodes", StructrTraits.PRINCIPAL_OWNS_NODE),
-			new EndNodes("grantedNodes", StructrTraits.SECURITY),
-			new BooleanProperty("isAdmin").indexed().readOnly(),
+			new StartNodes(GROUPS_PROPERTY, StructrTraits.GROUP_CONTAINS_PRINCIPAL),
+			new EndNodes(OWNED_NODES_PROPERTY, StructrTraits.PRINCIPAL_OWNS_NODE),
+			new EndNodes(GRANTED_NODES_PROPERTY, StructrTraits.SECURITY),
+			new BooleanProperty(PrincipalTraitDefinition.IS_ADMIN_PROPERTY).indexed().readOnly(),
 			new BooleanProperty("blocked"),
 			new ArrayProperty("sessionIds", String.class).indexed(),
 			new ArrayProperty("refreshTokens", String.class).indexed(),

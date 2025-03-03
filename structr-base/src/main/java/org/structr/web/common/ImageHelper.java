@@ -47,6 +47,8 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.util.Base64;
 import org.structr.web.entity.File;
@@ -87,15 +89,14 @@ public abstract class ImageHelper extends FileHelper {
 		final PropertyMap props = new PropertyMap();
 		final Traits traits     = Traits.of(StructrTraits.IMAGE);
 
-		props.put(traits.key("type"),        imageType == null ? StructrTraits.IMAGE : imageType);
+		props.put(traits.key(GraphObjectTraitDefinition.TYPE_PROPERTY),        imageType == null ? StructrTraits.IMAGE : imageType);
 		props.put(traits.key("isThumbnail"), markAsThumbnail);
-		props.put(traits.key("name"),        name);
+		props.put(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),        name);
 
 		final Image newImage = StructrApp.getInstance(securityContext).create(imageType, props).as(Image.class);
 		setFileData(newImage, imageStream, contentType);
 
 		return newImage;
-
 	}
 
 	/**
@@ -117,9 +118,9 @@ public abstract class ImageHelper extends FileHelper {
 		final PropertyMap props = new PropertyMap();
 		final Traits traits     = Traits.of(StructrTraits.IMAGE);
 
-		props.put(traits.key("type"),        imageType == null ? StructrTraits.IMAGE : imageType);
+		props.put(traits.key(GraphObjectTraitDefinition.TYPE_PROPERTY),        imageType == null ? StructrTraits.IMAGE : imageType);
 		props.put(traits.key("isThumbnail"), markAsThumbnail);
-		props.put(traits.key("name"),        name);
+		props.put(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),        name);
 
 		final NodeInterface newImage = StructrApp.getInstance(securityContext).create(imageType, props);
 
@@ -129,7 +130,6 @@ public abstract class ImageHelper extends FileHelper {
 		}
 
 		return newImage;
-
 	}
 
 	/**

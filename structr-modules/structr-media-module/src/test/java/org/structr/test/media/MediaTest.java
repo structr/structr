@@ -26,6 +26,8 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.media.AVConv;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.FileHelper;
@@ -55,9 +57,9 @@ public class MediaTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create(StructrTraits.USER,
-				new NodeAttribute<>(userTraits.key("name"),     "admin"),
+				new NodeAttribute<>(userTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     "admin"),
 				new NodeAttribute<>(userTraits.key("password"), "admin"),
-				new NodeAttribute<>(userTraits.key("isAdmin"),  true)
+				new NodeAttribute<>(userTraits.key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY),  true)
 			);
 
 			// create AutoClosable input stream

@@ -42,6 +42,12 @@ import java.util.Set;
 
 public final class NodeInterfaceTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String NAME_PROPERTY      = "name";
+	public static final String HIDDEN_PROPERTY    = "hidden";
+	public static final String OWNER_PROPERTY     = "owner";
+	public static final String OWNER_ID_PROPERTY  = "ownerId";
+	public static final String GRANTEES_PROPERTY  = "grantees";
+
 	public NodeInterfaceTraitDefinition() {
 		super(StructrTraits.NODE_INTERFACE);
 	}
@@ -237,11 +243,11 @@ public final class NodeInterfaceTraitDefinition extends AbstractNodeTraitDefinit
 	public Set<PropertyKey> getPropertyKeys() {
 
 		// properties
-		final PropertyKey<String>  nameProperty                     = new StringProperty("name").indexed();
-		final PropertyKey<Boolean> hiddenProperty                   = new BooleanProperty("hidden").indexed();
-		final Property<NodeInterface> ownerProperty                 = new StartNode("owner", StructrTraits.PRINCIPAL_OWNS_NODE);
-		final PropertyKey<String> ownerIdProperty                   = new EntityIdProperty("ownerId", StructrTraits.NODE_INTERFACE, "owner", StructrTraits.PRINCIPAL);
-		final PropertyKey<Iterable<NodeInterface>> granteesProperty = new StartNodes("grantees", StructrTraits.SECURITY);
+		final PropertyKey<String>  nameProperty                     = new StringProperty(NAME_PROPERTY).indexed();
+		final PropertyKey<Boolean> hiddenProperty                   = new BooleanProperty(HIDDEN_PROPERTY).indexed();
+		final Property<NodeInterface> ownerProperty                 = new StartNode(OWNER_PROPERTY, StructrTraits.PRINCIPAL_OWNS_NODE);
+		final PropertyKey<String> ownerIdProperty                   = new EntityIdProperty(OWNER_ID_PROPERTY, StructrTraits.NODE_INTERFACE, OWNER_PROPERTY, StructrTraits.PRINCIPAL);
+		final PropertyKey<Iterable<NodeInterface>> granteesProperty = new StartNodes(GRANTEES_PROPERTY, StructrTraits.SECURITY);
 		//private static final PropertyKey<String> internalPathProperty              = new InternalPathProperty("internalEntityContextPath");
 
 		return newSet(
@@ -260,10 +266,10 @@ public final class NodeInterfaceTraitDefinition extends AbstractNodeTraitDefinit
 		return Map.of(
 
 			PropertyView.Public,
-			newSet("name"),
+			newSet(NAME_PROPERTY),
 
 			PropertyView.Ui,
-			newSet("name", "owner", "hidden")
+			newSet(NAME_PROPERTY, OWNER_PROPERTY, HIDDEN_PROPERTY)
 		);
 	}
 

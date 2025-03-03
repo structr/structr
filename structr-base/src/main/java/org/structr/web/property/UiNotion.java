@@ -23,6 +23,8 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 
 import java.util.Set;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 
 /**
  * Convenience wrapper for (id, name) tuple.
@@ -32,6 +34,6 @@ import java.util.Set;
 public class UiNotion extends PropertySetNotion {
 
 	public UiNotion() {
-		super(Set.of(Traits.of(StructrTraits.GRAPH_OBJECT).key("id"), Traits.of(StructrTraits.NODE_INTERFACE).key("name")));
+		super(Set.of(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)));
 	}
 }

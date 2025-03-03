@@ -36,6 +36,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
 import org.structr.schema.export.StructrSchema;
@@ -428,7 +429,7 @@ public class SchemaTest extends StructrTest {
 
 			// create "public" view that contains the related property
 			app.create(StructrTraits.SCHEMA_VIEW,
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key("name"), "public"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "public"),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key("schemaNode"), fooNode),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key("nonGraphProperties"), "type, id, narfBars")
 			);
@@ -474,7 +475,7 @@ public class SchemaTest extends StructrTest {
 
 			app.create(StructrTraits.SCHEMA_METHOD,
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("schemaNode"), schemaNode),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("name"),       "testJavaMethod"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),       "testJavaMethod"),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"),     source.toString()),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("codeType"),   "java")
 			);
@@ -518,7 +519,7 @@ public class SchemaTest extends StructrTest {
 
 			app.create(StructrTraits.SCHEMA_METHOD,
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("staticSchemaNodeName"), StructrTraits.GROUP),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("name"),                 "testJavaMethod"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),                 "testJavaMethod"),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"),               source),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("codeType"),             "java")
 			);
@@ -672,7 +673,7 @@ public class SchemaTest extends StructrTest {
 			final GraphObject test = app.getNodeById(type, uuid);
 			assertNotNull(test);
 
-			test.setProperty(Traits.of(type).key("name"), "new test");
+			test.setProperty(Traits.of(type).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "new test");
 			test.setProperty(Traits.of(type).key("desc"), "description");
 
 			tx.success();
@@ -938,7 +939,7 @@ public class SchemaTest extends StructrTest {
 
 			assertNotNull("Base type schema node not found", base);
 
-			base.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "ModifiedBaseType");
+			base.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "ModifiedBaseType");
 
 			app.delete(base);
 

@@ -36,6 +36,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
 import java.util.TreeMap;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 
 /**
  *
@@ -179,7 +180,7 @@ public class StructrParameterDefinition implements JsonParameter, StructrDefinit
 
 			final PropertyMap getOrCreateProperties = new PropertyMap();
 
-			getOrCreateProperties.put(traits.key("name"),         getName());
+			getOrCreateProperties.put(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),         getName());
 			getOrCreateProperties.put(traits.key("schemaMethod"), schemaMethod);
 
 			parameter = app.create(StructrTraits.SCHEMA_METHOD_PARAMETER, getOrCreateProperties).as(SchemaMethodParameter.class);

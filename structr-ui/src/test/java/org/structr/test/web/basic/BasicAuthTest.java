@@ -27,6 +27,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
@@ -311,7 +312,7 @@ public class BasicAuthTest extends StructrUiTest {
 	private NodeInterface createUser() throws FrameworkException {
 
 		return createTestNode(StructrTraits.USER,
-			new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"), "tester"),
+			new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "tester"),
 			new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "test")
 		);
 	}

@@ -33,6 +33,7 @@ import org.structr.core.traits.Traits;
 
 import java.util.Map;
 import java.util.Map.Entry;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 
 /**
  * Sets the properties found in the property set on all nodes matching the type.
@@ -52,8 +53,8 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 
 	public long executeWithCount(final Map<String, Object> properties) throws FrameworkException {
 
-		final PropertyKey<String> typeProperty = Traits.of(StructrTraits.GRAPH_OBJECT).key("type");
-		final PropertyKey<String> idProperty   = Traits.of(StructrTraits.GRAPH_OBJECT).key("id");
+		final PropertyKey<String> typeProperty = Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY);
+		final PropertyKey<String> idProperty   = Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY);
 		final String type                      = (String)properties.get("type");
 
 		if (StringUtils.isBlank(type)) {

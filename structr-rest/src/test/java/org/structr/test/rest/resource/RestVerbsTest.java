@@ -27,6 +27,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.testng.annotations.Test;
 
@@ -479,7 +480,7 @@ public class RestVerbsTest extends StructrRestTestBase {
 
 			for (final NodeInterface node : nodes) {
 
-				node.setProperty(node.getTraits().key("name"), "node" + StringUtils.leftPad(Integer.toString(i++), 3, "0"));
+				node.setProperty(node.getTraits().key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "node" + StringUtils.leftPad(Integer.toString(i++), 3, "0"));
 			}
 
 			if (mapper != null) {

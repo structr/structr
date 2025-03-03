@@ -34,6 +34,8 @@ import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.nodeinterface.*;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
@@ -66,7 +68,7 @@ public final class AbstractNode extends AbstractGraphObject<Node> implements Nod
 
 	@Override
 	public String getType() {
-		return getProperty(typeHandler.key("type"));
+		return getProperty(typeHandler.key(GraphObjectTraitDefinition.TYPE_PROPERTY));
 	}
 
 	@Override
@@ -139,7 +141,7 @@ public final class AbstractNode extends AbstractGraphObject<Node> implements Nod
 	@Override
 	public String getName() {
 
-		String _name = getProperty(typeHandler.key("name"));
+		String _name = getProperty(typeHandler.key(NodeInterfaceTraitDefinition.NAME_PROPERTY));
 		if (_name == null) {
 
 			_name = getUuid();
@@ -150,7 +152,7 @@ public final class AbstractNode extends AbstractGraphObject<Node> implements Nod
 
 	@Override
 	public void setName(final String name) throws FrameworkException {
-		setProperty(typeHandler.key("name"), name);
+		setProperty(typeHandler.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name);
 	}
 
 	@Override
@@ -164,7 +166,7 @@ public final class AbstractNode extends AbstractGraphObject<Node> implements Nod
 	@Override
 	public void onNodeInstantiation(final boolean isCreation) {
 
-		this.cachedUuid = getProperty(typeHandler.key("id"));
+		this.cachedUuid = getProperty(typeHandler.key(GraphObjectTraitDefinition.ID_PROPERTY));
 
 		for (final OnNodeInstantiation callback : typeHandler.getMethods(OnNodeInstantiation.class)) {
 			callback.onNodeInstantiation(this, isCreation);

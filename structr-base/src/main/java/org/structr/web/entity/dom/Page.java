@@ -26,6 +26,8 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.web.entity.Site;
 import org.structr.web.entity.path.PagePath;
 
@@ -90,8 +92,8 @@ public interface Page extends DOMNode {
 	static Page createNewPage(final SecurityContext securityContext, final String uuid, final String name) throws FrameworkException {
 
 		final Traits traits                           = Traits.of(StructrTraits.PAGE);
-		final PropertyKey<String> nameKey             = traits.key("name");
-		final PropertyKey<String> typeKey             = traits.key("type");
+		final PropertyKey<String> nameKey             = traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
+		final PropertyKey<String> typeKey             = traits.key(GraphObjectTraitDefinition.TYPE_PROPERTY);
 		final PropertyKey<String> contentTypeKey      = traits.key("contentType");
 		final PropertyKey<Boolean> enableBasicAuthKey = traits.key("enableBasicAuth");
 		final App app                                 = StructrApp.getInstance(securityContext);
@@ -105,7 +107,7 @@ public interface Page extends DOMNode {
 		properties.put(enableBasicAuthKey, false);
 
 		if (uuid != null) {
-			properties.put(traits.key("id"), uuid);
+			properties.put(traits.key(GraphObjectTraitDefinition.ID_PROPERTY), uuid);
 		}
 
 		return app.create(StructrTraits.PAGE, properties).as(Page.class);

@@ -66,6 +66,7 @@ public class StructrTraits {
 	public static final String DYNAMIC_RESOURCE_ACCESS  = "DynamicResourceAccess";
 	public static final String EMAIL_MESSAGE            = "EMailMessage";
 	public static final String MAILBOX                  = "Mailbox";
+	public static final String WIDGET                   = "Widget";
 
 	// relationship types
 	public static final String SECURITY                              = "Security";

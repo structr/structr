@@ -35,6 +35,7 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 
 import java.util.*;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 
 /**
  * Deserializes a {@link GraphObject} using the UUID property.
@@ -55,7 +56,7 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> extends Deser
 	public T deserialize(final SecurityContext securityContext, final String type, final S source, final Object context) throws FrameworkException {
 
 		final App app = StructrApp.getInstance(securityContext);
-		final PropertyKey<String> idProperty = Traits.of(StructrTraits.GRAPH_OBJECT).key("id");
+		final PropertyKey<String> idProperty = Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY);
 
 		if (source != null) {
 
@@ -106,7 +107,7 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> extends Deser
 				final PropertyMap convertedProperties  = PropertyMap.inputTypeToJavaType(securityContext, actualType.getName(), properties);
 
 				// If property map contains the uuid, search only for uuid
-				if (convertedProperties.containsKey(Traits.of(StructrTraits.GRAPH_OBJECT).key("id"))) {
+				if (convertedProperties.containsKey(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY))) {
 
 					// related node is already found
 					if (relatedNode != null) {

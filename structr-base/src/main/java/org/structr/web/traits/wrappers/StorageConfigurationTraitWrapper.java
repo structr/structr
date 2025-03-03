@@ -25,6 +25,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.storage.StorageProvider;
 import org.structr.web.entity.StorageConfiguration;
@@ -102,7 +103,7 @@ public class StorageConfigurationTraitWrapper extends AbstractNodeTraitWrapper i
 
 		return StructrApp.getInstance().create(type,
 			new NodeAttribute<>(entryTraits.key("configuration"), this),
-			new NodeAttribute<>(entryTraits.key("name"),          key),
+			new NodeAttribute<>(entryTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),          key),
 			new NodeAttribute<>(entryTraits.key("value"),         value)
 		);
 	}

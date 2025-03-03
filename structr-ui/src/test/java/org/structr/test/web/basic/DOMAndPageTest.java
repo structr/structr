@@ -33,6 +33,8 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
@@ -195,12 +197,12 @@ public class DOMAndPageTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"), "TestUser1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "TestUser1"),
 				new NodeAttribute(eMail, "user@structr.test")
 			);
 
 			app.create(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"), "TestUser2"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "TestUser2"),
 				new NodeAttribute(eMail, "user@structr.test")
 			);
 
@@ -217,12 +219,12 @@ public class DOMAndPageTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"), "TestUser1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "TestUser1"),
 				new NodeAttribute(eMail, "user@structr.test")
 			);
 
 			app.create(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"), "TestUser2"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "TestUser2"),
 				new NodeAttribute(eMail, "User@Structr.test")
 			);
 
@@ -276,7 +278,7 @@ public class DOMAndPageTest extends StructrUiTest {
 			final PropertyKey<Integer> positionKey              = Traits.of(StructrTraits.PAGE).key("position");
 			final PropertyKey<Integer> portKey                  = Traits.of("Site").key("port");
 			final PropertyKey<String> hostnameKey               = Traits.of("Site").key("hostname");
-			final PropertyKey<String> nameKey                   = Traits.of("Site").key("name");
+			final PropertyKey<String> nameKey                   = Traits.of("Site").key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 			final PropertyKey<Boolean> vtp                      = Traits.of("Site").key("visibleToPublicUsers");
 
 			siteOneProperties.put(nameKey, "site-one");
@@ -836,11 +838,11 @@ public class DOMAndPageTest extends StructrUiTest {
 			try (final Tx tx = app.tx()) {
 
 				// create some test nodes
-				test1 = createTestNode(StructrTraits.FILE, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "aaaaa"));
-				createTestNode(StructrTraits.FILE, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "bbbbb"));
-				createTestNode(StructrTraits.FILE, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "ccccc"));
-				createTestNode(StructrTraits.FILE, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "ddddd"));
-				createTestNode(StructrTraits.FILE, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "eeeee"));
+				test1 = createTestNode(StructrTraits.FILE, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "aaaaa"));
+				createTestNode(StructrTraits.FILE, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "bbbbb"));
+				createTestNode(StructrTraits.FILE, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "ccccc"));
+				createTestNode(StructrTraits.FILE, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "ddddd"));
+				createTestNode(StructrTraits.FILE, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "eeeee"));
 
 				tx.success();
 			}
@@ -863,7 +865,7 @@ public class DOMAndPageTest extends StructrUiTest {
 			// modify file name to move the first file to the end of the sorted list
 			try (final Tx tx = app.tx()) {
 
-				test1.setProperties(test1.getSecurityContext(), new PropertyMap(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "zzzzz"));
+				test1.setProperties(test1.getSecurityContext(), new PropertyMap(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "zzzzz"));
 
 				tx.success();
 			}
@@ -898,9 +900,9 @@ public class DOMAndPageTest extends StructrUiTest {
 			Page.createSimplePage(securityContext, "test");
 
 			app.create(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "admin"),
 				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY), true)
 			);
 
 			tx.success();
@@ -1101,7 +1103,7 @@ public class DOMAndPageTest extends StructrUiTest {
 			setFlagsRecursively(auth, false,  true);
 
 			app.create(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "tester"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     "tester"),
 				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "test")
 			);
 
@@ -1180,9 +1182,9 @@ public class DOMAndPageTest extends StructrUiTest {
 			test.getElementsByTagName("div").get(0).appendChild(text);
 
 			final NodeInterface user = app.create(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     "admin"),
 				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY), true)
 			);
 
 			uuid = user.getUuid();

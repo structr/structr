@@ -28,6 +28,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 
@@ -101,7 +102,7 @@ public class FindRelationshipFunction extends CoreFunction {
 				}
 
 				// special case: second parameter is a UUID
-				final PropertyKey key = traits.key("id");
+				final PropertyKey key = traits.key(GraphObjectTraitDefinition.ID_PROPERTY);
 
 				query.and(key, sources[1].toString());
 

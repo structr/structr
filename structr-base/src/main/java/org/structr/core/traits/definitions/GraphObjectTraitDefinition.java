@@ -45,6 +45,9 @@ import java.util.*;
 
 public final class GraphObjectTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String ID_PROPERTY   = "id";
+	public static final String TYPE_PROPERTY = "type";
+
 	public GraphObjectTraitDefinition() {
 		super(StructrTraits.GRAPH_OBJECT);
 	}
@@ -62,8 +65,8 @@ public final class GraphObjectTraitDefinition extends AbstractNodeTraitDefinitio
 
 					final SecurityContext securityContext = graphObject.getSecurityContext();
 					final Traits traits                   = graphObject.getTraits();
-					final PropertyKey idProperty          = traits.key("id");
-					final PropertyKey typeProperty        = traits.key("type");
+					final PropertyKey idProperty          = traits.key(ID_PROPERTY);
+					final PropertyKey typeProperty        = traits.key(GraphObjectTraitDefinition.TYPE_PROPERTY);
 					boolean valid = true;
 
 					// the following two checks can be omitted in release 2.4 when Neo4j uniqueness constraints are live

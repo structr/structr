@@ -32,6 +32,7 @@ import org.structr.core.graph.NodeInterface;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 
 /**
  * Executes the given {@link CypherQueryConverter} on the current node and
@@ -73,7 +74,7 @@ public class CypherQueryConverter extends PropertyConverter {
 
 			Map<String, Object> parameters = new LinkedHashMap<>();
 			String query                   = handler.getQuery();
-			String name                    = currentObject.getProperty(currentObject.getTraits().key("name"));
+			String name                    = currentObject.getProperty(currentObject.getTraits().key(NodeInterfaceTraitDefinition.NAME_PROPERTY));
 			String uuid                    = currentObject.getUuid();
 
 			// initialize parameters

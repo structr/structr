@@ -51,7 +51,7 @@ public class TestLDAPClient extends StructrUiTest {
 			app.create(StructrTraits.USER,
 				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
 				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"),  true)
+				new NodeAttribute<>(StructrApp.key(User.class, PrincipalTraitDefinition.IS_ADMIN_PROPERTY),  true)
 			);
 
 			app.create("LDAPGroup",

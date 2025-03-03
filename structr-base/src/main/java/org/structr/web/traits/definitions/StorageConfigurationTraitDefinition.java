@@ -28,6 +28,7 @@ import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
@@ -67,7 +68,7 @@ public class StorageConfigurationTraitDefinition extends AbstractNodeTraitDefini
 					boolean valid = true;
 
 					final Traits traits                = obj.getTraits();
-					final PropertyKey nameProperty     = traits.key("name");
+					final PropertyKey nameProperty     = traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 					final PropertyKey providerProperty = traits.key("provider");
 
 					valid &= ValidationHelper.isValidPropertyNotNull(obj, nameProperty, errorBuffer);

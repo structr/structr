@@ -34,6 +34,7 @@ import org.structr.core.traits.Traits;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 
 /**
  *
@@ -45,7 +46,7 @@ public class GraphSearchAttribute<T> extends PropertySearchAttribute<T> implemen
 	private Set<Object> values    = null;
 
 	public GraphSearchAttribute(PropertyKey<T> key, T value, final Occurrence occurrence, final boolean exact) {
-		this(Traits.of(StructrTraits.GRAPH_OBJECT).key("id"), key, value, occurrence, exact);
+		this(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), key, value, occurrence, exact);
 	}
 
 	public GraphSearchAttribute(final PropertyKey notionKey, final PropertyKey<T> key, final T value, final Occurrence occurrence, final boolean exact) {

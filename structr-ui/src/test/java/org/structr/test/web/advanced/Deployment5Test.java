@@ -31,6 +31,8 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
@@ -162,9 +164,9 @@ public class Deployment5Test extends DeploymentTestBase {
 		try (final Tx tx = app.tx()) {
 
 			app.create(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "admin"),
 				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("isAdmin"), true)
+				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY), true)
 			);
 
 			final Group parent               = app.create(StructrTraits.GROUP, "parent").as(Group.class);
@@ -245,9 +247,9 @@ public class Deployment5Test extends DeploymentTestBase {
 		try (final Tx tx = app.tx()) {
 
 			app.create(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "admin"),
 				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("isAdmin"), true)
+				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY), true)
 			);
 
 			final Group parent               = app.create(StructrTraits.GROUP, "parent").as(Group.class);
@@ -312,9 +314,9 @@ public class Deployment5Test extends DeploymentTestBase {
 		try (final Tx tx = app.tx()) {
 
 			app.create(StructrTraits.USER,
-					new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("name"), "admin"),
+					new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "admin"),
 					new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("password"), "admin"),
-					new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("isAdmin"),    true)
+					new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY),    true)
 			);
 
 			tx.success();
@@ -345,10 +347,10 @@ public class Deployment5Test extends DeploymentTestBase {
 			body.removeChild(div1);
 			body.removeChild(div2);
 
-			comp1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "shared-component-one");
+			comp1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "shared-component-one");
 			comp1.setProperty(Traits.of(StructrTraits.DOM_NODE).key("hideConditions"), "{ return $.requestStore['SC1_render_count'] > 3; }");
 
-			comp2.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "shared-component-two");
+			comp2.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "shared-component-two");
 			comp2.setProperty(Traits.of(StructrTraits.DOM_NODE).key("hideConditions"), "{ return $.requestStore['SCS_render_count'] > 3; }");
 
 			createContent(shadowPage, comp1, "shared-component-one\n" +
@@ -394,9 +396,9 @@ public class Deployment5Test extends DeploymentTestBase {
 		try (final Tx tx = app.tx()) {
 
 			app.create(StructrTraits.USER,
-					new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("name"),     "admin"),
+					new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     "admin"),
 					new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("password"), "admin"),
-					new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("isAdmin"),  true)
+					new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY),  true)
 			);
 
 			tx.success();
@@ -462,11 +464,11 @@ public class Deployment5Test extends DeploymentTestBase {
 		// check
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface method1 = app.nodeQuery(StructrTraits.SCHEMA_METHOD).and(Traits.of(StructrTraits.SCHEMA_METHOD).key("name"), "test").getFirst();
+			final NodeInterface method1 = app.nodeQuery(StructrTraits.SCHEMA_METHOD).and(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test").getFirst();
 
 			assertNotNull("Invalid deployment result", method1);
 
-			assertEquals("Invalid SchemaMethod deployment result", "test",                                         method1.getProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key("name")));
+			assertEquals("Invalid SchemaMethod deployment result", "test",                                         method1.getProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)));
 			assertEquals("Invalid SchemaMethod deployment result", "System.out.println(parameters); return null;", method1.getProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key("source")));
 			assertEquals("Invalid SchemaMethod deployment result", "java",                                         method1.getProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key("codeType")));
 
@@ -526,10 +528,10 @@ public class Deployment5Test extends DeploymentTestBase {
 			try (final Tx tx = app.tx()) {
 
 				final NodeInterface folder = app.nodeQuery(StructrTraits.FOLDER).andName(v2FolderName).getFirst();
-				folder.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), v1FolderName);
+				folder.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), v1FolderName);
 
 				final NodeInterface file = app.nodeQuery(StructrTraits.FILE).andName(v2FileName).getFirst();
-				file.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), v1FileName);
+				file.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), v1FileName);
 
 				tx.success();
 

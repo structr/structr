@@ -25,6 +25,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
@@ -43,8 +44,8 @@ public class SiteTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface site1 = createTestNode("Site", new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "site1"), new NodeAttribute<>(Traits.of("Site").key("hostname"), "test1.example.com"));
-			final NodeInterface site2 = createTestNode("Site", new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "site2"), new NodeAttribute<>(Traits.of("Site").key("hostname"), "test2.example.com"));
+			final NodeInterface site1 = createTestNode("Site", new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "site1"), new NodeAttribute<>(Traits.of("Site").key("hostname"), "test1.example.com"));
+			final NodeInterface site2 = createTestNode("Site", new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "site2"), new NodeAttribute<>(Traits.of("Site").key("hostname"), "test2.example.com"));
 
 			site1.setProperty(Traits.of("Site").key("visibleToAuthenticatedUsers"), true);
 			site2.setProperty(Traits.of("Site").key("visibleToAuthenticatedUsers"), true);
@@ -98,8 +99,8 @@ public class SiteTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface site1 = createTestNode("Site", new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "site1"), new NodeAttribute<>(Traits.of("Site").key("hostname"), "test1.example.com"));
-			final NodeInterface site2 = createTestNode("Site", new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "site2"), new NodeAttribute<>(Traits.of("Site").key("hostname"), "test2.example.com"));
+			final NodeInterface site1 = createTestNode("Site", new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "site1"), new NodeAttribute<>(Traits.of("Site").key("hostname"), "test1.example.com"));
+			final NodeInterface site2 = createTestNode("Site", new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "site2"), new NodeAttribute<>(Traits.of("Site").key("hostname"), "test2.example.com"));
 
 			site1.setProperty(Traits.of("Site").key("visibleToAuthenticatedUsers"), true);
 			site2.setProperty(Traits.of("Site").key("visibleToAuthenticatedUsers"), true);

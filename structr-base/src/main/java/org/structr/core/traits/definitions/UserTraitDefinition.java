@@ -125,7 +125,7 @@ public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 
 			PropertyView.Ui,
 			Set.of(
-				"isUser", "confirmationKey", "eMail", "groups", "homeDirectory", "isAdmin", "locale", "password", "proxyPassword", "proxyUrl",
+				"isUser", "confirmationKey", "eMail", PrincipalTraitDefinition.GROUPS_PROPERTY, "homeDirectory", PrincipalTraitDefinition.IS_ADMIN_PROPERTY, "locale", "password", "proxyPassword", "proxyUrl",
 				"proxyUsername", "publicKey", "sessionIds", "refreshTokens", "workingDirectory", "twoFactorToken", "isTwoFactorUser",
 				"twoFactorConfirmed", "passwordAttempts", "passwordChangeDate", "lastLoginDate", "skipSecurityRelationships", "img"
 			)
@@ -194,20 +194,20 @@ public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 
 						// create home directory
 						final App app            = StructrApp.getInstance();
-						NodeInterface homeFolder = app.nodeQuery(StructrTraits.FOLDER).and(folderTraits.key("name"), "home").and(parentKey, null).getFirst();
+						NodeInterface homeFolder = app.nodeQuery(StructrTraits.FOLDER).and(folderTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "home").and(parentKey, null).getFirst();
 
 						if (homeFolder == null) {
 
 							homeFolder = app.create(StructrTraits.FOLDER,
-								new NodeAttribute(folderTraits.key("name"), "home"),
-								new NodeAttribute(folderTraits.key("owner"), null),
+								new NodeAttribute(folderTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "home"),
+								new NodeAttribute(folderTraits.key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), null),
 								new NodeAttribute(folderTraits.key("visibleToAuthenticatedUsers"), true)
 							);
 						}
 
 						app.create(StructrTraits.FOLDER,
-							new NodeAttribute(folderTraits.key("name"), user.getUuid()),
-							new NodeAttribute(folderTraits.key("owner"), user),
+							new NodeAttribute(folderTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), user.getUuid()),
+							new NodeAttribute(folderTraits.key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), user),
 							new NodeAttribute(folderTraits.key("visibleToAuthenticatedUsers"), true),
 							new NodeAttribute(parentKey, homeFolder),
 							new NodeAttribute(homeFolderKey, user)

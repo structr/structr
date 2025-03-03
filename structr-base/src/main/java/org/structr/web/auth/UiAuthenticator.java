@@ -49,6 +49,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.wrappers.ResourceAccessTraitWrapper;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.auth.JWTHelper;
@@ -876,7 +877,7 @@ public class UiAuthenticator implements Authenticator {
 
 					try {
 
-						user = AuthHelper.getPrincipalForPassword(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), userName, password);
+						user = AuthHelper.getPrincipalForPassword(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), userName, password);
 
 					} catch (AuthenticationException ex) {
 

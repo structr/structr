@@ -94,7 +94,7 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 
 				@Override
 				public void setOwner(final NodeInterface nodeInterface, final Principal principal) throws FrameworkException {
-					nodeInterface.setProperty(nodeInterface.getTraits().key("owner"), principal);
+					nodeInterface.setProperty(nodeInterface.getTraits().key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), principal);
 				}
 			},
 
@@ -268,8 +268,8 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 
 						final NodeInterface p1 = o1.getSourceNode();
 						final NodeInterface p2 = o2.getSourceNode();
-						final String n1 = p1 != null ? p1.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name")) : "empty";
-						final String n2 = p2 != null ? p2.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name")) : "empty";
+						final String n1 = p1 != null ? p1.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)) : "empty";
+						final String n2 = p2 != null ? p2.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)) : "empty";
 
 						if (n1 != null && n2 != null) {
 							return n1.compareTo(n2);

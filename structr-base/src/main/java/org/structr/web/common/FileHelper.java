@@ -49,6 +49,8 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.storage.StorageProvider;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.util.Base64;
@@ -93,7 +95,7 @@ public class FileHelper {
 		if (existingFile != null) {
 
 			existingFile.unlockSystemPropertiesOnce();
-			existingFile.setProperties(securityContext, new PropertyMap(Traits.of(StructrTraits.GRAPH_OBJECT).key("type"), fileType == null ? StructrTraits.FILE : fileType));
+			existingFile.setProperties(securityContext, new PropertyMap(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY), fileType == null ? StructrTraits.FILE : fileType));
 
 			return getFileByUuid(securityContext, uuid);
 		}
@@ -156,7 +158,7 @@ public class FileHelper {
 		final PropertyMap props = new PropertyMap();
 		final Traits traits     = Traits.of(StructrTraits.FILE);
 
-		props.put(traits.key("name"),        name);
+		props.put(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),        name);
 		props.put(traits.key("contentType"), contentType);
 
 		final File newFile = StructrApp.getInstance(securityContext).create(StructrTraits.FILE, props).as(File.class);
@@ -187,7 +189,7 @@ public class FileHelper {
 		final PropertyMap props = new PropertyMap();
 		final Traits traits     = Traits.of(StructrTraits.FILE);
 
-		props.put(traits.key("name"), name);
+		props.put(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name);
 		props.put(traits.key("contentType"), contentType);
 
 		if (parentFolder != null) {
@@ -240,7 +242,7 @@ public class FileHelper {
 
 		final PropertyMap props = new PropertyMap();
 
-		props.put(Traits.of(StructrTraits.FILE).key("name"), name);
+		props.put(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name);
 
 		final File newFile = StructrApp.getInstance(securityContext).create(type, props).as(File.class);
 
@@ -389,7 +391,7 @@ public class FileHelper {
 			id = newUuid;
 
 			fileNode.unlockSystemPropertiesOnce();
-			properties.put(Traits.of(StructrTraits.GRAPH_OBJECT).key("id"), newUuid);
+			properties.put(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), newUuid);
 		}
 
 		fileNode.unlockSystemPropertiesOnce();
@@ -498,7 +500,7 @@ public class FileHelper {
 
 					// modify type when image type is detected AND the type is StructrTraits.FILE
 					if (contentType.startsWith("image/") && !file.getTraits().contains(StructrTraits.IMAGE) && StructrTraits.FILE.equals(file.getType())) {
-						map.put(Traits.of(StructrTraits.GRAPH_OBJECT).key("type"), StructrTraits.IMAGE);
+						map.put(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY), StructrTraits.IMAGE);
 					}
 				}
 

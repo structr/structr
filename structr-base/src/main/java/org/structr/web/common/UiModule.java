@@ -119,7 +119,7 @@ public class UiModule implements StructrModule {
 		StructrTraits.registerNodeType("StorageConfigurationEntry",        new StorageConfigurationEntryTraitDefinition());
 		StructrTraits.registerNodeType(StructrTraits.TEMPLATE,                         new DOMNodeTraitDefinition(), new ContentTraitDefinition(), new TemplateTraitDefinition());
 		StructrTraits.registerNodeType(StructrTraits.USER,                             new PrincipalTraitDefinition(), new UserTraitDefinition());
-		StructrTraits.registerNodeType("Widget",                           new WidgetTraitDefinition());
+		StructrTraits.registerNodeType(StructrTraits.WIDGET,                           new WidgetTraitDefinition());
 
 		// HTML elements
 		StructrTraits.registerNodeType("A",               new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new LinkSourceTraitDefinition(), new A());

@@ -30,6 +30,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
@@ -186,7 +187,7 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 		final Traits traits                        = Traits.of(StructrTraits.ABSTRACT_FILE);
 		final PropertyKey<Boolean> isExternalKey   = traits.key("isExternal");
 		final PropertyKey<NodeInterface> parentKey = traits.key("parent");
-		final PropertyKey<String> nameKey          = traits.key("name");
+		final PropertyKey<String> nameKey          = traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 		final App app                              = StructrApp.getInstance();
 		final String type                          = isFile ? (fileType != null ? fileType : StructrTraits.FILE) : (folderType != null ? folderType : StructrTraits.FOLDER);
 

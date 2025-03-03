@@ -34,6 +34,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.module.StructrModule;
 import org.structr.module.api.APIBuilder;
 import org.structr.schema.SourceFile;
@@ -115,7 +116,7 @@ public class APIBuilderModule implements StructrModule, APIBuilder {
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface virtualTypeNode : app.nodeQuery("VirtualType").sort(Traits.of(StructrTraits.NODE_INTERFACE).key("name")).getAsList()) {
+			for (final NodeInterface virtualTypeNode : app.nodeQuery("VirtualType").sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getAsList()) {
 
 				final VirtualType virtualType   = virtualTypeNode.as(VirtualType.class);
 				final Map<String, Object> entry = new TreeMap<>();
@@ -213,7 +214,7 @@ public class APIBuilderModule implements StructrModule, APIBuilder {
 
 			final NodeInterface type = app.create("VirtualType",
 				new NodeAttribute<>(typeTraits.key("sourceType"), sourceType),
-				new NodeAttribute<>(typeTraits.key("name"),       targetType)
+				new NodeAttribute<>(typeTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),       targetType)
 			);
 
 			int i = 0;

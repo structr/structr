@@ -33,6 +33,7 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
@@ -188,7 +189,7 @@ public final class AbstractRelationship extends AbstractGraphObject<Relationship
 
 	@Override
 	public String getType() {
-		return getProperty(typeHandler.key("type"));
+		return getProperty(typeHandler.key(GraphObjectTraitDefinition.TYPE_PROPERTY));
 	}
 
 	@Override

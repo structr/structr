@@ -68,7 +68,7 @@ public final class GroupTraitDefinition extends AbstractNodeTraitDefinition {
 					boolean valid = true;
 
 					final Traits traits                       = obj.getTraits();
-					final PropertyKey nameProperty            = traits.key("name");
+					final PropertyKey nameProperty            = traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 					final PropertyKey jwksReferenceIdProperty = traits.key("jwksReferenceId");
 
 					valid &= ValidationHelper.isValidPropertyNotNull(obj, nameProperty, errorBuffer);

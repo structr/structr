@@ -31,6 +31,7 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 
 import java.util.*;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 
 import static graphql.schema.GraphQLTypeReference.typeRef;
 
@@ -126,7 +127,7 @@ public class GraphQLHelper {
 
 		// add static fields (name etc., can be overwritten)
 		fields.putIfAbsent("type", GraphQLFieldDefinition.newFieldDefinition().name("type").type(Scalars.GraphQLString).build());
-		fields.putIfAbsent("name", GraphQLFieldDefinition.newFieldDefinition().name("name").type(Scalars.GraphQLString).arguments(getGraphQLArgumentsForPropertyType(Traits.of(StructrTraits.NODE_INTERFACE).key("name"))).build());
+		fields.putIfAbsent("name", GraphQLFieldDefinition.newFieldDefinition().name("name").type(Scalars.GraphQLString).arguments(getGraphQLArgumentsForPropertyType(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY))).build());
 		fields.putIfAbsent("owner", GraphQLFieldDefinition.newFieldDefinition().name("owner").type(typeRef(StructrTraits.PRINCIPAL)).arguments(getGraphQLArgumentsForRelatedType(Principal.class)).build());
 		fields.putIfAbsent("createdBy", GraphQLFieldDefinition.newFieldDefinition().name("createdBy").type(Scalars.GraphQLString).build());
 		fields.putIfAbsent("createdDate", GraphQLFieldDefinition.newFieldDefinition().name("createdDate").type(Scalars.GraphQLString).build());

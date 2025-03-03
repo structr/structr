@@ -37,6 +37,8 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.common.StructrTest;
 import org.testng.annotations.Test;
@@ -939,10 +941,10 @@ public class PropertyTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				a.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "a");
-				c.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "c");
-				b.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "b");
-				d.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "d");
+				a.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "a");
+				c.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "c");
+				b.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "b");
+				d.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "d");
 				tx.success();
 
 			} catch (FrameworkException fex) {
@@ -1027,10 +1029,10 @@ public class PropertyTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				testSix1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "a");
-				testSix2.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "c");
-				testThree1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "b");
-				testThree2.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "d");
+				testSix1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "a");
+				testSix2.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "c");
+				testThree1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "b");
+				testThree2.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "d");
 				tx.success();
 
 			} catch (FrameworkException fex) {
@@ -1272,7 +1274,7 @@ public class PropertyTest extends StructrTest {
 
 			final PropertyMap properties = new PropertyMap();
 
-			properties.put(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "Test");
+			properties.put(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Test");
 
 			final NodeInterface type = app.create(StructrTraits.SCHEMA_NODE, "Test");
 			final NodeInterface prop = app.create(StructrTraits.SCHEMA_PROPERTY, "functionTest");
@@ -1933,7 +1935,7 @@ public class PropertyTest extends StructrTest {
 			// change typeProperty to TestFive
 			// system properties have to be unlocked now, admin rights are not enough anymore
 			testEntity.unlockSystemPropertiesOnce();
-			testEntity.setProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key("type"), "TestFive");
+			testEntity.setProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY), "TestFive");
 
 			// commit transaction
 			tx.success();
@@ -1978,12 +1980,12 @@ public class PropertyTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface test  = app.create(StructrTraits.SCHEMA_NODE,
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key("name"), "Test")
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Test")
 			);
 
 			final NodeInterface func = app.create(StructrTraits.SCHEMA_PROPERTY,
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"),   test),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"),         "testFunction"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),         "testFunction"),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Function"),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("readFunction"), "this.group.name"),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("indexed"),      true),
@@ -2080,46 +2082,46 @@ public class PropertyTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface test  = app.create(StructrTraits.SCHEMA_NODE,
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key("name"), "Test")
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Test")
 			);
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"), "ownerName"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "ownerName"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Notion"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("format"), "owner, name"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), test)
 			);
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"), "ownerEmail"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "ownerEmail"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Notion"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("format"), "owner, eMail"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), test)
 			);
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"), "ownerPrincipalEmail"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "ownerPrincipalEmail"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Notion"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("format"), "owner, Principal.eMail"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), test)
 			);
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"), "ownerName"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "ownerName"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Notion"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("format"), "owner,name"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), test)
 			);
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"), "ownerEmail"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "ownerEmail"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Notion"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("format"), "owner,  eMail"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), test)
 			);
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"), "ownerPrincipalEmail"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "ownerPrincipalEmail"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Notion"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("format"), "owner , Principal.eMail"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), test)
@@ -2146,11 +2148,11 @@ public class PropertyTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			message  = app.create(StructrTraits.SCHEMA_NODE,
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key("name"), "Message")
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Message")
 			);
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"), "messageId"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "messageId"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "String"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), message)
 			);
@@ -2176,56 +2178,56 @@ public class PropertyTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"), "parentMessageId1"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "parentMessageId1"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Notion"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("format"), "parent, _messageId"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), message)
 			);
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"), "parentMessageId2"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "parentMessageId2"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Notion"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("format"), "parent, messageId"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), message)
 			);
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"), "parentMessageId3"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "parentMessageId3"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Notion"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("format"), "parent, _messageIdProperty"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), message)
 			);
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"), "parentMessageId4"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "parentMessageId4"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Notion"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("format"), "parent, messageIdProperty"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), message)
 			);
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"), "parentMessageId5"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "parentMessageId5"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Notion"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("format"), "parent, Message._messageId"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), message)
 			);
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"), "parentMessageId6"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "parentMessageId6"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Notion"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("format"), "parent, Message.messageId"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), message)
 			);
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"), "parentMessageId7"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "parentMessageId7"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Notion"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("format"), "parent, Message._messageIdProperty"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), message)
 			);
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"), "parentMessageId8"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "parentMessageId8"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Notion"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("format"), "parent, Message.messageIdProperty"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), message)
@@ -2251,11 +2253,11 @@ public class PropertyTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface message  = app.create(StructrTraits.SCHEMA_NODE,
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key("name"), "Message")
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Message")
 			);
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"), "messageId"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "messageId"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "String"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), message)
 			);
@@ -2271,7 +2273,7 @@ public class PropertyTest extends StructrTest {
 			);
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"), "parentMessageName1"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "parentMessageName1"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Notion"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("format"), "parent, name"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), message)
@@ -2296,11 +2298,11 @@ public class PropertyTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface message  = app.create(StructrTraits.SCHEMA_NODE,
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key("name"), "Message")
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Message")
 			);
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"), "messageId"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "messageId"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "String"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), message)
 			);
@@ -2316,14 +2318,14 @@ public class PropertyTest extends StructrTest {
 			);
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"), "parentMessageTrue"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "parentMessageTrue"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Notion"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("format"), "parent, name, true"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), message)
 			);
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"), "parentMessageFalse"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "parentMessageFalse"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Notion"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("format"), "parent, name, false"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), message)
@@ -2366,7 +2368,7 @@ public class PropertyTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create(projectType,
-				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "test"),
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test"),
 				new NodeAttribute<>(encrypted, "plaintext")
 			);
 
@@ -2386,7 +2388,7 @@ public class PropertyTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create(projectType,
-				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "test"),
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test"),
 				new NodeAttribute<>(encrypted, "plaintext")
 			);
 
@@ -2485,7 +2487,7 @@ public class PropertyTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create(projectType,
-				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "test"),
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test"),
 				new NodeAttribute<>(encrypted, "structrtest")
 			);
 
