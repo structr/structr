@@ -25,8 +25,10 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import java.util.Set;
 
 /**
  *
@@ -214,6 +216,19 @@ public class AbstractSchemaNodeTraitWrapper extends AbstractNodeTraitWrapper imp
 	@Override
 	public String[] getTags() {
 		return wrappedObject.getProperty(traits.key("tags"));
+	}
+
+	@Override
+	public Set<String> getViewNames() {
+
+		final Set<String> viewNames = new LinkedHashSet<>();
+
+		for (final SchemaView view : getSchemaViews()) {
+
+			viewNames.add(view.getName());
+		}
+
+		return viewNames;
 	}
 
 	/*

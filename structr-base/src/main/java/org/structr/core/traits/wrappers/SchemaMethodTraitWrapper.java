@@ -237,7 +237,6 @@ public class SchemaMethodTraitWrapper extends AbstractNodeTraitWrapper implement
 				final String lifecycleMethodPrefix = entry.getKey();
 
 				if (methodName.startsWith(lifecycleMethodPrefix)) {
-					// type cast to get rid of
 					return (Class)entry.getValue();
 				}
 			}

@@ -91,127 +91,6 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 	private static final Set<String> RequestParameterBlacklist = Set.of(HtmlServlet.ENCODED_RENDER_STATE_PARAMETER_NAME);
 
-	/*
-		final LicenseManager licenseManager = Services.getInstance().getLicenseManager();
-		if (licenseManager == null || licenseManager.isModuleLicensed("api-builder")) {
-
-			type.addViewProperty(PropertyView.Public, "flow");
-			type.addViewProperty(PropertyView.Ui, "flow");
-		}
-
-		type.addPropertyGetter("tag", String.class);
-
-		type.overrideMethod("onCreation",             true,  DOMElement.class.getName() + ".onCreation(this, arg0, arg1);");
-		type.overrideMethod("onModification",         true,  DOMElement.class.getName() + ".onModification(this, arg0, arg1, arg2);");
-
-		type.overrideMethod("updateFromNode",         false, DOMElement.class.getName() + ".updateFromNode(this, arg0);");
-		type.overrideMethod("getHtmlAttributes",      false, "return _html_View.properties();");
-		type.overrideMethod("getHtmlAttributeNames",  false, "return " + DOMElement.class.getName() + ".getHtmlAttributeNames(this);");
-		type.overrideMethod("getOffsetAttributeName", false, "return " + DOMElement.class.getName() + ".getOffsetAttributeName(this, arg0, arg1);");
-		type.overrideMethod("getLocalName",           false, "return null;");
-		type.overrideMethod("getAttributes",          false, "return this;");
-		type.overrideMethod("contentEquals",          false, "return false;");
-		type.overrideMethod("hasAttributes",          false, "return getLength() > 0;");
-		type.overrideMethod("getLength",              false, "return getHtmlAttributeNames().size();");
-		type.overrideMethod("getTagName",             false, "return getTag();");
-		type.overrideMethod("getNodeName",            false, "return getTagName();");
-		type.overrideMethod("setNodeValue",           false, "");
-		type.overrideMethod("getNodeValue",           false, "return null;");
-		type.overrideMethod("getNodeType",            false, "return ELEMENT_NODE;");
-		type.overrideMethod("getPropertyKeys",        false, "final Set<PropertyKey> allProperties = new LinkedHashSet<>(); final Set<PropertyKey> htmlAttrs = super.getPropertyKeys(arg0); for (final PropertyKey attr : htmlAttrs) { allProperties.add(attr); } allProperties.addAll(getDataPropertyKeys()); return allProperties;");
-		type.overrideMethod("getCssClass",            false, "return getProperty(_html_classProperty);");
-
-		type.overrideMethod("openingTag",             false, DOMElement.class.getName() + ".openingTag(this, arg0, arg1, arg2, arg3, arg4);");
-		type.overrideMethod("renderContent",          false, DOMElement.class.getName() + ".renderContent(this, arg0, arg1);");
-		type.overrideMethod("setIdAttribute",         false, DOMElement.class.getName() + ".setIdAttribute(this, arg0, arg1);");
-		type.overrideMethod("setAttribute",           false, DOMElement.class.getName() + ".setAttribute(this, arg0, arg1);");
-		type.overrideMethod("removeAttribute",        false, DOMElement.class.getName() + ".removeAttribute(this, arg0);");
-		type.overrideMethod("doImport",               false, "return "+ DOMElement.class.getName() + ".doImport(this, arg0);");
-		type.overrideMethod("getAttribute",           false, "return " + DOMElement.class.getName() + ".getAttribute(this, arg0);");
-		type.overrideMethod("getAttributeNode",       false, "return " + DOMElement.class.getName() + ".getAttributeNode(this, arg0);");
-		type.overrideMethod("setAttributeNode",       false, "return " + DOMElement.class.getName() + ".setAttributeNode(this, arg0);");
-		type.overrideMethod("removeAttributeNode",    false, "return " + DOMElement.class.getName() + ".removeAttributeNode(this, arg0);");
-		type.overrideMethod("getElementsByTagName",   false, "return " + DOMElement.class.getName() + ".getElementsByTagName(this, arg0);");
-		type.overrideMethod("setIdAttributeNS",       false, "throw new UnsupportedOperationException(\"Namespaces not supported.\");");
-		type.overrideMethod("setIdAttributeNode",     false, "throw new UnsupportedOperationException(\"Attribute nodes not supported in HTML5.\");");
-		type.overrideMethod("hasAttribute",           false, "return getAttribute(arg0) != null;");
-		type.overrideMethod("hasAttributeNS",         false, "return false;");
-		type.overrideMethod("getAttributeNS",         false, "");
-		type.overrideMethod("setAttributeNS",         false, "");
-		type.overrideMethod("removeAttributeNS",      false, "");
-		type.overrideMethod("getAttributeNodeNS",     false, "return null;");
-		type.overrideMethod("setAttributeNodeNS",     false, "return null;");
-		type.overrideMethod("getElementsByTagNameNS", false, "return null;");
-
-		// NamedNodeMap
-		type.overrideMethod("getNamedItemNS",         false, "return null;");
-		type.overrideMethod("setNamedItemNS",         false, "return null;");
-		type.overrideMethod("removeNamedItemNS",      false, "return null;");
-		type.overrideMethod("getNamedItem",           false, "return getAttributeNode(arg0);");
-		type.overrideMethod("setNamedItem",           false, "return " + DOMElement.class.getName() + ".setNamedItem(this, arg0);");
-		type.overrideMethod("removeNamedItem",        false, "return " + DOMElement.class.getName() + ".removeNamedItem(this, arg0);");
-		type.overrideMethod("getContextName",         false, "return " + DOMElement.class.getName() + ".getContextName(this);");
-		type.overrideMethod("item",                   false, "return " + DOMElement.class.getName() + ".item(this, arg0);");
-
-		// W3C Element
-		type.overrideMethod("getSchemaTypeInfo",      false, "return null;");
-
-		// view configuration
-		type.addViewProperty(PropertyView.Public, "isDOMNode");
-		type.addViewProperty(PropertyView.Public, "pageId");
-		type.addViewProperty(PropertyView.Public, "parent");
-		type.addViewProperty(PropertyView.Public, "sharedComponentId");
-		type.addViewProperty(PropertyView.Public, "syncedNodesIds");
-		type.addViewProperty(PropertyView.Public, "name");
-		type.addViewProperty(PropertyView.Public, "children");
-		type.addViewProperty(PropertyView.Public, "dataKey");
-		type.addViewProperty(PropertyView.Public, "cypherQuery");
-		type.addViewProperty(PropertyView.Public, "xpathQuery");
-		type.addViewProperty(PropertyView.Public, "restQuery");
-		type.addViewProperty(PropertyView.Public, "functionQuery");
-
-		type.addViewProperty(PropertyView.Ui, "hideOnDetail");
-		type.addViewProperty(PropertyView.Ui, "hideOnIndex");
-		type.addViewProperty(PropertyView.Ui, "sharedComponentConfiguration");
-		type.addViewProperty(PropertyView.Ui, "isDOMNode");
-		type.addViewProperty(PropertyView.Ui, "pageId");
-		type.addViewProperty(PropertyView.Ui, "parent");
-		type.addViewProperty(PropertyView.Ui, "sharedComponentId");
-		type.addViewProperty(PropertyView.Ui, "syncedNodesIds");
-		type.addViewProperty(PropertyView.Ui, "data-structr-id");
-		type.addViewProperty(PropertyView.Ui, "renderDetails");
-		type.addViewProperty(PropertyView.Ui, "children");
-		type.addViewProperty(PropertyView.Ui, "childrenIds");
-		type.addViewProperty(PropertyView.Ui, "showForLocales");
-		type.addViewProperty(PropertyView.Ui, "hideForLocales");
-		type.addViewProperty(PropertyView.Ui, "showConditions");
-		type.addViewProperty(PropertyView.Ui, "hideConditions");
-		type.addViewProperty(PropertyView.Ui, "dataKey");
-		type.addViewProperty(PropertyView.Ui, "cypherQuery");
-		type.addViewProperty(PropertyView.Ui, "xpathQuery");
-		type.addViewProperty(PropertyView.Ui, "restQuery");
-		type.addViewProperty(PropertyView.Ui, "functionQuery");
-
-		final LicenseManager licenseManager = Services.getInstance().getLicenseManager();
-		if (licenseManager == null || licenseManager.isModuleLicensed("api-builder")) {
-
-			type.addViewProperty(PropertyView.Public, "flow");
-			type.addViewProperty(PropertyView.Ui, "flow");
-		}
-
-	}}
-
-	String getTag();
-	String getOffsetAttributeName(final String name, final int offset);
-
-	void openingTag(final AsyncBuffer out, final String tag, final EditMode editMode, final RenderContext renderContext, final int depth) throws FrameworkException;
-
-	Property[] getHtmlAttributes();
-	List<String> getHtmlAttributeNames();
-	String getEventMapping();
-	*/
-
-
 	public DOMElementTraitDefinition() {
 		super(StructrTraits.DOM_ELEMENT);
 	}
@@ -644,7 +523,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 										if (key.equals("event")) {
 
-											eventsString = (String) value;
+											eventsString = value;
 										}
 									}
 
@@ -927,6 +806,9 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 					actionContext.setConstant("eventContext", eventContext);
 
 					switch (action) {
+
+						// Note: if you add new actions here, please also add them to MigrationService.EventActionMappingActions so
+						// they are not migrated accidentially..
 
 						case "create":
 							return handleCreateAction(actionContext, domElementNode, parameters, eventContext);
@@ -1453,23 +1335,31 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 		} else {
 
-			// add support for static methods
-			final Traits traits = Traits.of(dataTarget);
-			if (traits != null) {
+			if (dataTarget != null) {
 
-				final AbstractMethod method = Methods.resolveMethod(traits, methodName);
-				if (method != null) {
+				// add support for static methods
+				if (Traits.exists(dataTarget)) {
 
-					return method.execute(actionContext.getSecurityContext(), null, Arguments.fromMap(parameters), new EvaluationHints());
+					final Traits traits         = Traits.of(dataTarget);
+					final AbstractMethod method = Methods.resolveMethod(traits, methodName);
+
+					if (method != null) {
+
+						return method.execute(actionContext.getSecurityContext(), null, Arguments.fromMap(parameters), new EvaluationHints());
+
+					} else {
+
+						throw new FrameworkException(422, "Cannot execute static  method " + methodName + ": method not found.");
+					}
 
 				} else {
 
-					throw new FrameworkException(422, "Cannot execute static  method " + methodName + ": method not found.");
+					throw new FrameworkException(422, "Cannot execute static method " + dataTarget + "." + methodName + ": type not found.");
 				}
 
 			} else {
 
-				throw new FrameworkException(422, "Cannot execute static method " + dataTarget + "." + methodName + ": type not found.");
+				throw new FrameworkException(422, "Custom action has empty dataTarget.");
 			}
 		}
 

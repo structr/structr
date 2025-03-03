@@ -21,6 +21,7 @@ package org.structr.core.entity;
 import org.structr.core.graph.NodeInterface;
 
 import java.util.List;
+import java.util.Set;
 
 public interface AbstractSchemaNode extends NodeInterface {
 
@@ -50,4 +51,6 @@ public interface AbstractSchemaNode extends NodeInterface {
 	boolean includeInOpenAPI();
 
 	String[] getTags();
+
+	Set<String> getViewNames();
 }

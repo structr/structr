@@ -133,7 +133,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 				for (RelationshipInterface rel : current.getRelationships()) {
 
 					// deleted rels can be null..
-					if (rel != null) {
+					if (rel != null && rel.getRelation() != null) {
 
 						final int cascadeDelete       = rel.getRelation().getCascadingDeleteFlag();
 						final NodeInterface startNode = rel.getSourceNode();
@@ -175,6 +175,10 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 						}
 
 						relsToDelete.add(rel);
+
+					} else {
+
+						logger.warn("Unable to determine relation information from {}: {}", rel.getUuid(), rel.getType());
 					}
 				}
 			}

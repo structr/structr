@@ -37,10 +37,11 @@ import org.structr.core.traits.TraitDefinition;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.core.traits.operations.LifecycleMethodAdapter;
 import org.structr.core.traits.operations.graphobject.IsValid;
+import org.structr.core.traits.operations.graphobject.OnCreation;
 
 import java.util.*;
-import org.structr.core.traits.operations.graphobject.OnCreation;
 
 public abstract class AbstractDynamicTraitDefinition<T extends AbstractSchemaNode> implements TraitDefinition {
 
@@ -181,7 +182,23 @@ public abstract class AbstractDynamicTraitDefinition<T extends AbstractSchemaNod
 				final Class<LifecycleMethod> type = method.getMethodType();
 				if (type != null) {
 
-					lifecycleMethods.put(type, method.asLifecycleMethod());
+					if (lifecycleMethods.containsKey(type)) {
+
+						// more than one implementation on a single type!
+						final LifecycleMethod existingMethod = lifecycleMethods.get(type);
+						if (existingMethod instanceof LifecycleMethodAdapter adapter) {
+
+							adapter.addSource(method.getSource());
+
+						} else {
+
+							throw new RuntimeException("Unexpected lifecycle method " + method.getName() + ", expected LifecycleMethodAdapter!");
+						}
+
+					} else {
+
+						lifecycleMethods.put(type, method.asLifecycleMethod());
+					}
 				}
 			}
 		}

@@ -343,10 +343,10 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 			// create private method that is not exported via REST
 			app.create(StructrTraits.SCHEMA_METHOD,
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),      "test"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("isStatic"),  true),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("isPrivate"), true),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"),    "{ $.log('hello world!'); }"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("schemaNode"),testType)
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("isStatic"),   true),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("isPrivate"),  true),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"),     "{ $.log('hello world!'); }"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("schemaNode"), testType)
 			);
 
 			tx.success();
@@ -361,9 +361,9 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 			final ErrorToken token = fex.getErrorBuffer().getErrorTokens().get(0);
 
 			assertEquals("Wrong property name in error response", "name",                                          token.getProperty());
-			assertEquals("Wrong type in error response", StructrTraits.SCHEMA_METHOD,                                           token.getType());
+			assertEquals("Wrong type in error response", StructrTraits.SCHEMA_METHOD,                                      token.getType());
 			assertEquals("Wrong token in error response", "already_exists",                                        token.getToken());
-			assertEquals("Wrong detail message in error response", "A method cannot have the same name as a view", token.getDetail());
+			assertEquals("Wrong detail message in error response", "A view with name 'test' already exists, cannot create method with the same name", token.getDetail());
 		}
 	}
 }

@@ -21,8 +21,6 @@ package org.structr.test.web.advanced;
 import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
 import org.hamcrest.Matchers;
-import org.structr.api.schema.JsonSchema;
-import org.structr.api.schema.JsonType;
 import org.structr.common.AccessMode;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
@@ -35,7 +33,6 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
-import org.structr.schema.export.StructrSchema;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
@@ -439,7 +436,7 @@ public class Deployment5Test extends DeploymentTestBase {
 		compare(calculateHash(), true);
 	}
 
-	@Test
+	/* disabled, no support for pure Java methods any more
 	public void test55JavaSchemaMethods() {
 
 		// setup
@@ -484,6 +481,7 @@ public class Deployment5Test extends DeploymentTestBase {
 		// test
 		compare(calculateHash(), true);
 	}
+	*/
 
 	@Test
 	public void test56RenamedFileAndFolderInNewerVersionOfDeploymentExport() {

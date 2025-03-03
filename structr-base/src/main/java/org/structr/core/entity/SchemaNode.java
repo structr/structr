@@ -18,6 +18,7 @@
  */
 package org.structr.core.entity;
 
+import org.structr.common.error.FrameworkException;
 import org.structr.core.traits.TraitDefinition;
 
 import java.util.Set;
@@ -38,4 +39,6 @@ public interface SchemaNode extends AbstractSchemaNode {
 	Set<String> getInheritedTraits();
 
 	TraitDefinition[] getTraitDefinitions();
+
+	void handleMigration() throws FrameworkException;
 }

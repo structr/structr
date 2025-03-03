@@ -18,12 +18,13 @@
  */
 package org.structr.core.traits.wrappers;
 
+import org.structr.api.graph.Relationship;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Relation;
-import org.structr.core.entity.SchemaNode;
-import org.structr.core.entity.SchemaRelationshipNode;
+import org.structr.core.entity.*;
+import org.structr.core.graph.MigrationService;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.RelationProperty;
@@ -33,10 +34,7 @@ import org.structr.core.traits.TraitDefinition;
 import org.structr.core.traits.Traits;
 import org.structr.schema.DynamicNodeTraitDefinition;
 
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper implements SchemaNode {
 
@@ -175,7 +173,65 @@ public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper imple
 
 		final ArrayList<TraitDefinition> definitions = new ArrayList<>(recursivelyResolveTraitInheritance(this));
 
+		for (final TraitDefinition def: definitions) {
+
+			System.out.println(def.getName());
+		};
+
 		return definitions.toArray(new TraitDefinition[0]);
+	}
+
+	@Override
+	public void handleMigration() throws FrameworkException {
+
+		final List<SchemaProperty> properties = Iterables.toList(getSchemaProperties());
+		final List<SchemaMethod> methods      = Iterables.toList(getSchemaMethods());
+		final App app                         = StructrApp.getInstance();
+
+		// remove properties from static schema
+		for (final SchemaProperty property : properties) {
+
+			if (MigrationService.propertyShouldBeRemoved(property)) {
+
+				app.delete(property);
+			}
+		}
+
+		// remove methods from static schema
+		for (final SchemaMethod method : methods) {
+
+			if (MigrationService.methodShouldBeRemoved(method)) {
+
+				app.delete(method);
+			}
+		}
+
+		// move extendsClass values to inheriting traits
+		final String extendsClassInternal = (String) getNode().getProperty("extendsClassInternal");
+		final List<Relationship> rels     = Iterables.toList(getNode().getRelationships());
+
+		if (extendsClassInternal != null) {
+
+			System.out.println("FOUND extendsClassInternal: " + extendsClassInternal);
+		}
+
+		if (!rels.isEmpty()) {
+
+			for (final Relationship rel : rels) {
+
+				final String relType = rel.getType().name();
+
+				if ("EXTENDS".equals(relType)) {
+
+					final String superType = (String) rel.getEndNode().getProperty("name");
+
+					System.out.println("FOUND extendsClass relationship: " + getName() + ": " + superType);
+
+					// delete
+					//rel.delete(true);
+				}
+			}
+		}
 	}
 
 	// ----- private methods -----
@@ -192,17 +248,13 @@ public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper imple
 
 					// recurse
 					definitions.addAll(recursivelyResolveTraitInheritance(inheritedSchemaNode.as(SchemaNode.class)));
+				}
 
-				} else {
+				if (Traits.exists(inheritedTrait)) {
 
-					// try to find internal trait
-					if (Traits.exists(inheritedTrait)) {
+					final Traits traits = Traits.of(inheritedTrait);
 
-						final Traits traits = Traits.of(inheritedTrait);
-
-						definitions.addAll(traits.getTraitDefinitions());
-
-					}
+					definitions.addAll(traits.getTraitDefinitions());
 				}
 
 			} catch (FrameworkException fex) {

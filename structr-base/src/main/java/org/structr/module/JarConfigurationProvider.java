@@ -27,7 +27,6 @@ import org.structr.api.service.LicenseManager;
 import org.structr.api.service.Service;
 import org.structr.core.Services;
 import org.structr.schema.ConfigurationProvider;
-import org.structr.web.common.UiModule;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -217,7 +216,9 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 			final String moduleName = structrModule.getName();
 
-			structrModule.registerModuleFunctions(licenseManager);
+			try {
+				structrModule.registerModuleFunctions(licenseManager);
+			} catch (Throwable t) {}
 
 			if (coreModules.contains(moduleName) || licenseManager == null || licenseManager.isModuleLicensed(moduleName)) {
 

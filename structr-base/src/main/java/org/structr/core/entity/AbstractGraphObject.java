@@ -73,7 +73,7 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 			type = StructrTraits.NODE_INTERFACE;
 		}
 
-		this.typeHandler         = Traits.of(type);
+		this.typeHandler         = Traits.exists(type) ? Traits.of(type) : Traits.of(StructrTraits.NODE_INTERFACE);
 		this.sourceTransactionId = sourceTransactionId;
 		this.securityContext     = securityContext;
 		this.id                  = propertyContainer.getId();
