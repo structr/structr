@@ -1155,7 +1155,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 
-			schema.getType(StructrTraits.USER).overrideMethod("isValidPassword", false, "return true;")
+			schema.getType(StructrTraits.USER).overrideMethod("isValidPassword", false, "true;")
 				.addParameter("password", "String")
 				.setReturnType("boolean");
 
