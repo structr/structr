@@ -416,11 +416,13 @@ public class MigrationService {
 				}
 			}
 
-			final Traits domElementTraits             = Traits.of(StructrTraits.DOM_ELEMENT);
-			final PropertyKey<String> actionKey       = new StringProperty("data-structr-action");
-			final PropertyKey<String> newActionKey    = actionMappingTraits.key("action");
-			final PropertyKey<String> methodKey       = actionMappingTraits.key("method");
-			final PropertyKey<String> eventMappingKey = domElementTraits.key("eventMapping");
+			final Traits domElementTraits                 = Traits.of(StructrTraits.DOM_ELEMENT);
+			final PropertyKey<String> reloadTargetKey     = new StringProperty("data-structr-reload-target");
+			final PropertyKey<String> actionKey           = new StringProperty("data-structr-action");
+			final PropertyKey<String> successBehaviourKey = actionMappingTraits.key("successBehaviour");
+			final PropertyKey<String> newActionKey        = actionMappingTraits.key("action");
+			final PropertyKey<String> methodKey           = actionMappingTraits.key("method");
+			final PropertyKey<String> eventMappingKey     = domElementTraits.key("eventMapping");
 
 			// check (and fix if possible) structr-app.js implementations
 			logger.info("Checking for structr-app.js implementations that need migration..");
@@ -444,6 +446,14 @@ public class MigrationService {
 			for (final NodeInterface action : app.nodeQuery(StructrTraits.ACTION_MAPPING).and().not().and(newActionKey, null).getResultStream()) {
 
 				if (migrateCustomEventAction(action)) {
+					eventMappingCount++;
+				}
+			}
+
+			// check and fix custom actions that miss successBehaviour or targetBehaviour
+			for (final NodeInterface action : app.nodeQuery(StructrTraits.ACTION_MAPPING).and(successBehaviourKey, null).getResultStream()) {
+
+				if (migrateReloadBehaviourAction(action)) {
 					eventMappingCount++;
 				}
 			}
@@ -572,6 +582,28 @@ public class MigrationService {
 		}
 
 		return false;
+	}
+
+	private static boolean migrateReloadBehaviourAction(final NodeInterface node) throws FrameworkException {
+
+		final ActionMapping actionMapping = node.as(ActionMapping.class);
+		final String successBehaviour     = actionMapping.getSuccessBehaviour();
+		final String failureBehaviour     = actionMapping.getFailureBehaviour();
+		boolean hasChanges                = false;
+
+		if (successBehaviour == null) {
+
+			actionMapping.setSuccessBehaviour("full-page-reload");
+			hasChanges = true;
+		}
+
+		if (failureBehaviour == null) {
+
+			actionMapping.setSuccessBehaviour("none");
+			hasChanges = true;
+		}
+
+		return hasChanges;
 	}
 
 	private static void migrateEventMapping(final NodeInterface node, final String eventMappingKeyName) throws FrameworkException {

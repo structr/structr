@@ -204,6 +204,7 @@ public class AdvancedDeploymentTest extends FullStructrTest {
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
+
 	}
 
 	@Test
