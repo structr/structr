@@ -85,8 +85,8 @@ public class UiScriptingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			Page page         = app.create(StructrTraits.PAGE, new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test"), new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key("visibleToPublicUsers"), true)).as(Page.class);
-			Template template = app.create(StructrTraits.TEMPLATE, new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key("visibleToPublicUsers"), true)).as(Template.class);
+			Page page         = app.create(StructrTraits.PAGE, new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test"), new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Page.class);
+			Template template = app.create(StructrTraits.TEMPLATE, new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Template.class);
 
 			template.setContent("${request.param}");
 
@@ -132,8 +132,8 @@ public class UiScriptingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			Page page         = app.create(StructrTraits.PAGE, new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test"), new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key("visibleToPublicUsers"), true)).as(Page.class);
-			Template template = app.create(StructrTraits.TEMPLATE, new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key("visibleToPublicUsers"), true)).as(Template.class);
+			Page page         = app.create(StructrTraits.PAGE, new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test"), new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Page.class);
+			Template template = app.create(StructrTraits.TEMPLATE, new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Template.class);
 
 			template.setContent("${if (\n" +
 				"	is_collection(request.param),\n" +
@@ -214,8 +214,8 @@ public class UiScriptingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			Page page         = app.create(StructrTraits.PAGE, new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test"), new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key("visibleToPublicUsers"), true)).as(Page.class);
-			Template template = app.create(StructrTraits.TEMPLATE, new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key("visibleToPublicUsers"), true)).as(Template.class);
+			Page page         = app.create(StructrTraits.PAGE, new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test"), new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Page.class);
+			Template template = app.create(StructrTraits.TEMPLATE, new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Template.class);
 
 			template.setContent("${{ $.print($.get('request').param.join('')); }}");
 
@@ -274,7 +274,7 @@ public class UiScriptingTest extends StructrUiTest {
 			detailsDataObject = app.create("TestOne", "TestOne");
 			page              = Page.createNewPage(securityContext, "testpage");
 
-			page.setProperties(page.getSecurityContext(), new PropertyMap(Traits.of(StructrTraits.PAGE).key("visibleToPublicUsers"), true));
+			page.setProperties(page.getSecurityContext(), new PropertyMap(Traits.of(StructrTraits.PAGE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true));
 
 			assertTrue(page != null);
 			assertTrue(page.is(StructrTraits.PAGE));
@@ -423,7 +423,7 @@ public class UiScriptingTest extends StructrUiTest {
 
 				folders.add(createTestNode(StructrTraits.FOLDER,
 						new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), StructrTraits.FOLDER + i),
-						new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToAuthenticatedUsers"), true)
+						new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true)
 				));
 			}
 
@@ -431,7 +431,7 @@ public class UiScriptingTest extends StructrUiTest {
 			final NodeInterface parent = createTestNode(StructrTraits.FOLDER,
 					new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Parent"),
 					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key("folders"), folders),
-					new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToAuthenticatedUsers"), true)
+					new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true)
 			);
 
 			uuid = parent.getUuid();
@@ -476,7 +476,7 @@ public class UiScriptingTest extends StructrUiTest {
 			createTestNode(StructrTraits.RESOURCE_ACCESS,
 					new NodeAttribute<>(Traits.of(StructrTraits.RESOURCE_ACCESS).key("signature"), "Folder/_Someprops"),
 					new NodeAttribute<>(Traits.of(StructrTraits.RESOURCE_ACCESS).key("flags"), 1L),
-					new NodeAttribute<>(Traits.of(StructrTraits.RESOURCE_ACCESS).key("visibleToAuthenticatedUsers"), true)
+					new NodeAttribute<>(Traits.of(StructrTraits.RESOURCE_ACCESS).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true)
 			);
 
 			tx.success();
@@ -930,7 +930,7 @@ public class UiScriptingTest extends StructrUiTest {
 
 			final Page page = Page.createNewPage(securityContext, "testpage");
 
-			page.setProperties(page.getSecurityContext(), new PropertyMap(Traits.of(StructrTraits.PAGE).key("visibleToPublicUsers"), true));
+			page.setProperties(page.getSecurityContext(), new PropertyMap(Traits.of(StructrTraits.PAGE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true));
 
 			assertTrue(page != null);
 			assertTrue(page.is(StructrTraits.PAGE));
@@ -1449,9 +1449,9 @@ public class UiScriptingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			Page page         = app.create(StructrTraits.PAGE, new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test"), new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key("visibleToPublicUsers"), true)).as(Page.class);
-			Template template1 = app.create(StructrTraits.TEMPLATE, new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key("visibleToPublicUsers"), true)).as(Template.class);
-			Template template2 = app.create(StructrTraits.TEMPLATE, new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key("visibleToPublicUsers"), true)).as(Template.class);
+			Page page         = app.create(StructrTraits.PAGE, new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test"), new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Page.class);
+			Template template1 = app.create(StructrTraits.TEMPLATE, new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Template.class);
+			Template template2 = app.create(StructrTraits.TEMPLATE, new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Template.class);
 
 			String script = "${{ let session = $.session; if ($.empty(session['test'])) { session['test'] = 123; } else { session['test'] = 456; } return $.session['test']; }}";
 			template1.setContent(script);
@@ -1509,9 +1509,9 @@ public class UiScriptingTest extends StructrUiTest {
 			// Test 1: JavaScript: print - render - print
 			{
 
-				final Page page          = app.create(StructrTraits.PAGE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), test1PageName), new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true)).as(Page.class);
-				final Template template1 = app.create(StructrTraits.TEMPLATE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true)).as(Template.class);
-				final Template template2 = app.create(StructrTraits.TEMPLATE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true)).as(Template.class);
+				final Page page          = app.create(StructrTraits.PAGE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), test1PageName), new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Page.class);
+				final Template template1 = app.create(StructrTraits.TEMPLATE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Template.class);
+				final Template template2 = app.create(StructrTraits.TEMPLATE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Template.class);
 
 				template1.setContent("${{\n" +
 					"	$.print('TEST1 BEFORE');\n" +
@@ -1527,9 +1527,9 @@ public class UiScriptingTest extends StructrUiTest {
 
 			// Test 2: JavaScript: print - include_child - print
 			{
-				final Page page          = app.create(StructrTraits.PAGE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), test2PageName), new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true)).as(Page.class);
-				final Template template1 = app.create(StructrTraits.TEMPLATE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true)).as(Template.class);
-				final Template template2 = app.create(StructrTraits.TEMPLATE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "MY_CHILD"), new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true)).as(Template.class);
+				final Page page          = app.create(StructrTraits.PAGE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), test2PageName), new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Page.class);
+				final Template template1 = app.create(StructrTraits.TEMPLATE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Template.class);
+				final Template template2 = app.create(StructrTraits.TEMPLATE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "MY_CHILD"), new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Template.class);
 
 				template1.setContent("${{\n" +
 					"	$.print('TEST2 BEFORE');\n" +
@@ -1545,9 +1545,9 @@ public class UiScriptingTest extends StructrUiTest {
 
 			// Test 3: StructrScript: print - render - print
 			{
-				final Page page          = app.create(StructrTraits.PAGE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), test3PageName), new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true)).as(Page.class);
-				final Template template1 = app.create(StructrTraits.TEMPLATE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true)).as(Template.class);
-				final Template template2 = app.create(StructrTraits.TEMPLATE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true)).as(Template.class);
+				final Page page          = app.create(StructrTraits.PAGE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), test3PageName), new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Page.class);
+				final Template template1 = app.create(StructrTraits.TEMPLATE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Template.class);
+				final Template template2 = app.create(StructrTraits.TEMPLATE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Template.class);
 
 				template1.setContent("${\n" +
 					"	(\n" +
@@ -1565,9 +1565,9 @@ public class UiScriptingTest extends StructrUiTest {
 
 			// Test 4: StructrScript: print - include_child - print
 			{
-				final Page page          = app.create(StructrTraits.PAGE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), test4PageName), new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true)).as(Page.class);
-				final Template template1 = app.create(StructrTraits.TEMPLATE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true)).as(Template.class);
-				final Template template2 = app.create(StructrTraits.TEMPLATE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "MY_CHILD"), new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true)).as(Template.class);
+				final Page page          = app.create(StructrTraits.PAGE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), test4PageName), new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Page.class);
+				final Template template1 = app.create(StructrTraits.TEMPLATE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Template.class);
+				final Template template2 = app.create(StructrTraits.TEMPLATE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "MY_CHILD"), new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Template.class);
 
 				template1.setContent("${\n" +
 					"	(\n" +
@@ -1618,8 +1618,8 @@ public class UiScriptingTest extends StructrUiTest {
 
 			// Test 1: print - implicit return - print (implicit return in StructrScript: the result of all scripting expressions is printed upon evaluation of the expression. this makes interleaved prints impossible to order correctly/logically)
 			{
-				final Page page         = app.create(StructrTraits.PAGE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), test1PageName), new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true)).as(Page.class);
-				final Template template = app.create(StructrTraits.TEMPLATE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true)).as(Template.class);
+				final Page page         = app.create(StructrTraits.PAGE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), test1PageName), new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Page.class);
+				final Template template = app.create(StructrTraits.TEMPLATE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Template.class);
 
 				template.setContent("${(\n" +
 					"	print('BEFORE'),\n" +
@@ -1632,8 +1632,8 @@ public class UiScriptingTest extends StructrUiTest {
 
 			// Test 2: print - return - print (make sure the second print statement is not executed)
 			{
-				final Page page         = app.create(StructrTraits.PAGE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), test2PageName), new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true)).as(Page.class);
-				final Template template = app.create(StructrTraits.TEMPLATE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true)).as(Template.class);
+				final Page page         = app.create(StructrTraits.PAGE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), test2PageName), new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Page.class);
+				final Template template = app.create(StructrTraits.TEMPLATE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Template.class);
 
 				template.setContent("${{\n" +
 					"	$.print('BEFORE');\n" +
@@ -1716,9 +1716,9 @@ public class UiScriptingTest extends StructrUiTest {
 			);
 
 			{
-				final Page page          = app.create(StructrTraits.PAGE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "irrelevant"), new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true)).as(Page.class);
-				final Template template1 = app.create(StructrTraits.TEMPLATE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true)).as(Template.class);
-				final Template template2 = app.create(StructrTraits.TEMPLATE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "namedDOMNode"), new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true)).as(Template.class);
+				final Page page          = app.create(StructrTraits.PAGE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "irrelevant"), new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Page.class);
+				final Template template1 = app.create(StructrTraits.TEMPLATE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Template.class);
+				final Template template2 = app.create(StructrTraits.TEMPLATE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "namedDOMNode"), new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Template.class);
 
 				template1.setContent("Template not including child ;)");
 				template2.setContent("-X-");

@@ -228,8 +228,8 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 		final PropertyMap visibilityFlags = new PropertyMap();
 		final Traits traits               = Traits.of(StructrTraits.DOM_NODE);
 
-		visibilityFlags.put(traits.key("visibleToAuthenticatedUsers"), sourceNode.isVisibleToAuthenticatedUsers());
-		visibilityFlags.put(traits.key("visibleToPublicUsers"),        sourceNode.isVisibleToPublicUsers());
+		visibilityFlags.put(traits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), sourceNode.isVisibleToAuthenticatedUsers());
+		visibilityFlags.put(traits.key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY),        sourceNode.isVisibleToPublicUsers());
 
 		try {
 

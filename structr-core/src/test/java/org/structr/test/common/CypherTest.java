@@ -49,6 +49,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.export.StructrSchema;
 import org.testng.annotations.Test;
@@ -492,7 +493,7 @@ public class CypherTest extends StructrTest {
 				assertEquals("Invalid wrapped cypher query result - both end nodes of relationship are not visible, relationship should also not be visible", 0, result.size());
 
 				final GraphObject t1 = app.getNodeById(testOneId);
-				t1.setProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key("visibleToPublicUsers"), true);
+				t1.setProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
 
 				tx.success();
 
@@ -508,10 +509,10 @@ public class CypherTest extends StructrTest {
 				assertEquals("Invalid wrapped cypher query result - source node of relationship is not visible, relationship should also not be visible", 0, result.size());
 
 				final GraphObject t1 = app.getNodeById(testOneId);
-				t1.setProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key("visibleToPublicUsers"), false);
+				t1.setProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), false);
 
 				final GraphObject t6 = app.getNodeById(testSixId);
-				t6.setProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key("visibleToPublicUsers"), true);
+				t6.setProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
 
 				tx.success();
 
@@ -527,10 +528,10 @@ public class CypherTest extends StructrTest {
 				assertEquals("Invalid wrapped cypher query result - target node of relationship is not visible, relationship should also not be visible", 0, result.size());
 
 				final GraphObject t1 = app.getNodeById(testOneId);
-				t1.setProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key("visibleToPublicUsers"), true);
+				t1.setProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
 
 				final GraphObject t6 = app.getNodeById(testSixId);
-				t6.setProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key("visibleToPublicUsers"), true);
+				t6.setProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
 
 				tx.success();
 

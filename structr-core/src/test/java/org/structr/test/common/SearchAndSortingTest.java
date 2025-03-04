@@ -57,8 +57,10 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
+import org.structr.core.traits.definitions.RelationshipInterfaceTraitDefinition;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
+import org.structr.test.core.traits.definitions.TestSevenTraitDefinition;
 import org.testng.annotations.Test;
 
 import java.util.*;
@@ -500,7 +502,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				final List<RelationshipInterface> result1 = app.relationshipQuery("SixOneManyToMany").and(traits.key("sourceId"), tests.get(0).getUuid()).getAsList();
+				final List<RelationshipInterface> result1 = app.relationshipQuery("SixOneManyToMany").and(traits.key(RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY), tests.get(0).getUuid()).getAsList();
 
 				assertEquals("Invalid sourceId query result", 1, result1.size());
 
@@ -511,7 +513,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				final List<RelationshipInterface> result1 = app.relationshipQuery("SixOneManyToMany").and(traits.key("targetId"), test1.getUuid()).getAsList();
+				final List<RelationshipInterface> result1 = app.relationshipQuery("SixOneManyToMany").and(traits.key(RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY), test1.getUuid()).getAsList();
 
 				assertEquals("Invalid targetId query result", 5, result1.size());
 
@@ -774,7 +776,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 				assertEquals(number, result.size());
 
-				PropertyKey sortKey = Traits.of(StructrTraits.NODE_INTERFACE).key("lastModifiedDate");
+				PropertyKey sortKey = Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.LAST_MODIFIED_DATE_PROPERTY);
 				boolean sortDesc    = true;
 				int pageSize        = 10;
 				int page            = 1;
@@ -1180,8 +1182,8 @@ public class SearchAndSortingTest extends StructrTest {
 		try {
 
 			final PropertyMap props = new PropertyMap();
-			final PropertyKey lat   = Traits.of("TestSeven").key("latitude");
-			final PropertyKey lon   = Traits.of("TestSeven").key("longitude");
+			final PropertyKey lat   = Traits.of("TestSeven").key(TestSevenTraitDefinition.LATITUDE_PROPERTY);
+			final PropertyKey lon   = Traits.of("TestSeven").key(TestSevenTraitDefinition.LONGITUDE_PROPERTY);
 			final String type       = "TestSeven";
 
 			props.put(lat, 50.12284d);
@@ -1218,8 +1220,8 @@ public class SearchAndSortingTest extends StructrTest {
 
 			final String type       = "TestSeven";
 			final PropertyMap props = new PropertyMap();
-			final PropertyKey lat   = Traits.of("TestSeven").key("latitude");
-			final PropertyKey lon   = Traits.of("TestSeven").key("longitude");
+			final PropertyKey lat   = Traits.of("TestSeven").key(TestSevenTraitDefinition.LATITUDE_PROPERTY);
+			final PropertyKey lon   = Traits.of("TestSeven").key(TestSevenTraitDefinition.LONGITUDE_PROPERTY);
 
 			props.put(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.TYPE_PROPERTY), type);
 			props.put(lat, 50.12284d);

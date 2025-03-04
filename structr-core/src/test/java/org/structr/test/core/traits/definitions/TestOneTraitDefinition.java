@@ -28,6 +28,8 @@ import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import java.util.Date;
 import java.util.Map;
 import java.util.Set;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 
 public class TestOneTraitDefinition extends AbstractNodeTraitDefinition {
 
@@ -102,12 +104,12 @@ public class TestOneTraitDefinition extends AbstractNodeTraitDefinition {
 
 			PropertyView.Public,
 			newSet(
-				"name", "anInt", "aDouble", "aLong", "aDate", "createdDate", "aString", "anotherString", "aBoolean", "anEnum", "stringWithDefault", "aStringArray"
+					NodeInterfaceTraitDefinition.NAME_PROPERTY, "anInt", "aDouble", "aLong", "aDate", GraphObjectTraitDefinition.CREATED_DATE_PROPERTY, "aString", "anotherString", "aBoolean", "anEnum", "stringWithDefault", "aStringArray"
 			),
 
 			PropertyView.Protected,
 			newSet(
-				"name", "anInt", "aString"
+				NodeInterfaceTraitDefinition.NAME_PROPERTY, "anInt", "aString"
 			)
 		);
 	}

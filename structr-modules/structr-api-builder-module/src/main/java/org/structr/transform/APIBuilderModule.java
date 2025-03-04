@@ -34,6 +34,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.module.StructrModule;
 import org.structr.module.api.APIBuilder;
@@ -122,12 +123,12 @@ public class APIBuilderModule implements StructrModule, APIBuilder {
 				final Map<String, Object> entry = new TreeMap<>();
 				virtualTypes.add(entry);
 
-				entry.put("name",                        virtualType.getName());
+				entry.put(NodeInterfaceTraitDefinition.NAME_PROPERTY,                        virtualType.getName());
 				entry.put("sourceType",                  virtualType.getSourceType());
 				entry.put("position",                    virtualType.getPosition());
 				entry.put("filterExpression",            virtualType.getFilterExpression());
-				entry.put("visibleToAuthenticatedUsers", virtualType.isVisibleToAuthenticatedUsers());
-				entry.put("visibleToPublicUsers",        virtualType.isVisibleToPublicUsers());
+				entry.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, virtualType.isVisibleToAuthenticatedUsers());
+				entry.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        virtualType.isVisibleToPublicUsers());
 
 				final List<Map<String, Object>> properties = new LinkedList();
 				entry.put("properties", properties);
@@ -143,8 +144,8 @@ public class APIBuilderModule implements StructrModule, APIBuilder {
 					virtualPropEntry.put("inputFunction",               virtualProperty.getInputFunction());
 					virtualPropEntry.put("outputFunction",              virtualProperty.getOutputFunction());
 					virtualPropEntry.put("position",                    virtualProperty.getPosition());
-					virtualPropEntry.put("visibleToAuthenticatedUsers", virtualProperty.isVisibleToAuthenticatedUsers());
-					virtualPropEntry.put("visibleToPublicUsers",        virtualProperty.isVisibleToPublicUsers());
+					virtualPropEntry.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        virtualProperty.isVisibleToPublicUsers());
+					virtualPropEntry.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, virtualProperty.isVisibleToAuthenticatedUsers());
 				}
 			}
 

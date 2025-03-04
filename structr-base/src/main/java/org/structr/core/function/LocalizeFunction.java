@@ -31,6 +31,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.LocalizationTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.action.ActionContext;
 
@@ -243,7 +244,7 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 
 		if (result != null) {
 
-			value = result.getProperty(result.getTraits().key("localizedName"));
+			value = result.getProperty(result.getTraits().key(LocalizationTraitDefinition.LOCALIZED_NAME_PROPERTY));
 		}
 
 		ctx.getContextStore().addRequestedLocalization(caller, requestedKey, finalDomain, fullLocale, result);
@@ -288,8 +289,8 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 
 		final Traits traits                 = Traits.of(StructrTraits.LOCALIZATION);
 		final PropertyKey<String> nameKey   = traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
-		final PropertyKey<String> domainKey = traits.key("domain");
-		final PropertyKey<String> localeKey = traits.key("locale");
+		final PropertyKey<String> domainKey = traits.key(LocalizationTraitDefinition.DOMAIN_PROPERTY);
+		final PropertyKey<String> localeKey = traits.key(LocalizationTraitDefinition.LOCALE_PROPERTY);
 
 		final List<NodeInterface> localizations = StructrApp.getInstance().nodeQuery(StructrTraits.LOCALIZATION)
 			.and(nameKey,   key)
@@ -323,7 +324,7 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 		}
 
 		// return first
-		return localization.getProperty(localization.getTraits().key("localizedName"));
+		return localization.getProperty(localization.getTraits().key(LocalizationTraitDefinition.LOCALIZED_NAME_PROPERTY));
 	}
 
 }

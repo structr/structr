@@ -33,6 +33,7 @@ import org.structr.core.traits.Traits;
 
 import java.util.*;
 import java.util.Map.Entry;
+import org.structr.core.traits.relationships.SecurityRelationshipDefinition;
 
 /**
  * A container for properties and their values that is used for input/output and database
@@ -378,7 +379,7 @@ public class PropertyMap {
 
 							// allow custom attributes on DOMNode
 
-						} else if (traits.contains(StructrTraits.PRINCIPAL) && "allowed".equals(key)) {
+						} else if (traits.contains(StructrTraits.PRINCIPAL) && SecurityRelationshipDefinition.ALLOWED_PROPERTY.equals(key)) {
 
 							// allow "allowed" property for grantees
 

@@ -32,6 +32,9 @@ import org.structr.core.traits.Traits;
 
 import java.util.Date;
 import java.util.Map.Entry;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.RelationshipInterfaceTraitDefinition;
 
 /**
  * Creates a relationship between two NodeInterface instances. The execute
@@ -40,13 +43,13 @@ import java.util.Map.Entry;
  */
 public class CreateRelationshipCommand extends NodeServiceCommand {
 
-	private final PropertyKey<String> idKey                           = Traits.key(StructrTraits.GRAPH_OBJECT, "id");
-	private final PropertyKey<String> typeKey                         = Traits.key(StructrTraits.GRAPH_OBJECT, "type");
-	private final PropertyKey<Date> createdDateKey                    = Traits.key(StructrTraits.GRAPH_OBJECT, "createdDate");
-	private final PropertyKey<Date> lastModifiedDateKey               = Traits.key(StructrTraits.GRAPH_OBJECT, "lastModifiedDate");
-	private final PropertyKey<String> createdByKey                    = Traits.key(StructrTraits.GRAPH_OBJECT, "createdBy");
-	private final PropertyKey<Boolean> visibleToPublicUsersKey        = Traits.key(StructrTraits.GRAPH_OBJECT, "visibleToPublicUsers");
-	private final PropertyKey<Boolean> visibleToAuthenticatedUsersKey = Traits.key(StructrTraits.GRAPH_OBJECT, "visibleToAuthenticatedUsers");
+	private final PropertyKey<String> idKey                           = Traits.key(StructrTraits.GRAPH_OBJECT, GraphObjectTraitDefinition.ID_PROPERTY);
+	private final PropertyKey<String> typeKey                         = Traits.key(StructrTraits.GRAPH_OBJECT, GraphObjectTraitDefinition.TYPE_PROPERTY);
+	private final PropertyKey<Date> createdDateKey                    = Traits.key(StructrTraits.GRAPH_OBJECT, GraphObjectTraitDefinition.CREATED_DATE_PROPERTY);
+	private final PropertyKey<Date> lastModifiedDateKey               = Traits.key(StructrTraits.GRAPH_OBJECT, GraphObjectTraitDefinition.LAST_MODIFIED_DATE_PROPERTY);
+	private final PropertyKey<String> createdByKey                    = Traits.key(StructrTraits.GRAPH_OBJECT, GraphObjectTraitDefinition.CREATED_BY_PROPERTY);
+	private final PropertyKey<Boolean> visibleToPublicUsersKey        = Traits.key(StructrTraits.GRAPH_OBJECT, GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY);
+	private final PropertyKey<Boolean> visibleToAuthenticatedUsersKey = Traits.key(StructrTraits.GRAPH_OBJECT, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY);
 
 	public RelationshipInterface execute(final NodeInterface fromNode, final NodeInterface toNode, final String relType) throws FrameworkException {
 		return createRelationship(fromNode, toNode, relType, null);
@@ -62,10 +65,10 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 		securityContext.disableModificationOfAccessTime();
 
 		final Traits relationshipTraits                = Traits.of(entityType);
-		final PropertyKey<String> internalTimestampKey = relationshipTraits.key("internalTimestamp");
-		final PropertyKey<String> sourceIdKey          = relationshipTraits.key("sourceId");
-		final PropertyKey<String> targetIdKey          = relationshipTraits.key("targetId");
-		final PropertyKey<String> relTypeKey           = relationshipTraits.key("relType");
+		final PropertyKey<String> internalTimestampKey = relationshipTraits.key(RelationshipInterfaceTraitDefinition.INTERNAL_TIMESTAMP_PROPERTY);
+		final PropertyKey<String> sourceIdKey          = relationshipTraits.key(RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY);
+		final PropertyKey<String> targetIdKey          = relationshipTraits.key(RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY);
+		final PropertyKey<String> relTypeKey           = relationshipTraits.key(RelationshipInterfaceTraitDefinition.REL_TYPE_PROPERTY);
 		final DatabaseService db                       = (DatabaseService)this.getArgument("graphDb");
 		final RelationshipFactory factory              = new RelationshipFactory(securityContext);
 		final PropertyMap properties                   = new PropertyMap(attributes);

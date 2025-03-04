@@ -19,6 +19,7 @@
 package org.structr.core.notion;
 
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 
 /**
@@ -43,6 +44,6 @@ public class RelationshipNotion extends Notion {
 
 	@Override
 	public PropertyKey getPrimaryPropertyKey() {
-		return Traits.of("RelationshipInterface").key(propertyKeyName);
+		return Traits.of(StructrTraits.RELATIONSHIP_INTERFACE).key(propertyKeyName);
 	}
 }

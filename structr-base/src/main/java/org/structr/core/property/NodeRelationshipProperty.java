@@ -35,6 +35,7 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.notion.Notion;
 
 import java.util.Map;
+import org.structr.core.traits.StructrTraits;
 
 /**
  *
@@ -69,7 +70,7 @@ public class NodeRelationshipProperty<T extends AbstractRelationship> extends Ab
 
 	@Override
 	public String relatedType() {
-		return "RelationshipInterface";
+		return StructrTraits.RELATIONSHIP_INTERFACE;
 	}
 
 	@Override

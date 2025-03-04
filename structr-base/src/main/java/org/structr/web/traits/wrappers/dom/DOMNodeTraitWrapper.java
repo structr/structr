@@ -45,6 +45,7 @@ import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.schema.action.Function;
@@ -1334,9 +1335,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 	@Override
 	public final void setVisibility(final boolean publicUsers, final boolean authenticatedUsers) throws FrameworkException {
-
-		wrappedObject.setProperty(traits.key("visibleToPublicUsers"), publicUsers);
-		wrappedObject.setProperty(traits.key("visibleToAuthenticatedUsers"), authenticatedUsers);
+		wrappedObject.setVisibility(publicUsers, authenticatedUsers);
 	}
 
 	@Override

@@ -29,6 +29,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.Linkable;
@@ -52,29 +53,29 @@ public class DeploymentCommentHandler implements CommentHandler {
 
 		handlers.put("public-only", (final Page page, final DOMNode node, final String parameters) -> {
 			final PropertyMap changedProperties = new PropertyMap();
-			changedProperties.put(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"),        true);
-			changedProperties.put(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToAuthenticatedUsers"), false);
+			changedProperties.put(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY),        true);
+			changedProperties.put(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), false);
 			node.setProperties(node.getSecurityContext(), changedProperties);
 		});
 
 		handlers.put("public", (final Page page, final DOMNode node, final String parameters) -> {
 			final PropertyMap changedProperties = new PropertyMap();
-			changedProperties.put(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"),        true);
-			changedProperties.put(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToAuthenticatedUsers"), true);
+			changedProperties.put(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY),        true);
+			changedProperties.put(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
 			node.setProperties(node.getSecurityContext(), changedProperties);
 		});
 
 		handlers.put("protected", (final Page page, final DOMNode node, final String parameters) -> {
 			final PropertyMap changedProperties = new PropertyMap();
-			changedProperties.put(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"),        false);
-			changedProperties.put(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToAuthenticatedUsers"), true);
+			changedProperties.put(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY),        false);
+			changedProperties.put(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
 			node.setProperties(node.getSecurityContext(), changedProperties);
 		});
 
 		handlers.put("private", (final Page page, final DOMNode node, final String parameters) -> {
 			final PropertyMap changedProperties = new PropertyMap();
-			changedProperties.put(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"),        false);
-			changedProperties.put(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToAuthenticatedUsers"), false);
+			changedProperties.put(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY),        false);
+			changedProperties.put(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), false);
 			node.setProperties(node.getSecurityContext(), changedProperties);
 		});
 

@@ -34,6 +34,7 @@ import org.structr.core.property.*;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.core.script.polyglot.function.GrantFunction;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.schema.action.ActionContext;
 
 import java.util.ArrayList;

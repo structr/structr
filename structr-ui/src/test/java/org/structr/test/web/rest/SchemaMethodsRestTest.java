@@ -27,6 +27,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.test.web.StructrUiTest;
 import org.testng.annotations.Test;
@@ -74,7 +75,7 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 			app.create(StructrTraits.RESOURCE_ACCESS,
 				new NodeAttribute<>(Traits.of(StructrTraits.RESOURCE_ACCESS).key("signature"), "myTestMethod01"),
 				new NodeAttribute<>(Traits.of(StructrTraits.RESOURCE_ACCESS).key("flags"), 64L),
-				new NodeAttribute<>(Traits.of(StructrTraits.RESOURCE_ACCESS).key("visibleToPublicUsers"), true)
+				new NodeAttribute<>(Traits.of(StructrTraits.RESOURCE_ACCESS).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)
 			);
 
 			tx.success();
@@ -134,7 +135,7 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 			app.create(StructrTraits.RESOURCE_ACCESS,
 				new NodeAttribute<>(Traits.of(StructrTraits.RESOURCE_ACCESS).key("signature"), "MyTestType/testTypeMethod01"),
 				new NodeAttribute<>(Traits.of(StructrTraits.RESOURCE_ACCESS).key("flags"), 64L),
-				new NodeAttribute<>(Traits.of(StructrTraits.RESOURCE_ACCESS).key("visibleToPublicUsers"), true)
+				new NodeAttribute<>(Traits.of(StructrTraits.RESOURCE_ACCESS).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)
 			);
 
 			tx.success();

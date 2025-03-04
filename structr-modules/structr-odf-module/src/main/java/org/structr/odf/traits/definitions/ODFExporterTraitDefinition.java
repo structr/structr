@@ -40,6 +40,7 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.odf.entity.ODFExporter;
 import org.structr.odf.traits.wrappers.ODFExporterTraitWrapper;
 import org.structr.schema.action.EvaluationHints;
@@ -121,13 +122,14 @@ public class ODFExporterTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"createdDate", "hidden", "lastModifiedBy", "lastModifiedDate",
-				"visibleToAuthenticatedUsers", "visibleToPublicUsers", "transformationProvider",
-				"documentTemplate", "resultDocument"
+					GraphObjectTraitDefinition.CREATED_DATE_PROPERTY, NodeInterfaceTraitDefinition.HIDDEN_PROPERTY,
+					GraphObjectTraitDefinition.LAST_MODIFIED_BY_PROPERTY, GraphObjectTraitDefinition.LAST_MODIFIED_DATE_PROPERTY,
+					GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY,
+					"transformationProvider", "documentTemplate", "resultDocument"
 			),
 			PropertyView.Ui,
 			newSet(
-				"lastModifiedBy", "transformationProvider", "documentTemplate", "resultDocument"
+					GraphObjectTraitDefinition.LAST_MODIFIED_BY_PROPERTY, "transformationProvider", "documentTemplate", "resultDocument"
 			)
 		);
 	}

@@ -27,6 +27,7 @@ import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 
 import java.util.Map;
 import java.util.Set;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 
 public class TestSixTraitDefinition extends AbstractNodeTraitDefinition {
 
@@ -55,7 +56,7 @@ public class TestSixTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 			PropertyView.Public,
-			newSet("name", "testSevenName", "testEightInts", "testEightStrings", "aString", "anInt")
+			newSet(NodeInterfaceTraitDefinition.NAME_PROPERTY, "testSevenName", "testEightInts", "testEightStrings", "aString", "anInt")
 		);
 	}
 

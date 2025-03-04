@@ -165,16 +165,16 @@ public class BasicWebsocketTest extends StructrWebsocketBaseTest {
 
 		assertEquals("Group",                            first.get(GraphObjectTraitDefinition.TYPE_PROPERTY));
 		assertEquals("Testgroup",                        first.get(NodeInterfaceTraitDefinition.NAME_PROPERTY));
-		assertEquals("00000000000000000000000000000000", first.get("createdBy"));
+		assertEquals("00000000000000000000000000000000", first.get(GraphObjectTraitDefinition.CREATED_BY_PROPERTY));
 		assertEquals(null,                               first.get(GroupTraitDefinition.JWKS_REFERENCE_ID_PROPERTY));
 		assertEquals(null,                               first.get(NodeInterfaceTraitDefinition.OWNER_PROPERTY));
-		assertEquals(false,                              first.get("visibleToPublicUsers"));
-		assertEquals(false,                              first.get("visibleToAuthenticatedUsers"));
-		assertEquals(false,                              first.get("hidden"));
+		assertEquals(false,                              first.get(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY));
+		assertEquals(false,                              first.get(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY));
+		assertEquals(false,                              first.get(NodeInterfaceTraitDefinition.HIDDEN_PROPERTY));
 		assertEquals(false,                              first.get(PrincipalTraitDefinition.BLOCKED_PROPERTY));
 		assertEquals(true,                               first.get(GroupTraitDefinition.IS_GROUP_PROPERTY));
 		assertEquals(0,                                  ((List)first.get(GroupTraitDefinition.MEMBERS_PROPERTY)).size());
-		assertEquals(id,                                         first.get(GraphObjectTraitDefinition.ID_PROPERTY));
+		assertEquals(id,                                          first.get(GraphObjectTraitDefinition.ID_PROPERTY));
 
 	}
 
@@ -212,15 +212,15 @@ public class BasicWebsocketTest extends StructrWebsocketBaseTest {
 		// check properties given above
 		assertEquals("Group",     first.get(GraphObjectTraitDefinition.TYPE_PROPERTY));
 		assertEquals("Testgroup", first.get(NodeInterfaceTraitDefinition.NAME_PROPERTY));
-		assertEquals(false,       first.get("visibleToPublicUsers"));
+		assertEquals(false,       first.get(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY));
 		assertEquals(id,                   first.get(GraphObjectTraitDefinition.ID_PROPERTY));
 
 		// everything else must be null
-		assertEquals(null,        first.get("createdBy"));
+		assertEquals(null,        first.get(GraphObjectTraitDefinition.CREATED_BY_PROPERTY));
 		assertEquals(null,        first.get(GroupTraitDefinition.JWKS_REFERENCE_ID_PROPERTY));
 		assertEquals(null,        first.get(NodeInterfaceTraitDefinition.OWNER_PROPERTY));
-		assertEquals(null,        first.get("visibleToAuthenticatedUsers"));
-		assertEquals(null,        first.get("hidden"));
+		assertEquals(null,        first.get(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY));
+		assertEquals(null,        first.get(NodeInterfaceTraitDefinition.HIDDEN_PROPERTY));
 		assertEquals(null,        first.get(PrincipalTraitDefinition.BLOCKED_PROPERTY));
 		assertEquals(null,        first.get(GroupTraitDefinition.IS_GROUP_PROPERTY));
 		assertEquals(null,        first.get(GroupTraitDefinition.MEMBERS_PROPERTY));

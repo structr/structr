@@ -43,6 +43,7 @@ import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.accesscontrollable.*;
 import org.structr.core.traits.operations.graphobject.*;
+import org.structr.core.traits.relationships.SecurityRelationshipDefinition;
 import org.structr.core.traits.wrappers.AccessControllableTraitWrapper;
 
 import java.util.*;
@@ -164,9 +165,9 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 
 							// performance improvement for grant(): add properties to the CREATE call that would
 							// otherwise be set in separate calls later in the transaction.
-							properties.put(traits.key("principalId"),          principal.getUuid());
-							properties.put(traits.key("accessControllableId"), node.getUuid());
-							properties.put(traits.key("allowed"),              permissionSet.toArray(new String[permissionSet.size()]));
+							properties.put(traits.key(SecurityRelationshipDefinition.PRINCIPAL_ID_PROPERTY),           principal.getUuid());
+							properties.put(traits.key(SecurityRelationshipDefinition.ACCESS_CONTROLLABLE_ID_PROPERTY), node.getUuid());
+							properties.put(traits.key(SecurityRelationshipDefinition.ALLOWED_PROPERTY),                permissionSet.toArray(new String[permissionSet.size()]));
 
 							StructrApp.getInstance(superUserContext).create(principal, node, StructrTraits.SECURITY, properties);
 
@@ -237,9 +238,9 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 
 								// performance improvement for grant(): add properties to the CREATE call that would
 								// otherwise be set in separate calls later in the transaction.
-								properties.put(traits.key("principalId"),          principal.getUuid());
-								properties.put(traits.key("accessControllableId"), node.getUuid());
-								properties.put(traits.key("allowed"),              permissionSet.toArray(new String[permissionSet.size()]));
+								properties.put(traits.key(SecurityRelationshipDefinition.PRINCIPAL_ID_PROPERTY),           principal.getUuid());
+								properties.put(traits.key(SecurityRelationshipDefinition.ACCESS_CONTROLLABLE_ID_PROPERTY), node.getUuid());
+								properties.put(traits.key(SecurityRelationshipDefinition.ALLOWED_PROPERTY),                permissionSet.toArray(new String[permissionSet.size()]));
 
 								StructrApp.getInstance(superUserContext).create(principal, node, StructrTraits.SECURITY, properties);
 

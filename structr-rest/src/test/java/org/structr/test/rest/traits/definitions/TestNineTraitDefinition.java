@@ -33,6 +33,8 @@ import org.structr.core.notion.PropertyNotion;
 import org.structr.core.property.*;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnModification;
@@ -41,6 +43,12 @@ import java.util.Map;
 import java.util.Set;
 
 public class TestNineTraitDefinition extends AbstractNodeTraitDefinition {
+
+	public static final String LATITUDE_PROPERTY       = "latitude";
+	public static final String LONGITUDE_PROPERTY      = "longitude";
+	public static final String CITY_PROPERTY           = "city";
+	public static final String STREET_PROPERTY         = "street";
+	public static final String POSTAL_CODE_PROPERTY    = "postalCode";
 
 	public TestNineTraitDefinition() {
 		super("TestNine");
@@ -75,12 +83,12 @@ public class TestNineTraitDefinition extends AbstractNodeTraitDefinition {
 	public Set<PropertyKey> getPropertyKeys() {
 
 		final Property<Iterable<NodeInterface>> testEights = new EndNodes("testEights", "NineEightManyToMany");
-		final Property<Iterable<String>>    testEightIds   = new CollectionNotionProperty("testEightIds", "TestNine", "testEights", "TestEight", new PropertyNotion("id"));
-		final Property<String> city                        = new StringProperty("city").indexed().indexedWhenEmpty();
-		final Property<String> street                      = new StringProperty("street").indexed().indexedWhenEmpty();
-		final Property<String> postalCode                  = new StringProperty("postalCode").indexed().indexedWhenEmpty();
-		final Property<Double> latitude                    = new DoubleProperty("latitude");
-		final Property<Double> longitude                   = new DoubleProperty("longitude");
+		final Property<Iterable<String>>    testEightIds   = new CollectionNotionProperty("testEightIds", "TestNine", "testEights", "TestEight", new PropertyNotion(GraphObjectTraitDefinition.ID_PROPERTY));
+		final Property<String> city                        = new StringProperty(CITY_PROPERTY).indexed().indexedWhenEmpty();
+		final Property<String> street                      = new StringProperty(STREET_PROPERTY).indexed().indexedWhenEmpty();
+		final Property<String> postalCode                  = new StringProperty(POSTAL_CODE_PROPERTY).indexed().indexedWhenEmpty();
+		final Property<Double> latitude                    = new DoubleProperty(LATITUDE_PROPERTY);
+		final Property<Double> longitude                   = new DoubleProperty(LONGITUDE_PROPERTY);
 
 		return newSet(
 			testEights,
@@ -98,7 +106,9 @@ public class TestNineTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 			PropertyView.Public,
-			newSet("name", "city", "street", "postalCode", "latitude", "longitude")
+			newSet(
+					NodeInterfaceTraitDefinition.NAME_PROPERTY, CITY_PROPERTY, STREET_PROPERTY, POSTAL_CODE_PROPERTY, LATITUDE_PROPERTY, LONGITUDE_PROPERTY
+			)
 		);
 	}
 
@@ -110,11 +120,11 @@ public class TestNineTraitDefinition extends AbstractNodeTraitDefinition {
 	private void geocode(final GraphObject node) throws FrameworkException {
 
 		final Traits traits                  = node.getTraits();
-		final PropertyKey<Double> latitude   = traits.key("latitude");
-		final PropertyKey<Double> longitude  = traits.key("longitude");
-		final PropertyKey<String> city       = traits.key("city");
-		final PropertyKey<String> street     = traits.key("street");
-		final PropertyKey<String> postalCode = traits.key("postalCode");
+		final PropertyKey<Double> latitude   = traits.key(LATITUDE_PROPERTY);
+		final PropertyKey<Double> longitude  = traits.key(LONGITUDE_PROPERTY);
+		final PropertyKey<String> city       = traits.key(CITY_PROPERTY);
+		final PropertyKey<String> street     = traits.key(STREET_PROPERTY);
+		final PropertyKey<String> postalCode = traits.key(POSTAL_CODE_PROPERTY);
 
 		Double lat              = node.getProperty(latitude);
 		Double lon              = node.getProperty(longitude);

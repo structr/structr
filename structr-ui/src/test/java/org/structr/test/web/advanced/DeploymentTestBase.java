@@ -260,8 +260,8 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 		// AbstractNode
 		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.TYPE_PROPERTY)));
 		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)));
-		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers")));
-		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToAuthenticatedUsers")));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY)));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY)));
 
 		// include owner in content hash generation!
 		final AccessControllable ac = node.as(AccessControllable.class);

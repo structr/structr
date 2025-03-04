@@ -46,6 +46,10 @@ import static org.structr.core.entity.Relation.Multiplicity.Many;
 
 public class SecurityRelationshipDefinition extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
+	public static final String PRINCIPAL_ID_PROPERTY           = "principalId";
+	public static final String ACCESS_CONTROLLABLE_ID_PROPERTY = "accessControllableId";
+	public static final String ALLOWED_PROPERTY                = "allowed";
+
 	public SecurityRelationshipDefinition() {
 		super(StructrTraits.SECURITY);
 	}
@@ -71,8 +75,8 @@ public class SecurityRelationshipDefinition extends AbstractRelationshipTraitDef
 
 					keys.addAll(getSuper().getPropertyKeys(graphObject, propertyView));
 
-					keys.add(traits.key("principalId"));
-					keys.add(traits.key("accessControllableId"));
+					keys.add(traits.key(PRINCIPAL_ID_PROPERTY));
+					keys.add(traits.key(ACCESS_CONTROLLABLE_ID_PROPERTY));
 
 					final Relationship dbRelationship = ((RelationshipInterface) graphObject).getRelationship();
 					if (dbRelationship != null) {
@@ -109,9 +113,9 @@ public class SecurityRelationshipDefinition extends AbstractRelationshipTraitDef
 	public Set<PropertyKey> getPropertyKeys() {
 
 		return newSet(
-			new SourceId("principalId"),
-			new TargetId("accessControllableId"),
-			new ArrayProperty("allowed", String.class)
+			new SourceId(PRINCIPAL_ID_PROPERTY),
+			new TargetId(ACCESS_CONTROLLABLE_ID_PROPERTY),
+			new ArrayProperty(ALLOWED_PROPERTY, String.class)
 		);
 	}
 

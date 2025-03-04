@@ -350,17 +350,17 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 
 	@Override
 	public final Date getCreatedDate() {
-		return getProperty(typeHandler.key("createdDate"));
+		return getProperty(typeHandler.key(GraphObjectTraitDefinition.CREATED_DATE_PROPERTY));
 	}
 
 	@Override
 	public final Date getLastModifiedDate() {
-		return getProperty(typeHandler.key("lastModifiedDate"));
+		return getProperty(typeHandler.key(GraphObjectTraitDefinition.LAST_MODIFIED_DATE_PROPERTY));
 	}
 
 	@Override
 	public final void setLastModifiedDate(final Date date) throws FrameworkException {
-		setProperty(typeHandler.key("lastModifiedDate"), date);
+		setProperty(typeHandler.key(GraphObjectTraitDefinition.LAST_MODIFIED_DATE_PROPERTY), date);
 	}
 
 	/**

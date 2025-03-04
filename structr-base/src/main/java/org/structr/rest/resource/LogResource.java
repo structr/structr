@@ -37,6 +37,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.*;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.entity.LogEvent;
 
@@ -255,8 +256,8 @@ public class LogResource extends ExactMatchEndpoint {
 						properties.put(traits.key("subjectProperty"),             subjectId);
 						properties.put(traits.key("objectProperty"),              objectId);
 						properties.put(traits.key("messageProperty"),             message);
-						properties.put(traits.key("visibleToPublicUsers"),        true);
-						properties.put(traits.key("visibleToAuthenticatedUsers"), true);
+						properties.put(traits.key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY),        true);
+						properties.put(traits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
 
 						event = app.create("LogEvent", properties);
 
@@ -463,8 +464,8 @@ public class LogResource extends ExactMatchEndpoint {
 					properties.put(traits.key("subject"),                     subjectId);
 					properties.put(traits.key("object"),                      objectId);
 					properties.put(traits.key("timestamp"),                   new Date(timestamp));
-					properties.put(traits.key("visibleToPublicUsers"),        true);
-					properties.put(traits.key("visibleToAuthenticatedUsers"), true);
+					properties.put(traits.key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY),        true);
+					properties.put(traits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
 
 					app.create("LogEvent", properties);
 

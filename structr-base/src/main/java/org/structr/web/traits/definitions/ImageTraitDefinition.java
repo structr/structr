@@ -35,6 +35,7 @@ import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
@@ -113,7 +114,7 @@ public class ImageTraitDefinition extends AbstractNodeTraitDefinition {
 					final String keyName = key.jsonName();
 
 					// Copy visibility properties and owner to all thumbnails
-					if ("visibleToPublicUsers".equals(keyName) || "visibleToAuthenticatedUsers".equals(keyName) || "owner".equals(keyName)) {
+					if (GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY.equals(keyName) || GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY.equals(keyName) || NodeInterfaceTraitDefinition.OWNER_PROPERTY.equals(keyName)) {
 
 						final Image thisImage = graphObject.as(Image.class);
 
@@ -146,7 +147,7 @@ public class ImageTraitDefinition extends AbstractNodeTraitDefinition {
 
 							final String keyName = key.jsonName();
 
-							if ("visibleToPublicUsers".equals(keyName) || "visibleToAuthenticatedUsers".equals(keyName) || "owner".equals(keyName)) {
+							if (GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY.equals(keyName) || GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY.equals(keyName) || NodeInterfaceTraitDefinition.OWNER_PROPERTY.equals(keyName)) {
 
 								propertiesCopiedToAllThumbnails.put(key, properties.get(key));
 							}

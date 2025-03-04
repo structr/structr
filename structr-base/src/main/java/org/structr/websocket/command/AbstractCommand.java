@@ -310,7 +310,7 @@ public abstract class AbstractCommand {
 				properties.put(traits.key(GraphObjectTraitDefinition.TYPE_PROPERTY), traits.getName());
 				properties.put(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "__ShadowDocument__");
 				properties.put(traits.key(NodeInterfaceTraitDefinition.HIDDEN_PROPERTY), true);
-				properties.put(traits.key("visibleToAuthenticatedUsers"), true);
+				properties.put(traits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
 
 				doc = app.create(StructrTraits.SHADOW_DOCUMENT, properties);
 			}

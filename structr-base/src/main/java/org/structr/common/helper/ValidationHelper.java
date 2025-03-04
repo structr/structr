@@ -41,6 +41,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 
 /**
  * Defines helper methods for property validation.
@@ -579,7 +580,7 @@ public class ValidationHelper {
 						result = StructrApp.getInstance()
 								.nodeQuery(type)
 								.and(key, value)
-								.sort(traits.key("createdDate"))
+								.sort(traits.key(GraphObjectTraitDefinition.CREATED_DATE_PROPERTY))
 								.getAsList();
 
 					} else {
@@ -587,7 +588,7 @@ public class ValidationHelper {
 						result = StructrApp.getInstance()
 								.relationshipQuery(type)
 								.and(key, value)
-								.sort(traits.key("createdDate"))
+								.sort(traits.key(GraphObjectTraitDefinition.CREATED_DATE_PROPERTY))
 								.getAsList();
 
 					}
@@ -666,7 +667,7 @@ public class ValidationHelper {
 					result = StructrApp.getInstance()
 							.nodeQuery(type)
 							.and(properties)
-							.sort(traits.key("createdDate"))
+							.sort(traits.key(GraphObjectTraitDefinition.CREATED_DATE_PROPERTY))
 							.getAsList();
 
 				} else {
@@ -674,7 +675,7 @@ public class ValidationHelper {
 					result = StructrApp.getInstance()
 							.relationshipQuery(type)
 							.and(properties)
-							.sort(traits.key("createdDate"))
+							.sort(traits.key(GraphObjectTraitDefinition.CREATED_DATE_PROPERTY))
 							.getAsList();
 
 				}
@@ -734,7 +735,7 @@ public class ValidationHelper {
 					result = StructrApp.getInstance()
 							.nodeQuery()
 							.and(key, value)
-							.sort(traits.key("createdDate"))
+							.sort(traits.key(GraphObjectTraitDefinition.CREATED_DATE_PROPERTY))
 							.getAsList();
 
 				} else if (object instanceof RelationshipInterface) {
@@ -742,7 +743,7 @@ public class ValidationHelper {
 					result = StructrApp.getInstance()
 							.relationshipQuery()
 							.and(key, value)
-							.sort(traits.key("createdDate"))
+							.sort(traits.key(GraphObjectTraitDefinition.CREATED_DATE_PROPERTY))
 							.getAsList();
 
 				} else {

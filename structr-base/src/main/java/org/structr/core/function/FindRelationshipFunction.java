@@ -61,7 +61,7 @@ public class FindRelationshipFunction extends CoreFunction {
 			}
 
 			final SecurityContext securityContext = ctx.getSecurityContext();
-			final Query query  = StructrApp.getInstance(securityContext).relationshipQuery().sort(Traits.of(StructrTraits.GRAPH_OBJECT).key("createdDate"));
+			final Query query  = StructrApp.getInstance(securityContext).relationshipQuery().sort(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.CREATED_DATE_PROPERTY));
 
 			// the type to query for
 			Traits traits = null;

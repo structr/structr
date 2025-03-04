@@ -214,8 +214,8 @@ public class StructrTest {
 			final List<NodeInterface> nodes = new LinkedList<>();
 			final Traits traits             = Traits.of(type);
 
-			properties.put(traits.key("visibleToAuthenticatedUsers"), false);
-			properties.put(traits.key("visibleToPublicUsers"), false);
+			properties.put(traits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), false);
+			properties.put(traits.key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), false);
 			properties.put(traits.key(NodeInterfaceTraitDefinition.HIDDEN_PROPERTY), false);
 
 			for (int i = 0; i < number; i++) {

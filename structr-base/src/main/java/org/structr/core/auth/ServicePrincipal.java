@@ -690,12 +690,12 @@ public class ServicePrincipal implements Principal {
 	}
 
 	@Override
-	public void setVisibleToAuthenticatedUsers(boolean visible) throws FrameworkException {
+	public void setVisibleToAuthenticatedUsers(boolean visibleToAuth) throws FrameworkException {
 
 	}
 
 	@Override
-	public void setVisibleToPublicUsers(boolean visible) throws FrameworkException {
+	public void setVisibleToPublicUsers(boolean visibleToPublic) throws FrameworkException {
 
 	}
 

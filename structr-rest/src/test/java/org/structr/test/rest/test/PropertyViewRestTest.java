@@ -29,6 +29,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.RelationshipInterfaceTraitDefinition;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Optional;
@@ -166,8 +167,8 @@ public class PropertyViewRestTest extends StructrRestTestBase {
 			view.setProperty(Traits.of(StructrTraits.SCHEMA_VIEW).key("nonGraphProperties"), "name, depth, children, parents");
 
 			app.create(StructrTraits.SCHEMA_RELATIONSHIP_NODE,
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceNode"),         schemaNode),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetNode"),         schemaNode),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.SOURCE_NODE_PROPERTY),         schemaNode),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.TARGET_NODE_PROPERTY),         schemaNode),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("relationshipType"),   "test"),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceMultiplicity"), "*"),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetMultiplicity"), "*"),

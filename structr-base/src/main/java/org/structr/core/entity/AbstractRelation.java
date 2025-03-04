@@ -23,7 +23,9 @@ import org.structr.common.SecurityContext;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.RelationshipNotion;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.RelationshipInterfaceTraitDefinition;
 
 
 /**
@@ -32,8 +34,8 @@ import org.structr.core.traits.Traits;
 public abstract class AbstractRelation {
 
 
-	private final Notion startNodeNotion = new RelationshipNotion("sourceId");
-	private final Notion endNodeNotion   = new RelationshipNotion("targetId");
+	private final Notion startNodeNotion = new RelationshipNotion(RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY);
+	private final Notion endNodeNotion   = new RelationshipNotion(RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY);
 	private PropertyKey sourceProperty   = null;
 	private PropertyKey targetProperty   = null;
 
@@ -64,11 +66,11 @@ public abstract class AbstractRelation {
 	}
 
 	public PropertyKey<String> getSourceIdProperty() {
-		return Traits.of("RelationshipInterface").key("sourceId");
+		return Traits.of(StructrTraits.RELATIONSHIP_INTERFACE).key(RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY);
 	}
 
 	public PropertyKey<String> getTargetIdProperty() {
-		return Traits.of("RelationshipInterface").key("targetId");
+		return Traits.of(StructrTraits.RELATIONSHIP_INTERFACE).key(RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY);
 	}
 
 	public final Direction getDirectionForType(final String sourceType, final String targetType, final String type) {

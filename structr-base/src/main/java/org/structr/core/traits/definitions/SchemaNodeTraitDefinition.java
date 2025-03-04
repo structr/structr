@@ -175,8 +175,8 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 			PropertyView.Ui,
 			newSet(
-				"id", "type", "name", "owner", "createdBy", "hidden", "createdDate", "lastModifiedDate",
-				"visibleToPublicUsers", "visibleToAuthenticatedUsers", "schemaProperties", "schemaViews",
+				"id", "type", "name", "owner", GraphObjectTraitDefinition.CREATED_BY_PROPERTY, "hidden", GraphObjectTraitDefinition.CREATED_DATE_PROPERTY, GraphObjectTraitDefinition.LAST_MODIFIED_DATE_PROPERTY,
+					GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, "schemaProperties", "schemaViews",
 				"schemaMethods", "icon", "changelogDisabled", "relatedTo", "relatedFrom", "defaultSortKey",
 				"defaultSortOrder", "hierarchyLevel", "relCount", "isInterface", "isAbstract",
 				"category", "defaultVisibleToPublic", "defaultVisibleToAuth", "includeInOpenAPI", "inheritedTraits"

@@ -27,6 +27,8 @@ import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 
 import java.util.Map;
 import java.util.Set;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 
 public class TestSevenTraitDefinition extends AbstractNodeTraitDefinition {
 
@@ -38,7 +40,7 @@ public class TestSevenTraitDefinition extends AbstractNodeTraitDefinition {
 	public Set<PropertyKey> getPropertyKeys() {
 
 		final Property<Iterable<NodeInterface>> testSixs = new EndNodes("testSixs", "SevenSixOneToMany");
-		final Property<Iterable<String>> testSixIds      = new CollectionNotionProperty("testSixIds", "TestSeven", "testSixs", "TestSix", new PropertyNotion("id"));
+		final Property<Iterable<String>> testSixIds      = new CollectionNotionProperty("testSixIds", "TestSeven", "testSixs", "TestSix", new PropertyNotion(GraphObjectTraitDefinition.ID_PROPERTY));
 		final Property<String> aString                   = new StringProperty("aString").indexed().indexedWhenEmpty();
 		final Property<Integer> anInt                    = new IntProperty("anInt").indexed();
 
@@ -52,7 +54,7 @@ public class TestSevenTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 			PropertyView.Public,
-			newSet("name", "testSixIds", "aString", "anInt")
+			newSet(NodeInterfaceTraitDefinition.NAME_PROPERTY, "testSixIds", "aString", "anInt")
 		);
 	}
 

@@ -35,6 +35,17 @@ import java.util.Set;
  */
 public final class LocationTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String LATITUDE_PROPERTY       = "latitude";
+	public static final String LONGITUDE_PROPERTY      = "longitude";
+	public static final String ALTITUDE_PROPERTY       = "altitude";
+	public static final String COUNTRY_PROPERTY        = "country";
+	public static final String POSTAL_CODE_PROPERTY    = "postalCode";
+	public static final String CITY_PROPERTY           = "city";
+	public static final String STREET_PROPERTY         = "street";
+	public static final String HOUSE_NUMBER_PROPERTY   = "houseNumber";
+	public static final String STATE_PROPERTY          = "state";
+	public static final String STATE_DISTRICT_PROPERTY = "stateDistrict";
+
 	public LocationTraitDefinition() {
 		super(StructrTraits.LOCATION);
 	}
@@ -47,16 +58,16 @@ public final class LocationTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Double> latitudeProperty      = new DoubleProperty("latitude").indexed();
-		final Property<Double> longitudeProperty     = new DoubleProperty("longitude").indexed();
-		final Property<Double> altitudeProperty      = new DoubleProperty("altitude").indexed();
-		final Property<String> countryProperty       = new StringProperty("country").indexed();
-		final Property<String> postalCodeProperty    = new StringProperty("postalCode").indexed();
-		final Property<String> cityProperty          = new StringProperty("city").indexed();
-		final Property<String> streetProperty        = new StringProperty("street").indexed();
-		final Property<String> houseNumberProperty   = new StringProperty("houseNumber").indexed();
-		final Property<String> stateProperty         = new StringProperty("state").indexed();
-		final Property<String> stateDistrictProperty = new StringProperty("stateDistrict").indexed();
+		final Property<Double> latitudeProperty      = new DoubleProperty(LATITUDE_PROPERTY).indexed();
+		final Property<Double> longitudeProperty     = new DoubleProperty(LONGITUDE_PROPERTY).indexed();
+		final Property<Double> altitudeProperty      = new DoubleProperty(ALTITUDE_PROPERTY).indexed();
+		final Property<String> countryProperty       = new StringProperty(COUNTRY_PROPERTY).indexed();
+		final Property<String> postalCodeProperty    = new StringProperty(POSTAL_CODE_PROPERTY).indexed();
+		final Property<String> cityProperty          = new StringProperty(CITY_PROPERTY).indexed();
+		final Property<String> streetProperty        = new StringProperty(STREET_PROPERTY).indexed();
+		final Property<String> houseNumberProperty   = new StringProperty(HOUSE_NUMBER_PROPERTY).indexed();
+		final Property<String> stateProperty         = new StringProperty(STATE_PROPERTY).indexed();
+		final Property<String> stateDistrictProperty = new StringProperty(STATE_DISTRICT_PROPERTY).indexed();
 
 		return newSet(
 			latitudeProperty,
@@ -78,13 +89,13 @@ public final class LocationTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-			"latitude", "longitude", "altitude", "country", "postalCode", "city",
-				"street", "houseNumber", "state", "stateDistrict"
+					LocationTraitDefinition.LATITUDE_PROPERTY, LONGITUDE_PROPERTY, ALTITUDE_PROPERTY, COUNTRY_PROPERTY, POSTAL_CODE_PROPERTY, CITY_PROPERTY,
+					STREET_PROPERTY, HOUSE_NUMBER_PROPERTY, STATE_PROPERTY, STATE_DISTRICT_PROPERTY
 			),
 			PropertyView.Ui,
 			newSet(
-				"latitude", "longitude", "altitude", "country", "postalCode", "city",
-				"street", "houseNumber", "state", "stateDistrict"
+					LocationTraitDefinition.LATITUDE_PROPERTY, LONGITUDE_PROPERTY, ALTITUDE_PROPERTY, COUNTRY_PROPERTY, POSTAL_CODE_PROPERTY, CITY_PROPERTY,
+					STREET_PROPERTY, HOUSE_NUMBER_PROPERTY, STATE_PROPERTY, STATE_DISTRICT_PROPERTY
 			)
 		);
 	}

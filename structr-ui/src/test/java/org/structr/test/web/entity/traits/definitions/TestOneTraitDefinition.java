@@ -27,6 +27,8 @@ import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import java.util.Date;
 import java.util.Map;
 import java.util.Set;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 
 public class TestOneTraitDefinition extends AbstractNodeTraitDefinition {
 
@@ -62,12 +64,12 @@ public class TestOneTraitDefinition extends AbstractNodeTraitDefinition {
 
 			PropertyView.Public,
 			newSet(
-				"name", "anInt", "aDouble", "aLong", "aDate", "createdDate", "aString", "htmlString"
+				NodeInterfaceTraitDefinition.NAME_PROPERTY, "anInt", "aDouble", "aLong", "aDate", GraphObjectTraitDefinition.CREATED_DATE_PROPERTY, "aString", "htmlString"
 			),
 
 			PropertyView.Ui,
 			newSet(
-				"name", "anInt", "aDouble", "aLong", "aDate", "createdDate", "aString", "htmlString"
+				NodeInterfaceTraitDefinition.NAME_PROPERTY, "anInt", "aDouble", "aLong", "aDate", GraphObjectTraitDefinition.CREATED_DATE_PROPERTY, "aString", "htmlString"
 			)
 		);
 	}

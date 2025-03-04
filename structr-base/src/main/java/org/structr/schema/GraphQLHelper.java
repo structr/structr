@@ -31,6 +31,7 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 
 import java.util.*;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 
 import static graphql.schema.GraphQLTypeReference.typeRef;
@@ -42,7 +43,7 @@ public class GraphQLHelper {
 	public static final String GraphQLNodeReferenceName            = "StructrNodeReference";
 
 	public static final Set<String> InternalTypes = Set.of(
-		StructrTraits.PROPERTY_CONTAINER, StructrTraits.GRAPH_OBJECT, StructrTraits.NODE_INTERFACE, "RelationshipInterface", StructrTraits.PRINCIPAL,
+		StructrTraits.PROPERTY_CONTAINER, StructrTraits.GRAPH_OBJECT, StructrTraits.NODE_INTERFACE, StructrTraits.RELATIONSHIP_INTERFACE, StructrTraits.PRINCIPAL,
 		"OneToOne", "OneToMany", "ManyToOne", "ManyToMany",
 		"LinkedTreeNode", "LinkedListNode"
 
@@ -126,15 +127,15 @@ public class GraphQLHelper {
 		fields.put("id", GraphQLFieldDefinition.newFieldDefinition().name("id").type(Scalars.GraphQLString).arguments(getGraphQLArgumentsForUUID()).build());
 
 		// add static fields (name etc., can be overwritten)
-		fields.putIfAbsent("type", GraphQLFieldDefinition.newFieldDefinition().name("type").type(Scalars.GraphQLString).build());
-		fields.putIfAbsent("name", GraphQLFieldDefinition.newFieldDefinition().name("name").type(Scalars.GraphQLString).arguments(getGraphQLArgumentsForPropertyType(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY))).build());
-		fields.putIfAbsent("owner", GraphQLFieldDefinition.newFieldDefinition().name("owner").type(typeRef(StructrTraits.PRINCIPAL)).arguments(getGraphQLArgumentsForRelatedType(Principal.class)).build());
-		fields.putIfAbsent("createdBy", GraphQLFieldDefinition.newFieldDefinition().name("createdBy").type(Scalars.GraphQLString).build());
-		fields.putIfAbsent("createdDate", GraphQLFieldDefinition.newFieldDefinition().name("createdDate").type(Scalars.GraphQLString).build());
-		fields.putIfAbsent("lastModifiedBy", GraphQLFieldDefinition.newFieldDefinition().name("lastModifiedBy").type(Scalars.GraphQLString).build());
-		fields.putIfAbsent("lastModifiedDate", GraphQLFieldDefinition.newFieldDefinition().name("lastModifiedDate").type(Scalars.GraphQLString).build());
-		fields.putIfAbsent("visibleToPublicUsers", GraphQLFieldDefinition.newFieldDefinition().name("visibleToPublicUsers").type(Scalars.GraphQLString).build());
-		fields.putIfAbsent("visibleToAuthenticatedUsers", GraphQLFieldDefinition.newFieldDefinition().name("visibleToAuthenticatedUsers").type(Scalars.GraphQLString).build());
+		fields.putIfAbsent(GraphObjectTraitDefinition.TYPE_PROPERTY, GraphQLFieldDefinition.newFieldDefinition().name(GraphObjectTraitDefinition.TYPE_PROPERTY).type(Scalars.GraphQLString).build());
+		fields.putIfAbsent(NodeInterfaceTraitDefinition.NAME_PROPERTY, GraphQLFieldDefinition.newFieldDefinition().name(NodeInterfaceTraitDefinition.NAME_PROPERTY).type(Scalars.GraphQLString).arguments(getGraphQLArgumentsForPropertyType(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY))).build());
+		fields.putIfAbsent(NodeInterfaceTraitDefinition.OWNER_PROPERTY, GraphQLFieldDefinition.newFieldDefinition().name(NodeInterfaceTraitDefinition.OWNER_PROPERTY).type(typeRef(StructrTraits.PRINCIPAL)).arguments(getGraphQLArgumentsForRelatedType(Principal.class)).build());
+		fields.putIfAbsent(GraphObjectTraitDefinition.CREATED_BY_PROPERTY, GraphQLFieldDefinition.newFieldDefinition().name(GraphObjectTraitDefinition.CREATED_BY_PROPERTY).type(Scalars.GraphQLString).build());
+		fields.putIfAbsent(GraphObjectTraitDefinition.CREATED_DATE_PROPERTY, GraphQLFieldDefinition.newFieldDefinition().name(GraphObjectTraitDefinition.CREATED_DATE_PROPERTY).type(Scalars.GraphQLString).build());
+		fields.putIfAbsent(GraphObjectTraitDefinition.LAST_MODIFIED_BY_PROPERTY, GraphQLFieldDefinition.newFieldDefinition().name(GraphObjectTraitDefinition.LAST_MODIFIED_BY_PROPERTY).type(Scalars.GraphQLString).build());
+		fields.putIfAbsent(GraphObjectTraitDefinition.LAST_MODIFIED_DATE_PROPERTY, GraphQLFieldDefinition.newFieldDefinition().name(GraphObjectTraitDefinition.LAST_MODIFIED_DATE_PROPERTY).type(Scalars.GraphQLString).build());
+		fields.putIfAbsent(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY, GraphQLFieldDefinition.newFieldDefinition().name(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY).type(Scalars.GraphQLString).build());
+		fields.putIfAbsent(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, GraphQLFieldDefinition.newFieldDefinition().name(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY).type(Scalars.GraphQLString).build());
 
 		// register type in GraphQL schema
 		final GraphQLObjectType.Builder builder = GraphQLObjectType.newObject();

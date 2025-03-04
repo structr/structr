@@ -36,6 +36,9 @@ import java.util.Set;
  */
 public final class MailTemplateTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String TEXT_PROPERTY   = "text";
+	public static final String LOCALE_PROPERTY = "locale";
+
 	public MailTemplateTraitDefinition() {
 		super(StructrTraits.MAIL_TEMPLATE);
 	}
@@ -51,8 +54,8 @@ public final class MailTemplateTraitDefinition extends AbstractNodeTraitDefiniti
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<String> textProperty = new StringProperty("text");
-		final Property<String> localeProperty = new StringProperty("locale").indexed();
+		final Property<String> textProperty = new StringProperty(TEXT_PROPERTY);
+		final Property<String> localeProperty = new StringProperty(LOCALE_PROPERTY).indexed();
 
 		return newSet(
 			textProperty,
@@ -64,10 +67,16 @@ public final class MailTemplateTraitDefinition extends AbstractNodeTraitDefiniti
 	public Map<String, Set<String>> getViews() {
 
 		return Map.of(
+
 			PropertyView.Public,
-			newSet("name", "text", "locale"),
+			newSet(
+					NodeInterfaceTraitDefinition.NAME_PROPERTY, TEXT_PROPERTY, LOCALE_PROPERTY
+			),
+
 			PropertyView.Ui,
-			newSet("name", "text", "locale")
+			newSet(
+					NodeInterfaceTraitDefinition.NAME_PROPERTY, TEXT_PROPERTY, LOCALE_PROPERTY
+			)
 		);
 	}
 

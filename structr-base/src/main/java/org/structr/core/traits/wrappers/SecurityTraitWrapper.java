@@ -32,6 +32,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import org.structr.core.traits.relationships.SecurityRelationshipDefinition;
 
 public class SecurityTraitWrapper extends GraphObjectTraitWrapper<RelationshipInterface> implements Security {
 
@@ -41,7 +42,7 @@ public class SecurityTraitWrapper extends GraphObjectTraitWrapper<RelationshipIn
 
 		super(traits, relationshipInterface);
 
-		this.allowedKey = traits.key("allowed");
+		this.allowedKey = traits.key(SecurityRelationshipDefinition.ALLOWED_PROPERTY);
 	}
 
 	@Override
