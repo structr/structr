@@ -38,6 +38,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.schema.action.Actions;
 
 import java.math.BigInteger;
@@ -255,7 +256,7 @@ public class AuthHelper {
 
 	public static Principal getPrincipalForSessionId(final String sessionId, final boolean isPing) {
 
-		return getPrincipalForCredential(Traits.of(StructrTraits.PRINCIPAL).key("sessionIds"), new String[]{ sessionId }, isPing, false);
+		return getPrincipalForCredential(Traits.of(StructrTraits.PRINCIPAL).key(PrincipalTraitDefinition.SESSION_IDS_PROPERTY), new String[]{ sessionId }, isPing, false);
 	}
 
 	public static void doLogin(final HttpServletRequest request, final Principal user) throws FrameworkException {
@@ -460,7 +461,7 @@ public class AuthHelper {
 
 		Principal principal = null;
 
-		final PropertyKey<String> twoFactorTokenKey = Traits.of(StructrTraits.PRINCIPAL).key("twoFactorToken");
+		final PropertyKey<String> twoFactorTokenKey = Traits.of(StructrTraits.PRINCIPAL).key(PrincipalTraitDefinition.TWO_FACTOR_TOKEN_PROPERTY);
 
 		try (final Tx tx = app.tx()) {
 

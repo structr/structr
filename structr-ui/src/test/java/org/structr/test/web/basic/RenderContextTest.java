@@ -34,6 +34,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GroupTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.schema.ConfigurationProvider;
@@ -452,19 +453,14 @@ public class RenderContextTest extends StructrUiTest {
 			assertEquals(p4, paragraphs.get(3));
 
 			// create users
-			final User tester1 = app.create(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "tester1"), new NodeAttribute<>(Traits.of(StructrTraits.USER).key("eMail"), "tester1@test.com")).as(User.class);
-			final User tester2 = app.create(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "tester2"), new NodeAttribute<>(Traits.of(StructrTraits.USER).key("eMail"), "tester2@test.com")).as(User.class);
+			final User tester1 = app.create(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "tester1"), new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.EMAIL_PROPERTY), "tester1@test.com")).as(User.class);
+			final User tester2 = app.create(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "tester2"), new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.EMAIL_PROPERTY), "tester2@test.com")).as(User.class);
 
 			assertNotNull("User tester1 should exist.", tester1);
 			assertNotNull("User tester2 should exist.", tester2);
 
 			// create admin user for later use
-			final PropertyMap adminProperties = new PropertyMap();
-			adminProperties.put(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     "admin");
-			adminProperties.put(Traits.of(StructrTraits.USER).key("password"), "admin");
-			adminProperties.put(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY),   true);
-
-			app.create(StructrTraits.USER, adminProperties);
+			createAdminUser("admin", "admin");
 
 			pageId = page.getUuid();
 			p1Id   = p1.getUuid();
@@ -751,17 +747,17 @@ public class RenderContextTest extends StructrUiTest {
 
 			app.create(StructrTraits.GROUP,
 				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "group1"),
-				new NodeAttribute<>(Traits.of(StructrTraits.GROUP).key("members"), List.of(user))
+				new NodeAttribute<>(Traits.of(StructrTraits.GROUP).key(GroupTraitDefinition.MEMBERS_PROPERTY), List.of(user))
 			);
 
 			final NodeInterface group2 = app.create(StructrTraits.GROUP,
 				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "group2"),
-				new NodeAttribute<>(Traits.of(StructrTraits.GROUP).key("members"), List.of(user))
+				new NodeAttribute<>(Traits.of(StructrTraits.GROUP).key(GroupTraitDefinition.MEMBERS_PROPERTY), List.of(user))
 			);
 
 			app.create(StructrTraits.GROUP,
 				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "group3"),
-				new NodeAttribute<>(Traits.of(StructrTraits.GROUP).key("members"), List.of(user))
+				new NodeAttribute<>(Traits.of(StructrTraits.GROUP).key(GroupTraitDefinition.MEMBERS_PROPERTY), List.of(user))
 			);
 
 			test.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), group2);

@@ -47,10 +47,30 @@ import java.util.Set;
 
 public class PrincipalTraitDefinition extends AbstractNodeTraitDefinition {
 
-	public static final String GROUPS_PROPERTY      = "groups";
-	public static final String OWNED_NODES_PROPERTY = "ownedNodes";
-	public static final String GRANTED_NODES_PROPERTY = "grantedNodes";
-	public static final String IS_ADMIN_PROPERTY = "isAdmin";
+	public static final String GROUPS_PROPERTY               = "groups";
+	public static final String OWNED_NODES_PROPERTY          = "ownedNodes";
+	public static final String GRANTED_NODES_PROPERTY        = "grantedNodes";
+	public static final String IS_ADMIN_PROPERTY             = "isAdmin";
+	public static final String BLOCKED_PROPERTY              = "blocked";
+	public static final String SESSION_IDS_PROPERTY          = "sessionIds";
+	public static final String REFRESH_TOKENS_PROPERTY       = "refreshTokens";
+	public static final String SESSION_DATA_PROPERTY         = "sessionData";
+	public static final String EMAIL_PROPERTY                = "eMail";
+	public static final String PASSWORD_PROPERTY             = "password";
+	public static final String PASSWORD_CHANGE_DATE_PROPERTY = "passwordChangeDate";
+	public static final String PASSWORD_ATTEMPTS_PROPERTY    = "passwordAttempts";
+	public static final String LAST_LOGIN_DATE_PROPERTY      = "lastLoginDate";
+	public static final String TWO_FACTOR_SECRET_PROPERTY    = "twoFactorSecret";
+	public static final String TWO_FACTOR_TOKEN_PROPERTY     = "twoFactorToken";
+	public static final String IS_TWO_FACTOR_USER_PROPERTY   = "isTwoFactorUser";
+	public static final String TWO_FACTOR_CONFIRMED_PROPERTY = "twoFactorConfirmed";
+	public static final String SALT_PROPERTY                 = "salt";
+	public static final String LOCALE_PROPERTY               = "locale";
+	public static final String PUBLIC_KEY_PROPERTY           = "publicKey";
+	public static final String PUBLIC_KEYS_PROPERTY          = "publicKeys";
+	public static final String PROXY_URL_PROPERTY            = "proxyUrl";
+	public static final String PROXY_USERNAME_PROPERTY       = "proxyUsername";
+	public static final String PROXY_PASSWORD_PROPERTY       = "proxyPassword";
 
 
 	public PrincipalTraitDefinition() {
@@ -68,7 +88,7 @@ public class PrincipalTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
 
-					final PropertyKey<String> eMailProperty = obj.getTraits().key("eMail");
+					final PropertyKey<String> eMailProperty = obj.getTraits().key(EMAIL_PROPERTY);
 					boolean valid = true;
 
 					valid &= ValidationHelper.isValidUniqueProperty(obj, eMailProperty, errorBuffer);
@@ -88,7 +108,7 @@ public class PrincipalTraitDefinition extends AbstractNodeTraitDefinition {
 			GetProperty.class,
 			new GetProperty() {
 
-				final Set<String> hiddenProperties = newSet("password", "salt", "twoFactorSecret");
+				final Set<String> hiddenProperties = newSet(PASSWORD_PROPERTY, SALT_PROPERTY, TWO_FACTOR_SECRET_PROPERTY);
 
 				@Override
 				public <V> V getProperty(final GraphObject graphObject, final PropertyKey<V> key, final Predicate<GraphObject> predicate) {
@@ -159,26 +179,26 @@ public class PrincipalTraitDefinition extends AbstractNodeTraitDefinition {
 			new EndNodes(OWNED_NODES_PROPERTY, StructrTraits.PRINCIPAL_OWNS_NODE),
 			new EndNodes(GRANTED_NODES_PROPERTY, StructrTraits.SECURITY),
 			new BooleanProperty(PrincipalTraitDefinition.IS_ADMIN_PROPERTY).indexed().readOnly(),
-			new BooleanProperty("blocked"),
-			new ArrayProperty("sessionIds", String.class).indexed(),
-			new ArrayProperty("refreshTokens", String.class).indexed(),
-			new StringProperty("sessionData"),
-			new StringProperty("eMail").indexed().unique().transformators(LowercaseTransformator.class.getName(), TrimTransformator.class.getName()),
-			new PasswordProperty("password"),
-			new DateProperty("passwordChangeDate"),
-			new IntProperty("passwordAttempts"),
-			new DateProperty("lastLoginDate"),
-			new StringProperty("twoFactorSecret"),
-			new StringProperty("twoFactorToken").indexed(),
-			new BooleanProperty("isTwoFactorUser"),
-			new BooleanProperty("twoFactorConfirmed"),
-			new StringProperty("salt"),
-			new StringProperty("locale"),
-			new StringProperty("publicKey"),
-			new StringProperty("proxyUrl"),
-			new StringProperty("proxyUsername"),
-			new StringProperty("proxyPassword"),
-			new ArrayProperty("publicKeys", String.class)
+			new BooleanProperty(BLOCKED_PROPERTY),
+			new ArrayProperty(SESSION_IDS_PROPERTY, String.class).indexed(),
+			new ArrayProperty(REFRESH_TOKENS_PROPERTY, String.class).indexed(),
+			new StringProperty(SESSION_DATA_PROPERTY),
+			new StringProperty(EMAIL_PROPERTY).indexed().unique().transformators(LowercaseTransformator.class.getName(), TrimTransformator.class.getName()),
+			new PasswordProperty(PASSWORD_PROPERTY),
+			new DateProperty(PASSWORD_CHANGE_DATE_PROPERTY),
+			new IntProperty(PASSWORD_ATTEMPTS_PROPERTY),
+			new DateProperty(LAST_LOGIN_DATE_PROPERTY),
+			new StringProperty(TWO_FACTOR_SECRET_PROPERTY),
+			new StringProperty(TWO_FACTOR_TOKEN_PROPERTY).indexed(),
+			new BooleanProperty(IS_TWO_FACTOR_USER_PROPERTY),
+			new BooleanProperty(TWO_FACTOR_CONFIRMED_PROPERTY),
+			new StringProperty(SALT_PROPERTY),
+			new StringProperty(LOCALE_PROPERTY),
+			new StringProperty(PUBLIC_KEY_PROPERTY),
+			new ArrayProperty(PUBLIC_KEYS_PROPERTY, String.class),
+			new StringProperty(PROXY_URL_PROPERTY),
+			new StringProperty(PROXY_USERNAME_PROPERTY),
+			new StringProperty(PROXY_PASSWORD_PROPERTY)
 		);
 	}
 
@@ -187,7 +207,7 @@ public class PrincipalTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 			PropertyView.Ui,
-			newSet("blocked")
+			newSet(BLOCKED_PROPERTY)
 		);
 	}
 

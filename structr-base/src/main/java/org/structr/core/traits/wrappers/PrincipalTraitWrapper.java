@@ -37,6 +37,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
+import org.structr.core.traits.definitions.UserTraitDefinition;
 import org.structr.core.traits.operations.principal.IsValidPassword;
 import org.structr.core.traits.operations.principal.OnAuthenticate;
 
@@ -70,17 +71,17 @@ public class PrincipalTraitWrapper extends AbstractNodeTraitWrapper implements P
 
 	@Override
 	public String getSessionData() {
-		return wrappedObject.getProperty(traits.key("sessionDataProperty"));
+		return wrappedObject.getProperty(traits.key(PrincipalTraitDefinition.SESSION_DATA_PROPERTY));
 	}
 
 	@Override
 	public String getEMail() {
-		return wrappedObject.getProperty(traits.key("eMail"));
+		return wrappedObject.getProperty(traits.key(PrincipalTraitDefinition.EMAIL_PROPERTY));
 	}
 
 	@Override
 	public void setSessionData(final String sessionData) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("sessionData"), sessionData);
+		wrappedObject.setProperty(traits.key(PrincipalTraitDefinition.SESSION_DATA_PROPERTY), sessionData);
 	}
 
 	@Override
@@ -89,7 +90,7 @@ public class PrincipalTraitWrapper extends AbstractNodeTraitWrapper implements P
 	}
 
 	public boolean isBlocked() {
-		return wrappedObject.getProperty(traits.key("blocked"));
+		return wrappedObject.getProperty(traits.key(PrincipalTraitDefinition.BLOCKED_PROPERTY));
 	}
 
 	@Override
@@ -99,94 +100,94 @@ public class PrincipalTraitWrapper extends AbstractNodeTraitWrapper implements P
 
 	@Override
 	public void setPassword(final String password) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("password"), password);
+		wrappedObject.setProperty(traits.key(PrincipalTraitDefinition.PASSWORD_PROPERTY), password);
 	}
 
 	@Override
 	public void setEMail(final String eMail) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("eMail"), eMail);
+		wrappedObject.setProperty(traits.key(PrincipalTraitDefinition.EMAIL_PROPERTY), eMail);
 	}
 
 	@Override
 	public void setSalt(final String salt) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("salt"), salt);
+		wrappedObject.setProperty(traits.key(PrincipalTraitDefinition.SALT_PROPERTY), salt);
 	}
 
 	@Override
 	public String getLocale() {
-		return wrappedObject.getProperty(traits.key("locale"));
+		return wrappedObject.getProperty(traits.key(PrincipalTraitDefinition.LOCALE_PROPERTY));
 	}
 
 	@Override
 	public boolean shouldSkipSecurityRelationships() {
 		// fixme: this should be overridable
-		return wrappedObject.getProperty(traits.key("skipSecurityRelationships"));
+		return wrappedObject.getProperty(traits.key(UserTraitDefinition.SKIP_SECURITY_RELATIONSHIPS_PROPERTY));
 	}
 
 	@Override
 	public void setTwoFactorConfirmed(final boolean b) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("twoFactorConfirmed"), b);
+		wrappedObject.setProperty(traits.key(PrincipalTraitDefinition.TWO_FACTOR_CONFIRMED_PROPERTY), b);
 	}
 
 	@Override
 	public void setTwoFactorToken(final String token) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("twoFactorToken"), token);
+		wrappedObject.setProperty(traits.key(PrincipalTraitDefinition.TWO_FACTOR_TOKEN_PROPERTY), token);
 	}
 
 	@Override
 	public boolean isTwoFactorUser() {
-		return wrappedObject.getProperty(traits.key("isTwoFactorUser"));
+		return wrappedObject.getProperty(traits.key(PrincipalTraitDefinition.IS_TWO_FACTOR_USER_PROPERTY));
 	}
 
 	@Override
 	public void setIsTwoFactorUser(final boolean b) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("isTwoFactorUser"), b);
+		wrappedObject.setProperty(traits.key(PrincipalTraitDefinition.IS_TWO_FACTOR_USER_PROPERTY), b);
 
 	}
 
 	@Override
 	public boolean isTwoFactorConfirmed() {
-		return wrappedObject.getProperty(traits.key("twoFactorConfirmed"));
+		return wrappedObject.getProperty(traits.key(PrincipalTraitDefinition.TWO_FACTOR_CONFIRMED_PROPERTY));
 	}
 
 	@Override
 	public Integer getPasswordAttempts() {
-		return wrappedObject.getProperty(traits.key("passwordAttempts"));
+		return wrappedObject.getProperty(traits.key(PrincipalTraitDefinition.PASSWORD_ATTEMPTS_PROPERTY));
 	}
 
 	@Override
 	public Date getPasswordChangeDate() {
-		return wrappedObject.getProperty(traits.key("passwordChangeDate"));
+		return wrappedObject.getProperty(traits.key(PrincipalTraitDefinition.PASSWORD_CHANGE_DATE_PROPERTY));
 	}
 
 	@Override
 	public void setPasswordAttempts(int num) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("passwordAttempts"), num);
+		wrappedObject.setProperty(traits.key(PrincipalTraitDefinition.PASSWORD_ATTEMPTS_PROPERTY), num);
 	}
 
 	@Override
 	public void setLastLoginDate(final Date date) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("lastLoginDate"), date);
+		wrappedObject.setProperty(traits.key(PrincipalTraitDefinition.LAST_LOGIN_DATE_PROPERTY), date);
 	}
 
 	@Override
 	public String[] getSessionIds() {
-		return wrappedObject.getProperty(traits.key("sessionIds"));
+		return wrappedObject.getProperty(traits.key(PrincipalTraitDefinition.SESSION_IDS_PROPERTY));
 	}
 
 	@Override
 	public String getProxyUrl() {
-		return wrappedObject.getProperty(traits.key("proxyUrl"));
+		return wrappedObject.getProperty(traits.key(PrincipalTraitDefinition.PROXY_URL_PROPERTY));
 	}
 
 	@Override
-	public String getProxUsername() {
-		return wrappedObject.getProperty(traits.key("proxUsername"));
+	public String getProxyUsername() {
+		return wrappedObject.getProperty(traits.key(PrincipalTraitDefinition.PROXY_USERNAME_PROPERTY));
 	}
 
 	@Override
 	public String getProxyPassword() {
-		return wrappedObject.getProperty(traits.key("proxyPassword"));
+		return wrappedObject.getProperty(traits.key(PrincipalTraitDefinition.PROXY_PASSWORD_PROPERTY));
 	}
 
 	@Override
@@ -233,7 +234,7 @@ public class PrincipalTraitWrapper extends AbstractNodeTraitWrapper implements P
 
 		try {
 
-			final PropertyKey<String[]> key = traits.key("sessionIds");
+			final PropertyKey<String[]> key = traits.key(PrincipalTraitDefinition.SESSION_IDS_PROPERTY);
 			final String[] ids              = getSessionIds();
 
 			if (ids != null) {
@@ -274,7 +275,7 @@ public class PrincipalTraitWrapper extends AbstractNodeTraitWrapper implements P
 
 		try {
 
-			final PropertyKey<String[]> key = traits.key("refreshTokens");
+			final PropertyKey<String[]> key = traits.key(PrincipalTraitDefinition.REFRESH_TOKENS_PROPERTY);
 			final String[] refreshTokens    = wrappedObject.getProperty(key);
 
 			if (refreshTokens != null) {
@@ -312,7 +313,7 @@ public class PrincipalTraitWrapper extends AbstractNodeTraitWrapper implements P
 
 	@Override
 	public String[] getRefreshTokens() {
-		return wrappedObject.getProperty(traits.key("refreshTokens"));
+		return wrappedObject.getProperty(traits.key(PrincipalTraitDefinition.REFRESH_TOKENS_PROPERTY));
 	}
 
 	@Override
@@ -320,7 +321,7 @@ public class PrincipalTraitWrapper extends AbstractNodeTraitWrapper implements P
 
 		try {
 
-			final PropertyKey<String[]> key = traits.key("sessionIds");
+			final PropertyKey<String[]> key = traits.key(PrincipalTraitDefinition.SESSION_IDS_PROPERTY);
 			final String[] ids              = wrappedObject.getProperty(key);
 
 			if (ids != null) {
@@ -344,7 +345,7 @@ public class PrincipalTraitWrapper extends AbstractNodeTraitWrapper implements P
 
 		try {
 
-			final PropertyKey<String[]> key = traits.key("refreshTokens");
+			final PropertyKey<String[]> key = traits.key(PrincipalTraitDefinition.REFRESH_TOKENS_PROPERTY);
 			final String[] refreshTokens    = wrappedObject.getProperty(key);
 
 			if (refreshTokens != null) {
@@ -369,7 +370,7 @@ public class PrincipalTraitWrapper extends AbstractNodeTraitWrapper implements P
 		try {
 
 			PropertyMap properties = new PropertyMap();
-			final PropertyKey<String[]> refreshTokensKey = traits.key("refreshTokens");
+			final PropertyKey<String[]> refreshTokensKey = traits.key(PrincipalTraitDefinition.REFRESH_TOKENS_PROPERTY);
 
 			properties.put(refreshTokensKey, new String[0]);
 
@@ -398,9 +399,9 @@ public class PrincipalTraitWrapper extends AbstractNodeTraitWrapper implements P
 	public String getEncryptedPassword() {
 
 		final Node dbNode = wrappedObject.getNode();
-		if (dbNode.hasProperty("password")) {
+		if (dbNode.hasProperty(PrincipalTraitDefinition.PASSWORD_PROPERTY)) {
 
-			return (String)dbNode.getProperty("password");
+			return (String)dbNode.getProperty(PrincipalTraitDefinition.PASSWORD_PROPERTY);
 		}
 
 		return null;
@@ -410,9 +411,9 @@ public class PrincipalTraitWrapper extends AbstractNodeTraitWrapper implements P
 	public String getSalt() {
 
 		final Node dbNode = wrappedObject.getNode();
-		if (dbNode.hasProperty("salt")) {
+		if (dbNode.hasProperty(PrincipalTraitDefinition.SALT_PROPERTY)) {
 
-			return (String) dbNode.getProperty("salt");
+			return (String) dbNode.getProperty(PrincipalTraitDefinition.SALT_PROPERTY);
 		}
 
 		return null;
@@ -422,9 +423,9 @@ public class PrincipalTraitWrapper extends AbstractNodeTraitWrapper implements P
 	public String getTwoFactorSecret() {
 
 		final Node dbNode = wrappedObject.getNode();
-		if (dbNode.hasProperty("twoFactorSecret")) {
+		if (dbNode.hasProperty(PrincipalTraitDefinition.TWO_FACTOR_SECRET_PROPERTY)) {
 
-			return (String) dbNode.getProperty("twoFactorSecret");
+			return (String) dbNode.getProperty(PrincipalTraitDefinition.TWO_FACTOR_SECRET_PROPERTY);
 		}
 
 		return null;
@@ -440,7 +441,7 @@ public class PrincipalTraitWrapper extends AbstractNodeTraitWrapper implements P
 
 		final StringBuilder path = new StringBuilder("/").append(twoFactorIssuer);
 
-		final String eMail = wrappedObject.getProperty(traits.key("eMail"));
+		final String eMail = wrappedObject.getProperty(traits.key(PrincipalTraitDefinition.EMAIL_PROPERTY));
 		if (eMail != null) {
 			path.append(":").append(eMail);
 		} else {

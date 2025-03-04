@@ -430,15 +430,10 @@ public class Deployment4Test extends DeploymentTestBase {
 	@Test
 	public void test47NestedSharedComponents() {
 
-
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			app.create(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY),    true)
-			);
+			createAdminUser("admin", "admin");
 
 			tx.success();
 
@@ -491,11 +486,7 @@ public class Deployment4Test extends DeploymentTestBase {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			app.create(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY),    true)
-			);
+			createAdminUser("admin", "admin");
 
 			tx.success();
 
@@ -532,7 +523,7 @@ public class Deployment4Test extends DeploymentTestBase {
 
 			final NodeInterface user = app.create(StructrTraits.USER,
 				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "user"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "password")
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.PASSWORD_PROPERTY), "password")
 			);
 
 			testGroup3.addMember(securityContext, user.as(User.class));
@@ -752,11 +743,7 @@ public class Deployment4Test extends DeploymentTestBase {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			app.create(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY),    true)
-			);
+			createAdminUser("admin", "admin");
 
 			tx.success();
 
@@ -800,7 +787,7 @@ public class Deployment4Test extends DeploymentTestBase {
 
 			app.create(StructrTraits.USER,
 				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "user"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "password")
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.PASSWORD_PROPERTY), "password")
 			);
 
 			tx.success();

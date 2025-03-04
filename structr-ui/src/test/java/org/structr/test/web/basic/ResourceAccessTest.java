@@ -34,6 +34,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.auth.UiAuthenticator;
@@ -258,7 +259,7 @@ public class ResourceAccessTest extends StructrUiTest {
 			// Prepare for next test
 			final PropertyMap testUserProperties = new PropertyMap();
 			testUserProperties.put(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name);
-			testUserProperties.put(Traits.of(StructrTraits.USER).key("password"), password);
+			testUserProperties.put(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.PASSWORD_PROPERTY), password);
 			testUser.setProperties(testUser.getSecurityContext(), testUserProperties);
 
 			// now we give the user ownership and expect a 200
@@ -362,7 +363,7 @@ public class ResourceAccessTest extends StructrUiTest {
 
 			final PropertyMap changedProperties = new PropertyMap();
 			changedProperties.put(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name);
-			changedProperties.put(Traits.of(StructrTraits.USER).key("password"), password);
+			changedProperties.put(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.PASSWORD_PROPERTY), password);
 			testUser.setProperties(testUser.getSecurityContext(), changedProperties);
 
 			// make user own folder

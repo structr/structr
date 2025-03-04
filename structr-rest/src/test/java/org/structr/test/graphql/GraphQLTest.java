@@ -35,6 +35,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GroupTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.rest.common.StructrGraphQLTest;
@@ -69,7 +70,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final PropertyKey<List> membersKey = Traits.of(StructrTraits.GROUP).key("members");
+			final PropertyKey<List> membersKey = Traits.of(StructrTraits.GROUP).key(GroupTraitDefinition.MEMBERS_PROPERTY);
 
 			tester = app.create(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "tester"));
 			group  = app.create(StructrTraits.GROUP,
@@ -159,7 +160,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final PropertyKey<List> membersKey = Traits.of(StructrTraits.GROUP).key("members");
+			final PropertyKey<List> membersKey = Traits.of(StructrTraits.GROUP).key(GroupTraitDefinition.MEMBERS_PROPERTY);
 
 			final NodeInterface christian2 = app.create(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Christian"));
 			final NodeInterface susanne    = app.create(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Susanne"));

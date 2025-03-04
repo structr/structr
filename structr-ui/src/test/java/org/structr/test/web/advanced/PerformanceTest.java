@@ -602,11 +602,7 @@ public class PerformanceTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			user = app.create(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"),     "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY),      true)
-			);
+			user = createAdminUser("admin", "admin");
 
 			tx.success();
 

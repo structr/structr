@@ -50,14 +50,9 @@ public class ODFTest extends ODSTestBase {
 
 		try (final Tx tx = app.tx()) {
 
-			final Traits userTraits = Traits.of(StructrTraits.USER);
 			final Traits odfTraits  = Traits.of("ODFExporter");
 
-			app.create(StructrTraits.USER,
-				new NodeAttribute<>(userTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     "admin"),
-				new NodeAttribute<>(userTraits.key("password"), "admin"),
-				new NodeAttribute<>(userTraits.key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY),  true)
-			);
+			createAdminUser("admin", "admin");
 
 			// read test file from sources
 			try (final InputStream is = ODFTest.class.getResourceAsStream("/test.odt")) {

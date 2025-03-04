@@ -53,11 +53,7 @@ public class HttpFunctionsTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY),  true)
-			);
+			createAdminUser("admin", "admin");
 
 			tx.success();
 

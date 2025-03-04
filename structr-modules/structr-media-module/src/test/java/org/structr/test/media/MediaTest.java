@@ -51,16 +51,11 @@ public class MediaTest extends StructrUiTest {
 			return;
 		}
 
-		final Traits userTraits = Traits.of(StructrTraits.USER);
-		final String type       = "VideoFile";
+		final String type = "VideoFile";
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(StructrTraits.USER,
-				new NodeAttribute<>(userTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     "admin"),
-				new NodeAttribute<>(userTraits.key("password"), "admin"),
-				new NodeAttribute<>(userTraits.key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY),  true)
-			);
+			createAdminUser("admin", "admin");
 
 			// create AutoClosable input stream
 			try (final InputStream is = MediaTest.class.getResourceAsStream("/test.mp4")) {

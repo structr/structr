@@ -30,10 +30,12 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
@@ -53,6 +55,35 @@ import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
 
 public abstract class DeploymentTestBase extends StructrUiTest {
+
+	public static final String ADMIN_USERNAME = "admin";
+	public static final String ADMIN_PASSWORD = "admin";
+
+	protected NodeInterface createAdminUser() {
+		return createAdminUser(ADMIN_USERNAME, ADMIN_PASSWORD);
+	}
+
+	protected NodeInterface createAdminUser(final String username, final String password) {
+
+		final PropertyMap properties = new PropertyMap();
+
+		properties.put(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), username);
+		properties.put(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.PASSWORD_PROPERTY), password);
+		properties.put(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY), true);
+
+		NodeInterface user = null;
+
+		try (final Tx tx = app.tx()) {
+
+			user = app.create(StructrTraits.USER, properties);
+			tx.success();
+
+		} catch (Throwable t) {
+			logger.warn("", t);
+		}
+
+		return user;
+	}
 
 	// ----- private methods -----
 	protected void compare(final String sourceHash, final boolean deleteTestDirectory) {

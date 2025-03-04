@@ -163,11 +163,7 @@ public class Deployment5Test extends DeploymentTestBase {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			app.create(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY), true)
-			);
+			createAdminUser("admin", "admin");
 
 			final Group parent               = app.create(StructrTraits.GROUP, "parent").as(Group.class);
 			final List<NodeInterface> groups = new LinkedList<>();
@@ -246,11 +242,7 @@ public class Deployment5Test extends DeploymentTestBase {
 		// user must be created again...
 		try (final Tx tx = app.tx()) {
 
-			app.create(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY), true)
-			);
+			createAdminUser("admin", "admin");
 
 			final Group parent               = app.create(StructrTraits.GROUP, "parent").as(Group.class);
 			final List<NodeInterface> groups = new LinkedList<>();
@@ -313,11 +305,7 @@ public class Deployment5Test extends DeploymentTestBase {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			app.create(StructrTraits.USER,
-					new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "admin"),
-					new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("password"), "admin"),
-					new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY),    true)
-			);
+			createAdminUser("admin", "admin");
 
 			tx.success();
 
@@ -395,11 +383,7 @@ public class Deployment5Test extends DeploymentTestBase {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			app.create(StructrTraits.USER,
-					new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     "admin"),
-					new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("password"), "admin"),
-					new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY),  true)
-			);
+			createAdminUser("admin", "admin");
 
 			tx.success();
 

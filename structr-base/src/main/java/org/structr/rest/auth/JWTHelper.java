@@ -57,6 +57,7 @@ import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.*;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 
 public class JWTHelper {
 
@@ -173,7 +174,7 @@ public class JWTHelper {
 
 		}
 
-		final Principal user = AuthHelper.getPrincipalForCredential(traits.key("refreshTokens"), new String[]{ tokenId }, false, false);
+		final Principal user = AuthHelper.getPrincipalForCredential(traits.key(PrincipalTraitDefinition.REFRESH_TOKENS_PROPERTY), new String[]{ tokenId }, false, false);
 
 		if (user == null) {
 			return null;

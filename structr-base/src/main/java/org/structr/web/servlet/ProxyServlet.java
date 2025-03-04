@@ -39,6 +39,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.rest.common.HttpHelper;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
@@ -103,9 +104,9 @@ public class ProxyServlet extends AbstractServletBase implements HttpServiceServ
 		setCustomResponseHeaders(response);
 
 		final Traits traits                        = Traits.of(StructrTraits.USER);
-		final PropertyKey<String> proxyUrlKey      = traits.key("proxyUrl");
-		final PropertyKey<String> proxyUsernameKey = traits.key("proxyUsername");
-		final PropertyKey<String> proxyPasswordKey = traits.key("proxyPassword");
+		final PropertyKey<String> proxyUrlKey      = traits.key(PrincipalTraitDefinition.PROXY_URL_PROPERTY);
+		final PropertyKey<String> proxyUsernameKey = traits.key(PrincipalTraitDefinition.PROXY_USERNAME_PROPERTY);
+		final PropertyKey<String> proxyPasswordKey = traits.key(PrincipalTraitDefinition.PROXY_PASSWORD_PROPERTY);
 
 		final Authenticator auth = getConfig().getAuthenticator();
 
@@ -188,7 +189,7 @@ public class ProxyServlet extends AbstractServletBase implements HttpServiceServ
 					try (final Tx tx = StructrApp.getInstance().tx()) {
 
 						proxyUrl =      user.getProxyUrl();
-						proxyUsername = user.getProxUsername();
+						proxyUsername = user.getProxyUsername();
 						proxyPassword = user.getProxyPassword();
 
 						tx.success();

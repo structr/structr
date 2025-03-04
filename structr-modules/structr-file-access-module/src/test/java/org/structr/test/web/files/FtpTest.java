@@ -32,6 +32,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
@@ -58,7 +59,7 @@ public abstract class FtpTest extends StructrFileTestBase {
 		final Traits traits     = Traits.of(StructrTraits.USER);
 
 		props.put(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), username);
-		props.put(traits.key("password"), password);
+		props.put(traits.key(PrincipalTraitDefinition.PASSWORD_PROPERTY), password);
 
 		return createTestNodes(StructrTraits.USER, 1, props).get(0).as(User.class);
 	}

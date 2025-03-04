@@ -134,7 +134,7 @@ public class AdvancedDeploymentTest extends FullStructrTest {
 			assertTrue("Imported type Contact does not inherit from Person",     getSchemaNodeTraits("Contact").contains("Person"));
 			assertTrue("Imported type Lead does not inherit from MarketingTask", getSchemaNodeTraits("Lead").contains("MarketingTask"));
 
-			// check key from inherited trait
+			// check key from inherited trait (Contact inherits from Person)
 			assertTrue("Imported type Contact does not have eMail property", Traits.of("Contact").hasKey("eMail"));
 			assertTrue("Imported type Person does not have eMail property", Traits.of("Person").hasKey("eMail"));
 

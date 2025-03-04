@@ -192,7 +192,7 @@ public class DOMAndPageTest extends StructrUiTest {
 	@Test
 	public void test001EMailAddressConstraint() {
 
-		final PropertyKey<String> eMail = Traits.of(StructrTraits.USER).key("eMail");
+		final PropertyKey<String> eMail = Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.EMAIL_PROPERTY);
 
 		try (final Tx tx = app.tx()) {
 
@@ -899,11 +899,7 @@ public class DOMAndPageTest extends StructrUiTest {
 
 			Page.createSimplePage(securityContext, "test");
 
-			app.create(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY), true)
-			);
+			createAdminUser("admin", "admin");
 
 			tx.success();
 
@@ -1104,7 +1100,7 @@ public class DOMAndPageTest extends StructrUiTest {
 
 			app.create(StructrTraits.USER,
 				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     "tester"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "test")
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.PASSWORD_PROPERTY), "test")
 			);
 
 			tx.success();
@@ -1181,11 +1177,7 @@ public class DOMAndPageTest extends StructrUiTest {
 
 			test.getElementsByTagName("div").get(0).appendChild(text);
 
-			final NodeInterface user = app.create(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY), true)
-			);
+			final NodeInterface user = createAdminUser("admin", "admin");
 
 			uuid = user.getUuid();
 

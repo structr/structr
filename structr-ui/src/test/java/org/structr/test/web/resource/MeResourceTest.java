@@ -52,11 +52,7 @@ public class MeResourceTest extends StructrUiTest {
 		// create 100 test nodes and set names
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface user = app.create(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY),  true)
-			);
+			final NodeInterface user = createAdminUser("admin", "admin");
 
 			uuid = user.getUuid();
 
@@ -118,11 +114,7 @@ public class MeResourceTest extends StructrUiTest {
 		// create 100 test nodes and set names
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface user = app.create(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY),  true)
-			);
+			final NodeInterface user = createAdminUser("admin", "admin");
 
 			uuid = user.getUuid();
 
@@ -220,8 +212,6 @@ public class MeResourceTest extends StructrUiTest {
 	@Test
 	public void test03POST() {
 
-		String uuid = null;
-
 		// create 100 test nodes and set names
 		try (final Tx tx = app.tx()) {
 
@@ -233,13 +223,7 @@ public class MeResourceTest extends StructrUiTest {
 
 			StructrSchema.replaceDatabaseSchema(app, schema);
 
-			final NodeInterface user = app.create(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY),  true)
-			);
-
-			uuid = user.getUuid();
+			createAdminUser("admin", "admin");
 
 			tx.success();
 
@@ -291,11 +275,7 @@ public class MeResourceTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY),  true)
-			);
+			createAdminUser("admin", "admin");
 
 			tx.success();
 
@@ -314,7 +294,6 @@ public class MeResourceTest extends StructrUiTest {
 				.statusCode(200)
 
 			.when()
-
 				.delete("/me");
 
 		// we actually allow users to delete themselves via /me (if a grant exists)
@@ -328,7 +307,6 @@ public class MeResourceTest extends StructrUiTest {
 				.statusCode(401)
 
 			.when()
-
 				.get("/me");
 	}
 }
