@@ -33,6 +33,7 @@ import org.structr.core.traits.Trait;
 import org.structr.core.traits.Traits;
 
 import java.util.Date;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 
 /**
  * A {@link StringProperty} that converts its value to a hexadecimal SHA512 hash upon storage.
@@ -103,19 +104,19 @@ public class PasswordProperty extends StringProperty {
 					boolean passwordChangedOrFirstPassword = (oldEncPassword == null || oldSalt == null || !oldEncPassword.equals(HashHelper.getHash(clearTextPassword, oldSalt)));
 					if (passwordChangedOrFirstPassword) {
 
-						obj.setProperty(traits.key("passwordChangeDate"), new Date().getTime());
+						obj.setProperty(traits.key(PrincipalTraitDefinition.PASSWORD_CHANGE_DATE_PROPERTY), new Date().getTime());
 					}
 				}
 			}
 
 			final String salt = RandomStringUtils.randomAlphanumeric(16);
 
-			obj.setProperty(traits.key("salt"), salt);
+			obj.setProperty(traits.key(PrincipalTraitDefinition.SALT_PROPERTY), salt);
 
 			returnValue = super.setProperty(securityContext, obj, HashHelper.getHash(clearTextPassword, salt));
 
 			if (Settings.PasswordClearSessionsOnChange.getValue() && wrappedObject != null && wrappedObject.is(StructrTraits.PRINCIPAL)) {
-				wrappedObject.removeProperty(traits.key("sessionIds"));
+				wrappedObject.removeProperty(traits.key(PrincipalTraitDefinition.SESSION_IDS_PROPERTY));
 			}
 
 		} else {
@@ -124,7 +125,7 @@ public class PasswordProperty extends StringProperty {
 		}
 
 		if (Settings.PasswordClearSessionsOnChange.getValue() && wrappedObject != null && wrappedObject.is(StructrTraits.PRINCIPAL)) {
-			wrappedObject.removeProperty(traits.key("sessionIds"));
+			wrappedObject.removeProperty(traits.key(PrincipalTraitDefinition.SESSION_IDS_PROPERTY));
 		}
 
 		if (Settings.PasswordComplexityEnforce.getValue()) {
@@ -156,23 +157,23 @@ public class PasswordProperty extends StringProperty {
 		final int otherCharactersInPassword     = (passwordLength - upperCaseCharactersInPassword - lowerCaseCharactersInPassword - digitsInPassword);
 
 		if (passwordLength < passwordMinLength) {
-			errorBuffer.add(new TooShortToken(StructrTraits.USER, "password", passwordMinLength));
+			errorBuffer.add(new TooShortToken(StructrTraits.USER, PrincipalTraitDefinition.PASSWORD_PROPERTY, passwordMinLength));
 		}
 
 		if (enforceMinUpperCase && upperCaseCharactersInPassword == 0) {
-			errorBuffer.add(new SemanticErrorToken(StructrTraits.USER, "password", "must_contain_uppercase"));
+			errorBuffer.add(new SemanticErrorToken(StructrTraits.USER, PrincipalTraitDefinition.PASSWORD_PROPERTY, "must_contain_uppercase"));
 		}
 
 		if (enforceMinLowerCase && lowerCaseCharactersInPassword == 0) {
-			errorBuffer.add(new SemanticErrorToken(StructrTraits.USER, "password", "must_contain_lowercase"));
+			errorBuffer.add(new SemanticErrorToken(StructrTraits.USER, PrincipalTraitDefinition.PASSWORD_PROPERTY, "must_contain_lowercase"));
 		}
 
 		if (enforceMinDigits && digitsInPassword == 0) {
-			errorBuffer.add(new SemanticErrorToken(StructrTraits.USER, "password", "must_contain_digits"));
+			errorBuffer.add(new SemanticErrorToken(StructrTraits.USER, PrincipalTraitDefinition.PASSWORD_PROPERTY, "must_contain_digits"));
 		}
 
 		if (enforceMinNonAlphaNumeric && otherCharactersInPassword == 0) {
-			errorBuffer.add(new SemanticErrorToken(StructrTraits.USER, "password", "must_contain_non_alpha_numeric"));
+			errorBuffer.add(new SemanticErrorToken(StructrTraits.USER, PrincipalTraitDefinition.PASSWORD_PROPERTY, "must_contain_non_alpha_numeric"));
 		}
 
 		if (errorBuffer.hasError()) {

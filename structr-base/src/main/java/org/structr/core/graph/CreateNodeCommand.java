@@ -39,6 +39,9 @@ import org.structr.core.traits.Traits;
 
 import java.util.*;
 import java.util.Map.Entry;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 
 /**
  * Creates a new node in the database with the given properties.
@@ -72,8 +75,8 @@ public class CreateNodeCommand extends NodeServiceCommand {
 
 	public NodeInterface execute(final PropertyMap attributes) throws FrameworkException {
 
-		final PropertyKey<String> idKey                           = Traits.key(StructrTraits.GRAPH_OBJECT, "id");
-		final PropertyKey<String> typeKey                         = Traits.key(StructrTraits.GRAPH_OBJECT, "type");
+		final PropertyKey<String> idKey                           = Traits.key(StructrTraits.GRAPH_OBJECT, GraphObjectTraitDefinition.ID_PROPERTY);
+		final PropertyKey<String> typeKey                         = Traits.key(StructrTraits.GRAPH_OBJECT, GraphObjectTraitDefinition.TYPE_PROPERTY);
 		final PropertyKey<Date> createdDateKey                    = Traits.key(StructrTraits.GRAPH_OBJECT, "createdDate");
 		final PropertyKey<Date> lastModifiedDateKey               = Traits.key(StructrTraits.GRAPH_OBJECT, "lastModifiedDate");
 		final PropertyKey<String> createdByKey                    = Traits.key(StructrTraits.GRAPH_OBJECT, "createdBy");
@@ -81,7 +84,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 		final PropertyKey<Boolean> visibleToPublicUsersKey        = Traits.key(StructrTraits.GRAPH_OBJECT, "visibleToPublicUsers");
 		final PropertyKey<Boolean> visibleToAuthenticatedUsersKey = Traits.key(StructrTraits.GRAPH_OBJECT, "visibleToAuthenticatedUsers");
 		final PropertyKey<Boolean> hiddenKey                      = Traits.key(StructrTraits.NODE_INTERFACE, "hidden");
-		final PropertyKey<String> passwordKey                     = Traits.key(StructrTraits.PRINCIPAL, "password");
+		final PropertyKey<String> passwordKey                     = Traits.key(StructrTraits.PRINCIPAL, PrincipalTraitDefinition.PASSWORD_PROPERTY);
 		final DatabaseService graphDb                             = (DatabaseService) arguments.get("graphDb");
 		final Principal user                                      = securityContext.getUser(false);
 		NodeInterface node	                                  = null;

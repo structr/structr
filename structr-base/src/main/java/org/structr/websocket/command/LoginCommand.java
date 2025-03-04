@@ -33,6 +33,7 @@ import org.structr.core.auth.exception.*;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.auth.SessionHelper;
 import org.structr.schema.action.ActionContext;
@@ -72,8 +73,8 @@ public class LoginCommand extends AbstractCommand {
 		try (final Tx tx = app.tx(true, true, true)) {
 
 			String username             = webSocketData.getNodeDataStringValue("username");
-			final String password       = webSocketData.getNodeDataStringValue("password");
-			final String twoFactorToken = webSocketData.getNodeDataStringValue("twoFactorToken");
+			final String password       = webSocketData.getNodeDataStringValue(PrincipalTraitDefinition.PASSWORD_PROPERTY);
+			final String twoFactorToken = webSocketData.getNodeDataStringValue(PrincipalTraitDefinition.TWO_FACTOR_TOKEN_PROPERTY);
 			final String twoFactorCode  = webSocketData.getNodeDataStringValue("twoFactorCode");
 
 

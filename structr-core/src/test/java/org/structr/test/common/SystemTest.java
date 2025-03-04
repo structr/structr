@@ -923,7 +923,7 @@ public class SystemTest extends StructrTest {
 
 			app.create(StructrTraits.USER,
 				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "tester"),
-				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("password"), "password")
+				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key(PrincipalTraitDefinition.PASSWORD_PROPERTY), "password")
 			);
 
 			tx.success();
@@ -937,8 +937,8 @@ public class SystemTest extends StructrTest {
 
 			final Principal user = app.nodeQuery(StructrTraits.USER).getFirst().as(Principal.class);
 
-			assertEquals("Password hash IS NOT SECURE!", Principal.HIDDEN, user.getProperty(Traits.of(StructrTraits.PRINCIPAL).key("password")));
-			assertEquals("Password salt IS NOT SECURE!", Principal.HIDDEN, user.getProperty(Traits.of(StructrTraits.PRINCIPAL).key("salt")));
+			assertEquals("Password hash IS NOT SECURE!", Principal.HIDDEN, user.getProperty(Traits.of(StructrTraits.PRINCIPAL).key(PrincipalTraitDefinition.PASSWORD_PROPERTY)));
+			assertEquals("Password salt IS NOT SECURE!", Principal.HIDDEN, user.getProperty(Traits.of(StructrTraits.PRINCIPAL).key(PrincipalTraitDefinition.SALT_PROPERTY)));
 
 			tx.success();
 
@@ -1439,7 +1439,7 @@ public class SystemTest extends StructrTest {
 
 			final Principal user = app.create(StructrTraits.USER,
 				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "user"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "password")
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.PASSWORD_PROPERTY), "password")
 			).as(Principal.class);
 
 			testGroup3.addMember(securityContext, user);

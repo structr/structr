@@ -34,6 +34,7 @@ import org.structr.core.graph.attribute.Name;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.testng.annotations.Test;
 
@@ -211,7 +212,7 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 	public void testRelationshipResourcePagingOnCollectionResource() {
 
 		final String testUserType             = createTestUserType();
-		final PropertyKey<String> passwordKey = Traits.of(testUserType).key("password");
+		final PropertyKey<String> passwordKey = Traits.of(testUserType).key(PrincipalTraitDefinition.PASSWORD_PROPERTY);
 		Principal tester                      = null;
 
 		try (final Tx tx = app.tx()) {
@@ -260,7 +261,7 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 	public void testRelationshipResourcePagingOnEntityResource() {
 
 		final String testUserType             = createTestUserType();
-		final PropertyKey<String> passwordKey = Traits.of(testUserType).key("password");
+		final PropertyKey<String> passwordKey = Traits.of(testUserType).key(PrincipalTraitDefinition.PASSWORD_PROPERTY);
 		NodeInterface tester                  = null;
 		String uuid                           = null;
 

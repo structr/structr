@@ -1170,7 +1170,7 @@ public class AccessControlTest extends StructrTest {
 	@Test
 	public void test00CreatePrincipal() {
 
-		final PropertyKey<String> eMail = Traits.of(StructrTraits.USER).key("eMail");
+		final PropertyKey<String> eMail = Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.EMAIL_PROPERTY);
 		NodeInterface user1             = null;
 
 		try (final Tx tx = app.tx()) {
@@ -1202,7 +1202,7 @@ public class AccessControlTest extends StructrTest {
 
 			assertEquals("Invalid error code", 422, ex.getStatus());
 			assertEquals("Invalid error code", StructrTraits.USER, token.getType());
-			assertEquals("Invalid error code", "eMail", token.getProperty());
+			assertEquals("Invalid error code", PrincipalTraitDefinition.EMAIL_PROPERTY, token.getProperty());
 			assertEquals("Invalid error code", "must_contain_at_character", token.getToken());
 			assertEquals("Invalid error code", "invalid", token.getDetail());
 
@@ -1388,7 +1388,7 @@ public class AccessControlTest extends StructrTest {
 	public void test10LowercaseEMail() {
 
 		final String type               = StructrTraits.USER;
-		final PropertyKey<String> eMail = Traits.of(type).key("eMail");
+		final PropertyKey<String> eMail = Traits.of(type).key(PrincipalTraitDefinition.EMAIL_PROPERTY);
 		NodeInterface user1             = null;
 
 		try (final Tx tx = app.tx()) {
@@ -1652,7 +1652,7 @@ public class AccessControlTest extends StructrTest {
 
 			user = app.create(StructrTraits.USER,
 				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "user"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "password")
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.PASSWORD_PROPERTY), "password")
 			).as(User.class);
 
 			tx.success();

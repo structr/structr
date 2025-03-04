@@ -54,7 +54,9 @@ import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.GroupTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
@@ -289,7 +291,7 @@ public class ScriptingTest extends StructrTest {
 
 			testUser = app.create(StructrTraits.USER,
 				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     "test"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "test")
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.PASSWORD_PROPERTY), "test")
 			);
 
 			tx.success();
@@ -484,7 +486,7 @@ public class ScriptingTest extends StructrTest {
 	@Test
 	public void testCollectionOperations() {
 
-		final PropertyKey<Iterable<NodeInterface>> members = Traits.of(StructrTraits.GROUP).key("members");
+		final PropertyKey<Iterable<NodeInterface>> members = Traits.of(StructrTraits.GROUP).key(GroupTraitDefinition.MEMBERS_PROPERTY);
 		Group group                                        = null;
 		Principal user1                                    = null;
 		Principal user2                                    = null;

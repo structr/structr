@@ -25,6 +25,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.schema.Validator;
 
 /**
@@ -35,7 +36,7 @@ public class EMailValidator implements Validator<GraphObject> {
 	public boolean isValid(final GraphObject node, final ErrorBuffer errorBuffer) {
 
 		final Traits traits             = node.getTraits();
-		final PropertyKey<String> eMail = traits.key("eMail");
+		final PropertyKey<String> eMail = traits.key(PrincipalTraitDefinition.EMAIL_PROPERTY);
 		boolean valid                   = true;
 
 		valid &= ValidationHelper.isValidUniqueProperty(node, eMail, errorBuffer);
@@ -51,7 +52,7 @@ public class EMailValidator implements Validator<GraphObject> {
 
 				valid = false;
 
-				errorBuffer.add(new SemanticErrorToken(traits.getName(), "eMail", "must_contain_at_character").withDetail(_eMail));
+				errorBuffer.add(new SemanticErrorToken(traits.getName(), PrincipalTraitDefinition.EMAIL_PROPERTY, "must_contain_at_character").withDetail(_eMail));
 			}
 		}
 

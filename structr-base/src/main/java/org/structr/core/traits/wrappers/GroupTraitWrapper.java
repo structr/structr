@@ -28,6 +28,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
 
 import java.util.List;
+import org.structr.core.traits.definitions.GroupTraitDefinition;
 
 public class GroupTraitWrapper extends PrincipalTraitWrapper implements Group {
 
@@ -38,7 +39,7 @@ public class GroupTraitWrapper extends PrincipalTraitWrapper implements Group {
 	@Override
 	public Iterable<Principal> getMembers() {
 
-		final PropertyKey<Iterable<NodeInterface>> members = traits.key("members");
+		final PropertyKey<Iterable<NodeInterface>> members = traits.key(GroupTraitDefinition.MEMBERS_PROPERTY);
 
 		return Iterables.map(n -> n.as(Principal.class), wrappedObject.getProperty(members));
 	}
@@ -50,7 +51,7 @@ public class GroupTraitWrapper extends PrincipalTraitWrapper implements Group {
 			throw new FrameworkException(422, "Unable to add user " + user + " to group " + this);
 		}
 
-		final PropertyKey<Iterable<NodeInterface>> members = traits.key("members");
+		final PropertyKey<Iterable<NodeInterface>> members = traits.key(GroupTraitDefinition.MEMBERS_PROPERTY);
 		final List<NodeInterface> _users = Iterables.toList(wrappedObject.getProperty(members));
 
 		_users.add(user);
@@ -65,7 +66,7 @@ public class GroupTraitWrapper extends PrincipalTraitWrapper implements Group {
 			throw new FrameworkException(422, "Unable to remove member " + member + " from group " + this);
 		}
 
-		final PropertyKey<Iterable<NodeInterface>> members = traits.key("members");
+		final PropertyKey<Iterable<NodeInterface>> members = traits.key(GroupTraitDefinition.MEMBERS_PROPERTY);
 		final List<NodeInterface> _users = Iterables.toList(wrappedObject.getProperty(members));
 
 		_users.remove(member);

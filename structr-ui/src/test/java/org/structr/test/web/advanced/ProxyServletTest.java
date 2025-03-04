@@ -136,11 +136,8 @@ public class ProxyServletTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(StructrTraits.USER,
-					new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     "admin"),
-					new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
-					new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY), true)
-			);
+			createAdminUser("admin", "admin");
+
 			tx.success();
 
 		} catch (FrameworkException fex) {

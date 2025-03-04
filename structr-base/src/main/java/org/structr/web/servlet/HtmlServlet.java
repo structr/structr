@@ -62,6 +62,7 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.UserTraitDefinition;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
@@ -1244,7 +1245,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			return false;
 		}
 
-		final PropertyKey<String> confirmationKey = Traits.of(StructrTraits.USER).key("confirmationKey");
+		final PropertyKey<String> confirmationKey = Traits.of(StructrTraits.USER).key(UserTraitDefinition.CONFIRMATION_KEY_PROPERTY);
 
 		if (CONFIRM_REGISTRATION_PAGE.equals(path)) {
 
@@ -1338,7 +1339,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			return false;
 		}
 
-		final PropertyKey<String> confirmationKeyKey = Traits.of(StructrTraits.USER).key("confirmationKey");
+		final PropertyKey<String> confirmationKeyKey = Traits.of(StructrTraits.USER).key(UserTraitDefinition.CONFIRMATION_KEY_PROPERTY);
 
 		if (RESET_PASSWORD_PAGE.equals(path)) {
 

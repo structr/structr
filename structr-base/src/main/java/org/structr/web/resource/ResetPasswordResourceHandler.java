@@ -36,6 +36,8 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
+import org.structr.core.traits.definitions.UserTraitDefinition;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
@@ -75,9 +77,9 @@ public class ResetPasswordResourceHandler extends RESTCallHandler {
 	@Override
 	public RestMethodResult doPost(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
 
-		if (propertySet.containsKey("eMail")) {
+		if (propertySet.containsKey(PrincipalTraitDefinition.EMAIL_PROPERTY)) {
 
-			String emailString  = (String) propertySet.get("eMail");
+			String emailString  = (String) propertySet.get(PrincipalTraitDefinition.EMAIL_PROPERTY);
 
 			if (StringUtils.isEmpty(emailString)) {
 				throw new FrameworkException(422, "No e-mail address given.");
@@ -87,8 +89,8 @@ public class ResetPasswordResourceHandler extends RESTCallHandler {
 			emailString = emailString.trim().toLowerCase();
 
 			final Traits traits                       = Traits.of(StructrTraits.USER);
-			final PropertyKey<String> confirmationKey = traits.key("confirmationKey");
-			final PropertyKey<String> eMail           = traits.key("eMail");
+			final PropertyKey<String> confirmationKey = traits.key(UserTraitDefinition.CONFIRMATION_KEY_PROPERTY);
+			final PropertyKey<String> eMail           = traits.key(PrincipalTraitDefinition.EMAIL_PROPERTY);
 			final String localeString                 = (String) propertySet.get("locale");
 			final String confKey                      = AuthHelper.getConfirmationKey();
 			final NodeInterface user                  = StructrApp.getInstance().nodeQuery(StructrTraits.USER).and(eMail, emailString).getFirst();
@@ -128,7 +130,7 @@ public class ResetPasswordResourceHandler extends RESTCallHandler {
 		// WARNING! This is unchecked user input!!
 		propertySetFromUserPOST.entrySet().forEach(entry -> ctx.setConstant(entry.getKey(), entry.getValue().toString()));
 
-		ctx.setConstant("eMail", userEmail);
+		ctx.setConstant(PrincipalTraitDefinition.EMAIL_PROPERTY, userEmail);
 		ctx.setConstant("link",
 				getTemplateText(TemplateKey.RESET_PASSWORD_BASE_URL, ActionContext.getBaseUrl(securityContext.getRequest()), localeString)
 				+ getTemplateText(TemplateKey.RESET_PASSWORD_PAGE, HtmlServlet.RESET_PASSWORD_PAGE, localeString)

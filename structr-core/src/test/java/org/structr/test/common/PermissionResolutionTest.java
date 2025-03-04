@@ -37,6 +37,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GroupTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.testng.annotations.Test;
 
@@ -588,7 +589,7 @@ public class PermissionResolutionTest extends StructrTest {
 			group2.addMember(ctx, group3);
 
 			// Group3 has jwksReferenceId for ServicePrincipal
-			group3.setProperty(Traits.of(StructrTraits.GROUP).key("jwksReferenceId"), "admin_group");
+			group3.setProperty(Traits.of(StructrTraits.GROUP).key(GroupTraitDefinition.JWKS_REFERENCE_ID_PROPERTY), "admin_group");
 
 			tx.success();
 

@@ -35,6 +35,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
@@ -60,7 +61,7 @@ public class ImageTest extends StructrUiTest {
 	@Test
 	public void testThumbnailGeneration() {
 
-		final PropertyKey passwordKey = Traits.of(StructrTraits.PRINCIPAL).key("password");
+		final PropertyKey passwordKey = Traits.of(StructrTraits.PRINCIPAL).key(PrincipalTraitDefinition.PASSWORD_PROPERTY);
 		Principal tester1             = null;
 		Principal tester2             = null;
 		Principal tester3             = null;

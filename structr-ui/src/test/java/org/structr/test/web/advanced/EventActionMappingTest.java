@@ -60,11 +60,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY), true)
-			);
+			createAdminUser("admin", "admin");
 
 			final Page page1     = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div    = page1.getElementsByTagName("div").get(0);
@@ -161,11 +157,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY), true)
-			);
+			createAdminUser("admin", "admin");
 
 			final Page page1     = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div    = page1.getElementsByTagName("div").get(0);
@@ -261,11 +253,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY), true)
-			);
+			createAdminUser("admin", "admin");
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div  = page1.getElementsByTagName("div").get(0);
@@ -363,11 +351,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY), true)
-			);
+			createAdminUser("admin", "admin");
 
 			final Page page1     = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div    = page1.getElementsByTagName("div").get(0);
@@ -471,11 +455,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY), true)
-			);
+			createAdminUser("admin", "admin");
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div  = page1.getElementsByTagName("div").get(0);
@@ -579,11 +559,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY), true)
-			);
+			createAdminUser("admin", "admin");
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div  = page1.getElementsByTagName("div").get(0);
@@ -681,11 +657,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY), true)
-			);
+			createAdminUser("admin", "admin");
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div  = page1.getElementsByTagName("div").get(0);
@@ -781,11 +753,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY), true)
-			);
+			createAdminUser("admin", "admin");
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div  = page1.getElementsByTagName("div").get(0);
@@ -883,11 +851,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY), true)
-			);
+			createAdminUser("admin", "admin");
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div  = page1.getElementsByTagName("div").get(0);
@@ -993,11 +957,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY), true)
-			);
+			createAdminUser("admin", "admin");
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div  = page1.getElementsByTagName("div").get(0);
@@ -1097,11 +1057,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY), true)
-			);
+			createAdminUser("admin", "admin");
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div  = page1.getElementsByTagName("div").get(0);
@@ -1203,11 +1159,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY), true)
-			);
+			createAdminUser("admin", "admin");
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div  = page1.getElementsByTagName("div").get(0);
@@ -1309,11 +1261,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY), true)
-			);
+			createAdminUser("admin", "admin");
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div      = page1.getElementsByTagName("div").get(0);
@@ -1423,11 +1371,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY), true)
-			);
+			createAdminUser("admin", "admin");
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div      = page1.getElementsByTagName("div").get(0);
@@ -1530,11 +1474,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY), true)
-			);
+			createAdminUser("admin", "admin");
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div      = page1.getElementsByTagName("div").get(0);
@@ -1637,11 +1577,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY), true)
-			);
+			createAdminUser("admin", "admin");
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div      = page1.getElementsByTagName("div").get(0);
@@ -1743,11 +1679,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY), true)
-			);
+			createAdminUser("admin", "admin");
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div      = page1.getElementsByTagName("div").get(0);
@@ -1848,11 +1780,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY), true)
-			);
+			createAdminUser("admin", "admin");
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div  = page1.getElementsByTagName("div").get(0);
@@ -1948,11 +1876,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY), true)
-			);
+			createAdminUser("admin", "admin");
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div  = page1.getElementsByTagName("div").get(0);
@@ -2054,11 +1978,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY), true)
-			);
+			createAdminUser("admin", "admin");
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div      = page1.getElementsByTagName("div").get(0);
@@ -2168,11 +2088,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY), true)
-			);
+			createAdminUser("admin", "admin");
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div      = page1.getElementsByTagName("div").get(0);
@@ -2275,11 +2191,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY), true)
-			);
+			createAdminUser("admin", "admin");
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div      = page1.getElementsByTagName("div").get(0);
@@ -2382,11 +2294,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY), true)
-			);
+			createAdminUser("admin", "admin");
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div      = page1.getElementsByTagName("div").get(0);
@@ -2488,11 +2396,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY), true)
-			);
+			createAdminUser("admin", "admin");
 
 			final Page page1     = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div    = page1.getElementsByTagName("div").get(0);
@@ -2593,11 +2497,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY), true)
-			);
+			createAdminUser("admin", "admin");
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div  = page1.getElementsByTagName("div").get(0);

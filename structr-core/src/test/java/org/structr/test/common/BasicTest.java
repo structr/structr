@@ -41,6 +41,7 @@ import org.structr.core.property.StringProperty;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.GroupTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.web.entity.User;
 import org.testng.annotations.Test;
@@ -1413,7 +1414,7 @@ public class BasicTest extends StructrTest {
 		try {
 
 			final String groupType         = StructrTraits.GROUP;
-			final PropertyKey<Boolean> key = Traits.of(groupType).key("isGroup");
+			final PropertyKey<Boolean> key = Traits.of(groupType).key(GroupTraitDefinition.IS_GROUP_PROPERTY);
 			final PropertyMap props        = new PropertyMap();
 			final String type              = StructrTraits.GROUP;
 			final String name              = "TestGroup-1";

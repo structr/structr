@@ -71,7 +71,7 @@ public interface Principal extends NodeInterface {
 	void setLastLoginDate(final Date date) throws FrameworkException;
 	String[] getSessionIds();
 	String getProxyUrl();
-	String getProxUsername();
+	String getProxyUsername();
 	String getProxyPassword();
 	void onAuthenticate();
 

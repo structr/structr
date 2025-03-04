@@ -35,6 +35,8 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.TypeProperty;
 
 import java.util.*;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 
 /**
  *
@@ -43,7 +45,9 @@ import java.util.*;
 public class GraphObjectModificationState implements ModificationEvent {
 
 	private static final Logger LOGGER                          = LoggerFactory.getLogger(GraphObjectModificationState.class);
-	private static final Set<String> hiddenPropertiesInAuditLog = new HashSet<>(Arrays.asList(new String[] { "id", "sessionIds", "localStorage", "salt", "password", "twoFactorSecret" } ));
+	private static final Set<String> hiddenPropertiesInAuditLog = new HashSet<>(Arrays.asList(new String[] {
+			GraphObjectTraitDefinition.ID_PROPERTY, PrincipalTraitDefinition.SESSION_IDS_PROPERTY, "localStorage", PrincipalTraitDefinition.SALT_PROPERTY, PrincipalTraitDefinition.PASSWORD_PROPERTY, PrincipalTraitDefinition.TWO_FACTOR_SECRET_PROPERTY
+	}));
 
 	public static final int STATE_DELETED =                    1;
 	public static final int STATE_MODIFIED =                   2;

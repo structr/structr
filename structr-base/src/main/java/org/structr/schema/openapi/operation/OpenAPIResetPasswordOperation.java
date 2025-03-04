@@ -18,6 +18,7 @@
  */
 package org.structr.schema.openapi.operation;
 
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.schema.openapi.common.OpenAPISchemaReference;
 import org.structr.schema.openapi.request.OpenAPIRequestResponse;
 import org.structr.schema.openapi.schema.OpenAPIObjectSchema;
@@ -56,9 +57,9 @@ public class OpenAPIResetPasswordOperation extends LinkedHashMap<String, Object>
 			new OpenAPIRequestResponse(
 				"Request body",
 				new OpenAPIObjectSchema(
-					new OpenAPIPrimitiveSchema("E-mail address of user", "eMail", "string")
+					new OpenAPIPrimitiveSchema("E-mail address of user", PrincipalTraitDefinition.EMAIL_PROPERTY, "string")
 				),
-				Map.of("eMail", "existing-user@example.com")
+				Map.of(PrincipalTraitDefinition.EMAIL_PROPERTY, "existing-user@example.com")
 			),
 
 			// responses
