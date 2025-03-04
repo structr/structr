@@ -152,7 +152,7 @@ public final class PropertyContainerTraitDefinition extends AbstractNodeTraitDef
 					}
 
 					// allow setting of ID without permissions
-					if (!"id".equals(key.jsonName())) {
+					if (!GraphObjectTraitDefinition.ID_PROPERTY.equals(key.jsonName())) {
 
 						if (!graphObject.isGranted(Permission.write, securityContext, isCreation)) {
 

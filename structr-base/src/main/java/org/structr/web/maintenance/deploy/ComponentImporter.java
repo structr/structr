@@ -228,8 +228,8 @@ public class ComponentImporter extends HtmlFileImporter {
 
 				final Traits traits     = Traits.of(StructrTraits.NODE_INTERFACE);
 				final String src        = new String(Files.readAllBytes(file), Charset.forName("UTF-8"));
-				boolean visibleToPublic = get(properties, traits.key("visibleToPublicUsers"), false);
-				boolean visibleToAuth   = get(properties, traits.key("visibleToAuthenticatedUsers"), false);
+				boolean visibleToPublic = get(properties, traits.key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), false);
+				boolean visibleToAuth   = get(properties, traits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), false);
 				final Importer importer = new Importer(securityContext, src, null, componentName, visibleToPublic, visibleToAuth, false, relativeVisibility);
 
 				// enable literal import of href attributes

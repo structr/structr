@@ -36,7 +36,9 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.RelationshipInterfaceTraitDefinition;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
 import org.structr.schema.export.StructrSchema;
@@ -352,8 +354,8 @@ public class SchemaTest extends StructrTest {
 
 				app.create(StructrTraits.SCHEMA_RELATIONSHIP_NODE,
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("relationshipType"), "link"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceNode"), source),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetNode"), target),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.SOURCE_NODE_PROPERTY), source),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.TARGET_NODE_PROPERTY), target),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceMultiplicity"), "1"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetMultiplicity"), "*")
 				);
@@ -422,8 +424,8 @@ public class SchemaTest extends StructrTest {
 
 			// create relationship
 			rel = app.create(StructrTraits.SCHEMA_RELATIONSHIP_NODE,
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceNode"), fooNode),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetNode"), barNode),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.SOURCE_NODE_PROPERTY), fooNode),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.TARGET_NODE_PROPERTY), barNode),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("relationshipType"), "narf")
 			);
 
@@ -540,7 +542,7 @@ public class SchemaTest extends StructrTest {
 			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
 			final JsonObjectType type = schema.addType("Test");
 
-			type.addViewProperty(PropertyView.Public, "createdBy");
+			type.addViewProperty(PropertyView.Public, GraphObjectTraitDefinition.CREATED_BY_PROPERTY);
 
 			// add new type
 			StructrSchema.extendDatabaseSchema(app, schema);
@@ -559,7 +561,7 @@ public class SchemaTest extends StructrTest {
 			final String test                  = "Test";
 			final Set<PropertyKey> propertySet = Traits.of(test).getPropertyKeysForView(PropertyView.Public);
 
-			assertTrue("Non-graph property not registered correctly", propertySet.contains(Traits.of(StructrTraits.GRAPH_OBJECT).key("createdBy")));
+			assertTrue("Non-graph property not registered correctly", propertySet.contains(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.CREATED_BY_PROPERTY)));
 
 			tx.success();
 

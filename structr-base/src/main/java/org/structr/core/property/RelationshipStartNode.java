@@ -72,7 +72,7 @@ public class RelationshipStartNode<T extends NodeInterface> extends AbstractRead
 
 	@Override
 	public String relatedType() {
-		return "RelationshipInterface";
+		return StructrTraits.RELATIONSHIP_INTERFACE;
 	}
 
 	@Override

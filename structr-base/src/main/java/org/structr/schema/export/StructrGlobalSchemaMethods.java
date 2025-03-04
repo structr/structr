@@ -33,6 +33,7 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 
 import java.util.*;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 
 public class StructrGlobalSchemaMethods {
@@ -93,8 +94,8 @@ public class StructrGlobalSchemaMethods {
 
 				// TODO: remove
 				entry.put("virtualFileName",             schemaMethod.getVirtualFileName());
-				entry.put("visibleToAuthenticatedUsers", schemaMethod.isVisibleToAuthenticatedUsers());
-				entry.put("visibleToPublicUsers",        schemaMethod.isVisibleToPublicUsers());
+				entry.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        schemaMethod.isVisibleToPublicUsers());
+				entry.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, schemaMethod.isVisibleToAuthenticatedUsers());
 
 				for (final SchemaMethodParameter param : schemaMethod.getParameters()) {
 

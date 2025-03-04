@@ -27,6 +27,8 @@ import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 
 import java.util.Map;
 import java.util.Set;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 
 public class TestFiveTraitDefinition extends AbstractNodeTraitDefinition {
 
@@ -37,8 +39,8 @@ public class TestFiveTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Iterable<NodeInterface>> manyToManyTestOnes = new EndNodes("manyToManyTestOnes", "FiveOneManyToMany", new PropertyNotion("id"));
-		final Property<Iterable<NodeInterface>> oneToManyTestOnes  = new EndNodes("oneToManyTestOnes",  "FiveOneOneToMany", new PropertyNotion("id"));
+		final Property<Iterable<NodeInterface>> manyToManyTestOnes = new EndNodes("manyToManyTestOnes", "FiveOneManyToMany", new PropertyNotion(GraphObjectTraitDefinition.ID_PROPERTY));
+		final Property<Iterable<NodeInterface>> oneToManyTestOnes  = new EndNodes("oneToManyTestOnes",  "FiveOneOneToMany", new PropertyNotion(GraphObjectTraitDefinition.ID_PROPERTY));
 		final Property<NodeInterface> oneToOneTestThree            = new EndNode("oneToOneTestThree",  "FiveThreeOneToOne");
 		final Property<NodeInterface> manyToOneTestThree           = new StartNode("manyToOneTestThree", "ThreeFiveOneToMany");
 
@@ -53,7 +55,7 @@ public class TestFiveTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 			PropertyView.Public,
-			newSet("name", "manyToManyTestOnes", "oneToManyTestOnes", "oneToOneTestThree", "manyToOneTestThree")
+			newSet(NodeInterfaceTraitDefinition.NAME_PROPERTY, "manyToManyTestOnes", "oneToManyTestOnes", "oneToOneTestThree", "manyToOneTestThree")
 		);
 	}
 

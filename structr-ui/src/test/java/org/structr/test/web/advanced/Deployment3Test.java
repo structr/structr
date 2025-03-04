@@ -79,13 +79,13 @@ public class Deployment3Test extends DeploymentTestBase {
 			final DOMElement table2   = createElement(page, div2, "table");
 
 			// include visibility flags
-			page.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToAuthenticatedUsers"), true);
-			c1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToAuthenticatedUsers"), true);
-			c2.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToAuthenticatedUsers"), true);
+			page.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
+			c1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
+			c2.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
 
 			// modify visibility to produce two consecutive deployment instruction comments
-			td12.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true);
-			table2.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true);
+			td12.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
+			table2.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
 
 			tx.success();
 
@@ -217,8 +217,8 @@ public class Deployment3Test extends DeploymentTestBase {
 					new NodeAttribute<>(Traits.of(StructrTraits.WIDGET).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),"TestWidget"),
 					new NodeAttribute<>(Traits.of(StructrTraits.WIDGET).key("source"),                      "<!-- @structr:content(text/html) --><structr:template>${{Structr.print(\"<div>Test</div>\");}}</structr:template>"),
 					new NodeAttribute<>(Traits.of(StructrTraits.WIDGET).key("configuration"),               "{\"processDeploymentInfo\": true}"),
-					new NodeAttribute<>(Traits.of(StructrTraits.WIDGET).key("visibleToPublicUsers"),        true),
-					new NodeAttribute<>(Traits.of(StructrTraits.WIDGET).key("visibleToAuthenticatedUsers"), true)
+					new NodeAttribute<>(Traits.of(StructrTraits.WIDGET).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY),        true),
+					new NodeAttribute<>(Traits.of(StructrTraits.WIDGET).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true)
 			);
 
 			Map<String,Object> paramMap = new HashMap<>();
@@ -290,8 +290,8 @@ public class Deployment3Test extends DeploymentTestBase {
 						"	</div>\n" +
 						"</structr:component>"),
 					new NodeAttribute<>(Traits.of(StructrTraits.WIDGET).key("configuration"), ""),
-					new NodeAttribute<>(Traits.of(StructrTraits.WIDGET).key("visibleToPublicUsers"), true),
-					new NodeAttribute<>(Traits.of(StructrTraits.WIDGET).key("visibleToAuthenticatedUsers"), true)
+					new NodeAttribute<>(Traits.of(StructrTraits.WIDGET).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true),
+					new NodeAttribute<>(Traits.of(StructrTraits.WIDGET).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true)
 
 			);
 

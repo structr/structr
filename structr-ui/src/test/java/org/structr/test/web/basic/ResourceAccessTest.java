@@ -33,6 +33,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.schema.export.StructrSchema;
@@ -449,8 +450,8 @@ public class ResourceAccessTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createResourceAccess("Test/getName", UiAuthenticator.AUTH_USER_POST).setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToAuthenticatedUsers"), true);
-			createResourceAccess("Test/getName2", UiAuthenticator.AUTH_USER_GET).setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToAuthenticatedUsers"), true);
+			createResourceAccess("Test/getName", UiAuthenticator.AUTH_USER_POST).setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
+			createResourceAccess("Test/getName2", UiAuthenticator.AUTH_USER_GET).setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
 
 			tx.success();
 

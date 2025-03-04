@@ -25,6 +25,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.entity.dom.DOMNode;
@@ -47,10 +48,10 @@ public class SiteTest extends StructrUiTest {
 			final NodeInterface site1 = createTestNode("Site", new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "site1"), new NodeAttribute<>(Traits.of("Site").key("hostname"), "test1.example.com"));
 			final NodeInterface site2 = createTestNode("Site", new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "site2"), new NodeAttribute<>(Traits.of("Site").key("hostname"), "test2.example.com"));
 
-			site1.setProperty(Traits.of("Site").key("visibleToAuthenticatedUsers"), true);
-			site2.setProperty(Traits.of("Site").key("visibleToAuthenticatedUsers"), true);
-			site1.setProperty(Traits.of("Site").key("visibleToPublicUsers"), true);
-			site2.setProperty(Traits.of("Site").key("visibleToPublicUsers"), true);
+			site1.setProperty(Traits.of("Site").key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
+			site2.setProperty(Traits.of("Site").key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
+			site1.setProperty(Traits.of("Site").key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
+			site2.setProperty(Traits.of("Site").key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
 
 			final Page page1 = Page.createSimplePage(securityContext, "site1page1");
 			final Page page2 = Page.createSimplePage(securityContext, "site1page2");
@@ -102,10 +103,10 @@ public class SiteTest extends StructrUiTest {
 			final NodeInterface site1 = createTestNode("Site", new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "site1"), new NodeAttribute<>(Traits.of("Site").key("hostname"), "test1.example.com"));
 			final NodeInterface site2 = createTestNode("Site", new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "site2"), new NodeAttribute<>(Traits.of("Site").key("hostname"), "test2.example.com"));
 
-			site1.setProperty(Traits.of("Site").key("visibleToAuthenticatedUsers"), true);
-			site2.setProperty(Traits.of("Site").key("visibleToAuthenticatedUsers"), true);
-			site1.setProperty(Traits.of("Site").key("visibleToPublicUsers"), true);
-			site2.setProperty(Traits.of("Site").key("visibleToPublicUsers"), true);
+			site1.setProperty(Traits.of("Site").key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
+			site2.setProperty(Traits.of("Site").key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
+			site1.setProperty(Traits.of("Site").key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
+			site2.setProperty(Traits.of("Site").key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
 
 			final Page page1 = Page.createSimplePage(securityContext, "site1page1");
 			final Page page2 = Page.createSimplePage(securityContext, "site1page2");
@@ -151,8 +152,8 @@ public class SiteTest extends StructrUiTest {
 
 	private void makePublicRecursively(final DOMNode node) throws FrameworkException {
 
-		node.setProperty(Traits.of(StructrTraits.DOM_NODE).key("visibleToAuthenticatedUsers"), true);
-		node.setProperty(Traits.of(StructrTraits.DOM_NODE).key("visibleToPublicUsers"), true);
+		node.setProperty(Traits.of(StructrTraits.DOM_NODE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
+		node.setProperty(Traits.of(StructrTraits.DOM_NODE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
 
 		for (final DOMNode child : node.getChildren()) {
 

@@ -53,10 +53,12 @@ import org.structr.core.script.ScriptTestHelper;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.GroupTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
+import org.structr.core.traits.definitions.RelationshipInterfaceTraitDefinition;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
@@ -136,8 +138,8 @@ public class ScriptingTest extends StructrTest {
 			final PropertyMap propertyMap = new PropertyMap();
 			final Traits traits           = Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE);
 
-			propertyMap.put(traits.key("sourceId"),       sourceNode.getUuid());
-			propertyMap.put(traits.key("targetId"),       targetNode.getUuid());
+			propertyMap.put(traits.key(RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY),       sourceNode.getUuid());
+			propertyMap.put(traits.key(RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY),       targetNode.getUuid());
 			propertyMap.put(traits.key("sourceJsonName"), "testsource");
 			propertyMap.put(traits.key("targetJsonName"), "testtargets");
 			propertyMap.put(traits.key("sourceMultiplicity"), "*");
@@ -4287,7 +4289,7 @@ public class ScriptingTest extends StructrTest {
 		final ActionContext ctx                = new ActionContext(securityContext);
 		final String type                      = "TestType";
 		final PropertyKey count                = Traits.of(type).key("count");
-		final PropertyKey visibleToPublicUsers = Traits.of(type).key("visibleToPublicUsers");
+		final PropertyKey visibleToPublicUsers = Traits.of(type).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY);
 
 		// setup
 		try (final Tx tx = app.tx()) {
@@ -4413,7 +4415,7 @@ public class ScriptingTest extends StructrTest {
 
 
 		final String testType                  = "TestType";
-		final PropertyKey visibleToPublicUsers = Traits.of(testType).key("visibleToPublicUsers");
+		final PropertyKey visibleToPublicUsers = Traits.of(testType).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY);
 
 		// setup
 		try (final Tx tx = app.tx()) {
@@ -4652,8 +4654,8 @@ public class ScriptingTest extends StructrTest {
 
 			final String errorMessage = "Advanced find() with date range returns wrong result";
 
-			assertEquals(errorMessage, 5, ((List)Scripting.evaluate(ctx, null, formatDateTestScript("new Date",   "2000-01-01", "2100-01-01", "createdDate"), "testFindNewSyntax")).size());
-			assertEquals(errorMessage, 5, ((List)Scripting.evaluate(ctx, null, formatDateTestScript("Date.parse", "2000-01-01", "2100-01-01", "createdDate"), "testFindNewSyntax")).size());
+			assertEquals(errorMessage, 5, ((List)Scripting.evaluate(ctx, null, formatDateTestScript("new Date",   "2000-01-01", "2100-01-01", GraphObjectTraitDefinition.CREATED_DATE_PROPERTY), "testFindNewSyntax")).size());
+			assertEquals(errorMessage, 5, ((List)Scripting.evaluate(ctx, null, formatDateTestScript("Date.parse", "2000-01-01", "2100-01-01", GraphObjectTraitDefinition.CREATED_DATE_PROPERTY), "testFindNewSyntax")).size());
 
 			assertEquals(errorMessage, 5, ((List)Scripting.evaluate(ctx, null, formatDateTestScript("new Date",   "2018-01-01", "2020-01-01", "date"), "testFindNewSyntax")).size());
 			assertEquals(errorMessage, 5, ((List)Scripting.evaluate(ctx, null, formatDateTestScript("Date.parse", "2018-01-01", "2020-01-01", "date"), "testFindNewSyntax")).size());
@@ -6695,20 +6697,20 @@ public class ScriptingTest extends StructrTest {
 			final List<String> result1 = (List) Scripting.evaluate(new ActionContext(securityContext), test, "${{ return Object.getOwnPropertyNames($.this); }}", "test");
 			final Set<String> expected = new LinkedHashSet<>();
 
-			expected.add("name");
-			expected.add("hidden");
-			expected.add("owner");
-			expected.add("ownerId");
-			expected.add("grantees");
-			expected.add("base");
-			expected.add("type");
-			expected.add("id");
-			expected.add("createdDate");
-			expected.add("createdBy");
-			expected.add("lastModifiedDate");
-			expected.add("lastModifiedBy");
-			expected.add("visibleToPublicUsers");
-			expected.add("visibleToAuthenticatedUsers");
+			expected.add(NodeInterfaceTraitDefinition.NAME_PROPERTY);
+			expected.add(NodeInterfaceTraitDefinition.HIDDEN_PROPERTY);
+			expected.add(NodeInterfaceTraitDefinition.OWNER_PROPERTY);
+			expected.add(NodeInterfaceTraitDefinition.OWNER_ID_PROPERTY);
+			expected.add(NodeInterfaceTraitDefinition.GRANTEES_PROPERTY);
+			expected.add(GraphObjectTraitDefinition.BASE_PROPERTY);
+			expected.add(GraphObjectTraitDefinition.TYPE_PROPERTY);
+			expected.add(GraphObjectTraitDefinition.ID_PROPERTY);
+			expected.add(GraphObjectTraitDefinition.CREATED_DATE_PROPERTY);
+			expected.add(GraphObjectTraitDefinition.CREATED_BY_PROPERTY);
+			expected.add(GraphObjectTraitDefinition.LAST_MODIFIED_DATE_PROPERTY);
+			expected.add(GraphObjectTraitDefinition.LAST_MODIFIED_BY_PROPERTY);
+			expected.add(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY);
+			expected.add(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY);
 
 			// new: methods (non-lifecycle)
 			expected.add("doTest1");

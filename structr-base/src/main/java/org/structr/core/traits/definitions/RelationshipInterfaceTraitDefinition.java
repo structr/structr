@@ -23,13 +23,21 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 
 import java.util.Set;
+import org.structr.core.traits.StructrTraits;
 
 import static org.structr.core.GraphObject.SYSTEM_CATEGORY;
 
 public final class RelationshipInterfaceTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String INTERNAL_TIMESTAMP_PROPERTY = "internalTimestamp";
+	public static final String REL_TYPE_PROPERTY           = "relType";
+	public static final String SOURCE_ID_PROPERTY          = "sourceId";
+	public static final String TARGET_ID_PROPERTY          = "targetId";
+	public static final String SOURCE_NODE_PROPERTY        = "sourceNode";
+	public static final String TARGET_NODE_PROPERTY        = "targetNode";
+
 	public RelationshipInterfaceTraitDefinition() {
-		super("RelationshipInterface");
+		super(StructrTraits.RELATIONSHIP_INTERFACE);
 	}
 
 	@Override
@@ -40,12 +48,12 @@ public final class RelationshipInterfaceTraitDefinition extends AbstractNodeTrai
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<String>        internalTimestamp  = new StringProperty("internalTimestamp").systemInternal().unvalidated().writeOnce().category(SYSTEM_CATEGORY);
+		final Property<String>        internalTimestamp  = new StringProperty(INTERNAL_TIMESTAMP_PROPERTY).systemInternal().unvalidated().writeOnce().category(SYSTEM_CATEGORY);
 		final Property<String>        relType            = new RelationshipTypeProperty();
-		final SourceId                sourceId           = new SourceId("sourceId");
-		final TargetId                targetId           = new TargetId("targetId");
-		final Property<NodeInterface> sourceNode         = new SourceNodeProperty("sourceNode");
-		final Property<NodeInterface> targetNode         = new TargetNodeProperty("targetNode");
+		final SourceId                sourceId           = new SourceId(SOURCE_ID_PROPERTY);
+		final TargetId                targetId           = new TargetId(TARGET_ID_PROPERTY);
+		final Property<NodeInterface> sourceNode         = new SourceNodeProperty(SOURCE_NODE_PROPERTY);
+		final Property<NodeInterface> targetNode         = new TargetNodeProperty(TARGET_NODE_PROPERTY);
 
 		return newSet(
 			internalTimestamp,

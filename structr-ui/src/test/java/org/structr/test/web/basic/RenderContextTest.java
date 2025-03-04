@@ -34,9 +34,11 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.GroupTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
+import org.structr.core.traits.definitions.RelationshipInterfaceTraitDefinition;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.test.web.StructrUiTest;
@@ -74,8 +76,8 @@ public class RenderContextTest extends StructrUiTest {
 			itemNode = app.create(StructrTraits.SCHEMA_NODE, new NodeAttribute(Traits.of(StructrTraits.SCHEMA_NODE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Item"));
 
 			final PropertyMap properties = new PropertyMap();
-			properties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceId"), itemNode.getUuid());
-			properties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetId"), itemNode.getUuid());
+			properties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY), itemNode.getUuid());
+			properties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY), itemNode.getUuid());
 			properties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("relationshipType"), "CHILD");
 			properties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceMultiplicity"), "1");
 			properties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetMultiplicity"), "*");
@@ -257,8 +259,8 @@ public class RenderContextTest extends StructrUiTest {
 
 			// create schema relationship
 			final PropertyMap taskProperties = new PropertyMap();
-			taskProperties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceNode"), projectNode);
-			taskProperties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetNode"), taskNode);
+			taskProperties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.SOURCE_NODE_PROPERTY), projectNode);
+			taskProperties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.TARGET_NODE_PROPERTY), taskNode);
 			taskProperties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("relationshipType"), "TASK");
 			taskProperties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("relationshipType"), "TASK");
 			taskProperties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceMultiplicity"), "1");
@@ -270,8 +272,8 @@ public class RenderContextTest extends StructrUiTest {
 
 			// create schema relationship
 			final PropertyMap currentTaskProperties = new PropertyMap();
-			currentTaskProperties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceNode"), projectNode);
-			currentTaskProperties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetNode"), taskNode);
+			currentTaskProperties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.SOURCE_NODE_PROPERTY), projectNode);
+			currentTaskProperties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.TARGET_NODE_PROPERTY), taskNode);
 			currentTaskProperties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("relationshipType"), "CURRENT");
 			currentTaskProperties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceMultiplicity"), "1");
 			currentTaskProperties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetMultiplicity"), "1");
@@ -389,7 +391,7 @@ public class RenderContextTest extends StructrUiTest {
 			detailsId = app.create("TestOne", "TestOne").getUuid();
 			page      = Page.createNewPage(securityContext, "testpage");
 
-			page.setProperties(page.getSecurityContext(), new PropertyMap(Traits.of(StructrTraits.PAGE).key("visibleToPublicUsers"), true));
+			page.setProperties(page.getSecurityContext(), new PropertyMap(Traits.of(StructrTraits.PAGE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true));
 
 			assertTrue(page != null);
 			assertTrue(page.is(StructrTraits.PAGE));
@@ -658,8 +660,8 @@ public class RenderContextTest extends StructrUiTest {
 
 			// create a schema relationship between them
 			createTestNode(StructrTraits.SCHEMA_RELATIONSHIP_NODE,
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceNode"), projectNode),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetNode"), taskNode),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.SOURCE_NODE_PROPERTY), projectNode),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.TARGET_NODE_PROPERTY), taskNode),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("relationshipType"), "has"),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceMultiplicity"), "1"),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetMultiplicity"), "*"),

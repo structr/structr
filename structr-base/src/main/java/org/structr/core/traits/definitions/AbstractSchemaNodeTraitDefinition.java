@@ -69,7 +69,7 @@ public final class AbstractSchemaNodeTraitDefinition extends AbstractNodeTraitDe
 
 		hiddenPropertyNames.add("visibilityStartDate");
 		hiddenPropertyNames.add("visibilityEndDate");
-		hiddenPropertyNames.add("createdBy");
+		hiddenPropertyNames.add(GraphObjectTraitDefinition.CREATED_BY_PROPERTY);
 		hiddenPropertyNames.add("hidden");
 		hiddenPropertyNames.add("deleted");
 	}

@@ -27,6 +27,8 @@ import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 
 import java.util.Map;
 import java.util.Set;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 
 public class TestEightTraitDefinition extends AbstractNodeTraitDefinition {
 
@@ -38,10 +40,10 @@ public class TestEightTraitDefinition extends AbstractNodeTraitDefinition {
 	public Set<PropertyKey> getPropertyKeys() {
 
 		final Property<Iterable<NodeInterface>>  testSixs    = new StartNodes("testSixs", "SixEightManyToMany");
-		final Property<Iterable<String>> testSixIds          = new CollectionNotionProperty("testSixIds", "TestEight", "testSixs", "TestSix", new PropertyNotion("id"));
+		final Property<Iterable<String>> testSixIds          = new CollectionNotionProperty("testSixIds", "TestEight", "testSixs", "TestSix", new PropertyNotion(GraphObjectTraitDefinition.ID_PROPERTY));
 		final Property<Iterable<NodeInterface>> testNines    = new StartNodes("testNines", "NineEightManyToMany");
-		final Property<Iterable<String>> testNineIds         = new CollectionNotionProperty("testNineIds", "TestEight", "testNines", "TestNine", new PropertyNotion("id"));
-		final Property<Iterable<String>> testNinePostalCodes = new CollectionNotionProperty("testNinePostalCodes", "TestEight", "testNines", "TestNine", new PropertyNotion("postalCode"));
+		final Property<Iterable<String>> testNineIds         = new CollectionNotionProperty("testNineIds", "TestEight", "testNines", "TestNine", new PropertyNotion(GraphObjectTraitDefinition.ID_PROPERTY));
+		final Property<Iterable<String>> testNinePostalCodes = new CollectionNotionProperty("testNinePostalCodes", "TestEight", "testNines", "TestNine", new PropertyNotion(TestNineTraitDefinition.POSTAL_CODE_PROPERTY));
 		final Property<String> aString                       = new StringProperty("aString").indexed().indexedWhenEmpty();
 		final Property<Integer> anInt                        = new IntProperty("anInt").indexed();
 
@@ -55,7 +57,7 @@ public class TestEightTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 			PropertyView.Public,
-			newSet("name", "testSixIds", "aString", "anInt")
+			newSet(NodeInterfaceTraitDefinition.NAME_PROPERTY, "testSixIds", "aString", "anInt")
 		);
 	}
 

@@ -45,7 +45,9 @@ import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.LocalizationTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.relationships.SecurityRelationshipDefinition;
 import org.structr.module.StructrModule;
 import org.structr.rest.resource.MaintenanceResource;
 import org.structr.schema.action.ActionContext;
@@ -872,12 +874,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final Map<String, Object> entry = new TreeMap<>();
 				sites.add(entry);
 
-				entry.put("id",                          site.getUuid());
-				entry.put("name",                        site.getName());
+				entry.put(GraphObjectTraitDefinition.ID_PROPERTY,                          site.getUuid());
+				entry.put(NodeInterfaceTraitDefinition.NAME_PROPERTY,                        site.getName());
 				entry.put("hostname",                    site.getHostname());
 				entry.put("port",                        site.getPort());
-				entry.put("visibleToAuthenticatedUsers", site.isVisibleToAuthenticatedUsers());
-				entry.put("visibleToPublicUsers",        site.isVisibleToPublicUsers());
+				entry.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, site.isVisibleToAuthenticatedUsers());
+				entry.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        site.isVisibleToPublicUsers());
 
 				final List<String> pageNames = new LinkedList<>();
 
@@ -1099,15 +1101,15 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final Map<String, Object> grant = new TreeMap<>();
 				grants.add(grant);
 
-				grant.put("id",                          res.getProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY)));
+				grant.put(GraphObjectTraitDefinition.ID_PROPERTY,                          res.getProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY)));
 				grant.put("signature",                   res.getProperty(signatureKey));
 				grant.put("flags",                       res.getProperty(flagsKey));
-				grant.put("visibleToPublicUsers",        res.isVisibleToPublicUsers());
-				grant.put("visibleToAuthenticatedUsers", res.isVisibleToAuthenticatedUsers());
+				grant.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        res.isVisibleToPublicUsers());
+				grant.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, res.isVisibleToAuthenticatedUsers());
 
 				exportSecurity(res, grant);
 
-				final List grantees = (List)grant.get("grantees");
+				final List grantees = (List)grant.get(NodeInterfaceTraitDefinition.GRANTEES_PROPERTY);
 
 				if (res.getProperty(flagsKey) > 0 && res.isVisibleToPublicUsers() == false && res.isVisibleToAuthenticatedUsers() == false && grantees.isEmpty()) {
 					unreachableGrants.add(res.getProperty(signatureKey));
@@ -1284,9 +1286,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	private void exportConfiguration(final NodeInterface node, final Map<String, Object> config) throws FrameworkException {
 
-		putData(config, "id",                          node.getUuid());
-		putData(config, "visibleToPublicUsers",        node.isVisibleToPublicUsers());
-		putData(config, "visibleToAuthenticatedUsers", node.isVisibleToAuthenticatedUsers());
+		putData(config, GraphObjectTraitDefinition.ID_PROPERTY,                             node.getUuid());
+		putData(config, GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        node.isVisibleToPublicUsers());
+		putData(config, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, node.isVisibleToAuthenticatedUsers());
 
 		if (node.is(StructrTraits.CONTENT)) {
 			putData(config, "contentType", node.as(Content.class).getContentType());
@@ -1339,10 +1341,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		final AbstractFile abstractFile = node.as(AbstractFile.class);
 		final String fileType           = abstractFile.getType();
 
-		putData(config, "id",                          abstractFile.getUuid());
-		putData(config, "visibleToPublicUsers",        abstractFile.isVisibleToPublicUsers());
-		putData(config, "visibleToAuthenticatedUsers", abstractFile.isVisibleToAuthenticatedUsers());
-		putData(config, "type",                        fileType);
+		putData(config, GraphObjectTraitDefinition.ID_PROPERTY,                             abstractFile.getUuid());
+		putData(config, GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        abstractFile.isVisibleToPublicUsers());
+		putData(config, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, abstractFile.isVisibleToAuthenticatedUsers());
+		putData(config, GraphObjectTraitDefinition.TYPE_PROPERTY,                           fileType);
 
 		if (abstractFile.is(StructrTraits.FILE)) {
 
@@ -1421,8 +1423,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final String allowedActions     = StringUtils.join(security.getPermissions(), ",");
 				final Map<String, Object> grant = new TreeMap<>();
 
-				grant.put("name", security.getRelationship().getSourceNode().getName());
-				grant.put("allowed", allowedActions);
+				grant.put(NodeInterfaceTraitDefinition.NAME_PROPERTY, security.getRelationship().getSourceNode().getName());
+				grant.put(SecurityRelationshipDefinition.ALLOWED_PROPERTY, allowedActions);
 
 				if (allowedActions.length() > 0) {
 					grantees.add(grant);
@@ -1556,12 +1558,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					final Map<String, Object> entry = new TreeMap<>();
 					mailTemplates.add(entry);
 
-					putData(entry, "id",                          mailTemplate.getUuid());
-					putData(entry, "name",                        mailTemplate.getName());
+					putData(entry, GraphObjectTraitDefinition.ID_PROPERTY,                            mailTemplate.getUuid());
+					putData(entry, NodeInterfaceTraitDefinition.NAME_PROPERTY,                        mailTemplate.getName());
 					putData(entry, "filename",                    filename);
 					putData(entry, "locale",                      mailTemplate.getLocale());
-					putData(entry, "visibleToAuthenticatedUsers", mailTemplate.isVisibleToAuthenticatedUsers());
-					putData(entry, "visibleToPublicUsers",        mailTemplate.isVisibleToPublicUsers());
+					putData(entry, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, mailTemplate.isVisibleToAuthenticatedUsers());
+					putData(entry, GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        mailTemplate.isVisibleToPublicUsers());
 
 					final Path mailTemplateFile = targetFolder.resolve(filename);
 					writeStringToFile(mailTemplateFile, mailTemplate.getText());
@@ -1603,10 +1605,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				widgets.add(entry);
 
-				putData(entry, "id",                          widget.getUuid());
-				putData(entry, "name",                        widget.getName());
-				putData(entry, "visibleToAuthenticatedUsers", widget.isVisibleToAuthenticatedUsers());
-				putData(entry, "visibleToPublicUsers",        widget.isVisibleToPublicUsers());
+				putData(entry, GraphObjectTraitDefinition.ID_PROPERTY,                             widget.getUuid());
+				putData(entry, NodeInterfaceTraitDefinition.NAME_PROPERTY,                         widget.getName());
+				putData(entry, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, widget.isVisibleToAuthenticatedUsers());
+				putData(entry, GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        widget.isVisibleToPublicUsers());
 				putData(entry, "source",                      widget.getSource());
 				putData(entry, "description",                 widget.getDescription());
 				putData(entry, "isWidget",                    widget.isWidget());
@@ -1682,14 +1684,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				localizations.add(entry);
 
-				entry.put("id",                          localization.getUuid());
-				entry.put("name",                        localization.getName());
-				entry.put("localizedName",               localization.getLocalizedName());
-				entry.put("domain",                      localization.getDomain());
-				entry.put("locale",                      localization.getLocale());
-				entry.put("imported",                    localization.isImported());
-				entry.put("visibleToAuthenticatedUsers", localization.isVisibleToAuthenticatedUsers());
-				entry.put("visibleToPublicUsers",        localization.isVisibleToPublicUsers());
+				entry.put(GraphObjectTraitDefinition.ID_PROPERTY,                             localization.getUuid());
+				entry.put(NodeInterfaceTraitDefinition.NAME_PROPERTY,                         localization.getName());
+				entry.put(LocalizationTraitDefinition.LOCALIZED_NAME_PROPERTY,                localization.getLocalizedName());
+				entry.put(LocalizationTraitDefinition.DOMAIN_PROPERTY,                        localization.getDomain());
+				entry.put(LocalizationTraitDefinition.LOCALE_PROPERTY,                        localization.getLocale());
+				entry.put(LocalizationTraitDefinition.IMPORTED_PROPERTY,                      localization.isImported());
+				entry.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, localization.isVisibleToAuthenticatedUsers());
+				entry.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        localization.isVisibleToPublicUsers());
 			}
 
 			tx.success();
@@ -1728,10 +1730,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				actionMappings.add(entry);
 
-				putData(entry, "id",                          actionMapping.getUuid());
-				putData(entry, "name",                        actionMapping.getName());
-				putData(entry, "visibleToAuthenticatedUsers", actionMapping.isVisibleToAuthenticatedUsers());
-				putData(entry, "visibleToPublicUsers",        actionMapping.isVisibleToPublicUsers());
+				putData(entry, GraphObjectTraitDefinition.ID_PROPERTY,                             actionMapping.getUuid());
+				putData(entry, NodeInterfaceTraitDefinition.NAME_PROPERTY ,                        actionMapping.getName());
+				putData(entry, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, actionMapping.isVisibleToAuthenticatedUsers());
+				putData(entry, GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        actionMapping.isVisibleToPublicUsers());
 
 				final List<DOMElement> triggerElements = Iterables.toList(actionMapping.getTriggerElements());
 				if (!triggerElements.isEmpty()) {
@@ -1821,10 +1823,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				parameterMappings.add(entry);
 
 
-				putData(entry, "id",                          parameterMapping.getUuid());
-				putData(entry, "name",                        parameterMapping.getName());
-				putData(entry, "visibleToAuthenticatedUsers", parameterMapping.isVisibleToAuthenticatedUsers());
-				putData(entry, "visibleToPublicUsers",        parameterMapping.isVisibleToPublicUsers());
+				putData(entry, GraphObjectTraitDefinition.ID_PROPERTY,                             parameterMapping.getUuid());
+				putData(entry, NodeInterfaceTraitDefinition.NAME_PROPERTY ,                        parameterMapping.getName());
+				putData(entry, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, parameterMapping.isVisibleToAuthenticatedUsers());
+				putData(entry, GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        parameterMapping.isVisibleToPublicUsers());
 
 				putData(entry, "parameterType",    parameterMapping.getParameterType());
 				putData(entry, "parameterName",    parameterMapping.getParameterName());
@@ -2053,7 +2055,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			for (final Map<String, Object> entry : data) {
 
-				if (!entry.containsKey("grantees") && !entry.containsKey("visibleToPublicUsers") && !entry.containsKey("visibleToAuthenticatedUsers")) {
+				if (!entry.containsKey("grantees") && !entry.containsKey(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY) && !entry.containsKey(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY)) {
 
 					isOldExport = true;
 
@@ -2093,8 +2095,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 							grantMessagesText.append("    Signature '").append(signature).append("' is probably misconfigured and **should be split into two grants**.\n");
 						}
 
-						entry.put("visibleToAuthenticatedUsers", hasAnyAuthFlags);
-						entry.put("visibleToPublicUsers",        hasAnyNonAuthFlags);
+						entry.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, hasAnyAuthFlags);
+						entry.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        hasAnyNonAuthFlags);
 					}
 
 				} else {

@@ -31,6 +31,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.*;
@@ -153,8 +154,8 @@ public class Deployment1Test extends DeploymentTestBase {
 			rootFolder.setProperty(Traits.of(StructrTraits.FOLDER).key("includeInFrontendExport"), true);
 
 			file.setProperty(Traits.of(StructrTraits.FILE).key("parent"), folder);
-			file.setProperty(Traits.of(StructrTraits.FILE).key("visibleToPublicUsers"), true);
-			file.setProperty(Traits.of(StructrTraits.FILE).key("visibleToAuthenticatedUsers"), true);
+			file.setProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
+			file.setProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
 			file.setProperty(Traits.of(StructrTraits.FILE).key("enableBasicAuth"), true);
 			file.setProperty(Traits.of(StructrTraits.FILE).key("useAsJavascriptLibrary"), true);
 
@@ -180,8 +181,8 @@ public class Deployment1Test extends DeploymentTestBase {
 			assertNotNull("File was not created correctly", file);
 
 			assertEquals("Deployment import does not restore attributes correctly", folder, file.as(File.class).getParent());
-			assertTrue("Deployment import does not restore attributes correctly",  file.getProperty(Traits.of(StructrTraits.FILE).key("visibleToPublicUsers")));
-			assertTrue("Deployment import does not restore attributes correctly",  file.getProperty(Traits.of(StructrTraits.FILE).key("visibleToAuthenticatedUsers")));
+			assertTrue("Deployment import does not restore attributes correctly",  file.getProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY)));
+			assertTrue("Deployment import does not restore attributes correctly",  file.getProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY)));
 			assertTrue("Deployment import does not restore attributes correctly",  file.getProperty(Traits.of(StructrTraits.FILE).key("enableBasicAuth")));
 			assertTrue("Deployment import does not restore attributes correctly",  file.getProperty(Traits.of(StructrTraits.FILE).key("useAsJavascriptLibrary")));
 
@@ -212,8 +213,8 @@ public class Deployment1Test extends DeploymentTestBase {
 			rootFolder.setProperty(Traits.of(StructrTraits.FOLDER).key("includeInFrontendExport"), true);
 
 			file.setProperty(Traits.of(StructrTraits.FILE).key("parent"), folder);
-			file.setProperty(Traits.of(StructrTraits.FILE).key("visibleToPublicUsers"), true);
-			file.setProperty(Traits.of(StructrTraits.FILE).key("visibleToAuthenticatedUsers"), true);
+			file.setProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
+			file.setProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
 			file.setProperty(Traits.of(StructrTraits.FILE).key("enableBasicAuth"), true);
 			file.setProperty(Traits.of(StructrTraits.FILE).key("useAsJavascriptLibrary"), true);
 			file.setProperty(Traits.of(StructrTraits.FILE).key("includeInFrontendExport"), true);
@@ -234,8 +235,8 @@ public class Deployment1Test extends DeploymentTestBase {
 				try (final Tx tx = app.tx()) {
 
 					final NodeInterface file = app.nodeQuery(StructrTraits.FILE).and(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), fileName).getFirst();
-					file.setProperty(Traits.of(StructrTraits.FILE).key("visibleToPublicUsers"), false);
-					file.setProperty(Traits.of(StructrTraits.FILE).key("visibleToAuthenticatedUsers"), false);
+					file.setProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), false);
+					file.setProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), false);
 					file.setProperty(Traits.of(StructrTraits.FILE).key("enableBasicAuth"), false);
 					file.setProperty(Traits.of(StructrTraits.FILE).key("useAsJavascriptLibrary"), false);
 					file.setProperty(Traits.of(StructrTraits.FILE).key("includeInFrontendExport"), false);
@@ -261,8 +262,8 @@ public class Deployment1Test extends DeploymentTestBase {
 			assertNotNull("File was not created", file);
 
 			assertEquals("Deployment import of existing file does not restore attributes correctly", folder, file.as(File.class).getParent());
-			assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(Traits.of(StructrTraits.FILE).key("visibleToPublicUsers")));
-			assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(Traits.of(StructrTraits.FILE).key("visibleToAuthenticatedUsers")));
+			assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY)));
+			assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY)));
 			assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(Traits.of(StructrTraits.FILE).key("enableBasicAuth")));
 			assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(Traits.of(StructrTraits.FILE).key("useAsJavascriptLibrary")));
 			assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(Traits.of(StructrTraits.FILE).key("includeInFrontendExport")));

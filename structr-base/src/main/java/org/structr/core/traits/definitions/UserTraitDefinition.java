@@ -214,14 +214,14 @@ public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 							homeFolder = app.create(StructrTraits.FOLDER,
 								new NodeAttribute(folderTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "home"),
 								new NodeAttribute(folderTraits.key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), null),
-								new NodeAttribute(folderTraits.key("visibleToAuthenticatedUsers"), true)
+								new NodeAttribute(folderTraits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true)
 							);
 						}
 
 						app.create(StructrTraits.FOLDER,
 							new NodeAttribute(folderTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), user.getUuid()),
 							new NodeAttribute(folderTraits.key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), user),
-							new NodeAttribute(folderTraits.key("visibleToAuthenticatedUsers"), true),
+							new NodeAttribute(folderTraits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true),
 							new NodeAttribute(parentKey, homeFolder),
 							new NodeAttribute(homeFolderKey, user)
 						);

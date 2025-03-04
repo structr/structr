@@ -111,7 +111,7 @@ public class AccessControlTest extends StructrTest {
 			Principal user            = users.get(0).as(Principal.class);
 
 			PropertyMap props = new PropertyMap();
-			props.put(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true);
+			props.put(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
 
 			// Create two nodes with user context, one of them is visible to public users
 			NodeInterface t1 = createTestNode("TestOne", props, user);
@@ -150,14 +150,14 @@ public class AccessControlTest extends StructrTest {
 			NodeInterface user              =  users.get(0);
 
 			PropertyMap props = new PropertyMap();
-			props.put(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true);
+			props.put(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
 
 			// Create two nodes with user context, one of them is visible to public users
 			String type = "TestOne";
 			NodeInterface t1 = createTestNode("TestOne", props, user.as(User.class));
 
 			props = new PropertyMap();
-			props.put(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToAuthenticatedUsers"), true);
+			props.put(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
 
 			NodeInterface t2 = createTestNode("TestOne", props, user.as(User.class));
 
@@ -193,14 +193,14 @@ public class AccessControlTest extends StructrTest {
 			NodeInterface user2             = users.get(1);
 
 			PropertyMap props = new PropertyMap();
-			props.put(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true);
+			props.put(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
 
 			// Create two nodes with user context, one of them is visible to public users
 			String type = "TestOne";
 			NodeInterface t1 = createTestNode("TestOne", props, user1.as(User.class));
 
 			props = new PropertyMap();
-			props.put(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToAuthenticatedUsers"), true);
+			props.put(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
 
 			NodeInterface t2 = createTestNode("TestOne", props, user1.as(User.class));
 
@@ -239,14 +239,14 @@ public class AccessControlTest extends StructrTest {
 			NodeInterface user2             = users.get(1);
 
 			PropertyMap props = new PropertyMap();
-			props.put(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true);
+			props.put(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
 
 			// Create two nodes with user context, one of them is visible to public users
 			String type = "TestOne";
 			NodeInterface t1 = createTestNode("TestOne", props, user1.as(User.class));
 
 			props = new PropertyMap();
-			props.put(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToAuthenticatedUsers"), true);
+			props.put(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
 
 			NodeInterface t2 = createTestNode("TestOne", props, user1.as(User.class));
 
@@ -338,9 +338,9 @@ public class AccessControlTest extends StructrTest {
 			final List<NodeInterface> nodes = createTestNodes(type, 10, 100);
 
 			try (final Tx tx = app.tx()) {
-				nodes.get(3).setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true);
-				nodes.get(5).setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true);
-				nodes.get(7).setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true);
+				nodes.get(3).setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
+				nodes.get(5).setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
+				nodes.get(7).setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
 				tx.success();
 			}
 
@@ -348,7 +348,7 @@ public class AccessControlTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				List<NodeInterface> result = StructrApp.getInstance(publicContext).nodeQuery(type).sort(Traits.of(StructrTraits.NODE_INTERFACE).key("createdDate")).getAsList();
+				List<NodeInterface> result = StructrApp.getInstance(publicContext).nodeQuery(type).sort(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.CREATED_DATE_PROPERTY)).getAsList();
 
 				assertEquals(3, result.size());
 
@@ -386,10 +386,10 @@ public class AccessControlTest extends StructrTest {
 					node.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "node0" + count++);
 				}
 
-				nodes.get(3).setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true);
-				nodes.get(5).setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true);
-				nodes.get(7).setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true);
-				nodes.get(9).setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true);
+				nodes.get(3).setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
+				nodes.get(5).setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
+				nodes.get(7).setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
+				nodes.get(9).setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
 				tx.success();
 			}
 
@@ -562,7 +562,7 @@ public class AccessControlTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				// make t1 visible to public users explicitely
-				t1.setProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key("visibleToPublicUsers"), true);
+				t1.setProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
 
 				tx.success();
 			}

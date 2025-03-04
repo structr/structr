@@ -45,8 +45,15 @@ import java.util.*;
 
 public final class GraphObjectTraitDefinition extends AbstractNodeTraitDefinition {
 
-	public static final String ID_PROPERTY   = "id";
-	public static final String TYPE_PROPERTY = "type";
+	public static final String ID_PROPERTY                             = "id";
+	public static final String TYPE_PROPERTY                           = "type";
+	public static final String BASE_PROPERTY                           = "base";
+	public static final String CREATED_DATE_PROPERTY                   = "createdDate";
+	public static final String CREATED_BY_PROPERTY                     = "createdBy";
+	public static final String LAST_MODIFIED_DATE_PROPERTY             = "lastModifiedDate";
+	public static final String LAST_MODIFIED_BY_PROPERTY               = "lastModifiedBy";
+	public static final String VISIBLE_TO_PUBLIC_USERS_PROPERTY        = "visibleToPublicUsers";
+	public static final String VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY = "visibleToAuthenticatedUsers";
 
 	public GraphObjectTraitDefinition() {
 		super(StructrTraits.GRAPH_OBJECT);
@@ -138,7 +145,7 @@ public final class GraphObjectTraitDefinition extends AbstractNodeTraitDefinitio
 
 					final Traits traits = obj.getTraits();
 
-					return obj.getProperty(traits.key("visibleToPublicUsers"));
+					return obj.getProperty(traits.key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY));
 				}
 
 				@Override
@@ -146,7 +153,7 @@ public final class GraphObjectTraitDefinition extends AbstractNodeTraitDefinitio
 
 					final Traits traits = obj.getTraits();
 
-					return obj.getProperty(traits.key("visibleToAuthenticatedUsers"));
+					return obj.getProperty(traits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY));
 				}
 			}
 		);
@@ -160,15 +167,15 @@ public final class GraphObjectTraitDefinition extends AbstractNodeTraitDefinitio
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final PropertyKey<String> baseProperty                  = new StringProperty("base");
+		final PropertyKey<String> baseProperty                  = new StringProperty(BASE_PROPERTY);
 		final PropertyKey<String> typeProperty                  = new TypeProperty().category(GraphObject.SYSTEM_CATEGORY);
 		final PropertyKey<String> idProperty                    = new UuidProperty().category(GraphObject.SYSTEM_CATEGORY);
-		final PropertyKey<Date> createdDateProperty             = new ISO8601DateProperty("createdDate").readOnly().systemInternal().indexed().unvalidated().writeOnce().category(GraphObject.SYSTEM_CATEGORY).nodeIndexOnly();
-		final PropertyKey<String> createdByProperty             = new StringProperty("createdBy").readOnly().writeOnce().unvalidated().category(GraphObject.SYSTEM_CATEGORY).nodeIndexOnly();
-		final PropertyKey<Date> lastModifiedDateProperty        = new ISO8601DateProperty("lastModifiedDate").readOnly().systemInternal().passivelyIndexed().unvalidated().category(GraphObject.SYSTEM_CATEGORY).nodeIndexOnly();
-		final PropertyKey<String> lastModifiedByProperty        = new StringProperty("lastModifiedBy").readOnly().systemInternal().unvalidated().category(GraphObject.SYSTEM_CATEGORY).nodeIndexOnly();
-		final PropertyKey<Boolean> visibleToPublicUsersProperty = new BooleanProperty("visibleToPublicUsers").passivelyIndexed().category(GraphObject.VISIBILITY_CATEGORY).category(GraphObject.SYSTEM_CATEGORY).nodeIndexOnly();
-		final Property<Boolean> visibleToAuthenticatedUsers     = new BooleanProperty("visibleToAuthenticatedUsers").passivelyIndexed().category(GraphObject.VISIBILITY_CATEGORY).category(GraphObject.SYSTEM_CATEGORY).nodeIndexOnly();
+		final PropertyKey<Date> createdDateProperty             = new ISO8601DateProperty(CREATED_DATE_PROPERTY).readOnly().systemInternal().indexed().unvalidated().writeOnce().category(GraphObject.SYSTEM_CATEGORY).nodeIndexOnly();
+		final PropertyKey<String> createdByProperty             = new StringProperty(CREATED_BY_PROPERTY).readOnly().writeOnce().unvalidated().category(GraphObject.SYSTEM_CATEGORY).nodeIndexOnly();
+		final PropertyKey<Date> lastModifiedDateProperty        = new ISO8601DateProperty(LAST_MODIFIED_DATE_PROPERTY).readOnly().systemInternal().passivelyIndexed().unvalidated().category(GraphObject.SYSTEM_CATEGORY).nodeIndexOnly();
+		final PropertyKey<String> lastModifiedByProperty        = new StringProperty(LAST_MODIFIED_BY_PROPERTY).readOnly().systemInternal().unvalidated().category(GraphObject.SYSTEM_CATEGORY).nodeIndexOnly();
+		final PropertyKey<Boolean> visibleToPublicUsersProperty = new BooleanProperty(VISIBLE_TO_PUBLIC_USERS_PROPERTY).passivelyIndexed().category(GraphObject.VISIBILITY_CATEGORY).category(GraphObject.SYSTEM_CATEGORY).nodeIndexOnly();
+		final Property<Boolean> visibleToAuthenticatedUsers     = new BooleanProperty(VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY).passivelyIndexed().category(GraphObject.VISIBILITY_CATEGORY).category(GraphObject.SYSTEM_CATEGORY).nodeIndexOnly();
 
 		return newSet(
 			baseProperty,
@@ -189,10 +196,14 @@ public final class GraphObjectTraitDefinition extends AbstractNodeTraitDefinitio
 		return Map.of(
 
 			PropertyView.Public,
-			newSet("id", "type"),
+			newSet(GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY),
 
 			PropertyView.Ui,
-			newSet("id", "type", "createdBy", "createdDate", "lastModifiedDate", "visibleToPublicUsers", "visibleToAuthenticatedUsers")
+			newSet(
+					GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, GraphObjectTraitDefinition.CREATED_BY_PROPERTY,
+					GraphObjectTraitDefinition.CREATED_DATE_PROPERTY, GraphObjectTraitDefinition.LAST_MODIFIED_DATE_PROPERTY,
+					GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY
+			)
 		);
 	}
 

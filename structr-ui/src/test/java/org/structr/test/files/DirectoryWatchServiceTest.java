@@ -34,6 +34,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.schema.export.StructrSchema;
@@ -585,14 +586,14 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 			if (grant != null) {
 
 				grant.setProperty(Traits.of(StructrTraits.RESOURCE_ACCESS).key("flags"), 4L);
-				grant.setProperty(Traits.of(StructrTraits.RESOURCE_ACCESS).key("visibleToAuthenticatedUsers"), true);
+				grant.setProperty(Traits.of(StructrTraits.RESOURCE_ACCESS).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
 
 			} else {
 
 				app.create(StructrTraits.RESOURCE_ACCESS,
 					new NodeAttribute<>(Traits.of(StructrTraits.RESOURCE_ACCESS).key("signature"),                   StructrTraits.IMAGE),
 					new NodeAttribute<>(Traits.of(StructrTraits.RESOURCE_ACCESS).key("flags"),                       4L),
-					new NodeAttribute<>(Traits.of(StructrTraits.RESOURCE_ACCESS).key("visibleToAuthenticatedUsers"), true)
+					new NodeAttribute<>(Traits.of(StructrTraits.RESOURCE_ACCESS).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true)
 				);
 			}
 

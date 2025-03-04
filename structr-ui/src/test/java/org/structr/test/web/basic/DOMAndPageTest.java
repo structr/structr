@@ -33,6 +33,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.test.web.StructrUiTest;
@@ -279,7 +280,7 @@ public class DOMAndPageTest extends StructrUiTest {
 			final PropertyKey<Integer> portKey                  = Traits.of("Site").key("port");
 			final PropertyKey<String> hostnameKey               = Traits.of("Site").key("hostname");
 			final PropertyKey<String> nameKey                   = Traits.of("Site").key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
-			final PropertyKey<Boolean> vtp                      = Traits.of("Site").key("visibleToPublicUsers");
+			final PropertyKey<Boolean> vtp                      = Traits.of("Site").key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY);
 
 			siteOneProperties.put(nameKey, "site-one");
 			siteOneProperties.put(vtp, true);
@@ -297,13 +298,13 @@ public class DOMAndPageTest extends StructrUiTest {
 
 			final PropertyMap pageOneProperties = new PropertyMap();
 			pageOneProperties.put(sitesKey, Arrays.asList(siteOne));
-			pageOneProperties.put(Traits.of(StructrTraits.PAGE).key("visibleToPublicUsers"), true);
+			pageOneProperties.put(Traits.of(StructrTraits.PAGE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
 			pageOneProperties.put(positionKey, 10);
 			pageOne.setProperties(pageOne.getSecurityContext(), pageOneProperties);
 
 			final PropertyMap pageTwoProperties = new PropertyMap();
 			pageTwoProperties.put(sitesKey, Arrays.asList(siteTwo));
-			pageTwoProperties.put(Traits.of(StructrTraits.PAGE).key("visibleToPublicUsers"), true);
+			pageTwoProperties.put(Traits.of(StructrTraits.PAGE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
 			pageTwoProperties.put(positionKey, 10);
 			pageTwo.setProperties(pageTwo.getSecurityContext(), pageTwoProperties);
 
@@ -1282,8 +1283,8 @@ public class DOMAndPageTest extends StructrUiTest {
 
 	private void setFlagsRecursively(final DOMNode node, final boolean visibleToPublic, final boolean visibleToAuth) throws FrameworkException {
 
-		node.setProperty(Traits.of(StructrTraits.DOM_NODE).key("visibleToAuthenticatedUsers"), visibleToAuth);
-		node.setProperty(Traits.of(StructrTraits.DOM_NODE).key("visibleToPublicUsers"), visibleToPublic);
+		node.setProperty(Traits.of(StructrTraits.DOM_NODE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), visibleToAuth);
+		node.setProperty(Traits.of(StructrTraits.DOM_NODE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), visibleToPublic);
 
 		for (final DOMNode child : node.getChildren()) {
 

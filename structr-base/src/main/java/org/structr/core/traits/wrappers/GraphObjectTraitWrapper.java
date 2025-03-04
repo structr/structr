@@ -31,6 +31,7 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
@@ -242,15 +243,15 @@ public class GraphObjectTraitWrapper<T extends GraphObject> implements GraphObje
 	}
 
 	public Date getCreatedDate() {
-		return wrappedObject.getProperty(traits.key("createdDate"));
+		return wrappedObject.getProperty(traits.key(GraphObjectTraitDefinition.CREATED_DATE_PROPERTY));
 	}
 
 	public Date getLastModifiedDate() {
-		return wrappedObject.getProperty(traits.key("lastModifiedDate"));
+		return wrappedObject.getProperty(traits.key(GraphObjectTraitDefinition.LAST_MODIFIED_DATE_PROPERTY));
 	}
 
 	public void setLastModifiedDate(final Date date) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("lastModifiedDate"), date);
+		wrappedObject.setProperty(traits.key(GraphObjectTraitDefinition.LAST_MODIFIED_DATE_PROPERTY), date);
 	}
 
 	@Override
@@ -334,11 +335,11 @@ public class GraphObjectTraitWrapper<T extends GraphObject> implements GraphObje
 	}
 
 	public boolean isVisibleToPublicUsers() {
-		return wrappedObject.getProperty(traits.key("visibleToPublicUsers"));
+		return wrappedObject.getProperty(traits.key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY));
 	}
 
 	public boolean isVisibleToAuthenticatedUsers() {
-	return wrappedObject.getProperty(traits.key("visibleToAuthenticatedUsers"));
+	return wrappedObject.getProperty(traits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY));
 	}
 
 	@Override
@@ -351,11 +352,11 @@ public class GraphObjectTraitWrapper<T extends GraphObject> implements GraphObje
 		wrappedObject.setProperty(traits.key(NodeInterfaceTraitDefinition.HIDDEN_PROPERTY), hidden);
 	}
 
-	public void setVisibleToPublicUsers(final boolean visible) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("visibleToPublicUsers"), visible);
+	public void setVisibleToPublicUsers(final boolean visibleToPublic) throws FrameworkException {
+		wrappedObject.setVisibleToPublicUsers(visibleToPublic);
 	}
 
-	public void  setVisibleToAuthenticatedUsers(final boolean visible) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("visibleToAuthenticatedUsers"), visible);
+	public void  setVisibleToAuthenticatedUsers(final boolean visibleToAuth) throws FrameworkException {
+		wrappedObject.setVisibleToAuthenticatedUsers(visibleToAuth);
 	}
 }

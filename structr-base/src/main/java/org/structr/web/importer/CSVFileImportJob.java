@@ -35,6 +35,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.RelationshipInterfaceTraitDefinition;
 import org.structr.module.StructrModule;
 import org.structr.module.api.APIBuilder;
 import org.structr.rest.common.CsvHelper;
@@ -215,8 +216,8 @@ public class CSVFileImportJob extends FileImportJob {
 
 								} else {
 
-									final NodeInterface sourceNode = app.getNodeById(relSourceType, (String)input.get("sourceId"));
-									final NodeInterface targetNode = app.getNodeById(relTargetType, (String)input.get("targetId"));
+									final NodeInterface sourceNode = app.getNodeById(relSourceType, (String)input.get(RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY));
+									final NodeInterface targetNode = app.getNodeById(relTargetType, (String)input.get(RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY));
 
 									app.create(sourceNode, targetNode, targetEntityType.getName(), PropertyMap.inputTypeToJavaType(threadContext, targetEntityType.getName(), input));
 									overallCount++;

@@ -850,8 +850,8 @@ public class Importer {
 				final PropertyMap newNodeProperties      = new PropertyMap();
 				final PropertyMap deferredNodeProperties = new PropertyMap();
 				final Traits newNodeType                 = newNode.getTraits();
-				final PropertyKey<Boolean> vtpuKey       = newNodeType.key("visibleToPublicUsers");
-				final PropertyKey<Boolean> vtauKey       = newNodeType.key("visibleToAuthenticatedUsers");
+				final PropertyKey<Boolean> vtpuKey       = newNodeType.key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY);
+				final PropertyKey<Boolean> vtauKey       = newNodeType.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY);
 
 				if (isDeployment && !relativeVisibility) {
 
@@ -1389,8 +1389,8 @@ public class Importer {
 			new NodeAttribute(traits.key("size"),                        size),
 			new NodeAttribute(traits.key("checksum"),                    checksum),
 			new NodeAttribute(traits.key("version"),                     1),
-			new NodeAttribute(traits.key("visibleToPublicUsers"),        publicVisible),
-			new NodeAttribute(traits.key("visibleToAuthenticatedUsers"), authVisible)
+			new NodeAttribute(traits.key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY),        publicVisible),
+			new NodeAttribute(traits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), authVisible)
 
 		).as(File.class);
 	}
@@ -1520,13 +1520,13 @@ public class Importer {
 
 		if (isDeployment && !relativeVisibility) {
 
-			emptyContentProperties.put(traits.key("visibleToPublicUsers"),        publicVisible);
-			emptyContentProperties.put(traits.key("visibleToAuthenticatedUsers"), authVisible);
+			emptyContentProperties.put(traits.key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY),        publicVisible);
+			emptyContentProperties.put(traits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), authVisible);
 
 		} else {
 
-			emptyContentProperties.put(traits.key("visibleToPublicUsers"),        parent != null ? parent.getProperty(traits.key("visibleToPublicUsers")) :        publicVisible);
-			emptyContentProperties.put(traits.key("visibleToAuthenticatedUsers"), parent != null ? parent.getProperty(traits.key("visibleToAuthenticatedUsers")) : authVisible);
+			emptyContentProperties.put(traits.key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY),        parent != null ? parent.getProperty(traits.key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY)) :        publicVisible);
+			emptyContentProperties.put(traits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), parent != null ? parent.getProperty(traits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY)) : authVisible);
 		}
 
 		contentNode.setProperties(securityContext, emptyContentProperties);
@@ -1560,8 +1560,8 @@ public class Importer {
 		final Traits traits                      = Traits.of(StructrTraits.TEMPLATE);
 		final PropertyKey<String> contentTypeKey = traits.key("contentType");
 		final PropertyKey<String> contentKey     = traits.key("content");
-		final PropertyKey<Boolean> vtpuKey       = traits.key("visibleToPublicUsers");
-		final PropertyKey<Boolean> vtauKey       = traits.key("visibleToAuthenticatedUsers");
+		final PropertyKey<Boolean> vtpuKey       = traits.key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY);
+		final PropertyKey<Boolean> vtauKey       = traits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY);
 		final PropertyMap map                    = new PropertyMap();
 
 		map.put(vtpuKey,        publicVisible);
