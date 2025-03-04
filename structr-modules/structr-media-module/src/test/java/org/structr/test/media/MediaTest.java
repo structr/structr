@@ -43,7 +43,7 @@ public class MediaTest extends StructrUiTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(MediaTest.class.getName());
 
-//	@Test
+	@Test
 	public void test01() {
 
 		if (!AVConv.isAVConvInstalled()) {

@@ -497,7 +497,7 @@ public class PerformanceTest extends StructrUiTest {
 		assertTrue(averageUserFetchTime < 100);
 	}
 
-//	@Test
+	@Test
 	public void testRenderingPerformance() {
 
 		final String address = "http://structr.github.io/structr/getbootstrap.com/docs/3.3/examples/jumbotron/";
