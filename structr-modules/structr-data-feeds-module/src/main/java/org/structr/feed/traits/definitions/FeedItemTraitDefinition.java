@@ -46,6 +46,8 @@ import java.util.Set;
  */
 public class FeedItemTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String DESCRIPTION_PROPERTY         = "description";
+
 	public FeedItemTraitDefinition() {
 		super("FeedItem");
 	}
@@ -90,6 +92,7 @@ public class FeedItemTraitDefinition extends AbstractNodeTraitDefinition {
 			}
 		);
 	}
+
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
@@ -100,7 +103,7 @@ public class FeedItemTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> urlProperty              = new StringProperty("url").indexed().notNull();
 		final Property<String> authorProperty           = new StringProperty("author");
 		final Property<String> commentsProperty         = new StringProperty("comments");
-		final Property<String> descriptionProperty      = new StringProperty("description");
+		final Property<String> descriptionProperty      = new StringProperty(DESCRIPTION_PROPERTY);
 		final Property<Date> pubDateProperty            = new DateProperty("pubDate");
 		final Property<Date> updatedDateProperty        = new DateProperty("updatedDate");
 		final Property<Long> checksumProperty           = new LongProperty("checksum").readOnly();
@@ -142,12 +145,12 @@ public class FeedItemTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"owner", "name", "url", "author", "comments", "description", "pubDate",
+				"owner", "name", "url", "author", "comments", DESCRIPTION_PROPERTY, "pubDate",
 				"updatedDate", "contents", "enclosures"
 			),
 			PropertyView.Ui,
 			newSet(
-				"url", "author", "comments", "description", "pubDate",
+				"url", "author", "comments", DESCRIPTION_PROPERTY, "pubDate",
 				"updatedDate", "checksum", "cacheForSeconds", "version",
 				"contents", "enclosures", "feed"
 			)

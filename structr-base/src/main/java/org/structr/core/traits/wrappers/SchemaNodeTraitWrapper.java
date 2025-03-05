@@ -33,6 +33,7 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Trait;
 import org.structr.core.traits.TraitDefinition;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.SchemaNodeTraitDefinition;
 import org.structr.schema.DynamicNodeTraitDefinition;
 
 import java.util.*;
@@ -45,18 +46,18 @@ public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper imple
 
 	@Override
 	public boolean defaultVisibleToPublic() {
-		return wrappedObject.getProperty(traits.key("defaultVisibleToPublic"));
+		return wrappedObject.getProperty(traits.key(SchemaNodeTraitDefinition.DEFAULT_VISIBLE_TO_PUBLIC_PROPERTY));
 	}
 
 	@Override
 	public boolean defaultVisibleToAuth() {
-		return wrappedObject.getProperty(traits.key("defaultVisibleToAuth"));
+		return wrappedObject.getProperty(traits.key(SchemaNodeTraitDefinition.DEFAULT_VISIBLE_TO_AUTH_PROPERTY));
 	}
 
 	@Override
 	public Iterable<SchemaRelationshipNode> getRelatedTo() {
 
-		final PropertyKey<Iterable<NodeInterface>> key = traits.key("relatedTo");
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key(SchemaNodeTraitDefinition.RELATED_TO_PROPERTY);
 
 		return Iterables.map(n -> n.as(SchemaRelationshipNode.class), wrappedObject.getProperty(key));
 	}
@@ -64,7 +65,7 @@ public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper imple
 	@Override
 	public Iterable<SchemaRelationshipNode> getRelatedFrom() {
 
-		final PropertyKey<Iterable<NodeInterface>> key = traits.key("relatedFrom");
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key(SchemaNodeTraitDefinition.RELATED_FROM_PROPERTY);
 
 		return Iterables.map(n -> n.as(SchemaRelationshipNode.class), wrappedObject.getProperty(key));
 	}
@@ -155,7 +156,7 @@ public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper imple
 	public Set<String> getInheritedTraits() {
 
 		final Set<String> inheritedTraits = new TreeSet<>();
-		final PropertyKey<String[]> key   = traits.key("inheritedTraits");
+		final PropertyKey<String[]> key   = traits.key(SchemaNodeTraitDefinition.INHERITED_TRAITS_PROPERTY);
 		final String[] value              = wrappedObject.getProperty(key);
 
 		if (value != null) {
@@ -171,7 +172,7 @@ public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper imple
 
 	@Override
 	public void setInheritedTraits(final Set<String> setOfTraits) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("inheritedTraits"), setOfTraits.toArray(new String[0]));
+		wrappedObject.setProperty(traits.key(SchemaNodeTraitDefinition.INHERITED_TRAITS_PROPERTY), setOfTraits.toArray(new String[0]));
 	}
 
 	@Override

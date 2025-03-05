@@ -59,7 +59,7 @@ public class TestLDAPClient extends StructrUiTest {
 				new NodeAttribute<>(StructrApp.key(LDAPGroup.class, "distinguishedName"), "ou=page1,dc=test,dc=structr,dc=org")
 			);
 
-			app.nodeQuery(StructrTraits.RESOURCE_ACCESS).and(Traits.of(StructrTraits.RESOURCE_ACCESS).key("signature"), StructrTraits.USER).getFirst().setProperty(Traits.of(StructrTraits.RESOURCE_ACCESS).key("flags"), 1L);
+			app.nodeQuery(StructrTraits.RESOURCE_ACCESS).and(Traits.of(StructrTraits.RESOURCE_ACCESS).key("signature"), StructrTraits.USER).getFirst().setProperty(Traits.of(StructrTraits.RESOURCE_ACCESS).key(ResourceAccessTraitDefinition.FLAGS_PROPERTY), 1L);
 
 			tx.success();
 

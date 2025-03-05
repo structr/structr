@@ -46,6 +46,8 @@ import java.util.Set;
 
 public class DataFeedTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String DESCRIPTION_PROPERTY         = "description";
+
 	public DataFeedTraitDefinition() {
 		super("DataFeed");
 	}
@@ -135,7 +137,7 @@ public class DataFeedTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Iterable<NodeInterface>> itemsProperty = new EndNodes("items", "DataFeedHAS_FEED_ITEMSFeedItem");
 		final Property<String> urlProperty                    = new StringProperty("url").indexed().notNull();
 		final Property<String> feedTypeProperty               = new StringProperty("feedType");
-		final Property<String> descriptionProperty            = new StringProperty("description");
+		final Property<String> descriptionProperty            = new StringProperty(DESCRIPTION_PROPERTY);
 		final Property<Long> updateIntervalProperty           = new LongProperty("updateInterval");
 		final Property<Date> lastUpdatedProperty              = new DateProperty("lastUpdated");
 		final Property<Long> maxAgeProperty                   = new LongProperty("maxAge");
@@ -159,11 +161,11 @@ public class DataFeedTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"url", "feedType", "description", "items"
+				"url", "feedType", DESCRIPTION_PROPERTY, "items"
 			),
 			PropertyView.Ui,
 			newSet(
-				"description", "feedType", "maxAge", "url", "updateInterval",
+				DESCRIPTION_PROPERTY, "feedType", "maxAge", "url", "updateInterval",
 				"lastUpdated", "maxItems", "maxItems", "items"
 			)
 		);

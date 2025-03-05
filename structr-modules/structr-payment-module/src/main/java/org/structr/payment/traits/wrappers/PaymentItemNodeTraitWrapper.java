@@ -22,6 +22,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.payment.entity.PaymentItemNode;
+import org.structr.payment.traits.definitions.PaymentItemNodeTraitDefinition;
 
 /**
  *
@@ -44,7 +45,7 @@ public class PaymentItemNodeTraitWrapper extends AbstractNodeTraitWrapper implem
 
 	@Override
 	public String getDescription() {
-		return wrappedObject.getProperty(traits.key("description"));
+		return wrappedObject.getProperty(traits.key(PaymentItemNodeTraitDefinition.DESCRIPTION_PROPERTY));
 	}
 
 	@Override

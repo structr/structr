@@ -49,6 +49,8 @@ import org.structr.core.traits.Traits;
 import java.util.*;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
+import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
 
 /**
  *
@@ -58,7 +60,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 	private static final Logger logger = LoggerFactory.getLogger(SearchCommand.class.getName());
 
-	private static final Set<String> indexedWarningDisabled = new LinkedHashSet<>(Arrays.asList("source", "readFunction", "writeFunction"));
+	private static final Set<String> indexedWarningDisabled = new LinkedHashSet<>(Arrays.asList(SchemaMethodTraitDefinition.SOURCE_PROPERTY, SchemaPropertyTraitDefinition.READ_FUNCTION_PROPERTY, SchemaPropertyTraitDefinition.WRITE_FUNCTION_PROPERTY));
 
 	private final SearchAttributeGroup rootGroup = new SearchAttributeGroup(Occurrence.REQUIRED);
 	private SortOrder sortOrder                  = new DefaultSortOrder();

@@ -34,6 +34,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.traits.StructrTraits;
 import org.structr.schema.SchemaHelper;
 
 import java.io.*;
@@ -504,8 +505,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		for (NodeInterface nodeObject : nodes) {
 
 			// skip schema
-			// fixme: how can we identify ALL schema nodes now?
-			if (nodeObject.is("SchemaReloadingNode")) {
+			if (nodeObject.is(StructrTraits.SCHEMA_RELOADING_NODE)) {
 				continue;
 			}
 

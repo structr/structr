@@ -34,6 +34,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
 import org.structr.schema.SchemaHelper.Type;
 import org.structr.schema.SchemaService;
 
@@ -281,19 +282,19 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 
 			final PropertyMap getOrCreateProperties = new PropertyMap();
 
-			getOrCreateProperties.put(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), getName());
-			getOrCreateProperties.put(traits.key("schemaNode"), schemaNode);
-			getOrCreateProperties.put(traits.key("compound"), isCompoundUnique());
-			getOrCreateProperties.put(traits.key("unique"), isUnique());
-			getOrCreateProperties.put(traits.key("indexed"), isIndexed());
-			getOrCreateProperties.put(traits.key("notNull"), isRequired());
-			getOrCreateProperties.put(traits.key("readOnly"), isReadOnly());
-			getOrCreateProperties.put(traits.key("format"), getFormat());
-			getOrCreateProperties.put(traits.key("hint"), getHint());
-			getOrCreateProperties.put(traits.key("category"), getCategory());
-			getOrCreateProperties.put(traits.key("validators"), listToArray(validators));
-			getOrCreateProperties.put(traits.key("transformers"), listToArray(transformers));
-			getOrCreateProperties.put(traits.key("defaultValue"), defaultValue);
+			getOrCreateProperties.put(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),           getName());
+			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY),   schemaNode);
+			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.COMPOUND_PROPERTY),      isCompoundUnique());
+			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.UNIQUE_PROPERTY),        isUnique());
+			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.INDEXED_PROPERTY),       isIndexed());
+			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.NOT_NULL_PROPERTY),      isRequired());
+			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.READ_ONLY_PROPERTY),     isReadOnly());
+			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.FORMAT_PROPERTY),        getFormat());
+			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.HINT_PROPERTY),          getHint());
+			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.CATEGORY_PROPERTY),      getCategory());
+			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.VALIDATORS_PROPERTY),    listToArray(validators));
+			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.TRANSFORMERS_PROPERTY),  listToArray(transformers));
+			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.DEFAULT_VALUE_PROPERTY), defaultValue);
 
 			property = app.create(StructrTraits.SCHEMA_PROPERTY, getOrCreateProperties).as(SchemaProperty.class);
 		}
@@ -307,7 +308,7 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 
 				if (SchemaService.DynamicSchemaRootURI.equals(root.getId())) {
 
-					updateProperties.put(traits.key("isPartOfBuiltInSchema"), true);
+					updateProperties.put(traits.key(SchemaPropertyTraitDefinition.IS_PART_OF_BUILT_IN_SCHEMA_PROPERTY), true);
 				}
 			}
 		}

@@ -37,6 +37,7 @@ import java.net.URISyntaxException;
 import java.util.Map;
 import java.util.TreeMap;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.SchemaMethodParameterTraitDefinition;
 
 /**
  *
@@ -181,17 +182,17 @@ public class StructrParameterDefinition implements JsonParameter, StructrDefinit
 			final PropertyMap getOrCreateProperties = new PropertyMap();
 
 			getOrCreateProperties.put(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),         getName());
-			getOrCreateProperties.put(traits.key("schemaMethod"), schemaMethod);
+			getOrCreateProperties.put(traits.key(SchemaMethodParameterTraitDefinition.SCHEMA_METHOD_PROPERTY), schemaMethod);
 
 			parameter = app.create(StructrTraits.SCHEMA_METHOD_PARAMETER, getOrCreateProperties).as(SchemaMethodParameter.class);
 		}
 
 		final PropertyMap updateProperties = new PropertyMap();
 
-		updateProperties.put(traits.key("parameterType"), type);
-		updateProperties.put(traits.key("description"),   description);
-		updateProperties.put(traits.key("exampleValue"),  exampleValue);
-		updateProperties.put(traits.key("index"),         index);
+		updateProperties.put(traits.key(SchemaMethodParameterTraitDefinition.PARAMETER_TYPE_PROPERTY), type);
+		updateProperties.put(traits.key(SchemaMethodParameterTraitDefinition.DESCRIPTION_PROPERTY),   description);
+		updateProperties.put(traits.key(SchemaMethodParameterTraitDefinition.EXAMPLE_VALUE_PROPERTY),  exampleValue);
+		updateProperties.put(traits.key(SchemaMethodParameterTraitDefinition.INDEX_PROPERTY),         index);
 
 		// update properties
 		parameter.setProperties(SecurityContext.getSuperUserInstance(), updateProperties);

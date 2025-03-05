@@ -29,6 +29,7 @@ import org.structr.core.entity.SchemaProperty;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
 import org.structr.schema.SchemaHelper.Type;
 
 import java.util.Map;
@@ -226,9 +227,9 @@ public class StructrFunctionProperty extends StructrDynamicProperty implements J
 		final Traits traits           = Traits.of(StructrTraits.SCHEMA_PROPERTY);
 		final PropertyMap properties  = new PropertyMap();
 
-		properties.put(traits.key("readFunction"),  readFunction);
-		properties.put(traits.key("writeFunction"), writeFunction);
-		properties.put(traits.key("isCachingEnabled"), cachingEnabled);
+		properties.put(traits.key(SchemaPropertyTraitDefinition.READ_FUNCTION_PROPERTY),  readFunction);
+		properties.put(traits.key(SchemaPropertyTraitDefinition.WRITE_FUNCTION_PROPERTY), writeFunction);
+		properties.put(traits.key(SchemaPropertyTraitDefinition.IS_CACHING_ENABLED_PROPERTY), cachingEnabled);
 
 		property.setProperties(SecurityContext.getSuperUserInstance(), properties);
 

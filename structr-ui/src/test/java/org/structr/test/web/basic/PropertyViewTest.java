@@ -357,8 +357,6 @@ public class PropertyViewTest extends StructrUiTest {
 				.body("result[0].lastModifiedDate",            notNullValue())
 				.body("result[0].visibleToPublicUsers",        equalTo(false))
 				.body("result[0].visibleToAuthenticatedUsers", equalTo(false))
-				.body("result[0].visibilityStartDate",         nullValue())
-				.body("result[0].visibilityEndDate",           nullValue())
 				.body("result[0].createdBy",                   equalTo(userId))
 				.body("result[0].hidden",                      equalTo(false))
 				.body("result[0].owner",                       notNullValue())

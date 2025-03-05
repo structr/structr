@@ -29,6 +29,7 @@ import org.structr.core.traits.Traits;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 
 /**
  *
@@ -49,7 +50,7 @@ public class Methods {
 
 			try {
 
-				final PropertyKey<NodeInterface> schemaNodeKey = Traits.of(StructrTraits.SCHEMA_METHOD).key("schemaNode");
+				final PropertyKey<NodeInterface> schemaNodeKey = Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY);
 
 				for (final NodeInterface globalMethod : StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_METHOD).and(schemaNodeKey, null).getResultStream()) {
 
@@ -85,7 +86,7 @@ public class Methods {
 
 				try (final Tx tx = StructrApp.getInstance().tx()) {
 
-					final PropertyKey<NodeInterface> schemaNodeKey = Traits.of(StructrTraits.SCHEMA_METHOD).key("schemaNode");
+					final PropertyKey<NodeInterface> schemaNodeKey = Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY);
 					final NodeInterface method = StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_METHOD).andName(methodName).and(schemaNodeKey, null).getFirst();
 
 					if (method != null) {

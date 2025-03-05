@@ -48,6 +48,8 @@ import java.util.Set;
  */
 public class PaymentNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String DESCRIPTION_PROPERTY         = "description";
+
 	public PaymentNodeTraitDefinition() {
 		super("PaymentNode");
 	}
@@ -113,7 +115,7 @@ public class PaymentNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 		final Property<Iterable<NodeInterface>> itemsProperty = new EndNodes("items", "PaymentNodepaymentItemPaymentItem");
 		final Property<String> stateProperty                  = new EnumProperty("state", PaymentState.class);
-		final Property<String> descriptionProperty            = new StringProperty("description").indexed();
+		final Property<String> descriptionProperty            = new StringProperty(DESCRIPTION_PROPERTY).indexed();
 		final Property<String> currencyProperty               = new StringProperty("currency").indexed();
 		final Property<String> tokenProperty                  = new StringProperty("token").indexed();
 		final Property<String> billingAgreementIdProperty     = new StringProperty("billingAgreementId");
@@ -166,14 +168,14 @@ public class PaymentNodeTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"state", "description", "currency", "token", "billingAgreementId", "note", "billingAddressName", "billingAddressStreet1",
+				"state", DESCRIPTION_PROPERTY, "currency", "token", "billingAgreementId", "note", "billingAddressName", "billingAddressStreet1",
 				"billingAddressStreet2", "billingAddressZip", "billingAddressCity", "billingAddressCountry", "invoiceId", "payerAddressName",
 				"payerAddressStreet1", "payerAddressStreet2", "payerAddressZip", "payerAddressCity", "payerAddressCountry", "payer", "payerBusiness",
 				"items"
 			),
 			PropertyView.Ui,
 			newSet(
-				"state", "description", "currency", "token", "billingAgreementId", "note", "billingAddressName", "billingAddressStreet1",
+				"state", DESCRIPTION_PROPERTY, "currency", "token", "billingAgreementId", "note", "billingAddressName", "billingAddressStreet1",
 				"billingAddressStreet2", "billingAddressZip", "billingAddressCity", "billingAddressCountry", "invoiceId", "payerAddressName",
 				"payerAddressStreet1", "payerAddressStreet2", "payerAddressZip", "payerAddressCity", "payerAddressCountry", "payer", "payerBusiness",
 				"items"

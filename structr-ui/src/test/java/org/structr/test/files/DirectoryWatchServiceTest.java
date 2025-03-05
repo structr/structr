@@ -37,6 +37,7 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
+import org.structr.core.traits.definitions.ResourceAccessTraitDefinition;
 import org.structr.schema.export.StructrSchema;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.storage.providers.local.LocalFSStorageProvider;
@@ -582,17 +583,17 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// set resource access flags to be able to POS to /Image
-			final NodeInterface grant = app.nodeQuery(StructrTraits.RESOURCE_ACCESS).and(Traits.of(StructrTraits.RESOURCE_ACCESS).key("signature"), StructrTraits.IMAGE).getFirst();
+			final NodeInterface grant = app.nodeQuery(StructrTraits.RESOURCE_ACCESS).and(Traits.of(StructrTraits.RESOURCE_ACCESS).key(ResourceAccessTraitDefinition.SIGNATURE_PROPERTY), StructrTraits.IMAGE).getFirst();
 			if (grant != null) {
 
-				grant.setProperty(Traits.of(StructrTraits.RESOURCE_ACCESS).key("flags"), 4L);
+				grant.setProperty(Traits.of(StructrTraits.RESOURCE_ACCESS).key(ResourceAccessTraitDefinition.FLAGS_PROPERTY),                       4L);
 				grant.setProperty(Traits.of(StructrTraits.RESOURCE_ACCESS).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
 
 			} else {
 
 				app.create(StructrTraits.RESOURCE_ACCESS,
-					new NodeAttribute<>(Traits.of(StructrTraits.RESOURCE_ACCESS).key("signature"),                   StructrTraits.IMAGE),
-					new NodeAttribute<>(Traits.of(StructrTraits.RESOURCE_ACCESS).key("flags"),                       4L),
+					new NodeAttribute<>(Traits.of(StructrTraits.RESOURCE_ACCESS).key(ResourceAccessTraitDefinition.SIGNATURE_PROPERTY),                   StructrTraits.IMAGE),
+					new NodeAttribute<>(Traits.of(StructrTraits.RESOURCE_ACCESS).key(ResourceAccessTraitDefinition.FLAGS_PROPERTY),                       4L),
 					new NodeAttribute<>(Traits.of(StructrTraits.RESOURCE_ACCESS).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true)
 				);
 			}

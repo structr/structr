@@ -34,6 +34,12 @@ import java.util.Set;
  */
 public class SchemaMethodParameterTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String SCHEMA_METHOD_PROPERTY  = "schemaMethod";
+	public static final String PARAMETER_TYPE_PROPERTY = "parameterType";
+	public static final String INDEX_PROPERTY          = "index";
+	public static final String DESCRIPTION_PROPERTY    = "description";
+	public static final String EXAMPLE_VALUE_PROPERTY  = "exampleValue";
+
 	public SchemaMethodParameterTraitDefinition() {
 		super(StructrTraits.SCHEMA_METHOD_PARAMETER);
 	}
@@ -49,11 +55,11 @@ public class SchemaMethodParameterTraitDefinition extends AbstractNodeTraitDefin
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> schemaMethod = new StartNode("schemaMethod", StructrTraits.SCHEMA_METHOD_PARAMETERS);
-		final Property<String> parameterType       = new StringProperty("parameterType");
-		final Property<Integer> index              = new IntProperty("index").defaultValue(0);
-		final Property<String> description         = new StringProperty("description");
-		final Property<String> exampleValue        = new StringProperty("exampleValue");
+		final Property<NodeInterface> schemaMethod = new StartNode(SCHEMA_METHOD_PROPERTY, StructrTraits.SCHEMA_METHOD_PARAMETERS);
+		final Property<String> parameterType       = new StringProperty(PARAMETER_TYPE_PROPERTY);
+		final Property<Integer> index              = new IntProperty(INDEX_PROPERTY).defaultValue(0);
+		final Property<String> description         = new StringProperty(DESCRIPTION_PROPERTY);
+		final Property<String> exampleValue        = new StringProperty(EXAMPLE_VALUE_PROPERTY);
 
 		return newSet(
 			schemaMethod,

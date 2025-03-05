@@ -68,7 +68,7 @@ public class DataFeedTraitWrapper extends AbstractNodeTraitWrapper implements Da
 	}
 
 	public String getDescription() {
-		return wrappedObject.getProperty(traits.key("description"));
+		return wrappedObject.getProperty(traits.key(DataFeedTraitDefinition.DESCRIPTION_PROPERTY));
 	}
 
 	public Long getUpdateInterval() {
@@ -268,7 +268,7 @@ public class DataFeedTraitWrapper extends AbstractNodeTraitWrapper implements Da
 					}
 
 					feedProps.put(feedTraits.key("feedType"),    this.getFeedType());
-					feedProps.put(feedTraits.key("description"), this.getDescription());
+					feedProps.put(feedTraits.key(DataFeedTraitDefinition.DESCRIPTION_PROPERTY), this.getDescription());
 					feedProps.put(feedTraits.key("items"),       newItems);
 					feedProps.put(feedTraits.key("lastUpdated"), new Date());
 

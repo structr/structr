@@ -35,7 +35,9 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.LocalizationTraitDefinition;
+import org.structr.core.traits.definitions.MailTemplateTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.SchemaNodeTraitDefinition;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
@@ -308,13 +310,13 @@ public class Deployment2Test extends DeploymentTestBase {
 			// create extended folder class
 			app.create(StructrTraits.SCHEMA_NODE,
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "ExtendedFolder"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key("inheritedTraits"), new String[] { StructrTraits.FOLDER })
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key(SchemaNodeTraitDefinition.INHERITED_TRAITS_PROPERTY), new String[] { StructrTraits.FOLDER })
 			);
 
 			// create extended file class
 			app.create(StructrTraits.SCHEMA_NODE,
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "ExtendedFile"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key("inheritedTraits"), new String[] { StructrTraits.FILE })
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key(SchemaNodeTraitDefinition.INHERITED_TRAITS_PROPERTY), new String[] { StructrTraits.FILE })
 			);
 
 			tx.success();
@@ -450,15 +452,15 @@ public class Deployment2Test extends DeploymentTestBase {
 
 			app.create(StructrTraits.MAIL_TEMPLATE,
 				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),   "template1"),
-				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key("locale"), "de_DE"),
-				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key("text"),   "text1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key(MailTemplateTraitDefinition.LOCALE_PROPERTY), "de_DE"),
+				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key(MailTemplateTraitDefinition.TEXT_PROPERTY),   "text1"),
 				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)
 			);
 
 			app.create(StructrTraits.MAIL_TEMPLATE,
 				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),   "template2"),
-				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key("locale"), "en"),
-				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key("text"),   "text2"),
+				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key(MailTemplateTraitDefinition.LOCALE_PROPERTY), "en"),
+				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key(MailTemplateTraitDefinition.TEXT_PROPERTY),   "text2"),
 				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true)
 			);
 
@@ -482,14 +484,14 @@ public class Deployment2Test extends DeploymentTestBase {
 			assertNotNull("Invalid deployment result", template2);
 
 			assertEquals("Invalid MailTemplate deployment result", "template1", template1.getProperty(Traits.of(StructrTraits.MAIL_TEMPLATE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)));
-			assertEquals("Invalid MailTemplate deployment result", "de_DE",     template1.getProperty(Traits.of(StructrTraits.MAIL_TEMPLATE).key("locale")));
-			assertEquals("Invalid MailTemplate deployment result", "text1",     template1.getProperty(Traits.of(StructrTraits.MAIL_TEMPLATE).key("text")));
+			assertEquals("Invalid MailTemplate deployment result", "de_DE",     template1.getProperty(Traits.of(StructrTraits.MAIL_TEMPLATE).key(MailTemplateTraitDefinition.LOCALE_PROPERTY)));
+			assertEquals("Invalid MailTemplate deployment result", "text1",     template1.getProperty(Traits.of(StructrTraits.MAIL_TEMPLATE).key(MailTemplateTraitDefinition.TEXT_PROPERTY)));
 			assertEquals("Invalid MailTemplate deployment result", true,        (boolean)template1.getProperty(Traits.of(StructrTraits.MAIL_TEMPLATE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY)));
 			assertEquals("Invalid MailTemplate deployment result", false,       (boolean)template1.getProperty(Traits.of(StructrTraits.MAIL_TEMPLATE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY)));
 
 			assertEquals("Invalid MailTemplate deployment result", "template2", template2.getProperty(Traits.of(StructrTraits.MAIL_TEMPLATE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)));
-			assertEquals("Invalid MailTemplate deployment result", "en",        template2.getProperty(Traits.of(StructrTraits.MAIL_TEMPLATE).key("locale")));
-			assertEquals("Invalid MailTemplate deployment result", "text2",     template2.getProperty(Traits.of(StructrTraits.MAIL_TEMPLATE).key("text")));
+			assertEquals("Invalid MailTemplate deployment result", "en",        template2.getProperty(Traits.of(StructrTraits.MAIL_TEMPLATE).key(MailTemplateTraitDefinition.LOCALE_PROPERTY)));
+			assertEquals("Invalid MailTemplate deployment result", "text2",     template2.getProperty(Traits.of(StructrTraits.MAIL_TEMPLATE).key(MailTemplateTraitDefinition.TEXT_PROPERTY)));
 			assertEquals("Invalid MailTemplate deployment result", false,       (boolean)template2.getProperty(Traits.of(StructrTraits.MAIL_TEMPLATE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY)));
 			assertEquals("Invalid MailTemplate deployment result", true,        (boolean)template2.getProperty(Traits.of(StructrTraits.MAIL_TEMPLATE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY)));
 

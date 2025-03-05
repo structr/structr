@@ -36,6 +36,7 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
+import org.structr.core.traits.definitions.ResourceAccessTraitDefinition;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.auth.UiAuthenticator;
@@ -519,8 +520,8 @@ public class ResourceAccessTest extends StructrUiTest {
 		final Traits traits          = Traits.of(StructrTraits.RESOURCE_ACCESS);
 		final App app                = StructrApp.getInstance();
 
-		properties.put(traits.key("signature"), signature);
-		properties.put(traits.key("flags"), flags);
+		properties.put(traits.key(ResourceAccessTraitDefinition.SIGNATURE_PROPERTY), signature);
+		properties.put(traits.key(ResourceAccessTraitDefinition.FLAGS_PROPERTY), flags);
 
 		try {
 

@@ -45,8 +45,12 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.AbstractSchemaNodeTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
+import org.structr.core.traits.definitions.SchemaGrantTraitDefinition;
+import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
+import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
 import org.structr.schema.export.StructrSchema;
@@ -296,15 +300,15 @@ public class SystemTest extends StructrTest {
 			final Traits methodTraits   = Traits.of(StructrTraits.SCHEMA_METHOD);
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
-				new NodeAttribute<>(propertyTraits.key("schemaNode"),   testType),
-				new NodeAttribute<>(propertyTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),         "testCount"),
-				new NodeAttribute<>(propertyTraits.key("propertyType"), "Integer")
+				new NodeAttribute<>(propertyTraits.key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY),   testType),
+				new NodeAttribute<>(propertyTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),           "testCount"),
+				new NodeAttribute<>(propertyTraits.key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "Integer")
 			);
 
 			app.create(StructrTraits.SCHEMA_METHOD,
-				new NodeAttribute<>(methodTraits.key("schemaNode"),   testType),
-				new NodeAttribute<>(propertyTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),         "onCreate"),
-				new NodeAttribute<>(methodTraits.key("source"),       "set(this, 'testCount', size(find('CreateTest')))")
+				new NodeAttribute<>(methodTraits.key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY), testType),
+				new NodeAttribute<>(propertyTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     "onCreate"),
+				new NodeAttribute<>(methodTraits.key(SchemaMethodTraitDefinition.SOURCE_PROPERTY),      "set(this, 'testCount', size(find('CreateTest')))")
 			);
 
 			tx.success();
@@ -413,13 +417,13 @@ public class SystemTest extends StructrTest {
 
 			app.create(StructrTraits.SCHEMA_NODE,
 				new NodeAttribute(nodeTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Item"),
-				new NodeAttribute(nodeTraits.key("schemaProperties"),
+				new NodeAttribute(nodeTraits.key(AbstractSchemaNodeTraitDefinition.SCHEMA_PROPERTIES_PROPERTY),
 					Arrays.asList(app.create(
 						StructrTraits.SCHEMA_PROPERTY,
 						new NodeAttribute(propertyTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "name"),
-						new NodeAttribute(propertyTraits.key("propertyType"), "String"),
-						new NodeAttribute(propertyTraits.key("unique"), true),
-						new NodeAttribute(propertyTraits.key("indexed"), true)
+						new NodeAttribute(propertyTraits.key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "String"),
+						new NodeAttribute(propertyTraits.key(SchemaPropertyTraitDefinition.UNIQUE_PROPERTY), true),
+						new NodeAttribute(propertyTraits.key(SchemaPropertyTraitDefinition.INDEXED_PROPERTY), true)
 					)
 				))
 			);
@@ -1038,8 +1042,8 @@ public class SystemTest extends StructrTest {
 			final NodeInterface deleteTestNode = app.create(StructrTraits.SCHEMA_NODE, "DeleteTest");
 			final NodeInterface onDelete     = app.create(StructrTraits.SCHEMA_METHOD,
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "onDelete"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("schemaNode"), deleteTestNode),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "log('deleted')")
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY), deleteTestNode),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "log('deleted')")
 			);
 
 			tx.success();
@@ -1129,7 +1133,7 @@ public class SystemTest extends StructrTest {
 			// create global schema method that creates another object
 			app.create(StructrTraits.SCHEMA_METHOD,
 				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),   "globalTestMethod"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "(log('Before create in globalTestMethod'),create('Test2', 'name', 'test2'),log('After create in globalTestMethod'))")
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "(log('Before create in globalTestMethod'),create('Test2', 'name', 'test2'),log('After create in globalTestMethod'))")
 			);
 
 			tx.success();
@@ -1448,7 +1452,7 @@ public class SystemTest extends StructrTest {
 
 			// create grant
 			app.create(StructrTraits.SCHEMA_GRANT,
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("schemaNode"),          projectNode),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.SCHEMA_NODE_PROPERTY),          projectNode),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("principal"),           testGroup1),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("allowRead"),           true),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("allowWrite"),          true),
@@ -1493,7 +1497,7 @@ public class SystemTest extends StructrTest {
 			final NodeInterface projectNode = app.nodeQuery(StructrTraits.SCHEMA_NODE).andName("Project").getFirst();
 
 			app.create(StructrTraits.SCHEMA_GRANT,
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("schemaNode"),          projectNode),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.SCHEMA_NODE_PROPERTY),          projectNode),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("principal"),           testGroup1),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("allowRead"),           true),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("allowWrite"),          true),

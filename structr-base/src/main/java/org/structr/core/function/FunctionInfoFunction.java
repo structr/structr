@@ -22,6 +22,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Methods;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionContext;
 
@@ -30,8 +32,8 @@ import java.util.Map;
 
 public class FunctionInfoFunction extends AdvancedScriptingFunction {
 
-	public static final String ERROR_MESSAGE_FUNCTION_INFO = "Usage: ${function_info([type, name])}. Example ${function_info()}";
-	public static final String ERROR_MESSAGE_FUNCTION_INFO_JS = "Usage: ${$.functionInfo([type, name])}. Example ${$.functionInfo()}";
+	public static final String ERROR_MESSAGE_FUNCTION_INFO    = "Usage: ${function_info([type, name])}. Example ${function_info()}";
+	public static final String ERROR_MESSAGE_FUNCTION_INFO_JS = "Usage: ${{ $.functionInfo([type, name]) }}. Example ${{ $.functionInfo() }}";
 
 	@Override
 	public String getName() {
@@ -40,7 +42,7 @@ public class FunctionInfoFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getSignature() {
-		return "[type, view]";
+		return "[type, name]";
 	}
 
 	@Override
@@ -110,21 +112,21 @@ public class FunctionInfoFunction extends AdvancedScriptingFunction {
 
 		final Map<String, Object> info = new LinkedHashMap<>();
 
-		info.put("name",        method.getName());
-		info.put("isPrivate",   method.isPrivate());
-		info.put("isStatic",    method.isStatic());
-		info.put("httpVerb",    method.getHttpVerb());
+		info.put(NodeInterfaceTraitDefinition.NAME_PROPERTY,        method.getName());
+		info.put(SchemaMethodTraitDefinition.IS_PRIVATE_PROPERTY,   method.isPrivate());
+		info.put(SchemaMethodTraitDefinition.IS_STATIC_PROPERTY,    method.isStatic());
+		info.put(SchemaMethodTraitDefinition.HTTP_VERB_PROPERTY,    method.getHttpVerb());
 
 		if (method.getSummary() != null) {
-			info.put("summary", method.getSummary());
+			info.put(SchemaMethodTraitDefinition.SUMMARY_PROPERTY, method.getSummary());
 		}
 
 		if (method.getDescription() != null) {
-			info.put("description", method.getDescription());
+			info.put(SchemaMethodTraitDefinition.DESCRIPTION_PROPERTY, method.getDescription());
 		}
 
 		if (method.getParameters() != null) {
-			info.put("parameters", method.getParameters());
+			info.put(SchemaMethodTraitDefinition.PARAMETERS_PROPERTY, method.getParameters());
 		}
 
 		return info;

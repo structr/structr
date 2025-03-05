@@ -41,6 +41,7 @@ import org.structr.core.traits.TraitDefinition;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.SchemaRelationshipNodeTraitDefinition;
 import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.schema.DynamicRelationshipTraitDefinition;
 import org.structr.schema.SchemaHelper;
@@ -291,12 +292,12 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 
 	@Override
 	public String getSourceNotion() {
-		return wrappedObject.getProperty(traits.key("sourceNotion"));
+		return wrappedObject.getProperty(traits.key(SchemaRelationshipNodeTraitDefinition.SOURCE_NOTION_PROPERTY));
 	}
 
 	@Override
 	public String getTargetNotion() {
-		return wrappedObject.getProperty(traits.key("targetNotion"));
+		return wrappedObject.getProperty(traits.key(SchemaRelationshipNodeTraitDefinition.TARGET_NOTION_PROPERTY));
 	}
 
 	@Override
@@ -338,42 +339,42 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 
 	@Override
 	public void setPreviousSourceJsonName(final String propertyName) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("oldSourceJsonName"), propertyName);
+		wrappedObject.setProperty(traits.key(SchemaRelationshipNodeTraitDefinition.PREVIOUS_SOURCE_JSON_NAME_PROPERTY), propertyName);
 	}
 
 	@Override
 	public void setPreviousTargetJsonName(final String propertyName) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("oldTargetJsonName"), propertyName);
+		wrappedObject.setProperty(traits.key(SchemaRelationshipNodeTraitDefinition.PREVIOUS_TARGET_JSON_NAME_PROPERTY), propertyName);
 	}
 
 	@Override
 	public String getSourceMultiplicity() {
-		return wrappedObject.getProperty(traits.key("sourceMultiplicity"));
+		return wrappedObject.getProperty(traits.key(SchemaRelationshipNodeTraitDefinition.SOURCE_MULTIPLICITY_PROPERTY));
 	}
 
 	@Override
 	public String getTargetMultiplicity() {
-		return wrappedObject.getProperty(traits.key("targetMultiplicity"));
+		return wrappedObject.getProperty(traits.key(SchemaRelationshipNodeTraitDefinition.TARGET_MULTIPLICITY_PROPERTY));
 	}
 
 	@Override
 	public String getSourceJsonName() {
-		return wrappedObject.getProperty(traits.key("sourceJsonName"));
+		return wrappedObject.getProperty(traits.key(SchemaRelationshipNodeTraitDefinition.SOURCE_JSON_NAME_PROPERTY));
 	}
 
 	@Override
 	public String getTargetJsonName() {
-		return wrappedObject.getProperty(traits.key("targetJsonName"));
+		return wrappedObject.getProperty(traits.key(SchemaRelationshipNodeTraitDefinition.TARGET_JSON_NAME_PROPERTY));
 	}
 
 	@Override
 	public String getSourceType() {
-		return wrappedObject.getProperty(traits.key("sourceType"));
+		return wrappedObject.getProperty(traits.key(SchemaRelationshipNodeTraitDefinition.SOURCE_TYPE_PROPERTY));
 	}
 
 	@Override
 	public String getTargetType() {
-		return wrappedObject.getProperty(traits.key("targetType"));
+		return wrappedObject.getProperty(traits.key(SchemaRelationshipNodeTraitDefinition.TARGET_TYPE_PROPERTY));
 	}
 
 	/*
@@ -497,7 +498,8 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 		return getSourceType();
 	}
 
-	@Override public String getSchemaNodeTargetType() {
+	@Override
+	public String getSchemaNodeTargetType() {
 
 		final SchemaNode targetNode = getTargetNode();
 		if (targetNode != null) {
@@ -517,7 +519,8 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 		return _sourceType + "/" + _targetType;
 	}
 
-	@Override public String getInverseResourceSignature() {
+	@Override
+	public String getInverseResourceSignature() {
 
 		final String _sourceType = getSchemaNodeSourceType();
 		final String _targetType = getSchemaNodeTargetType();
@@ -528,7 +531,7 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 	@Override
 	public String getRelationshipType() {
 
-		String relType = wrappedObject.getProperty(traits.key("relationshipType"));
+		String relType = wrappedObject.getProperty(traits.key(SchemaRelationshipNodeTraitDefinition.RELATIONSHIP_TYPE_PROPERTY));
 		if (relType == null) {
 
 			final String _sourceType = getSchemaNodeSourceType();
@@ -671,12 +674,12 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 
 	@Override
 	public void setAutocreationFlag(final Long flag) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("autocreationFlag"), flag);
+		wrappedObject.setProperty(traits.key(SchemaRelationshipNodeTraitDefinition.AUTOCREATION_FLAG_PROPERTY), flag);
 	}
 
 	@Override
 	public void setCascadingDeleteFlag(final Long flag) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("cascadingDeleteFlag"), flag);
+		wrappedObject.setProperty(traits.key(SchemaRelationshipNodeTraitDefinition.CASCADING_DELETE_FLAG_PROPERTY), flag);
 	}
 
 	@Override
@@ -735,28 +738,28 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 
 	@Override
 	public Long getAutocreationFlag() {
-		return wrappedObject.getProperty(traits.key("autocreationFlag"));
+		return wrappedObject.getProperty(traits.key(SchemaRelationshipNodeTraitDefinition.AUTOCREATION_FLAG_PROPERTY));
 	}
 
 	@Override
 	public Long getCascadingDeleteFlag() {
-		return wrappedObject.getProperty(traits.key("cascadingDeleteFlag"));
+		return wrappedObject.getProperty(traits.key(SchemaRelationshipNodeTraitDefinition.CASCADING_DELETE_FLAG_PROPERTY));
 	}
 
 	@Override
 	public String getPreviousSourceJsonName() {
-		return wrappedObject.getProperty(traits.key("oldSourceJsonName"));
+		return wrappedObject.getProperty(traits.key(SchemaRelationshipNodeTraitDefinition.PREVIOUS_SOURCE_JSON_NAME_PROPERTY));
 	}
 
 	@Override
 	public String getPreviousTargetJsonName() {
-		return wrappedObject.getProperty(traits.key("oldTargetJsonName"));
+		return wrappedObject.getProperty(traits.key(SchemaRelationshipNodeTraitDefinition.PREVIOUS_TARGET_JSON_NAME_PROPERTY));
 	}
 
 	@Override
 	public PropagationDirection getPermissionPropagation() {
 
-		final String value = wrappedObject.getProperty(traits.key("permissionPropagation"));
+		final String value = wrappedObject.getProperty(traits.key(SchemaRelationshipNodeTraitDefinition.PERMISSION_PROPAGATION_PROPERTY));
 		if (value != null) {
 
 			return PropagationDirection.valueOf(value);
@@ -768,7 +771,7 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 	@Override
 	public PropagationMode getReadPropagation() {
 
-		final String value = wrappedObject.getProperty(traits.key("readPropagation"));
+		final String value = wrappedObject.getProperty(traits.key(SchemaRelationshipNodeTraitDefinition.READ_PROPAGATION_PROPERTY));
 		if (value != null) {
 
 			return PropagationMode.valueOf(value);
@@ -780,7 +783,7 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 	@Override
 	public PropagationMode getWritePropagation() {
 
-		final String value = wrappedObject.getProperty(traits.key("writePropagation"));
+		final String value = wrappedObject.getProperty(traits.key(SchemaRelationshipNodeTraitDefinition.WRITE_PROPAGATION_PROPERTY));
 		if (value != null) {
 
 			return PropagationMode.valueOf(value);
@@ -792,7 +795,7 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 	@Override
 	public PropagationMode getDeletePropagation() {
 
-		final String value = wrappedObject.getProperty(traits.key("deletePropagation"));
+		final String value = wrappedObject.getProperty(traits.key(SchemaRelationshipNodeTraitDefinition.DELETE_PROPAGATION_PROPERTY));
 		if (value != null) {
 
 			return PropagationMode.valueOf(value);
@@ -804,7 +807,7 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 	@Override
 	public PropagationMode getAccessControlPropagation() {
 
-		final String value = wrappedObject.getProperty(traits.key("accessControlPropagation"));
+		final String value = wrappedObject.getProperty(traits.key(SchemaRelationshipNodeTraitDefinition.ACCESS_CONTROL_PROPAGATION_PROPERTY));
 		if (value != null) {
 
 			return PropagationMode.valueOf(value);
@@ -815,7 +818,7 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 
 	@Override
 	public String getPropertyMask() {
-		return wrappedObject.getProperty(traits.key("propertyMask"));
+		return wrappedObject.getProperty(traits.key(SchemaRelationshipNodeTraitDefinition.PROPERTY_MASK_PROPERTY));
 	}
 
 	@Override
@@ -830,12 +833,12 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 
 	@Override
 	public void setSourceType(final String sourceType) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("sourceType"), sourceType);
+		wrappedObject.setProperty(traits.key(SchemaRelationshipNodeTraitDefinition.SOURCE_TYPE_PROPERTY), sourceType);
 	}
 
 	@Override
 	public void setTargetType(final String targetType) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("targetType"), targetType);
+		wrappedObject.setProperty(traits.key(SchemaRelationshipNodeTraitDefinition.TARGET_TYPE_PROPERTY), targetType);
 	}
 
 	@Override

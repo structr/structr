@@ -63,6 +63,30 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 	));
 	*/
 
+	public static final String PARAMETERS_PROPERTY                 = "parameters";
+	public static final String SCHEMA_NODE_PROPERTY                = "schemaNode";
+	public static final String STATIC_SCHEMA_NODE_NAME_PROPERTY    = "staticSchemaNodeName";
+	public static final String SIGNATURE_PROPERTY                  = "signature";
+	public static final String VIRTUAL_FILE_NAME_PROPERTY          = "virtualFileName";
+	public static final String RETURN_TYPE_PROPERTY                = "returnType";
+	public static final String OPEN_API_RETURN_TYPE_PROPERTY       = "openAPIReturnType";
+	public static final String SOURCE_PROPERTY                     = "source";
+	public static final String EXCEPTIONS_PROPERTY                 = "exceptions";
+	public static final String CALL_SUPER_PROPERTY                 = "callSuper";
+	public static final String OVERRIDES_EXISTING_PROPERTY         = "overridesExisting";
+	public static final String DO_EXPORT_PROPERTY                  = "doExport";
+	public static final String CODE_TYPE_PROPERTY                  = "codeType";
+	public static final String IS_PART_OF_BUILT_IN_SCHEMA_PROPERTY = "isPartOfBuiltInSchema";
+	public static final String INCLUDE_IN_OPEN_API_PROPERTY        = "includeInOpenAPI";
+	public static final String TAGS_PROPERTY                       = "tags";
+	public static final String SUMMARY_PROPERTY                    = "summary";
+	public static final String DESCRIPTION_PROPERTY                = "description";
+	public static final String IS_STATIC_PROPERTY                  = "isStatic";
+	public static final String IS_PRIVATE_PROPERTY                 = "isPrivate";
+	public static final String RETURN_RAW_RESULT_PROPERTY          = "returnRawResult";
+	public static final String HTTP_VERB_PROPERTY                  = "httpVerb";
+	public static final String DELETE_METHOD_PROPERTY              = "deleteMethod";
+
 	public SchemaMethodTraitDefinition() {
 		super(StructrTraits.SCHEMA_METHOD);
 	}
@@ -81,7 +105,7 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 					final SchemaMethod method                      = obj.as(SchemaMethod.class);
 					final AbstractSchemaNode schemaNode            = method.getSchemaNode();
 					final Traits traits                            = obj.getTraits();
-					final PropertyKey<NodeInterface> schemaNodeKey = traits.key("schemaNode");
+					final PropertyKey<NodeInterface> schemaNodeKey = traits.key(SCHEMA_NODE_PROPERTY);
 					final PropertyKey<String> nameKey              = traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 					boolean valid                                  = true;
 
@@ -159,7 +183,7 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 					final SchemaMethod schemaMethod = graphObject.as(SchemaMethod.class);
 					final Traits traits             = graphObject.getTraits();
 
-					if (Boolean.TRUE.equals(schemaMethod.getProperty(traits.key("deleteMethod")))) {
+					if (Boolean.TRUE.equals(schemaMethod.getProperty(traits.key(DELETE_METHOD_PROPERTY)))) {
 
 						StructrApp.getInstance().delete(schemaMethod);
 
@@ -207,29 +231,29 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Iterable<NodeInterface>> parameters         = new EndNodes("parameters", StructrTraits.SCHEMA_METHOD_PARAMETERS);
-		final Property<NodeInterface>      schemaNode              = new StartNode("schemaNode", StructrTraits.SCHEMA_NODE_METHOD, new PropertySetNotion<>(newSet("id", "name", "isServiceClass")));
-		final Property<String>             staticSchemaNodeName    = new StringProperty("staticSchemaNodeName");
-		final Property<String>             signature               = new StringProperty("signature").indexed();
-		final Property<String>             virtualFileName         = new StringProperty("virtualFileName").indexed();
-		final Property<String>             returnType              = new StringProperty("returnType").indexed();
-		final Property<String>             openAPIReturnType       = new StringProperty("openAPIReturnType").indexed();
-		final Property<String>             source                  = new StringProperty("source");
-		final Property<String[]>           exceptions              = new ArrayProperty<>("exceptions", String.class).indexed();
-		final Property<Boolean>            callSuper               = new BooleanProperty("callSuper").indexed();
-		final Property<Boolean>            overridesExisting       = new BooleanProperty("overridesExisting").indexed();
-		final Property<Boolean>            doExport                = new BooleanProperty("doExport").indexed();
-		final Property<String>             codeType                = new StringProperty("codeType").indexed();
-		final Property<Boolean>            isPartOfBuiltInSchema   = new BooleanProperty("isPartOfBuiltInSchema").indexed();
-		final Property<Boolean>            includeInOpenAPI        = new BooleanProperty("includeInOpenAPI").indexed();
-		final Property<String[]>           tags                    = new ArrayProperty<>("tags", String.class).indexed();
-		final Property<String>             summary                 = new StringProperty("summary");
-		final Property<String>             description             = new StringProperty("description");
-		final Property<Boolean>            isStatic                = new BooleanProperty("isStatic").defaultValue(false);
-		final Property<Boolean>            isPrivate               = new BooleanProperty("isPrivate").defaultValue(false).indexed().indexedWhenEmpty();
-		final Property<Boolean>            returnRawResult         = new BooleanProperty("returnRawResult").defaultValue(false);
-		final Property<String>             httpVerb                = new EnumProperty("httpVerb", newSet("GET", "PUT", "POST", "PATCH", "DELETE")).defaultValue("POST");
-		final Property<Boolean>            deleteMethod            = new BooleanProperty("deleteMethod").defaultValue(Boolean.FALSE);
+		final Property<Iterable<NodeInterface>> parameters         = new EndNodes(PARAMETERS_PROPERTY, StructrTraits.SCHEMA_METHOD_PARAMETERS);
+		final Property<NodeInterface>      schemaNode              = new StartNode(SCHEMA_NODE_PROPERTY, StructrTraits.SCHEMA_NODE_METHOD, new PropertySetNotion<>(newSet(GraphObjectTraitDefinition.ID_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY, AbstractSchemaNodeTraitDefinition.IS_SERVICE_CLASS_PROPERTY)));
+		final Property<String>             staticSchemaNodeName    = new StringProperty(STATIC_SCHEMA_NODE_NAME_PROPERTY);
+		final Property<String>             signature               = new StringProperty(SIGNATURE_PROPERTY).indexed();
+		final Property<String>             virtualFileName         = new StringProperty(VIRTUAL_FILE_NAME_PROPERTY).indexed();
+		final Property<String>             returnType              = new StringProperty(RETURN_TYPE_PROPERTY).indexed();
+		final Property<String>             openAPIReturnType       = new StringProperty(OPEN_API_RETURN_TYPE_PROPERTY).indexed();
+		final Property<String>             source                  = new StringProperty(SOURCE_PROPERTY);
+		final Property<String[]>           exceptions              = new ArrayProperty<>(EXCEPTIONS_PROPERTY, String.class).indexed();
+		final Property<Boolean>            callSuper               = new BooleanProperty(CALL_SUPER_PROPERTY).indexed();
+		final Property<Boolean>            overridesExisting       = new BooleanProperty(OVERRIDES_EXISTING_PROPERTY).indexed();
+		final Property<Boolean>            doExport                = new BooleanProperty(DO_EXPORT_PROPERTY).indexed();
+		final Property<String>             codeType                = new StringProperty(CODE_TYPE_PROPERTY).indexed();
+		final Property<Boolean>            isPartOfBuiltInSchema   = new BooleanProperty(IS_PART_OF_BUILT_IN_SCHEMA_PROPERTY).indexed();
+		final Property<Boolean>            includeInOpenAPI        = new BooleanProperty(INCLUDE_IN_OPEN_API_PROPERTY).indexed();
+		final Property<String[]>           tags                    = new ArrayProperty<>(TAGS_PROPERTY, String.class).indexed();
+		final Property<String>             summary                 = new StringProperty(SUMMARY_PROPERTY);
+		final Property<String>             description             = new StringProperty(DESCRIPTION_PROPERTY);
+		final Property<Boolean>            isStatic                = new BooleanProperty(IS_STATIC_PROPERTY).defaultValue(false);
+		final Property<Boolean>            isPrivate               = new BooleanProperty(IS_PRIVATE_PROPERTY).defaultValue(false).indexed().indexedWhenEmpty();
+		final Property<Boolean>            returnRawResult         = new BooleanProperty(RETURN_RAW_RESULT_PROPERTY).defaultValue(false);
+		final Property<String>             httpVerb                = new EnumProperty(HTTP_VERB_PROPERTY, newSet("GET", "PUT", "POST", "PATCH", "DELETE")).defaultValue("POST");
+		final Property<Boolean>            deleteMethod            = new BooleanProperty(DELETE_METHOD_PROPERTY).defaultValue(Boolean.FALSE);
 
 		return newSet(
 			parameters,
@@ -265,22 +289,37 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 
 			PropertyView.Public,
 			newSet(
-				"name", "schemaNode", "staticSchemaNodeName", "source", "returnType", "exceptions", "callSuper", "overridesExisting", "doExport", "codeType", "isPartOfBuiltInSchema", "tags", "summary", "description", "isStatic", "isPrivate", "returnRawResult", "httpVerb"
+				NodeInterfaceTraitDefinition.NAME_PROPERTY, SCHEMA_NODE_PROPERTY, STATIC_SCHEMA_NODE_NAME_PROPERTY,
+					SOURCE_PROPERTY, RETURN_TYPE_PROPERTY, EXCEPTIONS_PROPERTY, CALL_SUPER_PROPERTY, OVERRIDES_EXISTING_PROPERTY,
+					DO_EXPORT_PROPERTY, CODE_TYPE_PROPERTY, IS_PART_OF_BUILT_IN_SCHEMA_PROPERTY, TAGS_PROPERTY, SUMMARY_PROPERTY,
+					DESCRIPTION_PROPERTY, IS_STATIC_PROPERTY, IS_PRIVATE_PROPERTY, RETURN_RAW_RESULT_PROPERTY, HTTP_VERB_PROPERTY
 			),
 
 			PropertyView.Ui,
 			newSet(
-				"name", "schemaNode", "staticSchemaNodeName", "source", "returnType", "exceptions", "callSuper", "overridesExisting", "doExport", "codeType", "isPartOfBuiltInSchema", "tags", "summary", "description", "isStatic", "includeInOpenAPI", "openAPIReturnType", "isPrivate", "returnRawResult", "httpVerb"
+					NodeInterfaceTraitDefinition.NAME_PROPERTY, SCHEMA_NODE_PROPERTY, STATIC_SCHEMA_NODE_NAME_PROPERTY,
+					SOURCE_PROPERTY, RETURN_TYPE_PROPERTY, EXCEPTIONS_PROPERTY, CALL_SUPER_PROPERTY, OVERRIDES_EXISTING_PROPERTY,
+					DO_EXPORT_PROPERTY, CODE_TYPE_PROPERTY, IS_PART_OF_BUILT_IN_SCHEMA_PROPERTY, TAGS_PROPERTY, SUMMARY_PROPERTY,
+					DESCRIPTION_PROPERTY, IS_STATIC_PROPERTY, INCLUDE_IN_OPEN_API_PROPERTY, OPEN_API_RETURN_TYPE_PROPERTY,
+					IS_PRIVATE_PROPERTY, RETURN_RAW_RESULT_PROPERTY, HTTP_VERB_PROPERTY
 			),
 
 			"schema",
 			newSet(
-				"id", "type", "schemaNode", "staticSchemaNodeName", "name", "source", "returnType", "exceptions", "callSuper", "overridesExisting", "doExport", "codeType", "isPartOfBuiltInSchema", "tags", "summary", "description", "isStatic", "includeInOpenAPI", "openAPIReturnType", "isPrivate", "returnRawResult", "httpVerb"
+				GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, SCHEMA_NODE_PROPERTY,
+					STATIC_SCHEMA_NODE_NAME_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY, SOURCE_PROPERTY, RETURN_TYPE_PROPERTY,
+					EXCEPTIONS_PROPERTY, CALL_SUPER_PROPERTY, OVERRIDES_EXISTING_PROPERTY, DO_EXPORT_PROPERTY, CODE_TYPE_PROPERTY,
+					IS_PART_OF_BUILT_IN_SCHEMA_PROPERTY, TAGS_PROPERTY, SUMMARY_PROPERTY, DESCRIPTION_PROPERTY, IS_STATIC_PROPERTY,
+					INCLUDE_IN_OPEN_API_PROPERTY, OPEN_API_RETURN_TYPE_PROPERTY, IS_PRIVATE_PROPERTY, RETURN_RAW_RESULT_PROPERTY, HTTP_VERB_PROPERTY
 			),
 
 			"export",
 			newSet(
-				"id", "type", "schemaNode", "staticSchemaNodeName", "name", "source", "returnType", "exceptions", "callSuper", "overridesExisting", "doExport", "codeType", "isPartOfBuiltInSchema", "tags", "summary", "description", "isStatic", "includeInOpenAPI", "openAPIReturnType", "isPrivate", "returnRawResult", "httpVerb"
+					GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, SCHEMA_NODE_PROPERTY,
+					STATIC_SCHEMA_NODE_NAME_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY, SOURCE_PROPERTY, RETURN_TYPE_PROPERTY,
+					EXCEPTIONS_PROPERTY, CALL_SUPER_PROPERTY, OVERRIDES_EXISTING_PROPERTY, DO_EXPORT_PROPERTY, CODE_TYPE_PROPERTY,
+					IS_PART_OF_BUILT_IN_SCHEMA_PROPERTY, TAGS_PROPERTY, SUMMARY_PROPERTY, DESCRIPTION_PROPERTY, IS_STATIC_PROPERTY,
+					INCLUDE_IN_OPEN_API_PROPERTY, OPEN_API_RETURN_TYPE_PROPERTY, IS_PRIVATE_PROPERTY, RETURN_RAW_RESULT_PROPERTY, HTTP_VERB_PROPERTY
 			)
 		);
 	}

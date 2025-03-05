@@ -43,6 +43,7 @@ import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.MailTemplateTraitDefinition;
 import org.structr.core.traits.definitions.PersonTraitDefinition;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.core.traits.definitions.UserTraitDefinition;
@@ -235,7 +236,7 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 			final Query<NodeInterface> query = StructrApp.getInstance().nodeQuery(StructrTraits.MAIL_TEMPLATE).andName(key.name());
 
 			if (localeString != null) {
-				query.and(Traits.of(StructrTraits.MAIL_TEMPLATE).key("locale"), localeString);
+				query.and(Traits.of(StructrTraits.MAIL_TEMPLATE).key(MailTemplateTraitDefinition.LOCALE_PROPERTY), localeString);
 			}
 
 			NodeInterface template = query.getFirst();

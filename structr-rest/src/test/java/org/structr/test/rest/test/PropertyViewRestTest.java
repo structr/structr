@@ -30,6 +30,9 @@ import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.RelationshipInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
+import org.structr.core.traits.definitions.SchemaRelationshipNodeTraitDefinition;
+import org.structr.core.traits.definitions.SchemaViewTraitDefinition;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Optional;
@@ -136,8 +139,6 @@ public class PropertyViewRestTest extends StructrRestTestBase {
 				.body("result[0].lastModifiedDate",            notNullValue())
 				.body("result[0].visibleToPublicUsers",        equalTo(false))
 				.body("result[0].visibleToAuthenticatedUsers", equalTo(false))
-				.body("result[0].visibilityStartDate",         nullValue())
-				.body("result[0].visibilityEndDate",           nullValue())
 				.body("result[0].createdBy",                   equalTo(Principal.SUPERUSER_ID))
 				.body("result[0].hidden",                      equalTo(false))
 				.body("result[0].owner",                       nullValue())
@@ -158,22 +159,22 @@ public class PropertyViewRestTest extends StructrRestTestBase {
 			final NodeInterface schemaNode = app.create(StructrTraits.SCHEMA_NODE,"ScriptTest");
 
 			final NodeInterface property = app.create(StructrTraits.SCHEMA_PROPERTY, "depth");
-			property.setProperty(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"),   schemaNode);
-			property.setProperty(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Function");
-			property.setProperty(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("readFunction"), "depth");
+			property.setProperty(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY),   schemaNode);
+			property.setProperty(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "Function");
+			property.setProperty(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.READ_FUNCTION_PROPERTY), "depth");
 
 			final NodeInterface view = app.create(StructrTraits.SCHEMA_VIEW, "public");
-			view.setProperty(Traits.of(StructrTraits.SCHEMA_VIEW).key("schemaNode"),   schemaNode);
-			view.setProperty(Traits.of(StructrTraits.SCHEMA_VIEW).key("nonGraphProperties"), "name, depth, children, parents");
+			view.setProperty(Traits.of(StructrTraits.SCHEMA_VIEW).key(SchemaViewTraitDefinition.SCHEMA_NODE_PROPERTY),   schemaNode);
+			view.setProperty(Traits.of(StructrTraits.SCHEMA_VIEW).key(SchemaViewTraitDefinition.NON_GRAPH_PROPERTIES_PROPERTY), "name, depth, children, parents");
 
 			app.create(StructrTraits.SCHEMA_RELATIONSHIP_NODE,
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.SOURCE_NODE_PROPERTY),         schemaNode),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.TARGET_NODE_PROPERTY),         schemaNode),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("relationshipType"),   "test"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceMultiplicity"), "*"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetMultiplicity"), "*"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceJsonName"),     "parents"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetJsonName"),     "children")
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.RELATIONSHIP_TYPE_PROPERTY),   "test"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.SOURCE_MULTIPLICITY_PROPERTY), "*"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.TARGET_MULTIPLICITY_PROPERTY), "*"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.SOURCE_JSON_NAME_PROPERTY),     "parents"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.TARGET_JSON_NAME_PROPERTY),     "children")
 			);
 
 			tx.success();
@@ -294,13 +295,13 @@ public class PropertyViewRestTest extends StructrRestTestBase {
 			final NodeInterface schemaNode = app.create(StructrTraits.SCHEMA_NODE,"DepthTest");
 
 			final NodeInterface property = app.create(StructrTraits.SCHEMA_PROPERTY, "depth");
-			property.setProperty(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"),   schemaNode);
-			property.setProperty(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Function");
-			property.setProperty(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("readFunction"), "depth");
+			property.setProperty(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY),   schemaNode);
+			property.setProperty(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "Function");
+			property.setProperty(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.READ_FUNCTION_PROPERTY), "depth");
 
 			final NodeInterface view = app.create(StructrTraits.SCHEMA_VIEW, "customView");
-			view.setProperty(Traits.of(StructrTraits.SCHEMA_VIEW).key("schemaNode"),   schemaNode);
-			view.setProperty(Traits.of(StructrTraits.SCHEMA_VIEW).key("nonGraphProperties"), "type, depth");
+			view.setProperty(Traits.of(StructrTraits.SCHEMA_VIEW).key(SchemaViewTraitDefinition.SCHEMA_NODE_PROPERTY),   schemaNode);
+			view.setProperty(Traits.of(StructrTraits.SCHEMA_VIEW).key(SchemaViewTraitDefinition.NON_GRAPH_PROPERTIES_PROPERTY), "type, depth");
 
 			tx.success();
 

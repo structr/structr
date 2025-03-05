@@ -39,6 +39,9 @@ import java.util.Set;
  */
 public class WidgetTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String DESCRIPTION_PROPERTY         = "description";
+	public static final String SOURCE_PROPERTY                     = "source";
+
 	public WidgetTraitDefinition() {
 		super(StructrTraits.WIDGET);
 	}
@@ -70,8 +73,8 @@ public class WidgetTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<String> sourceProperty          = new StringProperty("source");
-		final Property<String> descriptionProperty     = new StringProperty("description");
+		final Property<String> sourceProperty          = new StringProperty(SOURCE_PROPERTY);
+		final Property<String> descriptionProperty     = new StringProperty(DESCRIPTION_PROPERTY);
 		final Property<String> configurationProperty   = new StringProperty("configuration");
 		final Property<String> svgIconPathProperty     = new StringProperty("svgIconPath");
 		final Property<String> thumbnailPathProperty   = new StringProperty("thumbnailPath");
@@ -100,12 +103,12 @@ public class WidgetTraitDefinition extends AbstractNodeTraitDefinition {
 
 			PropertyView.Public,
 			newSet(
-				"name", "source", "description", "configuration", "svgIconPath", "thumbnailPath",
+				"name", SOURCE_PROPERTY, DESCRIPTION_PROPERTY, "configuration", "svgIconPath", "thumbnailPath",
 				"treePath", "isWidget", "selectors", "isPageTemplate"
 			),
 			PropertyView.Ui,
 			newSet(
-				"source", "description", "configuration", "svgIconPath", "thumbnailPath",
+				SOURCE_PROPERTY, DESCRIPTION_PROPERTY, "configuration", "svgIconPath", "thumbnailPath",
 				"treePath", "isWidget", "selectors", "isPageTemplate"
 			),
 			"editWidget",
