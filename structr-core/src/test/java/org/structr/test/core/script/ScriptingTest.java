@@ -2363,7 +2363,7 @@ public class ScriptingTest extends StructrTest {
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"),   app.create(StructrTraits.SCHEMA_NODE, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Test"))),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),         "returnTest"),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Function"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("readFunction"), "{ ({ name: 'test', value: 123, me: Structr.this }); }")
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("readFunction"), "{ return { name: 'test', value: 123, me: Structr.this }; }")
 			);            	tx.success();
 
 		} catch (FrameworkException fex) {
