@@ -40,6 +40,8 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
+import org.structr.core.traits.definitions.SchemaRelationshipNodeTraitDefinition;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.common.StructrTest;
 import org.testng.annotations.Test;
@@ -1280,9 +1282,9 @@ public class PropertyTest extends StructrTest {
 			final NodeInterface type = app.create(StructrTraits.SCHEMA_NODE, "Test");
 			final NodeInterface prop = app.create(StructrTraits.SCHEMA_PROPERTY, "functionTest");
 
-			prop.setProperty(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"),   type);
-			prop.setProperty(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Function");
-			prop.setProperty(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("readFunction"), "{ // \"}");
+			prop.setProperty(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY),   type);
+			prop.setProperty(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "Function");
+			prop.setProperty(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.READ_FUNCTION_PROPERTY), "{ // \"}");
 
 			tx.success();
 
@@ -1985,12 +1987,12 @@ public class PropertyTest extends StructrTest {
 			);
 
 			final NodeInterface func = app.create(StructrTraits.SCHEMA_PROPERTY,
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"),   test),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY),   test),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),         "testFunction"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Function"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("readFunction"), "this.group.name"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("indexed"),      true),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("typeHint"),     "String")
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "Function"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.READ_FUNCTION_PROPERTY), "this.group.name"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.INDEXED_PROPERTY),      true),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.TYPE_HINT_PROPERTY),     "String")
 			);
 
 			assertNotNull("Invalid schema setup result", test);
@@ -1998,12 +2000,12 @@ public class PropertyTest extends StructrTest {
 
 			app.create(StructrTraits.SCHEMA_RELATIONSHIP_NODE,
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.SOURCE_NODE_PROPERTY), test),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetType"), StructrTraits.GROUP),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceMultiplicity"), "*"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetMultiplicity"), "1"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceJsonName"), "tests"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetJsonName"), "group"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("relationshipType"), "group")
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.TARGET_TYPE_PROPERTY), StructrTraits.GROUP),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.SOURCE_MULTIPLICITY_PROPERTY), "*"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.TARGET_MULTIPLICITY_PROPERTY), "1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.SOURCE_JSON_NAME_PROPERTY), "tests"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.TARGET_JSON_NAME_PROPERTY), "group"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.RELATIONSHIP_TYPE_PROPERTY), "group")
 			);
 
 			tx.success();
@@ -2088,44 +2090,44 @@ public class PropertyTest extends StructrTest {
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "ownerName"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Notion"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("format"), "owner, name"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), test)
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "Notion"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.FORMAT_PROPERTY), "owner, name"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), test)
 			);
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "ownerEmail"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Notion"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("format"), "owner, eMail"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), test)
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "Notion"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.FORMAT_PROPERTY), "owner, eMail"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), test)
 			);
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "ownerPrincipalEmail"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Notion"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("format"), "owner, Principal.eMail"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), test)
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "Notion"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.FORMAT_PROPERTY), "owner, Principal.eMail"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), test)
 			);
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "ownerName"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Notion"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("format"), "owner,name"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), test)
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "Notion"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.FORMAT_PROPERTY), "owner,name"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), test)
 			);
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "ownerEmail"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Notion"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("format"), "owner,  eMail"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), test)
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "Notion"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.FORMAT_PROPERTY), "owner,  eMail"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), test)
 			);
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "ownerPrincipalEmail"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Notion"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("format"), "owner , Principal.eMail"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), test)
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "Notion"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.FORMAT_PROPERTY), "owner , Principal.eMail"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), test)
 			);
 
 			tx.success();
@@ -2154,18 +2156,18 @@ public class PropertyTest extends StructrTest {
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "messageId"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "String"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), message)
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "String"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), message)
 			);
 
 			app.create(StructrTraits.SCHEMA_RELATIONSHIP_NODE,
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.SOURCE_NODE_PROPERTY), message),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.TARGET_NODE_PROPERTY), message),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceMultiplicity"), "*"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetMultiplicity"), "1"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceJsonName"), "children"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetJsonName"), "parent"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("relationshipType"), "HAS_PARENT")
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.SOURCE_MULTIPLICITY_PROPERTY), "*"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.TARGET_MULTIPLICITY_PROPERTY), "1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.SOURCE_JSON_NAME_PROPERTY), "children"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.TARGET_JSON_NAME_PROPERTY), "parent"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.RELATIONSHIP_TYPE_PROPERTY), "HAS_PARENT")
 			);
 
 			tx.success();
@@ -2180,58 +2182,58 @@ public class PropertyTest extends StructrTest {
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "parentMessageId1"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Notion"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("format"), "parent, _messageId"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), message)
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "Notion"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.FORMAT_PROPERTY), "parent, _messageId"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), message)
 			);
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "parentMessageId2"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Notion"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("format"), "parent, messageId"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), message)
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "Notion"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.FORMAT_PROPERTY), "parent, messageId"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), message)
 			);
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "parentMessageId3"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Notion"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("format"), "parent, _messageIdProperty"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), message)
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "Notion"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.FORMAT_PROPERTY), "parent, _messageIdProperty"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), message)
 			);
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "parentMessageId4"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Notion"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("format"), "parent, messageIdProperty"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), message)
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "Notion"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.FORMAT_PROPERTY), "parent, messageIdProperty"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), message)
 			);
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "parentMessageId5"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Notion"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("format"), "parent, Message._messageId"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), message)
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "Notion"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.FORMAT_PROPERTY), "parent, Message._messageId"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), message)
 			);
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "parentMessageId6"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Notion"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("format"), "parent, Message.messageId"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), message)
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "Notion"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.FORMAT_PROPERTY), "parent, Message.messageId"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), message)
 			);
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "parentMessageId7"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Notion"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("format"), "parent, Message._messageIdProperty"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), message)
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "Notion"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.FORMAT_PROPERTY), "parent, Message._messageIdProperty"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), message)
 			);
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "parentMessageId8"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Notion"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("format"), "parent, Message.messageIdProperty"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), message)
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "Notion"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.FORMAT_PROPERTY), "parent, Message.messageIdProperty"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), message)
 			);
 
 			tx.success();
@@ -2259,25 +2261,25 @@ public class PropertyTest extends StructrTest {
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "messageId"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "String"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), message)
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "String"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), message)
 			);
 
 			app.create(StructrTraits.SCHEMA_RELATIONSHIP_NODE,
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.SOURCE_NODE_PROPERTY), message),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.TARGET_NODE_PROPERTY), message),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceMultiplicity"), "*"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetMultiplicity"), "1"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceJsonName"), "children"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetJsonName"), "parent"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("relationshipType"), "HAS_PARENT")
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.SOURCE_MULTIPLICITY_PROPERTY), "*"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.TARGET_MULTIPLICITY_PROPERTY), "1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.SOURCE_JSON_NAME_PROPERTY), "children"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.TARGET_JSON_NAME_PROPERTY), "parent"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.RELATIONSHIP_TYPE_PROPERTY), "HAS_PARENT")
 			);
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "parentMessageName1"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Notion"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("format"), "parent, name"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), message)
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "Notion"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.FORMAT_PROPERTY), "parent, name"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), message)
 			);
 
 			tx.success();
@@ -2304,32 +2306,32 @@ public class PropertyTest extends StructrTest {
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "messageId"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "String"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), message)
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "String"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), message)
 			);
 
 			app.create(StructrTraits.SCHEMA_RELATIONSHIP_NODE,
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.SOURCE_NODE_PROPERTY), message),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.TARGET_NODE_PROPERTY), message),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceMultiplicity"), "*"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetMultiplicity"), "1"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceJsonName"), "children"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetJsonName"), "parent"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("relationshipType"), "HAS_PARENT")
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.SOURCE_MULTIPLICITY_PROPERTY), "*"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.TARGET_MULTIPLICITY_PROPERTY), "1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.SOURCE_JSON_NAME_PROPERTY), "children"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.TARGET_JSON_NAME_PROPERTY), "parent"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.RELATIONSHIP_TYPE_PROPERTY), "HAS_PARENT")
 			);
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "parentMessageTrue"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Notion"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("format"), "parent, name, true"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), message)
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "Notion"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.FORMAT_PROPERTY), "parent, name, true"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), message)
 			);
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "parentMessageFalse"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Notion"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("format"), "parent, name, false"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), message)
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "Notion"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.FORMAT_PROPERTY), "parent, name, false"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), message)
 			);
 
 			tx.success();

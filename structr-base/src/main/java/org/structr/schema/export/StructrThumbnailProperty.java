@@ -26,6 +26,7 @@ import org.structr.core.entity.SchemaProperty;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
 import org.structr.schema.SchemaHelper.Type;
 
 
@@ -47,8 +48,8 @@ public class StructrThumbnailProperty extends StructrStringProperty {
 		final Traits traits           = Traits.of(StructrTraits.SCHEMA_PROPERTY);
 		final PropertyMap properties  = new PropertyMap();
 
-		properties.put(traits.key("propertyType"), Type.Thumbnail.name());
-		properties.put(traits.key("format"), getFormat());
+		properties.put(traits.key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), Type.Thumbnail.name());
+		properties.put(traits.key(SchemaPropertyTraitDefinition.FORMAT_PROPERTY), getFormat());
 
 		property.setProperties(SecurityContext.getSuperUserInstance(), properties);
 

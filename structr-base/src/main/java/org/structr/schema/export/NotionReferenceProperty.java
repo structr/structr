@@ -29,6 +29,7 @@ import org.structr.core.entity.SchemaProperty;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
 import org.structr.schema.SchemaHelper;
 
 import java.net.URI;
@@ -74,8 +75,8 @@ class NotionReferenceProperty extends StructrReferenceProperty {
 		final Traits traits                = Traits.of(StructrTraits.SCHEMA_PROPERTY);
 		final PropertyMap createProperties = new PropertyMap();
 
-		createProperties.put(traits.key("format"), referenceName + ", " + StringUtils.join(properties, ", "));
-		createProperties.put(traits.key("propertyType"), SchemaHelper.Type.Notion.name());
+		createProperties.put(traits.key(SchemaPropertyTraitDefinition.FORMAT_PROPERTY), referenceName + ", " + StringUtils.join(properties, ", "));
+		createProperties.put(traits.key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), SchemaHelper.Type.Notion.name());
 
 		property.setProperties(SecurityContext.getSuperUserInstance(), createProperties);
 

@@ -45,6 +45,12 @@ import java.util.Set;
 
 public class SessionDataNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String SESSION_ID_PROPERTY    = "sessionId";
+	public static final String CONTEXT_PATH_PROPERTY  = "cpath";
+	public static final String VHOST_PROPERTY         = "vhost";
+	public static final String LAST_ACCESSED_PROPERTY = "lastAccessed";
+	public static final String VERSION_PROPERTY       = "version";
+
 	public SessionDataNodeTraitDefinition() {
 		super(StructrTraits.SESSION_DATA_NODE);
 	}
@@ -90,11 +96,11 @@ public class SessionDataNodeTraitDefinition extends AbstractNodeTraitDefinition 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<String>  sessionIdProperty    = new StringProperty("sessionId").indexed();
-		final Property<String>  contextPathProperty  = new StringProperty("cpath");
-		final Property<String>  vhostProperty        = new StringProperty("vhost");
-		final Property<Date>    lastAccessedProperty = new DateProperty("lastAccessed").indexed();
-		final Property<Long>    versionProperty      = new LongProperty("version");
+		final Property<String>  sessionIdProperty    = new StringProperty(SESSION_ID_PROPERTY).indexed();
+		final Property<String>  contextPathProperty  = new StringProperty(CONTEXT_PATH_PROPERTY);
+		final Property<String>  vhostProperty        = new StringProperty(VHOST_PROPERTY);
+		final Property<Date>    lastAccessedProperty = new DateProperty(LAST_ACCESSED_PROPERTY).indexed();
+		final Property<Long>    versionProperty      = new LongProperty(VERSION_PROPERTY);
 
 		return newSet(
 			sessionIdProperty,
@@ -111,11 +117,11 @@ public class SessionDataNodeTraitDefinition extends AbstractNodeTraitDefinition 
 		return Map.of(
 			PropertyView.Ui,
 			newSet(
-				"sessionId", "cpath", "vhost", "lastAccessed", "version"
+					SESSION_ID_PROPERTY, CONTEXT_PATH_PROPERTY, VHOST_PROPERTY, LAST_ACCESSED_PROPERTY, VERSION_PROPERTY
 			),
 			PropertyView.Public,
 			newSet(
-				"sessionId", "cpath", "vhost", "lastAccessed", "version"
+					SESSION_ID_PROPERTY, CONTEXT_PATH_PROPERTY, VHOST_PROPERTY, LAST_ACCESSED_PROPERTY, VERSION_PROPERTY
 			)
 		);
 	}

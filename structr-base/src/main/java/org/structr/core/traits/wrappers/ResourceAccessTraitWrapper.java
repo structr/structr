@@ -30,6 +30,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import org.structr.core.traits.definitions.ResourceAccessTraitDefinition;
 
 public class ResourceAccessTraitWrapper extends AbstractNodeTraitWrapper implements ResourceAccess {
 
@@ -53,7 +54,7 @@ public class ResourceAccessTraitWrapper extends AbstractNodeTraitWrapper impleme
 
 		cachedFlags = null;
 
-		wrappedObject.setProperty(traits.key("flags"), getFlags() | flag);
+		wrappedObject.setProperty(traits.key(ResourceAccessTraitDefinition.FLAGS_PROPERTY), getFlags() | flag);
 	}
 
 	@Override
@@ -61,7 +62,7 @@ public class ResourceAccessTraitWrapper extends AbstractNodeTraitWrapper impleme
 
 		cachedFlags = null;
 
-		wrappedObject.setProperty(traits.key("flags"), getFlags() & ~flag);
+		wrappedObject.setProperty(traits.key(ResourceAccessTraitDefinition.FLAGS_PROPERTY), getFlags() & ~flag);
 	}
 
 	@Override
@@ -69,7 +70,7 @@ public class ResourceAccessTraitWrapper extends AbstractNodeTraitWrapper impleme
 
 		if (cachedFlags == null) {
 
-			cachedFlags = wrappedObject.getProperty(traits.key("flags"));
+			cachedFlags = wrappedObject.getProperty(traits.key(ResourceAccessTraitDefinition.FLAGS_PROPERTY));
 		}
 
 		if (cachedFlags != null) {
@@ -83,7 +84,7 @@ public class ResourceAccessTraitWrapper extends AbstractNodeTraitWrapper impleme
 	public String getResourceSignature() {
 
 		if (cachedResourceSignature == null) {
-			cachedResourceSignature = wrappedObject.getProperty(traits.key("signature"));
+			cachedResourceSignature = wrappedObject.getProperty(traits.key(ResourceAccessTraitDefinition.SIGNATURE_PROPERTY));
 		}
 
 		return cachedResourceSignature;
@@ -103,7 +104,7 @@ public class ResourceAccessTraitWrapper extends AbstractNodeTraitWrapper impleme
 			permissions = new LinkedList<>();
 
 			// Ignore securityContext here (so we can cache all permissions for a signature independent of a user)
-			final List<NodeInterface> nodes = StructrApp.getInstance().nodeQuery(StructrTraits.RESOURCE_ACCESS).and(traits.key("signature"), signature).getAsList();
+			final List<NodeInterface> nodes = StructrApp.getInstance().nodeQuery(StructrTraits.RESOURCE_ACCESS).and(traits.key(ResourceAccessTraitDefinition.SIGNATURE_PROPERTY), signature).getAsList();
 
 			for (final NodeInterface node : nodes) {
 

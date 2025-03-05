@@ -24,6 +24,10 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.PersonTraitDefinition;
+import org.structr.core.traits.definitions.SchemaNodeTraitDefinition;
 import org.structr.schema.SchemaService;
 import org.structr.schema.export.StructrSchema;
 import org.testng.annotations.Test;
@@ -111,10 +115,10 @@ public class AdvancedDeploymentTest extends FullStructrTest {
 			final Set<String> properties = new LinkedHashSet<>();
 			final Set<String> methods    = new LinkedHashSet<>();
 
-			app.nodeQuery("SchemaRelationshipNode").getResultStream().forEach(n -> relTypes.add(n.getName()));
-			app.nodeQuery("SchemaProperty").getResultStream().forEach(n -> properties.add(n.getName()));
-			app.nodeQuery("SchemaMethod").getResultStream().forEach(n -> methods.add(n.getName()));
-			app.nodeQuery("SchemaNode").getResultStream().forEach(n -> nodeTypes.add(n.getName()));
+			app.nodeQuery(StructrTraits.SCHEMA_RELATIONSHIP_NODE).getResultStream().forEach(n -> relTypes.add(n.getName()));
+			app.nodeQuery(StructrTraits.SCHEMA_PROPERTY).getResultStream().forEach(n -> properties.add(n.getName()));
+			app.nodeQuery(StructrTraits.SCHEMA_METHOD).getResultStream().forEach(n -> methods.add(n.getName()));
+			app.nodeQuery(StructrTraits.SCHEMA_NODE).getResultStream().forEach(n -> nodeTypes.add(n.getName()));
 
 			assertEquals("Invalid number of remaining types after schema import",              110, nodeTypes.size());
 			assertEquals("Invalid number of remaining relationship types after schema import", 126, relTypes.size());
@@ -135,8 +139,8 @@ public class AdvancedDeploymentTest extends FullStructrTest {
 			assertTrue("Imported type Lead does not inherit from MarketingTask", getSchemaNodeTraits("Lead").contains("MarketingTask"));
 
 			// check key from inherited trait (Contact inherits from Person)
-			assertTrue("Imported type Contact does not have eMail property", Traits.of("Contact").hasKey("eMail"));
-			assertTrue("Imported type Person does not have eMail property", Traits.of("Person").hasKey("eMail"));
+			assertTrue("Imported type Contact does not have eMail property", Traits.of("Contact").hasKey(PersonTraitDefinition.EMAIL_PROPERTY));
+			assertTrue("Imported type Person does not have eMail property", Traits.of(StructrTraits.PERSON).hasKey(PersonTraitDefinition.EMAIL_PROPERTY));
 
 			tx.success();
 
@@ -169,10 +173,10 @@ public class AdvancedDeploymentTest extends FullStructrTest {
 			final Set<String> properties = new LinkedHashSet<>();
 			final Set<String> methods    = new LinkedHashSet<>();
 
-			app.nodeQuery("SchemaRelationshipNode").getResultStream().forEach(n -> relTypes.add(n.getName()));
-			app.nodeQuery("SchemaProperty").getResultStream().forEach(n -> properties.add(n.getName()));
-			app.nodeQuery("SchemaMethod").getResultStream().forEach(n -> methods.add(n.getName()));
-			app.nodeQuery("SchemaNode").getResultStream().forEach(n -> nodeTypes.add(n.getName()));
+			app.nodeQuery(StructrTraits.SCHEMA_RELATIONSHIP_NODE).getResultStream().forEach(n -> relTypes.add(n.getName()));
+			app.nodeQuery(StructrTraits.SCHEMA_PROPERTY).getResultStream().forEach(n -> properties.add(n.getName()));
+			app.nodeQuery(StructrTraits.SCHEMA_METHOD).getResultStream().forEach(n -> methods.add(n.getName()));
+			app.nodeQuery(StructrTraits.SCHEMA_NODE).getResultStream().forEach(n -> nodeTypes.add(n.getName()));
 
 			assertEquals("Invalid number of remaining node types after schema import", 3, nodeTypes.size());
 			assertTrue(nodeTypes.contains("Project"));
@@ -213,26 +217,26 @@ public class AdvancedDeploymentTest extends FullStructrTest {
 		try (final Tx tx = app.tx()) {
 
 			// create a "schema" using Cypher calls to simulate starting with a previous Structr version..
-			createNodeWithCypher(Set.of("AbstractSchemaNode", "SchemaNode"), Map.of(
-					"type", "SchemaNode",
-					"name", "Contact1",
-					"inheritedTraits", List.of("Person")
+			createNodeWithCypher(Set.of(StructrTraits.ABSTRACT_SCHEMA_NODE, StructrTraits.SCHEMA_NODE), Map.of(
+				GraphObjectTraitDefinition.TYPE_PROPERTY, StructrTraits.SCHEMA_NODE,
+				NodeInterfaceTraitDefinition.NAME_PROPERTY, "Contact1",
+				SchemaNodeTraitDefinition.INHERITED_TRAITS_PROPERTY, List.of("Person")
 			));
 
-			createNodeWithCypher(Set.of("AbstractSchemaNode", "SchemaNode"), Map.of(
-					"type", "SchemaNode",
-					"name", "Contact2",
-					"extendsClassInternal", "org.structr.core.entity.Person"
+			createNodeWithCypher(Set.of(StructrTraits.ABSTRACT_SCHEMA_NODE, StructrTraits.SCHEMA_NODE), Map.of(
+				GraphObjectTraitDefinition.TYPE_PROPERTY, StructrTraits.SCHEMA_NODE,
+				NodeInterfaceTraitDefinition.NAME_PROPERTY, "Contact2",
+				"extendsClassInternal", "org.structr.core.entity.Person"
 			));
 
-			final String id1 = createNodeWithCypher(Set.of("AbstractSchemaNode", "SchemaNode"), Map.of(
-				"type", "SchemaNode",
-				"name", "Contact3"
+			final String id1 = createNodeWithCypher(Set.of(StructrTraits.ABSTRACT_SCHEMA_NODE, StructrTraits.SCHEMA_NODE), Map.of(
+				GraphObjectTraitDefinition.TYPE_PROPERTY, StructrTraits.SCHEMA_NODE,
+				NodeInterfaceTraitDefinition.NAME_PROPERTY, "Contact3"
 			));
 
-			final String id2 = createNodeWithCypher(Set.of("AbstractSchemaNode", "SchemaNode"), Map.of(
-				"type", "SchemaNode",
-				"name", "ExtendedPerson",
+			final String id2 = createNodeWithCypher(Set.of(StructrTraits.ABSTRACT_SCHEMA_NODE, StructrTraits.SCHEMA_NODE), Map.of(
+				GraphObjectTraitDefinition.TYPE_PROPERTY, StructrTraits.SCHEMA_NODE,
+				NodeInterfaceTraitDefinition.NAME_PROPERTY, "ExtendedPerson",
 				"extendsClassInternal", "org.structr.core.entity.Person"
 			));
 
@@ -264,11 +268,11 @@ public class AdvancedDeploymentTest extends FullStructrTest {
 
 			// check some node types
 			assertTrue("Migrated schema is missing type " + type, Traits.exists(type));
-			assertTrue("Migrated type " + type + " does not inherit from Person", Traits.of(type).getAllTraits().contains("Person"));
-			assertTrue("Migrated type " + type + " does not have eMail property", Traits.of(type).hasKey("eMail"));
+			assertTrue("Migrated type " + type + " does not inherit from Person", Traits.of(type).getAllTraits().contains(StructrTraits.PERSON));
+			assertTrue("Migrated type " + type + " does not have eMail property", Traits.of(type).hasKey(PersonTraitDefinition.EMAIL_PROPERTY));
 		}
 
-		assertTrue("Static type Person does not have eMail property", Traits.of("Person").hasKey("eMail"));
+		assertTrue("Static type Person does not have eMail property", Traits.of(StructrTraits.PERSON).hasKey(PersonTraitDefinition.EMAIL_PROPERTY));
 	}
 }
 

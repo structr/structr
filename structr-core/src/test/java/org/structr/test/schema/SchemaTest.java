@@ -39,6 +39,9 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
+import org.structr.core.traits.definitions.SchemaRelationshipNodeTraitDefinition;
+import org.structr.core.traits.definitions.SchemaViewTraitDefinition;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
 import org.structr.schema.export.StructrSchema;
@@ -353,11 +356,11 @@ public class SchemaTest extends StructrTest {
 				final NodeInterface target = app.create(StructrTraits.SCHEMA_NODE, "Target");
 
 				app.create(StructrTraits.SCHEMA_RELATIONSHIP_NODE,
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("relationshipType"), "link"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.RELATIONSHIP_TYPE_PROPERTY), "link"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.SOURCE_NODE_PROPERTY), source),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.TARGET_NODE_PROPERTY), target),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceMultiplicity"), "1"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetMultiplicity"), "*")
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.SOURCE_MULTIPLICITY_PROPERTY), "1"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.TARGET_MULTIPLICITY_PROPERTY), "*")
 				);
 
 				tx.success();
@@ -426,14 +429,14 @@ public class SchemaTest extends StructrTest {
 			rel = app.create(StructrTraits.SCHEMA_RELATIONSHIP_NODE,
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.SOURCE_NODE_PROPERTY), fooNode),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.TARGET_NODE_PROPERTY), barNode),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("relationshipType"), "narf")
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.RELATIONSHIP_TYPE_PROPERTY), "narf")
 			);
 
 			// create "public" view that contains the related property
 			app.create(StructrTraits.SCHEMA_VIEW,
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "public"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key("schemaNode"), fooNode),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key("nonGraphProperties"), "type, id, narfBars")
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key(SchemaViewTraitDefinition.SCHEMA_NODE_PROPERTY), fooNode),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key(SchemaViewTraitDefinition.NON_GRAPH_PROPERTIES_PROPERTY), "type, id, narfBars")
 			);
 
 			tx.success();
@@ -476,10 +479,10 @@ public class SchemaTest extends StructrTest {
 			source.append("\t\treturn test;\n\n");
 
 			app.create(StructrTraits.SCHEMA_METHOD,
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("schemaNode"), schemaNode),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY), schemaNode),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),       "testJavaMethod"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"),     source.toString()),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("codeType"),   "java")
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY),      source.toString()),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.CODE_TYPE_PROPERTY),   "java")
 			);
 
 			app.create(groupType, "test");
@@ -520,10 +523,10 @@ public class SchemaTest extends StructrTest {
 			final String source = "";
 
 			app.create(StructrTraits.SCHEMA_METHOD,
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("staticSchemaNodeName"), StructrTraits.GROUP),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.STATIC_SCHEMA_NODE_NAME_PROPERTY), StructrTraits.GROUP),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),                 "testJavaMethod"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"),               source),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("codeType"),             "java")
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY),               source),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.CODE_TYPE_PROPERTY),             "java")
 			);
 
 			tx.success();

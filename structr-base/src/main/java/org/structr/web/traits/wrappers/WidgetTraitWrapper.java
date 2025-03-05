@@ -22,6 +22,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.web.entity.Widget;
+import org.structr.web.traits.definitions.WidgetTraitDefinition;
 
 public class WidgetTraitWrapper extends AbstractNodeTraitWrapper implements Widget {
 
@@ -41,7 +42,7 @@ public class WidgetTraitWrapper extends AbstractNodeTraitWrapper implements Widg
 
 	@Override
 	public String getDescription() {
-		return wrappedObject.getProperty(traits.key("description"));
+		return wrappedObject.getProperty(traits.key(WidgetTraitDefinition.DESCRIPTION_PROPERTY));
 	}
 
 	@Override

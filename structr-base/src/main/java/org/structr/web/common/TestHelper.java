@@ -37,6 +37,7 @@ import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.LocalizationTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
+import org.structr.core.traits.definitions.ResourceAccessTraitDefinition;
 
 /**
  */
@@ -59,9 +60,9 @@ public class TestHelper {
 		baseMap.put("_html_", Arrays.asList("_html_data", "_html_is", "_html_properties"));
 		baseMap.put("public", Arrays.asList(GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY));
 
-		requiredAttributes.put(StructrTraits.DYNAMIC_RESOURCE_ACCESS, Arrays.asList("signature", "i:flags"));
+		requiredAttributes.put(StructrTraits.DYNAMIC_RESOURCE_ACCESS, Arrays.asList(ResourceAccessTraitDefinition.SIGNATURE_PROPERTY, "i:" + ResourceAccessTraitDefinition.FLAGS_PROPERTY));
 		requiredAttributes.put(StructrTraits.LOCALIZATION,            Arrays.asList(LocalizationTraitDefinition.LOCALE_PROPERTY));
-		requiredAttributes.put(StructrTraits.RESOURCE_ACCESS,         Arrays.asList("signature", "i:flags"));
+		requiredAttributes.put(StructrTraits.RESOURCE_ACCESS,         Arrays.asList(ResourceAccessTraitDefinition.SIGNATURE_PROPERTY, "i:" + ResourceAccessTraitDefinition.FLAGS_PROPERTY));
 
 		// insert required attributes specified by test class
 		if (additionalRequiredAttributes != null) {

@@ -39,6 +39,7 @@ import org.structr.core.property.StringProperty;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
@@ -922,8 +923,8 @@ public class MigrationService {
 
 	private static void warnAboutWrongNotionProperties() {
 
-		final PropertyKey<String> typeKey   = Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType");
-		final PropertyKey<String> formatKey = Traits.of(StructrTraits.SCHEMA_PROPERTY).key("format");
+		final PropertyKey<String> typeKey   = Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY);
+		final PropertyKey<String> formatKey = Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.FORMAT_PROPERTY);
 		final App app                       = StructrApp.getInstance();
 
 		try (final Tx tx = app.tx()) {

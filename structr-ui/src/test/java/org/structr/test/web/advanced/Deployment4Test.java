@@ -37,9 +37,11 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.AbstractSchemaNodeTraitDefinition;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
+import org.structr.core.traits.definitions.SchemaGrantTraitDefinition;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
 import org.structr.web.auth.UiAuthenticator;
@@ -532,7 +534,7 @@ public class Deployment4Test extends DeploymentTestBase {
 			// create grant
 			final NodeInterface projectNode = app.nodeQuery(StructrTraits.SCHEMA_NODE).andName("Project").getFirst();
 			final NodeInterface grant      = app.create(StructrTraits.SCHEMA_GRANT,
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("schemaNode"),          projectNode),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.SCHEMA_NODE_PROPERTY),          projectNode),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("principal"),           testGroup1),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("allowRead"),           true),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("allowWrite"),          true),
@@ -699,7 +701,7 @@ public class Deployment4Test extends DeploymentTestBase {
 
 			final NodeInterface node = app.nodeQuery(StructrTraits.SCHEMA_NODE).andName("Project").getFirst();
 
-			assertTrue("Changelog disabled flag should be set after deployment roundtrip", node.getProperty(Traits.of(StructrTraits.SCHEMA_NODE).key("changelogDisabled")));
+			assertTrue("Changelog disabled flag should be set after deployment roundtrip", node.getProperty(Traits.of(StructrTraits.SCHEMA_NODE).key(AbstractSchemaNodeTraitDefinition.CHANGELOG_DISABLED_PROPERTY)));
 
 			tx.success();
 

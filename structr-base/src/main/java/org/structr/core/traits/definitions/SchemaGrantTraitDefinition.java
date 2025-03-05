@@ -52,6 +52,9 @@ import java.util.Set;
  */
 public final class SchemaGrantTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String SCHEMA_NODE_PROPERTY                = "schemaNode";
+	public static final String STATIC_SCHEMA_NODE_NAME_PROPERTY    = "staticSchemaNodeName";
+
 	private static final Logger logger = LoggerFactory.getLogger(SchemaGrantTraitDefinition.class);
 
 	public SchemaGrantTraitDefinition() {
@@ -74,8 +77,8 @@ public final class SchemaGrantTraitDefinition extends AbstractNodeTraitDefinitio
 
 					// preserve order (for testing)
 					keys.add(traits.key("principal"));
-					keys.add(traits.key("schemaNode"));
-					keys.add(traits.key("staticSchemaNodeName"));
+					keys.add(traits.key(SCHEMA_NODE_PROPERTY));
+					keys.add(traits.key(STATIC_SCHEMA_NODE_NAME_PROPERTY));
 
 					return ValidationHelper.areValidCompoundUniqueProperties(obj, errorBuffer, keys);
 				}
@@ -98,8 +101,8 @@ public final class SchemaGrantTraitDefinition extends AbstractNodeTraitDefinitio
 	public Set<PropertyKey> getPropertyKeys() {
 
 		final Property<NodeInterface>  principal    = new StartNode("principal", StructrTraits.PRINCIPAL_SCHEMA_GRANT_RELATIONSHIP);
-		final Property<NodeInterface> schemaNode    = new EndNode("schemaNode", StructrTraits.SCHEMA_GRANT_SCHEMA_NODE_RELATIONSHIP);
-		final Property<String> staticSchemaNodeName = new StringProperty("staticSchemaNodeName");
+		final Property<NodeInterface> schemaNode    = new EndNode(SCHEMA_NODE_PROPERTY, StructrTraits.SCHEMA_GRANT_SCHEMA_NODE_RELATIONSHIP);
+		final Property<String> staticSchemaNodeName = new StringProperty(STATIC_SCHEMA_NODE_NAME_PROPERTY);
 		final Property<Boolean> allowRead           = new BooleanProperty("allowRead");
 		final Property<Boolean> allowWrite          = new BooleanProperty("allowWrite");
 		final Property<Boolean> allowDelete         = new BooleanProperty("allowDelete");
@@ -122,19 +125,19 @@ public final class SchemaGrantTraitDefinition extends AbstractNodeTraitDefinitio
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"principal", "schemaNode", "staticSchemaNodeName", "allowRead", "allowWrite", "allowDelete", "allowAccessControl"
+				"principal", SCHEMA_NODE_PROPERTY, STATIC_SCHEMA_NODE_NAME_PROPERTY, "allowRead", "allowWrite", "allowDelete", "allowAccessControl"
 			),
 			PropertyView.Ui,
 			newSet(
-				"principal", "schemaNode", "staticSchemaNodeName", "allowRead", "allowWrite", "allowDelete", "allowAccessControl"
+				"principal", SCHEMA_NODE_PROPERTY, STATIC_SCHEMA_NODE_NAME_PROPERTY, "allowRead", "allowWrite", "allowDelete", "allowAccessControl"
 			),
 			"schema",
 			newSet(
-				"id", "principal", "schemaNode", "staticSchemaNodeName", "allowRead", "allowWrite", "allowDelete", "allowAccessControl"
+				"id", "principal", SCHEMA_NODE_PROPERTY, STATIC_SCHEMA_NODE_NAME_PROPERTY, "allowRead", "allowWrite", "allowDelete", "allowAccessControl"
 			),
 			"export",
 			newSet(
-				"principal", "schemaNode", "staticSchemaNodeName", "allowRead", "allowWrite", "allowDelete", "allowAccessControl"
+				"principal", SCHEMA_NODE_PROPERTY, STATIC_SCHEMA_NODE_NAME_PROPERTY, "allowRead", "allowWrite", "allowDelete", "allowAccessControl"
 			)
 		);
 	}

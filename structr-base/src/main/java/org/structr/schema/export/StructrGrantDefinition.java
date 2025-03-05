@@ -33,6 +33,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.SchemaGrantTraitDefinition;
 import org.structr.web.maintenance.DeployCommand;
 
 import java.net.URI;
@@ -171,7 +172,7 @@ public class StructrGrantDefinition implements JsonGrant, StructrDefinition {
 		}
 
 		getOrCreateProperties.put(traits.key("principal"),  principals.get(0));
-		getOrCreateProperties.put(traits.key("schemaNode"), (SchemaNode)schemaNode);
+		getOrCreateProperties.put(traits.key(SchemaGrantTraitDefinition.SCHEMA_NODE_PROPERTY), (SchemaNode)schemaNode);
 
 		NodeInterface grant = app.nodeQuery(StructrTraits.SCHEMA_GRANT).and(getOrCreateProperties).getFirst();
 		if (grant == null) {

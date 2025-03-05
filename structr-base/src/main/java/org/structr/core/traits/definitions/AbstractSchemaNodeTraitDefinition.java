@@ -67,13 +67,22 @@ public final class AbstractSchemaNodeTraitDefinition extends AbstractNodeTraitDe
 
 	static {
 
-		hiddenPropertyNames.add("visibilityStartDate");
-		hiddenPropertyNames.add("visibilityEndDate");
 		hiddenPropertyNames.add(GraphObjectTraitDefinition.CREATED_BY_PROPERTY);
 		hiddenPropertyNames.add("hidden");
 		hiddenPropertyNames.add("deleted");
 	}
 	*/
+
+	public static final String SCHEMA_PROPERTIES_PROPERTY   = "schemaProperties";
+	public static final String SCHEMA_METHODS_PROPERTY      = "schemaMethods";
+	public static final String SCHEMA_VIEWS_PROPERTY        = "schemaViews";
+	public static final String TAGS_PROPERTY                = "tags";
+	public static final String INCLUDE_IN_OPEN_API_PROPERTY = "includeInOpenAPI";
+	public static final String CHANGELOG_DISABLED_PROPERTY  = "changelogDisabled";
+	public static final String ICON_PROPERTY                = "icon";
+	public static final String SUMMARY_PROPERTY             = "summary";
+	public static final String DESCRIPTION_PROPERTY         = "description";
+	public static final String IS_SERVICE_CLASS_PROPERTY    = "isServiceClass";
 
 	public AbstractSchemaNodeTraitDefinition() {
 		super(StructrTraits.ABSTRACT_SCHEMA_NODE);
@@ -129,17 +138,16 @@ public final class AbstractSchemaNodeTraitDefinition extends AbstractNodeTraitDe
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Iterable<NodeInterface>> schemaProperties = new EndNodes("schemaProperties", StructrTraits.SCHEMA_NODE_PROPERTY);
-		final Property<Iterable<NodeInterface>> schemaMethods    = new EndNodes("schemaMethods", StructrTraits.SCHEMA_NODE_METHOD);
-		final Property<Iterable<NodeInterface>> schemaViews      = new EndNodes("schemaViews", StructrTraits.SCHEMA_NODE_VIEW);
-		final Property<String[]> tags                            = new ArrayProperty("tags", String.class).indexed();
-		final Property<Boolean> includeInOpenAPI                 = new BooleanProperty("includeInOpenAPI").indexed();
-		final Property<Boolean> changelogDisabled                = new BooleanProperty("changelogDisabled");
-		final Property<String>  icon                             = new StringProperty("icon");
-		final Property<String>  summary                          = new StringProperty("summary").indexed();
-		final Property<String>  description                      = new StringProperty("description").indexed();
-		final Property<Boolean> isServiceClass                   = new BooleanProperty("isServiceClass").indexed();
-
+		final Property<Iterable<NodeInterface>> schemaProperties = new EndNodes(SCHEMA_PROPERTIES_PROPERTY, StructrTraits.SCHEMA_NODE_PROPERTY);
+		final Property<Iterable<NodeInterface>> schemaMethods    = new EndNodes(SCHEMA_METHODS_PROPERTY, StructrTraits.SCHEMA_NODE_METHOD);
+		final Property<Iterable<NodeInterface>> schemaViews      = new EndNodes(SCHEMA_VIEWS_PROPERTY, StructrTraits.SCHEMA_NODE_VIEW);
+		final Property<String[]> tags                            = new ArrayProperty(TAGS_PROPERTY, String.class).indexed();
+		final Property<Boolean> includeInOpenAPI                 = new BooleanProperty(INCLUDE_IN_OPEN_API_PROPERTY).indexed();
+		final Property<Boolean> changelogDisabled                = new BooleanProperty(CHANGELOG_DISABLED_PROPERTY);
+		final Property<String>  icon                             = new StringProperty(ICON_PROPERTY);
+		final Property<String>  summary                          = new StringProperty(SUMMARY_PROPERTY).indexed();
+		final Property<String>  description                      = new StringProperty(DESCRIPTION_PROPERTY).indexed();
+		final Property<Boolean> isServiceClass                   = new BooleanProperty(IS_SERVICE_CLASS_PROPERTY).indexed();
 
 		return newSet(
 			schemaProperties,
@@ -161,16 +169,16 @@ public final class AbstractSchemaNodeTraitDefinition extends AbstractNodeTraitDe
 		return Map.of(
 
 			PropertyView.Public,
-			newSet("changelogDisabled", "icon", "tags", "summary", "description", "isServiceClass"),
+			newSet(CHANGELOG_DISABLED_PROPERTY, ICON_PROPERTY, TAGS_PROPERTY, SUMMARY_PROPERTY, DESCRIPTION_PROPERTY, IS_SERVICE_CLASS_PROPERTY),
 
 			PropertyView.Ui,
-			newSet("tags", "summary", "description", "includeInOpenAPI", "isServiceClass"),
+			newSet(TAGS_PROPERTY, SUMMARY_PROPERTY, DESCRIPTION_PROPERTY, INCLUDE_IN_OPEN_API_PROPERTY, IS_SERVICE_CLASS_PROPERTY),
 
 			"schema",
-			newSet("tags", "summary", "description", "includeInOpenAPI", "isServiceClass"),
+			newSet(TAGS_PROPERTY, SUMMARY_PROPERTY, DESCRIPTION_PROPERTY, INCLUDE_IN_OPEN_API_PROPERTY, IS_SERVICE_CLASS_PROPERTY),
 
 			"export",
-			newSet("changelogDisabled", "icon", "tags", "summary", "description", "isServiceClass")
+			newSet(CHANGELOG_DISABLED_PROPERTY, ICON_PROPERTY, TAGS_PROPERTY, SUMMARY_PROPERTY, DESCRIPTION_PROPERTY, IS_SERVICE_CLASS_PROPERTY)
 		);
 	}
 
@@ -233,10 +241,10 @@ public final class AbstractSchemaNodeTraitDefinition extends AbstractNodeTraitDe
 
 				// create view node
 				StructrApp.getInstance(schemaNode.getSecurityContext()).create(StructrTraits.SCHEMA_VIEW,
-						new NodeAttribute(Traits.of(StructrTraits.SCHEMA_VIEW).key("schemaNode"),       schemaNode),
-						new NodeAttribute(Traits.of(StructrTraits.SCHEMA_VIEW).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),             view),
-						new NodeAttribute(Traits.of(StructrTraits.SCHEMA_VIEW).key("schemaProperties"), properties),
-						new NodeAttribute(Traits.of(StructrTraits.SCHEMA_VIEW).key("isBuiltinView"),    true)
+						new NodeAttribute(Traits.of(StructrTraits.SCHEMA_VIEW).key(SchemaViewTraitDefinition.SCHEMA_NODE_PROPERTY),       schemaNode),
+						new NodeAttribute(Traits.of(StructrTraits.SCHEMA_VIEW).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),           view),
+						new NodeAttribute(Traits.of(StructrTraits.SCHEMA_VIEW).key(SchemaViewTraitDefinition.SCHEMA_PROPERTIES_PROPERTY), properties),
+						new NodeAttribute(Traits.of(StructrTraits.SCHEMA_VIEW).key(SchemaViewTraitDefinition.IS_BUILTIN_VIEW_PROPERTY),   true)
 				);
 			}
 		}

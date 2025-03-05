@@ -23,6 +23,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.AbstractSchemaNodeTraitDefinition;
+import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 import org.structr.core.traits.operations.LifecycleMethod;
 
 public interface SchemaMethod extends NodeInterface {
@@ -66,26 +68,26 @@ public interface SchemaMethod extends NodeInterface {
 	default void handleAutomaticCorrectionOfAttributes() throws FrameworkException {
 
 		final Traits schemaMethodTraits     = Traits.of(StructrTraits.SCHEMA_METHOD);
-		final NodeInterface schemaNode      = getProperty(schemaMethodTraits.key("schemaNode"));
-		final boolean isTypeMethod          = (schemaNode != null) || StringUtils.isNotBlank(getProperty(schemaMethodTraits.key("staticSchemaNodeName")));
-		final boolean isServiceClassMethod  = (schemaNode != null) && Boolean.TRUE.equals(schemaNode.getProperty(Traits.of(StructrTraits.SCHEMA_NODE).key("isServiceClass")));
+		final NodeInterface schemaNode      = getProperty(schemaMethodTraits.key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY));
+		final boolean isTypeMethod          = (schemaNode != null) || StringUtils.isNotBlank(getProperty(schemaMethodTraits.key(SchemaMethodTraitDefinition.STATIC_SCHEMA_NODE_NAME_PROPERTY)));
+		final boolean isServiceClassMethod  = (schemaNode != null) && Boolean.TRUE.equals(schemaNode.getProperty(Traits.of(StructrTraits.SCHEMA_NODE).key(AbstractSchemaNodeTraitDefinition.IS_SERVICE_CLASS_PROPERTY)));
 
 		// - lifecycle methods can never be static
 		// - lifecycle methods are never callable via REST
 		if (isLifecycleMethod()) {
-			setProperty(schemaMethodTraits.key("isStatic"), false);
-			setProperty(schemaMethodTraits.key("isPrivate"), true);
+			setProperty(schemaMethodTraits.key(SchemaMethodTraitDefinition.IS_STATIC_PROPERTY), false);
+			setProperty(schemaMethodTraits.key(SchemaMethodTraitDefinition.IS_PRIVATE_PROPERTY), true);
 		}
 
 		// - service class methods must be static
 		// - user-defined functions must also be static
 		if (!isTypeMethod || isServiceClassMethod) {
-			setProperty(schemaMethodTraits.key("isStatic"), true);
+			setProperty(schemaMethodTraits.key(SchemaMethodTraitDefinition.IS_STATIC_PROPERTY), true);
 		}
 
 		// a method which is not callable via REST should not be present in OpenAPI
 		if (isPrivateMethod() == true) {
-			setProperty(schemaMethodTraits.key("includeInOpenAPI"), false);
+			setProperty(schemaMethodTraits.key(SchemaMethodTraitDefinition.INCLUDE_IN_OPEN_API_PROPERTY), false);
 		}
 	}
 }

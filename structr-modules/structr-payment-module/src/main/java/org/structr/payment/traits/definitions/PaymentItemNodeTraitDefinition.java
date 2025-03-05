@@ -41,6 +41,8 @@ import java.util.Set;
  */
 public class PaymentItemNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String DESCRIPTION_PROPERTY         = "description";
+
 	public PaymentItemNodeTraitDefinition() {
 		super("PaymentItemNode");
 	}
@@ -80,7 +82,7 @@ public class PaymentItemNodeTraitDefinition extends AbstractNodeTraitDefinition 
 		final Property<NodeInterface> paymentProperty = new StartNode("payment", "PaymentNodepaymentItemPaymentItem");
 		final Property<Integer> amountProperty        = new IntProperty("amount").indexed();
 		final Property<Integer> quantityProperty      = new IntProperty("quantity").indexed();
-		final Property<String> descriptionProperty    = new StringProperty("description");
+		final Property<String> descriptionProperty    = new StringProperty(DESCRIPTION_PROPERTY);
 		final Property<String> numberProperty         = new StringProperty("number");
 		final Property<String> urlProperty            = new StringProperty("url");
 
@@ -100,11 +102,11 @@ public class PaymentItemNodeTraitDefinition extends AbstractNodeTraitDefinition 
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"name", "amount", "quantity", "description", "number", "url"
+				"name", "amount", "quantity", DESCRIPTION_PROPERTY, "number", "url"
 			),
 			PropertyView.Ui,
 			newSet(
-				"amount", "quantity", "description", "number", "url"
+				"amount", "quantity", DESCRIPTION_PROPERTY, "number", "url"
 			)
 		);
 	}

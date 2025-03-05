@@ -22,6 +22,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.MailTemplate;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.MailTemplateTraitDefinition;
 
 public class MailTemplateTraitWrapper extends AbstractNodeTraitWrapper implements MailTemplate {
 
@@ -30,14 +31,14 @@ public class MailTemplateTraitWrapper extends AbstractNodeTraitWrapper implement
 	}
 
 	public String getText() {
-		return wrappedObject.getProperty(traits.key("text"));
+		return wrappedObject.getProperty(traits.key(MailTemplateTraitDefinition.TEXT_PROPERTY));
 	}
 
 	public String getLocale() {
-		return wrappedObject.getProperty(traits.key("locale"));
+		return wrappedObject.getProperty(traits.key(MailTemplateTraitDefinition.LOCALE_PROPERTY));
 	}
 
 	public void setLocale(final String locale) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("locale"), locale);
+		wrappedObject.setProperty(traits.key(MailTemplateTraitDefinition.LOCALE_PROPERTY), locale);
 	}
 }

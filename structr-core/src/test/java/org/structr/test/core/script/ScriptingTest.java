@@ -42,6 +42,7 @@ import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.function.DateFormatFunction;
 import org.structr.core.function.FindFunction;
+import org.structr.core.function.FunctionInfoFunction;
 import org.structr.core.function.NumberFormatFunction;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
@@ -54,11 +55,16 @@ import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.AbstractSchemaNodeTraitDefinition;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.GroupTraitDefinition;
+import org.structr.core.traits.definitions.MailTemplateTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
+import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
+import org.structr.core.traits.definitions.SchemaRelationshipNodeTraitDefinition;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
@@ -113,9 +119,9 @@ public class ScriptingTest extends StructrTest {
 			// create two nodes and associate them with each other
 			final NodeInterface sourceNode      = createTestNode(StructrTraits.SCHEMA_NODE, "TestSource");
 			final NodeInterface targetNode      = createTestNode(StructrTraits.SCHEMA_NODE, "TestTarget");
-			final PropertyKey<String> typeKey   = Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType");
-			final PropertyKey<String> formatKey = Traits.of(StructrTraits.SCHEMA_PROPERTY).key("format");
-			final PropertyKey<String> sourceKey = Traits.of(StructrTraits.SCHEMA_METHOD).key("source");
+			final PropertyKey<String> typeKey   = Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY);
+			final PropertyKey<String> formatKey = Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.FORMAT_PROPERTY);
+			final PropertyKey<String> sourceKey = Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY);
 
 			final List<NodeInterface> properties = new LinkedList<>();
 			properties.add(createTestNode(StructrTraits.SCHEMA_PROPERTY, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testBoolean"), new NodeAttribute(typeKey, "Boolean")));
@@ -124,7 +130,7 @@ public class ScriptingTest extends StructrTest {
 			properties.add(createTestNode(StructrTraits.SCHEMA_PROPERTY, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testDouble"), new NodeAttribute(typeKey, "Double")));
 			properties.add(createTestNode(StructrTraits.SCHEMA_PROPERTY, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testEnum"), new NodeAttribute(typeKey, "Enum"), new NodeAttribute(formatKey, "OPEN, CLOSED, TEST")));
 			properties.add(createTestNode(StructrTraits.SCHEMA_PROPERTY, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testDate"), new NodeAttribute(typeKey, "Date")));
-			sourceNode.setProperty(Traits.of(StructrTraits.SCHEMA_NODE).key("schemaProperties"), properties);
+			sourceNode.setProperty(Traits.of(StructrTraits.SCHEMA_NODE).key(AbstractSchemaNodeTraitDefinition.SCHEMA_PROPERTIES_PROPERTY), properties);
 
 			final List<NodeInterface> methods = new LinkedList<>();
 			methods.add(createTestNode(StructrTraits.SCHEMA_METHOD, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "onCreate"), new NodeAttribute(sourceKey, "{ var e = Structr.get('this'); e.testtargets = Structr.find('TestTarget'); }")));
@@ -133,18 +139,18 @@ public class ScriptingTest extends StructrTest {
 			methods.add(createTestNode(StructrTraits.SCHEMA_METHOD, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "doTest03"), new NodeAttribute(sourceKey, "{ var e = Structr.get('this'); e.testEnum = 'TEST'; }")));
 			methods.add(createTestNode(StructrTraits.SCHEMA_METHOD, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "doTest04"), new NodeAttribute(sourceKey, "{ var e = Structr.get('this'); e.testEnum = 'INVALID'; }")));
 			methods.add(createTestNode(StructrTraits.SCHEMA_METHOD, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "doTest05"), new NodeAttribute(sourceKey, "{ var e = Structr.get('this'); e.testBoolean = true; e.testInteger = 123; e.testString = 'testing..'; e.testDouble = 1.2345; e.testDate = new Date(" + currentTimeMillis + "); }")));
-			sourceNode.setProperty(Traits.of(StructrTraits.SCHEMA_NODE).key("schemaMethods"), methods);
+			sourceNode.setProperty(Traits.of(StructrTraits.SCHEMA_NODE).key(AbstractSchemaNodeTraitDefinition.SCHEMA_METHODS_PROPERTY), methods);
 
 			final PropertyMap propertyMap = new PropertyMap();
 			final Traits traits           = Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE);
 
 			propertyMap.put(traits.key(RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY),       sourceNode.getUuid());
 			propertyMap.put(traits.key(RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY),       targetNode.getUuid());
-			propertyMap.put(traits.key("sourceJsonName"), "testsource");
-			propertyMap.put(traits.key("targetJsonName"), "testtargets");
-			propertyMap.put(traits.key("sourceMultiplicity"), "*");
-			propertyMap.put(traits.key("targetMultiplicity"), "*");
-			propertyMap.put(traits.key("relationshipType"), "HAS");
+			propertyMap.put(traits.key(SchemaRelationshipNodeTraitDefinition.SOURCE_JSON_NAME_PROPERTY), "testsource");
+			propertyMap.put(traits.key(SchemaRelationshipNodeTraitDefinition.TARGET_JSON_NAME_PROPERTY), "testtargets");
+			propertyMap.put(traits.key(SchemaRelationshipNodeTraitDefinition.SOURCE_MULTIPLICITY_PROPERTY), "*");
+			propertyMap.put(traits.key(SchemaRelationshipNodeTraitDefinition.TARGET_MULTIPLICITY_PROPERTY), "*");
+			propertyMap.put(traits.key(SchemaRelationshipNodeTraitDefinition.RELATIONSHIP_TYPE_PROPERTY), "HAS");
 
 			app.create(StructrTraits.SCHEMA_RELATIONSHIP_NODE, propertyMap);
 
@@ -259,10 +265,10 @@ public class ScriptingTest extends StructrTest {
 			final NodeInterface sourceNode  = createTestNode(StructrTraits.SCHEMA_NODE, "TestSource");
 			final NodeInterface method      = createTestNode(StructrTraits.SCHEMA_METHOD,
 				new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "doTest01"),
-				new NodeAttribute(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "{ var e = Structr.get('this'); e.grant(Structr.find('Principal')[0], 'read', 'write'); }")
+				new NodeAttribute(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "{ var e = Structr.get('this'); e.grant(Structr.find('Principal')[0], 'read', 'write'); }")
 			);
 
-			sourceNode.setProperty(Traits.of(StructrTraits.SCHEMA_NODE).key("schemaMethods"), List.of(method));
+			sourceNode.setProperty(Traits.of(StructrTraits.SCHEMA_NODE).key(AbstractSchemaNodeTraitDefinition.SCHEMA_METHODS_PROPERTY), List.of(method));
 
 			tx.success();
 
@@ -691,14 +697,14 @@ public class ScriptingTest extends StructrTest {
 			// create mail template
 			template = createTestNode(StructrTraits.MAIL_TEMPLATE);
 			template.setProperty(getKey(StructrTraits.MAIL_TEMPLATE, NodeInterfaceTraitDefinition.NAME_PROPERTY), "TEST");
-			template.setProperty(getKey(StructrTraits.MAIL_TEMPLATE, "locale"), "en_EN");
-			template.setProperty(getKey(StructrTraits.MAIL_TEMPLATE, "text"), "This is a template for ${this.name}");
+			template.setProperty(getKey(StructrTraits.MAIL_TEMPLATE, MailTemplateTraitDefinition.LOCALE_PROPERTY), "en_EN");
+			template.setProperty(getKey(StructrTraits.MAIL_TEMPLATE, MailTemplateTraitDefinition.TEXT_PROPERTY), "This is a template for ${this.name}");
 
 			// create mail template
 			template2 = createTestNode(StructrTraits.MAIL_TEMPLATE);
 			template2.setProperty(getKey(StructrTraits.MAIL_TEMPLATE, NodeInterfaceTraitDefinition.NAME_PROPERTY), "TEST2");
-			template2.setProperty(getKey(StructrTraits.MAIL_TEMPLATE, "locale"), "en_EN");
-			template2.setProperty(getKey(StructrTraits.MAIL_TEMPLATE, "text"), "${this.aDouble}");
+			template2.setProperty(getKey(StructrTraits.MAIL_TEMPLATE, MailTemplateTraitDefinition.LOCALE_PROPERTY), "en_EN");
+			template2.setProperty(getKey(StructrTraits.MAIL_TEMPLATE, MailTemplateTraitDefinition.TEXT_PROPERTY), "${this.aDouble}");
 
 			// check existance
 			assertNotNull(testOne);
@@ -2356,14 +2362,14 @@ public class ScriptingTest extends StructrTest {
 
 			app.create(StructrTraits.SCHEMA_METHOD,
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),   "testReturnValueOfGlobalSchemaMethod"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "{ return { name: 'test', value: 123, me: Structr.me }; }")
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "{ return { name: 'test', value: 123, me: Structr.me }; }")
 			);
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"),   app.create(StructrTraits.SCHEMA_NODE, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Test"))),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY),   app.create(StructrTraits.SCHEMA_NODE, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Test"))),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),         "returnTest"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Function"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("readFunction"), "{ return { name: 'test', value: 123, me: Structr.this }; }")
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "Function"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.READ_FUNCTION_PROPERTY), "{ return { name: 'test', value: 123, me: Structr.this }; }")
 			);
 
 			tx.success();
@@ -6384,7 +6390,7 @@ public class ScriptingTest extends StructrTest {
 
 			app.create(StructrTraits.SCHEMA_METHOD,
 				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "userMethod"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "{ $.log('test'); }")
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "{ $.log('test'); }")
 			);
 
 			tx.success();
@@ -6588,7 +6594,7 @@ public class ScriptingTest extends StructrTest {
 
 			app.create(StructrTraits.SCHEMA_METHOD,
 					new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "userMethod"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "{ $.log('test'); }")
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "{ $.log('test'); }")
 			);
 
 			tx.success();
@@ -6772,39 +6778,39 @@ public class ScriptingTest extends StructrTest {
 			final String result9 = (String)Scripting.evaluate(new ActionContext(securityContext), test, "${{ return $.functionInfo('Test'); }}", "test");
 
 
-			assertEquals("Invalid functionInfo() result", "doTest1", result1.get("name"));
-			assertEquals("Invalid functionInfo() result", "doTest2", result2.get("name"));
-			assertEquals("Invalid functionInfo() result", "doTest3", result3.get("name"));
-			assertEquals("Invalid functionInfo() result", "doTest1", result4.get("name"));
-			assertEquals("Invalid functionInfo() result", "doTest1", result5.get("name"));
+			assertEquals("Invalid functionInfo() result", "doTest1", result1.get(NodeInterfaceTraitDefinition.NAME_PROPERTY));
+			assertEquals("Invalid functionInfo() result", "doTest2", result2.get(NodeInterfaceTraitDefinition.NAME_PROPERTY));
+			assertEquals("Invalid functionInfo() result", "doTest3", result3.get(NodeInterfaceTraitDefinition.NAME_PROPERTY));
+			assertEquals("Invalid functionInfo() result", "doTest1", result4.get(NodeInterfaceTraitDefinition.NAME_PROPERTY));
+			assertEquals("Invalid functionInfo() result", "doTest1", result5.get(NodeInterfaceTraitDefinition.NAME_PROPERTY));
 
-			assertEquals("Invalid functionInfo() result", false, result1.get("isStatic"));
-			assertEquals("Invalid functionInfo() result", false, result1.get("isPrivate"));
-			assertEquals("Invalid functionInfo() result", "POST", result1.get("httpVerb"));
-			assertEquals("Invalid functionInfo() result", "string", ((Map)result1.get("parameters")).get("id"));
-			assertEquals("Invalid functionInfo() result", "date", ((Map)result1.get("parameters")).get("date"));
+			assertEquals("Invalid functionInfo() result", false, result1.get(SchemaMethodTraitDefinition.IS_STATIC_PROPERTY));
+			assertEquals("Invalid functionInfo() result", false, result1.get(SchemaMethodTraitDefinition.IS_PRIVATE_PROPERTY));
+			assertEquals("Invalid functionInfo() result", "POST", result1.get(SchemaMethodTraitDefinition.HTTP_VERB_PROPERTY));
+			assertEquals("Invalid functionInfo() result", "string", ((Map)result1.get(SchemaMethodTraitDefinition.PARAMETERS_PROPERTY)).get("id"));
+			assertEquals("Invalid functionInfo() result", "date", ((Map)result1.get(SchemaMethodTraitDefinition.PARAMETERS_PROPERTY)).get("date"));
 
-			assertEquals("Invalid functionInfo() result", true,  result2.get("isStatic"));
-			assertEquals("Invalid functionInfo() result", false, result2.get("isPrivate"));
+			assertEquals("Invalid functionInfo() result", true,  result2.get(SchemaMethodTraitDefinition.IS_STATIC_PROPERTY));
+			assertEquals("Invalid functionInfo() result", false, result2.get(SchemaMethodTraitDefinition.IS_PRIVATE_PROPERTY));
 
-			assertEquals("Invalid functionInfo() result", false, result3.get("isStatic"));
-			assertEquals("Invalid functionInfo() result", true,  result3.get("isPrivate"));
+			assertEquals("Invalid functionInfo() result", false, result3.get(SchemaMethodTraitDefinition.IS_STATIC_PROPERTY));
+			assertEquals("Invalid functionInfo() result", true,  result3.get(SchemaMethodTraitDefinition.IS_PRIVATE_PROPERTY));
 
-			assertEquals("Invalid functionInfo() result", false, result4.get("isStatic"));
-			assertEquals("Invalid functionInfo() result", false, result4.get("isPrivate"));
+			assertEquals("Invalid functionInfo() result", false, result4.get(SchemaMethodTraitDefinition.IS_STATIC_PROPERTY));
+			assertEquals("Invalid functionInfo() result", false, result4.get(SchemaMethodTraitDefinition.IS_PRIVATE_PROPERTY));
 
-			assertEquals("Invalid functionInfo() result", false, result5.get("isStatic"));
-			assertEquals("Invalid functionInfo() result", false, result5.get("isPrivate"));
+			assertEquals("Invalid functionInfo() result", false, result5.get(SchemaMethodTraitDefinition.IS_STATIC_PROPERTY));
+			assertEquals("Invalid functionInfo() result", false, result5.get(SchemaMethodTraitDefinition.IS_PRIVATE_PROPERTY));
 
-			assertEquals("Invalid functionInfo() result", false,    result6.get("isStatic"));
-			assertEquals("Invalid functionInfo() result", false,    result6.get("isPrivate"));
-			assertEquals("Invalid functionInfo() result", "POST",   result6.get("httpVerb"));
-			assertEquals("Invalid functionInfo() result", "string", ((Map)result6.get("parameters")).get("id"));
-			assertEquals("Invalid functionInfo() result", "date",   ((Map)result6.get("parameters")).get("date"));
+			assertEquals("Invalid functionInfo() result", false,    result6.get(SchemaMethodTraitDefinition.IS_STATIC_PROPERTY));
+			assertEquals("Invalid functionInfo() result", false,    result6.get(SchemaMethodTraitDefinition.IS_PRIVATE_PROPERTY));
+			assertEquals("Invalid functionInfo() result", "POST",   result6.get(SchemaMethodTraitDefinition.HTTP_VERB_PROPERTY));
+			assertEquals("Invalid functionInfo() result", "string", ((Map)result6.get(SchemaMethodTraitDefinition.PARAMETERS_PROPERTY)).get("id"));
+			assertEquals("Invalid functionInfo() result", "date",   ((Map)result6.get(SchemaMethodTraitDefinition.PARAMETERS_PROPERTY)).get("date"));
 
-			assertEquals("Invalid functionInfo() error result", "Usage: ${$.functionInfo([type, name])}. Example ${$.functionInfo()}",  result7);
-			assertEquals("Invalid functionInfo() error result", "Usage: ${$.functionInfo([type, name])}. Example ${$.functionInfo()}",  result8);
-			assertEquals("Invalid functionInfo() error result", "Usage: ${$.functionInfo([type, name])}. Example ${$.functionInfo()}",  result9);
+			assertEquals("Invalid functionInfo() error result", FunctionInfoFunction.ERROR_MESSAGE_FUNCTION_INFO_JS,  result7);
+			assertEquals("Invalid functionInfo() error result", FunctionInfoFunction.ERROR_MESSAGE_FUNCTION_INFO_JS,  result8);
+			assertEquals("Invalid functionInfo() error result", FunctionInfoFunction.ERROR_MESSAGE_FUNCTION_INFO_JS,  result9);
 
 			tx.success();
 

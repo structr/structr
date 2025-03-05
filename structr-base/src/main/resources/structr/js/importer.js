@@ -669,8 +669,7 @@ let Importer = {
 
 		let blacklist = [
 			'owner', 'ownerId', 'base', 'type', 'relType', 'createdBy', 'deleted', 'hidden', 'createdDate', 'lastModifiedDate',
-			'visibleToPublicUsers', 'visibleToAuthenticatedUsers', 'visibilityStartDate', 'visibilityEndDate',
-			'lastModifiedBy', 'createdBy', 'grantees', 'structrChangeLog'
+			'visibleToPublicUsers', 'visibleToAuthenticatedUsers', 'lastModifiedBy', 'createdBy', 'grantees', 'structrChangeLog'
 		];
 
 		if ($('input[name=import-type]:checked').val() === 'rel') {
@@ -1235,8 +1234,7 @@ let Importer = {
 
 		let blacklist = [
 			'id', 'owner', 'ownerId', 'base', 'type', 'createdBy', 'deleted', 'hidden', 'createdDate', 'lastModifiedDate',
-			'visibleToPublicUsers', 'visibleToAuthenticatedUsers', 'visibilityStartDate', 'visibilityEndDate',
-			'lastModifiedBy', 'createdBy', 'grantees', 'structrChangeLog'
+			'visibleToPublicUsers', 'visibleToAuthenticatedUsers', 'lastModifiedBy', 'createdBy', 'grantees', 'structrChangeLog'
 		];
 
 		fetch(Structr.rootUrl + '_schema/' + type + '/all').then(response => response.json()).then(typeInfo => {
@@ -1457,8 +1455,7 @@ let Importer = {
 
 		let blacklist = [
 			'owner', 'ownerId', 'base', 'type', 'relType', 'createdBy', 'deleted', 'hidden', 'createdDate', 'lastModifiedDate',
-			'visibleToPublicUsers', 'visibleToAuthenticatedUsers', 'visibilityStartDate', 'visibilityEndDate',
-			'lastModifiedBy', 'createdBy', 'grantees', 'structrChangeLog'
+			'visibleToPublicUsers', 'visibleToAuthenticatedUsers', 'lastModifiedBy', 'createdBy', 'grantees', 'structrChangeLog'
 		];
 
 		if ($('input[name=import-type]:checked').val() === 'rel') {

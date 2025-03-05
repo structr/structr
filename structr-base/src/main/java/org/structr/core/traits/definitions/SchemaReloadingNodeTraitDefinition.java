@@ -26,6 +26,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnModification;
@@ -37,7 +38,7 @@ import java.util.Map;
 public class SchemaReloadingNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public SchemaReloadingNodeTraitDefinition() {
-		super("SchemaReloadingNode");
+		super(StructrTraits.SCHEMA_RELOADING_NODE);
 	}
 
 	@Override

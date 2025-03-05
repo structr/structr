@@ -32,6 +32,7 @@ import org.structr.common.AccessControllable;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.VersionHelper;
+import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
@@ -44,9 +45,13 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.CorsSettingTraitDefinition;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.LocalizationTraitDefinition;
+import org.structr.core.traits.definitions.MailTemplateTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.ResourceAccessTraitDefinition;
+import org.structr.core.traits.definitions.SchemaGrantTraitDefinition;
 import org.structr.core.traits.relationships.SecurityRelationshipDefinition;
 import org.structr.module.StructrModule;
 import org.structr.rest.resource.MaintenanceResource;
@@ -62,6 +67,7 @@ import org.structr.web.entity.dom.*;
 import org.structr.web.entity.event.ActionMapping;
 import org.structr.web.entity.event.ParameterMapping;
 import org.structr.web.maintenance.deploy.*;
+import org.structr.web.traits.definitions.WidgetTraitDefinition;
 import org.structr.websocket.command.CreateComponentCommand;
 
 import java.io.*;
@@ -1060,9 +1066,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final SchemaGrant schemaGrant   = node.as(SchemaGrant.class);
 				grants.add(grant);
 
-				grant.put("id",                          schemaGrant.getUuid());
+				grant.put(GraphObjectTraitDefinition.ID_PROPERTY,                          schemaGrant.getUuid());
 				grant.put("principal",                   Map.of("name", schemaGrant.getPrincipalName()));
-				grant.put("staticSchemaNodeName",        schemaGrant.getStaticSchemaNodeName());
+				grant.put(SchemaGrantTraitDefinition.STATIC_SCHEMA_NODE_NAME_PROPERTY,        schemaGrant.getStaticSchemaNodeName());
 				grant.put("allowRead",                   schemaGrant.allowRead());
 				grant.put("allowWrite",                  schemaGrant.allowWrite());
 				grant.put("allowDelete",                 schemaGrant.allowDelete());
@@ -1072,7 +1078,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final SchemaNode optionalSchemaNode = schemaGrant.getSchemaNode();
 				if (optionalSchemaNode != null) {
 
-					grant.put("schemaNode", Map.of("id", optionalSchemaNode.getUuid()));
+					grant.put(SchemaGrantTraitDefinition.SCHEMA_NODE_PROPERTY, Map.of("id", optionalSchemaNode.getUuid()));
 				}
 			}
 
@@ -1088,22 +1094,22 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		final List<Map<String, Object>> grants = new LinkedList<>();
 		final Traits traits                    = Traits.of(StructrTraits.RESOURCE_ACCESS);
-		final PropertyKey<String> signatureKey = traits.key("signature");
-		final PropertyKey<Long> flagsKey       = traits.key("flags");
+		final PropertyKey<String> signatureKey = traits.key(ResourceAccessTraitDefinition.SIGNATURE_PROPERTY);
+		final PropertyKey<Long> flagsKey       = traits.key(ResourceAccessTraitDefinition.FLAGS_PROPERTY);
 		final App app                          = StructrApp.getInstance();
 
 		final List<String> unreachableGrants = new LinkedList<>();
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface res : app.nodeQuery(StructrTraits.RESOURCE_ACCESS).sort(traits.key("signature")).getAsList()) {
+			for (final NodeInterface res : app.nodeQuery(StructrTraits.RESOURCE_ACCESS).sort(traits.key(ResourceAccessTraitDefinition.SIGNATURE_PROPERTY)).getAsList()) {
 
 				final Map<String, Object> grant = new TreeMap<>();
 				grants.add(grant);
 
-				grant.put(GraphObjectTraitDefinition.ID_PROPERTY,                          res.getProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY)));
-				grant.put("signature",                   res.getProperty(signatureKey));
-				grant.put("flags",                       res.getProperty(flagsKey));
+				grant.put(GraphObjectTraitDefinition.ID_PROPERTY,                             res.getProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY)));
+				grant.put(ResourceAccessTraitDefinition.SIGNATURE_PROPERTY,                   res.getProperty(signatureKey));
+				grant.put(ResourceAccessTraitDefinition.FLAGS_PROPERTY,                       res.getProperty(flagsKey));
 				grant.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        res.isVisibleToPublicUsers());
 				grant.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, res.isVisibleToAuthenticatedUsers());
 
@@ -1146,19 +1152,19 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface corsSetting : app.nodeQuery(StructrTraits.CORS_SETTING).sort(traits.key("requestUri")).getAsList()) {
+			for (final NodeInterface corsSetting : app.nodeQuery(StructrTraits.CORS_SETTING).sort(traits.key(CorsSettingTraitDefinition.REQUEST_URI_PROPERTY)).getAsList()) {
 
 				final Map<String, Object> entry = new LinkedHashMap<>();
 				corsSettings.add(entry);
 
-				putData(entry, "id",               corsSetting.getProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY)));
-				putData(entry, "requestUri",       corsSetting.getProperty(traits.key("requestUri")));
-				putData(entry, "acceptedOrigins",  corsSetting.getProperty(traits.key("acceptedOrigins")));
-				putData(entry, "maxAge",           corsSetting.getProperty(traits.key("maxAge")));
-				putData(entry, "allowMethods",     corsSetting.getProperty(traits.key("allowMethods")));
-				putData(entry, "allowHeaders",     corsSetting.getProperty(traits.key("allowHeaders")));
-				putData(entry, "allowCredentials", corsSetting.getProperty(traits.key("allowCredentials")));
-				putData(entry, "exposeHeaders",    corsSetting.getProperty(traits.key("exposeHeaders")));
+				putData(entry, GraphObjectTraitDefinition.ID_PROPERTY,                corsSetting.getProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY)));
+				putData(entry, CorsSettingTraitDefinition.REQUEST_URI_PROPERTY,       corsSetting.getProperty(traits.key(CorsSettingTraitDefinition.REQUEST_URI_PROPERTY)));
+				putData(entry, CorsSettingTraitDefinition.ACCEPTED_ORIGINS_PROPERTY,  corsSetting.getProperty(traits.key(CorsSettingTraitDefinition.ACCEPTED_ORIGINS_PROPERTY)));
+				putData(entry, CorsSettingTraitDefinition.MAX_AGE_PROPERTY,           corsSetting.getProperty(traits.key(CorsSettingTraitDefinition.MAX_AGE_PROPERTY)));
+				putData(entry, CorsSettingTraitDefinition.ALLOW_METHODS_PROPERTY,     corsSetting.getProperty(traits.key(CorsSettingTraitDefinition.ALLOW_METHODS_PROPERTY)));
+				putData(entry, CorsSettingTraitDefinition.ALLOW_HEADERS_PROPERTY,     corsSetting.getProperty(traits.key(CorsSettingTraitDefinition.ALLOW_HEADERS_PROPERTY)));
+				putData(entry, CorsSettingTraitDefinition.ALLOW_CREDENTIALS_PROPERTY, corsSetting.getProperty(traits.key(CorsSettingTraitDefinition.ALLOW_CREDENTIALS_PROPERTY)));
+				putData(entry, CorsSettingTraitDefinition.EXPOSE_HEADERS_PROPERTY,    corsSetting.getProperty(traits.key(CorsSettingTraitDefinition.EXPOSE_HEADERS_PROPERTY)));
 			}
 
 			tx.success();
@@ -1561,7 +1567,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					putData(entry, GraphObjectTraitDefinition.ID_PROPERTY,                            mailTemplate.getUuid());
 					putData(entry, NodeInterfaceTraitDefinition.NAME_PROPERTY,                        mailTemplate.getName());
 					putData(entry, "filename",                    filename);
-					putData(entry, "locale",                      mailTemplate.getLocale());
+					putData(entry, MailTemplateTraitDefinition.LOCALE_PROPERTY,                      mailTemplate.getLocale());
 					putData(entry, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, mailTemplate.isVisibleToAuthenticatedUsers());
 					putData(entry, GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        mailTemplate.isVisibleToPublicUsers());
 
@@ -1610,7 +1616,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				putData(entry, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, widget.isVisibleToAuthenticatedUsers());
 				putData(entry, GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        widget.isVisibleToPublicUsers());
 				putData(entry, "source",                      widget.getSource());
-				putData(entry, "description",                 widget.getDescription());
+				putData(entry, WidgetTraitDefinition.DESCRIPTION_PROPERTY,                 widget.getDescription());
 				putData(entry, "isWidget",                    widget.isWidget());
 				putData(entry, "treePath",                    widget.getTreePath());
 				putData(entry, "configuration",               widget.getConfiguration());
@@ -2059,10 +2065,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 					isOldExport = true;
 
-					final long flags = ((Number)entry.get("flags")).longValue();
+					final long flags = ((Number)entry.get(ResourceAccessTraitDefinition.FLAGS_PROPERTY)).longValue();
 					if (flags != 0) {
 
-						final String signature = (String)entry.get("signature");
+						final String signature = (String)entry.get(ResourceAccessTraitDefinition.SIGNATURE_PROPERTY);
 
 						final boolean hasAnyNonAuthFlags = ((flags & UiAuthenticator.NON_AUTH_USER_GET) == UiAuthenticator.NON_AUTH_USER_GET) ||
 							((flags & UiAuthenticator.NON_AUTH_USER_PUT) == UiAuthenticator.NON_AUTH_USER_PUT) ||

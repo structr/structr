@@ -30,6 +30,7 @@ import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.web.entity.Widget;
 import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.traits.definitions.WidgetTraitDefinition;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -83,7 +84,7 @@ public class CreateLocalWidgetCommand extends AbstractCommand {
 
 			properties.put(traits.key(GraphObjectTraitDefinition.TYPE_PROPERTY),   StructrTraits.WIDGET);
 			properties.put(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),   name);
-			properties.put(traits.key("source"), source);
+			properties.put(traits.key(WidgetTraitDefinition.SOURCE_PROPERTY), source);
 
 			final Widget widget = app.create(StructrTraits.WIDGET, properties).as(Widget.class);
 

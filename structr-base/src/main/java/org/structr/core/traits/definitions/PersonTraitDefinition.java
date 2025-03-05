@@ -34,6 +34,25 @@ import java.util.Set;
  */
 public class PersonTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String SALUTATION_PROPERTY             = "salutation";
+	public static final String FIRST_NAME_PROPERTY             = "firstName";
+	public static final String MIDDLE_NAME_OR_INITIAL_PROPERTY = "middleNameOrInitial";
+	public static final String LASTNAME_PROPERTY               = "lastName";
+	public static final String EMAIL_PROPERTY                  = "eMail";
+	public static final String EMAIL2_PROPERTY                 = "eMail2";
+	public static final String PHONE_NUMBER1_PROPERTY          = "phoneNumber1";
+	public static final String PHONE_NUMBER2_PROPERTY          = "phoneNumber2";
+	public static final String FAX_NUMBER1_PROPERTY            = "faxNumber1";
+	public static final String FAX_NUMBER2_PROPERTY            = "faxNumber2";
+	public static final String COUNTRY_PROPERTY                = "country";
+	public static final String STREET_PROPERTY                 = "street";
+	public static final String ZIP_CODE_PROPERTY               = "zipCode";
+	public static final String CITY_PROPERTY                   = "city";
+	public static final String STATE_PROPERTY                  = "state";
+	public static final String BIRTHDAY_PROPERTY               = "birthday";
+	public static final String GENDER_PROPERTY                 = "gender";
+	public static final String NEWSLETTER_PROPERTY             = "newsletter";
+
 	public PersonTraitDefinition() {
 		super(StructrTraits.PERSON);
 	}
@@ -49,24 +68,24 @@ public class PersonTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<String> salutationProperty          = new StringProperty("salutation");
-		final Property<String> firstNameProperty           = new StringProperty("firstName");
-		final Property<String> middleNameOrInitialProperty = new StringProperty("middleNameOrInitial");
-		final Property<String> lastNameProperty            = new StringProperty("lastName");
-		final Property<String> eMailProperty               = new StringProperty("eMail");
-		final Property<String> eMail2Property              = new StringProperty("eMail2");
-		final Property<String> phoneNumber1Property        = new StringProperty("phoneNumber1");
-		final Property<String> phoneNumber2Property        = new StringProperty("phoneNumber2");
-		final Property<String> faxNumber1Property          = new StringProperty("faxNumber1");
-		final Property<String> faxNumber2Property          = new StringProperty("faxNumber2");
-		final Property<String> countryProperty             = new StringProperty("country");
-		final Property<String> streetProperty              = new StringProperty("street");
-		final Property<String> zipCodeProperty             = new StringProperty("zipCode");
-		final Property<String> cityProperty                = new StringProperty("city");
-		final Property<String> stateProperty               = new StringProperty("state");
-		final Property<Date> birthdayProperty              = new DateProperty("birthday");
-		final Property<String> genderProperty              = new StringProperty("gender");
-		final Property<Boolean> newsletterProperty         = new BooleanProperty("newsletter");
+		final Property<String> salutationProperty          = new StringProperty(SALUTATION_PROPERTY);
+		final Property<String> firstNameProperty           = new StringProperty(FIRST_NAME_PROPERTY);
+		final Property<String> middleNameOrInitialProperty = new StringProperty(MIDDLE_NAME_OR_INITIAL_PROPERTY);
+		final Property<String> lastNameProperty            = new StringProperty(LASTNAME_PROPERTY);
+		final Property<String> eMailProperty               = new StringProperty(EMAIL_PROPERTY);
+		final Property<String> eMail2Property              = new StringProperty(EMAIL2_PROPERTY);
+		final Property<String> phoneNumber1Property        = new StringProperty(PHONE_NUMBER1_PROPERTY);
+		final Property<String> phoneNumber2Property        = new StringProperty(PHONE_NUMBER2_PROPERTY);
+		final Property<String> faxNumber1Property          = new StringProperty(FAX_NUMBER1_PROPERTY);
+		final Property<String> faxNumber2Property          = new StringProperty(FAX_NUMBER2_PROPERTY);
+		final Property<String> countryProperty             = new StringProperty(COUNTRY_PROPERTY);
+		final Property<String> streetProperty              = new StringProperty(STREET_PROPERTY);
+		final Property<String> zipCodeProperty             = new StringProperty(ZIP_CODE_PROPERTY);
+		final Property<String> cityProperty                = new StringProperty(CITY_PROPERTY);
+		final Property<String> stateProperty               = new StringProperty(STATE_PROPERTY);
+		final Property<Date> birthdayProperty              = new DateProperty(BIRTHDAY_PROPERTY);
+		final Property<String> genderProperty              = new StringProperty(GENDER_PROPERTY);
+		final Property<Boolean> newsletterProperty         = new BooleanProperty(NEWSLETTER_PROPERTY);
 
 		return newSet(
 			salutationProperty,
@@ -97,15 +116,15 @@ public class PersonTraitDefinition extends AbstractNodeTraitDefinition {
 
 			PropertyView.Public,
 			newSet(
-				"salutation", "firstName", "middleNameOrInitial", "lastName",
-				"eMail", "country", "street", "zipCode", "city", "state"
+					SALUTATION_PROPERTY, FIRST_NAME_PROPERTY, MIDDLE_NAME_OR_INITIAL_PROPERTY, LASTNAME_PROPERTY,
+					EMAIL_PROPERTY, COUNTRY_PROPERTY, STREET_PROPERTY, ZIP_CODE_PROPERTY, CITY_PROPERTY, STATE_PROPERTY
 			),
 			PropertyView.Ui,
 			newSet(
-				"salutation", "firstName", "middleNameOrInitial", "lastName",
-				"eMail", "eMail2", "phoneNumber1", "phoneNumber2", "faxNumber1", "faxNumber2",
-				"country", "street", "zipCode", "city", "state",
-				"birthday", "gender", "newsletter"
+					SALUTATION_PROPERTY, FIRST_NAME_PROPERTY, MIDDLE_NAME_OR_INITIAL_PROPERTY, LASTNAME_PROPERTY,
+					EMAIL_PROPERTY, EMAIL2_PROPERTY, PHONE_NUMBER1_PROPERTY, PHONE_NUMBER2_PROPERTY, FAX_NUMBER1_PROPERTY, FAX_NUMBER2_PROPERTY,
+					COUNTRY_PROPERTY, STREET_PROPERTY, ZIP_CODE_PROPERTY, CITY_PROPERTY, STATE_PROPERTY,
+					BIRTHDAY_PROPERTY, GENDER_PROPERTY, NEWSLETTER_PROPERTY
 			)
 		);
 	}

@@ -36,8 +36,11 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GroupTraitDefinition;
+import org.structr.core.traits.definitions.MailTemplateTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
+import org.structr.core.traits.definitions.SchemaRelationshipNodeTraitDefinition;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.rest.common.StructrGraphQLTest;
 import org.testng.annotations.Test;
@@ -194,43 +197,43 @@ public class GraphQLTest extends StructrGraphQLTest {
 			);
 
 			templates.add(app.create(StructrTraits.MAIL_TEMPLATE,
-				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key("text"),   "MailTemplate4"),
-				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key("locale"), "de_DE"),
+				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key(MailTemplateTraitDefinition.TEXT_PROPERTY),   "MailTemplate4"),
+				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key(MailTemplateTraitDefinition.LOCALE_PROPERTY), "de_DE"),
 				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),   "zrtsga"),
 				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), team.get(2))
 			));
 
 			templates.add(app.create(StructrTraits.MAIL_TEMPLATE,
-				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key("text"),   "MailTemplate2"),
-				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key("locale"), "de_DE"),
+				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key(MailTemplateTraitDefinition.TEXT_PROPERTY),   "MailTemplate2"),
+				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key(MailTemplateTraitDefinition.LOCALE_PROPERTY), "de_DE"),
 				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),   "lertdf"),
 				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), team.get(0))
 			));
 
 			templates.add(app.create(StructrTraits.MAIL_TEMPLATE,
-				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key("text"),   "MailTemplate5"),
-				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key("locale"), "de_DE"),
+				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key(MailTemplateTraitDefinition.TEXT_PROPERTY),   "MailTemplate5"),
+				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key(MailTemplateTraitDefinition.LOCALE_PROPERTY), "de_DE"),
 				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),   "tzegsg"),
 				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), team.get(3))
 			));
 
 			templates.add(app.create(StructrTraits.MAIL_TEMPLATE,
-				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key("text"),   "MailTemplate3"),
-				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key("locale"), "de_DE"),
+				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key(MailTemplateTraitDefinition.TEXT_PROPERTY),   "MailTemplate3"),
+				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key(MailTemplateTraitDefinition.LOCALE_PROPERTY), "de_DE"),
 				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),   "asgw"),
 				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), team.get(1))
 			));
 
 			templates.add(app.create(StructrTraits.MAIL_TEMPLATE,
-				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key("text"),   "MailTemplate6"),
-				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key("locale"), "de_DE"),
+				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key(MailTemplateTraitDefinition.TEXT_PROPERTY),   "MailTemplate6"),
+				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key(MailTemplateTraitDefinition.LOCALE_PROPERTY), "de_DE"),
 				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),   "dfjgr"),
 				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), team.get(4))
 			));
 
 			templates.add(app.create(StructrTraits.MAIL_TEMPLATE,
-				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key("text"),   "MailTemplate1"),
-				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key("locale"), "de_DE"),
+				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key(MailTemplateTraitDefinition.TEXT_PROPERTY),   "MailTemplate1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key(MailTemplateTraitDefinition.LOCALE_PROPERTY), "de_DE"),
 				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),   "abcdef"),
 				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), team.get(0))
 			));
@@ -1174,18 +1177,18 @@ public class GraphQLTest extends StructrGraphQLTest {
 			final NodeInterface rel = app.create(StructrTraits.SCHEMA_RELATIONSHIP_NODE,
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.SOURCE_NODE_PROPERTY), projectType),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.TARGET_NODE_PROPERTY), taskType),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("relationshipType"), "TASK"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceMultiplicity"), "1"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetMultiplicity"), "*"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceJsonName"), "project"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetJsonName"), "tasks")
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.RELATIONSHIP_TYPE_PROPERTY), "TASK"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.SOURCE_MULTIPLICITY_PROPERTY), "1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.TARGET_MULTIPLICITY_PROPERTY), "*"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.SOURCE_JSON_NAME_PROPERTY), "project"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.TARGET_JSON_NAME_PROPERTY), "tasks")
 			);
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"),   projectType),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY),   projectType),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),         "taskCount"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Count"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("format"),       "tasks")
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "Count"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.FORMAT_PROPERTY),       "tasks")
 			);
 
 			tx.success();

@@ -41,6 +41,15 @@ import java.util.Set;
  */
 public final class CorsSettingTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String REQUEST_URI_PROPERTY        = "requestUri";
+	public static final String ACCEPTED_ORIGINS_PROPERTY   = "acceptedOrigins";
+	public static final String MAX_AGE_PROPERTY            = "maxAge";
+	public static final String ALLOW_METHODS_PROPERTY      = "allowMethods";
+	public static final String ALLOW_HEADERS_PROPERTY      = "allowHeaders";
+	public static final String ALLOW_CREDENTIALS_PROPERTY  = "allowCredentials";
+	public static final String EXPOSE_HEADERS_PROPERTY     = "exposeHeaders";
+	public static final String IS_CORS_SETTING_PROPERTY    = "isCorsSetting";
+
 	public CorsSettingTraitDefinition() {
 		super(StructrTraits.CORS_SETTING);
 	}
@@ -67,7 +76,7 @@ public final class CorsSettingTraitDefinition extends AbstractNodeTraitDefinitio
 
 					final Traits traits = obj.getTraits();
 
-					return ValidationHelper.isValidStringNotBlank(obj, traits.key("requestUri"), errorBuffer);
+					return ValidationHelper.isValidStringNotBlank(obj, traits.key(REQUEST_URI_PROPERTY), errorBuffer);
 				}
 			}
 		);
@@ -84,14 +93,14 @@ public final class CorsSettingTraitDefinition extends AbstractNodeTraitDefinitio
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<String>               requestUri        = new StringProperty("requestUri").indexed();
-		final Property<String>               acceptedOrigins   = new StringProperty("acceptedOrigins").indexed();
-		final Property<Integer>              maxAge            = new IntProperty("maxAge").indexed();
-		final Property<String>               allowMethods      = new StringProperty("allowMethods").indexed();
-		final Property<String>               allowHeaders      = new StringProperty("allowHeaders").indexed();
-		final Property<String>               allowCredentials  = new StringProperty("allowCredentials").indexed();
-		final Property<String>               exposeHeaders     = new StringProperty("exposeHeaders").indexed();
-		final Property<Boolean>              isCorsSetting     = new ConstantBooleanProperty("isCorsSetting", true);
+		final Property<String>               requestUri        = new StringProperty(REQUEST_URI_PROPERTY).indexed();
+		final Property<String>               acceptedOrigins   = new StringProperty(ACCEPTED_ORIGINS_PROPERTY).indexed();
+		final Property<Integer>              maxAge            = new IntProperty(MAX_AGE_PROPERTY).indexed();
+		final Property<String>               allowMethods      = new StringProperty(ALLOW_METHODS_PROPERTY).indexed();
+		final Property<String>               allowHeaders      = new StringProperty(ALLOW_HEADERS_PROPERTY).indexed();
+		final Property<String>               allowCredentials  = new StringProperty(ALLOW_CREDENTIALS_PROPERTY).indexed();
+		final Property<String>               exposeHeaders     = new StringProperty(EXPOSE_HEADERS_PROPERTY).indexed();
+		final Property<Boolean>              isCorsSetting     = new ConstantBooleanProperty(IS_CORS_SETTING_PROPERTY, true);
 
 		return newSet(
 			requestUri,

@@ -37,6 +37,7 @@ import org.structr.payment.impl.paypal.PayPalErrorToken;
 import org.structr.payment.impl.paypal.PayPalPaymentProvider;
 import org.structr.payment.impl.stripe.StripePaymentProvider;
 import org.structr.payment.impl.test.TestPaymentProvider;
+import org.structr.payment.traits.definitions.PaymentNodeTraitDefinition;
 
 /**
  *
@@ -62,12 +63,12 @@ public class PaymentNodeTraitWrapper extends AbstractNodeTraitWrapper implements
 
 	@Override
 	public String getDescription() {
-		return getProperty(traits.key("description"));
+		return getProperty(traits.key(PaymentNodeTraitDefinition.DESCRIPTION_PROPERTY));
 	}
 
 	@Override
 	public void setDescription(final String description) throws FrameworkException {
-		setProperty(traits.key("description"), description);
+		setProperty(traits.key(PaymentNodeTraitDefinition.DESCRIPTION_PROPERTY), description);
 	}
 
 	@Override

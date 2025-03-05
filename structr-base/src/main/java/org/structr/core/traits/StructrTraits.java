@@ -41,6 +41,7 @@ public class StructrTraits {
 	public static final String SCHEMA_METHOD            = "SchemaMethod";
 	public static final String SCHEMA_VIEW              = "SchemaView";
 	public static final String SCHEMA_GRANT             = "SchemaGrant";
+	public static final String SCHEMA_RELOADING_NODE    = "SchemaReloadingNode";
 	public static final String SCHEMA_RELATIONSHIP_NODE = "SchemaRelationshipNode";
 	public static final String SCHEMA_NODE_METHOD       = "SchemaNodeMethod";
 	public static final String LINK_SOURCE              = "LinkSource";

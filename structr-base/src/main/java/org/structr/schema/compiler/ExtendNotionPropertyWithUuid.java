@@ -28,6 +28,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
 
 /**
  *
@@ -56,7 +57,7 @@ public class ExtendNotionPropertyWithUuid implements MigrationHandler {
 					if (type != null) {
 
 						final NodeInterface property = app.nodeQuery(StructrTraits.SCHEMA_PROPERTY)
-							.and(traits.key("schemaNode"), type)
+							.and(traits.key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), type)
 							.and(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), propertyName).getFirst();
 
 						if (property != null) {
@@ -65,7 +66,7 @@ public class ExtendNotionPropertyWithUuid implements MigrationHandler {
 							final String format = property.as(SchemaProperty.class).getFormat();
 
 							// store corrected version of format property
-							property.setProperty(traits.key("format"), format + ", id");
+							property.setProperty(traits.key(SchemaPropertyTraitDefinition.FORMAT_PROPERTY), format + ", id");
 						}
 					}
 				}

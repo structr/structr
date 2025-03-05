@@ -20,6 +20,7 @@ package org.structr.test.common;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.graph.PropagationMode;
 import org.structr.common.AccessControllable;
 import org.structr.common.AccessMode;
 import org.structr.common.Permission;
@@ -40,6 +41,9 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GroupTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.SchemaGrantTraitDefinition;
+import org.structr.core.traits.definitions.SchemaNodeTraitDefinition;
+import org.structr.core.traits.definitions.SchemaRelationshipNodeTraitDefinition;
 import org.testng.annotations.Test;
 
 import java.util.List;
@@ -74,11 +78,11 @@ public class PermissionResolutionTest extends StructrTest {
 			rel = app.create(StructrTraits.SCHEMA_RELATIONSHIP_NODE,
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.SOURCE_NODE_PROPERTY), t1),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.TARGET_NODE_PROPERTY), t2),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("relationshipType"), "RELATED"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceMultiplicity"), "1"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetMultiplicity"), "1"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceJsonName"), "source"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetJsonName"), "target")
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.RELATIONSHIP_TYPE_PROPERTY), "RELATED"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.SOURCE_MULTIPLICITY_PROPERTY), "1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.TARGET_MULTIPLICITY_PROPERTY), "1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.SOURCE_JSON_NAME_PROPERTY), "source"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.TARGET_JSON_NAME_PROPERTY), "target")
 			);
 
 			tx.success();
@@ -138,8 +142,8 @@ public class PermissionResolutionTest extends StructrTest {
 		// because the resolution direction is wrong.
 		try (final Tx tx = app.tx()) {
 
-			rel.setProperty(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("permissionPropagation"), "In");
-			rel.setProperty(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("readPropagation"), "Add");
+			rel.setProperty(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.PERMISSION_PROPAGATION_PROPERTY), "In");
+			rel.setProperty(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.READ_PROPAGATION_PROPERTY), "Add");
 
 			tx.success();
 
@@ -165,8 +169,8 @@ public class PermissionResolutionTest extends StructrTest {
 		// because the resolution direction is correct
 		try (final Tx tx = app.tx()) {
 
-			rel.setProperty(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("permissionPropagation"), "Out");
-			rel.setProperty(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("readPropagation"), "Add");
+			rel.setProperty(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.PERMISSION_PROPAGATION_PROPERTY), "Out");
+			rel.setProperty(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.READ_PROPAGATION_PROPERTY), "Add");
 
 			tx.success();
 
@@ -192,8 +196,8 @@ public class PermissionResolutionTest extends StructrTest {
 		// because both resolution directions are enabled
 		try (final Tx tx = app.tx()) {
 
-			rel.setProperty(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("permissionPropagation"), "Both");
-			rel.setProperty(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("readPropagation"), "Add");
+			rel.setProperty(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.PERMISSION_PROPAGATION_PROPERTY), "Both");
+			rel.setProperty(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.READ_PROPAGATION_PROPERTY), "Add");
 
 			tx.success();
 
@@ -219,8 +223,8 @@ public class PermissionResolutionTest extends StructrTest {
 		// object invisible again.
 		try (final Tx tx = app.tx()) {
 
-			rel.setProperty(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("permissionPropagation"), "None");
-			rel.setProperty(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("readPropagation"), "Add");
+			rel.setProperty(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.PERMISSION_PROPAGATION_PROPERTY), "None");
+			rel.setProperty(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.READ_PROPAGATION_PROPERTY), "Add");
 
 			tx.success();
 
@@ -257,11 +261,11 @@ public class PermissionResolutionTest extends StructrTest {
 			uuid = app.create(StructrTraits.SCHEMA_RELATIONSHIP_NODE,
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.SOURCE_NODE_PROPERTY), type),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.TARGET_NODE_PROPERTY), type),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("relationshipType"), "NEXT"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceMultiplicity"), "1"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetMultiplicity"), "1"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceJsonName"), "prev"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetJsonName"), "next")
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.RELATIONSHIP_TYPE_PROPERTY), "NEXT"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.SOURCE_MULTIPLICITY_PROPERTY), "1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.TARGET_MULTIPLICITY_PROPERTY), "1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.SOURCE_JSON_NAME_PROPERTY), "prev"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.TARGET_JSON_NAME_PROPERTY), "next")
 			).getUuid();
 
 			app.create(StructrTraits.USER, "tester");
@@ -308,22 +312,22 @@ public class PermissionResolutionTest extends StructrTest {
 		}
 
 		testGranted(projectType, new boolean[]{false, false, false, false});
-		setPermissionResolution(uuid, Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("readPropagation"), "Add");
+		setPermissionResolution(uuid, Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.READ_PROPAGATION_PROPERTY), PropagationMode.Add.name());
 		testGranted(projectType, new boolean[]{true, false, false, false});
-		setPermissionResolution(uuid, Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("writePropagation"), "Add");
+		setPermissionResolution(uuid, Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.WRITE_PROPAGATION_PROPERTY), PropagationMode.Add.name());
 		testGranted(projectType, new boolean[]{true, true, false, false});
-		setPermissionResolution(uuid, Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("deletePropagation"), "Add");
+		setPermissionResolution(uuid, Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.DELETE_PROPAGATION_PROPERTY), PropagationMode.Add.name());
 		testGranted(projectType, new boolean[]{true, true, true, false});
-		setPermissionResolution(uuid, Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("accessControlPropagation"), "Add");
+		setPermissionResolution(uuid, Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.ACCESS_CONTROL_PROPAGATION_PROPERTY), PropagationMode.Add.name());
 		testGranted(projectType, new boolean[]{true, true, true, true});
 
-		setPermissionResolution(uuid, Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("readPropagation"), "Remove");
+		setPermissionResolution(uuid, Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.READ_PROPAGATION_PROPERTY), PropagationMode.Remove.name());
 		testGranted(projectType, new boolean[]{false, true, true, true});
-		setPermissionResolution(uuid, Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("writePropagation"), "Remove");
+		setPermissionResolution(uuid, Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.WRITE_PROPAGATION_PROPERTY), PropagationMode.Remove.name());
 		testGranted(projectType, new boolean[]{false, false, true, true});
-		setPermissionResolution(uuid, Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("deletePropagation"), "Remove");
+		setPermissionResolution(uuid, Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.DELETE_PROPAGATION_PROPERTY), PropagationMode.Remove.name());
 		testGranted(projectType, new boolean[]{false, false, false, true});
-		setPermissionResolution(uuid, Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("accessControlPropagation"), "Remove");
+		setPermissionResolution(uuid, Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.ACCESS_CONTROL_PROPAGATION_PROPERTY), PropagationMode.Remove.name());
 		testGranted(projectType, new boolean[]{false, false, false, false});
 	}
 
@@ -341,18 +345,18 @@ public class PermissionResolutionTest extends StructrTest {
 			uuid = app.create(StructrTraits.SCHEMA_RELATIONSHIP_NODE,
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.SOURCE_NODE_PROPERTY), type),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.TARGET_NODE_PROPERTY), type),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("relationshipType"), "NEXT"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceMultiplicity"), "1"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetMultiplicity"), "1"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceJsonName"), "prev"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetJsonName"), "next")
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.RELATIONSHIP_TYPE_PROPERTY), "NEXT"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.SOURCE_MULTIPLICITY_PROPERTY), "1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.TARGET_MULTIPLICITY_PROPERTY), "1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.SOURCE_JSON_NAME_PROPERTY), "prev"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.TARGET_JSON_NAME_PROPERTY), "next")
 			).getUuid();
 
 			final NodeInterface moo  = app.create(StructrTraits.SCHEMA_NODE, "Moo");
 			final NodeInterface test = app.create(StructrTraits.SCHEMA_NODE, "Test");
 
-			moo.setProperty(Traits.of(StructrTraits.SCHEMA_NODE).key("inheritedTraits"), new String[] { "Project" });
-			test.setProperty(Traits.of(StructrTraits.SCHEMA_NODE).key("inheritedTraits"), new String[] { "Project" });
+			moo.setProperty(Traits.of(StructrTraits.SCHEMA_NODE).key(SchemaNodeTraitDefinition.INHERITED_TRAITS_PROPERTY), new String[] { "Project" });
+			test.setProperty(Traits.of(StructrTraits.SCHEMA_NODE).key(SchemaNodeTraitDefinition.INHERITED_TRAITS_PROPERTY), new String[] { "Project" });
 
 			app.create(StructrTraits.USER, "tester");
 
@@ -400,22 +404,22 @@ public class PermissionResolutionTest extends StructrTest {
 		}
 
 		testGranted(projectType, new boolean[] { false, false, false, false });
-		setPermissionResolution(uuid, Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("readPropagation"), "Add");
+		setPermissionResolution(uuid, Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.READ_PROPAGATION_PROPERTY), "Add");
 		testGranted(projectType, new boolean[] { true, false, false, false });
-		setPermissionResolution(uuid, Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("writePropagation"), "Add");
+		setPermissionResolution(uuid, Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.WRITE_PROPAGATION_PROPERTY), "Add");
 		testGranted(projectType, new boolean[] { true, true, false, false });
-		setPermissionResolution(uuid, Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("deletePropagation"), "Add");
+		setPermissionResolution(uuid, Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.DELETE_PROPAGATION_PROPERTY), "Add");
 		testGranted(projectType, new boolean[] { true, true, true, false });
-		setPermissionResolution(uuid, Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("accessControlPropagation"), "Add");
+		setPermissionResolution(uuid, Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.ACCESS_CONTROL_PROPAGATION_PROPERTY), "Add");
 		testGranted(projectType, new boolean[] { true, true, true, true });
 
-		setPermissionResolution(uuid, Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("readPropagation"), "Remove");
+		setPermissionResolution(uuid, Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.READ_PROPAGATION_PROPERTY), "Remove");
 		testGranted(projectType, new boolean[] { false, true, true, true });
-		setPermissionResolution(uuid, Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("writePropagation"), "Remove");
+		setPermissionResolution(uuid, Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.WRITE_PROPAGATION_PROPERTY), "Remove");
 		testGranted(projectType, new boolean[] { false, false, true, true });
-		setPermissionResolution(uuid, Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("deletePropagation"), "Remove");
+		setPermissionResolution(uuid, Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.DELETE_PROPAGATION_PROPERTY), "Remove");
 		testGranted(projectType, new boolean[] { false, false, false, true });
-		setPermissionResolution(uuid, Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("accessControlPropagation"), "Remove");
+		setPermissionResolution(uuid, Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.ACCESS_CONTROL_PROPAGATION_PROPERTY), "Remove");
 		testGranted(projectType, new boolean[] { false, false, false, false });
 	}
 
@@ -454,7 +458,7 @@ public class PermissionResolutionTest extends StructrTest {
 			// create grant
 			final NodeInterface projectNode = app.nodeQuery(StructrTraits.SCHEMA_NODE).andName("Project").getFirst();
 			final NodeInterface grant      = app.create(StructrTraits.SCHEMA_GRANT,
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("schemaNode"),          projectNode),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.SCHEMA_NODE_PROPERTY),          projectNode),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("principal"),           testGroup1),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("allowRead"),           false),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("allowWrite"),          false),
@@ -658,7 +662,7 @@ public class PermissionResolutionTest extends StructrTest {
 
 			final NodeInterface rel = app.getNodeById(StructrTraits.SCHEMA_RELATIONSHIP_NODE, uuid);
 
-			rel.setProperty(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("permissionPropagation"), "Both");
+			rel.setProperty(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.PERMISSION_PROPAGATION_PROPERTY), "Both");
 			rel.setProperty(key, value);
 
 			tx.success();

@@ -34,6 +34,9 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.SchemaGrantTraitDefinition;
+import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
+import org.structr.core.traits.definitions.SchemaRelationshipNodeTraitDefinition;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.common.StructrTest;
 import org.testng.annotations.Test;
@@ -1892,7 +1895,7 @@ public class ValidationTest extends StructrTest {
 			final ErrorToken token5 = tokens.get(4);
 
 			assertEquals("Invalid SchemaRelationshipNode validation result", StructrTraits.SCHEMA_RELATIONSHIP_NODE, token1.getType());
-			assertEquals("Invalid SchemaRelationshipNode validation result", "relationshipType", token1.getProperty());
+			assertEquals("Invalid SchemaRelationshipNode validation result", SchemaRelationshipNodeTraitDefinition.RELATIONSHIP_TYPE_PROPERTY, token1.getProperty());
 			assertEquals("Invalid SchemaRelationshipNode validation result", "must_not_be_empty", token1.getToken());
 
 			assertEquals("Invalid SchemaRelationshipNode validation result", StructrTraits.SCHEMA_RELATIONSHIP_NODE, token2.getType());
@@ -1900,7 +1903,7 @@ public class ValidationTest extends StructrTest {
 			assertEquals("Invalid SchemaRelationshipNode validation result", "must_not_be_empty", token2.getToken());
 
 			assertEquals("Invalid SchemaRelationshipNode validation result", StructrTraits.SCHEMA_RELATIONSHIP_NODE, token3.getType());
-			assertEquals("Invalid SchemaRelationshipNode validation result", "sourceType", token3.getProperty());
+			assertEquals("Invalid SchemaRelationshipNode validation result", SchemaRelationshipNodeTraitDefinition.SOURCE_TYPE_PROPERTY, token3.getProperty());
 			assertEquals("Invalid SchemaRelationshipNode validation result", "must_not_be_empty", token3.getToken());
 
 			assertEquals("Invalid SchemaRelationshipNode validation result", StructrTraits.SCHEMA_RELATIONSHIP_NODE, token4.getType());
@@ -1908,14 +1911,14 @@ public class ValidationTest extends StructrTest {
 			assertEquals("Invalid SchemaRelationshipNode validation result", "must_not_be_empty", token4.getToken());
 
 			assertEquals("Invalid SchemaRelationshipNode validation result", StructrTraits.SCHEMA_RELATIONSHIP_NODE, token5.getType());
-			assertEquals("Invalid SchemaRelationshipNode validation result", "targetType", token5.getProperty());
+			assertEquals("Invalid SchemaRelationshipNode validation result", SchemaRelationshipNodeTraitDefinition.TARGET_TYPE_PROPERTY, token5.getProperty());
 			assertEquals("Invalid SchemaRelationshipNode validation result", "must_not_be_empty", token5.getToken());
 		}
 
 		try (final Tx tx = app.tx()) {
 
 			app.create(StructrTraits.SCHEMA_RELATIONSHIP_NODE,
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("relationshipType"), "test"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.RELATIONSHIP_TYPE_PROPERTY), "test"),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.SOURCE_NODE_PROPERTY), null),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.TARGET_NODE_PROPERTY), null)
 			);
@@ -1941,7 +1944,7 @@ public class ValidationTest extends StructrTest {
 			assertEquals("Invalid SchemaRelationshipNode validation result", "must_not_be_empty", token1.getToken());
 
 			assertEquals("Invalid SchemaRelationshipNode validation result", StructrTraits.SCHEMA_RELATIONSHIP_NODE, token2.getType());
-			assertEquals("Invalid SchemaRelationshipNode validation result", "sourceType", token2.getProperty());
+			assertEquals("Invalid SchemaRelationshipNode validation result", SchemaRelationshipNodeTraitDefinition.SOURCE_TYPE_PROPERTY, token2.getProperty());
 			assertEquals("Invalid SchemaRelationshipNode validation result", "must_not_be_empty", token2.getToken());
 
 			assertEquals("Invalid SchemaRelationshipNode validation result", StructrTraits.SCHEMA_RELATIONSHIP_NODE, token3.getType());
@@ -1949,7 +1952,7 @@ public class ValidationTest extends StructrTest {
 			assertEquals("Invalid SchemaRelationshipNode validation result", "must_not_be_empty", token3.getToken());
 
 			assertEquals("Invalid SchemaRelationshipNode validation result", StructrTraits.SCHEMA_RELATIONSHIP_NODE, token4.getType());
-			assertEquals("Invalid SchemaRelationshipNode validation result", "targetType", token4.getProperty());
+			assertEquals("Invalid SchemaRelationshipNode validation result", SchemaRelationshipNodeTraitDefinition.TARGET_TYPE_PROPERTY, token4.getProperty());
 			assertEquals("Invalid SchemaRelationshipNode validation result", "must_not_be_empty", token4.getToken());
 		}
 
@@ -1960,7 +1963,7 @@ public class ValidationTest extends StructrTest {
 			);
 
 			app.create(StructrTraits.SCHEMA_RELATIONSHIP_NODE,
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("relationshipType"), "test"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.RELATIONSHIP_TYPE_PROPERTY), "test"),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.SOURCE_NODE_PROPERTY), node),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.TARGET_NODE_PROPERTY), null)
 			);
@@ -1983,7 +1986,7 @@ public class ValidationTest extends StructrTest {
 			assertEquals("Invalid SchemaRelationshipNode validation result", "must_not_be_empty", token1.getToken());
 
 			assertEquals("Invalid SchemaRelationshipNode validation result", StructrTraits.SCHEMA_RELATIONSHIP_NODE, token2.getType());
-			assertEquals("Invalid SchemaRelationshipNode validation result", "targetType", token2.getProperty());
+			assertEquals("Invalid SchemaRelationshipNode validation result", SchemaRelationshipNodeTraitDefinition.TARGET_TYPE_PROPERTY, token2.getProperty());
 			assertEquals("Invalid SchemaRelationshipNode validation result", "must_not_be_empty", token2.getToken());
 		}
 
@@ -1994,7 +1997,7 @@ public class ValidationTest extends StructrTest {
 			);
 
 			app.create(StructrTraits.SCHEMA_RELATIONSHIP_NODE,
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("relationshipType"), "test"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.RELATIONSHIP_TYPE_PROPERTY), "test"),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.SOURCE_NODE_PROPERTY), null),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.TARGET_NODE_PROPERTY), node)
 			);
@@ -2017,15 +2020,15 @@ public class ValidationTest extends StructrTest {
 			assertEquals("Invalid SchemaRelationshipNode validation result", "must_not_be_empty", token1.getToken());
 
 			assertEquals("Invalid SchemaRelationshipNode validation result", StructrTraits.SCHEMA_RELATIONSHIP_NODE, token2.getType());
-			assertEquals("Invalid SchemaRelationshipNode validation result", "sourceType", token2.getProperty());
+			assertEquals("Invalid SchemaRelationshipNode validation result", SchemaRelationshipNodeTraitDefinition.SOURCE_TYPE_PROPERTY, token2.getProperty());
 			assertEquals("Invalid SchemaRelationshipNode validation result", "must_not_be_empty", token2.getToken());
 		}
 
 		try (final Tx tx = app.tx()) {
 
 			app.create(StructrTraits.SCHEMA_RELATIONSHIP_NODE,
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("relationshipType"), "test"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceType"), StructrTraits.GROUP),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.RELATIONSHIP_TYPE_PROPERTY), "test"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.SOURCE_TYPE_PROPERTY), StructrTraits.GROUP),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.TARGET_NODE_PROPERTY), null)
 			);
 
@@ -2052,16 +2055,16 @@ public class ValidationTest extends StructrTest {
 			assertEquals("Invalid SchemaRelationshipNode validation result", "must_not_be_empty", token2.getToken());
 
 			assertEquals("Invalid SchemaRelationshipNode validation result", StructrTraits.SCHEMA_RELATIONSHIP_NODE, token3.getType());
-			assertEquals("Invalid SchemaRelationshipNode validation result", "targetType", token3.getProperty());
+			assertEquals("Invalid SchemaRelationshipNode validation result", SchemaRelationshipNodeTraitDefinition.TARGET_TYPE_PROPERTY, token3.getProperty());
 			assertEquals("Invalid SchemaRelationshipNode validation result", "must_not_be_empty", token3.getToken());
 		}
 
 		try (final Tx tx = app.tx()) {
 
 			app.create(StructrTraits.SCHEMA_RELATIONSHIP_NODE,
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("relationshipType"), "test"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.RELATIONSHIP_TYPE_PROPERTY), "test"),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.SOURCE_NODE_PROPERTY), null),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetType"), StructrTraits.GROUP)
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.TARGET_TYPE_PROPERTY), StructrTraits.GROUP)
 			);
 
 			tx.success();
@@ -2083,7 +2086,7 @@ public class ValidationTest extends StructrTest {
 			assertEquals("Invalid SchemaRelationshipNode validation result", "must_not_be_empty", token1.getToken());
 
 			assertEquals("Invalid SchemaRelationshipNode validation result", StructrTraits.SCHEMA_RELATIONSHIP_NODE, token2.getType());
-			assertEquals("Invalid SchemaRelationshipNode validation result", "sourceType", token2.getProperty());
+			assertEquals("Invalid SchemaRelationshipNode validation result", SchemaRelationshipNodeTraitDefinition.SOURCE_TYPE_PROPERTY, token2.getProperty());
 			assertEquals("Invalid SchemaRelationshipNode validation result", "must_not_be_empty", token2.getToken());
 
 			assertEquals("Invalid SchemaRelationshipNode validation result", StructrTraits.SCHEMA_RELATIONSHIP_NODE, token3.getType());
@@ -2101,23 +2104,23 @@ public class ValidationTest extends StructrTest {
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "key1"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "String"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), typeNode),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("compound"), true)
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "String"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), typeNode),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.COMPOUND_PROPERTY), true)
 			);
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "key2"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "String"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), typeNode),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("compound"), true)
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "String"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), typeNode),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.COMPOUND_PROPERTY), true)
 			);
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "key3"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "String"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), typeNode),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("compound"), true)
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "String"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), typeNode),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.COMPOUND_PROPERTY), true)
 			);
 
 			tx.success();
@@ -2236,8 +2239,8 @@ public class ValidationTest extends StructrTest {
 			final NodeInterface schemaNode = app.nodeQuery(StructrTraits.SCHEMA_NODE).andName("Project").getFirst();
 			final NodeInterface group      = app.create(StructrTraits.GROUP, "Group1");
 
-			app.create(StructrTraits.SCHEMA_GRANT, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("principal"), group), new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("schemaNode"), schemaNode));
-			app.create(StructrTraits.SCHEMA_GRANT, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("principal"), group), new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("schemaNode"), schemaNode));
+			app.create(StructrTraits.SCHEMA_GRANT, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("principal"), group), new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.SCHEMA_NODE_PROPERTY), schemaNode));
+			app.create(StructrTraits.SCHEMA_GRANT, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("principal"), group), new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.SCHEMA_NODE_PROPERTY), schemaNode));
 
 			tx.success();
 
@@ -2255,9 +2258,9 @@ public class ValidationTest extends StructrTest {
 
 			assertEquals("Invalid SchemaGrant validation result", StructrTraits.SCHEMA_GRANT,          token.getType());
 			assertEquals("Invalid SchemaGrant validation result", "already_taken",        token.getToken());
-			assertEquals("Invalid SchemaGrant validation result", Traits.of(StructrTraits.SCHEMA_GRANT).key("principal"),            keys.get(0));
-			assertEquals("Invalid SchemaGrant validation result", Traits.of(StructrTraits.SCHEMA_GRANT).key("schemaNode"),           keys.get(1));
-			assertEquals("Invalid SchemaGrant validation result", Traits.of(StructrTraits.SCHEMA_GRANT).key("staticSchemaNodeName"), keys.get(2));
+			assertEquals("Invalid SchemaGrant validation result", Traits.of(StructrTraits.SCHEMA_GRANT).key("principal"),                                           keys.get(0));
+			assertEquals("Invalid SchemaGrant validation result", Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.SCHEMA_NODE_PROPERTY),             keys.get(1));
+			assertEquals("Invalid SchemaGrant validation result", Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.STATIC_SCHEMA_NODE_NAME_PROPERTY), keys.get(2));
 		}
 
 		// test that tho Group objects with the same name throw an error

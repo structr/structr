@@ -28,6 +28,7 @@ import org.structr.core.Services;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.ModificationQueue;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.*;
@@ -52,6 +53,20 @@ import java.util.Set;
  *
  */
 public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
+
+	public static final String RELATED_TO_PROPERTY                = "relatedTo";
+	public static final String RELATED_FROM_PROPERTY              = "relatedFrom";
+	public static final String SCHEMA_GRANTS_PROPERTY             = "schemaGrants";
+	public static final String INHERITED_TRAITS_PROPERTY          = "inheritedTraits";
+	public static final String DEFAULT_SORT_KEY_PROPERTY          = "defaultSortKey";
+	public static final String DEFAULT_SORT_ORDER_PROPERTY        = "defaultSortOrder";
+	public static final String DEFAULT_VISIBLE_TO_PUBLIC_PROPERTY = "defaultVisibleToPublic";
+	public static final String DEFAULT_VISIBLE_TO_AUTH_PROPERTY   = "defaultVisibleToAuth";
+	public static final String HIERARCHY_LEVEL_PROPERTY           = "hierarchyLevel";
+	public static final String REL_COUNT_PROPERTY                 = "relCount";
+	public static final String IS_INTERFACE_PROPERTY              = "isInterface";
+	public static final String IS_ABSTRACT_PROPERTY               = "isAbstract";
+	public static final String CATEGORY_PROPERTY                  = "category";
 
 	private static final Set<String> EntityNameBlacklist = new LinkedHashSet<>(Arrays.asList(new String[] {
 		"Relation", "Property"
@@ -130,19 +145,19 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Iterable<NodeInterface>>          relatedTo              = new EndNodes("relatedTo", StructrTraits.SCHEMA_RELATIONSHIP_SOURCE_NODE);
-		final Property<Iterable<NodeInterface>>          relatedFrom            = new StartNodes("relatedFrom", StructrTraits.SCHEMA_RELATIONSHIP_TARGET_NODE);
-		final Property<Iterable<NodeInterface>>          schemaGrants           = new StartNodes("schemaGrants", StructrTraits.SCHEMA_GRANT_SCHEMA_NODE_RELATIONSHIP);
-		final Property<String[]>                         inheritedTraits        = new ArrayProperty("inheritedTraits", String.class);
-		final Property<String>                           defaultSortKey         = new StringProperty("defaultSortKey");
-		final Property<String>                           defaultSortOrder       = new StringProperty("defaultSortOrder");
-		final Property<Boolean>                          defaultVisibleToPublic = new BooleanProperty("defaultVisibleToPublic").readOnly().indexed();
-		final Property<Boolean>                          defaultVisibleToAuth   = new BooleanProperty("defaultVisibleToAuth").readOnly().indexed();
-		final Property<Integer>                          hierarchyLevel         = new IntProperty("hierarchyLevel").indexed();
-		final Property<Integer>                          relCount               = new IntProperty("relCount").indexed();
-		final Property<Boolean>                          isInterface            = new BooleanProperty("isInterface").indexed();
-		final Property<Boolean>                          isAbstract             = new BooleanProperty("isAbstract").indexed();
-		final Property<String>                           category               = new StringProperty("category").indexed();
+		final Property<Iterable<NodeInterface>>          relatedTo              = new EndNodes(RELATED_TO_PROPERTY, StructrTraits.SCHEMA_RELATIONSHIP_SOURCE_NODE);
+		final Property<Iterable<NodeInterface>>          relatedFrom            = new StartNodes(RELATED_FROM_PROPERTY, StructrTraits.SCHEMA_RELATIONSHIP_TARGET_NODE);
+		final Property<Iterable<NodeInterface>>          schemaGrants           = new StartNodes(SCHEMA_GRANTS_PROPERTY, StructrTraits.SCHEMA_GRANT_SCHEMA_NODE_RELATIONSHIP);
+		final Property<String[]>                         inheritedTraits        = new ArrayProperty(INHERITED_TRAITS_PROPERTY, String.class);
+		final Property<String>                           defaultSortKey         = new StringProperty(DEFAULT_SORT_KEY_PROPERTY);
+		final Property<String>                           defaultSortOrder       = new StringProperty(DEFAULT_SORT_ORDER_PROPERTY);
+		final Property<Boolean>                          defaultVisibleToPublic = new BooleanProperty(DEFAULT_VISIBLE_TO_PUBLIC_PROPERTY).readOnly().indexed();
+		final Property<Boolean>                          defaultVisibleToAuth   = new BooleanProperty(DEFAULT_VISIBLE_TO_AUTH_PROPERTY).readOnly().indexed();
+		final Property<Integer>                          hierarchyLevel         = new IntProperty(HIERARCHY_LEVEL_PROPERTY).indexed();
+		final Property<Integer>                          relCount               = new IntProperty(REL_COUNT_PROPERTY).indexed();
+		final Property<Boolean>                          isInterface            = new BooleanProperty(IS_INTERFACE_PROPERTY).indexed();
+		final Property<Boolean>                          isAbstract             = new BooleanProperty(IS_ABSTRACT_PROPERTY).indexed();
+		final Property<String>                           category               = new StringProperty(CATEGORY_PROPERTY).indexed();
 
 		return newSet(
 			relatedTo,
@@ -168,33 +183,40 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 			PropertyView.Public,
 			newSet(
-				"id", "type", "name", "inheritedTraits", "relatedTo", "relatedFrom", "defaultSortKey",
-				"defaultSortOrder", "hierarchyLevel", "relCount", "isInterface", "isAbstract",
-				"defaultVisibleToPublic", "defaultVisibleToAuth"
+					GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY,
+					INHERITED_TRAITS_PROPERTY, RELATED_TO_PROPERTY, RELATED_FROM_PROPERTY, DEFAULT_SORT_KEY_PROPERTY,
+					DEFAULT_SORT_ORDER_PROPERTY, HIERARCHY_LEVEL_PROPERTY, REL_COUNT_PROPERTY, IS_INTERFACE_PROPERTY, IS_ABSTRACT_PROPERTY,
+					DEFAULT_VISIBLE_TO_PUBLIC_PROPERTY, DEFAULT_VISIBLE_TO_AUTH_PROPERTY
 			),
 
 			PropertyView.Ui,
 			newSet(
-				"id", "type", "name", "owner", GraphObjectTraitDefinition.CREATED_BY_PROPERTY, "hidden", GraphObjectTraitDefinition.CREATED_DATE_PROPERTY, GraphObjectTraitDefinition.LAST_MODIFIED_DATE_PROPERTY,
-					GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, "schemaProperties", "schemaViews",
-				"schemaMethods", "icon", "changelogDisabled", "relatedTo", "relatedFrom", "defaultSortKey",
-				"defaultSortOrder", "hierarchyLevel", "relCount", "isInterface", "isAbstract",
-				"category", "defaultVisibleToPublic", "defaultVisibleToAuth", "includeInOpenAPI", "inheritedTraits"
+					GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY,
+					NodeInterfaceTraitDefinition.OWNER_PROPERTY, GraphObjectTraitDefinition.CREATED_BY_PROPERTY, NodeInterfaceTraitDefinition.HIDDEN_PROPERTY,
+					GraphObjectTraitDefinition.CREATED_DATE_PROPERTY, GraphObjectTraitDefinition.LAST_MODIFIED_DATE_PROPERTY,
+					GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY,
+					AbstractSchemaNodeTraitDefinition.SCHEMA_PROPERTIES_PROPERTY, AbstractSchemaNodeTraitDefinition.SCHEMA_VIEWS_PROPERTY,
+					AbstractSchemaNodeTraitDefinition.SCHEMA_METHODS_PROPERTY, AbstractSchemaNodeTraitDefinition.ICON_PROPERTY,
+					AbstractSchemaNodeTraitDefinition.CHANGELOG_DISABLED_PROPERTY, RELATED_TO_PROPERTY, RELATED_FROM_PROPERTY, DEFAULT_SORT_KEY_PROPERTY,
+					DEFAULT_SORT_ORDER_PROPERTY, HIERARCHY_LEVEL_PROPERTY, REL_COUNT_PROPERTY, IS_INTERFACE_PROPERTY, IS_ABSTRACT_PROPERTY,
+					CATEGORY_PROPERTY, DEFAULT_VISIBLE_TO_PUBLIC_PROPERTY, DEFAULT_VISIBLE_TO_AUTH_PROPERTY, AbstractSchemaNodeTraitDefinition.INCLUDE_IN_OPEN_API_PROPERTY, INHERITED_TRAITS_PROPERTY
 			),
 
 			"schema",
 			newSet(
-				"id", "type", "name", "schemaProperties", "schemaViews", "schemaMethods", "icon",
-				"changelogDisabled", "relatedTo", "relatedFrom", "defaultSortKey", "defaultSortOrder",
-				"hierarchyLevel", "relCount", "isInterface", "isAbstract", "category", "schemaGrants",
-				"defaultVisibleToPublic", "defaultVisibleToAuth", "includeInOpenAPI", "inheritedTraits"
+					GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY,
+					AbstractSchemaNodeTraitDefinition.SCHEMA_PROPERTIES_PROPERTY, AbstractSchemaNodeTraitDefinition.SCHEMA_VIEWS_PROPERTY,
+					AbstractSchemaNodeTraitDefinition.SCHEMA_METHODS_PROPERTY, AbstractSchemaNodeTraitDefinition.ICON_PROPERTY,
+					AbstractSchemaNodeTraitDefinition.CHANGELOG_DISABLED_PROPERTY, RELATED_TO_PROPERTY, RELATED_FROM_PROPERTY, DEFAULT_SORT_KEY_PROPERTY, DEFAULT_SORT_ORDER_PROPERTY,
+					HIERARCHY_LEVEL_PROPERTY, REL_COUNT_PROPERTY, IS_INTERFACE_PROPERTY, IS_ABSTRACT_PROPERTY, CATEGORY_PROPERTY, SCHEMA_GRANTS_PROPERTY,
+					DEFAULT_VISIBLE_TO_PUBLIC_PROPERTY, DEFAULT_VISIBLE_TO_AUTH_PROPERTY, AbstractSchemaNodeTraitDefinition.INCLUDE_IN_OPEN_API_PROPERTY, INHERITED_TRAITS_PROPERTY
 			),
 
 			"export",
 			newSet(
-				"id", "type", "name", "defaultSortKey", "defaultSortOrder", "hierarchyLevel",
-				"relCount", "isInterface", "isAbstract",
-				"defaultVisibleToPublic", "defaultVisibleToAuth", "inheritedTraits"
+					GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY,
+					DEFAULT_SORT_KEY_PROPERTY, DEFAULT_SORT_ORDER_PROPERTY, HIERARCHY_LEVEL_PROPERTY, REL_COUNT_PROPERTY, IS_INTERFACE_PROPERTY, IS_ABSTRACT_PROPERTY,
+					DEFAULT_VISIBLE_TO_PUBLIC_PROPERTY, DEFAULT_VISIBLE_TO_AUTH_PROPERTY, INHERITED_TRAITS_PROPERTY
 			)
 		);
 	}

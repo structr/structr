@@ -33,6 +33,7 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
+import org.structr.core.traits.definitions.SchemaGrantTraitDefinition;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
@@ -72,7 +73,7 @@ public class Deployment5Test extends DeploymentTestBase {
 
 			// create schema grant object
 			app.create(StructrTraits.SCHEMA_GRANT,
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("staticSchemaNodeName"), StructrTraits.MAIL_TEMPLATE),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.STATIC_SCHEMA_NODE_NAME_PROPERTY), StructrTraits.MAIL_TEMPLATE),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("principal"),            group),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("allowRead"),            true),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("allowWrite"),           true),
@@ -453,8 +454,8 @@ public class Deployment5Test extends DeploymentTestBase {
 			assertNotNull("Invalid deployment result", method1);
 
 			assertEquals("Invalid SchemaMethod deployment result", "test",                                         method1.getProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)));
-			assertEquals("Invalid SchemaMethod deployment result", "System.out.println(parameters); return null;", method1.getProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key("source")));
-			assertEquals("Invalid SchemaMethod deployment result", "java",                                         method1.getProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key("codeType")));
+			assertEquals("Invalid SchemaMethod deployment result", "System.out.println(parameters); return null;", method1.getProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY)));
+			assertEquals("Invalid SchemaMethod deployment result", "java",                                         method1.getProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.CODE_TYPE_PROPERTY)));
 
 			tx.success();
 

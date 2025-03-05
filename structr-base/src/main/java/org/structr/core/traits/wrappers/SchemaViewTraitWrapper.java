@@ -24,6 +24,7 @@ import org.structr.core.entity.SchemaView;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.SchemaViewTraitDefinition;
 
 public class SchemaViewTraitWrapper extends AbstractNodeTraitWrapper implements SchemaView {
 
@@ -34,23 +35,23 @@ public class SchemaViewTraitWrapper extends AbstractNodeTraitWrapper implements 
 	@Override
 	public Iterable<SchemaProperty> getSchemaProperties() {
 
-		final PropertyKey<Iterable<NodeInterface>> key = traits.key("schemaProperties");
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key(SchemaViewTraitDefinition.SCHEMA_PROPERTIES_PROPERTY);
 
 		return Iterables.map(n -> n.as(SchemaProperty.class), wrappedObject.getProperty(key));
 	}
 
 	@Override
 	public String getStaticSchemaNodeName() {
-		return wrappedObject.getProperty(traits.key("staticSchemaNodeName"));
+		return wrappedObject.getProperty(traits.key(SchemaViewTraitDefinition.STATIC_SCHEMA_NODE_NAME_PROPERTY));
 	}
 
 	@Override
 	public String getNonGraphProperties() {
-		return wrappedObject.getProperty(traits.key("nonGraphProperties"));
+		return wrappedObject.getProperty(traits.key(SchemaViewTraitDefinition.NON_GRAPH_PROPERTIES_PROPERTY));
 	}
 
 	@Override
 	public String getSortOrder() {
-		return wrappedObject.getProperty(traits.key("sortOrder"));
+		return wrappedObject.getProperty(traits.key(SchemaViewTraitDefinition.SORT_ORDER_PROPERTY));
 	}
 }

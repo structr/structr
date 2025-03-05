@@ -33,6 +33,7 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -101,16 +102,16 @@ public class ListSchemaPropertiesCommand extends AbstractCommand {
 									valueTypeName = valueType.getSimpleName();
 								}
 
-								property.put(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY),                                     key.getSourceUuid());
-								property.put(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),                                   propertyName);
-								property.put(isSelected,                                              viewProperties.contains(key));
-								property.put(isDisabled,                                              _isDisabled);
-								property.put(schemaPropertyTraits.key("propertyType"),          valueTypeName);
-								property.put(schemaPropertyTraits.key("notNull"),               key.isNotNull());
-								property.put(schemaPropertyTraits.key("unique"),                key.isUnique());
-								property.put(schemaPropertyTraits.key("isDynamic"),             key.isDynamic());
-								property.put(schemaPropertyTraits.key("declaringClass"),        declaringClass);
-								property.put(schemaPropertyTraits.key("declaringUuid"),         declaringUuid);
+								property.put(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY),       key.getSourceUuid());
+								property.put(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), propertyName);
+								property.put(isSelected,                                                                              viewProperties.contains(key));
+								property.put(isDisabled,                                                                              _isDisabled);
+								property.put(schemaPropertyTraits.key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY),          valueTypeName);
+								property.put(schemaPropertyTraits.key(SchemaPropertyTraitDefinition.NOT_NULL_PROPERTY),               key.isNotNull());
+								property.put(schemaPropertyTraits.key(SchemaPropertyTraitDefinition.UNIQUE_PROPERTY),                 key.isUnique());
+								property.put(schemaPropertyTraits.key(SchemaPropertyTraitDefinition.IS_DYNAMIC_PROPERTY),             key.isDynamic());
+								property.put(schemaPropertyTraits.key(SchemaPropertyTraitDefinition.DECLARING_CLASS_PROPERTY),        declaringClass);
+								property.put(schemaPropertyTraits.key(SchemaPropertyTraitDefinition.DECLARING_UUID_PROPERTY),         declaringUuid);
 
 								if (declaringUuid != null) {
 

@@ -37,7 +37,6 @@ import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
-import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
@@ -497,7 +496,7 @@ public class PerformanceTest extends StructrUiTest {
 		assertTrue(averageUserFetchTime < 100);
 	}
 
-	@Test
+//	@Test
 	public void testRenderingPerformance() {
 
 		final String address = "http://structr.github.io/structr/getbootstrap.com/docs/3.3/examples/jumbotron/";

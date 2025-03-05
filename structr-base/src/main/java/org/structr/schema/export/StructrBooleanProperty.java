@@ -26,6 +26,7 @@ import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
 import org.structr.schema.SchemaHelper.Type;
 
 import java.util.Map;
@@ -61,7 +62,7 @@ public class StructrBooleanProperty extends StructrPropertyDefinition implements
 		final SchemaProperty property = super.createDatabaseSchema(app, schemaNode);
 		final Traits traits           = Traits.of(StructrTraits.SCHEMA_PROPERTY);
 
-		property.setProperty(traits.key("propertyType"), Type.Boolean.name());
+		property.setProperty(traits.key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), Type.Boolean.name());
 
 		return property;
 	}
