@@ -25,6 +25,8 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 import org.testng.annotations.Test;
@@ -48,14 +50,9 @@ public class ODFTest extends ODSTestBase {
 
 		try (final Tx tx = app.tx()) {
 
-			final Traits userTraits = Traits.of(StructrTraits.USER);
 			final Traits odfTraits  = Traits.of("ODFExporter");
 
-			app.create(StructrTraits.USER,
-				new NodeAttribute<>(userTraits.key("name"),     "admin"),
-				new NodeAttribute<>(userTraits.key("password"), "admin"),
-				new NodeAttribute<>(userTraits.key("isAdmin"),  true)
-			);
+			createAdminUser("admin", "admin");
 
 			// read test file from sources
 			try (final InputStream is = ODFTest.class.getResourceAsStream("/test.odt")) {
@@ -66,7 +63,7 @@ public class ODFTest extends ODSTestBase {
 			assertNotNull("Test file must exist", template);
 
 			final NodeInterface node = app.create(type,
-				new NodeAttribute<>(odfTraits.key("name"),             "test.ods"),
+				new NodeAttribute<>(odfTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),             "test.ods"),
 				new NodeAttribute<>(odfTraits.key("documentTemplate"), template)
 			);
 

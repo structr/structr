@@ -38,6 +38,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.feed.entity.DataFeed;
 import org.structr.feed.traits.definitions.DataFeedTraitDefinition;
@@ -182,7 +183,7 @@ public class DataFeedTraitWrapper extends AbstractNodeTraitWrapper implements Da
 					final PropertyKey feedItemUrlKey             = itemTraits.key("urlProperty");
 					final PropertyKey feedItemPubDateKey         = itemTraits.key("pubDateProperty");
 					final PropertyKey feedItemUpdatedDateKey     = itemTraits.key("updatedDateProperty");
-					final PropertyKey feedItemNameKey            = itemTraits.key("name");
+					final PropertyKey feedItemNameKey            = itemTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 					final PropertyKey feedItemAuthorKey          = itemTraits.key("authorProperty");
 					final PropertyKey feedItemCommentsKey        = itemTraits.key("commentsProperty");
 					final PropertyKey feedItemDescriptionKey     = itemTraits.key("descriptionProperty");
@@ -260,7 +261,7 @@ public class DataFeedTraitWrapper extends AbstractNodeTraitWrapper implements Da
 
 					final PropertyMap feedProps = new PropertyMap();
 					final Traits feedTraits     = Traits.of("DataFeed");
-					final PropertyKey<String> nameKey = feedTraits.key("name");
+					final PropertyKey<String> nameKey = feedTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 
 					if (StringUtils.isEmpty(this.getProperty(nameKey))) {
 						feedProps.put(nameKey, syndFeed.getTitle());

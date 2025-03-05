@@ -30,6 +30,7 @@ import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
@@ -58,7 +59,7 @@ public class PagePathTraitDefinition extends AbstractNodeTraitDefinition {
 
 				@Override
 				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
-					return ValidationHelper.isValidPropertyNotNull(obj, Traits.of(StructrTraits.NODE_INTERFACE).key("name"), errorBuffer);
+					return ValidationHelper.isValidPropertyNotNull(obj, Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), errorBuffer);
 				}
 			}
 		);
@@ -104,9 +105,9 @@ public class PagePathTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 			PropertyView.Public,
-			newSet("name", "priority", "parameters"),
+			newSet(NodeInterfaceTraitDefinition.NAME_PROPERTY, "priority", "parameters"),
 			PropertyView.Ui,
-			newSet("name", "priority", "parameters")
+			newSet(NodeInterfaceTraitDefinition.NAME_PROPERTY, "priority", "parameters")
 		);
 	}
 

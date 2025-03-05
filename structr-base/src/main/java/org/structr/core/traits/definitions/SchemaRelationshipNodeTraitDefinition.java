@@ -74,8 +74,8 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
 
 					final Traits traits                         = obj.getTraits();
-					final PropertyKey<NodeInterface> sourceNode = traits.key("sourceNode");
-					final PropertyKey<NodeInterface> targetNode = traits.key("targetNode");
+					final PropertyKey<NodeInterface> sourceNode = traits.key(RelationshipInterfaceTraitDefinition.SOURCE_NODE_PROPERTY);
+					final PropertyKey<NodeInterface> targetNode = traits.key(RelationshipInterfaceTraitDefinition.TARGET_NODE_PROPERTY);
 					final PropertyKey<String> sourceType        = traits.key("sourceType");
 					final PropertyKey<String> targetType        = traits.key("targetType");
 					final PropertyKey<String> sourceJsonName    = traits.key("sourceJsonName");
@@ -205,25 +205,25 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"name", "sourceId", "targetId", "sourceType", "targetType", "sourceMultiplicity", "targetMultiplicity", "sourceNotion", "targetNotion", "relationshipType",
+				NodeInterfaceTraitDefinition.NAME_PROPERTY, RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY, RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY, "sourceType", "targetType", "sourceMultiplicity", "targetMultiplicity", "sourceNotion", "targetNotion", "relationshipType",
 				"sourceJsonName", "targetJsonName", "cascadingDeleteFlag", "autocreationFlag", "oldSourceJsonName", "oldTargetJsonName",
 				"permissionPropagation", "readPropagation", "writePropagation", "deletePropagation", "accessControlPropagation", "propertyMask", "isPartOfBuiltInSchema"
 			),
 			PropertyView.Ui,
 			newSet(
-				"name", "sourceId", "targetId", "sourceType", "targetType", "sourceMultiplicity", "targetMultiplicity", "sourceNotion", "targetNotion", "relationshipType",
+				NodeInterfaceTraitDefinition.NAME_PROPERTY, RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY, RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY, "sourceType", "targetType", "sourceMultiplicity", "targetMultiplicity", "sourceNotion", "targetNotion", "relationshipType",
 				"sourceJsonName", "targetJsonName", "cascadingDeleteFlag", "autocreationFlag", "oldSourceJsonName", "oldTargetJsonName",
 				"permissionPropagation", "readPropagation", "writePropagation", "deletePropagation", "accessControlPropagation", "propertyMask", "isPartOfBuiltInSchema"
 			),
 			"export",
 			newSet(
-				"sourceId", "targetId", "sourceType", "targetType", "sourceMultiplicity", "targetMultiplicity", "sourceNotion", "targetNotion", "relationshipType",
+					RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY, RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY, "sourceType", "targetType", "sourceMultiplicity", "targetMultiplicity", "sourceNotion", "targetNotion", "relationshipType",
 				"sourceJsonName", "targetJsonName", "cascadingDeleteFlag", "autocreationFlag", "permissionPropagation",
 				"propertyMask", "isPartOfBuiltInSchema"
 			),
 			"schema",
 			newSet(
-				"name", "sourceId", "targetId", "sourceType", "targetType", "sourceMultiplicity", "targetMultiplicity", "sourceNotion", "targetNotion", "relationshipType",
+				NodeInterfaceTraitDefinition.NAME_PROPERTY, RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY, RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY, "sourceType", "targetType", "sourceMultiplicity", "targetMultiplicity", "sourceNotion", "targetNotion", "relationshipType",
 				"sourceJsonName", "targetJsonName", "cascadingDeleteFlag", "autocreationFlag", "oldSourceJsonName", "oldTargetJsonName",
 				"permissionPropagation", "readPropagation", "writePropagation", "deletePropagation", "accessControlPropagation", "propertyMask", "isPartOfBuiltInSchema"
 			)
@@ -233,10 +233,10 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> sourceNode          = new StartNode("sourceNode", StructrTraits.SCHEMA_RELATIONSHIP_SOURCE_NODE);
-		final Property<NodeInterface> targetNode          = new EndNode("targetNode", StructrTraits.SCHEMA_RELATIONSHIP_TARGET_NODE);
-		final Property<String>     sourceId               = new EntityNotionProperty<>("sourceId", StructrTraits.SCHEMA_RELATIONSHIP_NODE, "sourceNode", StructrTraits.SCHEMA_NODE, new PropertyNotion("id"));
-		final Property<String>     targetId               = new EntityNotionProperty<>("targetId", StructrTraits.SCHEMA_RELATIONSHIP_NODE, "targetNode", StructrTraits.SCHEMA_NODE, new PropertyNotion("id"));
+		final Property<NodeInterface> sourceNode          = new StartNode(RelationshipInterfaceTraitDefinition.SOURCE_NODE_PROPERTY, StructrTraits.SCHEMA_RELATIONSHIP_SOURCE_NODE);
+		final Property<NodeInterface> targetNode          = new EndNode(RelationshipInterfaceTraitDefinition.TARGET_NODE_PROPERTY, StructrTraits.SCHEMA_RELATIONSHIP_TARGET_NODE);
+		final Property<String>     sourceId               = new EntityNotionProperty<>(RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY, StructrTraits.SCHEMA_RELATIONSHIP_NODE, RelationshipInterfaceTraitDefinition.SOURCE_NODE_PROPERTY, StructrTraits.SCHEMA_NODE, new PropertyNotion(GraphObjectTraitDefinition.ID_PROPERTY));
+		final Property<String>     targetId               = new EntityNotionProperty<>(RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY, StructrTraits.SCHEMA_RELATIONSHIP_NODE, RelationshipInterfaceTraitDefinition.TARGET_NODE_PROPERTY, StructrTraits.SCHEMA_NODE, new PropertyNotion(GraphObjectTraitDefinition.ID_PROPERTY));
 		final Property<String>     sourceType             = new StringProperty("sourceType");
 		final Property<String>     targetType             = new StringProperty("targetType");
 		final Property<String>     name                   = new StringProperty("name").indexed();
@@ -300,8 +300,8 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 	private boolean isRelationshipDefinitionUnique(final SchemaRelationshipNode node, final ErrorBuffer errorBuffer) {
 
 		final Traits traits                            = node.getTraits();
-		final PropertyKey<NodeInterface> sourceNodeKey = traits.key("sourceNode");
-		final PropertyKey<NodeInterface> targetNodeKey = traits.key("targetNode");
+		final PropertyKey<NodeInterface> sourceNodeKey = traits.key(RelationshipInterfaceTraitDefinition.SOURCE_NODE_PROPERTY);
+		final PropertyKey<NodeInterface> targetNodeKey = traits.key(RelationshipInterfaceTraitDefinition.TARGET_NODE_PROPERTY);
 		final PropertyKey<String> sourceTypeKey        = traits.key("sourceType");
 		final PropertyKey<String> targetTypeKey        = traits.key("targetType");
 		final PropertyKey<String> relTypeKey           = traits.key("relationshipType");
@@ -348,7 +348,7 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 		if (!className.equals(potentialNewClassName)) {
 
 			try {
-				node.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), potentialNewClassName);
+				node.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), potentialNewClassName);
 
 			} catch (FrameworkException fex) {
 				logger.warn("Unable to set relationship name to {}.", potentialNewClassName);

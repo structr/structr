@@ -31,6 +31,8 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 
@@ -233,23 +235,23 @@ public class GraphObjectTraitWrapper<T extends GraphObject> implements GraphObje
 	}
 
 	public String getName() {
-		return wrappedObject.getProperty(traits.key("name"));
+		return wrappedObject.getProperty(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY));
 	}
 
 	public void setName(final String name) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("name"), name);
+		wrappedObject.setProperty(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name);
 	}
 
 	public Date getCreatedDate() {
-		return wrappedObject.getProperty(traits.key("createdDate"));
+		return wrappedObject.getProperty(traits.key(GraphObjectTraitDefinition.CREATED_DATE_PROPERTY));
 	}
 
 	public Date getLastModifiedDate() {
-		return wrappedObject.getProperty(traits.key("lastModifiedDate"));
+		return wrappedObject.getProperty(traits.key(GraphObjectTraitDefinition.LAST_MODIFIED_DATE_PROPERTY));
 	}
 
 	public void setLastModifiedDate(final Date date) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("lastModifiedDate"), date);
+		wrappedObject.setProperty(traits.key(GraphObjectTraitDefinition.LAST_MODIFIED_DATE_PROPERTY), date);
 	}
 
 	@Override
@@ -333,28 +335,28 @@ public class GraphObjectTraitWrapper<T extends GraphObject> implements GraphObje
 	}
 
 	public boolean isVisibleToPublicUsers() {
-		return wrappedObject.getProperty(traits.key("visibleToPublicUsers"));
+		return wrappedObject.getProperty(traits.key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY));
 	}
 
 	public boolean isVisibleToAuthenticatedUsers() {
-	return wrappedObject.getProperty(traits.key("visibleToAuthenticatedUsers"));
+	return wrappedObject.getProperty(traits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY));
 	}
 
 	@Override
 	public boolean isHidden() {
-		return wrappedObject.getProperty(traits.key("hidden"));
+		return wrappedObject.getProperty(traits.key(NodeInterfaceTraitDefinition.HIDDEN_PROPERTY));
 	}
 
 	@Override
 	public void setHidden(final boolean hidden) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("hidden"), hidden);
+		wrappedObject.setProperty(traits.key(NodeInterfaceTraitDefinition.HIDDEN_PROPERTY), hidden);
 	}
 
-	public void setVisibleToPublicUsers(final boolean visible) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("visibleToPublicUsers"), visible);
+	public void setVisibleToPublicUsers(final boolean visibleToPublic) throws FrameworkException {
+		wrappedObject.setVisibleToPublicUsers(visibleToPublic);
 	}
 
-	public void  setVisibleToAuthenticatedUsers(final boolean visible) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("visibleToAuthenticatedUsers"), visible);
+	public void  setVisibleToAuthenticatedUsers(final boolean visibleToAuth) throws FrameworkException {
+		wrappedObject.setVisibleToAuthenticatedUsers(visibleToAuth);
 	}
 }

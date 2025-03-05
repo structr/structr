@@ -49,6 +49,8 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.core.traits.wrappers.ResourceAccessTraitWrapper;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.auth.JWTHelper;
@@ -148,7 +150,7 @@ public class UiAuthenticator implements Authenticator {
 
 		if (user == null && StringUtils.isNotBlank(authorizationToken)) {
 
-			final PropertyKey<String> eMailKey = Traits.of(StructrTraits.USER).key("eMail");
+			final PropertyKey<String> eMailKey = Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.EMAIL_PROPERTY);
 			user = JWTHelper.getPrincipalForAccessToken(authorizationToken, eMailKey);
 		}
 
@@ -467,7 +469,7 @@ public class UiAuthenticator implements Authenticator {
 	@Override
 	public Principal doLogin(final HttpServletRequest request, final String emailOrUsername, final String password) throws FrameworkException {
 
-		final PropertyKey<String> eMailKey = Traits.of(StructrTraits.USER).key("eMail");
+		final PropertyKey<String> eMailKey = Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.EMAIL_PROPERTY);
 		final Principal user               = AuthHelper.getPrincipalForPassword(eMailKey, emailOrUsername, password);
 
 		if  (user != null) {
@@ -670,7 +672,7 @@ public class UiAuthenticator implements Authenticator {
 
 				if (value != null) {
 
-					final PropertyKey credentialKey = Traits.of(StructrTraits.USER).key("eMail");
+					final PropertyKey credentialKey = Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.EMAIL_PROPERTY);
 
 					logger.debug("Fetching user with {} {}", credentialKey, value);
 
@@ -854,7 +856,7 @@ public class UiAuthenticator implements Authenticator {
 
 		} else if (authorizationToken != null) {
 
-			final PropertyKey<String> eMailKey = Traits.of(StructrTraits.USER).key("eMail");
+			final PropertyKey<String> eMailKey = Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.EMAIL_PROPERTY);
 			user = JWTHelper.getPrincipalForAccessToken(authorizationToken, eMailKey);
 		}
 
@@ -876,11 +878,11 @@ public class UiAuthenticator implements Authenticator {
 
 					try {
 
-						user = AuthHelper.getPrincipalForPassword(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), userName, password);
+						user = AuthHelper.getPrincipalForPassword(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), userName, password);
 
 					} catch (AuthenticationException ex) {
 
-						final PropertyKey<String> eMailKey = Traits.of(StructrTraits.USER).key("eMail");
+						final PropertyKey<String> eMailKey = Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.EMAIL_PROPERTY);
 						user = AuthHelper.getPrincipalForPassword(eMailKey, userName, password);
 					}
 				}

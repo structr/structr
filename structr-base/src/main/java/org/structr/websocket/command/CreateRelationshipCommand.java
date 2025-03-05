@@ -25,6 +25,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.core.traits.definitions.RelationshipInterfaceTraitDefinition;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -46,9 +47,9 @@ public class CreateRelationshipCommand extends AbstractCommand {
 
 		setDoTransactionNotifications(true);
 
-		final String sourceId                = webSocketData.getRelDataStringValue("sourceId");
-		final String targetId                = webSocketData.getRelDataStringValue("targetId");
-		final String relType                 = webSocketData.getRelDataStringValue("relType");
+		final String sourceId                = webSocketData.getRelDataStringValue(RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY);
+		final String targetId                = webSocketData.getRelDataStringValue(RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY);
+		final String relType                 = webSocketData.getRelDataStringValue(RelationshipInterfaceTraitDefinition.REL_TYPE_PROPERTY);
 		final NodeInterface sourceNode       = getNode(sourceId);
 		final NodeInterface targetNode       = getNode(targetId);
 

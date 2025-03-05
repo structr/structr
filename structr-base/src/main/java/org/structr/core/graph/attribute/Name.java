@@ -21,6 +21,7 @@ package org.structr.core.graph.attribute;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 
 /**
  *
@@ -28,6 +29,6 @@ import org.structr.core.traits.Traits;
 public class Name extends NodeAttribute<String> {
 
 	public Name(final String name) {
-		super(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), name);
+		super(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name);
 	}
 }

@@ -24,6 +24,7 @@ import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.traits.definitions.RelationshipInterfaceTraitDefinition;
 
 /**
  *
@@ -33,7 +34,7 @@ public class RelationshipTypeProperty extends StringProperty {
 
 	public RelationshipTypeProperty() {
 
-		super("relType");
+		super(RelationshipInterfaceTraitDefinition.REL_TYPE_PROPERTY);
 
 		systemInternal();
 		readOnly();

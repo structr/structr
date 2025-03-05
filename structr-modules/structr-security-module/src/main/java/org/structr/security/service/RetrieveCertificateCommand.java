@@ -45,6 +45,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.rest.resource.MaintenanceResource;
 import org.structr.rest.service.HttpService;
 import org.structr.schema.action.Actions;
@@ -690,8 +691,8 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 					final Traits fileTraits   = Traits.of(StructrTraits.FILE);
 
 					PropertyMap props = new PropertyMap();
-					props.put(folderTraits.key("visibleToPublicUsers"), true);
-					props.put(folderTraits.key("visibleToAuthenticatedUsers"), true);
+					props.put(folderTraits.key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
+					props.put(folderTraits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
 
 					parentFolder.setProperties(adminContext, props);
 					parentFolder.getParent().setProperties(adminContext, props);
@@ -699,8 +700,8 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 					org.structr.web.entity.File challengeFile = FileHelper.createFile(adminContext, new ByteArrayInputStream(content.getBytes()), "text/plain", StructrTraits.FILE, challenge.get().getToken(), parentFolder).as(org.structr.web.entity.File.class);
 
 					props = new PropertyMap();
-					props.put(fileTraits.key("visibleToPublicUsers"), true);
-					props.put(fileTraits.key("visibleToAuthenticatedUsers"), true);
+					props.put(fileTraits.key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
+					props.put(fileTraits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
 
 					challengeFile.setProperties(adminContext, props);
 

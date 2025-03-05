@@ -30,6 +30,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.graph.attribute.Name;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.testng.annotations.Test;
@@ -83,7 +84,7 @@ public class FunctionPropertyTest extends StructrRestTestBase {
 
 			assertEquals(firstState, secondState);
 
-			testObj.setProperty(traits.key("name"), "testObject2");
+			testObj.setProperty(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testObject2");
 
 			secondState = (String)testObj.getProperty(traits.key("getNameProperty"));
 
@@ -100,7 +101,7 @@ public class FunctionPropertyTest extends StructrRestTestBase {
 			assertEquals(firstNum, secondNum);
 
 			// Invalidate cache to test random caching
-			testObj.setProperty(traits.key("name"), "testObject3");
+			testObj.setProperty(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testObject3");
 
 			firstNum  = testObj.getProperty(traits.key("getRandomNumProp"));
 			secondNum = testObj.getProperty(traits.key("getRandomNumProp"));

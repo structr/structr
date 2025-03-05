@@ -41,6 +41,8 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.SchemaService;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.test.core.traits.definitions.*;
@@ -212,9 +214,9 @@ public class StructrTest {
 			final List<NodeInterface> nodes = new LinkedList<>();
 			final Traits traits             = Traits.of(type);
 
-			properties.put(traits.key("visibleToAuthenticatedUsers"), false);
-			properties.put(traits.key("visibleToPublicUsers"), false);
-			properties.put(traits.key("hidden"), false);
+			properties.put(traits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), false);
+			properties.put(traits.key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), false);
+			properties.put(traits.key(NodeInterfaceTraitDefinition.HIDDEN_PROPERTY), false);
 
 			for (int i = 0; i < number; i++) {
 
@@ -254,14 +256,14 @@ public class StructrTest {
 
 		final PropertyMap map = new PropertyMap();
 
-		map.put(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), name);
+		map.put(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name);
 
 		return createTestNode(type, map);
 	}
 
 	protected NodeInterface createTestNode(final String type, final PropertyMap props) throws FrameworkException {
 
-		props.put(Traits.of(StructrTraits.GRAPH_OBJECT).key("type"), type);
+		props.put(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY), type);
 
 		try (final Tx tx = app.tx()) {
 

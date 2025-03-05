@@ -39,6 +39,11 @@ import org.structr.core.traits.Traits;
 
 import java.util.*;
 import java.util.Map.Entry;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
+import org.structr.core.traits.definitions.RelationshipInterfaceTraitDefinition;
+import org.structr.core.traits.relationships.SecurityRelationshipDefinition;
 
 /**
  * Creates a new node in the database with the given properties.
@@ -72,16 +77,16 @@ public class CreateNodeCommand extends NodeServiceCommand {
 
 	public NodeInterface execute(final PropertyMap attributes) throws FrameworkException {
 
-		final PropertyKey<String> idKey                           = Traits.key(StructrTraits.GRAPH_OBJECT, "id");
-		final PropertyKey<String> typeKey                         = Traits.key(StructrTraits.GRAPH_OBJECT, "type");
-		final PropertyKey<Date> createdDateKey                    = Traits.key(StructrTraits.GRAPH_OBJECT, "createdDate");
-		final PropertyKey<Date> lastModifiedDateKey               = Traits.key(StructrTraits.GRAPH_OBJECT, "lastModifiedDate");
-		final PropertyKey<String> createdByKey                    = Traits.key(StructrTraits.GRAPH_OBJECT, "createdBy");
-		final PropertyKey<String> lastModifiedByKey               = Traits.key(StructrTraits.GRAPH_OBJECT, "lastModifiedBy");
-		final PropertyKey<Boolean> visibleToPublicUsersKey        = Traits.key(StructrTraits.GRAPH_OBJECT, "visibleToPublicUsers");
-		final PropertyKey<Boolean> visibleToAuthenticatedUsersKey = Traits.key(StructrTraits.GRAPH_OBJECT, "visibleToAuthenticatedUsers");
-		final PropertyKey<Boolean> hiddenKey                      = Traits.key(StructrTraits.NODE_INTERFACE, "hidden");
-		final PropertyKey<String> passwordKey                     = Traits.key(StructrTraits.PRINCIPAL, "password");
+		final PropertyKey<String> idKey                           = Traits.key(StructrTraits.GRAPH_OBJECT, GraphObjectTraitDefinition.ID_PROPERTY);
+		final PropertyKey<String> typeKey                         = Traits.key(StructrTraits.GRAPH_OBJECT, GraphObjectTraitDefinition.TYPE_PROPERTY);
+		final PropertyKey<Date> createdDateKey                    = Traits.key(StructrTraits.GRAPH_OBJECT, GraphObjectTraitDefinition.CREATED_DATE_PROPERTY);
+		final PropertyKey<Date> lastModifiedDateKey               = Traits.key(StructrTraits.GRAPH_OBJECT, GraphObjectTraitDefinition.LAST_MODIFIED_DATE_PROPERTY);
+		final PropertyKey<String> createdByKey                    = Traits.key(StructrTraits.GRAPH_OBJECT, GraphObjectTraitDefinition.CREATED_BY_PROPERTY);
+		final PropertyKey<String> lastModifiedByKey               = Traits.key(StructrTraits.GRAPH_OBJECT, GraphObjectTraitDefinition.LAST_MODIFIED_BY_PROPERTY);
+		final PropertyKey<Boolean> visibleToPublicUsersKey        = Traits.key(StructrTraits.GRAPH_OBJECT, GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY);
+		final PropertyKey<Boolean> visibleToAuthenticatedUsersKey = Traits.key(StructrTraits.GRAPH_OBJECT, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY);
+		final PropertyKey<Boolean> hiddenKey                      = Traits.key(StructrTraits.NODE_INTERFACE, NodeInterfaceTraitDefinition.HIDDEN_PROPERTY);
+		final PropertyKey<String> passwordKey                     = Traits.key(StructrTraits.PRINCIPAL, PrincipalTraitDefinition.PASSWORD_PROPERTY);
 		final DatabaseService graphDb                             = (DatabaseService) arguments.get("graphDb");
 		final Principal user                                      = securityContext.getUser(false);
 		NodeInterface node	                                  = null;
@@ -223,10 +228,10 @@ public class CreateNodeCommand extends NodeServiceCommand {
 	private Node createNode(final DatabaseService graphDb, final Principal user, final String type, final Set<String> labels, final Map<String, Object> properties) throws FrameworkException {
 
 
-		final PropertyKey<String> idKey                           = Traits.key(StructrTraits.GRAPH_OBJECT, "id");
-		final PropertyKey<String> typeKey                         = Traits.key(StructrTraits.GRAPH_OBJECT, "type");
-		final PropertyKey<Boolean> visibleToPublicUsersKey        = Traits.key(StructrTraits.GRAPH_OBJECT, "visibleToPublicUsers");
-		final PropertyKey<Boolean> visibleToAuthenticatedUsersKey = Traits.key(StructrTraits.GRAPH_OBJECT, "visibleToAuthenticatedUsers");
+		final PropertyKey<String> idKey                           = Traits.key(StructrTraits.GRAPH_OBJECT, GraphObjectTraitDefinition.ID_PROPERTY);
+		final PropertyKey<String> typeKey                         = Traits.key(StructrTraits.GRAPH_OBJECT, GraphObjectTraitDefinition.TYPE_PROPERTY);
+		final PropertyKey<Boolean> visibleToPublicUsersKey        = Traits.key(StructrTraits.GRAPH_OBJECT, GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY);
+		final PropertyKey<Boolean> visibleToAuthenticatedUsersKey = Traits.key(StructrTraits.GRAPH_OBJECT, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY);
 		final Map<String, Object> ownsProperties                  = new HashMap<>();
 		final Map<String, Object> securityProperties              = new HashMap<>();
 		final String newUuid                                      = (String)properties.get("id");
@@ -234,13 +239,13 @@ public class CreateNodeCommand extends NodeServiceCommand {
 		if (user != null && user.shouldSkipSecurityRelationships() == false) {
 
 			final Traits securityTraits                       = Traits.of(StructrTraits.SECURITY);
-			final PropertyKey<String> internalTimestampKey    = securityTraits.key("internalTimestamp");
-			final PropertyKey<String> sourceIdKey             = securityTraits.key("sourceId");
-			final PropertyKey<String> targetIdKey             = securityTraits.key("targetId");
-			final PropertyKey<String> relTypeKey              = securityTraits.key("relType");
-			final PropertyKey<String> principalIdKey          = securityTraits.key("principalId");
-			final PropertyKey<String> accessControllableIdKey = securityTraits.key("accessControllableId");
-			final PropertyKey<String[]> allowedKey            = securityTraits.key("allowed");
+			final PropertyKey<String> internalTimestampKey    = securityTraits.key(RelationshipInterfaceTraitDefinition.INTERNAL_TIMESTAMP_PROPERTY);
+			final PropertyKey<String> sourceIdKey             = securityTraits.key(RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY);
+			final PropertyKey<String> targetIdKey             = securityTraits.key(RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY);
+			final PropertyKey<String> relTypeKey              = securityTraits.key(RelationshipInterfaceTraitDefinition.REL_TYPE_PROPERTY);
+			final PropertyKey<String> principalIdKey          = securityTraits.key(SecurityRelationshipDefinition.PRINCIPAL_ID_PROPERTY);
+			final PropertyKey<String> accessControllableIdKey = securityTraits.key(SecurityRelationshipDefinition.ACCESS_CONTROLLABLE_ID_PROPERTY);
+			final PropertyKey<String[]> allowedKey            = securityTraits.key(SecurityRelationshipDefinition.ALLOWED_PROPERTY);
 			final String userId                               = user.getUuid();
 
 			// configure OWNS relationship creation statement for maximum performance

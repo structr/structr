@@ -24,6 +24,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.event.ActionMapping;
@@ -130,7 +131,7 @@ public interface DOMElement extends DOMNode  {
 				}
 			}
 
-			final String name = node.getProperty(traits.key("name"));
+			final String name = node.getProperty(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY));
 			if (name != null) {
 				element.attr("name", name);
 			}

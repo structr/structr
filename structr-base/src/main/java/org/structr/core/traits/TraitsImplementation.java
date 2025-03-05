@@ -25,6 +25,8 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 
@@ -456,9 +458,9 @@ public class TraitsImplementation implements Traits {
 		final Set<PropertyKey> keys = new LinkedHashSet<>();
 		final Traits nodeTraits     = Traits.of(StructrTraits.NODE_INTERFACE);
 
-		keys.add(nodeTraits.key("id"));
-		keys.add(nodeTraits.key("type"));
-		keys.add(nodeTraits.key("name"));
+		keys.add(nodeTraits.key(GraphObjectTraitDefinition.ID_PROPERTY));
+		keys.add(nodeTraits.key(GraphObjectTraitDefinition.TYPE_PROPERTY));
+		keys.add(nodeTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY));
 
 		return keys;
 	}

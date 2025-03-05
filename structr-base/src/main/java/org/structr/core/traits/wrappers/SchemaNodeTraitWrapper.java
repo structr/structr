@@ -18,6 +18,7 @@
  */
 package org.structr.core.traits.wrappers;
 
+import org.apache.commons.lang3.StringUtils;
 import org.structr.api.graph.Relationship;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
@@ -169,14 +170,14 @@ public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper imple
 	}
 
 	@Override
+	public void setInheritedTraits(final Set<String> setOfTraits) throws FrameworkException {
+		wrappedObject.setProperty(traits.key("inheritedTraits"), setOfTraits.toArray(new String[0]));
+	}
+
+	@Override
 	public TraitDefinition[] getTraitDefinitions() {
 
 		final ArrayList<TraitDefinition> definitions = new ArrayList<>(recursivelyResolveTraitInheritance(this));
-
-		for (final TraitDefinition def: definitions) {
-
-			System.out.println(def.getName());
-		};
 
 		return definitions.toArray(new TraitDefinition[0]);
 	}
@@ -209,10 +210,13 @@ public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper imple
 		// move extendsClass values to inheriting traits
 		final String extendsClassInternal = (String) getNode().getProperty("extendsClassInternal");
 		final List<Relationship> rels     = Iterables.toList(getNode().getRelationships());
+		final Set<String> traits          = new LinkedHashSet<>(getInheritedTraits());
 
 		if (extendsClassInternal != null) {
 
-			System.out.println("FOUND extendsClassInternal: " + extendsClassInternal);
+			traits.add(StringUtils.substringAfterLast(extendsClassInternal, "."));
+
+			getNode().removeProperty("extendsClassInternal");
 		}
 
 		if (!rels.isEmpty()) {
@@ -225,13 +229,15 @@ public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper imple
 
 					final String superType = (String) rel.getEndNode().getProperty("name");
 
-					System.out.println("FOUND extendsClass relationship: " + getName() + ": " + superType);
+					traits.add(superType);
 
 					// delete
-					//rel.delete(true);
+					rel.delete(true);
 				}
 			}
 		}
+
+		setInheritedTraits(traits);
 	}
 
 	// ----- private methods -----
@@ -244,7 +250,7 @@ public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper imple
 			try {
 
 				final NodeInterface inheritedSchemaNode = StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_NODE).andName(inheritedTrait).getFirst();
-				if (inheritedSchemaNode != null) {
+				if (inheritedSchemaNode != null && !inheritedTrait.equals(schemaNode.getName())) {
 
 					// recurse
 					definitions.addAll(recursivelyResolveTraitInheritance(inheritedSchemaNode.as(SchemaNode.class)));

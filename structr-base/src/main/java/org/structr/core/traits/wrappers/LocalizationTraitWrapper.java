@@ -21,6 +21,8 @@ package org.structr.core.traits.wrappers;
 import org.structr.core.entity.Localization;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.LocalizationTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 
 public class LocalizationTraitWrapper extends AbstractNodeTraitWrapper implements Localization {
 
@@ -30,21 +32,21 @@ public class LocalizationTraitWrapper extends AbstractNodeTraitWrapper implement
 
 	@Override
 	public String getLocalizedName() {
-		return wrappedObject.getProperty(traits.key("localizedName"));
+		return wrappedObject.getProperty(traits.key(LocalizationTraitDefinition.LOCALIZED_NAME_PROPERTY));
 	}
 
 	@Override
 	public String getLocale() {
-		return wrappedObject.getProperty(traits.key("locale"));
+		return wrappedObject.getProperty(traits.key(LocalizationTraitDefinition.LOCALE_PROPERTY));
 	}
 
 	@Override
 	public String getDomain() {
-		return wrappedObject.getProperty(traits.key("domain"));
+		return wrappedObject.getProperty(traits.key(LocalizationTraitDefinition.DOMAIN_PROPERTY));
 	}
 
 	@Override
 	public boolean isImported() {
-		return wrappedObject.getProperty(traits.key("imported"));
+		return wrappedObject.getProperty(traits.key(LocalizationTraitDefinition.IMPORTED_PROPERTY));
 	}
 }

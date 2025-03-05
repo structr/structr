@@ -45,6 +45,8 @@ import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.schema.action.Function;
 import org.structr.web.common.AsyncBuffer;
@@ -1333,9 +1335,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 	@Override
 	public final void setVisibility(final boolean publicUsers, final boolean authenticatedUsers) throws FrameworkException {
-
-		wrappedObject.setProperty(traits.key("visibleToPublicUsers"), publicUsers);
-		wrappedObject.setProperty(traits.key("visibleToAuthenticatedUsers"), authenticatedUsers);
+		wrappedObject.setVisibility(publicUsers, authenticatedUsers);
 	}
 
 	@Override
@@ -1586,7 +1586,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 		if (!is(StructrTraits.TEMPLATE)) {
 
-			final String _name = wrappedObject.getProperty(traits.key("name"));
+			final String _name = wrappedObject.getProperty(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY));
 			if (StringUtils.isNotEmpty(_name)) {
 
 				instructions.add("@structr:name(" + DOMNode.escapeForHtmlAttributes(_name) + ")");

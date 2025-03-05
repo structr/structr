@@ -50,6 +50,11 @@ import java.util.Set;
  */
 public final class GroupTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String MEMBERS_PROPERTY           = "members";
+	public static final String JWKS_REFERENCE_ID_PROPERTY = "jwksReferenceId";
+	public static final String IS_GROUP_PROPERTY          = "isGroup";
+
+
 	public GroupTraitDefinition() {
 		super(StructrTraits.GROUP);
 	}
@@ -68,8 +73,8 @@ public final class GroupTraitDefinition extends AbstractNodeTraitDefinition {
 					boolean valid = true;
 
 					final Traits traits                       = obj.getTraits();
-					final PropertyKey nameProperty            = traits.key("name");
-					final PropertyKey jwksReferenceIdProperty = traits.key("jwksReferenceId");
+					final PropertyKey nameProperty            = traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
+					final PropertyKey jwksReferenceIdProperty = traits.key(JWKS_REFERENCE_ID_PROPERTY);
 
 					valid &= ValidationHelper.isValidPropertyNotNull(obj, nameProperty, errorBuffer);
 					valid &= ValidationHelper.isValidUniqueProperty(obj,  nameProperty, errorBuffer);
@@ -112,7 +117,7 @@ public final class GroupTraitDefinition extends AbstractNodeTraitDefinition {
 
 				if (entity.is(StructrTraits.GROUP)) {
 
-					final NodeInterface userNode = (NodeInterface)arguments.get("user");
+					final NodeInterface userNode = (NodeInterface)arguments.get(0);
 					Principal user               = null;
 
 					if (userNode != null) {
@@ -147,7 +152,7 @@ public final class GroupTraitDefinition extends AbstractNodeTraitDefinition {
 
 				if (entity.is(StructrTraits.GROUP)) {
 
-					final NodeInterface userNode = (NodeInterface)arguments.get("user");
+					final NodeInterface userNode = (NodeInterface)arguments.get(0);
 					Principal user               = null;
 
 					if (userNode != null) {
@@ -175,10 +180,10 @@ public final class GroupTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Iterable<NodeInterface>> membersProperty = new EndNodes("members", StructrTraits.GROUP_CONTAINS_PRINCIPAL);
-		final Property<String> jwksReferenceIdProperty          = new StringProperty("jwksReferenceId").indexed().unique();
-		final Property<String> nameProperty                     = new StringProperty("name").indexed().notNull().unique();
-		final Property<Boolean> isGroupProperty                 = new ConstantBooleanProperty("isGroup", true);
+		final Property<Iterable<NodeInterface>> membersProperty = new EndNodes(MEMBERS_PROPERTY, StructrTraits.GROUP_CONTAINS_PRINCIPAL);
+		final Property<String> jwksReferenceIdProperty          = new StringProperty(JWKS_REFERENCE_ID_PROPERTY).indexed().unique();
+		final Property<String> nameProperty                     = new StringProperty(NodeInterfaceTraitDefinition.NAME_PROPERTY).indexed().notNull().unique();
+		final Property<Boolean> isGroupProperty                 = new ConstantBooleanProperty(IS_GROUP_PROPERTY, true);
 
 		return newSet(
 			membersProperty,
@@ -194,11 +199,11 @@ public final class GroupTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"name", "isGroup", "members", "blocked"
+				NodeInterfaceTraitDefinition.NAME_PROPERTY, IS_GROUP_PROPERTY, MEMBERS_PROPERTY, PrincipalTraitDefinition.BLOCKED_PROPERTY
 			),
 			PropertyView.Ui,
 			newSet(
-				"isGroup", "jwksReferenceId", "members"
+					IS_GROUP_PROPERTY, JWKS_REFERENCE_ID_PROPERTY, MEMBERS_PROPERTY
 			)
 		);
 	}

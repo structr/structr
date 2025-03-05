@@ -31,6 +31,8 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
@@ -85,8 +87,8 @@ public class AutocompleteTest extends StructrUiTest {
 		assertFullResult(AbstractHintProvider.getHints(actionContext, false, null, "${contains(", ")", 0, 0));
 
 		// current is at least an AbstractNode
-		assertFirstResult("text", "base",      AbstractHintProvider.getHints(actionContext, false, null, "${current.", "", 0, 0));
-		assertFirstResult("text", "createdBy", AbstractHintProvider.getHints(actionContext, false, null, "${current.c", "", 0, 0));
+		assertFirstResult("text", GraphObjectTraitDefinition.BASE_PROPERTY,       AbstractHintProvider.getHints(actionContext, false, null, "${current.", "", 0, 0));
+		assertFirstResult("text", GraphObjectTraitDefinition.CREATED_BY_PROPERTY, AbstractHintProvider.getHints(actionContext, false, null, "${current.c", "", 0, 0));
 
 		// patterns that should not produce any autocomplete results
 		assertEmptyResult(AbstractHintProvider.getHints(actionContext, false, null, "${cu.", "", 0, 0));
@@ -114,8 +116,8 @@ public class AutocompleteTest extends StructrUiTest {
 		assertFullResult(AbstractHintProvider.getHints(actionContext, false, null, "${{\n\t$.contains($.", ")", 0, 0));
 
 		// current is at least an AbstractNode
-		assertFirstResult("text", "base",      AbstractHintProvider.getHints(actionContext, false, null, "${{\n\t$.current.", "", 0, 0));
-		assertFirstResult("text", "createdBy", AbstractHintProvider.getHints(actionContext, false, null, "${{\n\tlet test = $.current.c", "", 0, 0));
+		assertFirstResult("text", GraphObjectTraitDefinition.BASE_PROPERTY,       AbstractHintProvider.getHints(actionContext, false, null, "${{\n\t$.current.", "", 0, 0));
+		assertFirstResult("text", GraphObjectTraitDefinition.CREATED_BY_PROPERTY, AbstractHintProvider.getHints(actionContext, false, null, "${{\n\tlet test = $.current.c", "", 0, 0));
 
 		// patterns that should not produce any autocomplete results
 		assertEmptyResult(AbstractHintProvider.getHints(actionContext, false, null, "${{\n\t$.cu.", "", 0, 0));
@@ -215,7 +217,7 @@ public class AutocompleteTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface method = app.nodeQuery(StructrTraits.SCHEMA_METHOD).and(Traits.of(StructrTraits.SCHEMA_METHOD).key("name"), "testMethod").getFirst();
+			final NodeInterface method = app.nodeQuery(StructrTraits.SCHEMA_METHOD).and(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testMethod").getFirst();
 
 			// verify that the properties of the Test type are in the autocomplete result
 			final List<GraphObject> result1       = AbstractHintProvider.getHints(actionContext, false, method, "{\n\t$.this.", "", 0, 0);
@@ -224,11 +226,11 @@ public class AutocompleteTest extends StructrUiTest {
 			final Map<String, Object> createdDate = ((GraphObjectMap)result1.get(2)).toMap();
 			final Map<String, Object> description = ((GraphObjectMap)result1.get(3)).toMap();
 			final Map<String, Object> id          = ((GraphObjectMap)result1.get(4)).toMap();
-			assertEquals("Invalid autocomplete result", "base",        base.get("text"));
-			assertEquals("Invalid autocomplete result", "createdBy",   createdBy.get("text"));
-			assertEquals("Invalid autocomplete result", "createdDate", createdDate.get("text"));
+			assertEquals("Invalid autocomplete result", GraphObjectTraitDefinition.BASE_PROPERTY,         base.get("text"));
+			assertEquals("Invalid autocomplete result", GraphObjectTraitDefinition.CREATED_BY_PROPERTY,   createdBy.get("text"));
+			assertEquals("Invalid autocomplete result", GraphObjectTraitDefinition.CREATED_DATE_PROPERTY, createdDate.get("text"));
 			assertEquals("Invalid autocomplete result", "description", description.get("text"));
-			assertEquals("Invalid autocomplete result", "id",          id.get("text"));
+			assertEquals("Invalid autocomplete result", GraphObjectTraitDefinition.ID_PROPERTY,          id.get("text"));
 
 			// verify that the letter "d" is correctly expanded into "description"
 			assertFirstResult("text", "description", AbstractHintProvider.getHints(actionContext, false, method, "{\n\t$.this.d", "", 0, 0));

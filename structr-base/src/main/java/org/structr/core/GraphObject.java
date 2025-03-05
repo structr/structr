@@ -35,6 +35,7 @@ import org.structr.core.property.FunctionProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 
@@ -193,15 +194,15 @@ public interface GraphObject {
 	}
 
 	default void setVisibility(final boolean visibleToPublic, final boolean visibleToAuth) throws FrameworkException {
-		setProperty(getTraits().key("visibleToPublicUsers"),        visibleToPublic);
-		setProperty(getTraits().key("visibleToAuthenticatedUsers"), visibleToAuth);
+		setVisibleToPublicUsers(visibleToPublic);
+		setVisibleToAuthenticatedUsers(visibleToAuth);
 	}
 
-	default void setVisibleToPublicUsers(final boolean v) throws FrameworkException {
-		setProperty(getTraits().key("visibleToPublicUsers"), v);
+	default void setVisibleToPublicUsers(final boolean visibleToPublic) throws FrameworkException {
+		setProperty(getTraits().key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), visibleToPublic);
 	}
 
-	default void setVisibleToAuthenticatedUsers(final boolean v) throws FrameworkException {
-		setProperty(getTraits().key("visibleToAuthenticatedUsers"), v);
+	default void setVisibleToAuthenticatedUsers(final boolean visibleToAuth) throws FrameworkException {
+		setProperty(getTraits().key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), visibleToAuth);
 	}
 }

@@ -32,6 +32,7 @@ import org.structr.core.traits.Traits;
 
 import java.util.Map;
 import java.util.Map.Entry;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 
 /**
  * Sets the properties found in the property set on all relationships matching the type.
@@ -46,8 +47,8 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
 
 		final DatabaseService graphDb        = (DatabaseService) arguments.get("graphDb");
 		final App app                        = StructrApp.getInstance();
-		final PropertyKey<String> idProperty = Traits.of(StructrTraits.GRAPH_OBJECT).key("id");
-		String relationshipTypeClass         = "RelationshipInterface";
+		final PropertyKey<String> idProperty = Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY);
+		String relationshipTypeClass         = StructrTraits.RELATIONSHIP_INTERFACE;
 
 		if (graphDb != null) {
 

@@ -35,6 +35,7 @@ import org.structr.core.graph.CreationContainer;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.schema.Transformer;
 
 import java.util.HashMap;
@@ -323,10 +324,10 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 						modifiedById = user.getUuid();
 					}
 
-					propertyContainer.setProperty("lastModifiedBy", modifiedById);
+					propertyContainer.setProperty(GraphObjectTraitDefinition.LAST_MODIFIED_BY_PROPERTY, modifiedById);
 				}
 
-				propertyContainer.setProperty("lastModifiedDate", System.currentTimeMillis());
+				propertyContainer.setProperty(GraphObjectTraitDefinition.LAST_MODIFIED_DATE_PROPERTY, System.currentTimeMillis());
 			}
 
 

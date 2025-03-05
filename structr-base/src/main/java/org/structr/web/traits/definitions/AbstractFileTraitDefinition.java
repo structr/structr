@@ -35,6 +35,8 @@ import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
@@ -118,7 +120,7 @@ public class AbstractFileTraitDefinition extends AbstractNodeTraitDefinition {
 
 				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
 
-					final PropertyKey<String> nameKey = obj.getTraits().key("name");
+					final PropertyKey<String> nameKey = obj.getTraits().key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 
 					boolean valid = true;
 
@@ -184,7 +186,7 @@ public class AbstractFileTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"name", "isExternal", "lastSeenMounted", "path", "visibleToPublicUsers", "visibleToAuthenticatedUsers"
+				NodeInterfaceTraitDefinition.NAME_PROPERTY, "isExternal", "lastSeenMounted", "path", GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY
 			),
 			PropertyView.Ui,
 			newSet(

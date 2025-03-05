@@ -28,6 +28,8 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.LocalizationTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.action.ActionContext;
 import org.structr.test.traits.definitions.CsvTestOneTraitDefinition;
 import org.structr.test.traits.definitions.CsvTestTwoTraitDefinition;
@@ -72,23 +74,23 @@ public class CsvFunctionsTest extends StructrUiTest {
 			final PropertyMap indexLocalizationPropertiesWithDomain = new PropertyMap();
 			final PropertyMap nameLocalizationPropertiesWithDomain  = new PropertyMap();
 
-			indexLocalizationProperties.put(localizationTraits.key("name"),                    "index");
-			indexLocalizationProperties.put(localizationTraits.key("localizedName"),           "Localized INDEX");
-			indexLocalizationProperties.put(localizationTraits.key("locale"),                  "en");
+			indexLocalizationProperties.put(localizationTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),                    "index");
+			indexLocalizationProperties.put(localizationTraits.key(LocalizationTraitDefinition.LOCALIZED_NAME_PROPERTY),           "Localized INDEX");
+			indexLocalizationProperties.put(localizationTraits.key(LocalizationTraitDefinition.LOCALE_PROPERTY),                  "en");
 
-			nameLocalizationProperties.put(localizationTraits.key("name"),                     "name");
-			nameLocalizationProperties.put(localizationTraits.key("localizedName"),            "Localized NAME");
-			nameLocalizationProperties.put(localizationTraits.key("locale"),                   "en");
+			nameLocalizationProperties.put(localizationTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),                     "name");
+			nameLocalizationProperties.put(localizationTraits.key(LocalizationTraitDefinition.LOCALIZED_NAME_PROPERTY),            "Localized NAME");
+			nameLocalizationProperties.put(localizationTraits.key(LocalizationTraitDefinition.LOCALE_PROPERTY),                   "en");
 
-			indexLocalizationPropertiesWithDomain.put(localizationTraits.key("name"),          "index");
-			indexLocalizationPropertiesWithDomain.put(localizationTraits.key("localizedName"), "Localized INDEX with DOMAIN");
-			indexLocalizationPropertiesWithDomain.put(localizationTraits.key("locale"),        "en");
-			indexLocalizationPropertiesWithDomain.put(localizationTraits.key("domain"),        "CSV TEST Domain");
+			indexLocalizationPropertiesWithDomain.put(localizationTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),          "index");
+			indexLocalizationPropertiesWithDomain.put(localizationTraits.key(LocalizationTraitDefinition.LOCALIZED_NAME_PROPERTY), "Localized INDEX with DOMAIN");
+			indexLocalizationPropertiesWithDomain.put(localizationTraits.key(LocalizationTraitDefinition.LOCALE_PROPERTY),        "en");
+			indexLocalizationPropertiesWithDomain.put(localizationTraits.key(LocalizationTraitDefinition.DOMAIN_PROPERTY),        "CSV TEST Domain");
 
-			nameLocalizationPropertiesWithDomain.put(localizationTraits.key("name"),           "name");
-			nameLocalizationPropertiesWithDomain.put(localizationTraits.key("localizedName"),  "Localized NAME with DOMAIN");
-			nameLocalizationPropertiesWithDomain.put(localizationTraits.key("locale"),         "en");
-			nameLocalizationPropertiesWithDomain.put(localizationTraits.key("domain"),         "CSV TEST Domain");
+			nameLocalizationPropertiesWithDomain.put(localizationTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),           "name");
+			nameLocalizationPropertiesWithDomain.put(localizationTraits.key(LocalizationTraitDefinition.LOCALIZED_NAME_PROPERTY),  "Localized NAME with DOMAIN");
+			nameLocalizationPropertiesWithDomain.put(localizationTraits.key(LocalizationTraitDefinition.LOCALE_PROPERTY),         "en");
+			nameLocalizationPropertiesWithDomain.put(localizationTraits.key(LocalizationTraitDefinition.DOMAIN_PROPERTY),         "CSV TEST Domain");
 
 			app.create(StructrTraits.LOCALIZATION, indexLocalizationProperties);
 			app.create(StructrTraits.LOCALIZATION, nameLocalizationProperties);
@@ -97,7 +99,7 @@ public class CsvFunctionsTest extends StructrUiTest {
 
 			for (final NodeInterface csvTestOne : csvTestOnes) {
 
-				csvTestOne.setProperty(testOneTraits.key("name"), "CSV Test Node " + StringUtils.leftPad(Integer.toString(index+1), 4, "0"));
+				csvTestOne.setProperty(testOneTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "CSV Test Node " + StringUtils.leftPad(Integer.toString(index+1), 4, "0"));
 				csvTestOne.setProperty(testOneTraits.key("index"), index+1);
 
 				if (index == 0) {

@@ -66,6 +66,16 @@ public class ActionMappingTraitWrapper extends AbstractNodeTraitWrapper implemen
 	}
 
 	@Override
+	public void setSuccessBehaviour(String successBehaviour) throws FrameworkException {
+		wrappedObject.setProperty(traits.key("successBehaviour"), successBehaviour);
+	}
+
+	@Override
+	public void setFailureBehaviour(String failureBehaviour) throws FrameworkException {
+		wrappedObject.setProperty(traits.key("failureBehaviour"), failureBehaviour);
+	}
+
+	@Override
 	public String getDataType() {
 		return wrappedObject.getProperty(traits.key("dataType"));
 	}

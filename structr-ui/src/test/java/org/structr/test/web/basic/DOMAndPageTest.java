@@ -33,6 +33,9 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
@@ -190,17 +193,17 @@ public class DOMAndPageTest extends StructrUiTest {
 	@Test
 	public void test001EMailAddressConstraint() {
 
-		final PropertyKey<String> eMail = Traits.of(StructrTraits.USER).key("eMail");
+		final PropertyKey<String> eMail = Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.EMAIL_PROPERTY);
 
 		try (final Tx tx = app.tx()) {
 
 			app.create(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"), "TestUser1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "TestUser1"),
 				new NodeAttribute(eMail, "user@structr.test")
 			);
 
 			app.create(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"), "TestUser2"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "TestUser2"),
 				new NodeAttribute(eMail, "user@structr.test")
 			);
 
@@ -217,12 +220,12 @@ public class DOMAndPageTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"), "TestUser1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "TestUser1"),
 				new NodeAttribute(eMail, "user@structr.test")
 			);
 
 			app.create(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"), "TestUser2"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "TestUser2"),
 				new NodeAttribute(eMail, "User@Structr.test")
 			);
 
@@ -276,8 +279,8 @@ public class DOMAndPageTest extends StructrUiTest {
 			final PropertyKey<Integer> positionKey              = Traits.of(StructrTraits.PAGE).key("position");
 			final PropertyKey<Integer> portKey                  = Traits.of("Site").key("port");
 			final PropertyKey<String> hostnameKey               = Traits.of("Site").key("hostname");
-			final PropertyKey<String> nameKey                   = Traits.of("Site").key("name");
-			final PropertyKey<Boolean> vtp                      = Traits.of("Site").key("visibleToPublicUsers");
+			final PropertyKey<String> nameKey                   = Traits.of("Site").key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
+			final PropertyKey<Boolean> vtp                      = Traits.of("Site").key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY);
 
 			siteOneProperties.put(nameKey, "site-one");
 			siteOneProperties.put(vtp, true);
@@ -295,13 +298,13 @@ public class DOMAndPageTest extends StructrUiTest {
 
 			final PropertyMap pageOneProperties = new PropertyMap();
 			pageOneProperties.put(sitesKey, Arrays.asList(siteOne));
-			pageOneProperties.put(Traits.of(StructrTraits.PAGE).key("visibleToPublicUsers"), true);
+			pageOneProperties.put(Traits.of(StructrTraits.PAGE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
 			pageOneProperties.put(positionKey, 10);
 			pageOne.setProperties(pageOne.getSecurityContext(), pageOneProperties);
 
 			final PropertyMap pageTwoProperties = new PropertyMap();
 			pageTwoProperties.put(sitesKey, Arrays.asList(siteTwo));
-			pageTwoProperties.put(Traits.of(StructrTraits.PAGE).key("visibleToPublicUsers"), true);
+			pageTwoProperties.put(Traits.of(StructrTraits.PAGE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
 			pageTwoProperties.put(positionKey, 10);
 			pageTwo.setProperties(pageTwo.getSecurityContext(), pageTwoProperties);
 
@@ -836,11 +839,11 @@ public class DOMAndPageTest extends StructrUiTest {
 			try (final Tx tx = app.tx()) {
 
 				// create some test nodes
-				test1 = createTestNode(StructrTraits.FILE, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "aaaaa"));
-				createTestNode(StructrTraits.FILE, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "bbbbb"));
-				createTestNode(StructrTraits.FILE, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "ccccc"));
-				createTestNode(StructrTraits.FILE, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "ddddd"));
-				createTestNode(StructrTraits.FILE, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "eeeee"));
+				test1 = createTestNode(StructrTraits.FILE, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "aaaaa"));
+				createTestNode(StructrTraits.FILE, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "bbbbb"));
+				createTestNode(StructrTraits.FILE, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "ccccc"));
+				createTestNode(StructrTraits.FILE, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "ddddd"));
+				createTestNode(StructrTraits.FILE, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "eeeee"));
 
 				tx.success();
 			}
@@ -863,7 +866,7 @@ public class DOMAndPageTest extends StructrUiTest {
 			// modify file name to move the first file to the end of the sorted list
 			try (final Tx tx = app.tx()) {
 
-				test1.setProperties(test1.getSecurityContext(), new PropertyMap(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "zzzzz"));
+				test1.setProperties(test1.getSecurityContext(), new PropertyMap(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "zzzzz"));
 
 				tx.success();
 			}
@@ -897,11 +900,7 @@ public class DOMAndPageTest extends StructrUiTest {
 
 			Page.createSimplePage(securityContext, "test");
 
-			app.create(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
-			);
+			createAdminUser("admin", "admin");
 
 			tx.success();
 
@@ -1101,8 +1100,8 @@ public class DOMAndPageTest extends StructrUiTest {
 			setFlagsRecursively(auth, false,  true);
 
 			app.create(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "tester"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "test")
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     "tester"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.PASSWORD_PROPERTY), "test")
 			);
 
 			tx.success();
@@ -1179,11 +1178,7 @@ public class DOMAndPageTest extends StructrUiTest {
 
 			test.getElementsByTagName("div").get(0).appendChild(text);
 
-			final NodeInterface user = app.create(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
-			);
+			final NodeInterface user = createAdminUser("admin", "admin");
 
 			uuid = user.getUuid();
 
@@ -1288,8 +1283,8 @@ public class DOMAndPageTest extends StructrUiTest {
 
 	private void setFlagsRecursively(final DOMNode node, final boolean visibleToPublic, final boolean visibleToAuth) throws FrameworkException {
 
-		node.setProperty(Traits.of(StructrTraits.DOM_NODE).key("visibleToAuthenticatedUsers"), visibleToAuth);
-		node.setProperty(Traits.of(StructrTraits.DOM_NODE).key("visibleToPublicUsers"), visibleToPublic);
+		node.setProperty(Traits.of(StructrTraits.DOM_NODE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), visibleToAuth);
+		node.setProperty(Traits.of(StructrTraits.DOM_NODE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), visibleToPublic);
 
 		for (final DOMNode child : node.getChildren()) {
 

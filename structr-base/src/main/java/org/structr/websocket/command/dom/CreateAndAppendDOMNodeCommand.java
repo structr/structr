@@ -31,6 +31,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
@@ -227,8 +228,8 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 		final PropertyMap visibilityFlags = new PropertyMap();
 		final Traits traits               = Traits.of(StructrTraits.DOM_NODE);
 
-		visibilityFlags.put(traits.key("visibleToAuthenticatedUsers"), sourceNode.isVisibleToAuthenticatedUsers());
-		visibilityFlags.put(traits.key("visibleToPublicUsers"),        sourceNode.isVisibleToPublicUsers());
+		visibilityFlags.put(traits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), sourceNode.isVisibleToAuthenticatedUsers());
+		visibilityFlags.put(traits.key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY),        sourceNode.isVisibleToPublicUsers());
 
 		try {
 
@@ -275,7 +276,7 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 					try {
 
 						newNode.unlockSystemPropertiesOnce();
-						newNode.setProperties(newNode.getSecurityContext(), new PropertyMap(Traits.of(StructrTraits.GRAPH_OBJECT).key("type"), StructrTraits.TEMPLATE));
+						newNode.setProperties(newNode.getSecurityContext(), new PropertyMap(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY), StructrTraits.TEMPLATE));
 
 					} catch (FrameworkException fex) {
 						logger.warn("Unable to set type of node {} to Template: {}", new Object[] { newNode.getUuid(), fex.getMessage() } );

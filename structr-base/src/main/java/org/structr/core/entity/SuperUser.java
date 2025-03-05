@@ -626,7 +626,7 @@ public class SuperUser implements Principal {
 	}
 
 	@Override
-	public String getProxUsername() {
+	public String getProxyUsername() {
 		return "";
 	}
 

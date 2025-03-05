@@ -24,6 +24,8 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.test.web.StructrUiTest;
 import org.testng.annotations.Test;
 
@@ -37,16 +39,11 @@ public class XMPPTest extends StructrUiTest {
 	public void testMQTT() {
 
 		final String clientType   = "XMPPClient";
-		final Traits userTraits   = Traits.of(StructrTraits.USER);
 		final Traits clientTraits = Traits.of("XMPPClient");
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(StructrTraits.USER,
-				new NodeAttribute<>(userTraits.key("name"),     "admin"),
-				new NodeAttribute<>(userTraits.key("password"), "admin"),
-				new NodeAttribute<>(userTraits.key("isAdmin"),  true)
-			);
+			createAdminUser("admin", "admin");
 
 			tx.success();
 

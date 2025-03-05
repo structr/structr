@@ -55,7 +55,7 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 
 				@Override
 				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
-					return ValidationHelper.isValidStringMatchingRegex(obj, Traits.of(StructrTraits.NODE_INTERFACE).key("name"), schemaPropertyNamePattern, errorBuffer);
+					return ValidationHelper.isValidStringMatchingRegex(obj, Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), schemaPropertyNamePattern, errorBuffer);
 				}
 			}
 		);
@@ -155,7 +155,7 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 
 				PropertyView.Ui,
 				newSet(
-						"id", "typeHandler", "name", "dbName", "createdBy", "hidden", "createdDate", "lastModifiedDate", "visibleToPublicUsers", "visibleToAuthenticatedUsers", "schemaNode", "schemaViews", "excludedViews", "propertyType", "contentType", "fqcn", "format", "typeHint", "hint", "category", "notNull", "compound", "unique", "indexed", "readOnly", "defaultValue", "isBuiltinProperty", "declaringClass", "isDynamic", "readFunction", "writeFunction", "openAPIReturnType", "validators", "transformers", "isCachingEnabled"
+						"id", "typeHandler", "name", "dbName", GraphObjectTraitDefinition.CREATED_BY_PROPERTY, "hidden", GraphObjectTraitDefinition.CREATED_DATE_PROPERTY, GraphObjectTraitDefinition.LAST_MODIFIED_DATE_PROPERTY, GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, "schemaNode", "schemaViews", "excludedViews", "propertyType", "contentType", "fqcn", "format", "typeHint", "hint", "category", "notNull", "compound", "unique", "indexed", "readOnly", "defaultValue", "isBuiltinProperty", "declaringClass", "isDynamic", "readFunction", "writeFunction", "openAPIReturnType", "validators", "transformers", "isCachingEnabled"
 				),
 
 				"schema",

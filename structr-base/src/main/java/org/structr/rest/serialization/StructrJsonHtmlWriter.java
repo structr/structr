@@ -38,6 +38,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 
 public class StructrJsonHtmlWriter implements RestWriter {
 
@@ -251,7 +252,7 @@ public class StructrJsonHtmlWriter implements RestWriter {
 
 			} else if (currentObject instanceof AbstractRelationship) {
 
-				currentElement.inline("a").css("id").attr(new Href(restPath + "/" + currentObject.getProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key("type")) + "/" + value + propertyView + pagingParameterString)).text("\"", value, "\"");
+				currentElement.inline("a").css("id").attr(new Href(restPath + "/" + currentObject.getProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY)) + "/" + value + propertyView + pagingParameterString)).text("\"", value, "\"");
 
 			} else {
 

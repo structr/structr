@@ -33,6 +33,8 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.ShadowDocument;
 import org.structr.web.importer.Importer;
@@ -95,7 +97,7 @@ public class ComponentImporter extends HtmlFileImporter {
 
 			if (DeployCommand.isUuid(name)) {
 
-				result = StructrApp.getInstance().nodeQuery(StructrTraits.DOM_NODE).and(Traits.of(StructrTraits.GRAPH_OBJECT).key("id"), name).getFirst();
+				result = StructrApp.getInstance().nodeQuery(StructrTraits.DOM_NODE).and(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), name).getFirst();
 
 			} else {
 
@@ -226,8 +228,8 @@ public class ComponentImporter extends HtmlFileImporter {
 
 				final Traits traits     = Traits.of(StructrTraits.NODE_INTERFACE);
 				final String src        = new String(Files.readAllBytes(file), Charset.forName("UTF-8"));
-				boolean visibleToPublic = get(properties, traits.key("visibleToPublicUsers"), false);
-				boolean visibleToAuth   = get(properties, traits.key("visibleToAuthenticatedUsers"), false);
+				boolean visibleToPublic = get(properties, traits.key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), false);
+				boolean visibleToAuth   = get(properties, traits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), false);
 				final Importer importer = new Importer(securityContext, src, null, componentName, visibleToPublic, visibleToAuth, false, relativeVisibility);
 
 				// enable literal import of href attributes
@@ -269,7 +271,7 @@ public class ComponentImporter extends HtmlFileImporter {
 
 							// set UUID
 							rootElement.unlockSystemPropertiesOnce();
-							rootElement.setProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key("id"), componentName);
+							rootElement.setProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), componentName);
 
 						} else if (byNameAndId) {
 
@@ -280,13 +282,13 @@ public class ComponentImporter extends HtmlFileImporter {
 							DeployCommand.updateDeferredPagelink(rootElement.getUuid(), uuid);
 
 							rootElement.unlockSystemPropertiesOnce();
-							rootElement.setProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key("id"), uuid);
-							properties.put(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), name);
+							rootElement.setProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), uuid);
+							properties.put(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name);
 
 						} else {
 
 							// set name
-							rootElement.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), componentName);
+							rootElement.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), componentName);
 						}
 
 						// store properties from components.json if present

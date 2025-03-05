@@ -34,6 +34,8 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.module.StructrModule;
 import org.structr.module.api.APIBuilder;
 import org.structr.schema.SourceFile;
@@ -115,18 +117,18 @@ public class APIBuilderModule implements StructrModule, APIBuilder {
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface virtualTypeNode : app.nodeQuery("VirtualType").sort(Traits.of(StructrTraits.NODE_INTERFACE).key("name")).getAsList()) {
+			for (final NodeInterface virtualTypeNode : app.nodeQuery("VirtualType").sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getAsList()) {
 
 				final VirtualType virtualType   = virtualTypeNode.as(VirtualType.class);
 				final Map<String, Object> entry = new TreeMap<>();
 				virtualTypes.add(entry);
 
-				entry.put("name",                        virtualType.getName());
+				entry.put(NodeInterfaceTraitDefinition.NAME_PROPERTY,                        virtualType.getName());
 				entry.put("sourceType",                  virtualType.getSourceType());
 				entry.put("position",                    virtualType.getPosition());
 				entry.put("filterExpression",            virtualType.getFilterExpression());
-				entry.put("visibleToAuthenticatedUsers", virtualType.isVisibleToAuthenticatedUsers());
-				entry.put("visibleToPublicUsers",        virtualType.isVisibleToPublicUsers());
+				entry.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, virtualType.isVisibleToAuthenticatedUsers());
+				entry.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        virtualType.isVisibleToPublicUsers());
 
 				final List<Map<String, Object>> properties = new LinkedList();
 				entry.put("properties", properties);
@@ -142,8 +144,8 @@ public class APIBuilderModule implements StructrModule, APIBuilder {
 					virtualPropEntry.put("inputFunction",               virtualProperty.getInputFunction());
 					virtualPropEntry.put("outputFunction",              virtualProperty.getOutputFunction());
 					virtualPropEntry.put("position",                    virtualProperty.getPosition());
-					virtualPropEntry.put("visibleToAuthenticatedUsers", virtualProperty.isVisibleToAuthenticatedUsers());
-					virtualPropEntry.put("visibleToPublicUsers",        virtualProperty.isVisibleToPublicUsers());
+					virtualPropEntry.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        virtualProperty.isVisibleToPublicUsers());
+					virtualPropEntry.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, virtualProperty.isVisibleToAuthenticatedUsers());
 				}
 			}
 
@@ -213,7 +215,7 @@ public class APIBuilderModule implements StructrModule, APIBuilder {
 
 			final NodeInterface type = app.create("VirtualType",
 				new NodeAttribute<>(typeTraits.key("sourceType"), sourceType),
-				new NodeAttribute<>(typeTraits.key("name"),       targetType)
+				new NodeAttribute<>(typeTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),       targetType)
 			);
 
 			int i = 0;

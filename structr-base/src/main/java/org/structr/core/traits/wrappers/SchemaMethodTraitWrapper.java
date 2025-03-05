@@ -26,6 +26,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.LifecycleMethodAdapter;
 import org.structr.core.traits.operations.graphobject.*;
@@ -68,7 +69,7 @@ public class SchemaMethodTraitWrapper extends AbstractNodeTraitWrapper implement
 
 	@Override
 	public String getName() {
-		return wrappedObject.getProperty(traits.key("name"));
+		return wrappedObject.getProperty(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY));
 	}
 
 	@Override

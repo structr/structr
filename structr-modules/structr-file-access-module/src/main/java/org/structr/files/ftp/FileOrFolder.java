@@ -33,6 +33,8 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
@@ -106,10 +108,11 @@ public class FileOrFolder extends AbstractStructrFtpFile {
 			final Traits traits              = Traits.of(StructrTraits.FOLDER);
 
 			try {
+
 				NodeInterface newFolder = app.command(CreateNodeCommand.class).execute(
-					new NodeAttribute(traits.key("type"),   StructrTraits.FOLDER),
-					new NodeAttribute(traits.key("owner"),  owner.getStructrUser()),
-					new NodeAttribute(traits.key("name"),   getName()),
+					new NodeAttribute(traits.key(GraphObjectTraitDefinition.TYPE_PROPERTY),   StructrTraits.FOLDER),
+					new NodeAttribute(traits.key(NodeInterfaceTraitDefinition.OWNER_PROPERTY),  owner.getStructrUser()),
+					new NodeAttribute(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),   getName()),
 					new NodeAttribute(traits.key("parent"), parentFolder)
 				);
 

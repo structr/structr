@@ -36,6 +36,8 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
@@ -88,7 +90,7 @@ public class PerformanceTest extends StructrUiTest {
 				for (int i=0; i<number; i++) {
 
 					nodes.add(app.create("TestOne",
-						new NodeAttribute(Traits.of("TestOne").key("name"), "TestOne" + i),
+						new NodeAttribute(Traits.of("TestOne").key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "TestOne" + i),
 						new NodeAttribute(Traits.of("TestOne").key("aDate"), new Date()),
 						new NodeAttribute(Traits.of("TestOne").key("aDouble"), 1.234),
 						new NodeAttribute(Traits.of("TestOne").key("aLong"), 12345L),
@@ -216,7 +218,7 @@ public class PerformanceTest extends StructrUiTest {
 
 					for (final NodeInterface t : app.nodeQuery("TestOne").getResultStream()) {
 
-						final String name = t.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"));
+						final String name = t.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY));
 					}
 
 					tx.success();
@@ -266,7 +268,7 @@ public class PerformanceTest extends StructrUiTest {
 				for (int i=0; i<number; i++) {
 
 					app.create("TestFive",
-						new NodeAttribute<>(Traits.of("TestFive").key("name"), "TestFive" + i),
+						new NodeAttribute<>(Traits.of("TestFive").key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "TestFive" + i),
 						new NodeAttribute<>(Traits.of("TestFive").key("testTwo"), app.create("TestTwo", "TestTwo" + i))
 					);
 				}
@@ -401,7 +403,7 @@ public class PerformanceTest extends StructrUiTest {
 
 					for (final NodeInterface n : createNodes(app, "TestTwo", number)){
 
-						n.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "Test" + StringUtils.leftPad(Integer.toString(count++), 5, "0"));
+						n.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Test" + StringUtils.leftPad(Integer.toString(count++), 5, "0"));
 						n.setProperty(Traits.of("TestTwo").key("testFives"), createNodes(app, "TestFive", 3));
 					}
 
@@ -600,11 +602,7 @@ public class PerformanceTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			user = app.create(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"),     "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"),      true)
-			);
+			user = createAdminUser("admin", "admin");
 
 			tx.success();
 

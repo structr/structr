@@ -30,6 +30,7 @@ import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 
 import java.util.Map;
 import java.util.Set;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 
 public class TestTenTraitDefinition extends AbstractNodeTraitDefinition {
 
@@ -55,7 +56,7 @@ public class TestTenTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 			PropertyView.Public,
-			newSet("name", "testSeven", "functionTest", "getNameProperty", "getRandomNumProp")
+			newSet(NodeInterfaceTraitDefinition.NAME_PROPERTY, "testSeven", "functionTest", "getNameProperty", "getRandomNumProp")
 		);
 	}
 

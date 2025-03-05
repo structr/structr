@@ -27,6 +27,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.web.entity.Widget;
 import org.structr.websocket.StructrWebSocket;
@@ -55,7 +56,7 @@ public class GetSuggestionsCommand extends AbstractCommand {
 		setDoTransactionNotifications(false);
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
-		final PropertyKey selectorsKey        = Traits.of("Widget").key("selectors");
+		final PropertyKey selectorsKey        = Traits.of(StructrTraits.WIDGET).key("selectors");
 		final List<String> classes            = webSocketData.getNodeDataStringList("classes");
 		final String name                     = webSocketData.getNodeDataStringValue("name");
 		final String htmlId                   = webSocketData.getNodeDataStringValue("htmlId");
@@ -76,7 +77,7 @@ public class GetSuggestionsCommand extends AbstractCommand {
 				if (name != null) {   element.attr("name", name); }
 				if (htmlId != null) { element.attr("id",   htmlId); }
 
-				try (final ResultStream<NodeInterface> resultStream = app.nodeQuery("Widget").getResultStream()) {
+				try (final ResultStream<NodeInterface> resultStream = app.nodeQuery(StructrTraits.WIDGET).getResultStream()) {
 
 					for (final NodeInterface node : resultStream) {
 

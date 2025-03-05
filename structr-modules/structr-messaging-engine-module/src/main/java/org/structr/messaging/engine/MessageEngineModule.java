@@ -34,6 +34,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.messaging.engine.entities.MessageClient;
 import org.structr.messaging.engine.entities.MessageSubscriber;
 import org.structr.messaging.engine.relation.MessageClientHASMessageSubscriber;
@@ -124,7 +125,7 @@ public class MessageEngineModule implements StructrModule {
 		final Path messagingEngineFile    = target.resolve("messaging-engine.json");
 		final Traits subscriberTraits     = Traits.of("MessageSubscriber");
 		final Traits clientTraits         = Traits.of("MessageClient");
-		final PropertyKey<String> nameKey = Traits.of(StructrTraits.NODE_INTERFACE).key("name");
+		final PropertyKey<String> nameKey = Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 		final App app                     = StructrApp.getInstance();
 
 

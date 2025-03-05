@@ -19,15 +19,17 @@
 package org.structr.schema.openapi.schema;
 
 import java.util.Map;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 
 public class OpenAPIBaseSchemaWrite extends OpenAPIObjectSchema {
 
 	public OpenAPIBaseSchemaWrite() {
 
 		super(Map.of(
-			"name",                        Map.of("type", "string"),
-			"visibleToAuthenticatedUsers", Map.of("type", "boolean", "default", false),
-			"visibleToPublicUsers",        Map.of("type", "boolean", "default", false)
+				NodeInterfaceTraitDefinition.NAME_PROPERTY,                         Map.of("type", "string"),
+				GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, Map.of("type", "boolean", "default", false),
+				GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        Map.of("type", "boolean", "default", false)
 		));
 	}
 }

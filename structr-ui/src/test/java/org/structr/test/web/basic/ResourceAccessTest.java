@@ -33,6 +33,9 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.auth.UiAuthenticator;
@@ -256,12 +259,12 @@ public class ResourceAccessTest extends StructrUiTest {
 
 			// Prepare for next test
 			final PropertyMap testUserProperties = new PropertyMap();
-			testUserProperties.put(Traits.of(StructrTraits.USER).key("name"), name);
-			testUserProperties.put(Traits.of(StructrTraits.USER).key("password"), password);
+			testUserProperties.put(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name);
+			testUserProperties.put(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.PASSWORD_PROPERTY), password);
 			testUser.setProperties(testUser.getSecurityContext(), testUserProperties);
 
 			// now we give the user ownership and expect a 200
-			testFolder.setProperties(testFolder.getSecurityContext(), new PropertyMap(Traits.of(StructrTraits.NODE_INTERFACE).key("owner"), testUser));
+			testFolder.setProperties(testFolder.getSecurityContext(), new PropertyMap(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), testUser));
 
 			tx.success();
 		} catch (Throwable t) {
@@ -360,12 +363,12 @@ public class ResourceAccessTest extends StructrUiTest {
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(404).when().delete("/Folder/" + testFolder.getUuid());
 
 			final PropertyMap changedProperties = new PropertyMap();
-			changedProperties.put(Traits.of(StructrTraits.USER).key("name"), name);
-			changedProperties.put(Traits.of(StructrTraits.USER).key("password"), password);
+			changedProperties.put(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name);
+			changedProperties.put(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.PASSWORD_PROPERTY), password);
 			testUser.setProperties(testUser.getSecurityContext(), changedProperties);
 
 			// make user own folder
-			testFolder.setProperties(testFolder.getSecurityContext(), new PropertyMap(Traits.of(StructrTraits.NODE_INTERFACE).key("owner"), testUser));
+			testFolder.setProperties(testFolder.getSecurityContext(), new PropertyMap(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), testUser));
 
 			tx.success();
 		} catch (FrameworkException fex) {
@@ -424,13 +427,13 @@ public class ResourceAccessTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			test = app.create(testClass, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "test123"));
+			test = app.create(testClass, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test123"));
 			uuid = test.getUuid();
 
 			// set owner
 			final NodeInterface tester = app.nodeQuery(StructrTraits.PRINCIPAL).andName("tester").getFirst();
 
-			test.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("owner"), tester);
+			test.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), tester);
 
 			tx.success();
 
@@ -447,8 +450,8 @@ public class ResourceAccessTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createResourceAccess("Test/getName", UiAuthenticator.AUTH_USER_POST).setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToAuthenticatedUsers"), true);
-			createResourceAccess("Test/getName2", UiAuthenticator.AUTH_USER_GET).setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToAuthenticatedUsers"), true);
+			createResourceAccess("Test/getName", UiAuthenticator.AUTH_USER_POST).setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
+			createResourceAccess("Test/getName2", UiAuthenticator.AUTH_USER_GET).setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
 
 			tx.success();
 

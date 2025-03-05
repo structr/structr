@@ -35,6 +35,8 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.RelationshipInterfaceTraitDefinition;
 import org.structr.rest.resource.MaintenanceResource;
 import org.structr.schema.SchemaHelper;
 import org.structr.web.entity.AbstractFile;
@@ -883,9 +885,9 @@ public class DeployDataCommand extends DeployCommand {
 						putData(entry, key, pc.getProperty(key));
 					}
 
-					entry.put("sourceId", rel.getSourceNodeId());
-					entry.put("targetId", rel.getTargetNodeId());
-					entry.put("relType",  rel.getRelType());
+					entry.put(RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY, rel.getSourceNodeId());
+					entry.put(RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY, rel.getTargetNodeId());
+					entry.put(RelationshipInterfaceTraitDefinition.REL_TYPE_PROPERTY,  rel.getRelType());
 
 					exportRelationshipDirectly(rel.getClass().getSimpleName(), entry, relsDir);
 
@@ -974,8 +976,8 @@ public class DeployDataCommand extends DeployCommand {
 
 				for (final Map<String, Object> entry : sublist) {
 
-					final String sourceId = (String) entry.get("sourceId");
-					final String targetId = (String) entry.get("targetId");
+					final String sourceId = (String) entry.get(RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY);
+					final String targetId = (String) entry.get(RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY);
 
 					final NodeInterface sourceNode = app.getNodeById(sourceId);
 					final NodeInterface targetNode = app.getNodeById(targetId);

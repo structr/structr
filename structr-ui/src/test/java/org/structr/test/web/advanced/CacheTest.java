@@ -32,6 +32,8 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.entity.dom.Page;
@@ -153,7 +155,7 @@ public class CacheTest extends StructrUiTest {
 				app.create(StructrTraits.SCHEMA_PROPERTY,
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), app.nodeQuery(StructrTraits.SCHEMA_NODE).andName(StructrTraits.PERSON).getFirst()),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "String"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"), "name")
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "name")
 				);
 
 				tx.success();
@@ -220,11 +222,7 @@ public class CacheTest extends StructrUiTest {
 
 			final NodeInterface user1 = app.create(StructrTraits.USER, "user1");
 
-			app.create(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"),  true)
-			);
+			createAdminUser("admin", "admin");
 
 			uuid = user1.getUuid();
 

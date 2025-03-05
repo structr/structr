@@ -45,6 +45,8 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
 import org.structr.schema.export.StructrSchema;
@@ -295,13 +297,13 @@ public class SystemTest extends StructrTest {
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
 				new NodeAttribute<>(propertyTraits.key("schemaNode"),   testType),
-				new NodeAttribute<>(propertyTraits.key("name"),         "testCount"),
+				new NodeAttribute<>(propertyTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),         "testCount"),
 				new NodeAttribute<>(propertyTraits.key("propertyType"), "Integer")
 			);
 
 			app.create(StructrTraits.SCHEMA_METHOD,
 				new NodeAttribute<>(methodTraits.key("schemaNode"),   testType),
-				new NodeAttribute<>(methodTraits.key("name"),         "onCreate"),
+				new NodeAttribute<>(propertyTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),         "onCreate"),
 				new NodeAttribute<>(methodTraits.key("source"),       "set(this, 'testCount', size(find('CreateTest')))")
 			);
 
@@ -410,11 +412,11 @@ public class SystemTest extends StructrTest {
 			final Traits propertyTraits = Traits.of(StructrTraits.SCHEMA_PROPERTY);
 
 			app.create(StructrTraits.SCHEMA_NODE,
-				new NodeAttribute(nodeTraits.key("name"), "Item"),
+				new NodeAttribute(nodeTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Item"),
 				new NodeAttribute(nodeTraits.key("schemaProperties"),
 					Arrays.asList(app.create(
 						StructrTraits.SCHEMA_PROPERTY,
-						new NodeAttribute(propertyTraits.key("name"), "name"),
+						new NodeAttribute(propertyTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "name"),
 						new NodeAttribute(propertyTraits.key("propertyType"), "String"),
 						new NodeAttribute(propertyTraits.key("unique"), true),
 						new NodeAttribute(propertyTraits.key("indexed"), true)
@@ -480,7 +482,7 @@ public class SystemTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<NodeInterface> items = app.nodeQuery(itemType).sort(Traits.of(StructrTraits.NODE_INTERFACE).key("name")).getAsList();
+			final List<NodeInterface> items = app.nodeQuery(itemType).sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getAsList();
 			int i                           = 0;
 
 			assertEquals("Invalid concurrent constraint test result", 1000, items.size());
@@ -626,11 +628,11 @@ public class SystemTest extends StructrTest {
 		try (final Tx tx = tester1App.tx()) {
 
 			final NodeInterface item1 = tester1App.create(type,
-				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "item1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "item1"),
 				new NodeAttribute<>(next, tester1App.create(type,
-					new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "item2"),
+					new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "item2"),
 					new NodeAttribute<>(next, tester1App.create(type,
-						new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "item3")
+						new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "item3")
 					))
 				))
 			);
@@ -718,11 +720,11 @@ public class SystemTest extends StructrTest {
 		try (final Tx tx = tester1App.tx()) {
 
 			final NodeInterface item1 = tester1App.create(itemType,
-				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "item1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "item1"),
 				new NodeAttribute<>(prev, tester1App.create(itemType,
-					new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "item2"),
+					new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "item2"),
 					new NodeAttribute<>(prev, tester1App.create(itemType,
-						new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "item3")
+						new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "item3")
 					))
 				))
 			);
@@ -814,11 +816,11 @@ public class SystemTest extends StructrTest {
 		try (final Tx tx = tester1App.tx()) {
 
 			final NodeInterface item1 = tester1App.create(type,
-				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "item1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "item1"),
 				new NodeAttribute<>(next, tester1App.create(type,
-					new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "item2"),
+					new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "item2"),
 					new NodeAttribute<>(next, tester1App.create(type,
-						new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "item3")
+						new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "item3")
 					))
 				))
 			);
@@ -920,8 +922,8 @@ public class SystemTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("name"), "tester"),
-				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("password"), "password")
+				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "tester"),
+				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key(PrincipalTraitDefinition.PASSWORD_PROPERTY), "password")
 			);
 
 			tx.success();
@@ -935,8 +937,8 @@ public class SystemTest extends StructrTest {
 
 			final Principal user = app.nodeQuery(StructrTraits.USER).getFirst().as(Principal.class);
 
-			assertEquals("Password hash IS NOT SECURE!", Principal.HIDDEN, user.getProperty(Traits.of(StructrTraits.PRINCIPAL).key("password")));
-			assertEquals("Password salt IS NOT SECURE!", Principal.HIDDEN, user.getProperty(Traits.of(StructrTraits.PRINCIPAL).key("salt")));
+			assertEquals("Password hash IS NOT SECURE!", Principal.HIDDEN, user.getProperty(Traits.of(StructrTraits.PRINCIPAL).key(PrincipalTraitDefinition.PASSWORD_PROPERTY)));
+			assertEquals("Password salt IS NOT SECURE!", Principal.HIDDEN, user.getProperty(Traits.of(StructrTraits.PRINCIPAL).key(PrincipalTraitDefinition.SALT_PROPERTY)));
 
 			tx.success();
 
@@ -1035,7 +1037,7 @@ public class SystemTest extends StructrTest {
 
 			final NodeInterface deleteTestNode = app.create(StructrTraits.SCHEMA_NODE, "DeleteTest");
 			final NodeInterface onDelete     = app.create(StructrTraits.SCHEMA_METHOD,
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("name"), "onDelete"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "onDelete"),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("schemaNode"), deleteTestNode),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "log('deleted')")
 			);
@@ -1105,7 +1107,7 @@ public class SystemTest extends StructrTest {
 
 			final GraphObject node = app.nodeQuery(type).getFirst();
 
-			node.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "new name");
+			node.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "new name");
 
 			tx.success();
 
@@ -1126,7 +1128,7 @@ public class SystemTest extends StructrTest {
 
 			// create global schema method that creates another object
 			app.create(StructrTraits.SCHEMA_METHOD,
-				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"),   "globalTestMethod"),
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),   "globalTestMethod"),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "(log('Before create in globalTestMethod'),create('Test2', 'name', 'test2'),log('After create in globalTestMethod'))")
 			);
 
@@ -1198,7 +1200,7 @@ public class SystemTest extends StructrTest {
 
 			final NodeInterface test1 = app.create(type1, "test1");
 			app.create(type2,
-				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "test2"),
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test2"),
 				new NodeAttribute<>(Traits.of(type2).key("source"), test1)
 			);
 
@@ -1338,7 +1340,7 @@ public class SystemTest extends StructrTest {
 		// setup
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
-			app.create(type, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "Test"), new NodeAttribute<>(key1, "test.key1"), new NodeAttribute<>(key2, "test.key2"));
+			app.create(type, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Test"), new NodeAttribute<>(key1, "test.key1"), new NodeAttribute<>(key2, "test.key2"));
 
 			tx.success();
 
@@ -1436,8 +1438,8 @@ public class SystemTest extends StructrTest {
 			testGroup2.addMember(securityContext, testGroup3);
 
 			final Principal user = app.create(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "user"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "password")
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "user"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.PASSWORD_PROPERTY), "password")
 			).as(Principal.class);
 
 			testGroup3.addMember(securityContext, user);
@@ -1539,12 +1541,12 @@ public class SystemTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface root = app.create(StructrTraits.GROUP, "root");
-			final PropertyKey key    = Traits.of(StructrTraits.GROUP).key("groups");
+			final PropertyKey key    = Traits.of(StructrTraits.GROUP).key(PrincipalTraitDefinition.GROUPS_PROPERTY);
 
 			for (int i=0; i<num; i++) {
 
 				app.create(StructrTraits.GROUP,
-					new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "child" + i),
+					new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "child" + i),
 					new NodeAttribute<>(key, Arrays.asList(root))
 				);
 			}
@@ -1941,7 +1943,7 @@ public class SystemTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				// set property on node
-				test.setProperty(Traits.of("TestOne").key("name"), name);
+				test.setProperty(Traits.of("TestOne").key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name);
 
 				for (int i=0; i<100; i++) {
 
@@ -1949,7 +1951,7 @@ public class SystemTest extends StructrTest {
 					try { Thread.sleep(1); } catch (Throwable t) {}
 
 					// check if the given name is still there
-					final String testName = test.getProperty(Traits.of("TestOne").key("name"));
+					final String testName = test.getProperty(Traits.of("TestOne").key(NodeInterfaceTraitDefinition.NAME_PROPERTY));
 					if (!name.equals(testName)) {
 
 						success = false;
@@ -1988,7 +1990,7 @@ public class SystemTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				// set property on node
-				test.setProperty(Traits.of("TestOne").key("name"), name);
+				test.setProperty(Traits.of("TestOne").key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name);
 
 				for (int i=0; i<100; i++) {
 
@@ -1996,7 +1998,7 @@ public class SystemTest extends StructrTest {
 					try { Thread.sleep(1); } catch (Throwable t) {}
 
 					// check if the given name is still there
-					final String testName = test.getProperty(Traits.of("TestOne").key("name"));
+					final String testName = test.getProperty(Traits.of("TestOne").key(NodeInterfaceTraitDefinition.NAME_PROPERTY));
 					if (!name.equals(testName)) {
 
 						success = false;

@@ -40,6 +40,10 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.GroupTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.RelationshipInterfaceTraitDefinition;
 import org.structr.web.entity.User;
 import org.testng.annotations.Test;
 
@@ -62,7 +66,7 @@ public class BasicTest extends StructrTest {
 
 			final PropertyMap properties = new PropertyMap();
 
-			properties.put(Traits.of("TestSix").key("name"), "name");
+			properties.put(Traits.of("TestSix").key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "name");
 
 			// test null value for a 1:1 related property
 			properties.put(Traits.of("TestSix").key("oneToOneTestThree"), null);
@@ -81,7 +85,7 @@ public class BasicTest extends StructrTest {
 			final NodeInterface test = app.nodeQuery("TestSix").getFirst();
 
 			assertNotNull("Invalid simple object creation result", test);
-			assertEquals("Invalid simple object creation result", "name",       test.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name")));
+			assertEquals("Invalid simple object creation result", "name",       test.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)));
 			assertEquals("Invalid simple object creation result", (String)null, test.getProperty(Traits.of("TestSix").key("oneToOneTestThree")));
 
 			tx.success();
@@ -178,8 +182,8 @@ public class BasicTest extends StructrTest {
 			NodeInterface node      = null;
 			String uuid             = null;
 
-			props.put(Traits.of(StructrTraits.NODE_INTERFACE).key("type"), type);
-			props.put(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), name);
+			props.put(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.TYPE_PROPERTY), type);
+			props.put(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name);
 
 			try (final Tx tx = app.tx()) {
 
@@ -291,8 +295,8 @@ public class BasicTest extends StructrTest {
 			final NodeInterface t2 = app.create(StructrTraits.SCHEMA_NODE, "Type2");
 
 			app.create(StructrTraits.SCHEMA_RELATIONSHIP_NODE,
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceNode"), t1),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetNode"), t2),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.SOURCE_NODE_PROPERTY), t1),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.TARGET_NODE_PROPERTY), t2),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("relationshipType"), "REL"),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceMultiplicity"), "1"),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetMultiplicity"), "1"),
@@ -420,8 +424,8 @@ public class BasicTest extends StructrTest {
 			final NodeInterface t2 = app.create(StructrTraits.SCHEMA_NODE, "Type2");
 
 			app.create(StructrTraits.SCHEMA_RELATIONSHIP_NODE,
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceNode"), t1),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetNode"), t2),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.SOURCE_NODE_PROPERTY), t1),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.TARGET_NODE_PROPERTY), t2),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("relationshipType"), "REL"),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceMultiplicity"), "1"),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetMultiplicity"), "1"),
@@ -546,8 +550,8 @@ public class BasicTest extends StructrTest {
 			final NodeInterface t2 = app.create(StructrTraits.SCHEMA_NODE, "Type2");
 
 			app.create(StructrTraits.SCHEMA_RELATIONSHIP_NODE,
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceNode"), t1),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetNode"), t2),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.SOURCE_NODE_PROPERTY), t1),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.TARGET_NODE_PROPERTY), t2),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("relationshipType"), "REL"),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceMultiplicity"), "1"),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetMultiplicity"), "1"),
@@ -670,8 +674,8 @@ public class BasicTest extends StructrTest {
 			final NodeInterface t2 = app.create(StructrTraits.SCHEMA_NODE, "Type2");
 
 			app.create(StructrTraits.SCHEMA_RELATIONSHIP_NODE,
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceNode"), t1),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetNode"), t2),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.SOURCE_NODE_PROPERTY), t1),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.TARGET_NODE_PROPERTY), t2),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("relationshipType"), "REL"),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceMultiplicity"), "1"),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetMultiplicity"), "1"),
@@ -797,14 +801,14 @@ public class BasicTest extends StructrTest {
 			app.create(StructrTraits.SCHEMA_PROPERTY,
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Function"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), t1),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("name"), "foo"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "foo"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("readFunction"), "this.target.name"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("notNull"), true)
 			);
 
 			app.create(StructrTraits.SCHEMA_RELATIONSHIP_NODE,
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceNode"), t1),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetNode"), t2),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.SOURCE_NODE_PROPERTY), t1),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.TARGET_NODE_PROPERTY), t2),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("relationshipType"), "REL"),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceMultiplicity"), "1"),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetMultiplicity"), "1"),
@@ -839,7 +843,7 @@ public class BasicTest extends StructrTest {
 			final NodeInterface instance2 = app.create(type2, "instance1OfType2");
 
 			final NodeInterface instance1 = app.create(type1,
-				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "instance1OfType1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "instance1OfType1"),
 				new NodeAttribute<>(key, instance2)
 			);
 
@@ -887,7 +891,7 @@ public class BasicTest extends StructrTest {
 			final NodeInterface instance2 = app.create(type2, "instance2OfType2");
 
 			final NodeInterface instance1 = app.create(type1,
-				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "instance2OfType1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "instance2OfType1"),
 				new NodeAttribute<>(key, instance2)
 			);
 
@@ -1063,7 +1067,7 @@ public class BasicTest extends StructrTest {
 
 			final String uuid = StringUtils.replace(UUID.randomUUID().toString(), "-", "");
 
-			props.put(Traits.of(StructrTraits.GRAPH_OBJECT).key("id"), uuid);
+			props.put(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), uuid);
 
 			try (final Tx tx = app.tx()) {
 
@@ -1098,7 +1102,7 @@ public class BasicTest extends StructrTest {
 
 			final String uuid = StringUtils.replace(UUID.randomUUID().toString(), "-", "");
 
-			props.put(Traits.of(StructrTraits.GRAPH_OBJECT).key("id"), uuid);
+			props.put(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), uuid);
 
 			try (final Tx tx = app.tx()) {
 
@@ -1130,7 +1134,7 @@ public class BasicTest extends StructrTest {
 
 			final String uuid = StringUtils.replace(UUID.randomUUID().toString(), "-", "");
 
-			props.put(Traits.of(StructrTraits.GRAPH_OBJECT).key("id"), uuid);
+			props.put(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), uuid);
 
 			try (final Tx tx = app.tx()) {
 
@@ -1300,8 +1304,8 @@ public class BasicTest extends StructrTest {
 
 			NodeInterface node      = null;
 
-			props.put(Traits.of(StructrTraits.NODE_INTERFACE).key("type"), type);
-			props.put(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), name);
+			props.put(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.TYPE_PROPERTY), type);
+			props.put(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name);
 
 			try (final Tx tx = app.tx()) {
 
@@ -1313,10 +1317,10 @@ public class BasicTest extends StructrTest {
 
 				// Check defaults
 				assertEquals(type, node.getType());
-				assertTrue(node.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name")).equals(name));
-				assertFalse(node.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("hidden")));
-				assertFalse(node.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToAuthenticatedUsers")));
-				assertFalse(node.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers")));
+				assertTrue(node.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).equals(name));
+				assertFalse(node.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.HIDDEN_PROPERTY)));
+				assertFalse(node.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY)));
+				assertFalse(node.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY)));
 
 				tx.success();
 			}
@@ -1326,20 +1330,20 @@ public class BasicTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				// Modify values
-				node.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), name2);
-				node.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("hidden"), true);
-				node.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToAuthenticatedUsers"), true);
-				node.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true);
+				node.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name2);
+				node.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.HIDDEN_PROPERTY), true);
+				node.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
+				node.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
 
 				tx.success();
 			}
 
 			try (final Tx tx = app.tx()) {
 
-				assertTrue(node.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name")).equals(name2));
-				assertTrue(node.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("hidden")));
-				assertTrue(node.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToAuthenticatedUsers")));
-				assertTrue(node.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers")));
+				assertTrue(node.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).equals(name2));
+				assertTrue(node.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.HIDDEN_PROPERTY)));
+				assertTrue(node.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY)));
+				assertTrue(node.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY)));
 
 				tx.success();
 			}
@@ -1411,15 +1415,15 @@ public class BasicTest extends StructrTest {
 		try {
 
 			final String groupType         = StructrTraits.GROUP;
-			final PropertyKey<Boolean> key = Traits.of(groupType).key("isGroup");
+			final PropertyKey<Boolean> key = Traits.of(groupType).key(GroupTraitDefinition.IS_GROUP_PROPERTY);
 			final PropertyMap props        = new PropertyMap();
 			final String type              = StructrTraits.GROUP;
 			final String name              = "TestGroup-1";
 
 			NodeInterface node      = null;
 
-			props.put(Traits.of(StructrTraits.NODE_INTERFACE).key("type"), type);
-			props.put(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), name);
+			props.put(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.TYPE_PROPERTY), type);
+			props.put(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name);
 
 			try (final Tx tx = app.tx()) {
 
@@ -1430,8 +1434,8 @@ public class BasicTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				// Check defaults
-				assertEquals(Group.class.getSimpleName(), node.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("type")));
-				assertTrue(node.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name")).equals(name));
+				assertEquals(Group.class.getSimpleName(), node.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.TYPE_PROPERTY)));
+				assertTrue(node.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).equals(name));
 				assertTrue(node.getProperty(key));
 			}
 
@@ -1440,7 +1444,7 @@ public class BasicTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				// Modify values
-				node.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), name2);
+				node.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name2);
 				node.setProperty(key, false);
 
 				fail("Should have failed with an exception: Group.isGroup is_read_only_property");
@@ -1642,11 +1646,11 @@ public class BasicTest extends StructrTest {
 
 			logger.info("set property");
 
-			testTwo1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "test");
+			testTwo1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test");
 
 			logger.info("get property");
 
-			assertEquals("Cache invalidation failure!", "test", testTwo2.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name")));
+			assertEquals("Cache invalidation failure!", "test", testTwo2.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)));
 
 			tx.success();
 
@@ -1672,9 +1676,9 @@ public class BasicTest extends StructrTest {
 			final RelationshipInterface rel = testOne.getOutgoingRelationship("OneTwoOneToOne");
 			final NodeInterface testTwo2    = rel.getTargetNode();
 
-			testTwo1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "test2");
+			testTwo1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test2");
 
-			assertEquals("Cache invalidation failure!", "test2", testTwo2.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name")));
+			assertEquals("Cache invalidation failure!", "test2", testTwo2.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)));
 
 			tx.success();
 
@@ -1714,9 +1718,9 @@ public class BasicTest extends StructrTest {
 
 			final NodeInterface freshReference = app.nodeQuery("TestOne").getFirst();
 
-			freshReference.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "test2");
+			freshReference.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test2");
 
-			assertEquals("Cache invalidation failure!", "test2", longLivedReference.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name")));
+			assertEquals("Cache invalidation failure!", "test2", longLivedReference.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)));
 
 			tx.success();
 
@@ -1739,7 +1743,7 @@ public class BasicTest extends StructrTest {
 			final NodeInterface testUser       = app.create(StructrTraits.USER, "testuser");
 
 			testOne.setProperty(Traits.of("TestOne").key("testThree"), testThree);
-			testThree.setProperty(Traits.of("TestThree").key("owner"), testUser);
+			testThree.setProperty(Traits.of("TestThree").key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), testUser);
 
 			tx.success();
 
@@ -1785,7 +1789,7 @@ public class BasicTest extends StructrTest {
 		}
 
 		final SecurityContext ctx = SecurityContext.getInstance(user.as(User.class), AccessMode.Backend);
-		final Traits traits       = Traits.of("RelationshipInterface");
+		final Traits traits       = Traits.of(StructrTraits.RELATIONSHIP_INTERFACE);
 		final App app             = StructrApp.getInstance(ctx);
 
 		// create object with user context
@@ -1803,14 +1807,14 @@ public class BasicTest extends StructrTest {
 		// query for relationships
 		try (final Tx tx = app.tx()) {
 
-			final List<RelationshipInterface> rels1 = app.relationshipQuery().and(traits.key("sourceId"), user.getUuid()).getAsList();
+			final List<RelationshipInterface> rels1 = app.relationshipQuery().and(traits.key(RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY), user.getUuid()).getAsList();
 			final Set<String> classes1              = rels1.stream().map(r -> r.getType()).collect(Collectors.toSet());
 
 			assertEquals("Invalid number of relationships after object creation", 2, rels1.size());
 			assertTrue("Invalid relationship type after object creation", classes1.contains(StructrTraits.SECURITY));
 			assertTrue("Invalid relationship type after object creation", classes1.contains(StructrTraits.PRINCIPAL_OWNS_NODE));
 
-			final List<RelationshipInterface> rels2 = app.relationshipQuery().and(traits.key("targetId"), test.getUuid()).getAsList();
+			final List<RelationshipInterface> rels2 = app.relationshipQuery().and(traits.key(RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY), test.getUuid()).getAsList();
 			final List<String> classes2             = rels2.stream().map(r -> r.getType()).collect(Collectors.toList());
 
 			assertEquals("Invalid number of relationships after object creation", 2, rels2.size());
@@ -1865,7 +1869,7 @@ public class BasicTest extends StructrTest {
 		}
 
 		final SecurityContext ctx = SecurityContext.getInstance(user.as(User.class), AccessMode.Backend);
-		final Traits traits       = Traits.of("RelationshipInterface");
+		final Traits traits       = Traits.of(StructrTraits.RELATIONSHIP_INTERFACE);
 		final App app             = StructrApp.getInstance(ctx);
 
 		String uuid = null;
@@ -1881,8 +1885,8 @@ public class BasicTest extends StructrTest {
 			test = app.create("TestThirteen");
 			uuid = test.getUuid();
 
-			rels1 = app.relationshipQuery().and(traits.key("sourceId"), user.getUuid()).getAsList();
-			rels2 = app.relationshipQuery().and(traits.key("targetId"), test.getUuid()).getAsList();
+			rels1 = app.relationshipQuery().and(traits.key(RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY), user.getUuid()).getAsList();
+			rels2 = app.relationshipQuery().and(traits.key(RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY), test.getUuid()).getAsList();
 			rels3 = Iterables.toList(test.getIncomingRelationships());
 			rels4 = Iterables.toList(user.getOutgoingRelationships());
 
@@ -1904,7 +1908,7 @@ public class BasicTest extends StructrTest {
 			final NodeInterface test2 = app.getNodeById("TestThirteen", uuid);
 			assertNull(test2);
 
-			rels1 = app.relationshipQuery().and(traits.key("sourceId"), user.getUuid()).getAsList();
+			rels1 = app.relationshipQuery().and(traits.key(RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY), user.getUuid()).getAsList();
 			rels4 = Iterables.toList(user.getOutgoingRelationships());
 
 			System.out.println("rels1: " + rels1.size());
@@ -1926,7 +1930,7 @@ public class BasicTest extends StructrTest {
 		// query for relationships
 		try (final Tx tx = app.tx()) {
 
-			rels1 = app.relationshipQuery().and(traits.key("sourceId"), user.getUuid()).getAsList();
+			rels1 = app.relationshipQuery().and(traits.key(RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY), user.getUuid()).getAsList();
 			assertEquals("Invalid number of relationships after object creation", 0, rels1.size());
 
 			rels4 = Iterables.toList(user.getOutgoingRelationships());
@@ -1963,7 +1967,7 @@ public class BasicTest extends StructrTest {
 				final RelationshipInterface rel = testThree.getRelationships("SixThreeOneToMany").iterator().next();
 
 				if (i%2 == 0) {
-					rel.getRelationship().setProperty("internalTimestamp", null);
+					rel.getRelationship().setProperty(RelationshipInterfaceTraitDefinition.INTERNAL_TIMESTAMP_PROPERTY, null);
 				}
 			}
 
@@ -2001,8 +2005,8 @@ public class BasicTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			test = app.create("TestOne",
-				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "test"),
-				new NodeAttribute<>(Traits.of(StructrTraits.GRAPH_OBJECT).key("id"), uuid)
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test"),
+				new NodeAttribute<>(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), uuid)
 			);
 
 			tx.success();
@@ -2014,7 +2018,7 @@ public class BasicTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final String uuid1 = test.getProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key("id"));
+			final String uuid1 = test.getProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY));
 			final String uuid2 = test.getUuid();
 
 			assertEquals("Object creation does not accept provided UUID", uuid, uuid1);
@@ -2037,8 +2041,8 @@ public class BasicTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			test = app.create("TestOne",
-				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "test"),
-				new NodeAttribute<>(Traits.of(StructrTraits.GRAPH_OBJECT).key("id"), null)
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test"),
+				new NodeAttribute<>(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), null)
 			);
 
 			tx.success();
@@ -2050,7 +2054,7 @@ public class BasicTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final String uuid1 = test.getProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key("id"));
+			final String uuid1 = test.getProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY));
 			final String uuid2 = test.getUuid();
 
 			assertEquals("UUID mismatch in getProperty() and getUuid()", uuid1, uuid2);
@@ -2072,10 +2076,10 @@ public class BasicTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			test = app.create("TestOne",
-				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "test"),
-				new NodeAttribute<>(Traits.of(StructrTraits.GRAPH_OBJECT).key("visibleToPublicUsers"), true),
-				new NodeAttribute<>(Traits.of(StructrTraits.GRAPH_OBJECT).key("visibleToAuthenticatedUsers"), true),
-				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("hidden"), true)
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test"),
+				new NodeAttribute<>(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true),
+				new NodeAttribute<>(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true),
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.HIDDEN_PROPERTY), true)
 			);
 
 			tx.success();
@@ -2088,10 +2092,10 @@ public class BasicTest extends StructrTest {
 		// create object with user context
 		try (final Tx tx = app.tx()) {
 
-			assertEquals("Invalid create node result", "test", test.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name")));
+			assertEquals("Invalid create node result", "test", test.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)));
 			assertTrue("Invalid create node result",  test.isVisibleToPublicUsers());
 			assertTrue("Invalid create node result",  test.isVisibleToAuthenticatedUsers());
-			assertEquals("Invalid create node result", Boolean.TRUE, test.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("hidden")));
+			assertEquals("Invalid create node result", Boolean.TRUE, test.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.HIDDEN_PROPERTY)));
 
 			tx.success();
 
@@ -2099,6 +2103,41 @@ public class BasicTest extends StructrTest {
 			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
+	}
+
+	@Test
+	public void testQueryWithNullAndEmptyObjects() {
+
+		final PropertyKey<String> nameKey = Traits.of("TestOne").key("name");
+
+		try (final Tx tx = app.tx()) {
+
+			final String emptyName = "";
+			final String nullName  = null;
+
+			app.create("TestOne", nullName);
+			app.create("TestOne", emptyName);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			logger.warn("", fex);
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final List<NodeInterface> list = app.nodeQuery("TestOne").and(nameKey, null).getAsList();
+
+			assertEquals("Query for node with null string value should include nodes with empty string value", 2, list.size());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			logger.warn("", fex);
+			fail("Unexpected exception.");
+		}
+
 	}
 
 	// ----- private methods -----

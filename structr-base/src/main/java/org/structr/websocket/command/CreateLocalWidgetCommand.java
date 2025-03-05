@@ -24,7 +24,10 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.web.entity.Widget;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.websocket.StructrWebSocket;
@@ -76,13 +79,13 @@ public class CreateLocalWidgetCommand extends AbstractCommand {
 
 			// convertFromInput
 			final PropertyMap properties = new PropertyMap();
-			final Traits traits          = Traits.of("Widget");
+			final Traits traits          = Traits.of(StructrTraits.WIDGET);
 
-			properties.put(traits.key("type"),   "Widget");
-			properties.put(traits.key("name"),   name);
+			properties.put(traits.key(GraphObjectTraitDefinition.TYPE_PROPERTY),   StructrTraits.WIDGET);
+			properties.put(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),   name);
 			properties.put(traits.key("source"), source);
 
-			final Widget widget = app.create("Widget", properties).as(Widget.class);
+			final Widget widget = app.create(StructrTraits.WIDGET, properties).as(Widget.class);
 
 			TransactionCommand.registerNodeCallback(widget, callback);
 

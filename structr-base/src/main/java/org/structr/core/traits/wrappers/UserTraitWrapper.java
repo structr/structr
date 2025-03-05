@@ -21,6 +21,7 @@ package org.structr.core.traits.wrappers;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.UserTraitDefinition;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.User;
 
@@ -32,31 +33,31 @@ public class UserTraitWrapper extends PrincipalTraitWrapper implements User {
 
 	@Override
 	public Folder getHomeDirectory() {
-		return wrappedObject.getProperty(traits.key("homeDirectory"));
+		return wrappedObject.getProperty(traits.key(UserTraitDefinition.HOME_DIRECTORY_PROPERTY));
 	}
 
 	@Override
 	public void setWorkingDirectory(final Folder workDir) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("workingDirectory"), workDir);
+		wrappedObject.setProperty(traits.key(UserTraitDefinition.WORKING_DIRECTORY_PROPERTY), workDir);
 	}
 
 	@Override
 	public Folder getWorkingDirectory() {
-		return wrappedObject.getProperty(traits.key("workingDirectory"));
+		return wrappedObject.getProperty(traits.key(UserTraitDefinition.WORKING_DIRECTORY_PROPERTY));
 	}
 
 	@Override
 	public void setLocalStorage(final String localStorage) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("localStorage"), localStorage);
+		wrappedObject.setProperty(traits.key(UserTraitDefinition.LOCAL_STORAGE_PROPERTY), localStorage);
 	}
 
 	@Override
 	public String getLocalStorage() {
-		return wrappedObject.getProperty(traits.key("localStorage"));
+		return wrappedObject.getProperty(traits.key(UserTraitDefinition.LOCAL_STORAGE_PROPERTY));
 	}
 
 	@Override
 	public String getConfirmationKey() {
-		return wrappedObject.getProperty(traits.key("confirmationKey"));
+		return wrappedObject.getProperty(traits.key(UserTraitDefinition.CONFIRMATION_KEY_PROPERTY));
 	}
 }

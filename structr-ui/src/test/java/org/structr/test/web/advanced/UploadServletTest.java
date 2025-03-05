@@ -27,6 +27,8 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.entity.File;
@@ -50,11 +52,7 @@ public class UploadServletTest extends StructrUiTest {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"),  true)
-			);
+			createAdminUser("admin", "admin");
 
 			tx.success();
 
@@ -106,11 +104,7 @@ public class UploadServletTest extends StructrUiTest {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"),  true)
-			);
+			createAdminUser("admin", "admin");
 
 			tx.success();
 
@@ -167,11 +161,7 @@ public class UploadServletTest extends StructrUiTest {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"),  true)
-			);
+			createAdminUser("admin", "admin");
 
 			JsonSchema schema   = StructrSchema.createFromDatabase(app);
 			final JsonType ext  = schema.addType("ExtendedFile");
@@ -227,11 +217,7 @@ public class UploadServletTest extends StructrUiTest {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"),  true)
-			);
+			createAdminUser("admin", "admin");
 
 			tx.success();
 
@@ -285,11 +271,7 @@ public class UploadServletTest extends StructrUiTest {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"),  true)
-			);
+			createAdminUser("admin", "admin");
 
 			JsonSchema schema   = StructrSchema.createFromDatabase(app);
 			final JsonType type = schema.getType(StructrTraits.FILE);

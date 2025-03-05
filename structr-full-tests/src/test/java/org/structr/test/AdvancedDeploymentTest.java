@@ -19,16 +19,20 @@
 package org.structr.test;
 
 import org.structr.api.schema.JsonSchema;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.schema.SchemaService;
 import org.structr.schema.export.StructrSchema;
 import org.testng.annotations.Test;
 
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static org.testng.AssertJUnit.*;
@@ -130,7 +134,7 @@ public class AdvancedDeploymentTest extends FullStructrTest {
 			assertTrue("Imported type Contact does not inherit from Person",     getSchemaNodeTraits("Contact").contains("Person"));
 			assertTrue("Imported type Lead does not inherit from MarketingTask", getSchemaNodeTraits("Lead").contains("MarketingTask"));
 
-			// check key from inherited trait
+			// check key from inherited trait (Contact inherits from Person)
 			assertTrue("Imported type Contact does not have eMail property", Traits.of("Contact").hasKey("eMail"));
 			assertTrue("Imported type Person does not have eMail property", Traits.of("Person").hasKey("eMail"));
 
@@ -200,6 +204,71 @@ public class AdvancedDeploymentTest extends FullStructrTest {
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
+
+	}
+
+	@Test
+	public void testDatabaseContentMigration() {
+
+		try (final Tx tx = app.tx()) {
+
+			// create a "schema" using Cypher calls to simulate starting with a previous Structr version..
+			createNodeWithCypher(Set.of("AbstractSchemaNode", "SchemaNode"), Map.of(
+					"type", "SchemaNode",
+					"name", "Contact1",
+					"inheritedTraits", List.of("Person")
+			));
+
+			createNodeWithCypher(Set.of("AbstractSchemaNode", "SchemaNode"), Map.of(
+					"type", "SchemaNode",
+					"name", "Contact2",
+					"extendsClassInternal", "org.structr.core.entity.Person"
+			));
+
+			final String id1 = createNodeWithCypher(Set.of("AbstractSchemaNode", "SchemaNode"), Map.of(
+				"type", "SchemaNode",
+				"name", "Contact3"
+			));
+
+			final String id2 = createNodeWithCypher(Set.of("AbstractSchemaNode", "SchemaNode"), Map.of(
+				"type", "SchemaNode",
+				"name", "ExtendedPerson",
+				"extendsClassInternal", "org.structr.core.entity.Person"
+			));
+
+			createRelationshipWithCypher(id1, id2, "SchemaNodeExtendsSchemaNode", "EXTENDS", Map.of());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final ErrorBuffer errorBuffer = new ErrorBuffer();
+
+			SchemaService.reloadSchema(errorBuffer, null, true, false);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final Set<String> types = Set.of("Contact1", "Contact2", "Contact3");
+
+		for (final String type : types) {
+
+			// check some node types
+			assertTrue("Migrated schema is missing type " + type, Traits.exists(type));
+			assertTrue("Migrated type " + type + " does not inherit from Person", Traits.of(type).getAllTraits().contains("Person"));
+			assertTrue("Migrated type " + type + " does not have eMail property", Traits.of(type).hasKey("eMail"));
+		}
+
+		assertTrue("Static type Person does not have eMail property", Traits.of("Person").hasKey("eMail"));
 	}
 }
 

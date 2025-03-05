@@ -27,6 +27,9 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
@@ -65,20 +68,20 @@ public class BasicAuthTest extends StructrUiTest {
 			final Page page2 = makeVisibleToAuth(Page.createSimplePage(securityContext, "test2"));
 			final Page page3 = makeVisibleToAuth(Page.createSimplePage(securityContext, "test3"));
 
-			page1.setProperty(Traits.of(StructrTraits.PAGE).key("visibleToAuthenticatedUsers"), true);
+			page1.setProperty(Traits.of(StructrTraits.PAGE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
 			page1.setProperty(Traits.of(StructrTraits.PAGE).key("enableBasicAuth"), true);
 
-			page2.setProperty(Traits.of(StructrTraits.PAGE).key("visibleToAuthenticatedUsers"), true);
+			page2.setProperty(Traits.of(StructrTraits.PAGE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
 			page2.setProperty(Traits.of(StructrTraits.PAGE).key("basicAuthRealm"), "realm");
 			page2.setProperty(Traits.of(StructrTraits.PAGE).key("enableBasicAuth"), true);
 
-			page3.setProperty(Traits.of(StructrTraits.PAGE).key("visibleToAuthenticatedUsers"), true);
+			page3.setProperty(Traits.of(StructrTraits.PAGE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
 			page3.setProperty(Traits.of(StructrTraits.PAGE).key("basicAuthRealm"), "Enter password for ${this.name}");
 			page3.setProperty(Traits.of(StructrTraits.PAGE).key("enableBasicAuth"), true);
 
 			final NodeInterface tester = createUser();
-			tester.setProperty(Traits.of(StructrTraits.PAGE).key("visibleToAuthenticatedUsers"), true);
-			tester.setProperty(Traits.of(StructrTraits.PAGE).key("visibleToPublicUsers"), true);
+			tester.setProperty(Traits.of(StructrTraits.PAGE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
+			tester.setProperty(Traits.of(StructrTraits.PAGE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
 			userUUID = tester.getUuid();
 
 			tx.success();
@@ -139,18 +142,18 @@ public class BasicAuthTest extends StructrUiTest {
 			file4.setProperty(Traits.of(StructrTraits.FILE).key("isTemplate"), true);
 			file4.as(File.class).setParent(folder1.as(Folder.class));
 
-			file1.setProperty(Traits.of(StructrTraits.PAGE).key("visibleToAuthenticatedUsers"), true);
+			file1.setProperty(Traits.of(StructrTraits.PAGE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
 			file1.setProperty(Traits.of(StructrTraits.PAGE).key("enableBasicAuth"), true);
 
-			file2.setProperty(Traits.of(StructrTraits.PAGE).key("visibleToAuthenticatedUsers"), true);
+			file2.setProperty(Traits.of(StructrTraits.PAGE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
 			file2.setProperty(Traits.of(StructrTraits.PAGE).key("basicAuthRealm"), "realm");
 			file2.setProperty(Traits.of(StructrTraits.PAGE).key("enableBasicAuth"), true);
 
-			file3.setProperty(Traits.of(StructrTraits.PAGE).key("visibleToAuthenticatedUsers"), true);
+			file3.setProperty(Traits.of(StructrTraits.PAGE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
 			file3.setProperty(Traits.of(StructrTraits.PAGE).key("enableBasicAuth"), true);
 			file3.setProperty(Traits.of(StructrTraits.PAGE).key("basicAuthRealm"), "Enter password for ${this.path}");
 
-			file4.setProperty(Traits.of(StructrTraits.PAGE).key("visibleToAuthenticatedUsers"), true);
+			file4.setProperty(Traits.of(StructrTraits.PAGE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
 			file4.setProperty(Traits.of(StructrTraits.PAGE).key("enableBasicAuth"), true);
 			file4.setProperty(Traits.of(StructrTraits.PAGE).key("basicAuthRealm"), "Enter password for ${this.path}");
 
@@ -217,10 +220,10 @@ public class BasicAuthTest extends StructrUiTest {
 			final Page page1 = makeVisibleToAuth(Page.createSimplePage(securityContext, "test1"));
 			final Page page2 = makeVisibleToAuth(Page.createSimplePage(securityContext, "test2"));
 
-			page1.setProperty(Traits.of(StructrTraits.PAGE).key("visibleToAuthenticatedUsers"), true);
+			page1.setProperty(Traits.of(StructrTraits.PAGE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
 			page1.setProperty(Traits.of(StructrTraits.PAGE).key("enableBasicAuth"), true);
 
-			page2.setProperty(Traits.of(StructrTraits.PAGE).key("visibleToAuthenticatedUsers"), true);
+			page2.setProperty(Traits.of(StructrTraits.PAGE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
 			page2.setProperty(Traits.of(StructrTraits.PAGE).key("basicAuthRealm"), "realm");
 			page2.setProperty(Traits.of(StructrTraits.PAGE).key("enableBasicAuth"), true);
 
@@ -269,10 +272,10 @@ public class BasicAuthTest extends StructrUiTest {
 			final NodeInterface file1 = FileHelper.createFile(securityContext, "test1".getBytes(), "text/plain", StructrTraits.FILE, "test1.txt", true);
 			final NodeInterface file2 = FileHelper.createFile(securityContext, "test2".getBytes(), "text/plain", StructrTraits.FILE, "test2.txt", true);
 
-			file1.setProperty(Traits.of(StructrTraits.PAGE).key("visibleToAuthenticatedUsers"), true);
+			file1.setProperty(Traits.of(StructrTraits.PAGE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
 			file1.setProperty(Traits.of(StructrTraits.PAGE).key("enableBasicAuth"), true);
 
-			file2.setProperty(Traits.of(StructrTraits.PAGE).key("visibleToAuthenticatedUsers"), true);
+			file2.setProperty(Traits.of(StructrTraits.PAGE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
 			file2.setProperty(Traits.of(StructrTraits.PAGE).key("basicAuthRealm"), "realm");
 			file2.setProperty(Traits.of(StructrTraits.PAGE).key("enableBasicAuth"), true);
 
@@ -311,8 +314,8 @@ public class BasicAuthTest extends StructrUiTest {
 	private NodeInterface createUser() throws FrameworkException {
 
 		return createTestNode(StructrTraits.USER,
-			new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"), "tester"),
-			new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "test")
+			new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "tester"),
+			new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.PASSWORD_PROPERTY), "test")
 		);
 	}
 
@@ -320,16 +323,16 @@ public class BasicAuthTest extends StructrUiTest {
 
 		try {
 
-			src.setProperty(Traits.of(StructrTraits.DOM_NODE).key("visibleToAuthenticatedUsers"), true);
-			src.setProperty(Traits.of(StructrTraits.DOM_NODE).key("visibleToPublicUsers"), true);
+			src.setProperty(Traits.of(StructrTraits.DOM_NODE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
+			src.setProperty(Traits.of(StructrTraits.DOM_NODE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
 
 		} catch (FrameworkException fex) {}
 
 		src.getAllChildNodes().stream().forEach((n) -> {
 
 			try {
-				n.setProperty(Traits.of(StructrTraits.DOM_NODE).key("visibleToAuthenticatedUsers"), true);
-				n.setProperty(Traits.of(StructrTraits.DOM_NODE).key("visibleToPublicUsers"), true);
+				n.setProperty(Traits.of(StructrTraits.DOM_NODE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
+				n.setProperty(Traits.of(StructrTraits.DOM_NODE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
 
 			} catch (FrameworkException fex) {}
 		} );
@@ -341,14 +344,14 @@ public class BasicAuthTest extends StructrUiTest {
 
 		try {
 
-			src.setProperty(Traits.of(StructrTraits.DOM_NODE).key("visibleToAuthenticatedUsers"), true);
+			src.setProperty(Traits.of(StructrTraits.DOM_NODE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
 
 		} catch (FrameworkException fex) {}
 
 		src.getAllChildNodes().stream().forEach((n) -> {
 
 			try {
-				n.setProperty(Traits.of(StructrTraits.DOM_NODE).key("visibleToAuthenticatedUsers"), true);
+				n.setProperty(Traits.of(StructrTraits.DOM_NODE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
 
 			} catch (FrameworkException fex) {}
 		} );

@@ -28,6 +28,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.servlet.CsvServlet;
 import org.testng.annotations.Test;
@@ -281,7 +282,7 @@ public class CsvTest extends StructrCsvTest {
 		try (final Tx tx = app.tx()) {
 
 
-			final List<NodeInterface> result = app.nodeQuery("TestOne").sort(Traits.of("TestOne").key("name")).getAsList();
+			final List<NodeInterface> result = app.nodeQuery("TestOne").sort(Traits.of("TestOne").key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getAsList();
 
 			assertEquals(2, result.size());
 			assertEquals("a3e07672b1064c28a1093b7024c7087d", result.get(0).getUuid());
@@ -313,7 +314,7 @@ public class CsvTest extends StructrCsvTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<NodeInterface> result = app.nodeQuery("TestOne").sort(Traits.of("TestOne").key("name")).getAsList();
+			final List<NodeInterface> result = app.nodeQuery("TestOne").sort(Traits.of("TestOne").key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getAsList();
 
 			assertEquals(3, result.size());
 			assertEquals("0979aebeb9ae42a7b3594db3da12875e", result.get(0).getUuid());

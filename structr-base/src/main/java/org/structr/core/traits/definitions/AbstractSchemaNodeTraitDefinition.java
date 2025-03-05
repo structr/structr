@@ -69,7 +69,7 @@ public final class AbstractSchemaNodeTraitDefinition extends AbstractNodeTraitDe
 
 		hiddenPropertyNames.add("visibilityStartDate");
 		hiddenPropertyNames.add("visibilityEndDate");
-		hiddenPropertyNames.add("createdBy");
+		hiddenPropertyNames.add(GraphObjectTraitDefinition.CREATED_BY_PROPERTY);
 		hiddenPropertyNames.add("hidden");
 		hiddenPropertyNames.add("deleted");
 	}
@@ -234,7 +234,7 @@ public final class AbstractSchemaNodeTraitDefinition extends AbstractNodeTraitDe
 				// create view node
 				StructrApp.getInstance(schemaNode.getSecurityContext()).create(StructrTraits.SCHEMA_VIEW,
 						new NodeAttribute(Traits.of(StructrTraits.SCHEMA_VIEW).key("schemaNode"),       schemaNode),
-						new NodeAttribute(Traits.of(StructrTraits.SCHEMA_VIEW).key("name"),             view),
+						new NodeAttribute(Traits.of(StructrTraits.SCHEMA_VIEW).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),             view),
 						new NodeAttribute(Traits.of(StructrTraits.SCHEMA_VIEW).key("schemaProperties"), properties),
 						new NodeAttribute(Traits.of(StructrTraits.SCHEMA_VIEW).key("isBuiltinView"),    true)
 				);

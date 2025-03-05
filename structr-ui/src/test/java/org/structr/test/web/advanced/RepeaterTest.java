@@ -33,6 +33,8 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.entity.dom.Content;
@@ -70,12 +72,7 @@ public class RepeaterTest extends StructrUiTest {
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
-			// create test user
-			createTestNode(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
-			);
+			createAdminUser("admin", "admin");
 
 			tx.success();
 
@@ -95,11 +92,11 @@ public class RepeaterTest extends StructrUiTest {
 
 			final NodeInterface project1 = app.create(project, "Project 1");
 
-			taskIDs.add(app.create(task, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "Task 1"), new NodeAttribute<>(key, project1)).getUuid());
-			taskIDs.add(app.create(task, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "Task 2")).getUuid());
-			taskIDs.add(app.create(task, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "Task 3")).getUuid());
-			taskIDs.add(app.create(task, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "Task 4"), new NodeAttribute<>(key, project1)).getUuid());
-			taskIDs.add(app.create(task, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "Task 5"), new NodeAttribute<>(key, project1)).getUuid());
+			taskIDs.add(app.create(task, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Task 1"), new NodeAttribute<>(key, project1)).getUuid());
+			taskIDs.add(app.create(task, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Task 2")).getUuid());
+			taskIDs.add(app.create(task, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Task 3")).getUuid());
+			taskIDs.add(app.create(task, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Task 4"), new NodeAttribute<>(key, project1)).getUuid());
+			taskIDs.add(app.create(task, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Task 5"), new NodeAttribute<>(key, project1)).getUuid());
 
 			// create page
 			final Page page1     = Page.createSimplePage(securityContext, "page1");
@@ -216,12 +213,7 @@ public class RepeaterTest extends StructrUiTest {
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
-			// create test user
-			createTestNode(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
-			);
+			createAdminUser("admin", "admin");
 
 			tx.success();
 

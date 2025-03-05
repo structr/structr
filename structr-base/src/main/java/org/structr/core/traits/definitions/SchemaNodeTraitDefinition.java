@@ -74,8 +74,8 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 					boolean valid = true;
 
-					valid &= ValidationHelper.isValidUniqueProperty(obj, Traits.of(StructrTraits.NODE_INTERFACE).key("name"), errorBuffer);
-					valid &= ValidationHelper.isValidStringMatchingRegex(obj, Traits.of(StructrTraits.NODE_INTERFACE).key("name"), SchemaNode.schemaNodeNamePattern, errorBuffer);
+					valid &= ValidationHelper.isValidUniqueProperty(obj, Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), errorBuffer);
+					valid &= ValidationHelper.isValidStringMatchingRegex(obj, Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), SchemaNode.schemaNodeNamePattern, errorBuffer);
 
 					return valid;
 				}
@@ -99,7 +99,7 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
-					if (modificationQueue.isPropertyModified(graphObject, Traits.of(StructrTraits.NODE_INTERFACE).key("name"))) {
+					if (modificationQueue.isPropertyModified(graphObject, Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY))) {
 						throwExceptionIfTypeAlreadyExists(graphObject);
 					}
 
@@ -175,8 +175,8 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 			PropertyView.Ui,
 			newSet(
-				"id", "type", "name", "owner", "createdBy", "hidden", "createdDate", "lastModifiedDate",
-				"visibleToPublicUsers", "visibleToAuthenticatedUsers", "schemaProperties", "schemaViews",
+				"id", "type", "name", "owner", GraphObjectTraitDefinition.CREATED_BY_PROPERTY, "hidden", GraphObjectTraitDefinition.CREATED_DATE_PROPERTY, GraphObjectTraitDefinition.LAST_MODIFIED_DATE_PROPERTY,
+					GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, "schemaProperties", "schemaViews",
 				"schemaMethods", "icon", "changelogDisabled", "relatedTo", "relatedFrom", "defaultSortKey",
 				"defaultSortOrder", "hierarchyLevel", "relCount", "isInterface", "isAbstract",
 				"category", "defaultVisibleToPublic", "defaultVisibleToAuth", "includeInOpenAPI", "inheritedTraits"
@@ -379,7 +379,7 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 		if (Services.getInstance().isInitialized() && ! Services.getInstance().isOverridingSchemaTypesAllowed()) {
 
-			final String typeName = graphObject.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"));
+			final String typeName = graphObject.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY));
 
 			// add type names to list of forbidden entity names
 			if (EntityNameBlacklist.contains(typeName)) {

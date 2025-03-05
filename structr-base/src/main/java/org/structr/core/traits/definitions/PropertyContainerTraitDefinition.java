@@ -152,7 +152,7 @@ public final class PropertyContainerTraitDefinition extends AbstractNodeTraitDef
 					}
 
 					// allow setting of ID without permissions
-					if (!"id".equals(key.jsonName())) {
+					if (!GraphObjectTraitDefinition.ID_PROPERTY.equals(key.jsonName())) {
 
 						if (!graphObject.isGranted(Permission.write, securityContext, isCreation)) {
 
@@ -208,7 +208,7 @@ public final class PropertyContainerTraitDefinition extends AbstractNodeTraitDef
 						// no old value exists  OR  old value exists and is NOT equal => set property
 						if (isCreation || ((oldValue == null) && (value != null)) || ((oldValue != null) && (!Objects.deepEquals(oldValue, value)) || (key instanceof FunctionProperty)) ) {
 
-							if (!key.equals(traits.key("id"))) {
+							if (!key.equals(traits.key(GraphObjectTraitDefinition.ID_PROPERTY))) {
 
 								// check for system properties
 								if (key.isSystemInternal() && !graphObject.systemPropertiesUnlocked()) {

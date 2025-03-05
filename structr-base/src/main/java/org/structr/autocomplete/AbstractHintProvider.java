@@ -43,6 +43,7 @@ import org.structr.core.script.polyglot.function.DoPrivilegedFunction;
 import org.structr.core.script.polyglot.function.IncludeJSFunction;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
@@ -206,7 +207,7 @@ public abstract class AbstractHintProvider {
 
 			final Traits traits = Traits.of(StructrTraits.SCHEMA_METHOD);
 
-			for (final NodeInterface node : StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_METHOD).and(traits.key("schemaNode"), null).sort(traits.key("name")).getResultStream()) {
+			for (final NodeInterface node : StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_METHOD).and(traits.key("schemaNode"), null).sort(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getResultStream()) {
 
 				final SchemaMethod method = node.as(SchemaMethod.class);
 

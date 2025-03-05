@@ -28,6 +28,7 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 
 import java.util.Map;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 
 /**
  * Sets a new UUID on each graph object of the given type. For nodes, set type,
@@ -45,7 +46,7 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 	public long executeWithCount(final Map<String, Object> attributes) throws FrameworkException {
 
-		final PropertyKey<String> idProperty = Traits.of(StructrTraits.GRAPH_OBJECT).key("id");
+		final PropertyKey<String> idProperty = Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY);
 		final String nodeType  = (String) attributes.get("type");
 		final String relType   = (String) attributes.get("relType");
 		final Boolean allNodes = (Boolean) attributes.get("allNodes");

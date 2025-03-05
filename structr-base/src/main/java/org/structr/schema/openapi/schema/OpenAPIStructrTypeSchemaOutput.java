@@ -23,6 +23,8 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.export.StructrTypeDefinition;
 import org.structr.schema.openapi.common.OpenAPISchemaReference;
@@ -108,9 +110,9 @@ public class OpenAPIStructrTypeSchemaOutput extends TreeMap<String, Object> {
 
 		} else {
 
-			final PropertyKey idKey   = Traits.of(StructrTraits.GRAPH_OBJECT).key("id");
-			final PropertyKey typeKey = Traits.of(StructrTraits.GRAPH_OBJECT).key("type");
-			final PropertyKey nameKey = Traits.of(StructrTraits.NODE_INTERFACE).key("name");
+			final PropertyKey idKey   = Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY);
+			final PropertyKey typeKey = Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY);
+			final PropertyKey nameKey = Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 
 			// default properties
 			properties.put("id",   idKey.describeOpenAPIOutputType(typeName, viewName, level));

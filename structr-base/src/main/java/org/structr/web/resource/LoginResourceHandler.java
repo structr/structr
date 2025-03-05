@@ -26,6 +26,8 @@ import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
@@ -75,11 +77,11 @@ public class LoginResourceHandler extends RESTCallHandler {
 
 		try {
 
-			final String username = (String) propertySet.get("name");
-			final String email = (String) propertySet.get("eMail");
-			final String password = (String) propertySet.get("password");
-			final String twoFactorToken = (String) propertySet.get("twoFactorToken");
-			final String twoFactorCode = (String) propertySet.get("twoFactorCode");
+			final String username       = (String) propertySet.get(NodeInterfaceTraitDefinition.NAME_PROPERTY);
+			final String email          = (String) propertySet.get(PrincipalTraitDefinition.EMAIL_PROPERTY);
+			final String password       = (String) propertySet.get(PrincipalTraitDefinition.PASSWORD_PROPERTY);
+			final String twoFactorToken = (String) propertySet.get(PrincipalTraitDefinition.TWO_FACTOR_TOKEN_PROPERTY);
+			final String twoFactorCode  = (String) propertySet.get("twoFactorCode");
 
 			String emailOrUsername = StringUtils.isNotEmpty(email) ? email : username;
 

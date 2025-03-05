@@ -28,6 +28,7 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.testng.annotations.Test;
@@ -196,19 +197,19 @@ public class RestScriptingTest extends StructrRestTestBase {
 			StructrSchema.replaceDatabaseSchema(app, schema);
 
 			app.create(StructrTraits.SCHEMA_METHOD,
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("name"), "calledTestMethod"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "{ $.test1(); $.test2(); $.API.test1(); $.API.test2(); 'test'; }")
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "calledTestMethod"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "{ $.test1(); $.test2(); $.API.test1(); $.API.test2(); return 'test'; }")
 			);
 
 			app.create(StructrTraits.SCHEMA_METHOD,
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("name"), "test1"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test1"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "'global structr script method'"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("returnRawResult"), true)
 			);
 
 			app.create(StructrTraits.SCHEMA_METHOD,
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("name"), "test2"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "{ 'global javascript method'; }"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test2"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "{ return 'global javascript method'; }"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("returnRawResult"), true)
 			);
 
@@ -248,14 +249,14 @@ public class RestScriptingTest extends StructrRestTestBase {
 			StructrSchema.replaceDatabaseSchema(app, schema);
 
 			app.create(StructrTraits.SCHEMA_METHOD,
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("name"), "test1"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test1"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "'global structr script method'"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("returnRawResult"), true)
 			);
 
 			app.create(StructrTraits.SCHEMA_METHOD,
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("name"), "test2"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "{ 'global javascript method'; }"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test2"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "{ return 'global javascript method'; }"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("returnRawResult"), true)
 			);
 

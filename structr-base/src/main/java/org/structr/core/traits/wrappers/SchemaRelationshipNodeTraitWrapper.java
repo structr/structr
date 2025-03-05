@@ -39,6 +39,8 @@ import org.structr.core.property.*;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.TraitDefinition;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.RelationshipInterfaceTraitDefinition;
 import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.schema.DynamicRelationshipTraitDefinition;
 import org.structr.schema.SchemaHelper;
@@ -58,7 +60,7 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 	@Override
 	public SchemaNode getSourceNode() {
 
-		final NodeInterface node = wrappedObject.getProperty(traits.key("sourceNode"));
+		final NodeInterface node = wrappedObject.getProperty(traits.key(RelationshipInterfaceTraitDefinition.SOURCE_NODE_PROPERTY));
 		if (node != null) {
 
 			return node.as(SchemaNode.class);
@@ -70,7 +72,7 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 	@Override
 	public SchemaNode getTargetNode() {
 
-		final NodeInterface node = wrappedObject.getProperty(traits.key("targetNode"));
+		final NodeInterface node = wrappedObject.getProperty(traits.key(RelationshipInterfaceTraitDefinition.TARGET_NODE_PROPERTY));
 		if (node != null) {
 
 			return node.as(SchemaNode.class);
@@ -83,7 +85,7 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 	@Override
 	public String getClassName() {
 
-		String name = wrappedObject.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"));
+		String name = wrappedObject.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY));
 		if (name == null) {
 
 			final String _sourceType = getSchemaNodeSourceType();
@@ -115,7 +117,7 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 			name = buf.toString();
 
 			try {
-				wrappedObject.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), name);
+				wrappedObject.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name);
 
 			} catch (FrameworkException fex) {
 				logger.warn("Unable to set relationship name to {}.", name);
@@ -818,12 +820,12 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 
 	@Override
 	public void setSourceNode(final SchemaNode sourceSchemaNode) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("sourceNode"), sourceSchemaNode);
+		wrappedObject.setProperty(traits.key(RelationshipInterfaceTraitDefinition.SOURCE_NODE_PROPERTY), sourceSchemaNode);
 	}
 
 	@Override
 	public void setTargetNode(final SchemaNode targetSchemaNode) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("targetNode"), targetSchemaNode);
+		wrappedObject.setProperty(traits.key(RelationshipInterfaceTraitDefinition.TARGET_NODE_PROPERTY), targetSchemaNode);
 	}
 
 	@Override

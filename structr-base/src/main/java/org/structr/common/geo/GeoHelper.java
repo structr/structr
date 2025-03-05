@@ -34,6 +34,8 @@ import org.structr.core.traits.Traits;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.LocationTraitDefinition;
 
 /**
  * Helper class to create location nodes from coordinates or by using
@@ -61,9 +63,9 @@ public class GeoHelper {
 		double latitude         = coords.getLatitude();
 		double longitude        = coords.getLongitude();
 
-		props.put(Traits.of(StructrTraits.GRAPH_OBJECT).key("type"), StructrTraits.LOCATION);
-		props.put(traits.key("latitude"),  latitude);
-		props.put(traits.key("longitude"), longitude);
+		props.put(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY), StructrTraits.LOCATION);
+		props.put(traits.key(LocationTraitDefinition.LATITUDE_PROPERTY),  latitude);
+		props.put(traits.key(LocationTraitDefinition.LONGITUDE_PROPERTY), longitude);
 
 		return StructrApp.getInstance().create(StructrTraits.LOCATION, props);
 	}

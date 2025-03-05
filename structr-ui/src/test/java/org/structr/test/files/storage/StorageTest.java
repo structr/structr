@@ -27,6 +27,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.storage.providers.local.LocalFSStorageProvider;
 import org.structr.storage.providers.memory.InMemoryStorageProvider;
@@ -59,17 +60,17 @@ public class StorageTest extends StructrUiTest {
 			final Traits fileTraits           = Traits.of(StructrTraits.FILE);
 
 			PropertyMap folderProps = new PropertyMap();
-			folderProps.put(folderTraits.key("name"), "local");
+			folderProps.put(folderTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "local");
 			folderProps.put(folderTraits.key("storageConfiguration"), local);
 			NodeInterface folder = app.create(StructrTraits.FOLDER, folderProps);
 
 			PropertyMap folderProps2 = new PropertyMap();
-			folderProps2.put(folderTraits.key("name"), "memory");
+			folderProps2.put(folderTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "memory");
 			folderProps2.put(folderTraits.key("storageConfiguration"), memory);
 			NodeInterface folder2 = app.create(StructrTraits.FOLDER, folderProps2);
 
 			PropertyMap fileProps = new PropertyMap();
-			fileProps.put(fileTraits.key("name"), "testFile.txt");
+			fileProps.put(folderTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testFile.txt");
 			fileProps.put(fileTraits.key("parent"), folder);
 			File file = app.create(StructrTraits.FILE, fileProps).as(File.class);
 
@@ -110,7 +111,7 @@ public class StorageTest extends StructrUiTest {
 			final PropertyKey<StorageConfiguration> storageConfigurationKey = fileTraits.key("storageConfiguration");
 
 			PropertyMap fileProps = new PropertyMap();
-			fileProps.put(fileTraits.key("name"), "testFile.txt");
+			fileProps.put(fileTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testFile.txt");
 			File file = app.create(StructrTraits.FILE, fileProps).as(File.class);
 
 			final String payload = "test payload written to this file";

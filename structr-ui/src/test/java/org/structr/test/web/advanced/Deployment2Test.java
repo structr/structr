@@ -33,6 +33,9 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.LocalizationTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
@@ -59,8 +62,8 @@ public class Deployment2Test extends DeploymentTestBase {
 
 		try (final Tx tx = app.tx()) {
 
-			user1 = createTestNode(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "user1")).as(Principal.class);
-			user2 = createTestNode(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "user2")).as(Principal.class);
+			user1 = createTestNode(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "user1")).as(Principal.class);
+			user2 = createTestNode(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "user2")).as(Principal.class);
 
 			tx.success();
 
@@ -111,8 +114,8 @@ public class Deployment2Test extends DeploymentTestBase {
 
 		try (final Tx tx = app.tx()) {
 
-			user1 = createTestNode(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "user1")).as(Principal.class);
-			user2 = createTestNode(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "user2")).as(Principal.class);
+			user1 = createTestNode(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "user1")).as(Principal.class);
+			user2 = createTestNode(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "user2")).as(Principal.class);
 
 			tx.success();
 
@@ -169,8 +172,8 @@ public class Deployment2Test extends DeploymentTestBase {
 
 				try (final Tx tx = app.tx()) {
 
-					createTestNode(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "user1")).as(Principal.class);
-					createTestNode(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "user2")).as(Principal.class);
+					createTestNode(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "user1")).as(Principal.class);
+					createTestNode(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "user2")).as(Principal.class);
 
 					tx.success();
 
@@ -191,8 +194,8 @@ public class Deployment2Test extends DeploymentTestBase {
 
 		try (final Tx tx = app.tx()) {
 
-			user1 = createTestNode(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "user1")).as(Principal.class);
-			user2 = createTestNode(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "user2")).as(Principal.class);
+			user1 = createTestNode(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "user1")).as(Principal.class);
+			user2 = createTestNode(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "user2")).as(Principal.class);
 
 			tx.success();
 
@@ -207,8 +210,8 @@ public class Deployment2Test extends DeploymentTestBase {
 		try (final Tx tx = app.tx()) {
 
 			// create some files and folders
-			final NodeInterface folder1  = app.create(StructrTraits.FOLDER, new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key("name"), "Folder1"), new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key("includeInFrontendExport"), true));
-			final NodeInterface folder2  = app.create(StructrTraits.FOLDER, new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key("name"), "Folder2"), new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key("parent"), folder1));
+			final NodeInterface folder1  = app.create(StructrTraits.FOLDER, new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Folder1"), new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key("includeInFrontendExport"), true));
+			final NodeInterface folder2  = app.create(StructrTraits.FOLDER, new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Folder2"), new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key("parent"), folder1));
 
 			final NodeInterface file1  = FileHelper.createFile(securityContext, "test".getBytes(), "text/plain", StructrTraits.FILE, "test1.txt", true);
 			final NodeInterface file2  = FileHelper.createFile(securityContext, "test".getBytes(), "text/plain", StructrTraits.FILE, "test2.txt", true);
@@ -216,19 +219,19 @@ public class Deployment2Test extends DeploymentTestBase {
 			file1.as(File.class).setParent(folder2.as(Folder.class));
 			file2.as(File.class).setParent(folder2.as(Folder.class));
 
-			folder1.setProperty(Traits.of(StructrTraits.FOLDER).key("owner"), user1);
+			folder1.setProperty(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), user1);
 			folder1.as(AccessControllable.class).grant(Permission.read, user2);
 
-			folder2.setProperty(Traits.of(StructrTraits.FOLDER).key("owner"), user2);
+			folder2.setProperty(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), user2);
 			folder2.as(AccessControllable.class).grant(Permission.write, user1);
 
-			file1.setProperty(Traits.of(StructrTraits.FILE).key("owner"), user1);
-			file2.setProperty(Traits.of(StructrTraits.FILE).key("owner"), user2);
+			file1.setProperty(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), user1);
+			file2.setProperty(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), user2);
 
-			file1.setProperty(Traits.of(StructrTraits.FOLDER).key("owner"), user1);
+			file1.setProperty(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), user1);
 			file1.as(AccessControllable.class).grant(Permission.read, user2);
 
-			file2.setProperty(Traits.of(StructrTraits.FOLDER).key("owner"), user2);
+			file2.setProperty(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), user2);
 			file2.as(AccessControllable.class).grant(Permission.write, user1);
 
 			tx.success();
@@ -245,8 +248,8 @@ public class Deployment2Test extends DeploymentTestBase {
 
 				try (final Tx tx = app.tx()) {
 
-					createTestNode(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "user1")).as(Principal.class);
-					createTestNode(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "user2")).as(Principal.class);
+					createTestNode(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "user1")).as(Principal.class);
+					createTestNode(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "user2")).as(Principal.class);
 
 					tx.success();
 
@@ -304,13 +307,13 @@ public class Deployment2Test extends DeploymentTestBase {
 
 			// create extended folder class
 			app.create(StructrTraits.SCHEMA_NODE,
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key("name"), "ExtendedFolder"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "ExtendedFolder"),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key("inheritedTraits"), new String[] { StructrTraits.FOLDER })
 			);
 
 			// create extended file class
 			app.create(StructrTraits.SCHEMA_NODE,
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key("name"), "ExtendedFile"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "ExtendedFile"),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key("inheritedTraits"), new String[] { StructrTraits.FILE })
 			);
 
@@ -327,17 +330,17 @@ public class Deployment2Test extends DeploymentTestBase {
 
 			final NodeInterface folder1 = app.create("ExtendedFolder", "folder1");
 			final NodeInterface folder2 = app.create("ExtendedFolder",
-				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key("name"), "folder2"),
+				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "folder2"),
 				new NodeAttribute(Traits.of(StructrTraits.FOLDER).key("parent"), folder1)
 			);
 
 			app.create("ExtendedFile",
-				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key("name"), "file1.txt"),
+				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "file1.txt"),
 				new NodeAttribute(Traits.of(StructrTraits.FILE).key("parent"), folder1)
 			);
 
 			app.create("ExtendedFile",
-				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key("name"), "file2.txt"),
+				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "file2.txt"),
 				new NodeAttribute(Traits.of(StructrTraits.FILE).key("parent"), folder2)
 			);
 
@@ -391,13 +394,13 @@ public class Deployment2Test extends DeploymentTestBase {
 			final NodeInterface file1 = FileHelper.createFile(securityContext, "test".getBytes("utf-8"), "text/plain", StructrTraits.FILE, fileName1, true);
 			final NodeInterface file2 = FileHelper.createFile(securityContext, "test".getBytes("utf-8"), "text/plain", StructrTraits.FILE, fileName2, true);
 
-			file1.setProperty(Traits.of(StructrTraits.FILE).key("visibleToPublicUsers"), true);
-			file1.setProperty(Traits.of(StructrTraits.FILE).key("visibleToAuthenticatedUsers"), true);
+			file1.setProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
+			file1.setProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
 			file1.setProperty(Traits.of(StructrTraits.FILE).key("enableBasicAuth"), true);
 			file1.setProperty(Traits.of(StructrTraits.FILE).key("useAsJavascriptLibrary"), true);
 
-			file2.setProperty(Traits.of(StructrTraits.FILE).key("visibleToPublicUsers"), true);
-			file2.setProperty(Traits.of(StructrTraits.FILE).key("visibleToAuthenticatedUsers"), true);
+			file2.setProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
+			file2.setProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
 			file2.setProperty(Traits.of(StructrTraits.FILE).key("enableBasicAuth"), true);
 			file2.setProperty(Traits.of(StructrTraits.FILE).key("includeInFrontendExport"), true);
 
@@ -414,20 +417,20 @@ public class Deployment2Test extends DeploymentTestBase {
 		// check
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface file1 = app.nodeQuery(StructrTraits.FILE).and(Traits.of(StructrTraits.FILE).key("name"), fileName1).getFirst();
-			final NodeInterface file2 = app.nodeQuery(StructrTraits.FILE).and(Traits.of(StructrTraits.FILE).key("name"), fileName2).getFirst();
+			final NodeInterface file1 = app.nodeQuery(StructrTraits.FILE).and(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), fileName1).getFirst();
+			final NodeInterface file2 = app.nodeQuery(StructrTraits.FILE).and(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), fileName2).getFirst();
 
 			assertNotNull("Invalid deployment result", file1);
 			assertNotNull("Invalid deployment result", file2);
 
-			assertTrue("Deployment import does not restore attributes correctly",  file1.getProperty(Traits.of(StructrTraits.FILE).key("visibleToPublicUsers")));
-			assertTrue("Deployment import does not restore attributes correctly",  file1.getProperty(Traits.of(StructrTraits.FILE).key("visibleToAuthenticatedUsers")));
+			assertTrue("Deployment import does not restore attributes correctly",  file1.getProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY)));
+			assertTrue("Deployment import does not restore attributes correctly",  file1.getProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY)));
 			assertTrue("Deployment import does not restore attributes correctly",  file1.getProperty(Traits.of(StructrTraits.FILE).key("enableBasicAuth")));
 			assertTrue("Deployment import does not restore attributes correctly",  file1.getProperty(Traits.of(StructrTraits.FILE).key("useAsJavascriptLibrary")));
 			assertFalse("Deployment import does not restore attributes correctly", file1.getProperty(Traits.of(StructrTraits.FILE).key("includeInFrontendExport")));
 
-			assertTrue("Deployment import does not restore attributes correctly",  file2.getProperty(Traits.of(StructrTraits.FILE).key("visibleToPublicUsers")));
-			assertTrue("Deployment import does not restore attributes correctly",  file2.getProperty(Traits.of(StructrTraits.FILE).key("visibleToAuthenticatedUsers")));
+			assertTrue("Deployment import does not restore attributes correctly",  file2.getProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY)));
+			assertTrue("Deployment import does not restore attributes correctly",  file2.getProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY)));
 			assertTrue("Deployment import does not restore attributes correctly",  file2.getProperty(Traits.of(StructrTraits.FILE).key("enableBasicAuth")));
 			assertFalse("Deployment import does not restore attributes correctly", file2.getProperty(Traits.of(StructrTraits.FILE).key("useAsJavascriptLibrary")));
 			assertTrue("Deployment import does not restore attributes correctly" , file2.getProperty(Traits.of(StructrTraits.FILE).key("includeInFrontendExport")));
@@ -446,17 +449,17 @@ public class Deployment2Test extends DeploymentTestBase {
 		try (final Tx tx = app.tx()) {
 
 			app.create(StructrTraits.MAIL_TEMPLATE,
-				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key("name"),   "template1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),   "template1"),
 				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key("locale"), "de_DE"),
 				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key("text"),   "text1"),
-				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key("visibleToPublicUsers"), true)
+				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)
 			);
 
 			app.create(StructrTraits.MAIL_TEMPLATE,
-				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key("name"),   "template2"),
+				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),   "template2"),
 				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key("locale"), "en"),
 				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key("text"),   "text2"),
-				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key("visibleToAuthenticatedUsers"), true)
+				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true)
 			);
 
 			tx.success();
@@ -472,23 +475,23 @@ public class Deployment2Test extends DeploymentTestBase {
 		// check
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface template1 = app.nodeQuery(StructrTraits.MAIL_TEMPLATE).and(Traits.of(StructrTraits.MAIL_TEMPLATE).key("name"), "template1").getFirst();
-			final NodeInterface template2 = app.nodeQuery(StructrTraits.MAIL_TEMPLATE).and(Traits.of(StructrTraits.MAIL_TEMPLATE).key("name"), "template2").getFirst();
+			final NodeInterface template1 = app.nodeQuery(StructrTraits.MAIL_TEMPLATE).and(Traits.of(StructrTraits.MAIL_TEMPLATE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "template1").getFirst();
+			final NodeInterface template2 = app.nodeQuery(StructrTraits.MAIL_TEMPLATE).and(Traits.of(StructrTraits.MAIL_TEMPLATE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "template2").getFirst();
 
 			assertNotNull("Invalid deployment result", template1);
 			assertNotNull("Invalid deployment result", template2);
 
-			assertEquals("Invalid MailTemplate deployment result", "template1", template1.getProperty(Traits.of(StructrTraits.MAIL_TEMPLATE).key("name")));
+			assertEquals("Invalid MailTemplate deployment result", "template1", template1.getProperty(Traits.of(StructrTraits.MAIL_TEMPLATE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)));
 			assertEquals("Invalid MailTemplate deployment result", "de_DE",     template1.getProperty(Traits.of(StructrTraits.MAIL_TEMPLATE).key("locale")));
 			assertEquals("Invalid MailTemplate deployment result", "text1",     template1.getProperty(Traits.of(StructrTraits.MAIL_TEMPLATE).key("text")));
-			assertEquals("Invalid MailTemplate deployment result", true,        (boolean)template1.getProperty(Traits.of(StructrTraits.MAIL_TEMPLATE).key("visibleToPublicUsers")));
-			assertEquals("Invalid MailTemplate deployment result", false,       (boolean)template1.getProperty(Traits.of(StructrTraits.MAIL_TEMPLATE).key("visibleToAuthenticatedUsers")));
+			assertEquals("Invalid MailTemplate deployment result", true,        (boolean)template1.getProperty(Traits.of(StructrTraits.MAIL_TEMPLATE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY)));
+			assertEquals("Invalid MailTemplate deployment result", false,       (boolean)template1.getProperty(Traits.of(StructrTraits.MAIL_TEMPLATE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY)));
 
-			assertEquals("Invalid MailTemplate deployment result", "template2", template2.getProperty(Traits.of(StructrTraits.MAIL_TEMPLATE).key("name")));
+			assertEquals("Invalid MailTemplate deployment result", "template2", template2.getProperty(Traits.of(StructrTraits.MAIL_TEMPLATE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)));
 			assertEquals("Invalid MailTemplate deployment result", "en",        template2.getProperty(Traits.of(StructrTraits.MAIL_TEMPLATE).key("locale")));
 			assertEquals("Invalid MailTemplate deployment result", "text2",     template2.getProperty(Traits.of(StructrTraits.MAIL_TEMPLATE).key("text")));
-			assertEquals("Invalid MailTemplate deployment result", false,       (boolean)template2.getProperty(Traits.of(StructrTraits.MAIL_TEMPLATE).key("visibleToPublicUsers")));
-			assertEquals("Invalid MailTemplate deployment result", true,        (boolean)template2.getProperty(Traits.of(StructrTraits.MAIL_TEMPLATE).key("visibleToAuthenticatedUsers")));
+			assertEquals("Invalid MailTemplate deployment result", false,       (boolean)template2.getProperty(Traits.of(StructrTraits.MAIL_TEMPLATE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY)));
+			assertEquals("Invalid MailTemplate deployment result", true,        (boolean)template2.getProperty(Traits.of(StructrTraits.MAIL_TEMPLATE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY)));
 
 			tx.success();
 
@@ -504,17 +507,17 @@ public class Deployment2Test extends DeploymentTestBase {
 		try (final Tx tx = app.tx()) {
 
 			app.create(StructrTraits.LOCALIZATION,
-				new NodeAttribute<>(Traits.of(StructrTraits.LOCALIZATION).key("name"),                "localization1"),
-				new NodeAttribute<>(Traits.of(StructrTraits.LOCALIZATION).key("domain"),              "domain1"),
-				new NodeAttribute<>(Traits.of(StructrTraits.LOCALIZATION).key("locale"),              "de_DE"),
-				new NodeAttribute<>(Traits.of(StructrTraits.LOCALIZATION).key("localizedName"),       "localizedName1")
+				new NodeAttribute<>(Traits.of(StructrTraits.LOCALIZATION).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),                "localization1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.LOCALIZATION).key(LocalizationTraitDefinition.DOMAIN_PROPERTY),              "domain1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.LOCALIZATION).key(LocalizationTraitDefinition.LOCALE_PROPERTY),              "de_DE"),
+				new NodeAttribute<>(Traits.of(StructrTraits.LOCALIZATION).key(LocalizationTraitDefinition.LOCALIZED_NAME_PROPERTY),       "localizedName1")
 			);
 
 			app.create(StructrTraits.LOCALIZATION,
-				new NodeAttribute<>(Traits.of(StructrTraits.LOCALIZATION).key("name"),                       "localization2"),
-				new NodeAttribute<>(Traits.of(StructrTraits.LOCALIZATION).key("domain"),                     "domain2"),
-				new NodeAttribute<>(Traits.of(StructrTraits.LOCALIZATION).key("locale"),                     "en"),
-				new NodeAttribute<>(Traits.of(StructrTraits.LOCALIZATION).key("localizedName"),              "localizedName2")
+				new NodeAttribute<>(Traits.of(StructrTraits.LOCALIZATION).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),                       "localization2"),
+				new NodeAttribute<>(Traits.of(StructrTraits.LOCALIZATION).key(LocalizationTraitDefinition.DOMAIN_PROPERTY),                     "domain2"),
+				new NodeAttribute<>(Traits.of(StructrTraits.LOCALIZATION).key(LocalizationTraitDefinition.LOCALE_PROPERTY),                     "en"),
+				new NodeAttribute<>(Traits.of(StructrTraits.LOCALIZATION).key(LocalizationTraitDefinition.LOCALIZED_NAME_PROPERTY),              "localizedName2")
 			);
 
 			tx.success();
@@ -530,25 +533,25 @@ public class Deployment2Test extends DeploymentTestBase {
 		// check
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface localization1 = app.nodeQuery(StructrTraits.LOCALIZATION).and(Traits.of(StructrTraits.LOCALIZATION).key("name"), "localization1").getFirst();
-			final NodeInterface localization2 = app.nodeQuery(StructrTraits.LOCALIZATION).and(Traits.of(StructrTraits.LOCALIZATION).key("name"), "localization2").getFirst();
+			final NodeInterface localization1 = app.nodeQuery(StructrTraits.LOCALIZATION).and(Traits.of(StructrTraits.LOCALIZATION).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "localization1").getFirst();
+			final NodeInterface localization2 = app.nodeQuery(StructrTraits.LOCALIZATION).and(Traits.of(StructrTraits.LOCALIZATION).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "localization2").getFirst();
 
 			assertNotNull("Invalid deployment result", localization1);
 			assertNotNull("Invalid deployment result", localization2);
 
-			assertEquals("Invalid Localization deployment result", "localization1",  localization1.getProperty(Traits.of(StructrTraits.LOCALIZATION).key("name")));
-			assertEquals("Invalid Localization deployment result", "domain1",        localization1.getProperty(Traits.of(StructrTraits.LOCALIZATION).key("domain")));
-			assertEquals("Invalid Localization deployment result", "de_DE",          localization1.getProperty(Traits.of(StructrTraits.LOCALIZATION).key("locale")));
-			assertEquals("Invalid Localization deployment result", "localizedName1", localization1.getProperty(Traits.of(StructrTraits.LOCALIZATION).key("localizedName")));
-			assertEquals("Invalid Localization deployment result", true,             (boolean)localization1.getProperty(Traits.of(StructrTraits.LOCALIZATION).key("visibleToPublicUsers")));
-			assertEquals("Invalid Localization deployment result", true,             (boolean)localization1.getProperty(Traits.of(StructrTraits.LOCALIZATION).key("visibleToAuthenticatedUsers")));
+			assertEquals("Invalid Localization deployment result", "localization1",  localization1.getProperty(Traits.of(StructrTraits.LOCALIZATION).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)));
+			assertEquals("Invalid Localization deployment result", "domain1",        localization1.getProperty(Traits.of(StructrTraits.LOCALIZATION).key(LocalizationTraitDefinition.DOMAIN_PROPERTY)));
+			assertEquals("Invalid Localization deployment result", "de_DE",          localization1.getProperty(Traits.of(StructrTraits.LOCALIZATION).key(LocalizationTraitDefinition.LOCALE_PROPERTY)));
+			assertEquals("Invalid Localization deployment result", "localizedName1", localization1.getProperty(Traits.of(StructrTraits.LOCALIZATION).key(LocalizationTraitDefinition.LOCALIZED_NAME_PROPERTY)));
+			assertEquals("Invalid Localization deployment result", true,             (boolean)localization1.getProperty(Traits.of(StructrTraits.LOCALIZATION).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY)));
+			assertEquals("Invalid Localization deployment result", true,             (boolean)localization1.getProperty(Traits.of(StructrTraits.LOCALIZATION).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY)));
 
-			assertEquals("Invalid Localization deployment result", "localization2",  localization2.getProperty(Traits.of(StructrTraits.LOCALIZATION).key("name")));
-			assertEquals("Invalid Localization deployment result", "domain2",        localization2.getProperty(Traits.of(StructrTraits.LOCALIZATION).key("domain")));
-			assertEquals("Invalid Localization deployment result", "en",             localization2.getProperty(Traits.of(StructrTraits.LOCALIZATION).key("locale")));
-			assertEquals("Invalid Localization deployment result", "localizedName2", localization2.getProperty(Traits.of(StructrTraits.LOCALIZATION).key("localizedName")));
-			assertEquals("Invalid Localization deployment result", true,             (boolean)localization2.getProperty(Traits.of(StructrTraits.LOCALIZATION).key("visibleToPublicUsers")));
-			assertEquals("Invalid Localization deployment result", true,             (boolean)localization2.getProperty(Traits.of(StructrTraits.LOCALIZATION).key("visibleToAuthenticatedUsers")));
+			assertEquals("Invalid Localization deployment result", "localization2",  localization2.getProperty(Traits.of(StructrTraits.LOCALIZATION).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)));
+			assertEquals("Invalid Localization deployment result", "domain2",        localization2.getProperty(Traits.of(StructrTraits.LOCALIZATION).key(LocalizationTraitDefinition.DOMAIN_PROPERTY)));
+			assertEquals("Invalid Localization deployment result", "en",             localization2.getProperty(Traits.of(StructrTraits.LOCALIZATION).key(LocalizationTraitDefinition.LOCALE_PROPERTY)));
+			assertEquals("Invalid Localization deployment result", "localizedName2", localization2.getProperty(Traits.of(StructrTraits.LOCALIZATION).key(LocalizationTraitDefinition.LOCALIZED_NAME_PROPERTY)));
+			assertEquals("Invalid Localization deployment result", true,             (boolean)localization2.getProperty(Traits.of(StructrTraits.LOCALIZATION).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY)));
+			assertEquals("Invalid Localization deployment result", true,             (boolean)localization2.getProperty(Traits.of(StructrTraits.LOCALIZATION).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY)));
 
 			tx.success();
 

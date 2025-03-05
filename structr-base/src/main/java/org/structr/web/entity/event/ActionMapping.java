@@ -38,6 +38,8 @@ public interface ActionMapping extends NodeInterface {
 
 	void setAction(final String action) throws FrameworkException;
 	void setMethod(final String method) throws FrameworkException;
+	void setSuccessBehaviour(final String successBehaviour) throws FrameworkException;
+	void setFailureBehaviour(final String failureBehaviour) throws FrameworkException;
 
 	Iterable<ParameterMapping> getParameterMappings();
 	Iterable<DOMElement> getTriggerElements();
@@ -63,4 +65,5 @@ public interface ActionMapping extends NodeInterface {
 	String getFailureNotificationsPartial();
 	String getFailureNotificationsEvent();
 	Integer getFailureNotificationsDelay();
+
 }

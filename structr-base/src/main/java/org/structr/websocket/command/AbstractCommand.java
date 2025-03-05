@@ -33,6 +33,8 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.web.entity.Widget;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
@@ -91,7 +93,7 @@ public abstract class AbstractCommand {
 
 		final NodeInterface node = getNode(id);
 
-		if (node != null && node.is("Widget")) {
+		if (node != null && node.is(StructrTraits.WIDGET)) {
 
 			return node.as(Widget.class);
 		}
@@ -305,10 +307,10 @@ public abstract class AbstractCommand {
 				final PropertyMap properties = new PropertyMap();
 				final Traits traits          = Traits.of(StructrTraits.SHADOW_DOCUMENT);
 
-				properties.put(traits.key("type"), traits.getName());
-				properties.put(traits.key("name"), "__ShadowDocument__");
-				properties.put(traits.key("hidden"), true);
-				properties.put(traits.key("visibleToAuthenticatedUsers"), true);
+				properties.put(traits.key(GraphObjectTraitDefinition.TYPE_PROPERTY), traits.getName());
+				properties.put(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "__ShadowDocument__");
+				properties.put(traits.key(NodeInterfaceTraitDefinition.HIDDEN_PROPERTY), true);
+				properties.put(traits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
 
 				doc = app.create(StructrTraits.SHADOW_DOCUMENT, properties);
 			}

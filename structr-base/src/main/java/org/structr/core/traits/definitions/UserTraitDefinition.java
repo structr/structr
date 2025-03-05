@@ -55,6 +55,14 @@ import java.util.Set;
 
 public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String HOME_DIRECTORY_PROPERTY              = "homeDirectory";
+	public static final String WORKING_DIRECTORY_PROPERTY           = "workingDirectory";
+	public static final String IMG_PROPERTY                         = "img";
+	public static final String CONFIRMATION_KEY_PROPERTY            = "confirmationKey";
+	public static final String LOCAL_STORAGE_PROPERTY               = "localStorage";
+	public static final String SKIP_SECURITY_RELATIONSHIPS_PROPERTY = "skipSecurityRelationships";
+	public static final String IS_USER_PROPERTY                     = "isUser";
+
 	public UserTraitDefinition() {
 		super(StructrTraits.USER);
 	}
@@ -96,13 +104,13 @@ public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> homeDirectoryProperty       = new EndNode("homeDirectory", "UserHOME_DIRFolder");
-		final Property<NodeInterface> workingDirectoryProperty    = new EndNode("workingDirectory", "UserWORKING_DIRFolder");
-		final Property<NodeInterface> imgProperty                 = new StartNode("img", "ImagePICTURE_OFUser");
-		final Property<String> confirmationKeyProperty            = new StringProperty("confirmationKey").indexed();
-		final Property<String> localStorageProperty               = new StringProperty("localStorage");
-		final Property<Boolean> skipSecurityRelationshipsProperty = new BooleanProperty("skipSecurityRelationships").defaultValue(false).indexed();
-		final Property<Boolean> isUserProperty                    = new ConstantBooleanProperty("isUser", true);
+		final Property<NodeInterface> homeDirectoryProperty       = new EndNode(HOME_DIRECTORY_PROPERTY, "UserHOME_DIRFolder");
+		final Property<NodeInterface> workingDirectoryProperty    = new EndNode(WORKING_DIRECTORY_PROPERTY, "UserWORKING_DIRFolder");
+		final Property<NodeInterface> imgProperty                 = new StartNode(IMG_PROPERTY, "ImagePICTURE_OFUser");
+		final Property<String> confirmationKeyProperty            = new StringProperty(CONFIRMATION_KEY_PROPERTY).indexed();
+		final Property<String> localStorageProperty               = new StringProperty(LOCAL_STORAGE_PROPERTY);
+		final Property<Boolean> skipSecurityRelationshipsProperty = new BooleanProperty(SKIP_SECURITY_RELATIONSHIPS_PROPERTY).defaultValue(false).indexed();
+		final Property<Boolean> isUserProperty                    = new ConstantBooleanProperty(IS_USER_PROPERTY, true);
 
 		return Set.of(
 			homeDirectoryProperty,
@@ -121,13 +129,18 @@ public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 
 			PropertyView.Public,
-			Set.of("isUser", "name"),
+			Set.of(IS_USER_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY),
 
 			PropertyView.Ui,
 			Set.of(
-				"isUser", "confirmationKey", "eMail", "groups", "homeDirectory", "isAdmin", "locale", "password", "proxyPassword", "proxyUrl",
-				"proxyUsername", "publicKey", "sessionIds", "refreshTokens", "workingDirectory", "twoFactorToken", "isTwoFactorUser",
-				"twoFactorConfirmed", "passwordAttempts", "passwordChangeDate", "lastLoginDate", "skipSecurityRelationships", "img"
+				IS_USER_PROPERTY, CONFIRMATION_KEY_PROPERTY, PrincipalTraitDefinition.EMAIL_PROPERTY, PrincipalTraitDefinition.GROUPS_PROPERTY,
+				HOME_DIRECTORY_PROPERTY, PrincipalTraitDefinition.IS_ADMIN_PROPERTY, PrincipalTraitDefinition.LOCALE_PROPERTY,
+				PrincipalTraitDefinition.PASSWORD_PROPERTY, PrincipalTraitDefinition.PROXY_PASSWORD_PROPERTY, PrincipalTraitDefinition.PROXY_URL_PROPERTY,
+				PrincipalTraitDefinition.PROXY_USERNAME_PROPERTY, PrincipalTraitDefinition.PUBLIC_KEY_PROPERTY, PrincipalTraitDefinition.SESSION_IDS_PROPERTY,
+				PrincipalTraitDefinition.REFRESH_TOKENS_PROPERTY, WORKING_DIRECTORY_PROPERTY, PrincipalTraitDefinition.TWO_FACTOR_TOKEN_PROPERTY,
+				PrincipalTraitDefinition.IS_TWO_FACTOR_USER_PROPERTY, PrincipalTraitDefinition.TWO_FACTOR_CONFIRMED_PROPERTY,
+				PrincipalTraitDefinition.PASSWORD_ATTEMPTS_PROPERTY, PrincipalTraitDefinition.PASSWORD_CHANGE_DATE_PROPERTY,
+				PrincipalTraitDefinition.LAST_LOGIN_DATE_PROPERTY, SKIP_SECURITY_RELATIONSHIPS_PROPERTY, IMG_PROPERTY
 			)
 		);
 	}
@@ -169,7 +182,7 @@ public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 
 			user.setSecurityContext(SecurityContext.getSuperUserInstance());
 
-			final PropertyKey<Boolean> skipSecurityRels = Traits.of(StructrTraits.USER).key("skipSecurityRelationships");
+			final PropertyKey<Boolean> skipSecurityRels = Traits.of(StructrTraits.USER).key(SKIP_SECURITY_RELATIONSHIPS_PROPERTY);
 			if (user.getProperty(skipSecurityRels).equals(Boolean.TRUE) && !user.isAdmin()) {
 
 				TransactionCommand.simpleBroadcastWarning("Info", "This user has the skipSecurityRels flag set to true. This flag only works for admin accounts!", Predicate.only(securityContext.getSessionId()));
@@ -177,9 +190,9 @@ public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 
 			if (user.getTwoFactorSecret() == null) {
 
-				user.setProperty(userTraits.key("isTwoFactorUser"),    false);
-				user.setProperty(userTraits.key("twoFactorConfirmed"), false);
-				user.setProperty(userTraits.key("twoFactorSecret"),    TimeBasedOneTimePasswordHelper.generateBase32Secret());
+				user.setProperty(userTraits.key(PrincipalTraitDefinition.IS_TWO_FACTOR_USER_PROPERTY),   false);
+				user.setProperty(userTraits.key(PrincipalTraitDefinition.TWO_FACTOR_CONFIRMED_PROPERTY), false);
+				user.setProperty(userTraits.key(PrincipalTraitDefinition.TWO_FACTOR_SECRET_PROPERTY),    TimeBasedOneTimePasswordHelper.generateBase32Secret());
 			}
 
 			if (Settings.FilesystemEnabled.getValue()) {
@@ -194,21 +207,21 @@ public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 
 						// create home directory
 						final App app            = StructrApp.getInstance();
-						NodeInterface homeFolder = app.nodeQuery(StructrTraits.FOLDER).and(folderTraits.key("name"), "home").and(parentKey, null).getFirst();
+						NodeInterface homeFolder = app.nodeQuery(StructrTraits.FOLDER).and(folderTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "home").and(parentKey, null).getFirst();
 
 						if (homeFolder == null) {
 
 							homeFolder = app.create(StructrTraits.FOLDER,
-								new NodeAttribute(folderTraits.key("name"), "home"),
-								new NodeAttribute(folderTraits.key("owner"), null),
-								new NodeAttribute(folderTraits.key("visibleToAuthenticatedUsers"), true)
+								new NodeAttribute(folderTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "home"),
+								new NodeAttribute(folderTraits.key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), null),
+								new NodeAttribute(folderTraits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true)
 							);
 						}
 
 						app.create(StructrTraits.FOLDER,
-							new NodeAttribute(folderTraits.key("name"), user.getUuid()),
-							new NodeAttribute(folderTraits.key("owner"), user),
-							new NodeAttribute(folderTraits.key("visibleToAuthenticatedUsers"), true),
+							new NodeAttribute(folderTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), user.getUuid()),
+							new NodeAttribute(folderTraits.key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), user),
+							new NodeAttribute(folderTraits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true),
 							new NodeAttribute(parentKey, homeFolder),
 							new NodeAttribute(homeFolderKey, user)
 						);

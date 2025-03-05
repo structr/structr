@@ -29,6 +29,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.Relation.Multiplicity;
 import org.structr.core.property.*;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.RESTCall;
@@ -138,7 +139,7 @@ public class SchemaResource extends ExactMatchEndpoint {
 
 				if (type.isRelationshipType()) {
 
-					if (!"RelationshipInterface".equals(type.getName())) {
+					if (!StructrTraits.RELATIONSHIP_INTERFACE.equals(type.getName())) {
 
 						schema.setProperty(new GenericProperty("relInfo"), relationToMap(config, type.getRelation()));
 					}

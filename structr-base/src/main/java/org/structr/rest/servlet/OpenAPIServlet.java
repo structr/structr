@@ -36,6 +36,7 @@ import org.structr.core.auth.Authenticator;
 import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
 import org.structr.schema.export.StructrSchemaDefinition;
@@ -340,12 +341,12 @@ public class OpenAPIServlet extends AbstractDataServlet {
 
 		map.put("UsernameLoginBody", new OpenAPIObjectSchema("Requestbody for login or token creation requests with username and password.",
 				new OpenAPIPrimitiveSchema("Username of user to log in.", "name",     "string"),
-				new OpenAPIPrimitiveSchema("Password of the user.",       "password", "string")
+				new OpenAPIPrimitiveSchema("Password of the user.",       PrincipalTraitDefinition.PASSWORD_PROPERTY, "string")
 		));
 
 		map.put("EMailLoginBody", new OpenAPIObjectSchema("Requestbody for login or token creation requests with eMail and password.",
-				new OpenAPIPrimitiveSchema("eMail of user to log in.", "eMail",    "string"),
-				new OpenAPIPrimitiveSchema("Password of the user.",    "password", "string")
+				new OpenAPIPrimitiveSchema("eMail of user to log in.", PrincipalTraitDefinition.EMAIL_PROPERTY,    "string"),
+				new OpenAPIPrimitiveSchema("Password of the user.",    PrincipalTraitDefinition.PASSWORD_PROPERTY, "string")
 		));
 
 		map.put("RefreshTokenLoginBody", new OpenAPIObjectSchema("Requestbody for login or token creation requests with refresh_token.",

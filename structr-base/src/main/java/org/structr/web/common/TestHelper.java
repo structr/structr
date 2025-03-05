@@ -33,6 +33,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 import java.util.Map.Entry;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.LocalizationTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 
 /**
  */
@@ -46,13 +50,18 @@ public class TestHelper {
 		final Map<String, List<String>> baseMap              = new LinkedHashMap<>();
 		boolean fail                                         = false;
 
-		baseMap.put("ui",     Arrays.asList("id", "type", "name", "owner", "createdBy", "hidden", "createdDate", "lastModifiedDate", "visibleToPublicUsers", "visibleToAuthenticatedUsers"));
+		baseMap.put("ui",     Arrays.asList(
+				GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY,
+				NodeInterfaceTraitDefinition.OWNER_PROPERTY, GraphObjectTraitDefinition.CREATED_BY_PROPERTY, NodeInterfaceTraitDefinition.HIDDEN_PROPERTY,
+				GraphObjectTraitDefinition.CREATED_DATE_PROPERTY, GraphObjectTraitDefinition.LAST_MODIFIED_DATE_PROPERTY,
+				GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY
+		));
 		baseMap.put("_html_", Arrays.asList("_html_data", "_html_is", "_html_properties"));
-		baseMap.put("public", Arrays.asList("id", "type"));
+		baseMap.put("public", Arrays.asList(GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY));
 
 		requiredAttributes.put(StructrTraits.DYNAMIC_RESOURCE_ACCESS, Arrays.asList("signature", "i:flags"));
-		requiredAttributes.put(StructrTraits.LOCALIZATION,          Arrays.asList("locale"));
-		requiredAttributes.put(StructrTraits.RESOURCE_ACCESS,        Arrays.asList("signature", "i:flags"));
+		requiredAttributes.put(StructrTraits.LOCALIZATION,            Arrays.asList(LocalizationTraitDefinition.LOCALE_PROPERTY));
+		requiredAttributes.put(StructrTraits.RESOURCE_ACCESS,         Arrays.asList("signature", "i:flags"));
 
 		// insert required attributes specified by test class
 		if (additionalRequiredAttributes != null) {
@@ -121,9 +130,9 @@ public class TestHelper {
 		try (final Tx tx = app.tx()) {
 
 			app.create(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"),  true)
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.PASSWORD_PROPERTY), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY),  true)
 			);
 
 			tx.success();

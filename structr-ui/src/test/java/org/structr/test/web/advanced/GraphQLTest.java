@@ -25,6 +25,8 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.ImageHelper;
 import org.testng.annotations.Test;
@@ -53,11 +55,7 @@ public class GraphQLTest extends StructrUiTest {
 				is.close();
 			}
 
-			app.create(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("isAdmin"), true)
-			);
+			createAdminUser("admin", "admin");
 
 			tx.success();
 

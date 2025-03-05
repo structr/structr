@@ -54,6 +54,8 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.files.ssh.filesystem.StructrFilesystem;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.schema.SchemaService;
@@ -206,7 +208,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 
 				try {
 
-					final PropertyKey<String> nameKey = Traits.of(StructrTraits.NODE_INTERFACE).key("name");
+					final PropertyKey<String> nameKey = Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 					Principal principal = AuthHelper.getPrincipalForPassword(nameKey, username, password);
 
 					if (principal != null) {
@@ -275,7 +277,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 						securityContext = SecurityContext.getInstance(principal, AccessMode.Backend);
 
 						// check single (main) pubkey
-						final String pubKeyData = principal.getProperty(principal.getTraits().key("publicKey"));
+						final String pubKeyData = principal.getProperty(principal.getTraits().key(PrincipalTraitDefinition.PUBLIC_KEY_PROPERTY));
 						if (pubKeyData != null) {
 
 							final PublicKey pubKey = PublicKeyEntry.parsePublicKeyEntry(pubKeyData).resolvePublicKey(session, Collections.emptyMap(), PublicKeyEntryResolver.FAILING);
@@ -284,7 +286,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 						}
 
 						// check array of pubkeys for this user
-						final String[] pubKeysData = principal.getProperty(principal.getTraits().key( "publicKeys"));
+						final String[] pubKeysData = principal.getProperty(principal.getTraits().key( PrincipalTraitDefinition.PUBLIC_KEYS_PROPERTY));
 						if (pubKeysData != null) {
 
 							for (final String k : pubKeysData) {

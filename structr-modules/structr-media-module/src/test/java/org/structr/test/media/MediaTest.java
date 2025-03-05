@@ -26,6 +26,8 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.media.AVConv;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.FileHelper;
@@ -49,16 +51,11 @@ public class MediaTest extends StructrUiTest {
 			return;
 		}
 
-		final Traits userTraits = Traits.of(StructrTraits.USER);
-		final String type       = "VideoFile";
+		final String type = "VideoFile";
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(StructrTraits.USER,
-				new NodeAttribute<>(userTraits.key("name"),     "admin"),
-				new NodeAttribute<>(userTraits.key("password"), "admin"),
-				new NodeAttribute<>(userTraits.key("isAdmin"),  true)
-			);
+			createAdminUser("admin", "admin");
 
 			// create AutoClosable input stream
 			try (final InputStream is = MediaTest.class.getResourceAsStream("/test.mp4")) {

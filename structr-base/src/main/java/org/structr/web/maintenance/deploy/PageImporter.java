@@ -31,6 +31,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
@@ -179,8 +180,8 @@ public class PageImporter extends HtmlFileImporter {
 				final String src         = new String(Files.readAllBytes(file),Charset.forName("UTF-8"));
 				final Traits traits      = Traits.of(StructrTraits.PAGE);
 				final String contentType = get(properties, traits.key("contentType"),                 "text/html");
-				boolean visibleToPublic  = get(properties, traits.key("visibleToPublicUsers"),        false);
-				boolean visibleToAuth    = get(properties, traits.key("visibleToAuthenticatedUsers"), false);
+				boolean visibleToPublic  = get(properties, traits.key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY),        false);
+				boolean visibleToAuth    = get(properties, traits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), false);
 
 				final Importer importer = new Importer(securityContext, src, null, name, visibleToPublic, visibleToAuth, false, relativeVisibility);
 

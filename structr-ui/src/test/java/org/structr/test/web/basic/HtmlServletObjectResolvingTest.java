@@ -30,6 +30,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.Linkable;
@@ -193,7 +194,7 @@ public class HtmlServletObjectResolvingTest extends StructrUiTest {
 					.andTypes(Traits.of(StructrTraits.PAGE))
 					.andTypes(Traits.of(StructrTraits.FILE))
 					.parent()
-				.and(Traits.of(StructrTraits.GRAPH_OBJECT).key("id"), uuid);
+				.and(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), uuid);
 
 			// Searching for pages needs super user context anyway
 			List<Linkable> results = query.getAsList();

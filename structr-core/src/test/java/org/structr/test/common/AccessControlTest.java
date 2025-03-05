@@ -44,6 +44,9 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.schema.export.StructrSchema;
 import org.structr.web.entity.User;
 import org.testng.annotations.Test;
@@ -108,7 +111,7 @@ public class AccessControlTest extends StructrTest {
 			Principal user            = users.get(0).as(Principal.class);
 
 			PropertyMap props = new PropertyMap();
-			props.put(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true);
+			props.put(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
 
 			// Create two nodes with user context, one of them is visible to public users
 			NodeInterface t1 = createTestNode("TestOne", props, user);
@@ -147,14 +150,14 @@ public class AccessControlTest extends StructrTest {
 			NodeInterface user              =  users.get(0);
 
 			PropertyMap props = new PropertyMap();
-			props.put(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true);
+			props.put(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
 
 			// Create two nodes with user context, one of them is visible to public users
 			String type = "TestOne";
 			NodeInterface t1 = createTestNode("TestOne", props, user.as(User.class));
 
 			props = new PropertyMap();
-			props.put(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToAuthenticatedUsers"), true);
+			props.put(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
 
 			NodeInterface t2 = createTestNode("TestOne", props, user.as(User.class));
 
@@ -190,14 +193,14 @@ public class AccessControlTest extends StructrTest {
 			NodeInterface user2             = users.get(1);
 
 			PropertyMap props = new PropertyMap();
-			props.put(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true);
+			props.put(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
 
 			// Create two nodes with user context, one of them is visible to public users
 			String type = "TestOne";
 			NodeInterface t1 = createTestNode("TestOne", props, user1.as(User.class));
 
 			props = new PropertyMap();
-			props.put(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToAuthenticatedUsers"), true);
+			props.put(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
 
 			NodeInterface t2 = createTestNode("TestOne", props, user1.as(User.class));
 
@@ -236,14 +239,14 @@ public class AccessControlTest extends StructrTest {
 			NodeInterface user2             = users.get(1);
 
 			PropertyMap props = new PropertyMap();
-			props.put(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true);
+			props.put(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
 
 			// Create two nodes with user context, one of them is visible to public users
 			String type = "TestOne";
 			NodeInterface t1 = createTestNode("TestOne", props, user1.as(User.class));
 
 			props = new PropertyMap();
-			props.put(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToAuthenticatedUsers"), true);
+			props.put(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
 
 			NodeInterface t2 = createTestNode("TestOne", props, user1.as(User.class));
 
@@ -335,9 +338,9 @@ public class AccessControlTest extends StructrTest {
 			final List<NodeInterface> nodes = createTestNodes(type, 10, 100);
 
 			try (final Tx tx = app.tx()) {
-				nodes.get(3).setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true);
-				nodes.get(5).setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true);
-				nodes.get(7).setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true);
+				nodes.get(3).setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
+				nodes.get(5).setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
+				nodes.get(7).setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
 				tx.success();
 			}
 
@@ -345,7 +348,7 @@ public class AccessControlTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				List<NodeInterface> result = StructrApp.getInstance(publicContext).nodeQuery(type).sort(Traits.of(StructrTraits.NODE_INTERFACE).key("createdDate")).getAsList();
+				List<NodeInterface> result = StructrApp.getInstance(publicContext).nodeQuery(type).sort(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.CREATED_DATE_PROPERTY)).getAsList();
 
 				assertEquals(3, result.size());
 
@@ -380,19 +383,19 @@ public class AccessControlTest extends StructrTest {
 
 				// add names to make sorting work...
 				for (final NodeInterface node : nodes) {
-					node.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "node0" + count++);
+					node.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "node0" + count++);
 				}
 
-				nodes.get(3).setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true);
-				nodes.get(5).setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true);
-				nodes.get(7).setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true);
-				nodes.get(9).setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToPublicUsers"), true);
+				nodes.get(3).setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
+				nodes.get(5).setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
+				nodes.get(7).setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
+				nodes.get(9).setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
 				tx.success();
 			}
 
 			SecurityContext publicContext = SecurityContext.getInstance(null, AccessMode.Frontend);
 
-			PropertyKey sortKey = Traits.of(StructrTraits.NODE_INTERFACE).key("name");
+			PropertyKey sortKey = Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 			boolean sortDesc    = false;
 			int pageSize        = 2;
 			int page            = 1;
@@ -559,7 +562,7 @@ public class AccessControlTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				// make t1 visible to public users explicitely
-				t1.setProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key("visibleToPublicUsers"), true);
+				t1.setProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
 
 				tx.success();
 			}
@@ -732,10 +735,10 @@ public class AccessControlTest extends StructrTest {
 			final NodeInterface test = user2App.nodeQuery("TestOne").getFirst();
 			assertNotNull("Group should be readable for members", test);
 
-			testId = test.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("id"));
-			testType = test.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("type"));
+			testId = test.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.ID_PROPERTY));
+			testType = test.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.TYPE_PROPERTY));
 
-			test.setProperty(Traits.of("TestOne").key("name"), "newname");
+			test.setProperty(Traits.of("TestOne").key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "newname");
 
 			tx.success();
 
@@ -743,7 +746,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 			assertEquals("Invalid group permissions result", 403, fex.getStatus());
-			//assertEquals("Modification of node " + testId + " with type " + testType + " by user " + user2Context.getUser(false).getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("id")) + " not permitted.", fex.getMessage());
+			//assertEquals("Modification of node " + testId + " with type " + testType + " by user " + user2Context.getUser(false).getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.ID_PROPERTY)) + " not permitted.", fex.getMessage());
 		}
 
 		// ################################################################################################################
@@ -773,7 +776,7 @@ public class AccessControlTest extends StructrTest {
 			final NodeInterface test = user2App.nodeQuery("TestOne").getFirst();
 			assertNotNull("Group should be readable for members", test);
 
-			test.setProperty(Traits.of("TestOne").key("name"), "newname");
+			test.setProperty(Traits.of("TestOne").key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "newname");
 
 			tx.success();
 
@@ -1147,10 +1150,10 @@ public class AccessControlTest extends StructrTest {
 			assertNotNull("Group should be readable for members", testGroup);
 			assertEquals("Group name should be readable for members", "group", testGroup.getName());
 
-			testId = testGroup.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("id"));
-			testType = testGroup.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("type"));
+			testId = testGroup.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.ID_PROPERTY));
+			testType = testGroup.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.TYPE_PROPERTY));
 
-			testGroup.setProperty(Traits.of(StructrTraits.GROUP).key("name"), "dontchangeme");
+			testGroup.setProperty(Traits.of(StructrTraits.GROUP).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "dontchangeme");
 
 			fail("Group name should not be writable for members");
 
@@ -1159,7 +1162,7 @@ public class AccessControlTest extends StructrTest {
 		} catch (FrameworkException t) {
 
 			assertEquals(403, t.getStatus());
-			//assertEquals("Modification of node " + testId + " with type " + testType + " by user " + user2Context.getUser(false).getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("id")) + " not permitted.", t.getMessage());
+			//assertEquals("Modification of node " + testId + " with type " + testType + " by user " + user2Context.getUser(false).getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.ID_PROPERTY)) + " not permitted.", t.getMessage());
 		}
 
 	}
@@ -1167,14 +1170,14 @@ public class AccessControlTest extends StructrTest {
 	@Test
 	public void test00CreatePrincipal() {
 
-		final PropertyKey<String> eMail = Traits.of(StructrTraits.USER).key("eMail");
+		final PropertyKey<String> eMail = Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.EMAIL_PROPERTY);
 		NodeInterface user1             = null;
 
 		try (final Tx tx = app.tx()) {
 
 			final List<NodeInterface> users = createTestNodes(StructrTraits.USER, 1);
 			user1 = users.get(0);
-			user1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "user1");
+			user1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "user1");
 
 			tx.success();
 
@@ -1186,7 +1189,7 @@ public class AccessControlTest extends StructrTest {
 
 			final List<NodeInterface> users = createTestNodes(StructrTraits.USER, 1);
 			final NodeInterface invalidUser =  users.get(0);
-			invalidUser.setProperty(Traits.of(StructrTraits.USER).key("name") , "tester");
+			invalidUser.setProperty(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY) , "tester");
 			invalidUser.setProperty(eMail, "invalid");
 
 			tx.success();
@@ -1199,7 +1202,7 @@ public class AccessControlTest extends StructrTest {
 
 			assertEquals("Invalid error code", 422, ex.getStatus());
 			assertEquals("Invalid error code", StructrTraits.USER, token.getType());
-			assertEquals("Invalid error code", "eMail", token.getProperty());
+			assertEquals("Invalid error code", PrincipalTraitDefinition.EMAIL_PROPERTY, token.getProperty());
 			assertEquals("Invalid error code", "must_contain_at_character", token.getToken());
 			assertEquals("Invalid error code", "invalid", token.getDetail());
 
@@ -1235,14 +1238,14 @@ public class AccessControlTest extends StructrTest {
 
 				final List<NodeInterface> users = createTestNodes(StructrTraits.USER, 2);
 				user1 = users.get(0);
-				user1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "user1");
+				user1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "user1");
 
 				user2 = users.get(1);
-				user2.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "user2");
+				user2.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "user2");
 
 				t1 = createTestNode("TestOne");
 
-				t1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("owner"), user1);
+				t1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), user1);
 
 				tx.success();
 
@@ -1252,7 +1255,7 @@ public class AccessControlTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				assertEquals(user1, t1.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("owner")));
+				assertEquals(user1, t1.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY)));
 
 				// Switch user context to user1
 				final App user1App = StructrApp.getInstance(SecurityContext.getInstance(user1.as(User.class), AccessMode.Backend));
@@ -1264,7 +1267,7 @@ public class AccessControlTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				// As superuser, make another user the owner
-				t1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("owner"), user2);
+				t1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), user2);
 
 				tx.success();
 
@@ -1281,7 +1284,7 @@ public class AccessControlTest extends StructrTest {
 				assertEquals(t1, user2App.nodeQuery(type).getFirst());
 
 				// Check if user2 is owner of t1
-				assertEquals(user2, t1.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("owner")));
+				assertEquals(user2, t1.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY)));
 			}
 
 		} catch (FrameworkException ex) {
@@ -1303,9 +1306,9 @@ public class AccessControlTest extends StructrTest {
 			final NodeInterface group1      = createTestNode(StructrTraits.GROUP, "test group");
 			final NodeInterface t1          = createTestNode("TestOne");
 
-			t1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("owner"), user1);
-			t1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("owner"), group1);
-			assertEquals(group1, t1.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("owner")));
+			t1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), user1);
+			t1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), group1);
+			assertEquals(group1, t1.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY)));
 
 			RelationshipInterface ownerRel = t1.getIncomingRelationship(StructrTraits.PRINCIPAL_OWNS_NODE);
 			assertNotNull(ownerRel);
@@ -1336,7 +1339,7 @@ public class AccessControlTest extends StructrTest {
 			final User nonAdmin = createTestNode(StructrTraits.USER).as(User.class);
 			final Traits traits = nonAdmin.getTraits();
 
-			final PropertyKey<Boolean> isAdminKey = traits.key("isAdmin");
+			final PropertyKey<Boolean> isAdminKey = traits.key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY);
 			final SecurityContext userContext     = SecurityContext.getInstance(nonAdmin, AccessMode.Frontend);
 
 			nonAdmin.setSecurityContext(userContext);
@@ -1385,14 +1388,14 @@ public class AccessControlTest extends StructrTest {
 	public void test10LowercaseEMail() {
 
 		final String type               = StructrTraits.USER;
-		final PropertyKey<String> eMail = Traits.of(type).key("eMail");
+		final PropertyKey<String> eMail = Traits.of(type).key(PrincipalTraitDefinition.EMAIL_PROPERTY);
 		NodeInterface user1             = null;
 
 		try (final Tx tx = app.tx()) {
 
 			user1 = createTestNode(type);
 
-			user1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "user1");
+			user1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "user1");
 			user1.setProperty(eMail, "LOWERCASE@TEST.com");
 
 			tx.success();
@@ -1648,8 +1651,8 @@ public class AccessControlTest extends StructrTest {
 			app.create(bothClass, "both2");
 
 			user = app.create(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key("name"), "user"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "password")
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "user"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.PASSWORD_PROPERTY), "password")
 			).as(User.class);
 
 			tx.success();

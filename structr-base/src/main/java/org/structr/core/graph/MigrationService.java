@@ -38,6 +38,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
@@ -143,6 +144,7 @@ public class MigrationService {
 			migrateEventActionMapping();
 			updateSharedComponentFlag();
 			warnAboutRestQueryRepeaters();
+			warnAboutWrongNotionProperties();
 		}
 	}
 
@@ -242,7 +244,7 @@ public class MigrationService {
 						if (propertyShouldBeRemoved(property)) {
 
 							logger.info("DELETING schema property {}.{}", schemaNode.getName(), property.getName());
-							//app.delete(property);
+							app.delete(property);
 						}
 					}
 
@@ -251,7 +253,7 @@ public class MigrationService {
 						if (MigrationService.methodShouldBeRemoved(method)) {
 
 							logger.info("DELETING schema method {}.{}", schemaNode.getName(), method.getName());
-							//app.delete(method);
+							app.delete(method);
 						}
 					}
 
@@ -259,7 +261,7 @@ public class MigrationService {
 					if (Iterables.isEmpty(schemaNode.getSchemaProperties()) && Iterables.isEmpty(schemaNode.getSchemaMethods())) {
 
 						logger.info("DELETING empty schema node {}", schemaNode.getName());
-						//app.delete(schemaNode);
+						app.delete(schemaNode);
 					}
 				}
 			}
@@ -415,11 +417,13 @@ public class MigrationService {
 				}
 			}
 
-			final Traits domElementTraits             = Traits.of(StructrTraits.DOM_ELEMENT);
-			final PropertyKey<String> actionKey       = new StringProperty("data-structr-action");
-			final PropertyKey<String> newActionKey    = actionMappingTraits.key("action");
-			final PropertyKey<String> methodKey       = actionMappingTraits.key("method");
-			final PropertyKey<String> eventMappingKey = domElementTraits.key("eventMapping");
+			final Traits domElementTraits                 = Traits.of(StructrTraits.DOM_ELEMENT);
+			final PropertyKey<String> reloadTargetKey     = new StringProperty("data-structr-reload-target");
+			final PropertyKey<String> actionKey           = new StringProperty("data-structr-action");
+			final PropertyKey<String> successBehaviourKey = actionMappingTraits.key("successBehaviour");
+			final PropertyKey<String> newActionKey        = actionMappingTraits.key("action");
+			final PropertyKey<String> methodKey           = actionMappingTraits.key("method");
+			final PropertyKey<String> eventMappingKey     = domElementTraits.key("eventMapping");
 
 			// check (and fix if possible) structr-app.js implementations
 			logger.info("Checking for structr-app.js implementations that need migration..");
@@ -443,6 +447,14 @@ public class MigrationService {
 			for (final NodeInterface action : app.nodeQuery(StructrTraits.ACTION_MAPPING).and().not().and(newActionKey, null).getResultStream()) {
 
 				if (migrateCustomEventAction(action)) {
+					eventMappingCount++;
+				}
+			}
+
+			// check and fix custom actions that miss successBehaviour or targetBehaviour
+			for (final NodeInterface action : app.nodeQuery(StructrTraits.ACTION_MAPPING).and(successBehaviourKey, null).getResultStream()) {
+
+				if (migrateReloadBehaviourAction(action)) {
 					eventMappingCount++;
 				}
 			}
@@ -571,6 +583,28 @@ public class MigrationService {
 		}
 
 		return false;
+	}
+
+	private static boolean migrateReloadBehaviourAction(final NodeInterface node) throws FrameworkException {
+
+		final ActionMapping actionMapping = node.as(ActionMapping.class);
+		final String successBehaviour     = actionMapping.getSuccessBehaviour();
+		final String failureBehaviour     = actionMapping.getFailureBehaviour();
+		boolean hasChanges                = false;
+
+		if (StringUtils.isBlank(successBehaviour)) {
+
+			actionMapping.setSuccessBehaviour("full-page-reload");
+			hasChanges = true;
+		}
+
+		if (StringUtils.isBlank(failureBehaviour)) {
+
+			actionMapping.setFailureBehaviour("none");
+			hasChanges = true;
+		}
+
+		return hasChanges;
 	}
 
 	private static void migrateEventMapping(final NodeInterface node, final String eventMappingKeyName) throws FrameworkException {
@@ -886,6 +920,35 @@ public class MigrationService {
 		return null;
 	}
 
+	private static void warnAboutWrongNotionProperties() {
+
+		final PropertyKey<String> typeKey   = Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType");
+		final PropertyKey<String> formatKey = Traits.of(StructrTraits.SCHEMA_PROPERTY).key("format");
+		final App app                       = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			logger.info("Checking for notion properties that might need migration..");
+
+			for (final NodeInterface property : StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_PROPERTY).and(typeKey, "Notion").getResultStream()) {
+
+				final SchemaProperty schemaProperty = property.as(SchemaProperty.class);
+				final AbstractSchemaNode type       = schemaProperty.getSchemaNode();
+				final String format                 = property.getProperty(formatKey);
+
+				if (format != null && format.contains("Property")) {
+
+					logger.info("Notion property {}.{} might need migration because the format string contains 'Property'. This cannot be done automatically, please check and change: {}", type.getName(), property.getName(), format);
+				}
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			logger.warn("Unable to check migration status for REST query repeaters: {}", fex.getMessage());
+		}
+	}
+
 	private static void warnAboutRestQueryRepeaters() {
 
 		final PropertyKey<String> key = Traits.of(StructrTraits.DOM_ELEMENT).key("restQuery");
@@ -934,12 +997,12 @@ public class MigrationService {
 				final Folder folder = node.as(Folder.class);
 
 				final NodeInterface config = app.create("StorageConfiguration",
-					new NodeAttribute<>(storageConfigurationTraits.key("name"), folder.getFolderPath())
+					new NodeAttribute<>(storageConfigurationTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), folder.getFolderPath())
 				);
 
 				app.create("StorageConfigurationEntry",
 					new NodeAttribute<>(storageConfigurationTraits.key("configuration"), config),
-					new NodeAttribute<>(storageConfigurationTraits.key("name"),          "mountTarget"),
+					new NodeAttribute<>(storageConfigurationTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),          "mountTarget"),
 					new NodeAttribute<>(storageConfigurationTraits.key("value"),         folder.getMountTarget())
 				);
 

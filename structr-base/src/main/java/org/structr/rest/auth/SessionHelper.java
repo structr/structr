@@ -38,6 +38,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.rest.service.HttpService;
 
 import java.time.Instant;
@@ -121,7 +122,7 @@ public class SessionHelper {
 		}
 
 		final App app                            = StructrApp.getInstance();
-		final PropertyKey<String[]> sessionIdKey = Traits.of(StructrTraits.PRINCIPAL).key("sessionIds");
+		final PropertyKey<String[]> sessionIdKey = Traits.of(StructrTraits.PRINCIPAL).key(PrincipalTraitDefinition.SESSION_IDS_PROPERTY);
 		final Query<NodeInterface> query         = app.nodeQuery(StructrTraits.PRINCIPAL).and(sessionIdKey, new String[]{sessionId}).disableSorting();
 
 		try {

@@ -56,6 +56,8 @@ import java.security.cert.CertificateException;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.*;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 
 public class JWTHelper {
 
@@ -172,7 +174,7 @@ public class JWTHelper {
 
 		}
 
-		final Principal user = AuthHelper.getPrincipalForCredential(traits.key("refreshTokens"), new String[]{ tokenId }, false, false);
+		final Principal user = AuthHelper.getPrincipalForCredential(traits.key(PrincipalTraitDefinition.REFRESH_TOKENS_PROPERTY), new String[]{ tokenId }, false, false);
 
 		if (user == null) {
 			return null;
@@ -254,7 +256,7 @@ public class JWTHelper {
 		// if the instance is the same that issued the token, we can lookup the user with uuid claim
 		if (StringUtils.equals(instance, instanceName)) {
 
-			userNode = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).and().or(Traits.of(StructrTraits.GRAPH_OBJECT).key("id"), uuid).disableSorting().getFirst();
+			userNode = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).and().or(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), uuid).disableSorting().getFirst();
 			if (userNode != null) {
 
 				user = userNode.as(Principal.class);

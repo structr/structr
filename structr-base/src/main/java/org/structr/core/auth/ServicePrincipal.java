@@ -38,6 +38,8 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GroupTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 
@@ -232,7 +234,7 @@ public class ServicePrincipal implements Principal {
 
 				try {
 
-					final PropertyKey<String> jwksReferenceIdKey = Traits.of(StructrTraits.GROUP).key("jwksReferenceId");
+					final PropertyKey<String> jwksReferenceIdKey = Traits.of(StructrTraits.GROUP).key(GroupTraitDefinition.JWKS_REFERENCE_ID_PROPERTY);
 
 					for (final String id : jwksReferenceIds) {
 
@@ -337,7 +339,7 @@ public class ServicePrincipal implements Principal {
 	}
 
 	@Override
-	public String getProxUsername() {
+	public String getProxyUsername() {
 		return "";
 	}
 
@@ -384,7 +386,7 @@ public class ServicePrincipal implements Principal {
 
 	@Override
 	public String getEMail() {
-		return (String)data.get("eMail");
+		return (String)data.get(PrincipalTraitDefinition.EMAIL_PROPERTY);
 	}
 
 	@Override
@@ -416,7 +418,7 @@ public class ServicePrincipal implements Principal {
 
 	@Override
 	public void setEMail(String eMail) throws FrameworkException {
-		data.put("eMail", eMail);
+		data.put(PrincipalTraitDefinition.EMAIL_PROPERTY, eMail);
 	}
 
 	@Override
@@ -688,12 +690,12 @@ public class ServicePrincipal implements Principal {
 	}
 
 	@Override
-	public void setVisibleToAuthenticatedUsers(boolean visible) throws FrameworkException {
+	public void setVisibleToAuthenticatedUsers(boolean visibleToAuth) throws FrameworkException {
 
 	}
 
 	@Override
-	public void setVisibleToPublicUsers(boolean visible) throws FrameworkException {
+	public void setVisibleToPublicUsers(boolean visibleToPublic) throws FrameworkException {
 
 	}
 

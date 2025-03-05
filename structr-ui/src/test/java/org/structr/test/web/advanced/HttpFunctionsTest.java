@@ -30,6 +30,8 @@ import org.structr.core.property.GenericProperty;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.rest.common.HttpHelper;
 import org.structr.schema.action.ActionContext;
 import org.structr.test.web.StructrUiTest;
@@ -51,11 +53,7 @@ public class HttpFunctionsTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("name"),     "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("password"), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("isAdmin"),  true)
-			);
+			createAdminUser("admin", "admin");
 
 			tx.success();
 

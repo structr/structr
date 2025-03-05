@@ -82,7 +82,7 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 					final AbstractSchemaNode schemaNode            = method.getSchemaNode();
 					final Traits traits                            = obj.getTraits();
 					final PropertyKey<NodeInterface> schemaNodeKey = traits.key("schemaNode");
-					final PropertyKey<String> nameKey              = traits.key("name");
+					final PropertyKey<String> nameKey              = traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 					boolean valid                                  = true;
 
 					valid &= ValidationHelper.isValidStringMatchingRegex(obj, nameKey, SchemaMethod.schemaMethodNamePattern, errorBuffer);

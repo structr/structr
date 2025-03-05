@@ -30,6 +30,8 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.entity.File;
@@ -145,7 +147,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 			tx.disableChangelog();
 
 			final NodeInterface existingFolder = getExistingFolder(folderPath);
-			final PropertyMap folderProperties = new PropertyMap(traits.key("name"), folderObj.getFileName().toString());
+			final PropertyMap folderProperties = new PropertyMap(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), folderObj.getFileName().toString());
 
 			if (!basePath.equals(folderObj.getParent())) {
 
@@ -191,7 +193,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 			final String fullPath                   = harmonizeFileSeparators("/", basePath.relativize(path).toString());
 			final Map<String, Object> rawProperties = getRawPropertiesForFileOrFolder(fullPath);
 			final Traits traits                     = Traits.of(StructrTraits.FILE);
-			final PropertyKey<String> idProperty    = traits.key("id");
+			final PropertyKey<String> idProperty    = traits.key(GraphObjectTraitDefinition.ID_PROPERTY);
 
 			encounteredPaths.add(fullPath);
 
@@ -203,7 +205,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 			} else {
 
-				final PropertyMap fileProperties = new PropertyMap(traits.key("name"), fileName);
+				final PropertyMap fileProperties = new PropertyMap(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), fileName);
 				fileProperties.putAll(convertRawPropertiesForFileOrFolder(rawProperties));
 
 				NodeInterface parent = null;
@@ -226,7 +228,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 					}
 				}
 
-				NodeInterface file = app.getNodeById(StructrTraits.FILE, fileProperties.get(traits.key("id")));
+				NodeInterface file = app.getNodeById(StructrTraits.FILE, fileProperties.get(traits.key(GraphObjectTraitDefinition.ID_PROPERTY)));
 				if (file != null) {
 
 					final Long checksumOfExistingFile = FileHelper.getChecksum(file.as(File.class));
@@ -252,7 +254,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 						final PropertyMap props = new PropertyMap();
 						String fileType         = StructrTraits.FILE;
 
-						props.put(traits.key("name"), fileName);
+						props.put(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), fileName);
 
 						// make sure the file is created with the same UUID
 						props.put(idProperty, fileProperties.get(idProperty));
@@ -266,12 +268,12 @@ public class FileImportVisitor implements FileVisitor<Path> {
 						newFileUuid = fileProperties.get(idProperty);
 
 						if (newFileUuid != null) {
-							props.put(traits.key("id"), newFileUuid);
+							props.put(traits.key(GraphObjectTraitDefinition.ID_PROPERTY), newFileUuid);
 						}
 
-						if (fileProperties.containsKey(traits.key("type"))) {
+						if (fileProperties.containsKey(traits.key(GraphObjectTraitDefinition.TYPE_PROPERTY))) {
 
-							final String typeFromConfig = fileProperties.get(traits.key("type"));
+							final String typeFromConfig = fileProperties.get(traits.key(GraphObjectTraitDefinition.TYPE_PROPERTY));
 							if (typeFromConfig != null) {
 
 								fileType = typeFromConfig;

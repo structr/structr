@@ -43,6 +43,7 @@ import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.core.script.polyglot.context.ContextFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.script.polyglot.util.JSFunctionTranspiler;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
@@ -562,7 +563,7 @@ public class Scripting {
 
 			final StringBuilder buf = new StringBuilder();
 			final GraphObject obj   = (GraphObject)value;
-			final String name       = obj.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("name"));
+			final String name       = obj.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY));
 
 			buf.append(obj.getType());
 			buf.append("(");

@@ -26,6 +26,7 @@ import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
 
@@ -47,7 +48,7 @@ public class TestTwelveTraitDefinition extends AbstractNodeTraitDefinition {
 
 				@Override
 				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
-					return ValidationHelper.isValidUniqueProperty(obj, Traits.of(StructrTraits.NODE_INTERFACE).key("name"), errorBuffer);
+					return ValidationHelper.isValidUniqueProperty(obj, Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), errorBuffer);
 				}
 			}
 		);

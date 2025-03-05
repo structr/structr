@@ -28,6 +28,7 @@ import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
 
@@ -35,6 +36,9 @@ import java.util.Map;
 import java.util.Set;
 
 public class TestSevenTraitDefinition extends AbstractNodeTraitDefinition {
+
+	public static final String LATITUDE_PROPERTY       = "latitude";
+	public static final String LONGITUDE_PROPERTY      = "longitude";
 
 	public TestSevenTraitDefinition() {
 		super("TestSeven");
@@ -51,7 +55,7 @@ public class TestSevenTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
 
-					final PropertyKey<String> name = obj.getTraits().key("name");
+					final PropertyKey<String> name = obj.getTraits().key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 
 					return ValidationHelper.isValidStringNotBlank(obj, name, errorBuffer);
 				}
@@ -62,8 +66,8 @@ public class TestSevenTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Double> latitude = new DoubleProperty("latitude").indexed();
-		final Property<Double> longitude = new DoubleProperty("longitude").indexed();
+		final Property<Double> latitude = new DoubleProperty(LATITUDE_PROPERTY).indexed();
+		final Property<Double> longitude = new DoubleProperty(LONGITUDE_PROPERTY).indexed();
 
 		return newSet(
 			latitude, longitude
@@ -77,7 +81,7 @@ public class TestSevenTraitDefinition extends AbstractNodeTraitDefinition {
 
 			PropertyView.Public,
 			Set.of(
-				"latitude", "longitude"
+				LATITUDE_PROPERTY, LONGITUDE_PROPERTY
 			)
 		);
 	}

@@ -25,6 +25,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.FileHelper;
@@ -72,7 +73,7 @@ public class UnarchiveFunction extends UiAdvancedFunction {
 			} else {
 
 				final PropertyMap props = new PropertyMap();
-				props.put(Traits.of(StructrTraits.FOLDER).key("name"), StringUtils.substringBeforeLast(archiveFile.getName(), "."));
+				props.put(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), StringUtils.substringBeforeLast(archiveFile.getName(), "."));
 				props.put(Traits.of(StructrTraits.FOLDER).key("parent"), archiveFile.getParent());
 
 				// Create folder with same name (without extension) and in same folder as file

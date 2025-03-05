@@ -33,6 +33,8 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 
 import java.util.*;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 
 public class StructrGlobalSchemaMethods {
 
@@ -46,7 +48,7 @@ public class StructrGlobalSchemaMethods {
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface node : app.nodeQuery(StructrTraits.SCHEMA_METHOD).and(traits.key("schemaNode"), null).sort(traits.key("name")).getAsList()) {
+			for (final NodeInterface node : app.nodeQuery(StructrTraits.SCHEMA_METHOD).and(traits.key("schemaNode"), null).sort(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getAsList()) {
 
 				final StructrMethodDefinition def = StructrMethodDefinition.deserialize(null, node.as(SchemaMethod.class));
 
@@ -72,7 +74,7 @@ public class StructrGlobalSchemaMethods {
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface node : app.nodeQuery(StructrTraits.SCHEMA_METHOD).and(traits.key("schemaNode"), null).sort(traits.key("name")).getAsList()) {
+			for (final NodeInterface node : app.nodeQuery(StructrTraits.SCHEMA_METHOD).and(traits.key("schemaNode"), null).sort(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getAsList()) {
 
 				final Map<String, Object> entry  = new TreeMap<>();
 				final Map<String, Object> params = new LinkedHashMap<>();
@@ -92,8 +94,8 @@ public class StructrGlobalSchemaMethods {
 
 				// TODO: remove
 				entry.put("virtualFileName",             schemaMethod.getVirtualFileName());
-				entry.put("visibleToAuthenticatedUsers", schemaMethod.isVisibleToAuthenticatedUsers());
-				entry.put("visibleToPublicUsers",        schemaMethod.isVisibleToPublicUsers());
+				entry.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        schemaMethod.isVisibleToPublicUsers());
+				entry.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, schemaMethod.isVisibleToAuthenticatedUsers());
 
 				for (final SchemaMethodParameter param : schemaMethod.getParameters()) {
 

@@ -27,6 +27,9 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
+import org.structr.core.traits.definitions.UserTraitDefinition;
 import org.structr.test.web.StructrUiTest;
 
 public abstract class FrontendTest extends StructrUiTest {
@@ -43,7 +46,7 @@ public abstract class FrontendTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			user = app.nodeQuery(StructrTraits.USER).andName("admin").getFirst();
-			user.setProperty(Traits.of(StructrTraits.USER).key("localStorage"), null);
+			user.setProperty(Traits.of(StructrTraits.USER).key(UserTraitDefinition.LOCAL_STORAGE_PROPERTY), null);
 			tx.success();
 
 		} catch (Throwable t) {
@@ -55,9 +58,9 @@ public abstract class FrontendTest extends StructrUiTest {
 
 		final PropertyMap properties = new PropertyMap();
 
-		properties.put(Traits.of(StructrTraits.USER).key("name"), ADMIN_USERNAME);
-		properties.put(Traits.of(StructrTraits.USER).key("password"), ADMIN_PASSWORD);
-		properties.put(Traits.of(StructrTraits.USER).key("isAdmin"), true);
+		properties.put(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), ADMIN_USERNAME);
+		properties.put(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.PASSWORD_PROPERTY), ADMIN_PASSWORD);
+		properties.put(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY), true);
 
 		NodeInterface user = null;
 

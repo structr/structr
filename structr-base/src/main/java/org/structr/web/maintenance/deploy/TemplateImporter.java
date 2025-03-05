@@ -32,6 +32,8 @@ import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Template;
 import org.structr.web.importer.Importer;
@@ -176,7 +178,7 @@ public class TemplateImporter extends HtmlFileImporter {
 						deleteTemplate(app, existingTemplate.as(DOMNode.class));
 					}
 
-					template = app.create(StructrTraits.TEMPLATE, new NodeAttribute(Traits.of(StructrTraits.GRAPH_OBJECT).key("id"), templateName)).as(Template.class);
+					template = app.create(StructrTraits.TEMPLATE, new NodeAttribute(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), templateName)).as(Template.class);
 
 				} else if (byNameAndId) {
 
@@ -192,8 +194,8 @@ public class TemplateImporter extends HtmlFileImporter {
 						deleteTemplate(app, existingTemplate.as(DOMNode.class));
 					}
 
-					template = app.create(StructrTraits.TEMPLATE, new NodeAttribute(Traits.of(StructrTraits.GRAPH_OBJECT).key("id"), uuid)).as(Template.class);
-					properties.put(traits.key("name"), name);
+					template = app.create(StructrTraits.TEMPLATE, new NodeAttribute(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), uuid)).as(Template.class);
+					properties.put(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name);
 
 				} else {
 
@@ -207,7 +209,7 @@ public class TemplateImporter extends HtmlFileImporter {
 					}
 
 					template = app.create(StructrTraits.TEMPLATE).as(Template.class);
-					properties.put(traits.key("name"), templateName);
+					properties.put(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), templateName);
 				}
 
 				properties.put(traits.key("content"), src);

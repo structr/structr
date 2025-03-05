@@ -44,6 +44,8 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.rest.common.HttpHelper;
 import org.structr.schema.action.Actions;
 import org.structr.schema.importer.SchemaJsonImporter;
@@ -469,7 +471,7 @@ public class Importer {
 
 		try (final Tx tx = localAppCtx.tx(true, false, false)) {
 
-			node = localAppCtx.create(StructrTraits.PAGE, new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key("name"), name));
+			node = localAppCtx.create(StructrTraits.PAGE, new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name));
 
 			if (importer.parse()) {
 
@@ -669,7 +671,7 @@ public class Importer {
 
 					if (DeployCommand.isUuid(src)) {
 
-						template = StructrApp.getInstance().nodeQuery(StructrTraits.NODE_INTERFACE).and(Traits.of(StructrTraits.GRAPH_OBJECT).key("id"), src).getFirst();
+						template = StructrApp.getInstance().nodeQuery(StructrTraits.NODE_INTERFACE).and(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), src).getFirst();
 
 						if (template == null) {
 
@@ -681,7 +683,7 @@ public class Importer {
 						final String uuidAtEnd = DeployCommand.getUuidOrNullFromEndOfString(src);
 						if (uuidAtEnd != null) {
 
-							template = StructrApp.getInstance().nodeQuery(StructrTraits.NODE_INTERFACE).and(Traits.of(StructrTraits.GRAPH_OBJECT).key("id"), uuidAtEnd).getFirst();
+							template = StructrApp.getInstance().nodeQuery(StructrTraits.NODE_INTERFACE).and(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), uuidAtEnd).getFirst();
 
 							if (template == null) {
 
@@ -764,7 +766,7 @@ public class Importer {
 					DOMNode component = null;
 					if (DeployCommand.isUuid(src)) {
 
-						final NodeInterface n = app.nodeQuery(StructrTraits.DOM_NODE).and(Traits.of(StructrTraits.GRAPH_OBJECT).key("id"), src).getFirst();
+						final NodeInterface n = app.nodeQuery(StructrTraits.DOM_NODE).and(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), src).getFirst();
 						if (n != null) {
 
 							component = n.as(DOMNode.class);
@@ -776,7 +778,7 @@ public class Importer {
 
 						if (uuidAtEnd != null) {
 
-							final NodeInterface n = app.nodeQuery(StructrTraits.DOM_NODE).and(Traits.of(StructrTraits.GRAPH_OBJECT).key("id"), uuidAtEnd).getFirst();
+							final NodeInterface n = app.nodeQuery(StructrTraits.DOM_NODE).and(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), uuidAtEnd).getFirst();
 							if (n != null) {
 
 								component = n.as(DOMNode.class);
@@ -848,8 +850,8 @@ public class Importer {
 				final PropertyMap newNodeProperties      = new PropertyMap();
 				final PropertyMap deferredNodeProperties = new PropertyMap();
 				final Traits newNodeType                 = newNode.getTraits();
-				final PropertyKey<Boolean> vtpuKey       = newNodeType.key("visibleToPublicUsers");
-				final PropertyKey<Boolean> vtauKey       = newNodeType.key("visibleToAuthenticatedUsers");
+				final PropertyKey<Boolean> vtpuKey       = newNodeType.key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY);
+				final PropertyKey<Boolean> vtauKey       = newNodeType.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY);
 
 				if (isDeployment && !relativeVisibility) {
 
@@ -1087,10 +1089,10 @@ public class Importer {
 
 							commentHandler.handleComment(page, newNode, instructions, true);
 
-							if (newNodeProperties.containsKey(Traits.of(StructrTraits.GRAPH_OBJECT).key("id"))) {
+							if (newNodeProperties.containsKey(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY))) {
 
 								// id of the newNode was changed => if a pagelink instruction was present, we need to update it because the node itself was not yet updated
-								DeployCommand.updateDeferredPagelink(newNode.getUuid(), newNodeProperties.get(Traits.of(StructrTraits.GRAPH_OBJECT).key("id")));
+								DeployCommand.updateDeferredPagelink(newNode.getUuid(), newNodeProperties.get(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY)));
 							}
 						}
 					}
@@ -1381,14 +1383,14 @@ public class Importer {
 		}
 
 		return app.create(traits.getName(),
-			new NodeAttribute(traits.key("name"),                        PathHelper.getName(path)),
+			new NodeAttribute(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),                        PathHelper.getName(path)),
 			new NodeAttribute(traits.key("parent"),                      parentFolder),
 			new NodeAttribute(traits.key("contentType"),                 contentType),
 			new NodeAttribute(traits.key("size"),                        size),
 			new NodeAttribute(traits.key("checksum"),                    checksum),
 			new NodeAttribute(traits.key("version"),                     1),
-			new NodeAttribute(traits.key("visibleToPublicUsers"),        publicVisible),
-			new NodeAttribute(traits.key("visibleToAuthenticatedUsers"), authVisible)
+			new NodeAttribute(traits.key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY),        publicVisible),
+			new NodeAttribute(traits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), authVisible)
 
 		).as(File.class);
 	}
@@ -1480,7 +1482,7 @@ public class Importer {
 
 		final Traits traits                                 = Traits.of(StructrTraits.DOM_NODE);
 		final PropertyKey<NodeInterface> sharedComponentKey = traits.key("sharedComponent");
-		final PropertyKey<String> nameKey                   = traits.key("name");
+		final PropertyKey<String> nameKey                   = traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 
 		for (final NodeInterface n : StructrApp.getInstance().nodeQuery(StructrTraits.TEMPLATE).andName(name).and().notBlank(nameKey).getAsList()) {
 
@@ -1518,13 +1520,13 @@ public class Importer {
 
 		if (isDeployment && !relativeVisibility) {
 
-			emptyContentProperties.put(traits.key("visibleToPublicUsers"),        publicVisible);
-			emptyContentProperties.put(traits.key("visibleToAuthenticatedUsers"), authVisible);
+			emptyContentProperties.put(traits.key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY),        publicVisible);
+			emptyContentProperties.put(traits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), authVisible);
 
 		} else {
 
-			emptyContentProperties.put(traits.key("visibleToPublicUsers"),        parent != null ? parent.getProperty(traits.key("visibleToPublicUsers")) :        publicVisible);
-			emptyContentProperties.put(traits.key("visibleToAuthenticatedUsers"), parent != null ? parent.getProperty(traits.key("visibleToAuthenticatedUsers")) : authVisible);
+			emptyContentProperties.put(traits.key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY),        parent != null ? parent.getProperty(traits.key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY)) :        publicVisible);
+			emptyContentProperties.put(traits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), parent != null ? parent.getProperty(traits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY)) : authVisible);
 		}
 
 		contentNode.setProperties(securityContext, emptyContentProperties);
@@ -1558,8 +1560,8 @@ public class Importer {
 		final Traits traits                      = Traits.of(StructrTraits.TEMPLATE);
 		final PropertyKey<String> contentTypeKey = traits.key("contentType");
 		final PropertyKey<String> contentKey     = traits.key("content");
-		final PropertyKey<Boolean> vtpuKey       = traits.key("visibleToPublicUsers");
-		final PropertyKey<Boolean> vtauKey       = traits.key("visibleToAuthenticatedUsers");
+		final PropertyKey<Boolean> vtpuKey       = traits.key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY);
+		final PropertyKey<Boolean> vtauKey       = traits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY);
 		final PropertyMap map                    = new PropertyMap();
 
 		map.put(vtpuKey,        publicVisible);

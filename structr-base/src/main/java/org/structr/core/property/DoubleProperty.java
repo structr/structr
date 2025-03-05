@@ -29,6 +29,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 
 import java.util.Map;
+import org.structr.core.traits.definitions.LocationTraitDefinition;
 
 /**
  * A property that stores and retrieves a simple Double value.
@@ -53,7 +54,7 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> implements
 
 		super(jsonName, dbName, defaultValue);
 
-		if (jsonName.equals("latitude") || jsonName.equals("longitude")) {
+		if (jsonName.equals(LocationTraitDefinition.LATITUDE_PROPERTY) || jsonName.equals(LocationTraitDefinition.LONGITUDE_PROPERTY)) {
 
 			// add layer node index and make
 			// this property be indexed at the

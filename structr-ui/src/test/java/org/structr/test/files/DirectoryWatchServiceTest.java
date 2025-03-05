@@ -34,6 +34,9 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.schema.export.StructrSchema;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.storage.providers.local.LocalFSStorageProvider;
@@ -102,7 +105,7 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 			final StorageConfiguration testMount = StorageProviderFactory.createConfig("testMount", LocalFSStorageProvider.class, Map.of("mountTarget", testDir.toString()));
 
 			app.create(StructrTraits.FOLDER,
-				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key("name"), "mounted1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "mounted1"),
 				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key("mountWatchContents"), true),
 				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key("storageConfiguration"), testMount)
 			);
@@ -167,7 +170,7 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 			final NodeInterface parent1 = app.create(StructrTraits.FOLDER, "parent");
 
 			final NodeInterface parent2 = app.create(StructrTraits.FOLDER,
-				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key("name"), "parent"),
+				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "parent"),
 				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key("parent"), parent1)
 			);
 
@@ -175,7 +178,7 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 			final StorageConfiguration testMount = StorageProviderFactory.createConfig("testMount", LocalFSStorageProvider.class, Map.of("mountTarget", testDir.toString()));
 
 			app.create(StructrTraits.FOLDER,
-				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key("name"), "mounted2"),
+				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "mounted2"),
 				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key("parent"), parent2),
 				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key("mountWatchContents"), true),
 				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key("storageConfiguration"), testMount)
@@ -254,7 +257,7 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 				final StorageConfiguration testMount = StorageProviderFactory.createConfig("testMount", LocalFSStorageProvider.class, Map.of("mountTarget", root.toString()));
 
 				app.create(StructrTraits.FOLDER,
-					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key("name"), "mounted3"),
+					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "mounted3"),
 					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key("mountWatchContents"),   true),
 					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key("storageConfiguration"), testMount),
 					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key("mountScanInterval"),    2)
@@ -316,7 +319,7 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 
 				logger.info("Unmounting directory..");
 
-				final NodeInterface mounted = app.nodeQuery(StructrTraits.FOLDER).and(Traits.of(StructrTraits.FOLDER).key("name"), "mounted3").getFirst();
+				final NodeInterface mounted = app.nodeQuery(StructrTraits.FOLDER).and(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "mounted3").getFirst();
 
 				mounted.setProperty(Traits.of(StructrTraits.FOLDER).key("mountTarget"), null);
 
@@ -412,7 +415,7 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 				final StorageConfiguration testMount = StorageProviderFactory.createConfig("testMount", LocalFSStorageProvider.class, Map.of("mountTarget", root.toString()));
 
 				app.create(StructrTraits.FOLDER,
-					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key("name"), "mounted3"),
+					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "mounted3"),
 					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key("storageConfiguration"), testMount),
 					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key("mountWatchContents"), false)
 				);
@@ -473,7 +476,7 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 
 				logger.info("Unmounting directory..");
 
-				final NodeInterface mounted = app.nodeQuery(StructrTraits.FOLDER).and(Traits.of(StructrTraits.FOLDER).key("name"), "mounted3").getFirst();
+				final NodeInterface mounted = app.nodeQuery(StructrTraits.FOLDER).and(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "mounted3").getFirst();
 
 				mounted.setProperty(Traits.of(StructrTraits.FOLDER).key("mountTarget"), null);
 
@@ -552,15 +555,15 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 
 			// create test user
 			final User tester = app.create(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("name"),     "tester"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key("password"), "tester")
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "tester"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.PASSWORD_PROPERTY), "tester")
 			).as(User.class);
 
 			// create folder to mount
 			final StorageConfiguration testMount = StorageProviderFactory.createConfig("testMount", LocalFSStorageProvider.class, Map.of("mountTarget", testDir.toString()));
 
 			final AccessControllable folder = app.create(StructrTraits.FOLDER,
-				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key("name"), "mounted"),
+				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "mounted"),
 				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key("mountWatchContents"), false),
 				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key("storageConfiguration"), testMount)
 			).as(AccessControllable.class);
@@ -583,14 +586,14 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 			if (grant != null) {
 
 				grant.setProperty(Traits.of(StructrTraits.RESOURCE_ACCESS).key("flags"), 4L);
-				grant.setProperty(Traits.of(StructrTraits.RESOURCE_ACCESS).key("visibleToAuthenticatedUsers"), true);
+				grant.setProperty(Traits.of(StructrTraits.RESOURCE_ACCESS).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
 
 			} else {
 
 				app.create(StructrTraits.RESOURCE_ACCESS,
 					new NodeAttribute<>(Traits.of(StructrTraits.RESOURCE_ACCESS).key("signature"),                   StructrTraits.IMAGE),
 					new NodeAttribute<>(Traits.of(StructrTraits.RESOURCE_ACCESS).key("flags"),                       4L),
-					new NodeAttribute<>(Traits.of(StructrTraits.RESOURCE_ACCESS).key("visibleToAuthenticatedUsers"), true)
+					new NodeAttribute<>(Traits.of(StructrTraits.RESOURCE_ACCESS).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true)
 				);
 			}
 

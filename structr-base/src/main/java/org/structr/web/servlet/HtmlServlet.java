@@ -60,6 +60,9 @@ import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.UserTraitDefinition;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
@@ -1119,7 +1122,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	 */
 	private DOMNode findPartialByName(final SecurityContext securityContext, final String name) throws FrameworkException {
 
-		for (final NodeInterface node : StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.DOM_NODE).andName(name).not().and(Traits.of(StructrTraits.GRAPH_OBJECT).key("type"), StructrTraits.PAGE).getAsList()) {
+		for (final NodeInterface node : StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.DOM_NODE).andName(name).not().and(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY), StructrTraits.PAGE).getAsList()) {
 
 			final DOMNode potentialPartial = node.as(DOMNode.class);
 
@@ -1146,7 +1149,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 		final Traits traits               = Traits.of(StructrTraits.PAGE);
 		final PropertyKey<String> pathKey = traits.key("path");
-		final PropertyKey<String> nameKey = traits.key("name");
+		final PropertyKey<String> nameKey = traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 
 		final PropertyMap attributes = new PropertyMap(pathKey, path);
 		final String name = PathHelper.getName(path);
@@ -1242,7 +1245,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			return false;
 		}
 
-		final PropertyKey<String> confirmationKey = Traits.of(StructrTraits.USER).key("confirmationKey");
+		final PropertyKey<String> confirmationKey = Traits.of(StructrTraits.USER).key(UserTraitDefinition.CONFIRMATION_KEY_PROPERTY);
 
 		if (CONFIRM_REGISTRATION_PAGE.equals(path)) {
 
@@ -1336,7 +1339,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			return false;
 		}
 
-		final PropertyKey<String> confirmationKeyKey = Traits.of(StructrTraits.USER).key("confirmationKey");
+		final PropertyKey<String> confirmationKeyKey = Traits.of(StructrTraits.USER).key(UserTraitDefinition.CONFIRMATION_KEY_PROPERTY);
 
 		if (RESET_PASSWORD_PAGE.equals(path)) {
 
@@ -1813,7 +1816,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		}
 
 		if (possiblePage == null) {
-			possiblePage = StructrApp.getInstance().nodeQuery(StructrTraits.PAGE).and(Traits.of(StructrTraits.PAGE).key("name"), PathHelper.getName(path)).and(basicAuthKey, true).sort(positionKey).getFirst();
+			possiblePage = StructrApp.getInstance().nodeQuery(StructrTraits.PAGE).and(Traits.of(StructrTraits.PAGE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), PathHelper.getName(path)).and(basicAuthKey, true).sort(positionKey).getFirst();
 		}
 
 		if (possiblePage == null) {
@@ -1821,7 +1824,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		}
 
 		if (possiblePage == null) {
-			possiblePage = StructrApp.getInstance().nodeQuery(StructrTraits.FILE).and(Traits.of(StructrTraits.FILE).key("name"), PathHelper.getName(path)).and(basicAuthKey, true).getFirst();
+			possiblePage = StructrApp.getInstance().nodeQuery(StructrTraits.FILE).and(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), PathHelper.getName(path)).and(basicAuthKey, true).getFirst();
 		}
 
 		if (possiblePage != null) {
@@ -1895,7 +1898,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				if (StringUtils.isNoneBlank(username, password)) {
 
 					try {
-						return AuthHelper.getPrincipalForPassword(Traits.of(StructrTraits.PRINCIPAL).key("name"), username, password);
+						return AuthHelper.getPrincipalForPassword(Traits.of(StructrTraits.PRINCIPAL).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), username, password);
 
 					} catch (Throwable t) {
 						// ignore

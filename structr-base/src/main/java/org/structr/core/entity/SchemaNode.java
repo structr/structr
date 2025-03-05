@@ -37,6 +37,7 @@ public interface SchemaNode extends AbstractSchemaNode {
 	Iterable<SchemaRelationshipNode> getRelatedFrom();
 
 	Set<String> getInheritedTraits();
+	void setInheritedTraits(final Set<String> setOfTraits) throws FrameworkException;
 
 	TraitDefinition[] getTraitDefinitions();
 

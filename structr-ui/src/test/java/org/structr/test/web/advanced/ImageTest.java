@@ -34,6 +34,9 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
@@ -59,31 +62,31 @@ public class ImageTest extends StructrUiTest {
 	@Test
 	public void testThumbnailGeneration() {
 
-		final PropertyKey passwordKey = Traits.of(StructrTraits.PRINCIPAL).key("password");
+		final PropertyKey passwordKey = Traits.of(StructrTraits.PRINCIPAL).key(PrincipalTraitDefinition.PASSWORD_PROPERTY);
 		Principal tester1             = null;
 		Principal tester2             = null;
 		Principal tester3             = null;
 
 		try (final Tx tx = app.tx()) {
 
-			tester1 = app.create(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("name"), "tester1"), new NodeAttribute<>(passwordKey, "test")).as(Principal.class);
-			tester2 = app.create(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("name"), "tester2"), new NodeAttribute<>(passwordKey, "test")).as(Principal.class);
-			tester3 = app.create(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("name"), "tester3"), new NodeAttribute<>(passwordKey, "test")).as(Principal.class);
+			tester1 = app.create(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "tester1"), new NodeAttribute<>(passwordKey, "test")).as(Principal.class);
+			tester2 = app.create(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "tester2"), new NodeAttribute<>(passwordKey, "test")).as(Principal.class);
+			tester3 = app.create(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "tester3"), new NodeAttribute<>(passwordKey, "test")).as(Principal.class);
 
 			final AccessControllable folder1 = FileHelper.createFolderPath(securityContext, "/Test1").as(AccessControllable.class);
-			folder1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToAuthenticatedUsers"), true);
+			folder1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
 			folder1.grant(Permission.write, tester1);
 			folder1.grant(Permission.write, tester2);
 			folder1.grant(Permission.write, tester3);
 
 			final AccessControllable folder2 = FileHelper.createFolderPath(securityContext, "/Test1/Subtest2").as(AccessControllable.class);
-			folder2.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToAuthenticatedUsers"), true);
+			folder2.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
 			folder2.grant(Permission.write, tester1);
 			folder2.grant(Permission.write, tester2);
 			folder2.grant(Permission.write, tester3);
 
 			final AccessControllable folder3 = FileHelper.createFolderPath(securityContext, "/Test1/Subtest3").as(AccessControllable.class);
-			folder3.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key("visibleToAuthenticatedUsers"), true);
+			folder3.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
 			folder3.grant(Permission.write, tester1);
 			folder3.grant(Permission.write, tester2);
 			folder3.grant(Permission.write, tester3);
@@ -212,9 +215,9 @@ public class ImageTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			tester1 = app.create(StructrTraits.PRINCIPAL, new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("name"), "tester1"), new NodeAttribute<>(passwordKey, "test"));
-			tester2 = app.create(StructrTraits.PRINCIPAL, new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("name"), "tester2"), new NodeAttribute<>(passwordKey, "test"));
-			tester3 = app.create(StructrTraits.PRINCIPAL, new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key("name"), "tester3"), new NodeAttribute<>(passwordKey, "test"));
+			tester1 = app.create(StructrTraits.PRINCIPAL, new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "tester1"), new NodeAttribute<>(passwordKey, "test"));
+			tester2 = app.create(StructrTraits.PRINCIPAL, new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "tester2"), new NodeAttribute<>(passwordKey, "test"));
+			tester3 = app.create(StructrTraits.PRINCIPAL, new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "tester3"), new NodeAttribute<>(passwordKey, "test"));
 
 			tx.success();
 
