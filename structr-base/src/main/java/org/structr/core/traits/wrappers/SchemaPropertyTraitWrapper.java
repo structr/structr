@@ -113,60 +113,40 @@ public class SchemaPropertyTraitWrapper extends AbstractNodeTraitWrapper impleme
 	public boolean isCompound() {
 
 		final Boolean isCompoundUnique = wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.COMPOUND_PROPERTY));
-		if (isCompoundUnique != null && isCompoundUnique) {
 
-			return true;
-		}
-
-		return false;
+		return Boolean.TRUE.equals(isCompoundUnique);
 	}
 
 	@Override
 	public boolean isUnique() {
 
 		final Boolean isUnique = wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.UNIQUE_PROPERTY));
-		if (isUnique != null && isUnique) {
 
-			return true;
-		}
-
-		return false;
+		return Boolean.TRUE.equals(isUnique);
 	}
 
 	@Override
 	public boolean isIndexed() {
 
 		final Boolean isIndexed = wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.INDEXED_PROPERTY));
-		if (isIndexed != null && isIndexed) {
 
-			return true;
-		}
-
-		return false;
+		return Boolean.TRUE.equals(isIndexed);
 	}
 
 	@Override
 	public boolean isReadOnly() {
 
 		final Boolean isReadOnly = wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.READ_ONLY_PROPERTY));
-		if (isReadOnly != null && isReadOnly) {
 
-			return true;
-		}
-
-		return false;
+		return Boolean.TRUE.equals(isReadOnly);
 	}
 
 	@Override
 	public boolean isCachingEnabled() {
 
 		final Boolean _isCachingEnabled = wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.IS_CACHING_ENABLED_PROPERTY));
-		if (_isCachingEnabled != null && _isCachingEnabled) {
 
-			return true;
-		}
-
-		return false;
+		return Boolean.TRUE.equals(_isCachingEnabled);
 	}
 
 	@Override
@@ -179,12 +159,6 @@ public class SchemaPropertyTraitWrapper extends AbstractNodeTraitWrapper impleme
 		}
 
 		return null;
-	}
-
-	@Override
-	public String getSource() {
-		// FIXME ? SchemaPropertyTraitDefinition does not have a source?
-		return wrappedObject.getProperty(traits.key("source"));
 	}
 
 	@Override
@@ -311,26 +285,24 @@ public class SchemaPropertyTraitWrapper extends AbstractNodeTraitWrapper impleme
 
 		int _contentHash = 77;
 
-		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.DEFAULT_VALUE_PROPERTY),      _contentHash);
-		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY),      _contentHash);
-		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.CONTENT_TYPE_PROPERTY),       _contentHash);
-		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.DB_NAME_PROPERTY),            _contentHash);
-		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.FORMAT_PROPERTY),            _contentHash);
-		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.TYPE_HINT_PROPERTY),          _contentHash);
-		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.NOT_NULL_PROPERTY),           _contentHash);
-		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.UNIQUE_PROPERTY),            _contentHash);
-		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.INDEXED_PROPERTY),           _contentHash);
-		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.READ_ONLY_PROPERTY),          _contentHash);
-		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.IS_DYNAMIC_PROPERTY),         _contentHash);
-		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.IS_BUILTIN_PROPERTY_PROPERTY), _contentHash);
-		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.IS_DEFAULT_IN_UI_PROPERTY),     _contentHash);
-		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.IS_DEFAULT_IN_PUBLIC_PROPERTY), _contentHash);
-		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.IS_CACHING_ENABLED_PROPERTY),  _contentHash);
-		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.READ_FUNCTION_PROPERTY),      _contentHash);
-		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.WRITE_FUNCTION_PROPERTY),     _contentHash);
+		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.DEFAULT_VALUE_PROPERTY),        _contentHash);
+		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY),        _contentHash);
+		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.CONTENT_TYPE_PROPERTY),         _contentHash);
+		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.DB_NAME_PROPERTY),              _contentHash);
+		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.FORMAT_PROPERTY),               _contentHash);
+		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.TYPE_HINT_PROPERTY),            _contentHash);
+		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.NOT_NULL_PROPERTY),             _contentHash);
+		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.UNIQUE_PROPERTY),               _contentHash);
+		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.INDEXED_PROPERTY),              _contentHash);
+		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.READ_ONLY_PROPERTY),            _contentHash);
+		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.IS_DYNAMIC_PROPERTY),           _contentHash);
+		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.IS_BUILTIN_PROPERTY_PROPERTY),  _contentHash);
+		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.IS_CACHING_ENABLED_PROPERTY),   _contentHash);
+		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.READ_FUNCTION_PROPERTY),        _contentHash);
+		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.WRITE_FUNCTION_PROPERTY),       _contentHash);
 		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.OPEN_API_RETURN_TYPE_PROPERTY), _contentHash);
-		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.TRANSFORMERS_PROPERTY),      _contentHash);
-		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.VALIDATORS_PROPERTY),        _contentHash);
+		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.TRANSFORMERS_PROPERTY),         _contentHash);
+		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.VALIDATORS_PROPERTY),           _contentHash);
 
 		return Integer.toHexString(_contentHash);
 	}

@@ -64,8 +64,6 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String IS_DYNAMIC_PROPERTY                 = "isDynamic";
 	public static final String IS_BUILTIN_PROPERTY_PROPERTY        = "isBuiltinProperty";
 	public static final String IS_PART_OF_BUILT_IN_SCHEMA_PROPERTY = "isPartOfBuiltInSchema";
-	public static final String IS_DEFAULT_IN_UI_PROPERTY           = "isDefaultInUi";
-	public static final String IS_DEFAULT_IN_PUBLIC_PROPERTY       = "isDefaultInPublic";
 	public static final String IS_CACHING_ENABLED_PROPERTY         = "isCachingEnabled";
 	public static final String CONTENT_HASH_PROPERTY               = "contentHash";
 	public static final String READ_FUNCTION_PROPERTY              = "readFunction";
@@ -130,8 +128,6 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Boolean>            isDynamic             = new BooleanProperty(IS_DYNAMIC_PROPERTY);
 		final Property<Boolean>            isBuiltinProperty     = new BooleanProperty(IS_BUILTIN_PROPERTY_PROPERTY);
 		final Property<Boolean>            isPartOfBuiltInSchema = new BooleanProperty(IS_PART_OF_BUILT_IN_SCHEMA_PROPERTY);
-		final Property<Boolean>            isDefaultInUi         = new BooleanProperty(IS_DEFAULT_IN_UI_PROPERTY);
-		final Property<Boolean>            isDefaultInPublic     = new BooleanProperty(IS_DEFAULT_IN_PUBLIC_PROPERTY);
 		final Property<Boolean>            isCachingEnabled      = new BooleanProperty(IS_CACHING_ENABLED_PROPERTY).defaultValue(false);
 		final Property<String>             contentHash           = new StringProperty(CONTENT_HASH_PROPERTY);
 		final Property<String>             readFunction          = new StringProperty(READ_FUNCTION_PROPERTY);
@@ -165,8 +161,6 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 			isDynamic,
 			isBuiltinProperty,
 			isPartOfBuiltInSchema,
-			isDefaultInUi,
-			isDefaultInPublic,
 			isCachingEnabled,
 			contentHash,
 			readFunction,
@@ -184,7 +178,7 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 
 				PropertyView.Public,
 				newSet(
-						GraphObjectTraitDefinition.ID_PROPERTY, "typeHandler", NodeInterfaceTraitDefinition.NAME_PROPERTY,
+						GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY,
 						DB_NAME_PROPERTY, SCHEMA_NODE_PROPERTY, SCHEMA_VIEWS_PROPERTY, EXCLUDED_VIEWS_PROPERTY, PROPERTY_TYPE_PROPERTY,
 						CONTENT_TYPE_PROPERTY, FORMAT_PROPERTY, FQCN_PROPERTY, TYPE_HINT_PROPERTY, HINT_PROPERTY, CATEGORY_PROPERTY,
 						NOT_NULL_PROPERTY, COMPOUND_PROPERTY, UNIQUE_PROPERTY, INDEXED_PROPERTY, READ_ONLY_PROPERTY, DEFAULT_VALUE_PROPERTY,
@@ -194,7 +188,7 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 
 				PropertyView.Ui,
 				newSet(
-						GraphObjectTraitDefinition.ID_PROPERTY, "typeHandler", NodeInterfaceTraitDefinition.NAME_PROPERTY,
+						GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY,
 						DB_NAME_PROPERTY, GraphObjectTraitDefinition.CREATED_BY_PROPERTY, NodeInterfaceTraitDefinition.HIDDEN_PROPERTY,
 						GraphObjectTraitDefinition.CREATED_DATE_PROPERTY, GraphObjectTraitDefinition.LAST_MODIFIED_DATE_PROPERTY,
 						GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY,
@@ -207,24 +201,22 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 
 				"schema",
 				newSet(
-						GraphObjectTraitDefinition.ID_PROPERTY, "typeHandler", NodeInterfaceTraitDefinition.NAME_PROPERTY,
+						GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY,
 						DB_NAME_PROPERTY, SCHEMA_NODE_PROPERTY, EXCLUDED_VIEWS_PROPERTY, SCHEMA_VIEWS_PROPERTY, PROPERTY_TYPE_PROPERTY,
 						CONTENT_TYPE_PROPERTY, FORMAT_PROPERTY, FQCN_PROPERTY, TYPE_HINT_PROPERTY, HINT_PROPERTY, CATEGORY_PROPERTY,
 						NOT_NULL_PROPERTY, COMPOUND_PROPERTY, UNIQUE_PROPERTY, INDEXED_PROPERTY, READ_ONLY_PROPERTY, DEFAULT_VALUE_PROPERTY,
-						IS_BUILTIN_PROPERTY_PROPERTY, IS_DEFAULT_IN_UI_PROPERTY, IS_DEFAULT_IN_PUBLIC_PROPERTY, DECLARING_CLASS_PROPERTY,
-						IS_DYNAMIC_PROPERTY, READ_FUNCTION_PROPERTY, WRITE_FUNCTION_PROPERTY, OPEN_API_RETURN_TYPE_PROPERTY,
-						VALIDATORS_PROPERTY, TRANSFORMERS_PROPERTY, IS_CACHING_ENABLED_PROPERTY
+						IS_BUILTIN_PROPERTY_PROPERTY, DECLARING_CLASS_PROPERTY, IS_DYNAMIC_PROPERTY, READ_FUNCTION_PROPERTY,
+						WRITE_FUNCTION_PROPERTY, OPEN_API_RETURN_TYPE_PROPERTY, VALIDATORS_PROPERTY, TRANSFORMERS_PROPERTY, IS_CACHING_ENABLED_PROPERTY
 				),
 
 				"export",
 				newSet(
-						GraphObjectTraitDefinition.ID_PROPERTY, "typeHandler", NodeInterfaceTraitDefinition.NAME_PROPERTY,
+						GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY,
 						SCHEMA_NODE_PROPERTY, SCHEMA_VIEWS_PROPERTY, EXCLUDED_VIEWS_PROPERTY, DB_NAME_PROPERTY, PROPERTY_TYPE_PROPERTY,
 						CONTENT_TYPE_PROPERTY, FORMAT_PROPERTY, FQCN_PROPERTY, TYPE_HINT_PROPERTY, HINT_PROPERTY, CATEGORY_PROPERTY,
 						NOT_NULL_PROPERTY, COMPOUND_PROPERTY, UNIQUE_PROPERTY, INDEXED_PROPERTY, READ_ONLY_PROPERTY, DEFAULT_VALUE_PROPERTY,
-						IS_BUILTIN_PROPERTY_PROPERTY, IS_DEFAULT_IN_UI_PROPERTY, IS_DEFAULT_IN_PUBLIC_PROPERTY, DECLARING_CLASS_PROPERTY,
-						IS_DYNAMIC_PROPERTY, READ_FUNCTION_PROPERTY, WRITE_FUNCTION_PROPERTY, OPEN_API_RETURN_TYPE_PROPERTY,
-						VALIDATORS_PROPERTY, TRANSFORMERS_PROPERTY, IS_CACHING_ENABLED_PROPERTY
+						IS_BUILTIN_PROPERTY_PROPERTY, DECLARING_CLASS_PROPERTY, IS_DYNAMIC_PROPERTY, READ_FUNCTION_PROPERTY,
+						WRITE_FUNCTION_PROPERTY, OPEN_API_RETURN_TYPE_PROPERTY, VALIDATORS_PROPERTY, TRANSFORMERS_PROPERTY, IS_CACHING_ENABLED_PROPERTY
 				)
 		);
 	}

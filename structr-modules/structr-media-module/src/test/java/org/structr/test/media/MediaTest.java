@@ -43,11 +43,16 @@ public class MediaTest extends StructrUiTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(MediaTest.class.getName());
 
-//	@Test
+	@Test
 	public void test01() {
 
 		if (!AVConv.isAVConvInstalled()) {
 			logger.info("Not performing test because `avconv` is not installed!");
+			return;
+		}
+
+		if (System.getProperty("os.name").equals("Mac OS X")) {
+			logger.info("Not performing test because `avconv` behaves differently on Mac!");
 			return;
 		}
 
