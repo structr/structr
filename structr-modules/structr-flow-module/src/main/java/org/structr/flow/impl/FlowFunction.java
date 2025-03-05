@@ -62,7 +62,7 @@ public class FlowFunction extends Function<Object, Object> {
 			if (sources[0] instanceof String) {
 
 				final String name                                     = (String)sources[0];
-				final FlowContainer container = StructrApp.getInstance(ctx.getSecurityContext()).nodeQuery("FlowContainer").and(FlowContainer.effectiveName, name).getFirst();
+				final FlowContainer container = StructrApp.getInstance(ctx.getSecurityContext()).nodeQuery(FlowContainer.class).and(FlowContainer.effectiveName, name).getFirst();
 				Map<String, Object> parameters                        = null;
 
 				if (sources.length > 1 && sources[1] instanceof Map) {

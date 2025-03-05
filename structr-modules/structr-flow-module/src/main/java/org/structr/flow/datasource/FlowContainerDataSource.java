@@ -23,15 +23,16 @@ import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
+import org.structr.core.app.StructrApp;
 import org.structr.core.datasources.GraphDataSource;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.script.Scripting;
-import org.structr.core.traits.Traits;
 import org.structr.flow.impl.FlowContainer;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.web.common.RenderContext;
+import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.function.UiFunction;
 
 import java.util.ArrayList;
@@ -50,7 +51,7 @@ public class FlowContainerDataSource implements GraphDataSource<Iterable<GraphOb
 
 		final RenderContext renderContext = (RenderContext) actionContext;
 		
-		final AbstractNode flow = referenceNode.getProperty(Traits.of(StructrTraits.DOM_NODE).key("flow"));
+		final AbstractNode flow = referenceNode.getProperty(StructrApp.key(DOMNode.class, "flow"));
 		if (flow == null) {
 
 			return null;

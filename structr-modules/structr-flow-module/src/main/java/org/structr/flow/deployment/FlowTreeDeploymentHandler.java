@@ -26,15 +26,16 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.traits.Traits;
 import org.structr.flow.impl.FlowBaseNode;
 import org.structr.flow.impl.FlowContainer;
 import org.structr.flow.impl.FlowContainerConfiguration;
+import org.structr.flow.impl.rels.FlowContainerConfigurationFlow;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -80,14 +81,13 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 
 			try (final Tx tx = app.tx()) {
 
-				final Iterable<NodeInterface> flows = app.nodeQuery("FlowContainer").getResultStream();
+				final Iterable<FlowContainer> flows = app.nodeQuery(FlowContainer.class).getResultStream();
 
-				for (final NodeInterface flow : flows) {
+				for (final FlowContainer flow : flows) {
 
-					exportFlow(baseFolder, flow.as(FlowContainer.class));
+					exportFlow(baseFolder, flow);
 				}
 
-				tx.success();
 			}
 
 		} catch (IOException ex) {
@@ -105,24 +105,26 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 		try (final Tx tx = app.tx()) {
 
 			// Cleanup old flow data
-			for (final String c : classesToExport) {
+			for (final Class c : classesToExport) {
+				for (final Object toDelete : app.nodeQuery(c).getAsList()) {
 
-				for (final NodeInterface toDelete : app.nodeQuery(c).getAsList()) {
-
-					app.delete(toDelete);
+					if (toDelete instanceof NodeInterface) {
+						app.delete((NodeInterface) toDelete);
+					}
 				}
 			}
 
-			for (final String c : relsToExport) {
+			for (final Class c : relsToExport) {
+				for (final Object toDelete : app.relationshipQuery(c).getAsList()) {
 
-				for (final RelationshipInterface toDelete : app.relationshipQuery(c).getAsList()) {
-
-					app.delete(toDelete);
+					if (toDelete instanceof RelationshipInterface) {
+						app.delete((RelationshipInterface) toDelete);
+					}
 				}
 			}
 
 
-			for (final RelationshipInterface toDelete : app.relationshipQuery("FlowContainerConfigurationFlow").getAsList()) {
+			for (final FlowContainerConfigurationFlow toDelete : app.relationshipQuery(FlowContainerConfigurationFlow.class).getAsList()) {
 
 				app.delete(toDelete);
 			}
@@ -182,7 +184,7 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 			// 1. Create flow packages
 			// 2. Create flow container
 			final Map<String, Object> flowContainerData = readData(flowRootDir.resolve(FLOW_DEPLOYMENT_CONTAINER_FILE));
-			final FlowContainer flowContainer = app.create("FlowContainer", convertMapToPropertyMap("FlowContainer", flowContainerData)).as(FlowContainer.class);
+			final FlowContainer flowContainer = app.create(FlowContainer.class, convertMapToPropertyMap(FlowContainer.class, flowContainerData));
 			// Set flow package implicitly
 			flowContainer.setProperty(FlowContainer.effectiveName, packagePath);
 
@@ -195,8 +197,8 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 
 					// Import node with it's base data
 					final Map<String, Object> nodePropsData = readData(nodeDir.toPath().resolve(FLOW_DEPLOYMENT_NODE_FILE));
-					final String type = nodePropsData.get("type").toString();
-					final NodeInterface node = app.create(type, convertMapToPropertyMap(type, nodePropsData));
+					final Class clazz = StructrApp.getConfiguration().getNodeEntityClass(nodePropsData.get("type").toString()).getClass();
+					final NodeInterface node = app.create(clazz, convertMapToPropertyMap(clazz, nodePropsData));
 
 					// Import node scripts
 					final Path nodeScriptPath = nodeDir.toPath().resolve(FLOW_DEPLOYMENT_TREE_NODE_SCRIPTS_FOLDER);
@@ -210,7 +212,7 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 							final String attrName = nodeScript.getName();
 							final String content = new String(Files.readAllBytes(nodeScript.toPath()));
 
-							final PropertyKey propKey = node.getTraits().key(attrName);
+							final PropertyKey propKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), attrName);
 							node.setProperty(propKey, content);
 						}
 
@@ -229,7 +231,7 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 				for (final File configDir : Objects.requireNonNull(configsDir.listFiles())) {
 
 					final Map<String, Object> configPropsData = readData(configDir.toPath().resolve(FLOW_DEPLOYMENT_CONFIG_FILE));
-					final NodeInterface flowContainerConfiguration = app.create("FlowContainerConfiguration", convertMapToPropertyMap("FlowContainerConfiguration", configPropsData));
+					final NodeInterface flowContainerConfiguration = app.create(FlowContainerConfiguration.class, convertMapToPropertyMap(FlowContainerConfiguration.class, configPropsData));
 				}
 
 			} catch (NullPointerException npe) {
@@ -245,18 +247,16 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 
 					// Import rels
 					final Map<String, Object> relPropsData = readData(relDir.toPath().resolve(FLOW_DEPLOYMENT_REL_FILE));
-					final String type = relPropsData.get("type").toString();
+					final Class clazz = StructrApp.getConfiguration().getRelationshipEntityClass(relPropsData.get("type").toString());
 
 					final NodeInterface fromNode = app.getNodeById(relPropsData.get("sourceId").toString());
 					final NodeInterface toNode = app.getNodeById(relPropsData.get("targetId").toString());
 
 					if (fromNode != null && toNode != null) {
-
-						RelationshipInterface rel = app.create(fromNode, toNode, type);
+						RelationshipInterface rel = app.create(fromNode, toNode, clazz);
 						rel.unlockSystemPropertiesOnce();
-						rel.setProperty(rel.getTraits().key(GraphObjectTraitDefinition.ID_PROPERTY), relPropsData.get("id").toString());
-
-					} else if (!Arrays.asList(FLOW_IGNORE_WARNING_FOR_RELS).contains(type)) {
+						rel.setProperty(AbstractRelationship.id, relPropsData.get("id").toString());
+					} else if (!Arrays.asList(FLOW_IGNORE_WARNING_FOR_RELS).contains(clazz.getSimpleName())) {
 
 						logger.warn("Could not import rel data for: " + gson.toJson(relPropsData));
 					}
@@ -288,7 +288,7 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 			// 1. Export flow container
 			writeData(flowFolder.resolve(FLOW_DEPLOYMENT_CONTAINER_FILE), gson.toJson(flow.exportData()));
 
-			for (final RelationshipInterface rel : flow.getRelationships()) {
+			for (final AbstractRelationship rel : flow.getRelationships()) {
 				exportRelationship(relPath, rel);
 			}
 
@@ -320,7 +320,7 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 				}
 
 				// Write rels for node
-				for (final RelationshipInterface rel : node.getRelationships()) {
+				for (final AbstractRelationship rel : node.getRelationships()) {
 					exportRelationship(relPath, rel);
 				}
 			}
@@ -339,7 +339,7 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 	}
 
 
-	private void exportRelationship(final Path target, final RelationshipInterface rel) throws FrameworkException {
+	private void exportRelationship(final Path target, final AbstractRelationship rel) throws FrameworkException {
 
 		try {
 
@@ -366,14 +366,11 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 
 	}
 
-	private PropertyMap convertMapToPropertyMap(final String type, final Map<String,Object> map) {
-
+	private PropertyMap convertMapToPropertyMap(final Class clazz, final Map<String,Object> map) {
 		final PropertyMap props = new PropertyMap();
-		final Traits traits     = Traits.of(type);
 
 		for (String key : map.keySet()) {
-
-			props.put(traits.key(key), map.get(key));
+			props.put(StructrApp.getConfiguration().getPropertyKeyForDatabaseName(clazz, key), map.get(key));
 		}
 
 		return props;

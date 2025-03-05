@@ -18,14 +18,39 @@
  */
 package org.structr.flow.impl;
 
+import org.structr.common.PropertyView;
+import org.structr.common.View;
+import org.structr.core.property.EndNode;
+import org.structr.core.property.Property;
+import org.structr.core.property.StartNode;
+import org.structr.core.property.StartNodes;
 import org.structr.flow.api.FlowElement;
+import org.structr.flow.impl.rels.FlowContainerFlowNode;
+import org.structr.flow.impl.rels.FlowForEachBody;
+import org.structr.flow.impl.rels.FlowNodes;
 
 
 /**
  *
  */
-public interface FlowNode extends FlowBaseNode, FlowElement {
+public abstract class FlowNode extends FlowBaseNode implements FlowElement {
 
-	FlowContainer getFlowContainer();
-	FlowElement next();
+	public static final Property<FlowContainer> isStartNodeOfContainer = new StartNode<>("isStartNodeOfContainer", FlowContainerFlowNode.class);
+	public static final Property<Iterable<FlowNode>> prev              = new StartNodes<>("prev", FlowNodes.class);
+	public static final Property<FlowNode> next                        = new EndNode<>("next", FlowNodes.class);
+	public static final Property<FlowForEach> prevForEach              = new StartNode<>("prevForEach", FlowForEachBody.class);
+
+	public static final View defaultView = new View(FlowNode.class, PropertyView.Public, prev, next, isStartNodeOfContainer);
+	public static final View uiView      = new View(FlowNode.class, PropertyView.Ui,     prev, next, isStartNodeOfContainer);
+
+	@Override
+	public FlowContainer getFlowContainer() {
+		return getProperty(flowContainer);
+	}
+
+	@Override
+	public FlowElement next() {
+		return getProperty(next);
+	}
+
 }

@@ -71,9 +71,9 @@ public class FlowLegacyDeploymentHandler extends FlowAbstractDeploymentHandler i
 
 			// Special handling for FlowContainerConfiguration: Only export last modified layout
 
-			for (final FlowContainer cont: app.nodeQuery("FlowContainer").sort(StructrApp.key(NodeInterface.class, "id")).getAsList()) {
+			for (final FlowContainer cont: app.nodeQuery(FlowContainer.class).sort(StructrApp.key(NodeInterface.class, "id")).getAsList()) {
 
-				final FlowContainerConfiguration conf = app.nodeQuery("FlowContainerConfiguration").and(FlowContainerConfiguration.flow, cont).sort(StructrApp.key(NodeInterface.class,"lastModifiedDate"), true).getFirst();
+				final FlowContainerConfiguration conf = app.nodeQuery(FlowContainerConfiguration.class).and(FlowContainerConfiguration.flow, cont).sort(StructrApp.key(NodeInterface.class,"lastModifiedDate"), true).getFirst();
 
 				if (conf != null) {
 
@@ -154,7 +154,7 @@ public class FlowLegacyDeploymentHandler extends FlowAbstractDeploymentHandler i
 					}
 
 					// Special handling for FlowContainerConfiguration
-					for (final FlowContainerConfiguration toDelete : app.nodeQuery("FlowContainerConfiguration").getAsList()) {
+					for (final FlowContainerConfiguration toDelete : app.nodeQuery(FlowContainerConfiguration.class).getAsList()) {
 
 						app.delete(toDelete);
 					}

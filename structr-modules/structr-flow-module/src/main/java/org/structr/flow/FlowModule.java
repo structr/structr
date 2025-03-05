@@ -63,7 +63,7 @@ public class FlowModule implements StructrModule {
 
 	@Override
 	public Set<String> getDependencies() {
-		return Set.of("ui");
+		return null;
 	}
 
 	@Override
