@@ -29,7 +29,7 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class EMailMessageHAS_ATTACHMENTFile extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public EMailMessageHAS_ATTACHMENTFile() {
-		super("EMailMessageHAS_ATTACHMENTFile");
+		super(StructrTraits.EMAIL_MESSAGE_HAS_ATTACHMENT_FILE);
 	}
 
 	@Override

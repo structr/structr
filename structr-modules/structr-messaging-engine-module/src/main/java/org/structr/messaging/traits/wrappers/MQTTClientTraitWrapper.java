@@ -32,6 +32,7 @@ import org.structr.messaging.implementation.mqtt.MQTTContext;
 import org.structr.messaging.implementation.mqtt.entity.MQTTClient;
 
 import java.util.List;
+import org.structr.messaging.traits.definitions.MQTTClientTraitDefinition;
 
 public class MQTTClientTraitWrapper extends MessageClientTraitWrapper implements MQTTClient {
 
@@ -41,40 +42,40 @@ public class MQTTClientTraitWrapper extends MessageClientTraitWrapper implements
 
 	@Override
 	public boolean getEnabled() {
-		return wrappedObject.getProperty(traits.key("enabled"));
+		return wrappedObject.getProperty(traits.key(MQTTClientTraitDefinition.IS_ENABLED_PROPERTY));
 	}
 
 	@Override
 	public void setEnabled(final boolean enabled) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("enabled"), enabled);
+		wrappedObject.setProperty(traits.key(MQTTClientTraitDefinition.IS_ENABLED_PROPERTY), enabled);
 	}
 
 	public boolean getIsConnected() {
-		return getProperty(traits.key("isConnected"));
+		return getProperty(traits.key(MQTTClientTraitDefinition.IS_CONNECTED_PROPERTY));
 	}
 
 	public int getQos() {
-		return getProperty(traits.key("qos"));
+		return getProperty(traits.key(MQTTClientTraitDefinition.QOS_PROPERTY));
 	}
 
 	public String getUsername() {
-		return getProperty(traits.key("username"));
+		return getProperty(traits.key(MQTTClientTraitDefinition.USERNAME_PROPERTY));
 	}
 
 	public String getPassword() {
-		return getProperty(traits.key("password"));
+		return getProperty(traits.key(MQTTClientTraitDefinition.PASSWORD_PROPERTY));
 	}
 
 	public void setIsConnected(boolean connected) throws FrameworkException {
-		setProperty(traits.key("isConnected"), connected);
+		setProperty(traits.key(MQTTClientTraitDefinition.IS_CONNECTED_PROPERTY), connected);
 	}
 
 	public String getMainBrokerURL() {
-		return getProperty(traits.key("mainBrokerURL"));
+		return getProperty(traits.key(MQTTClientTraitDefinition.MAIN_BROKER_URL_PROPERTY));
 	}
 
 	public String[] getFallbackBrokerURLs() {
-		return getProperty(traits.key("fallbackBrokerURLs"));
+		return getProperty(traits.key(MQTTClientTraitDefinition.FALLBACK_BROKER_URLS_PROPERTY));
 	}
 
 	@Override

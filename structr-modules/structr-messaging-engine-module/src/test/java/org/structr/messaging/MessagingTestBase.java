@@ -29,12 +29,12 @@ public class MessagingTestBase extends StructrUiTest {
 	@BeforeMethod(firstTimeOnly = true)
 	public void createSchema() {
 
-		StructrTraits.registerRelationshipType("MessageClientHASMessageSubscriber", new MessageClientHASMessageSubscriber());
+		StructrTraits.registerRelationshipType(StructrTraits.MESSAGE_CLIENT_HAS_MESSAGE_SUBSCRIBER, new MessageClientHASMessageSubscriber());
 
-		StructrTraits.registerNodeType("MessageClient",     new MessageClientTraitDefinition());
-		StructrTraits.registerNodeType("MessageSubscriber", new MessageSubscriberTraitDefinition());
-		StructrTraits.registerNodeType("KafkaClient",       new MessageClientTraitDefinition(), new KafkaClientTraitDefinition());
-		StructrTraits.registerNodeType("MQTTClient",        new MessageClientTraitDefinition(), new MQTTClientTraitDefinition());
-		StructrTraits.registerNodeType("PulsarClient",      new MessageClientTraitDefinition(), new PulsarClientTraitDefinition());
+		StructrTraits.registerNodeType(StructrTraits.MESSAGE_CLIENT,     new MessageClientTraitDefinition());
+		StructrTraits.registerNodeType(StructrTraits.MESSAGE_SUBSCRIBER, new MessageSubscriberTraitDefinition());
+		StructrTraits.registerNodeType(StructrTraits.KAFKA_CLIENT,       new MessageClientTraitDefinition(), new KafkaClientTraitDefinition());
+		StructrTraits.registerNodeType(StructrTraits.MQTT_CLIENT,        new MessageClientTraitDefinition(), new MQTTClientTraitDefinition());
+		StructrTraits.registerNodeType(StructrTraits.PULSAR_CLIENT,      new MessageClientTraitDefinition(), new PulsarClientTraitDefinition());
 	}
 }

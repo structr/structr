@@ -35,9 +35,12 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.messaging.engine.entities.MessageSubscriber;
 import org.structr.messaging.implementation.kafka.entity.KafkaClient;
+import org.structr.messaging.traits.definitions.KafkaClientTraitDefinition;
+import org.structr.messaging.traits.definitions.MessageClientTraitDefinition;
 import org.structr.schema.action.ActionContext;
 
 import java.util.ArrayList;
@@ -56,19 +59,19 @@ public class KafkaClientTraitWrapper extends MessageClientTraitWrapper implement
 	}
 
 	public String getGroupId() {
-		return getProperty(traits.key("groupId"));
+		return getProperty(traits.key(KafkaClientTraitDefinition.GROUP_ID_PROPERTY));
 	}
 
 	public String[] getServers() {
-		return getProperty(traits.key("servers"));
+		return getProperty(traits.key(KafkaClientTraitDefinition.SERVERS_PROPERTY));
 	}
 
 	public void setServers(final String[] servers) throws FrameworkException {
-		setProperty(traits.key("servers"), servers);
+		setProperty(traits.key(KafkaClientTraitDefinition.SERVERS_PROPERTY), servers);
 	}
 
 	public Iterable<MessageSubscriber> getSubscribers() {
-		return getProperty(traits.key("subscribers"));
+		return getProperty(traits.key(MessageClientTraitDefinition.SUBSCRIBERS_PROPERTY));
 	}
 
 	static {
@@ -79,7 +82,7 @@ public class KafkaClientTraitWrapper extends MessageClientTraitWrapper implement
 
 			try (final Tx tx = app.tx()) {
 
-				for (final NodeInterface client : app.nodeQuery("KafkaClient").getAsList()) {
+				for (final NodeInterface client : app.nodeQuery(StructrTraits.KAFKA_CLIENT).getAsList()) {
 
 					client.as(KafkaClient.class).setup();
 				}

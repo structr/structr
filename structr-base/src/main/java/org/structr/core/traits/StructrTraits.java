@@ -68,21 +68,37 @@ public class StructrTraits {
 	public static final String EMAIL_MESSAGE            = "EMailMessage";
 	public static final String MAILBOX                  = "Mailbox";
 	public static final String WIDGET                   = "Widget";
+	public static final String VIRTUAL_TYPE             = "VirtualType";
+	public static final String VIRTUAL_PROPERTY         = "VirtualProperty";
+	public static final String LDAP_GROUP               = "LDAPGroup";
+	public static final String LDAP_USER                = "LDAPUser";
+	public static final String MESSAGE_CLIENT           = "MessageClient";
+	public static final String MESSAGE_SUBSCRIBER       = "MessageSubscriber";
+	public static final String KAFKA_CLIENT             = "KafkaClient";
+	public static final String MQTT_CLIENT              = "MQTTClient";
+	public static final String PULSAR_CLIENT            = "PulsarClient";
+
+
 
 	// relationship types
-	public static final String SECURITY                              = "Security";
-	public static final String PRINCIPAL_OWNS_NODE                   = "PrincipalOwnsNode";
-	public static final String PRINCIPAL_SCHEMA_GRANT_RELATIONSHIP   = "PrincipalSchemaGrantRelationship";
-	public static final String GROUP_CONTAINS_PRINCIPAL              = "GroupCONTAINSPrincipal";
-	public static final String SCHEMA_EXCLUDED_VIEW_PROPERTY         = "SchemaExcludedViewProperty";
-	public static final String SCHEMA_GRANT_SCHEMA_NODE_RELATIONSHIP = "SchemaGrantSchemaNodeRelationship";
-	public static final String SCHEMA_METHOD_PARAMETERS              = "SchemaMethodParameters";
-	public static final String SCHEMA_NODE_EXTENDS_SCHEMA_NODE       = "SchemaNodeExtendsSchemaNode";
-	public static final String SCHEMA_NODE_PROPERTY                  = "SchemaNodeProperty";
-	public static final String SCHEMA_NODE_VIEW                      = "SchemaNodeView";
-	public static final String SCHEMA_RELATIONSHIP_SOURCE_NODE       = "SchemaRelationshipSourceNode";
-	public static final String SCHEMA_RELATIONSHIP_TARGET_NODE       = "SchemaRelationshipTargetNode";
-	public static final String SCHEMA_VIEW_PROPERTY                  = "SchemaViewProperty";
+	public static final String SECURITY                                       = "Security";
+	public static final String PRINCIPAL_OWNS_NODE                            = "PrincipalOwnsNode";
+	public static final String PRINCIPAL_SCHEMA_GRANT_RELATIONSHIP            = "PrincipalSchemaGrantRelationship";
+	public static final String GROUP_CONTAINS_PRINCIPAL                       = "GroupCONTAINSPrincipal";
+	public static final String SCHEMA_EXCLUDED_VIEW_PROPERTY                  = "SchemaExcludedViewProperty";
+	public static final String SCHEMA_GRANT_SCHEMA_NODE_RELATIONSHIP          = "SchemaGrantSchemaNodeRelationship";
+	public static final String SCHEMA_METHOD_PARAMETERS                       = "SchemaMethodParameters";
+	public static final String SCHEMA_NODE_EXTENDS_SCHEMA_NODE                = "SchemaNodeExtendsSchemaNode";
+	public static final String SCHEMA_NODE_PROPERTY                           = "SchemaNodeProperty";
+	public static final String SCHEMA_NODE_VIEW                               = "SchemaNodeView";
+	public static final String SCHEMA_RELATIONSHIP_SOURCE_NODE                = "SchemaRelationshipSourceNode";
+	public static final String SCHEMA_RELATIONSHIP_TARGET_NODE                = "SchemaRelationshipTargetNode";
+	public static final String SCHEMA_VIEW_PROPERTY                           = "SchemaViewProperty";
+	public static final String VIRTUAL_TYPE_VIRTUAL_PROPERTY_VIRTUAL_PROPERTY = "VirtualTypevirtualPropertyVirtualProperty";
+	public static final String EMAIL_MESSAGE_HAS_ATTACHMENT_FILE              = "EMailMessageHAS_ATTACHMENTFile";
+	public static final String MAILBOX_CONTAINS_EMAIL_MESSAGES_EMAIL_MESSAGE  = "MailboxCONTAINS_EMAILMESSAGESEMailMessage";
+	public static final String MESSAGE_CLIENT_HAS_MESSAGE_SUBSCRIBER          = "MessageClientHASMessageSubscriber";
+
 
 	public static void registerBaseType(final TraitDefinition definition) {
 

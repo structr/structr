@@ -24,6 +24,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
@@ -38,8 +39,15 @@ import java.util.Set;
  */
 public class VirtualPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String VIRTUAL_TYPE_PROPERTY    = "virtualType";
+	public static final String POSITION_PROPERTY        = "position";
+	public static final String SOURCE_NAME_PROPERTY     = "sourceName";
+	public static final String TARGET_NAME_PROPERTY     = "targetName";
+	public static final String INPUT_FUNCTION_PROPERTY  = "inputFunction";
+	public static final String OUTPUT_FUNCTION_PROPERTY = "outputFunction";
+
 	public VirtualPropertyTraitDefinition() {
-		super("VirtualProperty");
+		super(StructrTraits.VIRTUAL_PROPERTY);
 	}
 
 	@Override
@@ -68,12 +76,12 @@ public class VirtualPropertyTraitDefinition extends AbstractNodeTraitDefinition 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> virtualType = new StartNode("virtualType", "VirtualTypevirtualPropertyVirtualProperty");
-		final Property<Integer> position          = new IntProperty("position").indexed();
-		final Property<String> sourceName         = new StringProperty("sourceName");
-		final Property<String> targetName         = new StringProperty("targetName");
-		final Property<String> inputFunction      = new StringProperty("inputFunction");
-		final Property<String> outputFunction     = new StringProperty("outputFunction");
+		final Property<NodeInterface> virtualType = new StartNode(VIRTUAL_TYPE_PROPERTY, StructrTraits.VIRTUAL_TYPE_VIRTUAL_PROPERTY_VIRTUAL_PROPERTY);
+		final Property<Integer> position          = new IntProperty(POSITION_PROPERTY).indexed();
+		final Property<String> sourceName         = new StringProperty(SOURCE_NAME_PROPERTY);
+		final Property<String> targetName         = new StringProperty(TARGET_NAME_PROPERTY);
+		final Property<String> inputFunction      = new StringProperty(INPUT_FUNCTION_PROPERTY);
+		final Property<String> outputFunction     = new StringProperty(OUTPUT_FUNCTION_PROPERTY);
 
 		return Set.of(
 			virtualType,
@@ -91,11 +99,11 @@ public class VirtualPropertyTraitDefinition extends AbstractNodeTraitDefinition 
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"virtualType", "sourceName", "targetName", "inputFunction", "outputFunction", "position"
+				VIRTUAL_TYPE_PROPERTY, SOURCE_NAME_PROPERTY, TARGET_NAME_PROPERTY, INPUT_FUNCTION_PROPERTY, OUTPUT_FUNCTION_PROPERTY, POSITION_PROPERTY
 			),
 			PropertyView.Ui,
 			newSet(
-				"virtualType", "sourceName", "targetName", "inputFunction", "outputFunction", "position"
+				VIRTUAL_TYPE_PROPERTY, SOURCE_NAME_PROPERTY, TARGET_NAME_PROPERTY, INPUT_FUNCTION_PROPERTY, OUTPUT_FUNCTION_PROPERTY, POSITION_PROPERTY
 			)
 		);
 	}

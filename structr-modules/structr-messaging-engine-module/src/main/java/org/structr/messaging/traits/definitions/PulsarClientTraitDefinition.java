@@ -32,6 +32,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
@@ -49,8 +50,11 @@ import java.util.Set;
 
 public class PulsarClientTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String SERVERS_PROPERTY  = "servers";
+	public static final String ENABLED_PROPERTY  = "enabled";
+
 	public PulsarClientTraitDefinition() {
-		super("PulsarClient");
+		super(StructrTraits.PULSAR_CLIENT);
 	}
 
 	@Override
@@ -76,7 +80,7 @@ public class PulsarClientTraitDefinition extends AbstractNodeTraitDefinition {
 					final org.structr.messaging.implementation.pulsar.PulsarClient client = graphObject.as(org.structr.messaging.implementation.pulsar.PulsarClient.class);
 					final Traits traits = client.getTraits();
 
-					if (modificationQueue.isPropertyModified(client, traits.key("servers"))) {
+					if (modificationQueue.isPropertyModified(client, traits.key(SERVERS_PROPERTY))) {
 
 						PulsarClientTraitWrapper.ConsumerWorker cw = client.getConsumerWorker();
 						if (cw != null) {
@@ -163,8 +167,8 @@ public class PulsarClientTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<String[]> serversProperty = new ArrayProperty("servers", String.class);
-		final Property<Boolean> enabledProperty = new BooleanProperty("enabled").defaultValue(false);
+		final Property<String[]> serversProperty = new ArrayProperty(SERVERS_PROPERTY, String.class);
+		final Property<Boolean> enabledProperty = new BooleanProperty(ENABLED_PROPERTY).defaultValue(false);
 
 		return newSet(
 			serversProperty,
@@ -178,11 +182,11 @@ public class PulsarClientTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"servers", "enabled"
+				SERVERS_PROPERTY, ENABLED_PROPERTY
 			),
 			PropertyView.Ui,
 			newSet(
-				"servers", "enabled"
+				SERVERS_PROPERTY, ENABLED_PROPERTY
 			)
 		);
 	}

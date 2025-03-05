@@ -31,6 +31,7 @@ import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.UserTraitWrapper;
 import org.structr.ldap.LDAPGroup;
@@ -40,6 +41,7 @@ import org.structr.ldap.LDAPUser;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import org.structr.ldap.traits.definitions.LDAPUserTraitDefinition;
 
 /**
  *
@@ -54,22 +56,22 @@ public class LDAPUserTraitWrapper extends UserTraitWrapper implements LDAPUser {
 
         @Override
 	public String getOriginId() {
-		return wrappedObject.getProperty(traits.key("originId"));
+		return wrappedObject.getProperty(traits.key(LDAPUserTraitDefinition.ORIGIN_ID_PROPERTY));
 	}
 
         @Override
         public String getDistinguishedName() {
-                return wrappedObject.getProperty(traits.key("distinguishedName"));
+                return wrappedObject.getProperty(traits.key(LDAPUserTraitDefinition.DISTINGUISHED_NAME_PROPERTY));
         }
 
         @Override
         public void setDistinguishedName(final String name) throws FrameworkException {
-                wrappedObject.setProperty(traits.key("distinguishedName"), name);
+                wrappedObject.setProperty(traits.key(LDAPUserTraitDefinition.DISTINGUISHED_NAME_PROPERTY), name);
         }
 
         @Override
 	public void setLastLDAPSync(final Long time) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("lastLDAPSync"), time);
+		wrappedObject.setProperty(traits.key(LDAPUserTraitDefinition.LAST_LDAP_SYNC_PROPERTY), time);
 	}
 
         @Override
@@ -98,7 +100,7 @@ public class LDAPUserTraitWrapper extends UserTraitWrapper implements LDAPUser {
 			setDistinguishedName(entry.getDn().getNormName());
 
 			// update lastUpdate timestamp
-			this.setProperty(traits.key("lastLDAPSync"), System.currentTimeMillis());
+			this.setProperty(traits.key(LDAPUserTraitDefinition.LAST_LDAP_SYNC_PROPERTY), System.currentTimeMillis());
 
 
 		} catch (final LdapInvalidAttributeValueException ex) {
@@ -109,14 +111,14 @@ public class LDAPUserTraitWrapper extends UserTraitWrapper implements LDAPUser {
         @Override
 	public void update() {
 
-		final PropertyKey<Long> lastUpdateKey = traits.key("lastLDAPSync");
+		final PropertyKey<Long> lastUpdateKey = traits.key(LDAPUserTraitDefinition.LAST_LDAP_SYNC_PROPERTY);
 
 		try {
 
 			final LDAPService service = Services.getInstance().getService(LDAPService.class, "default");
 			if (service != null) {
 
-				for (final NodeInterface group : StructrApp.getInstance().nodeQuery("LDAPGroup").getAsList()) {
+				for (final NodeInterface group : StructrApp.getInstance().nodeQuery(StructrTraits.LDAP_GROUP).getAsList()) {
 
 					service.synchronizeGroup(group.as(LDAPGroup.class));
 				}

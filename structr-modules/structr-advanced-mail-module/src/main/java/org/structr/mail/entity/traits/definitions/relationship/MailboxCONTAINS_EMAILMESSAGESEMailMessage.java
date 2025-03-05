@@ -26,7 +26,7 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class MailboxCONTAINS_EMAILMESSAGESEMailMessage extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public MailboxCONTAINS_EMAILMESSAGESEMailMessage() {
-		super("MailboxCONTAINS_EMAILMESSAGESEMailMessage");
+		super(StructrTraits.MAILBOX_CONTAINS_EMAIL_MESSAGES_EMAIL_MESSAGE);
 	}
 
 	@Override

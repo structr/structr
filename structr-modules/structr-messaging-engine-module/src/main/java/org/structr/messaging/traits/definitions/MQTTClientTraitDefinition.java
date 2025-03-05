@@ -51,8 +51,16 @@ import java.util.Set;
 
 public class MQTTClientTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String MAIN_BROKER_URL_PROPERTY      = "mainBrokerURL";
+	public static final String FALLBACK_BROKER_URLS_PROPERTY = "fallbackBrokerURLs";
+	public static final String QOS_PROPERTY                  = "qos";
+	public static final String IS_ENABLED_PROPERTY           = "isEnabled";
+	public static final String IS_CONNECTED_PROPERTY         = "isConnected";
+	public static final String USERNAME_PROPERTY             = "username";
+	public static final String PASSWORD_PROPERTY             = "password";
+
 	public MQTTClientTraitDefinition() {
-		super("MQTTClient");
+		super(StructrTraits.MQTT_CLIENT);
 	}
 
 	@Override
@@ -66,7 +74,7 @@ public class MQTTClientTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
 
-					return ValidationHelper.isValidPropertyNotNull(obj, obj.getTraits().key("mainBrokerURL"), errorBuffer);
+					return ValidationHelper.isValidPropertyNotNull(obj, obj.getTraits().key(MQTTClientTraitDefinition.MAIN_BROKER_URL_PROPERTY), errorBuffer);
 				}
 			},
 
@@ -87,8 +95,8 @@ public class MQTTClientTraitDefinition extends AbstractNodeTraitDefinition {
 
 						} catch (FrameworkException ex) {
 
-							client.setProperty(traits.key("isEnabled"), false);
-							client.setProperty(traits.key("isConnected"), false);
+							client.setProperty(traits.key(MQTTClientTraitDefinition.IS_ENABLED_PROPERTY), false);
+							client.setProperty(traits.key(MQTTClientTraitDefinition.IS_CONNECTED_PROPERTY), false);
 						}
 					}
 				}
@@ -103,12 +111,12 @@ public class MQTTClientTraitDefinition extends AbstractNodeTraitDefinition {
 					final MQTTClient client = graphObject.as(MQTTClient.class);
 					final Traits traits     = client.getTraits();
 
-					if (modificationQueue.isPropertyModified(client, traits.key("mainBrokerURL")) || modificationQueue.isPropertyModified(client, traits.key("fallbackBrokerURLs"))) {
+					if (modificationQueue.isPropertyModified(client, traits.key(MQTTClientTraitDefinition.MAIN_BROKER_URL_PROPERTY)) || modificationQueue.isPropertyModified(client, traits.key(MQTTClientTraitDefinition.FALLBACK_BROKER_URLS_PROPERTY))) {
 
 						MQTTContext.disconnect(client);
 					}
 
-					if (modificationQueue.isPropertyModified(client, traits.key("isEnabled")) || modificationQueue.isPropertyModified(client, traits.key("mainBrokerURL")) || modificationQueue.isPropertyModified(client, traits.key("fallbackBrokerURLs"))) {
+					if (modificationQueue.isPropertyModified(client, traits.key(MQTTClientTraitDefinition.IS_ENABLED_PROPERTY)) || modificationQueue.isPropertyModified(client, traits.key(MQTTClientTraitDefinition.MAIN_BROKER_URL_PROPERTY)) || modificationQueue.isPropertyModified(client, traits.key(MQTTClientTraitDefinition.FALLBACK_BROKER_URLS_PROPERTY))) {
 
 						MQTTClientConnection connection = MQTTContext.getClientForId(client.getUuid());
 						boolean enabled = client.getIsEnabled();
@@ -118,7 +126,7 @@ public class MQTTClientTraitDefinition extends AbstractNodeTraitDefinition {
 
 								MQTTContext.disconnect(client);
 
-								client.setProperty(traits.key("isConnected"), false);
+								client.setProperty(traits.key(MQTTClientTraitDefinition.IS_CONNECTED_PROPERTY), false);
 							}
 
 						} else {
@@ -134,11 +142,11 @@ public class MQTTClientTraitDefinition extends AbstractNodeTraitDefinition {
 
 								if (connection.isConnected()) {
 
-									client.setProperty(traits.key("isConnected"), true);
+									client.setProperty(traits.key(MQTTClientTraitDefinition.IS_CONNECTED_PROPERTY), true);
 
 								} else {
 
-									client.setProperty(traits.key("isConnected"), false);
+									client.setProperty(traits.key(MQTTClientTraitDefinition.IS_CONNECTED_PROPERTY), false);
 								}
 							}
 						}
@@ -240,13 +248,13 @@ public class MQTTClientTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<String> mainBrokerURLProperty        = new StringProperty("mainBrokerURL").notNull();
-		final Property<String[]> fallbackBrokerURLsProperty = new ArrayProperty<>("fallbackBrokerURLs", String.class);
-		final Property<Integer> qosProperty                 = new IntProperty("qos").defaultValue(0);
-		final Property<Boolean> isEnabledProperty           = new BooleanProperty("isEnabled");
-		final Property<Boolean> isConnectedProperty         = new BooleanProperty("isConnected").readOnly();
-		final Property<String> usernameProperty             = new StringProperty("username");
-		final Property<String> passwordProperty             = new StringProperty("password");
+		final Property<String> mainBrokerURLProperty        = new StringProperty(MAIN_BROKER_URL_PROPERTY).notNull();
+		final Property<String[]> fallbackBrokerURLsProperty = new ArrayProperty<>(FALLBACK_BROKER_URLS_PROPERTY, String.class);
+		final Property<Integer> qosProperty                 = new IntProperty(QOS_PROPERTY).defaultValue(0);
+		final Property<Boolean> isEnabledProperty           = new BooleanProperty(IS_ENABLED_PROPERTY);
+		final Property<Boolean> isConnectedProperty         = new BooleanProperty(IS_CONNECTED_PROPERTY).readOnly();
+		final Property<String> usernameProperty             = new StringProperty(USERNAME_PROPERTY);
+		final Property<String> passwordProperty             = new StringProperty(PASSWORD_PROPERTY);
 
 		return newSet(
 			mainBrokerURLProperty,
@@ -265,11 +273,11 @@ public class MQTTClientTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-			"mainBrokerURL", "fallbackBrokerURLs", "qos", "isEnabled", "isConnected", "username", "password"
+					MAIN_BROKER_URL_PROPERTY, FALLBACK_BROKER_URLS_PROPERTY, QOS_PROPERTY, IS_ENABLED_PROPERTY, IS_CONNECTED_PROPERTY, USERNAME_PROPERTY, PASSWORD_PROPERTY
 			),
 			PropertyView.Ui,
 			newSet(
-				"mainBrokerURL", "fallbackBrokerURLs", "qos", "isEnabled", "isConnected", "username", "password"
+					MAIN_BROKER_URL_PROPERTY, FALLBACK_BROKER_URLS_PROPERTY, QOS_PROPERTY, IS_ENABLED_PROPERTY, IS_CONNECTED_PROPERTY, USERNAME_PROPERTY, PASSWORD_PROPERTY
 			)
 		);
 	}

@@ -34,6 +34,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StartNodes;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
@@ -47,8 +48,12 @@ import java.util.Set;
 
 public class MessageSubscriberTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String CLIENTS_PROPERTY  =  "clients";
+	public static final String TOPIC_PROPERTY    =  "topic";
+	public static final String CALLBACK_PROPERTY =  "callback";
+
 	public MessageSubscriberTraitDefinition() {
-		super("MessageSubscriber");
+		super(StructrTraits.MESSAGE_SUBSCRIBER);
 	}
 
 	@Override
@@ -104,7 +109,7 @@ public class MessageSubscriberTraitDefinition extends AbstractNodeTraitDefinitio
 				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
 					final MessageSubscriber subscriber = graphObject.as(MessageSubscriber.class);
-					final PropertyKey topicKey         = subscriber.getTraits().key("topic");
+					final PropertyKey topicKey         = subscriber.getTraits().key(TOPIC_PROPERTY);
 
 					if (modificationQueue.isPropertyModified(subscriber, topicKey)) {
 
@@ -118,9 +123,9 @@ public class MessageSubscriberTraitDefinition extends AbstractNodeTraitDefinitio
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Iterable<NodeInterface>> clientsProperty = new StartNodes("clients", "MessageClientHASMessageSubscriber");
-		final Property<String> topicProperty                    = new StringProperty("topic").indexed();
-		final Property<String> callbackProperty                 = new StringProperty("callback");
+		final Property<Iterable<NodeInterface>> clientsProperty = new StartNodes(CLIENTS_PROPERTY, StructrTraits.MESSAGE_CLIENT_HAS_MESSAGE_SUBSCRIBER);
+		final Property<String> topicProperty                    = new StringProperty(TOPIC_PROPERTY).indexed();
+		final Property<String> callbackProperty                 = new StringProperty(CALLBACK_PROPERTY);
 
 		return newSet(
 			clientsProperty,
@@ -135,11 +140,11 @@ public class MessageSubscriberTraitDefinition extends AbstractNodeTraitDefinitio
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"topic", "callback", "clients"
+					TOPIC_PROPERTY, CALLBACK_PROPERTY, CLIENTS_PROPERTY
 			),
 			PropertyView.Ui,
 			newSet(
-				"topic", "callback", "clients"
+					TOPIC_PROPERTY, CALLBACK_PROPERTY, CLIENTS_PROPERTY
 			)
 		);
 	}
