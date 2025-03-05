@@ -18,22 +18,13 @@
  */
 package org.structr.flow.impl;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.core.property.*;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.api.Store;
-import org.structr.flow.engine.Context;
-import org.structr.flow.engine.FlowException;
-import org.structr.flow.impl.rels.FlowDataInput;
 import org.structr.module.api.DeployableEntity;
 
-import java.util.HashMap;
-import java.util.Map;
+public interface FlowStore extends FlowNode, Store, DataSource, DeployableEntity {
 
-public class FlowStore extends FlowNode implements Store, DataSource, DeployableEntity {
+	/*
 
 	public enum Operation {
 		store,
@@ -109,5 +100,5 @@ public class FlowStore extends FlowNode implements Store, DataSource, Deployable
 
 		return result;
 	}
-
+	*/
 }

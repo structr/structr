@@ -25,7 +25,8 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.flow.api.FlowElement;
@@ -70,12 +71,14 @@ public class ForkHandler implements FlowHandler<FlowFork> {
 
 
 	private class ForkTask implements Callable<Object> {
+
 		private final Context context;
 		private SecurityContext securityContext = null;
-		private Fork fork                       = null;
-		private FlowNode startNode              = null;
+		private NodeInterface fork              = null;
+		private NodeInterface startNode         = null;
 
 		ForkTask(final Context context, final String secContextUserId, final String startNodeUuid, final String forkUuid) {
+
 			this.context = context;
 
 			App app = StructrApp.getInstance(SecurityContext.getSuperUserInstance());
@@ -84,8 +87,11 @@ public class ForkHandler implements FlowHandler<FlowFork> {
 
 				try (final Tx tx = app.tx()) {
 
-					PrincipalInterface principal = app.nodeQuery(PrincipalInterface.class).uuid(secContextUserId).getFirst();
-					this.securityContext = SecurityContext.getInstance(principal, AccessMode.Frontend);
+					NodeInterface principalNode = app.nodeQuery("Principal").uuid(secContextUserId).getFirst();
+					if (principalNode != null) {
+
+						this.securityContext = SecurityContext.getInstance(principalNode.as(Principal.class), AccessMode.Frontend);
+					}
 
 					tx.success();
 
@@ -106,8 +112,8 @@ public class ForkHandler implements FlowHandler<FlowFork> {
 
 				try (final Tx tx = app.tx()) {
 
-					this.startNode = app.nodeQuery(FlowNode.class).uuid(startNodeUuid).getFirst();
-					this.fork = app.nodeQuery(FlowFork.class).uuid(forkUuid).getFirst();
+					this.startNode = app.nodeQuery("FlowNode").uuid(startNodeUuid).getFirst();
+					this.fork = app.nodeQuery("FlowFork").uuid(forkUuid).getFirst();
 
 					tx.success();
 
@@ -124,6 +130,7 @@ public class ForkHandler implements FlowHandler<FlowFork> {
 		public Object call() throws Exception {
 
 			if (securityContext != null) {
+
 				final App app = StructrApp.getInstance(securityContext);
 
 				if (startNode != null && fork != null) {
@@ -132,11 +139,11 @@ public class ForkHandler implements FlowHandler<FlowFork> {
 
 					try (final Tx tx = app.tx()) {
 
-						fork.handle(context);
+						fork.as(Fork.class).handle(context);
 
 						final FlowEngine engine = new FlowEngine(context);
 
-						result = engine.execute(context, startNode);
+						result = engine.execute(context, startNode.as(FlowElement.class));
 
 						tx.success();
 					}

@@ -18,22 +18,22 @@
  */
 package org.structr.flow.impl;
 
-import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.core.property.EndNode;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNode;
-import org.structr.core.property.StartNodes;
-import org.structr.flow.api.FlowElement;
-import org.structr.flow.impl.rels.FlowContainerFlowNode;
-import org.structr.flow.impl.rels.FlowForEachBody;
-import org.structr.flow.impl.rels.FlowNodes;
+import org.structr.common.error.FrameworkException;
+import org.structr.flow.api.FlowType;
 
 
 /**
  *
  */
-public abstract class FlowNode extends FlowBaseNode implements FlowElement {
+public interface FlowNode extends FlowBaseNode {
+
+	FlowType getFlowType();
+	FlowContainer getFlowContainer();
+	FlowNode next();
+
+
+	void setNext(final FlowNode next) throws FrameworkException;
+	/*
 
 	public static final Property<FlowContainer> isStartNodeOfContainer = new StartNode<>("isStartNodeOfContainer", FlowContainerFlowNode.class);
 	public static final Property<Iterable<FlowNode>> prev              = new StartNodes<>("prev", FlowNodes.class);
@@ -52,5 +52,5 @@ public abstract class FlowNode extends FlowBaseNode implements FlowElement {
 	public FlowElement next() {
 		return getProperty(next);
 	}
-
+	*/
 }

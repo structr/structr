@@ -20,49 +20,44 @@ package org.structr.flow.impl;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.graph.RelationshipType;
-import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.View;
-import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.helper.ValidationHelper;
-import org.structr.core.Export;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.graph.ModificationQueue;
-import org.structr.core.graph.Tx;
-import org.structr.core.property.*;
-import org.structr.flow.api.FlowResult;
-import org.structr.flow.engine.Context;
-import org.structr.flow.engine.FlowEngine;
-import org.structr.flow.impl.rels.*;
+import org.structr.core.graph.NodeInterface;
 import org.structr.module.api.DeployableEntity;
 import org.structr.web.entity.dom.DOMNode;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 /**
  *
  */
-public class FlowContainer extends AbstractNode implements DeployableEntity {
+public interface FlowContainer extends NodeInterface, DeployableEntity {
 
-	public static final Property<FlowContainerPackage> flowPackage                        = new StartNode<>("flowPackage", FlowContainerPackageFlow.class);
-	public static final Property<Iterable<FlowBaseNode>> flowNodes                        = new EndNodes<>("flowNodes", FlowContainerBaseNode.class);
-	public static final Property<Iterable<FlowContainerConfiguration>> flowConfigurations = new StartNodes<>("flowConfigurations", FlowContainerConfigurationFlow.class);
-	public static final Property<FlowContainerConfiguration> activeFlowConfiguration      = new StartNode<>("activeConfiguration", FlowActiveContainerConfiguration.class);
-	public static final Property<FlowNode> startNode                                      = new EndNode<>("startNode", FlowContainerFlowNode.class).indexed();
+	Logger logger = LoggerFactory.getLogger(FlowContainer.class);
+
+	Iterable<FlowContainerConfiguration> getFlowConfigurations();
+	Iterable<FlowBaseNode> getFlowNodes();
+	FlowNode getStartNode();
+
+
+	String getEffectiveName();
+
+	Iterable<Object> evaluate(final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException;
+
+	void setEffectiveName(final String effectiveName) throws FrameworkException;
+	void setStartNode(final FlowNode startNode) throws FrameworkException;
+	void setRepeaterNodes(final Iterable<DOMNode> repeaterNodes) throws FrameworkException;
+
+	/*
+	public static final Property<FlowContainerPackage> flowPackage                        = new StartNode("flowPackage", FlowContainerPackageFlow.class);
+	public static final Property<Iterable<FlowBaseNode>> flowNodes                        = new EndNodes("flowNodes", FlowContainerBaseNode.class);
+	public static final Property<Iterable<FlowContainerConfiguration>> flowConfigurations = new StartNodes("flowConfigurations", FlowContainerConfigurationFlow.class);
+	public static final Property<FlowContainerConfiguration> activeFlowConfiguration      = new StartNode("activeConfiguration", FlowActiveContainerConfiguration.class);
+	public static final Property<FlowNode> startNode                                      = new EndNode("startNode", FlowContainerFlowNode.class).indexed();
 	public static final Property<String> name                                             = new StringProperty("name").notNull().indexed();
-	public static final Property<Object> effectiveName                                    = new FunctionProperty<>("effectiveName").indexed().unique().notNull().readFunction("if(empty(this.flowPackage), this.name, concat(this.flowPackage.effectiveName, \".\", this.name))").writeFunction("{\r\n\tlet self = Structr.get(\'this\');\r\n\tlet path = Structr.get(\'value\');\r\n\r\n\tfunction getOrCreatePackage(name, path) {\r\n\t\tlet effectiveName = Structr.empty(path) ? name : Structr.concat(path,\".\",name);\r\n\r\n\t\tlet package = Structr.first(Structr.find(\"FlowContainerPackage\", \"effectiveName\", effectiveName));\r\n\r\n\t\tif (Structr.empty(path)) {\r\n\t\t\t\r\n\t\t\tif (Structr.empty(package)) {\r\n\t\t\t\tpackage = Structr.create(\"FlowContainerPackage\", \"name\", name);\r\n\t\t\t}\r\n\t\t} else {\r\n\t\t\tlet parent = Structr.first(Structr.find(\"FlowContainerPackage\", \"effectiveName\", path));\r\n\r\n\t\t\tif (Structr.empty(package)) {\r\n\t\t\t\tpackage = Structr.create(\"FlowContainerPackage\", \"name\", name, \"parent\", parent);\r\n\t\t\t}\r\n\t\t}\r\n\r\n\t\treturn package;\r\n\t}\r\n\r\n\tif (!Structr.empty(path)) {\r\n\r\n\t\tif (path.length > 0) {\r\n\r\n\t\t\tlet flowName = null;\r\n\r\n\t\t\tif (path.indexOf(\".\") !== -1) {\r\n\r\n\t\t\t\tlet elements = path.split(\".\");\r\n\r\n\t\t\t\tif (elements.length > 1) {\r\n\r\n\t\t\t\t\tflowName = elements.pop();\r\n\t\t\t\t\tlet currentPath = \"\";\r\n\t\t\t\t\tlet parentPackage = null;\r\n\r\n\t\t\t\t\tfor (let el of elements) {\r\n\t\t\t\t\t\tlet package = getOrCreatePackage(el, currentPath);\r\n\t\t\t\t\t\tparentPackage = package;\r\n\t\t\t\t\t\tcurrentPath = package.effectiveName;\r\n\t\t\t\t\t}\r\n\r\n\t\t\t\t\tself.flowPackage = parentPackage;\r\n\t\t\t\t} else {\r\n\r\n\t\t\t\t\tflowName = elements[0];\r\n\t\t\t\t}\r\n\r\n\t\t\t\tself.name = flowName;\r\n\t\t\t} else {\r\n\r\n\t\t\t\tself.name = path;\r\n\t\t\t}\r\n\r\n\t\t}\r\n\r\n\t}\r\n\r\n}").typeHint("String");
+	public static final Property<Object> effectiveName                                    = new FunctionProperty("effectiveName").indexed().unique().notNull().readFunction("if(empty(this.flowPackage), this.name, concat(this.flowPackage.effectiveName, \".\", this.name))").writeFunction("{\r\n\tlet self = Structr.get(\'this\');\r\n\tlet path = Structr.get(\'value\');\r\n\r\n\tfunction getOrCreatePackage(name, path) {\r\n\t\tlet effectiveName = Structr.empty(path) ? name : Structr.concat(path,\".\",name);\r\n\r\n\t\tlet package = Structr.first(Structr.find(\"FlowContainerPackage\", \"effectiveName\", effectiveName));\r\n\r\n\t\tif (Structr.empty(path)) {\r\n\t\t\t\r\n\t\t\tif (Structr.empty(package)) {\r\n\t\t\t\tpackage = Structr.create(\"FlowContainerPackage\", \"name\", name);\r\n\t\t\t}\r\n\t\t} else {\r\n\t\t\tlet parent = Structr.first(Structr.find(\"FlowContainerPackage\", \"effectiveName\", path));\r\n\r\n\t\t\tif (Structr.empty(package)) {\r\n\t\t\t\tpackage = Structr.create(\"FlowContainerPackage\", \"name\", name, \"parent\", parent);\r\n\t\t\t}\r\n\t\t}\r\n\r\n\t\treturn package;\r\n\t}\r\n\r\n\tif (!Structr.empty(path)) {\r\n\r\n\t\tif (path.length > 0) {\r\n\r\n\t\t\tlet flowName = null;\r\n\r\n\t\t\tif (path.indexOf(\".\") !== -1) {\r\n\r\n\t\t\t\tlet elements = path.split(\".\");\r\n\r\n\t\t\t\tif (elements.length > 1) {\r\n\r\n\t\t\t\t\tflowName = elements.pop();\r\n\t\t\t\t\tlet currentPath = \"\";\r\n\t\t\t\t\tlet parentPackage = null;\r\n\r\n\t\t\t\t\tfor (let el of elements) {\r\n\t\t\t\t\t\tlet package = getOrCreatePackage(el, currentPath);\r\n\t\t\t\t\t\tparentPackage = package;\r\n\t\t\t\t\t\tcurrentPath = package.effectiveName;\r\n\t\t\t\t\t}\r\n\r\n\t\t\t\t\tself.flowPackage = parentPackage;\r\n\t\t\t\t} else {\r\n\r\n\t\t\t\t\tflowName = elements[0];\r\n\t\t\t\t}\r\n\r\n\t\t\t\tself.name = flowName;\r\n\t\t\t} else {\r\n\r\n\t\t\t\tself.name = path;\r\n\t\t\t}\r\n\r\n\t\t}\r\n\r\n\t}\r\n\r\n}").typeHint("String");
 	public static final Property<Boolean> scheduledForIndexing                            = new BooleanProperty("scheduledForIndexing").defaultValue(false);
-	public static final Property<Iterable<DOMNode>> repeaterNodes                         = new StartNodes<>("repeaterNodes", DOMNodeFLOWFlowContainer.class);
+	public static final Property<Iterable<DOMNode>> repeaterNodes                         = new StartNodes("repeaterNodes", DOMNodeFLOWFlowContainer.class);
 	public static final Property<String> apiSpecification                                 = new StringProperty("apiSpecification");
 
 
@@ -70,7 +65,6 @@ public class FlowContainer extends AbstractNode implements DeployableEntity {
 	public static final View uiView            = new View(FlowContainer.class, PropertyView.Ui,     name, flowNodes, startNode, flowPackage, effectiveName, scheduledForIndexing, repeaterNodes, activeFlowConfiguration, apiSpecification);
 	public static final View effectiveNameView = new View(FlowContainer.class, "effectiveNameView", type, id, effectiveName);
 
-	private static final Logger logger = LoggerFactory.getLogger(FlowContainer.class);
 
 	@Override
 	public boolean isValid(final ErrorBuffer errorBuffer) {
@@ -84,7 +78,6 @@ public class FlowContainer extends AbstractNode implements DeployableEntity {
 		return valid;
 	}
 
-	@Export
 	public Iterable<Object> evaluate(final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException {
 
 		final FlowEngine engine       = new FlowEngine();
@@ -121,7 +114,6 @@ public class FlowContainer extends AbstractNode implements DeployableEntity {
 
 	}
 
-	@Export
 	public Iterable<FlowBaseNode> getFlowNodes(final SecurityContext securityContext) {
 
 		App app = StructrApp.getInstance(securityContext);
@@ -139,7 +131,6 @@ public class FlowContainer extends AbstractNode implements DeployableEntity {
 		return null;
 	}
 
-	@Export
 	public Iterable<AbstractRelationship> getFlowRelationships(final SecurityContext securityContext) {
 
 		App app = StructrApp.getInstance(securityContext);
@@ -234,4 +225,5 @@ public class FlowContainer extends AbstractNode implements DeployableEntity {
 
 	}
 
+	*/
 }

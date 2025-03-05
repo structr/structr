@@ -21,7 +21,9 @@ package org.structr.flow.impl;
 /**
  *
  */
-public class FlowAnd extends FlowLogicCondition {
+public interface FlowAnd extends FlowLogicCondition {
+
+	/*
 
 	@Override
 	protected Boolean combine(Boolean result, Boolean value) {
@@ -30,4 +32,5 @@ public class FlowAnd extends FlowLogicCondition {
 		}
 		return result && value;
 	}
+	*/
 }

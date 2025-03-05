@@ -18,28 +18,15 @@
  */
 package org.structr.flow.impl;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.core.property.EndNodes;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNode;
-import org.structr.core.property.StringProperty;
 import org.structr.flow.api.DataSource;
-import org.structr.flow.api.KeyValue;
-import org.structr.flow.engine.Context;
-import org.structr.flow.engine.FlowException;
-import org.structr.flow.impl.rels.FlowDataInput;
 import org.structr.module.api.DeployableEntity;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  *
  */
-public class FlowKeyValue extends FlowBaseNode implements DataSource, DeployableEntity {
+public interface FlowKeyValue extends FlowBaseNode, DataSource, DeployableEntity {
+
+	/*
 
 	private static final Logger logger = LoggerFactory.getLogger(FlowKeyValue.class);
 
@@ -88,4 +75,5 @@ public class FlowKeyValue extends FlowBaseNode implements DataSource, Deployable
 
 		return result;
 	}
+	*/
 }

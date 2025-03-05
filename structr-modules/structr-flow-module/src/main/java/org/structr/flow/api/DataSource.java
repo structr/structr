@@ -25,7 +25,7 @@ import org.structr.flow.engine.FlowException;
 /**
  *
  */
-public interface DataSource<T> extends NodeInterface {
+public interface DataSource extends NodeInterface {
 
-	T get(final Context context) throws FlowException;
+	Object get(final Context context) throws FlowException;
 }

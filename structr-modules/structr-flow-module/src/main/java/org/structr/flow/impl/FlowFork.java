@@ -18,26 +18,14 @@
  */
 package org.structr.flow.impl;
 
-import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.core.property.EndNode;
-import org.structr.core.property.EndNodes;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNode;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.api.Fork;
 import org.structr.flow.api.ThrowingElement;
-import org.structr.flow.engine.Context;
-import org.structr.flow.engine.FlowException;
-import org.structr.flow.impl.rels.FlowDataInput;
-import org.structr.flow.impl.rels.FlowExceptionHandlerNodes;
-import org.structr.flow.impl.rels.FlowForkBody;
 import org.structr.module.api.DeployableEntity;
 
-import java.util.HashMap;
-import java.util.Map;
+public interface FlowFork extends FlowNode, Fork, DataSource, DeployableEntity, ThrowingElement {
 
-public class FlowFork extends FlowNode implements Fork, DataSource, DeployableEntity, ThrowingElement {
+	/*
 
 	public static final Property<DataSource> dataSource                 = new StartNode<>("dataSource", FlowDataInput.class);
 	public static final Property<Iterable<FlowBaseNode>> dataTarget     = new EndNodes<>("dataTarget", FlowDataInput.class);
@@ -101,4 +89,5 @@ public class FlowFork extends FlowNode implements Fork, DataSource, DeployableEn
 		return data;
 
 	}
+	*/
 }

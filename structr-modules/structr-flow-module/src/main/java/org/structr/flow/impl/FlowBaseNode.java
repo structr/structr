@@ -18,24 +18,23 @@
  */
 package org.structr.flow.impl;
 
-import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
-import org.structr.common.View;
-import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNode;
-import org.structr.flow.impl.rels.FlowContainerBaseNode;
+import org.structr.core.graph.NodeInterface;
+import org.structr.flow.api.DataSource;
 import org.structr.module.api.DeployableEntity;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  */
-public abstract class FlowBaseNode extends AbstractNode implements DeployableEntity {
+public interface FlowBaseNode extends NodeInterface, DeployableEntity {
 
+	DataSource getDataSource();
+
+	FlowContainer getFlowContainer();
+
+	void setFlowContainer(final FlowContainer container) throws FrameworkException;
+	void setDataSource(final DataSource dataSource) throws FrameworkException;
+
+	/*
 	public static final Property<FlowContainer> flowContainer = new StartNode<>("flowContainer", FlowContainerBaseNode.class).indexed();
 
 	public static final View defaultView = new View(FlowContainer.class, PropertyView.Public);
@@ -60,4 +59,5 @@ public abstract class FlowBaseNode extends AbstractNode implements DeployableEnt
 
 		return result;
 	}
+	*/
 }

@@ -18,24 +18,13 @@
  */
 package org.structr.flow.impl;
 
-import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.core.property.EndNode;
-import org.structr.core.property.Property;
 import org.structr.flow.api.Action;
 import org.structr.flow.api.ThrowingElement;
-import org.structr.flow.engine.Context;
-import org.structr.flow.engine.FlowException;
-import org.structr.flow.impl.rels.FlowExceptionHandlerNodes;
 import org.structr.module.api.DeployableEntity;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Queue;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
+public interface FlowForkJoin extends FlowNode, Action, DeployableEntity, ThrowingElement {
 
-public class FlowForkJoin extends FlowNode implements Action, DeployableEntity, ThrowingElement {
+	/*
 
 	public static final Property<FlowExceptionHandler> exceptionHandler 	= new EndNode<>("exceptionHandler", FlowExceptionHandlerNodes.class);
 
@@ -82,4 +71,5 @@ public class FlowForkJoin extends FlowNode implements Action, DeployableEntity, 
 		}
 
 	}
+	*/
 }

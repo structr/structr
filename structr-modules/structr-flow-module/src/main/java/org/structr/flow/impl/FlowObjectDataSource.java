@@ -18,24 +18,12 @@
  */
 package org.structr.flow.impl;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNodes;
-import org.structr.flow.api.KeyValue;
-import org.structr.flow.engine.Context;
-import org.structr.flow.engine.FlowException;
-import org.structr.flow.impl.rels.FlowKeyValueObjectInput;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 /**
  *
  */
-public class FlowObjectDataSource extends FlowDataSource {
+public interface FlowObjectDataSource extends FlowDataSource {
+
+	/*
 
 	private static final Logger logger = LoggerFactory.getLogger(FlowObjectDataSource.class);
 
@@ -66,4 +54,5 @@ public class FlowObjectDataSource extends FlowDataSource {
 
 		return result;
 	}
+	*/
 }

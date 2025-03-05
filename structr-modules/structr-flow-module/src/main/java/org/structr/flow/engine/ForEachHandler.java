@@ -37,8 +37,7 @@ public class ForEachHandler implements FlowHandler<FlowForEach> {
 	@Override
 	public FlowElement handle(final Context context, final FlowForEach flowElement) throws FlowException {
 
-		final DataSource dataSource   = flowElement.getDataSource();
-
+		final DataSource dataSource = flowElement.getDataSource();
 		if (dataSource != null) {
 
 			final FlowEngine engine = new FlowEngine(context);
@@ -186,13 +185,13 @@ public class ForEachHandler implements FlowHandler<FlowForEach> {
 
 				final FlowDecision decision = (FlowDecision)element;
 
-				FlowElement decisionElement = decision.getProperty(FlowDecision.trueElement);
+				FlowElement decisionElement = decision.getTrueElement();
 				if (decisionElement != null) {
 
 					traverseAndEvaluate(decisionElement, consumer);
 				}
 
-				decisionElement = decision.getProperty(FlowDecision.falseElement);
+				decisionElement = decision.getFalseElement();
 				if (decisionElement != null) {
 
 					traverseAndEvaluate(decisionElement, consumer);

@@ -18,24 +18,12 @@
  */
 package org.structr.flow.impl;
 
-import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
-import org.structr.common.View;
-import org.structr.common.error.ErrorBuffer;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.EndNode;
-import org.structr.core.property.Property;
-import org.structr.core.property.StringProperty;
-import org.structr.flow.impl.rels.FlowActiveContainerConfiguration;
-import org.structr.flow.impl.rels.FlowContainerConfigurationFlow;
+import org.structr.core.graph.NodeInterface;
 import org.structr.module.api.DeployableEntity;
 
-import java.util.HashMap;
-import java.util.Map;
+public interface FlowContainerConfiguration extends NodeInterface, DeployableEntity {
 
-public class FlowContainerConfiguration extends AbstractNode implements DeployableEntity {
-
+	/*
 	public static final Property<FlowContainer> flow				= new EndNode<>("flow", FlowContainerConfigurationFlow.class);
 	public static final Property<FlowContainer> activeForFlow       = new EndNode<>("activeForFlow", FlowActiveContainerConfiguration.class);
 	public static final Property<String> validForEditor				= new StringProperty("validForEditor").indexed();
@@ -66,4 +54,5 @@ public class FlowContainerConfiguration extends AbstractNode implements Deployab
 		this.setProperty(visibleToAuthenticatedUsers, true);
 		this.setProperty(visibleToPublicUsers, true);
 	}
+	*/
 }

@@ -16,25 +16,48 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.flow.impl;
+package org.structr.flow.traits.definitions;
 
-import org.structr.common.error.FrameworkException;
-import org.structr.flow.api.DataSource;
-import org.structr.flow.api.ThrowingElement;
-import org.structr.module.api.DeployableEntity;
+import org.structr.core.entity.Relation;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.EndNode;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.StringProperty;
+import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 
-public interface FlowAction extends FlowActionNode, DataSource, DeployableEntity, ThrowingElement {
+import java.util.Map;
+import java.util.Set;
 
-	String getScript();
+public class FlowActionTraitDefinition extends AbstractNodeTraitDefinition {
 
-	void setScript(final String script) throws FrameworkException;
+	public FlowActionTraitDefinition() {
+		super("FlowAction");
+	}
+
+	@Override
+	public Set<PropertyKey> getPropertyKeys() {
+
+		final PropertyKey<NodeInterface> exceptionHandler = new EndNode("exceptionHandler", "FlowExceptionHandlerNodes");
+		final PropertyKey<String> script                  = new StringProperty("script");
+
+		return newSet(
+			exceptionHandler,
+			script
+		)
+	}
+
+	@Override
+	public Map<String, Set<String>> getViews() {
+		return super.getViews();
+	}
+
+	@Override
+	public Relation getRelation() {
+		return null;
+	}
 
 	/*
 
-	public static final Property<DataSource> dataSource                 = new StartNode<>("dataSource", FlowDataInput.class);
-	public static final Property<Iterable<FlowBaseNode>> dataTarget     = new EndNodes<>("dataTarget", FlowDataInput.class);
-	public static final Property<FlowExceptionHandler> exceptionHandler = new EndNode<>("exceptionHandler", FlowExceptionHandlerNodes.class);
-	public static final Property<String> script                         = new StringProperty("script");
 
 	public static final View defaultView = new View(FlowAction.class, PropertyView.Public, script, dataSource, dataTarget, exceptionHandler, isStartNodeOfContainer);
 	public static final View uiView      = new View(FlowAction.class, PropertyView.Ui,     script, dataSource, dataTarget, exceptionHandler, isStartNodeOfContainer);

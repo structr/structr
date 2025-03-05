@@ -18,21 +18,15 @@
  */
 package org.structr.flow.impl;
 
-import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNode;
-import org.structr.core.property.StringProperty;
-import org.structr.flow.api.FlowElement;
-import org.structr.flow.api.FlowType;
 import org.structr.flow.api.Switch;
-import org.structr.flow.impl.rels.FlowSwitchCases;
 import org.structr.module.api.DeployableEntity;
 
-import java.util.HashMap;
-import java.util.Map;
+public interface FlowSwitchCase extends FlowNode, Switch, DeployableEntity {
 
-public class FlowSwitchCase extends FlowNode implements Switch, DeployableEntity {
+	String getSwitchCase();
+
+	/*
+
 	public static final Property<String> switchCase                    = new StringProperty("case");
 	public static final Property<FlowSwitch> switchNode                = new StartNode<>("switch", FlowSwitchCases.class);
 
@@ -66,4 +60,5 @@ public class FlowSwitchCase extends FlowNode implements Switch, DeployableEntity
 	public FlowElement next() {
 		return getProperty(next);
 	}
+	*/
 }

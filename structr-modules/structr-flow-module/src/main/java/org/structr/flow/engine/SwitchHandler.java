@@ -30,25 +30,25 @@ public class SwitchHandler implements FlowHandler<Switch> {
 	@Override
 	public FlowElement handle(Context context, Switch flowElement) throws FlowException {
 
-		if (flowElement instanceof FlowSwitch) {
+		if (flowElement.is("FlowSwitch")) {
 
-			FlowSwitch switchElement = (FlowSwitch)flowElement;
+			final FlowSwitch switchElement = flowElement.as(FlowSwitch.class);
+			final DataSource _ds           = switchElement.getDataSource();
 
-			DataSource _ds = switchElement.getProperty(FlowSwitch.dataSource);
 			if (_ds != null) {
 
-				Object data = _ds.get(context);
-
-				Iterable<FlowSwitchCase> cases = switchElement.getProperty(FlowSwitch.cases);
+				final Iterable<FlowSwitchCase> cases = switchElement.getCases();
+				final Object data                    = _ds.get(context);
 
 				if (cases != null) {
 
 					for (FlowSwitchCase switchCase : cases) {
 
-						final Object caseValue = switchCase.getProperty(FlowSwitchCase.switchCase);
+						final String caseValue = switchCase.getSwitchCase();
+
 						if (caseValue != null && data != null && caseValue.equals(data.toString())) {
 
-							return switchCase.getProperty(FlowSwitchCase.next);
+							return switchCase.next();
 						}
 					}
 				}

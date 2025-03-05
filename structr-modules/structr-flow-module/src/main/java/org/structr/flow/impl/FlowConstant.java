@@ -18,22 +18,12 @@
  */
 package org.structr.flow.impl;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.converter.PropertyConverter;
-import org.structr.core.property.*;
 import org.structr.flow.api.DataSource;
-import org.structr.flow.engine.Context;
-import org.structr.flow.impl.rels.FlowDataInput;
 import org.structr.module.api.DeployableEntity;
 
-import java.util.HashMap;
-import java.util.Map;
+public interface FlowConstant extends FlowBaseNode, DataSource, DeployableEntity {
 
-public class FlowConstant extends FlowBaseNode implements DataSource, DeployableEntity {
+	/*
 
 	private static final Logger logger                              = LoggerFactory.getLogger(FlowConstant.class);
 	public static final Property<Iterable<FlowBaseNode>> dataTarget = new EndNodes<>("dataTarget", FlowDataInput.class);
@@ -110,4 +100,5 @@ public class FlowConstant extends FlowBaseNode implements DataSource, Deployable
 		Double,
 		Date
 	}
+	*/
 }

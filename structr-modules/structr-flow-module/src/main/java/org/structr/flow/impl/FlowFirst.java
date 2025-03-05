@@ -18,16 +18,12 @@
  */
 package org.structr.flow.impl;
 
-import org.structr.flow.api.DataSource;
-import org.structr.flow.engine.Context;
-import org.structr.flow.engine.FlowException;
-
-import java.util.Iterator;
-
 /**
  *
  */
-public class FlowFirst extends FlowDataSource {
+public interface FlowFirst extends FlowDataSource {
+
+	/*
 
 	@Override
 	public Object get(final Context context) throws FlowException {
@@ -60,4 +56,5 @@ public class FlowFirst extends FlowDataSource {
 
 		return null;
 	}
+	*/
 }

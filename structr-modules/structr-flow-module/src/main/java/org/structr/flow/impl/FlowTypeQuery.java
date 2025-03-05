@@ -18,34 +18,12 @@
  */
 package org.structr.flow.impl;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.api.search.ComparisonQuery;
-import org.structr.api.search.Occurrence;
-import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.app.App;
-import org.structr.core.app.Query;
-import org.structr.core.app.StructrApp;
-import org.structr.core.graph.Tx;
-import org.structr.core.graph.search.ComparisonSearchAttribute;
-import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.property.*;
-import org.structr.core.script.Scripting;
 import org.structr.flow.api.DataSource;
-import org.structr.flow.engine.Context;
-import org.structr.flow.impl.rels.FlowDataInput;
 import org.structr.module.api.DeployableEntity;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+public interface FlowTypeQuery extends FlowBaseNode, DataSource, DeployableEntity {
 
-public class FlowTypeQuery extends FlowBaseNode implements DataSource, DeployableEntity {
+	/*
 
 	private static final Logger logger                                  = LoggerFactory.getLogger(FlowTypeQuery.class);
 	public static final Property<DataSource> dataSource                 = new StartNode<>("dataSource", FlowDataInput.class);
@@ -258,5 +236,5 @@ public class FlowTypeQuery extends FlowBaseNode implements DataSource, Deployabl
 
 		return query;
 	}
-
+	*/
 }

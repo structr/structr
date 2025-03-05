@@ -23,5 +23,5 @@ import org.structr.flow.api.DataSource;
 /**
  *
  */
-public abstract class FlowCondition extends FlowBaseNode implements DataSource {
+public interface FlowCondition extends FlowBaseNode, DataSource {
 }

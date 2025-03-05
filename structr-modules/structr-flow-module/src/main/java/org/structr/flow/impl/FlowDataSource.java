@@ -18,27 +18,19 @@
  */
 package org.structr.flow.impl;
 
-import org.structr.common.PropertyView;
-import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.property.*;
-import org.structr.core.script.Scripting;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.api.ThrowingElement;
-import org.structr.flow.engine.Context;
-import org.structr.flow.engine.FlowException;
-import org.structr.flow.impl.rels.FlowDataInput;
-import org.structr.flow.impl.rels.FlowExceptionHandlerNodes;
 import org.structr.module.api.DeployableEntity;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  *
  */
-public class FlowDataSource extends FlowBaseNode implements DataSource, DeployableEntity, ThrowingElement {
+public interface FlowDataSource extends FlowBaseNode, DataSource, DeployableEntity, ThrowingElement {
 
+	void setQuery(final String query) throws FrameworkException;
+
+	/*
 	public static final Property<DataSource> dataSource = new StartNode<>("dataSource", FlowDataInput.class);
 	public static final Property<Iterable<FlowBaseNode>> dataTarget = new EndNodes<>("dataTarget", FlowDataInput.class);
 	public static final Property<FlowExceptionHandler> exceptionHandler = new EndNode<>("exceptionHandler", FlowExceptionHandlerNodes.class);
@@ -98,4 +90,5 @@ public class FlowDataSource extends FlowBaseNode implements DataSource, Deployab
 
 		return result;
 	}
+	*/
 }

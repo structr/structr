@@ -20,29 +20,57 @@ package org.structr.flow.impl.rels;
 
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
-import org.structr.common.PermissionPropagation;
-import org.structr.core.entity.OneToMany;
-import org.structr.flow.impl.FlowSwitch;
-import org.structr.flow.impl.FlowSwitchCase;
+import org.structr.core.entity.Relation;
+import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
+import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
 /**
  *
  */
-public class FlowSwitchCases extends OneToMany<FlowSwitch, FlowSwitchCase> implements PermissionPropagation {
+public class FlowSwitchCases extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
-	@Override
-	public Class<FlowSwitch> getSourceType() {
-		return FlowSwitch.class;
+	public FlowSwitchCases() {
+		super("FlowSwitchCases");
 	}
 
 	@Override
-	public Class<FlowSwitchCase> getTargetType() {
-		return FlowSwitchCase.class;
+	public String getSourceType() {
+		return "FlowSwitch";
 	}
 
 	@Override
-	public String name() {
+	public String getTargetType() {
+		return "FlowSwitchCase";
+	}
+
+	@Override
+	public String getRelationshipType() {
 		return "SWITCH_CASE";
+	}
+
+	@Override
+	public Relation.Multiplicity getSourceMultiplicity() {
+		return Relation.Multiplicity.One;
+	}
+
+	@Override
+	public Relation.Multiplicity getTargetMultiplicity() {
+		return Relation.Multiplicity.Many;
+	}
+
+	@Override
+	public int getCascadingDeleteFlag() {
+		return Relation.NONE;
+	}
+
+	@Override
+	public int getAutocreationFlag() {
+		return Relation.NONE;
+	}
+
+	@Override
+	public boolean isInternal() {
+		return false;
 	}
 
 	@Override

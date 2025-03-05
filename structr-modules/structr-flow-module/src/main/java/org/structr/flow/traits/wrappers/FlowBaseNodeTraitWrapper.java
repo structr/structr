@@ -16,31 +16,27 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.flow.impl;
+package org.structr.flow.traits.wrappers;
 
-import org.structr.module.api.DeployableEntity;
+import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
+import org.structr.flow.impl.FlowBaseNode;
 
-public interface FlowParameterInput extends FlowBaseNode, DeployableEntity {
+/**
+ */
+public class FlowBaseNodeTraitWrapper extends AbstractNodeTraitWrapper implements FlowBaseNode {
 
 	/*
+	public static final Property<FlowContainer> flowContainer = new StartNode<>("flowContainer", FlowContainerBaseNode.class).indexed();
 
-	public static final Property<Iterable<FlowCall>> call = new EndNodes<>("call", FlowCallParameter.class);
-	public static final Property<DataSource> dataSource   = new StartNode<>("dataSource", FlowDataInput.class);
-	public static final Property<String> key              = new StringProperty("key");
+	public static final View defaultView = new View(FlowContainer.class, PropertyView.Public);
+	public static final View uiView      = new View(FlowContainer.class, PropertyView.Ui, flowContainer);
 
-	public static final View defaultView = new View(FlowDataSource.class, PropertyView.Public, key, call, dataSource);
-	public static final View uiView      = new View(FlowDataSource.class, PropertyView.Ui, key, call, dataSource);
+	@Override
+	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+		super.onCreation(securityContext, errorBuffer);
 
-
-	public void process(final Context context, final Context functionContext) throws FlowException {
-		DataSource _ds = getProperty(dataSource);
-		String _key = getProperty(key);
-
-		if(_ds != null && _key != null) {
-			Object data = _ds.get(context);
-			functionContext.setParameter(_key, data);
-		}
-
+		this.setProperty(visibleToAuthenticatedUsers, true);
+		this.setProperty(visibleToPublicUsers, true);
 	}
 
 	@Override
@@ -49,7 +45,6 @@ public interface FlowParameterInput extends FlowBaseNode, DeployableEntity {
 
 		result.put("id", this.getUuid());
 		result.put("type", this.getClass().getSimpleName());
-		result.put("key", this.getProperty(key));
 		result.put("visibleToPublicUsers", this.getProperty(visibleToPublicUsers));
 		result.put("visibleToAuthenticatedUsers", this.getProperty(visibleToAuthenticatedUsers));
 

@@ -20,5 +20,5 @@ package org.structr.flow.impl;
 
 import org.structr.flow.api.Action;
 
-public abstract class FlowActionNode extends FlowNode implements Action {
+public interface FlowActionNode extends FlowNode, Action {
 }

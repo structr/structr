@@ -18,27 +18,15 @@
  */
 package org.structr.flow.impl;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.core.property.EndNodes;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNodes;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.api.Exception;
-import org.structr.flow.api.FlowElement;
-import org.structr.flow.api.FlowType;
-import org.structr.flow.engine.Context;
-import org.structr.flow.engine.FlowException;
-import org.structr.flow.impl.rels.FlowDataInput;
-import org.structr.flow.impl.rels.FlowExceptionHandlerNodes;
 import org.structr.module.api.DeployableEntity;
 
-import java.util.HashMap;
-import java.util.Map;
+public interface FlowExceptionHandler extends FlowNode, Exception, DataSource, DeployableEntity {
 
-public class FlowExceptionHandler extends FlowNode implements Exception, DataSource, DeployableEntity {
+	Iterable<FlowBaseNode> getHandledNodes();
+
+	/*
 
 	private static final Logger logger = LoggerFactory.getLogger(FlowExceptionHandler.class);
 
@@ -80,4 +68,5 @@ public class FlowExceptionHandler extends FlowNode implements Exception, DataSou
 
 		return result;
 	}
+	*/
 }

@@ -18,26 +18,19 @@
  */
 package org.structr.flow.impl;
 
-import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.core.property.EndNode;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNode;
-import org.structr.flow.api.DataSource;
 import org.structr.flow.api.Decision;
-import org.structr.flow.api.FlowElement;
-import org.structr.flow.impl.rels.FlowDecisionCondition;
-import org.structr.flow.impl.rels.FlowDecisionFalse;
-import org.structr.flow.impl.rels.FlowDecisionTrue;
 import org.structr.module.api.DeployableEntity;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  *
  */
-public class FlowDecision extends FlowNode implements Decision, DeployableEntity {
+public interface FlowDecision extends FlowNode, Decision, DeployableEntity {
+
+	FlowCondition getCondition();
+	FlowNode getTrueElement();
+	FlowNode getFalseElement();
+
+	/*
 
 	public static final Property<FlowCondition> condition = new StartNode<>("condition", FlowDecisionCondition.class);
 	public static final Property<FlowNode> trueElement    = new EndNode<>("trueElement", FlowDecisionTrue.class);
@@ -72,4 +65,5 @@ public class FlowDecision extends FlowNode implements Decision, DeployableEntity
 
 		return result;
 	}
+	*/
 }

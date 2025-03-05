@@ -18,32 +18,15 @@
  */
 package org.structr.flow.impl;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
-import org.structr.common.View;
-import org.structr.common.error.ErrorBuffer;
-import org.structr.common.error.FrameworkException;
-import org.structr.common.helper.ValidationHelper;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.ModificationQueue;
-import org.structr.core.graph.Tx;
-import org.structr.core.property.*;
-import org.structr.flow.impl.rels.FlowContainerPackageFlow;
-import org.structr.flow.impl.rels.FlowContainerPackagePackage;
+import org.structr.core.graph.NodeInterface;
 import org.structr.module.api.DeployableEntity;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 
 /**
  *
  */
-public class FlowContainerPackage extends AbstractNode implements DeployableEntity {
+public interface FlowContainerPackage extends NodeInterface, DeployableEntity {
+
+	/*
 
 	public static final Property<FlowContainerPackage> parent             = new StartNode<>("parent", FlowContainerPackagePackage.class);
 	public static final Property<Iterable<FlowContainerPackage>> packages = new EndNodes<>("packages", FlowContainerPackagePackage.class);
@@ -155,7 +138,6 @@ public class FlowContainerPackage extends AbstractNode implements DeployableEnti
 		} catch (FrameworkException ex) {
 			logger.warn("Could not handle onDelete for FlowContainerPackage: " + ex.getMessage());
 		}
-
 	}
-
+	*/
 }

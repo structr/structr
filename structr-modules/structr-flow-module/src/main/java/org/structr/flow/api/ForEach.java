@@ -23,9 +23,9 @@ import org.structr.flow.impl.FlowNode;
 /**
  *
  */
-public interface ForEach<T> extends FlowElement {
+public interface ForEach extends FlowElement {
 
-	DataSource<T> getDataSource();
+	DataSource getDataSource();
 	FlowNode getLoopBody();
 
 	@Override

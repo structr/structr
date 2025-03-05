@@ -18,27 +18,12 @@
  */
 package org.structr.flow.impl;
 
-import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.core.GraphObject;
-import org.structr.core.property.EndNodes;
-import org.structr.core.property.Property;
-import org.structr.core.property.StringProperty;
-import org.structr.core.script.Scripting;
 import org.structr.flow.api.DataSource;
-import org.structr.flow.engine.Context;
-import org.structr.flow.engine.FlowException;
-import org.structr.flow.impl.rels.FlowDataInput;
 import org.structr.module.api.DeployableEntity;
-import org.structr.schema.action.ActionContext;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+public interface FlowParameterDataSource extends FlowBaseNode, DataSource, DeployableEntity {
 
-public class FlowParameterDataSource extends FlowBaseNode implements DataSource, DeployableEntity {
+	/*
 
 	public static final Property<Iterable<FlowBaseNode>> dataTarget = new EndNodes<>("dataTarget", FlowDataInput.class);
 	public static final Property<String> key = new StringProperty("key");
@@ -121,4 +106,5 @@ public class FlowParameterDataSource extends FlowBaseNode implements DataSource,
 
 		return result;
 	}
+	*/
 }
