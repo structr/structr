@@ -18,10 +18,16 @@
  */
 package org.structr.flow.impl;
 
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.Traits;
 import org.structr.flow.api.DataSource;
 
 /**
  *
  */
-public interface FlowCondition extends FlowBaseNode, DataSource {
+public abstract class FlowCondition extends FlowBaseNode implements DataSource {
+
+	public FlowCondition(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
+	}
 }

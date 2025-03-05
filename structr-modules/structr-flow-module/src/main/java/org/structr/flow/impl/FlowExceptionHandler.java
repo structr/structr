@@ -18,15 +18,29 @@
  */
 package org.structr.flow.impl;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.common.PropertyView;
+import org.structr.common.View;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.EndNodes;
+import org.structr.core.property.Property;
+import org.structr.core.property.StartNodes;
+import org.structr.core.traits.Traits;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.api.Exception;
+import org.structr.flow.api.FlowElement;
+import org.structr.flow.api.FlowType;
+import org.structr.flow.engine.Context;
+import org.structr.flow.engine.FlowException;
+import org.structr.flow.impl.rels.FlowDataInput;
+import org.structr.flow.impl.rels.FlowExceptionHandlerNodes;
 import org.structr.module.api.DeployableEntity;
 
-public interface FlowExceptionHandler extends FlowNode, Exception, DataSource, DeployableEntity {
+import java.util.HashMap;
+import java.util.Map;
 
-	Iterable<FlowBaseNode> getHandledNodes();
-
-	/*
+public class FlowExceptionHandler extends FlowNode implements Exception, DataSource, DeployableEntity {
 
 	private static final Logger logger = LoggerFactory.getLogger(FlowExceptionHandler.class);
 
@@ -35,6 +49,10 @@ public interface FlowExceptionHandler extends FlowNode, Exception, DataSource, D
 
 	public static final View defaultView = new View(FlowNode.class, PropertyView.Public,  next, handledNodes, dataTarget);
 	public static final View uiView      = new View(FlowNode.class, PropertyView.Ui,      next, handledNodes, dataTarget);
+
+	public FlowExceptionHandler(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
+	}
 
 	@Override
 	public Object get(Context context) throws FlowException {
@@ -68,5 +86,4 @@ public interface FlowExceptionHandler extends FlowNode, Exception, DataSource, D
 
 		return result;
 	}
-	*/
 }

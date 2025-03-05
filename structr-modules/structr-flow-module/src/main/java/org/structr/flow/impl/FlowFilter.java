@@ -18,13 +18,30 @@
  */
 package org.structr.flow.impl;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.api.util.Iterables;
+import org.structr.common.PropertyView;
+import org.structr.common.View;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.EndNodes;
+import org.structr.core.property.Property;
+import org.structr.core.property.StartNode;
+import org.structr.core.traits.Traits;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.api.Filter;
+import org.structr.flow.engine.Context;
+import org.structr.flow.engine.FlowException;
+import org.structr.flow.impl.rels.FlowConditionBaseNode;
+import org.structr.flow.impl.rels.FlowDataInput;
 import org.structr.module.api.DeployableEntity;
 
-public interface FlowFilter extends FlowNode, DataSource, Filter, DeployableEntity {
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-	/*
+public class FlowFilter extends FlowNode implements DataSource, Filter, DeployableEntity {
 
 	private static final Logger logger                              = LoggerFactory.getLogger(FlowFilter.class);
 	public static final Property<DataSource> dataSource             = new StartNode<>("dataSource", FlowDataInput.class);
@@ -33,6 +50,10 @@ public interface FlowFilter extends FlowNode, DataSource, Filter, DeployableEnti
 
 	public static final View defaultView = new View(FlowDataSource.class, PropertyView.Public, dataTarget, dataSource, condition);
 	public static final View uiView      = new View(FlowDataSource.class, PropertyView.Ui, dataTarget, dataSource, condition);
+
+	public FlowFilter(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
+	}
 
 	@Override
 	public Object get(Context context) throws FlowException {
@@ -96,5 +117,5 @@ public interface FlowFilter extends FlowNode, DataSource, Filter, DeployableEnti
 
 		return result;
 	}
-	*/
+
 }

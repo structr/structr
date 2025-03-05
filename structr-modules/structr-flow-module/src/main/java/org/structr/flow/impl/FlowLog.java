@@ -18,12 +18,30 @@
  */
 package org.structr.flow.impl;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.common.PropertyView;
+import org.structr.common.View;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.EndNode;
+import org.structr.core.property.Property;
+import org.structr.core.property.StartNode;
+import org.structr.core.property.StringProperty;
+import org.structr.core.script.Scripting;
+import org.structr.core.traits.Traits;
+import org.structr.flow.api.DataSource;
 import org.structr.flow.api.ThrowingElement;
+import org.structr.flow.engine.Context;
+import org.structr.flow.engine.FlowException;
+import org.structr.flow.impl.rels.FlowDataInput;
+import org.structr.flow.impl.rels.FlowExceptionHandlerNodes;
 import org.structr.module.api.DeployableEntity;
 
-public interface FlowLog extends FlowActionNode, DeployableEntity, ThrowingElement {
+import java.util.HashMap;
+import java.util.Map;
 
-	/*
+public class FlowLog extends FlowActionNode implements DeployableEntity, ThrowingElement {
 
 	public static final Property<DataSource> dataSource 					= new StartNode<>("dataSource", FlowDataInput.class);
 	public static final Property<FlowExceptionHandler> exceptionHandler 	= new EndNode<>("exceptionHandler", FlowExceptionHandlerNodes.class);
@@ -31,6 +49,10 @@ public interface FlowLog extends FlowActionNode, DeployableEntity, ThrowingEleme
 
 	public static final View defaultView 									= new View(FlowAction.class, PropertyView.Public, script, dataSource, exceptionHandler, isStartNodeOfContainer);
 	public static final View uiView      									= new View(FlowAction.class, PropertyView.Ui,     script, dataSource, exceptionHandler, isStartNodeOfContainer);
+
+	public FlowLog(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
+	}
 
 	@Override
 	public void execute(final Context context) throws FlowException {
@@ -82,5 +104,5 @@ public interface FlowLog extends FlowActionNode, DeployableEntity, ThrowingEleme
 
 		return result;
 	}
-	*/
+
 }

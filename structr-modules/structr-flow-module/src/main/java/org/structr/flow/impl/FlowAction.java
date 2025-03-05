@@ -18,18 +18,23 @@
  */
 package org.structr.flow.impl;
 
+import org.structr.common.PropertyView;
+import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.property.*;
+import org.structr.core.script.Scripting;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.api.ThrowingElement;
+import org.structr.flow.engine.Context;
+import org.structr.flow.engine.FlowException;
+import org.structr.flow.impl.rels.FlowDataInput;
+import org.structr.flow.impl.rels.FlowExceptionHandlerNodes;
 import org.structr.module.api.DeployableEntity;
 
-public interface FlowAction extends FlowActionNode, DataSource, DeployableEntity, ThrowingElement {
+import java.util.HashMap;
+import java.util.Map;
 
-	String getScript();
-
-	void setScript(final String script) throws FrameworkException;
-
-	/*
+public class FlowAction extends FlowActionNode implements DataSource, DeployableEntity, ThrowingElement {
 
 	public static final Property<DataSource> dataSource                 = new StartNode<>("dataSource", FlowDataInput.class);
 	public static final Property<Iterable<FlowBaseNode>> dataTarget     = new EndNodes<>("dataTarget", FlowDataInput.class);
@@ -93,5 +98,5 @@ public interface FlowAction extends FlowActionNode, DataSource, DeployableEntity
 
 		return result;
 	}
-	*/
+
 }

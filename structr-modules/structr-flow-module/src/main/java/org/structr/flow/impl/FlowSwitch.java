@@ -18,15 +18,22 @@
  */
 package org.structr.flow.impl;
 
+import org.structr.common.PropertyView;
+import org.structr.common.View;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.*;
+import org.structr.core.traits.Traits;
+import org.structr.flow.api.DataSource;
+import org.structr.flow.api.FlowElement;
+import org.structr.flow.api.FlowType;
 import org.structr.flow.api.Switch;
+import org.structr.flow.impl.rels.FlowContainerFlowNode;
+import org.structr.flow.impl.rels.FlowDataInput;
+import org.structr.flow.impl.rels.FlowNodes;
+import org.structr.flow.impl.rels.FlowSwitchCases;
 import org.structr.module.api.DeployableEntity;
 
-public interface FlowSwitch extends FlowNode, Switch, DeployableEntity {
-
-	Iterable<FlowSwitchCase> getCases();
-
-	/*
-
+public class FlowSwitch extends FlowNode implements Switch, DeployableEntity {
 	public static final Property<Iterable<FlowNode>> prev              = new StartNodes<>("prev", FlowNodes.class);
 	public static final Property<FlowNode> switchDefault               = new EndNode<>("default", FlowNodes.class);
 	public static final Property<Iterable<FlowSwitchCase>> cases       = new EndNodes<>("cases", FlowSwitchCases.class);
@@ -35,6 +42,10 @@ public interface FlowSwitch extends FlowNode, Switch, DeployableEntity {
 
 	public static final View defaultView 						       = new View(FlowAction.class, PropertyView.Public, prev, switchDefault, cases, dataSource);
 	public static final View uiView      						       = new View(FlowAction.class, PropertyView.Ui, prev, switchDefault, cases, dataSource);
+
+	public FlowSwitch(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
+	}
 
 	@Override
 	public FlowType getFlowType() {
@@ -50,5 +61,4 @@ public interface FlowSwitch extends FlowNode, Switch, DeployableEntity {
 	public FlowElement next() {
 		return getProperty(switchDefault);
 	}
-	*/
 }

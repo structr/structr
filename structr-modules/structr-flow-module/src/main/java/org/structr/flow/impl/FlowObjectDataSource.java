@@ -18,12 +18,26 @@
  */
 package org.structr.flow.impl;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.common.PropertyView;
+import org.structr.common.View;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.Property;
+import org.structr.core.property.StartNodes;
+import org.structr.core.traits.Traits;
+import org.structr.flow.api.KeyValue;
+import org.structr.flow.engine.Context;
+import org.structr.flow.engine.FlowException;
+import org.structr.flow.impl.rels.FlowKeyValueObjectInput;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 /**
  *
  */
-public interface FlowObjectDataSource extends FlowDataSource {
-
-	/*
+public class FlowObjectDataSource extends FlowDataSource {
 
 	private static final Logger logger = LoggerFactory.getLogger(FlowObjectDataSource.class);
 
@@ -31,6 +45,10 @@ public interface FlowObjectDataSource extends FlowDataSource {
 
 	public static final View defaultView = new View(FlowObjectDataSource.class, PropertyView.Public, keyValueSources);
 	public static final View uiView      = new View(FlowObjectDataSource.class, PropertyView.Ui,     keyValueSources);
+
+	public FlowObjectDataSource(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
+	}
 
 	@Override
 	public Object get(final Context context) throws FlowException {
@@ -54,5 +72,4 @@ public interface FlowObjectDataSource extends FlowDataSource {
 
 		return result;
 	}
-	*/
 }

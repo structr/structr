@@ -18,13 +18,32 @@
  */
 package org.structr.flow.impl;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.api.util.Iterables;
+import org.structr.common.PropertyView;
+import org.structr.common.View;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.property.EndNode;
+import org.structr.core.property.EndNodes;
+import org.structr.core.property.Property;
+import org.structr.core.property.StartNodes;
 import org.structr.flow.api.DataSource;
+import org.structr.flow.api.FlowResult;
 import org.structr.flow.api.ThrowingElement;
+import org.structr.flow.engine.Context;
+import org.structr.flow.engine.FlowEngine;
+import org.structr.flow.engine.FlowException;
+import org.structr.flow.impl.rels.FlowCallContainer;
+import org.structr.flow.impl.rels.FlowCallParameter;
+import org.structr.flow.impl.rels.FlowDataInput;
 import org.structr.module.api.DeployableEntity;
 
-public interface FlowCall extends FlowActionNode, DataSource, DeployableEntity, ThrowingElement {
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-	/*
+public class FlowCall extends FlowActionNode implements DataSource, DeployableEntity, ThrowingElement {
 
 	private static final Logger logger 									= LoggerFactory.getLogger(FlowCall.class);
 
@@ -110,5 +129,4 @@ public interface FlowCall extends FlowActionNode, DataSource, DeployableEntity, 
 	public FlowExceptionHandler getExceptionHandler(Context context) {
 		return null;
 	}
-	*/
 }

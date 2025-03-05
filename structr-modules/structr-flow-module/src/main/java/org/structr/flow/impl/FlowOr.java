@@ -18,12 +18,18 @@
  */
 package org.structr.flow.impl;
 
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.Traits;
+
 /**
  *
  */
-public interface FlowOr extends FlowLogicCondition {
+public class FlowOr extends FlowLogicCondition {
 
-	/*
+	public FlowOr(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
+	}
+
 	@Override
 	protected Boolean combine(Boolean result, Boolean value) {
 		if (result == null) {
@@ -31,5 +37,4 @@ public interface FlowOr extends FlowLogicCondition {
 		}
 		return result || value;
 	}
-	*/
 }

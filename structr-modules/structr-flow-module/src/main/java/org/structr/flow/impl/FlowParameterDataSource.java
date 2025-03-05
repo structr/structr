@@ -18,18 +18,37 @@
  */
 package org.structr.flow.impl;
 
+import org.structr.common.PropertyView;
+import org.structr.common.View;
+import org.structr.core.GraphObject;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.EndNodes;
+import org.structr.core.property.Property;
+import org.structr.core.property.StringProperty;
+import org.structr.core.traits.Traits;
 import org.structr.flow.api.DataSource;
+import org.structr.flow.engine.Context;
+import org.structr.flow.engine.FlowException;
+import org.structr.flow.impl.rels.FlowDataInput;
 import org.structr.module.api.DeployableEntity;
 
-public interface FlowParameterDataSource extends FlowBaseNode, DataSource, DeployableEntity {
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
-	/*
+public class FlowParameterDataSource extends FlowBaseNode implements DataSource, DeployableEntity {
 
 	public static final Property<Iterable<FlowBaseNode>> dataTarget = new EndNodes<>("dataTarget", FlowDataInput.class);
 	public static final Property<String> key = new StringProperty("key");
 
 	public static final View defaultView = new View(FlowDataSource.class, PropertyView.Public, key, dataTarget);
 	public static final View uiView = new View(FlowDataSource.class, PropertyView.Ui, key, dataTarget);
+
+	public FlowParameterDataSource(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
+	}
 
 	@Override
 	public Object get(Context context) throws FlowException {
@@ -106,5 +125,4 @@ public interface FlowParameterDataSource extends FlowBaseNode, DataSource, Deplo
 
 		return result;
 	}
-	*/
 }

@@ -18,11 +18,23 @@
  */
 package org.structr.flow.impl;
 
+import org.structr.api.util.Iterables;
+import org.structr.common.PropertyView;
+import org.structr.common.View;
+import org.structr.core.property.Property;
+import org.structr.core.property.StartNodes;
+import org.structr.flow.api.DataSource;
+import org.structr.flow.engine.Context;
+import org.structr.flow.engine.FlowException;
+import org.structr.flow.impl.rels.FlowDataInputs;
 import org.structr.module.api.DeployableEntity;
 
-public interface FlowCollectionDataSource extends FlowDataSource, DeployableEntity {
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-	/*
+public class FlowCollectionDataSource extends FlowDataSource implements DeployableEntity {
 
 	public static final Property<Iterable<DataSource>> dataSources = new StartNodes<>("dataSources", FlowDataInputs.class);
 
@@ -59,5 +71,5 @@ public interface FlowCollectionDataSource extends FlowDataSource, DeployableEnti
 
 		return result;
 	}
-	*/
+
 }

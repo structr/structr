@@ -18,20 +18,31 @@
  */
 package org.structr.flow.impl;
 
-import org.structr.common.error.FrameworkException;
+import org.structr.common.PropertyView;
+import org.structr.common.View;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.EndNode;
+import org.structr.core.property.EndNodes;
+import org.structr.core.property.Property;
+import org.structr.core.property.StartNode;
+import org.structr.core.traits.Traits;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.api.ForEach;
 import org.structr.flow.api.ThrowingElement;
+import org.structr.flow.engine.Context;
+import org.structr.flow.impl.rels.FlowDataInput;
+import org.structr.flow.impl.rels.FlowExceptionHandlerNodes;
+import org.structr.flow.impl.rels.FlowForEachBody;
 import org.structr.module.api.DeployableEntity;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
  */
-public interface FlowForEach extends FlowNode, ForEach, DataSource, DeployableEntity, ThrowingElement {
+public class FlowForEach extends FlowNode implements ForEach, DataSource, DeployableEntity, ThrowingElement {
 
-	void setLoopBody(final FlowNode flowNode) throws FrameworkException;
-
-	/*
 	public static final Property<DataSource> dataSource                  = new StartNode<>("dataSource", FlowDataInput.class);
 	public static final Property<Iterable<FlowBaseNode>> dataTarget      = new EndNodes<>("dataTarget", FlowDataInput.class);
 	public static final Property<FlowNode> loopBody                      = new EndNode<>("loopBody", FlowForEachBody.class);
@@ -39,6 +50,10 @@ public interface FlowForEach extends FlowNode, ForEach, DataSource, DeployableEn
 
 	public static final View defaultView = new View(FlowForEach.class, PropertyView.Public, dataSource, loopBody, isStartNodeOfContainer, exceptionHandler);
 	public static final View uiView      = new View(FlowForEach.class, PropertyView.Ui,     dataSource, loopBody, isStartNodeOfContainer, exceptionHandler);
+
+	public FlowForEach(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
+	}
 
 
 	@Override
@@ -72,5 +87,4 @@ public interface FlowForEach extends FlowNode, ForEach, DataSource, DeployableEn
 
 		return result;
 	}
-	*/
 }

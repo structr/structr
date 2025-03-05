@@ -18,15 +18,31 @@
  */
 package org.structr.flow.impl;
 
+import org.structr.api.util.Iterables;
+import org.structr.common.PropertyView;
+import org.structr.common.View;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.EndNode;
+import org.structr.core.property.EndNodes;
+import org.structr.core.property.Property;
+import org.structr.core.property.StartNodes;
+import org.structr.core.traits.Traits;
 import org.structr.flow.api.DataSource;
+import org.structr.flow.engine.Context;
+import org.structr.flow.engine.FlowException;
+import org.structr.flow.impl.rels.FlowConditionCondition;
+import org.structr.flow.impl.rels.FlowDataInputs;
+import org.structr.flow.impl.rels.FlowDecisionCondition;
 import org.structr.module.api.DeployableEntity;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  *
  */
-public interface FlowNotEmpty extends FlowCondition, DataSource, DeployableEntity {
-
-	/*
+public class FlowNotEmpty extends FlowCondition implements DataSource, DeployableEntity {
 
 	public static final Property<Iterable<DataSource>> dataSources = new StartNodes<>("dataSources", FlowDataInputs.class);
 	public static final Property<FlowCondition> condition          = new EndNode<>("condition", FlowConditionCondition.class);
@@ -34,6 +50,10 @@ public interface FlowNotEmpty extends FlowCondition, DataSource, DeployableEntit
 
 	public static final View defaultView = new View(FlowNotNull.class, PropertyView.Public, dataSources, condition, decision);
 	public static final View uiView      = new View(FlowNotNull.class, PropertyView.Ui,     dataSources, condition, decision);
+
+	public FlowNotEmpty(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
+	}
 
 	@Override
 	public Object get(final Context context) throws FlowException {
@@ -68,5 +88,4 @@ public interface FlowNotEmpty extends FlowCondition, DataSource, DeployableEntit
 
 		return result;
 	}
-	*/
 }

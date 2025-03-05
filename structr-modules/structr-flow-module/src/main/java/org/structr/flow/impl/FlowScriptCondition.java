@@ -18,12 +18,26 @@
  */
 package org.structr.flow.impl;
 
+import org.structr.common.PropertyView;
+import org.structr.common.View;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.*;
+import org.structr.core.script.Scripting;
+import org.structr.core.traits.Traits;
+import org.structr.flow.api.DataSource;
 import org.structr.flow.api.ThrowingElement;
+import org.structr.flow.engine.Context;
+import org.structr.flow.engine.FlowException;
+import org.structr.flow.impl.rels.FlowDataInput;
+import org.structr.flow.impl.rels.FlowExceptionHandlerNodes;
+import org.structr.flow.impl.rels.FlowScriptConditionSource;
 import org.structr.module.api.DeployableEntity;
 
-public interface FlowScriptCondition extends FlowCondition, DeployableEntity, ThrowingElement {
+import java.util.HashMap;
+import java.util.Map;
 
-	/*
+public class FlowScriptCondition extends FlowCondition implements 	DeployableEntity, ThrowingElement {
 
 	public static final Property<DataSource> scriptSource               = new StartNode<>("scriptSource", FlowScriptConditionSource.class);
 	public static final Property<DataSource> dataSource                 = new StartNode<>("dataSource", FlowDataInput.class);
@@ -33,6 +47,10 @@ public interface FlowScriptCondition extends FlowCondition, DeployableEntity, Th
 
 	public static final View defaultView    = new View(FlowScriptCondition.class, PropertyView.Public, script, scriptSource, dataSource, dataTarget, exceptionHandler);
 	public static final View uiView         = new View(FlowScriptCondition.class, PropertyView.Ui,     script, scriptSource, dataSource, dataTarget, exceptionHandler);
+
+	public FlowScriptCondition(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
+	}
 
 	@Override
 	public Object get(final Context context) throws FlowException {
@@ -83,5 +101,4 @@ public interface FlowScriptCondition extends FlowCondition, DeployableEntity, Th
 
 		return result;
 	}
-	*/
 }

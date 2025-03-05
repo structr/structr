@@ -18,15 +18,34 @@
  */
 package org.structr.flow.impl;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
+import org.structr.common.View;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
+import org.structr.common.helper.ValidationHelper;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.Tx;
+import org.structr.core.property.*;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
+import org.structr.flow.impl.rels.FlowContainerPackageFlow;
+import org.structr.flow.impl.rels.FlowContainerPackagePackage;
 import org.structr.module.api.DeployableEntity;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  *
  */
-public interface FlowContainerPackage extends NodeInterface, DeployableEntity {
-
-	/*
+public class FlowContainerPackage extends AbstractNodeTraitWrapper implements DeployableEntity {
 
 	public static final Property<FlowContainerPackage> parent             = new StartNode<>("parent", FlowContainerPackagePackage.class);
 	public static final Property<Iterable<FlowContainerPackage>> packages = new EndNodes<>("packages", FlowContainerPackagePackage.class);
@@ -40,6 +59,10 @@ public interface FlowContainerPackage extends NodeInterface, DeployableEntity {
 	public static final View uiView      = new View(FlowContainer.class, PropertyView.Ui,     name, effectiveName, packages, flows, parent, scheduledForIndexing);
 
 	private static final Logger logger = LoggerFactory.getLogger(FlowContainerPackage.class);
+
+	public FlowContainerPackage(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
+	}
 
 	@Override
 	public boolean isValid(final ErrorBuffer errorBuffer) {
@@ -138,6 +161,7 @@ public interface FlowContainerPackage extends NodeInterface, DeployableEntity {
 		} catch (FrameworkException ex) {
 			logger.warn("Could not handle onDelete for FlowContainerPackage: " + ex.getMessage());
 		}
+
 	}
-	*/
+
 }

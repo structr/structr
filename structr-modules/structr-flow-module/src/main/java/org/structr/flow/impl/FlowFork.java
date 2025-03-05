@@ -18,14 +18,28 @@
  */
 package org.structr.flow.impl;
 
+import org.structr.common.PropertyView;
+import org.structr.common.View;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.EndNode;
+import org.structr.core.property.EndNodes;
+import org.structr.core.property.Property;
+import org.structr.core.property.StartNode;
+import org.structr.core.traits.Traits;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.api.Fork;
 import org.structr.flow.api.ThrowingElement;
+import org.structr.flow.engine.Context;
+import org.structr.flow.engine.FlowException;
+import org.structr.flow.impl.rels.FlowDataInput;
+import org.structr.flow.impl.rels.FlowExceptionHandlerNodes;
+import org.structr.flow.impl.rels.FlowForkBody;
 import org.structr.module.api.DeployableEntity;
 
-public interface FlowFork extends FlowNode, Fork, DataSource, DeployableEntity, ThrowingElement {
+import java.util.HashMap;
+import java.util.Map;
 
-	/*
+public class FlowFork extends FlowNode implements Fork, DataSource, DeployableEntity, ThrowingElement {
 
 	public static final Property<DataSource> dataSource                 = new StartNode<>("dataSource", FlowDataInput.class);
 	public static final Property<Iterable<FlowBaseNode>> dataTarget     = new EndNodes<>("dataTarget", FlowDataInput.class);
@@ -34,6 +48,10 @@ public interface FlowFork extends FlowNode, Fork, DataSource, DeployableEntity, 
 
 	public static final View defaultView = new View(FlowAction.class, PropertyView.Public, exceptionHandler, isStartNodeOfContainer, forkBody, dataSource, dataTarget);
 	public static final View uiView      = new View(FlowAction.class, PropertyView.Ui, exceptionHandler, isStartNodeOfContainer, forkBody, dataSource, dataTarget);
+
+	public FlowFork(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
+	}
 
 	@Override
 	public FlowExceptionHandler getExceptionHandler(Context context) {
@@ -89,5 +107,4 @@ public interface FlowFork extends FlowNode, Fork, DataSource, DeployableEntity, 
 		return data;
 
 	}
-	*/
 }

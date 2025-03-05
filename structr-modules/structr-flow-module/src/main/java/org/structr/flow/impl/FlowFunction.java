@@ -21,9 +21,6 @@ package org.structr.flow.impl;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.traits.Traits;
 import org.structr.flow.api.FlowResult;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowEngine;
@@ -64,20 +61,17 @@ public class FlowFunction extends Function<Object, Object> {
 
 			if (sources[0] instanceof String) {
 
-				final String name                 = (String)sources[0];
-				final PropertyKey<String> nameKey = Traits.of("FlowContainer").key("effectiveName");
-				final NodeInterface containerNode = StructrApp.getInstance(ctx.getSecurityContext()).nodeQuery("FlowContainer").and(nameKey, name).getFirst();
-				Map<String, Object> parameters    = null;
+				final String name                                     = (String)sources[0];
+				final FlowContainer container = StructrApp.getInstance(ctx.getSecurityContext()).nodeQuery(FlowContainer.class).and(FlowContainer.effectiveName, name).getFirst();
+				Map<String, Object> parameters                        = null;
 
 				if (sources.length > 1 && sources[1] instanceof Map) {
 					parameters = (Map)sources[1];
 				}
 
-				if (containerNode != null && containerNode.is("FlowContainer")) {
+				if (container != null) {
 
-					final FlowContainer container = containerNode.as(FlowContainer.class);
-					final FlowNode node           = container.getStartNode();
-
+					final FlowNode node = container.getProperty(FlowContainer.startNode);
 					if (node != null) {
 
 						final Context context = new Context(caller instanceof GraphObject ? (GraphObject)caller : null);

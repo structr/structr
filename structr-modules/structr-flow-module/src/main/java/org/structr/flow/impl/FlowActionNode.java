@@ -18,7 +18,13 @@
  */
 package org.structr.flow.impl;
 
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.Traits;
 import org.structr.flow.api.Action;
 
-public interface FlowActionNode extends FlowNode, Action {
+public abstract class FlowActionNode extends FlowNode implements Action {
+
+	public FlowActionNode(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
+	}
 }

@@ -18,12 +18,22 @@
  */
 package org.structr.flow.impl;
 
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.Traits;
+import org.structr.flow.api.DataSource;
+import org.structr.flow.engine.Context;
+import org.structr.flow.engine.FlowException;
+
+import java.util.Iterator;
+
 /**
  *
  */
-public interface FlowFirst extends FlowDataSource {
+public class FlowFirst extends FlowDataSource {
 
-	/*
+	public FlowFirst(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
+	}
 
 	@Override
 	public Object get(final Context context) throws FlowException {
@@ -56,5 +66,4 @@ public interface FlowFirst extends FlowDataSource {
 
 		return null;
 	}
-	*/
 }

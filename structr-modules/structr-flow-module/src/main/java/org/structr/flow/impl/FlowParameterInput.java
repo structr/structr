@@ -18,11 +18,25 @@
  */
 package org.structr.flow.impl;
 
+import org.structr.common.PropertyView;
+import org.structr.common.View;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.EndNodes;
+import org.structr.core.property.Property;
+import org.structr.core.property.StartNode;
+import org.structr.core.property.StringProperty;
+import org.structr.core.traits.Traits;
+import org.structr.flow.api.DataSource;
+import org.structr.flow.engine.Context;
+import org.structr.flow.engine.FlowException;
+import org.structr.flow.impl.rels.FlowCallParameter;
+import org.structr.flow.impl.rels.FlowDataInput;
 import org.structr.module.api.DeployableEntity;
 
-public interface FlowParameterInput extends FlowBaseNode, DeployableEntity {
+import java.util.HashMap;
+import java.util.Map;
 
-	/*
+public class FlowParameterInput extends FlowBaseNode implements DeployableEntity {
 
 	public static final Property<Iterable<FlowCall>> call = new EndNodes<>("call", FlowCallParameter.class);
 	public static final Property<DataSource> dataSource   = new StartNode<>("dataSource", FlowDataInput.class);
@@ -30,6 +44,10 @@ public interface FlowParameterInput extends FlowBaseNode, DeployableEntity {
 
 	public static final View defaultView = new View(FlowDataSource.class, PropertyView.Public, key, call, dataSource);
 	public static final View uiView      = new View(FlowDataSource.class, PropertyView.Ui, key, call, dataSource);
+
+	public FlowParameterInput(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
+	}
 
 
 	public void process(final Context context, final Context functionContext) throws FlowException {
@@ -55,5 +73,4 @@ public interface FlowParameterInput extends FlowBaseNode, DeployableEntity {
 
 		return result;
 	}
-	*/
 }

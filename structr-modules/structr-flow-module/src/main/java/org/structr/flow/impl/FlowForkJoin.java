@@ -18,18 +18,35 @@
  */
 package org.structr.flow.impl;
 
+import org.structr.common.PropertyView;
+import org.structr.common.View;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.EndNode;
+import org.structr.core.property.Property;
+import org.structr.core.traits.Traits;
 import org.structr.flow.api.Action;
 import org.structr.flow.api.ThrowingElement;
+import org.structr.flow.engine.Context;
+import org.structr.flow.engine.FlowException;
+import org.structr.flow.impl.rels.FlowExceptionHandlerNodes;
 import org.structr.module.api.DeployableEntity;
 
-public interface FlowForkJoin extends FlowNode, Action, DeployableEntity, ThrowingElement {
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
-	/*
+public class FlowForkJoin extends FlowNode implements Action, DeployableEntity, ThrowingElement {
 
 	public static final Property<FlowExceptionHandler> exceptionHandler 	= new EndNode<>("exceptionHandler", FlowExceptionHandlerNodes.class);
 
 	public static final View defaultView 									= new View(FlowAction.class, PropertyView.Public, exceptionHandler, isStartNodeOfContainer);
 	public static final View uiView      									= new View(FlowAction.class, PropertyView.Ui, exceptionHandler, isStartNodeOfContainer);
+
+	public FlowForkJoin(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
+	}
 
 	@Override
 	public FlowExceptionHandler getExceptionHandler(Context context) {
@@ -71,5 +88,4 @@ public interface FlowForkJoin extends FlowNode, Action, DeployableEntity, Throwi
 		}
 
 	}
-	*/
 }
