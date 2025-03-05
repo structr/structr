@@ -729,7 +729,7 @@ public class ConfigServlet extends AbstractServletBase {
 			final Tag div = body.block("div");
 
 			final Tag leftDiv  = div.block("div").css("inline-block");
-			leftDiv.block("button").css("default-action").attr(new Type("button")).text("Create new database connection").attr(new OnClick("$('.new-connection.collapsed').removeClass('collapsed')"));
+			leftDiv.block("button").id("create-db-connection-button").css("default-action").attr(new Type("button")).text("Create new database connection");
 			leftDiv.block("p").text("Configure Structr to connect to a running database.");
 
 			final Tag rightDiv = div.block("div").css("inline-block");

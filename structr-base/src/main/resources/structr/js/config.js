@@ -141,9 +141,16 @@ let _Config = {
 		loadingMessageId: 'config-database-loading',
 		init: () => {
 
-			document.querySelector('.show-add-connection').addEventListener('click', (e) => {
+			let createNewConnectionButton = document.querySelector('#create-db-connection-button');
+			let showAddConnectionPlusButton = document.querySelector('.show-add-connection');
 
-				let connectionPanel = e.target.closest('.connection');
+			createNewConnectionButton?.addEventListener('click', () => {
+				showAddConnectionPlusButton.dispatchEvent(new Event('click'))
+			});
+
+			document.querySelector('.show-add-connection').addEventListener('click', (event) => {
+
+				let connectionPanel = event.target.closest('.connection');
 
 				let newConnPasswordInput = connectionPanel.querySelector('#password-structr-new-connection');
 
@@ -174,7 +181,7 @@ let _Config = {
 
 				connectionPanel.classList.remove('collapsed');
 
-				_Helpers.fastRemoveElement(e.target.closest('.show-add-connection'));
+				_Helpers.fastRemoveElement(event.target.closest('.show-add-connection'));
 			});
 
 			let addConnectionButton = document.querySelector('#add-connection');

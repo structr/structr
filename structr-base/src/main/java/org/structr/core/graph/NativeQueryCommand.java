@@ -52,9 +52,10 @@ public class NativeQueryCommand extends NodeServiceCommand {
 	private static final Logger logger = LoggerFactory.getLogger(NativeQueryCommand.class.getName());
 
 	private boolean dontFlushCachesIfKeywordsInQuery = false;
+	private boolean runInNewTransaction = false;
 
 	public Iterable execute(String query) throws FrameworkException {
-		return execute(query, null);
+		return execute(query, null, false);
 	}
 
 	public Iterable execute(String query, Map<String, Object> parameters) throws FrameworkException {
@@ -70,31 +71,42 @@ public class NativeQueryCommand extends NodeServiceCommand {
 		final DatabaseService graphDb = (DatabaseService) arguments.get("graphDb");
 		if (graphDb != null) {
 
-			Iterable extracted = null;
-			try (final Transaction tx = graphDb.beginTx(true)) {
+			final Iterable extracted, result;
 
-				final NativeQuery<Iterable> nativeQuery = graphDb.query(query, Iterable.class);
+			final NativeQuery<Iterable> nativeQuery = graphDb.query(query, Iterable.class);
 
-				if (parameters != null) {
-					nativeQuery.configure(parameters);
-				}
+			if (parameters != null) {
+				nativeQuery.configure(parameters);
+			}
 
-				final Iterable result = graphDb.execute(nativeQuery, tx);
+			if (runInNewTransaction) {
+				// Run query in isolated tx
+				final Transaction tx = graphDb.beginTx(true);
+
+				result = graphDb.execute(nativeQuery, tx);
 				tx.success();
+				tx.close();
+			} else {
 
-				extracted = extractRows(result, includeHiddenAndDeleted, publicOnly);
+				// Run query in current tx
+				result = graphDb.execute(nativeQuery);
+			}
 
-				if (!dontFlushCachesIfKeywordsInQuery && query.matches("(?i)(?s)(?m).*\\s+(delete|set|remove)\\s+.*")) {
-					logger.info("Clearing all caches due to DELETE, SET or REMOVE found in native query: " + query);
-					FlushCachesCommand.flushAll();
-				}
+			extracted = extractRows(result, includeHiddenAndDeleted, publicOnly);
 
+			if (!dontFlushCachesIfKeywordsInQuery && query.matches("(?i)(?s)(?m).*\\s+(delete|set|remove)\\s+.*")) {
+				logger.info("Clearing all caches due to DELETE, SET or REMOVE found in native query: " + query);
+				FlushCachesCommand.flushAll();
 			}
 
 			return extracted;
 		}
 
 		return Collections.emptyList();
+	}
+
+	public void setRunInNewTransaction(final boolean runInNewTransaction) {
+		this.runInNewTransaction = runInNewTransaction;
 	}
 
 	public void setDontFlushCachesIfKeywordsInQuery(final boolean dontFlushCachesIfKeywordsInQuery) {
