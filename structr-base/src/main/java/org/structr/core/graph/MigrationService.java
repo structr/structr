@@ -144,6 +144,7 @@ public class MigrationService {
 			migrateEventActionMapping();
 			updateSharedComponentFlag();
 			warnAboutRestQueryRepeaters();
+			warnAboutWrongNotionProperties();
 		}
 	}
 
@@ -591,15 +592,15 @@ public class MigrationService {
 		final String failureBehaviour     = actionMapping.getFailureBehaviour();
 		boolean hasChanges                = false;
 
-		if (successBehaviour == null) {
+		if (StringUtils.isBlank(successBehaviour)) {
 
 			actionMapping.setSuccessBehaviour("full-page-reload");
 			hasChanges = true;
 		}
 
-		if (failureBehaviour == null) {
+		if (StringUtils.isBlank(failureBehaviour)) {
 
-			actionMapping.setSuccessBehaviour("none");
+			actionMapping.setFailureBehaviour("none");
 			hasChanges = true;
 		}
 
@@ -917,6 +918,35 @@ public class MigrationService {
 		}
 
 		return null;
+	}
+
+	private static void warnAboutWrongNotionProperties() {
+
+		final PropertyKey<String> typeKey   = Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType");
+		final PropertyKey<String> formatKey = Traits.of(StructrTraits.SCHEMA_PROPERTY).key("format");
+		final App app                       = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			logger.info("Checking for notion properties that might need migration..");
+
+			for (final NodeInterface property : StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_PROPERTY).and(typeKey, "Notion").getResultStream()) {
+
+				final SchemaProperty schemaProperty = property.as(SchemaProperty.class);
+				final AbstractSchemaNode type       = schemaProperty.getSchemaNode();
+				final String format                 = property.getProperty(formatKey);
+
+				if (format != null && format.contains("Property")) {
+
+					logger.info("Notion property {}.{} might need migration because the format string contains 'Property'. This cannot be done automatically, please check and change: {}", type.getName(), property.getName(), format);
+				}
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			logger.warn("Unable to check migration status for REST query repeaters: {}", fex.getMessage());
+		}
 	}
 
 	private static void warnAboutRestQueryRepeaters() {

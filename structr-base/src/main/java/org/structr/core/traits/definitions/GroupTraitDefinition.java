@@ -117,7 +117,7 @@ public final class GroupTraitDefinition extends AbstractNodeTraitDefinition {
 
 				if (entity.is(StructrTraits.GROUP)) {
 
-					final NodeInterface userNode = (NodeInterface)arguments.get("user");
+					final NodeInterface userNode = (NodeInterface)arguments.get(0);
 					Principal user               = null;
 
 					if (userNode != null) {
@@ -152,7 +152,7 @@ public final class GroupTraitDefinition extends AbstractNodeTraitDefinition {
 
 				if (entity.is(StructrTraits.GROUP)) {
 
-					final NodeInterface userNode = (NodeInterface)arguments.get("user");
+					final NodeInterface userNode = (NodeInterface)arguments.get(0);
 					Principal user               = null;
 
 					if (userNode != null) {

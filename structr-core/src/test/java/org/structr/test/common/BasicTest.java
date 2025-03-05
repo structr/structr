@@ -2107,6 +2107,41 @@ public class BasicTest extends StructrTest {
 		}
 	}
 
+	@Test
+	public void testQueryWithNullAndEmptyObjects() {
+
+		final PropertyKey<String> nameKey = Traits.of("TestOne").key("name");
+
+		try (final Tx tx = app.tx()) {
+
+			final String emptyName = "";
+			final String nullName  = null;
+
+			app.create("TestOne", nullName);
+			app.create("TestOne", emptyName);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			logger.warn("", fex);
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final List<NodeInterface> list = app.nodeQuery("TestOne").and(nameKey, null).getAsList();
+
+			assertEquals("Query for node with null string value should include nodes with empty string value", 2, list.size());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			logger.warn("", fex);
+			fail("Unexpected exception.");
+		}
+
+	}
+
 	// ----- private methods -----
 	private void setPropertyTx(final GraphObject obj, final PropertyKey key, final Object value) {
 
