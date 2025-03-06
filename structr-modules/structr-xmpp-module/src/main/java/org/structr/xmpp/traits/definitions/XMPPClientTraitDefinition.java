@@ -32,7 +32,9 @@ import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnDeletion;
@@ -53,8 +55,19 @@ import java.util.Set;
  */
 public class XMPPClientTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String PENDING_REQUESTS_PROPERTY = "pendingRequests";
+	public static final String XMPP_HANDLE_PROPERTY      = "xmppHandle";
+	public static final String XMPP_USERNAME_PROPERTY    = "xmppUsername";
+	public static final String XMPP_PASSWORD_PROPERTY    = "xmppPassword";
+	public static final String XMPP_SERVICE_PROPERTY     = "xmppService";
+	public static final String XMPP_HOST_PROPERTY        = "xmppHost";
+	public static final String XMPP_PORT_PROPERTY        = "xmppPort";
+	public static final String PRESENCE_MODE_PROPERTY    = "presenceMode";
+	public static final String IS_ENABLED_PROPERTY       = "isEnabled";
+	public static final String IS_CONNECTED_PROPERTY     = "isConnected";
+
 	public XMPPClientTraitDefinition() {
-		super("XMPPClient");
+		super(StructrTraits.XMPP_CLIENT);
 	}
 
 	@Override
@@ -121,7 +134,7 @@ public class XMPPClientTraitDefinition extends AbstractNodeTraitDefinition {
 				public void onDeletion(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final PropertyMap properties) throws FrameworkException {
 
 					final XMPPClient client = graphObject.as(XMPPClient.class);
-					final String uuid       = properties.get(client.getTraits().key("uuid"));
+					final String uuid       = properties.get(client.getTraits().key(GraphObjectTraitDefinition.ID_PROPERTY));
 
 					if (uuid != null) {
 
@@ -343,16 +356,16 @@ public class XMPPClientTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Iterable<NodeInterface>> pendingRequestsProperty = new EndNodes("pendingRequests", "XMPPClientRequest");
-		final Property<String> xmppHandleProperty                       = new FunctionProperty("xmppHandle").readFunction("concat(this.xmppUsername, '@', this.xmppHost)").typeHint("String").indexed();
-		final Property<String> xmppUsernameProperty                     = new StringProperty("xmppUsername").indexed();
-		final Property<String> xmppPasswordProperty                     = new StringProperty("xmppPassword");
-		final Property<String> xmppServiceProperty                      = new StringProperty("xmppService");
-		final Property<String> xmppHostProperty                         = new StringProperty("xmppHost");
-		final Property<Integer> xmppPortProperty                        = new IntProperty("xmppPort");
-		final Property<String> presenceModeProperty                     = new EnumProperty("presenceMode", Mode.class);
-		final Property<Boolean> isEnabledProperty                       = new BooleanProperty("isEnabled");
-		final Property<Boolean> isConnectedProperty                     = new BooleanProperty("isConnected");
+		final Property<Iterable<NodeInterface>> pendingRequestsProperty = new EndNodes(PENDING_REQUESTS_PROPERTY, StructrTraits.XMPP_CLIENT_REQUEST);
+		final Property<String> xmppHandleProperty                       = new FunctionProperty(XMPP_HANDLE_PROPERTY).readFunction("concat(this.xmppUsername, '@', this.xmppHost)").typeHint("String").indexed();
+		final Property<String> xmppUsernameProperty                     = new StringProperty(XMPP_USERNAME_PROPERTY).indexed();
+		final Property<String> xmppPasswordProperty                     = new StringProperty(XMPP_PASSWORD_PROPERTY);
+		final Property<String> xmppServiceProperty                      = new StringProperty(XMPP_SERVICE_PROPERTY);
+		final Property<String> xmppHostProperty                         = new StringProperty(XMPP_HOST_PROPERTY);
+		final Property<Integer> xmppPortProperty                        = new IntProperty(XMPP_PORT_PROPERTY);
+		final Property<String> presenceModeProperty                     = new EnumProperty(PRESENCE_MODE_PROPERTY, Mode.class);
+		final Property<Boolean> isEnabledProperty                       = new BooleanProperty(IS_ENABLED_PROPERTY);
+		final Property<Boolean> isConnectedProperty                     = new BooleanProperty(IS_CONNECTED_PROPERTY);
 
 		return newSet(
 			pendingRequestsProperty,
@@ -374,13 +387,13 @@ public class XMPPClientTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"xmppHandle", "xmppUsername", "xmppPassword", "xmppService", "xmppHost", "xmppPort",
-				"presenceMode", "isEnabled", "isConnected", "pendingRequests"
+				XMPP_HANDLE_PROPERTY, XMPP_USERNAME_PROPERTY, XMPP_PASSWORD_PROPERTY, XMPP_SERVICE_PROPERTY, XMPP_HOST_PROPERTY, XMPP_PORT_PROPERTY,
+				PRESENCE_MODE_PROPERTY, IS_ENABLED_PROPERTY, IS_CONNECTED_PROPERTY, PENDING_REQUESTS_PROPERTY
 			),
 			PropertyView.Ui,
 			newSet(
-				"xmppHandle", "xmppUsername", "xmppPassword", "xmppService", "xmppHost", "xmppPort",
-				"presenceMode", "isEnabled", "isConnected", "pendingRequests"
+				XMPP_HANDLE_PROPERTY, XMPP_USERNAME_PROPERTY, XMPP_PASSWORD_PROPERTY, XMPP_SERVICE_PROPERTY, XMPP_HOST_PROPERTY, XMPP_PORT_PROPERTY,
+				PRESENCE_MODE_PROPERTY, IS_ENABLED_PROPERTY, IS_CONNECTED_PROPERTY, PENDING_REQUESTS_PROPERTY
 			)
 		);
 	}

@@ -87,7 +87,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 	public JsonObjectType addType(final String name) {
 
-		if ("XMPPClient".equals(name)) {
+		if (StructrTraits.XMPP_CLIENT.equals(name)) {
 			Thread.dumpStack();
 		}
 

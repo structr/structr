@@ -89,28 +89,32 @@ public class StructrTraits {
 	public static final String FEED_ITEM_CONTENT        = "FeedItemContent";
 	public static final String FEED_ITEM_ENCLOSURE      = "FeedItemEnclosure";
 	public static final String REMOTE_DOCUMENT          = "RemoteDocument";
-
+	public static final String LOG_EVENT                = "LogEvent";
+	public static final String LOG_OBJECT               = "LogObject";
+	public static final String LOG_SUBJECT              = "LogSubject";
+	public static final String XMPP_CLIENT              = "XMPPClient";
+	public static final String XMPP_REQUEST             = "XMPPRequest";
 
 	// relationship types
-	public static final String SECURITY                                       = "Security";
-	public static final String PRINCIPAL_OWNS_NODE                            = "PrincipalOwnsNode";
-	public static final String PRINCIPAL_SCHEMA_GRANT_RELATIONSHIP            = "PrincipalSchemaGrantRelationship";
-	public static final String GROUP_CONTAINS_PRINCIPAL                       = "GroupCONTAINSPrincipal";
-	public static final String SCHEMA_EXCLUDED_VIEW_PROPERTY                  = "SchemaExcludedViewProperty";
-	public static final String SCHEMA_GRANT_SCHEMA_NODE_RELATIONSHIP          = "SchemaGrantSchemaNodeRelationship";
-	public static final String SCHEMA_METHOD_PARAMETERS                       = "SchemaMethodParameters";
-	public static final String SCHEMA_NODE_EXTENDS_SCHEMA_NODE                = "SchemaNodeExtendsSchemaNode";
-	public static final String SCHEMA_NODE_PROPERTY                           = "SchemaNodeProperty";
-	public static final String SCHEMA_NODE_VIEW                               = "SchemaNodeView";
-	public static final String SCHEMA_RELATIONSHIP_SOURCE_NODE                = "SchemaRelationshipSourceNode";
-	public static final String SCHEMA_RELATIONSHIP_TARGET_NODE                = "SchemaRelationshipTargetNode";
-	public static final String SCHEMA_VIEW_PROPERTY                           = "SchemaViewProperty";
-	public static final String VIRTUAL_TYPE_VIRTUAL_PROPERTY_VIRTUAL_PROPERTY = "VirtualTypevirtualPropertyVirtualProperty";
-	public static final String EMAIL_MESSAGE_HAS_ATTACHMENT_FILE              = "EMailMessageHAS_ATTACHMENTFile";
-	public static final String MAILBOX_CONTAINS_EMAIL_MESSAGES_EMAIL_MESSAGE  = "MailboxCONTAINS_EMAILMESSAGESEMailMessage";
-	public static final String MESSAGE_CLIENT_HAS_MESSAGE_SUBSCRIBER          = "MessageClientHASMessageSubscriber";
-	public static final String VIDEO_FILE_HAS_CONVERTED_VIDEO_VIDEO_FILE      = "VideoFileHAS_CONVERTED_VIDEOVideoFile";
-	public static final String VIDEO_FILE_HAS_POSTER_IMAGE_IMAGE              = "VideoFileHAS_POSTER_IMAGEImage";
+	public static final String SECURITY                                           = "Security";
+	public static final String PRINCIPAL_OWNS_NODE                                = "PrincipalOwnsNode";
+	public static final String PRINCIPAL_SCHEMA_GRANT_RELATIONSHIP                = "PrincipalSchemaGrantRelationship";
+	public static final String GROUP_CONTAINS_PRINCIPAL                           = "GroupCONTAINSPrincipal";
+	public static final String SCHEMA_EXCLUDED_VIEW_PROPERTY                      = "SchemaExcludedViewProperty";
+	public static final String SCHEMA_GRANT_SCHEMA_NODE_RELATIONSHIP              = "SchemaGrantSchemaNodeRelationship";
+	public static final String SCHEMA_METHOD_PARAMETERS                           = "SchemaMethodParameters";
+	public static final String SCHEMA_NODE_EXTENDS_SCHEMA_NODE                    = "SchemaNodeExtendsSchemaNode";
+	public static final String SCHEMA_NODE_PROPERTY                               = "SchemaNodeProperty";
+	public static final String SCHEMA_NODE_VIEW                                   = "SchemaNodeView";
+	public static final String SCHEMA_RELATIONSHIP_SOURCE_NODE                    = "SchemaRelationshipSourceNode";
+	public static final String SCHEMA_RELATIONSHIP_TARGET_NODE                    = "SchemaRelationshipTargetNode";
+	public static final String SCHEMA_VIEW_PROPERTY                               = "SchemaViewProperty";
+	public static final String VIRTUAL_TYPE_VIRTUAL_PROPERTY_VIRTUAL_PROPERTY     = "VirtualTypevirtualPropertyVirtualProperty";
+	public static final String EMAIL_MESSAGE_HAS_ATTACHMENT_FILE                  = "EMailMessageHAS_ATTACHMENTFile";
+	public static final String MAILBOX_CONTAINS_EMAIL_MESSAGES_EMAIL_MESSAGE      = "MailboxCONTAINS_EMAILMESSAGESEMailMessage";
+	public static final String MESSAGE_CLIENT_HAS_MESSAGE_SUBSCRIBER              = "MessageClientHASMessageSubscriber";
+	public static final String VIDEO_FILE_HAS_CONVERTED_VIDEO_VIDEO_FILE          = "VideoFileHAS_CONVERTED_VIDEOVideoFile";
+	public static final String VIDEO_FILE_HAS_POSTER_IMAGE_IMAGE                  = "VideoFileHAS_POSTER_IMAGEImage";
 	public static final String ODF_EXPORTER_EXPORTS_TO_FILE                       = "ODFExporterEXPORTS_TOFile";
 	public static final String ODF_EXPORTER_GETS_TRANSFORMATION_FROM_VIRTUAL_TYPE = "ODFExporterGETS_TRANSFORMATION_FROMVirtualType";
 	public static final String ODF_EXPORTER_USES_TEMPLATE_FILE                    = "ODFExporterUSES_TEMPLATEFile";
@@ -118,6 +122,9 @@ public class StructrTraits {
 	public static final String DATA_FEED_HAS_FEED_ITEMS_FEED_ITEM                 = "DataFeedHAS_FEED_ITEMSFeedItem";
 	public static final String FEED_ITEM_FEED_ITEM_CONTENTS_FEED_ITEM_CONTENT     = "FeedItemFEED_ITEM_CONTENTSFeedItemContent";
 	public static final String FEED_ITEM_FEED_ITEM_ENCLOSURES_FEED_ITEM_ENCLOSURE = "FeedItemFEED_ITEM_ENCLOSURESFeedItemEnclosure";
+	public static final String OBJECT_EVENT_RELATIONSHIP                          = "ObjectEventRelationship";
+	public static final String SUBJECT_EVENT_RELATIONSHIP                         = "SubjectEventRelationship";
+	public static final String XMPP_CLIENT_REQUEST                                = "XMPPClientRequest";
 
 
 	public static void registerBaseType(final TraitDefinition definition) {
