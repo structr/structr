@@ -136,7 +136,7 @@ public class ProxyServletTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			tx.success();
 
@@ -150,8 +150,8 @@ public class ProxyServletTest extends StructrUiTest {
 		final String response = RestAssured
 
 			.given()
-				.header("X-User",     "admin")
-				.header("X-Password", "admin")
+				.header(X_USER_HEADER,     ADMIN_USERNAME)
+				.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 
 			.expect()
 				.statusCode(200)

@@ -621,7 +621,7 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-				.headers("X-User", "tester" , "X-Password", "tester")
+				.headers(X_USER_HEADER, "tester" , X_PASSWORD_HEADER, "tester")
 				.body("{ name: 'test.png', imageData: '" + base64Data + "' }")
 
 			.expect()

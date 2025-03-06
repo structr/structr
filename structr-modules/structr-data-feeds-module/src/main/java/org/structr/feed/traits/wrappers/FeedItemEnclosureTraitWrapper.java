@@ -25,6 +25,8 @@ import org.structr.feed.entity.FeedItemEnclosure;
 
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import org.structr.feed.traits.definitions.FeedItemEnclosureTraitDefinition;
+import org.structr.feed.traits.relationship.AbstractFeedItemTraitDefinition;
 
 /**
  * Represents feed enclosures
@@ -37,7 +39,7 @@ public class FeedItemEnclosureTraitWrapper extends AbstractFeedItemTraitWrapper 
 
 	@Override
 	public String getUrl() {
-		return wrappedObject.getProperty(traits.key("url"));
+		return wrappedObject.getProperty(traits.key(FeedItemEnclosureTraitDefinition.URL_PROPERTY));
 	}
 
 	@Override
@@ -47,11 +49,11 @@ public class FeedItemEnclosureTraitWrapper extends AbstractFeedItemTraitWrapper 
 
 	@Override
 	public String getExtractedContent() {
-		return wrappedObject.getProperty(traits.key("extractedContent"));
+		return wrappedObject.getProperty(traits.key("extractedContent"));			// FIXME: extractedContent... this used to extend "Indexable"
 	}
 
 	@Override
 	public String getContentType() {
-		return wrappedObject.getProperty(traits.key("contentType"));
+		return wrappedObject.getProperty(traits.key(AbstractFeedItemTraitDefinition.CONTENT_TYPE_PROPERTY));
 	}
 }

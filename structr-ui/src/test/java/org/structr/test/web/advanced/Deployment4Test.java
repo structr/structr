@@ -436,17 +436,6 @@ public class Deployment4Test extends DeploymentTestBase {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			fail("Unexpected exception.");
-		}
-
-		// setup
-		try (final Tx tx = app.tx()) {
-
 			final Page page = Page.createNewPage(securityContext, "test47");
 			final DOMElement html = createElement(page, page, "html");
 			final DOMElement head = createElement(page, html, "head");
@@ -485,17 +474,6 @@ public class Deployment4Test extends DeploymentTestBase {
 
 	@Test
 	public void test48SchemaGrants() {
-
-		// setup
-		try (final Tx tx = app.tx()) {
-
-			createAdminUser("admin", "admin");
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			fail("Unexpected exception.");
-		}
 
 		// setup 1 - schema type
 		try (final Tx tx = app.tx()) {
@@ -566,7 +544,7 @@ public class Deployment4Test extends DeploymentTestBase {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-				.headers("X-User", "user" , "X-Password", "password")
+				.headers(X_USER_HEADER, "user" , X_PASSWORD_HEADER, "password")
 
 			.expect()
 				.statusCode(200)
@@ -596,7 +574,7 @@ public class Deployment4Test extends DeploymentTestBase {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-				.headers("X-User", "user" , "X-Password", "password")
+				.headers(X_USER_HEADER, "user" , X_PASSWORD_HEADER, "password")
 
 			.expect()
 				.statusCode(200)
@@ -631,7 +609,7 @@ public class Deployment4Test extends DeploymentTestBase {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-				.headers("X-User", "user" , "X-Password", "password")
+				.headers(X_USER_HEADER, "user" , X_PASSWORD_HEADER, "password")
 
 			.expect()
 				.statusCode(200)
@@ -658,7 +636,7 @@ public class Deployment4Test extends DeploymentTestBase {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-				.headers("X-User", "user" , "X-Password", "password")
+				.headers(X_USER_HEADER, "user" , X_PASSWORD_HEADER, "password")
 
 			.expect()
 				.statusCode(200)
@@ -743,17 +721,6 @@ public class Deployment4Test extends DeploymentTestBase {
 	@Test
 	public void test50SchemaBasedVisibilityFlags() {
 
-		// setup
-		try (final Tx tx = app.tx()) {
-
-			createAdminUser("admin", "admin");
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			fail("Unexpected exception.");
-		}
-
 		// setup 1 - schema type
 		try (final Tx tx = app.tx()) {
 
@@ -809,9 +776,9 @@ public class Deployment4Test extends DeploymentTestBase {
 		RestAssured.given().expect().statusCode(200).body("result", Matchers.hasSize(0)).when().get("/Authenticated");
 		RestAssured.given().expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Both");
 
-		RestAssured.given().header("X-User", "user").header("X-Password", "password").expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Public");
-		RestAssured.given().header("X-User", "user").header("X-Password", "password").expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Authenticated");
-		RestAssured.given().header("X-User", "user").header("X-Password", "password").expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Both");
+		RestAssured.given().header(X_USER_HEADER, "user").header(X_PASSWORD_HEADER, "password").expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Public");
+		RestAssured.given().header(X_USER_HEADER, "user").header(X_PASSWORD_HEADER, "password").expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Authenticated");
+		RestAssured.given().header(X_USER_HEADER, "user").header(X_PASSWORD_HEADER, "password").expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Both");
 
 		// roundtrip and compare
 		final String hash1 = calculateHash();
@@ -823,9 +790,9 @@ public class Deployment4Test extends DeploymentTestBase {
 		RestAssured.given().expect().statusCode(200).body("result", Matchers.hasSize(0)).when().get("/Authenticated");
 		RestAssured.given().expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Both");
 
-		RestAssured.given().header("X-User", "user").header("X-Password", "password").expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Public");
-		RestAssured.given().header("X-User", "user").header("X-Password", "password").expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Authenticated");
-		RestAssured.given().header("X-User", "user").header("X-Password", "password").expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Both");
+		RestAssured.given().header(X_USER_HEADER, "user").header(X_PASSWORD_HEADER, "password").expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Public");
+		RestAssured.given().header(X_USER_HEADER, "user").header(X_PASSWORD_HEADER, "password").expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Authenticated");
+		RestAssured.given().header(X_USER_HEADER, "user").header(X_PASSWORD_HEADER, "password").expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Both");
 
 		assertEquals("Invalid deployment roundtrip result", hash1, hash2);
 	}

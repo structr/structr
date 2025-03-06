@@ -30,6 +30,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.media.traits.definitions.VideoFileTraitDefinition;
 import org.structr.util.AbstractProcess;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
@@ -144,7 +145,7 @@ public class FrameGrabberProcess extends AbstractProcess<Image> {
 					FileHelper.updateMetadata(newFile.as(File.class), true);
 
 					// create link between the two videos
-					inputFile.setProperty(Traits.of("VideoFile").key("posterImage"), newFile);
+					inputFile.setProperty(Traits.of(StructrTraits.VIDEO_FILE).key(VideoFileTraitDefinition.POSTER_IMAGE_PROPERTY), newFile);
 				}
 
 				tx.success();

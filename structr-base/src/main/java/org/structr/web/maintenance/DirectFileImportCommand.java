@@ -296,7 +296,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 				} else if (isVideo) {
 
-					traits = Traits.of("VideoFile");
+					traits = Traits.of(StructrTraits.VIDEO_FILE);
 					if (traits == null) {
 
 						logger.warn("Unable to create entity of type VideoFile, class is not defined.");

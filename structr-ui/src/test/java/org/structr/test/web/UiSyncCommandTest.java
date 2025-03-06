@@ -32,8 +32,8 @@ public class UiSyncCommandTest extends StructrUiTest {
 
 		RestAssured
 			.given()
-			.header("X-User", "superadmin")
-			.header("X-Password", "sehrgeheim")
+			.header(X_USER_HEADER, "superadmin")
+			.header(X_PASSWORD_HEADER, "sehrgeheim")
 			.body("{}")
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
@@ -53,8 +53,8 @@ public class UiSyncCommandTest extends StructrUiTest {
 
 		RestAssured
 			.given()
-			.header("X-User", "superadmin")
-			.header("X-Password", "sehrgeheim")
+			.header(X_USER_HEADER, "superadmin")
+			.header(X_PASSWORD_HEADER, "sehrgeheim")
 			.body("{ mode: export }")
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
@@ -146,8 +146,8 @@ public class UiSyncCommandTest extends StructrUiTest {
 		// do export
 		RestAssured
 			.given()
-			.header("X-User", "superadmin")
-			.header("X-Password", "sehrgeheim")
+			.header(X_USER_HEADER, "superadmin")
+			.header(X_PASSWORD_HEADER, "sehrgeheim")
 			.body("{ mode: export, file: '" + fileName + "' }")
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
@@ -195,8 +195,8 @@ public class UiSyncCommandTest extends StructrUiTest {
 		// do import
 		RestAssured
 			.given()
-			.header("X-User", "superadmin")
-			.header("X-Password", "sehrgeheim")
+			.header(X_USER_HEADER, "superadmin")
+			.header(X_PASSWORD_HEADER, "sehrgeheim")
 			.body("{ mode: import, file: '" + fileName + "' }")
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))

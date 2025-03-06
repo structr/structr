@@ -164,7 +164,7 @@ public class Deployment5Test extends DeploymentTestBase {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Group parent               = app.create(StructrTraits.GROUP, "parent").as(Group.class);
 			final List<NodeInterface> groups = new LinkedList<>();
@@ -217,8 +217,8 @@ public class Deployment5Test extends DeploymentTestBase {
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-			.header("x-user", "admin")
-			.header("x-password", "admin")
+			.header(X_USER_HEADER, ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.expect()
 			.body("html.body.div.select.option[0]",            Matchers.equalTo("group00"))
 			.body("html.body.div.select.option[1]",            Matchers.equalTo("group01"))
@@ -243,7 +243,7 @@ public class Deployment5Test extends DeploymentTestBase {
 		// user must be created again...
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Group parent               = app.create(StructrTraits.GROUP, "parent").as(Group.class);
 			final List<NodeInterface> groups = new LinkedList<>();
@@ -278,8 +278,8 @@ public class Deployment5Test extends DeploymentTestBase {
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-			.header("x-user", "admin")
-			.header("x-password", "admin")
+			.header(X_USER_HEADER, ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.expect()
 			.body("html.body.div.select.option[0]",            Matchers.equalTo("group00"))
 			.body("html.body.div.select.option[1]",            Matchers.equalTo("group01"))
@@ -306,7 +306,7 @@ public class Deployment5Test extends DeploymentTestBase {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			tx.success();
 
@@ -384,7 +384,7 @@ public class Deployment5Test extends DeploymentTestBase {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			tx.success();
 

@@ -465,7 +465,7 @@ public class RenderContextTest extends StructrUiTest {
 			assertNotNull("User tester2 should exist.", tester2);
 
 			// create admin user for later use
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			pageId = page.getUuid();
 			p1Id   = p1.getUuid();
@@ -579,9 +579,9 @@ public class RenderContextTest extends StructrUiTest {
 			final String sessionId       = HttpCookie.parse(sessionIdCookie).get(0).getValue();
 
 			// test authenticated GET request using session ID cookie
-			assertEquals("Invalid authenticated GET result", "admin",   Scripting.replaceVariables(ctx, page, "${add_header('Cookie', 'JSESSIONID=" + sessionId + ";Path=/')}${from_json(GET('http://localhost:" + httpPort + "/structr/rest/User?_sort=name').body).result[0].name}"));
-			assertEquals("Invalid authenticated GET result", "tester1", Scripting.replaceVariables(ctx, page, "${add_header('Cookie', 'JSESSIONID=" + sessionId + ";Path=/')}${from_json(GET('http://localhost:" + httpPort + "/structr/rest/User?_sort=name').body).result[1].name}"));
-			assertEquals("Invalid authenticated GET result", "tester2", Scripting.replaceVariables(ctx, page, "${add_header('Cookie', 'JSESSIONID=" + sessionId + ";Path=/')}${from_json(GET('http://localhost:" + httpPort + "/structr/rest/User?_sort=name').body).result[2].name}"));
+			assertEquals("Invalid authenticated GET result", ADMIN_USERNAME, Scripting.replaceVariables(ctx, page, "${add_header('Cookie', 'JSESSIONID=" + sessionId + ";Path=/')}${from_json(GET('http://localhost:" + httpPort + "/structr/rest/User?_sort=name').body).result[0].name}"));
+			assertEquals("Invalid authenticated GET result", "tester1",      Scripting.replaceVariables(ctx, page, "${add_header('Cookie', 'JSESSIONID=" + sessionId + ";Path=/')}${from_json(GET('http://localhost:" + httpPort + "/structr/rest/User?_sort=name').body).result[1].name}"));
+			assertEquals("Invalid authenticated GET result", "tester2",      Scripting.replaceVariables(ctx, page, "${add_header('Cookie', 'JSESSIONID=" + sessionId + ";Path=/')}${from_json(GET('http://localhost:" + httpPort + "/structr/rest/User?_sort=name').body).result[2].name}"));
 
 			// locale
 			final String localeString = ctx.getLocale().toString();

@@ -41,10 +41,10 @@ public class MediaModule implements StructrModule {
 	@Override
 	public void onLoad(final LicenseManager licenseManager) {
 
-		StructrTraits.registerRelationshipType("VideoFileHAS_CONVERTED_VIDEOVideoFile", new VideoFileHAS_CONVERTED_VIDEOVideoFile());
-		StructrTraits.registerRelationshipType("VideoFileHAS_POSTER_IMAGEImage",        new VideoFileHAS_POSTER_IMAGEImage());
+		StructrTraits.registerRelationshipType(StructrTraits.VIDEO_FILE_HAS_CONVERTED_VIDEO_VIDEO_FILE, new VideoFileHAS_CONVERTED_VIDEOVideoFile());
+		StructrTraits.registerRelationshipType(StructrTraits.VIDEO_FILE_HAS_POSTER_IMAGE_IMAGE,         new VideoFileHAS_POSTER_IMAGEImage());
 
-		StructrTraits.registerNodeType("VideoFile", new AbstractFileTraitDefinition(), new FileTraitDefinition(), new LinkableTraitDefinition(), new VideoFileTraitDefinition());
+		StructrTraits.registerNodeType(StructrTraits.VIDEO_FILE, new AbstractFileTraitDefinition(), new FileTraitDefinition(), new LinkableTraitDefinition(), new VideoFileTraitDefinition());
 	}
 
 	@Override

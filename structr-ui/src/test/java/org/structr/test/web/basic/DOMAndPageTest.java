@@ -900,7 +900,7 @@ public class DOMAndPageTest extends StructrUiTest {
 
 			Page.createSimplePage(securityContext, "test");
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			tx.success();
 
@@ -910,8 +910,8 @@ public class DOMAndPageTest extends StructrUiTest {
 
 		RestAssured
 			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
+			.header(X_USER_HEADER,     ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.expect()
 			.response()
@@ -1117,8 +1117,8 @@ public class DOMAndPageTest extends StructrUiTest {
 		RestAssured.given().expect().statusCode(404).when().get("/html/auth");
 
 		// test authenticated user
-		RestAssured.given().header("X-User", "tester").header("X-Password", "test").expect().statusCode(404).when().get("/html/pub");
-		RestAssured.given().header("X-User", "tester").header("X-Password", "test").expect().statusCode(200).when().get("/html/auth");
+		RestAssured.given().header(X_USER_HEADER, "tester").header(X_PASSWORD_HEADER, "test").expect().statusCode(404).when().get("/html/pub");
+		RestAssured.given().header(X_USER_HEADER, "tester").header(X_PASSWORD_HEADER, "test").expect().statusCode(200).when().get("/html/auth");
 
 	}
 
@@ -1178,7 +1178,7 @@ public class DOMAndPageTest extends StructrUiTest {
 
 			test.getElementsByTagName("div").get(0).appendChild(text);
 
-			final NodeInterface user = createAdminUser("admin", "admin");
+			final NodeInterface user = createAdminUser();
 
 			uuid = user.getUuid();
 
@@ -1193,8 +1193,8 @@ public class DOMAndPageTest extends StructrUiTest {
 		RestAssured
 			.given()
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			.header("X-User", "admin")
-			.header("X-Password", "admin")
+			.header(X_USER_HEADER, ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.expect()
 			.body("html.body.div",   Matchers.equalTo("Initial body text / " + uuid))
 			.statusCode(200)
@@ -1205,8 +1205,8 @@ public class DOMAndPageTest extends StructrUiTest {
 		RestAssured
 			.given()
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			.header("X-User", "admin")
-			.header("X-Password", "admin")
+			.header(X_USER_HEADER, ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.expect()
 			.body("html.body.div",   Matchers.equalTo("Initial body text / " + uuid))
 			.statusCode(200)

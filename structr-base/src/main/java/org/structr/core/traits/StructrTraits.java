@@ -77,7 +77,18 @@ public class StructrTraits {
 	public static final String KAFKA_CLIENT             = "KafkaClient";
 	public static final String MQTT_CLIENT              = "MQTTClient";
 	public static final String PULSAR_CLIENT            = "PulsarClient";
-
+	public static final String VIDEO_FILE               = "VideoFile";
+	public static final String ODF_EXPORTER             = "ODFExporter";
+	public static final String ODS_EXPORTER             = "ODSExporter";
+	public static final String ODT_EXPORTER             = "ODTExporter";
+	public static final String PAYMENT_NODE             = "PaymentNode";
+	public static final String PAYMENT_ITEM_NODE        = "PaymentItemNode";
+	public static final String ABSTRACT_FEED_ITEM       = "AbstractFeedItem";
+	public static final String DATA_FEED                = "DataFeed";
+	public static final String FEED_ITEM                = "FeedItem";
+	public static final String FEED_ITEM_CONTENT        = "FeedItemContent";
+	public static final String FEED_ITEM_ENCLOSURE      = "FeedItemEnclosure";
+	public static final String REMOTE_DOCUMENT          = "RemoteDocument";
 
 
 	// relationship types
@@ -98,6 +109,15 @@ public class StructrTraits {
 	public static final String EMAIL_MESSAGE_HAS_ATTACHMENT_FILE              = "EMailMessageHAS_ATTACHMENTFile";
 	public static final String MAILBOX_CONTAINS_EMAIL_MESSAGES_EMAIL_MESSAGE  = "MailboxCONTAINS_EMAILMESSAGESEMailMessage";
 	public static final String MESSAGE_CLIENT_HAS_MESSAGE_SUBSCRIBER          = "MessageClientHASMessageSubscriber";
+	public static final String VIDEO_FILE_HAS_CONVERTED_VIDEO_VIDEO_FILE      = "VideoFileHAS_CONVERTED_VIDEOVideoFile";
+	public static final String VIDEO_FILE_HAS_POSTER_IMAGE_IMAGE              = "VideoFileHAS_POSTER_IMAGEImage";
+	public static final String ODF_EXPORTER_EXPORTS_TO_FILE                       = "ODFExporterEXPORTS_TOFile";
+	public static final String ODF_EXPORTER_GETS_TRANSFORMATION_FROM_VIRTUAL_TYPE = "ODFExporterGETS_TRANSFORMATION_FROMVirtualType";
+	public static final String ODF_EXPORTER_USES_TEMPLATE_FILE                    = "ODFExporterUSES_TEMPLATEFile";
+	public static final String PAYMENT_NODE_PAYMENT_ITEM_PAYMENT_ITEM             = "PaymentNodepaymentItemPaymentItem";
+	public static final String DATA_FEED_HAS_FEED_ITEMS_FEED_ITEM                 = "DataFeedHAS_FEED_ITEMSFeedItem";
+	public static final String FEED_ITEM_FEED_ITEM_CONTENTS_FEED_ITEM_CONTENT     = "FeedItemFEED_ITEM_CONTENTSFeedItemContent";
+	public static final String FEED_ITEM_FEED_ITEM_ENCLOSURES_FEED_ITEM_ENCLOSURE = "FeedItemFEED_ITEM_ENCLOSURESFeedItemEnclosure";
 
 
 	public static void registerBaseType(final TraitDefinition definition) {

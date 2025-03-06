@@ -23,6 +23,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.odf.entity.ODFExporter;
+import org.structr.odf.traits.definitions.ODFExporterTraitDefinition;
 import org.structr.transform.VirtualType;
 import org.structr.web.entity.File;
 
@@ -37,7 +38,7 @@ public class ODFExporterTraitWrapper extends AbstractNodeTraitWrapper implements
 
 	public File getDocumentTemplate() {
 
-		final NodeInterface node = wrappedObject.getProperty(traits.key("documentTemplate"));
+		final NodeInterface node = wrappedObject.getProperty(traits.key(ODFExporterTraitDefinition.DOCUMENT_TEMPLATE_PROPERTY));
 		if (node != null) {
 
 			return node.as(File.class);
@@ -48,7 +49,7 @@ public class ODFExporterTraitWrapper extends AbstractNodeTraitWrapper implements
 
 	public File getResultDocument() {
 
-		final NodeInterface node = wrappedObject.getProperty(traits.key("resultDocument"));
+		final NodeInterface node = wrappedObject.getProperty(traits.key(ODFExporterTraitDefinition.RESULT_DOCUMENT_PROPERTY));
 		if (node != null) {
 
 			return node.as(File.class);
@@ -58,12 +59,12 @@ public class ODFExporterTraitWrapper extends AbstractNodeTraitWrapper implements
 	}
 
 	public void setResultDocument(final File resultDocument) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("resultDocument"), resultDocument);
+		wrappedObject.setProperty(traits.key(ODFExporterTraitDefinition.RESULT_DOCUMENT_PROPERTY), resultDocument);
 	}
 
 	public VirtualType getTransformationProvider() {
 
-		final NodeInterface node = getProperty(traits.key("transformationProvider"));
+		final NodeInterface node = getProperty(traits.key(ODFExporterTraitDefinition.TRANSFORMATION_PROVIDER_PROPERTY));
 		if (node != null) {
 
 			return node.as(VirtualType.class);

@@ -73,7 +73,7 @@ public class TestLDAPClient extends StructrUiTest {
 			.given()
 				.contentType("application/json; charset=UTF-8")
 				.filter(ResponseLoggingFilter.logResponseTo(System.out))
-				.headers("X-User", "admin", "X-Password", "admin")
+				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
 
 			.expect()
 				.statusCode(200)
@@ -86,7 +86,7 @@ public class TestLDAPClient extends StructrUiTest {
 			.given()
 				.contentType("application/json; charset=UTF-8")
 				.filter(ResponseLoggingFilter.logResponseTo(System.out))
-				.headers("X-User", "tester", "X-Password", "password")
+				.headers(X_USER_HEADER, "tester", X_PASSWORD_HEADER, "password")
 
 			.expect()
 				.statusCode(200)

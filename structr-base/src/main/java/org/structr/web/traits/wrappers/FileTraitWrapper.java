@@ -288,7 +288,7 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 
 	@Override
 	public String getExtractedContent() {
-		return wrappedObject.getProperty(traits.key("extractedContent"));
+		return wrappedObject.getProperty(traits.key("extractedContent"));			// FIXME: extractedContent... this used to extend "Indexable"
 	}
 
 	@Override

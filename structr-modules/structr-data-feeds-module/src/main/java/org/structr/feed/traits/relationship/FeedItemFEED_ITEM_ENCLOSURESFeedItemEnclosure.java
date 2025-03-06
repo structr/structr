@@ -19,23 +19,24 @@
 package org.structr.feed.traits.relationship;
 
 import org.structr.core.entity.Relation;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
 public class FeedItemFEED_ITEM_ENCLOSURESFeedItemEnclosure extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public FeedItemFEED_ITEM_ENCLOSURESFeedItemEnclosure() {
-		super("FeedItemFEED_ITEM_ENCLOSURESFeedItemEnclosure");
+		super(StructrTraits.FEED_ITEM_FEED_ITEM_ENCLOSURES_FEED_ITEM_ENCLOSURE);
 	}
 
 	@Override
 	public String getSourceType() {
-		return "FeedItem";
+		return StructrTraits.FEED_ITEM;
 	}
 
 	@Override
 	public String getTargetType() {
-		return "FeedItemEnclosure";
+		return StructrTraits.FEED_ITEM_ENCLOSURE;
 	}
 
 	@Override

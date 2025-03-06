@@ -26,8 +26,10 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.payment.entity.PaymentItemNode;
@@ -41,10 +43,15 @@ import java.util.Set;
  */
 public class PaymentItemNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
-	public static final String DESCRIPTION_PROPERTY         = "description";
+	public static final String PAYMENT_PROPERTY     = "payment";
+	public static final String AMOUNT_PROPERTY      = "amount";
+	public static final String QUANTITY_PROPERTY    = "quantity";
+	public static final String DESCRIPTION_PROPERTY = "description";
+	public static final String NUMBER_PROPERTY      = "number";
+	public static final String URL_PROPERTY         = "url";
 
 	public PaymentItemNodeTraitDefinition() {
-		super("PaymentItemNode");
+		super(StructrTraits.PAYMENT_ITEM_NODE);
 	}
 
 	@Override
@@ -59,8 +66,8 @@ public class PaymentItemNodeTraitDefinition extends AbstractNodeTraitDefinition 
 					final Traits traits = obj.getTraits();
 					boolean valid       = true;
 
-					valid &= ValidationHelper.isValidPropertyNotNull(obj, traits.key("amount"), errorBuffer);
-					valid &= ValidationHelper.isValidPropertyNotNull(obj, traits.key("quantity"), errorBuffer);
+					valid &= ValidationHelper.isValidPropertyNotNull(obj, traits.key(AMOUNT_PROPERTY), errorBuffer);
+					valid &= ValidationHelper.isValidPropertyNotNull(obj, traits.key(QUANTITY_PROPERTY), errorBuffer);
 
 					return valid;
 				}
@@ -79,12 +86,12 @@ public class PaymentItemNodeTraitDefinition extends AbstractNodeTraitDefinition 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> paymentProperty = new StartNode("payment", "PaymentNodepaymentItemPaymentItem");
-		final Property<Integer> amountProperty        = new IntProperty("amount").indexed();
-		final Property<Integer> quantityProperty      = new IntProperty("quantity").indexed();
+		final Property<NodeInterface> paymentProperty = new StartNode(PAYMENT_PROPERTY, StructrTraits.PAYMENT_NODE_PAYMENT_ITEM_PAYMENT_ITEM);
+		final Property<Integer> amountProperty        = new IntProperty(AMOUNT_PROPERTY).indexed();
+		final Property<Integer> quantityProperty      = new IntProperty(QUANTITY_PROPERTY).indexed();
 		final Property<String> descriptionProperty    = new StringProperty(DESCRIPTION_PROPERTY);
-		final Property<String> numberProperty         = new StringProperty("number");
-		final Property<String> urlProperty            = new StringProperty("url");
+		final Property<String> numberProperty         = new StringProperty(NUMBER_PROPERTY);
+		final Property<String> urlProperty            = new StringProperty(URL_PROPERTY);
 
 		return newSet(
 			paymentProperty,
@@ -102,11 +109,11 @@ public class PaymentItemNodeTraitDefinition extends AbstractNodeTraitDefinition 
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"name", "amount", "quantity", DESCRIPTION_PROPERTY, "number", "url"
+					NodeInterfaceTraitDefinition.NAME_PROPERTY, AMOUNT_PROPERTY, QUANTITY_PROPERTY, DESCRIPTION_PROPERTY, NUMBER_PROPERTY, URL_PROPERTY
 			),
 			PropertyView.Ui,
 			newSet(
-				"amount", "quantity", DESCRIPTION_PROPERTY, "number", "url"
+					AMOUNT_PROPERTY, QUANTITY_PROPERTY, DESCRIPTION_PROPERTY, NUMBER_PROPERTY, URL_PROPERTY
 			)
 		);
 	}

@@ -34,6 +34,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.payment.api.PaymentState;
 import org.structr.payment.entity.PaymentNode;
@@ -48,10 +49,31 @@ import java.util.Set;
  */
 public class PaymentNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
-	public static final String DESCRIPTION_PROPERTY         = "description";
+	public static final String ITEMS_PROPERTY                   = "items";
+	public static final String STATE_PROPERTY                   = "state";
+	public static final String DESCRIPTION_PROPERTY             = "description";
+	public static final String CURRENCY_PROPERTY                = "currency";
+	public static final String TOKEN_PROPERTY                   = "token";
+	public static final String BILLING_AGREEMENT_ID_PROPERTY    = "billingAgreementId";
+	public static final String NOTE_PROPERTY                    = "note";
+	public static final String BILLING_ADDRESS_NAME_PROPERTY    = "billingAddressName";
+	public static final String BILLING_ADDRESS_STREET1_PROPERTY = "billingAddressStreet1";
+	public static final String BILLING_ADDRESS_STREET2_PROPERTY = "billingAddressStreet2";
+	public static final String BILLING_ADDRESS_ZIP_PROPERTY     = "billingAddressZip";
+	public static final String BILLING_ADDRESS_CITY_PROPERTY    = "billingAddressCity";
+	public static final String BILLING_ADDRESS_COUNTRY_PROPERTY = "billingAddressCountry";
+	public static final String INVOICE_ID_PROPERTY              = "invoiceId";
+	public static final String PAYER_ADDRESS_NAME_PROPERTY      = "payerAddressName";
+	public static final String PAYER_ADDRESS_STREET1_PROPERTY   = "payerAddressStreet1";
+	public static final String PAYER_ADDRESS_STREET2_PROPERTY   = "payerAddressStreet2";
+	public static final String PAYER_ADDRESS_ZIP_PROPERTY       = "payerAddressZip";
+	public static final String PAYER_ADDRESS_CITY_PROPERTY      = "payerAddressCity";
+	public static final String PAYER_ADDRESS_COUNTRY_PROPERTY   = "payerAddressCountry";
+	public static final String PAYER_PROPERTY                   = "payer";
+	public static final String PAYER_BUSINESS_PROPERTY          = "payerBusiness";
 
 	public PaymentNodeTraitDefinition() {
-		super("PaymentNode");
+		super(StructrTraits.PAYMENT_NODE);
 	}
 
 	@Override
@@ -113,28 +135,28 @@ public class PaymentNodeTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Iterable<NodeInterface>> itemsProperty = new EndNodes("items", "PaymentNodepaymentItemPaymentItem");
-		final Property<String> stateProperty                  = new EnumProperty("state", PaymentState.class);
+		final Property<Iterable<NodeInterface>> itemsProperty = new EndNodes(ITEMS_PROPERTY, StructrTraits.PAYMENT_NODE_PAYMENT_ITEM_PAYMENT_ITEM);
+		final Property<String> stateProperty                  = new EnumProperty(STATE_PROPERTY, PaymentState.class);
 		final Property<String> descriptionProperty            = new StringProperty(DESCRIPTION_PROPERTY).indexed();
-		final Property<String> currencyProperty               = new StringProperty("currency").indexed();
-		final Property<String> tokenProperty                  = new StringProperty("token").indexed();
-		final Property<String> billingAgreementIdProperty     = new StringProperty("billingAgreementId");
-		final Property<String> noteProperty                   = new StringProperty("note");
-		final Property<String> billingAddressNameProperty     = new StringProperty("billingAddressName");
-		final Property<String> billingAddressStreet1Property  = new StringProperty("billingAddressStreet1");
-		final Property<String> billingAddressStreet2Property  = new StringProperty("billingAddressStreet2");
-		final Property<String> billingAddressZipProperty      = new StringProperty("billingAddressZip");
-		final Property<String> billingAddressCityProperty     = new StringProperty("billingAddressCity");
-		final Property<String> billingAddressCountryProperty  = new StringProperty("billingAddressCountry");
-		final Property<String> invoiceIdProperty              = new StringProperty("invoiceId");
-		final Property<String> payerAddressNameProperty       = new StringProperty("payerAddressName");
-		final Property<String> payerAddressStreet1Property    = new StringProperty("payerAddressStreet1");
-		final Property<String> payerAddressStreet2Property    = new StringProperty("payerAddressStreet2");
-		final Property<String> payerAddressZipProperty        = new StringProperty("payerAddressZip");
-		final Property<String> payerAddressCityProperty       = new StringProperty("payerAddressCity");
-		final Property<String> payerAddressCountryProperty    = new StringProperty("payerAddressCountry");
-		final Property<String> payerProperty                  = new StringProperty("payer");
-		final Property<String> payerBusinessProperty          = new StringProperty("payerBusiness");
+		final Property<String> currencyProperty               = new StringProperty(CURRENCY_PROPERTY).indexed();
+		final Property<String> tokenProperty                  = new StringProperty(TOKEN_PROPERTY).indexed();
+		final Property<String> billingAgreementIdProperty     = new StringProperty(BILLING_AGREEMENT_ID_PROPERTY);
+		final Property<String> noteProperty                   = new StringProperty(NOTE_PROPERTY);
+		final Property<String> billingAddressNameProperty     = new StringProperty(BILLING_ADDRESS_NAME_PROPERTY);
+		final Property<String> billingAddressStreet1Property  = new StringProperty(BILLING_ADDRESS_STREET1_PROPERTY);
+		final Property<String> billingAddressStreet2Property  = new StringProperty(BILLING_ADDRESS_STREET2_PROPERTY);
+		final Property<String> billingAddressZipProperty      = new StringProperty(BILLING_ADDRESS_ZIP_PROPERTY);
+		final Property<String> billingAddressCityProperty     = new StringProperty(BILLING_ADDRESS_CITY_PROPERTY);
+		final Property<String> billingAddressCountryProperty  = new StringProperty(BILLING_ADDRESS_COUNTRY_PROPERTY);
+		final Property<String> invoiceIdProperty              = new StringProperty(INVOICE_ID_PROPERTY);
+		final Property<String> payerAddressNameProperty       = new StringProperty(PAYER_ADDRESS_NAME_PROPERTY);
+		final Property<String> payerAddressStreet1Property    = new StringProperty(PAYER_ADDRESS_STREET1_PROPERTY);
+		final Property<String> payerAddressStreet2Property    = new StringProperty(PAYER_ADDRESS_STREET2_PROPERTY);
+		final Property<String> payerAddressZipProperty        = new StringProperty(PAYER_ADDRESS_ZIP_PROPERTY);
+		final Property<String> payerAddressCityProperty       = new StringProperty(PAYER_ADDRESS_CITY_PROPERTY);
+		final Property<String> payerAddressCountryProperty    = new StringProperty(PAYER_ADDRESS_COUNTRY_PROPERTY);
+		final Property<String> payerProperty                  = new StringProperty(PAYER_PROPERTY);
+		final Property<String> payerBusinessProperty          = new StringProperty(PAYER_BUSINESS_PROPERTY);
 
 		return newSet(
 			itemsProperty,
@@ -168,17 +190,19 @@ public class PaymentNodeTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"state", DESCRIPTION_PROPERTY, "currency", "token", "billingAgreementId", "note", "billingAddressName", "billingAddressStreet1",
-				"billingAddressStreet2", "billingAddressZip", "billingAddressCity", "billingAddressCountry", "invoiceId", "payerAddressName",
-				"payerAddressStreet1", "payerAddressStreet2", "payerAddressZip", "payerAddressCity", "payerAddressCountry", "payer", "payerBusiness",
-				"items"
+					STATE_PROPERTY, DESCRIPTION_PROPERTY, CURRENCY_PROPERTY, TOKEN_PROPERTY, BILLING_AGREEMENT_ID_PROPERTY,
+					NOTE_PROPERTY, BILLING_ADDRESS_NAME_PROPERTY, BILLING_ADDRESS_STREET1_PROPERTY, BILLING_ADDRESS_STREET2_PROPERTY,
+					BILLING_ADDRESS_ZIP_PROPERTY, BILLING_ADDRESS_CITY_PROPERTY, BILLING_ADDRESS_COUNTRY_PROPERTY, INVOICE_ID_PROPERTY,
+					PAYER_ADDRESS_NAME_PROPERTY, PAYER_ADDRESS_STREET1_PROPERTY, PAYER_ADDRESS_STREET2_PROPERTY, PAYER_ADDRESS_ZIP_PROPERTY,
+					PAYER_ADDRESS_CITY_PROPERTY, PAYER_ADDRESS_COUNTRY_PROPERTY, PAYER_PROPERTY, PAYER_BUSINESS_PROPERTY, ITEMS_PROPERTY
 			),
 			PropertyView.Ui,
 			newSet(
-				"state", DESCRIPTION_PROPERTY, "currency", "token", "billingAgreementId", "note", "billingAddressName", "billingAddressStreet1",
-				"billingAddressStreet2", "billingAddressZip", "billingAddressCity", "billingAddressCountry", "invoiceId", "payerAddressName",
-				"payerAddressStreet1", "payerAddressStreet2", "payerAddressZip", "payerAddressCity", "payerAddressCountry", "payer", "payerBusiness",
-				"items"
+					STATE_PROPERTY, DESCRIPTION_PROPERTY, CURRENCY_PROPERTY, TOKEN_PROPERTY, BILLING_AGREEMENT_ID_PROPERTY,
+					NOTE_PROPERTY, BILLING_ADDRESS_NAME_PROPERTY, BILLING_ADDRESS_STREET1_PROPERTY, BILLING_ADDRESS_STREET2_PROPERTY,
+					BILLING_ADDRESS_ZIP_PROPERTY, BILLING_ADDRESS_CITY_PROPERTY, BILLING_ADDRESS_COUNTRY_PROPERTY, INVOICE_ID_PROPERTY,
+					PAYER_ADDRESS_NAME_PROPERTY, PAYER_ADDRESS_STREET1_PROPERTY, PAYER_ADDRESS_STREET2_PROPERTY, PAYER_ADDRESS_ZIP_PROPERTY,
+					PAYER_ADDRESS_CITY_PROPERTY, PAYER_ADDRESS_COUNTRY_PROPERTY, PAYER_PROPERTY, PAYER_BUSINESS_PROPERTY, ITEMS_PROPERTY
 			)
 		);
 	}

@@ -72,7 +72,7 @@ public class RepeaterTest extends StructrUiTest {
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			tx.success();
 
@@ -126,8 +126,8 @@ public class RepeaterTest extends StructrUiTest {
 		// test 1: assert selected attributes are NOT set (because we didn't set selectedValues)
 		RestAssured
 			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
+			.header(X_USER_HEADER,     ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.expect()
 			.statusCode(200)
@@ -171,8 +171,8 @@ public class RepeaterTest extends StructrUiTest {
 		// test 2: assert selected attributes are set now
 		RestAssured
 			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
+			.header(X_USER_HEADER,     ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.expect()
 			.statusCode(200)
@@ -213,7 +213,7 @@ public class RepeaterTest extends StructrUiTest {
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			tx.success();
 
@@ -259,8 +259,8 @@ public class RepeaterTest extends StructrUiTest {
 		// test 1: assert selected attributes are NOT set (because we didn't set selectedValues)
 		RestAssured
 			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
+			.header(X_USER_HEADER,     ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.expect()
 			.statusCode(200)
@@ -295,8 +295,8 @@ public class RepeaterTest extends StructrUiTest {
 		// test 2: assert selected attributes are set now
 		RestAssured
 			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
+			.header(X_USER_HEADER,     ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.expect()
 			.statusCode(200)

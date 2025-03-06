@@ -43,7 +43,7 @@ public class XMPPTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			tx.success();
 
@@ -72,8 +72,8 @@ public class XMPPTest extends StructrUiTest {
 		RestAssured
 			.given()
 			.filter(ResponseLoggingFilter.logResponseTo(System.out))
-			.header("X-User", "admin")
-			.header("X-Password", "admin")
+			.header(X_USER_HEADER, ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.expect()
 			.statusCode(200)
 			.body("result[0].type",                  equalTo("XMPPClient"))

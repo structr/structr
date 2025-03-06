@@ -52,7 +52,7 @@ public class RendererTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Page page1 = Page.createSimplePage(securityContext, "page1");
 
@@ -90,8 +90,8 @@ public class RendererTest extends StructrUiTest {
 		// test successful basic auth
 		RestAssured
 			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
+			.header(X_USER_HEADER,     ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.expect()
 			.statusCode(200)
@@ -112,7 +112,7 @@ public class RendererTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Page page1 = Page.createSimplePage(securityContext, "page1");
 
@@ -150,8 +150,8 @@ public class RendererTest extends StructrUiTest {
 		// test successful basic auth
 		RestAssured
 			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
+			.header(X_USER_HEADER,     ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.expect()
 			.statusCode(200)
@@ -171,7 +171,7 @@ public class RendererTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Page page1 = Page.createSimplePage(securityContext, "page1");
 
@@ -209,8 +209,8 @@ public class RendererTest extends StructrUiTest {
 		// test successful basic auth
 		RestAssured
 			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
+			.header(X_USER_HEADER,     ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.expect()
 			.statusCode(200)
@@ -230,7 +230,7 @@ public class RendererTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Page page1 = Page.createSimplePage(securityContext, "page1");
 
@@ -268,8 +268,8 @@ public class RendererTest extends StructrUiTest {
 		// test successful basic auth
 		RestAssured
 			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
+			.header(X_USER_HEADER,     ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.expect()
 			.statusCode(200)
@@ -289,7 +289,7 @@ public class RendererTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Page page1 = Page.createSimplePage(securityContext, "page1");
 
@@ -327,8 +327,8 @@ public class RendererTest extends StructrUiTest {
 		// test successful basic auth
 		RestAssured
 			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
+			.header(X_USER_HEADER,     ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.expect()
 			.statusCode(200)
@@ -348,7 +348,7 @@ public class RendererTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Page page1 = Page.createSimplePage(securityContext, "page1");
 
@@ -386,8 +386,8 @@ public class RendererTest extends StructrUiTest {
 		// test successful basic auth
 		RestAssured
 			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
+			.header(X_USER_HEADER,     ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.expect()
 			.statusCode(200)

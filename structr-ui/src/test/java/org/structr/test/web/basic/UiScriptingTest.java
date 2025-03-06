@@ -109,7 +109,7 @@ public class UiScriptingTest extends StructrUiTest {
 
 			RestAssured
 			.given()
-				//.headers("X-User", "admin" , "X-Password", "admin")
+				//.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
@@ -166,7 +166,7 @@ public class UiScriptingTest extends StructrUiTest {
 
 			RestAssured
 			.given()
-				//.headers("X-User", "admin" , "X-Password", "admin")
+				//.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
@@ -191,7 +191,7 @@ public class UiScriptingTest extends StructrUiTest {
 
 			RestAssured
 			.given()
-				//.headers("X-User", "admin" , "X-Password", "admin")
+				//.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
@@ -238,7 +238,7 @@ public class UiScriptingTest extends StructrUiTest {
 
 			RestAssured
 			.given()
-				//.headers("X-User", "admin" , "X-Password", "admin")
+				//.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
@@ -380,7 +380,7 @@ public class UiScriptingTest extends StructrUiTest {
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.READ_FUNCTION_PROPERTY),         "this.folders")
 			);
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			tx.success();
 
@@ -404,7 +404,7 @@ public class UiScriptingTest extends StructrUiTest {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-				.headers("X-User", "admin" , "X-Password", "admin")
+				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.expect()
 				.statusCode(200)
 				.body("result.folders",      Matchers.hasSize(10))
@@ -448,7 +448,7 @@ public class UiScriptingTest extends StructrUiTest {
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.READ_FUNCTION_PROPERTY),         "this.folders")
 			);
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			// create non-admin user
 			createTestNode(StructrTraits.USER,
@@ -504,7 +504,7 @@ public class UiScriptingTest extends StructrUiTest {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-				.headers("X-User", "admin" , "X-Password", "admin")
+				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
 				.expect()
 				.statusCode(200)
 				.body("result.folders",      Matchers.notNullValue())
@@ -524,7 +524,7 @@ public class UiScriptingTest extends StructrUiTest {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-				.headers("X-User", "testuser" , "X-Password", "testuser")
+				.headers(X_USER_HEADER, "testuser" , X_PASSWORD_HEADER, "testuser")
 				.expect()
 				.statusCode(200)
 				.body("result.folders",      Matchers.nullValue())
@@ -546,7 +546,7 @@ public class UiScriptingTest extends StructrUiTest {
 			content.setProperty(Traits.of(StructrTraits.DOM_NODE).key("dataKey"), "test");
 			content.setProperty(Traits.of(StructrTraits.CONTENT).key("content"), "${test.name}");
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			tx.success();
 
@@ -561,7 +561,7 @@ public class UiScriptingTest extends StructrUiTest {
 		// test successful basic auth
 		RestAssured
 			.given()
-				.headers("X-User", "admin" , "X-Password", "admin")
+				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
@@ -600,7 +600,7 @@ public class UiScriptingTest extends StructrUiTest {
 			item.setProperty(Traits.of("Table").key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "item");
 			item.appendChild(txt);
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			tx.success();
 
@@ -615,7 +615,7 @@ public class UiScriptingTest extends StructrUiTest {
 		// test successful basic auth
 		RestAssured
 			.given()
-				.headers("X-User", "admin" , "X-Password", "admin")
+				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
@@ -661,7 +661,7 @@ public class UiScriptingTest extends StructrUiTest {
 			// store UUID for later use
 			uuid = group.getUuid();
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			tx.success();
 
@@ -676,7 +676,7 @@ public class UiScriptingTest extends StructrUiTest {
 		// test successful basic auth
 		RestAssured
 			.given()
-				.headers("X-User", "admin" , "X-Password", "admin")
+				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
@@ -716,7 +716,7 @@ public class UiScriptingTest extends StructrUiTest {
 			// store UUID for later use
 			uuid = page.getUuid();
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			tx.success();
 
@@ -731,7 +731,7 @@ public class UiScriptingTest extends StructrUiTest {
 		// test successful basic auth
 		RestAssured
 			.given()
-				.headers("X-User", "admin" , "X-Password", "admin")
+				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
@@ -755,7 +755,7 @@ public class UiScriptingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			// create test user
 			tester = createTestNode(StructrTraits.USER,
@@ -882,8 +882,8 @@ public class UiScriptingTest extends StructrUiTest {
 			// create admin user
 			createTestNode(StructrTraits.USER,
 				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(GraphObjectTraitDefinition.ID_PROPERTY),     "d7b5f5008fdf4066a1b9c2a74479ba5f"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.PASSWORD_PROPERTY), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), ADMIN_USERNAME),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.PASSWORD_PROPERTY), ADMIN_PASSWORD),
 				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY),  true)
 			);
 
@@ -927,8 +927,8 @@ public class UiScriptingTest extends StructrUiTest {
 			// create admin user
 			createTestNode(StructrTraits.USER,
 				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(GraphObjectTraitDefinition.ID_PROPERTY),     "d7b5f5008fdf4066a1b9c2a74479ba5f"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "admin"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.PASSWORD_PROPERTY), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), ADMIN_USERNAME),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.PASSWORD_PROPERTY), ADMIN_PASSWORD),
 				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY),  true)
 			);
 
@@ -1003,7 +1003,7 @@ public class UiScriptingTest extends StructrUiTest {
 		// test successful basic auth
 		RestAssured
 			.given()
-				.headers("X-User", "admin" , "X-Password", "admin")
+				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
@@ -1113,7 +1113,7 @@ public class UiScriptingTest extends StructrUiTest {
 			// setup scripting repeater
 			content.setProperty(Traits.of(StructrTraits.CONTENT).key("content"), "{${42}${print('123')}${{ return 'test'; }}$$${page.name}}${{ return 99; }}");
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			tx.success();
 
@@ -1128,7 +1128,7 @@ public class UiScriptingTest extends StructrUiTest {
 		// test successful basic auth
 		RestAssured
 			.given()
-				.headers("X-User", "admin" , "X-Password", "admin")
+				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
@@ -1183,7 +1183,7 @@ public class UiScriptingTest extends StructrUiTest {
 			);
 
 			// create admin user
-			final User user = createAdminUser("admin", "admin").as(User.class);
+			final User user = createAdminUser().as(User.class);
 
 			userId = user.getUuid();
 
@@ -1200,7 +1200,7 @@ public class UiScriptingTest extends StructrUiTest {
 		// test successful basic auth
 		RestAssured
 			.given()
-				.headers("X-User", "admin" , "X-Password", "admin")
+				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
@@ -1477,7 +1477,7 @@ public class UiScriptingTest extends StructrUiTest {
 
 			RestAssured
 					.given()
-					//.headers("X-User", "admin" , "X-Password", "admin")
+					//.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
 					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
 					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))

@@ -47,7 +47,7 @@ public class PaymentTest extends StructrUiTest {
 		// create test user
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			tx.success();
 
@@ -60,8 +60,8 @@ public class PaymentTest extends StructrUiTest {
 		final String uuid = StringUtils.substringAfterLast(RestAssured
 			.given()
 			.filter(ResponseLoggingFilter.logResponseTo(System.out))
-			.header("X-User", "admin")
-			.header("X-Password", "admin")
+			.header(X_USER_HEADER, ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.body("{ description: 'Test payment', currency: 'EUR' }")
 			.expect()
 			.statusCode(201)
@@ -74,8 +74,8 @@ public class PaymentTest extends StructrUiTest {
 			.given()
 			.filter(RequestLoggingFilter.logRequestTo(System.out))
 			.filter(ResponseLoggingFilter.logResponseTo(System.out))
-			.header("X-User", "admin")
-			.header("X-Password", "admin")
+			.header(X_USER_HEADER, ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.body("{ payment: '" + uuid + "', amount: 3, quantity: 1, description: 'item 1' }")
 			.expect()
 			.statusCode(201)
@@ -86,8 +86,8 @@ public class PaymentTest extends StructrUiTest {
 		RestAssured
 			.given()
 			.filter(ResponseLoggingFilter.logResponseTo(System.out))
-			.header("X-User", "admin")
-			.header("X-Password", "admin")
+			.header(X_USER_HEADER, ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.expect()
 			.statusCode(200)
 			.when()
@@ -99,8 +99,8 @@ public class PaymentTest extends StructrUiTest {
 			final String token = RestAssured
 				.given()
 				.filter(ResponseLoggingFilter.logResponseTo(System.out))
-				.header("X-User", "admin")
-				.header("X-Password", "admin")
+				.header(X_USER_HEADER, ADMIN_USERNAME)
+				.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 				.body("{ providerName: 'test', successUrl: 'success', errorUrl: 'error' }")
 				.expect()
 				.statusCode(200)
@@ -114,8 +114,8 @@ public class PaymentTest extends StructrUiTest {
 			RestAssured
 				.given()
 				.filter(ResponseLoggingFilter.logResponseTo(System.out))
-				.header("X-User", "admin")
-				.header("X-Password", "admin")
+				.header(X_USER_HEADER, ADMIN_USERNAME)
+				.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 				.body("{ providerName: 'test', token: 'error', successUrl: 'success', payerId: 'errorPayer' }")
 				.expect()
 				.statusCode(422)
@@ -127,8 +127,8 @@ public class PaymentTest extends StructrUiTest {
 			RestAssured
 				.given()
 				.filter(ResponseLoggingFilter.logResponseTo(System.out))
-				.header("X-User", "admin")
-				.header("X-Password", "admin")
+				.header(X_USER_HEADER, ADMIN_USERNAME)
+				.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 				.expect()
 				.body("result.state", equalTo("open"))
 				.body("result.token", equalTo(token))
@@ -143,8 +143,8 @@ public class PaymentTest extends StructrUiTest {
 			final String token = RestAssured
 				.given()
 				.filter(ResponseLoggingFilter.logResponseTo(System.out))
-				.header("X-User", "admin")
-				.header("X-Password", "admin")
+				.header(X_USER_HEADER, ADMIN_USERNAME)
+				.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 				.body("{ providerName: 'test', successUrl: 'success', errorUrl: 'error' }")
 				.expect()
 				.statusCode(200)
@@ -157,8 +157,8 @@ public class PaymentTest extends StructrUiTest {
 			RestAssured
 				.given()
 				.filter(ResponseLoggingFilter.logResponseTo(System.out))
-				.header("X-User", "admin")
-				.header("X-Password", "admin")
+				.header(X_USER_HEADER, ADMIN_USERNAME)
+				.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 				.body("{ providerName: 'test', token: '" + token + "' }")
 				.expect()
 				.statusCode(200)
@@ -169,8 +169,8 @@ public class PaymentTest extends StructrUiTest {
 			RestAssured
 				.given()
 				.filter(ResponseLoggingFilter.logResponseTo(System.out))
-				.header("X-User", "admin")
-				.header("X-Password", "admin")
+				.header(X_USER_HEADER, ADMIN_USERNAME)
+				.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 				.expect()
 				.body("result.state", equalTo("cancelled"))
 				.body("result.token", equalTo(null))
@@ -185,8 +185,8 @@ public class PaymentTest extends StructrUiTest {
 			final String token = RestAssured
 				.given()
 				.filter(ResponseLoggingFilter.logResponseTo(System.out))
-				.header("X-User", "admin")
-				.header("X-Password", "admin")
+				.header(X_USER_HEADER, ADMIN_USERNAME)
+				.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 				.body("{ providerName: 'test', successUrl: 'success', errorUrl: 'error' }")
 				.expect()
 				.statusCode(200)
@@ -199,8 +199,8 @@ public class PaymentTest extends StructrUiTest {
 			RestAssured
 				.given()
 				.filter(ResponseLoggingFilter.logResponseTo(System.out))
-				.header("X-User", "admin")
-				.header("X-Password", "admin")
+				.header(X_USER_HEADER, ADMIN_USERNAME)
+				.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 				.body("{ providerName: 'test', notifyUrl: 'notify', token: '" + token + "', payerId: 'successPayer' }")
 				.expect()
 				.statusCode(200)
@@ -211,8 +211,8 @@ public class PaymentTest extends StructrUiTest {
 			RestAssured
 				.given()
 				.filter(ResponseLoggingFilter.logResponseTo(System.out))
-				.header("X-User", "admin")
-				.header("X-Password", "admin")
+				.header(X_USER_HEADER, ADMIN_USERNAME)
+				.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 				.expect()
 				.body("result.payer", equalTo("successPayer"))
 				.body("result.state", equalTo("completed"))

@@ -387,8 +387,8 @@ public class DynamicPathsTest extends FrontendTest {
 		final ResponseBody body =  RestAssured
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.header("X-User",     "admin")
-				.header("X-Password", "admin")
+				.header(X_USER_HEADER,     "admin")
+				.header(X_PASSWORD_HEADER, "admin")
 			.expect()
 				.statusCode(statusCode)
 			.when()

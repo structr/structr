@@ -60,6 +60,10 @@ import java.util.Set;
  */
 public class ODFExporterTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String RESULT_DOCUMENT_PROPERTY         = "resultDocument";
+	public static final String DOCUMENT_TEMPLATE_PROPERTY       = "documentTemplate";
+	public static final String TRANSFORMATION_PROVIDER_PROPERTY = "transformationProvider";
+
 	//General ODF specific constants and field specifiers
 	//Images
 
@@ -69,7 +73,7 @@ public class ODFExporterTraitDefinition extends AbstractNodeTraitDefinition {
 	private static final String ODF_IMAGE_DIRECTORY                   = "Pictures/";
 
 	public ODFExporterTraitDefinition() {
-		super("ODFExporter");
+		super(StructrTraits.ODF_EXPORTER);
 	}
 
 	@Override
@@ -105,9 +109,9 @@ public class ODFExporterTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final PropertyKey<NodeInterface> resultDocumentProperty         = new EndNode("resultDocument", "ODFExporterEXPORTS_TOFile");
-		final PropertyKey<NodeInterface> documentTemplateProperty       = new EndNode("documentTemplate", "ODFExporterUSES_TEMPLATEFile");
-		final PropertyKey<NodeInterface> transformationProviderProperty = new EndNode("transformationProvider", "ODFExporterGETS_TRANSFORMATION_FROMVirtualType");
+		final PropertyKey<NodeInterface> resultDocumentProperty         = new EndNode(RESULT_DOCUMENT_PROPERTY, StructrTraits.ODF_EXPORTER_EXPORTS_TO_FILE);
+		final PropertyKey<NodeInterface> documentTemplateProperty       = new EndNode(DOCUMENT_TEMPLATE_PROPERTY, StructrTraits.ODF_EXPORTER_USES_TEMPLATE_FILE);
+		final PropertyKey<NodeInterface> transformationProviderProperty = new EndNode(TRANSFORMATION_PROVIDER_PROPERTY, StructrTraits.ODF_EXPORTER_GETS_TRANSFORMATION_FROM_VIRTUAL_TYPE);
 
 		return newSet(
 			resultDocumentProperty,
@@ -125,11 +129,11 @@ public class ODFExporterTraitDefinition extends AbstractNodeTraitDefinition {
 					GraphObjectTraitDefinition.CREATED_DATE_PROPERTY, NodeInterfaceTraitDefinition.HIDDEN_PROPERTY,
 					GraphObjectTraitDefinition.LAST_MODIFIED_BY_PROPERTY, GraphObjectTraitDefinition.LAST_MODIFIED_DATE_PROPERTY,
 					GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY,
-					"transformationProvider", "documentTemplate", "resultDocument"
+					TRANSFORMATION_PROVIDER_PROPERTY, DOCUMENT_TEMPLATE_PROPERTY, RESULT_DOCUMENT_PROPERTY
 			),
 			PropertyView.Ui,
 			newSet(
-					GraphObjectTraitDefinition.LAST_MODIFIED_BY_PROPERTY, "transformationProvider", "documentTemplate", "resultDocument"
+					GraphObjectTraitDefinition.LAST_MODIFIED_BY_PROPERTY, TRANSFORMATION_PROVIDER_PROPERTY, DOCUMENT_TEMPLATE_PROPERTY, RESULT_DOCUMENT_PROPERTY
 			)
 		);
 	}

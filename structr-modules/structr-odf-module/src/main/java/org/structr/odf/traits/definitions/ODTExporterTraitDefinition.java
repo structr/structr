@@ -61,7 +61,7 @@ public class ODTExporterTraitDefinition extends AbstractNodeTraitDefinition {
 	private static final String ODT_FIELD_ATTRIBUTE_VALUE = "office:string-value";
 
 	public ODTExporterTraitDefinition() {
-		super("ODTExporter");
+		super(StructrTraits.ODT_EXPORTER);
 	}
 
 	@Override

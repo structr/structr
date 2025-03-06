@@ -606,7 +606,7 @@ public class PerformanceTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			user = createAdminUser("admin", "admin");
+			user = createAdminUser();
 
 			tx.success();
 

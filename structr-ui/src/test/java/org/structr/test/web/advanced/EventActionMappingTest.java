@@ -60,7 +60,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Page page1     = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div    = page1.getElementsByTagName("div").get(0);
@@ -97,19 +97,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		RestAssured.basePath = "/";
 
-		// test successful basic auth
-		final String html = RestAssured
-			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
-			.expect()
-			.statusCode(200)
-			.when()
-			.get("/html/page1")
-			.andReturn()
-			.body().asString();
-
-		System.out.println(html);
+		final String html = fetchPageHtml("/html/page1");
 
 		final Document doc              = Jsoup.parse(html);
 		final Element button            = doc.getElementById("button");
@@ -157,7 +145,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Page page1     = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div    = page1.getElementsByTagName("div").get(0);
@@ -192,19 +180,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		RestAssured.basePath = "/";
 
-		// test successful basic auth
-		final String html = RestAssured
-			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
-			.expect()
-			.statusCode(200)
-			.when()
-			.get("/html/page1")
-			.andReturn()
-			.body().asString();
-
-		System.out.println(html);
+		final String html = fetchPageHtml("/html/page1");
 
 		final Document doc   = Jsoup.parse(html);
 		final Element button = doc.getElementById("button");
@@ -253,7 +229,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div  = page1.getElementsByTagName("div").get(0);
@@ -288,19 +264,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		RestAssured.basePath = "/";
 
-		// test successful basic auth
-		final String html = RestAssured
-			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
-			.expect()
-			.statusCode(200)
-			.when()
-			.get("/html/page1")
-			.andReturn()
-			.body().asString();
-
-		System.out.println(html);
+		final String html = fetchPageHtml("/html/page1");
 
 		final Document doc   = Jsoup.parse(html);
 		final Element button = doc.getElementById("button");
@@ -351,7 +315,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Page page1     = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div    = page1.getElementsByTagName("div").get(0);
@@ -391,19 +355,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		RestAssured.basePath = "/";
 
-		// test successful basic auth
-		final String html = RestAssured
-			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
-			.expect()
-			.statusCode(200)
-			.when()
-			.get("/html/page1")
-			.andReturn()
-			.body().asString();
-
-		System.out.println(html);
+		final String html = fetchPageHtml("/html/page1");
 
 		final Document doc   = Jsoup.parse(html);
 		final Element button = doc.getElementById("button");
@@ -455,7 +407,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div  = page1.getElementsByTagName("div").get(0);
@@ -495,19 +447,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		RestAssured.basePath = "/";
 
-		// test successful basic auth
-		final String html = RestAssured
-			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
-			.expect()
-			.statusCode(200)
-			.when()
-			.get("/html/page1")
-			.andReturn()
-			.body().asString();
-
-		System.out.println(html);
+		final String html = fetchPageHtml("/html/page1");
 
 		final Document doc   = Jsoup.parse(html);
 		final Element button = doc.getElementById("button");
@@ -559,7 +499,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div  = page1.getElementsByTagName("div").get(0);
@@ -595,19 +535,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		RestAssured.basePath = "/";
 
-		// test successful basic auth
-		final String html = RestAssured
-			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
-			.expect()
-			.statusCode(200)
-			.when()
-			.get("/html/page1")
-			.andReturn()
-			.body().asString();
-
-		System.out.println(html);
+		final String html = fetchPageHtml("/html/page1");
 
 		final Document doc   = Jsoup.parse(html);
 		final Element button = doc.getElementById("button");
@@ -650,6 +578,7 @@ public class EventActionMappingTest extends StructrUiTest {
 			assertEquals("Wrong value for EAM attribute " + key, null, attrs.get(key));
 		}
 	}
+
 	@Test
 	public void testFailureNotificationAttributesForSystemAlert() {
 
@@ -657,7 +586,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div  = page1.getElementsByTagName("div").get(0);
@@ -692,19 +621,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		RestAssured.basePath = "/";
 
-		// test successful basic auth
-		final String html = RestAssured
-			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
-			.expect()
-			.statusCode(200)
-			.when()
-			.get("/html/page1")
-			.andReturn()
-			.body().asString();
-
-		System.out.println(html);
+		final String html = fetchPageHtml("/html/page1");
 
 		final Document doc   = Jsoup.parse(html);
 		final Element button = doc.getElementById("button");
@@ -753,7 +670,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div  = page1.getElementsByTagName("div").get(0);
@@ -788,19 +705,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		RestAssured.basePath = "/";
 
-		// test successful basic auth
-		final String html = RestAssured
-			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
-			.expect()
-			.statusCode(200)
-			.when()
-			.get("/html/page1")
-			.andReturn()
-			.body().asString();
-
-		System.out.println(html);
+		final String html = fetchPageHtml("/html/page1");
 
 		final Document doc   = Jsoup.parse(html);
 		final Element button = doc.getElementById("button");
@@ -851,7 +756,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div  = page1.getElementsByTagName("div").get(0);
@@ -893,19 +798,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		RestAssured.basePath = "/";
 
-		// test successful basic auth
-		final String html = RestAssured
-			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
-			.expect()
-			.statusCode(200)
-			.when()
-			.get("/html/page1")
-			.andReturn()
-			.body().asString();
-
-		System.out.println(html);
+		final String html = fetchPageHtml("/html/page1");
 
 		final Document doc   = Jsoup.parse(html);
 		final Element button = doc.getElementById("button");
@@ -957,7 +850,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div  = page1.getElementsByTagName("div").get(0);
@@ -993,19 +886,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		RestAssured.basePath = "/";
 
-		// test successful basic auth
-		final String html = RestAssured
-			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
-			.expect()
-			.statusCode(200)
-			.when()
-			.get("/html/page1")
-			.andReturn()
-			.body().asString();
-
-		System.out.println(html);
+		final String html = fetchPageHtml("/html/page1");
 
 		final Document doc   = Jsoup.parse(html);
 		final Element button = doc.getElementById("button");
@@ -1057,7 +938,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div  = page1.getElementsByTagName("div").get(0);
@@ -1097,19 +978,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		RestAssured.basePath = "/";
 
-		// test successful basic auth
-		final String html = RestAssured
-			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
-			.expect()
-			.statusCode(200)
-			.when()
-			.get("/html/page1")
-			.andReturn()
-			.body().asString();
-
-		System.out.println(html);
+		final String html = fetchPageHtml("/html/page1");
 
 		final Document doc   = Jsoup.parse(html);
 		final Element button = doc.getElementById("button");
@@ -1159,7 +1028,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div  = page1.getElementsByTagName("div").get(0);
@@ -1195,19 +1064,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		RestAssured.basePath = "/";
 
-		// test successful basic auth
-		final String html = RestAssured
-			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
-			.expect()
-			.statusCode(200)
-			.when()
-			.get("/html/page1")
-			.andReturn()
-			.body().asString();
-
-		System.out.println(html);
+		final String html = fetchPageHtml("/html/page1");
 
 		final Document doc   = Jsoup.parse(html);
 		final Element button = doc.getElementById("button");
@@ -1261,7 +1118,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div      = page1.getElementsByTagName("div").get(0);
@@ -1299,19 +1156,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		RestAssured.basePath = "/";
 
-		// test successful basic auth
-		final String html = RestAssured
-			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
-			.expect()
-			.statusCode(200)
-			.when()
-			.get("/html/page1")
-			.andReturn()
-			.body().asString();
-
-		System.out.println(html);
+		final String html = fetchPageHtml("/html/page1");
 
 		final Document doc    = Jsoup.parse(html);
 		final Element div     = doc.getElementById("parent-container");
@@ -1371,7 +1216,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div      = page1.getElementsByTagName("div").get(0);
@@ -1408,19 +1253,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		RestAssured.basePath = "/";
 
-		// test successful basic auth
-		final String html = RestAssured
-			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
-			.expect()
-			.statusCode(200)
-			.when()
-			.get("/html/page1")
-			.andReturn()
-			.body().asString();
-
-		System.out.println(html);
+		final String html = fetchPageHtml("/html/page1");
 
 		final Document doc    = Jsoup.parse(html);
 		final Element div     = doc.getElementById("parent-container");
@@ -1474,7 +1307,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div      = page1.getElementsByTagName("div").get(0);
@@ -1511,19 +1344,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		RestAssured.basePath = "/";
 
-		// test successful basic auth
-		final String html = RestAssured
-			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
-			.expect()
-			.statusCode(200)
-			.when()
-			.get("/html/page1")
-			.andReturn()
-			.body().asString();
-
-		System.out.println(html);
+		final String html = fetchPageHtml("/html/page1");
 
 		final Document doc    = Jsoup.parse(html);
 		final Element div     = doc.getElementById("parent-container");
@@ -1577,7 +1398,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div      = page1.getElementsByTagName("div").get(0);
@@ -1613,19 +1434,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		RestAssured.basePath = "/";
 
-		// test successful basic auth
-		final String html = RestAssured
-			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
-			.expect()
-			.statusCode(200)
-			.when()
-			.get("/html/page1")
-			.andReturn()
-			.body().asString();
-
-		System.out.println(html);
+		final String html = fetchPageHtml("/html/page1");
 
 		final Document doc    = Jsoup.parse(html);
 		final Element div     = doc.getElementById("parent-container");
@@ -1679,7 +1488,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div      = page1.getElementsByTagName("div").get(0);
@@ -1715,19 +1524,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		RestAssured.basePath = "/";
 
-		// test successful basic auth
-		final String html = RestAssured
-			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
-			.expect()
-			.statusCode(200)
-			.when()
-			.get("/html/page1")
-			.andReturn()
-			.body().asString();
-
-		System.out.println(html);
+		final String html = fetchPageHtml("/html/page1");
 
 		final Document doc    = Jsoup.parse(html);
 		final Element div     = doc.getElementById("parent-container");
@@ -1780,7 +1577,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div  = page1.getElementsByTagName("div").get(0);
@@ -1815,19 +1612,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		RestAssured.basePath = "/";
 
-		// test successful basic auth
-		final String html = RestAssured
-			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
-			.expect()
-			.statusCode(200)
-			.when()
-			.get("/html/page1")
-			.andReturn()
-			.body().asString();
-
-		System.out.println(html);
+		final String html = fetchPageHtml("/html/page1");
 
 		final Document doc   = Jsoup.parse(html);
 		final Element button = doc.getElementById("button");
@@ -1876,7 +1661,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div  = page1.getElementsByTagName("div").get(0);
@@ -1912,19 +1697,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		RestAssured.basePath = "/";
 
-		// test successful basic auth
-		final String html = RestAssured
-			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
-			.expect()
-			.statusCode(200)
-			.when()
-			.get("/html/page1")
-			.andReturn()
-			.body().asString();
-
-		System.out.println(html);
+		final String html = fetchPageHtml("/html/page1");
 
 		final Document doc   = Jsoup.parse(html);
 		final Element button = doc.getElementById("button");
@@ -1978,7 +1751,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div      = page1.getElementsByTagName("div").get(0);
@@ -2016,19 +1789,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		RestAssured.basePath = "/";
 
-		// test successful basic auth
-		final String html = RestAssured
-			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
-			.expect()
-			.statusCode(200)
-			.when()
-			.get("/html/page1")
-			.andReturn()
-			.body().asString();
-
-		System.out.println(html);
+		final String html = fetchPageHtml("/html/page1");
 
 		final Document doc    = Jsoup.parse(html);
 		final Element div     = doc.getElementById("parent-container");
@@ -2088,7 +1849,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div      = page1.getElementsByTagName("div").get(0);
@@ -2125,19 +1886,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		RestAssured.basePath = "/";
 
-		// test successful basic auth
-		final String html = RestAssured
-			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
-			.expect()
-			.statusCode(200)
-			.when()
-			.get("/html/page1")
-			.andReturn()
-			.body().asString();
-
-		System.out.println(html);
+		final String html = fetchPageHtml("/html/page1");
 
 		final Document doc    = Jsoup.parse(html);
 		final Element div     = doc.getElementById("parent-container");
@@ -2191,7 +1940,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div      = page1.getElementsByTagName("div").get(0);
@@ -2228,19 +1977,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		RestAssured.basePath = "/";
 
-		// test successful basic auth
-		final String html = RestAssured
-			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
-			.expect()
-			.statusCode(200)
-			.when()
-			.get("/html/page1")
-			.andReturn()
-			.body().asString();
-
-		System.out.println(html);
+		final String html = fetchPageHtml("/html/page1");
 
 		final Document doc    = Jsoup.parse(html);
 		final Element div     = doc.getElementById("parent-container");
@@ -2294,7 +2031,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div      = page1.getElementsByTagName("div").get(0);
@@ -2330,19 +2067,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		RestAssured.basePath = "/";
 
-		// test successful basic auth
-		final String html = RestAssured
-			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
-			.expect()
-			.statusCode(200)
-			.when()
-			.get("/html/page1")
-			.andReturn()
-			.body().asString();
-
-		System.out.println(html);
+		final String html = fetchPageHtml("/html/page1");
 
 		final Document doc    = Jsoup.parse(html);
 		final Element div     = doc.getElementById("parent-container");
@@ -2396,7 +2121,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Page page1     = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div    = page1.getElementsByTagName("div").get(0);
@@ -2432,19 +2157,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		RestAssured.basePath = "/";
 
-		// test successful basic auth
-		final String html = RestAssured
-			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
-			.expect()
-			.statusCode(200)
-			.when()
-			.get("/html/page1")
-			.andReturn()
-			.body().asString();
-
-		System.out.println(html);
+		final String html = fetchPageHtml("/html/page1");
 
 		final Document doc    = Jsoup.parse(html);
 		final Element div     = doc.getElementById("parent-container");
@@ -2497,7 +2210,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div  = page1.getElementsByTagName("div").get(0);
@@ -2532,19 +2245,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		RestAssured.basePath = "/";
 
-		// test successful basic auth
-		final String html = RestAssured
-			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
-			.expect()
-			.statusCode(200)
-			.when()
-			.get("/html/page1")
-			.andReturn()
-			.body().asString();
-
-		System.out.println(html);
+		final String html = fetchPageHtml("/html/page1");
 
 		final Document doc   = Jsoup.parse(html);
 		final Element button = doc.getElementById("button");
@@ -2596,5 +2297,23 @@ public class EventActionMappingTest extends StructrUiTest {
 		}
 
 		return map;
+	}
+
+	private String fetchPageHtml(final String path) {
+
+		final String html = RestAssured
+			.given()
+				.header(X_USER_HEADER,     ADMIN_USERNAME)
+				.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
+			.expect()
+				.statusCode(200)
+			.when()
+				.get(path)
+			.andReturn()
+				.body().asString();
+
+//		System.out.println(html);
+
+		return html;
 	}
 }

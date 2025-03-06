@@ -27,6 +27,7 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
+import org.structr.odf.traits.definitions.ODFExporterTraitDefinition;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 import org.testng.annotations.Test;
@@ -42,7 +43,7 @@ public class ODFTest extends ODSTestBase {
 	@Test
 	public void testODS() {
 
-		final String type = "ODSExporter";
+		final String type = StructrTraits.ODS_EXPORTER;
 		File template     = null;
 		String uuid       = null;
 
@@ -50,9 +51,9 @@ public class ODFTest extends ODSTestBase {
 
 		try (final Tx tx = app.tx()) {
 
-			final Traits odfTraits  = Traits.of("ODFExporter");
+			final Traits odfTraits  = Traits.of(StructrTraits.ODF_EXPORTER);
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			// read test file from sources
 			try (final InputStream is = ODFTest.class.getResourceAsStream("/test.odt")) {
@@ -63,8 +64,8 @@ public class ODFTest extends ODSTestBase {
 			assertNotNull("Test file must exist", template);
 
 			final NodeInterface node = app.create(type,
-				new NodeAttribute<>(odfTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),             "test.ods"),
-				new NodeAttribute<>(odfTraits.key("documentTemplate"), template)
+				new NodeAttribute<>(odfTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),            "test.ods"),
+				new NodeAttribute<>(odfTraits.key(ODFExporterTraitDefinition.DOCUMENT_TEMPLATE_PROPERTY), template)
 			);
 
 			uuid = node.getUuid();
@@ -79,8 +80,8 @@ public class ODFTest extends ODSTestBase {
 		RestAssured
 			.given()
 			.filter(ResponseLoggingFilter.logResponseTo(System.out))
-			.header("X-User", "admin")
-			.header("X-Password", "admin")
+			.header(X_USER_HEADER, ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.expect()
 			.statusCode(200)
 			.when()
@@ -90,8 +91,8 @@ public class ODFTest extends ODSTestBase {
 		RestAssured
 			.given()
 			.filter(ResponseLoggingFilter.logResponseTo(System.out))
-			.header("X-User", "admin")
-			.header("X-Password", "admin")
+			.header(X_USER_HEADER, ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.expect()
 			.statusCode(200)
 			.body("result_count",    equalTo(2))
@@ -105,11 +106,11 @@ public class ODFTest extends ODSTestBase {
 		RestAssured
 			.given()
 			.filter(ResponseLoggingFilter.logResponseTo(System.out))
-			.header("X-User", "admin")
-			.header("X-Password", "admin")
+			.header(X_USER_HEADER, ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.expect()
 			.statusCode(200)
-			.body("result[0].type",                  equalTo("ODSExporter"))
+			.body("result[0].type",                  equalTo(StructrTraits.ODS_EXPORTER))
 			.body("result[0].documentTemplate.type", equalTo(StructrTraits.FILE))
 			.body("result[0].documentTemplate.name", equalTo("template"))
 			.body("result[0].documentTemplate.path", equalTo("/template"))

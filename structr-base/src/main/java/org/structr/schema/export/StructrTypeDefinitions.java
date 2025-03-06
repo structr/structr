@@ -492,7 +492,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 		final Set<String> toMigrate = Set.of(
 			"AbstractMinifiedFileMINIFICATIONFile", "ImagePICTURE_OFUser", "ImageTHUMBNAILImage", "UserHOME_DIRFolder", "UserWORKING_DIRFolder",
 			"AbstractFileCONTAINS_NEXT_SIBLINGAbstractFile", "FolderCONTAINSAbstractFile", "FolderCONTAINSFile", "FolderCONTAINSFolder",
-			"FolderCONTAINSImage", "VideoFileHAS_CONVERTED_VIDEOVideoFile", "VideoFileHAS_POSTER_IMAGEImage",
+			"FolderCONTAINSImage", StructrTraits.VIDEO_FILE_HAS_CONVERTED_VIDEO_VIDEO_FILE, StructrTraits.VIDEO_FILE_HAS_POSTER_IMAGE_IMAGE,
 			"AbstractFileCONFIGURED_BYStorageConfiguration"
 		);
 

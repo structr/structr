@@ -111,7 +111,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-					.headers("X-User", ADMIN_USERNAME , "X-Password", ADMIN_PASSWORD)
+					.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
 
 				.expect()
 					.statusCode(200)
@@ -142,7 +142,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-					.headers("X-User", ADMIN_USERNAME , "X-Password", ADMIN_PASSWORD)
+					.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
 
 				.expect()
 					.statusCode(200)
@@ -231,7 +231,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-					.headers("X-User", ADMIN_USERNAME , "X-Password", ADMIN_PASSWORD)
+					.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
 
 				.expect()
 					.statusCode(200)
@@ -323,7 +323,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-					.headers("X-User", ADMIN_USERNAME , "X-Password", ADMIN_PASSWORD)
+					.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
 
 				.expect()
 					.statusCode(200)
@@ -476,7 +476,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-				.headers("X-User", ADMIN_USERNAME , "X-Password", ADMIN_PASSWORD)
+				.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
 
 			.expect()
 				.statusCode(200)
@@ -506,7 +506,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-				.headers("X-User", ADMIN_USERNAME , "X-Password", ADMIN_PASSWORD)
+				.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
 
 			.expect()
 				.statusCode(200)
@@ -707,7 +707,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-				.headers("X-User", ADMIN_USERNAME , "X-Password", ADMIN_PASSWORD)
+				.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
 
 			.expect()
 				.statusCode(200)
@@ -737,7 +737,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-				.headers("X-User", ADMIN_USERNAME , "X-Password", ADMIN_PASSWORD)
+				.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
 
 			.expect()
 				.statusCode(200)
@@ -936,7 +936,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-				.headers("X-User", ADMIN_USERNAME , "X-Password", ADMIN_PASSWORD)
+				.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
 
 			.expect()
 				.statusCode(200)
@@ -966,7 +966,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-				.headers("X-User", ADMIN_USERNAME , "X-Password", ADMIN_PASSWORD)
+				.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
 
 			.expect()
 				.statusCode(200)
@@ -1105,7 +1105,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-				.headers("X-User", ADMIN_USERNAME , "X-Password", ADMIN_PASSWORD)
+				.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
 
 			.expect()
 				.statusCode(200)
@@ -1127,7 +1127,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-				.headers("X-User", ADMIN_USERNAME , "X-Password", ADMIN_PASSWORD)
+				.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
 
 			.expect()
 				.statusCode(200)
@@ -1151,7 +1151,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 
@@ -1172,7 +1172,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 			.given()
 				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 				.contentType("application/json; charset=UTF-8")
-				.headers("X-User", "admin" , "X-Password", "wrong")
+				.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, "wrong")
 
 			.expect()
 				.statusCode(200)
@@ -1276,8 +1276,8 @@ public class AdvancedSchemaTest extends FrontendTest {
 		RestAssured.basePath = "/";
 		RestAssured
 			.given()
-				.header("X-User",     ADMIN_USERNAME)
-				.header("X-Password", ADMIN_PASSWORD)
+				.header(X_USER_HEADER,     ADMIN_USERNAME)
+				.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.expect()
 				.statusCode(200)
 				.body(equalTo("test!"))
@@ -1356,7 +1356,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-					.headers("X-User", ADMIN_USERNAME , "X-Password", ADMIN_PASSWORD)
+					.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
 
 					.expect()
 					.statusCode(422)
@@ -1384,7 +1384,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-					.headers("X-User", ADMIN_USERNAME , "X-Password", ADMIN_PASSWORD)
+					.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
 
 					.expect()
 					.statusCode(200)
