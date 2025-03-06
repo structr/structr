@@ -18,43 +18,60 @@
  */
 package org.structr.flow.impl;
 
-import org.structr.common.PropertyView;
-import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.property.*;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.Traits;
 import org.structr.flow.api.Aggregation;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.api.ThrowingElement;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
-import org.structr.flow.impl.rels.FlowAggregateStartValue;
-import org.structr.flow.impl.rels.FlowDataInput;
-import org.structr.flow.impl.rels.FlowExceptionHandlerNodes;
 import org.structr.module.api.DeployableEntity;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 public class FlowAggregate extends FlowNode implements Aggregation, DataSource, DeployableEntity, ThrowingElement {
 
-	public static final Property<DataSource> dataSource                 = new StartNode<>("dataSource", FlowDataInput.class);
-	public static final Property<Iterable<FlowBaseNode>> dataTarget     = new EndNodes<>("dataTarget", FlowDataInput.class);
-	public static final Property<DataSource> startValueSource           = new StartNode<>("startValue", FlowAggregateStartValue.class);
-	public static final Property<FlowExceptionHandler> exceptionHandler = new EndNode<>("exceptionHandler", FlowExceptionHandlerNodes.class);
-	public static final Property<String> script                         = new StringProperty("script");
+	public FlowAggregate(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
+	}
 
-	public static final View defaultView 									= new View(FlowAction.class, PropertyView.Public, script, startValueSource, dataSource, dataTarget, exceptionHandler, isStartNodeOfContainer);
-	public static final View uiView      									= new View(FlowAction.class, PropertyView.Ui,     script, startValueSource, dataSource, dataTarget, exceptionHandler, isStartNodeOfContainer);
+	public String getScript() {
+		return wrappedObject.getProperty(traits.key("script"));
+	}
+
+	public DataSource getStartValueSource() {
+
+		final NodeInterface startValueSource = wrappedObject.getProperty(traits.key("startValueSource"));
+		if (startValueSource != null) {
+
+			return startValueSource.as(DataSource.class);
+		}
+
+		return null;
+	}
+
+	public FlowExceptionHandler getExceptionHandler() {
+
+		final NodeInterface exceptionHandler = wrappedObject.getProperty(traits.key("exceptionHandler"));
+		if (exceptionHandler != null) {
+
+			return exceptionHandler.as(FlowExceptionHandler.class);
+		}
+
+		return null;
+	}
 
 	@Override
-	public void aggregate(Context context) throws FlowException {
+	public void aggregate(final Context context) throws FlowException {
 
 		try {
 
-			String _script = getProperty(script);
-			DataSource ds = getProperty(dataSource);
-			DataSource startValue = getProperty(startValueSource);
+			final String _script        = getScript();
+			final DataSource ds         = getDataSource();
+			final DataSource startValue = getStartValueSource();
 
 			if (_script != null && startValue != null && ds != null) {
 
@@ -64,7 +81,7 @@ public class FlowAggregate extends FlowNode implements Aggregation, DataSource, 
 
 				context.setAggregation(getUuid(), ds.get(context));
 
-				Object result = Scripting.evaluate(context.getActionContext(securityContext, this), this, "${" + _script.trim() + "}", "FlowAggregate(" + getUuid() + ")");
+				Object result = Scripting.evaluate(context.getActionContext(getSecurityContext(), this), this, "${" + _script.trim() + "}", "FlowAggregate(" + getUuid() + ")");
 
 				context.setData(getUuid(), result);
 
@@ -78,11 +95,11 @@ public class FlowAggregate extends FlowNode implements Aggregation, DataSource, 
 	}
 
 	@Override
-	public Object get(Context context) throws FlowException {
+	public Object get(final Context context) throws FlowException {
 
 		if (context.getData(getUuid()) == null) {
 
-			DataSource startValue = getProperty(startValueSource);
+			DataSource startValue = getStartValueSource();
 
 			if (startValue != null) {
 
@@ -95,20 +112,20 @@ public class FlowAggregate extends FlowNode implements Aggregation, DataSource, 
 	}
 
 	@Override
-	public FlowExceptionHandler getExceptionHandler(Context context) {
-		return getProperty(exceptionHandler);
+	public FlowExceptionHandler getExceptionHandler(final Context context) {
+		return getExceptionHandler();
 	}
 
 	@Override
 	public Map<String, Object> exportData() {
-		Map<String, Object> result = new HashMap<>();
 
-		result.put("id", this.getUuid());
-		result.put("type", this.getClass().getSimpleName());
-		result.put("script", this.getProperty(script));
+		final Map<String, Object> result = new TreeMap<>();
 
-		result.put("visibleToPublicUsers", this.getProperty(visibleToPublicUsers));
-		result.put("visibleToAuthenticatedUsers", this.getProperty(visibleToAuthenticatedUsers));
+		result.put("id",                          getUuid());
+		result.put("type",                        getType());
+		result.put("script",                      getScript());
+		result.put("visibleToPublicUsers",        isVisibleToPublicUsers());
+		result.put("visibleToAuthenticatedUsers", isVisibleToAuthenticatedUsers());
 
 		return result;
 	}

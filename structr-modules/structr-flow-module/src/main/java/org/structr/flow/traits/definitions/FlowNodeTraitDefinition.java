@@ -24,38 +24,42 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
-import org.structr.flow.impl.FlowAction;
+import org.structr.flow.impl.FlowNode;
 
 import java.util.Map;
 import java.util.Set;
 
-public class FlowActionTraitDefinition extends AbstractNodeTraitDefinition {
 
-	public FlowActionTraitDefinition() {
-		super("FlowAction");
+/**
+ *
+ */
+public class FlowNodeTraitDefinition extends AbstractNodeTraitDefinition {
+
+	public FlowNodeTraitDefinition() {
+		super("FlowNode");
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
 		return Map.of(
-			FlowAction.class, (traits, node) -> new FlowAction(traits, node)
+			FlowNode.class, (traits, node) -> new FlowNode(traits, node)
 		);
 	}
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> dataSource           = new StartNode("dataSource", "FlowDataInput");
-		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes("dataTarget", "FlowDataInput");
-		final Property<NodeInterface> exceptionHandler     = new EndNode("exceptionHandler", "FlowExceptionHandlerNodes");
-		final Property<String> script                      = new StringProperty("script");
+		final Property<NodeInterface> isStartNodeOfContainer = new StartNode("isStartNodeOfContainer", "FlowContainerFlowNode");
+		final Property<Iterable<NodeInterface>> prev         = new StartNodes("prev", "FlowNodes");
+		final Property<NodeInterface> next                   = new EndNode("next", "FlowNodes");
+		final Property<NodeInterface> prevForEach            = new StartNode("prevForEach", "FlowForEachBody");
 
 		return newSet(
-			dataSource,
-			dataTarget,
-			exceptionHandler,
-			script
+			isStartNodeOfContainer,
+			prev,
+			next,
+			prevForEach
 		);
 	}
 
@@ -65,7 +69,11 @@ public class FlowActionTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"script", "dataSource", "dataTarget", "exceptionHandler", "isStartNodeOfContainer"
+				"prev", "next", "isStartNodeOfContainer"
+			),
+			PropertyView.Ui,
+			newSet(
+				"prev", "next", "isStartNodeOfContainer"
 			)
 		);
 	}

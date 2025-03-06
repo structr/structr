@@ -18,86 +18,85 @@
  */
 package org.structr.flow.impl;
 
-import org.structr.common.PropertyView;
-import org.structr.common.View;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.EndNode;
-import org.structr.core.property.EndNodes;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNode;
 import org.structr.core.traits.Traits;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.api.Fork;
 import org.structr.flow.api.ThrowingElement;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
-import org.structr.flow.impl.rels.FlowDataInput;
-import org.structr.flow.impl.rels.FlowExceptionHandlerNodes;
-import org.structr.flow.impl.rels.FlowForkBody;
 import org.structr.module.api.DeployableEntity;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 public class FlowFork extends FlowNode implements Fork, DataSource, DeployableEntity, ThrowingElement {
-
-	public static final Property<DataSource> dataSource                 = new StartNode<>("dataSource", FlowDataInput.class);
-	public static final Property<Iterable<FlowBaseNode>> dataTarget     = new EndNodes<>("dataTarget", FlowDataInput.class);
-	public static final Property<FlowNode> forkBody                     = new EndNode<>("loopBody", FlowForkBody.class);
-	public static final Property<FlowExceptionHandler> exceptionHandler = new EndNode<>("exceptionHandler", FlowExceptionHandlerNodes.class);
-
-	public static final View defaultView = new View(FlowAction.class, PropertyView.Public, exceptionHandler, isStartNodeOfContainer, forkBody, dataSource, dataTarget);
-	public static final View uiView      = new View(FlowAction.class, PropertyView.Ui, exceptionHandler, isStartNodeOfContainer, forkBody, dataSource, dataTarget);
 
 	public FlowFork(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);
 	}
 
+	public DataSource getDataSource() {
+
+		final NodeInterface node = wrappedObject.getProperty(traits.key("dataSource"));
+		if (node != null) {
+
+			return node.as(DataSource.class);
+		}
+
+		return null;
+	}
+
+	public FlowNode getForkBody() {
+
+		final NodeInterface node = wrappedObject.getProperty(traits.key("loopBody"));
+		if (node != null) {
+
+			return node.as(FlowNode.class);
+		}
+
+		return null;
+	}
+
+	public FlowExceptionHandler getExceptionHandler() {
+
+		final NodeInterface exceptionHandler = wrappedObject.getProperty(traits.key("exceptionHandler"));
+		if (exceptionHandler != null) {
+
+			return exceptionHandler.as(FlowExceptionHandler.class);
+		}
+
+		return null;
+	}
+
 	@Override
 	public FlowExceptionHandler getExceptionHandler(Context context) {
-		return getProperty(exceptionHandler);
+		return getExceptionHandler();
 	}
 
 	@Override
-	public Map<String, Object> exportData() {
-		Map<String, Object> result = new HashMap<>();
+	public void handle(final Context context) throws FlowException {
 
-		result.put("id", this.getUuid());
-		result.put("type", this.getClass().getSimpleName());
-
-		result.put("visibleToPublicUsers", this.getProperty(visibleToPublicUsers));
-		result.put("visibleToAuthenticatedUsers", this.getProperty(visibleToAuthenticatedUsers));
-
-		return result;
-	}
-
-	@Override
-	public void handle(Context context) throws FlowException {
 		// Call get while handling the fork process to clear local data and cache given data from dataSource
 		context.setData(getUuid(), null);
 
-		DataSource _ds = getProperty(dataSource);
-
+		DataSource _ds = getDataSource();
 		if (_ds != null) {
+
 			context.setData(getUuid(), _ds.get(context));
 		}
 
 	}
 
 	@Override
-	public FlowNode getForkBody() {
-		return getProperty(forkBody);
-	}
-
-	@Override
 	public Object get(Context context) throws FlowException {
 
 		Object data = context.getData(getUuid());
-
 		if (data == null) {
 
-			DataSource _ds = getProperty(dataSource);
+			DataSource _ds = getDataSource();
 			if (_ds != null) {
+
 				data = _ds.get(context);
 				context.setData(getUuid(), data);
 			}
@@ -106,5 +105,18 @@ public class FlowFork extends FlowNode implements Fork, DataSource, DeployableEn
 
 		return data;
 
+	}
+
+	@Override
+	public Map<String, Object> exportData() {
+
+		final Map<String, Object> result = new TreeMap<>();
+
+		result.put("id",                          getUuid());
+		result.put("type",                        getType());
+		result.put("visibleToPublicUsers",        isVisibleToPublicUsers());
+		result.put("visibleToAuthenticatedUsers", isVisibleToAuthenticatedUsers());
+
+		return result;
 	}
 }

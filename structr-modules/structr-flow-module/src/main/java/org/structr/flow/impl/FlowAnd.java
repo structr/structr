@@ -18,16 +18,25 @@
  */
 package org.structr.flow.impl;
 
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.Traits;
+
 /**
  *
  */
 public class FlowAnd extends FlowLogicCondition {
 
+	public FlowAnd(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
+	}
+
 	@Override
-	protected Boolean combine(Boolean result, Boolean value) {
+	protected Boolean combine(final Boolean result, final Boolean value) {
+
 		if (result == null) {
 			return value;
 		}
+
 		return result && value;
 	}
 }

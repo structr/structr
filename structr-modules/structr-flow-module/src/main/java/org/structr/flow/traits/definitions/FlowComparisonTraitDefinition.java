@@ -24,38 +24,43 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
-import org.structr.flow.impl.FlowAction;
+import org.structr.flow.impl.FlowComparison;
 
 import java.util.Map;
 import java.util.Set;
 
-public class FlowActionTraitDefinition extends AbstractNodeTraitDefinition {
+/**
+ *
+ */
+public class FlowComparisonTraitDefinition extends AbstractNodeTraitDefinition {
 
-	public FlowActionTraitDefinition() {
-		super("FlowAction");
+	public FlowComparisonTraitDefinition() {
+		super("FlowComparison");
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
 		return Map.of(
-			FlowAction.class, (traits, node) -> new FlowAction(traits, node)
+			FlowComparison.class, (traits, node) -> new FlowComparison(traits, node)
 		);
 	}
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> dataSource           = new StartNode("dataSource", "FlowDataInput");
-		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes("dataTarget", "FlowDataInput");
-		final Property<NodeInterface> exceptionHandler     = new EndNode("exceptionHandler", "FlowExceptionHandlerNodes");
-		final Property<String> script                      = new StringProperty("script");
+		final Property<String> operation                    = new EnumProperty("operation", FlowComparison.Operation.class);
+		final Property<Iterable<NodeInterface>> dataSources = new StartNodes("dataSources", "FlowDataInputs");
+		final Property<NodeInterface> dataSource            = new StartNode("dataSource", "FlowDataInput");
+		final Property<NodeInterface> condition             = new EndNode("condition", "FlowConditionCondition");
+		final Property<Iterable<NodeInterface>> decision    = new EndNodes("decision", "FlowDecisionCondition");
 
 		return newSet(
+			operation,
+			dataSources,
 			dataSource,
-			dataTarget,
-			exceptionHandler,
-			script
+			condition,
+			decision
 		);
 	}
 
@@ -65,7 +70,11 @@ public class FlowActionTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"script", "dataSource", "dataTarget", "exceptionHandler", "isStartNodeOfContainer"
+				"dataSources", "dataSource", "condition", "decision", "operation"
+			),
+			PropertyView.Ui,
+			newSet(
+				"dataSources", "dataSource", "condition", "decision", "operation"
 			)
 		);
 	}

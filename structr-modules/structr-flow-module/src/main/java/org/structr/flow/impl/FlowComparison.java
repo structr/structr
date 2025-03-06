@@ -19,16 +19,11 @@
 package org.structr.flow.impl;
 
 import org.structr.api.util.Iterables;
-import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.core.property.*;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.Traits;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
-import org.structr.flow.impl.rels.FlowConditionCondition;
-import org.structr.flow.impl.rels.FlowDataInput;
-import org.structr.flow.impl.rels.FlowDataInputs;
-import org.structr.flow.impl.rels.FlowDecisionCondition;
 import org.structr.module.api.DeployableEntity;
 
 import java.util.HashMap;
@@ -40,28 +35,32 @@ import java.util.Map;
  */
 public class FlowComparison extends FlowCondition implements DataSource, DeployableEntity {
 
-	public static final Property<Iterable<DataSource>> dataSources 	= new StartNodes<>("dataSources", FlowDataInputs.class);
-	public static final Property<DataSource> dataSource		= new StartNode<>("dataSource", FlowDataInput.class);
-	public static final Property<FlowCondition> condition 		= new EndNode<>("condition", FlowConditionCondition.class);
-	public static final Property<Iterable<FlowDecision>> decision 	= new EndNodes<>("decision", FlowDecisionCondition.class);
+	public FlowComparison(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
+	}
 
-	public static final Property<Operation> operation 			= new EnumProperty<>("operation", Operation.class);
+	public Iterable<DataSource> getDataSources() {
 
-	public static final View defaultView 						= new View(FlowNotNull.class, PropertyView.Public, dataSources, dataSource, condition, decision, operation);
-	public static final View uiView      						= new View(FlowNotNull.class, PropertyView.Ui,     dataSources, dataSource, condition, decision, operation);
+		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key("dataSources"));
+
+		return Iterables.map(n -> n.as(DataSource.class), nodes);
+	}
+
+	public String getOperation() {
+		return wrappedObject.getProperty(traits.key("operation"));
+	}
 
 	@Override
 	public Object get(final Context context) throws FlowException {
 
-		final List<DataSource> _dataSources = Iterables.toList(getProperty(dataSources));
+		final List<DataSource> _dataSources = Iterables.toList(getDataSources());
 		if (_dataSources.isEmpty()) {
 
 			return false;
 		}
 
-
-		final DataSource _dataSource = getProperty(dataSource);
-		final Operation op = getProperty(operation);
+		final DataSource _dataSource = getDataSource();
+		final String op = getOperation();
 
 		if (_dataSource == null || op == null) {
 			return false;
@@ -71,7 +70,7 @@ public class FlowComparison extends FlowCondition implements DataSource, Deploya
 
 		Boolean result = true;
 
-		for (final DataSource _ds : getProperty(dataSources)) {
+		for (final DataSource _ds : _dataSources) {
 
 			Object data = _ds.get(context);
 
@@ -89,22 +88,22 @@ public class FlowComparison extends FlowCondition implements DataSource, Deploya
 				Comparable c = (Comparable) data;
 
 				switch (op) {
-					case equal:
+					case "equal":
 						result = result && ((c == null && value == null) || (c != null && value != null && c.compareTo(value) == 0));
 						break;
-					case notEqual:
+					case "notEqual":
 						result = result && ((c == null && value != null) || (c != null && value == null) || (c != null && value != null && c.compareTo(value) != 0));
 						break;
-					case greater:
+					case "greater":
 						result = result && ((c != null && value == null) || (c != null && value != null && c.compareTo(value) > 0));
 						break;
-					case greaterOrEqual:
+					case "greaterOrEqual":
 						result = result && ((c == null && value == null) || (c != null && value != null && c.compareTo(value) >= 0));
 						break;
-					case less:
+					case "less":
 						result = result && ((c == null && value != null) || (c != null && value != null && c.compareTo(value) < 0));
 						break;
-					case lessOrEqual:
+					case "lessOrEqual":
 						result = result && ((c == null && value != null) || (c == null && value == null) || (c != null && value != null && c.compareTo(value) <= 0));
 						break;
 				}
@@ -120,9 +119,9 @@ public class FlowComparison extends FlowCondition implements DataSource, Deploya
 	public Map<String, Object> exportData() {
 		Map<String, Object> result = new HashMap<>();
 
-		result.put("id", this.getUuid());
-		result.put("type", this.getClass().getSimpleName());
-		result.put("operation", this.getProperty(operation));
+		result.put("id",        getUuid());
+		result.put("type",      getType());
+		result.put("operation", getOperation());
 
 		return result;
 	}

@@ -24,22 +24,25 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
-import org.structr.flow.impl.FlowAction;
+import org.structr.flow.impl.FlowForEach;
 
 import java.util.Map;
 import java.util.Set;
 
-public class FlowActionTraitDefinition extends AbstractNodeTraitDefinition {
+/**
+ *
+ */
+public class FlowForEachTraitDefinition extends AbstractNodeTraitDefinition {
 
-	public FlowActionTraitDefinition() {
-		super("FlowAction");
+	public FlowForEachTraitDefinition() {
+		super("FlowForEach");
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
 		return Map.of(
-			FlowAction.class, (traits, node) -> new FlowAction(traits, node)
+			FlowForEach.class, (traits, node) -> new FlowForEach(traits, node)
 		);
 	}
 
@@ -48,14 +51,14 @@ public class FlowActionTraitDefinition extends AbstractNodeTraitDefinition {
 
 		final Property<NodeInterface> dataSource           = new StartNode("dataSource", "FlowDataInput");
 		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes("dataTarget", "FlowDataInput");
+		final Property<NodeInterface> loopBody             = new EndNode("loopBody", "FlowForEachBody");
 		final Property<NodeInterface> exceptionHandler     = new EndNode("exceptionHandler", "FlowExceptionHandlerNodes");
-		final Property<String> script                      = new StringProperty("script");
 
 		return newSet(
 			dataSource,
 			dataTarget,
-			exceptionHandler,
-			script
+			loopBody,
+			exceptionHandler
 		);
 	}
 
@@ -65,7 +68,11 @@ public class FlowActionTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"script", "dataSource", "dataTarget", "exceptionHandler", "isStartNodeOfContainer"
+				"dataSource", "loopBody", "isStartNodeOfContainer", "exceptionHandler"
+			),
+			PropertyView.Ui,
+			newSet(
+				"dataSource", "loopBody", "isStartNodeOfContainer", "exceptionHandler"
 			)
 		);
 	}

@@ -16,26 +16,31 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.flow.impl;
+package org.structr.flow.traits.definitions;
 
-import org.structr.api.util.Iterables;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.traits.Traits;
-import org.structr.flow.api.DataSource;
+import org.structr.core.entity.Relation;
+import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.flow.impl.FlowFirst;
 
-/**
- *
- */
-public abstract class FlowCondition extends FlowBaseNode implements DataSource {
+import java.util.Map;
 
-	public FlowCondition(final Traits traits, final NodeInterface wrappedObject) {
-		super(traits, wrappedObject);
+public class FlowFirstTraitDefinition extends AbstractNodeTraitDefinition {
+
+	public FlowFirstTraitDefinition() {
+		super("FlowFirst");
 	}
 
-	public Iterable<FlowCondition> getConditions() {
+	@Override
+	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
-		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key("conditions"));
+		return Map.of(
+			FlowFirst.class, (traits, node) -> new FlowFirst(traits, node)
+		);
+	}
 
-		return Iterables.map(n -> n.as(FlowCondition.class), nodes);
+	@Override
+	public Relation getRelation() {
+		return null;
 	}
 }

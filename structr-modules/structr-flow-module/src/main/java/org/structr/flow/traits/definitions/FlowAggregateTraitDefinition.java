@@ -24,22 +24,22 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
-import org.structr.flow.impl.FlowAction;
+import org.structr.flow.impl.FlowAggregate;
 
 import java.util.Map;
 import java.util.Set;
 
-public class FlowActionTraitDefinition extends AbstractNodeTraitDefinition {
+public class FlowAggregateTraitDefinition extends AbstractNodeTraitDefinition {
 
-	public FlowActionTraitDefinition() {
-		super("FlowAction");
+	public FlowAggregateTraitDefinition() {
+		super("FlowAggregate");
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
 		return Map.of(
-			FlowAction.class, (traits, node) -> new FlowAction(traits, node)
+			FlowAggregate.class, (traits, node) -> new FlowAggregate(traits, node)
 		);
 	}
 
@@ -48,12 +48,14 @@ public class FlowActionTraitDefinition extends AbstractNodeTraitDefinition {
 
 		final Property<NodeInterface> dataSource           = new StartNode("dataSource", "FlowDataInput");
 		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes("dataTarget", "FlowDataInput");
+		final Property<NodeInterface> startValueSource     = new StartNode("startValue", "FlowAggregateStartValue");
 		final Property<NodeInterface> exceptionHandler     = new EndNode("exceptionHandler", "FlowExceptionHandlerNodes");
 		final Property<String> script                      = new StringProperty("script");
 
 		return newSet(
 			dataSource,
 			dataTarget,
+			startValueSource,
 			exceptionHandler,
 			script
 		);
@@ -65,7 +67,11 @@ public class FlowActionTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"script", "dataSource", "dataTarget", "exceptionHandler", "isStartNodeOfContainer"
+				"script", "startValueSource", "dataSource", "dataTarget", "exceptionHandler", "isStartNodeOfContainer"
+			),
+			PropertyView.Ui,
+			newSet(
+				"script", "startValueSource", "dataSource", "dataTarget", "exceptionHandler", "isStartNodeOfContainer"
 			)
 		);
 	}

@@ -18,23 +18,15 @@
  */
 package org.structr.flow.impl;
 
-import org.structr.common.PropertyView;
-import org.structr.common.View;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.EndNode;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNode;
 import org.structr.core.traits.Traits;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.api.Decision;
 import org.structr.flow.api.FlowElement;
-import org.structr.flow.impl.rels.FlowDecisionCondition;
-import org.structr.flow.impl.rels.FlowDecisionFalse;
-import org.structr.flow.impl.rels.FlowDecisionTrue;
 import org.structr.module.api.DeployableEntity;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
  *
@@ -45,36 +37,51 @@ public class FlowDecision extends FlowNode implements Decision, DeployableEntity
 		super(traits, wrappedObject);
 	}
 
-	public static final Property<FlowCondition> condition = new StartNode<>("condition", FlowDecisionCondition.class);
-	public static final Property<FlowNode> trueElement    = new EndNode<>("trueElement", FlowDecisionTrue.class);
-	public static final Property<FlowNode> falseElement   = new EndNode<>("falseElement", FlowDecisionFalse.class);
-
-	public static final View defaultView = new View(FlowDecision.class, PropertyView.Public, condition, trueElement, falseElement, isStartNodeOfContainer);
-	public static final View uiView      = new View(FlowDecision.class, PropertyView.Ui,     condition, trueElement, falseElement, isStartNodeOfContainer);
-
 	@Override
 	public DataSource getCondition() {
-		return getProperty(condition);
+
+		final NodeInterface node = wrappedObject.getProperty(traits.key("condition"));
+		if (node != null) {
+
+			return node.as(DataSource.class);
+		}
+
+		return null;
 	}
 
 	@Override
 	public FlowElement getTrueElement() {
-		return getProperty(trueElement);
+
+		final NodeInterface node = wrappedObject.getProperty(traits.key("trueElement"));
+		if (node != null) {
+
+			return node.as(FlowElement.class);
+		}
+
+		return null;
 	}
 
 	@Override
 	public FlowElement getFalseElement() {
-		return getProperty(falseElement);
+
+		final NodeInterface node = wrappedObject.getProperty(traits.key("falseElement"));
+		if (node != null) {
+
+			return node.as(FlowElement.class);
+		}
+
+		return null;
 	}
 
 	@Override
 	public Map<String, Object> exportData() {
-		Map<String, Object> result = new HashMap<>();
 
-		result.put("id", this.getUuid());
-		result.put("type", this.getClass().getSimpleName());
-		result.put("visibleToPublicUsers", this.getProperty(visibleToPublicUsers));
-		result.put("visibleToAuthenticatedUsers", this.getProperty(visibleToAuthenticatedUsers));
+		final Map<String, Object> result = new TreeMap<>();
+
+		result.put("id",                          getUuid());
+		result.put("type",                        getType());
+		result.put("visibleToPublicUsers",        isVisibleToPublicUsers());
+		result.put("visibleToAuthenticatedUsers", isVisibleToAuthenticatedUsers());
 
 		return result;
 	}

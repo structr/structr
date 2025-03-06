@@ -38,8 +38,7 @@ public class FlowFirst extends FlowDataSource {
 	@Override
 	public Object get(final Context context) throws FlowException {
 
-		final DataSource _dataSource = getProperty(dataSource);
-
+		final DataSource _dataSource = getDataSource();
 		if (_dataSource != null) {
 
 			Object currentData = context.getData(getUuid());
@@ -59,9 +58,7 @@ public class FlowFirst extends FlowDataSource {
 					context.setData(getUuid(), data);
 					return data;
 				}
-
 			}
-
 		}
 
 		return null;

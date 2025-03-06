@@ -24,22 +24,25 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
-import org.structr.flow.impl.FlowAction;
+import org.structr.flow.impl.FlowDataSource;
 
 import java.util.Map;
 import java.util.Set;
 
-public class FlowActionTraitDefinition extends AbstractNodeTraitDefinition {
+/**
+ *
+ */
+public class FlowDataSourceTraitDefinition extends AbstractNodeTraitDefinition {
 
-	public FlowActionTraitDefinition() {
-		super("FlowAction");
+	public FlowDataSourceTraitDefinition() {
+		super("FlowDataSource");
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
 		return Map.of(
-			FlowAction.class, (traits, node) -> new FlowAction(traits, node)
+			FlowDataSource.class, (traits, node) -> new FlowDataSource(traits, node)
 		);
 	}
 
@@ -49,13 +52,13 @@ public class FlowActionTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<NodeInterface> dataSource           = new StartNode("dataSource", "FlowDataInput");
 		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes("dataTarget", "FlowDataInput");
 		final Property<NodeInterface> exceptionHandler     = new EndNode("exceptionHandler", "FlowExceptionHandlerNodes");
-		final Property<String> script                      = new StringProperty("script");
+		final Property<String> query                       = new StringProperty("query");
 
 		return newSet(
 			dataSource,
 			dataTarget,
 			exceptionHandler,
-			script
+			query
 		);
 	}
 
@@ -65,7 +68,11 @@ public class FlowActionTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"script", "dataSource", "dataTarget", "exceptionHandler", "isStartNodeOfContainer"
+				"query", "dataTarget", "exceptionHandler", "dataSource"
+			),
+			PropertyView.Ui,
+			newSet(
+				"query", "dataTarget", "exceptionHandler", "dataSource"
 			)
 		);
 	}

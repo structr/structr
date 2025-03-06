@@ -18,39 +18,52 @@
  */
 package org.structr.flow.impl;
 
-import org.structr.common.PropertyView;
-import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.*;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.Traits;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.api.ThrowingElement;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
-import org.structr.flow.impl.rels.FlowDataInput;
-import org.structr.flow.impl.rels.FlowExceptionHandlerNodes;
 import org.structr.module.api.DeployableEntity;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
  *
  */
 public class FlowDataSource extends FlowBaseNode implements DataSource, DeployableEntity, ThrowingElement {
 
-	public static final Property<DataSource> dataSource = new StartNode<>("dataSource", FlowDataInput.class);
-	public static final Property<Iterable<FlowBaseNode>> dataTarget = new EndNodes<>("dataTarget", FlowDataInput.class);
-	public static final Property<FlowExceptionHandler> exceptionHandler = new EndNode<>("exceptionHandler", FlowExceptionHandlerNodes.class);
-	public static final Property<String> query = new StringProperty("query");
-
-	public static final View defaultView = new View(FlowDataSource.class, PropertyView.Public, query, dataTarget, exceptionHandler, dataSource);
-	public static final View uiView = new View(FlowDataSource.class, PropertyView.Ui,     query, dataTarget, exceptionHandler, dataSource);
-
 	public FlowDataSource(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);
+	}
+
+	public String getQuery() {
+		return wrappedObject.getProperty(traits.key("query"));
+	}
+
+	public DataSource getDataSource() {
+
+		final NodeInterface node = wrappedObject.getProperty(traits.key("dataSource"));
+		if (node != null) {
+
+			return node.as(DataSource.class);
+		}
+
+		return null;
+	}
+
+	public FlowExceptionHandler getExceptionHandler() {
+
+		final NodeInterface exceptionHandler = wrappedObject.getProperty(traits.key("exceptionHandler"));
+		if (exceptionHandler != null) {
+
+			return exceptionHandler.as(FlowExceptionHandler.class);
+		}
+
+		return null;
 	}
 
 	@Override
@@ -58,18 +71,18 @@ public class FlowDataSource extends FlowBaseNode implements DataSource, Deployab
 
 		if (!context.hasData(getUuid())) {
 
-			final DataSource _ds = getProperty(dataSource);
+			final DataSource _ds = getDataSource();
 			if (_ds != null) {
 				Object data = _ds.get(context);
 				context.setData(getUuid(), data);
 			}
 
-			final String _script = getProperty(query);
+			final String _script = getQuery();
 			if (_script != null) {
 
 				try {
 
-					Object result = Scripting.evaluate(context.getActionContext(securityContext, this), context.getThisObject(), "${" + _script.trim() + "}", "FlowDataSource(" + getUuid() + ")");
+					Object result = Scripting.evaluate(context.getActionContext(getSecurityContext(), this), context.getThisObject(), "${" + _script.trim() + "}", "FlowDataSource(" + getUuid() + ")");
 					context.setData(getUuid(), result);
 					return result;
 				} catch (FrameworkException fex) {
@@ -88,19 +101,20 @@ public class FlowDataSource extends FlowBaseNode implements DataSource, Deployab
 	}
 
 	@Override
-	public FlowExceptionHandler getExceptionHandler(Context context) {
-		return getProperty(exceptionHandler);
+	public FlowExceptionHandler getExceptionHandler(final Context context) {
+		return getExceptionHandler();
 	}
 
 	@Override
 	public Map<String, Object> exportData() {
-		Map<String, Object> result = new HashMap<>();
 
-		result.put("id", this.getUuid());
-		result.put("type", this.getClass().getSimpleName());
-		result.put("query", this.getProperty(query));
-		result.put("visibleToPublicUsers", this.getProperty(visibleToPublicUsers));
-		result.put("visibleToAuthenticatedUsers", this.getProperty(visibleToAuthenticatedUsers));
+		final Map<String, Object> result = new TreeMap<>();
+
+		result.put("id",                          getUuid());
+		result.put("type",                        getType());
+		result.put("query",                       getQuery());
+		result.put("visibleToPublicUsers",        isVisibleToPublicUsers());
+		result.put("visibleToAuthenticatedUsers", isVisibleToAuthenticatedUsers());
 
 		return result;
 	}

@@ -18,21 +18,14 @@
  */
 package org.structr.flow.impl;
 
-import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
-import org.structr.common.View;
-import org.structr.common.error.ErrorBuffer;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNode;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
-import org.structr.flow.impl.rels.FlowContainerBaseNode;
+import org.structr.flow.api.DataSource;
 import org.structr.module.api.DeployableEntity;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
  */
@@ -42,27 +35,26 @@ public abstract class FlowBaseNode extends AbstractNodeTraitWrapper implements D
 		super(traits, wrappedObject);
 	}
 
-	public static final Property<FlowContainer> flowContainer = new StartNode<>("flowContainer", FlowContainerBaseNode.class).indexed();
+	public DataSource getDataSource() {
 
-	public static final View defaultView = new View(FlowContainer.class, PropertyView.Public);
-	public static final View uiView      = new View(FlowContainer.class, PropertyView.Ui, flowContainer);
+		final NodeInterface dataSource = wrappedObject.getProperty(traits.key("dataSource"));
+		if (dataSource != null) {
 
-	@Override
-	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
-		super.onCreation(securityContext, errorBuffer);
+			return dataSource.as(DataSource.class);
+		}
 
-		this.setProperty(visibleToAuthenticatedUsers, true);
-		this.setProperty(visibleToPublicUsers, true);
+		return null;
 	}
 
 	@Override
 	public Map<String, Object> exportData() {
-		Map<String, Object> result = new HashMap<>();
 
-		result.put("id", this.getUuid());
-		result.put("type", this.getClass().getSimpleName());
-		result.put("visibleToPublicUsers", this.getProperty(visibleToPublicUsers));
-		result.put("visibleToAuthenticatedUsers", this.getProperty(visibleToAuthenticatedUsers));
+		final Map<String, Object> result = new TreeMap<>();
+
+		result.put("id",                          getUuid());
+		result.put("type",                        getType());
+		result.put("visibleToPublicUsers",        isVisibleToPublicUsers());
+		result.put("visibleToAuthenticatedUsers", isVisibleToAuthenticatedUsers());
 
 		return result;
 	}

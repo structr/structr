@@ -18,52 +18,57 @@
  */
 package org.structr.flow.impl;
 
-import org.structr.common.PropertyView;
-import org.structr.common.View;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.EndNode;
-import org.structr.core.property.EndNodes;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNode;
 import org.structr.core.traits.Traits;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.api.ForEach;
 import org.structr.flow.api.ThrowingElement;
 import org.structr.flow.engine.Context;
-import org.structr.flow.impl.rels.FlowDataInput;
-import org.structr.flow.impl.rels.FlowExceptionHandlerNodes;
-import org.structr.flow.impl.rels.FlowForEachBody;
 import org.structr.module.api.DeployableEntity;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
  *
  */
 public class FlowForEach extends FlowNode implements ForEach, DataSource, DeployableEntity, ThrowingElement {
 
-	public static final Property<DataSource> dataSource                  = new StartNode<>("dataSource", FlowDataInput.class);
-	public static final Property<Iterable<FlowBaseNode>> dataTarget      = new EndNodes<>("dataTarget", FlowDataInput.class);
-	public static final Property<FlowNode> loopBody                      = new EndNode<>("loopBody", FlowForEachBody.class);
-	public static final Property<FlowExceptionHandler> exceptionHandler  = new EndNode<>("exceptionHandler", FlowExceptionHandlerNodes.class);
-
-	public static final View defaultView = new View(FlowForEach.class, PropertyView.Public, dataSource, loopBody, isStartNodeOfContainer, exceptionHandler);
-	public static final View uiView      = new View(FlowForEach.class, PropertyView.Ui,     dataSource, loopBody, isStartNodeOfContainer, exceptionHandler);
-
 	public FlowForEach(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);
 	}
 
-
-	@Override
 	public DataSource getDataSource() {
-		return getProperty(dataSource);
+
+		final NodeInterface node = wrappedObject.getProperty(traits.key("dataSource"));
+		if (node != null) {
+
+			return node.as(DataSource.class);
+		}
+
+		return null;
 	}
 
-	@Override
 	public FlowNode getLoopBody() {
-		return getProperty(loopBody);
+
+		final NodeInterface node = wrappedObject.getProperty(traits.key("loopBody"));
+		if (node != null) {
+
+			return node.as(FlowNode.class);
+		}
+
+		return null;
+	}
+
+	public FlowExceptionHandler getExceptionHandler() {
+
+		final NodeInterface exceptionHandler = wrappedObject.getProperty(traits.key("exceptionHandler"));
+		if (exceptionHandler != null) {
+
+			return exceptionHandler.as(FlowExceptionHandler.class);
+		}
+
+		return null;
 	}
 
 	@Override
@@ -73,17 +78,18 @@ public class FlowForEach extends FlowNode implements ForEach, DataSource, Deploy
 
 	@Override
 	public FlowExceptionHandler getExceptionHandler(Context context) {
-		return getProperty(exceptionHandler);
+		return getExceptionHandler();
 	}
 
 	@Override
 	public Map<String, Object> exportData() {
-		Map<String, Object> result = new HashMap<>();
 
-		result.put("id", this.getUuid());
-		result.put("type", this.getClass().getSimpleName());
-		result.put("visibleToPublicUsers", this.getProperty(visibleToPublicUsers));
-		result.put("visibleToAuthenticatedUsers", this.getProperty(visibleToAuthenticatedUsers));
+		final Map<String, Object> result = new TreeMap<>();
+
+		result.put("id",                          getUuid());
+		result.put("type",                        getType());
+		result.put("visibleToPublicUsers",        isVisibleToPublicUsers());
+		result.put("visibleToAuthenticatedUsers", isVisibleToAuthenticatedUsers());
 
 		return result;
 	}

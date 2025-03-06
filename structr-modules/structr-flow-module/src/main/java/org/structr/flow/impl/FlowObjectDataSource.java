@@ -20,16 +20,12 @@ package org.structr.flow.impl;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.common.PropertyView;
-import org.structr.common.View;
+import org.structr.api.util.Iterables;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNodes;
 import org.structr.core.traits.Traits;
 import org.structr.flow.api.KeyValue;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
-import org.structr.flow.impl.rels.FlowKeyValueObjectInput;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -41,13 +37,15 @@ public class FlowObjectDataSource extends FlowDataSource {
 
 	private static final Logger logger = LoggerFactory.getLogger(FlowObjectDataSource.class);
 
-	public static final Property<Iterable<FlowKeyValue>> keyValueSources = new StartNodes<>("keyValueSources", FlowKeyValueObjectInput.class);
-
-	public static final View defaultView = new View(FlowObjectDataSource.class, PropertyView.Public, keyValueSources);
-	public static final View uiView      = new View(FlowObjectDataSource.class, PropertyView.Ui,     keyValueSources);
-
 	public FlowObjectDataSource(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);
+	}
+
+	public Iterable<FlowKeyValue> getKeyValueSources() {
+
+		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key("keyValueSources"));
+
+		return Iterables.map(n -> n.as(FlowKeyValue.class), nodes);
 	}
 
 	@Override
@@ -55,7 +53,7 @@ public class FlowObjectDataSource extends FlowDataSource {
 
 		final Map<String, Object> result = new LinkedHashMap<>();
 
-		for (final FlowKeyValue _keySource : getProperty(keyValueSources)) {
+		for (final FlowKeyValue _keySource : getKeyValueSources()) {
 
 			final Object item = _keySource.get(context);
 			if (item != null && item instanceof KeyValue) {

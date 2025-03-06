@@ -18,41 +18,49 @@
  */
 package org.structr.flow.impl;
 
-import org.structr.common.PropertyView;
-import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.property.*;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.Traits;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.api.ThrowingElement;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
-import org.structr.flow.impl.rels.FlowDataInput;
-import org.structr.flow.impl.rels.FlowExceptionHandlerNodes;
 import org.structr.module.api.DeployableEntity;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 public class FlowAction extends FlowActionNode implements DataSource, DeployableEntity, ThrowingElement {
 
-	public static final Property<DataSource> dataSource                 = new StartNode<>("dataSource", FlowDataInput.class);
-	public static final Property<Iterable<FlowBaseNode>> dataTarget     = new EndNodes<>("dataTarget", FlowDataInput.class);
-	public static final Property<FlowExceptionHandler> exceptionHandler = new EndNode<>("exceptionHandler", FlowExceptionHandlerNodes.class);
-	public static final Property<String> script                         = new StringProperty("script");
+	public FlowAction(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
+	}
 
-	public static final View defaultView = new View(FlowAction.class, PropertyView.Public, script, dataSource, dataTarget, exceptionHandler, isStartNodeOfContainer);
-	public static final View uiView      = new View(FlowAction.class, PropertyView.Ui,     script, dataSource, dataTarget, exceptionHandler, isStartNodeOfContainer);
+	public String getScript() {
+		return wrappedObject.getProperty(traits.key("script"));
+	}
+
+	public FlowExceptionHandler getExceptionHandler() {
+
+		final NodeInterface exceptionHandler = wrappedObject.getProperty(traits.key("exceptionHandler"));
+		if (exceptionHandler != null) {
+
+			return exceptionHandler.as(FlowExceptionHandler.class);
+		}
+
+		return null;
+	}
 
 	@Override
 	public void execute(final Context context) throws FlowException {
 
-		final String _script = getProperty(script);
+		final String _script = getScript();
 		if (_script != null) {
 
 			try {
 
-				final DataSource _dataSource = getProperty(FlowAction.dataSource);
+				final DataSource _dataSource = getDataSource();
 
 				// make data available to action if present
 				if (_dataSource != null) {
@@ -60,7 +68,7 @@ public class FlowAction extends FlowActionNode implements DataSource, Deployable
 				}
 
 				// Evaluate script and write result to context
-				Object result = Scripting.evaluate(context.getActionContext(securityContext, this), this, "${" + _script.trim() + "}", "FlowAction(" + getUuid() + ")");
+				Object result = Scripting.evaluate(context.getActionContext(getSecurityContext(), this), this, "${" + _script.trim() + "}", "FlowAction(" + getUuid() + ")");
 				context.setData(getUuid(), result);
 
 			} catch (FrameworkException fex) {
@@ -73,6 +81,7 @@ public class FlowAction extends FlowActionNode implements DataSource, Deployable
 
 	@Override
 	public Object get(Context context) throws FlowException {
+
 		if (!context.hasData(getUuid())) {
 			this.execute(context);
 		}
@@ -80,21 +89,20 @@ public class FlowAction extends FlowActionNode implements DataSource, Deployable
 	}
 
 	@Override
-	public FlowExceptionHandler getExceptionHandler(Context context) {
-		return getProperty(exceptionHandler);
+	public FlowExceptionHandler getExceptionHandler(final Context context) {
+		return getExceptionHandler();
 	}
 
 	@Override
 	public Map<String, Object> exportData() {
 		
-		Map<String, Object> result = new HashMap<>();
+		final Map<String, Object> result = new TreeMap<>();
 
-		result.put("id", this.getUuid());
-		result.put("type", this.getClass().getSimpleName());
-		result.put("script", this.getProperty(script));
-
-		result.put("visibleToPublicUsers", this.getProperty(visibleToPublicUsers));
-		result.put("visibleToAuthenticatedUsers", this.getProperty(visibleToAuthenticatedUsers));
+		result.put("id",                          getUuid());
+		result.put("type",                        getType());
+		result.put("script",                      getScript());
+		result.put("visibleToPublicUsers",        isVisibleToPublicUsers());
+		result.put("visibleToAuthenticatedUsers", isVisibleToAuthenticatedUsers());
 
 		return result;
 	}
