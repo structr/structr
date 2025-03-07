@@ -32,7 +32,7 @@ public class FlowAggregateStartValue extends AbstractRelationshipTraitDefinition
 
 	@Override
 	public String getSourceType() {
-		return "DataSource";
+		return "FlowDataSource";
 	}
 
 	@Override

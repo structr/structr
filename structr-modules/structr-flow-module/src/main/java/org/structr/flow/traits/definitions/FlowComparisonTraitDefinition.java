@@ -51,14 +51,12 @@ public class FlowComparisonTraitDefinition extends AbstractNodeTraitDefinition {
 
 		final Property<String> operation                    = new EnumProperty("operation", FlowComparison.Operation.class);
 		final Property<Iterable<NodeInterface>> dataSources = new StartNodes("dataSources", "FlowDataInputs");
-		final Property<NodeInterface> dataSource            = new StartNode("dataSource", "FlowDataInput");
 		final Property<NodeInterface> condition             = new EndNode("condition", "FlowConditionCondition");
 		final Property<Iterable<NodeInterface>> decision    = new EndNodes("decision", "FlowDecisionCondition");
 
 		return newSet(
 			operation,
 			dataSources,
-			dataSource,
 			condition,
 			decision
 		);

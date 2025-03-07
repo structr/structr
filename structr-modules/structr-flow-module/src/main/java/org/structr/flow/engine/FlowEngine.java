@@ -23,10 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.flow.api.FlowHandler;
-import org.structr.flow.api.FlowResult;
-import org.structr.flow.api.FlowType;
-import org.structr.flow.api.ThrowingElement;
+import org.structr.flow.api.*;
 import org.structr.flow.impl.FlowBaseNode;
 import org.structr.flow.impl.FlowContainer;
 import org.structr.flow.impl.FlowExceptionHandler;
@@ -62,16 +59,16 @@ public class FlowEngine {
 		return this.execute(this.context,step);
 	}
 
-	public FlowResult execute(final Context context, final FlowNode step) throws FrameworkException{
+	public FlowResult execute(final Context context, final FlowElement step) throws FrameworkException{
 
-		FlowNode current = step;
+		FlowElement current = step;
 
 		while (current != null) {
 
 			final FlowHandler handler = handlers.get(current.getFlowType());
 			if (handler != null) {
 
-				FlowNode next = null;
+				FlowElement next = null;
 
 				try {
 
@@ -125,7 +122,8 @@ public class FlowEngine {
 		handlers.put(FlowType.Switch,       new SwitchHandler());
 	}
 
-	protected FlowResult handleException(final Context context, final FlowException exception, final FlowNode current) throws FrameworkException {
+	protected FlowResult handleException(final Context context, final FlowException exception, final FlowElement current) throws FrameworkException {
+
 		ThrowingElement throwingElement = exception.getThrowingElement();
 
 		// Check if throwing element has a linked FlowExceptionHandler or if there is a global one

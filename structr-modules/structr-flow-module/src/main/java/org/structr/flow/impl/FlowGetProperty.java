@@ -92,12 +92,12 @@ public class FlowGetProperty extends FlowDataSource {
 
 					if (mapKey != null) {
 
-						if (mapKey instanceof String) {
+						if (mapKey instanceof String stringKey) {
 
 							final Traits traits = graphObject.getTraits();
-							if (traits.hasKey(mapKey)) {
+							if (traits.hasKey(stringKey)) {
 
-								final PropertyKey key = graphObject.getTraits().key(mapKey);
+								final PropertyKey key = graphObject.getTraits().key(stringKey);
 								if (key != null) {
 
 									return graphObject.getProperty(key);
@@ -105,7 +105,7 @@ public class FlowGetProperty extends FlowDataSource {
 
 							} else {
 
-								logger.warn("Name source of {} returned unknown property key {}", getUuid(), key);
+								logger.warn("Name source of {} returned unknown property key {}", getUuid(), mapKey);
 							}
 						}
 

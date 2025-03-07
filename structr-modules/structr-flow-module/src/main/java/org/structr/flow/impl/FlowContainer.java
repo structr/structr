@@ -35,6 +35,7 @@ import org.structr.flow.api.FlowResult;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowEngine;
 import org.structr.module.api.DeployableEntity;
+import org.structr.web.entity.dom.DOMNode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -80,14 +81,26 @@ public class FlowContainer extends AbstractNodeTraitWrapper implements Deployabl
 	}
 
 	public String getEffectiveName() {
-		return getProperty(traits.key("effectiveName"));
+		return wrappedObject.getProperty(traits.key("effectiveName"));
+	}
+
+	public void setEffectiveName(final String effectiveName) throws FrameworkException {
+		wrappedObject.setProperty(traits.key("effectiveName"), effectiveName);
 	}
 
 	public void setScheduledForIndexing(final boolean b) throws FrameworkException {
 		wrappedObject.setProperty(traits.key("scheduledForIndexing"), false);
 	}
 
-	public Iterable<Object> evaluate(final Map<String, Object> parameters) throws FrameworkException {
+	public void setStartNode(final FlowNode next) throws FrameworkException {
+		wrappedObject.setProperty(traits.key("startNode"), next);
+	}
+
+	public void setRepeaterNodes(final Iterable<DOMNode> repeaterNodes) throws FrameworkException {
+		wrappedObject.setProperty(traits.key("repeaterNodes"), repeaterNodes);
+	}
+
+	public Iterable<Object> evaluate(final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException {
 
 		final FlowEngine engine = new FlowEngine();
 		final Context context   = new Context();

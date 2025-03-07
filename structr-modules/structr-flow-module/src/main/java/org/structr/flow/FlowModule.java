@@ -54,25 +54,48 @@ public class FlowModule implements StructrModule {
 
 		if (licensed) {
 
-			StructrTraits.registerRelationshipType("FlowContainerPackageFlow",         new FlowContainerPackageFlow());
-			StructrTraits.registerRelationshipType("FlowContainerBaseNode",            new FlowContainerBaseNode());
-			StructrTraits.registerRelationshipType("FlowContainerConfigurationFlow",   new FlowContainerConfigurationFlow());
-			StructrTraits.registerRelationshipType("FlowActiveContainerConfiguration", new FlowActiveContainerConfiguration());
-			StructrTraits.registerRelationshipType("FlowContainerFlowNode",            new FlowContainerFlowNode());
-			StructrTraits.registerRelationshipType("DOMNodeFLOWFlowContainer",         new DOMNodeFLOWFlowContainer());
+			StructrTraits.registerRelationshipType("DOMNodeFLOWFlowContainer",            new DOMNodeFLOWFlowContainer());
+			StructrTraits.registerRelationshipType("FlowActiveContainerConfiguration",    new FlowActiveContainerConfiguration());
+			StructrTraits.registerRelationshipType("FlowAggregateStartValue",             new FlowAggregateStartValue());
+			StructrTraits.registerRelationshipType("FlowCallContainer",                   new FlowCallContainer());
+			StructrTraits.registerRelationshipType("FlowCallParameter",                   new FlowCallParameter());
+			StructrTraits.registerRelationshipType("FlowConditionBaseNode",               new FlowConditionBaseNode());
+			StructrTraits.registerRelationshipType("FlowConditionCondition",              new FlowConditionCondition());
+			StructrTraits.registerRelationshipType("FlowContainerBaseNode",               new FlowContainerBaseNode());
+			StructrTraits.registerRelationshipType("FlowContainerConfigurationFlow",      new FlowContainerConfigurationFlow());
+			StructrTraits.registerRelationshipType("FlowContainerConfigurationPrincipal", new FlowContainerConfigurationPrincipal());
+			StructrTraits.registerRelationshipType("FlowContainerFlowNode",               new FlowContainerFlowNode());
+			StructrTraits.registerRelationshipType("FlowContainerPackageFlow",            new FlowContainerPackageFlow());
+			StructrTraits.registerRelationshipType("FlowContainerPackagePackage",         new FlowContainerPackagePackage());
+			StructrTraits.registerRelationshipType("FlowDataInput",                       new FlowDataInput());
+			StructrTraits.registerRelationshipType("FlowDataInputs",                      new FlowDataInputs());
+			StructrTraits.registerRelationshipType("FlowDecisionCondition",               new FlowDecisionCondition());
+			StructrTraits.registerRelationshipType("FlowDecisionFalse",                   new FlowDecisionFalse());
+			StructrTraits.registerRelationshipType("FlowDecisionTrue",                    new FlowDecisionTrue());
+			StructrTraits.registerRelationshipType("FlowExceptionHandlerNodes",           new FlowExceptionHandlerNodes());
+			StructrTraits.registerRelationshipType("FlowForEachBody",                     new FlowForEachBody());
+			StructrTraits.registerRelationshipType("FlowForkBody",                        new FlowForkBody());
+			StructrTraits.registerRelationshipType("FlowKeyValueObjectInput",             new FlowKeyValueObjectInput());
+			StructrTraits.registerRelationshipType("FlowNameDataSource",                  new FlowNameDataSource());
+			StructrTraits.registerRelationshipType("FlowNodeDataSource",                  new FlowNodeDataSource());
+			StructrTraits.registerRelationshipType("FlowNodes",                           new FlowNodes());
+			StructrTraits.registerRelationshipType("FlowScriptConditionSource",           new FlowScriptConditionSource());
+			StructrTraits.registerRelationshipType("FlowSwitchCases",                     new FlowSwitchCases());
 
-			StructrTraits.registerNodeType("FlowAction",                 new FlowActionTraitDefinition());
+			StructrTraits.registerNodeType("FlowAction",                 new FlowBaseNodeTraitDefinition(), new FlowNodeTraitDefinition(), new FlowActionTraitDefinition());
 			StructrTraits.registerNodeType("FlowAggregate",              new FlowAggregateTraitDefinition());
 			StructrTraits.registerNodeType("FlowAnd",                    new FlowAndTraitDefinition());
 			StructrTraits.registerNodeType("FlowBaseNode",               new FlowBaseNodeTraitDefinition());
 			StructrTraits.registerNodeType("FlowCall",                   new FlowCallTraitDefinition());
 			StructrTraits.registerNodeType("FlowCollectionDataSource",   new FlowCollectionDataSourceTraitDefinition());
 			StructrTraits.registerNodeType("FlowComparison",             new FlowComparisonTraitDefinition());
+			StructrTraits.registerNodeType("FlowCondition",              new FlowConditionTraitDefinition());
+			StructrTraits.registerNodeType("FlowConstant",               new FlowConstantTraitDefinition());
 			StructrTraits.registerNodeType("FlowContainer",              new FlowContainerTraitDefinition());
 			StructrTraits.registerNodeType("FlowContainerConfiguration", new FlowContainerConfigurationTraitDefinition());
 			StructrTraits.registerNodeType("FlowContainerPackage",       new FlowContainerPackageTraitDefinition());
 			StructrTraits.registerNodeType("FlowDecision",               new FlowDecisionTraitDefinition());
-			StructrTraits.registerNodeType("FlowDataSource",             new FlowDataSourceTraitDefinition());
+			StructrTraits.registerNodeType("FlowDataSource",             new FlowBaseNodeTraitDefinition(), new FlowDataSourceTraitDefinition());
 			StructrTraits.registerNodeType("FlowExceptionHandler",       new FlowExceptionHandlerTraitDefinition());
 			StructrTraits.registerNodeType("FlowFilter",                 new FlowFilterTraitDefinition());
 			StructrTraits.registerNodeType("FlowFirst",                  new FlowFirstTraitDefinition());
@@ -90,6 +113,14 @@ public class FlowModule implements StructrModule {
 			StructrTraits.registerNodeType("FlowNotNull",                new FlowNotNullTraitDefinition());
 			StructrTraits.registerNodeType("FlowObjectDataSource",       new FlowObjectDataSourceTraitDefinition());
 			StructrTraits.registerNodeType("FlowOr",                     new FlowOrTraitDefinition());
+			StructrTraits.registerNodeType("FlowParameterDataSource",    new FlowParameterDataSourceTraitDefinition());
+			StructrTraits.registerNodeType("FlowParameterInput",         new FlowParameterInputTraitDefinition());
+			StructrTraits.registerNodeType("FlowReturn",                 new FlowBaseNodeTraitDefinition(), new FlowNodeTraitDefinition(), new FlowReturnTraitDefinition());
+			StructrTraits.registerNodeType("FlowScriptCondition",        new FlowScriptConditionTraitDefinition());
+			StructrTraits.registerNodeType("FlowStore",                  new FlowStoreTraitDefinition());
+			StructrTraits.registerNodeType("FlowSwitch",                 new FlowSwitchTraitDefinition());
+			StructrTraits.registerNodeType("FlowSwitchCase",             new FlowSwitchCaseTraitDefinition());
+			StructrTraits.registerNodeType("FlowTypeQuery",              new FlowTypeQueryTraitDefinition());
 		}
 	}
 

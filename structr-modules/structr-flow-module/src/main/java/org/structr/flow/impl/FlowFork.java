@@ -36,17 +36,6 @@ public class FlowFork extends FlowNode implements Fork, DataSource, DeployableEn
 		super(traits, wrappedObject);
 	}
 
-	public DataSource getDataSource() {
-
-		final NodeInterface node = wrappedObject.getProperty(traits.key("dataSource"));
-		if (node != null) {
-
-			return node.as(DataSource.class);
-		}
-
-		return null;
-	}
-
 	public FlowNode getForkBody() {
 
 		final NodeInterface node = wrappedObject.getProperty(traits.key("loopBody"));

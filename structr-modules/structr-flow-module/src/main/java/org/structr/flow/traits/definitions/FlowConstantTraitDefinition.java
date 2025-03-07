@@ -18,26 +18,58 @@
  */
 package org.structr.flow.traits.definitions;
 
+import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.flow.impl.FlowConstant;
 
 import java.util.Map;
+import java.util.Set;
 
-/**
- *
- */
-public class FlowLogicConditionTraitDefinition extends AbstractNodeTraitDefinition {
+public class FlowConstantTraitDefinition extends AbstractNodeTraitDefinition {
 
-	public FlowLogicConditionTraitDefinition() {
-		super("FlowLogicCondition");
+	public FlowConstantTraitDefinition() {
+		super("FlowConstant");
 	}
+
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
 		return Map.of(
-			//FlowLogicCondition.class, (traits, node) -> new FlowLogicCondition(traits, node)
+			FlowConstant.class, (traits, node) -> new FlowConstant(traits, node)
+		);
+	}
+
+	@Override
+	public Set<PropertyKey> getPropertyKeys() {
+
+		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes("dataTarget", "FlowDataInput");
+		final Property<String> value                       = new StringProperty("value");
+		final Property<String> constantType                = new EnumProperty("constantType", FlowConstant.ConstantType.class);
+
+		return newSet(
+			dataTarget,
+			value,
+			constantType
+		);
+	}
+
+	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+			PropertyView.Public,
+			newSet(
+				"value", "dataTarget", "constantType"
+			),
+			PropertyView.Ui,
+			newSet(
+				"value", "dataTarget", "constantType"
+			)
 		);
 	}
 

@@ -18,6 +18,7 @@
  */
 package org.structr.flow.impl;
 
+import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 import org.structr.flow.api.FlowElement;
@@ -33,12 +34,18 @@ public abstract class FlowNode extends FlowBaseNode implements FlowElement {
 	}
 
 	@Override
-	public FlowContainer getFlowContainer() {
-		return wrappedObject.getProperty(traits.key("flowContainer"));
+	public FlowElement next() {
+
+		final NodeInterface node = wrappedObject.getProperty(traits.key("next"));
+		if (node != null) {
+
+			return node.as(FlowElement.class);
+		}
+
+		return null;
 	}
 
-	@Override
-	public FlowElement next() {
-		return wrappedObject.getProperty(traits.key("next"));
+	public void setNext(final FlowNode next) throws FrameworkException {
+		wrappedObject.setProperty(traits.key("next"), next);
 	}
 }

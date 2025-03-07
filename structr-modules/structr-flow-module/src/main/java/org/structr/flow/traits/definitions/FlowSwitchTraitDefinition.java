@@ -18,50 +18,47 @@
  */
 package org.structr.flow.traits.definitions;
 
-import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
-import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
-import org.structr.flow.impl.FlowNode;
+import org.structr.flow.impl.FlowSwitch;
 
 import java.util.Map;
 import java.util.Set;
 
+public class FlowSwitchTraitDefinition extends AbstractNodeTraitDefinition {
 
-/**
- *
- */
-public class FlowNodeTraitDefinition extends AbstractNodeTraitDefinition {
-
-	public FlowNodeTraitDefinition() {
-		super("FlowNode");
+	public FlowSwitchTraitDefinition() {
+		super("FlowSwitch");
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
 		return Map.of(
-			FlowNode.class, (traits, node) -> Traits.getTrait(Iterables.last(traits.getAllTraits())).getNodeTraitFactories().values().iterator().next().newInstance(traits, node)
+			FlowSwitch.class, (traits, node) -> new FlowSwitch(traits, node)
 		);
 	}
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> isStartNodeOfContainer = new StartNode("isStartNodeOfContainer", "FlowContainerFlowNode");
 		final Property<Iterable<NodeInterface>> prev         = new StartNodes("prev", "FlowNodes");
-		final Property<NodeInterface> next                   = new EndNode("next", "FlowNodes");
-		final Property<NodeInterface> prevForEach            = new StartNode("prevForEach", "FlowForEachBody");
+		final Property<NodeInterface> switchDefault          = new EndNode("default", "FlowNodes");
+		final Property<Iterable<NodeInterface>> cases        = new EndNodes("cases", "FlowSwitchCases");
+		final Property<NodeInterface> dataSource             = new StartNode("dataSource", "FlowDataInput");
+		final Property<NodeInterface> isStartNodeOfContainer = new StartNode("isStartNodeOfContainer", "FlowContainerFlowNode");
+
 
 		return newSet(
-			isStartNodeOfContainer,
 			prev,
-			next,
-			prevForEach
+			switchDefault,
+			cases,
+			dataSource,
+			isStartNodeOfContainer
 		);
 	}
 
@@ -71,11 +68,11 @@ public class FlowNodeTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"prev", "next", "isStartNodeOfContainer"
+				"prev", "default", "cases", "dataSource"
 			),
 			PropertyView.Ui,
 			newSet(
-				"prev", "next", "isStartNodeOfContainer"
+				"prev", "default", "cases", "dataSource"
 			)
 		);
 	}

@@ -18,26 +18,57 @@
  */
 package org.structr.flow.traits.definitions;
 
+import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.flow.impl.FlowParameterInput;
 
 import java.util.Map;
+import java.util.Set;
 
-/**
- *
- */
-public class FlowLogicConditionTraitDefinition extends AbstractNodeTraitDefinition {
+public class FlowParameterInputTraitDefinition extends AbstractNodeTraitDefinition {
 
-	public FlowLogicConditionTraitDefinition() {
-		super("FlowLogicCondition");
+	public FlowParameterInputTraitDefinition() {
+		super("FlowParameterInput");
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
 		return Map.of(
-			//FlowLogicCondition.class, (traits, node) -> new FlowLogicCondition(traits, node)
+			FlowParameterInput.class, (traits, node) -> new FlowParameterInput(traits, node)
+		);
+	}
+
+	@Override
+	public Set<PropertyKey> getPropertyKeys() {
+
+		final Property<Iterable<NodeInterface>> call = new EndNodes("call", "FlowCallParameter");
+		final Property<NodeInterface> dataSource     = new StartNode("dataSource", "FlowDataInput");
+		final Property<String> key                   = new StringProperty("key");
+
+		return newSet(
+			call,
+			dataSource,
+			key
+		);
+	}
+
+	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+			PropertyView.Public,
+			newSet(
+				"key", "call", "dataSource"
+			),
+			PropertyView.Ui,
+			newSet(
+				"key", "call", "dataSource"
+			)
 		);
 	}
 

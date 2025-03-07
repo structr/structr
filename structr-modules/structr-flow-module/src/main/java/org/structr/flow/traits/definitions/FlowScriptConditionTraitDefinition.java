@@ -18,50 +18,46 @@
  */
 package org.structr.flow.traits.definitions;
 
-import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
-import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
-import org.structr.flow.impl.FlowNode;
+import org.structr.flow.impl.FlowScriptCondition;
 
 import java.util.Map;
 import java.util.Set;
 
+public class FlowScriptConditionTraitDefinition extends AbstractNodeTraitDefinition {
 
-/**
- *
- */
-public class FlowNodeTraitDefinition extends AbstractNodeTraitDefinition {
-
-	public FlowNodeTraitDefinition() {
-		super("FlowNode");
+	public FlowScriptConditionTraitDefinition() {
+		super("FlowScriptCondition");
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
 		return Map.of(
-			FlowNode.class, (traits, node) -> Traits.getTrait(Iterables.last(traits.getAllTraits())).getNodeTraitFactories().values().iterator().next().newInstance(traits, node)
+			FlowScriptCondition.class, (traits, node) -> new FlowScriptCondition(traits, node)
 		);
 	}
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> isStartNodeOfContainer = new StartNode("isStartNodeOfContainer", "FlowContainerFlowNode");
-		final Property<Iterable<NodeInterface>> prev         = new StartNodes("prev", "FlowNodes");
-		final Property<NodeInterface> next                   = new EndNode("next", "FlowNodes");
-		final Property<NodeInterface> prevForEach            = new StartNode("prevForEach", "FlowForEachBody");
+		final Property<NodeInterface> scriptSource         = new StartNode("scriptSource", "FlowScriptConditionSource");
+		final Property<NodeInterface> dataSource           = new StartNode("dataSource", "FlowDataInput");
+		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes("dataTarget", "FlowDataInput");
+		final Property<NodeInterface> exceptionHandler     = new EndNode("exceptionHandler", "FlowExceptionHandlerNodes");
+		final Property<String> script                      = new StringProperty("script");
 
 		return newSet(
-			isStartNodeOfContainer,
-			prev,
-			next,
-			prevForEach
+			scriptSource,
+			dataSource,
+			dataTarget,
+			exceptionHandler,
+			script
 		);
 	}
 
@@ -71,11 +67,11 @@ public class FlowNodeTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"prev", "next", "isStartNodeOfContainer"
+				"script", "scriptSource", "dataSource", "dataTarget", "exceptionHandler"
 			),
 			PropertyView.Ui,
 			newSet(
-				"prev", "next", "isStartNodeOfContainer"
+				"script", "scriptSource", "dataSource", "dataTarget", "exceptionHandler"
 			)
 		);
 	}

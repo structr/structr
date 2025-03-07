@@ -18,26 +18,58 @@
  */
 package org.structr.flow.traits.definitions;
 
+import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.Property;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.StartNode;
+import org.structr.core.property.StringProperty;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.flow.impl.FlowSwitchCase;
 
 import java.util.Map;
+import java.util.Set;
 
-/**
- *
- */
-public class FlowLogicConditionTraitDefinition extends AbstractNodeTraitDefinition {
+public class FlowSwitchCaseTraitDefinition extends AbstractNodeTraitDefinition {
 
-	public FlowLogicConditionTraitDefinition() {
-		super("FlowLogicCondition");
+	public FlowSwitchCaseTraitDefinition() {
+		super("FlowSwitchCase");
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
 		return Map.of(
-			//FlowLogicCondition.class, (traits, node) -> new FlowLogicCondition(traits, node)
+			FlowSwitchCase.class, (traits, node) -> new FlowSwitchCase(traits, node)
+		);
+	}
+
+	@Override
+	public Set<PropertyKey> getPropertyKeys() {
+
+		final Property<NodeInterface> switchNode = new StartNode("switch", "FlowSwitchCases");
+		final Property<String> switchCase        = new StringProperty("case");
+
+		return newSet(
+			switchNode,
+			switchCase
+		);
+	}
+
+	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+			PropertyView.Public,
+			newSet(
+				"case", "next", "switchNode"
+			),
+			PropertyView.Ui,
+			newSet(
+				"case", "next", "switchNode"
+			)
 		);
 	}
 

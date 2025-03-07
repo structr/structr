@@ -42,6 +42,10 @@ public class FlowAggregate extends FlowNode implements Aggregation, DataSource, 
 		return wrappedObject.getProperty(traits.key("script"));
 	}
 
+	public void setScript(final String script) throws FrameworkException {
+		wrappedObject.setProperty(traits.key("script"), script);
+	}
+
 	public DataSource getStartValueSource() {
 
 		final NodeInterface startValueSource = wrappedObject.getProperty(traits.key("startValueSource"));

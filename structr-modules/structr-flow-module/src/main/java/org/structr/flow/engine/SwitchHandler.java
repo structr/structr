@@ -30,9 +30,9 @@ public class SwitchHandler implements FlowHandler<Switch> {
 	@Override
 	public FlowElement handle(Context context, Switch flowElement) throws FlowException {
 
-		if (flowElement.is("FlowSwitch")) {
+		if (flowElement instanceof FlowSwitch) {
 
-			final FlowSwitch switchElement = flowElement.as(FlowSwitch.class);
+			final FlowSwitch switchElement = (FlowSwitch) flowElement;
 			final DataSource _ds           = switchElement.getDataSource();
 
 			if (_ds != null) {

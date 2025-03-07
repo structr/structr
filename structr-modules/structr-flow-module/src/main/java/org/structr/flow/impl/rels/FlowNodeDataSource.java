@@ -35,12 +35,12 @@ public class FlowNodeDataSource extends AbstractRelationshipTraitDefinition impl
 
 	@Override
 	public String getSourceType() {
-		return "DataSource";
+		return "FlowDataSource";
 	}
 
 	@Override
 	public String getTargetType() {
-		return "DataSource";
+		return "FlowDataSource";
 	}
 
 	@Override

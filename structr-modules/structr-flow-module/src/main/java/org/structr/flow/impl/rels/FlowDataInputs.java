@@ -32,7 +32,7 @@ public class FlowDataInputs extends AbstractRelationshipTraitDefinition implemen
 
 	@Override
 	public String getSourceType() {
-		return "DataSource";
+		return "FlowDataSource";
 	}
 
 	@Override

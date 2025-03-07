@@ -18,14 +18,13 @@
  */
 package org.structr.flow.api;
 
-import org.structr.core.graph.NodeInterface;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
 
 /**
  *
  */
-public interface DataSource extends NodeInterface {
+public interface DataSource {
 
 	Object get(final Context context) throws FlowException;
 }

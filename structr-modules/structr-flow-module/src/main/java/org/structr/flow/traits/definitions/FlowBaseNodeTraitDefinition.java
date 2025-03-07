@@ -32,7 +32,6 @@ import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
-import org.structr.flow.impl.FlowBaseNode;
 
 import java.util.Map;
 import java.util.Set;
@@ -65,7 +64,7 @@ public class FlowBaseNodeTraitDefinition extends AbstractNodeTraitDefinition {
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
 		return Map.of(
-			FlowBaseNode.class, (traits, node) -> new FlowBaseNode(traits, node)
+			//FlowBaseNode.class, (traits, node) -> new FlowBaseNode(traits, node)
 		);
 	}
 
@@ -73,9 +72,11 @@ public class FlowBaseNodeTraitDefinition extends AbstractNodeTraitDefinition {
 	public Set<PropertyKey> getPropertyKeys() {
 
 		final Property<NodeInterface> flowContainer = new StartNode("flowContainer", "FlowContainerBaseNode").indexed();
+		final Property<NodeInterface> dataSource    = new StartNode("dataSource", "FlowDataInput");
 
 		return newSet(
-			flowContainer
+			flowContainer,
+			dataSource
 		);
 	}
 

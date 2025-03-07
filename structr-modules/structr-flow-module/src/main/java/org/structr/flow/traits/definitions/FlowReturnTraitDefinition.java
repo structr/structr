@@ -18,26 +18,60 @@
  */
 package org.structr.flow.traits.definitions;
 
+import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.flow.impl.FlowReturn;
 
 import java.util.Map;
+import java.util.Set;
 
 /**
  *
  */
-public class FlowLogicConditionTraitDefinition extends AbstractNodeTraitDefinition {
+public class FlowReturnTraitDefinition extends AbstractNodeTraitDefinition {
 
-	public FlowLogicConditionTraitDefinition() {
-		super("FlowLogicCondition");
+	public FlowReturnTraitDefinition() {
+		super("FlowReturn");
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
 		return Map.of(
-			//FlowLogicCondition.class, (traits, node) -> new FlowLogicCondition(traits, node)
+			FlowReturn.class, (traits, node) -> new FlowReturn(traits, node)
+		);
+	}
+
+	@Override
+	public Set<PropertyKey> getPropertyKeys() {
+
+		final Property<NodeInterface> dataSource       = new StartNode("dataSource", "FlowDataInput");
+		final Property<NodeInterface> exceptionHandler = new EndNode("exceptionHandler", "FlowExceptionHandlerNodes");
+		final Property<String> result                  = new StringProperty("result");
+
+		return newSet(
+			dataSource,
+			exceptionHandler,
+			result
+		);
+	}
+
+	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+			PropertyView.Public,
+			newSet(
+				"result", "dataSource", "exceptionHandler", "isStartNodeOfContainer"
+			),
+			PropertyView.Ui,
+			newSet(
+				"result", "dataSource", "exceptionHandler", "isStartNodeOfContainer"
+			)
 		);
 	}
 

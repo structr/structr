@@ -18,6 +18,7 @@
  */
 package org.structr.flow.impl;
 
+import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
@@ -44,6 +45,25 @@ public abstract class FlowBaseNode extends AbstractNodeTraitWrapper implements D
 		}
 
 		return null;
+	}
+
+	public FlowContainer getFlowContainer() {
+
+		final NodeInterface node = wrappedObject.getProperty(traits.key("flowContainer"));
+		if (node != null) {
+
+			return node.as(FlowContainer.class);
+		}
+
+		return null;
+	}
+
+	public void setDataSource(final DataSource dataSource) throws FrameworkException {
+		wrappedObject.setProperty(traits.key("dataSource"), dataSource);
+	}
+
+	public void setFlowContainer(final FlowContainer flowContainer) throws FrameworkException {
+		wrappedObject.setProperty(traits.key("flowContainer"), flowContainer);
 	}
 
 	@Override

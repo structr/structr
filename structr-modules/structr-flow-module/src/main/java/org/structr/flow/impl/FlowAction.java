@@ -41,6 +41,10 @@ public class FlowAction extends FlowActionNode implements DataSource, Deployable
 		return wrappedObject.getProperty(traits.key("script"));
 	}
 
+	public void setScript(final String script) throws FrameworkException {
+		wrappedObject.setProperty(traits.key("script"), script);
+	}
+
 	public FlowExceptionHandler getExceptionHandler() {
 
 		final NodeInterface exceptionHandler = wrappedObject.getProperty(traits.key("exceptionHandler"));

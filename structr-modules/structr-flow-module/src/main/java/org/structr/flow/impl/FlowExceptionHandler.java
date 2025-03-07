@@ -18,6 +18,7 @@
  */
 package org.structr.flow.impl;
 
+import org.structr.api.util.Iterables;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 import org.structr.flow.api.DataSource;
@@ -34,6 +35,13 @@ public class FlowExceptionHandler extends FlowNode implements Exception, DataSou
 
 	public FlowExceptionHandler(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);
+	}
+
+	public Iterable<FlowBaseNode> getHandledNodes() {
+
+		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key("handledNodes"));
+
+		return Iterables.map(n -> n.as(FlowBaseNode.class), nodes);
 	}
 
 	@Override

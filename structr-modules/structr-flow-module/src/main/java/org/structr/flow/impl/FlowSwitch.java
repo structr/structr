@@ -18,33 +18,25 @@
  */
 package org.structr.flow.impl;
 
-import org.structr.common.PropertyView;
-import org.structr.common.View;
+import org.structr.api.util.Iterables;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.*;
 import org.structr.core.traits.Traits;
-import org.structr.flow.api.DataSource;
 import org.structr.flow.api.FlowElement;
 import org.structr.flow.api.FlowType;
 import org.structr.flow.api.Switch;
-import org.structr.flow.impl.rels.FlowContainerFlowNode;
-import org.structr.flow.impl.rels.FlowDataInput;
-import org.structr.flow.impl.rels.FlowNodes;
-import org.structr.flow.impl.rels.FlowSwitchCases;
 import org.structr.module.api.DeployableEntity;
 
 public class FlowSwitch extends FlowNode implements Switch, DeployableEntity {
-	public static final Property<Iterable<FlowNode>> prev              = new StartNodes<>("prev", FlowNodes.class);
-	public static final Property<FlowNode> switchDefault               = new EndNode<>("default", FlowNodes.class);
-	public static final Property<Iterable<FlowSwitchCase>> cases       = new EndNodes<>("cases", FlowSwitchCases.class);
-	public static final Property<DataSource> dataSource                = new StartNode<>("dataSource", FlowDataInput.class);
-	public static final Property<FlowContainer> isStartNodeOfContainer = new StartNode<>("isStartNodeOfContainer", FlowContainerFlowNode.class);
-
-	public static final View defaultView 						       = new View(FlowAction.class, PropertyView.Public, prev, switchDefault, cases, dataSource);
-	public static final View uiView      						       = new View(FlowAction.class, PropertyView.Ui, prev, switchDefault, cases, dataSource);
 
 	public FlowSwitch(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);
+	}
+
+	public Iterable<FlowSwitchCase> getCases() {
+
+		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key("cases"));
+
+		return Iterables.map(n -> n.as(FlowSwitchCase.class), nodes);
 	}
 
 	@Override
@@ -53,12 +45,14 @@ public class FlowSwitch extends FlowNode implements Switch, DeployableEntity {
 	}
 
 	@Override
-	public FlowContainer getFlowContainer() {
-		return getProperty(flowContainer);
-	}
-
-	@Override
 	public FlowElement next() {
-		return getProperty(switchDefault);
+
+		final NodeInterface node = wrappedObject.getProperty(traits.key("default"));
+		if (node != null) {
+
+			return node.as(FlowElement.class);
+		}
+
+		return null;
 	}
 }

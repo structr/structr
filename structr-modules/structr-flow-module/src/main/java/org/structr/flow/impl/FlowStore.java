@@ -20,22 +20,20 @@ package org.structr.flow.impl;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.common.PropertyView;
-import org.structr.common.View;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.*;
 import org.structr.core.traits.Traits;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.api.Store;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
-import org.structr.flow.impl.rels.FlowDataInput;
 import org.structr.module.api.DeployableEntity;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 public class FlowStore extends FlowNode implements Store, DataSource, DeployableEntity {
+
+	private static final Logger logger = LoggerFactory.getLogger(FlowStore.class);
 
 	public FlowStore(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);
@@ -46,32 +44,30 @@ public class FlowStore extends FlowNode implements Store, DataSource, Deployable
 		retrieve
 	}
 
-	private static final Logger logger 							= LoggerFactory.getLogger(FlowStore.class);
+	public String getOperation() {
+		return wrappedObject.getProperty(traits.key("operation"));
+	}
 
-	public static final Property<DataSource> dataSource             = new StartNode<>("dataSource", FlowDataInput.class);
-	public static final Property<Iterable<FlowBaseNode>> dataTarget = new EndNodes<>("dataTarget", FlowDataInput.class);
-	public static final Property<Operation> operation               = new EnumProperty<>("operation", Operation.class);
-	public static final Property<String> key                        = new StringProperty("key");
-
-	public static final View defaultView 						= new View(FlowAction.class, PropertyView.Public, key, operation, dataSource, dataTarget, isStartNodeOfContainer);
-	public static final View uiView      						= new View(FlowAction.class, PropertyView.Ui,     key, operation, dataSource, dataTarget, isStartNodeOfContainer);
+	public String getKey() {
+		return wrappedObject.getProperty(traits.key("key"));
+	}
 
 	@Override
 	public void handleStorage(Context context) throws FlowException {
 
-		Operation op = getProperty(operation);
-		String _key = getProperty(key);
-		DataSource ds = getProperty(dataSource);
+		final String op     = getOperation();
+		final String _key   = getKey();
+		final DataSource ds = getDataSource();
 
 		if(op != null && _key != null ) {
 
 			switch (op) {
-				case store:
+				case "store":
 					if (ds != null) {
 						context.putIntoStore(_key, ds.get(context));
 					}
 					break;
-				case retrieve:
+				case "retrieve":
 					context.setData(getUuid(), context.retrieveFromStore(_key));
 					break;
 			}
@@ -87,14 +83,15 @@ public class FlowStore extends FlowNode implements Store, DataSource, Deployable
 	@Override
 	public Object get(Context context) {
 
-		Operation op = getProperty(operation);
+		final String op = getOperation();
 
 		try {
 
-			if (op != null && op.equals(Operation.retrieve)) {
+			if (op != null && op.equals("retrieve")) {
 
 				this.handleStorage(context);
 			}
+
 		} catch (FlowException ex) {
 			
 			logger.error("Exception in FlowStore get: ", ex);
@@ -104,14 +101,15 @@ public class FlowStore extends FlowNode implements Store, DataSource, Deployable
 
 	@Override
 	public Map<String, Object> exportData() {
-		Map<String, Object> result = new HashMap<>();
 
-		result.put("id", this.getUuid());
-		result.put("type", this.getClass().getSimpleName());
-		result.put("key", this.getProperty(key));
-		result.put("operation", this.getProperty(operation));
-		result.put("visibleToPublicUsers", this.getProperty(visibleToPublicUsers));
-		result.put("visibleToAuthenticatedUsers", this.getProperty(visibleToAuthenticatedUsers));
+		final Map<String, Object> result = new TreeMap<>();
+
+		result.put("id",                          getUuid());
+		result.put("type",                        getType());
+		result.put("key",                         getKey());
+		result.put("operation",                   getOperation());
+		result.put("visibleToPublicUsers",        isVisibleToPublicUsers());
+		result.put("visibleToAuthenticatedUsers", isVisibleToAuthenticatedUsers());
 
 		return result;
 	}

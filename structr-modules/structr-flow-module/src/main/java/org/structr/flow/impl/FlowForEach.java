@@ -18,6 +18,7 @@
  */
 package org.structr.flow.impl;
 
+import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 import org.structr.flow.api.DataSource;
@@ -69,6 +70,10 @@ public class FlowForEach extends FlowNode implements ForEach, DataSource, Deploy
 		}
 
 		return null;
+	}
+
+	public void setLoopBody(final FlowNode loopBody) throws FrameworkException {
+		wrappedObject.setProperty(traits.key("loopBody"), loopBody);
 	}
 
 	@Override

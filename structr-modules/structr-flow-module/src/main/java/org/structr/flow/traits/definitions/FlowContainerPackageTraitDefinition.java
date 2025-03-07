@@ -52,6 +52,14 @@ public class FlowContainerPackageTraitDefinition extends AbstractNodeTraitDefini
 	}
 
 	@Override
+	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
+		return Map.of(
+			FlowContainerPackage.class, (traits, node) -> new FlowContainerPackage(traits, node)
+		);
+	}
+
+	@Override
 	public Map<Class, LifecycleMethod> getLifecycleMethods() {
 
 		return Map.of(
@@ -107,14 +115,6 @@ public class FlowContainerPackageTraitDefinition extends AbstractNodeTraitDefini
 					nodeInterface.as(FlowContainerPackage.class).deleteChildren();
 				}
 			}
-		);
-	}
-
-	@Override
-	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
-
-		return Map.of(
-			FlowContainerPackage.class, (traits, node) -> new FlowContainerPackage(traits, node)
 		);
 	}
 

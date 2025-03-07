@@ -44,6 +44,10 @@ public class FlowDataSource extends FlowBaseNode implements DataSource, Deployab
 		return wrappedObject.getProperty(traits.key("query"));
 	}
 
+	public void setQuery(final String query) throws FrameworkException {
+		wrappedObject.setProperty(traits.key("query"), query);
+	}
+
 	public DataSource getDataSource() {
 
 		final NodeInterface node = wrappedObject.getProperty(traits.key("dataSource"));

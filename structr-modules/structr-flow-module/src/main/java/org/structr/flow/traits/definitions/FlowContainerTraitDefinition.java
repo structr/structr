@@ -55,6 +55,14 @@ public class FlowContainerTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
+	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
+		return Map.of(
+			FlowContainer.class, (traits, node) -> new FlowContainer(traits, node)
+		);
+	}
+
+	@Override
 	public Set<AbstractMethod> getDynamicMethods() {
 
 		return newSet(
@@ -63,7 +71,7 @@ public class FlowContainerTraitDefinition extends AbstractNodeTraitDefinition {
 
 				@Override
 				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
-					return entity.as(FlowContainer.class).evaluate(arguments.toMap());
+					return entity.as(FlowContainer.class).evaluate(securityContext, arguments.toMap());
 				}
 			},
 
@@ -133,14 +141,6 @@ public class FlowContainerTraitDefinition extends AbstractNodeTraitDefinition {
 					nodeInterface.as(FlowContainer.class).deleteChildren();
 				}
 			}
-		);
-	}
-
-	@Override
-	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
-
-		return Map.of(
-			FlowContainer.class, (traits, node) -> new FlowContainer(traits, node)
 		);
 	}
 

@@ -32,7 +32,7 @@ public class FlowScriptConditionSource extends AbstractRelationshipTraitDefiniti
 
 	@Override
 	public String getSourceType() {
-		return "DataSource";
+		return "FlowDataSource";
 	}
 
 	@Override
