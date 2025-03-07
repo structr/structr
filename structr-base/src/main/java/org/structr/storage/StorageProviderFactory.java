@@ -26,6 +26,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.storage.providers.local.LocalFSStorageProvider;
@@ -52,12 +53,12 @@ public abstract class StorageProviderFactory {
 	 */
 	public static StorageConfiguration createConfig(final String name, final Class<? extends StorageProvider> impl, final Map<String, String> configuration) throws FrameworkException {
 
-		final Traits traits = Traits.of("StorageConfiguration");
+		final Traits traits = Traits.of(StructrTraits.STORAGE_CONFIGURATION);
 		final App app       = StructrApp.getInstance();
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface node = app.create("StorageConfiguration",
+			final NodeInterface node = app.create(StructrTraits.STORAGE_CONFIGURATION,
 				new NodeAttribute<>(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     name),
 				new NodeAttribute<>(traits.key("provider"), impl.getName())
 			);

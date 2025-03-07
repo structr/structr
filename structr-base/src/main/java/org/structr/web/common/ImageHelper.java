@@ -65,6 +65,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Set;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 public abstract class ImageHelper extends FileHelper {
 
@@ -149,11 +150,11 @@ public abstract class ImageHelper extends FileHelper {
 
 	public static void findAndReconnectThumbnails(final Image originalImage) {
 
-		final String thumbnailRel           = "ImageTHUMBNAILImage";
+		final String thumbnailRel           = StructrTraits.IMAGE_THUMBNAIL_IMAGE;
 		final Traits traits                 = Traits.of(StructrTraits.IMAGE);
 		final Property<Image> tnSmallKey    = (Property)traits.key("tnSmall");
 		final Property<Image> tnMidKey      = (Property)traits.key("tnMid");
-		final PropertyKey<String> pathKey   = traits.key("path");
+		final PropertyKey<String> pathKey   = traits.key(AbstractFileTraitDefinition.PATH_PROPERTY);
 		final App app                       = StructrApp.getInstance();
 
 		final Integer origWidth  = originalImage.getWidth();
@@ -200,9 +201,9 @@ public abstract class ImageHelper extends FileHelper {
 
 	public static void findAndReconnectOriginalImage(final Image thumbnail) {
 
-		final String thumbnailRel         = "ImageTHUMBNAILImage";
+		final String thumbnailRel         = StructrTraits.IMAGE_THUMBNAIL_IMAGE;
 		final Traits traits               = Traits.of(StructrTraits.IMAGE);
-		final PropertyKey<String> pathKey = traits.key("path");
+		final PropertyKey<String> pathKey = traits.key(AbstractFileTraitDefinition.PATH_PROPERTY);
 		final String originalImageName    = thumbnail.getOriginalImageName();
 
 		try {

@@ -39,6 +39,7 @@ import org.structr.web.importer.CommentHandler;
 import org.structr.web.maintenance.DeployCommand;
 
 import java.util.*;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 /**
  *
@@ -89,7 +90,7 @@ public class DeploymentCommentHandler implements CommentHandler {
 
 			if (node.is(StructrTraits.LINK_SOURCE)) {
 
-				final NodeInterface file = StructrApp.getInstance().nodeQuery(StructrTraits.LINKABLE).and(Traits.of(StructrTraits.ABSTRACT_FILE).key("path"), parameters).getFirst();
+				final NodeInterface file = StructrApp.getInstance().nodeQuery(StructrTraits.LINKABLE).and(Traits.of(StructrTraits.ABSTRACT_FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY), parameters).getFirst();
 				if (file != null) {
 
 					final LinkSource linkSource = node.as(LinkSource.class);

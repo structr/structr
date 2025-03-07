@@ -87,8 +87,8 @@ public class PagePathTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> pageProperty                 = new StartNode("page", "PageHAS_PATHPagePath");
-		final Property<Iterable<NodeInterface>> parametersProperty = new EndNodes("parameters", "PagePathHAS_PARAMETERPagePathParameter");
+		final Property<NodeInterface> pageProperty                 = new StartNode("page", StructrTraits.PAGE_HAS_PATH_PAGE_PATH);
+		final Property<Iterable<NodeInterface>> parametersProperty = new EndNodes("parameters", StructrTraits.PAGE_PATH_HAS_PARAMETER_PAGE_PATH_PARAMETER);
 		final Property<String> nameProperty                        = new StringProperty("name").notNull();
 		final Property<Integer> priorityProperty                   = new IntProperty("priority");
 

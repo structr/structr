@@ -26,6 +26,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
@@ -51,7 +52,7 @@ public class StorageConfigurationTraitDefinition extends AbstractNodeTraitDefini
 	*/
 
 	public StorageConfigurationTraitDefinition() {
-		super("StorageConfiguration");
+		super(StructrTraits.STORAGE_CONFIGURATION);
 	}
 
 	@Override
@@ -103,8 +104,8 @@ public class StorageConfigurationTraitDefinition extends AbstractNodeTraitDefini
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Iterable<NodeInterface>> entriesProperty = new EndNodes("entries", "StorageConfigurationCONFIG_ENTRYStorageConfigurationEntry");
-		final Property<Iterable<NodeInterface>> foldersProperty = new StartNodes("folders", "AbstractFileCONFIGURED_BYStorageConfiguration");
+		final Property<Iterable<NodeInterface>> entriesProperty = new EndNodes("entries", StructrTraits.STORAGE_CONFIGURATION_CONFIG_ENTRY_STORAGE_CONFIGURATION_ENTRY);
+		final Property<Iterable<NodeInterface>> foldersProperty = new StartNodes("folders", StructrTraits.ABSTRACT_FILE_CONFIGURED_BY_STORAGE_CONFIGURATION);
 		final Property<String> nameProperty                     = new StringProperty("name").indexed().unique().notNull();
 		final Property<String> providerProperty                 = new StringProperty("provider").indexed().notNull();
 

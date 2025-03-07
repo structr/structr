@@ -211,10 +211,10 @@ public class ImageTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> imageParentProperty          = new StartNode("imageParent", "FolderCONTAINSImage");
-		final Property<NodeInterface> imageOfUser                  = new EndNode("imageOfUser", "ImagePICTURE_OFUser");
-		final Property<Iterable<NodeInterface>> thumbnailsProperty = new EndNodes("thumbnails", "ImageTHUMBNAILImage");
-		final Property<NodeInterface> originalImageProperty        = new StartNode("originalImage", "ImageTHUMBNAILImage");
+		final Property<NodeInterface> imageParentProperty          = new StartNode("imageParent", StructrTraits.FOLDER_CONTAINS_IMAGE);
+		final Property<NodeInterface> imageOfUser                  = new EndNode("imageOfUser", StructrTraits.IMAGE_PICTURE_OF_USER);
+		final Property<Iterable<NodeInterface>> thumbnailsProperty = new EndNodes("thumbnails", StructrTraits.IMAGE_THUMBNAIL_IMAGE);
+		final Property<NodeInterface> originalImageProperty        = new StartNode("originalImage", StructrTraits.IMAGE_THUMBNAIL_IMAGE);
 		final Property<NodeInterface> tnMidProperty                = new ThumbnailProperty("tnMid").format("300, 300, false").typeHint(StructrTraits.IMAGE);
 		final Property<NodeInterface> tnSmallProperty              = new ThumbnailProperty("tnSmall").format("100, 100, false").typeHint(StructrTraits.IMAGE);
 		final Property<Boolean> isCreatingThumbProperty            = new BooleanProperty("isCreatingThumb").indexed();
@@ -256,12 +256,12 @@ public class ImageTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"parent", "contentType", "exifIFD0Data", "exifSubIFDData", "gpsData", "height", "isImage", "isMounted",
+					AbstractFileTraitDefinition.PARENT_PROPERTY, "contentType", "exifIFD0Data", "exifSubIFDData", "gpsData", "height", "isImage", AbstractFileTraitDefinition.IS_MOUNTED_PROPERTY,
 				"isThumbnail", "orientation", "tnMid", "tnSmall", "width"
 			),
 			PropertyView.Ui,
 			newSet(
-				"parent", "contentType", "exifIFD0Data", "exifSubIFDData", "gpsData", "height", "isImage", "isThumbnail",
+					AbstractFileTraitDefinition.PARENT_PROPERTY, "contentType", "exifIFD0Data", "exifSubIFDData", "gpsData", "height", "isImage", "isThumbnail",
 				"orientation", "tnMid", "tnSmall", "useAsJavascriptLibrary", "width"
 			)
 		);

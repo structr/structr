@@ -489,11 +489,12 @@ public class StructrTypeDefinitions implements StructrDefinition {
 		final Set<String> typesOnlyInStructrSchema             = new TreeSet<>(structrTypes.keySet());
 		final Set<String> bothTypes                            = new TreeSet<>(databaseTypes.keySet());
 
+		// FIXME ? can the two remaining strings be removed? the functionality has been removed for quite some time
 		final Set<String> toMigrate = Set.of(
-			"AbstractMinifiedFileMINIFICATIONFile", "ImagePICTURE_OFUser", "ImageTHUMBNAILImage", "UserHOME_DIRFolder", "UserWORKING_DIRFolder",
-			"AbstractFileCONTAINS_NEXT_SIBLINGAbstractFile", "FolderCONTAINSAbstractFile", "FolderCONTAINSFile", "FolderCONTAINSFolder",
-			"FolderCONTAINSImage", StructrTraits.VIDEO_FILE_HAS_CONVERTED_VIDEO_VIDEO_FILE, StructrTraits.VIDEO_FILE_HAS_POSTER_IMAGE_IMAGE,
-			"AbstractFileCONFIGURED_BYStorageConfiguration"
+			"AbstractMinifiedFileMINIFICATIONFile", StructrTraits.IMAGE_PICTURE_OF_USER, StructrTraits.IMAGE_THUMBNAIL_IMAGE, StructrTraits.USER_HOME_DIR_FOLDER, StructrTraits.USER_WORKING_DIR_FOLDER,
+			"AbstractFileCONTAINS_NEXT_SIBLINGAbstractFile", StructrTraits.FOLDER_CONTAINS_ABSTRACT_FILE, StructrTraits.FOLDER_CONTAINS_FILE, StructrTraits.FOLDER_CONTAINS_FOLDER,
+			StructrTraits.FOLDER_CONTAINS_IMAGE, StructrTraits.VIDEO_FILE_HAS_CONVERTED_VIDEO_VIDEO_FILE, StructrTraits.VIDEO_FILE_HAS_POSTER_IMAGE_IMAGE,
+			StructrTraits.ABSTRACT_FILE_CONFIGURED_BY_STORAGE_CONFIGURATION
 		);
 
 		typesOnlyInDatabase.removeAll(structrTypes.keySet());

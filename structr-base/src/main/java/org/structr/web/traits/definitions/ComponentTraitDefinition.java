@@ -27,6 +27,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
@@ -40,7 +41,7 @@ import java.util.Set;
 public class ComponentTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public ComponentTraitDefinition() {
-		super("Component");
+		super(StructrTraits.COMPONENT);
 	}
 
 	@Override

@@ -406,7 +406,7 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 			final Traits traits = Traits.of(StructrTraits.CONTENT);
 
 			// create new content element
-			final Comment commentNode = app.create("Comment", new NodeAttribute(traits.key("content"), comment)).as(Comment.class);
+			final Comment commentNode = app.create(StructrTraits.COMMENT, new NodeAttribute(traits.key("content"), comment)).as(Comment.class);
 
 			commentNode.setOwnerDocument(this);
 

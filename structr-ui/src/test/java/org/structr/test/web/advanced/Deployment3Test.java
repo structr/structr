@@ -38,6 +38,7 @@ import org.structr.web.common.FileHelper;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Widget;
 import org.structr.web.entity.dom.*;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 import org.structr.web.traits.definitions.WidgetTraitDefinition;
 import org.testng.annotations.Test;
 
@@ -383,12 +384,12 @@ public class Deployment3Test extends DeploymentTestBase {
 			page.setProperty(Traits.of(StructrTraits.PAGE).key("icon"),            "icon");
 
 			final NodeInterface folder = app.create(StructrTraits.FOLDER, "files");
-			folder.setProperty(Traits.of(StructrTraits.FOLDER).key("includeInFrontendExport"), true);
+			folder.setProperty(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY), true);
 
 			// create test file with custom attributes
 			app.create(StructrTraits.FILE,
 				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),        "test.txt"),
-				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key("parent"),      folder),
+				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY),      folder),
 				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key("contentType"), "text/plain"),
 				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key("test1"),       123),
 				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key("test2"),       "testString")
@@ -472,7 +473,7 @@ public class Deployment3Test extends DeploymentTestBase {
 
 			final NodeInterface node = FileHelper.createFile(securityContext, "test".getBytes("utf-8"), "text/plain", type, "test.txt", true);
 
-			node.setProperty(Traits.of(StructrTraits.FILE).key("includeInFrontendExport"), true);
+			node.setProperty(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY), true);
 			node.setProperty(test, "test");
 
 			tx.success();
@@ -499,7 +500,7 @@ public class Deployment3Test extends DeploymentTestBase {
 			assertNotNull("Root folder should not be null", rootFolder);
 
 			// root folder needs to have "includeInFrontendExport" set
-			rootFolder.setProperty(Traits.of(StructrTraits.FOLDER).key("includeInFrontendExport"), true);
+			rootFolder.setProperty(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY), true);
 
 			tx.success();
 

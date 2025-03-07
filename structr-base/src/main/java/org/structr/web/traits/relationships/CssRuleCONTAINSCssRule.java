@@ -19,23 +19,24 @@
 package org.structr.web.traits.relationships;
 
 import org.structr.core.entity.Relation;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
 public class CssRuleCONTAINSCssRule extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public CssRuleCONTAINSCssRule() {
-		super("CssRuleCONTAINSCssRule");
+		super(StructrTraits.CSS_RULE_CONTAINS_CSS_RULE);
 	}
 
 	@Override
 	public String getSourceType() {
-		return "CssRule";
+		return StructrTraits.CSS_RULE;
 	}
 
 	@Override
 	public String getTargetType() {
-		return "CssRule";
+		return StructrTraits.CSS_RULE;
 	}
 
 	@Override

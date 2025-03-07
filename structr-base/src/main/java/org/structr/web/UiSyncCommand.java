@@ -34,6 +34,7 @@ import org.structr.rest.resource.MaintenanceResource;
 import org.structr.web.entity.dom.DOMNode;
 
 import java.util.*;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 /**
  *
@@ -101,7 +102,7 @@ public class UiSyncCommand extends NodeServiceCommand implements MaintenanceComm
 		try (final Tx tx = app.tx()) {
 
 			// collect folders that are marked for export
-			for (final NodeInterface folder : app.nodeQuery(StructrTraits.FOLDER).and(Traits.of(StructrTraits.FOLDER).key("includeInFrontendExport"), true).getResultStream()) {
+			for (final NodeInterface folder : app.nodeQuery(StructrTraits.FOLDER).and(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY), true).getResultStream()) {
 
 				collectDataRecursively(app, folder, nodes, rels, filePaths);
 			}

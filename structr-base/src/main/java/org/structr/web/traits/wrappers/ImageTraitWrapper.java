@@ -40,6 +40,7 @@ import org.structr.web.entity.Image;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.structr.web.traits.relationships.ImageTHUMBNAILImage;
 
 /**
  * An image whose binary data will be stored on disk.
@@ -215,8 +216,8 @@ public class ImageTraitWrapper extends FileTraitWrapper implements Image {
 	@Override
 	public Image getExistingThumbnail(final int maxWidth, final int maxHeight, final boolean cropToFit) {
 
-		final Iterable<RelationshipInterface> thumbnailRelationships = wrappedObject.getOutgoingRelationships("ImageTHUMBNAILImage");
-		final Traits traits                                          = Traits.of("ImageTHUMBNAILImage");
+		final Iterable<RelationshipInterface> thumbnailRelationships = wrappedObject.getOutgoingRelationships(StructrTraits.IMAGE_THUMBNAIL_IMAGE);
+		final Traits traits                                          = Traits.of(StructrTraits.IMAGE_THUMBNAIL_IMAGE);
 		final List<String> toRemove                                  = new ArrayList<>();
 
 		// Try to find an existing thumbnail that matches the specifications
@@ -224,19 +225,19 @@ public class ImageTraitWrapper extends FileTraitWrapper implements Image {
 
 			for (final RelationshipInterface r : thumbnailRelationships) {
 
-				final Integer w = r.getProperty(traits.key("maxWidth"));
-				final Integer h = r.getProperty(traits.key("maxHeight"));
-				final Boolean c = r.getProperty(traits.key("cropToFit"));
+				final Integer w = r.getProperty(traits.key(ImageTHUMBNAILImage.MAX_WIDTH_PROPERTY));
+				final Integer h = r.getProperty(traits.key(ImageTHUMBNAILImage.MAX_HEIGHT_PROPERTY));
+				final Boolean c = r.getProperty(traits.key(ImageTHUMBNAILImage.CROP_TO_FIT_PROPERTY));
 
 				if (w != null && h != null) {
 
 					if ((w == maxWidth && h == maxHeight) && c == cropToFit) {
 
 						final Image thumbnail = r.getTargetNode().as(Image.class);
-						final Long checksum   = r.getProperty(traits.key("checksum"));
+						final Long checksum   = r.getProperty(traits.key(ImageTHUMBNAILImage.CHECKSUM_PROPERTY));
 
 						// Check if existing thumbnail rel matches the correct checksum and mark as deprecated otherwise.
-						// An empty checksum is probably only because the thumbnail generation task is not finished yet, so we assume everything is finde.
+						// An empty checksum is probably only because the thumbnail generation task is not finished yet, so we assume everything is fine.
 						if (checksum == null || checksum.equals(getChecksum())) {
 
 							return thumbnail;

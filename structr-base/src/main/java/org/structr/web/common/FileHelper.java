@@ -68,6 +68,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.zip.CRC32;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 /**
  * File utility class.
@@ -194,8 +195,8 @@ public class FileHelper {
 
 		if (parentFolder != null) {
 
-			props.put(traits.key("hasParent"), true);
-			props.put(traits.key("parent"),    parentFolder);
+			props.put(traits.key(AbstractFileTraitDefinition.HAS_PARENT_PROPERTY), true);
+			props.put(traits.key(AbstractFileTraitDefinition.PARENT_PROPERTY),    parentFolder);
 
 		}
 
@@ -735,7 +736,7 @@ public class FileHelper {
 
 			final Traits traits = Traits.of(StructrTraits.ABSTRACT_FILE);
 
-			return StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.ABSTRACT_FILE).and(traits.key("path"), absolutePath).getFirst();
+			return StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.ABSTRACT_FILE).and(traits.key(AbstractFileTraitDefinition.PATH_PROPERTY), absolutePath).getFirst();
 
 		} catch (FrameworkException ex) {
 			logger.warn("File not found: {}", absolutePath);
@@ -1055,8 +1056,8 @@ public class FileHelper {
 	private static void handleFile(final SecurityContext securityContext, final InputStream in, final Folder existingParentFolder, final String entryPath) throws FrameworkException, IOException {
 
 		final Traits traits                        = Traits.of(StructrTraits.ABSTRACT_FILE);
-		final PropertyKey<NodeInterface> parentKey = traits.key("parent");
-		final PropertyKey<Boolean> hasParentKey    = traits.key("hasParent");
+		final PropertyKey<NodeInterface> parentKey = traits.key(AbstractFileTraitDefinition.PARENT_PROPERTY);
+		final PropertyKey<Boolean> hasParentKey    = traits.key(AbstractFileTraitDefinition.HAS_PARENT_PROPERTY);
 		final String filePath                      = (existingParentFolder != null ? existingParentFolder.getPath() : "") + PathHelper.PATH_SEP + PathHelper.clean(entryPath);
 		final String name                          = PathHelper.getName(entryPath);
 		final NodeInterface newFile                = ImageHelper.isImageType(name)

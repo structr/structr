@@ -78,7 +78,7 @@ public class PagePathParameterTraitDefinition extends AbstractNodeTraitDefinitio
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> pathProperty  = new StartNode("path", "PagePathHAS_PARAMETERPagePathParameter");
+		final Property<NodeInterface> pathProperty  = new StartNode("path", StructrTraits.PAGE_PATH_HAS_PARAMETER_PAGE_PATH_PARAMETER);
 		final Property<Integer> positionProperty    = new IntProperty("position").indexed();
 		final Property<String> valueTypeProperty    = new StringProperty("valueType");
 		final Property<String> defaultValueProperty = new StringProperty("defaultValue");

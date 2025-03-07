@@ -123,7 +123,7 @@ public class PageTraitDefinition extends AbstractNodeTraitDefinition {
 					}
 					*/
 
-					if (!(otherNode.is("Html") || otherNode.is("Comment") || otherNode.is(StructrTraits.TEMPLATE))) {
+					if (!(otherNode.is("Html") || otherNode.is(StructrTraits.COMMENT) || otherNode.is(StructrTraits.TEMPLATE))) {
 
 						throw new FrameworkException(422, DOMNode.HIERARCHY_REQUEST_ERR_MESSAGE_ELEMENT);
 					}
@@ -153,9 +153,9 @@ public class PageTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Iterable<NodeInterface>> elementsProperty = new StartNodes("elements", "DOMNodePAGEPage").category(PAGE_CATEGORY);
-		final Property<Iterable<NodeInterface>> pathsProperty   = new EndNodes("paths", "PageHAS_PATHPagePath");
-		final Property<Iterable<NodeInterface>> sitesProperty   = new StartNodes("sites", "SiteCONTAINSPage");
+		final Property<Iterable<NodeInterface>> elementsProperty = new StartNodes("elements", StructrTraits.DOM_NODE_PAGE_PAGE).category(PAGE_CATEGORY);
+		final Property<Iterable<NodeInterface>> pathsProperty   = new EndNodes("paths", StructrTraits.PAGE_HAS_PATH_PAGE_PATH);
+		final Property<Iterable<NodeInterface>> sitesProperty   = new StartNodes("sites", StructrTraits.SITE_CONTAINS_PAGE);
 
 		final Property<Boolean> isPageProperty             = new ConstantBooleanProperty("isPage", true);
 		final Property<Boolean> pageCreatesRawDataProperty = new BooleanProperty("pageCreatesRawData").defaultValue(false);

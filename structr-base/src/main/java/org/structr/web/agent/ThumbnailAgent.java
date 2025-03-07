@@ -43,6 +43,8 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.relationships.ImageTHUMBNAILImage;
 
 public class ThumbnailAgent extends Agent<ThumbnailWorkObject> {
 
@@ -99,7 +101,7 @@ public class ThumbnailAgent extends Agent<ThumbnailWorkObject> {
 
 		try (final Tx tx = app.tx()) {
 
-			final String thumbnailRel = "ImageTHUMBNAILImage";
+			final String thumbnailRel = StructrTraits.IMAGE_THUMBNAIL_IMAGE;
 			final NodeInterface node  = app.nodeQuery(StructrTraits.IMAGE).uuid(imageUuid).getFirst();
 			NodeInterface thumbnail   = null;
 
@@ -143,14 +145,15 @@ public class ThumbnailAgent extends Agent<ThumbnailWorkObject> {
 
 					// Create a thumbnail relationship
 					final PropertyMap relProperties = new PropertyMap();
+					// FIXME ? why are the image attributes being stored on the relationship? (at least width and height do not exist on rel-level)
 					relProperties.put(Traits.of(StructrTraits.IMAGE).key("width"),                  tnWidth);
 					relProperties.put(Traits.of(StructrTraits.IMAGE).key("height"),                 tnHeight);
-					relProperties.put(Traits.of(StructrTraits.IMAGE).key("checksum"),               originalImage.getChecksum());
 
 					// We have to store the specs here in order to find existing thumbnails based on the specs they've been created for, not actual dimensions.
-					relProperties.put(new IntProperty("maxWidth"),                           maxWidth);
-					relProperties.put(new IntProperty("maxHeight"),                          maxHeight);
-					relProperties.put(new BooleanProperty( "cropToFit"),                     cropToFit);
+					relProperties.put(Traits.of(StructrTraits.IMAGE_THUMBNAIL_IMAGE).key(ImageTHUMBNAILImage.CHECKSUM_PROPERTY),    originalImage.getChecksum());
+					relProperties.put(Traits.of(StructrTraits.IMAGE_THUMBNAIL_IMAGE).key(ImageTHUMBNAILImage.MAX_WIDTH_PROPERTY),   maxWidth);
+					relProperties.put(Traits.of(StructrTraits.IMAGE_THUMBNAIL_IMAGE).key(ImageTHUMBNAILImage.MAX_HEIGHT_PROPERTY),  maxHeight);
+					relProperties.put(Traits.of(StructrTraits.IMAGE_THUMBNAIL_IMAGE).key(ImageTHUMBNAILImage.CROP_TO_FIT_PROPERTY), cropToFit);
 
 					app.create(node, thumbnail, thumbnailRel, relProperties);
 
@@ -163,8 +166,8 @@ public class ThumbnailAgent extends Agent<ThumbnailWorkObject> {
 					properties.put(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY),        originalImage.isVisibleToPublicUsers());
 					properties.put(Traits.of(StructrTraits.FILE).key("size"),                                 Long.valueOf(data.length));
 					properties.put(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY),                       originalImage.as(AccessControllable.class).getOwnerNode());
-					properties.put(Traits.of(StructrTraits.FILE).key("parent"),                               originalImage.getThumbnailParentFolder(originalImage.getParent(), securityContext));
-					properties.put(Traits.of(StructrTraits.FILE).key("hasParent"),                            originalImage.getProperty(Traits.of(StructrTraits.IMAGE).key("hasParent")));
+					properties.put(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY),                               originalImage.getThumbnailParentFolder(originalImage.getParent(), securityContext));
+					properties.put(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.HAS_PARENT_PROPERTY),                            originalImage.getProperty(Traits.of(StructrTraits.IMAGE).key("hasParent")));
 
 					thumbnail.unlockSystemPropertiesOnce();
 					thumbnail.setProperties(securityContext, properties);

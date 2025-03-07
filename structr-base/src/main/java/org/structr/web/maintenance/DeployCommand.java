@@ -67,6 +67,8 @@ import org.structr.web.entity.dom.*;
 import org.structr.web.entity.event.ActionMapping;
 import org.structr.web.entity.event.ParameterMapping;
 import org.structr.web.maintenance.deploy.*;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.ActionMappingTraitDefinition;
 import org.structr.web.traits.definitions.WidgetTraitDefinition;
 import org.structr.websocket.command.CreateComponentCommand;
 
@@ -736,9 +738,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		logger.info("Exporting files (unchanged files will be skipped)");
 
 		final Traits traits                 = Traits.of(StructrTraits.FILE);
-		final PropertyKey<Boolean> inclKey  = traits.key("includeInFrontendExport");
+		final PropertyKey<Boolean> inclKey  = traits.key(AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY);
 		final PropertyKey<Boolean> jsKey    = traits.key("useAsJavascriptLibrary");
-		final PropertyKey<Folder> parentKey = traits.key("parent");
+		final PropertyKey<Folder> parentKey = traits.key(AbstractFileTraitDefinition.PARENT_PROPERTY);
 		final Map<String, Object> config    = new TreeMap<>();
 		final App app                       = StructrApp.getInstance();
 
@@ -874,7 +876,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface node : app.nodeQuery("Site").sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getAsList()) {
+			for (final NodeInterface node : app.nodeQuery(StructrTraits.SITE).sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getAsList()) {
 
 				final Site site                 = node.as(Site.class);
 				final Map<String, Object> entry = new TreeMap<>();
@@ -1363,7 +1365,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			putData(config, "useAsJavascriptLibrary",  file.useAsJavascriptLibrary());
 		}
 
-		putData(config, "includeInFrontendExport", abstractFile.includeInFrontendExport());
+		putData(config, AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY, abstractFile.includeInFrontendExport());
 
 		if (abstractFile.is(StructrTraits.LINKABLE)) {
 
@@ -1635,14 +1637,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		logger.info("Exporting application configuration data");
 
 		final List<Map<String, Object>> applicationConfigurationDataNodes = new LinkedList<>();
-		final Traits traits                                               = Traits.of("ApplicationConfigurationDataNode");
+		final Traits traits                                               = Traits.of(StructrTraits.APPLICATION_CONFIGURATION_DATA_NODE);
 		final App app                                                     = StructrApp.getInstance();
 
 		final PropertyKey<String> configTypeKey = traits.key("configType");
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface node : app.nodeQuery("ApplicationConfigurationDataNode").sort(configTypeKey).getAsList()) {
+			for (final NodeInterface node : app.nodeQuery(StructrTraits.APPLICATION_CONFIGURATION_DATA_NODE).sort(configTypeKey).getAsList()) {
 
 				final ApplicationConfigurationDataNode acdn = node.as(ApplicationConfigurationDataNode.class);
 				final Map<String, Object> entry             = new TreeMap<>();
@@ -1744,66 +1746,66 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final List<DOMElement> triggerElements = Iterables.toList(actionMapping.getTriggerElements());
 				if (!triggerElements.isEmpty()) {
 
-					putData(entry, "triggerElements", triggerElements.stream().map(domElement -> domElement.getUuid()).collect(Collectors.toList()));
+					putData(entry, ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY, triggerElements.stream().map(domElement -> domElement.getUuid()).collect(Collectors.toList()));
 				}
 
 				final List<DOMNode> successTargets = Iterables.toList(actionMapping.getSuccessTargets());
 				if (!successTargets.isEmpty()) {
 
-					putData(entry, "successTargets", successTargets.stream().map(domNode -> domNode.getUuid()).collect(Collectors.toList()));
+					putData(entry, ActionMappingTraitDefinition.SUCCESS_TARGETS_PROPERTY, successTargets.stream().map(domNode -> domNode.getUuid()).collect(Collectors.toList()));
 				}
 
 				List<DOMNode> successNotificationElements = Iterables.toList(actionMapping.getSuccessNotificationElements());
 				if (!successNotificationElements.isEmpty()) {
 
-					putData(entry, "successNotificationElements", successNotificationElements.stream().map(domNode -> domNode.getUuid()).collect(Collectors.toList()));
+					putData(entry, ActionMappingTraitDefinition.SUCCESS_NOTIFICATION_ELEMENTS_PROPERTY, successNotificationElements.stream().map(domNode -> domNode.getUuid()).collect(Collectors.toList()));
 				}
 
 				final List<DOMNode> failureTargets = Iterables.toList(actionMapping.getFailureTargets());
 				if (!failureTargets.isEmpty()) {
 
-					putData(entry, "failureTargets", failureTargets.stream().map(domNode -> domNode.getUuid()).collect(Collectors.toList()));
+					putData(entry, ActionMappingTraitDefinition.FAILURE_TARGETS_PROPERTY, failureTargets.stream().map(domNode -> domNode.getUuid()).collect(Collectors.toList()));
 				}
 
 				List<DOMNode> failureNotificationElements = Iterables.toList(actionMapping.getFailureNotificationElements());
 				if (!failureNotificationElements.isEmpty()) {
 
-					putData(entry, "failureNotificationElements", failureNotificationElements.stream().map(domNode -> domNode.getUuid()).collect(Collectors.toList()));
+					putData(entry, ActionMappingTraitDefinition.FAILURE_NOTIFICATION_ELEMENTS_PROPERTY, failureNotificationElements.stream().map(domNode -> domNode.getUuid()).collect(Collectors.toList()));
 				}
 
 				final List<ParameterMapping> parameterMappings = Iterables.toList(actionMapping.getParameterMappings());
 				if (!parameterMappings.isEmpty()) {
 
-					putData(entry, "parameterMappings", parameterMappings.stream().map(parameterMapping -> parameterMapping.getUuid() ).collect(Collectors.toList()));
+					putData(entry, ActionMappingTraitDefinition.PARAMETER_MAPPINGS_PROPERTY, parameterMappings.stream().map(parameterMapping -> parameterMapping.getUuid() ).collect(Collectors.toList()));
 				}
 
-				putData(entry, "event",        actionMapping.getEvent());
-				putData(entry, "action",       actionMapping.getAction());
-				putData(entry, "method",       actionMapping.getMethod());
-				putData(entry, "dataType",     actionMapping.getDataType());
-				putData(entry, "idExpression", actionMapping.getIdExpression());
+				putData(entry, ActionMappingTraitDefinition.EVENT_PROPERTY,         actionMapping.getEvent());
+				putData(entry, ActionMappingTraitDefinition.ACTION_PROPERTY,        actionMapping.getAction());
+				putData(entry, ActionMappingTraitDefinition.METHOD_PROPERTY,        actionMapping.getMethod());
+				putData(entry, ActionMappingTraitDefinition.DATA_TYPE_PROPERTY,     actionMapping.getDataType());
+				putData(entry, ActionMappingTraitDefinition.ID_EXPRESSION_PROPERTY, actionMapping.getIdExpression());
 
-				putData(entry, "dialogType",  actionMapping.getDialogType());
-				putData(entry, "dialogTitle", actionMapping.getDialogTitle());
-				putData(entry, "dialogText",  actionMapping.getDialogText());
+				putData(entry, ActionMappingTraitDefinition.DIALOG_TYPE_PROPERTY,  actionMapping.getDialogType());
+				putData(entry, ActionMappingTraitDefinition.DIALOG_TITLE_PROPERTY, actionMapping.getDialogTitle());
+				putData(entry, ActionMappingTraitDefinition.DIALOG_TEXT_PROPERTY,  actionMapping.getDialogText());
 
-				putData(entry, "successBehaviour",            actionMapping.getSuccessBehaviour());
-				putData(entry, "successEvent",                actionMapping.getSuccessEvent());
-				putData(entry, "successNotifications",        actionMapping.getSuccessNotifications());
-				putData(entry, "successNotificationsEvent",   actionMapping.getSuccessNotificationsEvent());
-				putData(entry, "successNotificationsPartial", actionMapping.getSuccessNotificationsPartial());
-				putData(entry, "successNotificationsDelay",   actionMapping.getSuccessNotificationsDelay());
-				putData(entry, "successPartial",              actionMapping.getSuccessPartial());
-				putData(entry, "successURL",                  actionMapping.getSuccessURL());
+				putData(entry, ActionMappingTraitDefinition.SUCCESS_BEHAVIOUR_PROPERTY,             actionMapping.getSuccessBehaviour());
+				putData(entry, ActionMappingTraitDefinition.SUCCESS_EVENT_PROPERTY,                 actionMapping.getSuccessEvent());
+				putData(entry, ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_PROPERTY,         actionMapping.getSuccessNotifications());
+				putData(entry, ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_EVENT_PROPERTY,   actionMapping.getSuccessNotificationsEvent());
+				putData(entry, ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_PARTIAL_PROPERTY, actionMapping.getSuccessNotificationsPartial());
+				putData(entry, ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_DELAY_PROPERTY,   actionMapping.getSuccessNotificationsDelay());
+				putData(entry, ActionMappingTraitDefinition.SUCCESS_PARTIAL_PROPERTY,               actionMapping.getSuccessPartial());
+				putData(entry, ActionMappingTraitDefinition.SUCCESS_URL_PROPERTY,                   actionMapping.getSuccessURL());
 
-				putData(entry, "failureBehaviour",            actionMapping.getFailureBehaviour());
-				putData(entry, "failureEvent",                actionMapping.getFailureEvent());
-				putData(entry, "failureNotifications",        actionMapping.getFailureNotifications());
-				putData(entry, "failureNotificationsEvent",   actionMapping.getFailureNotificationsEvent());
-				putData(entry, "failureNotificationsPartial", actionMapping.getFailureNotificationsPartial());
-				putData(entry, "failureNotificationsDelay",   actionMapping.getFailureNotificationsDelay());
-				putData(entry, "failurePartial",              actionMapping.getFailurePartial());
-				putData(entry, "failureURL",                  actionMapping.getFailureURL());
+				putData(entry, ActionMappingTraitDefinition.FAILURE_BEHAVIOUR_PROPERTY,             actionMapping.getFailureBehaviour());
+				putData(entry, ActionMappingTraitDefinition.FAILURE_EVENT_PROPERTY,                 actionMapping.getFailureEvent());
+				putData(entry, ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_PROPERTY,         actionMapping.getFailureNotifications());
+				putData(entry, ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_EVENT_PROPERTY,   actionMapping.getFailureNotificationsEvent());
+				putData(entry, ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_PARTIAL_PROPERTY, actionMapping.getFailureNotificationsPartial());
+				putData(entry, ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_DELAY_PROPERTY,   actionMapping.getFailureNotificationsDelay());
+				putData(entry, ActionMappingTraitDefinition.FAILURE_PARTIAL_PROPERTY,               actionMapping.getFailurePartial());
+				putData(entry, ActionMappingTraitDefinition.FAILURE_URL_PROPERTY,                   actionMapping.getFailureURL());
 			}
 
 			tx.success();
@@ -2222,7 +2224,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			logger.info("Reading {}", applicationConfigurationDataMetadataFile);
 			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing application configuration data");
 
-			importListData("ApplicationConfigurationDataNode", readConfigList(applicationConfigurationDataMetadataFile));
+			importListData(StructrTraits.APPLICATION_CONFIGURATION_DATA_NODE, readConfigList(applicationConfigurationDataMetadataFile));
 		}
 	}
 
@@ -2349,7 +2351,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 						logger.info("Removing sites");
 						publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Removing sites");
 
-						app.deleteAllNodesOfType("Site");
+						app.deleteAllNodesOfType(StructrTraits.SITE);
 					}
 
 					FlushCachesCommand.flushAll();
@@ -2499,7 +2501,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private void importSites(final List<Map<String, Object>> data) throws FrameworkException {
 
 		final SecurityContext context = SecurityContext.getSuperUserInstance();
-		final Traits traits           = Traits.of("Site");
+		final Traits traits           = Traits.of(StructrTraits.SITE);
 		final App app                 = StructrApp.getInstance(context);
 
 		context.setDoTransactionNotifications(false);
@@ -2520,11 +2522,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				checkOwnerAndSecurity(entry);
 
-				final PropertyMap map = PropertyMap.inputTypeToJavaType(context, "Site", entry);
+				final PropertyMap map = PropertyMap.inputTypeToJavaType(context, StructrTraits.SITE, entry);
 
 				map.put(traits.key("pages"), pages);
 
-				app.create("Site", map);
+				app.create(StructrTraits.SITE, map);
 			}
 
 			tx.success();

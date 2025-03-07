@@ -52,6 +52,7 @@ import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.maintenance.DeployCommand;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -229,28 +230,28 @@ public class Deployment4Test extends DeploymentTestBase {
 			test1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), p1);
 			test1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY),                     true);
 			test1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY),              true);
-			test1.setProperty(Traits.of(StructrTraits.FILE).key("includeInFrontendExport"), true);
+			test1.setProperty(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY), true);
 			test1.setProperty(Traits.of(StructrTraits.FILE).key("isTemplate"),              true);
 			test1.setProperty(Traits.of(StructrTraits.FILE).key("dontCache"),               false);
 
 			test2.as(AccessControllable.class).grant(Permission.write, p1);
 			test2.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY),                     false);
 			test2.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY),              true);
-			test2.setProperty(Traits.of(StructrTraits.FILE).key("includeInFrontendExport"), true);
+			test2.setProperty(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY), true);
 			test2.setProperty(Traits.of(StructrTraits.FILE).key("isTemplate"),              false);
 			test2.setProperty(Traits.of(StructrTraits.FILE).key("dontCache"),               true);
 
 			test3.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), p2);
 			test3.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY),                     true);
 			test3.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY),              false);
-			test3.setProperty(Traits.of(StructrTraits.FILE).key("includeInFrontendExport"), true);
+			test3.setProperty(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY), true);
 			test3.setProperty(Traits.of(StructrTraits.FILE).key("isTemplate"),              true);
 			test3.setProperty(Traits.of(StructrTraits.FILE).key("dontCache"),               false);
 
 			test4.as(AccessControllable.class).grant(Permission.write, p2);
 			test4.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY),                     false);
 			test4.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY),              false);
-			test4.setProperty(Traits.of(StructrTraits.FILE).key("includeInFrontendExport"), true);
+			test4.setProperty(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY), true);
 			test4.setProperty(Traits.of(StructrTraits.FILE).key("isTemplate"),              false);
 			test4.setProperty(Traits.of(StructrTraits.FILE).key("dontCache"),               true);
 

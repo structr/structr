@@ -98,6 +98,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 /**
  * Main servlet for content rendering.
@@ -1802,7 +1803,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 		final PropertyKey<Boolean> basicAuthKey     = Traits.of(StructrTraits.LINKABLE).key("enableBasicAuth");
 		final PropertyKey<Integer> positionKey      = Traits.of(StructrTraits.PAGE).key("position");
-		final PropertyKey<String> filePathKey       = Traits.of(StructrTraits.FILE).key("path");
+		final PropertyKey<String> filePathKey       = Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY);
 		final PropertyKey<String> pagePathKey       = Traits.of(StructrTraits.PAGE).key("path");
 
 		// Look for renderable objects using a SuperUserSecurityContext,

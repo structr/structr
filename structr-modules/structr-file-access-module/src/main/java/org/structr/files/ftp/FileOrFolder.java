@@ -44,6 +44,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 /**
  * This class is an equivalent to Java's native File class for file and folder
@@ -113,7 +114,7 @@ public class FileOrFolder extends AbstractStructrFtpFile {
 					new NodeAttribute(traits.key(GraphObjectTraitDefinition.TYPE_PROPERTY),   StructrTraits.FOLDER),
 					new NodeAttribute(traits.key(NodeInterfaceTraitDefinition.OWNER_PROPERTY),  owner.getStructrUser()),
 					new NodeAttribute(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),   getName()),
-					new NodeAttribute(traits.key("parent"), parentFolder)
+					new NodeAttribute(traits.key(AbstractFileTraitDefinition.PARENT_PROPERTY), parentFolder)
 				);
 
 			} catch (FrameworkException ex) {

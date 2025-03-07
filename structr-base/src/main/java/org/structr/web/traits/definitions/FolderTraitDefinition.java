@@ -126,13 +126,13 @@ public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Iterable<NodeInterface>> workFolderOfUsersProperty = new StartNodes("workFolderOfUsers", "UserWORKING_DIRFolder");
-		final Property<Iterable<NodeInterface>> childrenProperty          = new EndNodes("children", "FolderCONTAINSAbstractFile");
-		final Property<Iterable<NodeInterface>> filesProperty             = new EndNodes("files", "FolderCONTAINSFile");
-		final Property<Iterable<NodeInterface>> foldersProperty           = new EndNodes("folders", "FolderCONTAINSFolder");
-		final Property<Iterable<NodeInterface>> imagesProperty            = new EndNodes("images", "FolderCONTAINSImage");
-		final Property<NodeInterface> folderParentProperty                = new StartNode("folderParent", "FolderCONTAINSFolder");
-		final Property<NodeInterface> homeFolderOfUserProperty            = new StartNode("homeFolderOfUser", "UserHOME_DIRFolder");
+		final Property<Iterable<NodeInterface>> workFolderOfUsersProperty = new StartNodes("workFolderOfUsers", StructrTraits.USER_WORKING_DIR_FOLDER);
+		final Property<Iterable<NodeInterface>> childrenProperty          = new EndNodes("children", StructrTraits.FOLDER_CONTAINS_ABSTRACT_FILE);
+		final Property<Iterable<NodeInterface>> filesProperty             = new EndNodes("files", StructrTraits.FOLDER_CONTAINS_FILE);
+		final Property<Iterable<NodeInterface>> foldersProperty           = new EndNodes("folders", StructrTraits.FOLDER_CONTAINS_FOLDER);
+		final Property<Iterable<NodeInterface>> imagesProperty            = new EndNodes("images", StructrTraits.FOLDER_CONTAINS_IMAGE);
+		final Property<NodeInterface> folderParentProperty                = new StartNode("folderParent", StructrTraits.FOLDER_CONTAINS_FOLDER);
+		final Property<NodeInterface> homeFolderOfUserProperty            = new StartNode("homeFolderOfUser", StructrTraits.USER_HOME_DIR_FOLDER);
 		final Property<Boolean> isFolderProperty                          = new ConstantBooleanProperty("isFolder", true).readOnly();
 		final Property<Boolean> mountDoFulltextIndexingProperty           = new BooleanProperty("mountDoFulltextIndexing");
 		final Property<Boolean> mountWatchContentsProperty                = new BooleanProperty("mountWatchContents");
@@ -175,8 +175,8 @@ public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"files", "folders", "parentId", "enabledChecksums", "filesCount", "foldersCount", "isFolder",
-				"isMounted", "mountDoFulltextIndexing", "mountLastScanned", "mountScanInterval", "mountTarget",
+				"files", "folders", AbstractFileTraitDefinition.PARENT_ID_PROPERTY, "enabledChecksums", "filesCount", "foldersCount", "isFolder",
+					AbstractFileTraitDefinition.IS_MOUNTED_PROPERTY, "mountDoFulltextIndexing", "mountLastScanned", "mountScanInterval", "mountTarget",
 				"mountTargetFileType", "mountTargetFolderType", "mountWatchContents", "owner"
 			),
 			PropertyView.Ui,

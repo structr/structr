@@ -45,13 +45,19 @@ public class SiteTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface site1 = createTestNode("Site", new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "site1"), new NodeAttribute<>(Traits.of("Site").key("hostname"), "test1.example.com"));
-			final NodeInterface site2 = createTestNode("Site", new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "site2"), new NodeAttribute<>(Traits.of("Site").key("hostname"), "test2.example.com"));
+			final NodeInterface site1 = createTestNode(StructrTraits.SITE,
+					new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "site1"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SITE).key("hostname"), "test1.example.com")
+			);
+			final NodeInterface site2 = createTestNode(StructrTraits.SITE,
+					new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "site2"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SITE).key("hostname"), "test2.example.com")
+			);
 
-			site1.setProperty(Traits.of("Site").key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
-			site2.setProperty(Traits.of("Site").key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
-			site1.setProperty(Traits.of("Site").key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
-			site2.setProperty(Traits.of("Site").key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
+			site1.setProperty(Traits.of(StructrTraits.SITE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
+			site2.setProperty(Traits.of(StructrTraits.SITE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
+			site1.setProperty(Traits.of(StructrTraits.SITE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
+			site2.setProperty(Traits.of(StructrTraits.SITE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
 
 			final Page page1 = Page.createSimplePage(securityContext, "site1page1");
 			final Page page2 = Page.createSimplePage(securityContext, "site1page2");
@@ -100,13 +106,19 @@ public class SiteTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface site1 = createTestNode("Site", new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "site1"), new NodeAttribute<>(Traits.of("Site").key("hostname"), "test1.example.com"));
-			final NodeInterface site2 = createTestNode("Site", new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "site2"), new NodeAttribute<>(Traits.of("Site").key("hostname"), "test2.example.com"));
+			final NodeInterface site1 = createTestNode(StructrTraits.SITE,
+					new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "site1"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SITE).key("hostname"), "test1.example.com")
+			);
+			final NodeInterface site2 = createTestNode(StructrTraits.SITE,
+					new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "site2"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SITE).key("hostname"), "test2.example.com")
+			);
 
-			site1.setProperty(Traits.of("Site").key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
-			site2.setProperty(Traits.of("Site").key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
-			site1.setProperty(Traits.of("Site").key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
-			site2.setProperty(Traits.of("Site").key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
+			site1.setProperty(Traits.of(StructrTraits.SITE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
+			site2.setProperty(Traits.of(StructrTraits.SITE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
+			site1.setProperty(Traits.of(StructrTraits.SITE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
+			site2.setProperty(Traits.of(StructrTraits.SITE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
 
 			final Page page1 = Page.createSimplePage(securityContext, "site1page1");
 			final Page page2 = Page.createSimplePage(securityContext, "site1page2");

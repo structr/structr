@@ -28,6 +28,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
 
@@ -61,7 +62,7 @@ public class ListFilesCommand extends AbstractCommand {
 			.nodeQuery(rawType)
 			.includeHidden()
 			.sort(sortProperty, "desc".equals(sortOrder))
-			.and(type.key("parent"), null)
+			.and(type.key(AbstractFileTraitDefinition.PARENT_PROPERTY), null)
 			.page(page)
 			.pageSize(pageSize);
 

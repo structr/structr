@@ -47,6 +47,8 @@ import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.event.ActionMapping;
 
 import java.util.*;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.ActionMappingTraitDefinition;
 
 public class MigrationService {
 
@@ -340,11 +342,11 @@ public class MigrationService {
 			logger.info("Checking if event action mapping relationships need migration..");
 
 			final Traits actionMappingTraits                                          = Traits.of(StructrTraits.ACTION_MAPPING);
-			final PropertyKey<Iterable<NodeInterface>> triggerElementsKey             = actionMappingTraits.key("triggerElements");
-			final PropertyKey<Iterable<NodeInterface>> successTargetsKey              = actionMappingTraits.key("successTargets");
-			final PropertyKey<Iterable<NodeInterface>> failureTargetsKey              = actionMappingTraits.key("failureTargets");
-			final PropertyKey<Iterable<NodeInterface>> successNotificationElementsKey = actionMappingTraits.key("successNotificationElements");
-			final PropertyKey<Iterable<NodeInterface>> failureNotificationElementsKey = actionMappingTraits.key("failureNotificationElements");
+			final PropertyKey<Iterable<NodeInterface>> triggerElementsKey             = actionMappingTraits.key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY);
+			final PropertyKey<Iterable<NodeInterface>> successTargetsKey              = actionMappingTraits.key(ActionMappingTraitDefinition.SUCCESS_TARGETS_PROPERTY);
+			final PropertyKey<Iterable<NodeInterface>> failureTargetsKey              = actionMappingTraits.key(ActionMappingTraitDefinition.FAILURE_TARGETS_PROPERTY);
+			final PropertyKey<Iterable<NodeInterface>> successNotificationElementsKey = actionMappingTraits.key(ActionMappingTraitDefinition.SUCCESS_NOTIFICATION_ELEMENTS_PROPERTY);
+			final PropertyKey<Iterable<NodeInterface>> failureNotificationElementsKey = actionMappingTraits.key(ActionMappingTraitDefinition.FAILURE_NOTIFICATION_ELEMENTS_PROPERTY);
 
 			final Traits parameterMappingTraits              = Traits.of(StructrTraits.PARAMETER_MAPPING);
 			final PropertyKey<NodeInterface> inputElementKey = parameterMappingTraits.key("inputElement");
@@ -421,9 +423,9 @@ public class MigrationService {
 			final Traits domElementTraits                 = Traits.of(StructrTraits.DOM_ELEMENT);
 			final PropertyKey<String> reloadTargetKey     = new StringProperty("data-structr-reload-target");
 			final PropertyKey<String> actionKey           = new StringProperty("data-structr-action");
-			final PropertyKey<String> successBehaviourKey = actionMappingTraits.key("successBehaviour");
-			final PropertyKey<String> newActionKey        = actionMappingTraits.key("action");
-			final PropertyKey<String> methodKey           = actionMappingTraits.key("method");
+			final PropertyKey<String> successBehaviourKey = actionMappingTraits.key(ActionMappingTraitDefinition.SUCCESS_BEHAVIOUR_PROPERTY);
+			final PropertyKey<String> newActionKey        = actionMappingTraits.key(ActionMappingTraitDefinition.ACTION_PROPERTY);
+			final PropertyKey<String> methodKey           = actionMappingTraits.key(ActionMappingTraitDefinition.METHOD_PROPERTY);
 			final PropertyKey<String> eventMappingKey     = domElementTraits.key("eventMapping");
 
 			// check (and fix if possible) structr-app.js implementations
@@ -489,15 +491,15 @@ public class MigrationService {
 		final Traits actionMappingTraits  = Traits.of(StructrTraits.ACTION_MAPPING);
 
 		// structr-app supported click event only
-		properties.put(actionMappingTraits.key("event"), "click");
-		properties.put(actionMappingTraits.key("triggerElements"), List.of(elem));
+		properties.put(actionMappingTraits.key(ActionMappingTraitDefinition.EVENT_PROPERTY), "click");
+		properties.put(actionMappingTraits.key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY), List.of(elem));
 
 		if (idExpression != null) {
-			properties.put(actionMappingTraits.key("idExpression"), idExpression);
+			properties.put(actionMappingTraits.key(ActionMappingTraitDefinition.ID_EXPRESSION_PROPERTY), idExpression);
 		}
 
 		if (parts.length > 1) {
-			properties.put(actionMappingTraits.key("dataType"), parts[1]);
+			properties.put(actionMappingTraits.key(ActionMappingTraitDefinition.DATA_TYPE_PROPERTY), parts[1]);
 		}
 
 		if (StringUtils.isNotBlank(attrs)) {
@@ -516,25 +518,25 @@ public class MigrationService {
 		switch (action) {
 
 			case "create":
-				properties.put(actionMappingTraits.key("action"), "create");
+				properties.put(actionMappingTraits.key(ActionMappingTraitDefinition.ACTION_PROPERTY), "create");
 				if (reload) {
 
 					if (returnUrl != null) {
 
-						properties.put(actionMappingTraits.key("successBehaviour"), "navigate-to-url");
+						properties.put(actionMappingTraits.key(ActionMappingTraitDefinition.SUCCESS_BEHAVIOUR_PROPERTY), "navigate-to-url");
 
 						if (appendId) {
 
-							properties.put(actionMappingTraits.key("successURL"), returnUrl + "/{result.id}");
+							properties.put(actionMappingTraits.key(ActionMappingTraitDefinition.SUCCESS_URL_PROPERTY), returnUrl + "/{result.id}");
 
 						} else {
 
-							properties.put(actionMappingTraits.key("successURL"), returnUrl);
+							properties.put(actionMappingTraits.key(ActionMappingTraitDefinition.SUCCESS_URL_PROPERTY), returnUrl);
 						}
 
 					} else {
 
-						properties.put(actionMappingTraits.key("successBehaviour"), "full-page-reload");
+						properties.put(actionMappingTraits.key(ActionMappingTraitDefinition.SUCCESS_BEHAVIOUR_PROPERTY), "full-page-reload");
 					}
 				}
 				break;
@@ -545,19 +547,19 @@ public class MigrationService {
 				return;
 
 			case "delete":
-				properties.put(actionMappingTraits.key("action"), "delete");
+				properties.put(actionMappingTraits.key(ActionMappingTraitDefinition.ACTION_PROPERTY), "delete");
 				break;
 
 			case "login":
-				properties.put(actionMappingTraits.key("action"), "login");
+				properties.put(actionMappingTraits.key(ActionMappingTraitDefinition.ACTION_PROPERTY), "login");
 				break;
 
 			case "logout":
-				properties.put(actionMappingTraits.key("action"), "logout");
+				properties.put(actionMappingTraits.key(ActionMappingTraitDefinition.ACTION_PROPERTY), "logout");
 				break;
 
 			default:
-				properties.put(actionMappingTraits.key("action"), parts[0]);
+				properties.put(actionMappingTraits.key(ActionMappingTraitDefinition.ACTION_PROPERTY), parts[0]);
 				break;
 		}
 
@@ -617,18 +619,18 @@ public class MigrationService {
 
 		logger.info("Migrating event mapping {} on {} {}", mapping, elem.getType(), elem.getUuid());
 
-		properties.put(actionMappingTraits.key("triggerElements"), List.of(elem));
+		properties.put(actionMappingTraits.key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY), List.of(elem));
 
 		for (final String event : mapping.keySet()) {
 
 			final String action = mapping.get(event);
 
-			properties.put(actionMappingTraits.key("action"), action);
-			properties.put(actionMappingTraits.key("event"), event);
+			properties.put(actionMappingTraits.key(ActionMappingTraitDefinition.ACTION_PROPERTY), action);
+			properties.put(actionMappingTraits.key(ActionMappingTraitDefinition.EVENT_PROPERTY), event);
 
 		}
 
-		final String action = properties.get(actionMappingTraits.key("action"));
+		final String action = properties.get(actionMappingTraits.key(ActionMappingTraitDefinition.ACTION_PROPERTY));
 
 		final Map<String, String> settings = new LinkedHashMap<>();
 		final Map<String, String> data     = new LinkedHashMap<>();
@@ -653,7 +655,7 @@ public class MigrationService {
 
 				if ("options".equals(name)) {
 
-					properties.put(actionMappingTraits.key("options"), value);
+					properties.put(actionMappingTraits.key(ActionMappingTraitDefinition.OPTIONS_PROPERTY), value);
 
 				} else {
 
@@ -670,12 +672,12 @@ public class MigrationService {
 		switch (action) {
 
 			case "create":
-				properties.put(actionMappingTraits.key("dataType"), settings.get("target"));
+				properties.put(actionMappingTraits.key(ActionMappingTraitDefinition.DATA_TYPE_PROPERTY), settings.get("target"));
 				break;
 
 			case "delete":
 			case "update":
-				properties.put(actionMappingTraits.key("idExpression"), settings.get("target"));
+				properties.put(actionMappingTraits.key(ActionMappingTraitDefinition.ID_EXPRESSION_PROPERTY), settings.get("target"));
 				break;
 
 			case "next-page":
@@ -685,9 +687,9 @@ public class MigrationService {
 				break;
 
 			default:
-				properties.put(actionMappingTraits.key("action"), "method");
-				properties.put(actionMappingTraits.key("method"), action);
-				properties.put(actionMappingTraits.key("idExpression"), settings.get("target"));
+				properties.put(actionMappingTraits.key(ActionMappingTraitDefinition.ACTION_PROPERTY), "method");
+				properties.put(actionMappingTraits.key(ActionMappingTraitDefinition.METHOD_PROPERTY), action);
+				properties.put(actionMappingTraits.key(ActionMappingTraitDefinition.ID_EXPRESSION_PROPERTY), settings.get("target"));
 		}
 
 		if (settings.containsKey("reloadTarget")) {
@@ -699,17 +701,17 @@ public class MigrationService {
 			switch (type) {
 
 				case "event":
-					properties.put(actionMappingTraits.key("successBehaviour"), "fire-event");
-					properties.put(actionMappingTraits.key("successEvent"), parts[1]);
+					properties.put(actionMappingTraits.key(ActionMappingTraitDefinition.SUCCESS_BEHAVIOUR_PROPERTY), "fire-event");
+					properties.put(actionMappingTraits.key(ActionMappingTraitDefinition.SUCCESS_EVENT_PROPERTY), parts[1]);
 					break;
 
 				case "url":
-					properties.put(actionMappingTraits.key("successBehaviour"), "navigate-to-url");
-					properties.put(actionMappingTraits.key("successURL"), parts[1]);
+					properties.put(actionMappingTraits.key(ActionMappingTraitDefinition.SUCCESS_BEHAVIOUR_PROPERTY), "navigate-to-url");
+					properties.put(actionMappingTraits.key(ActionMappingTraitDefinition.SUCCESS_URL_PROPERTY), parts[1]);
 					break;
 
 				case "none":
-					properties.put(actionMappingTraits.key("successBehaviour"), "full-page-reload");
+					properties.put(actionMappingTraits.key(ActionMappingTraitDefinition.SUCCESS_BEHAVIOUR_PROPERTY), "full-page-reload");
 					break;
 
 				default:
@@ -728,13 +730,13 @@ public class MigrationService {
 
 					if (successTargets.isEmpty()) {
 
-						properties.put(actionMappingTraits.key("successBehaviour"), "partial-refresh");
-						properties.put(actionMappingTraits.key("successPartial"), parts[0]);
+						properties.put(actionMappingTraits.key(ActionMappingTraitDefinition.SUCCESS_BEHAVIOUR_PROPERTY), "partial-refresh");
+						properties.put(actionMappingTraits.key(ActionMappingTraitDefinition.SUCCESS_PARTIAL_PROPERTY), parts[0]);
 
 					} else {
 
-						properties.put(actionMappingTraits.key("successBehaviour"), "partial-refresh-linked");
-						properties.put(actionMappingTraits.key("successTargets"), successTargets);
+						properties.put(actionMappingTraits.key(ActionMappingTraitDefinition.SUCCESS_BEHAVIOUR_PROPERTY), "partial-refresh-linked");
+						properties.put(actionMappingTraits.key(ActionMappingTraitDefinition.SUCCESS_TARGETS_PROPERTY), successTargets);
 					}
 					break;
 			}
@@ -979,7 +981,7 @@ public class MigrationService {
 
 	private static void migrateFolderMountTarget() {
 
-		final Traits storageConfigurationTraits = Traits.of("StorageConfiguration");
+		final Traits storageConfigurationTraits = Traits.of(StructrTraits.STORAGE_CONFIGURATION);
 		final Traits folderTraits               = Traits.of(StructrTraits.FOLDER);
 		final App app                           = StructrApp.getInstance();
 
@@ -997,17 +999,17 @@ public class MigrationService {
 
 				final Folder folder = node.as(Folder.class);
 
-				final NodeInterface config = app.create("StorageConfiguration",
+				final NodeInterface config = app.create(StructrTraits.STORAGE_CONFIGURATION,
 					new NodeAttribute<>(storageConfigurationTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), folder.getFolderPath())
 				);
 
-				app.create("StorageConfigurationEntry",
+				app.create(StructrTraits.STORAGE_CONFIGURATION_ENTRY,
 					new NodeAttribute<>(storageConfigurationTraits.key("configuration"), config),
 					new NodeAttribute<>(storageConfigurationTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),          "mountTarget"),
 					new NodeAttribute<>(storageConfigurationTraits.key("value"),         folder.getMountTarget())
 				);
 
-				folder.setProperty(folderTraits.key("storageConfiguration"), config);
+				folder.setProperty(folderTraits.key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY), config);
 				folder.setProperty(folderTraits.key("mountTarget"), null);
 			}
 

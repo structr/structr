@@ -24,6 +24,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
@@ -98,7 +99,7 @@ public class StorageConfigurationTraitWrapper extends AbstractNodeTraitWrapper i
 	@Override
 	public NodeInterface addEntry(final String key, final String value) throws FrameworkException {
 
-		final String type        = "StorageConfigurationEntry";
+		final String type        = StructrTraits.STORAGE_CONFIGURATION_ENTRY;
 		final Traits entryTraits = Traits.of(type);
 
 		return StructrApp.getInstance().create(type,

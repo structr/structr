@@ -45,6 +45,7 @@ import java.nio.file.*;
 import java.nio.file.WatchEvent.Kind;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
 
@@ -83,7 +84,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 		final StorageConfiguration conf = prov.getConfig();
 		final Map<String, String> data  = conf != null ? conf.getConfiguration() : null;
 		final String mountTarget        = data != null ? data.get("mountTarget") : null;
-		final String folderPath         = folder.getProperty(Traits.of(StructrTraits.FOLDER).key("path"));
+		final String folderPath         = folder.getProperty(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.PATH_PROPERTY));
 		final String uuid               = folder.getUuid();
 
 		synchronized (watchedRoots) {
@@ -282,7 +283,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 			logger.error(ExceptionUtils.getStackTrace(ioex));
 		}
 
-		final PropertyKey<String> storageConfigurationKey = Traits.of(StructrTraits.ABSTRACT_FILE).key("storageConfiguration");
+		final PropertyKey<String> storageConfigurationKey = Traits.of(StructrTraits.ABSTRACT_FILE).key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY);
 		final App app                                     = StructrApp.getInstance();
 
 		try (final Tx tx = app.tx(false, false, false)) {

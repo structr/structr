@@ -26,7 +26,7 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class DOMElementTRIGGERED_BYActionMapping extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public DOMElementTRIGGERED_BYActionMapping() {
-		super("DOMElementTRIGGERED_BYActionMapping");
+		super(StructrTraits.DOM_ELEMENT_TRIGGERED_BY_ACTION_MAPPING);
 	}
 
 	@Override

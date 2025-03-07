@@ -75,7 +75,7 @@ public class LinkableTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Iterable<NodeInterface>> linkingElementsProperty = new StartNodes("linkingElements", "LinkSourceLINKLinkable");
+		final Property<Iterable<NodeInterface>> linkingElementsProperty = new StartNodes("linkingElements", StructrTraits.LINK_SOURCE_LINK_LINKABLE);
 		final Property<Iterable<String>> linkingElementsIdsProperty     = new CollectionIdProperty<>("linkingElementsIds", StructrTraits.LINKABLE,"linkingElements", StructrTraits.LINK_SOURCE);
 		final Property<Boolean> enableBasicAuthProperty                 = new BooleanProperty("enableBasicAuth").defaultValue(false).indexed();
 		final Property<String> basicAuthRealmProperty                   = new StringProperty("basicAuthRealm");

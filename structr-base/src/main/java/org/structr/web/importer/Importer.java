@@ -59,6 +59,7 @@ import org.structr.web.entity.Linkable;
 import org.structr.web.entity.dom.*;
 import org.structr.web.maintenance.DeployCommand;
 import org.structr.web.property.CustomHtmlAttributeProperty;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 import org.structr.websocket.command.CreateComponentCommand;
 
 import java.io.*;
@@ -837,7 +838,7 @@ public class Importer {
 			if (newNode != null) {
 
 				// save root element for later use
-				if (rootElement == null && !(newNode.is("Comment"))) {
+				if (rootElement == null && !(newNode.is(StructrTraits.COMMENT))) {
 					rootElement = newNode;
 				}
 
@@ -1152,7 +1153,7 @@ public class Importer {
 	private File fileExists(final String path, final long checksum) throws FrameworkException {
 
 		final PropertyKey<Long> checksumKey = Traits.of(StructrTraits.FILE).key("checksum");
-		final PropertyKey<String> pathKey   = Traits.of(StructrTraits.FILE).key("path");
+		final PropertyKey<String> pathKey   = Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY);
 
 		final NodeInterface node = app.nodeQuery(StructrTraits.FILE).and(pathKey, path).and(checksumKey, checksum).getFirst();
 		if (node != null) {
@@ -1338,7 +1339,7 @@ public class Importer {
 					}
 
 					// set export flag according to user preference
-					fileNode.setProperty(Traits.of(StructrTraits.FILE).key("includeInFrontendExport"), includeInExport);
+					fileNode.setProperty(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY), includeInExport);
 				}
 
 			} else {
@@ -1369,7 +1370,7 @@ public class Importer {
 	private File createFileNode(final String path, final String contentType, final long size, final long checksum, final String fileClass) throws FrameworkException {
 
 		final PropertyKey<Integer> versionKey      = Traits.of(StructrTraits.FILE).key("version");
-		final PropertyKey<NodeInterface> parentKey = Traits.of(StructrTraits.FILE).key("parent");
+		final PropertyKey<NodeInterface> parentKey = Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY);
 		final PropertyKey<String> contentTypeKey   = Traits.of(StructrTraits.FILE).key("contentType");
 		final PropertyKey<Long> checksumKey        = Traits.of(StructrTraits.FILE).key("checksum");
 		final PropertyKey<Long> sizeKey            = Traits.of(StructrTraits.FILE).key("size");
@@ -1379,12 +1380,12 @@ public class Importer {
 		if (parentFolder != null) {
 
 			// set export flag according to user preference
-			parentFolder.setProperty(Traits.of(StructrTraits.FILE).key("includeInFrontendExport"), includeInExport);
+			parentFolder.setProperty(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY), includeInExport);
 		}
 
 		return app.create(traits.getName(),
 			new NodeAttribute(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),                        PathHelper.getName(path)),
-			new NodeAttribute(traits.key("parent"),                      parentFolder),
+			new NodeAttribute(traits.key(AbstractFileTraitDefinition.PARENT_PROPERTY),                      parentFolder),
 			new NodeAttribute(traits.key("contentType"),                 contentType),
 			new NodeAttribute(traits.key("size"),                        size),
 			new NodeAttribute(traits.key("checksum"),                    checksum),

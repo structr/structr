@@ -44,6 +44,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 /**
  * A property which returns the complete folder path of a {@link Linkable}
@@ -134,7 +135,7 @@ public class PathProperty extends AbstractReadOnlyProperty<String> {
 		final String currentPart      = parts.remove(0);
 		final Traits traits           = Traits.of(StructrTraits.FILE);
 
-		final List<NodeInterface> res = app.nodeQuery(StructrTraits.ABSTRACT_FILE).and(Traits.of(StructrTraits.ABSTRACT_FILE).key("parent"), parent).and(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), currentPart).getAsList();
+		final List<NodeInterface> res = app.nodeQuery(StructrTraits.ABSTRACT_FILE).and(Traits.of(StructrTraits.ABSTRACT_FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY), parent).and(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), currentPart).getAsList();
 
 		if (parts.isEmpty()) {
 

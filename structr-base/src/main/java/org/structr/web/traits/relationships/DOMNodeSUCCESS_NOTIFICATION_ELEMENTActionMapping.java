@@ -26,7 +26,7 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class DOMNodeSUCCESS_NOTIFICATION_ELEMENTActionMapping extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public DOMNodeSUCCESS_NOTIFICATION_ELEMENTActionMapping() {
-		super("DOMNodeSUCCESS_NOTIFICATION_ELEMENTActionMapping");
+		super(StructrTraits.DOM_NODE_SUCCESS_NOTIFICATION_ELEMENT_ACTION_MAPPING);
 	}
 
 	@Override

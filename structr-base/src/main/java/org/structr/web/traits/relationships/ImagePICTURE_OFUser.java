@@ -26,7 +26,7 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class ImagePICTURE_OFUser extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public ImagePICTURE_OFUser() {
-		super("ImagePICTURE_OFUser");
+		super(StructrTraits.IMAGE_PICTURE_OF_USER);
 	}
 
 	@Override

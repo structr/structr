@@ -23,6 +23,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
@@ -45,7 +46,7 @@ public class StorageConfigurationEntryTraitDefinition extends AbstractNodeTraitD
 	 */
 
 	public StorageConfigurationEntryTraitDefinition() {
-		super("StorageConfigurationEntry");
+		super(StructrTraits.STORAGE_CONFIGURATION_ENTRY);
 	}
 
 	@Override
@@ -75,7 +76,7 @@ public class StorageConfigurationEntryTraitDefinition extends AbstractNodeTraitD
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> configurationProperty = new StartNode("configuration", "StorageConfigurationCONFIG_ENTRYStorageConfigurationEntry");
+		final Property<NodeInterface> configurationProperty = new StartNode("configuration", StructrTraits.STORAGE_CONFIGURATION_CONFIG_ENTRY_STORAGE_CONFIGURATION_ENTRY);
 		final Property<String> nameProperty                 = new StringProperty("name");
 		final Property<String> valueProperty                = new EncryptedStringProperty("value");
 

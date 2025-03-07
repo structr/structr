@@ -49,6 +49,7 @@ import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
 import org.structr.web.entity.User;
 import org.structr.web.property.ThumbnailProperty;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -430,7 +431,7 @@ public class UiTest extends StructrUiTest {
 			assertNotNull(file1);
 			assertEquals(file1.getPath(), "/file1");
 
-			file1.setProperty(Traits.of(StructrTraits.FILE).key("parent"), folder1);
+			file1.setProperty(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY), folder1);
 			assertEquals(file1.getPath(), "/folder1/file1");
 
 			tx.success();
@@ -445,7 +446,7 @@ public class UiTest extends StructrUiTest {
 			assertNotNull(image1);
 			assertEquals(image1.getPath(), "/image1");
 
-			image1.setProperty(Traits.of(StructrTraits.FILE).key("parent"), folder1);
+			image1.setProperty(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY), folder1);
 			assertEquals(image1.getPath(), "/folder1/image1");
 
 			tx.success();
@@ -690,7 +691,7 @@ public class UiTest extends StructrUiTest {
 
 			file1 = app.create(StructrTraits.FILE,
 				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test.txt"),
-				new NodeAttribute<>(Traits.of(StructrTraits.ABSTRACT_FILE).key("parent"), folder)
+				new NodeAttribute<>(Traits.of(StructrTraits.ABSTRACT_FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY), folder)
 			).as(File.class);
 
 			assertNotNull(file1);
@@ -706,7 +707,7 @@ public class UiTest extends StructrUiTest {
 
 			file2 = app.create(StructrTraits.FILE,
 				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test.txt"),
-				new NodeAttribute<>(Traits.of(StructrTraits.ABSTRACT_FILE).key("parent"), folder)
+				new NodeAttribute<>(Traits.of(StructrTraits.ABSTRACT_FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY), folder)
 			).as(File.class);
 
 			assertNotNull(file2);
@@ -754,7 +755,7 @@ public class UiTest extends StructrUiTest {
 
 			file1 = app.create(StructrTraits.FILE,
 				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test.txt"),
-				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key("parent"), folder1)
+				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY), folder1)
 			).as(File.class);
 
 			assertNotNull(file1);
@@ -762,7 +763,7 @@ public class UiTest extends StructrUiTest {
 
 			file2 = app.create(StructrTraits.FILE,
 				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test.txt"),
-				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key("parent"), folder2)
+				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY), folder2)
 			).as(File.class);
 
 			assertNotNull(file2);

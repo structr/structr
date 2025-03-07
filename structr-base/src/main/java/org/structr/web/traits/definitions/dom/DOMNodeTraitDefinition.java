@@ -571,17 +571,17 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> parentProperty                               = new StartNode("parent", "DOMNodeCONTAINSDOMNode").category(DOMNode.PAGE_CATEGORY);
-		final Property<Iterable<NodeInterface>> childrenProperty                   = new EndNodes("children", "DOMNodeCONTAINSDOMNode").category(DOMNode.PAGE_CATEGORY);
-		final Property<NodeInterface> previousSiblingProperty                      = new StartNode("previousSibling", "DOMNodeCONTAINS_NEXT_SIBLINGDOMNode").category(DOMNode.PAGE_CATEGORY);
-		final Property<NodeInterface> nextSiblingProperty                          = new EndNode("nextSibling", "DOMNodeCONTAINS_NEXT_SIBLINGDOMNode").category(DOMNode.PAGE_CATEGORY);
-		final Property<NodeInterface> sharedComponentProperty                      = new StartNode("sharedComponent", "DOMNodeSYNCDOMNode").category(DOMNode.PAGE_CATEGORY);
-		final Property<Iterable<NodeInterface>> syncedNodesProperty                = new EndNodes("syncedNodes", "DOMNodeSYNCDOMNode").category(DOMNode.PAGE_CATEGORY);
-		final Property<NodeInterface> ownerDocumentProperty                        = new EndNode("ownerDocument", "DOMNodePAGEPage").category(DOMNode.PAGE_CATEGORY);
-		final Property<Iterable<NodeInterface>> reloadingActionsProperty           = new EndNodes("reloadingActions", "DOMNodeSUCCESS_TARGETActionMapping");
-		final Property<Iterable<NodeInterface>> failureActionsProperty             = new EndNodes("failureActions", "DOMNodeFAILURE_TARGETActionMapping");
-		final Property<Iterable<NodeInterface>> successNotificationActionsProperty = new EndNodes("successNotificationActions", "DOMNodeSUCCESS_NOTIFICATION_ELEMENTActionMapping");
-		final Property<Iterable<NodeInterface>> failureNotificationActionsProperty = new EndNodes("failureNotificationActions", "DOMNodeFAILURE_NOTIFICATION_ELEMENTActionMapping");
+		final Property<NodeInterface> parentProperty                               = new StartNode("parent", StructrTraits.DOM_NODE_CONTAINS_DOM_NODE).category(DOMNode.PAGE_CATEGORY);
+		final Property<Iterable<NodeInterface>> childrenProperty                   = new EndNodes("children", StructrTraits.DOM_NODE_CONTAINS_DOM_NODE).category(DOMNode.PAGE_CATEGORY);
+		final Property<NodeInterface> previousSiblingProperty                      = new StartNode("previousSibling", StructrTraits.DOM_NODE_CONTAINS_NEXT_SIBLING_DOM_NODE).category(DOMNode.PAGE_CATEGORY);
+		final Property<NodeInterface> nextSiblingProperty                          = new EndNode("nextSibling", StructrTraits.DOM_NODE_CONTAINS_NEXT_SIBLING_DOM_NODE).category(DOMNode.PAGE_CATEGORY);
+		final Property<NodeInterface> sharedComponentProperty                      = new StartNode("sharedComponent", StructrTraits.DOM_NODE_SYNC_DOM_NODE).category(DOMNode.PAGE_CATEGORY);
+		final Property<Iterable<NodeInterface>> syncedNodesProperty                = new EndNodes("syncedNodes", StructrTraits.DOM_NODE_SYNC_DOM_NODE).category(DOMNode.PAGE_CATEGORY);
+		final Property<NodeInterface> ownerDocumentProperty                        = new EndNode("ownerDocument", StructrTraits.DOM_NODE_PAGE_PAGE).category(DOMNode.PAGE_CATEGORY);
+		final Property<Iterable<NodeInterface>> reloadingActionsProperty           = new EndNodes("reloadingActions", StructrTraits.DOM_NODE_SUCCESS_TARGET_ACTION_MAPPING);
+		final Property<Iterable<NodeInterface>> failureActionsProperty             = new EndNodes("failureActions", StructrTraits.DOM_NODE_FAILURE_TARGET_ACTION_MAPPING);
+		final Property<Iterable<NodeInterface>> successNotificationActionsProperty = new EndNodes("successNotificationActions", StructrTraits.DOM_NODE_SUCCESS_NOTIFICATION_ELEMENT_ACTION_MAPPING);
+		final Property<Iterable<NodeInterface>> failureNotificationActionsProperty = new EndNodes("failureNotificationActions", StructrTraits.DOM_NODE_FAILURE_NOTIFICATION_ELEMENT_ACTION_MAPPING);
 		final Property<Iterable<DOMNode>> sortedChildrenProperty                   = new DOMNodeSortedChildrenProperty("sortedChildren").typeHint("DOMNode[]");
 		final Property<String> childrenIdsProperty                                 = new CollectionIdProperty("childrenIds", StructrTraits.DOM_NODE, "children", StructrTraits.DOM_NODE).category("Page Structure");
 		final Property<String> nextSiblingIdProperty                               = new EntityIdProperty("nextSiblingId", StructrTraits.DOM_NODE, "nextSibling", StructrTraits.DOM_NODE).category("Page Structure");

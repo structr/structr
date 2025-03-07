@@ -80,8 +80,8 @@ public class ParameterMappingTraitDefinition extends AbstractNodeTraitDefinition
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> actionMappingProperty = new StartNode("actionMapping", "ActionMappingPARAMETERParameterMapping");
-		final Property<NodeInterface> inputElement          = new StartNode("inputElement", "DOMElementINPUT_ELEMENTParameterMapping");
+		final Property<NodeInterface> actionMappingProperty = new StartNode("actionMapping", StructrTraits.ACTION_MAPPING_PARAMETER_PARAMETER_MAPPING);
+		final Property<NodeInterface> inputElement          = new StartNode("inputElement", StructrTraits.DOM_ELEMENT_INPUT_ELEMENT_PARAMETER_MAPPING);
 
 		// user-input, constant-value, page-param, pagesize-param, script-expression, method-result, flow-result
 		final Property<String> parameterType    = new StringProperty("parameterType").hint("Type of this parameter, e.g. user input, constant value, page-param, pagesize-param, result of a script expression, method call or flow...");

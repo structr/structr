@@ -36,6 +36,7 @@ import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 public class VirtualDirectoryStream implements DirectoryStream<Path> {
 
@@ -90,11 +91,11 @@ public class VirtualDirectoryStream implements DirectoryStream<Path> {
 
 		try (final Tx tx = app.tx()) {
 
-			PropertyKey<NodeInterface> parentKey = traits.key("parent");
+			PropertyKey<NodeInterface> parentKey = traits.key(AbstractFileTraitDefinition.PARENT_PROPERTY);
 
 			if (!(root.toString().equals("/"))) {
 
-				final PropertyKey<String> path = traits.key("path");
+				final PropertyKey<String> path = traits.key(AbstractFileTraitDefinition.PATH_PROPERTY);
 				final NodeInterface rootFolder = app.nodeQuery(StructrTraits.FOLDER).and(path, root.toString()).getFirst();
 
 				if (rootFolder != null) {

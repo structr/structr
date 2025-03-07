@@ -31,6 +31,7 @@ import org.structr.schema.action.ActionContext;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 public class UnarchiveFunction extends UiAdvancedFunction {
 
@@ -74,7 +75,7 @@ public class UnarchiveFunction extends UiAdvancedFunction {
 
 				final PropertyMap props = new PropertyMap();
 				props.put(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), StringUtils.substringBeforeLast(archiveFile.getName(), "."));
-				props.put(Traits.of(StructrTraits.FOLDER).key("parent"), archiveFile.getParent());
+				props.put(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.PARENT_PROPERTY), archiveFile.getParent());
 
 				// Create folder with same name (without extension) and in same folder as file
 				parentFolder = StructrApp.getInstance(ctx.getSecurityContext()).create(StructrTraits.FOLDER, props).as(Folder.class);

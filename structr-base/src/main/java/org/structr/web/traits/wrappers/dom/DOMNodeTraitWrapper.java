@@ -210,12 +210,12 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 	@Override
 	public final String getChildLinkType() {
-		return "DOMNodeCONTAINSDOMNode";
+		return StructrTraits.DOM_NODE_CONTAINS_DOM_NODE;
 	}
 
 	@Override
 	public final PropertyKey<Integer> getPositionProperty() {
-		return Traits.of("DOMNodeCONTAINSDOMNode").key("position");
+		return Traits.of(StructrTraits.DOM_NODE_CONTAINS_DOM_NODE).key("position");
 	}
 
 	@Override
@@ -621,7 +621,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 	public final Page getOwnerDocumentAsSuperUser() {
 
-		final RelationshipInterface ownership = wrappedObject.getOutgoingRelationshipAsSuperUser("DOMNodePAGEPage");
+		final RelationshipInterface ownership = wrappedObject.getOutgoingRelationshipAsSuperUser(StructrTraits.DOM_NODE_PAGE_PAGE);
 		if (ownership != null) {
 
 			return ownership.getTargetNode().as(Page.class);
@@ -1704,7 +1704,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 	@Override
 	public final String getSiblingLinkType() {
-		return "DOMNodeCONTAINS_NEXT_SIBLINGDOMNode";
+		return StructrTraits.DOM_NODE_CONTAINS_NEXT_SIBLING_DOM_NODE;
 	}
 
 	@Override

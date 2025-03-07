@@ -42,6 +42,7 @@ import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -176,7 +177,7 @@ public class ImageTest extends StructrUiTest {
 
 			System.out.println("############# Folders:");
 
-			final List<NodeInterface> folders = app.nodeQuery(StructrTraits.FOLDER).sort(Traits.of(StructrTraits.FOLDER).key("path")).getAsList();
+			final List<NodeInterface> folders = app.nodeQuery(StructrTraits.FOLDER).sort(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.PATH_PROPERTY)).getAsList();
 
 			folders.stream().forEach(f -> {
 				System.out.println(f.as(Folder.class).getPath());

@@ -24,6 +24,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
@@ -36,7 +37,7 @@ import java.util.Set;
 public class SiteTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public SiteTraitDefinition() {
-		super("Site");
+		super(StructrTraits.SITE);
 	}
 
 	@Override
@@ -65,7 +66,7 @@ public class SiteTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Iterable<NodeInterface>> pagesProperty = new EndNodes("pages", "SiteCONTAINSPage");
+		final Property<Iterable<NodeInterface>> pagesProperty = new EndNodes("pages", StructrTraits.SITE_CONTAINS_PAGE);
 		final Property<String> hostnameProperty               = new StringProperty("hostname").indexed();
 		final Property<Integer> portProperty                  = new IntProperty("port").indexed();
 

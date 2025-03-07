@@ -18,7 +18,6 @@
  */
 package org.structr.web.traits.definitions;
 
-
 import org.structr.api.config.Settings;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -54,6 +53,17 @@ import java.util.Set;
  * Base class for filesystem objects in structr.
  */
 public class AbstractFileTraitDefinition extends AbstractNodeTraitDefinition {
+
+	public static final String STORAGE_CONFIGURATION_PROPERTY      = "storageConfiguration";
+	public static final String PARENT_PROPERTY                     = "parent";
+	public static final String PARENT_ID_PROPERTY                  = "parentId";
+	public static final String HAS_PARENT_PROPERTY                 = "hasParent";
+	public static final String INCLUDE_IN_FRONTEND_EXPORT_PROPERTY = "includeInFrontendExport";
+	public static final String IS_EXTERNAL_PROPERTY                = "isExternal";
+	public static final String NAME_PROPERTY                       = "name";
+	public static final String LAST_SEEN_MOUNTED_PROPERTY          = "lastSeenMounted";
+	public static final String IS_MOUNTED_PROPERTY                 = "isMounted";
+	public static final String PATH_PROPERTY                       = "path";
 
 	public AbstractFileTraitDefinition() {
 		super(StructrTraits.ABSTRACT_FILE);
@@ -155,16 +165,16 @@ public class AbstractFileTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> storageConfigurationProperty = new EndNode("storageConfiguration", "AbstractFileCONFIGURED_BYStorageConfiguration");
-		final Property<NodeInterface> parentProperty               = new StartNode("parent", "FolderCONTAINSAbstractFile").updateCallback(AbstractFileTraitDefinition::updateHasParent);
-		final Property<String> parentIdProperty                    = new EntityIdProperty("parentId", StructrTraits.ABSTRACT_FILE, "parent", StructrTraits.FOLDER);
-		final Property<Boolean> hasParentProperty                  = new BooleanProperty("hasParent").indexed();
-		final Property<Boolean> includeInFrontendExportProperty    = new BooleanProperty("includeInFrontendExport").indexed();
-		final Property<Boolean> isExternalProperty                 = new BooleanProperty("isExternal").indexed();
-		final Property<String> nameProperty                        = new StringProperty("name").notNull().indexed(); // fixme: not dynamic, but does it have any consequences?
-		final Property<Long> lastSeenMountedProperty               = new LongProperty("lastSeenMounted");
+		final Property<NodeInterface> storageConfigurationProperty = new EndNode(STORAGE_CONFIGURATION_PROPERTY, StructrTraits.ABSTRACT_FILE_CONFIGURED_BY_STORAGE_CONFIGURATION);
+		final Property<NodeInterface> parentProperty               = new StartNode(PARENT_PROPERTY, StructrTraits.FOLDER_CONTAINS_ABSTRACT_FILE).updateCallback(AbstractFileTraitDefinition::updateHasParent);
+		final Property<String> parentIdProperty                    = new EntityIdProperty(PARENT_ID_PROPERTY, StructrTraits.ABSTRACT_FILE, PARENT_PROPERTY, StructrTraits.FOLDER);
+		final Property<Boolean> hasParentProperty                  = new BooleanProperty(HAS_PARENT_PROPERTY).indexed();
+		final Property<Boolean> includeInFrontendExportProperty    = new BooleanProperty(INCLUDE_IN_FRONTEND_EXPORT_PROPERTY).indexed();
+		final Property<Boolean> isExternalProperty                 = new BooleanProperty(IS_EXTERNAL_PROPERTY).indexed();
+		final Property<String> nameProperty                        = new StringProperty(NAME_PROPERTY).notNull().indexed(); // fixme: not dynamic, but does it have any consequences?
+		final Property<Long> lastSeenMountedProperty               = new LongProperty(LAST_SEEN_MOUNTED_PROPERTY);
 		final Property<Boolean> isMountedProperty                  = new AbstractFileIsMountedProperty();
-		final Property<String> pathProperty                        = new PathProperty("path").typeHint("String").indexed();
+		final Property<String> pathProperty                        = new PathProperty(PATH_PROPERTY).typeHint("String").indexed();
 
 		return Set.of(
 			storageConfigurationProperty,
@@ -186,11 +196,13 @@ public class AbstractFileTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				NodeInterfaceTraitDefinition.NAME_PROPERTY, "isExternal", "lastSeenMounted", "path", GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY
+					NodeInterfaceTraitDefinition.NAME_PROPERTY, IS_EXTERNAL_PROPERTY, LAST_SEEN_MOUNTED_PROPERTY, PATH_PROPERTY,
+					GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY
 			),
 			PropertyView.Ui,
 			newSet(
-				"isMounted", "includeInFrontendExport", "isExternal", "lastSeenMounted", "path", "parent", "storageConfiguration"
+					IS_MOUNTED_PROPERTY, INCLUDE_IN_FRONTEND_EXPORT_PROPERTY, IS_EXTERNAL_PROPERTY, LAST_SEEN_MOUNTED_PROPERTY,
+					PATH_PROPERTY, PARENT_PROPERTY, STORAGE_CONFIGURATION_PROPERTY
 			)
 		);
 	}
@@ -202,15 +214,6 @@ public class AbstractFileTraitDefinition extends AbstractNodeTraitDefinition {
 	public Relation getRelation() {
 		return null;
 	}
-
-	/*
-	// view configuration
-	type.addViewProperty(PropertyView.Public, "visibleToAuthenticatedUsers");
-	type.addViewProperty(PropertyView.Public, "visibleToPublicUsers");
-
-	type.addViewProperty(PropertyView.Ui, "parent");
-	type.addViewProperty(PropertyView.Ui, "storageConfiguration");
-	*/
 
 	// ----- protected methods -----
 

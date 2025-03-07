@@ -77,6 +77,7 @@ import org.structr.web.resource.LogoutResourceHandler;
 import org.structr.web.resource.RegistrationResourceHandler;
 import org.structr.web.resource.ResetPasswordResourceHandler;
 import org.structr.web.servlet.HtmlServlet;
+import org.structr.web.traits.definitions.ActionMappingTraitDefinition;
 import org.structr.web.traits.operations.*;
 import org.structr.web.traits.wrappers.dom.DOMElementTraitWrapper;
 
@@ -512,7 +513,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 									}
 
 									// append all stored action mapping keys as data-structr-<key> attributes
-									for (final String key : Set.of("event", "action", "method", "dataType", "idExpression")) {
+									for (final String key : Set.of(ActionMappingTraitDefinition.EVENT_PROPERTY, ActionMappingTraitDefinition.ACTION_PROPERTY, ActionMappingTraitDefinition.METHOD_PROPERTY, ActionMappingTraitDefinition.DATA_TYPE_PROPERTY, ActionMappingTraitDefinition.ID_EXPRESSION_PROPERTY)) {
 
 										final String value = actionNode.getPropertyWithVariableReplacement(renderContext, eamTraits.key(key));
 										if (StringUtils.isNotBlank(value)) {
@@ -521,7 +522,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 											out.append(" data-structr-" + keyHyphenated + "=\"").append(value).append("\"");
 										}
 
-										if (key.equals("event")) {
+										if (key.equals(ActionMappingTraitDefinition.EVENT_PROPERTY)) {
 
 											eventsString = value;
 										}
@@ -871,10 +872,10 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Iterable<NodeInterface>> reloadSourcesProperty     = new StartNodes("reloadSources", "DOMElementRELOADSDOMElement");
-		final Property<Iterable<NodeInterface>> reloadTargetsProperty     = new EndNodes("reloadTargets", "DOMElementRELOADSDOMElement");
-		final Property<Iterable<NodeInterface>> triggeredActionsProperty  = new EndNodes("triggeredActions", "DOMElementTRIGGERED_BYActionMapping");
-		final Property<Iterable<NodeInterface>> parameterMappingsProperty = new EndNodes("parameterMappings", "DOMElementINPUT_ELEMENTParameterMapping");
+		final Property<Iterable<NodeInterface>> reloadSourcesProperty     = new StartNodes("reloadSources", StructrTraits.DOM_ELEMENT_RELOADS_DOM_ELEMENT);
+		final Property<Iterable<NodeInterface>> reloadTargetsProperty     = new EndNodes("reloadTargets", StructrTraits.DOM_ELEMENT_RELOADS_DOM_ELEMENT);
+		final Property<Iterable<NodeInterface>> triggeredActionsProperty  = new EndNodes("triggeredActions", StructrTraits.DOM_ELEMENT_TRIGGERED_BY_ACTION_MAPPING);
+		final Property<Iterable<NodeInterface>> parameterMappingsProperty = new EndNodes("parameterMappings", StructrTraits.DOM_ELEMENT_INPUT_ELEMENT_PARAMETER_MAPPING);
 
 		final Property<String> tagProperty              = new StringProperty("tag").indexed().category(PAGE_CATEGORY);
 		final Property<String> pathProperty             = new StringProperty("path").indexed();
@@ -1636,16 +1637,15 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		if (dialogType != null && !dialogType.equals("none")) {
 
 			final Traits traits                = triggeredAction.getTraits();
-			final PropertyKey<String> titleKey = traits.key("dialogTitle");
-			final PropertyKey<String> textKey  = traits.key("dialogText");
+			final PropertyKey<String> titleKey = traits.key(ActionMappingTraitDefinition.DIALOG_TITLE_PROPERTY);
+			final PropertyKey<String> textKey  = traits.key(ActionMappingTraitDefinition.DIALOG_TEXT_PROPERTY);
 
 			final String dialogTitle = triggeredAction.getPropertyWithVariableReplacement(renderContext, titleKey);
-			final String dialogText = triggeredAction.getPropertyWithVariableReplacement(renderContext, textKey);
+			final String dialogText  = triggeredAction.getPropertyWithVariableReplacement(renderContext, textKey);
 
 			out.append(" data-structr-dialog-type=\"").append(dialogType).append("\"");
 			out.append(" data-structr-dialog-title=\"").append(DOMNode.escapeForHtmlAttributes(dialogTitle)).append("\"");
 			out.append(" data-structr-dialog-text=\"").append(DOMNode.escapeForHtmlAttributes(dialogText)).append("\"");
-
 		}
 	}
 
@@ -1660,7 +1660,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 			switch (successNotifications) {
 
 				case "custom-dialog-linked":
-					out.append(" data-structr-success-notifications-custom-dialog-element=\"").append(generateDataAttributesForIdList(renderContext, triggeredAction, "successNotificationElements")).append("\"");
+					out.append(" data-structr-success-notifications-custom-dialog-element=\"").append(generateDataAttributesForIdList(renderContext, triggeredAction, ActionMappingTraitDefinition.SUCCESS_NOTIFICATION_ELEMENTS_PROPERTY)).append("\"");
 					break;
 
 				case "fire-event":
@@ -1699,7 +1699,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 			switch (failureNotifications) {
 
 				case "custom-dialog-linked":
-					out.append(" data-structr-failure-notifications-custom-dialog-element=\"").append(generateDataAttributesForIdList(renderContext, triggeredAction, "failureNotificationElements")).append("\"");
+					out.append(" data-structr-failure-notifications-custom-dialog-element=\"").append(generateDataAttributesForIdList(renderContext, triggeredAction, ActionMappingTraitDefinition.FAILURE_NOTIFICATION_ELEMENTS_PROPERTY)).append("\"");
 					break;
 
 				case "fire-event":
@@ -1730,9 +1730,9 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 		// Possible values for the success behaviour are nothing, full-page-reload, partial-refresh, navigate-to-url, fire-event
 		final String successBehaviour = triggeredAction.getSuccessBehaviour();
-		final String successPartial   = triggeredAction.getPropertyWithVariableReplacement(renderContext, traits.key("successPartial"));
-		final String successURL       = triggeredAction.getPropertyWithVariableReplacement(renderContext, traits.key("successURL"));
-		final String successEvent     = triggeredAction.getPropertyWithVariableReplacement(renderContext, traits.key("successEvent"));
+		final String successPartial   = triggeredAction.getSuccessPartial();
+		final String successURL       = triggeredAction.getSuccessURL();
+		final String successEvent     = triggeredAction.getSuccessEvent();
 
 		String successTargetString = null;
 
@@ -1743,7 +1743,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 					successTargetString = successPartial;
 					break;
 				case "partial-refresh-linked":
-					successTargetString = generateDataAttributesForIdList(renderContext, triggeredAction, "successTargets");
+					successTargetString = generateDataAttributesForIdList(renderContext, triggeredAction, ActionMappingTraitDefinition.SUCCESS_TARGETS_PROPERTY);
 					break;
 				case "navigate-to-url":
 					successTargetString = "url:" + successURL;
@@ -1763,7 +1763,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 			}
 		}
 
-		final String idExpression = triggeredAction.getPropertyWithVariableReplacement(renderContext, traits.key("idExpression"));
+		final String idExpression = triggeredAction.getIdExpression();
 		if (StringUtils.isNotBlank(idExpression)) {
 			out.append(" data-structr-target=\"").append(idExpression).append("\"");
 		}
@@ -1771,7 +1771,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		final String action = triggeredAction.getAction();
 		if ("create".equals(action)) {
 
-			final String dataType = triggeredAction.getPropertyWithVariableReplacement(renderContext, traits.key("dataType"));
+			final String dataType = triggeredAction.getDataType();
 			if (StringUtils.isNotBlank(dataType)) {
 				out.append(" data-structr-target=\"").append(dataType).append("\"");
 			}
@@ -1788,9 +1788,9 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 		// Possible values for the failure behaviour are nothing, full-page-reload, partial-refresh, navigate-to-url, fire-event
 		final String failureBehaviour = triggeredAction.getFailureBehaviour();
-		final String failurePartial   = triggeredAction.getPropertyWithVariableReplacement(renderContext, traits.key("failurePartial"));
-		final String failureURL       = triggeredAction.getPropertyWithVariableReplacement(renderContext, traits.key("failureURL"));
-		final String failureEvent     = triggeredAction.getPropertyWithVariableReplacement(renderContext, traits.key("failureEvent"));
+		final String failurePartial   = triggeredAction.getFailurePartial();
+		final String failureURL       = triggeredAction.getFailureURL();
+		final String failureEvent     = triggeredAction.getFailureEvent();
 
 		String failureTargetString = null;
 
@@ -1801,7 +1801,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 					failureTargetString = failurePartial;
 					break;
 				case "partial-refresh-linked":
-					failureTargetString = generateDataAttributesForIdList(renderContext, triggeredAction, "failureTargets");
+					failureTargetString = generateDataAttributesForIdList(renderContext, triggeredAction, ActionMappingTraitDefinition.FAILURE_TARGETS_PROPERTY);
 					break;
 				case "navigate-to-url":
 					failureTargetString = "url:" + failureURL;

@@ -26,7 +26,7 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class DOMNodeFAILURE_TARGETActionMapping extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public DOMNodeFAILURE_TARGETActionMapping() {
-		super("DOMNodeFAILURE_TARGETActionMapping");
+		super(StructrTraits.DOM_NODE_FAILURE_TARGET_ACTION_MAPPING);
 	}
 
 	@Override

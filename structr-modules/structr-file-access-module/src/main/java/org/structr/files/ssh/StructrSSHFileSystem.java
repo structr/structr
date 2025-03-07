@@ -45,6 +45,7 @@ import java.nio.file.*;
 import java.nio.file.attribute.*;
 import java.nio.file.spi.FileSystemProvider;
 import java.util.*;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 /**
  *
@@ -238,7 +239,7 @@ public class StructrSSHFileSystem extends FileSystem {
 
 					final NodeInterface folder = app.create(StructrTraits.FOLDER,
 						new NodeAttribute(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name),
-						new NodeAttribute(traits.key("parent"), parent != null ? parent.getActualFile() : null)
+						new NodeAttribute(traits.key(AbstractFileTraitDefinition.PARENT_PROPERTY), parent != null ? parent.getActualFile() : null)
 					);
 
 					((StructrSSHFile) dir).setActualFile(folder.as(AbstractFile.class));
@@ -386,7 +387,7 @@ public class StructrSSHFileSystem extends FileSystem {
 
 					newFile = app.create(StructrTraits.FILE,
 						new NodeAttribute(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), fileName),
-						new NodeAttribute(traits.key("parent"), parentFolder)
+						new NodeAttribute(traits.key(AbstractFileTraitDefinition.PARENT_PROPERTY), parentFolder)
 					);
 
 					tx.success();

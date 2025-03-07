@@ -44,6 +44,7 @@ import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.importer.Importer;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 import org.structr.websocket.command.CreateComponentCommand;
 import org.testng.annotations.Test;
 
@@ -277,10 +278,10 @@ public class DOMAndPageTest extends StructrUiTest {
 			final PropertyMap siteOneProperties                 = new PropertyMap();
 			final PropertyKey<Iterable<NodeInterface>> sitesKey = Traits.of(StructrTraits.PAGE).key("sites");
 			final PropertyKey<Integer> positionKey              = Traits.of(StructrTraits.PAGE).key("position");
-			final PropertyKey<Integer> portKey                  = Traits.of("Site").key("port");
-			final PropertyKey<String> hostnameKey               = Traits.of("Site").key("hostname");
-			final PropertyKey<String> nameKey                   = Traits.of("Site").key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
-			final PropertyKey<Boolean> vtp                      = Traits.of("Site").key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY);
+			final PropertyKey<Integer> portKey                  = Traits.of(StructrTraits.SITE).key("port");
+			final PropertyKey<String> hostnameKey               = Traits.of(StructrTraits.SITE).key("hostname");
+			final PropertyKey<String> nameKey                   = Traits.of(StructrTraits.SITE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
+			final PropertyKey<Boolean> vtp                      = Traits.of(StructrTraits.SITE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY);
 
 			siteOneProperties.put(nameKey, "site-one");
 			siteOneProperties.put(vtp, true);
@@ -293,8 +294,8 @@ public class DOMAndPageTest extends StructrUiTest {
 			siteTwoProperties.put(hostnameKey, "127.0.0.1");
 			siteTwoProperties.put(portKey, httpPort);
 
-			final NodeInterface siteOne = app.create("Site", siteOneProperties);
-			final NodeInterface siteTwo = app.create("Site", siteTwoProperties);
+			final NodeInterface siteOne = app.create(StructrTraits.SITE, siteOneProperties);
+			final NodeInterface siteTwo = app.create(StructrTraits.SITE, siteTwoProperties);
 
 			final PropertyMap pageOneProperties = new PropertyMap();
 			pageOneProperties.put(sitesKey, Arrays.asList(siteOne));
@@ -851,7 +852,7 @@ public class DOMAndPageTest extends StructrUiTest {
 			// check initial sort order
 			try (final Tx tx = app.tx()) {
 
-				final List<NodeInterface> files = app.nodeQuery(StructrTraits.FILE).sort(Traits.of(StructrTraits.FILE).key("path")).getAsList();
+				final List<NodeInterface> files = app.nodeQuery(StructrTraits.FILE).sort(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY)).getAsList();
 
 				assertEquals("Invalid indexing sort result", "aaaaa", files.get(0).getName());
 				assertEquals("Invalid indexing sort result", "bbbbb", files.get(1).getName());
@@ -875,7 +876,7 @@ public class DOMAndPageTest extends StructrUiTest {
 			// check final sort order
 			try (final Tx tx = app.tx()) {
 
-				final List<NodeInterface> files = app.nodeQuery(StructrTraits.FILE).sort(Traits.of(StructrTraits.FILE).key("path")).getAsList();
+				final List<NodeInterface> files = app.nodeQuery(StructrTraits.FILE).sort(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY)).getAsList();
 
 				assertEquals("Invalid indexing sort result", "bbbbb", files.get(0).getName());
 				assertEquals("Invalid indexing sort result", "ccccc", files.get(1).getName());

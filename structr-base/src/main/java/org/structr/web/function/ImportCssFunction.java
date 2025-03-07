@@ -117,16 +117,16 @@ public class ImportCssFunction extends UiAdvancedFunction {
 		// Check if rule already exists and skip if yes
 		final String cssText         = rule.getCssText();
 		final String selectorsString = StringUtils.trim(StringUtils.substringBefore(cssText, "{"));
-		final Traits traits          = Traits.of("CssRule");
+		final Traits traits          = Traits.of(StructrTraits.CSS_RULE);
 		final App app                = StructrApp.getInstance();
 
-		final NodeInterface existingRuleNode = (NodeInterface) app.nodeQuery("CssRule").andName(selectorsString).getFirst();
+		final NodeInterface existingRuleNode = app.nodeQuery(StructrTraits.CSS_RULE).andName(selectorsString).getFirst();
 		if (existingRuleNode != null) {
 			return existingRuleNode;
 		}
 
 		// Create node for CSS rule
-		final NodeInterface cssRuleNode = app.create("CssRule", selectorsString);
+		final NodeInterface cssRuleNode = app.create(StructrTraits.CSS_RULE, selectorsString);
 
 		cssRuleNode.setProperty(traits.key("cssText"), cssText);
 		cssRuleNode.setProperty(traits.key("ruleType"), Short.toUnsignedInt(rule.getType()));
@@ -137,7 +137,7 @@ public class ImportCssFunction extends UiAdvancedFunction {
 
 		for (final String selector : selectors) {
 
-			final NodeInterface cssSelectorNode = app.create("CssSelector", StringUtils.trim(selector));
+			final NodeInterface cssSelectorNode = app.create(StructrTraits.CSS_SELECTOR, StringUtils.trim(selector));
 			cssSelectors.add(cssSelectorNode);
 		}
 
@@ -152,7 +152,7 @@ public class ImportCssFunction extends UiAdvancedFunction {
 
 			if (StringUtils.isNotBlank(declaration)) {
 
-				final NodeInterface cssDeclarationNode = app.create("CssDeclaration", StringUtils.trim(declaration));
+				final NodeInterface cssDeclarationNode = app.create(StructrTraits.CSS_DECLARATION, StringUtils.trim(declaration));
 				cssDeclarations.add(cssDeclarationNode);
 			}
 		}

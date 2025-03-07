@@ -23,6 +23,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.test.web.advanced.DOMTest;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
@@ -46,7 +47,7 @@ public class DOMNodeTest extends DOMTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final String domChildrenType = "DOMNodeCONTAINSDOMNode";
+			final String domChildrenType = StructrTraits.DOM_NODE_CONTAINS_DOM_NODE;
 
 			NodeInterface node = getDocument();
 			assertNotNull(node);

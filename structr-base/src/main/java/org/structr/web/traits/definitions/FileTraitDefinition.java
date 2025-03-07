@@ -263,7 +263,7 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> fileParentProperty  = new StartNode("fileParent", "FolderCONTAINSFile");
+		final Property<NodeInterface> fileParentProperty  = new StartNode("fileParent", StructrTraits.FOLDER_CONTAINS_FILE);
 		final Property<String> contentTypeProperty        = new StringProperty("contentType");
 		final Property<Boolean> dontCacheProperty         = new BooleanProperty("dontCache").defaultValue(false);
 		final Property<Boolean> indexedProperty           = new BooleanProperty("indexed");
@@ -313,12 +313,12 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 			PropertyView.Public,
 			newSet(
 				"url", "isFile", "isTemplate", "indexed", "size", "fileModificationDate", "dontCache",
-				"includeInFrontendExport", "owner", "contentType", "isMounted"
+					AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY, "owner", "contentType", AbstractFileTraitDefinition.IS_MOUNTED_PROPERTY
 			),
 			PropertyView.Ui,
 			newSet(
 				"url", "isFile", "isTemplate", "indexed", "size", "cacheForSeconds", "version", "checksum",
-				"md5", "dontCache", "includeInFrontendExport", "owner", "hasParent", "path", "contentType",
+				"md5", "dontCache", AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY, "owner", AbstractFileTraitDefinition.HAS_PARENT_PROPERTY, AbstractFileTraitDefinition.PATH_PROPERTY, "contentType",
 				"useAsJavascriptLibrary"
 			)
 		);
@@ -442,9 +442,9 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 		}
 
 		final Traits traits                                             = Traits.of(StructrTraits.FILE);
-		final PropertyKey<StorageConfiguration> storageConfigurationKey = traits.key("storageConfiguration");
-		final PropertyKey<Folder> parentKey                             = traits.key("parent");
-		final PropertyKey<String> parentIdKey                           = traits.key("parentId");
+		final PropertyKey<StorageConfiguration> storageConfigurationKey = traits.key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY);
+		final PropertyKey<Folder> parentKey                             = traits.key(AbstractFileTraitDefinition.PARENT_PROPERTY);
+		final PropertyKey<String> parentIdKey                           = traits.key(AbstractFileTraitDefinition.PARENT_ID_PROPERTY);
 
 		if (key.equals(storageConfigurationKey)) {
 
@@ -480,9 +480,9 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 		}
 
 		final Traits traits                                      = Traits.of(StructrTraits.FILE);
-		final PropertyKey<NodeInterface> storageConfigurationKey = traits.key("storageConfiguration");
-		final PropertyKey<NodeInterface> parentKey               = traits.key("parent");
-		final PropertyKey<String> parentIdKey                    = traits.key("parentId");
+		final PropertyKey<NodeInterface> storageConfigurationKey = traits.key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY);
+		final PropertyKey<NodeInterface> parentKey               = traits.key(AbstractFileTraitDefinition.PARENT_PROPERTY);
+		final PropertyKey<String> parentIdKey                    = traits.key(AbstractFileTraitDefinition.PARENT_ID_PROPERTY);
 
 		if (properties.containsKey(storageConfigurationKey)) {
 
