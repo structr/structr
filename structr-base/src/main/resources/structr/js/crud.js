@@ -2656,7 +2656,7 @@ let _Crud = {
 
 					if (typeInfo) {
 
-						if (typeInfo.isServiceClass === false) {
+						if (typeInfo.isRel === true || typeInfo.isServiceClass === false) {
 
 							_Crud.types[type] = typeInfo;
 
