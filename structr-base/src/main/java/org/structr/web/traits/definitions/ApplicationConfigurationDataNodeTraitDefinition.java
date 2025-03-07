@@ -40,6 +40,9 @@ import java.util.Set;
  */
 public class ApplicationConfigurationDataNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String CONFIG_TYPE_PROPERTY = "configType";
+	public static final String CONTENT_PROPERTY     = "content";
+
 	public ApplicationConfigurationDataNodeTraitDefinition() {
 		super(StructrTraits.APPLICATION_CONFIGURATION_DATA_NODE);
 	}
@@ -70,8 +73,8 @@ public class ApplicationConfigurationDataNodeTraitDefinition extends AbstractNod
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<String> configTypeProperty = new StringProperty("configType").indexed();
-		final Property<String> contentProperty    = new StringProperty("content");
+		final Property<String> configTypeProperty = new StringProperty(CONFIG_TYPE_PROPERTY).indexed();
+		final Property<String> contentProperty    = new StringProperty(CONTENT_PROPERTY);
 
 		return Set.of(
 			configTypeProperty,
@@ -84,7 +87,7 @@ public class ApplicationConfigurationDataNodeTraitDefinition extends AbstractNod
 
 		return Map.of(
 				PropertyView.Ui,
-				newSet("configType", "content")
+				newSet(CONFIG_TYPE_PROPERTY, CONTENT_PROPERTY)
 		);
 	}
 

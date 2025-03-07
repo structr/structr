@@ -48,6 +48,8 @@ import org.structr.web.entity.Image;
 import org.structr.web.entity.StorageConfiguration;
 import org.structr.web.entity.User;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.FolderTraitDefinition;
+import org.structr.web.traits.definitions.ImageTraitDefinition;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Optional;
 import org.testng.annotations.Parameters;
@@ -108,7 +110,7 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 
 			app.create(StructrTraits.FOLDER,
 				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "mounted1"),
-				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key("mountWatchContents"), true),
+				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_WATCH_CONTENTS_PROPERTY), true),
 				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY), testMount)
 			);
 
@@ -182,7 +184,7 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 			app.create(StructrTraits.FOLDER,
 				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "mounted2"),
 				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.PARENT_PROPERTY), parent2),
-				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key("mountWatchContents"), true),
+				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_WATCH_CONTENTS_PROPERTY), true),
 				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY), testMount)
 			);
 
@@ -260,9 +262,9 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 
 				app.create(StructrTraits.FOLDER,
 					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "mounted3"),
-					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key("mountWatchContents"),   true),
+					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_WATCH_CONTENTS_PROPERTY),   true),
 					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY), testMount),
-					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key("mountScanInterval"),    2)
+					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_SCAN_INTERVAL_PROPERTY),    2)
 				);
 
 				tx.success();
@@ -323,7 +325,7 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 
 				final NodeInterface mounted = app.nodeQuery(StructrTraits.FOLDER).and(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "mounted3").getFirst();
 
-				mounted.setProperty(Traits.of(StructrTraits.FOLDER).key("mountTarget"), null);
+				mounted.setProperty(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_TARGET_PROPERTY), null);
 
 				tx.success();
 
@@ -419,7 +421,7 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 				app.create(StructrTraits.FOLDER,
 					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "mounted3"),
 					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY), testMount),
-					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key("mountWatchContents"), false)
+					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_WATCH_CONTENTS_PROPERTY), false)
 				);
 
 				tx.success();
@@ -480,7 +482,7 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 
 				final NodeInterface mounted = app.nodeQuery(StructrTraits.FOLDER).and(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "mounted3").getFirst();
 
-				mounted.setProperty(Traits.of(StructrTraits.FOLDER).key("mountTarget"), null);
+				mounted.setProperty(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_TARGET_PROPERTY), null);
 
 				tx.success();
 
@@ -566,7 +568,7 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 
 			final AccessControllable folder = app.create(StructrTraits.FOLDER,
 				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "mounted"),
-				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key("mountWatchContents"), false),
+				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_WATCH_CONTENTS_PROPERTY), false),
 				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY), testMount)
 			).as(AccessControllable.class);
 
@@ -644,7 +646,7 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 
 			assertNotNull(image);
 			assertEquals("Invalid name of uploaded image", "test.png", image.getName());
-			assertEquals("Invalid binary data of uploaded image", base64Data, image.getProperty(Traits.of(StructrTraits.IMAGE).key("imageData")));
+			assertEquals("Invalid binary data of uploaded image", base64Data, image.getProperty(Traits.of(StructrTraits.IMAGE).key(ImageTraitDefinition.IMAGE_DATA_PROPERTY)));
 
 			tx.success();
 

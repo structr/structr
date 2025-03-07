@@ -28,11 +28,13 @@ import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
+import org.structr.web.traits.definitions.LinkableTraitDefinition;
 import org.structr.web.traits.operations.CheckHierarchy;
 import org.structr.web.traits.operations.HandleNewChild;
 import org.structr.web.traits.operations.Render;
@@ -47,6 +49,19 @@ import static org.structr.web.entity.dom.DOMNode.PAGE_CATEGORY;
  * Represents a page resource.
  */
 public class PageTraitDefinition extends AbstractNodeTraitDefinition {
+
+	public static final String ELEMENTS_PROPERTY              = "elements";
+	public static final String PATHS_PROPERTY                 = "paths";
+	public static final String SITES_PROPERTY                 = "sites";
+	public static final String IS_PAGE_PROPERTY               = "isPage";
+	public static final String PAGE_CREATES_RAW_DATA_PROPERTY = "pageCreatesRawData";
+	public static final String VERSION_PROPERTY               = "version";
+	public static final String POSITION_PROPERTY              = "position";
+	public static final String CACHE_FOR_SECONDS_PROPERTY     = "cacheForSeconds";
+	public static final String PATH_PROPERTY                  = "path";
+	public static final String SHOW_ON_ERROR_CODES_PROPERTY   = "showOnErrorCodes";
+	public static final String CONTENT_TYPE_PROPERTY          = "contentType";
+	public static final String CATEGORY_PROPERTY              = "category";
 
 	public PageTraitDefinition() {
 		super(StructrTraits.PAGE);
@@ -153,21 +168,21 @@ public class PageTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Iterable<NodeInterface>> elementsProperty = new StartNodes("elements", StructrTraits.DOM_NODE_PAGE_PAGE).category(PAGE_CATEGORY);
-		final Property<Iterable<NodeInterface>> pathsProperty   = new EndNodes("paths", StructrTraits.PAGE_HAS_PATH_PAGE_PATH);
-		final Property<Iterable<NodeInterface>> sitesProperty   = new StartNodes("sites", StructrTraits.SITE_CONTAINS_PAGE);
+		final Property<Iterable<NodeInterface>> elementsProperty = new StartNodes(ELEMENTS_PROPERTY, StructrTraits.DOM_NODE_PAGE_PAGE).category(PAGE_CATEGORY);
+		final Property<Iterable<NodeInterface>> pathsProperty    = new EndNodes(PATHS_PROPERTY, StructrTraits.PAGE_HAS_PATH_PAGE_PATH);
+		final Property<Iterable<NodeInterface>> sitesProperty    = new StartNodes(SITES_PROPERTY, StructrTraits.SITE_CONTAINS_PAGE);
 
-		final Property<Boolean> isPageProperty             = new ConstantBooleanProperty("isPage", true);
-		final Property<Boolean> pageCreatesRawDataProperty = new BooleanProperty("pageCreatesRawData").defaultValue(false);
+		final Property<Boolean> isPageProperty                   = new ConstantBooleanProperty(IS_PAGE_PROPERTY, true);
+		final Property<Boolean> pageCreatesRawDataProperty       = new BooleanProperty(PAGE_CREATES_RAW_DATA_PROPERTY).defaultValue(false);
 
-		final Property<Integer> versionProperty         = new IntProperty("version").indexed().readOnly().defaultValue(0);
-		final Property<Integer> positionProperty        = new IntProperty("position").indexed();
-		final Property<Integer> cacheForSecondsProperty = new IntProperty("cacheForSeconds");
+		final Property<Integer> versionProperty                  = new IntProperty(VERSION_PROPERTY).indexed().readOnly().defaultValue(0);
+		final Property<Integer> positionProperty                 = new IntProperty(POSITION_PROPERTY).indexed();
+		final Property<Integer> cacheForSecondsProperty          = new IntProperty(CACHE_FOR_SECONDS_PROPERTY);
 
-		final Property<String> pathProperty             = new StringProperty("path").indexed();
-		final Property<String> showOnErrorCodesProperty = new StringProperty("showOnErrorCodes").indexed();
-		final Property<String> contentTypeProperty      = new StringProperty("contentType").indexed();
-		final Property<String> categoryProperty         = new StringProperty("category").indexed();
+		final Property<String> pathProperty                      = new StringProperty(PATH_PROPERTY).indexed();
+		final Property<String> showOnErrorCodesProperty          = new StringProperty(SHOW_ON_ERROR_CODES_PROPERTY).indexed();
+		final Property<String> contentTypeProperty               = new StringProperty(CONTENT_TYPE_PROPERTY).indexed();
+		final Property<String> categoryProperty                  = new StringProperty(CATEGORY_PROPERTY).indexed();
 
 		return Set.of(
 			elementsProperty,
@@ -191,18 +206,23 @@ public class PageTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"linkingElements", "enableBasicAuth", "basicAuthRealm", "dontCache", "children", "name", "owner", "sites",
-				"isPage", "pageCreatesRawData", "version", "position", "cacheForSeconds", "path",
-				"showOnErrorCodes", "contentType", "category", "paths"
+					LinkableTraitDefinition.LINKING_ELEMENTS_PROPERTY, LinkableTraitDefinition.ENABLE_BASIC_AUTH_PROPERTY,
+					LinkableTraitDefinition.BASIC_AUTH_REALM_PROPERTY, DOMNodeTraitDefinition.DONT_CACHE_PROPERTY, DOMNodeTraitDefinition.CHILDREN_PROPERTY,
+					NodeInterfaceTraitDefinition.NAME_PROPERTY, NodeInterfaceTraitDefinition.OWNER_PROPERTY, SITES_PROPERTY,
+					IS_PAGE_PROPERTY, PAGE_CREATES_RAW_DATA_PROPERTY, VERSION_PROPERTY, POSITION_PROPERTY, CACHE_FOR_SECONDS_PROPERTY,
+					PATH_PROPERTY, SHOW_ON_ERROR_CODES_PROPERTY, CONTENT_TYPE_PROPERTY, CATEGORY_PROPERTY, PATHS_PROPERTY
 			),
+
 			PropertyView.Ui,
 			newSet(
-				"isPage", "pageCreatesRawData", "dontCache", "children", "sites", "version", "position", "cacheForSeconds",
-				"path", "showOnErrorCodes", "contentType", "category", "paths"
+					IS_PAGE_PROPERTY, PAGE_CREATES_RAW_DATA_PROPERTY, DOMNodeTraitDefinition.DONT_CACHE_PROPERTY, DOMNodeTraitDefinition.CHILDREN_PROPERTY,
+					SITES_PROPERTY, VERSION_PROPERTY, POSITION_PROPERTY, CACHE_FOR_SECONDS_PROPERTY, PATH_PROPERTY, SHOW_ON_ERROR_CODES_PROPERTY,
+					CONTENT_TYPE_PROPERTY, CATEGORY_PROPERTY, PATHS_PROPERTY
 			),
+
 			"category",
 				newSet(
-				"category"
+				CATEGORY_PROPERTY
 			)
 		);
 	}

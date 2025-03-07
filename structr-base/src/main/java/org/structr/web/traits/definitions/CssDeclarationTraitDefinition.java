@@ -37,11 +37,7 @@ import java.util.Set;
 
 public class CssDeclarationTraitDefinition extends AbstractNodeTraitDefinition {
 
-	/*
-	public static final View uiView = new View(CssRule.class, PropertyView.Ui,
-		ruleProperty
-	);
-	*/
+	public static final String RULE_PROPERTY = "rule";
 
 	public CssDeclarationTraitDefinition() {
 		super(StructrTraits.CSS_DECLARATION);
@@ -73,7 +69,7 @@ public class CssDeclarationTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> ruleProperty = new StartNode("rule", StructrTraits.CSS_RULE_HAS_DECLARATION_CSS_DECLARATION);
+		final Property<NodeInterface> ruleProperty = new StartNode(RULE_PROPERTY, StructrTraits.CSS_RULE_HAS_DECLARATION_CSS_DECLARATION);
 
 		return Set.of(
 			ruleProperty

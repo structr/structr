@@ -113,9 +113,9 @@ public class RuntimeEventLogResource extends ExactMatchEndpoint {
 
 				final HttpServletRequest request   = securityContext.getRequest();
 
-				if (request.getParameter("id") != null) {
+				if (request.getParameter(RuntimeEvent.ID_PROPERTY) != null) {
 
-					final long id = Long.parseLong(request.getParameter("id"));
+					final long id = Long.parseLong(request.getParameter(RuntimeEvent.ID_PROPERTY));
 
 					root.addPredicate(new Predicate<>() {
 
@@ -126,9 +126,9 @@ public class RuntimeEventLogResource extends ExactMatchEndpoint {
 					});
 				}
 
-				if (request.getParameter("seen") != null) {
+				if (request.getParameter(RuntimeEvent.SEEN_PROPERTY) != null) {
 
-					final boolean seen = Boolean.parseBoolean(request.getParameter("seen"));
+					final boolean seen = Boolean.parseBoolean(request.getParameter(RuntimeEvent.SEEN_PROPERTY));
 
 					root.addPredicate(new Predicate<>() {
 
@@ -139,9 +139,9 @@ public class RuntimeEventLogResource extends ExactMatchEndpoint {
 					});
 				}
 
-				if (request.getParameter("type") != null) {
+				if (request.getParameter(RuntimeEvent.TYPE_PROPERTY) != null) {
 
-					final Set<String> filter = new LinkedHashSet<>(split(request.getParameter("type")));
+					final Set<String> filter = new LinkedHashSet<>(split(request.getParameter(RuntimeEvent.TYPE_PROPERTY)));
 
 					root.addPredicate(new Predicate<>() {
 

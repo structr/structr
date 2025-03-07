@@ -68,7 +68,7 @@ public class CommentTraitDefinition extends AbstractNodeTraitDefinition {
 
 					final Traits traits = graphObject.getTraits();
 
-					graphObject.setProperty(traits.key("contentType"), "text/html");
+					graphObject.setProperty(traits.key(ContentTraitDefinition.CONTENT_TYPE_PROPERTY), "text/html");
 				}
 			}
 		);
@@ -108,7 +108,7 @@ public class CommentTraitDefinition extends AbstractNodeTraitDefinition {
 
 							} else {
 
-								final PropertyKey<String> key = thisNode.getTraits().key("content");
+								final PropertyKey<String> key = thisNode.getTraits().key(ContentTraitDefinition.CONTENT_PROPERTY);
 
 								_content = thisNode.getPropertyWithVariableReplacement(renderContext, key);
 

@@ -40,6 +40,8 @@ import org.structr.web.entity.path.PagePathParameter;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.structr.web.traits.definitions.PagePathParameterTraitDefinition;
+import org.structr.web.traits.definitions.PagePathTraitDefinition;
 
 /**
  *
@@ -53,7 +55,7 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 	@Override
 	public Page getPage() {
 
-		final NodeInterface node = wrappedObject.getProperty(traits.key("page"));
+		final NodeInterface node = wrappedObject.getProperty(traits.key(PagePathTraitDefinition.PAGE_PROPERTY));
 		if (node != null) {
 
 			return node.as(Page.class);
@@ -65,7 +67,7 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 	@Override
 	public Iterable<PagePathParameter> getParameters() {
 
-		final PropertyKey<Iterable<NodeInterface>> key = traits.key("parameters");
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key(PagePathTraitDefinition.PARAMETERS_PROPERTY);
 
 		return Iterables.map(wrappedObject.getProperty(key), n -> n.as(PagePathParameter.class));
 	}
@@ -98,9 +100,9 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 
 						app.create(StructrTraits.PAGE_PATH_PARAMETER,
 							new NodeAttribute<>(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),      parameterName),
-							new NodeAttribute<>(traits.key("valueType"), "String"),
-							new NodeAttribute<>(traits.key("position"),  count),
-							new NodeAttribute<>(traits.key("path"),      wrappedObject)
+							new NodeAttribute<>(traits.key(PagePathParameterTraitDefinition.VALUE_TYPE_PROPERTY), "String"),
+							new NodeAttribute<>(traits.key(PagePathParameterTraitDefinition.POSITION_PROPERTY),  count),
+							new NodeAttribute<>(traits.key(PagePathParameterTraitDefinition.PATH_PROPERTY),      wrappedObject)
 						);
 
 					} else {
@@ -141,7 +143,7 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 
 		final List<PagePathParameter> sortedParameters = new LinkedList<>(getMappedParameters().values());
 
-		Collections.sort(sortedParameters, new DefaultSortOrder(traits.key("position"), false));
+		Collections.sort(sortedParameters, new DefaultSortOrder(traits.key(PagePathParameterTraitDefinition.POSITION_PROPERTY), false));
 
 		return sortedParameters;
 	}
@@ -155,7 +157,7 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 		final Traits traits                      = Traits.of(StructrTraits.PAGE_PATH_PARAMETER);
 
 		// sort by position
-		Collections.sort(sorted, new DefaultSortOrder(traits.key("position"), false));
+		Collections.sort(sorted, new DefaultSortOrder(traits.key(PagePathParameterTraitDefinition.POSITION_PROPERTY), false));
 
 		for (final PagePathParameter param : getParameters()) {
 

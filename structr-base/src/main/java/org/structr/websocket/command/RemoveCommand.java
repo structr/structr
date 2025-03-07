@@ -31,6 +31,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -138,8 +139,8 @@ public class RemoveCommand extends AbstractCommand {
 		final PropertyMap changedProperties = new PropertyMap();
 		final Traits traits                 = Traits.of(StructrTraits.DOM_NODE);
 
-		changedProperties.put(traits.key("syncedNodes"), Collections.EMPTY_LIST);
-		changedProperties.put(traits.key("pageId"),      null);
+		changedProperties.put(traits.key(DOMNodeTraitDefinition.SYNCED_NODES_PROPERTY), Collections.EMPTY_LIST);
+		changedProperties.put(traits.key(DOMNodeTraitDefinition.PAGE_ID_PROPERTY),      null);
 
 		parent.setProperties(securityContext, changedProperties);
 

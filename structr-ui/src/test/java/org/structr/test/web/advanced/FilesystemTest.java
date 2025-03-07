@@ -30,6 +30,8 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.entity.User;
+import org.structr.web.traits.definitions.FileTraitDefinition;
+import org.structr.web.traits.definitions.ImageTraitDefinition;
 import org.testng.annotations.Test;
 
 import java.util.HashSet;
@@ -52,7 +54,7 @@ public class FilesystemTest extends StructrUiTest {
 
 			app.create(StructrTraits.IMAGE,
 				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test01.png"),
-				new NodeAttribute<>(Traits.of(StructrTraits.IMAGE).key("imageData"), Base64ImageData)
+				new NodeAttribute<>(Traits.of(StructrTraits.IMAGE).key(ImageTraitDefinition.IMAGE_DATA_PROPERTY), Base64ImageData)
 			);
 
 			tx.success();
@@ -70,10 +72,10 @@ public class FilesystemTest extends StructrUiTest {
 
 			final NodeInterface image = images.get(0);
 
-			assertEquals("File size of the image does not match",    Long.valueOf(1707),   image.getProperty(Traits.of(StructrTraits.IMAGE).key("size")));
-			assertEquals("Width of the image does not match",        Integer.valueOf(100), image.getProperty(Traits.of(StructrTraits.IMAGE).key("width")));
-			assertEquals("Height of the image does not match",       Integer.valueOf(59),  image.getProperty(Traits.of(StructrTraits.IMAGE).key("height")));
-			assertEquals("Content type of the image does not match", "image/png",    image.getProperty(Traits.of(StructrTraits.IMAGE).key("contentType")));
+			assertEquals("File size of the image does not match",    Long.valueOf(1707),   image.getProperty(Traits.of(StructrTraits.IMAGE).key(FileTraitDefinition.SIZE_PROPERTY)));
+			assertEquals("Width of the image does not match",        Integer.valueOf(100), image.getProperty(Traits.of(StructrTraits.IMAGE).key(ImageTraitDefinition.WIDTH_PROPERTY)));
+			assertEquals("Height of the image does not match",       Integer.valueOf(59),  image.getProperty(Traits.of(StructrTraits.IMAGE).key(ImageTraitDefinition.HEIGHT_PROPERTY)));
+			assertEquals("Content type of the image does not match", "image/png",             image.getProperty(Traits.of(StructrTraits.IMAGE).key(FileTraitDefinition.CONTENT_TYPE_PROPERTY)));
 
 			tx.success();
 
@@ -90,7 +92,7 @@ public class FilesystemTest extends StructrUiTest {
 
 			app.create(StructrTraits.IMAGE,
 				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test01.png"),
-				new NodeAttribute<>(Traits.of(StructrTraits.IMAGE).key("imageData"), "data:image/jpeg;base64," + Base64ImageData)
+				new NodeAttribute<>(Traits.of(StructrTraits.IMAGE).key(ImageTraitDefinition.IMAGE_DATA_PROPERTY), "data:image/jpeg;base64," + Base64ImageData)
 			);
 
 			tx.success();
@@ -107,10 +109,10 @@ public class FilesystemTest extends StructrUiTest {
 
 			final NodeInterface image = images.get(0);
 
-			assertEquals("File size of the image does not match",    Long.valueOf(1707),   image.getProperty(Traits.of(StructrTraits.IMAGE).key("size")));
-			assertEquals("Width of the image does not match",        Integer.valueOf(100), image.getProperty(Traits.of(StructrTraits.IMAGE).key("width")));
-			assertEquals("Height of the image does not match",       Integer.valueOf(59),  image.getProperty(Traits.of(StructrTraits.IMAGE).key("height")));
-			assertEquals("Content type of the image does not match", "image/jpeg",         image.getProperty(Traits.of(StructrTraits.IMAGE).key("contentType")));
+			assertEquals("File size of the image does not match",    Long.valueOf(1707),   image.getProperty(Traits.of(StructrTraits.IMAGE).key(FileTraitDefinition.SIZE_PROPERTY)));
+			assertEquals("Width of the image does not match",        Integer.valueOf(100), image.getProperty(Traits.of(StructrTraits.IMAGE).key(ImageTraitDefinition.WIDTH_PROPERTY)));
+			assertEquals("Height of the image does not match",       Integer.valueOf(59),  image.getProperty(Traits.of(StructrTraits.IMAGE).key(ImageTraitDefinition.HEIGHT_PROPERTY)));
+			assertEquals("Content type of the image does not match", "image/jpeg",            image.getProperty(Traits.of(StructrTraits.IMAGE).key(FileTraitDefinition.CONTENT_TYPE_PROPERTY)));
 
 			tx.success();
 

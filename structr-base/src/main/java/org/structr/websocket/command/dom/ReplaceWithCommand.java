@@ -29,6 +29,7 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
+import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 import org.structr.web.traits.wrappers.dom.DOMNodeTraitWrapper;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
@@ -159,8 +160,8 @@ public class ReplaceWithCommand extends CreateAndAppendDOMNodeCommand {
 				final PropertyMap changedProperties = new PropertyMap();
 				final Traits traits                 = Traits.of(StructrTraits.DOM_NODE);
 
-				changedProperties.put(traits.key("syncedNodes"), Collections.EMPTY_LIST);
-				changedProperties.put(traits.key("pageId"),      null);
+				changedProperties.put(traits.key(DOMNodeTraitDefinition.SYNCED_NODES_PROPERTY), Collections.EMPTY_LIST);
+				changedProperties.put(traits.key(DOMNodeTraitDefinition.PAGE_ID_PROPERTY),      null);
 
 				refNode.setProperties(securityContext, changedProperties);
 

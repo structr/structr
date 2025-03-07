@@ -37,11 +37,8 @@ import java.util.Set;
 
 public class CssSemanticClassTraitDefinition extends AbstractNodeTraitDefinition {
 
-	/*
-	public static final View uiView = new View(CssSemanticClass.class, PropertyView.Ui,
-		selectorsProperty
-	);
-	*/
+	public static final String SELECTORS_PROPERTY = "selectors";
+
 
 	public CssSemanticClassTraitDefinition() {
 		super(StructrTraits.CSS_SEMANTIC_CLASS);
@@ -73,7 +70,7 @@ public class CssSemanticClassTraitDefinition extends AbstractNodeTraitDefinition
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Iterable<NodeInterface>> selectorsProperty = new EndNodes("selectors", StructrTraits.CSS_SEMANTIC_CLASS_MAPS_TO_CSS_SELECTOR);
+		final Property<Iterable<NodeInterface>> selectorsProperty = new EndNodes(SELECTORS_PROPERTY, StructrTraits.CSS_SEMANTIC_CLASS_MAPS_TO_CSS_SELECTOR);
 
 		return Set.of(
 			selectorsProperty

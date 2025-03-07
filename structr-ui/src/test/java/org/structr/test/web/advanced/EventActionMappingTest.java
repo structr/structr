@@ -40,6 +40,8 @@ import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.traits.definitions.ActionMappingTraitDefinition;
+import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
+import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 import org.testng.annotations.Test;
 
 import java.util.*;
@@ -71,7 +73,7 @@ public class EventActionMappingTest extends StructrUiTest {
 			div.appendChild(btn);
 			btn.appendChild(text);
 
-			btn.setProperty(Traits.of("Button").key("_html_id"), "button");
+			btn.setProperty(Traits.of("Button").key(DOMElementTraitDefinition._HTML_ID_PROPERTY), "button");
 
 			uuid = btn.getUuid();
 
@@ -109,7 +111,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put("data-structr-event", "click");
 		expectedValues.put("data-structr-action", "create");
 		expectedValues.put("data-structr-target", "Project");
-		expectedValues.put("data-structr-id", uuid);
+		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, uuid);
 
 		expectedValues.put("data-structr-dialog-type", "okcancel");
 		expectedValues.put("data-structr-dialog-title", "example-dialog-title-admin");
@@ -119,7 +121,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
 		expectedNullValues.add("data-structr-id-expression");
-		expectedNullValues.add("data-structr-reload-target");    // reload-target is deprecated, replaced by success-target and failure-target
+		expectedNullValues.add(DOMElementTraitDefinition.DATA_STRUCTR_RELOAD_TARGET_PROPERTY);    // reload-target is deprecated, replaced by success-target and failure-target
 		expectedNullValues.add("data-structr-success-notifications");
 		expectedNullValues.add("data-structr-success-notifications-partial");
 		expectedNullValues.add("data-structr-success-notifications-event");
@@ -156,7 +158,7 @@ public class EventActionMappingTest extends StructrUiTest {
 			div.appendChild(btn);
 			btn.appendChild(text);
 
-			btn.setProperty(Traits.of("Button").key("_html_id"), "button");
+			btn.setProperty(Traits.of("Button").key(DOMElementTraitDefinition._HTML_ID_PROPERTY), "button");
 
 			uuid = btn.getUuid();
 
@@ -192,13 +194,13 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put("data-structr-event", "click");
 		expectedValues.put("data-structr-action", "create");
 		expectedValues.put("data-structr-target", "Project");
-		expectedValues.put("data-structr-id", uuid);
+		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, uuid);
 		expectedValues.put("data-structr-success-notifications", "system-alert");
 
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
 		expectedNullValues.add("data-structr-id-expression");
-		expectedNullValues.add("data-structr-reload-target");    // reload-target is deprecated, replaced by success-target and failure-target
+		expectedNullValues.add(DOMElementTraitDefinition.DATA_STRUCTR_RELOAD_TARGET_PROPERTY);    // reload-target is deprecated, replaced by success-target and failure-target
 		expectedNullValues.add("data-structr-dialog-type");
 		expectedNullValues.add("data-structr-dialog-title");
 		expectedNullValues.add("data-structr-dialog-text");
@@ -240,7 +242,7 @@ public class EventActionMappingTest extends StructrUiTest {
 			div.appendChild(btn);
 			btn.appendChild(text);
 
-			btn.setProperty(Traits.of("Button").key("_html_id"), "button");
+			btn.setProperty(Traits.of("Button").key(DOMElementTraitDefinition._HTML_ID_PROPERTY), "button");
 
 			uuid = btn.getUuid();
 
@@ -276,13 +278,13 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put("data-structr-event", "click");
 		expectedValues.put("data-structr-action", "create");
 		expectedValues.put("data-structr-target", "Project");
-		expectedValues.put("data-structr-id", uuid);
+		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, uuid);
 		expectedValues.put("data-structr-success-notifications", "inline-text-message");
 
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
 		expectedNullValues.add("data-structr-id-expression");
-		expectedNullValues.add("data-structr-reload-target");    // reload-target is deprecated, replaced by success-target and failure-target
+		expectedNullValues.add(DOMElementTraitDefinition.DATA_STRUCTR_RELOAD_TARGET_PROPERTY);    // reload-target is deprecated, replaced by success-target and failure-target
 		expectedNullValues.add("data-structr-dialog-type");
 		expectedNullValues.add("data-structr-dialog-title");
 		expectedNullValues.add("data-structr-dialog-text");
@@ -310,7 +312,7 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testSuccessNotificationAttributesForCustomLinkedDialog() {
 
-		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key(DOMElementTraitDefinition._HTML_ID_PROPERTY);
 		String buttonUuid                   = null;
 		String notificationUuid             = null;
 
@@ -367,7 +369,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put("data-structr-event", "click");
 		expectedValues.put("data-structr-action", "create");
 		expectedValues.put("data-structr-target", "Project");
-		expectedValues.put("data-structr-id", buttonUuid);
+		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, buttonUuid);
 		expectedValues.put("data-structr-success-notifications", "custom-dialog-linked");
 		expectedValues.put("data-structr-success-notifications-custom-dialog-element", "[data-structr-id='" + notificationUuid + "']");
 
@@ -375,7 +377,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
 		expectedNullValues.add("data-structr-id-expression");
-		expectedNullValues.add("data-structr-reload-target");    // reload-target is deprecated, replaced by success-target and failure-target
+		expectedNullValues.add(DOMElementTraitDefinition.DATA_STRUCTR_RELOAD_TARGET_PROPERTY);    // reload-target is deprecated, replaced by success-target and failure-target
 		expectedNullValues.add("data-structr-dialog-type");
 		expectedNullValues.add("data-structr-dialog-title");
 		expectedNullValues.add("data-structr-dialog-text");
@@ -403,7 +405,7 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testSuccessNotificationAttributesForCustomDialog() {
 
-		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key(DOMElementTraitDefinition._HTML_ID_PROPERTY);
 		String buttonUuid                   = null;
 
 		try (final Tx tx = app.tx()) {
@@ -459,7 +461,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put("data-structr-event", "click");
 		expectedValues.put("data-structr-action", "create");
 		expectedValues.put("data-structr-target", "Project");
-		expectedValues.put("data-structr-id", buttonUuid);
+		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, buttonUuid);
 		expectedValues.put("data-structr-success-notifications", "custom-dialog");
 		expectedValues.put("data-structr-success-notifications-partial", "#notification-element");
 
@@ -467,7 +469,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
 		expectedNullValues.add("data-structr-id-expression");
-		expectedNullValues.add("data-structr-reload-target");    // reload-target is deprecated, replaced by success-target and failure-target
+		expectedNullValues.add(DOMElementTraitDefinition.DATA_STRUCTR_RELOAD_TARGET_PROPERTY);    // reload-target is deprecated, replaced by success-target and failure-target
 		expectedNullValues.add("data-structr-dialog-type");
 		expectedNullValues.add("data-structr-dialog-title");
 		expectedNullValues.add("data-structr-dialog-text");
@@ -495,7 +497,7 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testSuccessNotificationAttributesForEvent() {
 
-		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key(DOMElementTraitDefinition._HTML_ID_PROPERTY);
 		String buttonUuid                   = null;
 
 		try (final Tx tx = app.tx()) {
@@ -547,7 +549,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put("data-structr-event", "click");
 		expectedValues.put("data-structr-action", "create");
 		expectedValues.put("data-structr-target", "Project");
-		expectedValues.put("data-structr-id", buttonUuid);
+		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, buttonUuid);
 		expectedValues.put("data-structr-success-notifications", "fire-event");
 		expectedValues.put("data-structr-success-notifications-event", "success-notification-event");
 
@@ -555,7 +557,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
 		expectedNullValues.add("data-structr-id-expression");
-		expectedNullValues.add("data-structr-reload-target");    // reload-target is deprecated, replaced by success-target and failure-target
+		expectedNullValues.add(DOMElementTraitDefinition.DATA_STRUCTR_RELOAD_TARGET_PROPERTY);    // reload-target is deprecated, replaced by success-target and failure-target
 		expectedNullValues.add("data-structr-dialog-type");
 		expectedNullValues.add("data-structr-dialog-title");
 		expectedNullValues.add("data-structr-dialog-text");
@@ -597,7 +599,7 @@ public class EventActionMappingTest extends StructrUiTest {
 			div.appendChild(btn);
 			btn.appendChild(text);
 
-			btn.setProperty(Traits.of("Button").key("_html_id"), "button");
+			btn.setProperty(Traits.of("Button").key(DOMElementTraitDefinition._HTML_ID_PROPERTY), "button");
 
 			uuid = btn.getUuid();
 
@@ -633,13 +635,13 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put("data-structr-event", "click");
 		expectedValues.put("data-structr-action", "create");
 		expectedValues.put("data-structr-target", "Project");
-		expectedValues.put("data-structr-id", uuid);
+		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, uuid);
 		expectedValues.put("data-structr-failure-notifications", "system-alert");
 
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
 		expectedNullValues.add("data-structr-id-expression");
-		expectedNullValues.add("data-structr-reload-target");    // reload-target is deprecated, replaced by success-target and failure-target
+		expectedNullValues.add(DOMElementTraitDefinition.DATA_STRUCTR_RELOAD_TARGET_PROPERTY);    // reload-target is deprecated, replaced by success-target and failure-target
 		expectedNullValues.add("data-structr-dialog-type");
 		expectedNullValues.add("data-structr-dialog-title");
 		expectedNullValues.add("data-structr-dialog-text");
@@ -681,7 +683,7 @@ public class EventActionMappingTest extends StructrUiTest {
 			div.appendChild(btn);
 			btn.appendChild(text);
 
-			btn.setProperty(Traits.of("Button").key("_html_id"), "button");
+			btn.setProperty(Traits.of("Button").key(DOMElementTraitDefinition._HTML_ID_PROPERTY), "button");
 
 			uuid = btn.getUuid();
 
@@ -717,13 +719,13 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put("data-structr-event", "click");
 		expectedValues.put("data-structr-action", "create");
 		expectedValues.put("data-structr-target", "Project");
-		expectedValues.put("data-structr-id", uuid);
+		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, uuid);
 		expectedValues.put("data-structr-failure-notifications", "inline-text-message");
 
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
 		expectedNullValues.add("data-structr-id-expression");
-		expectedNullValues.add("data-structr-reload-target");    // reload-target is deprecated, replaced by success-target and failure-target
+		expectedNullValues.add(DOMElementTraitDefinition.DATA_STRUCTR_RELOAD_TARGET_PROPERTY);    // reload-target is deprecated, replaced by success-target and failure-target
 		expectedNullValues.add("data-structr-dialog-type");
 		expectedNullValues.add("data-structr-dialog-title");
 		expectedNullValues.add("data-structr-dialog-text");
@@ -751,7 +753,7 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testFailureNotificationAttributesForCustomLinkedDialog() {
 
-		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key(DOMElementTraitDefinition._HTML_ID_PROPERTY);
 		String buttonUuid                   = null;
 		String notificationUuid             = null;
 
@@ -810,7 +812,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put("data-structr-event", "click");
 		expectedValues.put("data-structr-action", "create");
 		expectedValues.put("data-structr-target", "Project");
-		expectedValues.put("data-structr-id", buttonUuid);
+		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, buttonUuid);
 		expectedValues.put("data-structr-failure-notifications", "custom-dialog-linked");
 		expectedValues.put("data-structr-failure-notifications-custom-dialog-element", "[data-structr-id='" + notificationUuid + "']");
 
@@ -818,7 +820,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
 		expectedNullValues.add("data-structr-id-expression");
-		expectedNullValues.add("data-structr-reload-target");    // reload-target is deprecated, replaced by success-target and failure-target
+		expectedNullValues.add(DOMElementTraitDefinition.DATA_STRUCTR_RELOAD_TARGET_PROPERTY);    // reload-target is deprecated, replaced by success-target and failure-target
 		expectedNullValues.add("data-structr-dialog-type");
 		expectedNullValues.add("data-structr-dialog-title");
 		expectedNullValues.add("data-structr-dialog-text");
@@ -846,7 +848,7 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testFailureNotificationAttributesForEvent() {
 
-		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key(DOMElementTraitDefinition._HTML_ID_PROPERTY);
 		String buttonUuid                   = null;
 
 		try (final Tx tx = app.tx()) {
@@ -898,7 +900,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put("data-structr-event", "click");
 		expectedValues.put("data-structr-action", "create");
 		expectedValues.put("data-structr-target", "Project");
-		expectedValues.put("data-structr-id", buttonUuid);
+		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, buttonUuid);
 		expectedValues.put("data-structr-failure-notifications", "fire-event");
 		expectedValues.put("data-structr-failure-notifications-event", "failure-notification-event");
 
@@ -906,7 +908,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
 		expectedNullValues.add("data-structr-id-expression");
-		expectedNullValues.add("data-structr-reload-target");    // reload-target is deprecated, replaced by success-target and failure-target
+		expectedNullValues.add(DOMElementTraitDefinition.DATA_STRUCTR_RELOAD_TARGET_PROPERTY);    // reload-target is deprecated, replaced by success-target and failure-target
 		expectedNullValues.add("data-structr-dialog-type");
 		expectedNullValues.add("data-structr-dialog-title");
 		expectedNullValues.add("data-structr-dialog-text");
@@ -934,7 +936,7 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testFailureNotificationAttributesForCustomDialog() {
 
-		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key(DOMElementTraitDefinition._HTML_ID_PROPERTY);
 		String buttonUuid                   = null;
 
 		try (final Tx tx = app.tx()) {
@@ -990,7 +992,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put("data-structr-event", "click");
 		expectedValues.put("data-structr-action", "create");
 		expectedValues.put("data-structr-target", "Project");
-		expectedValues.put("data-structr-id", buttonUuid);
+		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, buttonUuid);
 		expectedValues.put("data-structr-failure-notifications", "custom-dialog");
 		expectedValues.put("data-structr-failure-notifications-partial", "#notification-element");
 
@@ -998,7 +1000,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
 		expectedNullValues.add("data-structr-id-expression");
-		expectedNullValues.add("data-structr-reload-target");    // reload-target is deprecated, replaced by success-target and failure-target
+		expectedNullValues.add(DOMElementTraitDefinition.DATA_STRUCTR_RELOAD_TARGET_PROPERTY);    // reload-target is deprecated, replaced by success-target and failure-target
 		expectedNullValues.add("data-structr-dialog-type");
 		expectedNullValues.add("data-structr-dialog-title");
 		expectedNullValues.add("data-structr-dialog-text");
@@ -1039,7 +1041,7 @@ public class EventActionMappingTest extends StructrUiTest {
 			div.appendChild(btn);
 			btn.appendChild(text);
 
-			btn.setProperty(Traits.of("Button").key("_html_id"), "button");
+			btn.setProperty(Traits.of("Button").key(DOMElementTraitDefinition._HTML_ID_PROPERTY), "button");
 
 			uuid = btn.getUuid();
 
@@ -1076,7 +1078,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put("data-structr-event", "click");
 		expectedValues.put("data-structr-action", "create");
 		expectedValues.put("data-structr-target", "Project");
-		expectedValues.put("data-structr-id", uuid);
+		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, uuid);
 
 		expectedValues.put("data-structr-success-target", "#name-of-success-partial");
 
@@ -1085,7 +1087,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
 		expectedNullValues.add("data-structr-id-expression");
-		expectedNullValues.add("data-structr-reload-target");    // reload-target is deprecated, replaced by success-target and failure-target
+		expectedNullValues.add(DOMElementTraitDefinition.DATA_STRUCTR_RELOAD_TARGET_PROPERTY);    // reload-target is deprecated, replaced by success-target and failure-target
 		expectedNullValues.add("data-structr-dialog-type");
 		expectedNullValues.add("data-structr-dialog-title");
 		expectedNullValues.add("data-structr-dialog-text");
@@ -1113,7 +1115,7 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testSuccessBehaviourAttributesForLinkedPartialReload() {
 
-		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key(DOMElementTraitDefinition._HTML_ID_PROPERTY);
 		String buttonUuid                   = null;
 		String divUuid                      = null;
 
@@ -1169,7 +1171,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put("data-structr-event", "click");
 		expectedValues.put("data-structr-action", "create");
 		expectedValues.put("data-structr-target", "Project");
-		expectedValues.put("data-structr-id", buttonUuid);
+		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, buttonUuid);
 
 		expectedValues.put("data-structr-success-target", "[data-structr-id='" + divUuid + "']");
 
@@ -1178,7 +1180,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
 		expectedNullValues.add("data-structr-id-expression");
-		expectedNullValues.add("data-structr-reload-target");    // reload-target is deprecated, replaced by success-target and failure-target
+		expectedNullValues.add(DOMElementTraitDefinition.DATA_STRUCTR_RELOAD_TARGET_PROPERTY);    // reload-target is deprecated, replaced by success-target and failure-target
 		expectedNullValues.add("data-structr-dialog-type");
 		expectedNullValues.add("data-structr-dialog-title");
 		expectedNullValues.add("data-structr-dialog-text");
@@ -1206,13 +1208,13 @@ public class EventActionMappingTest extends StructrUiTest {
 		final Map<String, String> divAttrs = getAttributes(div);
 
 		// reload target must have data-structr-id attribute
-		assertEquals("Wrong value for EAM attribute data-structr-id on reload target", divUuid, divAttrs.get("data-structr-id"));
+		assertEquals("Wrong value for EAM attribute data-structr-id on reload target", divUuid, divAttrs.get(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY));
 	}
 
 	@Test
 	public void testSuccessBehaviourAttributesForURL() {
 
-		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key(DOMElementTraitDefinition._HTML_ID_PROPERTY);
 		String buttonUuid                   = null;
 
 		try (final Tx tx = app.tx()) {
@@ -1266,7 +1268,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put("data-structr-event", "click");
 		expectedValues.put("data-structr-action", "create");
 		expectedValues.put("data-structr-target", "Project");
-		expectedValues.put("data-structr-id", buttonUuid);
+		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, buttonUuid);
 
 		expectedValues.put("data-structr-success-target", "url:/success");
 
@@ -1275,7 +1277,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
 		expectedNullValues.add("data-structr-id-expression");
-		expectedNullValues.add("data-structr-reload-target");    // reload-target is deprecated, replaced by success-target and failure-target
+		expectedNullValues.add(DOMElementTraitDefinition.DATA_STRUCTR_RELOAD_TARGET_PROPERTY);    // reload-target is deprecated, replaced by success-target and failure-target
 		expectedNullValues.add("data-structr-dialog-type");
 		expectedNullValues.add("data-structr-dialog-title");
 		expectedNullValues.add("data-structr-dialog-text");
@@ -1303,7 +1305,7 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testSuccessBehaviourAttributesForEvent() {
 
-		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key(DOMElementTraitDefinition._HTML_ID_PROPERTY);
 		String buttonUuid                   = null;
 
 		try (final Tx tx = app.tx()) {
@@ -1357,7 +1359,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put("data-structr-event", "click");
 		expectedValues.put("data-structr-action", "create");
 		expectedValues.put("data-structr-target", "Project");
-		expectedValues.put("data-structr-id", buttonUuid);
+		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, buttonUuid);
 
 		expectedValues.put("data-structr-success-target", "event:success-event");
 
@@ -1366,7 +1368,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
 		expectedNullValues.add("data-structr-id-expression");
-		expectedNullValues.add("data-structr-reload-target");    // reload-target is deprecated, replaced by success-target and failure-target
+		expectedNullValues.add(DOMElementTraitDefinition.DATA_STRUCTR_RELOAD_TARGET_PROPERTY);    // reload-target is deprecated, replaced by success-target and failure-target
 		expectedNullValues.add("data-structr-dialog-type");
 		expectedNullValues.add("data-structr-dialog-title");
 		expectedNullValues.add("data-structr-dialog-text");
@@ -1394,7 +1396,7 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testSuccessBehaviourAttributesForFullPageReload() {
 
-		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key(DOMElementTraitDefinition._HTML_ID_PROPERTY);
 		String buttonUuid                   = null;
 
 		try (final Tx tx = app.tx()) {
@@ -1447,7 +1449,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put("data-structr-event", "click");
 		expectedValues.put("data-structr-action", "create");
 		expectedValues.put("data-structr-target", "Project");
-		expectedValues.put("data-structr-id", buttonUuid);
+		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, buttonUuid);
 
 		expectedValues.put("data-structr-success-target", "url:");
 
@@ -1456,7 +1458,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
 		expectedNullValues.add("data-structr-id-expression");
-		expectedNullValues.add("data-structr-reload-target");    // reload-target is deprecated, replaced by success-target and failure-target
+		expectedNullValues.add(DOMElementTraitDefinition.DATA_STRUCTR_RELOAD_TARGET_PROPERTY);    // reload-target is deprecated, replaced by success-target and failure-target
 		expectedNullValues.add("data-structr-dialog-type");
 		expectedNullValues.add("data-structr-dialog-title");
 		expectedNullValues.add("data-structr-dialog-text");
@@ -1484,7 +1486,7 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testSuccessBehaviourAttributesForSignout() {
 
-		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key(DOMElementTraitDefinition._HTML_ID_PROPERTY);
 		String buttonUuid                   = null;
 
 		try (final Tx tx = app.tx()) {
@@ -1537,7 +1539,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put("data-structr-event", "click");
 		expectedValues.put("data-structr-action", "create");
 		expectedValues.put("data-structr-target", "Project");
-		expectedValues.put("data-structr-id", buttonUuid);
+		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, buttonUuid);
 
 		expectedValues.put("data-structr-success-target", "sign-out");
 
@@ -1546,7 +1548,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
 		expectedNullValues.add("data-structr-id-expression");
-		expectedNullValues.add("data-structr-reload-target");    // reload-target is deprecated, replaced by success-target and failure-target
+		expectedNullValues.add(DOMElementTraitDefinition.DATA_STRUCTR_RELOAD_TARGET_PROPERTY);    // reload-target is deprecated, replaced by success-target and failure-target
 		expectedNullValues.add("data-structr-dialog-type");
 		expectedNullValues.add("data-structr-dialog-title");
 		expectedNullValues.add("data-structr-dialog-text");
@@ -1588,7 +1590,7 @@ public class EventActionMappingTest extends StructrUiTest {
 			div.appendChild(btn);
 			btn.appendChild(text);
 
-			btn.setProperty(Traits.of("Button").key("_html_id"), "button");
+			btn.setProperty(Traits.of("Button").key(DOMElementTraitDefinition._HTML_ID_PROPERTY), "button");
 
 			uuid = btn.getUuid();
 
@@ -1624,12 +1626,12 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put("data-structr-event", "click");
 		expectedValues.put("data-structr-action", "create");
 		expectedValues.put("data-structr-target", "Project");
-		expectedValues.put("data-structr-id", uuid);
+		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, uuid);
 
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
 		expectedNullValues.add("data-structr-id-expression");
-		expectedNullValues.add("data-structr-reload-target");    // reload-target is deprecated, replaced by success-target and failure-target
+		expectedNullValues.add(DOMElementTraitDefinition.DATA_STRUCTR_RELOAD_TARGET_PROPERTY);    // reload-target is deprecated, replaced by success-target and failure-target
 		expectedNullValues.add("data-structr-dialog-type");
 		expectedNullValues.add("data-structr-dialog-title");
 		expectedNullValues.add("data-structr-dialog-text");
@@ -1671,8 +1673,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			div.appendChild(btn);
 			btn.appendChild(text);
-
-			btn.setProperty(Traits.of("Button").key("_html_id"), "button");
+			btn.setProperty(Traits.of("Button").key(DOMElementTraitDefinition._HTML_ID_PROPERTY), "button");
 
 			uuid = btn.getUuid();
 
@@ -1709,7 +1710,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put("data-structr-event", "click");
 		expectedValues.put("data-structr-action", "create");
 		expectedValues.put("data-structr-target", "Project");
-		expectedValues.put("data-structr-id", uuid);
+		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, uuid);
 
 		expectedValues.put("data-structr-failure-target", "#name-of-failure-partial");
 
@@ -1718,7 +1719,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
 		expectedNullValues.add("data-structr-id-expression");
-		expectedNullValues.add("data-structr-reload-target");    // reload-target is deprecated, replaced by success-target and failure-target
+		expectedNullValues.add(DOMElementTraitDefinition.DATA_STRUCTR_RELOAD_TARGET_PROPERTY);    // reload-target is deprecated, replaced by success-target and failure-target
 		expectedNullValues.add("data-structr-dialog-type");
 		expectedNullValues.add("data-structr-dialog-title");
 		expectedNullValues.add("data-structr-dialog-text");
@@ -1746,7 +1747,7 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testFailureBehaviourAttributesForLinkedPartialReload() {
 
-		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key(DOMElementTraitDefinition._HTML_ID_PROPERTY);
 		String buttonUuid                   = null;
 		String divUuid                      = null;
 
@@ -1802,7 +1803,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put("data-structr-event", "click");
 		expectedValues.put("data-structr-action", "create");
 		expectedValues.put("data-structr-target", "Project");
-		expectedValues.put("data-structr-id", buttonUuid);
+		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, buttonUuid);
 
 		expectedValues.put("data-structr-failure-target", "[data-structr-id='" + divUuid + "']");
 
@@ -1811,7 +1812,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
 		expectedNullValues.add("data-structr-id-expression");
-		expectedNullValues.add("data-structr-reload-target");    // reload-target is deprecated, replaced by success-target and failure-target
+		expectedNullValues.add(DOMElementTraitDefinition.DATA_STRUCTR_RELOAD_TARGET_PROPERTY);    // reload-target is deprecated, replaced by success-target and failure-target
 		expectedNullValues.add("data-structr-dialog-type");
 		expectedNullValues.add("data-structr-dialog-title");
 		expectedNullValues.add("data-structr-dialog-text");
@@ -1839,13 +1840,13 @@ public class EventActionMappingTest extends StructrUiTest {
 		final Map<String, String> divAttrs = getAttributes(div);
 
 		// reload target must have data-structr-id attribute
-		assertEquals("Wrong value for EAM attribute data-structr-id on reload target", divUuid, divAttrs.get("data-structr-id"));
+		assertEquals("Wrong value for EAM attribute data-structr-id on reload target", divUuid, divAttrs.get(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY));
 	}
 
 	@Test
 	public void testFailureBehaviourAttributesForURL() {
 
-		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key(DOMElementTraitDefinition._HTML_ID_PROPERTY);
 		String buttonUuid                   = null;
 
 		try (final Tx tx = app.tx()) {
@@ -1899,7 +1900,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put("data-structr-event", "click");
 		expectedValues.put("data-structr-action", "create");
 		expectedValues.put("data-structr-target", "Project");
-		expectedValues.put("data-structr-id", buttonUuid);
+		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, buttonUuid);
 
 		expectedValues.put("data-structr-failure-target", "url:/failure");
 
@@ -1908,7 +1909,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
 		expectedNullValues.add("data-structr-id-expression");
-		expectedNullValues.add("data-structr-reload-target");    // reload-target is deprecated, replaced by success-target and failure-target
+		expectedNullValues.add(DOMElementTraitDefinition.DATA_STRUCTR_RELOAD_TARGET_PROPERTY);    // reload-target is deprecated, replaced by success-target and failure-target
 		expectedNullValues.add("data-structr-dialog-type");
 		expectedNullValues.add("data-structr-dialog-title");
 		expectedNullValues.add("data-structr-dialog-text");
@@ -1936,7 +1937,7 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testFailureBehaviourAttributesForEvent() {
 
-		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key(DOMElementTraitDefinition._HTML_ID_PROPERTY);
 		String buttonUuid                   = null;
 
 		try (final Tx tx = app.tx()) {
@@ -1990,7 +1991,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put("data-structr-event", "click");
 		expectedValues.put("data-structr-action", "create");
 		expectedValues.put("data-structr-target", "Project");
-		expectedValues.put("data-structr-id", buttonUuid);
+		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, buttonUuid);
 
 		expectedValues.put("data-structr-failure-target", "event:failure-event");
 
@@ -1999,7 +2000,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
 		expectedNullValues.add("data-structr-id-expression");
-		expectedNullValues.add("data-structr-reload-target");    // reload-target is deprecated, replaced by success-target and failure-target
+		expectedNullValues.add(DOMElementTraitDefinition.DATA_STRUCTR_RELOAD_TARGET_PROPERTY);    // reload-target is deprecated, replaced by success-target and failure-target
 		expectedNullValues.add("data-structr-dialog-type");
 		expectedNullValues.add("data-structr-dialog-title");
 		expectedNullValues.add("data-structr-dialog-text");
@@ -2027,7 +2028,7 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testFailureBehaviourAttributesForFullPageReload() {
 
-		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key(DOMElementTraitDefinition._HTML_ID_PROPERTY);
 		String buttonUuid                   = null;
 
 		try (final Tx tx = app.tx()) {
@@ -2080,7 +2081,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put("data-structr-event", "click");
 		expectedValues.put("data-structr-action", "create");
 		expectedValues.put("data-structr-target", "Project");
-		expectedValues.put("data-structr-id", buttonUuid);
+		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, buttonUuid);
 
 		expectedValues.put("data-structr-failure-target", "url:");
 
@@ -2089,7 +2090,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
 		expectedNullValues.add("data-structr-id-expression");
-		expectedNullValues.add("data-structr-reload-target");    // reload-target is deprecated, replaced by success-target and failure-target
+		expectedNullValues.add(DOMElementTraitDefinition.DATA_STRUCTR_RELOAD_TARGET_PROPERTY);    // reload-target is deprecated, replaced by success-target and failure-target
 		expectedNullValues.add("data-structr-dialog-type");
 		expectedNullValues.add("data-structr-dialog-title");
 		expectedNullValues.add("data-structr-dialog-text");
@@ -2117,7 +2118,7 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testFailureBehaviourAttributesForSignout() {
 
-		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key(DOMElementTraitDefinition._HTML_ID_PROPERTY);
 		String buttonUuid                   = null;
 
 		try (final Tx tx = app.tx()) {
@@ -2170,7 +2171,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put("data-structr-event", "click");
 		expectedValues.put("data-structr-action", "create");
 		expectedValues.put("data-structr-target", "Project");
-		expectedValues.put("data-structr-id", buttonUuid);
+		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, buttonUuid);
 
 		expectedValues.put("data-structr-failure-target", "sign-out");
 
@@ -2179,7 +2180,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
 		expectedNullValues.add("data-structr-id-expression");
-		expectedNullValues.add("data-structr-reload-target");    // reload-target is deprecated, replaced by success-target and failure-target
+		expectedNullValues.add(DOMElementTraitDefinition.DATA_STRUCTR_RELOAD_TARGET_PROPERTY);    // reload-target is deprecated, replaced by success-target and failure-target
 		expectedNullValues.add("data-structr-dialog-type");
 		expectedNullValues.add("data-structr-dialog-title");
 		expectedNullValues.add("data-structr-dialog-text");
@@ -2221,7 +2222,7 @@ public class EventActionMappingTest extends StructrUiTest {
 			div.appendChild(btn);
 			btn.appendChild(text);
 
-			btn.setProperty(Traits.of("Button").key("_html_id"), "button");
+			btn.setProperty(Traits.of("Button").key(DOMElementTraitDefinition._HTML_ID_PROPERTY), "button");
 
 			uuid = btn.getUuid();
 
@@ -2257,12 +2258,12 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put("data-structr-event", "click");
 		expectedValues.put("data-structr-action", "create");
 		expectedValues.put("data-structr-target", "Project");
-		expectedValues.put("data-structr-id", uuid);
+		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, uuid);
 
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
 		expectedNullValues.add("data-structr-id-expression");
-		expectedNullValues.add("data-structr-reload-target");    // reload-target is deprecated, replaced by success-target and failure-target
+		expectedNullValues.add(DOMElementTraitDefinition.DATA_STRUCTR_RELOAD_TARGET_PROPERTY);    // reload-target is deprecated, replaced by success-target and failure-target
 		expectedNullValues.add("data-structr-dialog-type");
 		expectedNullValues.add("data-structr-dialog-title");
 		expectedNullValues.add("data-structr-dialog-text");

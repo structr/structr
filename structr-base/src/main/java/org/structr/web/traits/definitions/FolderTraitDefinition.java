@@ -33,6 +33,7 @@ import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
@@ -46,6 +47,26 @@ import java.util.Map;
 import java.util.Set;
 
 public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
+
+	public static final String WORK_FOLDER_OF_USERS_PROPERTY       = "workFolderOfUsers";
+	public static final String CHILDREN_PROPERTY                   = "children";
+	public static final String FILES_PROPERTY                      = "files";
+	public static final String FOLDERS_PROPERTY                    = "folders";
+	public static final String IMAGES_PROPERTY                     = "images";
+	public static final String FOLDER_PARENT_PROPERTY              = "folderParent";
+	public static final String HOME_FOLDER_OF_USER_PROPERTY        = "homeFolderOfUser";
+	public static final String IS_FOLDER_PROPERTY                  = "isFolder";
+	public static final String MOUNT_DO_FULLTEXT_INDEXING_PROPERTY = "mountDoFulltextIndexing";
+	public static final String MOUNT_WATCH_CONTENTS_PROPERTY       = "mountWatchContents";
+	public static final String MOUNT_SCAN_INTERVAL_PROPERTY        = "mountScanInterval";
+	public static final String POSITION_PROPERTY                   = "position";
+	public static final String ENABLED_CHECKSUMS_PROPERTY          = "enabledChecksums";
+	public static final String MOUNT_TARGET_PROPERTY               = "mountTarget";
+	public static final String MOUNT_TARGET_FILE_TYPE_PROPERTY     = "mountTargetFileType";
+	public static final String MOUNT_TARGET_FOLDER_TYPE_PROPERTY   = "mountTargetFolderType";
+	public static final String MOUNT_LAST_SCANNED_PROPERTY         = "mountLastScanned";
+	public static final String FILES_COUNT_PROPERTY                = "filesCount";
+	public static final String FOLDERS_COUNT_PROPERTY              = "foldersCount";
 
 	public FolderTraitDefinition() {
 		super(StructrTraits.FOLDER);
@@ -126,25 +147,25 @@ public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Iterable<NodeInterface>> workFolderOfUsersProperty = new StartNodes("workFolderOfUsers", StructrTraits.USER_WORKING_DIR_FOLDER);
-		final Property<Iterable<NodeInterface>> childrenProperty          = new EndNodes("children", StructrTraits.FOLDER_CONTAINS_ABSTRACT_FILE);
-		final Property<Iterable<NodeInterface>> filesProperty             = new EndNodes("files", StructrTraits.FOLDER_CONTAINS_FILE);
-		final Property<Iterable<NodeInterface>> foldersProperty           = new EndNodes("folders", StructrTraits.FOLDER_CONTAINS_FOLDER);
-		final Property<Iterable<NodeInterface>> imagesProperty            = new EndNodes("images", StructrTraits.FOLDER_CONTAINS_IMAGE);
-		final Property<NodeInterface> folderParentProperty                = new StartNode("folderParent", StructrTraits.FOLDER_CONTAINS_FOLDER);
-		final Property<NodeInterface> homeFolderOfUserProperty            = new StartNode("homeFolderOfUser", StructrTraits.USER_HOME_DIR_FOLDER);
-		final Property<Boolean> isFolderProperty                          = new ConstantBooleanProperty("isFolder", true).readOnly();
-		final Property<Boolean> mountDoFulltextIndexingProperty           = new BooleanProperty("mountDoFulltextIndexing");
-		final Property<Boolean> mountWatchContentsProperty                = new BooleanProperty("mountWatchContents");
-		final Property<Integer> mountScanIntervalProperty                 = new IntProperty("mountScanInterval");
-		final Property<Integer> positionProperty                          = new IntProperty("position").indexed();
-		final Property<String> enabledChecksumsProperty                   = new StringProperty("enabledChecksums");
-		final Property<String> mountTargetProperty                        = new StringProperty("mountTarget").indexed();
-		final Property<String> mountTargetFileTypeProperty                = new StringProperty("mountTargetFileType");
-		final Property<String> mountTargetFolderTypeProperty              = new StringProperty("mountTargetFolderType");
-		final Property<Long> mountLastScannedProperty                     = new LongProperty("mountLastScanned");
-		final Property<Object> filesCountProperty                         = new FunctionProperty("filesCount").readFunction("size(this.files)").typeHint("int");
-		final Property<Object> foldersCountProperty                       = new FunctionProperty("foldersCount").readFunction("size(this.files)").typeHint("int");
+		final Property<Iterable<NodeInterface>> workFolderOfUsersProperty = new StartNodes(WORK_FOLDER_OF_USERS_PROPERTY, StructrTraits.USER_WORKING_DIR_FOLDER);
+		final Property<Iterable<NodeInterface>> childrenProperty          = new EndNodes(CHILDREN_PROPERTY, StructrTraits.FOLDER_CONTAINS_ABSTRACT_FILE);
+		final Property<Iterable<NodeInterface>> filesProperty             = new EndNodes(FILES_PROPERTY, StructrTraits.FOLDER_CONTAINS_FILE);
+		final Property<Iterable<NodeInterface>> foldersProperty           = new EndNodes(FOLDERS_PROPERTY, StructrTraits.FOLDER_CONTAINS_FOLDER);
+		final Property<Iterable<NodeInterface>> imagesProperty            = new EndNodes(IMAGES_PROPERTY, StructrTraits.FOLDER_CONTAINS_IMAGE);
+		final Property<NodeInterface> folderParentProperty                = new StartNode(FOLDER_PARENT_PROPERTY, StructrTraits.FOLDER_CONTAINS_FOLDER);
+		final Property<NodeInterface> homeFolderOfUserProperty            = new StartNode(HOME_FOLDER_OF_USER_PROPERTY, StructrTraits.USER_HOME_DIR_FOLDER);
+		final Property<Boolean> isFolderProperty                          = new ConstantBooleanProperty(IS_FOLDER_PROPERTY, true).readOnly();
+		final Property<Boolean> mountDoFulltextIndexingProperty           = new BooleanProperty(MOUNT_DO_FULLTEXT_INDEXING_PROPERTY);
+		final Property<Boolean> mountWatchContentsProperty                = new BooleanProperty(MOUNT_WATCH_CONTENTS_PROPERTY);
+		final Property<Integer> mountScanIntervalProperty                 = new IntProperty(MOUNT_SCAN_INTERVAL_PROPERTY);
+		final Property<Integer> positionProperty                          = new IntProperty(POSITION_PROPERTY).indexed();		// FIXME: Is Folder.position ever used? sort order is alphabetically I think
+		final Property<String> enabledChecksumsProperty                   = new StringProperty(ENABLED_CHECKSUMS_PROPERTY);
+		final Property<String> mountTargetProperty                        = new StringProperty(MOUNT_TARGET_PROPERTY).indexed();
+		final Property<String> mountTargetFileTypeProperty                = new StringProperty(MOUNT_TARGET_FILE_TYPE_PROPERTY);
+		final Property<String> mountTargetFolderTypeProperty              = new StringProperty(MOUNT_TARGET_FOLDER_TYPE_PROPERTY);
+		final Property<Long> mountLastScannedProperty                     = new LongProperty(MOUNT_LAST_SCANNED_PROPERTY);
+		final Property<Object> filesCountProperty                         = new FunctionProperty(FILES_COUNT_PROPERTY).readFunction("size(this.files)").typeHint("int");
+		final Property<Object> foldersCountProperty                       = new FunctionProperty(FOLDERS_COUNT_PROPERTY).readFunction("size(this.files)").typeHint("int");
 
 		return Set.of(
 			childrenProperty,
@@ -175,15 +196,17 @@ public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"files", "folders", AbstractFileTraitDefinition.PARENT_ID_PROPERTY, "enabledChecksums", "filesCount", "foldersCount", "isFolder",
-					AbstractFileTraitDefinition.IS_MOUNTED_PROPERTY, "mountDoFulltextIndexing", "mountLastScanned", "mountScanInterval", "mountTarget",
-				"mountTargetFileType", "mountTargetFolderType", "mountWatchContents", "owner"
+					FILES_PROPERTY, FOLDERS_PROPERTY, AbstractFileTraitDefinition.PARENT_ID_PROPERTY, ENABLED_CHECKSUMS_PROPERTY,
+					FILES_COUNT_PROPERTY, FOLDERS_COUNT_PROPERTY, IS_FOLDER_PROPERTY, AbstractFileTraitDefinition.IS_MOUNTED_PROPERTY,
+					MOUNT_DO_FULLTEXT_INDEXING_PROPERTY, MOUNT_LAST_SCANNED_PROPERTY, MOUNT_SCAN_INTERVAL_PROPERTY, MOUNT_TARGET_PROPERTY,
+					MOUNT_TARGET_FILE_TYPE_PROPERTY, MOUNT_TARGET_FOLDER_TYPE_PROPERTY, MOUNT_WATCH_CONTENTS_PROPERTY, NodeInterfaceTraitDefinition.OWNER_PROPERTY
 			),
+
 			PropertyView.Ui,
 			newSet(
-				"files", "folders", "images", "enabledChecksums", "isFolder", "mountDoFulltextIndexing",
-				"mountLastScanned", "mountScanInterval", "mountTarget", "mountTargetFileType", "mountTargetFolderType",
-				"mountWatchContents"
+					FILES_PROPERTY, FOLDERS_PROPERTY, IMAGES_PROPERTY, ENABLED_CHECKSUMS_PROPERTY, IS_FOLDER_PROPERTY,
+					MOUNT_DO_FULLTEXT_INDEXING_PROPERTY, MOUNT_LAST_SCANNED_PROPERTY, MOUNT_SCAN_INTERVAL_PROPERTY,
+					MOUNT_TARGET_PROPERTY, MOUNT_TARGET_FILE_TYPE_PROPERTY, MOUNT_TARGET_FOLDER_TYPE_PROPERTY, MOUNT_WATCH_CONTENTS_PROPERTY
 			)
 		);
 	}

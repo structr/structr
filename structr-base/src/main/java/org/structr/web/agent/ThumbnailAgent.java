@@ -44,6 +44,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.FileTraitDefinition;
+import org.structr.web.traits.definitions.ImageTraitDefinition;
 import org.structr.web.traits.relationships.ImageTHUMBNAILImage;
 
 public class ThumbnailAgent extends Agent<ThumbnailWorkObject> {
@@ -146,8 +148,8 @@ public class ThumbnailAgent extends Agent<ThumbnailWorkObject> {
 					// Create a thumbnail relationship
 					final PropertyMap relProperties = new PropertyMap();
 					// FIXME ? why are the image attributes being stored on the relationship? (at least width and height do not exist on rel-level)
-					relProperties.put(Traits.of(StructrTraits.IMAGE).key("width"),                  tnWidth);
-					relProperties.put(Traits.of(StructrTraits.IMAGE).key("height"),                 tnHeight);
+					relProperties.put(Traits.of(StructrTraits.IMAGE).key(ImageTraitDefinition.WIDTH_PROPERTY),                      tnWidth);
+					relProperties.put(Traits.of(StructrTraits.IMAGE).key(ImageTraitDefinition.HEIGHT_PROPERTY),                     tnHeight);
 
 					// We have to store the specs here in order to find existing thumbnails based on the specs they've been created for, not actual dimensions.
 					relProperties.put(Traits.of(StructrTraits.IMAGE_THUMBNAIL_IMAGE).key(ImageTHUMBNAILImage.CHECKSUM_PROPERTY),    originalImage.getChecksum());
@@ -159,15 +161,15 @@ public class ThumbnailAgent extends Agent<ThumbnailWorkObject> {
 
 					// Create thumbnail Image node
 					final PropertyMap properties = new PropertyMap();
-					properties.put(Traits.of(StructrTraits.IMAGE).key("width"),                               tnWidth);
-					properties.put(Traits.of(StructrTraits.IMAGE).key("height"),                              tnHeight);
-					properties.put(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.HIDDEN_PROPERTY),                      originalImage.isHidden());
+					properties.put(Traits.of(StructrTraits.IMAGE).key(ImageTraitDefinition.WIDTH_PROPERTY),                                         tnWidth);
+					properties.put(Traits.of(StructrTraits.IMAGE).key(ImageTraitDefinition.HEIGHT_PROPERTY),                                        tnHeight);
+					properties.put(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.HIDDEN_PROPERTY),                       originalImage.isHidden());
 					properties.put(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), originalImage.isVisibleToAuthenticatedUsers());
 					properties.put(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY),        originalImage.isVisibleToPublicUsers());
-					properties.put(Traits.of(StructrTraits.FILE).key("size"),                                 Long.valueOf(data.length));
-					properties.put(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY),                       originalImage.as(AccessControllable.class).getOwnerNode());
-					properties.put(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY),                               originalImage.getThumbnailParentFolder(originalImage.getParent(), securityContext));
-					properties.put(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.HAS_PARENT_PROPERTY),                            originalImage.getProperty(Traits.of(StructrTraits.IMAGE).key("hasParent")));
+					properties.put(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.SIZE_PROPERTY),                                            Long.valueOf(data.length));
+					properties.put(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY),                        originalImage.as(AccessControllable.class).getOwnerNode());
+					properties.put(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY),                                  originalImage.getThumbnailParentFolder(originalImage.getParent(), securityContext));
+					properties.put(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.HAS_PARENT_PROPERTY),                              originalImage.getProperty(Traits.of(StructrTraits.IMAGE).key("hasParent")));
 
 					thumbnail.unlockSystemPropertiesOnce();
 					thumbnail.setProperties(securityContext, properties);
@@ -178,7 +180,7 @@ public class ThumbnailAgent extends Agent<ThumbnailWorkObject> {
 				logger.warn("Could not create thumbnail for image {} ({})", originalImage.getName(), imageUuid);
 
 				// mark file so we don't try to create a thumbnail again
-				originalImage.setProperty(Traits.of(StructrTraits.IMAGE).key("thumbnailCreationFailed"), true);
+				originalImage.setProperty(Traits.of(StructrTraits.IMAGE).key(ImageTraitDefinition.THUMBNAIL_CREATION_FAILED_PROPERTY), true);
 			}
 
 			originalImage.unlockSystemPropertiesOnce();

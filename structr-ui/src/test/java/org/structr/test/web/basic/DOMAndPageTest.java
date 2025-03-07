@@ -45,6 +45,9 @@ import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.importer.Importer;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.SiteTraitDefinition;
+import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
+import org.structr.web.traits.definitions.dom.PageTraitDefinition;
 import org.structr.websocket.command.CreateComponentCommand;
 import org.testng.annotations.Test;
 
@@ -276,10 +279,10 @@ public class DOMAndPageTest extends StructrUiTest {
 			}
 
 			final PropertyMap siteOneProperties                 = new PropertyMap();
-			final PropertyKey<Iterable<NodeInterface>> sitesKey = Traits.of(StructrTraits.PAGE).key("sites");
-			final PropertyKey<Integer> positionKey              = Traits.of(StructrTraits.PAGE).key("position");
-			final PropertyKey<Integer> portKey                  = Traits.of(StructrTraits.SITE).key("port");
-			final PropertyKey<String> hostnameKey               = Traits.of(StructrTraits.SITE).key("hostname");
+			final PropertyKey<Iterable<NodeInterface>> sitesKey = Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.SITES_PROPERTY);
+			final PropertyKey<Integer> positionKey              = Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.POSITION_PROPERTY);
+			final PropertyKey<Integer> portKey                  = Traits.of(StructrTraits.SITE).key(SiteTraitDefinition.PORT_PROPERTY);
+			final PropertyKey<String> hostnameKey               = Traits.of(StructrTraits.SITE).key(SiteTraitDefinition.HOSTNAME_PROPERTY);
 			final PropertyKey<String> nameKey                   = Traits.of(StructrTraits.SITE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 			final PropertyKey<Boolean> vtp                      = Traits.of(StructrTraits.SITE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY);
 
@@ -617,8 +620,8 @@ public class DOMAndPageTest extends StructrUiTest {
 				makePublic(page, html, head, body, title, h1, div, titleText, heading, bodyContent);
 
 				final PropertyMap pageProperties = new PropertyMap();
-				pageProperties.put(Traits.of(StructrTraits.PAGE).key("showOnErrorCodes"), "404");
-				pageProperties.put(Traits.of(StructrTraits.PAGE).key("position"), 0);
+				pageProperties.put(Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.SHOW_ON_ERROR_CODES_PROPERTY), "404");
+				pageProperties.put(Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.POSITION_PROPERTY), 0);
 				page.setProperties(page.getSecurityContext(), pageProperties);
 
 				tx.success();
@@ -1066,7 +1069,7 @@ public class DOMAndPageTest extends StructrUiTest {
 			final Content content1  = createContent(page, div1, "content");
 			final DOMNode component = new CreateComponentCommand().create(div1);
 
-			component.setProperty(Traits.of(StructrTraits.DOM_NODE).key("showConditions"), "assert(1, 2, 3)");
+			component.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.SHOW_CONDITIONS_PROPERTY), "assert(1, 2, 3)");
 
 			makePublic(page, html, body, div1, content1, component);
 

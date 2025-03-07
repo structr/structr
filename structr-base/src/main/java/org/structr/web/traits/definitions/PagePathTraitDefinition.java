@@ -45,6 +45,11 @@ import java.util.Set;
  */
 public class PagePathTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String PAGE_PROPERTY       = "page";
+	public static final String PARAMETERS_PROPERTY = "parameters";
+	public static final String NAME_PROPERTY       = "name";
+	public static final String PRIORITY_PROPERTY   = "priority";
+
 	public PagePathTraitDefinition() {
 		super(StructrTraits.PAGE_PATH);
 	}
@@ -87,10 +92,10 @@ public class PagePathTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> pageProperty                 = new StartNode("page", StructrTraits.PAGE_HAS_PATH_PAGE_PATH);
-		final Property<Iterable<NodeInterface>> parametersProperty = new EndNodes("parameters", StructrTraits.PAGE_PATH_HAS_PARAMETER_PAGE_PATH_PARAMETER);
-		final Property<String> nameProperty                        = new StringProperty("name").notNull();
-		final Property<Integer> priorityProperty                   = new IntProperty("priority");
+		final Property<NodeInterface> pageProperty                 = new StartNode(PAGE_PROPERTY, StructrTraits.PAGE_HAS_PATH_PAGE_PATH);
+		final Property<Iterable<NodeInterface>> parametersProperty = new EndNodes(PARAMETERS_PROPERTY, StructrTraits.PAGE_PATH_HAS_PARAMETER_PAGE_PATH_PARAMETER);
+		final Property<String> nameProperty                        = new StringProperty(NAME_PROPERTY).notNull();		// FIXME: why custom name property?
+		final Property<Integer> priorityProperty                   = new IntProperty(PRIORITY_PROPERTY);
 
 		return Set.of(
 			pageProperty,
@@ -105,9 +110,10 @@ public class PagePathTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 			PropertyView.Public,
-			newSet(NodeInterfaceTraitDefinition.NAME_PROPERTY, "priority", "parameters"),
+			newSet(NodeInterfaceTraitDefinition.NAME_PROPERTY, PRIORITY_PROPERTY, PARAMETERS_PROPERTY),
+
 			PropertyView.Ui,
-			newSet(NodeInterfaceTraitDefinition.NAME_PROPERTY, "priority", "parameters")
+			newSet(NodeInterfaceTraitDefinition.NAME_PROPERTY, PRIORITY_PROPERTY, PARAMETERS_PROPERTY)
 		);
 	}
 

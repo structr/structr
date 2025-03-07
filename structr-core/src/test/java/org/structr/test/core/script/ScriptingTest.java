@@ -165,8 +165,6 @@ public class ScriptingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final ConfigurationProvider config = StructrApp.getConfiguration();
-
 			sourceType          = "TestSource";
 			targetType          = "TestTarget";
 			targetsProperty     = Traits.of(sourceType).key("testtargets");
@@ -278,7 +276,6 @@ public class ScriptingTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 
-		final ConfigurationProvider config = StructrApp.getConfiguration();
 		final String sourceType            = "TestSource";
 		NodeInterface testUser             = null;
 

@@ -78,6 +78,7 @@ import org.structr.web.resource.RegistrationResourceHandler;
 import org.structr.web.resource.ResetPasswordResourceHandler;
 import org.structr.web.servlet.HtmlServlet;
 import org.structr.web.traits.definitions.ActionMappingTraitDefinition;
+import org.structr.web.traits.definitions.ParameterMappingTraitDefinition;
 import org.structr.web.traits.operations.*;
 import org.structr.web.traits.wrappers.dom.DOMElementTraitWrapper;
 
@@ -89,6 +90,95 @@ import static org.structr.web.entity.dom.DOMNode.EVENT_ACTION_MAPPING_CATEGORY;
 import static org.structr.web.entity.dom.DOMNode.PAGE_CATEGORY;
 
 public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
+
+	public static final String RELOAD_SOURCES_PROPERTY                    = "reloadSources";
+	public static final String RELOAD_TARGETS_PROPERTY                    = "reloadTargets";
+	public static final String TRIGGERED_ACTIONS_PROPERTY                 = "triggeredActions";
+	public static final String PARAMETER_MAPPINGS_PROPERTY                = "parameterMappings";
+	public static final String TAG_PROPERTY                               = "tag";
+	public static final String PATH_PROPERTY                              = "path";
+	public static final String PARTIAL_UPDATE_KEY_PROPERTY                = "partialUpdateKey";
+	public static final String DATA_STRUCTR_MANUAL_RELOAD_TARGET_PROPERTY = "data-structr-manual-reload-target";
+	public static final String FROM_WIDGET_PROPERTY                       = "fromWidget";
+	public static final String DATA_STRUCTR_INSERT_PROPERTY               = "data-structr-insert";
+	public static final String DATA_STRUCTR_FROM_WIDGET_PROPERTY          = "data-structr-from-widget";
+	public static final String EVENT_MAPPING_PROPERTY                     = "eventMapping";
+	public static final String DATA_STRUCTR_TREE_CHILDREN_PROPERTY        = "data-structr-tree-children";
+	public static final String DATA_STRUCTR_RELOAD_TARGET_PROPERTY        = "data-structr-reload-target";
+	public static final String DATA_STRUCTR_RENDERING_MODE_PROPERTY       = "data-structr-rendering-mode";
+	public static final String DATA_STRUCTR_DELAY_OR_INTERVAL_PROPERTY    = "data-structr-delay-or-interval";
+	public static final String _HTML_ONABORT_PROPERTY                     = "_html_onabort";
+	public static final String _HTML_ONBLUR_PROPERTY                      = "_html_onblur";
+	public static final String _HTML_ONCANPLAY_PROPERTY                   = "_html_oncanplay";
+	public static final String _HTML_ONCANPLAYTHROUGH_PROPERTY            = "_html_oncanplaythrough";
+	public static final String _HTML_ONCHANGE_PROPERTY                    = "_html_onchange";
+	public static final String _HTML_ONCLICK_PROPERTY                     = "_html_onclick";
+	public static final String _HTML_ONCONTEXTMENU_PROPERTY               = "_html_oncontextmenu";
+	public static final String _HTML_ONDBLCLICK_PROPERTY                  = "_html_ondblclick";
+	public static final String _HTML_ONDRAG_PROPERTY                      = "_html_ondrag";
+	public static final String _HTML_ONDRAGEND_PROPERTY                   = "_html_ondragend";
+	public static final String _HTML_ONDRAGENTER_PROPERTY                 = "_html_ondragenter";
+	public static final String _HTML_ONDRAGLEAVE_PROPERTY                 = "_html_ondragleave";
+	public static final String _HTML_ONDRAGOVER_PROPERTY                  = "_html_ondragover";
+	public static final String _HTML_ONDRAGSTART_PROPERTY                 = "_html_ondragstart";
+	public static final String _HTML_ONDROP_PROPERTY                      = "_html_ondrop";
+	public static final String _HTML_ONDURATIONCHANGE_PROPERTY            = "_html_ondurationchange";
+	public static final String _HTML_ONEMPTIED_PROPERTY                   = "_html_onemptied";
+	public static final String _HTML_ONENDED_PROPERTY                     = "_html_onended";
+	public static final String _HTML_ONERROR_PROPERTY                     = "_html_onerror";
+	public static final String _HTML_ONFOCUS_PROPERTY                     = "_html_onfocus";
+	public static final String _HTML_ONINPUT_PROPERTY                     = "_html_oninput";
+	public static final String _HTML_ONINVALID_PROPERTY                   = "_html_oninvalid";
+	public static final String _HTML_ONKEYDOWN_PROPERTY                   = "_html_onkeydown";
+	public static final String _HTML_ONKEYPRESS_PROPERTY                  = "_html_onkeypress";
+	public static final String _HTML_ONKEYUP_PROPERTY                     = "_html_onkeyup";
+	public static final String _HTML_ONLOAD_PROPERTY                      = "_html_onload";
+	public static final String _HTML_ONLOADEDDATA_PROPERTY                = "_html_onloadeddata";
+	public static final String _HTML_ONLOADEDMETADATA_PROPERTY            = "_html_onloadedmetadata";
+	public static final String _HTML_ONLOADSTART_PROPERTY                 = "_html_onloadstart";
+	public static final String _HTML_ONMOUSEDOWN_PROPERTY                 = "_html_onmousedown";
+	public static final String _HTML_ONMOUSEMOVE_PROPERTY                 = "_html_onmousemove";
+	public static final String _HTML_ONMOUSEOUT_PROPERTY                  = "_html_onmouseout";
+	public static final String _HTML_ONMOUSEOVER_PROPERTY                 = "_html_onmouseover";
+	public static final String _HTML_ONMOUSEUP_PROPERTY                   = "_html_onmouseup";
+	public static final String _HTML_ONMOUSEWHEEL_PROPERTY                = "_html_onmousewheel";
+	public static final String _HTML_ONPAUSE_PROPERTY                     = "_html_onpause";
+	public static final String _HTML_ONPLAY_PROPERTY                      = "_html_onplay";
+	public static final String _HTML_ONPLAYING_PROPERTY                   = "_html_onplaying";
+	public static final String _HTML_ONPROGRESS_PROPERTY                  = "_html_onprogress";
+	public static final String _HTML_ONRATECHANGE_PROPERTY                = "_html_onratechange";
+	public static final String _HTML_ONREADYSTATECHANGE_PROPERTY          = "_html_onreadystatechange";
+	public static final String _HTML_ONRESET_PROPERTY                     = "_html_onreset";
+	public static final String _HTML_ONSCROLL_PROPERTY                    = "_html_onscroll";
+	public static final String _HTML_ONSEEKED_PROPERTY                    = "_html_onseeked";
+	public static final String _HTML_ONSEEKING_PROPERTY                   = "_html_onseeking";
+	public static final String _HTML_ONSELECT_PROPERTY                    = "_html_onselect";
+	public static final String _HTML_ONSHOW_PROPERTY                      = "_html_onshow";
+	public static final String _HTML_ONSTALLED_PROPERTY                   = "_html_onstalled";
+	public static final String _HTML_ONSUBMIT_PROPERTY                    = "_html_onsubmit";
+	public static final String _HTML_ONSUSPEND_PROPERTY                   = "_html_onsuspend";
+	public static final String _HTML_ONTIMEUPDATE_PROPERTY                = "_html_ontimeupdate";
+	public static final String _HTML_ONVOLUMECHANGE_PROPERTY              = "_html_onvolumechange";
+	public static final String _HTML_ONWAITING_PROPERTY                   = "_html_onwaiting";
+	public static final String _HTML_DATA_PROPERTY                        = "_html_data";
+	public static final String _HTML_ACCESSKEY_PROPERTY                   = "_html_accesskey";
+	public static final String _HTML_CLASS_PROPERTY                       = "_html_class";
+	public static final String _HTML_CONTENTEDITABLE_PROPERTY             = "_html_contenteditable";
+	public static final String _HTML_CONTEXTMENU_PROPERTY                 = "_html_contextmenu";
+	public static final String _HTML_DIR_PROPERTY                         = "_html_dir";
+	public static final String _HTML_DRAGGABLE_PROPERTY                   = "_html_draggable";
+	public static final String _HTML_DROPZONE_PROPERTY                    = "_html_dropzone";
+	public static final String _HTML_HIDDEN_PROPERTY                      = "_html_hidden";
+	public static final String _HTML_ID_PROPERTY                          = "_html_id";
+	public static final String _HTML_LANG_PROPERTY                        = "_html_lang";
+	public static final String _HTML_SPELLCHECK_PROPERTY                  = "_html_spellcheck";
+	public static final String _HTML_STYLE_PROPERTY                       = "_html_style";
+	public static final String _HTML_TABINDEX_PROPERTY                    = "_html_tabindex";
+	public static final String _HTML_TITLE_PROPERTY                       = "_html_title";
+	public static final String _HTML_TRANSLATE_PROPERTY                   = "_html_translate";
+	public static final String _HTML_IS_PROPERTY                          = "_html_is";
+	public static final String _HTML_PROPERTIES_PROPERTY                  = "_html_properties";
+	public static final String _HTML_ROLE_PROPERTY                        = "_html_role";
 
 	private static final Set<String> RequestParameterBlacklist = Set.of(HtmlServlet.ENCODED_RENDER_STATE_PARAMETER_NAME);
 
@@ -175,7 +265,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 					final Traits traits = node.getTraits();
 
-					return node.getProperty(traits.key("_html_class"));
+					return node.getProperty(traits.key(_HTML_CLASS_PROPERTY));
 				}
 			},
 
@@ -195,7 +285,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 					}
 
 					// copy tag
-					properties.put(traits.key("tag"), newNode.getTag());
+					properties.put(traits.key(TAG_PROPERTY), newNode.getTag());
 
 					thisNode.setProperties(thisNode.getSecurityContext(), properties);
 				}
@@ -464,12 +554,12 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 									}
 								}
 
-								out.append(" data-structr-id=\"").append(uuid).append("\"");
+								out.append(" ").append(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY).append("=\"").append(uuid).append("\"");
 								break;
 
 							case RAW:
 
-								out.append(" ").append("data-structr-hash").append("=\"").append(node.getIdHash()).append("\"");
+								out.append(" ").append(DOMNodeTraitDefinition.DATA_STRUCTR_HASH_PROPERTY).append("=\"").append(node.getIdHash()).append("\"");
 								break;
 
 							case WIDGET:
@@ -553,10 +643,10 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 									*/
 
 									final Traits parameterMappingTraits = Traits.of(StructrTraits.PARAMETER_MAPPING);
-									final PropertyKey<String> scriptExpressionKey = parameterMappingTraits.key("scriptExpression");
-									final PropertyKey<String> parameterTypeKey = parameterMappingTraits.key("parameterType");
-									final PropertyKey<String> parameterNameKey = parameterMappingTraits.key("parameterName");
-									final PropertyKey<String> htmlIdKey = traits.key("_html_id");
+									final PropertyKey<String> scriptExpressionKey = parameterMappingTraits.key(ParameterMappingTraitDefinition.SCRIPT_EXPRESSION_PROPERTY);
+									final PropertyKey<String> parameterTypeKey    = parameterMappingTraits.key(ParameterMappingTraitDefinition.PARAMETER_TYPE_PROPERTY);
+									final PropertyKey<String> parameterNameKey    = parameterMappingTraits.key(ParameterMappingTraitDefinition.PARAMETER_NAME_PROPERTY);
+									final PropertyKey<String> htmlIdKey = traits.key(DOMElementTraitDefinition._HTML_ID_PROPERTY);
 
 
 									// **************************************************************************+
@@ -872,104 +962,106 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Iterable<NodeInterface>> reloadSourcesProperty     = new StartNodes("reloadSources", StructrTraits.DOM_ELEMENT_RELOADS_DOM_ELEMENT);
-		final Property<Iterable<NodeInterface>> reloadTargetsProperty     = new EndNodes("reloadTargets", StructrTraits.DOM_ELEMENT_RELOADS_DOM_ELEMENT);
-		final Property<Iterable<NodeInterface>> triggeredActionsProperty  = new EndNodes("triggeredActions", StructrTraits.DOM_ELEMENT_TRIGGERED_BY_ACTION_MAPPING);
-		final Property<Iterable<NodeInterface>> parameterMappingsProperty = new EndNodes("parameterMappings", StructrTraits.DOM_ELEMENT_INPUT_ELEMENT_PARAMETER_MAPPING);
+		final Property<Iterable<NodeInterface>> reloadSourcesProperty     = new StartNodes(RELOAD_SOURCES_PROPERTY, StructrTraits.DOM_ELEMENT_RELOADS_DOM_ELEMENT);
+		final Property<Iterable<NodeInterface>> reloadTargetsProperty     = new EndNodes(RELOAD_TARGETS_PROPERTY, StructrTraits.DOM_ELEMENT_RELOADS_DOM_ELEMENT);
+		final Property<Iterable<NodeInterface>> triggeredActionsProperty  = new EndNodes(TRIGGERED_ACTIONS_PROPERTY, StructrTraits.DOM_ELEMENT_TRIGGERED_BY_ACTION_MAPPING);
 
-		final Property<String> tagProperty              = new StringProperty("tag").indexed().category(PAGE_CATEGORY);
-		final Property<String> pathProperty             = new StringProperty("path").indexed();
-		final Property<String> partialUpdateKeyProperty = new StringProperty("partialUpdateKey").indexed();
+		// FIXME ? why does DOMElement have parameter mappings? they are/should be attached to ActionMapping nodes (it is also not defined on ParameterMapping...)
+		final Property<Iterable<NodeInterface>> parameterMappingsProperty = new EndNodes(PARAMETER_MAPPINGS_PROPERTY, StructrTraits.DOM_ELEMENT_INPUT_ELEMENT_PARAMETER_MAPPING);
 
-		final Property<Boolean> manualReloadTargetProperty = new BooleanProperty("data-structr-manual-reload-target").category(EVENT_ACTION_MAPPING_CATEGORY).hint("Identifies this element as a manual reload target, this is necessary when using repeaters as reload targets.");
-		final Property<Boolean> fromWidgetProperty         = new BooleanProperty("fromWidget");
-		final Property<Boolean> dataInsertProperty         = new BooleanProperty("data-structr-insert");
-		final Property<Boolean> dataFromWidgetProperty     = new BooleanProperty("data-structr-from-widget");
+		final Property<String> tagProperty                  = new StringProperty(TAG_PROPERTY).indexed().category(PAGE_CATEGORY);
+		final Property<String> pathProperty                 = new StringProperty(PATH_PROPERTY).indexed();
+		final Property<String> partialUpdateKeyProperty     = new StringProperty(PARTIAL_UPDATE_KEY_PROPERTY).indexed();
 
-		final Property<String> eventMappingProperty       = new StringProperty("eventMapping").category(EVENT_ACTION_MAPPING_CATEGORY).hint("A mapping between the desired Javascript event (click, drop, dragOver, ...) and the server-side event that should be triggered: (create | update | delete | <method name>).");
+		final Property<Boolean> manualReloadTargetProperty  = new BooleanProperty(DATA_STRUCTR_MANUAL_RELOAD_TARGET_PROPERTY).category(EVENT_ACTION_MAPPING_CATEGORY).hint("Identifies this element as a manual reload target, this is necessary when using repeaters as reload targets.");
+		final Property<Boolean> fromWidgetProperty          = new BooleanProperty(FROM_WIDGET_PROPERTY);
+		final Property<Boolean> dataInsertProperty          = new BooleanProperty(DATA_STRUCTR_INSERT_PROPERTY);
+		final Property<Boolean> dataFromWidgetProperty      = new BooleanProperty(DATA_STRUCTR_FROM_WIDGET_PROPERTY);
+
+		final Property<String> eventMappingProperty        = new StringProperty(EVENT_MAPPING_PROPERTY).category(EVENT_ACTION_MAPPING_CATEGORY).hint("A mapping between the desired Javascript event (click, drop, dragOver, ...) and the server-side event that should be triggered: (create | update | delete | <method name>).");
 		// probably useless ATM because EAM does not support trees yet
-		final Property<String> dataTreeChildrenProperty   = new StringProperty("data-structr-tree-children").category(EVENT_ACTION_MAPPING_CATEGORY).hint("Toggles automatic visibility for tree child items when the 'toggle-tree-item' event is mapped. This field must contain the data key on which the tree is based, e.g. 'item'.");
-		final Property<String> dataReloadTargetProperty   = new StringProperty("data-structr-reload-target").category(EVENT_ACTION_MAPPING_CATEGORY).hint("CSS selector that specifies which partials to reload.");
-		final Property<String> renderingModeProperty      = new StringProperty("data-structr-rendering-mode").category(EVENT_ACTION_MAPPING_CATEGORY).hint("Rendering mode, possible values are empty (default for eager rendering), 'load' to render when the DOM document has finished loading, 'delayed' like 'load' but with a fixed delay, 'visible' to render when the element comes into view and 'periodic' to render the element with periodic updates with a given interval");
-		final Property<String> delayOrIntervalProperty    = new StringProperty("data-structr-delay-or-interval").category(EVENT_ACTION_MAPPING_CATEGORY).hint("Delay or interval in milliseconds for 'delayed' or 'periodic' rendering mode");
-		final Property<String> onAbortProperty            = new StringProperty("_html_onabort");
-		final Property<String> onBlurProperty             = new StringProperty("_html_onblur");
-		final Property<String> onCanPlayProperty          = new StringProperty("_html_oncanplay");
-		final Property<String> onCanPlayThroughProperty   = new StringProperty("_html_oncanplaythrough");
-		final Property<String> onChangeProperty           = new StringProperty("_html_onchange");
-		final Property<String> onClickProperty            = new StringProperty("_html_onclick");
-		final Property<String> onContextMenuProperty      = new StringProperty("_html_oncontextmenu");
-		final Property<String> onDblClickProperty         = new StringProperty("_html_ondblclick");
-		final Property<String> onDragProperty             = new StringProperty("_html_ondrag");
-		final Property<String> onDragEndProperty          = new StringProperty("_html_ondragend");
-		final Property<String> onDragEnterProperty        = new StringProperty("_html_ondragenter");
-		final Property<String> onDragLeaveProperty        = new StringProperty("_html_ondragleave");
-		final Property<String> onDragOverProperty         = new StringProperty("_html_ondragover");
-		final Property<String> onDragStartProperty        = new StringProperty("_html_ondragstart");
-		final Property<String> onDropProperty             = new StringProperty("_html_ondrop");
-		final Property<String> onDurationChangeProperty   = new StringProperty("_html_ondurationchange");
-		final Property<String> onEmptiedProperty          = new StringProperty("_html_onemptied");
-		final Property<String> onEndedProperty            = new StringProperty("_html_onended");
-		final Property<String> onErrorProperty            = new StringProperty("_html_onerror");
-		final Property<String> onFocusProperty            = new StringProperty("_html_onfocus");
-		final Property<String> onInputProperty            = new StringProperty("_html_oninput");
-		final Property<String> onInvalidProperty          = new StringProperty("_html_oninvalid");
-		final Property<String> onKeyDownProperty          = new StringProperty("_html_onkeydown");
-		final Property<String> onKeyPressProperty         = new StringProperty("_html_onkeypress");
-		final Property<String> onKeyUpProperty            = new StringProperty("_html_onkeyup");
-		final Property<String> onLoadProperty             = new StringProperty("_html_onload");
-		final Property<String> onLoadedDataProperty       = new StringProperty("_html_onloadeddata");
-		final Property<String> onLoadedMetadataProperty   = new StringProperty("_html_onloadedmetadata");
-		final Property<String> onLoadStartProperty        = new StringProperty("_html_onloadstart");
-		final Property<String> onMouseDownProperty        = new StringProperty("_html_onmousedown");
-		final Property<String> onMouseMoveProperty        = new StringProperty("_html_onmousemove");
-		final Property<String> onMouseOutProperty         = new StringProperty("_html_onmouseout");
-		final Property<String> onMouseOverProperty        = new StringProperty("_html_onmouseover");
-		final Property<String> onMouseUpProperty          = new StringProperty("_html_onmouseup");
-		final Property<String> onMouseWheelProperty       = new StringProperty("_html_onmousewheel");
-		final Property<String> onPauseProperty            = new StringProperty("_html_onpause");
-		final Property<String> onPlayProperty             = new StringProperty("_html_onplay");
-		final Property<String> onPlayingProperty          = new StringProperty("_html_onplaying");
-		final Property<String> onProgressProperty         = new StringProperty("_html_onprogress");
-		final Property<String> onRateChangeProperty       = new StringProperty("_html_onratechange");
-		final Property<String> onReadyStateChangeProperty = new StringProperty("_html_onreadystatechange");
-		final Property<String> onResetProperty            = new StringProperty("_html_onreset");
-		final Property<String> onScrollProperty           = new StringProperty("_html_onscroll");
-		final Property<String> onSeekedProperty           = new StringProperty("_html_onseeked");
-		final Property<String> onSeekingProperty          = new StringProperty("_html_onseeking");
-		final Property<String> onSelectProperty           = new StringProperty("_html_onselect");
-		final Property<String> onShowProperty             = new StringProperty("_html_onshow");
-		final Property<String> onStalledProperty          = new StringProperty("_html_onstalled");
-		final Property<String> onSubmitProperty           = new StringProperty("_html_onsubmit");
-		final Property<String> onSuspendProperty          = new StringProperty("_html_onsuspend");
-		final Property<String> onTimeUpdateProperty       = new StringProperty("_html_ontimeupdate");
-		final Property<String> onVolumechangeProperty     = new StringProperty("_html_onvolumechange");
-		final Property<String> onWaitingProperty          = new StringProperty("_html_onwaiting");
-		final Property<String> htmlDataProperty           = new StringProperty("_html_data");
+		final Property<String> dataTreeChildrenProperty    = new StringProperty(DATA_STRUCTR_TREE_CHILDREN_PROPERTY).category(EVENT_ACTION_MAPPING_CATEGORY).hint("Toggles automatic visibility for tree child items when the 'toggle-tree-item' event is mapped. This field must contain the data key on which the tree is based, e.g. 'item'.");
+		final Property<String> dataReloadTargetProperty    = new StringProperty(DATA_STRUCTR_RELOAD_TARGET_PROPERTY).category(EVENT_ACTION_MAPPING_CATEGORY).hint("CSS selector that specifies which partials to reload.");
+		final Property<String> renderingModeProperty       = new StringProperty(DATA_STRUCTR_RENDERING_MODE_PROPERTY).category(EVENT_ACTION_MAPPING_CATEGORY).hint("Rendering mode, possible values are empty (default for eager rendering), 'load' to render when the DOM document has finished loading, 'delayed' like 'load' but with a fixed delay, 'visible' to render when the element comes into view and 'periodic' to render the element with periodic updates with a given interval");
+		final Property<String> delayOrIntervalProperty     = new StringProperty(DATA_STRUCTR_DELAY_OR_INTERVAL_PROPERTY).category(EVENT_ACTION_MAPPING_CATEGORY).hint("Delay or interval in milliseconds for 'delayed' or 'periodic' rendering mode");
+		final Property<String> onAbortProperty             = new StringProperty(_HTML_ONABORT_PROPERTY);
+		final Property<String> onBlurProperty              = new StringProperty(_HTML_ONBLUR_PROPERTY);
+		final Property<String> onCanPlayProperty           = new StringProperty(_HTML_ONCANPLAY_PROPERTY);
+		final Property<String> onCanPlayThroughProperty    = new StringProperty(_HTML_ONCANPLAYTHROUGH_PROPERTY);
+		final Property<String> onChangeProperty            = new StringProperty(_HTML_ONCHANGE_PROPERTY);
+		final Property<String> onClickProperty             = new StringProperty(_HTML_ONCLICK_PROPERTY);
+		final Property<String> onContextMenuProperty       = new StringProperty(_HTML_ONCONTEXTMENU_PROPERTY);
+		final Property<String> onDblClickProperty          = new StringProperty(_HTML_ONDBLCLICK_PROPERTY);
+		final Property<String> onDragProperty              = new StringProperty(_HTML_ONDRAG_PROPERTY);
+		final Property<String> onDragEndProperty           = new StringProperty(_HTML_ONDRAGEND_PROPERTY);
+		final Property<String> onDragEnterProperty         = new StringProperty(_HTML_ONDRAGENTER_PROPERTY);
+		final Property<String> onDragLeaveProperty         = new StringProperty(_HTML_ONDRAGLEAVE_PROPERTY);
+		final Property<String> onDragOverProperty          = new StringProperty(_HTML_ONDRAGOVER_PROPERTY);
+		final Property<String> onDragStartProperty         = new StringProperty(_HTML_ONDRAGSTART_PROPERTY);
+		final Property<String> onDropProperty              = new StringProperty(_HTML_ONDROP_PROPERTY);
+		final Property<String> onDurationChangeProperty    = new StringProperty(_HTML_ONDURATIONCHANGE_PROPERTY);
+		final Property<String> onEmptiedProperty           = new StringProperty(_HTML_ONEMPTIED_PROPERTY);
+		final Property<String> onEndedProperty             = new StringProperty(_HTML_ONENDED_PROPERTY);
+		final Property<String> onErrorProperty             = new StringProperty(_HTML_ONERROR_PROPERTY);
+		final Property<String> onFocusProperty             = new StringProperty(_HTML_ONFOCUS_PROPERTY);
+		final Property<String> onInputProperty             = new StringProperty(_HTML_ONINPUT_PROPERTY);
+		final Property<String> onInvalidProperty           = new StringProperty(_HTML_ONINVALID_PROPERTY);
+		final Property<String> onKeyDownProperty           = new StringProperty(_HTML_ONKEYDOWN_PROPERTY);
+		final Property<String> onKeyPressProperty          = new StringProperty(_HTML_ONKEYPRESS_PROPERTY);
+		final Property<String> onKeyUpProperty             = new StringProperty(_HTML_ONKEYUP_PROPERTY);
+		final Property<String> onLoadProperty              = new StringProperty(_HTML_ONLOAD_PROPERTY);
+		final Property<String> onLoadedDataProperty        = new StringProperty(_HTML_ONLOADEDDATA_PROPERTY);
+		final Property<String> onLoadedMetadataProperty    = new StringProperty(_HTML_ONLOADEDMETADATA_PROPERTY);
+		final Property<String> onLoadStartProperty         = new StringProperty(_HTML_ONLOADSTART_PROPERTY);
+		final Property<String> onMouseDownProperty         = new StringProperty(_HTML_ONMOUSEDOWN_PROPERTY);
+		final Property<String> onMouseMoveProperty         = new StringProperty(_HTML_ONMOUSEMOVE_PROPERTY);
+		final Property<String> onMouseOutProperty          = new StringProperty(_HTML_ONMOUSEOUT_PROPERTY);
+		final Property<String> onMouseOverProperty         = new StringProperty(_HTML_ONMOUSEOVER_PROPERTY);
+		final Property<String> onMouseUpProperty           = new StringProperty(_HTML_ONMOUSEUP_PROPERTY);
+		final Property<String> onMouseWheelProperty        = new StringProperty(_HTML_ONMOUSEWHEEL_PROPERTY);
+		final Property<String> onPauseProperty             = new StringProperty(_HTML_ONPAUSE_PROPERTY);
+		final Property<String> onPlayProperty              = new StringProperty(_HTML_ONPLAY_PROPERTY);
+		final Property<String> onPlayingProperty           = new StringProperty(_HTML_ONPLAYING_PROPERTY);
+		final Property<String> onProgressProperty          = new StringProperty(_HTML_ONPROGRESS_PROPERTY);
+		final Property<String> onRateChangeProperty        = new StringProperty(_HTML_ONRATECHANGE_PROPERTY);
+		final Property<String> onReadyStateChangeProperty  = new StringProperty(_HTML_ONREADYSTATECHANGE_PROPERTY);
+		final Property<String> onResetProperty             = new StringProperty(_HTML_ONRESET_PROPERTY);
+		final Property<String> onScrollProperty            = new StringProperty(_HTML_ONSCROLL_PROPERTY);
+		final Property<String> onSeekedProperty            = new StringProperty(_HTML_ONSEEKED_PROPERTY);
+		final Property<String> onSeekingProperty           = new StringProperty(_HTML_ONSEEKING_PROPERTY);
+		final Property<String> onSelectProperty            = new StringProperty(_HTML_ONSELECT_PROPERTY);
+		final Property<String> onShowProperty              = new StringProperty(_HTML_ONSHOW_PROPERTY);
+		final Property<String> onStalledProperty           = new StringProperty(_HTML_ONSTALLED_PROPERTY);
+		final Property<String> onSubmitProperty            = new StringProperty(_HTML_ONSUBMIT_PROPERTY);
+		final Property<String> onSuspendProperty           = new StringProperty(_HTML_ONSUSPEND_PROPERTY);
+		final Property<String> onTimeUpdateProperty        = new StringProperty(_HTML_ONTIMEUPDATE_PROPERTY);
+		final Property<String> onVolumechangeProperty      = new StringProperty(_HTML_ONVOLUMECHANGE_PROPERTY);
+		final Property<String> onWaitingProperty           = new StringProperty(_HTML_ONWAITING_PROPERTY);
+		final Property<String> htmlDataProperty            = new StringProperty(_HTML_DATA_PROPERTY);
 
 		// Core attributes
-		final Property<String> htmlAcceskeyProperty        = new StringProperty("_html_accesskey");
-		final Property<String> htmlClassProperty           = new StringProperty("_html_class");
-		final Property<String> htmlContentEditableProperty = new StringProperty("_html_contenteditable");
-		final Property<String> htmlContextMenuProperty     = new StringProperty("_html_contextmenu");
-		final Property<String> htmlDirProperty             = new StringProperty("_html_dir");
-		final Property<String> htmlDraggableProperty       = new StringProperty("_html_draggable");
-		final Property<String> htmlDropzoneProperty        = new StringProperty("_html_dropzone");
-		final Property<String> htmlHiddenProperty          = new StringProperty("_html_hidden");
-		final Property<String> htmlIdProperty              = new StringProperty("_html_id").indexed();
-		final Property<String> htmlLangProperty            = new StringProperty("_html_lang");
-		final Property<String> htmlSpellcheckProperty      = new StringProperty("_html_spellcheck");
-		final Property<String> htmlStyleProperty           = new StringProperty("_html_style");
-		final Property<String> htmlTabindexProperty        = new StringProperty("_html_tabindex");
-		final Property<String> htmlTitleProperty           = new StringProperty("_html_title");
-		final Property<String> htmlTranslateProperty       = new StringProperty("_html_translate");
+		final Property<String> htmlAcceskeyProperty        = new StringProperty(_HTML_ACCESSKEY_PROPERTY);
+		final Property<String> htmlClassProperty           = new StringProperty(_HTML_CLASS_PROPERTY);
+		final Property<String> htmlContentEditableProperty = new StringProperty(_HTML_CONTENTEDITABLE_PROPERTY);
+		final Property<String> htmlContextMenuProperty     = new StringProperty(_HTML_CONTEXTMENU_PROPERTY);
+		final Property<String> htmlDirProperty             = new StringProperty(_HTML_DIR_PROPERTY);
+		final Property<String> htmlDraggableProperty       = new StringProperty(_HTML_DRAGGABLE_PROPERTY);
+		final Property<String> htmlDropzoneProperty        = new StringProperty(_HTML_DROPZONE_PROPERTY);
+		final Property<String> htmlHiddenProperty          = new StringProperty(_HTML_HIDDEN_PROPERTY);
+		final Property<String> htmlIdProperty              = new StringProperty(_HTML_ID_PROPERTY).indexed();
+		final Property<String> htmlLangProperty            = new StringProperty(_HTML_LANG_PROPERTY);
+		final Property<String> htmlSpellcheckProperty      = new StringProperty(_HTML_SPELLCHECK_PROPERTY);
+		final Property<String> htmlStyleProperty           = new StringProperty(_HTML_STYLE_PROPERTY);
+		final Property<String> htmlTabindexProperty        = new StringProperty(_HTML_TABINDEX_PROPERTY);
+		final Property<String> htmlTitleProperty           = new StringProperty(_HTML_TITLE_PROPERTY);
+		final Property<String> htmlTranslateProperty       = new StringProperty(_HTML_TRANSLATE_PROPERTY);
 
 		// new properties for Polymer support
-		final Property<String> htmlIsProperty         = new StringProperty("_html_is");
-		final Property<String> htmlPropertiesProperty = new StringProperty("_html_properties");
+		final Property<String> htmlIsProperty              = new StringProperty(_HTML_IS_PROPERTY);
+		final Property<String> htmlPropertiesProperty      = new StringProperty(_HTML_PROPERTIES_PROPERTY);
 
 		// The role attribute, see http://www.w3.org/TR/role-attribute/
-		final Property<String> htmlRoleProperty            = new StringProperty("_html_role");
+		final Property<String> htmlRoleProperty            = new StringProperty(_HTML_ROLE_PROPERTY);
 
 		return Set.of(
 			reloadSourcesProperty,
@@ -1069,32 +1161,42 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"tag", "path", "partialUpdateKey", "isDOMNode", "pageId", "parent", "sharedComponentId", "syncedNodesIds",
-				"name", "children", "dataKey", "cypherQuery", "restQuery", "functionQuery"
+					TAG_PROPERTY, PATH_PROPERTY, PARTIAL_UPDATE_KEY_PROPERTY, DOMNodeTraitDefinition.IS_DOM_NODE_PROPERTY,
+					DOMNodeTraitDefinition.PAGE_ID_PROPERTY, DOMNodeTraitDefinition.PARENT_PROPERTY, DOMNodeTraitDefinition.SHARED_COMPONENT_ID_PROPERTY,
+					DOMNodeTraitDefinition.SYNCED_NODES_IDS_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY, DOMNodeTraitDefinition.CHILDREN_PROPERTY,
+					DOMNodeTraitDefinition.DATA_KEY_PROPERTY, DOMNodeTraitDefinition.CYPHER_QUERY_PROPERTY, DOMNodeTraitDefinition.REST_QUERY_PROPERTY,
+					DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY
 			),
 			PropertyView.Ui,
 			newSet(
-				"tag", "path", "partialUpdateKey", "_html_class", "_html_id", "sharedComponentConfiguration",
-				"isDOMNode", "pageId", "parent", "sharedComponentId", "syncedNodesIds", "data-structr-id", "children",
-				"childrenIds", "showForLocales", "hideForLocales", "showConditions", "hideConditions", "dataKey", "cypherQuery",
-				"restQuery", "functionQuery", "data-structr-rendering-mode", "data-structr-delay-or-interval", "data-structr-insert", "data-structr-from-widget",
-				"data-structr-tree-children", "data-structr-reload-target", "eventMapping", "triggeredActions", "reloadingActions", "failureActions", "successNotificationActions",
-				"failureNotificationActions", "data-structr-manual-reload-target"
+					TAG_PROPERTY, PATH_PROPERTY, PARTIAL_UPDATE_KEY_PROPERTY, _HTML_CLASS_PROPERTY, _HTML_ID_PROPERTY, DOMNodeTraitDefinition.SHARED_COMPONENT_CONFIGURATION_PROPERTY,
+					DOMNodeTraitDefinition.IS_DOM_NODE_PROPERTY, DOMNodeTraitDefinition.PAGE_ID_PROPERTY, DOMNodeTraitDefinition.PARENT_PROPERTY,
+					DOMNodeTraitDefinition.SHARED_COMPONENT_ID_PROPERTY, DOMNodeTraitDefinition.SYNCED_NODES_IDS_PROPERTY,
+					DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, DOMNodeTraitDefinition.CHILDREN_PROPERTY, DOMNodeTraitDefinition.CHILDREN_IDS_PROPERTY,
+					DOMNodeTraitDefinition.SHOW_FOR_LOCALES_PROPERTY, DOMNodeTraitDefinition.HIDE_FOR_LOCALES_PROPERTY, DOMNodeTraitDefinition.SHOW_CONDITIONS_PROPERTY,
+					DOMNodeTraitDefinition.HIDE_CONDITIONS_PROPERTY, DOMNodeTraitDefinition.DATA_KEY_PROPERTY, DOMNodeTraitDefinition.CYPHER_QUERY_PROPERTY,
+					DOMNodeTraitDefinition.REST_QUERY_PROPERTY, DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY,
+					DOMElementTraitDefinition.DATA_STRUCTR_RENDERING_MODE_PROPERTY, DOMElementTraitDefinition.DATA_STRUCTR_DELAY_OR_INTERVAL_PROPERTY,
+					DOMElementTraitDefinition.DATA_STRUCTR_INSERT_PROPERTY, DOMElementTraitDefinition.DATA_STRUCTR_FROM_WIDGET_PROPERTY,
+					DOMElementTraitDefinition.DATA_STRUCTR_TREE_CHILDREN_PROPERTY, DOMElementTraitDefinition.DATA_STRUCTR_RELOAD_TARGET_PROPERTY,
+					DOMElementTraitDefinition.EVENT_MAPPING_PROPERTY, TRIGGERED_ACTIONS_PROPERTY, DOMNodeTraitDefinition.RELOADING_ACTIONS_PROPERTY,
+					DOMNodeTraitDefinition.FAILURE_ACTIONS_PROPERTY, DOMNodeTraitDefinition.SUCCESS_NOTIFICATION_ACTIONS_PROPERTY,
+					DOMNodeTraitDefinition.FAILURE_NOTIFICATION_ACTIONS_PROPERTY, DOMElementTraitDefinition.DATA_STRUCTR_MANUAL_RELOAD_TARGET_PROPERTY
 			),
 			PropertyView.Html,
 			newSet(
-				"_html_onabort", "_html_onblur", "_html_oncanplay", "_html_oncanplaythrough", "_html_onchange", "_html_onclick", "_html_oncontextmenu", "_html_ondblclick",
-				"_html_ondrag", "_html_ondragend", "_html_ondragenter", "_html_ondragleave", "_html_ondragover", "_html_ondragstart", "_html_ondrop", "_html_ondurationchange",
-				"_html_onemptied", "_html_onended", "_html_onerror", "_html_onfocus", "_html_oninput", "_html_oninvalid", "_html_onkeydown", "_html_onkeypress", "_html_onkeyup",
-				"_html_onload", "_html_onloadeddata", "_html_onloadedmetadata", "_html_onloadstart", "_html_onmousedown", "_html_onmousemove", "_html_onmouseout",
-				"_html_onmouseover", "_html_onmouseup", "_html_onmousewheel", "_html_onpause", "_html_onplay", "_html_onplaying", "_html_onprogress", "_html_onratechange",
-				"_html_onreadystatechange", "_html_onreset", "_html_onscroll", "_html_onseeked", "_html_onseeking", "_html_onselect", "_html_onshow", "_html_onstalled",
-				"_html_onsubmit", "_html_onsuspend", "_html_ontimeupdate", "_html_onvolumechange", "_html_onwaiting", "_html_data",
+				_HTML_ONABORT_PROPERTY, _HTML_ONBLUR_PROPERTY, _HTML_ONCANPLAY_PROPERTY, _HTML_ONCANPLAYTHROUGH_PROPERTY, _HTML_ONCHANGE_PROPERTY, _HTML_ONCLICK_PROPERTY, _HTML_ONCONTEXTMENU_PROPERTY, _HTML_ONDBLCLICK_PROPERTY,
+				_HTML_ONDRAG_PROPERTY, _HTML_ONDRAGEND_PROPERTY, _HTML_ONDRAGENTER_PROPERTY, _HTML_ONDRAGLEAVE_PROPERTY, _HTML_ONDRAGOVER_PROPERTY, _HTML_ONDRAGSTART_PROPERTY, _HTML_ONDROP_PROPERTY, _HTML_ONDURATIONCHANGE_PROPERTY,
+				_HTML_ONEMPTIED_PROPERTY, _HTML_ONENDED_PROPERTY, _HTML_ONERROR_PROPERTY, _HTML_ONFOCUS_PROPERTY, _HTML_ONINPUT_PROPERTY, _HTML_ONINVALID_PROPERTY, _HTML_ONKEYDOWN_PROPERTY, _HTML_ONKEYPRESS_PROPERTY, _HTML_ONKEYUP_PROPERTY,
+				_HTML_ONLOAD_PROPERTY, _HTML_ONLOADEDDATA_PROPERTY, _HTML_ONLOADEDMETADATA_PROPERTY, _HTML_ONLOADSTART_PROPERTY, _HTML_ONMOUSEDOWN_PROPERTY, _HTML_ONMOUSEMOVE_PROPERTY, _HTML_ONMOUSEOUT_PROPERTY,
+				_HTML_ONMOUSEOVER_PROPERTY, _HTML_ONMOUSEUP_PROPERTY, _HTML_ONMOUSEWHEEL_PROPERTY, _HTML_ONPAUSE_PROPERTY, _HTML_ONPLAY_PROPERTY, _HTML_ONPLAYING_PROPERTY, _HTML_ONPROGRESS_PROPERTY, _HTML_ONRATECHANGE_PROPERTY,
+				_HTML_ONREADYSTATECHANGE_PROPERTY, _HTML_ONRESET_PROPERTY, _HTML_ONSCROLL_PROPERTY, _HTML_ONSEEKED_PROPERTY, _HTML_ONSEEKING_PROPERTY, _HTML_ONSELECT_PROPERTY, _HTML_ONSHOW_PROPERTY, _HTML_ONSTALLED_PROPERTY,
+				_HTML_ONSUBMIT_PROPERTY, _HTML_ONSUSPEND_PROPERTY, _HTML_ONTIMEUPDATE_PROPERTY, _HTML_ONVOLUMECHANGE_PROPERTY, _HTML_ONWAITING_PROPERTY, _HTML_DATA_PROPERTY,
 
-				"_html_accesskey", "_html_class", "_html_contenteditable", "_html_contextmenu", "_html_dir", "_html_draggable", "_html_dropzone",
-				"_html_hidden", "_html_id", "_html_lang", "_html_spellcheck", "_html_style", "_html_tabindex", "_html_title", "_html_translate",
+				_HTML_ACCESSKEY_PROPERTY, _HTML_CLASS_PROPERTY, _HTML_CONTENTEDITABLE_PROPERTY, _HTML_CONTEXTMENU_PROPERTY, _HTML_DIR_PROPERTY, _HTML_DRAGGABLE_PROPERTY, _HTML_DROPZONE_PROPERTY,
+				_HTML_HIDDEN_PROPERTY, _HTML_ID_PROPERTY, _HTML_LANG_PROPERTY, _HTML_SPELLCHECK_PROPERTY, _HTML_STYLE_PROPERTY, _HTML_TABINDEX_PROPERTY, _HTML_TITLE_PROPERTY, _HTML_TRANSLATE_PROPERTY,
 
-				"_html_role", "_html_is", "_html_properties"
+				_HTML_ROLE_PROPERTY, _HTML_IS_PROPERTY, _HTML_PROPERTIES_PROPERTY
 			)
 		);
 
@@ -1942,11 +2044,11 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 			final Traits traits      = node.getTraits();
 
 			// update reload targets with list from above
-			node.setProperty(traits.key("reloadSources"), actualReloadSources);
-			node.setProperty(traits.key("reloadTargets"), actualReloadTargets);
+			node.setProperty(traits.key(RELOAD_SOURCES_PROPERTY), actualReloadSources);
+			node.setProperty(traits.key(RELOAD_TARGETS_PROPERTY), actualReloadTargets);
 
 			// update shared component sync flag
-			node.setProperty(traits.key("hasSharedComponent"), domElement.getSharedComponent() != null);
+			node.setProperty(traits.key(DOMNodeTraitDefinition.HAS_SHARED_COMPONENT_PROPERTY), domElement.getSharedComponent() != null);
 
 		} catch (Throwable t) {
 

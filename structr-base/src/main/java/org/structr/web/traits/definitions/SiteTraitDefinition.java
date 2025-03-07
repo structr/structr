@@ -36,6 +36,10 @@ import java.util.Set;
 
 public class SiteTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String PAGES_PROPERTY    = "pages";
+	public static final String HOSTNAME_PROPERTY = "hostname";
+	public static final String PORT_PROPERTY     = "port";
+
 	public SiteTraitDefinition() {
 		super(StructrTraits.SITE);
 	}
@@ -66,9 +70,9 @@ public class SiteTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Iterable<NodeInterface>> pagesProperty = new EndNodes("pages", StructrTraits.SITE_CONTAINS_PAGE);
-		final Property<String> hostnameProperty               = new StringProperty("hostname").indexed();
-		final Property<Integer> portProperty                  = new IntProperty("port").indexed();
+		final Property<Iterable<NodeInterface>> pagesProperty = new EndNodes(PAGES_PROPERTY, StructrTraits.SITE_CONTAINS_PAGE);
+		final Property<String> hostnameProperty               = new StringProperty(HOSTNAME_PROPERTY).indexed();
+		final Property<Integer> portProperty                  = new IntProperty(PORT_PROPERTY).indexed();
 
 		return Set.of(
 			pagesProperty,
@@ -83,11 +87,12 @@ public class SiteTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"pages", "hostname", "port"
+					PAGES_PROPERTY, HOSTNAME_PROPERTY, PORT_PROPERTY
 			),
+
 			PropertyView.Ui,
 			newSet(
-				"pages", "hostname", "port"
+					PAGES_PROPERTY, HOSTNAME_PROPERTY, PORT_PROPERTY
 			)
 		);
 	}

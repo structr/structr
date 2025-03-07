@@ -34,6 +34,7 @@ import org.structr.web.entity.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import org.structr.web.traits.definitions.FileTraitDefinition;
 
 public class CopyFileContentsFunction extends UiAdvancedFunction {
 
@@ -69,14 +70,15 @@ public class CopyFileContentsFunction extends UiAdvancedFunction {
 
 					IOUtils.copy(is, os);
 
-					final PropertyKey<Integer> versionKey = Traits.of(StructrTraits.FILE).key("version");
-					final PropertyKey<Long> checksumKey   = Traits.of(StructrTraits.FILE).key("checksum");
-					final PropertyKey<Long> sizeKey       = Traits.of(StructrTraits.FILE).key("size");
-					final PropertyMap changedProperties   = new PropertyMap();
+					final PropertyKey<Integer> versionKey  = Traits.of(StructrTraits.FILE).key(FileTraitDefinition.VERSION_PROPERTY);
+					final PropertyKey<Long> checksumKey    = Traits.of(StructrTraits.FILE).key(FileTraitDefinition.CHECKSUM_PROPERTY);
+					final PropertyKey<Long> sizeKey        = Traits.of(StructrTraits.FILE).key(FileTraitDefinition.SIZE_PROPERTY);
+					final PropertyKey<Long> contentTypeKey = Traits.of(StructrTraits.FILE).key(FileTraitDefinition.CONTENT_TYPE_PROPERTY);
+					final PropertyMap changedProperties    = new PropertyMap();
 
 					changedProperties.put(checksumKey, FileHelper.getChecksum(nodeToBeReplaced));
 					changedProperties.put(versionKey, 0);
-					changedProperties.put(new StringProperty("contentType"), nodeToCopy.getProperty(new StringProperty("contentType")));
+					changedProperties.put(contentTypeKey, nodeToCopy.getProperty(contentTypeKey));
 
 					long fileSize = FileHelper.getSize(nodeToBeReplaced);
 					if (fileSize > 0) {

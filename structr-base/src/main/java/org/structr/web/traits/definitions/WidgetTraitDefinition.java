@@ -25,6 +25,7 @@ import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.web.entity.Widget;
@@ -39,8 +40,15 @@ import java.util.Set;
  */
 public class WidgetTraitDefinition extends AbstractNodeTraitDefinition {
 
-	public static final String DESCRIPTION_PROPERTY         = "description";
-	public static final String SOURCE_PROPERTY                     = "source";
+	public static final String DESCRIPTION_PROPERTY      = "description";
+	public static final String SOURCE_PROPERTY           = "source";
+	public static final String CONFIGURATION_PROPERTY    = "configuration";
+	public static final String SVG_ICON_PATH_PROPERTY    = "svgIconPath";
+	public static final String THUMBNAIL_PATH_PROPERTY   = "thumbnailPath";
+	public static final String TREE_PATH_PROPERTY        = "treePath";
+	public static final String IS_WIDGET_PROPERTY        = "isWidget";
+	public static final String SELECTORS_PROPERTY        = "selectors";
+	public static final String IS_PAGE_TEMPLATE_PROPERTY = "isPageTemplate";
 
 	public WidgetTraitDefinition() {
 		super(StructrTraits.WIDGET);
@@ -75,13 +83,13 @@ public class WidgetTraitDefinition extends AbstractNodeTraitDefinition {
 
 		final Property<String> sourceProperty          = new StringProperty(SOURCE_PROPERTY);
 		final Property<String> descriptionProperty     = new StringProperty(DESCRIPTION_PROPERTY);
-		final Property<String> configurationProperty   = new StringProperty("configuration");
-		final Property<String> svgIconPathProperty     = new StringProperty("svgIconPath");
-		final Property<String> thumbnailPathProperty   = new StringProperty("thumbnailPath");
-		final Property<String> treePathProperty        = new StringProperty("treePath");
-		final Property<Boolean> isWidgetProperty       = new ConstantBooleanProperty("isWidget", true);
-		final Property<String[]> selectorsProperty     = new ArrayProperty("selectors", String[].class);
-		final Property<Boolean> isPageTemplateProperty = new BooleanProperty("isPageTemplate");
+		final Property<String> configurationProperty   = new StringProperty(CONFIGURATION_PROPERTY);
+		final Property<String> svgIconPathProperty     = new StringProperty(SVG_ICON_PATH_PROPERTY);
+		final Property<String> thumbnailPathProperty   = new StringProperty(THUMBNAIL_PATH_PROPERTY);
+		final Property<String> treePathProperty        = new StringProperty(TREE_PATH_PROPERTY);
+		final Property<Boolean> isWidgetProperty       = new ConstantBooleanProperty(IS_WIDGET_PROPERTY, true);
+		final Property<String[]> selectorsProperty     = new ArrayProperty(SELECTORS_PROPERTY, String[].class);
+		final Property<Boolean> isPageTemplateProperty = new BooleanProperty(IS_PAGE_TEMPLATE_PROPERTY);
 
 		return Set.of(
 			sourceProperty,
@@ -103,17 +111,20 @@ public class WidgetTraitDefinition extends AbstractNodeTraitDefinition {
 
 			PropertyView.Public,
 			newSet(
-				"name", SOURCE_PROPERTY, DESCRIPTION_PROPERTY, "configuration", "svgIconPath", "thumbnailPath",
-				"treePath", "isWidget", "selectors", "isPageTemplate"
+					NodeInterfaceTraitDefinition.NAME_PROPERTY, SOURCE_PROPERTY, DESCRIPTION_PROPERTY, CONFIGURATION_PROPERTY,
+					SVG_ICON_PATH_PROPERTY, THUMBNAIL_PATH_PROPERTY, TREE_PATH_PROPERTY, IS_WIDGET_PROPERTY, SELECTORS_PROPERTY,
+					IS_PAGE_TEMPLATE_PROPERTY
 			),
+
 			PropertyView.Ui,
 			newSet(
-				SOURCE_PROPERTY, DESCRIPTION_PROPERTY, "configuration", "svgIconPath", "thumbnailPath",
-				"treePath", "isWidget", "selectors", "isPageTemplate"
+				SOURCE_PROPERTY, DESCRIPTION_PROPERTY, CONFIGURATION_PROPERTY, SVG_ICON_PATH_PROPERTY, THUMBNAIL_PATH_PROPERTY,
+				TREE_PATH_PROPERTY, IS_WIDGET_PROPERTY, SELECTORS_PROPERTY, IS_PAGE_TEMPLATE_PROPERTY
 			),
+
 			"editWidget",
 			newSet(
-				"selectors", "isPageTemplate"
+				SELECTORS_PROPERTY, IS_PAGE_TEMPLATE_PROPERTY
 			)
 		);
 	}

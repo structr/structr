@@ -21,10 +21,10 @@ package org.structr.web.traits.wrappers;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.web.entity.StorageConfiguration;
 import org.structr.web.entity.StorageConfigurationEntry;
+import org.structr.web.traits.definitions.StorageConfigurationEntryTraitDefinition;
 
 public class StorageConfigurationEntryTraitWrapper extends AbstractNodeTraitWrapper implements StorageConfigurationEntry {
 
@@ -38,18 +38,18 @@ public class StorageConfigurationEntryTraitWrapper extends AbstractNodeTraitWrap
 	}
 
 	public StorageConfiguration getConfiguration() {
-		return wrappedObject.getProperty(traits.key("configuration"));
+		return wrappedObject.getProperty(traits.key(StorageConfigurationEntryTraitDefinition.CONFIGURATION_PROPERTY));
 	}
 
 	public void setName(final String name) throws FrameworkException {
-		wrappedObject.setProperty(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name);
+		wrappedObject.setProperty(traits.key(StorageConfigurationEntryTraitDefinition.NAME_PROPERTY), name);
 	}
 
 	public String getValue() {
-		return wrappedObject.getProperty(traits.key("value"));
+		return wrappedObject.getProperty(traits.key(StorageConfigurationEntryTraitDefinition.VALUE_PROPERTY));
 	}
 
 	public void setValue(final String value) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("value"), value);
+		wrappedObject.setProperty(traits.key(StorageConfigurationEntryTraitDefinition.VALUE_PROPERTY), value);
 	}
 }

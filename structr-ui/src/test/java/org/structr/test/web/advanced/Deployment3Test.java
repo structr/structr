@@ -39,6 +39,7 @@ import org.structr.web.entity.Folder;
 import org.structr.web.entity.Widget;
 import org.structr.web.entity.dom.*;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.FileTraitDefinition;
 import org.structr.web.traits.definitions.WidgetTraitDefinition;
 import org.testng.annotations.Test;
 
@@ -221,7 +222,7 @@ public class Deployment3Test extends DeploymentTestBase {
 			NodeInterface widgetToImport = app.create(StructrTraits.WIDGET,
 					new NodeAttribute<>(Traits.of(StructrTraits.WIDGET).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),"TestWidget"),
 					new NodeAttribute<>(Traits.of(StructrTraits.WIDGET).key(WidgetTraitDefinition.SOURCE_PROPERTY),                      "<!-- @structr:content(text/html) --><structr:template>${{Structr.print(\"<div>Test</div>\");}}</structr:template>"),
-					new NodeAttribute<>(Traits.of(StructrTraits.WIDGET).key("configuration"),               "{\"processDeploymentInfo\": true}"),
+					new NodeAttribute<>(Traits.of(StructrTraits.WIDGET).key(WidgetTraitDefinition.CONFIGURATION_PROPERTY),               "{\"processDeploymentInfo\": true}"),
 					new NodeAttribute<>(Traits.of(StructrTraits.WIDGET).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY),        true),
 					new NodeAttribute<>(Traits.of(StructrTraits.WIDGET).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true)
 			);
@@ -294,7 +295,7 @@ public class Deployment3Test extends DeploymentTestBase {
 						"		Test123\n" +
 						"	</div>\n" +
 						"</structr:component>"),
-					new NodeAttribute<>(Traits.of(StructrTraits.WIDGET).key("configuration"), ""),
+					new NodeAttribute<>(Traits.of(StructrTraits.WIDGET).key(WidgetTraitDefinition.CONFIGURATION_PROPERTY), ""),
 					new NodeAttribute<>(Traits.of(StructrTraits.WIDGET).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true),
 					new NodeAttribute<>(Traits.of(StructrTraits.WIDGET).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true)
 
@@ -388,9 +389,9 @@ public class Deployment3Test extends DeploymentTestBase {
 
 			// create test file with custom attributes
 			app.create(StructrTraits.FILE,
-				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),        "test.txt"),
-				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY),      folder),
-				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key("contentType"), "text/plain"),
+				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),  "test.txt"),
+				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY), folder),
+				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.CONTENT_TYPE_PROPERTY),   "text/plain"),
 				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key("test1"),       123),
 				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key("test2"),       "testString")
 			);

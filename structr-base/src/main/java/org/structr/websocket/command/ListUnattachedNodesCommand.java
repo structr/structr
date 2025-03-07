@@ -30,6 +30,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -96,8 +97,8 @@ public class ListUnattachedNodesCommand extends AbstractCommand {
 			.includeHidden()
 			.pageSize(pageSize)
 			.page(page)
-			.and(traits.key("ownerDocument"), null)
-			.and(traits.key("parent"), null);
+			.and(traits.key(DOMNodeTraitDefinition.OWNER_DOCUMENT_PROPERTY), null)
+			.and(traits.key(DOMNodeTraitDefinition.PARENT_PROPERTY), null);
 
 		if (sortKey != null) {
 

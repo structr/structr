@@ -37,6 +37,7 @@ import org.structr.web.entity.StorageConfiguration;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.Map.Entry;
+import org.structr.web.traits.definitions.StorageConfigurationTraitDefinition;
 
 public abstract class StorageProviderFactory {
 
@@ -59,8 +60,8 @@ public abstract class StorageProviderFactory {
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface node = app.create(StructrTraits.STORAGE_CONFIGURATION,
-				new NodeAttribute<>(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     name),
-				new NodeAttribute<>(traits.key("provider"), impl.getName())
+				new NodeAttribute<>(traits.key(StorageConfigurationTraitDefinition.NAME_PROPERTY),     name),
+				new NodeAttribute<>(traits.key(StorageConfigurationTraitDefinition.PROVIDER_PROPERTY), impl.getName())
 			);
 
 			final StorageConfiguration sc = node.as(StorageConfiguration.class);

@@ -18,6 +18,7 @@
  */
 package org.structr.web.traits.definitions;
 
+import org.structr.common.PropertyView;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
@@ -39,11 +40,14 @@ import java.util.Set;
 
 public class ParameterMappingTraitDefinition extends AbstractNodeTraitDefinition {
 
-	/*
-	public static final View uiView = new View(ParameterMapping.class, PropertyView.Ui,
-		parameterType, parameterName, constantValue, scriptExpression, methodResult, flowResult, inputElement
-	);
-	*/
+	public static final String ACTION_MAPPING_PROPERTY    = "actionMapping";
+	public static final String INPUT_ELEMENT_PROPERTY     = "inputElement";
+	public static final String PARAMETER_TYPE_PROPERTY    = "parameterType";
+	public static final String PARAMETER_NAME_PROPERTY    = "parameterName";
+	public static final String CONSTANT_VALUE_PROPERTY    = "constantValue";
+	public static final String SCRIPT_EXPRESSION_PROPERTY = "scriptExpression";
+	public static final String METHOD_RESULT_PROPERTY     = "methodResult";
+	public static final String FLOW_RESULT_PROPERTY       = "flowResult";
 
 	public ParameterMappingTraitDefinition() {
 		super(StructrTraits.PARAMETER_MAPPING);
@@ -80,16 +84,16 @@ public class ParameterMappingTraitDefinition extends AbstractNodeTraitDefinition
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> actionMappingProperty = new StartNode("actionMapping", StructrTraits.ACTION_MAPPING_PARAMETER_PARAMETER_MAPPING);
-		final Property<NodeInterface> inputElement          = new StartNode("inputElement", StructrTraits.DOM_ELEMENT_INPUT_ELEMENT_PARAMETER_MAPPING);
+		final Property<NodeInterface> actionMappingProperty = new StartNode(ACTION_MAPPING_PROPERTY, StructrTraits.ACTION_MAPPING_PARAMETER_PARAMETER_MAPPING);
+		final Property<NodeInterface> inputElement          = new StartNode(INPUT_ELEMENT_PROPERTY, StructrTraits.DOM_ELEMENT_INPUT_ELEMENT_PARAMETER_MAPPING);
 
 		// user-input, constant-value, page-param, pagesize-param, script-expression, method-result, flow-result
-		final Property<String> parameterType    = new StringProperty("parameterType").hint("Type of this parameter, e.g. user input, constant value, page-param, pagesize-param, result of a script expression, method call or flow...");
-		final Property<String> parameterName    = new StringProperty("parameterName").hint("Parameter name");
-		final Property<String> constantValue    = new StringProperty("constantValue").hint("Constant value");
-		final Property<String> scriptExpression = new StringProperty("scriptExpression").hint("Script expression to be evaluated to result value");
-		final Property<String> methodResult     = new StringProperty("methodResult").hint("Method to be evaluated to result value");
-		final Property<String> flowResult       = new StringProperty("flowResult").hint("Flow to be evaluated to result value");
+		final Property<String> parameterType    = new StringProperty(PARAMETER_TYPE_PROPERTY).hint("Type of this parameter, e.g. user input, constant value, page-param, pagesize-param, result of a script expression, method call or flow...");
+		final Property<String> parameterName    = new StringProperty(PARAMETER_NAME_PROPERTY).hint("Parameter name");
+		final Property<String> constantValue    = new StringProperty(CONSTANT_VALUE_PROPERTY).hint("Constant value");
+		final Property<String> scriptExpression = new StringProperty(SCRIPT_EXPRESSION_PROPERTY).hint("Script expression to be evaluated to result value");
+		final Property<String> methodResult     = new StringProperty(METHOD_RESULT_PROPERTY).hint("Method to be evaluated to result value");
+		final Property<String> flowResult       = new StringProperty(FLOW_RESULT_PROPERTY).hint("Flow to be evaluated to result value");
 
 		return Set.of(
 			actionMappingProperty,
@@ -100,6 +104,18 @@ public class ParameterMappingTraitDefinition extends AbstractNodeTraitDefinition
 			scriptExpression,
 			methodResult,
 			flowResult
+		);
+	}
+
+	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+				PropertyView.Ui,
+				newSet(
+					PARAMETER_TYPE_PROPERTY, PARAMETER_NAME_PROPERTY, CONSTANT_VALUE_PROPERTY, SCRIPT_EXPRESSION_PROPERTY,
+					METHOD_RESULT_PROPERTY, FLOW_RESULT_PROPERTY, INPUT_ELEMENT_PROPERTY
+				)
 		);
 	}
 

@@ -41,6 +41,7 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
 import org.structr.web.entity.Folder;
+import org.structr.web.entity.StorageConfigurationEntry;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
@@ -49,6 +50,12 @@ import org.structr.web.entity.event.ActionMapping;
 import java.util.*;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 import org.structr.web.traits.definitions.ActionMappingTraitDefinition;
+import org.structr.web.traits.definitions.FolderTraitDefinition;
+import org.structr.web.traits.definitions.ParameterMappingTraitDefinition;
+import org.structr.web.traits.definitions.StorageConfigurationEntryTraitDefinition;
+import org.structr.web.traits.definitions.StorageConfigurationTraitDefinition;
+import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
+import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 
 public class MigrationService {
 
@@ -349,7 +356,7 @@ public class MigrationService {
 			final PropertyKey<Iterable<NodeInterface>> failureNotificationElementsKey = actionMappingTraits.key(ActionMappingTraitDefinition.FAILURE_NOTIFICATION_ELEMENTS_PROPERTY);
 
 			final Traits parameterMappingTraits              = Traits.of(StructrTraits.PARAMETER_MAPPING);
-			final PropertyKey<NodeInterface> inputElementKey = parameterMappingTraits.key("inputElement");
+			final PropertyKey<NodeInterface> inputElementKey = parameterMappingTraits.key(ParameterMappingTraitDefinition.INPUT_ELEMENT_PROPERTY);
 
 			for (final NodeInterface eam : app.nodeQuery(StructrTraits.ACTION_MAPPING).getResultStream()) {
 
@@ -421,12 +428,12 @@ public class MigrationService {
 			}
 
 			final Traits domElementTraits                 = Traits.of(StructrTraits.DOM_ELEMENT);
-			final PropertyKey<String> reloadTargetKey     = new StringProperty("data-structr-reload-target");
+			final PropertyKey<String> reloadTargetKey     = new StringProperty(DOMElementTraitDefinition.DATA_STRUCTR_RELOAD_TARGET_PROPERTY);
 			final PropertyKey<String> actionKey           = new StringProperty("data-structr-action");
 			final PropertyKey<String> successBehaviourKey = actionMappingTraits.key(ActionMappingTraitDefinition.SUCCESS_BEHAVIOUR_PROPERTY);
 			final PropertyKey<String> newActionKey        = actionMappingTraits.key(ActionMappingTraitDefinition.ACTION_PROPERTY);
 			final PropertyKey<String> methodKey           = actionMappingTraits.key(ActionMappingTraitDefinition.METHOD_PROPERTY);
-			final PropertyKey<String> eventMappingKey     = domElementTraits.key("eventMapping");
+			final PropertyKey<String> eventMappingKey     = domElementTraits.key(DOMElementTraitDefinition.EVENT_MAPPING_PROPERTY);
 
 			// check (and fix if possible) structr-app.js implementations
 			logger.info("Checking for structr-app.js implementations that need migration..");
@@ -484,7 +491,7 @@ public class MigrationService {
 		final String action               = parts[0];
 		final String attrs                = getAndClearStringValue(elem, "data-structr-attributes");
 		final String returnUrl            = getAndClearStringValue(elem, "data-structr-return");
-		final String idExpression         = getAndClearStringValue(elem, "data-structr-id");
+		final String idExpression         = getAndClearStringValue(elem, DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY);
 		final boolean appendId            = getAndClearBooleanValue(elem, "data-structr-append-id");
 		final boolean reload              = getAndClearBooleanValue(elem, "data-structr-reload");
 		final boolean confirm             = getAndClearBooleanValue(elem, "data-structr-confirm");
@@ -756,8 +763,8 @@ public class MigrationService {
 			final String value           = parameters.get(key);
 			final PropertyMap properties = new PropertyMap();
 
-			properties.put(traits.key("actionMapping"),    actionMapping);
-			properties.put(traits.key("parameterName"),    key);
+			properties.put(traits.key(ParameterMappingTraitDefinition.ACTION_MAPPING_PROPERTY),    actionMapping);
+			properties.put(traits.key(ParameterMappingTraitDefinition.PARAMETER_NAME_PROPERTY),    key);
 
 			/*
 			*/
@@ -769,37 +776,37 @@ public class MigrationService {
 
 				if (inputElement != null) {
 
-					properties.put(traits.key("parameterType"), "user-input");
-					properties.put(traits.key("inputElement"),  inputElement);
+					properties.put(traits.key(ParameterMappingTraitDefinition.PARAMETER_TYPE_PROPERTY), "user-input");
+					properties.put(traits.key(ParameterMappingTraitDefinition.INPUT_ELEMENT_PROPERTY),  inputElement);
 
 				} else {
 
-					properties.put(traits.key("parameterType"),    "script-expression");
-					properties.put(traits.key("scriptExpression"), value);
+					properties.put(traits.key(ParameterMappingTraitDefinition.PARAMETER_TYPE_PROPERTY),    "script-expression");
+					properties.put(traits.key(ParameterMappingTraitDefinition.SCRIPT_EXPRESSION_PROPERTY), value);
 				}
 
 			} else if (value.startsWith("name(") && value.endsWith(")")) {
 
-				properties.put(traits.key("parameterType"), "user-input");
+				properties.put(traits.key(ParameterMappingTraitDefinition.PARAMETER_TYPE_PROPERTY), "user-input");
 
 				final String trimmedValue     = value.substring(5, value.length() - 1);
 				final DOMElement inputElement = findElementWithName(elem, trimmedValue);
 
 				if (inputElement != null) {
 
-					properties.put(traits.key("parameterType"), "user-input");
-					properties.put(traits.key("inputElement"),  inputElement);
+					properties.put(traits.key(ParameterMappingTraitDefinition.PARAMETER_TYPE_PROPERTY), "user-input");
+					properties.put(traits.key(ParameterMappingTraitDefinition.INPUT_ELEMENT_PROPERTY),  inputElement);
 
 				} else {
 
-					properties.put(traits.key("parameterType"),    "script-expression");
-					properties.put(traits.key("scriptExpression"), value);
+					properties.put(traits.key(ParameterMappingTraitDefinition.PARAMETER_TYPE_PROPERTY),    "script-expression");
+					properties.put(traits.key(ParameterMappingTraitDefinition.SCRIPT_EXPRESSION_PROPERTY), value);
 				}
 
 			} else {
 
-				properties.put(traits.key("parameterType"), "script-expression");
-				properties.put(traits.key("scriptExpression"), value);
+				properties.put(traits.key(ParameterMappingTraitDefinition.PARAMETER_TYPE_PROPERTY), "script-expression");
+				properties.put(traits.key(ParameterMappingTraitDefinition.SCRIPT_EXPRESSION_PROPERTY), value);
 			}
 
 			StructrApp.getInstance().create(StructrTraits.PARAMETER_MAPPING, properties);
@@ -809,7 +816,7 @@ public class MigrationService {
 
 	private static void updateSharedComponentFlag() {
 
-		final PropertyKey<Boolean> key = Traits.of(StructrTraits.DOM_ELEMENT).key("hasSharedComponent");
+		final PropertyKey<Boolean> key = Traits.of(StructrTraits.DOM_ELEMENT).key(DOMNodeTraitDefinition.HAS_SHARED_COMPONENT_PROPERTY);
 		final App app                  = StructrApp.getInstance();
 		long count                     = 0L;
 
@@ -954,7 +961,7 @@ public class MigrationService {
 
 	private static void warnAboutRestQueryRepeaters() {
 
-		final PropertyKey<String> key = Traits.of(StructrTraits.DOM_ELEMENT).key("restQuery");
+		final PropertyKey<String> key = Traits.of(StructrTraits.DOM_ELEMENT).key(DOMNodeTraitDefinition.REST_QUERY_PROPERTY);
 		final App app                 = StructrApp.getInstance();
 
 		try (final Tx tx = app.tx()) {
@@ -981,14 +988,15 @@ public class MigrationService {
 
 	private static void migrateFolderMountTarget() {
 
-		final Traits storageConfigurationTraits = Traits.of(StructrTraits.STORAGE_CONFIGURATION);
-		final Traits folderTraits               = Traits.of(StructrTraits.FOLDER);
-		final App app                           = StructrApp.getInstance();
+		final Traits storageConfigurationTraits      = Traits.of(StructrTraits.STORAGE_CONFIGURATION);
+		final Traits storageConfigurationEntryTraits = Traits.of(StructrTraits.STORAGE_CONFIGURATION_ENTRY);
+		final Traits folderTraits                    = Traits.of(StructrTraits.FOLDER);
+		final App app                                = StructrApp.getInstance();
 
 		try (final Tx tx = app.tx()) {
 
 			final List<NodeInterface> mountedFolders = app.nodeQuery(StructrTraits.FOLDER)
-				.notBlank(folderTraits.key("mountTarget"))
+				.notBlank(folderTraits.key(FolderTraitDefinition.MOUNT_TARGET_PROPERTY))
 				.getAsList();
 
 			if (!mountedFolders.isEmpty()) {
@@ -1000,17 +1008,17 @@ public class MigrationService {
 				final Folder folder = node.as(Folder.class);
 
 				final NodeInterface config = app.create(StructrTraits.STORAGE_CONFIGURATION,
-					new NodeAttribute<>(storageConfigurationTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), folder.getFolderPath())
+					new NodeAttribute<>(storageConfigurationTraits.key(StorageConfigurationTraitDefinition.NAME_PROPERTY), folder.getFolderPath())
 				);
 
 				app.create(StructrTraits.STORAGE_CONFIGURATION_ENTRY,
-					new NodeAttribute<>(storageConfigurationTraits.key("configuration"), config),
-					new NodeAttribute<>(storageConfigurationTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),          "mountTarget"),
-					new NodeAttribute<>(storageConfigurationTraits.key("value"),         folder.getMountTarget())
+					new NodeAttribute<>(storageConfigurationEntryTraits.key(StorageConfigurationEntryTraitDefinition.CONFIGURATION_PROPERTY), config),
+					new NodeAttribute<>(storageConfigurationEntryTraits.key(StorageConfigurationEntryTraitDefinition.NAME_PROPERTY),          "mountTarget"),
+					new NodeAttribute<>(storageConfigurationEntryTraits.key(StorageConfigurationEntryTraitDefinition.VALUE_PROPERTY),         folder.getMountTarget())
 				);
 
 				folder.setProperty(folderTraits.key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY), config);
-				folder.setProperty(folderTraits.key("mountTarget"), null);
+				folder.setProperty(folderTraits.key(FolderTraitDefinition.MOUNT_TARGET_PROPERTY), null);
 			}
 
 			tx.success();

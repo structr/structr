@@ -272,12 +272,9 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 
 		super.onModification(securityContext, errorBuffer, modificationQueue);
 
-		final String uuid = getUuid();
-		if (uuid != null) {
+		// acknowledge all events for this node when it is modified
+		RuntimeEventLog.acknowledgeAllEventsForId(getUuid());
 
-			// acknowledge all events for this node when it is modified
-			RuntimeEventLog.getEvents(e -> uuid.equals(e.getData().get("id"))).stream().forEach(e -> e.acknowledge());
-		}
 
 		if (getProperty(schemaNode) == null) {
 			StructrApp.getInstance().delete(this);

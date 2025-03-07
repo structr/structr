@@ -61,9 +61,8 @@ public class UnarchiveFunction extends UiAdvancedFunction {
 			return usage(ctx.isJavaScriptContext());
 		}
 
-		final ConfigurationProvider config = StructrApp.getConfiguration();
-
 		try {
+
 			final File archiveFile = ((NodeInterface)sources[0]).as(File.class);
 			Folder parentFolder;
 

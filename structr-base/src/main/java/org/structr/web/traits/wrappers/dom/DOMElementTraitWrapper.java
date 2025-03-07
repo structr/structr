@@ -35,6 +35,7 @@ import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.event.ActionMapping;
 import org.structr.web.entity.event.ParameterMapping;
+import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
 import org.structr.web.traits.operations.GetAttributes;
 import org.structr.web.traits.operations.OpeningTag;
 
@@ -109,37 +110,38 @@ public class DOMElementTraitWrapper extends DOMNodeTraitWrapper implements DOMEl
 	// ----- public methods -----
 	@Override
 	public String getTag() {
-		return wrappedObject.getProperty(traits.key("tag"));
+		return wrappedObject.getProperty(traits.key(DOMElementTraitDefinition.TAG_PROPERTY));
 	}
 
 	@Override
 	public String getHtmlId() {
-		return wrappedObject.getProperty(traits.key("_html_id"));
+		return wrappedObject.getProperty(traits.key(DOMElementTraitDefinition._HTML_ID_PROPERTY));
 	}
 
 	@Override
 	public String getHtmlName() {
+		// FIXME ? Where is _html_name defined? should it be on DOMElement?
 		return wrappedObject.getProperty(traits.key("_html_name"));
 	}
 
 	@Override
 	public String getEventMapping() {
-		return wrappedObject.getProperty(traits.key("eventMapping"));
+		return wrappedObject.getProperty(traits.key(DOMElementTraitDefinition.EVENT_MAPPING_PROPERTY));
 	}
 
 	@Override
 	public String getRenderingMode() {
-		return wrappedObject.getProperty(traits.key("data-structr-rendering-mode"));
+		return wrappedObject.getProperty(traits.key(DOMElementTraitDefinition.DATA_STRUCTR_RENDERING_MODE_PROPERTY));
 	}
 
 	@Override
 	public String getDelayOrInterval() {
-		return wrappedObject.getProperty(traits.key("data-structr-delay-or-interval"));
+		return wrappedObject.getProperty(traits.key(DOMElementTraitDefinition.DATA_STRUCTR_DELAY_OR_INTERVAL_PROPERTY));
 	}
 
 	@Override
 	public String getDataReloadTarget() {
-		return wrappedObject.getProperty(traits.key("data-structr-reload-target"));
+		return wrappedObject.getProperty(traits.key(DOMElementTraitDefinition.DATA_STRUCTR_RELOAD_TARGET_PROPERTY));
 	}
 
 	@Override
@@ -170,18 +172,18 @@ public class DOMElementTraitWrapper extends DOMNodeTraitWrapper implements DOMEl
 
 	@Override
 	public boolean isInsertable() {
-		return wrappedObject.getProperty(traits.key("data-structr-insert"));
+		return wrappedObject.getProperty(traits.key(DOMElementTraitDefinition.DATA_STRUCTR_INSERT_PROPERTY));
 	}
 
 	@Override
 	public boolean isFromWidget() {
-		return wrappedObject.getProperty(traits.key("data-structr-from-widget"));
+		return wrappedObject.getProperty(traits.key(DOMElementTraitDefinition.DATA_STRUCTR_FROM_WIDGET_PROPERTY));
 	}
 
 	@Override
 	public Iterable<ActionMapping> getTriggeredActions() {
 
-		final PropertyKey<Iterable<NodeInterface>> key = traits.key("triggeredActions");
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key(DOMElementTraitDefinition.TRIGGERED_ACTIONS_PROPERTY);
 
 		return Iterables.map(n -> n.as(ActionMapping.class), wrappedObject.getProperty(key));
 	}
@@ -189,7 +191,7 @@ public class DOMElementTraitWrapper extends DOMNodeTraitWrapper implements DOMEl
 	@Override
 	public Iterable<ParameterMapping> getParameterMappings() {
 
-		final PropertyKey<Iterable<NodeInterface>> key = traits.key("parameterMappings");
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key(DOMElementTraitDefinition.PARAMETER_MAPPINGS_PROPERTY);
 
 		return Iterables.map(n -> n.as(ParameterMapping.class), wrappedObject.getProperty(key));
 	}
@@ -249,7 +251,7 @@ public class DOMElementTraitWrapper extends DOMNodeTraitWrapper implements DOMEl
 	@Override
 	public Iterable<DOMElement> getReloadSources() {
 
-		final PropertyKey<Iterable<NodeInterface>> key = traits.key("reloadSources");
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key(DOMElementTraitDefinition.RELOAD_SOURCES_PROPERTY);
 
 		return Iterables.map(n -> n.as(DOMElement.class), wrappedObject.getProperty(key));
 	}

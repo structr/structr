@@ -24,6 +24,7 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.Linkable;
+import org.structr.web.traits.definitions.LinkSourceTraitDefinition;
 
 /**
  * This class represents elements which can have an outgoing link to a resource.
@@ -41,7 +42,7 @@ public class LinkSourceTraitWrapper extends AbstractNodeTraitWrapper implements 
 
 	public Linkable getLinkable() {
 
-		final NodeInterface node = wrappedObject.getProperty(traits.key("linkable"));
+		final NodeInterface node = wrappedObject.getProperty(traits.key(LinkSourceTraitDefinition.LINKABLE_PROPERTY));
 		if (node != null) {
 
 			return node.as(Linkable.class);
@@ -51,6 +52,6 @@ public class LinkSourceTraitWrapper extends AbstractNodeTraitWrapper implements 
 	}
 
 	public Object setLinkable(final Linkable linkable) throws FrameworkException {
-		return wrappedObject.setProperty(traits.key("linkable"), linkable);
+		return wrappedObject.setProperty(traits.key(LinkSourceTraitDefinition.LINKABLE_PROPERTY), linkable);
 	}
 }

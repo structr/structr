@@ -41,6 +41,9 @@ import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.dom.*;
 import org.structr.web.maintenance.DeployCommand;
+import org.structr.web.traits.definitions.dom.ContentTraitDefinition;
+import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
+import org.structr.web.traits.definitions.dom.PageTraitDefinition;
 import org.structr.websocket.command.CloneComponentCommand;
 import org.structr.websocket.command.CreateComponentCommand;
 
@@ -254,11 +257,11 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 		}
 
 		// DOMNode
-		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_NODE).key("showConditions")));
-		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_NODE).key("hideConditions")));
-		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_NODE).key("showForLocales")));
-		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_NODE).key("hideForLocales")));
-		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_NODE).key("sharedComponentConfiguration")));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.SHOW_CONDITIONS_PROPERTY)));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.HIDE_CONDITIONS_PROPERTY)));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.SHOW_FOR_LOCALES_PROPERTY)));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.HIDE_FOR_LOCALES_PROPERTY)));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.SHARED_COMPONENT_CONFIGURATION_PROPERTY)));
 
 		if (node.is(StructrTraits.DOM_NODE)) {
 
@@ -270,21 +273,21 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 		}
 
 		// DOMElement
-		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_ELEMENT).key("dataKey")));
-		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_ELEMENT).key("restQuery")));
-		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_ELEMENT).key("cypherQuery")));
-		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_ELEMENT).key("functionQuery")));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_ELEMENT).key(DOMNodeTraitDefinition.DATA_KEY_PROPERTY)));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_ELEMENT).key(DOMNodeTraitDefinition.REST_QUERY_PROPERTY)));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_ELEMENT).key(DOMNodeTraitDefinition.CYPHER_QUERY_PROPERTY)));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_ELEMENT).key(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY)));
 
 		// Content
-		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.CONTENT).key("contentType")));
-		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.CONTENT).key("content")));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.CONTENT).key(ContentTraitDefinition.CONTENT_TYPE_PROPERTY)));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.CONTENT).key(ContentTraitDefinition.CONTENT_PROPERTY)));
 
 		// Page
-		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.PAGE).key("cacheForSeconds")));
-		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.PAGE).key("dontCache")));
-		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.PAGE).key("pageCreatesRawData")));
-		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.PAGE).key("position")));
-		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.PAGE).key("showOnErrorCodes")));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.CACHE_FOR_SECONDS_PROPERTY)));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.PAGE).key(DOMNodeTraitDefinition.DONT_CACHE_PROPERTY)));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.PAGE_CREATES_RAW_DATA_PROPERTY)));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.POSITION_PROPERTY)));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.SHOW_ON_ERROR_CODES_PROPERTY)));
 
 		// HTML attributes
 		if (node.is(StructrTraits.DOM_ELEMENT)) {
@@ -338,8 +341,8 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 	protected Template createTemplate(final Page page, final DOMNode parent, final String content) throws FrameworkException {
 
 		final NodeInterface template = StructrApp.getInstance().create(StructrTraits.TEMPLATE,
-			new NodeAttribute<>(Traits.of(StructrTraits.TEMPLATE).key("content"), content),
-			new NodeAttribute<>(Traits.of(StructrTraits.TEMPLATE).key("ownerDocument"), page)
+			new NodeAttribute<>(Traits.of(StructrTraits.TEMPLATE).key(ContentTraitDefinition.CONTENT_PROPERTY), content),
+			new NodeAttribute<>(Traits.of(StructrTraits.TEMPLATE).key(DOMNodeTraitDefinition.OWNER_DOCUMENT_PROPERTY), page)
 		);
 
 		if (parent != null) {

@@ -30,6 +30,7 @@ import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.File;
+import org.structr.web.traits.definitions.CssRuleTraitDefinition;
 import org.w3c.css.sac.InputSource;
 import org.w3c.dom.css.CSSRule;
 import org.w3c.dom.css.CSSRuleList;
@@ -128,8 +129,8 @@ public class ImportCssFunction extends UiAdvancedFunction {
 		// Create node for CSS rule
 		final NodeInterface cssRuleNode = app.create(StructrTraits.CSS_RULE, selectorsString);
 
-		cssRuleNode.setProperty(traits.key("cssText"), cssText);
-		cssRuleNode.setProperty(traits.key("ruleType"), Short.toUnsignedInt(rule.getType()));
+		cssRuleNode.setProperty(traits.key(CssRuleTraitDefinition.CSS_TEXT_PROPERTY), cssText);
+		cssRuleNode.setProperty(traits.key(CssRuleTraitDefinition.RULE_TYPE_PROPERTY), Short.toUnsignedInt(rule.getType()));
 
 		// Extract and link selectors
 		final List<NodeInterface> cssSelectors = new LinkedList<>();
@@ -141,7 +142,7 @@ public class ImportCssFunction extends UiAdvancedFunction {
 			cssSelectors.add(cssSelectorNode);
 		}
 
-		cssRuleNode.setProperty(traits.key("selectors"), cssSelectors);
+		cssRuleNode.setProperty(traits.key(CssRuleTraitDefinition.SELECTORS_PROPERTY), cssSelectors);
 
 		// Extract and link declarations
 		final List<NodeInterface> cssDeclarations = new LinkedList<>();
@@ -157,6 +158,7 @@ public class ImportCssFunction extends UiAdvancedFunction {
 			}
 		}
 
+		// FIXME: where is "declarations" defined? (even in main)
 		cssRuleNode.setProperty(traits.key("declarations"), cssDeclarations);
 
 		// Import and link parent rule
@@ -164,7 +166,7 @@ public class ImportCssFunction extends UiAdvancedFunction {
 		if (parentRule != null) {
 
 			final NodeInterface parentRuleNode = importCSSRule(parentRule);
-			cssRuleNode.setProperty(traits.key("parentRule"), parentRuleNode);
+			cssRuleNode.setProperty(traits.key(CssRuleTraitDefinition.PARENT_RULE_PROPERTY), parentRuleNode);
 		}
 
 		return cssRuleNode;

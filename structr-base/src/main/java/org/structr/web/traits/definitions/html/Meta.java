@@ -56,10 +56,10 @@ public class Meta extends GenericHtmlElementTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final PropertyKey<String> nameProperty = new HtmlProperty("name");
+		final PropertyKey<String> nameProperty      = new HtmlProperty("name");
 		final PropertyKey<String> httpEquivProperty = new HtmlProperty("http-equiv");
-		final PropertyKey<String> contentProperty = new HtmlProperty("content");
-		final PropertyKey<String> charsetProperty = new HtmlProperty("charset");
+		final PropertyKey<String> contentProperty   = new HtmlProperty("content");
+		final PropertyKey<String> charsetProperty   = new HtmlProperty("charset");
 
 		return newSet(
 			nameProperty, httpEquivProperty, contentProperty, charsetProperty

@@ -34,6 +34,8 @@ import org.structr.web.entity.StorageConfigurationEntry;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import org.structr.web.traits.definitions.StorageConfigurationEntryTraitDefinition;
+import org.structr.web.traits.definitions.StorageConfigurationTraitDefinition;
 
 /**
  * Storage container for mount configuration entries.
@@ -51,12 +53,12 @@ public class StorageConfigurationTraitWrapper extends AbstractNodeTraitWrapper i
 	}
 
 	public Iterable<NodeInterface> getEntries() {
-		return wrappedObject.getProperty(traits.key("entries"));
+		return wrappedObject.getProperty(traits.key(StorageConfigurationTraitDefinition.ENTRIES_PROPERTY));
 	}
 
 	@Override
 	public String getProvider() {
-		return wrappedObject.getProperty(traits.key("provider"));
+		return wrappedObject.getProperty(traits.key(StorageConfigurationTraitDefinition.PROVIDER_PROPERTY));
 	}
 
 	public Map<String, String> getConfiguration() {
@@ -103,9 +105,9 @@ public class StorageConfigurationTraitWrapper extends AbstractNodeTraitWrapper i
 		final Traits entryTraits = Traits.of(type);
 
 		return StructrApp.getInstance().create(type,
-			new NodeAttribute<>(entryTraits.key("configuration"), this),
-			new NodeAttribute<>(entryTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),          key),
-			new NodeAttribute<>(entryTraits.key("value"),         value)
+			new NodeAttribute<>(entryTraits.key(StorageConfigurationEntryTraitDefinition.CONFIGURATION_PROPERTY), this),
+			new NodeAttribute<>(entryTraits.key(StorageConfigurationEntryTraitDefinition.NAME_PROPERTY),          key),
+			new NodeAttribute<>(entryTraits.key(StorageConfigurationEntryTraitDefinition.VALUE_PROPERTY),         value)
 		);
 	}
 }

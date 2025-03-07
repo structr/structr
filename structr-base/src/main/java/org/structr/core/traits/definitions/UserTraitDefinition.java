@@ -53,6 +53,7 @@ import org.structr.web.entity.User;
 import java.util.Map;
 import java.util.Set;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.FolderTraitDefinition;
 
 public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 
@@ -198,7 +199,7 @@ public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 
 			if (Settings.FilesystemEnabled.getValue()) {
 
-				final PropertyKey<NodeInterface> homeFolderKey = folderTraits.key("homeFolderOfUser");
+				final PropertyKey<NodeInterface> homeFolderKey = folderTraits.key(FolderTraitDefinition.HOME_FOLDER_OF_USER_PROPERTY);
 				final PropertyKey<NodeInterface> parentKey     = folderTraits.key(AbstractFileTraitDefinition.PARENT_PROPERTY);
 
 				try {

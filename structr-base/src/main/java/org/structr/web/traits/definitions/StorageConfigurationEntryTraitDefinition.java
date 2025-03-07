@@ -18,6 +18,7 @@
  */
 package org.structr.web.traits.definitions;
 
+import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
@@ -38,12 +39,9 @@ import java.util.Set;
  */
 public class StorageConfigurationEntryTraitDefinition extends AbstractNodeTraitDefinition {
 
-	/*
-	public static final View uiView = new View(StorageConfigurationEntry.class, PropertyView.Ui,
-		nameProperty, valueProperty, configurationProperty
-	);
-
-	 */
+	public static final String CONFIGURATION_PROPERTY = "configuration";
+	public static final String NAME_PROPERTY          = "name";
+	public static final String VALUE_PROPERTY         = "value";
 
 	public StorageConfigurationEntryTraitDefinition() {
 		super(StructrTraits.STORAGE_CONFIGURATION_ENTRY);
@@ -76,14 +74,23 @@ public class StorageConfigurationEntryTraitDefinition extends AbstractNodeTraitD
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> configurationProperty = new StartNode("configuration", StructrTraits.STORAGE_CONFIGURATION_CONFIG_ENTRY_STORAGE_CONFIGURATION_ENTRY);
-		final Property<String> nameProperty                 = new StringProperty("name");
-		final Property<String> valueProperty                = new EncryptedStringProperty("value");
+		final Property<NodeInterface> configurationProperty = new StartNode(CONFIGURATION_PROPERTY, StructrTraits.STORAGE_CONFIGURATION_CONFIG_ENTRY_STORAGE_CONFIGURATION_ENTRY);
+		final Property<String> nameProperty                 = new StringProperty(NAME_PROPERTY);
+		final Property<String> valueProperty                = new EncryptedStringProperty(VALUE_PROPERTY);
 
 		return Set.of(
 			configurationProperty,
 			nameProperty,
 			valueProperty
+		);
+	}
+
+	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+				PropertyView.Ui,
+				newSet(NAME_PROPERTY, VALUE_PROPERTY, CONFIGURATION_PROPERTY)
 		);
 	}
 

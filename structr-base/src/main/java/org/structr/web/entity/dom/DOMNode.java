@@ -32,6 +32,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.event.ActionMapping;
@@ -40,6 +41,9 @@ import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import org.structr.web.traits.definitions.LinkSourceTraitDefinition;
+import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
+import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 
 //public interface DOMNode extends NodeTrait, LinkedTreeNode, Node, Renderable, DOMAdoptable, DOMImportable, ContextAwareEntity {
 public interface DOMNode extends NodeInterface, LinkedTreeNode {
@@ -66,7 +70,13 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 	String NOT_SUPPORTED_ERR_MESSAGE_RENAME = "Renaming of nodes is not supported by this implementation.";
 
 	Set<String> cloneBlacklist = new LinkedHashSet<>(Arrays.asList(new String[]{
-		"id", "type", "ownerDocument", "pageId", "parent", "parentId", "syncedNodes", "syncedNodesIds", "children", "childrenIds", "linkable", "linkableId", "path", "relationshipId", "triggeredActions", "reloadingActions", "failureActions", "successNotificationActions", "failureNotificationActions"
+			GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, DOMNodeTraitDefinition.OWNER_DOCUMENT_PROPERTY,
+			DOMNodeTraitDefinition.PAGE_ID_PROPERTY, DOMNodeTraitDefinition.PARENT_PROPERTY, DOMNodeTraitDefinition.PARENT_ID_PROPERTY,
+			DOMNodeTraitDefinition.SYNCED_NODES_PROPERTY, DOMNodeTraitDefinition.SYNCED_NODES_IDS_PROPERTY, DOMNodeTraitDefinition.CHILDREN_PROPERTY,
+			DOMNodeTraitDefinition.CHILDREN_IDS_PROPERTY, LinkSourceTraitDefinition.LINKABLE_PROPERTY, LinkSourceTraitDefinition.LINKABLE_ID_PROPERTY,
+			DOMElementTraitDefinition.PATH_PROPERTY, "relationshipId", DOMElementTraitDefinition.TRIGGERED_ACTIONS_PROPERTY,
+			DOMNodeTraitDefinition.RELOADING_ACTIONS_PROPERTY, DOMNodeTraitDefinition.FAILURE_ACTIONS_PROPERTY,
+			DOMNodeTraitDefinition.SUCCESS_NOTIFICATION_ACTIONS_PROPERTY, DOMNodeTraitDefinition.FAILURE_NOTIFICATION_ACTIONS_PROPERTY
 	}));
 
 	static void collectNodesByPredicate(final SecurityContext securityContext, DOMNode startNode, List<DOMNode> results, Predicate<DOMNode> predicate, int depth, boolean stopOnFirstHit) throws FrameworkException {

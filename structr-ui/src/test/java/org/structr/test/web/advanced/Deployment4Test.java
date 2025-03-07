@@ -53,6 +53,7 @@ import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.maintenance.DeployCommand;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.FileTraitDefinition;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -231,29 +232,29 @@ public class Deployment4Test extends DeploymentTestBase {
 			test1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY),                     true);
 			test1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY),              true);
 			test1.setProperty(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY), true);
-			test1.setProperty(Traits.of(StructrTraits.FILE).key("isTemplate"),              true);
-			test1.setProperty(Traits.of(StructrTraits.FILE).key("dontCache"),               false);
+			test1.setProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.IS_TEMPLATE_PROPERTY),              true);
+			test1.setProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.DONT_CACHE_PROPERTY),               false);
 
 			test2.as(AccessControllable.class).grant(Permission.write, p1);
 			test2.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY),                     false);
 			test2.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY),              true);
 			test2.setProperty(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY), true);
-			test2.setProperty(Traits.of(StructrTraits.FILE).key("isTemplate"),              false);
-			test2.setProperty(Traits.of(StructrTraits.FILE).key("dontCache"),               true);
+			test2.setProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.IS_TEMPLATE_PROPERTY),              false);
+			test2.setProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.DONT_CACHE_PROPERTY),               true);
 
 			test3.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), p2);
 			test3.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY),                     true);
 			test3.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY),              false);
 			test3.setProperty(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY), true);
-			test3.setProperty(Traits.of(StructrTraits.FILE).key("isTemplate"),              true);
-			test3.setProperty(Traits.of(StructrTraits.FILE).key("dontCache"),               false);
+			test3.setProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.IS_TEMPLATE_PROPERTY),              true);
+			test3.setProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.DONT_CACHE_PROPERTY),               false);
 
 			test4.as(AccessControllable.class).grant(Permission.write, p2);
 			test4.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY),                     false);
 			test4.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY),              false);
 			test4.setProperty(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY), true);
-			test4.setProperty(Traits.of(StructrTraits.FILE).key("isTemplate"),              false);
-			test4.setProperty(Traits.of(StructrTraits.FILE).key("dontCache"),               true);
+			test4.setProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.IS_TEMPLATE_PROPERTY),              false);
+			test4.setProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.DONT_CACHE_PROPERTY),               true);
 
 			tx.success();
 
@@ -306,8 +307,8 @@ public class Deployment4Test extends DeploymentTestBase {
 				test.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY),                       p3);		// set wrong owner, to be corrected by deployment import
 				test.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY),        true);
 				test.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
-				test.setProperty(Traits.of(StructrTraits.FILE).key("isTemplate"), true);
-				test.setProperty(Traits.of(StructrTraits.FILE).key("dontCache"),  true);
+				test.setProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.IS_TEMPLATE_PROPERTY), true);
+				test.setProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.DONT_CACHE_PROPERTY),  true);
 			}
 
 			tx.success();
@@ -358,8 +359,8 @@ public class Deployment4Test extends DeploymentTestBase {
 				assertEquals("Owner is not set correctly by deployment import",         p1, test1.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY)));
 				assertEquals("Visibility is not set correctly by deployment import",  true, (Object)test1.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY)));
 				assertEquals("Visibility is not set correctly by deployment import",  true, (Object)test1.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY)));
-				assertEquals("isTemplate is not set correctly by deployment import",  true, (Object)test1.getProperty(Traits.of(StructrTraits.FILE).key("isTemplate")));
-				assertEquals("dontCache is not set correctly by deployment import",  false, (Object)test1.getProperty(Traits.of(StructrTraits.FILE).key("dontCache")));
+				assertEquals("isTemplate is not set correctly by deployment import",  true, (Object)test1.getProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.IS_TEMPLATE_PROPERTY)));
+				assertEquals("dontCache is not set correctly by deployment import",  false, (Object)test1.getProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.DONT_CACHE_PROPERTY)));
 			}
 
 			{
@@ -376,8 +377,8 @@ public class Deployment4Test extends DeploymentTestBase {
 				assertEquals("Owner is not set correctly by deployment import",       (NodeInterface)null, test2.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY)));
 				assertEquals("Visibility is not set correctly by deployment import", false, (Object)test2.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY)));
 				assertEquals("Visibility is not set correctly by deployment import",  true, (Object)test2.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY)));
-				assertEquals("isTemplate is not set correctly by deployment import", false, (Object)test2.getProperty(Traits.of(StructrTraits.FILE).key("isTemplate")));
-				assertEquals("dontCache is not set correctly by deployment import",   true, (Object)test2.getProperty(Traits.of(StructrTraits.FILE).key("dontCache")));
+				assertEquals("isTemplate is not set correctly by deployment import", false, (Object)test2.getProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.IS_TEMPLATE_PROPERTY)));
+				assertEquals("dontCache is not set correctly by deployment import",   true, (Object)test2.getProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.DONT_CACHE_PROPERTY)));
 			}
 
 			{
@@ -394,8 +395,8 @@ public class Deployment4Test extends DeploymentTestBase {
 				assertEquals("Owner is not set correctly by deployment import",         p2, test3.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY)));
 				assertEquals("Visibility is not set correctly by deployment import",  true, (Object)test3.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY)));
 				assertEquals("Visibility is not set correctly by deployment import", false, (Object)test3.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY)));
-				assertEquals("isTemplate is not set correctly by deployment import",  true, (Object)test3.getProperty(Traits.of(StructrTraits.FILE).key("isTemplate")));
-				assertEquals("dontCache is not set correctly by deployment import",  false, (Object)test3.getProperty(Traits.of(StructrTraits.FILE).key("dontCache")));
+				assertEquals("isTemplate is not set correctly by deployment import",  true, (Object)test3.getProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.IS_TEMPLATE_PROPERTY)));
+				assertEquals("dontCache is not set correctly by deployment import",  false, (Object)test3.getProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.DONT_CACHE_PROPERTY)));
 			}
 
 			{
@@ -412,8 +413,8 @@ public class Deployment4Test extends DeploymentTestBase {
 				assertEquals("Owner is not set correctly by deployment import",      (NodeInterface) null, test4.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY)));
 				assertEquals("Visibility is not set correctly by deployment import", false, (Object)test4.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY)));
 				assertEquals("Visibility is not set correctly by deployment import", false, (Object)test4.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY)));
-				assertEquals("isTemplate is not set correctly by deployment import", false, (Object)test4.getProperty(Traits.of(StructrTraits.FILE).key("isTemplate")));
-				assertEquals("dontCache is not set correctly by deployment import",   true, (Object)test4.getProperty(Traits.of(StructrTraits.FILE).key("dontCache")));
+				assertEquals("isTemplate is not set correctly by deployment import", false, (Object)test4.getProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.IS_TEMPLATE_PROPERTY)));
+				assertEquals("dontCache is not set correctly by deployment import",   true, (Object)test4.getProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.DONT_CACHE_PROPERTY)));
 			}
 
 			tx.success();

@@ -18,6 +18,7 @@
  */
 package org.structr.web.traits.definitions;
 
+import org.structr.common.PropertyView;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
@@ -29,7 +30,6 @@ import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
-import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
@@ -45,11 +45,10 @@ import java.util.Set;
 
 public class StorageConfigurationTraitDefinition extends AbstractNodeTraitDefinition {
 
-	/*
-	public static final View uiView = new View(StorageConfiguration.class, PropertyView.Ui,
-		nameProperty, providerProperty, entriesProperty
-	);
-	*/
+	public static final String ENTRIES_PROPERTY  = "entries";
+	public static final String FOLDERS_PROPERTY  = "folders";
+	public static final String NAME_PROPERTY     = "name";
+	public static final String PROVIDER_PROPERTY = "provider";
 
 	public StorageConfigurationTraitDefinition() {
 		super(StructrTraits.STORAGE_CONFIGURATION);
@@ -69,8 +68,8 @@ public class StorageConfigurationTraitDefinition extends AbstractNodeTraitDefini
 					boolean valid = true;
 
 					final Traits traits                = obj.getTraits();
-					final PropertyKey nameProperty     = traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
-					final PropertyKey providerProperty = traits.key("provider");
+					final PropertyKey nameProperty     = traits.key(NAME_PROPERTY);
+					final PropertyKey providerProperty = traits.key(PROVIDER_PROPERTY);
 
 					valid &= ValidationHelper.isValidPropertyNotNull(obj, nameProperty, errorBuffer);
 					valid &= ValidationHelper.isValidUniqueProperty(obj,  nameProperty, errorBuffer);
@@ -104,16 +103,25 @@ public class StorageConfigurationTraitDefinition extends AbstractNodeTraitDefini
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Iterable<NodeInterface>> entriesProperty = new EndNodes("entries", StructrTraits.STORAGE_CONFIGURATION_CONFIG_ENTRY_STORAGE_CONFIGURATION_ENTRY);
-		final Property<Iterable<NodeInterface>> foldersProperty = new StartNodes("folders", StructrTraits.ABSTRACT_FILE_CONFIGURED_BY_STORAGE_CONFIGURATION);
-		final Property<String> nameProperty                     = new StringProperty("name").indexed().unique().notNull();
-		final Property<String> providerProperty                 = new StringProperty("provider").indexed().notNull();
+		final Property<Iterable<NodeInterface>> entriesProperty = new EndNodes(ENTRIES_PROPERTY, StructrTraits.STORAGE_CONFIGURATION_CONFIG_ENTRY_STORAGE_CONFIGURATION_ENTRY);
+		final Property<Iterable<NodeInterface>> foldersProperty = new StartNodes(FOLDERS_PROPERTY, StructrTraits.ABSTRACT_FILE_CONFIGURED_BY_STORAGE_CONFIGURATION);
+		final Property<String> nameProperty                     = new StringProperty(NAME_PROPERTY).indexed().unique().notNull();
+		final Property<String> providerProperty                 = new StringProperty(PROVIDER_PROPERTY).indexed().notNull();
 
 		return Set.of(
 			entriesProperty,
 			foldersProperty,
 			nameProperty,
 			providerProperty
+		);
+	}
+
+	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+				PropertyView.Ui,
+				newSet(NAME_PROPERTY, PROVIDER_PROPERTY, ENTRIES_PROPERTY)
 		);
 	}
 

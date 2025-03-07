@@ -24,6 +24,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.SemanticErrorToken;
+import org.structr.common.event.RuntimeEvent;
 import org.structr.common.event.RuntimeEventLog;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
@@ -192,12 +193,8 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 						schemaMethod.handleAutomaticCorrectionOfAttributes();
 					}
 
-					final String uuid = schemaMethod.getUuid();
-					if (uuid != null) {
-
-						// acknowledge all events for this node when it is modified
-						RuntimeEventLog.getEvents(e -> uuid.equals(e.getData().get("id"))).stream().forEach(e -> e.acknowledge());
-					}
+					// acknowledge all events for this node when it is modified
+					RuntimeEventLog.acknowledgeAllEventsForId(schemaMethod.getUuid());
 
 					// FIXME: need to clear schema method cache if this method was deleted (see Actions.methodCache)
 //					// Ensure AbstractSchemaNode methodCache is invalidated when a schema method changes
@@ -364,12 +361,8 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 			handleAutomaticCorrectionOfAttributes(securityContext, errorBuffer);
 		}
 
-		final String uuid = getUuid();
-		if (uuid != null) {
-
-			// acknowledge all events for this node when it is modified
-			RuntimeEventLog.getEvents(e -> uuid.equals(e.getData().get("id"))).stream().forEach(e -> e.acknowledge());
-		}
+		// acknowledge all events for this node when it is modified
+		RuntimeEventLog.acknowledgeAllEventsForId(getUuid());
 
 		// Ensure AbstractSchemaNode methodCache is invalidated when a schema method changes
 		if (!TransactionCommand.isDeleted(getNode())) {

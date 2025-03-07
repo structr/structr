@@ -29,6 +29,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.ImageTraitDefinition;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
 
@@ -69,7 +70,7 @@ public class ListFilesCommand extends AbstractCommand {
 		// for image lists, suppress thumbnails
 		if (type.contains(StructrTraits.IMAGE)) {
 
-			query.and(Traits.of(StructrTraits.IMAGE).key("isThumbnail"), false);
+			query.and(Traits.of(StructrTraits.IMAGE).key(ImageTraitDefinition.IS_THUMBNAIL_PROPERTY), false);
 		}
 
 		try {

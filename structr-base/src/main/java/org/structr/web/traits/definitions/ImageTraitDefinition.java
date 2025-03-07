@@ -57,6 +57,24 @@ import java.util.Set;
  */
 public class ImageTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String IMAGE_PARENT_PROPERTY              = "imageParent";
+	public static final String IMAGE_OF_USER_PROPERTY             = "imageOfUser";
+	public static final String THUMBNAILS_PROPERTY                = "thumbnails";
+	public static final String ORIGINAL_IMAGE_PROPERTY            = "originalImage";
+	public static final String TN_MID_PROPERTY                    = "tnMid";
+	public static final String TN_SMALL_PROPERTY                  = "tnSmall";
+	public static final String IS_CREATING_THUMB_PROPERTY         = "isCreatingThumb";
+	public static final String IS_IMAGE_PROPERTY                  = "isImage";
+	public static final String IS_THUMBNAIL_PROPERTY              = "isThumbnail";
+	public static final String THUMBNAIL_CREATION_FAILED_PROPERTY = "thumbnailCreationFailed";
+	public static final String HEIGHT_PROPERTY                    = "height";
+	public static final String ORIENTATION_PROPERTY               = "orientation";
+	public static final String WIDTH_PROPERTY                     = "width";
+	public static final String EXIF_IFD0_DATA_PROPERTY            = "exifIFD0Data";
+	public static final String EXIF_SUB_IFD_DATA_PROPERTY         = "exifSubIFDData";
+	public static final String GPS_DATA_PROPERTY                  = "gpsData";
+	public static final String IMAGE_DATA_PROPERTY                = "imageData";
+
 	public ImageTraitDefinition() {
 		super(StructrTraits.IMAGE);
 	}
@@ -211,23 +229,23 @@ public class ImageTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> imageParentProperty          = new StartNode("imageParent", StructrTraits.FOLDER_CONTAINS_IMAGE);
-		final Property<NodeInterface> imageOfUser                  = new EndNode("imageOfUser", StructrTraits.IMAGE_PICTURE_OF_USER);
-		final Property<Iterable<NodeInterface>> thumbnailsProperty = new EndNodes("thumbnails", StructrTraits.IMAGE_THUMBNAIL_IMAGE);
-		final Property<NodeInterface> originalImageProperty        = new StartNode("originalImage", StructrTraits.IMAGE_THUMBNAIL_IMAGE);
-		final Property<NodeInterface> tnMidProperty                = new ThumbnailProperty("tnMid").format("300, 300, false").typeHint(StructrTraits.IMAGE);
-		final Property<NodeInterface> tnSmallProperty              = new ThumbnailProperty("tnSmall").format("100, 100, false").typeHint(StructrTraits.IMAGE);
-		final Property<Boolean> isCreatingThumbProperty            = new BooleanProperty("isCreatingThumb").indexed();
-		final Property<Boolean> isImageProperty                    = new ConstantBooleanProperty("isImage", true).readOnly();
-		final Property<Boolean> isThumbnailProperty                = new BooleanProperty("isThumbnail").indexed();
-		final Property<Boolean> thumbnailCreationFailedProperty    = new BooleanProperty("thumbnailCreationFailed");
-		final Property<Integer> heightProperty                     = new IntProperty("height").indexed();
-		final Property<Integer> orientationProperty                = new IntProperty("orientation").indexed();
-		final Property<Integer> widthProperty                      = new IntProperty("width").indexed();
-		final Property<String> exifIFD0DataProperty                = new StringProperty("exifIFD0Data");
-		final Property<String> exifSubIFDDataProperty              = new StringProperty("exifSubIFDData");
-		final Property<String> gpsDataProperty                     = new StringProperty("gpsData");
-		final Property<String> imageDataProperty                   = new ImageDataProperty("imageData").typeHint("String");
+		final Property<NodeInterface> imageParentProperty          = new StartNode(IMAGE_PARENT_PROPERTY, StructrTraits.FOLDER_CONTAINS_IMAGE);
+		final Property<NodeInterface> imageOfUser                  = new EndNode(IMAGE_OF_USER_PROPERTY, StructrTraits.IMAGE_PICTURE_OF_USER);
+		final Property<Iterable<NodeInterface>> thumbnailsProperty = new EndNodes(THUMBNAILS_PROPERTY, StructrTraits.IMAGE_THUMBNAIL_IMAGE);
+		final Property<NodeInterface> originalImageProperty        = new StartNode(ORIGINAL_IMAGE_PROPERTY, StructrTraits.IMAGE_THUMBNAIL_IMAGE);
+		final Property<NodeInterface> tnMidProperty                = new ThumbnailProperty(TN_MID_PROPERTY).format("300, 300, false").typeHint(StructrTraits.IMAGE);
+		final Property<NodeInterface> tnSmallProperty              = new ThumbnailProperty(TN_SMALL_PROPERTY).format("100, 100, false").typeHint(StructrTraits.IMAGE);
+		final Property<Boolean> isCreatingThumbProperty            = new BooleanProperty(IS_CREATING_THUMB_PROPERTY).indexed();
+		final Property<Boolean> isImageProperty                    = new ConstantBooleanProperty(IS_IMAGE_PROPERTY, true).readOnly();
+		final Property<Boolean> isThumbnailProperty                = new BooleanProperty(IS_THUMBNAIL_PROPERTY).indexed();
+		final Property<Boolean> thumbnailCreationFailedProperty    = new BooleanProperty(THUMBNAIL_CREATION_FAILED_PROPERTY);
+		final Property<Integer> heightProperty                     = new IntProperty(HEIGHT_PROPERTY).indexed();
+		final Property<Integer> orientationProperty                = new IntProperty(ORIENTATION_PROPERTY).indexed();
+		final Property<Integer> widthProperty                      = new IntProperty(WIDTH_PROPERTY).indexed();
+		final Property<String> exifIFD0DataProperty                = new StringProperty(EXIF_IFD0_DATA_PROPERTY);
+		final Property<String> exifSubIFDDataProperty              = new StringProperty(EXIF_SUB_IFD_DATA_PROPERTY);
+		final Property<String> gpsDataProperty                     = new StringProperty(GPS_DATA_PROPERTY);
+		final Property<String> imageDataProperty                   = new ImageDataProperty(IMAGE_DATA_PROPERTY).typeHint("String");
 
 		return Set.of(
 			imageParentProperty,
@@ -256,13 +274,16 @@ public class ImageTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-					AbstractFileTraitDefinition.PARENT_PROPERTY, "contentType", "exifIFD0Data", "exifSubIFDData", "gpsData", "height", "isImage", AbstractFileTraitDefinition.IS_MOUNTED_PROPERTY,
-				"isThumbnail", "orientation", "tnMid", "tnSmall", "width"
+					AbstractFileTraitDefinition.PARENT_PROPERTY, FileTraitDefinition.CONTENT_TYPE_PROPERTY, EXIF_IFD0_DATA_PROPERTY,
+					EXIF_SUB_IFD_DATA_PROPERTY, GPS_DATA_PROPERTY, HEIGHT_PROPERTY, WIDTH_PROPERTY, IS_IMAGE_PROPERTY, IS_THUMBNAIL_PROPERTY,
+					AbstractFileTraitDefinition.IS_MOUNTED_PROPERTY, ORIENTATION_PROPERTY, TN_SMALL_PROPERTY, TN_MID_PROPERTY
 			),
+
 			PropertyView.Ui,
 			newSet(
-					AbstractFileTraitDefinition.PARENT_PROPERTY, "contentType", "exifIFD0Data", "exifSubIFDData", "gpsData", "height", "isImage", "isThumbnail",
-				"orientation", "tnMid", "tnSmall", "useAsJavascriptLibrary", "width"
+					AbstractFileTraitDefinition.PARENT_PROPERTY, FileTraitDefinition.CONTENT_TYPE_PROPERTY, EXIF_IFD0_DATA_PROPERTY,
+					EXIF_SUB_IFD_DATA_PROPERTY, GPS_DATA_PROPERTY, HEIGHT_PROPERTY, WIDTH_PROPERTY, IS_IMAGE_PROPERTY, IS_THUMBNAIL_PROPERTY,
+					ORIENTATION_PROPERTY, TN_SMALL_PROPERTY, TN_MID_PROPERTY, FileTraitDefinition.USE_AS_JAVASCRIPT_LIBRARY_PROPERTY
 			)
 		);
 	}

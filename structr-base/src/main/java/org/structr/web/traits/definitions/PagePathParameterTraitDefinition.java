@@ -18,6 +18,7 @@
  */
 package org.structr.web.traits.definitions;
 
+import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
@@ -25,6 +26,7 @@ import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.web.entity.path.PagePathParameter;
@@ -38,15 +40,11 @@ import java.util.Set;
  */
 public class PagePathParameterTraitDefinition extends AbstractNodeTraitDefinition {
 
-	/*
-	public static final View defaultView = new View(PagePathParameter.class, PropertyView.Public,
-		positionProperty, valueTypeProperty, defaultValueProperty, isOptionalProperty
-	);
-
-	public static final View uiView = new View(PagePathParameter.class, PropertyView.Ui,
-		positionProperty, valueTypeProperty, defaultValueProperty, isOptionalProperty
-	);
-	*/
+	public static final String PATH_PROPERTY          = "path";
+	public static final String POSITION_PROPERTY      = "position";
+	public static final String VALUE_TYPE_PROPERTY    = "valueType";
+	public static final String DEFAULT_VALUE_PROPERTY = "defaultValue";
+	public static final String IS_OPTIONAL_PROPERTY   = "isOptional";
 
 	public PagePathParameterTraitDefinition() {
 		super(StructrTraits.PAGE_PATH_PARAMETER);
@@ -78,11 +76,11 @@ public class PagePathParameterTraitDefinition extends AbstractNodeTraitDefinitio
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> pathProperty  = new StartNode("path", StructrTraits.PAGE_PATH_HAS_PARAMETER_PAGE_PATH_PARAMETER);
-		final Property<Integer> positionProperty    = new IntProperty("position").indexed();
-		final Property<String> valueTypeProperty    = new StringProperty("valueType");
-		final Property<String> defaultValueProperty = new StringProperty("defaultValue");
-		final Property<Boolean> isOptionalProperty  = new BooleanProperty("isOptional");
+		final Property<NodeInterface> pathProperty  = new StartNode(PATH_PROPERTY, StructrTraits.PAGE_PATH_HAS_PARAMETER_PAGE_PATH_PARAMETER);
+		final Property<Integer> positionProperty    = new IntProperty(POSITION_PROPERTY).indexed();
+		final Property<String> valueTypeProperty    = new StringProperty(VALUE_TYPE_PROPERTY);
+		final Property<String> defaultValueProperty = new StringProperty(DEFAULT_VALUE_PROPERTY);
+		final Property<Boolean> isOptionalProperty  = new BooleanProperty(IS_OPTIONAL_PROPERTY);
 
 		return Set.of(
 			pathProperty,
@@ -90,6 +88,18 @@ public class PagePathParameterTraitDefinition extends AbstractNodeTraitDefinitio
 			valueTypeProperty,
 			defaultValueProperty,
 			isOptionalProperty
+		);
+	}
+
+	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+				PropertyView.Public,
+				newSet(POSITION_PROPERTY, VALUE_TYPE_PROPERTY, DEFAULT_VALUE_PROPERTY, IS_OPTIONAL_PROPERTY),
+
+				PropertyView.Ui,
+				newSet(POSITION_PROPERTY, VALUE_TYPE_PROPERTY, DEFAULT_VALUE_PROPERTY, IS_OPTIONAL_PROPERTY)
 		);
 	}
 

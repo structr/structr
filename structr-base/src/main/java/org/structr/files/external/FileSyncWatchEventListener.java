@@ -39,6 +39,7 @@ import org.structr.web.entity.Folder;
 
 import java.nio.file.Path;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.FolderTraitDefinition;
 
 /**
  * Implementation of the watch event listener interface that syncs
@@ -217,7 +218,7 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 
 		void handle() throws FrameworkException {
 
-			final PropertyKey<Boolean> doFulltextIndexing = Traits.of(StructrTraits.FOLDER).key("mountDoFulltextIndexing");
+			final PropertyKey<Boolean> doFulltextIndexing = Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_DO_FULLTEXT_INDEXING_PROPERTY);
 			final PropertyKey<Long> lastSeenMounted       = Traits.of(StructrTraits.ABSTRACT_FILE).key(AbstractFileTraitDefinition.LAST_SEEN_MOUNTED_PROPERTY);
 
 			if (file.is(StructrTraits.FILE)) {

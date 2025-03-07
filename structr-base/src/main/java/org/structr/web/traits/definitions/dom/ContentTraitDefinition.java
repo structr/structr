@@ -66,6 +66,10 @@ import java.util.Set;
  */
 public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String CONTENT_PROPERTY      = "content";
+	public static final String CONTENT_TYPE_PROPERTY = "contentType";
+	public static final String IS_CONTENT_PROPERTY   = "isContent";
+
 	public ContentTraitDefinition() {
 		super(StructrTraits.CONTENT);
 	}
@@ -98,20 +102,16 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 					final Content content = ((NodeInterface) obj).as(Content.class);
 					final DOMNode domNode = content.as(DOMNode.class);
 
-					final String uuid = content.getUuid();
-					if (uuid != null) {
-
-						// acknowledge all events for this node when it is modified
-						RuntimeEventLog.getEvents(e -> uuid.equals(e.getData().get("id"))).stream().forEach(e -> e.acknowledge());
-					}
+					// acknowledge all events for this node when it is modified
+					RuntimeEventLog.acknowledgeAllEventsForId(content.getUuid());
 
 					final PropertyMap map = new PropertyMap();
 					final Traits traits   = obj.getTraits();
 
 					// sync content only
-					map.put(traits.key("content"),     content.getContent());
-					map.put(traits.key("contentType"), content.getContentType());
-					map.put(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),        obj.getProperty(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY)));
+					map.put(traits.key(ContentTraitDefinition.CONTENT_PROPERTY),      content.getContent());
+					map.put(traits.key(ContentTraitDefinition.CONTENT_TYPE_PROPERTY), content.getContentType());
+					map.put(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),   obj.getProperty(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY)));
 
 					for (final DOMNode syncedNode : domNode.getSyncedNodes()) {
 
@@ -295,7 +295,7 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 
 				@Override
 				public String getNodeValue(final NodeInterface node) {
-					return node.getProperty(node.getTraits().key("content"));
+					return node.getProperty(node.getTraits().key(CONTENT_PROPERTY));
 				}
 			},
 
@@ -348,9 +348,9 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<String> contentProperty     = new StringProperty("content");
-		final Property<String> contentTypeProperty = new StringProperty("contentType").indexed();
-		final Property<Boolean> isContentProperty  = new ConstantBooleanProperty("isContent", true);
+		final Property<String> contentProperty     = new StringProperty(CONTENT_PROPERTY);
+		final Property<String> contentTypeProperty = new StringProperty(CONTENT_TYPE_PROPERTY).indexed();
+		final Property<Boolean> isContentProperty  = new ConstantBooleanProperty(IS_CONTENT_PROPERTY, true);
 
 		return Set.of(
 			contentProperty,
@@ -365,13 +365,21 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"isContent", "contentType", "content", "isDOMNode", "pageId", "parent", "sharedComponentId", "syncedNodesIds", "hideConditions", "showConditions", "hideForLocales",
-				"showForLocales", "sharedComponentConfiguration", "dataKey", "cypherQuery", "restQuery", "functionQuery"
+					IS_CONTENT_PROPERTY, CONTENT_TYPE_PROPERTY, CONTENT_PROPERTY, DOMNodeTraitDefinition.IS_DOM_NODE_PROPERTY,
+					DOMNodeTraitDefinition.PAGE_ID_PROPERTY, DOMNodeTraitDefinition.PARENT_PROPERTY, DOMNodeTraitDefinition.SHARED_COMPONENT_ID_PROPERTY,
+					DOMNodeTraitDefinition.SYNCED_NODES_IDS_PROPERTY, DOMNodeTraitDefinition.SHARED_COMPONENT_CONFIGURATION_PROPERTY,
+					DOMNodeTraitDefinition.SHOW_FOR_LOCALES_PROPERTY, DOMNodeTraitDefinition.HIDE_FOR_LOCALES_PROPERTY, DOMNodeTraitDefinition.SHOW_CONDITIONS_PROPERTY,
+					DOMNodeTraitDefinition.HIDE_CONDITIONS_PROPERTY, DOMNodeTraitDefinition.DATA_KEY_PROPERTY, DOMNodeTraitDefinition.CYPHER_QUERY_PROPERTY,
+					DOMNodeTraitDefinition.REST_QUERY_PROPERTY, DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY
 			),
 			PropertyView.Ui,
 			newSet(
-				"isContent", "contentType", "content", "sharedComponentConfiguration", "isDOMNode", "pageId", "parent", "sharedComponentId", "syncedNodesIds",
-				"showForLocales", "hideForLocales", "showConditions", "hideConditions", "dataKey", "cypherQuery", "restQuery", "functionQuery"
+					IS_CONTENT_PROPERTY, CONTENT_TYPE_PROPERTY, CONTENT_PROPERTY, DOMNodeTraitDefinition.SHARED_COMPONENT_CONFIGURATION_PROPERTY,
+					DOMNodeTraitDefinition.IS_DOM_NODE_PROPERTY, DOMNodeTraitDefinition.PAGE_ID_PROPERTY, DOMNodeTraitDefinition.PARENT_PROPERTY,
+					DOMNodeTraitDefinition.SHARED_COMPONENT_ID_PROPERTY, DOMNodeTraitDefinition.SYNCED_NODES_IDS_PROPERTY,
+					DOMNodeTraitDefinition.SHOW_FOR_LOCALES_PROPERTY, DOMNodeTraitDefinition.HIDE_FOR_LOCALES_PROPERTY, DOMNodeTraitDefinition.SHOW_CONDITIONS_PROPERTY,
+					DOMNodeTraitDefinition.HIDE_CONDITIONS_PROPERTY, DOMNodeTraitDefinition.DATA_KEY_PROPERTY, DOMNodeTraitDefinition.CYPHER_QUERY_PROPERTY,
+					DOMNodeTraitDefinition.REST_QUERY_PROPERTY, DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY
 			)
 		);
 	}

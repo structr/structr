@@ -22,6 +22,8 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.web.entity.Linkable;
+import org.structr.web.traits.definitions.LinkableTraitDefinition;
+import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
 
 public class LinkableTraitWrapper extends AbstractNodeTraitWrapper implements Linkable {
 
@@ -31,16 +33,16 @@ public class LinkableTraitWrapper extends AbstractNodeTraitWrapper implements Li
 
 	@Override
 	public boolean getEnableBasicAuth() {
-		return wrappedObject.getProperty(traits.key("enableBasicAuth"));
+		return wrappedObject.getProperty(traits.key(LinkableTraitDefinition.ENABLE_BASIC_AUTH_PROPERTY));
 	}
 
 	@Override
 	public String getBasicAuthRealm() {
-		return wrappedObject.getProperty(traits.key("basicAuthRealm"));
+		return wrappedObject.getProperty(traits.key(LinkableTraitDefinition.BASIC_AUTH_REALM_PROPERTY));
 	}
 
 	@Override
 	public String getPath() {
-		return wrappedObject.getProperty(traits.key("path"));
+		return wrappedObject.getProperty(traits.key(DOMElementTraitDefinition.PATH_PROPERTY));
 	}
 }

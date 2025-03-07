@@ -32,6 +32,7 @@ import org.structr.test.web.advanced.DOMTest;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.Page;
+import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 import org.testng.annotations.Test;
 
 import java.util.List;
@@ -93,8 +94,8 @@ public class RenderDataTest extends DOMTest {
 			final DOMElement p1 = doc.createElement("p");
 
 			final PropertyMap p1Properties = new PropertyMap();
-			p1Properties.put(Traits.of(StructrTraits.DOM_ELEMENT).key("restQuery"), "User?_sort=name");
-			p1Properties.put(Traits.of(StructrTraits.DOM_ELEMENT).key("dataKey"), "user");
+			p1Properties.put(Traits.of(StructrTraits.DOM_ELEMENT).key(DOMNodeTraitDefinition.REST_QUERY_PROPERTY), "User?_sort=name");
+			p1Properties.put(Traits.of(StructrTraits.DOM_ELEMENT).key(DOMNodeTraitDefinition.DATA_KEY_PROPERTY), "user");
 			p1.setProperties(p1.getSecurityContext(), p1Properties);
 
 			Content userNameContentNode = doc.createTextNode("${user.name}");
@@ -105,8 +106,8 @@ public class RenderDataTest extends DOMTest {
 			final DOMElement p2 = doc.createElement("p");
 
 			final PropertyMap p2Properties = new PropertyMap();
-			p2Properties.put(Traits.of(StructrTraits.DOM_ELEMENT).key("restQuery"), "File?_sort=name");
-			p2Properties.put(Traits.of(StructrTraits.DOM_ELEMENT).key("dataKey"), "file");
+			p2Properties.put(Traits.of(StructrTraits.DOM_ELEMENT).key(DOMNodeTraitDefinition.REST_QUERY_PROPERTY), "File?_sort=name");
+			p2Properties.put(Traits.of(StructrTraits.DOM_ELEMENT).key(DOMNodeTraitDefinition.DATA_KEY_PROPERTY), "file");
 			p2.setProperties(p2.getSecurityContext(), p2Properties);
 
 			Content fileNameContentNode = doc.createTextNode("${file.name}");

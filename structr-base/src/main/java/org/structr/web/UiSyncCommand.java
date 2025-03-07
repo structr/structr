@@ -35,6 +35,7 @@ import org.structr.web.entity.dom.DOMNode;
 
 import java.util.*;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.dom.PageTraitDefinition;
 
 /**
  *
@@ -132,7 +133,7 @@ public class UiSyncCommand extends NodeServiceCommand implements MaintenanceComm
 			final List<NodeInterface> shadowDocuments = app.nodeQuery(StructrTraits.SHADOW_DOCUMENT).includeHidden().getAsList();
 			if (shadowDocuments.size() > 1) {
 
-				final PropertyKey<List<DOMNode>> elementsKey = Traits.of(StructrTraits.PAGE).key("elements");
+				final PropertyKey<List<DOMNode>> elementsKey = Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.ELEMENTS_PROPERTY);
 				final List<DOMNode> collectiveChildren       = new LinkedList<>();
 
 				// sort by node id (higher node ID is newer entity)

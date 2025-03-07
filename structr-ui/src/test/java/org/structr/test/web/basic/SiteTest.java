@@ -30,6 +30,8 @@ import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
+import org.structr.web.traits.definitions.SiteTraitDefinition;
+import org.structr.web.traits.definitions.dom.PageTraitDefinition;
 import org.testng.annotations.Test;
 
 import java.util.Arrays;
@@ -47,11 +49,11 @@ public class SiteTest extends StructrUiTest {
 
 			final NodeInterface site1 = createTestNode(StructrTraits.SITE,
 					new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "site1"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SITE).key("hostname"), "test1.example.com")
+					new NodeAttribute<>(Traits.of(StructrTraits.SITE).key(SiteTraitDefinition.HOSTNAME_PROPERTY), "test1.example.com")
 			);
 			final NodeInterface site2 = createTestNode(StructrTraits.SITE,
 					new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "site2"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SITE).key("hostname"), "test2.example.com")
+					new NodeAttribute<>(Traits.of(StructrTraits.SITE).key(SiteTraitDefinition.HOSTNAME_PROPERTY), "test2.example.com")
 			);
 
 			site1.setProperty(Traits.of(StructrTraits.SITE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
@@ -69,15 +71,15 @@ public class SiteTest extends StructrUiTest {
 			makePublicRecursively(page3);
 			makePublicRecursively(page4);
 
-			page1.setProperty(Traits.of(StructrTraits.PAGE).key("position"), 10);
-			page2.setProperty(Traits.of(StructrTraits.PAGE).key("position"), 10);
-			page3.setProperty(Traits.of(StructrTraits.PAGE).key("position"), 10);
-			page4.setProperty(Traits.of(StructrTraits.PAGE).key("position"), 10);
+			page1.setProperty(Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.POSITION_PROPERTY), 10);
+			page2.setProperty(Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.POSITION_PROPERTY), 10);
+			page3.setProperty(Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.POSITION_PROPERTY), 10);
+			page4.setProperty(Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.POSITION_PROPERTY), 10);
 
-			page1.setProperty(Traits.of(StructrTraits.PAGE).key("sites"), Arrays.asList(site1));
-			page2.setProperty(Traits.of(StructrTraits.PAGE).key("sites"), Arrays.asList(site1));
-			page3.setProperty(Traits.of(StructrTraits.PAGE).key("sites"), Arrays.asList(site2));
-			page4.setProperty(Traits.of(StructrTraits.PAGE).key("sites"), Arrays.asList(site2));
+			page1.setProperty(Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.SITES_PROPERTY), Arrays.asList(site1));
+			page2.setProperty(Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.SITES_PROPERTY), Arrays.asList(site1));
+			page3.setProperty(Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.SITES_PROPERTY), Arrays.asList(site2));
+			page4.setProperty(Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.SITES_PROPERTY), Arrays.asList(site2));
 
 			tx.success();
 
@@ -108,11 +110,11 @@ public class SiteTest extends StructrUiTest {
 
 			final NodeInterface site1 = createTestNode(StructrTraits.SITE,
 					new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "site1"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SITE).key("hostname"), "test1.example.com")
+					new NodeAttribute<>(Traits.of(StructrTraits.SITE).key(SiteTraitDefinition.HOSTNAME_PROPERTY), "test1.example.com")
 			);
 			final NodeInterface site2 = createTestNode(StructrTraits.SITE,
 					new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "site2"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SITE).key("hostname"), "test2.example.com")
+					new NodeAttribute<>(Traits.of(StructrTraits.SITE).key(SiteTraitDefinition.HOSTNAME_PROPERTY), "test2.example.com")
 			);
 
 			site1.setProperty(Traits.of(StructrTraits.SITE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
@@ -130,15 +132,15 @@ public class SiteTest extends StructrUiTest {
 			//makePublicRecursively(page3);
 			makePublicRecursively(page4);
 
-			page1.setProperty(Traits.of(StructrTraits.PAGE).key("position"), 10);
-			page2.setProperty(Traits.of(StructrTraits.PAGE).key("position"), 10);
-			page3.setProperty(Traits.of(StructrTraits.PAGE).key("position"), 10);
-			page4.setProperty(Traits.of(StructrTraits.PAGE).key("position"), 10);
+			page1.setProperty(Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.POSITION_PROPERTY), 10);
+			page2.setProperty(Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.POSITION_PROPERTY), 10);
+			page3.setProperty(Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.POSITION_PROPERTY), 10);
+			page4.setProperty(Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.POSITION_PROPERTY), 10);
 
-			page1.setProperty(Traits.of(StructrTraits.PAGE).key("sites"), Arrays.asList(site1));
-			page2.setProperty(Traits.of(StructrTraits.PAGE).key("sites"), Arrays.asList(site1));
-			page3.setProperty(Traits.of(StructrTraits.PAGE).key("sites"), Arrays.asList(site2));
-			page4.setProperty(Traits.of(StructrTraits.PAGE).key("sites"), Arrays.asList(site2));
+			page1.setProperty(Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.SITES_PROPERTY), Arrays.asList(site1));
+			page2.setProperty(Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.SITES_PROPERTY), Arrays.asList(site1));
+			page3.setProperty(Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.SITES_PROPERTY), Arrays.asList(site2));
+			page4.setProperty(Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.SITES_PROPERTY), Arrays.asList(site2));
 
 			tx.success();
 

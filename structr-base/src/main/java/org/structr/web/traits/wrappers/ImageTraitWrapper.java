@@ -40,6 +40,7 @@ import org.structr.web.entity.Image;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.structr.web.traits.definitions.ImageTraitDefinition;
 import org.structr.web.traits.relationships.ImageTHUMBNAILImage;
 
 /**
@@ -53,43 +54,43 @@ public class ImageTraitWrapper extends FileTraitWrapper implements Image {
 
 	@Override
 	public void setIsCreatingThumb(final boolean isCreatingThumb) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("isCreatingThumb"), isCreatingThumb);
+		wrappedObject.setProperty(traits.key(ImageTraitDefinition.IS_CREATING_THUMB_PROPERTY), isCreatingThumb);
 	}
 
 	@Override
 	public boolean isImage() {
-		return wrappedObject.getProperty(traits.key("isImage"));
+		return wrappedObject.getProperty(traits.key(ImageTraitDefinition.IS_IMAGE_PROPERTY));
 	}
 
 	@Override
 	public boolean isThumbnail() {
-		return wrappedObject.getProperty(traits.key("isThumbnail"));
+		return wrappedObject.getProperty(traits.key(ImageTraitDefinition.IS_THUMBNAIL_PROPERTY));
 	}
 
 	@Override
 	public boolean getIsCreatingThumb() {
-		return wrappedObject.getProperty(traits.key("isCreatingThumb"));
+		return wrappedObject.getProperty(traits.key(ImageTraitDefinition.IS_CREATING_THUMB_PROPERTY));
 	}
 
 	@Override
 	public boolean thumbnailCreationFailed() {
-		return wrappedObject.getProperty(traits.key("thumbnailCreationFailed"));
+		return wrappedObject.getProperty(traits.key(ImageTraitDefinition.THUMBNAIL_CREATION_FAILED_PROPERTY));
 	}
 
 	@Override
 	public Integer getWidth() {
-		return wrappedObject.getProperty(traits.key("width"));
+		return wrappedObject.getProperty(traits.key(ImageTraitDefinition.WIDTH_PROPERTY));
 	}
 
 	@Override
 	public Integer getHeight() {
-		return wrappedObject.getProperty(traits.key("height"));
+		return wrappedObject.getProperty(traits.key(ImageTraitDefinition.HEIGHT_PROPERTY));
 	}
 
 	@Override
 	public Image getOriginalImage() {
 
-		final NodeInterface node = wrappedObject.getProperty(traits.key("originalImage"));
+		final NodeInterface node = wrappedObject.getProperty(traits.key(ImageTraitDefinition.ORIGINAL_IMAGE_PROPERTY));
 		if (node != null) {
 
 			return node.as(Image.class);
@@ -110,7 +111,7 @@ public class ImageTraitWrapper extends FileTraitWrapper implements Image {
 	@Override
 	public Iterable<Image> getThumbnails() {
 
-		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key("thumbnails"));
+		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key(ImageTraitDefinition.THUMBNAILS_PROPERTY));
 
 		return Iterables.map(n -> n.as(Image.class), nodes);
 	}
