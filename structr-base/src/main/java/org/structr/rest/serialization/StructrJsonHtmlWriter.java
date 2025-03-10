@@ -114,8 +114,7 @@ public class StructrJsonHtmlWriter implements RestWriter {
 				.replace(StringUtils.removeEnd(Settings.RestServletPath.getValue(), "/*") + "/", "")	// remove REST path (without applicationRootPah)
 				.replace("/" + propertyView, "");																// remove current view
 
-		final Traits traits     = Traits.of(currentType);
-		final Set<String> views = (traits != null) ? traits.getViewNames() : Traits.getAllViews();
+		final Set<String> views = (Traits.exists(currentType)) ? Traits.of(currentType).getViewNames() : Traits.getAllViews();
 
 		for (String view : views.stream().sorted().toList()) {
 
