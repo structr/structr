@@ -41,6 +41,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileAttributeView;
 import java.util.*;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 /**
  *
@@ -75,7 +76,7 @@ public class StructrFilesRootPath extends StructrPath {
 					final App app                           = StructrApp.getInstance(fs.getSecurityContext());
 					final Traits traits                     = Traits.of(StructrTraits.ABSTRACT_FILE);
 					final PropertyKey<String> nameKey       = traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
-					final PropertyKey<Boolean> hasParentKey = traits.key("hasParent");
+					final PropertyKey<Boolean> hasParentKey = traits.key(AbstractFileTraitDefinition.HAS_PARENT_PROPERTY);
 					final List<Path> files                  = new LinkedList<>();
 
 					try (final Tx tx = app.tx()) {

@@ -68,6 +68,8 @@ import java.nio.charset.IllegalCharsetNameException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.FileTraitDefinition;
 
 /**
  *
@@ -165,52 +167,52 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 
 	@Override
 	public void setVersion(final int version) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("version"), version);
+		wrappedObject.setProperty(traits.key(FileTraitDefinition.VERSION_PROPERTY), version);
 	}
 
 	@Override
 	public Integer getVersion() {
-		return wrappedObject.getProperty(traits.key("version"));
+		return wrappedObject.getProperty(traits.key(FileTraitDefinition.VERSION_PROPERTY));
 	}
 
 	@Override
 	public Integer getCacheForSeconds() {
-		return wrappedObject.getProperty(traits.key("cacheForSeconds"));
+		return wrappedObject.getProperty(traits.key(FileTraitDefinition.CACHE_FOR_SECONDS_PROPERTY));
 	}
 
 	@Override
 	public Long getChecksum() {
-		return wrappedObject.getProperty(traits.key("checksum"));
+		return wrappedObject.getProperty(traits.key(FileTraitDefinition.CHECKSUM_PROPERTY));
 	}
 
 	@Override
 	public Long getFileModificationDate() {
-		return wrappedObject.getProperty(traits.key("fileModificationDate"));
+		return wrappedObject.getProperty(traits.key(FileTraitDefinition.FILE_MODIFICATION_DATE_PROPERTY));
 	}
 
 	@Override
 	public String getMd5() {
-		return wrappedObject.getProperty(traits.key("md5"));
+		return wrappedObject.getProperty(traits.key(FileTraitDefinition.MD5_PROPERTY));
 	}
 
 	@Override
 	public void setSize(final Long size) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("size"), size);
+		wrappedObject.setProperty(traits.key(FileTraitDefinition.SIZE_PROPERTY), size);
 	}
 
 	@Override
 	public boolean isTemplate() {
-		return wrappedObject.getProperty(traits.key("isTemplate"));
+		return wrappedObject.getProperty(traits.key(FileTraitDefinition.IS_TEMPLATE_PROPERTY));
 	}
 
 	@Override
 	public boolean dontCache() {
-		return wrappedObject.getProperty(traits.key("dontCache"));
+		return wrappedObject.getProperty(traits.key(FileTraitDefinition.DONT_CACHE_PROPERTY));
 	}
 
 	@Override
 	public String getPath() {
-		return wrappedObject.getProperty(traits.key("path"));
+		return wrappedObject.getProperty(traits.key(AbstractFileTraitDefinition.PATH_PROPERTY));
 	}
 
 	@Override
@@ -288,17 +290,17 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 
 	@Override
 	public String getExtractedContent() {
-		return wrappedObject.getProperty(traits.key("extractedContent"));
+		return wrappedObject.getProperty(traits.key("extractedContent"));			// FIXME: extractedContent... this used to extend "Indexable"
 	}
 
 	@Override
 	public String getContentType() {
-		return wrappedObject.getProperty(traits.key("contentType"));
+		return wrappedObject.getProperty(traits.key(FileTraitDefinition.CONTENT_TYPE_PROPERTY));
 	}
 
 	@Override
 	public boolean useAsJavascriptLibrary() {
-		return wrappedObject.getProperty(traits.key("useAsJavascriptLibrary"));
+		return wrappedObject.getProperty(traits.key(FileTraitDefinition.USE_AS_JAVASCRIPT_LIBRARY_PROPERTY));
 	}
 
 	@Override
@@ -565,9 +567,9 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 		final PropertyContainer container = wrappedObject.getPropertyContainer();
 		if (container != null) {
 
-			if (container.hasProperty("indexed")) {
+			if (container.hasProperty(FileTraitDefinition.INDEXED_PROPERTY)) {
 
-				return Boolean.TRUE.equals(container.getProperty("indexed"));
+				return Boolean.TRUE.equals(container.getProperty(FileTraitDefinition.INDEXED_PROPERTY));
 
 			}
 		}

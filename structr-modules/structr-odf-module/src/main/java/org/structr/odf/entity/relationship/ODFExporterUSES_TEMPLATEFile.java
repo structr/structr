@@ -26,12 +26,12 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class ODFExporterUSES_TEMPLATEFile extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public ODFExporterUSES_TEMPLATEFile() {
-		super("ODFExporterUSES_TEMPLATEFile");
+		super(StructrTraits.ODF_EXPORTER_USES_TEMPLATE_FILE);
 	}
 
 	@Override
 	public String getSourceType() {
-		return "ODFExporter";
+		return StructrTraits.ODF_EXPORTER;
 	}
 
 	@Override

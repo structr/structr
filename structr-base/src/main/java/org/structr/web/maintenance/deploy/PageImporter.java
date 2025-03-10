@@ -44,6 +44,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import org.structr.web.traits.definitions.dom.PageTraitDefinition;
 
 public class PageImporter extends HtmlFileImporter {
 
@@ -179,7 +180,7 @@ public class PageImporter extends HtmlFileImporter {
 
 				final String src         = new String(Files.readAllBytes(file),Charset.forName("UTF-8"));
 				final Traits traits      = Traits.of(StructrTraits.PAGE);
-				final String contentType = get(properties, traits.key("contentType"),                 "text/html");
+				final String contentType = get(properties, traits.key(PageTraitDefinition.CONTENT_TYPE_PROPERTY),                 "text/html");
 				boolean visibleToPublic  = get(properties, traits.key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY),        false);
 				boolean visibleToAuth    = get(properties, traits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), false);
 

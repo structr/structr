@@ -19,23 +19,24 @@
 package org.structr.payment.entity.relationship;
 
 import org.structr.core.entity.Relation;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
 public class PaymentNodepaymentItemPaymentItem extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public PaymentNodepaymentItemPaymentItem() {
-		super("PaymentNodepaymentItemPaymentItem");
+		super(StructrTraits.PAYMENT_NODE_PAYMENT_ITEM_PAYMENT_ITEM);
 	}
 
 	@Override
 	public String getSourceType() {
-		return "PaymentNode";
+		return StructrTraits.PAYMENT_NODE;
 	}
 
 	@Override
 	public String getTargetType() {
-		return "PaymentItemNode";
+		return StructrTraits.PAYMENT_ITEM_NODE;
 	}
 
 	@Override

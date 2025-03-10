@@ -39,12 +39,12 @@ public class RestModule implements StructrModule {
 	@Override
 	public void onLoad(final LicenseManager licenseManager) {
 
-		StructrTraits.registerRelationshipType("ObjectEventRelationship",  new ObjectEventRelationship());
-		StructrTraits.registerRelationshipType("SubjectEventRelationship", new SubjectEventRelationship());
+		StructrTraits.registerRelationshipType(StructrTraits.OBJECT_EVENT_RELATIONSHIP,  new ObjectEventRelationship());
+		StructrTraits.registerRelationshipType(StructrTraits.SUBJECT_EVENT_RELATIONSHIP, new SubjectEventRelationship());
 
-		StructrTraits.registerNodeType("LogEvent",   new LogEventTraitDefinition());
-		StructrTraits.registerNodeType("LogObject",  new LogObjectTraitDefinition());
-		StructrTraits.registerNodeType("LogSubject", new LogSubjectTraitDefinition());
+		StructrTraits.registerNodeType(StructrTraits.LOG_EVENT,   new LogEventTraitDefinition());
+		StructrTraits.registerNodeType(StructrTraits.LOG_OBJECT,  new LogObjectTraitDefinition());
+		StructrTraits.registerNodeType(StructrTraits.LOG_SUBJECT, new LogSubjectTraitDefinition());
 	}
 
 	@Override

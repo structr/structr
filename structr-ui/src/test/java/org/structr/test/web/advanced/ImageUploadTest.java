@@ -30,6 +30,7 @@ import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.entity.Image;
+import org.structr.web.traits.definitions.ImageTraitDefinition;
 import org.testng.annotations.Test;
 
 import java.util.List;
@@ -52,7 +53,7 @@ public class ImageUploadTest extends StructrUiTest {
 
 			app.create(StructrTraits.IMAGE,
 				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),      "test01.png"),
-				new NodeAttribute<>(Traits.of(StructrTraits.IMAGE).key("imageData"), Base64ImageData)
+				new NodeAttribute<>(Traits.of(StructrTraits.IMAGE).key(ImageTraitDefinition.IMAGE_DATA_PROPERTY), Base64ImageData)
 			);
 
 			tx.success();
@@ -89,7 +90,7 @@ public class ImageUploadTest extends StructrUiTest {
 
 			app.create(StructrTraits.IMAGE,
 				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),      "test01.png"),
-				new NodeAttribute<>(Traits.of(StructrTraits.IMAGE).key("imageData"), "data:image/jpeg;base64," + Base64ImageData)
+				new NodeAttribute<>(Traits.of(StructrTraits.IMAGE).key(ImageTraitDefinition.IMAGE_DATA_PROPERTY), "data:image/jpeg;base64," + Base64ImageData)
 			);
 
 			tx.success();

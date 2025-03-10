@@ -28,7 +28,7 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class AbstractFileCONFIGURED_BYStorageConfiguration extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public AbstractFileCONFIGURED_BYStorageConfiguration() {
-		super("AbstractFileCONFIGURED_BYStorageConfiguration");
+		super(StructrTraits.ABSTRACT_FILE_CONFIGURED_BY_STORAGE_CONFIGURATION);
 	}
 
 	@Override
@@ -38,7 +38,7 @@ public class AbstractFileCONFIGURED_BYStorageConfiguration extends AbstractRelat
 
 	@Override
 	public String getTargetType() {
-		return "StorageConfiguration";
+		return StructrTraits.STORAGE_CONFIGURATION;
 	}
 
 	@Override

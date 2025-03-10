@@ -60,8 +60,8 @@ public class SchemaViewTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface>           schemaNode           = new StartNode(SCHEMA_NODE_PROPERTY, StructrTraits.SCHEMA_NODE_VIEW, new PropertySetNotion<>(newSet("id", "name")));
-		final Property<Iterable<NodeInterface>> schemaProperties     = new EndNodes(SCHEMA_PROPERTIES_PROPERTY, StructrTraits.SCHEMA_VIEW_PROPERTY, new PropertySetNotion<>(newSet("id", "name")));
+		final Property<NodeInterface>           schemaNode           = new StartNode(SCHEMA_NODE_PROPERTY, StructrTraits.SCHEMA_NODE_VIEW, new PropertySetNotion<>(newSet(GraphObjectTraitDefinition.ID_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY)));
+		final Property<Iterable<NodeInterface>> schemaProperties     = new EndNodes(SCHEMA_PROPERTIES_PROPERTY, StructrTraits.SCHEMA_VIEW_PROPERTY, new PropertySetNotion<>(newSet(GraphObjectTraitDefinition.ID_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY)));
 		final Property<Boolean>                 isBuiltinView        = new BooleanProperty(IS_BUILTIN_VIEW_PROPERTY);
 		final Property<String>                  staticSchemaNodeName = new StringProperty(STATIC_SCHEMA_NODE_NAME_PROPERTY);
 		final Property<String>                  nonGraphProperties   = new StringProperty(NON_GRAPH_PROPERTIES_PROPERTY);
@@ -99,7 +99,7 @@ public class SchemaViewTraitDefinition extends AbstractNodeTraitDefinition {
 
 				"export",
 				newSet(
-						GraphObjectTraitDefinition.ID_PROPERTY, "typeHandler", NodeInterfaceTraitDefinition.NAME_PROPERTY, SCHEMA_NODE_PROPERTY, NON_GRAPH_PROPERTIES_PROPERTY, IS_BUILTIN_VIEW_PROPERTY, SORT_ORDER_PROPERTY
+						GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY, SCHEMA_NODE_PROPERTY, NON_GRAPH_PROPERTIES_PROPERTY, IS_BUILTIN_VIEW_PROPERTY, SORT_ORDER_PROPERTY
 				)
 		);
 	}

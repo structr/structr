@@ -26,7 +26,9 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.AfterCreation;
 import org.structr.feed.entity.FeedItemEnclosure;
@@ -40,8 +42,13 @@ import java.util.Set;
  */
 public class FeedItemEnclosureTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String ITEM_PROPERTY             = "item";
+	public static final String URL_PROPERTY              = "url";
+	public static final String ENCLOSURE_LENGTH_PROPERTY = "enclosureLength";
+	public static final String ENCLOSURE_TYPE_PROPERTY   = "enclosureType";
+
 	public FeedItemEnclosureTraitDefinition() {
-		super("FeedItemEnclosure");
+		super(StructrTraits.FEED_ITEM_ENCLOSURE);
 	}
 
 	@Override
@@ -63,10 +70,10 @@ public class FeedItemEnclosureTraitDefinition extends AbstractNodeTraitDefinitio
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> itemProperty   = new StartNode("item", "FeedItemFEED_ITEM_ENCLOSURESFeedItemEnclosure");
-		final Property<String> urlProperty           = new StringProperty("url");
-		final Property<Long> enclosureLengthProperty = new LongProperty("enclosureLength");
-		final Property<String> enclosureTypeProperty = new StringProperty("enclosureType");
+		final Property<NodeInterface> itemProperty   = new StartNode(ITEM_PROPERTY, StructrTraits.FEED_ITEM_FEED_ITEM_ENCLOSURES_FEED_ITEM_ENCLOSURE);
+		final Property<String> urlProperty           = new StringProperty(URL_PROPERTY);
+		final Property<Long> enclosureLengthProperty = new LongProperty(ENCLOSURE_LENGTH_PROPERTY);
+		final Property<String> enclosureTypeProperty = new StringProperty(ENCLOSURE_TYPE_PROPERTY);
 
 		return newSet(
 			itemProperty,
@@ -82,11 +89,11 @@ public class FeedItemEnclosureTraitDefinition extends AbstractNodeTraitDefinitio
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"url", "enclosureLength", "enclosureType", "item", "owner"
+					URL_PROPERTY, ENCLOSURE_LENGTH_PROPERTY, ENCLOSURE_TYPE_PROPERTY, ITEM_PROPERTY, NodeInterfaceTraitDefinition.OWNER_PROPERTY
 			),
 			PropertyView.Ui,
 			newSet(
-				"url", "enclosureLength", "enclosureType", "item"
+					URL_PROPERTY, ENCLOSURE_LENGTH_PROPERTY, ENCLOSURE_TYPE_PROPERTY, ITEM_PROPERTY
 			)
 		);
 	}

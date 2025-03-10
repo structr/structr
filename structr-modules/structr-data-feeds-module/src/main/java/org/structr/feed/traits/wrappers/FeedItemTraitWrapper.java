@@ -24,6 +24,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 import org.structr.feed.entity.FeedItem;
 import org.structr.feed.traits.definitions.FeedItemTraitDefinition;
+import org.structr.feed.traits.relationship.AbstractFeedItemTraitDefinition;
 import org.structr.rest.common.HttpHelper;
 
 import java.io.ByteArrayInputStream;
@@ -42,7 +43,7 @@ public class FeedItemTraitWrapper extends AbstractFeedItemTraitWrapper implement
 
 	@Override
 	public String getUrl() {
-		return wrappedObject.getProperty(traits.key("url"));
+		return wrappedObject.getProperty(traits.key(FeedItemTraitDefinition.URL_PROPERTY));
 	}
 
 	@Override
@@ -69,11 +70,11 @@ public class FeedItemTraitWrapper extends AbstractFeedItemTraitWrapper implement
 
 	@Override
 	public String getExtractedContent() {
-		return wrappedObject.getProperty(traits.key("extractedContent"));
+		return wrappedObject.getProperty(traits.key("extractedContent"));			// FIXME: extractedContent... this used to extend "Indexable"
 	}
 
 	@Override
 	public String getContentType() {
-		return wrappedObject.getProperty(traits.key("contentType"));
+		return wrappedObject.getProperty(traits.key(AbstractFeedItemTraitDefinition.CONTENT_TYPE_PROPERTY));
 	}
 }

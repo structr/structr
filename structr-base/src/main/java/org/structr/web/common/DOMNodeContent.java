@@ -29,6 +29,7 @@ import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.property.CustomHtmlAttributeProperty;
 
 import java.util.*;
+import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 
 /**
  */
@@ -118,7 +119,7 @@ public class DOMNodeContent {
 			if (data != null) {
 
 				// remove existing?
-				target.setProperty(Traits.of(StructrTraits.DOM_NODE).key("children"), Collections.EMPTY_LIST);
+				target.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.CHILDREN_PROPERTY), Collections.EMPTY_LIST);
 
 				// add
 				final List<DOMNode> children = data.getNextSlotElements();

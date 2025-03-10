@@ -140,7 +140,7 @@ let _Helpers = {
 	formatValueInputField: (key, obj, propertyInfo) => {
 
 		let isPassword  = (propertyInfo?.className === 'org.structr.core.property.PasswordProperty');
-		let isReadOnly  = _Helpers.isIn(key, _Entities.readOnlyAttrs) || (propertyInfo?.readOnly ?? false);
+		let isReadOnly  = _Entities.readOnlyAttrs.includes(key) || (propertyInfo?.readOnly ?? false);
 		let isMultiline = (propertyInfo?.format === 'multi-line');
 
 		if (obj === undefined || obj === null) {
@@ -163,7 +163,7 @@ let _Helpers = {
 	formatArrayValueField: (key, values, propertyInfo) => {
 
 		let isPassword  = (propertyInfo.className === 'org.structr.core.property.PasswordProperty');
-		let isReadOnly  = _Helpers.isIn(key, _Entities.readOnlyAttrs) || (propertyInfo.readOnly);
+		let isReadOnly  = _Entities.readOnlyAttrs.includes(key) || (propertyInfo.readOnly);
 		let isMultiline = (propertyInfo.format === 'multi-line');
 		let isBoolean   = (propertyInfo.type === 'Boolean[]');
 		let isDate      = (propertyInfo.type === 'Date[]');
@@ -336,10 +336,7 @@ let _Helpers = {
 			});
 		}
 	},
-	isIn: (s, array) => {
-		return (s && array && array.indexOf(s) !== -1);
-	},
-	urlParam: (name) => {
+	getURLParameter: (name) => {
 		return new URLSearchParams(location.search).get(name) ?? '';
 	},
 	formatKey: (text) => {

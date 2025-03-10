@@ -29,6 +29,7 @@ import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
@@ -44,8 +45,13 @@ import java.util.Set;
  */
 public class LDAPGroupTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String DISTINGUISHED_NAME_PROPERTY = "distinguishedName";
+	public static final String PATH_PROPERTY               = "path";
+	public static final String FILTER_PROPERTY             = "filter";
+	public static final String SCOPE_PROPERTY              = "scope";
+
 	public LDAPGroupTraitDefinition() {
-		super("LDAPGroup");
+		super(StructrTraits.LDAP_GROUP);
 	}
 
 	@Override
@@ -57,7 +63,7 @@ public class LDAPGroupTraitDefinition extends AbstractNodeTraitDefinition {
 			new IsValid() {
 				@Override
 				public Boolean isValid(GraphObject obj, ErrorBuffer errorBuffer) {
-					return ValidationHelper.isValidUniqueProperty(obj, obj.getTraits().key("distinguishedName"), errorBuffer);
+					return ValidationHelper.isValidUniqueProperty(obj, obj.getTraits().key(DISTINGUISHED_NAME_PROPERTY), errorBuffer);
 				}
 			},
 
@@ -92,10 +98,10 @@ public class LDAPGroupTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final PropertyKey<String> distinguishedNameProperty = new StringProperty("distinguishedName").unique().indexed();
-		final PropertyKey<String> pathProperty              = new StringProperty("path");
-		final PropertyKey<String> filterProperty            = new StringProperty("filter");
-		final PropertyKey<String> scopeProperty             = new StringProperty("scope");
+		final PropertyKey<String> distinguishedNameProperty = new StringProperty(DISTINGUISHED_NAME_PROPERTY).unique().indexed();
+		final PropertyKey<String> pathProperty              = new StringProperty(PATH_PROPERTY);
+		final PropertyKey<String> filterProperty            = new StringProperty(FILTER_PROPERTY);
+		final PropertyKey<String> scopeProperty             = new StringProperty(SCOPE_PROPERTY);
 
 		return newSet(
 			distinguishedNameProperty,
@@ -111,11 +117,11 @@ public class LDAPGroupTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"distinguishedName", "path", "filter", "scope"
+				DISTINGUISHED_NAME_PROPERTY, PATH_PROPERTY, FILTER_PROPERTY, SCOPE_PROPERTY
 			),
 			PropertyView.Ui,
 			newSet(
-				"distinguishedName", "path", "filter", "scope"
+				DISTINGUISHED_NAME_PROPERTY, PATH_PROPERTY, FILTER_PROPERTY, SCOPE_PROPERTY
 			)
 		);
 	}

@@ -47,6 +47,7 @@ import org.structr.web.common.HttpServletRequestWrapper;
 import org.structr.web.common.RenderContext;
 
 import java.util.Collections;
+import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 
 /**
  * List data source equivalent to a rest resource.
@@ -64,7 +65,7 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 
 		final RenderContext renderContext = (RenderContext) actionContext;
 
-		final PropertyKey<String> restQueryKey = Traits.of(StructrTraits.DOM_NODE).key("restQuery");
+		final PropertyKey<String> restQueryKey = Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.REST_QUERY_PROPERTY);
 		String restQuery                       = referenceNode.getPropertyWithVariableReplacement(renderContext, restQueryKey);
 
 		if (restQuery == null || restQuery.isEmpty()) {

@@ -26,6 +26,8 @@ import org.structr.feed.entity.FeedItemContent;
 
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import org.structr.feed.traits.definitions.FeedItemContentTraitDefinition;
+import org.structr.feed.traits.relationship.AbstractFeedItemTraitDefinition;
 
 /**
  * Represents a content element of a feed item
@@ -42,20 +44,20 @@ public class FeedItemContentTraitWrapper extends AbstractFeedItemTraitWrapper im
 	}
 
 	public String getValue() {
-		return wrappedObject.getProperty(traits.key("value"));
+		return wrappedObject.getProperty(traits.key(FeedItemContentTraitDefinition.VALUE_PROPERTY));
 	}
 
 	public void setValue(final String value) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("value"), value);
+		wrappedObject.setProperty(traits.key(FeedItemContentTraitDefinition.VALUE_PROPERTY), value);
 	}
 
 	@Override
 	public String getExtractedContent() {
-		return wrappedObject.getProperty(traits.key("extractedContent"));
+		return wrappedObject.getProperty(traits.key("extractedContent"));			// FIXME: extractedContent... this used to extend "Indexable"
 	}
 
 	@Override
 	public String getContentType() {
-		return wrappedObject.getProperty(traits.key("contentType"));
+		return wrappedObject.getProperty(traits.key(AbstractFeedItemTraitDefinition.CONTENT_TYPE_PROPERTY));
 	}
 }

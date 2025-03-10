@@ -18,6 +18,8 @@
  */
 package org.structr.messaging;
 
+import org.structr.core.traits.StructrTraits;
+import org.structr.messaging.traits.definitions.MQTTClientTraitDefinition;
 import org.structr.web.common.TestHelper;
 import org.testng.annotations.Test;
 
@@ -32,7 +34,7 @@ public class ViewTest extends MessagingTestBase {
 
 		final Map<String, List<String>> additionalRequiredAttributes = new HashMap<>();
 
-		additionalRequiredAttributes.put("MQTTClient", List.of("mainBrokerURL"));
+		additionalRequiredAttributes.put(StructrTraits.MQTT_CLIENT, List.of(MQTTClientTraitDefinition.MAIN_BROKER_URL_PROPERTY));
 
 		TestHelper.testViews(app, ViewTest.class.getResourceAsStream("/views.properties"), additionalRequiredAttributes);
 	}

@@ -26,12 +26,12 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class SiteCONTAINSPage extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public SiteCONTAINSPage() {
-		super("SiteCONTAINSPage");
+		super(StructrTraits.SITE_CONTAINS_PAGE);
 	}
 
 	@Override
 	public String getSourceType() {
-		return "Site";
+		return StructrTraits.SITE;
 	}
 
 	@Override

@@ -68,6 +68,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.zip.CRC32;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.FileTraitDefinition;
+import org.structr.web.traits.definitions.ImageTraitDefinition;
 
 /**
  * File utility class.
@@ -159,7 +162,7 @@ public class FileHelper {
 		final Traits traits     = Traits.of(StructrTraits.FILE);
 
 		props.put(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),        name);
-		props.put(traits.key("contentType"), contentType);
+		props.put(traits.key(FileTraitDefinition.CONTENT_TYPE_PROPERTY), contentType);
 
 		final File newFile = StructrApp.getInstance(securityContext).create(StructrTraits.FILE, props).as(File.class);
 
@@ -190,12 +193,12 @@ public class FileHelper {
 		final Traits traits     = Traits.of(StructrTraits.FILE);
 
 		props.put(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name);
-		props.put(traits.key("contentType"), contentType);
+		props.put(traits.key(FileTraitDefinition.CONTENT_TYPE_PROPERTY), contentType);
 
 		if (parentFolder != null) {
 
-			props.put(traits.key("hasParent"), true);
-			props.put(traits.key("parent"),    parentFolder);
+			props.put(traits.key(AbstractFileTraitDefinition.HAS_PARENT_PROPERTY), true);
+			props.put(traits.key(AbstractFileTraitDefinition.PARENT_PROPERTY),    parentFolder);
 
 		}
 
@@ -217,7 +220,7 @@ public class FileHelper {
 
 		final File newFile = StructrApp.getInstance(securityContext).create(fileType, props).as(File.class);
 
-		setFileData(newFile, fileStream, props.get(Traits.of(StructrTraits.FILE).key("contentType")));
+		setFileData(newFile, fileStream, props.get(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.CONTENT_TYPE_PROPERTY)));
 
 		// schedule indexing
 		newFile.notifyUploadCompletion();
@@ -346,9 +349,9 @@ public class FileHelper {
 		final PropertyMap map = new PropertyMap();
 		final Traits traits   = Traits.of(StructrTraits.FILE);
 
-		map.put(traits.key("contentType"), contentType != null ? contentType : FileHelper.getContentMimeType(file, file.getName()));
-		map.put(traits.key("size"),        FileHelper.getSize(file));
-		map.put(traits.key("version"),     1);
+		map.put(traits.key(FileTraitDefinition.CONTENT_TYPE_PROPERTY), contentType != null ? contentType : FileHelper.getContentMimeType(file, file.getName()));
+		map.put(traits.key(FileTraitDefinition.SIZE_PROPERTY),         FileHelper.getSize(file));
+		map.put(traits.key(FileTraitDefinition.VERSION_PROPERTY),      1);
 
 		map.putAll(getChecksums(file));
 
@@ -361,8 +364,8 @@ public class FileHelper {
 
 				if (bufferedImage != null) {
 
-					map.put(imageTraits.key("width"),  bufferedImage.getWidth());
-					map.put(imageTraits.key("height"), bufferedImage.getHeight());
+					map.put(imageTraits.key(ImageTraitDefinition.WIDTH_PROPERTY),  bufferedImage.getWidth());
+					map.put(imageTraits.key(ImageTraitDefinition.HEIGHT_PROPERTY), bufferedImage.getHeight());
 				}
 
 			} catch (IOException ioe) {
@@ -425,22 +428,22 @@ public class FileHelper {
 		}
 
 		// New, very fast xxHash default checksum, will always be calculated
-		propertiesWithChecksums.put(traits.key("checksum"), FileHelper.getChecksum(file));
+		propertiesWithChecksums.put(traits.key(FileTraitDefinition.CHECKSUM_PROPERTY), FileHelper.getChecksum(file));
 
 		if (StringUtils.contains(checksums, "crc32"))	{
-			propertiesWithChecksums.put(traits.key("crc32"), FileHelper.getCRC32Checksum(file));
+			propertiesWithChecksums.put(traits.key(FileTraitDefinition.CRC32_PROPERTY), FileHelper.getCRC32Checksum(file));
 		}
 
 		if (StringUtils.contains(checksums, "md5"))	{
-			propertiesWithChecksums.put(traits.key("md5"), FileHelper.getMD5Checksum(file));
+			propertiesWithChecksums.put(traits.key(FileTraitDefinition.MD5_PROPERTY), FileHelper.getMD5Checksum(file));
 		}
 
 		if (StringUtils.contains(checksums, "sha1"))	{
-			propertiesWithChecksums.put(traits.key("sha1"), FileHelper.getSHA1Checksum(file));
+			propertiesWithChecksums.put(traits.key(FileTraitDefinition.SHA1_PROPERTY), FileHelper.getSHA1Checksum(file));
 		}
 
 		if (StringUtils.contains(checksums, "sha512"))	{
-			propertiesWithChecksums.put(traits.key("sha512"), FileHelper.getSHA512Checksum(file));
+			propertiesWithChecksums.put(traits.key(FileTraitDefinition.SHA512_PROPERTY), FileHelper.getSHA512Checksum(file));
 		}
 
 		return propertiesWithChecksums;
@@ -471,9 +474,9 @@ public class FileHelper {
 			try {
 
 				final Traits traits                             = file.getTraits();
-				final PropertyKey<Long> fileModificationDateKey = traits.key("fileModificationDate");
-				final PropertyKey<String> contentTypeKey        = traits.key("contentType");
-				final PropertyKey<Long> sizeKey                 = traits.key("size");
+				final PropertyKey<Long> fileModificationDateKey = traits.key(FileTraitDefinition.FILE_MODIFICATION_DATE_PROPERTY);
+				final PropertyKey<String> contentTypeKey        = traits.key(FileTraitDefinition.CONTENT_TYPE_PROPERTY);
+				final PropertyKey<Long> sizeKey                 = traits.key(FileTraitDefinition.SIZE_PROPERTY);
 
 				String contentType = file.getContentType();
 
@@ -735,7 +738,7 @@ public class FileHelper {
 
 			final Traits traits = Traits.of(StructrTraits.ABSTRACT_FILE);
 
-			return StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.ABSTRACT_FILE).and(traits.key("path"), absolutePath).getFirst();
+			return StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.ABSTRACT_FILE).and(traits.key(AbstractFileTraitDefinition.PATH_PROPERTY), absolutePath).getFirst();
 
 		} catch (FrameworkException ex) {
 			logger.warn("File not found: {}", absolutePath);
@@ -1055,8 +1058,8 @@ public class FileHelper {
 	private static void handleFile(final SecurityContext securityContext, final InputStream in, final Folder existingParentFolder, final String entryPath) throws FrameworkException, IOException {
 
 		final Traits traits                        = Traits.of(StructrTraits.ABSTRACT_FILE);
-		final PropertyKey<NodeInterface> parentKey = traits.key("parent");
-		final PropertyKey<Boolean> hasParentKey    = traits.key("hasParent");
+		final PropertyKey<NodeInterface> parentKey = traits.key(AbstractFileTraitDefinition.PARENT_PROPERTY);
+		final PropertyKey<Boolean> hasParentKey    = traits.key(AbstractFileTraitDefinition.HAS_PARENT_PROPERTY);
 		final String filePath                      = (existingParentFolder != null ? existingParentFolder.getPath() : "") + PathHelper.PATH_SEP + PathHelper.clean(entryPath);
 		final String name                          = PathHelper.getName(entryPath);
 		final NodeInterface newFile                = ImageHelper.isImageType(name)

@@ -32,6 +32,8 @@ import org.structr.web.entity.Site;
 import org.structr.web.entity.path.PagePath;
 
 import java.util.List;
+import org.structr.web.traits.definitions.LinkableTraitDefinition;
+import org.structr.web.traits.definitions.dom.PageTraitDefinition;
 
 public interface Page extends DOMNode {
 
@@ -94,8 +96,8 @@ public interface Page extends DOMNode {
 		final Traits traits                           = Traits.of(StructrTraits.PAGE);
 		final PropertyKey<String> nameKey             = traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 		final PropertyKey<String> typeKey             = traits.key(GraphObjectTraitDefinition.TYPE_PROPERTY);
-		final PropertyKey<String> contentTypeKey      = traits.key("contentType");
-		final PropertyKey<Boolean> enableBasicAuthKey = traits.key("enableBasicAuth");
+		final PropertyKey<String> contentTypeKey      = traits.key(PageTraitDefinition.CONTENT_TYPE_PROPERTY);
+		final PropertyKey<Boolean> enableBasicAuthKey = traits.key(LinkableTraitDefinition.ENABLE_BASIC_AUTH_PROPERTY);
 		final App app                                 = StructrApp.getInstance(securityContext);
 		final PropertyMap properties                  = new PropertyMap();
 

@@ -1781,7 +1781,7 @@ let _Files = {
 		let archiveTypes = ['application/zip', 'application/x-tar', 'application/x-cpio', 'application/x-dump', 'application/x-java-archive', 'application/x-7z-compressed', 'application/x-ar', 'application/x-arj'];
 		let archiveExtensions = ['zip', 'tar', 'cpio', 'dump', 'jar', '7z', 'ar', 'arj'];
 
-		return _Helpers.isIn(contentType, archiveTypes) || _Helpers.isIn(extension, archiveExtensions);
+		return archiveTypes.includes(contentType) || archiveExtensions.includes(extension);
 	},
 	openMountDialog: () => {
 

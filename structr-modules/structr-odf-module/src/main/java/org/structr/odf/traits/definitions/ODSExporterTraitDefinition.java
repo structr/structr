@@ -58,7 +58,7 @@ import java.util.Map.Entry;
 public class ODSExporterTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public ODSExporterTraitDefinition() {
-		super("ODSExporter");
+		super(StructrTraits.ODS_EXPORTER);
 	}
 
 	@Override

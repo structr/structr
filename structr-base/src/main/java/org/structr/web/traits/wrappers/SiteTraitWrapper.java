@@ -22,6 +22,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.web.entity.Site;
+import org.structr.web.traits.definitions.SiteTraitDefinition;
 
 public class SiteTraitWrapper extends AbstractNodeTraitWrapper implements Site {
 
@@ -36,16 +37,16 @@ public class SiteTraitWrapper extends AbstractNodeTraitWrapper implements Site {
 
 	@Override
 	public String getHostname() {
-		return wrappedObject.getProperty(traits.key("hostname"));
+		return wrappedObject.getProperty(traits.key(SiteTraitDefinition.HOSTNAME_PROPERTY));
 	}
 
 	@Override
 	public Integer getPort() {
-		return wrappedObject.getProperty(traits.key("port"));
+		return wrappedObject.getProperty(traits.key(SiteTraitDefinition.PORT_PROPERTY));
 	}
 
 	@Override
 	public Iterable<NodeInterface> getPages() {
-		return wrappedObject.getProperty(traits.key("pages"));
+		return wrappedObject.getProperty(traits.key(SiteTraitDefinition.PAGES_PROPERTY));
 	}
 }

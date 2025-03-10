@@ -46,6 +46,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileAttributeView;
 import java.util.*;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 /**
  *
@@ -336,7 +337,7 @@ public class StructrFilePath extends StructrPath {
 		try (final Tx tx = app.tx()) {
 
 			// remove /files from path since it is a virtual directory
-			final NodeInterface actualFile = app.nodeQuery(StructrTraits.ABSTRACT_FILE).and(traits.key( "path"), filePath).sort(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getFirst();
+			final NodeInterface actualFile = app.nodeQuery(StructrTraits.ABSTRACT_FILE).and(traits.key( AbstractFileTraitDefinition.PATH_PROPERTY), filePath).sort(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getFirst();
 
 			tx.success();
 

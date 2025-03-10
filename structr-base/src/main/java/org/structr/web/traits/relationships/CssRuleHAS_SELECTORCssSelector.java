@@ -19,23 +19,24 @@
 package org.structr.web.traits.relationships;
 
 import org.structr.core.entity.Relation;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
 public class CssRuleHAS_SELECTORCssSelector extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public CssRuleHAS_SELECTORCssSelector() {
-		super("CssRuleHAS_SELECTORCssSelector");
+		super(StructrTraits.CSS_RULE_HAS_SELECTOR_CSS_SELECTOR);
 	}
 	
 	@Override
 	public String getSourceType() {
-		return "CssRule";
+		return StructrTraits.CSS_RULE;
 	}
 
 	@Override
 	public String getTargetType() {
-		return "CssSelector";
+		return StructrTraits.CSS_SELECTOR;
 	}
 
 	@Override

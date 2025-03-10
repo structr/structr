@@ -31,6 +31,7 @@ import org.structr.web.entity.event.ActionMapping;
 import org.structr.web.entity.event.ParameterMapping;
 
 import java.util.Map;
+import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
 
 public interface DOMElement extends DOMNode  {
 
@@ -136,7 +137,7 @@ public interface DOMElement extends DOMNode  {
 				element.attr("name", name);
 			}
 
-			final String htmlId = node.getProperty(traits.key("_html_id"));
+			final String htmlId = node.getProperty(traits.key(DOMElementTraitDefinition._HTML_ID_PROPERTY));
 			if (htmlId != null) {
 
 				element.attr("id", htmlId);

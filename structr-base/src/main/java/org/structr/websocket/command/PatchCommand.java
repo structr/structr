@@ -28,6 +28,7 @@ import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.web.traits.definitions.dom.ContentTraitDefinition;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -51,7 +52,7 @@ public class PatchCommand extends AbstractCommand {
 
 		setDoTransactionNotifications(true);
 
-		final PropertyKey<String> contentKey = Traits.of(StructrTraits.CONTENT).key("content");
+		final PropertyKey<String> contentKey = Traits.of(StructrTraits.CONTENT).key(ContentTraitDefinition.CONTENT_PROPERTY);
 		final NodeInterface node             = getNode(webSocketData.getId());
 		final String patch                   = webSocketData.getNodeDataStringValue("patch");
 

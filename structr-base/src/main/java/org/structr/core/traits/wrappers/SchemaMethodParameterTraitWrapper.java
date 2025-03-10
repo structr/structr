@@ -30,12 +30,6 @@ public class SchemaMethodParameterTraitWrapper extends AbstractNodeTraitWrapper 
 	}
 
 	@Override
-	public NodeInterface getSchemaNode() {
-		// FIXME ? SchemaMethodParameterTraitDefinition does not have a schemaNode !?
-		return wrappedObject.getProperty(traits.key("schemaNode"));
-	}
-
-	@Override
 	public String getName() {
 		return wrappedObject.getName();
 	}

@@ -35,6 +35,7 @@ import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
+import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.command.AbstractCommand;
 import org.structr.websocket.command.CreateComponentCommand;
@@ -288,7 +289,7 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 
 						// experimental: create DOM element with literal tag
 						newNode = StructrApp.getInstance(webSocket.getSecurityContext()).create(StructrTraits.DOM_ELEMENT,
-							new NodeAttribute(Traits.of(StructrTraits.DOM_ELEMENT).key("tag"), "custom")
+							new NodeAttribute(Traits.of(StructrTraits.DOM_ELEMENT).key(DOMElementTraitDefinition.TAG_PROPERTY), "custom")
 						).as(DOMElement.class);
 
 						if (newNode != null && document != null) {

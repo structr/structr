@@ -51,7 +51,6 @@ public class PropertyInfoFunction extends AdvancedScriptingFunction {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 2);
 
-			final ConfigurationProvider config = StructrApp.getConfiguration();
 			final String typeName = sources[0].toString();
 			final String keyName = sources[1].toString();
 

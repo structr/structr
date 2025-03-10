@@ -26,7 +26,7 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class PagePathHAS_PARAMETERPagePathParameter extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public PagePathHAS_PARAMETERPagePathParameter() {
-		super("PagePathHAS_PARAMETERPagePathParameter");
+		super(StructrTraits.PAGE_PATH_HAS_PARAMETER_PAGE_PATH_PARAMETER);
 	}
 
 	@Override

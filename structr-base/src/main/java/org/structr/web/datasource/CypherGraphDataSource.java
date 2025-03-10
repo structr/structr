@@ -30,6 +30,7 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 
 /**
  *
@@ -41,7 +42,7 @@ public class CypherGraphDataSource implements GraphDataSource<Iterable<GraphObje
 	public Iterable<GraphObject> getData(final ActionContext actionContext, final NodeInterface referenceNode) throws FrameworkException {
 
 		final Traits traits                      = Traits.of(StructrTraits.DOM_NODE);
-		final PropertyKey<String> cypherQueryKey = traits.key("cypherQuery");
+		final PropertyKey<String> cypherQueryKey = traits.key(DOMNodeTraitDefinition.CYPHER_QUERY_PROPERTY);
 		final String cypherQuery                 = referenceNode.getPropertyWithVariableReplacement(actionContext, cypherQueryKey);
 
 		if (StringUtils.isBlank(cypherQuery)) {

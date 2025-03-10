@@ -60,6 +60,9 @@ import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.Template;
 import org.structr.web.entity.event.ActionMapping;
 import org.structr.web.property.CustomHtmlAttributeProperty;
+import org.structr.web.traits.definitions.LinkSourceTraitDefinition;
+import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
+import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 import org.structr.web.traits.operations.*;
 import org.structr.websocket.command.CreateComponentCommand;
 
@@ -96,12 +99,12 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 	@Override
 	public final String getChildLinkType() {
-		return "DOMNodeCONTAINSDOMNode";
+		return StructrTraits.DOM_NODE_CONTAINS_DOM_NODE;
 	}
 
 	@Override
 	public final PropertyKey<Integer> getPositionProperty() {
-		return Traits.of("DOMNodeCONTAINSDOMNode").key("position");
+		return Traits.of(StructrTraits.DOM_NODE_CONTAINS_DOM_NODE).key("position");
 	}
 
 	@Override
@@ -507,7 +510,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 	public final Page getOwnerDocumentAsSuperUser() {
 
-		final RelationshipInterface ownership = wrappedObject.getOutgoingRelationshipAsSuperUser("DOMNodePAGEPage");
+		final RelationshipInterface ownership = wrappedObject.getOutgoingRelationshipAsSuperUser(StructrTraits.DOM_NODE_PAGE_PAGE);
 		if (ownership != null) {
 
 			return ownership.getTargetNode().as(Page.class);
@@ -548,7 +551,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 			}
 
 			// skip tagName, otherwise the target node will have mismatching type and tag
-			if ("tag".equals(key.jsonName())) {
+			if (DOMElementTraitDefinition.TAG_PROPERTY.equals(key.jsonName())) {
 				continue;
 			}
 
@@ -566,7 +569,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 			}
 
 			// skip tagName, otherwise the target node will have mismatching type and tag
-			if ("tag".equals(key.jsonName())) {
+			if (DOMElementTraitDefinition.TAG_PROPERTY.equals(key.jsonName())) {
 				continue;
 			}
 
@@ -592,7 +595,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 			final LinkSource linkSourceElement = (LinkSource)sourceNode;
 
-			properties.put(Traits.of(StructrTraits.LINK_SOURCE).key("linkable"), linkSourceElement.getLinkable());
+			properties.put(Traits.of(StructrTraits.LINK_SOURCE).key(LinkSourceTraitDefinition.LINKABLE_PROPERTY), linkSourceElement.getLinkable());
 		}
 
 		// set the properties we collected above
@@ -914,15 +917,15 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 	@Override
 	public final boolean dontCache() {
-		return wrappedObject.getProperty(traits.key("dontCache"));
+		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.DONT_CACHE_PROPERTY));
 	}
 
 	@Override
 	public final boolean displayForLocale(final RenderContext renderContext) {
 
 		final String localeString = renderContext.getLocale().toString();
-		final String show         = wrappedObject.getProperty(traits.key("showForLocales"));
-		final String hide         = wrappedObject.getProperty(traits.key("hideForLocales"));
+		final String show         = getShowForLocales();
+		final String hide         = getHideForLocales();
 
 		// If both fields are empty, render node
 		if (StringUtils.isBlank(hide) && StringUtils.isBlank(show)) {
@@ -946,8 +949,8 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	@Override
 	public final boolean displayForConditions(final RenderContext renderContext)  {
 
-		String _showConditions = wrappedObject.getProperty(traits.key("showConditions"));
-		String _hideConditions = wrappedObject.getProperty(traits.key("hideConditions"));
+		String _showConditions = getShowConditions();
+		String _hideConditions = getHideConditions();
 
 		// If both fields are empty, render node
 		if (StringUtils.isBlank(_hideConditions) && StringUtils.isBlank(_showConditions)) {
@@ -1036,7 +1039,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 	@Override
 	public final boolean hasSharedComponent() {
-		return wrappedObject.getProperty(traits.key("hasSharedComponent"));
+		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.HAS_SHARED_COMPONENT_PROPERTY));
 	}
 
 	@Override
@@ -1059,32 +1062,32 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 	@Override
 	public final String getShowConditions() {
-		return wrappedObject.getProperty(traits.key("showConditions"));
+		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.SHOW_CONDITIONS_PROPERTY));
 	}
 
 	@Override
 	public final String getHideConditions() {
-		return wrappedObject.getProperty(traits.key("hideConditions"));
+		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.HIDE_CONDITIONS_PROPERTY));
 	}
 
 	@Override
 	public final String getShowForLocales() {
-		return wrappedObject.getProperty(traits.key("showForLocales"));
+		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.SHOW_FOR_LOCALES_PROPERTY));
 	}
 
 	@Override
 	public final String getHideForLocales() {
-		return wrappedObject.getProperty(traits.key("hideForLocales"));
+		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.HIDE_FOR_LOCALES_PROPERTY));
 	}
 
 	@Override
 	public final String getDataHash() {
-		return wrappedObject.getProperty(traits.key("data-structr-hash"));
+		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.DATA_STRUCTR_HASH_PROPERTY));
 	}
 
 	@Override
 	public final String getDataKey() {
-		return wrappedObject.getProperty(traits.key("dataKey"));
+		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.DATA_KEY_PROPERTY));
 	}
 
 	@Override
@@ -1104,17 +1107,17 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 	@Override
 	public final String getCypherQuery() {
-		return wrappedObject.getProperty(traits.key("cypherQuery"));
+		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.CYPHER_QUERY_PROPERTY));
 	}
 
 	@Override
 	public final String getRestQuery() {
-		return wrappedObject.getProperty(traits.key("restQuery"));
+		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.REST_QUERY_PROPERTY));
 	}
 
 	@Override
 	public final String getFunctionQuery() {
-		return wrappedObject.getProperty(traits.key("functionQuery"));
+		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY));
 	}
 
 	@Override
@@ -1129,13 +1132,13 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 	@Override
 	public final String getSharedComponentConfiguration() {
-		return wrappedObject.getProperty(traits.key("sharedComponentConfiguration"));
+		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.SHARED_COMPONENT_CONFIGURATION_PROPERTY));
 	}
 
 	@Override
 	public final DOMNode getParent() {
 
-		final NodeInterface node = wrappedObject.getProperty(traits.key("parent"));
+		final NodeInterface node = wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.PARENT_PROPERTY));
 		if (node != null) {
 
 			return node.as(DOMNode.class);
@@ -1147,7 +1150,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	@Override
 	public final DOMNode getSharedComponent() {
 
-		final NodeInterface node = wrappedObject.getProperty(traits.key("sharedComponent"));
+		final NodeInterface node = wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.SHARED_COMPONENT_PROPERTY));
 		if (node != null) {
 
 			return node.as(DOMNode.class);
@@ -1159,7 +1162,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	@Override
 	public final Iterable<DOMNode> getChildren() {
 
-		final PropertyKey<Iterable<NodeInterface>> key = traits.key("children");
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key(DOMNodeTraitDefinition.CHILDREN_PROPERTY);
 
 		return Iterables.map(n -> n.as(DOMNode.class), wrappedObject.getProperty(key));
 	}
@@ -1167,7 +1170,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	@Override
 	public final Iterable<DOMNode> getSyncedNodes() {
 
-		final PropertyKey<Iterable<NodeInterface>> key = traits.key("syncedNodes");
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key(DOMNodeTraitDefinition.SYNCED_NODES_PROPERTY);
 
 		return Iterables.map(n -> n.as(DOMNode.class), wrappedObject.getProperty(key));
 	}
@@ -1175,7 +1178,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	@Override
 	public final Iterable<ActionMapping> getReloadingActions() {
 
-		final PropertyKey<Iterable<NodeInterface>> key = traits.key("reloadingActions");
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key(DOMNodeTraitDefinition.RELOADING_ACTIONS_PROPERTY);
 
 		return Iterables.map(n -> n.as(ActionMapping.class), wrappedObject.getProperty(key));
 	}
@@ -1183,7 +1186,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	@Override
 	public final Iterable<ActionMapping> getFailureActions() {
 
-		final PropertyKey<Iterable<NodeInterface>> key = traits.key("failureActions");
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key(DOMNodeTraitDefinition.FAILURE_ACTIONS_PROPERTY);
 
 		return Iterables.map(n -> n.as(ActionMapping.class), wrappedObject.getProperty(key));
 	}
@@ -1191,7 +1194,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	@Override
 	public final Iterable<ActionMapping> getSuccessNotificationActions() {
 
-		final PropertyKey<Iterable<NodeInterface>> key = traits.key("successNotificationActions");
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key(DOMNodeTraitDefinition.SUCCESS_NOTIFICATION_ACTIONS_PROPERTY);
 
 		return Iterables.map(n -> n.as(ActionMapping.class), wrappedObject.getProperty(key));
 	}
@@ -1199,19 +1202,19 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	@Override
 	public final Iterable<ActionMapping> getFailureNotificationActions() {
 
-		final PropertyKey<Iterable<NodeInterface>> key = traits.key("failureNotificationActions");
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key(DOMNodeTraitDefinition.FAILURE_NOTIFICATION_ACTIONS_PROPERTY);
 
 		return Iterables.map(n -> n.as(ActionMapping.class), wrappedObject.getProperty(key));
 	}
 
 	@Override
 	public final void setOwnerDocument(final Page page) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("ownerDocument"), page);
+		wrappedObject.setProperty(traits.key(DOMNodeTraitDefinition.OWNER_DOCUMENT_PROPERTY), page);
 	}
 
 	@Override
 	public final void setSharedComponent(final DOMNode sharedComponent) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("sharedComponent"), sharedComponent);
+		wrappedObject.setProperty(traits.key(DOMNodeTraitDefinition.SHARED_COMPONENT_PROPERTY), sharedComponent);
 	}
 
 	@Override
@@ -1590,7 +1593,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 	@Override
 	public final String getSiblingLinkType() {
-		return "DOMNodeCONTAINS_NEXT_SIBLINGDOMNode";
+		return StructrTraits.DOM_NODE_CONTAINS_NEXT_SIBLING_DOM_NODE;
 	}
 
 	@Override
@@ -1748,7 +1751,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 	public final DOMNode getPreviousSibling() {
 
-		final NodeInterface node = wrappedObject.getProperty(traits.key("previousSibling"));
+		final NodeInterface node = wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.PREVIOUS_SIBLING_PROPERTY));
 		if (node != null) {
 
 			return node.as(DOMNode.class);
@@ -1759,7 +1762,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 	public final DOMNode getNextSibling() {
 
-		final NodeInterface node = wrappedObject.getProperty(traits.key("nextSibling"));
+		final NodeInterface node = wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.NEXT_SIBLING_PROPERTY));
 		if (node != null) {
 
 			return node.as(DOMNode.class);
@@ -1786,7 +1789,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	@Override
 	public final Page getOwnerDocument() {
 
-		final NodeInterface node = wrappedObject.getProperty(traits.key("ownerDocument"));
+		final NodeInterface node = wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.OWNER_DOCUMENT_PROPERTY));
 		if (node != null) {
 
 			return node.as(Page.class);
@@ -1926,7 +1929,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 	public final boolean hasChildNodes() {
 
-		final PropertyKey<Iterable<NodeInterface>> childrenKey = traits.key("children");
+		final PropertyKey<Iterable<NodeInterface>> childrenKey = traits.key(DOMNodeTraitDefinition.CHILDREN_PROPERTY);
 
 		return wrappedObject.getProperty(childrenKey).iterator().hasNext();
 	}
@@ -2002,7 +2005,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 				final LinkSource linkSourceElement = this.as(LinkSource.class);
 				final Traits linkSourceTraits      = Traits.of(StructrTraits.LINK_SOURCE);
 
-				properties.put(linkSourceTraits.key("linkable"), linkSourceElement.getLinkable());
+				properties.put(linkSourceTraits.key(LinkSourceTraitDefinition.LINKABLE_PROPERTY), linkSourceElement.getLinkable());
 			}
 
 			final App app = StructrApp.getInstance(securityContext);
@@ -2083,6 +2086,6 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 	@Override
 	public void setIdAttribute(final String id) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("_html_id"), id);
+		wrappedObject.setProperty(traits.key(DOMElementTraitDefinition._HTML_ID_PROPERTY), id);
 	}
 }

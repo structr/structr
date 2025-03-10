@@ -787,8 +787,8 @@ public class OpenAPITest extends StructrUiTest {
 				.contentType("application/json; charset=UTF-8")
 				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 
-				.header("X-User",     username)
-				.header("X-Password", password)
+				.header(X_USER_HEADER,     username)
+				.header(X_PASSWORD_HEADER, password)
 
 				.expect()
 				.statusCode(200)

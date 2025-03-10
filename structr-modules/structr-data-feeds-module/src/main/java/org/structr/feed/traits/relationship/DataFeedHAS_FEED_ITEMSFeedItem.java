@@ -19,23 +19,24 @@
 package org.structr.feed.traits.relationship;
 
 import org.structr.core.entity.Relation;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
 public class DataFeedHAS_FEED_ITEMSFeedItem extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public DataFeedHAS_FEED_ITEMSFeedItem() {
-		super("DataFeedHAS_FEED_ITEMSFeedItem");
+		super(StructrTraits.DATA_FEED_HAS_FEED_ITEMS_FEED_ITEM);
 	}
 
 	@Override
 	public String getSourceType() {
-		return "DataFeed";
+		return StructrTraits.DATA_FEED;
 	}
 
 	@Override
 	public String getTargetType() {
-		return "FeedItem";
+		return StructrTraits.FEED_ITEM;
 	}
 
 	@Override

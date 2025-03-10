@@ -110,8 +110,8 @@ public class HtmlServletObjectResolvingTest extends StructrUiTest {
 
 		RestAssured
 			.given()
-			.header("X-User", "superadmin")
-			.header("X-Password", "sehrgeheim")
+			.header(X_USER_HEADER, "superadmin")
+			.header(X_PASSWORD_HEADER, "sehrgeheim")
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
@@ -130,8 +130,8 @@ public class HtmlServletObjectResolvingTest extends StructrUiTest {
 
 		RestAssured
 			.given()
-			.header("X-User", "superadmin")
-			.header("X-Password", "sehrgeheim")
+			.header(X_USER_HEADER, "superadmin")
+			.header(X_PASSWORD_HEADER, "sehrgeheim")
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
@@ -149,8 +149,8 @@ public class HtmlServletObjectResolvingTest extends StructrUiTest {
 
 		RestAssured
 			.given()
-			.header("X-User", "superadmin")
-			.header("X-Password", "sehrgeheim")
+			.header(X_USER_HEADER, "superadmin")
+			.header(X_PASSWORD_HEADER, "sehrgeheim")
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))

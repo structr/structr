@@ -26,7 +26,7 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class DOMElementRELOADSDOMElement extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public DOMElementRELOADSDOMElement() {
-		super("DOMElementRELOADSDOMElement");
+		super(StructrTraits.DOM_ELEMENT_RELOADS_DOM_ELEMENT);
 	}
 
 	@Override

@@ -37,7 +37,7 @@ public class WidgetTraitWrapper extends AbstractNodeTraitWrapper implements Widg
 
 	@Override
 	public String getSource() {
-		return wrappedObject.getProperty(traits.key(""));
+		return wrappedObject.getProperty(traits.key(WidgetTraitDefinition.SOURCE_PROPERTY));
 	}
 
 	@Override
@@ -47,26 +47,26 @@ public class WidgetTraitWrapper extends AbstractNodeTraitWrapper implements Widg
 
 	@Override
 	public boolean isWidget() {
-		return wrappedObject.getProperty(traits.key("isWidget"));
+		return wrappedObject.getProperty(traits.key(WidgetTraitDefinition.IS_WIDGET_PROPERTY));
 	}
 
 	@Override
 	public String getTreePath() {
-		return wrappedObject.getProperty(traits.key("treePath"));
+		return wrappedObject.getProperty(traits.key(WidgetTraitDefinition.TREE_PATH_PROPERTY));
 	}
 
 	@Override
 	public String getConfiguration() {
-		return wrappedObject.getProperty(traits.key("configuration"));
+		return wrappedObject.getProperty(traits.key(WidgetTraitDefinition.CONFIGURATION_PROPERTY));
 	}
 
 	@Override
 	public boolean isPageTemplate() {
-		return wrappedObject.getProperty(traits.key("isPageTemplate"));
+		return wrappedObject.getProperty(traits.key(WidgetTraitDefinition.IS_PAGE_TEMPLATE_PROPERTY));
 	}
 
 	@Override
 	public String[] getSelectors() {
-		return wrappedObject.getProperty(traits.key("selectors"));
+		return wrappedObject.getProperty(traits.key(WidgetTraitDefinition.SELECTORS_PROPERTY));
 	}
 }

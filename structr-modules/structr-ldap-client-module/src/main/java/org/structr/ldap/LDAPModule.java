@@ -40,8 +40,8 @@ public class LDAPModule implements StructrModule {
 	@Override
 	public void onLoad(final LicenseManager licenseManager) {
 
-		StructrTraits.registerNodeType("LDAPGroup", new PrincipalTraitDefinition(), new GroupTraitDefinition(), new LDAPGroupTraitDefinition());
-		StructrTraits.registerNodeType("LDAPUser", new PrincipalTraitDefinition(), new UserTraitDefinition(), new LDAPUserTraitDefinition());
+		StructrTraits.registerNodeType(StructrTraits.LDAP_GROUP, new PrincipalTraitDefinition(), new GroupTraitDefinition(), new LDAPGroupTraitDefinition());
+		StructrTraits.registerNodeType(StructrTraits.LDAP_USER,  new PrincipalTraitDefinition(), new UserTraitDefinition(), new LDAPUserTraitDefinition());
 	}
 
 	@Override

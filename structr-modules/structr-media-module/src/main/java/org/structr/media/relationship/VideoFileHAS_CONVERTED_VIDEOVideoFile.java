@@ -19,23 +19,24 @@
 package org.structr.media.relationship;
 
 import org.structr.core.entity.Relation;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
 public class VideoFileHAS_CONVERTED_VIDEOVideoFile extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public VideoFileHAS_CONVERTED_VIDEOVideoFile() {
-		super("VideoFileHAS_CONVERTED_VIDEOVideoFile");
+		super(StructrTraits.VIDEO_FILE_HAS_CONVERTED_VIDEO_VIDEO_FILE);
 	}
 
 	@Override
 	public String getSourceType() {
-		return "VideoFile";
+		return StructrTraits.VIDEO_FILE;
 	}
 
 	@Override
 	public String getTargetType() {
-		return "VideoFile";
+		return StructrTraits.VIDEO_FILE;
 	}
 
 	@Override

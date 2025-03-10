@@ -41,13 +41,13 @@ public class ODFModule implements StructrModule{
 	@Override
 	public void onLoad(final LicenseManager licenseManager) {
 
-		StructrTraits.registerRelationshipType("ODFExporterEXPORTS_TOFile",                      new ODFExporterEXPORTS_TOFile());
-		StructrTraits.registerRelationshipType("ODFExporterGETS_TRANSFORMATION_FROMVirtualType", new ODFExporterGETS_TRANSFORMATION_FROMVirtualType());
-		StructrTraits.registerRelationshipType("ODFExporterUSES_TEMPLATEFile",                   new ODFExporterUSES_TEMPLATEFile());
+		StructrTraits.registerRelationshipType(StructrTraits.ODF_EXPORTER_EXPORTS_TO_FILE,                       new ODFExporterEXPORTS_TOFile());
+		StructrTraits.registerRelationshipType(StructrTraits.ODF_EXPORTER_GETS_TRANSFORMATION_FROM_VIRTUAL_TYPE, new ODFExporterGETS_TRANSFORMATION_FROMVirtualType());
+		StructrTraits.registerRelationshipType(StructrTraits.ODF_EXPORTER_USES_TEMPLATE_FILE,                    new ODFExporterUSES_TEMPLATEFile());
 
-		StructrTraits.registerNodeType("ODFExporter", new ODFExporterTraitDefinition());
-		StructrTraits.registerNodeType("ODSExporter", new ODFExporterTraitDefinition(), new ODSExporterTraitDefinition());
-		StructrTraits.registerNodeType("ODTExporter", new ODFExporterTraitDefinition(), new ODTExporterTraitDefinition());
+		StructrTraits.registerNodeType(StructrTraits.ODF_EXPORTER, new ODFExporterTraitDefinition());
+		StructrTraits.registerNodeType(StructrTraits.ODS_EXPORTER, new ODFExporterTraitDefinition(), new ODSExporterTraitDefinition());
+		StructrTraits.registerNodeType(StructrTraits.ODT_EXPORTER, new ODFExporterTraitDefinition(), new ODTExporterTraitDefinition());
 	}
 
 	@Override

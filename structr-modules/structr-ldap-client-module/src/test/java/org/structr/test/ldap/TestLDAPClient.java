@@ -42,7 +42,7 @@ public class TestLDAPClient extends StructrUiTest {
 	@Test
 	public void testLDAPClient() {
 
-		final Class type = StructrApp.getConfiguration().getNodeEntityClass("LDAPUser");
+		final Class type = StructrApp.getConfiguration().getNodeEntityClass(StructrTraits.LDAP_USER);
 
 		Assert.assertNotNull("Type LDAPUser should exist", type);
 
@@ -54,9 +54,9 @@ public class TestLDAPClient extends StructrUiTest {
 				new NodeAttribute<>(StructrApp.key(User.class, PrincipalTraitDefinition.IS_ADMIN_PROPERTY),  true)
 			);
 
-			app.create("LDAPGroup",
+			app.create(StructrTraits.LDAP_GROUP,
 				new NodeAttribute<>(StructrApp.key(LDAPGroup.class, "name"),              "group1"),
-				new NodeAttribute<>(StructrApp.key(LDAPGroup.class, "distinguishedName"), "ou=page1,dc=test,dc=structr,dc=org")
+				new NodeAttribute<>(StructrApp.key(LDAPGroup.class, LDAPGroupTraitDefinition.DISTINGUISHED_NAME_PROPERTY), "ou=page1,dc=test,dc=structr,dc=org")
 			);
 
 			app.nodeQuery(StructrTraits.RESOURCE_ACCESS).and(Traits.of(StructrTraits.RESOURCE_ACCESS).key("signature"), StructrTraits.USER).getFirst().setProperty(Traits.of(StructrTraits.RESOURCE_ACCESS).key(ResourceAccessTraitDefinition.FLAGS_PROPERTY), 1L);
@@ -73,7 +73,7 @@ public class TestLDAPClient extends StructrUiTest {
 			.given()
 				.contentType("application/json; charset=UTF-8")
 				.filter(ResponseLoggingFilter.logResponseTo(System.out))
-				.headers("X-User", "admin", "X-Password", "admin")
+				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
 
 			.expect()
 				.statusCode(200)
@@ -86,7 +86,7 @@ public class TestLDAPClient extends StructrUiTest {
 			.given()
 				.contentType("application/json; charset=UTF-8")
 				.filter(ResponseLoggingFilter.logResponseTo(System.out))
-				.headers("X-User", "tester", "X-Password", "password")
+				.headers(X_USER_HEADER, "tester", X_PASSWORD_HEADER, "password")
 
 			.expect()
 				.statusCode(200)

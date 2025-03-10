@@ -39,6 +39,7 @@ import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.ShadowDocument;
 import org.structr.web.importer.Importer;
 import org.structr.web.maintenance.DeployCommand;
+import org.structr.web.traits.definitions.dom.ContentTraitDefinition;
 import org.structr.websocket.command.CreateComponentCommand;
 
 import java.io.IOException;
@@ -208,7 +209,7 @@ public class ComponentImporter extends HtmlFileImporter {
 
 				if (existingComponent != null && isHullMode()) {
 
-					final PropertyKey<String> contentKey = Traits.of(StructrTraits.TEMPLATE).key("content");
+					final PropertyKey<String> contentKey = Traits.of(StructrTraits.TEMPLATE).key(ContentTraitDefinition.CONTENT_PROPERTY);
 					final DOMNode component              = existingComponent.as(DOMNode.class);
 
 					properties.put(contentKey, existingComponent.getProperty(contentKey));

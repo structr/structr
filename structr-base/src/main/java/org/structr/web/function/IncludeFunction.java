@@ -42,6 +42,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.List;
+import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 
 /**
  * Convenience method to render named nodes. If more than one node is found, an error message is returned that informs the user that this is not allowed and can result in unexpected
@@ -74,7 +75,7 @@ public class IncludeFunction extends UiCommunityFunction {
 				return null;
 			}
 
-			final PropertyKey<DOMNode> sharedCompKey = Traits.of(StructrTraits.DOM_NODE).key("sharedComponent");
+			final PropertyKey<DOMNode> sharedCompKey = Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.SHARED_COMPONENT_PROPERTY);
 			final SecurityContext securityContext    = ctx.getSecurityContext();
 			final App app                            = StructrApp.getInstance(securityContext);
 			final List<NodeInterface> nodeList       = app.nodeQuery(StructrTraits.DOM_NODE).andName((String)sources[0]).getAsList();

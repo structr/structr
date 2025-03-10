@@ -98,6 +98,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.LinkableTraitDefinition;
+import org.structr.web.traits.definitions.dom.PageTraitDefinition;
 
 /**
  * Main servlet for content rendering.
@@ -442,7 +445,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 						// Page with Basic Auth found but not yet authenticated
 						case MustAuthenticate:
 
-							final NodeInterface errorPage = StructrApp.getInstance().nodeQuery(StructrTraits.PAGE).and(pageTraits.key("showOnErrorCodes"), "401", false).getFirst();
+							final NodeInterface errorPage = StructrApp.getInstance().nodeQuery(StructrTraits.PAGE).and(pageTraits.key(PageTraitDefinition.SHOW_ON_ERROR_CODES_PROPERTY), "401", false).getFirst();
 							if (errorPage != null && isVisibleForSite(request, errorPage.as(Page.class))) {
 
 								// set error page
@@ -985,7 +988,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	 */
 	private Page notFound(final HttpServletResponse response, final SecurityContext securityContext) throws IOException, FrameworkException {
 
-		final PropertyKey<String> key        = Traits.of(StructrTraits.PAGE).key("showOnErrorCodes");
+		final PropertyKey<String> key        = Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.SHOW_ON_ERROR_CODES_PROPERTY);
 		final List<NodeInterface> errorPages = StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.PAGE).and(key, "404", false).getAsList();
 
 		for (final NodeInterface node : errorPages) {
@@ -1007,7 +1010,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 	private Page getErrorPageForStatus(final HttpServletResponse response, final SecurityContext securityContext) throws IOException, FrameworkException {
 
-		final PropertyKey<String> key        = Traits.of(StructrTraits.PAGE).key("showOnErrorCodes");
+		final PropertyKey<String> key        = Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.SHOW_ON_ERROR_CODES_PROPERTY);
 		final List<NodeInterface> errorPages = StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.PAGE).and(key, "" + response.getStatus(), false).getAsList();
 
 		for (final NodeInterface node : errorPages) {
@@ -1041,13 +1044,12 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 			logger.debug("Requested name: {}", name);
 
-			final Query<NodeInterface> query    = StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.NODE_INTERFACE);
-			final ConfigurationProvider config = StructrApp.getConfiguration();
+			final Query<NodeInterface> query = StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.NODE_INTERFACE);
 
 			if (!possiblePropertyNamesForEntityResolving.isEmpty()) {
 
 				query.and();
-				resolvePossiblePropertyNamesForObjectResolution(config, query, name);
+				resolvePossiblePropertyNamesForObjectResolution(query, name);
 				query.parent();
 			}
 
@@ -1148,7 +1150,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	private Page findPage(final SecurityContext securityContext, final String path, final EditMode edit) throws FrameworkException {
 
 		final Traits traits               = Traits.of(StructrTraits.PAGE);
-		final PropertyKey<String> pathKey = traits.key("path");
+		final PropertyKey<String> pathKey = traits.key(PageTraitDefinition.PATH_PROPERTY);
 		final PropertyKey<String> nameKey = traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 
 		final PropertyMap attributes = new PropertyMap(pathKey, path);
@@ -1205,7 +1207,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	private Page findIndexPage(final SecurityContext securityContext, final EditMode edit) throws FrameworkException {
 
 		final Traits traits                    = Traits.of(StructrTraits.PAGE);
-		final PropertyKey<Integer> positionKey = traits.key("position");
+		final PropertyKey<Integer> positionKey = traits.key(PageTraitDefinition.POSITION_PROPERTY);
 
 		final List<NodeInterface> possiblePages = StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.PAGE).notBlank(positionKey).sort(positionKey).getAsList();
 
@@ -1741,7 +1743,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 	}
 
-	private void resolvePossiblePropertyNamesForObjectResolution(final ConfigurationProvider config, final Query query, final String name) {
+	private void resolvePossiblePropertyNamesForObjectResolution(final Query query, final String name) {
 
 		for (final String possiblePropertyName : possiblePropertyNamesForEntityResolving) {
 
@@ -1800,10 +1802,10 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 	private HttpBasicAuthResult checkHttpBasicAuth(final SecurityContext outerSecurityContext, final HttpServletRequest request, final HttpServletResponse response, final String path) throws IOException, FrameworkException {
 
-		final PropertyKey<Boolean> basicAuthKey     = Traits.of(StructrTraits.LINKABLE).key("enableBasicAuth");
-		final PropertyKey<Integer> positionKey      = Traits.of(StructrTraits.PAGE).key("position");
-		final PropertyKey<String> filePathKey       = Traits.of(StructrTraits.FILE).key("path");
-		final PropertyKey<String> pagePathKey       = Traits.of(StructrTraits.PAGE).key("path");
+		final PropertyKey<Boolean> basicAuthKey     = Traits.of(StructrTraits.LINKABLE).key(LinkableTraitDefinition.ENABLE_BASIC_AUTH_PROPERTY);
+		final PropertyKey<Integer> positionKey      = Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.POSITION_PROPERTY);
+		final PropertyKey<String> filePathKey       = Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY);
+		final PropertyKey<String> pagePathKey       = Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.PATH_PROPERTY);
 
 		// Look for renderable objects using a SuperUserSecurityContext,
 		// but dont actually render the page. We're only interested in

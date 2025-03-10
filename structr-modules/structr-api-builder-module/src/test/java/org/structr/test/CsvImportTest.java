@@ -90,7 +90,7 @@ public class CsvImportTest extends StructrUiTest {
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			tx.success();
 
@@ -118,8 +118,8 @@ public class CsvImportTest extends StructrUiTest {
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
+			.header(X_USER_HEADER,     ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.filter(RequestLoggingFilter.logRequestTo(System.out))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
@@ -215,7 +215,7 @@ public class CsvImportTest extends StructrUiTest {
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			tx.success();
 
@@ -243,8 +243,8 @@ public class CsvImportTest extends StructrUiTest {
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
+			.header(X_USER_HEADER,     ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.filter(RequestLoggingFilter.logRequestTo(System.out))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
@@ -340,7 +340,7 @@ public class CsvImportTest extends StructrUiTest {
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			tx.success();
 
@@ -368,8 +368,8 @@ public class CsvImportTest extends StructrUiTest {
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
+			.header(X_USER_HEADER,     ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.filter(RequestLoggingFilter.logRequestTo(System.out))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
@@ -465,7 +465,7 @@ public class CsvImportTest extends StructrUiTest {
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			tx.success();
 
@@ -493,8 +493,8 @@ public class CsvImportTest extends StructrUiTest {
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
+			.header(X_USER_HEADER,     ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.filter(RequestLoggingFilter.logRequestTo(System.out))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))

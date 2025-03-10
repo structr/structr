@@ -19,23 +19,24 @@
 package org.structr.messaging.engine.relation;
 
 import org.structr.core.entity.Relation;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
 public class MessageClientHASMessageSubscriber extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public MessageClientHASMessageSubscriber() {
-		super("MessageClientHASMessageSubscriber");
+		super(StructrTraits.MESSAGE_CLIENT_HAS_MESSAGE_SUBSCRIBER);
 	}
 
 	@Override
 	public String getSourceType() {
-		return "MessageClient";
+		return StructrTraits.MESSAGE_CLIENT;
 	}
 
 	@Override
 	public String getTargetType() {
-		return "MessageSubscriber";
+		return StructrTraits.MESSAGE_SUBSCRIBER;
 	}
 
 	@Override

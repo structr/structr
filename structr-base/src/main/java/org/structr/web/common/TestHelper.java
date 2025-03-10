@@ -38,6 +38,7 @@ import org.structr.core.traits.definitions.LocalizationTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.core.traits.definitions.ResourceAccessTraitDefinition;
+import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
 
 /**
  */
@@ -57,7 +58,7 @@ public class TestHelper {
 				GraphObjectTraitDefinition.CREATED_DATE_PROPERTY, GraphObjectTraitDefinition.LAST_MODIFIED_DATE_PROPERTY,
 				GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY
 		));
-		baseMap.put("_html_", Arrays.asList("_html_data", "_html_is", "_html_properties"));
+		baseMap.put("_html_", Arrays.asList(DOMElementTraitDefinition._HTML_DATA_PROPERTY, DOMElementTraitDefinition._HTML_IS_PROPERTY, DOMElementTraitDefinition._HTML_PROPERTIES_PROPERTY));
 		baseMap.put("public", Arrays.asList(GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY));
 
 		requiredAttributes.put(StructrTraits.DYNAMIC_RESOURCE_ACCESS, Arrays.asList(ResourceAccessTraitDefinition.SIGNATURE_PROPERTY, "i:" + ResourceAccessTraitDefinition.FLAGS_PROPERTY));

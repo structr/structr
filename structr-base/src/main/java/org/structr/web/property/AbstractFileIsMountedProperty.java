@@ -27,11 +27,12 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.web.entity.AbstractFile;
 
 import java.util.Map;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 public class AbstractFileIsMountedProperty extends AbstractReadOnlyProperty<Boolean> {
 
 	public AbstractFileIsMountedProperty() {
-		super("isMounted");
+		super(AbstractFileTraitDefinition.IS_MOUNTED_PROPERTY);
 	}
 
 	@Override

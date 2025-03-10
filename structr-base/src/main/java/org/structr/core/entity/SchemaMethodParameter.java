@@ -22,8 +22,6 @@ import org.structr.core.graph.NodeInterface;
 
 public interface SchemaMethodParameter extends NodeInterface {
 
-	NodeInterface getSchemaNode();
-
 	String getName();
 	String getDescription();
 	String getParameterType();

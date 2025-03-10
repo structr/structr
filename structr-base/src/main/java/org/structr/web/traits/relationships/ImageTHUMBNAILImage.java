@@ -31,13 +31,13 @@ import java.util.Set;
 
 public class ImageTHUMBNAILImage extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
-	private static final PropertyKey<Long> checksum     = new LongProperty("checksum");
-	private static final PropertyKey<Integer> maxWidth  = new IntProperty("maxWidth");
-	private static final PropertyKey<Integer> maxHeight = new IntProperty("maxHeight");
-	private static final PropertyKey<Boolean> cropToFit = new BooleanProperty("cropToFit");
+	public static final String CHECKSUM_PROPERTY    = "checksum";
+	public static final String MAX_WIDTH_PROPERTY   = "maxWidth";
+	public static final String MAX_HEIGHT_PROPERTY  = "maxHeight";
+	public static final String CROP_TO_FIT_PROPERTY = "cropToFit";
 
 	public ImageTHUMBNAILImage() {
-		super("ImageTHUMBNAILImage");
+		super(StructrTraits.IMAGE_THUMBNAIL_IMAGE);
 	}
 
 	@Override
@@ -83,11 +83,13 @@ public class ImageTHUMBNAILImage extends AbstractRelationshipTraitDefinition imp
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
+		final PropertyKey<Long> checksum     = new LongProperty(CHECKSUM_PROPERTY);
+		final PropertyKey<Integer> maxWidth  = new IntProperty(MAX_WIDTH_PROPERTY);
+		final PropertyKey<Integer> maxHeight = new IntProperty(MAX_HEIGHT_PROPERTY);
+		final PropertyKey<Boolean> cropToFit = new BooleanProperty(CROP_TO_FIT_PROPERTY);
+
 		return Set.of(
-			checksum,
-			maxWidth,
-			maxHeight,
-			cropToFit
+			checksum, maxWidth, maxHeight, cropToFit
 		);
 	}
 }

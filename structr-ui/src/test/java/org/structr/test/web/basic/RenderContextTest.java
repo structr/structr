@@ -51,6 +51,7 @@ import org.structr.web.entity.Linkable;
 import org.structr.web.entity.User;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
+import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 import org.testng.annotations.Test;
 
 import java.net.HttpCookie;
@@ -99,7 +100,6 @@ public class RenderContextTest extends StructrUiTest {
 			fail("Unexpected exception");
 		}
 
-		final ConfigurationProvider config = StructrApp.getConfiguration();
 		final String itemClass             = "Item";
 		final PropertyKey childrenProperty = Traits.of(itemClass).key("children");
 
@@ -192,7 +192,6 @@ public class RenderContextTest extends StructrUiTest {
 			fail("Unexpected exception");
 		}
 
-		final ConfigurationProvider config = StructrApp.getConfiguration();
 		final String itemClass              = "Item";
 
 		// create parent/child relationship
@@ -295,9 +294,8 @@ public class RenderContextTest extends StructrUiTest {
 			fail("Unexpected exception");
 		}
 
-		final ConfigurationProvider config = StructrApp.getConfiguration();
-		final String projectClass           = "Project";
-		final String taskClass              = "Task";
+		final String projectClass          = "Project";
+		final String taskClass             = "Task";
 		final PropertyKey currentTaskKey   = Traits.of(projectClass).key("currentTask");
 		final PropertyKey tasksKey         = Traits.of(projectClass).key("tasks");
 
@@ -447,8 +445,8 @@ public class RenderContextTest extends StructrUiTest {
 			div4.appendChild(p4);
 
 			final PropertyMap p4Properties = new PropertyMap();
-			p4Properties.put(Traits.of(StructrTraits.DOM_ELEMENT).key("restQuery"), "/divs");
-			p4Properties.put(Traits.of(StructrTraits.DOM_ELEMENT).key("dataKey"), "div");
+			p4Properties.put(Traits.of(StructrTraits.DOM_ELEMENT).key(DOMNodeTraitDefinition.REST_QUERY_PROPERTY), "/divs");
+			p4Properties.put(Traits.of(StructrTraits.DOM_ELEMENT).key(DOMNodeTraitDefinition.DATA_KEY_PROPERTY), "div");
 			p4.setProperties(p4.getSecurityContext(), p4Properties);
 
 			final List<DOMNode> paragraphs = page.getElementsByTagName("p");
@@ -465,7 +463,7 @@ public class RenderContextTest extends StructrUiTest {
 			assertNotNull("User tester2 should exist.", tester2);
 
 			// create admin user for later use
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			pageId = page.getUuid();
 			p1Id   = p1.getUuid();
@@ -579,9 +577,9 @@ public class RenderContextTest extends StructrUiTest {
 			final String sessionId       = HttpCookie.parse(sessionIdCookie).get(0).getValue();
 
 			// test authenticated GET request using session ID cookie
-			assertEquals("Invalid authenticated GET result", "admin",   Scripting.replaceVariables(ctx, page, "${add_header('Cookie', 'JSESSIONID=" + sessionId + ";Path=/')}${from_json(GET('http://localhost:" + httpPort + "/structr/rest/User?_sort=name').body).result[0].name}"));
-			assertEquals("Invalid authenticated GET result", "tester1", Scripting.replaceVariables(ctx, page, "${add_header('Cookie', 'JSESSIONID=" + sessionId + ";Path=/')}${from_json(GET('http://localhost:" + httpPort + "/structr/rest/User?_sort=name').body).result[1].name}"));
-			assertEquals("Invalid authenticated GET result", "tester2", Scripting.replaceVariables(ctx, page, "${add_header('Cookie', 'JSESSIONID=" + sessionId + ";Path=/')}${from_json(GET('http://localhost:" + httpPort + "/structr/rest/User?_sort=name').body).result[2].name}"));
+			assertEquals("Invalid authenticated GET result", ADMIN_USERNAME, Scripting.replaceVariables(ctx, page, "${add_header('Cookie', 'JSESSIONID=" + sessionId + ";Path=/')}${from_json(GET('http://localhost:" + httpPort + "/structr/rest/User?_sort=name').body).result[0].name}"));
+			assertEquals("Invalid authenticated GET result", "tester1",      Scripting.replaceVariables(ctx, page, "${add_header('Cookie', 'JSESSIONID=" + sessionId + ";Path=/')}${from_json(GET('http://localhost:" + httpPort + "/structr/rest/User?_sort=name').body).result[1].name}"));
+			assertEquals("Invalid authenticated GET result", "tester2",      Scripting.replaceVariables(ctx, page, "${add_header('Cookie', 'JSESSIONID=" + sessionId + ";Path=/')}${from_json(GET('http://localhost:" + httpPort + "/structr/rest/User?_sort=name').body).result[2].name}"));
 
 			// locale
 			final String localeString = ctx.getLocale().toString();

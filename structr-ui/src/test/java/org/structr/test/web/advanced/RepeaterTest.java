@@ -41,6 +41,7 @@ import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
+import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 import org.testng.annotations.Test;
 
 import java.util.LinkedList;
@@ -72,7 +73,7 @@ public class RepeaterTest extends StructrUiTest {
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			tx.success();
 
@@ -105,12 +106,12 @@ public class RepeaterTest extends StructrUiTest {
 			final DOMNode option = createElement(page1, select, "option", "${task.name}");
 
 
-			select.setProperty(Traits.of(StructrTraits.DOM_NODE).key("functionQuery"),  "find('Project')");
-			select.setProperty(Traits.of(StructrTraits.DOM_NODE).key("dataKey"),        "project");
+			select.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY),  "find('Project')");
+			select.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.DATA_KEY_PROPERTY),        "project");
 			select.setProperty(Traits.of("Select").key("_html_multiple"), "multiple");
 
-			option.setProperty(Traits.of(StructrTraits.DOM_NODE).key("functionQuery"),  "find('Task', sort('name'))");
-			option.setProperty(Traits.of(StructrTraits.DOM_NODE).key("dataKey"),        "task");
+			option.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY),  "find('Task', sort('name'))");
+			option.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.DATA_KEY_PROPERTY),        "task");
 			option.setProperty(Traits.of("Option").key("_html_value"),     "${task.id}");
 
 			tx.success();
@@ -126,8 +127,8 @@ public class RepeaterTest extends StructrUiTest {
 		// test 1: assert selected attributes are NOT set (because we didn't set selectedValues)
 		RestAssured
 			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
+			.header(X_USER_HEADER,     ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.expect()
 			.statusCode(200)
@@ -171,8 +172,8 @@ public class RepeaterTest extends StructrUiTest {
 		// test 2: assert selected attributes are set now
 		RestAssured
 			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
+			.header(X_USER_HEADER,     ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.expect()
 			.statusCode(200)
@@ -213,7 +214,7 @@ public class RepeaterTest extends StructrUiTest {
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			tx.success();
 
@@ -240,11 +241,11 @@ public class RepeaterTest extends StructrUiTest {
 			final DOMNode option = createElement(page1, select, "option", "${test.value}");
 
 
-			select.setProperty(Traits.of(StructrTraits.DOM_NODE).key("functionQuery"), "find('Project')");
-			select.setProperty(Traits.of(StructrTraits.DOM_NODE).key("dataKey"),       "project");
+			select.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY), "find('Project')");
+			select.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.DATA_KEY_PROPERTY),       "project");
 
-			option.setProperty(Traits.of(StructrTraits.DOM_NODE).key("functionQuery"),  "enum_info('Project', 'test')");
-			option.setProperty(Traits.of(StructrTraits.DOM_NODE).key("dataKey"),        "test");
+			option.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY),  "enum_info('Project', 'test')");
+			option.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.DATA_KEY_PROPERTY),        "test");
 
 			tx.success();
 
@@ -259,8 +260,8 @@ public class RepeaterTest extends StructrUiTest {
 		// test 1: assert selected attributes are NOT set (because we didn't set selectedValues)
 		RestAssured
 			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
+			.header(X_USER_HEADER,     ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.expect()
 			.statusCode(200)
@@ -295,8 +296,8 @@ public class RepeaterTest extends StructrUiTest {
 		// test 2: assert selected attributes are set now
 		RestAssured
 			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
+			.header(X_USER_HEADER,     ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.expect()
 			.statusCode(200)

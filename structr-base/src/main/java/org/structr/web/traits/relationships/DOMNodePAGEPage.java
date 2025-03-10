@@ -26,7 +26,7 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class DOMNodePAGEPage extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public DOMNodePAGEPage() {
-		super("DOMNodePAGEPage");
+		super(StructrTraits.DOM_NODE_PAGE_PAGE);
 	}
 
 	@Override

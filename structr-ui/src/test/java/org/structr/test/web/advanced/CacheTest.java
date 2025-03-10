@@ -223,7 +223,7 @@ public class CacheTest extends StructrUiTest {
 
 			final NodeInterface user1 = app.create(StructrTraits.USER, "user1");
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			uuid = user1.getUuid();
 
@@ -238,8 +238,8 @@ public class CacheTest extends StructrUiTest {
 		// test success
 		RestAssured
 			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
+			.header(X_USER_HEADER,     ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.filter(RequestLoggingFilter.logRequestTo(System.out))
 			.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.expect()
@@ -265,8 +265,8 @@ public class CacheTest extends StructrUiTest {
 		// test success
 		RestAssured
 			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
+			.header(X_USER_HEADER,     ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.filter(RequestLoggingFilter.logRequestTo(System.out))
 			.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.expect()

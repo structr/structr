@@ -33,10 +33,12 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.xmpp.traits.definitions.XMPPClientTraitDefinition;
+import org.structr.xmpp.traits.definitions.XMPPRequestTraitDefinition;
 
 /**
  *
@@ -60,7 +62,7 @@ public interface XMPPClient extends NodeInterface, XMPPInfo {
 		final App app = StructrApp.getInstance();
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface client = StructrApp.getInstance().getNodeById("XMPPClient", uuid);
+			final NodeInterface client = StructrApp.getInstance().getNodeById(StructrTraits.XMPP_CLIENT, uuid);
 			if (client != null) {
 
 				final String callbackName   = "onXMPP" + message.getClass().getSimpleName();
@@ -91,17 +93,17 @@ public interface XMPPClient extends NodeInterface, XMPPInfo {
 		final App app = StructrApp.getInstance();
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface client = StructrApp.getInstance().getNodeById("XMPPClient", uuid);
+			final NodeInterface client = StructrApp.getInstance().getNodeById(StructrTraits.XMPP_CLIENT, uuid);
 			if (client != null) {
 
-				final Traits traits = Traits.of("XMPPRequest");
+				final Traits traits = Traits.of(StructrTraits.XMPP_REQUEST);
 
-				app.create("XMPPRequest",
-					new NodeAttribute(traits.key("client"),      client),
-					new NodeAttribute(traits.key("sender"),      request.getFrom()),
-					new NodeAttribute(traits.key(NodeInterfaceTraitDefinition.OWNER_PROPERTY),       client.as(AccessControllable.class).getOwnerNode()),
-					new NodeAttribute(traits.key("content"),     request.toXML("").toString()),
-					new NodeAttribute(traits.key("requestType"), request.getType())
+				app.create(StructrTraits.XMPP_REQUEST,
+					new NodeAttribute(traits.key(XMPPRequestTraitDefinition.CLIENT_PROPERTY),       client),
+					new NodeAttribute(traits.key(XMPPRequestTraitDefinition.SENDER_PROPERTY),       request.getFrom()),
+					new NodeAttribute(traits.key(NodeInterfaceTraitDefinition.OWNER_PROPERTY),      client.as(AccessControllable.class).getOwnerNode()),
+					new NodeAttribute(traits.key(XMPPRequestTraitDefinition.CONTENT_PROPERTY),      request.toXML("").toString()),
+					new NodeAttribute(traits.key(XMPPRequestTraitDefinition.REQUEST_TYPE_PROPERTY), request.getType())
 				);
 			}
 

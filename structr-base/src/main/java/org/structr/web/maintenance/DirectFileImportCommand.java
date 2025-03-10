@@ -51,6 +51,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 /**
  *
@@ -160,7 +161,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 			try (final Tx tx = app.tx()) {
 
-				targetFolder = app.nodeQuery(StructrTraits.FOLDER).and(Traits.of(StructrTraits.FOLDER).key("path"), targetPath).getFirst();
+				targetFolder = app.nodeQuery(StructrTraits.FOLDER).and(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.PATH_PROPERTY), targetPath).getFirst();
 				if (targetFolder == null) {
 
 					throw new FrameworkException(422, "Target path " + targetPath + " does not exist.");
@@ -252,7 +253,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 				final NodeInterface newFolder = app.create(StructrTraits.FOLDER,
 						new NodeAttribute(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name),
-						new NodeAttribute(Traits.of(StructrTraits.FILE).key("parent"), FileHelper.createFolderPath(securityContext, parentPath))
+						new NodeAttribute(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY), FileHelper.createFolderPath(securityContext, parentPath))
 				);
 
 				folderCount++;
@@ -261,7 +262,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 			} else if (attrs.isRegularFile()) {
 
-				final NodeInterface existingFile = app.nodeQuery(StructrTraits.FILE).and(Traits.of(StructrTraits.ABSTRACT_FILE).key("path"), parentPath + name).getFirst();
+				final NodeInterface existingFile = app.nodeQuery(StructrTraits.FILE).and(Traits.of(StructrTraits.ABSTRACT_FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY), parentPath + name).getFirst();
 				if (existingFile != null) {
 
 					switch (existing) {
@@ -296,7 +297,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 				} else if (isVideo) {
 
-					traits = Traits.of("VideoFile");
+					traits = Traits.of(StructrTraits.VIDEO_FILE);
 					if (traits == null) {
 
 						logger.warn("Unable to create entity of type VideoFile, class is not defined.");
@@ -309,7 +310,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 				final NodeInterface newFile = app.create(traits.getName(),
 						new NodeAttribute(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name),
-						new NodeAttribute(Traits.of(StructrTraits.FILE).key("parent"), FileHelper.createFolderPath(securityContext, parentPath)),
+						new NodeAttribute(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY), FileHelper.createFolderPath(securityContext, parentPath)),
 						new NodeAttribute(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY), traits.getName())
 				);
 

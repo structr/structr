@@ -19,6 +19,7 @@
 package org.structr.transform.traits.relationship;
 
 import org.structr.core.entity.Relation;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 import org.structr.core.traits.operations.LifecycleMethod;
@@ -28,17 +29,17 @@ import java.util.Map;
 public class VirtualTypevirtualPropertyVirtualProperty extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public VirtualTypevirtualPropertyVirtualProperty() {
-		super("VirtualTypevirtualPropertyVirtualProperty");
+		super(StructrTraits.VIRTUAL_TYPE_VIRTUAL_PROPERTY_VIRTUAL_PROPERTY);
 	}
 
 	@Override
 	public String getSourceType() {
-		return "VirtualType";
+		return StructrTraits.VIRTUAL_TYPE;
 	}
 
 	@Override
 	public String getTargetType() {
-		return "VirtualProperty";
+		return StructrTraits.VIRTUAL_PROPERTY;
 	}
 
 	@Override

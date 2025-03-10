@@ -33,6 +33,7 @@ import org.structr.core.property.LongProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
@@ -51,10 +52,14 @@ import java.util.Set;
  */
 public class LDAPUserTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String ORIGIN_ID_PROPERTY          = "originId";
+	public static final String DISTINGUISHED_NAME_PROPERTY = "distinguishedName";
+	public static final String LAST_LDAP_SYNC_PROPERTY     = "lastLDAPSync";
+
 	private static final Logger logger = LoggerFactory.getLogger(LDAPUserTraitDefinition.class);
 
 	public LDAPUserTraitDefinition() {
-		super("LDAPUser");
+		super(StructrTraits.LDAP_USER);
 	}
 
 	@Override
@@ -67,11 +72,11 @@ public class LDAPUserTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
 
-					final Traits traits = Traits.of("LDAPUser");
+					final Traits traits = Traits.of(StructrTraits.LDAP_USER);
 					boolean valid = true;
 
-					valid &= ValidationHelper.isValidUniqueProperty(obj, traits.key("distinguishedName"), errorBuffer);
-					valid &= ValidationHelper.isValidUniqueProperty(obj, traits.key("originId"), errorBuffer);
+					valid &= ValidationHelper.isValidUniqueProperty(obj, traits.key(DISTINGUISHED_NAME_PROPERTY), errorBuffer);
+					valid &= ValidationHelper.isValidUniqueProperty(obj, traits.key(ORIGIN_ID_PROPERTY), errorBuffer);
 
 					return valid;
 				}
@@ -101,7 +106,7 @@ public class LDAPUserTraitDefinition extends AbstractNodeTraitDefinition {
 
 						for (final Group group : user.getGroups()) {
 
-							if (group.is("LDAPGroup")) {
+							if (group.is(StructrTraits.LDAP_GROUP)) {
 
 								hasLDAPGroups = true;
 								break;
@@ -141,9 +146,9 @@ public class LDAPUserTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final PropertyKey<String> originIdProperty = new StringProperty("originId").unique().indexed();
-		final PropertyKey<String> distinguishedNameProperty = new StringProperty("distinguishedName").indexed();
-		final PropertyKey<Long> lastLDAPSyncProperty = new LongProperty("lastLDAPSync");
+		final PropertyKey<String> originIdProperty          = new StringProperty(ORIGIN_ID_PROPERTY).unique().indexed();
+		final PropertyKey<String> distinguishedNameProperty = new StringProperty(DISTINGUISHED_NAME_PROPERTY).indexed();
+		final PropertyKey<Long> lastLDAPSyncProperty        = new LongProperty(LAST_LDAP_SYNC_PROPERTY);
 
 		return newSet(
 			originIdProperty,
@@ -157,11 +162,11 @@ public class LDAPUserTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"originId", "distinguishedName"
+					ORIGIN_ID_PROPERTY, DISTINGUISHED_NAME_PROPERTY
 			),
 			PropertyView.Ui,
 			newSet(
-				"originId", "distinguishedName"
+					ORIGIN_ID_PROPERTY, DISTINGUISHED_NAME_PROPERTY
 			)
 		);
 	}

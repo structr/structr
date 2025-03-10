@@ -33,6 +33,7 @@ import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.importer.Importer;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 import org.testng.annotations.Test;
 
 import java.util.ArrayList;
@@ -363,7 +364,7 @@ public class ImporterTest extends StructrUiTest {
 
 			final NodeInterface secondScriptElement = app.nodeQuery("Script").blank(Traits.of("Script").key("_html_src")).getFirst();
 
-			assertNull(secondScriptElement.getOutgoingRelationship("LinkSourceLINKLinkable"));
+			assertNull(secondScriptElement.getOutgoingRelationship(StructrTraits.LINK_SOURCE_LINK_LINKABLE));
 
 			tx.success();
 
@@ -474,7 +475,7 @@ public class ImporterTest extends StructrUiTest {
 			file = app.nodeQuery(StructrTraits.FILE).andName(filename).getFirst();
 
 			assertNotNull(filename + " file not found", file);
-			assertEquals("Wrong path of " + filename + " file", (String) file.getProperty(Traits.of(StructrTraits.FILE).key("path")), expectedPath);
+			assertEquals("Wrong path of " + filename + " file", (String) file.getProperty(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY)), expectedPath);
 			assertEquals("Wrong version of " + filename + " file", (int) file.getProperty(Traits.of(StructrTraits.FILE).key("version")), expectedVersion);
 
 			tx.success();

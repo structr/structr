@@ -40,6 +40,11 @@ import java.util.Set;
  */
 public class LinkableTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String LINKING_ELEMENTS_PROPERTY     = "linkingElements";
+	public static final String LINKING_ELEMENTS_IDS_PROPERTY = "linkingElementsIds";
+	public static final String ENABLE_BASIC_AUTH_PROPERTY    = "enableBasicAuth";
+	public static final String BASIC_AUTH_REALM_PROPERTY     = "basicAuthRealm";
+
 	public LinkableTraitDefinition() {
 		super(StructrTraits.LINKABLE);
 	}
@@ -75,10 +80,10 @@ public class LinkableTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Iterable<NodeInterface>> linkingElementsProperty = new StartNodes("linkingElements", "LinkSourceLINKLinkable");
-		final Property<Iterable<String>> linkingElementsIdsProperty     = new CollectionIdProperty<>("linkingElementsIds", StructrTraits.LINKABLE,"linkingElements", StructrTraits.LINK_SOURCE);
-		final Property<Boolean> enableBasicAuthProperty                 = new BooleanProperty("enableBasicAuth").defaultValue(false).indexed();
-		final Property<String> basicAuthRealmProperty                   = new StringProperty("basicAuthRealm");
+		final Property<Iterable<NodeInterface>> linkingElementsProperty = new StartNodes(LINKING_ELEMENTS_PROPERTY, StructrTraits.LINK_SOURCE_LINK_LINKABLE);
+		final Property<Iterable<String>> linkingElementsIdsProperty     = new CollectionIdProperty<>(LINKING_ELEMENTS_IDS_PROPERTY, StructrTraits.LINKABLE,LINKING_ELEMENTS_PROPERTY, StructrTraits.LINK_SOURCE);
+		final Property<Boolean> enableBasicAuthProperty                 = new BooleanProperty(ENABLE_BASIC_AUTH_PROPERTY).defaultValue(false).indexed();
+		final Property<String> basicAuthRealmProperty                   = new StringProperty(BASIC_AUTH_REALM_PROPERTY);
 
 		return Set.of(
 			linkingElementsProperty,
@@ -94,7 +99,7 @@ public class LinkableTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Ui,
 			newSet(
-				"linkingElements", "linkingElementsIds", "enableBasicAuth", "basicAuthRealm"
+				LINKING_ELEMENTS_PROPERTY, LINKING_ELEMENTS_IDS_PROPERTY, ENABLE_BASIC_AUTH_PROPERTY, BASIC_AUTH_REALM_PROPERTY
 			)
 		);
 	}

@@ -26,6 +26,7 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
+import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.command.dom.RelativePosition;
 import org.structr.websocket.message.MessageBuilder;
@@ -148,8 +149,8 @@ public class CloneComponentCommand extends AbstractCommand {
 		final PropertyMap changedProperties = new PropertyMap();
 		final Traits traits                 = Traits.of(StructrTraits.DOM_NODE);
 
-		changedProperties.put(traits.key("sharedComponent"), node);
-		changedProperties.put(traits.key("ownerDocument"), (parentNode.is(StructrTraits.PAGE) ? parentNode.as(Page.class) : parentNode.getOwnerDocument()));
+		changedProperties.put(traits.key(DOMNodeTraitDefinition.SHARED_COMPONENT_PROPERTY), node);
+		changedProperties.put(traits.key(DOMNodeTraitDefinition.OWNER_DOCUMENT_PROPERTY), (parentNode.is(StructrTraits.PAGE) ? parentNode.as(Page.class) : parentNode.getOwnerDocument()));
 
 		clonedNode.setProperties(clonedNode.getSecurityContext(), changedProperties);
 

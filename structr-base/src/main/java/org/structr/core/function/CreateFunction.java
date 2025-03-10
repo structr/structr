@@ -52,7 +52,6 @@ public class CreateFunction extends CoreFunction {
 		if (sources != null && sources.length > 0) {
 
 			final SecurityContext securityContext = ctx.getSecurityContext();
-			final ConfigurationProvider config = StructrApp.getConfiguration();
 			PropertyMap propertyMap;
 			Traits type = null;
 

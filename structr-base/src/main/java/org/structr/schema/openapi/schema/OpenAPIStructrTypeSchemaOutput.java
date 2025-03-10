@@ -97,7 +97,6 @@ public class OpenAPIStructrTypeSchemaOutput extends TreeMap<String, Object> {
 		put("description", typeName);
 		put("properties",  properties);
 
-		final ConfigurationProvider config = StructrApp.getConfiguration();
 		final Traits traits                = Traits.of(type);
 		final Set<PropertyKey> keys        = traits.getPropertyKeysForView(viewName);
 

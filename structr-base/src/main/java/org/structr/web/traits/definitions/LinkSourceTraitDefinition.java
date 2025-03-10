@@ -42,11 +42,8 @@ import java.util.Set;
  */
 public class LinkSourceTraitDefinition extends AbstractNodeTraitDefinition {
 
-	/*
-	View uiView = new View(LinkSourceTraitDefinition.class, PropertyView.Ui,
-		linkableProperty, linkableIdProperty
-	);
-	*/
+	public static final String LINKABLE_PROPERTY    = "linkable";
+	public static final String LINKABLE_ID_PROPERTY = "linkableId";
 
 	public LinkSourceTraitDefinition() {
 		super(StructrTraits.LINK_SOURCE);
@@ -78,8 +75,8 @@ public class LinkSourceTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> linkableProperty = new EndNode("linkable", "LinkSourceLINKLinkable");
-		final Property<String> linkableIdProperty      = new EntityIdProperty("linkableId", StructrTraits.LINK_SOURCE, "linkable", StructrTraits.LINKABLE);
+		final Property<NodeInterface> linkableProperty = new EndNode(LINKABLE_PROPERTY, StructrTraits.LINK_SOURCE_LINK_LINKABLE);
+		final Property<String> linkableIdProperty      = new EntityIdProperty(LINKABLE_ID_PROPERTY, StructrTraits.LINK_SOURCE, LINKABLE_PROPERTY, StructrTraits.LINKABLE);
 
 		return Set.of(
 			linkableProperty,
@@ -93,7 +90,7 @@ public class LinkSourceTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Ui,
 			newSet(
-				"linkableId", "linkable"
+				LINKABLE_ID_PROPERTY, LINKABLE_PROPERTY
 			)
 		);
 	}

@@ -26,7 +26,7 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class DOMNodeCONTAINS_NEXT_SIBLINGDOMNode extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public DOMNodeCONTAINS_NEXT_SIBLINGDOMNode() {
-		super("DOMNodeCONTAINS_NEXT_SIBLINGDOMNode");
+		super(StructrTraits.DOM_NODE_CONTAINS_NEXT_SIBLING_DOM_NODE);
 	}
 
 	@Override

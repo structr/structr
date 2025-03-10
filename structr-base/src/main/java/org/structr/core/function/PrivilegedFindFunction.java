@@ -59,7 +59,6 @@ public class PrivilegedFindFunction extends AbstractQueryFunction {
 				throw new IllegalArgumentException();
 			}
 
-			final ConfigurationProvider config = StructrApp.getConfiguration();
 			final App app                      = StructrApp.getInstance(securityContext);
 			final Query query                  = app.nodeQuery();
 

@@ -23,6 +23,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.feed.entity.AbstractFeedItem;
 import org.structr.feed.traits.wrappers.AbstractFeedItemTraitWrapper;
@@ -32,8 +33,10 @@ import java.util.Set;
 
 public class AbstractFeedItemTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String CONTENT_TYPE_PROPERTY = "contentType";
+
 	public AbstractFeedItemTraitDefinition() {
-		super("AbstractFeedItem");
+		super(StructrTraits.ABSTRACT_FEED_ITEM);
 	}
 
 	@Override
@@ -47,7 +50,7 @@ public class AbstractFeedItemTraitDefinition extends AbstractNodeTraitDefinition
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final PropertyKey<String> contentType = new StringProperty("contentType");
+		final PropertyKey<String> contentType = new StringProperty(CONTENT_TYPE_PROPERTY);
 
 		return newSet(
 			contentType
@@ -59,9 +62,10 @@ public class AbstractFeedItemTraitDefinition extends AbstractNodeTraitDefinition
 
 		return Map.of(
 			PropertyView.Public,
-			newSet("contentType"),
+			newSet(CONTENT_TYPE_PROPERTY),
+
 			PropertyView.Ui,
-			newSet("contentType")
+			newSet(CONTENT_TYPE_PROPERTY)
 		);
 	}
 

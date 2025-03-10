@@ -28,7 +28,9 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.media.traits.definitions.VideoFileTraitDefinition;
 import org.structr.util.AbstractProcess;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
@@ -75,7 +77,7 @@ public class ConverterProcess extends AbstractProcess<VideoFile> {
 		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
 			// create an empty file to store the converted video
-			newFile = FileHelper.createFile(securityContext, new byte[0], null, "VideoFile", outputFileName, false);
+			newFile = FileHelper.createFile(securityContext, new byte[0], null, StructrTraits.VIDEO_FILE, outputFileName, false);
 
 			// obtain destination path of new file
 			//outputFileName = newFile.getFileOnDisk().getAbsolutePath();
@@ -137,7 +139,7 @@ public class ConverterProcess extends AbstractProcess<VideoFile> {
 					FileHelper.updateMetadata(newFile.as(File.class));
 
 					// create link between the two videos
-					newFile.setProperty(Traits.of("VideoFile").key("originalVideo"), inputFile);
+					newFile.setProperty(Traits.of(StructrTraits.VIDEO_FILE).key(VideoFileTraitDefinition.ORIGINAL_VIDEO_PROPERTY), inputFile);
 				}
 
 				tx.success();

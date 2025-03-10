@@ -29,6 +29,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.payment.api.*;
@@ -51,14 +52,14 @@ public class PaymentNodeTraitWrapper extends AbstractNodeTraitWrapper implements
 	@Override
 	public Iterable<PaymentItem> getItems() {
 
-		final Iterable<NodeInterface> nodes = getProperty(traits.key("items"));
+		final Iterable<NodeInterface> nodes = getProperty(traits.key(PaymentNodeTraitDefinition.ITEMS_PROPERTY));
 
 		return Iterables.map(n -> n.as(PaymentItem.class), nodes);
 	}
 
 	@Override
 	public String getCurrencyCode() {
-		return getProperty(traits.key("currency"));
+		return getProperty(traits.key(PaymentNodeTraitDefinition.CURRENCY_PROPERTY));
 	}
 
 	@Override
@@ -73,192 +74,192 @@ public class PaymentNodeTraitWrapper extends AbstractNodeTraitWrapper implements
 
 	@Override
 	public String getBillingAddressName() {
-		return getProperty(traits.key("billingAddressName"));
+		return getProperty(traits.key(PaymentNodeTraitDefinition.BILLING_ADDRESS_NAME_PROPERTY));
 	}
 
 	@Override
 	public void setBillingAddressName(String billingAddressName) throws FrameworkException {
-		setProperty(traits.key("billingAddressName"), billingAddressName);
+		setProperty(traits.key(PaymentNodeTraitDefinition.BILLING_ADDRESS_NAME_PROPERTY), billingAddressName);
 	}
 
 	@Override
 	public String getBillingAddressStreet1() {
-		return getProperty(traits.key("billingAddressStreet1"));
+		return getProperty(traits.key(PaymentNodeTraitDefinition.BILLING_ADDRESS_STREET1_PROPERTY));
 	}
 
 	@Override
 	public void setBillingAddressStreet1(String billingAddressStreet1) throws FrameworkException {
-		setProperty(traits.key("billingAddressStreet1"), billingAddressStreet1);
+		setProperty(traits.key(PaymentNodeTraitDefinition.BILLING_ADDRESS_STREET1_PROPERTY), billingAddressStreet1);
 	}
 
 	@Override
 	public String getBillingAddressStreet2() {
-		return getProperty(traits.key("billingAddressStreet2"));
+		return getProperty(traits.key(PaymentNodeTraitDefinition.BILLING_ADDRESS_STREET2_PROPERTY));
 	}
 
 	@Override
 	public void setBillingAddressStreet2(String billingAddressStreet2) throws FrameworkException {
-		setProperty(traits.key("billingAddressStreet2"), billingAddressStreet2);
+		setProperty(traits.key(PaymentNodeTraitDefinition.BILLING_ADDRESS_STREET2_PROPERTY), billingAddressStreet2);
 	}
 
 	@Override
 	public String getBillingAddressZip() {
-		return getProperty(traits.key("billingAddressZip"));
+		return getProperty(traits.key(PaymentNodeTraitDefinition.BILLING_ADDRESS_ZIP_PROPERTY));
 	}
 
 	@Override
 	public void setBillingAddressZip(String billingAddressZip) throws FrameworkException {
-		setProperty(traits.key("billingAddressZip"), billingAddressZip);
+		setProperty(traits.key(PaymentNodeTraitDefinition.BILLING_ADDRESS_ZIP_PROPERTY), billingAddressZip);
 	}
 
 	@Override
 	public String getBillingAddressCity() {
-		return getProperty(traits.key("billingAddressCity"));
+		return getProperty(traits.key(PaymentNodeTraitDefinition.BILLING_ADDRESS_CITY_PROPERTY));
 	}
 
 	@Override
 	public void setBillingAddressCity(String billingAddressCity) throws FrameworkException {
-		setProperty(traits.key("billingAddressCity"), billingAddressCity);
+		setProperty(traits.key(PaymentNodeTraitDefinition.BILLING_ADDRESS_CITY_PROPERTY), billingAddressCity);
 	}
 
 	@Override
 	public String getBillingAddressCountry() {
-		return getProperty(traits.key("billingAddressCountry"));
+		return getProperty(traits.key(PaymentNodeTraitDefinition.BILLING_ADDRESS_COUNTRY_PROPERTY));
 	}
 
 	@Override
 	public void setBillingAddressCountry(String billingAddressCountry) throws FrameworkException {
-		setProperty(traits.key("billingAddressCountry"), billingAddressCountry);
+		setProperty(traits.key(PaymentNodeTraitDefinition.BILLING_ADDRESS_COUNTRY_PROPERTY), billingAddressCountry);
 	}
 
 	@Override
 	public String getPayer() {
-		return getProperty(traits.key("payer"));
+		return getProperty(traits.key(PaymentNodeTraitDefinition.PAYER_PROPERTY));
 	}
 
 	@Override
 	public void setPayer(String payer) throws FrameworkException {
-		setProperty(traits.key("payer"), payer);
+		setProperty(traits.key(PaymentNodeTraitDefinition.PAYER_PROPERTY), payer);
 	}
 
 	@Override
 	public String getPayerBusiness() {
-		return getProperty(traits.key("payerBusiness"));
+		return getProperty(traits.key(PaymentNodeTraitDefinition.PAYER_BUSINESS_PROPERTY));
 	}
 
 	@Override
 	public void setPayerBusiness(String payerBusiness) throws FrameworkException {
-		setProperty(traits.key("payerBusiness"), payerBusiness);
+		setProperty(traits.key(PaymentNodeTraitDefinition.PAYER_BUSINESS_PROPERTY), payerBusiness);
 	}
 
 	@Override
 	public String getPayerAddressName() {
-		return getProperty(traits.key("payerAddressName"));
+		return getProperty(traits.key(PaymentNodeTraitDefinition.PAYER_ADDRESS_NAME_PROPERTY));
 	}
 
 	@Override
 	public void setPayerAddressName(String payerAddressName) throws FrameworkException {
-		setProperty(traits.key("payerAddressName"), payerAddressName);
+		setProperty(traits.key(PaymentNodeTraitDefinition.PAYER_ADDRESS_NAME_PROPERTY), payerAddressName);
 	}
 
 	@Override
 	public String getPayerAddressStreet1() {
-		return getProperty(traits.key("payerAddressStreet1"));
+		return getProperty(traits.key(PaymentNodeTraitDefinition.PAYER_ADDRESS_STREET1_PROPERTY));
 	}
 
 	@Override
 	public void setPayerAddressStreet1(String payerAddressStreet1) throws FrameworkException {
-		setProperty(traits.key("payerAddressStreet1"), payerAddressStreet1);
+		setProperty(traits.key(PaymentNodeTraitDefinition.PAYER_ADDRESS_STREET1_PROPERTY), payerAddressStreet1);
 	}
 
 	@Override
 	public String getPayerAddressStreet2() {
-		return getProperty(traits.key("payerAddressStreet2"));
+		return getProperty(traits.key(PaymentNodeTraitDefinition.PAYER_ADDRESS_STREET2_PROPERTY));
 	}
 
 	@Override
 	public void setPayerAddressStreet2(String payerAddressStreet2) throws FrameworkException {
-		setProperty(traits.key("payerAddressStreet2"), payerAddressStreet2);
+		setProperty(traits.key(PaymentNodeTraitDefinition.PAYER_ADDRESS_STREET2_PROPERTY), payerAddressStreet2);
 	}
 
 	@Override
 	public String getPayerAddressZip() {
-		return getProperty(traits.key("payerAddressZip"));
+		return getProperty(traits.key(PaymentNodeTraitDefinition.PAYER_ADDRESS_ZIP_PROPERTY));
 	}
 
 	@Override
 	public void setPayerAddressZip(String payerAddressZip) throws FrameworkException {
-		setProperty(traits.key("payerAddressZip"), payerAddressZip);
+		setProperty(traits.key(PaymentNodeTraitDefinition.PAYER_ADDRESS_ZIP_PROPERTY), payerAddressZip);
 	}
 
 	@Override
 	public String getPayerAddressCity() {
-		return getProperty(traits.key("payerAddressCity"));
+		return getProperty(traits.key(PaymentNodeTraitDefinition.PAYER_ADDRESS_CITY_PROPERTY));
 	}
 
 	@Override
 	public void setPayerAddressCity(String payerAddressCity) throws FrameworkException {
-		setProperty(traits.key("payerAddressCity"), payerAddressCity);
+		setProperty(traits.key(PaymentNodeTraitDefinition.PAYER_ADDRESS_CITY_PROPERTY), payerAddressCity);
 	}
 
 	@Override
 	public String getPayerAddressCountry() {
-		return getProperty(traits.key("payerAddressCountry"));
+		return getProperty(traits.key(PaymentNodeTraitDefinition.PAYER_ADDRESS_COUNTRY_PROPERTY));
 	}
 
 	@Override
 	public void setPayerAddressCountry(String payerAddressCountry) throws FrameworkException {
-		setProperty(traits.key("payerAddressCountry"), payerAddressCountry);
+		setProperty(traits.key(PaymentNodeTraitDefinition.PAYER_ADDRESS_COUNTRY_PROPERTY), payerAddressCountry);
 	}
 
 	@Override
 	public String getBillingAgreementId() {
-		return getProperty(traits.key("billingAgreementId"));
+		return getProperty(traits.key(PaymentNodeTraitDefinition.BILLING_AGREEMENT_ID_PROPERTY));
 	}
 
 	@Override
 	public void setBillingAgreementId(String billingAgreementId) throws FrameworkException {
-		setProperty(traits.key("billingAgreementId"), billingAgreementId);
+		setProperty(traits.key(PaymentNodeTraitDefinition.BILLING_AGREEMENT_ID_PROPERTY), billingAgreementId);
 	}
 
 	@Override
 	public String getNote() {
-		return getProperty(traits.key("note"));
+		return getProperty(traits.key(PaymentNodeTraitDefinition.NOTE_PROPERTY));
 	}
 
 	@Override
 	public void setNote(String note) throws FrameworkException {
-		setProperty(traits.key("note"), note);
+		setProperty(traits.key(PaymentNodeTraitDefinition.NOTE_PROPERTY), note);
 	}
 
 	@Override
 	public String getInvoiceId() {
-		return getProperty(traits.key("invoiceId"));
+		return getProperty(traits.key(PaymentNodeTraitDefinition.INVOICE_ID_PROPERTY));
 	}
 
 	@Override
 	public void setInvoiceId(final String invoiceId) throws FrameworkException {
-		setProperty(traits.key("invoiceId"), invoiceId);
+		setProperty(traits.key(PaymentNodeTraitDefinition.INVOICE_ID_PROPERTY), invoiceId);
 	}
 
 	@Override
 	public String getPaymentState() {
-		return getProperty(traits.key("state"));
+		return getProperty(traits.key(PaymentNodeTraitDefinition.STATE_PROPERTY));
 	}
 
 	@Override
 	public void setPaymentState(final String state) throws FrameworkException {
-		setProperty(traits.key("state"), state);
+		setProperty(traits.key(PaymentNodeTraitDefinition.STATE_PROPERTY), state);
 	}
 
 	@Override
 	public String getToken() {
-		return getProperty(traits.key("token"));
+		return getProperty(traits.key(PaymentNodeTraitDefinition.TOKEN_PROPERTY));
 	}
 
 	@Override
 	public void setToken(final String token) throws FrameworkException {
-		setProperty(traits.key("token"), token);
+		setProperty(traits.key(PaymentNodeTraitDefinition.TOKEN_PROPERTY), token);
 	}
 
 	@Override
@@ -272,7 +273,7 @@ public class PaymentNodeTraitWrapper extends AbstractNodeTraitWrapper implements
 
 				final GraphObjectMap data = new GraphObjectMap();
 
-				data.put(traits.key("token"), response.getToken());
+				data.put(traits.key(PaymentNodeTraitDefinition.TOKEN_PROPERTY), response.getToken());
 
 				return data;
 
@@ -365,7 +366,7 @@ public class PaymentNodeTraitWrapper extends AbstractNodeTraitWrapper implements
 
 		for (final APIError error : response.getErrors()) {
 
-			errorBuffer.add(new PayPalErrorToken("PaymentNode", "base", error.getErrorCode(), error.getLongMessage()));
+			errorBuffer.add(new PayPalErrorToken(StructrTraits.PAYMENT_NODE, "base", error.getErrorCode(), error.getLongMessage()));
 		}
 
 		throw new FrameworkException(422, cause, errorBuffer);

@@ -19,23 +19,24 @@
 package org.structr.odf.entity.relationship;
 
 import org.structr.core.entity.Relation;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
 public class ODFExporterGETS_TRANSFORMATION_FROMVirtualType extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public ODFExporterGETS_TRANSFORMATION_FROMVirtualType() {
-		super("ODFExporterGETS_TRANSFORMATION_FROMVirtualType");
+		super(StructrTraits.ODF_EXPORTER_GETS_TRANSFORMATION_FROM_VIRTUAL_TYPE);
 	}
 
 	@Override
 	public String getSourceType() {
-		return "ODFExporter";
+		return StructrTraits.ODF_EXPORTER;
 	}
 
 	@Override
 	public String getTargetType() {
-		return "VirtualType";
+		return StructrTraits.VIRTUAL_TYPE;
 	}
 
 	@Override

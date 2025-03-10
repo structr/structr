@@ -45,6 +45,8 @@ import java.nio.file.*;
 import java.nio.file.WatchEvent.Kind;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.FolderTraitDefinition;
 
 import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
 
@@ -77,13 +79,13 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 
 	public void mountFolder(final Folder folder) {
 
-		final boolean watchContents     = folder.getProperty(Traits.of(StructrTraits.FOLDER).key("mountWatchContents"));
-		final Integer scanInterval      = folder.getProperty(Traits.of(StructrTraits.FOLDER).key("mountScanInterval"));
+		final boolean watchContents     = folder.getProperty(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_WATCH_CONTENTS_PROPERTY));
+		final Integer scanInterval      = folder.getProperty(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_SCAN_INTERVAL_PROPERTY));
 		final StorageProvider prov      = StorageProviderFactory.getStorageProvider(folder);
 		final StorageConfiguration conf = prov.getConfig();
 		final Map<String, String> data  = conf != null ? conf.getConfiguration() : null;
 		final String mountTarget        = data != null ? data.get("mountTarget") : null;
-		final String folderPath         = folder.getProperty(Traits.of(StructrTraits.FOLDER).key("path"));
+		final String folderPath         = folder.getProperty(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.PATH_PROPERTY));
 		final String uuid               = folder.getUuid();
 
 		synchronized (watchedRoots) {
@@ -128,7 +130,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 		final FolderInfo info = watchedRoots.get(uuid);
 
 		// upon creation, set the last scanned date correctly to prevent early scanning
-		final Long lastScanDate       = folder.getProperty(Traits.of(StructrTraits.FOLDER).key("mountLastScanned"));
+		final Long lastScanDate       = folder.getProperty(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_LAST_SCANNED_PROPERTY));
 		final boolean wasNeverScanned = (lastScanDate == null);
 
 		if (!wasNeverScanned) {
@@ -282,7 +284,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 			logger.error(ExceptionUtils.getStackTrace(ioex));
 		}
 
-		final PropertyKey<String> storageConfigurationKey = Traits.of(StructrTraits.ABSTRACT_FILE).key("storageConfiguration");
+		final PropertyKey<String> storageConfigurationKey = Traits.of(StructrTraits.ABSTRACT_FILE).key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY);
 		final App app                                     = StructrApp.getInstance();
 
 		try (final Tx tx = app.tx(false, false, false)) {
@@ -566,7 +568,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 		@Override
 		public void run() {
 
-			final PropertyKey<Long> lastScannedKey   = Traits.of(StructrTraits.FOLDER).key("mountLastScanned");
+			final PropertyKey<Long> lastScannedKey   = Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_LAST_SCANNED_PROPERTY);
 			boolean canStart                         = false;
 
 			// wait for transaction to finish so we can be

@@ -43,6 +43,9 @@ import org.structr.web.maintenance.deploy.DeploymentCommentHandler;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import org.structr.web.traits.definitions.dom.ContentTraitDefinition;
+import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
+import org.structr.web.traits.definitions.dom.PageTraitDefinition;
 
 /**
  * Represents a page resource.
@@ -55,7 +58,7 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 
 	@Override
 	public void setVersion(final int version) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("version"), version);
+		wrappedObject.setProperty(traits.key(PageTraitDefinition.VERSION_PROPERTY), version);
 	}
 
 	@Override
@@ -76,48 +79,48 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 
 	@Override
 	public int getVersion() {
-		return wrappedObject.getProperty(traits.key("version"));
+		return wrappedObject.getProperty(traits.key(PageTraitDefinition.VERSION_PROPERTY));
 	}
 
 	@Override
 	public Integer getCacheForSeconds() {
-		return wrappedObject.getProperty(traits.key("cacheForSeconds"));
+		return wrappedObject.getProperty(traits.key(PageTraitDefinition.CACHE_FOR_SECONDS_PROPERTY));
 	}
 
 	@Override
 	public Integer getPosition() {
-		return wrappedObject.getProperty(traits.key("position"));
+		return wrappedObject.getProperty(traits.key(PageTraitDefinition.POSITION_PROPERTY));
 	}
 
 	@Override
 	public String getPath() {
-		return wrappedObject.getProperty(traits.key("path"));
+		return wrappedObject.getProperty(traits.key(PageTraitDefinition.PATH_PROPERTY));
 	}
 
 	@Override
 	public String getCategory() {
-		return wrappedObject.getProperty(traits.key("category"));
+		return wrappedObject.getProperty(traits.key(PageTraitDefinition.CATEGORY_PROPERTY));
 	}
 
 	@Override
 	public final String getContentType() {
-		return wrappedObject.getProperty(traits.key("contentType"));
+		return wrappedObject.getProperty(traits.key(PageTraitDefinition.CONTENT_TYPE_PROPERTY));
 	}
 
 	@Override
 	public String getShowOnErrorCodes() {
-		return wrappedObject.getProperty(traits.key("showOnErrorCodes"));
+		return wrappedObject.getProperty(traits.key(PageTraitDefinition.SHOW_ON_ERROR_CODES_PROPERTY));
 	}
 
 	@Override
 	public boolean pageCreatesRawData() {
-		return wrappedObject.getProperty(traits.key("pageCreatesRawData"));
+		return wrappedObject.getProperty(traits.key(PageTraitDefinition.PAGE_CREATES_RAW_DATA_PROPERTY));
 	}
 
 	@Override
 	public Iterable<DOMNode> getElements() {
 
-		final PropertyKey<Iterable<NodeInterface>> key = traits.key("elements");
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key(PageTraitDefinition.ELEMENTS_PROPERTY);
 
 		return Iterables.map(n -> n.as(DOMNode.class), wrappedObject.getProperty(key));
 	}
@@ -125,7 +128,7 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 	@Override
 	public Iterable<PagePath> getPaths() {
 
-		final PropertyKey<Iterable<NodeInterface>> key = traits.key("paths");
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key(PageTraitDefinition.PATHS_PROPERTY);
 
 		return Iterables.map(n -> n.as(PagePath.class), wrappedObject.getProperty(key));
 	}
@@ -133,7 +136,7 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 	@Override
 	public Iterable<Site> getSites() {
 
-		final PropertyKey<Iterable<NodeInterface>> key = traits.key("sites");
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key(PageTraitDefinition.SITES_PROPERTY);
 
 		return Iterables.map(n -> n.as(Site.class), wrappedObject.getProperty(key));
 	}
@@ -210,7 +213,7 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 
 		try {
 
-			final DOMElement element = app.create(traits.getName(), new NodeAttribute(traits.key("tag"), tag)).as(DOMElement.class);
+			final DOMElement element = app.create(traits.getName(), new NodeAttribute(traits.key(DOMElementTraitDefinition.TAG_PROPERTY), tag)).as(DOMElement.class);
 
 			element.doAdopt(this);
 
@@ -378,7 +381,7 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 
 			// create new content element
 			final Content content = app.create(StructrTraits.CONTENT,
-				new NodeAttribute(traits.key("content"), text)
+				new NodeAttribute(traits.key(ContentTraitDefinition.CONTENT_PROPERTY), text)
 			).as(Content.class);
 
 			content.setOwnerDocument(this);
@@ -406,7 +409,7 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 			final Traits traits = Traits.of(StructrTraits.CONTENT);
 
 			// create new content element
-			final Comment commentNode = app.create("Comment", new NodeAttribute(traits.key("content"), comment)).as(Comment.class);
+			final Comment commentNode = app.create(StructrTraits.COMMENT, new NodeAttribute(traits.key(ContentTraitDefinition.CONTENT_PROPERTY), comment)).as(Comment.class);
 
 			commentNode.setOwnerDocument(this);
 

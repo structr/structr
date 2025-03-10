@@ -38,6 +38,7 @@ import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Template;
 import org.structr.web.importer.Importer;
 import org.structr.web.maintenance.DeployCommand;
+import org.structr.web.traits.definitions.dom.ContentTraitDefinition;
 import org.structr.websocket.command.CreateComponentCommand;
 
 import java.io.IOException;
@@ -212,7 +213,7 @@ public class TemplateImporter extends HtmlFileImporter {
 					properties.put(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), templateName);
 				}
 
-				properties.put(traits.key("content"), src);
+				properties.put(traits.key(ContentTraitDefinition.CONTENT_PROPERTY), src);
 
 				// insert "shared" templates into ShadowDocument
 				final Object value = properties.remove(internalSharedTemplateKey);

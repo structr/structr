@@ -52,6 +52,8 @@ import org.structr.web.entity.User;
 
 import java.util.Map;
 import java.util.Set;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.FolderTraitDefinition;
 
 public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 
@@ -104,9 +106,9 @@ public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> homeDirectoryProperty       = new EndNode(HOME_DIRECTORY_PROPERTY, "UserHOME_DIRFolder");
-		final Property<NodeInterface> workingDirectoryProperty    = new EndNode(WORKING_DIRECTORY_PROPERTY, "UserWORKING_DIRFolder");
-		final Property<NodeInterface> imgProperty                 = new StartNode(IMG_PROPERTY, "ImagePICTURE_OFUser");
+		final Property<NodeInterface> homeDirectoryProperty       = new EndNode(HOME_DIRECTORY_PROPERTY, StructrTraits.USER_HOME_DIR_FOLDER);
+		final Property<NodeInterface> workingDirectoryProperty    = new EndNode(WORKING_DIRECTORY_PROPERTY, StructrTraits.USER_WORKING_DIR_FOLDER);
+		final Property<NodeInterface> imgProperty                 = new StartNode(IMG_PROPERTY, StructrTraits.IMAGE_PICTURE_OF_USER);
 		final Property<String> confirmationKeyProperty            = new StringProperty(CONFIRMATION_KEY_PROPERTY).indexed();
 		final Property<String> localStorageProperty               = new StringProperty(LOCAL_STORAGE_PROPERTY);
 		final Property<Boolean> skipSecurityRelationshipsProperty = new BooleanProperty(SKIP_SECURITY_RELATIONSHIPS_PROPERTY).defaultValue(false).indexed();
@@ -197,8 +199,8 @@ public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 
 			if (Settings.FilesystemEnabled.getValue()) {
 
-				final PropertyKey<NodeInterface> homeFolderKey = folderTraits.key("homeFolderOfUser");
-				final PropertyKey<NodeInterface> parentKey     = folderTraits.key("parent");
+				final PropertyKey<NodeInterface> homeFolderKey = folderTraits.key(FolderTraitDefinition.HOME_FOLDER_OF_USER_PROPERTY);
+				final PropertyKey<NodeInterface> parentKey     = folderTraits.key(AbstractFileTraitDefinition.PARENT_PROPERTY);
 
 				try {
 

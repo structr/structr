@@ -24,6 +24,8 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.feed.entity.RemoteDocument;
+import org.structr.feed.traits.definitions.RemoteDocumentTraitDefinition;
+import org.structr.feed.traits.relationship.AbstractFeedItemTraitDefinition;
 import org.structr.rest.common.HttpHelper;
 
 import java.io.InputStream;
@@ -41,7 +43,7 @@ public class RemoteDocumentTraitWrapper extends AbstractNodeTraitWrapper impleme
 
 	@Override
 	public String getUrl() {
-		return wrappedObject.getProperty(traits.key("url"));
+		return wrappedObject.getProperty(traits.key(RemoteDocumentTraitDefinition.URL_PROPERTY));
 	}
 
 	@Override
@@ -82,11 +84,11 @@ public class RemoteDocumentTraitWrapper extends AbstractNodeTraitWrapper impleme
 
 	@Override
 	public String getExtractedContent() {
-		return wrappedObject.getProperty(traits.key("extractedContent"));
+		return wrappedObject.getProperty(traits.key("extractedContent"));			// FIXME: extractedContent... this used to extend "Indexable"
 	}
 
 	@Override
 	public String getContentType() {
-		return wrappedObject.getProperty(traits.key("contentType"));
+		return wrappedObject.getProperty(traits.key(RemoteDocumentTraitDefinition.CONTENT_TYPE_PROPERTY));
 	}
 }

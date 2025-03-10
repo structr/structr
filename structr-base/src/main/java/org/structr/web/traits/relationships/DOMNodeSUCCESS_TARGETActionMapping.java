@@ -26,7 +26,7 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class DOMNodeSUCCESS_TARGETActionMapping extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public DOMNodeSUCCESS_TARGETActionMapping() {
-		super("DOMNodeSUCCESS_TARGETActionMapping");
+		super(StructrTraits.DOM_NODE_SUCCESS_TARGET_ACTION_MAPPING);
 	}
 
 	@Override

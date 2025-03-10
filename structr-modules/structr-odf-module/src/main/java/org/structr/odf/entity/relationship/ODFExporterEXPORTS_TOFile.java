@@ -26,12 +26,12 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class ODFExporterEXPORTS_TOFile extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public ODFExporterEXPORTS_TOFile() {
-		super("ODFExporterEXPORTS_TOFile");
+		super(StructrTraits.ODF_EXPORTER_EXPORTS_TO_FILE);
 	}
 
 	@Override
 	public String getSourceType() {
-		return "ODFExporter";
+		return StructrTraits.ODF_EXPORTER;
 	}
 
 	@Override

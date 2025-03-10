@@ -41,6 +41,9 @@ import org.structr.web.entity.User;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
+import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 import org.structr.websocket.command.CreateComponentCommand;
 import org.testng.annotations.Test;
 
@@ -164,7 +167,7 @@ public class Deployment5Test extends DeploymentTestBase {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Group parent               = app.create(StructrTraits.GROUP, "parent").as(Group.class);
 			final List<NodeInterface> groups = new LinkedList<>();
@@ -195,8 +198,8 @@ public class Deployment5Test extends DeploymentTestBase {
 			sel1.setProperty(Traits.of("Select").key("_html_multiple"), "multiple");
 
 			// repeater config
-			opt1.setProperty(Traits.of(StructrTraits.DOM_ELEMENT).key("functionQuery"), "find('Group', sort('name'))");
-			opt1.setProperty(Traits.of(StructrTraits.DOM_ELEMENT).key("dataKey"),       "group");
+			opt1.setProperty(Traits.of(StructrTraits.DOM_ELEMENT).key(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY), "find('Group', sort('name'))");
+			opt1.setProperty(Traits.of(StructrTraits.DOM_ELEMENT).key(DOMNodeTraitDefinition.DATA_KEY_PROPERTY),       "group");
 
 			// special keys for Option element
 			opt1.setProperty(Traits.of("Option").key("selectedValues"), "current.members");
@@ -217,8 +220,8 @@ public class Deployment5Test extends DeploymentTestBase {
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-			.header("x-user", "admin")
-			.header("x-password", "admin")
+			.header(X_USER_HEADER, ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.expect()
 			.body("html.body.div.select.option[0]",            Matchers.equalTo("group00"))
 			.body("html.body.div.select.option[1]",            Matchers.equalTo("group01"))
@@ -243,7 +246,7 @@ public class Deployment5Test extends DeploymentTestBase {
 		// user must be created again...
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Group parent               = app.create(StructrTraits.GROUP, "parent").as(Group.class);
 			final List<NodeInterface> groups = new LinkedList<>();
@@ -278,8 +281,8 @@ public class Deployment5Test extends DeploymentTestBase {
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-			.header("x-user", "admin")
-			.header("x-password", "admin")
+			.header(X_USER_HEADER, ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.expect()
 			.body("html.body.div.select.option[0]",            Matchers.equalTo("group00"))
 			.body("html.body.div.select.option[1]",            Matchers.equalTo("group01"))
@@ -306,7 +309,7 @@ public class Deployment5Test extends DeploymentTestBase {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			tx.success();
 
@@ -337,10 +340,10 @@ public class Deployment5Test extends DeploymentTestBase {
 			body.removeChild(div2);
 
 			comp1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "shared-component-one");
-			comp1.setProperty(Traits.of(StructrTraits.DOM_NODE).key("hideConditions"), "{ return $.requestStore['SC1_render_count'] > 3; }");
+			comp1.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.HIDE_CONDITIONS_PROPERTY), "{ return $.requestStore['SC1_render_count'] > 3; }");
 
 			comp2.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "shared-component-two");
-			comp2.setProperty(Traits.of(StructrTraits.DOM_NODE).key("hideConditions"), "{ return $.requestStore['SCS_render_count'] > 3; }");
+			comp2.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.HIDE_CONDITIONS_PROPERTY), "{ return $.requestStore['SCS_render_count'] > 3; }");
 
 			createContent(shadowPage, comp1, "shared-component-one\n" +
 					"${{\n" +
@@ -384,7 +387,7 @@ public class Deployment5Test extends DeploymentTestBase {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			tx.success();
 
@@ -409,7 +412,7 @@ public class Deployment5Test extends DeploymentTestBase {
 			final DOMElement div111  = createElement(page, div11, "div", "content 1");
 			final DOMElement div121  = createElement(page, div11, "div", "content 2");
 
-			testDiv.setProperty(Traits.of(StructrTraits.DOM_ELEMENT).key("data-structr-rendering-mode"), "visible");
+			testDiv.setProperty(Traits.of(StructrTraits.DOM_ELEMENT).key(DOMElementTraitDefinition.DATA_STRUCTR_RENDERING_MODE_PROPERTY), "visible");
 
 			tx.success();
 
@@ -495,9 +498,9 @@ public class Deployment5Test extends DeploymentTestBase {
 			assertNotNull("Root folder should not be null", rootFolder);
 
 			// root folder needs to have "includeInFrontendExport" set
-			rootFolder.setProperty(Traits.of(StructrTraits.FOLDER).key("includeInFrontendExport"), true);
+			rootFolder.setProperty(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY), true);
 
-			file.setProperty(Traits.of(StructrTraits.FILE).key("parent"), folder);
+			file.setProperty(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY), folder);
 
 			tx.success();
 

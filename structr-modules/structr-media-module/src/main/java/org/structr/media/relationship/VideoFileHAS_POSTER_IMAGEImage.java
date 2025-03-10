@@ -26,12 +26,12 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class VideoFileHAS_POSTER_IMAGEImage extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public VideoFileHAS_POSTER_IMAGEImage() {
-		super("VideoFileHAS_POSTER_IMAGEImage");
+		super(StructrTraits.VIDEO_FILE_HAS_POSTER_IMAGE_IMAGE);
 	}
 
 	@Override
 	public String getSourceType() {
-		return "VideoFile";
+		return StructrTraits.VIDEO_FILE;
 	}
 
 	@Override
