@@ -24,19 +24,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.search.ComparisonQuery;
 import org.structr.api.search.Occurrence;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.App;
 import org.structr.core.app.Query;
-import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.ComparisonSearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.Traits;
-import org.structr.flow.api.DataSource;
 import org.structr.flow.engine.Context;
 import org.structr.module.api.DeployableEntity;
 
@@ -45,7 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class FlowTypeQuery extends FlowDataSource implements DataSource, DeployableEntity {
+public class FlowTypeQuery extends FlowDataSource implements DeployableEntity {
 
 	private static final Logger logger = LoggerFactory.getLogger(FlowTypeQuery.class);
 
@@ -59,43 +54,6 @@ public class FlowTypeQuery extends FlowDataSource implements DataSource, Deploya
 
 	public String getQuery() {
 		return wrappedObject.getProperty(traits.key("query"));
-	}
-
-	@Override
-	public Object get(Context context) {
-
-		final SecurityContext securityContext = getSecurityContext();
-		final App app                         = StructrApp.getInstance(securityContext);
-
-		try (Tx tx = app.tx()) {
-
-			final String type = getDataType();
-
-			JSONObject jsonObject = null;
-
-			final String queryString = getQuery();
-			if (queryString != null) {
-				jsonObject = new JSONObject(queryString);
-			}
-
-			final Query query = app.nodeQuery(type);
-
-			if (jsonObject != null && jsonObject.getJSONArray("operations").length() > 0) {
-				resolveQueryObject(context, jsonObject, query);
-			}
-
-			final List list = query.getAsList();
-
-			tx.success();
-
-			return list;
-
-		} catch (FrameworkException ex) {
-
-			logger.error("Exception in FlowTypeQuery: " + ex.getMessage());
-		}
-
-		return null;
 	}
 
 	@Override
@@ -113,7 +71,7 @@ public class FlowTypeQuery extends FlowDataSource implements DataSource, Deploya
 		return result;
 	}
 
-	private Query resolveQueryObject(final Context context, final JSONObject object, final Query query) {
+	public Query resolveQueryObject(final Context context, final JSONObject object, final Query query) {
 		final String type = object.getString("type");
 		switch(type) {
 			case "group":
@@ -126,7 +84,7 @@ public class FlowTypeQuery extends FlowDataSource implements DataSource, Deploya
 		return query;
 	}
 
-	private Query resolveSortOperation(final JSONObject object, final Query query) {
+	public Query resolveSortOperation(final JSONObject object, final Query query) {
 
 		final String queryType = object.getString("queryType");
 		final String key       = object.getString("key");

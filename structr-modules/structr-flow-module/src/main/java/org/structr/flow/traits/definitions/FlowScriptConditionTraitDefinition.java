@@ -19,12 +19,19 @@
 package org.structr.flow.traits.definitions;
 
 import org.structr.common.PropertyView;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
+import org.structr.core.script.Scripting;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.operations.FrameworkMethod;
+import org.structr.flow.engine.Context;
+import org.structr.flow.engine.FlowException;
+import org.structr.flow.impl.FlowDataSource;
 import org.structr.flow.impl.FlowScriptCondition;
+import org.structr.flow.traits.operations.DataSourceOperations;
 
 import java.util.Map;
 import java.util.Set;
@@ -33,6 +40,54 @@ public class FlowScriptConditionTraitDefinition extends AbstractNodeTraitDefinit
 
 	public FlowScriptConditionTraitDefinition() {
 		super("FlowScriptCondition");
+	}
+
+	@Override
+	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+
+		return Map.of(
+
+			DataSourceOperations.class,
+			new DataSourceOperations() {
+
+				@Override
+				public Object get(final Context context, final FlowDataSource node) throws FlowException {
+
+					final FlowScriptCondition condition = node.as(FlowScriptCondition.class);
+
+					try {
+
+						final FlowDataSource _ds = condition.getDataSource();
+						final FlowDataSource _sc = condition.getScriptSource();
+						final String _script     = condition.getScript();
+						final String uuid        = condition.getUuid();
+
+						final String _dynamicScript = _sc != null ? (String)_sc.get(context) : null;
+
+						if (_script != null || _dynamicScript != null) {
+
+							if (_ds != null) {
+								context.setData(uuid, _ds.get(context));
+							}
+
+							final String finalScript = _dynamicScript != null ? _dynamicScript : _script;
+
+							Object result =  Scripting.evaluate(context.getActionContext(condition.getSecurityContext(), condition), context.getThisObject(), "${" + finalScript.trim() + "}", "FlowScriptCondition(" + uuid + ")");
+							context.setData(condition.getUuid(), result);
+
+							return result;
+						}
+
+					} catch (FrameworkException fex) {
+
+						throw new FlowException(fex, condition);
+					}
+
+					return null;
+
+				}
+			}
+		);
 	}
 
 	@Override

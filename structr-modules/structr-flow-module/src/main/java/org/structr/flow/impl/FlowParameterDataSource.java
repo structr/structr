@@ -22,18 +22,13 @@ import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
-import org.structr.flow.api.DataSource;
-import org.structr.flow.engine.Context;
-import org.structr.flow.engine.FlowException;
 import org.structr.module.api.DeployableEntity;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.stream.Collectors;
 
-public class FlowParameterDataSource extends FlowBaseNode implements DataSource, DeployableEntity {
+public class FlowParameterDataSource extends FlowDataSource implements DeployableEntity {
 
 	public FlowParameterDataSource(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);
@@ -43,34 +38,7 @@ public class FlowParameterDataSource extends FlowBaseNode implements DataSource,
 		return wrappedObject.getProperty(traits.key("key"));
 	}
 
-	@Override
-	public Object get(Context context) throws FlowException {
-
-		final String _key = getKey();
-		if (_key != null) {
-
-			if (_key.contains(".")) {
-
-				final List<String> parts = Arrays.stream(_key.split("\\.")).collect(Collectors.toList());
-				if (!parts.isEmpty()) {
-
-					Object entity = context.getParameter(parts.get(0));
-					parts.remove(0);
-
-					return resolveParts(entity, parts);
-
-				} else {
-
-					return null;
-				}
-			}
-			return context.getParameter(_key);
-		}
-
-		return null;
-	}
-
-	private Object resolveParts(Object obj, List<String> parts) {
+	public Object resolveParts(Object obj, List<String> parts) {
 
 		if (!parts.isEmpty()) {
 

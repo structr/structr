@@ -20,61 +20,16 @@ package org.structr.flow.impl;
 
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-import org.structr.flow.api.Action;
 import org.structr.flow.api.ThrowingElement;
-import org.structr.flow.engine.Context;
-import org.structr.flow.engine.FlowException;
 import org.structr.module.api.DeployableEntity;
 
 import java.util.Map;
-import java.util.Queue;
 import java.util.TreeMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
-public class FlowForkJoin extends FlowNode implements Action, DeployableEntity, ThrowingElement {
+public class FlowForkJoin extends FlowAction implements DeployableEntity, ThrowingElement {
 
 	public FlowForkJoin(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);
-	}
-
-	public FlowExceptionHandler getExceptionHandler() {
-
-		final NodeInterface exceptionHandler = wrappedObject.getProperty(traits.key("exceptionHandler"));
-		if (exceptionHandler != null) {
-
-			return exceptionHandler.as(FlowExceptionHandler.class);
-		}
-
-		return null;
-	}
-
-	@Override
-	public FlowExceptionHandler getExceptionHandler(Context context) {
-		return getExceptionHandler();
-	}
-
-	@Override
-	public void execute(final Context context) throws FlowException {
-
-		try {
-
-			Queue<Future> futures = context.getForkFutures();
-
-			while(futures.size() > 0) {
-
-				//Poll head and invoke get to force the promise to resolve and thus waiting for thread termination
-				Future f = futures.poll();
-				if (f != null) {
-
-					f.get();
-				}
-			}
-
-		} catch (ExecutionException | InterruptedException ex) {
-
-			throw new FlowException(ex, this);
-		}
 	}
 
 	@Override

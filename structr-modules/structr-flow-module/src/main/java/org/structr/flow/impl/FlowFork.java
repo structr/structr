@@ -20,7 +20,6 @@ package org.structr.flow.impl;
 
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-import org.structr.flow.api.DataSource;
 import org.structr.flow.api.Fork;
 import org.structr.flow.api.ThrowingElement;
 import org.structr.flow.engine.Context;
@@ -30,13 +29,13 @@ import org.structr.module.api.DeployableEntity;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class FlowFork extends FlowNode implements Fork, DataSource, DeployableEntity, ThrowingElement {
+public class FlowFork extends FlowDataSource implements Fork, DeployableEntity, ThrowingElement {
 
 	public FlowFork(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);
 	}
 
-	public FlowNode getForkBody() {
+	public final FlowNode getForkBody() {
 
 		final NodeInterface node = wrappedObject.getProperty(traits.key("loopBody"));
 		if (node != null) {
@@ -45,22 +44,6 @@ public class FlowFork extends FlowNode implements Fork, DataSource, DeployableEn
 		}
 
 		return null;
-	}
-
-	public FlowExceptionHandler getExceptionHandler() {
-
-		final NodeInterface exceptionHandler = wrappedObject.getProperty(traits.key("exceptionHandler"));
-		if (exceptionHandler != null) {
-
-			return exceptionHandler.as(FlowExceptionHandler.class);
-		}
-
-		return null;
-	}
-
-	@Override
-	public FlowExceptionHandler getExceptionHandler(Context context) {
-		return getExceptionHandler();
 	}
 
 	@Override
@@ -74,25 +57,6 @@ public class FlowFork extends FlowNode implements Fork, DataSource, DeployableEn
 
 			context.setData(getUuid(), _ds.get(context));
 		}
-
-	}
-
-	@Override
-	public Object get(Context context) throws FlowException {
-
-		Object data = context.getData(getUuid());
-		if (data == null) {
-
-			FlowDataSource _ds = getDataSource();
-			if (_ds != null) {
-
-				data = _ds.get(context);
-				context.setData(getUuid(), data);
-			}
-
-		}
-
-		return data;
 
 	}
 

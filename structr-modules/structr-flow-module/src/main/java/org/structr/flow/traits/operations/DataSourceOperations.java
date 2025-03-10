@@ -16,17 +16,14 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.flow.impl;
+package org.structr.flow.traits.operations;
 
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.traits.Traits;
+import org.structr.core.traits.operations.FrameworkMethod;
+import org.structr.flow.engine.Context;
+import org.structr.flow.engine.FlowException;
+import org.structr.flow.impl.FlowDataSource;
 
-/**
- *
- */
-public class FlowAnd extends FlowLogicCondition {
+public abstract class DataSourceOperations extends FrameworkMethod<DataSourceOperations> {
 
-	public FlowAnd(final Traits traits, final NodeInterface wrappedObject) {
-		super(traits, wrappedObject);
-	}
+	public abstract Object get(final Context context, final FlowDataSource dataSource) throws FlowException;
 }

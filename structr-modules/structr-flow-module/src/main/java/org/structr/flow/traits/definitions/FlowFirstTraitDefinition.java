@@ -21,8 +21,14 @@ package org.structr.flow.traits.definitions;
 import org.structr.core.entity.Relation;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.operations.FrameworkMethod;
+import org.structr.flow.engine.Context;
+import org.structr.flow.engine.FlowException;
+import org.structr.flow.impl.FlowDataSource;
 import org.structr.flow.impl.FlowFirst;
+import org.structr.flow.traits.operations.DataSourceOperations;
 
+import java.util.Iterator;
 import java.util.Map;
 
 public class FlowFirstTraitDefinition extends AbstractNodeTraitDefinition {
@@ -32,6 +38,48 @@ public class FlowFirstTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
+	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+
+		return Map.of(
+
+			DataSourceOperations.class,
+			new DataSourceOperations() {
+
+				@Override
+				public Object get(final Context context, final FlowDataSource node) throws FlowException {
+
+					final FlowDataSource _dataSource = node.getDataSource();
+					if (_dataSource != null) {
+
+						final String uuid = node.getUuid();
+
+						Object currentData = context.getData(uuid);
+
+						if (currentData != null) {
+							return currentData;
+						}
+
+						Object dsData = _dataSource.get(context);
+
+						if (dsData instanceof Iterable) {
+							Iterable c = (Iterable)dsData;
+							Iterator it = c.iterator();
+
+							if (it.hasNext()) {
+
+								Object data = it.next();
+								context.setData(uuid, data);
+								return data;
+							}
+						}
+					}
+
+					return null;
+				}
+			}
+		);
+	}
+					@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
 		return Map.of(

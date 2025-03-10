@@ -18,21 +18,78 @@
  */
 package org.structr.flow.traits.definitions;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
+import org.structr.core.script.Scripting;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.operations.FrameworkMethod;
+import org.structr.flow.engine.Context;
+import org.structr.flow.engine.FlowException;
+import org.structr.flow.impl.FlowAction;
+import org.structr.flow.impl.FlowContainer;
+import org.structr.flow.impl.FlowDataSource;
 import org.structr.flow.impl.FlowKeyValue;
+import org.structr.flow.traits.operations.ActionOperations;
 
 import java.util.Map;
 import java.util.Set;
 
 public class FlowLogTraitDefinition extends AbstractNodeTraitDefinition {
 
+	private static final Logger logger = LoggerFactory.getLogger(FlowLogTraitDefinition.class);
+
 	public FlowLogTraitDefinition() {
 		super("FlowLog");
+	}
+
+	@Override
+	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+
+		return Map.of(
+
+			ActionOperations.class,
+			new ActionOperations() {
+
+				@Override
+				public void execute(final Context context, final FlowAction action) throws FlowException {
+
+					final String uuid = action.getUuid();
+					String _script    = action.getScript();
+
+					if (_script == null) {
+
+						_script = "data";
+					}
+
+					try {
+
+						final FlowDataSource _dataSource = action.getDataSource();
+						if (_dataSource != null) {
+
+							// make data available to action if present
+							context.setData(uuid, _dataSource.get(context));
+						}
+
+						// Evaluate script and write result to context
+						final Object result = Scripting.evaluate(context.getActionContext(action.getSecurityContext(), action), action, "${" + _script.trim() + "}", "FlowAction(" + uuid + ")");
+
+						final FlowContainer container = action.getFlowContainer();
+
+						logger.info( (container.getName() != null ? ("[" + container.getEffectiveName() + "]") : "") + ("([" + action.getType() + "]" + uuid + "): ") + result	);
+
+					} catch (FrameworkException fex) {
+
+						throw new FlowException(fex, action);
+					}
+				}
+			}
+		);
 	}
 
 	@Override

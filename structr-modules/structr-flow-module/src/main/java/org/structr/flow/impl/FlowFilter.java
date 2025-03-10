@@ -23,7 +23,6 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-import org.structr.flow.api.DataSource;
 import org.structr.flow.api.Filter;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
@@ -34,7 +33,7 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class FlowFilter extends FlowNode implements DataSource, Filter, DeployableEntity {
+public class FlowFilter extends FlowDataSource implements Filter, DeployableEntity {
 
 	private static final Logger logger = LoggerFactory.getLogger(FlowFilter.class);
 
@@ -42,7 +41,7 @@ public class FlowFilter extends FlowNode implements DataSource, Filter, Deployab
 		super(traits, wrappedObject);
 	}
 
-	public FlowCondition getCondition() {
+	public final FlowCondition getCondition() {
 
 		final NodeInterface node = wrappedObject.getProperty(traits.key("condition"));
 		if (node != null) {
@@ -51,19 +50,6 @@ public class FlowFilter extends FlowNode implements DataSource, Filter, Deployab
 		}
 
 		return null;
-	}
-
-	@Override
-	public Object get(final Context context) throws FlowException {
-
-		Object data = context.getData(getUuid());
-		if (data == null) {
-
-			filter(context);
-			data = context.getData(getUuid());
-		}
-
-		return data;
 	}
 
 	@Override

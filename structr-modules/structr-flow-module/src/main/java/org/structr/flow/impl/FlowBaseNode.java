@@ -29,13 +29,13 @@ import java.util.TreeMap;
 
 /**
  */
-public abstract class FlowBaseNode extends AbstractNodeTraitWrapper implements DeployableEntity {
+public class FlowBaseNode extends AbstractNodeTraitWrapper implements DeployableEntity {
 
 	public FlowBaseNode(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);
 	}
 
-	public FlowDataSource getDataSource() {
+	public final FlowDataSource getDataSource() {
 
 		final NodeInterface dataSource = wrappedObject.getProperty(traits.key("dataSource"));
 		if (dataSource != null) {
@@ -46,7 +46,7 @@ public abstract class FlowBaseNode extends AbstractNodeTraitWrapper implements D
 		return null;
 	}
 
-	public FlowContainer getFlowContainer() {
+	public final FlowContainer getFlowContainer() {
 
 		final NodeInterface node = wrappedObject.getProperty(traits.key("flowContainer"));
 		if (node != null) {
@@ -57,11 +57,11 @@ public abstract class FlowBaseNode extends AbstractNodeTraitWrapper implements D
 		return null;
 	}
 
-	public void setDataSource(final FlowDataSource dataSource) throws FrameworkException {
+	public final void setDataSource(final FlowDataSource dataSource) throws FrameworkException {
 		wrappedObject.setProperty(traits.key("dataSource"), dataSource);
 	}
 
-	public void setFlowContainer(final FlowContainer flowContainer) throws FrameworkException {
+	public final void setFlowContainer(final FlowContainer flowContainer) throws FrameworkException {
 		wrappedObject.setProperty(traits.key("flowContainer"), flowContainer);
 	}
 

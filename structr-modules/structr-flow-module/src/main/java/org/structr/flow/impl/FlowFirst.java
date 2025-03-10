@@ -20,10 +20,6 @@ package org.structr.flow.impl;
 
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-import org.structr.flow.engine.Context;
-import org.structr.flow.engine.FlowException;
-
-import java.util.Iterator;
 
 /**
  *
@@ -32,34 +28,5 @@ public class FlowFirst extends FlowDataSource {
 
 	public FlowFirst(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);
-	}
-
-	@Override
-	public Object get(final Context context) throws FlowException {
-
-		final FlowDataSource _dataSource = getDataSource();
-		if (_dataSource != null) {
-
-			Object currentData = context.getData(getUuid());
-
-			if (currentData != null) {
-				return currentData;
-			}
-
-			Object dsData = _dataSource.get(context);
-
-			if (dsData instanceof Iterable) {
-				Iterable c = (Iterable)dsData;
-				Iterator it = c.iterator();
-
-				if (it.hasNext()) {
-					Object data = it.next();
-					context.setData(getUuid(), data);
-					return data;
-				}
-			}
-		}
-
-		return null;
 	}
 }

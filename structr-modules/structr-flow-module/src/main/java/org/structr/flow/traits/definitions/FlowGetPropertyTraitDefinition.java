@@ -18,7 +18,10 @@
  */
 package org.structr.flow.traits.definitions;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
+import org.structr.core.GraphObject;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.Property;
@@ -26,8 +29,14 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.operations.FrameworkMethod;
+import org.structr.flow.engine.Context;
+import org.structr.flow.engine.FlowException;
+import org.structr.flow.impl.FlowDataSource;
 import org.structr.flow.impl.FlowGetProperty;
+import org.structr.flow.traits.operations.DataSourceOperations;
 
 import java.util.Map;
 import java.util.Set;
@@ -37,8 +46,109 @@ import java.util.Set;
  */
 public class FlowGetPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 
+	private static final Logger logger = LoggerFactory.getLogger(FlowGetPropertyTraitDefinition.class);
+
 	public FlowGetPropertyTraitDefinition() {
 		super("FlowGetProperty");
+	}
+
+	@Override
+	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+
+		return Map.of(
+
+			DataSourceOperations.class,
+			new DataSourceOperations() {
+
+				@Override
+				public Object get(final Context context, final FlowDataSource node) throws FlowException {
+
+					final FlowGetProperty getProperty = node.as(FlowGetProperty.class);
+					final FlowDataSource _nodeSource  = getProperty.getNodeSource();
+					final FlowDataSource _nameSource  = getProperty.getPropertyNameSource();
+					final String _propertyName        = getProperty.getPropertyName();
+					final String uuid                 = node.getUuid();
+
+					if (_nodeSource != null && (_nameSource != null || _propertyName != null) ) {
+
+						final Object input = _nodeSource.get(context);
+						if (input != null) {
+
+							if (input instanceof GraphObject graphObject) {
+
+								Object mapKey;
+
+								if (_nameSource != null) {
+									mapKey = _nameSource.get(context);
+								} else {
+									mapKey = _propertyName;
+								}
+
+								if (mapKey != null) {
+
+									if (mapKey instanceof String stringKey) {
+
+										final Traits traits = graphObject.getTraits();
+										if (traits.hasKey(stringKey)) {
+
+											final PropertyKey key = graphObject.getTraits().key(stringKey);
+											if (key != null) {
+
+												return graphObject.getProperty(key);
+											}
+
+										} else {
+
+											logger.warn("Name source of {} returned unknown property key {}", uuid, mapKey);
+										}
+									}
+
+								} else {
+
+									logger.warn("Name source of {} returned null", uuid);
+								}
+
+							} else if (input instanceof Map) {
+
+								Object key;
+
+								if (_nameSource != null) {
+
+									key = _nameSource.get(context);
+
+								} else {
+
+									key = _propertyName;
+								}
+
+								if (key != null) {
+
+									return ((Map<?, ?>) input).get(key);
+
+								} else {
+
+									logger.warn("Name source of {} returned null", uuid);
+								}
+
+							} else {
+
+								logger.warn("Node data source of {} returned invalid object of type {}", uuid, input.getClass().getName());
+							}
+
+						} else {
+
+							logger.warn("Node data source of {} returned null", uuid);
+						}
+
+					} else {
+
+						logger.warn("Unable to evaluate FlowDataSource {}, missing at least one source.", uuid);
+					}
+
+					return null;
+				}
+			}
+		);
 	}
 
 	@Override

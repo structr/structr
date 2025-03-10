@@ -16,15 +16,34 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.flow.api;
+package org.structr.flow.traits.definitions;
 
-import org.structr.flow.engine.Context;
-import org.structr.flow.engine.FlowException;
+import org.structr.core.entity.Relation;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.EndNode;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 
-/**
- *
- */
-public interface Action {
+import java.util.Set;
 
-	void execute(final Context context) throws FlowException;
+public class ExtendedDOMNodeForFlows extends AbstractNodeTraitDefinition {
+
+	public ExtendedDOMNodeForFlows() {
+		super("DOMNode.extended", "DOMNode");
+	}
+
+	@Override
+	public Set<PropertyKey> getPropertyKeys() {
+
+		final PropertyKey<NodeInterface> flow = new EndNode("flow", "DOMNodeFLOWFlowContainer");
+
+		return newSet(
+			flow
+		);
+	}
+
+	@Override
+	public Relation getRelation() {
+		return null;
+	}
 }

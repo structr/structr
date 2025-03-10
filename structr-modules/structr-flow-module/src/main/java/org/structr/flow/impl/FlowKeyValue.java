@@ -22,10 +22,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-import org.structr.flow.api.DataSource;
-import org.structr.flow.api.KeyValue;
-import org.structr.flow.engine.Context;
-import org.structr.flow.engine.FlowException;
 import org.structr.module.api.DeployableEntity;
 
 import java.util.Map;
@@ -34,7 +30,7 @@ import java.util.TreeMap;
 /**
  *
  */
-public class FlowKeyValue extends FlowBaseNode implements DataSource, DeployableEntity {
+public class FlowKeyValue extends FlowDataSource implements DeployableEntity {
 
 	private static final Logger logger = LoggerFactory.getLogger(FlowKeyValue.class);
 
@@ -42,34 +38,8 @@ public class FlowKeyValue extends FlowBaseNode implements DataSource, Deployable
 		super(traits, wrappedObject);
 	}
 
-	public String getKey() {
+	public final String getKey() {
 		return wrappedObject.getProperty(traits.key("key"));
-	}
-
-	@Override
-	public Object get(final Context context) throws FlowException {
-
-		final String _key        = getKey();
-		final FlowDataSource _ds = getDataSource();
-
-		if (_key != null && _ds != null) {
-
-			final Object data = _ds.get(context);
-			if (_key.length() > 0) {
-
-				return new KeyValue(_key, data);
-
-			} else {
-
-				logger.warn("Unable to evaluate FlowKeyValue {}, key was empty", getUuid());
-			}
-
-		} else {
-
-			logger.warn("Unable to evaluate FlowKeyValue {}, missing at least one source.", getUuid());
-		}
-
-		return null;
 	}
 
 	@Override

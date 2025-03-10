@@ -21,10 +21,8 @@ package org.structr.flow.impl;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-import org.structr.flow.api.DataSource;
 import org.structr.flow.api.ForEach;
 import org.structr.flow.api.ThrowingElement;
-import org.structr.flow.engine.Context;
 import org.structr.module.api.DeployableEntity;
 
 import java.util.Map;
@@ -33,13 +31,13 @@ import java.util.TreeMap;
 /**
  *
  */
-public class FlowForEach extends FlowNode implements ForEach, DataSource, DeployableEntity, ThrowingElement {
+public class FlowForEach extends FlowDataSource implements ForEach, DeployableEntity, ThrowingElement {
 
 	public FlowForEach(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);
 	}
 
-	public FlowNode getLoopBody() {
+	public final FlowNode getLoopBody() {
 
 		final NodeInterface node = wrappedObject.getProperty(traits.key("loopBody"));
 		if (node != null) {
@@ -50,29 +48,8 @@ public class FlowForEach extends FlowNode implements ForEach, DataSource, Deploy
 		return null;
 	}
 
-	public FlowExceptionHandler getExceptionHandler() {
-
-		final NodeInterface exceptionHandler = wrappedObject.getProperty(traits.key("exceptionHandler"));
-		if (exceptionHandler != null) {
-
-			return exceptionHandler.as(FlowExceptionHandler.class);
-		}
-
-		return null;
-	}
-
-	public void setLoopBody(final FlowNode loopBody) throws FrameworkException {
+	public final void setLoopBody(final FlowNode loopBody) throws FrameworkException {
 		wrappedObject.setProperty(traits.key("loopBody"), loopBody);
-	}
-
-	@Override
-	public Object get(Context context) {
-		return context.getData(getUuid());
-	}
-
-	@Override
-	public FlowExceptionHandler getExceptionHandler(Context context) {
-		return getExceptionHandler();
 	}
 
 	@Override

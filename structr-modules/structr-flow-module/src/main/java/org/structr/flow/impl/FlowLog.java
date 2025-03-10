@@ -18,78 +18,18 @@
  */
 package org.structr.flow.impl;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.script.Scripting;
 import org.structr.core.traits.Traits;
 import org.structr.flow.api.ThrowingElement;
-import org.structr.flow.engine.Context;
-import org.structr.flow.engine.FlowException;
 import org.structr.module.api.DeployableEntity;
 
 import java.util.Map;
 import java.util.TreeMap;
 
-public class FlowLog extends FlowActionNode implements DeployableEntity, ThrowingElement {
+public class FlowLog extends FlowAction implements DeployableEntity, ThrowingElement {
 
 	public FlowLog(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);
-	}
-
-	public String getScript() {
-		return wrappedObject.getProperty(traits.key("script"));
-	}
-
-	public FlowExceptionHandler getExceptionHandler() {
-
-		final NodeInterface exceptionHandler = wrappedObject.getProperty(traits.key("exceptionHandler"));
-		if (exceptionHandler != null) {
-
-			return exceptionHandler.as(FlowExceptionHandler.class);
-		}
-
-		return null;
-	}
-
-	@Override
-	public void execute(final Context context) throws FlowException {
-
-		String _script = getScript();
-		if (_script == null) {
-
-			_script = "data";
-		}
-
-		final Logger logger = LoggerFactory.getLogger(FlowLog.class);
-
-		try {
-
-			final FlowDataSource _dataSource = getDataSource();
-			if (_dataSource != null) {
-
-				// make data available to action if present
-				context.setData(getUuid(), _dataSource.get(context));
-			}
-
-			// Evaluate script and write result to context
-			final Object result = Scripting.evaluate(context.getActionContext(getSecurityContext(), this), this, "${" + _script.trim() + "}", "FlowAction(" + getUuid() + ")");
-
-			final FlowContainer container = getFlowContainer();
-
-			logger.info( (container.getName() != null ? ("[" + container.getEffectiveName() + "]") : "") + ("([" + getType() + "]" + getUuid() + "): ") + result	);
-
-		} catch (FrameworkException fex) {
-
-			throw new FlowException(fex, this);
-		}
-
-	}
-
-	@Override
-	public FlowExceptionHandler getExceptionHandler(Context context) {
-		return getExceptionHandler();
 	}
 
 	@Override

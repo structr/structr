@@ -29,12 +29,4 @@ public class FlowNot extends FlowLogicCondition {
 	public FlowNot(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);
 	}
-
-	@Override
-	protected Boolean combine(Boolean result, Boolean value) {
-		if (result == null) {
-			return !value;
-		}
-		return result && !value;
-	}
 }

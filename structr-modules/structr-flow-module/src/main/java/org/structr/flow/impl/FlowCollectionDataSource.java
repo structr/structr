@@ -21,12 +21,8 @@ package org.structr.flow.impl;
 import org.structr.api.util.Iterables;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-import org.structr.flow.engine.Context;
-import org.structr.flow.engine.FlowException;
 import org.structr.module.api.DeployableEntity;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -36,30 +32,11 @@ public class FlowCollectionDataSource extends FlowDataSource implements Deployab
 		super(traits, wrappedObject);
 	}
 
-	public Iterable<FlowDataSource> getDataSources() {
+	public final Iterable<FlowDataSource> getDataSources() {
 
 		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key("dataSources"));
 
 		return Iterables.map(n -> n.as(FlowDataSource.class), nodes);
-	}
-
-	@Override
-	public Object get(final Context context) throws FlowException {
-
-		final List<FlowDataSource> sources = Iterables.toList(getDataSources());
-		final List<Object> result      = new ArrayList<>();
-
-		if (sources != null && sources.size() > 0) {
-
-			for (final FlowDataSource source : sources) {
-
-				result.add(source.get(context));
-
-			}
-
-		}
-
-		return result;
 	}
 
 	@Override

@@ -18,6 +18,7 @@
  */
 package org.structr.flow.traits.definitions;
 
+import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
@@ -26,8 +27,15 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StartNodes;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.operations.FrameworkMethod;
+import org.structr.flow.engine.Context;
+import org.structr.flow.engine.FlowException;
 import org.structr.flow.impl.FlowCollectionDataSource;
+import org.structr.flow.impl.FlowDataSource;
+import org.structr.flow.traits.operations.DataSourceOperations;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -35,6 +43,35 @@ public class FlowCollectionDataSourceTraitDefinition extends AbstractNodeTraitDe
 
 	public FlowCollectionDataSourceTraitDefinition() {
 		super("FlowCollectionDataSource");
+	}
+
+	@Override
+	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+
+		return Map.of(
+
+			DataSourceOperations.class,
+			new DataSourceOperations() {
+
+				@Override
+				public Object get(final Context context, final FlowDataSource node) throws FlowException {
+
+					final FlowCollectionDataSource dataSource = node.as(FlowCollectionDataSource.class);
+					final List<FlowDataSource> sources        = Iterables.toList(dataSource.getDataSources());
+					final List<Object> result                 = new ArrayList<>();
+
+					if (sources != null) {
+
+						for (final FlowDataSource source : sources) {
+
+							result.add(source.get(context));
+						}
+					}
+
+					return result;
+				}
+			}
+		);
 	}
 
 	@Override

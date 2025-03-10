@@ -16,15 +16,12 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.flow.impl;
+package org.structr.flow.traits.operations;
 
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.traits.Traits;
-import org.structr.flow.api.Action;
+import org.structr.core.traits.operations.FrameworkMethod;
+import org.structr.flow.impl.FlowLogicCondition;
 
-public abstract class FlowActionNode extends FlowNode implements Action {
+public abstract class LogicConditionOperations extends FrameworkMethod<LogicConditionOperations> {
 
-	public FlowActionNode(final Traits traits, final NodeInterface wrappedObject) {
-		super(traits, wrappedObject);
-	}
+	public abstract Boolean combine(final FlowLogicCondition condition, final Boolean result, final Boolean value);
 }

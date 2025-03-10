@@ -21,16 +21,13 @@ package org.structr.flow.impl;
 import org.structr.api.util.Iterables;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-import org.structr.flow.api.DataSource;
 import org.structr.flow.api.Exception;
-import org.structr.flow.engine.Context;
-import org.structr.flow.engine.FlowException;
 import org.structr.module.api.DeployableEntity;
 
 import java.util.Map;
 import java.util.TreeMap;
 
-public class FlowExceptionHandler extends FlowNode implements Exception, DataSource, DeployableEntity {
+public class FlowExceptionHandler extends FlowDataSource implements Exception, DeployableEntity {
 
 	public FlowExceptionHandler(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);
@@ -41,11 +38,6 @@ public class FlowExceptionHandler extends FlowNode implements Exception, DataSou
 		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key("handledNodes"));
 
 		return Iterables.map(n -> n.as(FlowBaseNode.class), nodes);
-	}
-
-	@Override
-	public Object get(Context context) throws FlowException {
-		return context.getData(getUuid());
 	}
 
 	@Override

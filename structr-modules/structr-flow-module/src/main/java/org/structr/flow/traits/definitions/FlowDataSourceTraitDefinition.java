@@ -19,12 +19,18 @@
 package org.structr.flow.traits.definitions;
 
 import org.structr.common.PropertyView;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
+import org.structr.core.script.Scripting;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.operations.FrameworkMethod;
+import org.structr.flow.engine.Context;
+import org.structr.flow.engine.FlowException;
 import org.structr.flow.impl.FlowDataSource;
+import org.structr.flow.traits.operations.DataSourceOperations;
 
 import java.util.Map;
 import java.util.Set;
@@ -36,6 +42,56 @@ public class FlowDataSourceTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public FlowDataSourceTraitDefinition() {
 		super("FlowDataSource");
+	}
+
+	@Override
+	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+
+		return Map.of(
+
+			DataSourceOperations.class,
+			new DataSourceOperations() {
+
+				@Override
+				public Object get(final Context context, final FlowDataSource dataSource) throws FlowException {
+
+					final String uuid = dataSource.getUuid();
+
+					if (!context.hasData(uuid)) {
+
+						final FlowDataSource _ds = dataSource.getDataSource();
+						if (_ds != null) {
+
+							Object data = _ds.get(context);
+							context.setData(uuid, data);
+						}
+
+						final String _script = dataSource.getQuery();
+						if (_script != null) {
+
+							try {
+
+								Object result = Scripting.evaluate(context.getActionContext(dataSource.getSecurityContext(), dataSource), context.getThisObject(), "${" + _script.trim() + "}", "FlowDataSource(" + uuid + ")");
+
+								context.setData(dataSource.getUuid(), result);
+
+								return result;
+
+							} catch (FrameworkException fex) {
+
+								throw new FlowException(fex, dataSource);
+							}
+						}
+
+					} else {
+
+						return context.getData(uuid);
+					}
+
+					return null;
+				}
+			}
+		);
 	}
 
 	@Override

@@ -64,6 +64,10 @@ public class OtherNodeTypeFilter implements Predicate<Relationship> {
 			
 			final boolean desiredTypeIsAssignableFromOtherNodeType = otherNodeLabels.containsAll(subtypes);
 
+			if (!desiredTypeIsAssignableFromOtherNodeType) {
+				System.out.println("######## OtherNodeTypeFilter: REJECTING type " + otherNode.getType() + " with labels " + subtypes + " because " + otherNodeLabels + " doesn't match.");
+			}
+
 			return desiredTypeIsAssignableFromOtherNodeType;
 		}
 

@@ -22,7 +22,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-import org.structr.flow.api.DataSource;
 import org.structr.flow.api.Store;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
@@ -31,7 +30,7 @@ import org.structr.module.api.DeployableEntity;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class FlowStore extends FlowNode implements Store, DataSource, DeployableEntity {
+public class FlowStore extends FlowDataSource implements Store, DeployableEntity {
 
 	private static final Logger logger = LoggerFactory.getLogger(FlowStore.class);
 
@@ -44,11 +43,11 @@ public class FlowStore extends FlowNode implements Store, DataSource, Deployable
 		retrieve
 	}
 
-	public String getOperation() {
+	public final String getOperation() {
 		return wrappedObject.getProperty(traits.key("operation"));
 	}
 
-	public String getKey() {
+	public final String getKey() {
 		return wrappedObject.getProperty(traits.key("key"));
 	}
 
@@ -76,27 +75,6 @@ public class FlowStore extends FlowNode implements Store, DataSource, Deployable
 
 			logger.warn("Unable to handle FlowStore{}, missing operation or key.", getUuid());
 		}
-
-
-	}
-
-	@Override
-	public Object get(Context context) {
-
-		final String op = getOperation();
-
-		try {
-
-			if (op != null && op.equals("retrieve")) {
-
-				this.handleStorage(context);
-			}
-
-		} catch (FlowException ex) {
-			
-			logger.error("Exception in FlowStore get: ", ex);
-		}
-		return context.getData(getUuid());
 	}
 
 	@Override

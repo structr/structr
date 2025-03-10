@@ -18,21 +18,87 @@
  */
 package org.structr.flow.traits.definitions;
 
+import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.app.App;
+import org.structr.core.app.Query;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.Tx;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.operations.FrameworkMethod;
+import org.structr.flow.engine.Context;
+import org.structr.flow.engine.FlowException;
+import org.structr.flow.impl.FlowDataSource;
 import org.structr.flow.impl.FlowTypeQuery;
+import org.structr.flow.traits.operations.DataSourceOperations;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 public class FlowTypeQueryTraitDefinition extends AbstractNodeTraitDefinition {
 
+	private static final Logger logger = LoggerFactory.getLogger(FlowTypeQueryTraitDefinition.class);
+
 	public FlowTypeQueryTraitDefinition() {
 		super("FlowTypeQuery");
+	}
+
+	@Override
+	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+
+		return Map.of(
+
+			DataSourceOperations.class,
+			new DataSourceOperations() {
+
+				@Override
+				public Object get(final Context context, final FlowDataSource node) throws FlowException {
+
+					final SecurityContext securityContext = node.getSecurityContext();
+					final App app                         = StructrApp.getInstance(securityContext);
+					final FlowTypeQuery dataSource        = node.as(FlowTypeQuery.class);
+
+					try (Tx tx = app.tx()) {
+
+						final String type = dataSource.getDataType();
+
+						JSONObject jsonObject = null;
+
+						final String queryString = dataSource.getQuery();
+						if (queryString != null) {
+							jsonObject = new JSONObject(queryString);
+						}
+
+						final Query query = app.nodeQuery(type);
+
+						if (jsonObject != null && jsonObject.getJSONArray("operations").length() > 0) {
+							dataSource.resolveQueryObject(context, jsonObject, query);
+						}
+
+						final List list = query.getAsList();
+
+						tx.success();
+
+						return list;
+
+					} catch (FrameworkException ex) {
+
+						logger.error("Exception in FlowTypeQuery: " + ex.getMessage());
+					}
+
+					return null;
+				}
+			}
+		);
 	}
 
 	@Override

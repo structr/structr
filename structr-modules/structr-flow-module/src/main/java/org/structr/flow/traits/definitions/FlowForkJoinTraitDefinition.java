@@ -28,12 +28,19 @@ import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.api.FlowType;
+import org.structr.flow.engine.Context;
+import org.structr.flow.engine.FlowException;
+import org.structr.flow.impl.FlowAction;
 import org.structr.flow.impl.FlowForkJoin;
 import org.structr.flow.impl.FlowNode;
+import org.structr.flow.traits.operations.ActionOperations;
 import org.structr.flow.traits.operations.GetFlowType;
 
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 public class FlowForkJoinTraitDefinition extends AbstractNodeTraitDefinition {
 
@@ -45,6 +52,7 @@ public class FlowForkJoinTraitDefinition extends AbstractNodeTraitDefinition {
 	public Map<Class, FrameworkMethod> getFrameworkMethods() {
 
 		return Map.of(
+
 			GetFlowType.class,
 			new GetFlowType() {
 
@@ -52,7 +60,34 @@ public class FlowForkJoinTraitDefinition extends AbstractNodeTraitDefinition {
 				public FlowType getFlowType(FlowNode flowNode) {
 					return FlowType.Action;
 				}
+			},
+
+			ActionOperations.class,
+			new ActionOperations() {
+
+				@Override
+				public void execute(final Context context, final FlowAction action) throws FlowException {
+
+					try {
+
+						final Queue<Future> futures = context.getForkFutures();
+						while(!futures.isEmpty()) {
+
+							//Poll head and invoke get to force the promise to resolve and thus waiting for thread termination
+							Future f = futures.poll();
+							if (f != null) {
+
+								f.get();
+							}
+						}
+
+					} catch (ExecutionException | InterruptedException ex) {
+
+						throw new FlowException(ex, action);
+					}
+				}
 			}
+
 		);
 	}
 

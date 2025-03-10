@@ -20,10 +20,10 @@ package org.structr.test;
 
 import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
-import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Group;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
@@ -137,8 +137,6 @@ public class FlowTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			Settings.CypherDebugLogging.setValue(true);
-
 			// create admin user
 			createTestNode(StructrTraits.USER,
 				new NodeAttribute<>(Traits.of("User").key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "admin"),
@@ -169,7 +167,7 @@ public class FlowTest extends StructrUiTest {
 
 			// evaluate flow
 			final Iterable<Object> result = flowContainer.evaluate(securityContext, new LinkedHashMap<>());
-			final List<Group> groups      = StreamSupport.stream(result.spliterator(), false).map((o) -> (Group)o).collect(Collectors.toList());
+			final List<Group> groups      = StreamSupport.stream(result.spliterator(), false).map((o) -> ((NodeInterface)o).as(Group.class)).collect(Collectors.toList());
 
 			assertEquals("Invalid number of groups in flow result", 4, groups.size());
 

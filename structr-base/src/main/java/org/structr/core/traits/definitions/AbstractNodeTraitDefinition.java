@@ -27,6 +27,10 @@ public abstract class AbstractNodeTraitDefinition extends AbstractTraitDefinitio
 		super(name);
 	}
 
+	public AbstractNodeTraitDefinition(final String name, final String label) {
+		super(name, label);
+	}
+
 	@Override
 	public boolean isRelationship() {
 		return false;

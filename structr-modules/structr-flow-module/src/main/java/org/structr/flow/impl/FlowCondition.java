@@ -21,12 +21,11 @@ package org.structr.flow.impl;
 import org.structr.api.util.Iterables;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-import org.structr.flow.api.DataSource;
 
 /**
  *
  */
-public abstract class FlowCondition extends FlowDataSource implements DataSource {
+public abstract class FlowCondition extends FlowDataSource {
 
 	public FlowCondition(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);

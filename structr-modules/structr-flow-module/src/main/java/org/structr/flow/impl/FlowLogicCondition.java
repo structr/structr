@@ -18,50 +18,27 @@
  */
 package org.structr.flow.impl;
 
-import org.structr.api.util.Iterables;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
+import org.structr.flow.traits.operations.LogicConditionOperations;
 import org.structr.module.api.DeployableEntity;
 
-import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
 /**
  *
  */
-public abstract class FlowLogicCondition extends FlowCondition implements DeployableEntity {
+public class FlowLogicCondition extends FlowCondition implements DeployableEntity {
 
 	public FlowLogicCondition(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);
 	}
 
-	protected abstract Boolean combine(final Boolean result, final Boolean value);
-
-	@Override
-	public Object get(final Context context) throws FlowException {
-
-		final List<FlowCondition> _dataSources = Iterables.toList(getConditions());
-		if (_dataSources.isEmpty()) {
-
-			return false;
-		}
-
-		if (_dataSources.size() == 1) {
-
-			return combine(null, getBoolean(context, _dataSources.get(0)));
-		}
-
-		Boolean result = null;
-
-		for (final FlowCondition _dataSource : _dataSources) {
-
-			result = combine(result, getBoolean(context, _dataSource));
-		}
-
-		return result;
+	public final Boolean combine(final Boolean result, final Boolean value) {
+		return traits.getMethod(LogicConditionOperations.class).combine(this, result, value);
 	}
 
 	@Override
@@ -77,8 +54,7 @@ public abstract class FlowLogicCondition extends FlowCondition implements Deploy
 		return result;
 	}
 
-	// ----- protected methods -----
-	protected static boolean getBoolean(final Context context, final FlowDataSource source) throws FlowException {
+	public static boolean getBoolean(final Context context, final FlowDataSource source) throws FlowException {
 
 		if (source != null) {
 

@@ -18,14 +18,21 @@
  */
 package org.structr.flow.traits.definitions;
 
+import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.operations.FrameworkMethod;
+import org.structr.flow.engine.Context;
+import org.structr.flow.engine.FlowException;
+import org.structr.flow.impl.FlowDataSource;
 import org.structr.flow.impl.FlowNotNull;
+import org.structr.flow.traits.operations.DataSourceOperations;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -36,6 +43,37 @@ public class FlowNotNullTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public FlowNotNullTraitDefinition() {
 		super("FlowNotNull");
+	}
+
+	@Override
+	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+
+		return Map.of(
+
+			DataSourceOperations.class,
+			new DataSourceOperations() {
+
+				@Override
+				public Object get(final Context context, final FlowDataSource node) throws FlowException {
+
+					final FlowNotNull notNull               = node.as(FlowNotNull.class);
+					final List<FlowDataSource> _dataSources = Iterables.toList(notNull.getDataSources());
+					if (_dataSources.isEmpty()) {
+
+						return false;
+					}
+
+					for (final FlowDataSource _dataSource : _dataSources) {
+
+						if (_dataSource.get(context) == null) {
+							return false;
+						}
+					}
+
+					return true;
+				}
+			}
+		);
 	}
 
 	@Override

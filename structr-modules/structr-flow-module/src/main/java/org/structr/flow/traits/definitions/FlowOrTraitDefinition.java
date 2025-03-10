@@ -21,7 +21,10 @@ package org.structr.flow.traits.definitions;
 import org.structr.core.entity.Relation;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.operations.FrameworkMethod;
+import org.structr.flow.impl.FlowLogicCondition;
 import org.structr.flow.impl.FlowOr;
+import org.structr.flow.traits.operations.LogicConditionOperations;
 
 import java.util.Map;
 
@@ -29,6 +32,26 @@ public class FlowOrTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public FlowOrTraitDefinition() {
 		super("FlowOr");
+	}
+
+	@Override
+	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+
+		return Map.of(
+
+			LogicConditionOperations.class,
+			new LogicConditionOperations() {
+
+				@Override
+				public Boolean combine(final FlowLogicCondition condition, final Boolean result, final Boolean value) {
+
+					if (result == null) {
+						return value;
+					}
+					return result || value;
+				}
+			}
+		);
 	}
 
 	@Override

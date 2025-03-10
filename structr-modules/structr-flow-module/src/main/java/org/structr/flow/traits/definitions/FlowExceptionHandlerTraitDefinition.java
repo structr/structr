@@ -29,14 +29,22 @@ import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.api.FlowType;
+import org.structr.flow.engine.Context;
+import org.structr.flow.engine.FlowException;
+import org.structr.flow.impl.FlowDataSource;
 import org.structr.flow.impl.FlowExceptionHandler;
 import org.structr.flow.impl.FlowNode;
+import org.structr.flow.traits.operations.DataSourceOperations;
 import org.structr.flow.traits.operations.GetFlowType;
 
 import java.util.Map;
 import java.util.Set;
 
 public class FlowExceptionHandlerTraitDefinition extends AbstractNodeTraitDefinition {
+
+	public FlowExceptionHandlerTraitDefinition() {
+		super("FlowExceptionHandler");
+	}
 
 	@Override
 	public Map<Class, FrameworkMethod> getFrameworkMethods() {
@@ -49,12 +57,17 @@ public class FlowExceptionHandlerTraitDefinition extends AbstractNodeTraitDefini
 				public FlowType getFlowType(FlowNode flowNode) {
 					return FlowType.Exception;
 				}
+			},
+
+			DataSourceOperations.class,
+			new DataSourceOperations() {
+
+				@Override
+				public Object get(final Context context, final FlowDataSource node) throws FlowException {
+					return context.getData(node.getUuid());
+				}
 			}
 		);
-	}
-
-	public FlowExceptionHandlerTraitDefinition() {
-		super("FlowExceptionHandler");
 	}
 
 	@Override

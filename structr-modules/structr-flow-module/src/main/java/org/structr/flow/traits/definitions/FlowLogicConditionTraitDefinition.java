@@ -18,10 +18,22 @@
  */
 package org.structr.flow.traits.definitions;
 
+import org.structr.api.util.Iterables;
 import org.structr.core.entity.Relation;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.operations.FrameworkMethod;
+import org.structr.flow.api.FlowType;
+import org.structr.flow.engine.Context;
+import org.structr.flow.engine.FlowException;
+import org.structr.flow.impl.FlowCondition;
+import org.structr.flow.impl.FlowDataSource;
+import org.structr.flow.impl.FlowLogicCondition;
+import org.structr.flow.impl.FlowNode;
+import org.structr.flow.traits.operations.DataSourceOperations;
+import org.structr.flow.traits.operations.GetFlowType;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -31,6 +43,51 @@ public class FlowLogicConditionTraitDefinition extends AbstractNodeTraitDefiniti
 
 	public FlowLogicConditionTraitDefinition() {
 		super("FlowLogicCondition");
+	}
+
+	@Override
+	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+
+		return Map.of(
+
+			GetFlowType.class,
+			new GetFlowType() {
+
+				@Override
+				public FlowType getFlowType(FlowNode flowNode) {
+					return FlowType.Exception;
+				}
+			},
+
+			DataSourceOperations.class,
+			new DataSourceOperations() {
+
+				@Override
+				public Object get(final Context context, final FlowDataSource node) throws FlowException {
+
+					final FlowLogicCondition flowNode      = node.as(FlowLogicCondition.class);
+					final List<FlowCondition> _dataSources = Iterables.toList(flowNode.getConditions());
+					if (_dataSources.isEmpty()) {
+
+						return false;
+					}
+
+					if (_dataSources.size() == 1) {
+
+						return flowNode.combine(null, FlowLogicCondition.getBoolean(context, _dataSources.get(0)));
+					}
+
+					Boolean result = null;
+
+					for (final FlowCondition _dataSource : _dataSources) {
+
+						result = flowNode.combine(result, FlowLogicCondition.getBoolean(context, _dataSource));
+					}
+
+					return result;
+				}
+			}
+		);
 	}
 
 	@Override

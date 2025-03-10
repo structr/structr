@@ -18,14 +18,21 @@
  */
 package org.structr.flow.traits.definitions;
 
+import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.operations.FrameworkMethod;
+import org.structr.flow.engine.Context;
+import org.structr.flow.engine.FlowException;
+import org.structr.flow.impl.FlowDataSource;
 import org.structr.flow.impl.FlowNotEmpty;
+import org.structr.flow.traits.operations.DataSourceOperations;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -36,6 +43,43 @@ public class FlowNotEmptyTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public FlowNotEmptyTraitDefinition() {
 		super("FlowNotEmpty");
+	}
+
+	@Override
+	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+
+		return Map.of(
+
+			DataSourceOperations.class,
+			new DataSourceOperations() {
+
+				@Override
+				public Object get(final Context context, final FlowDataSource node) throws FlowException {
+
+					final FlowNotEmpty notEmpty             = node.as(FlowNotEmpty.class);
+					final List<FlowDataSource> _dataSources = Iterables.toList(notEmpty.getDataSources());
+
+					if (_dataSources.isEmpty()) {
+
+						return false;
+					}
+
+					for (final FlowDataSource _dataSource : _dataSources) {
+
+						Object currentData = _dataSource.get(context);
+						if (currentData == null) {
+							return false;
+						} else if (currentData instanceof String && ((String) currentData).length() == 0) {
+							return false;
+						} else if (currentData instanceof Iterable && Iterables.toList((Iterable) currentData).size() == 0) {
+							return false;
+						}
+					}
+
+					return true;
+				}
+			}
+		);
 	}
 
 	@Override

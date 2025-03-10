@@ -21,48 +21,25 @@ package org.structr.flow.impl;
 import org.structr.api.util.Iterables;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-import org.structr.flow.api.DataSource;
-import org.structr.flow.engine.Context;
-import org.structr.flow.engine.FlowException;
 import org.structr.module.api.DeployableEntity;
 
-import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
 /**
  *
  */
-public class FlowNotNull extends FlowCondition implements DataSource, DeployableEntity {
+public class FlowNotNull extends FlowCondition implements DeployableEntity {
 
 	public FlowNotNull(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);
 	}
 
-	public Iterable<FlowDataSource> getDataSources() {
+	public final Iterable<FlowDataSource> getDataSources() {
 
 		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key("dataSources"));
 
 		return Iterables.map(n -> n.as(FlowDataSource.class), nodes);
-	}
-
-	@Override
-	public Object get(final Context context) throws FlowException {
-
-		final List<FlowDataSource> _dataSources = Iterables.toList(getDataSources());
-		if (_dataSources.isEmpty()) {
-
-			return false;
-		}
-
-		for (final FlowDataSource _dataSource : _dataSources) {
-
-			if (_dataSource.get(context) == null) {
-				return false;
-			}
-		}
-
-		return true;
 	}
 
 	@Override

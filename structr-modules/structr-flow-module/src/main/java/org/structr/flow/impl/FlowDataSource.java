@@ -20,12 +20,11 @@ package org.structr.flow.impl;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.script.Scripting;
 import org.structr.core.traits.Traits;
-import org.structr.flow.api.DataSource;
 import org.structr.flow.api.ThrowingElement;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
+import org.structr.flow.traits.operations.DataSourceOperations;
 import org.structr.module.api.DeployableEntity;
 
 import java.util.Map;
@@ -34,7 +33,7 @@ import java.util.TreeMap;
 /**
  *
  */
-public class FlowDataSource extends FlowBaseNode implements DataSource, DeployableEntity, ThrowingElement {
+public class FlowDataSource extends FlowNode implements DeployableEntity, ThrowingElement {
 
 	public FlowDataSource(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);
@@ -48,7 +47,7 @@ public class FlowDataSource extends FlowBaseNode implements DataSource, Deployab
 		wrappedObject.setProperty(traits.key("query"), query);
 	}
 
-	public FlowExceptionHandler getExceptionHandler() {
+	public final FlowExceptionHandler getExceptionHandler() {
 
 		final NodeInterface exceptionHandler = wrappedObject.getProperty(traits.key("exceptionHandler"));
 		if (exceptionHandler != null) {
@@ -59,42 +58,12 @@ public class FlowDataSource extends FlowBaseNode implements DataSource, Deployab
 		return null;
 	}
 
-	@Override
-	public Object get(final Context context) throws FlowException {
-
-		if (!context.hasData(getUuid())) {
-
-			final FlowDataSource _ds = getDataSource();
-			if (_ds != null) {
-				Object data = _ds.get(context);
-				context.setData(getUuid(), data);
-			}
-
-			final String _script = getQuery();
-			if (_script != null) {
-
-				try {
-
-					Object result = Scripting.evaluate(context.getActionContext(getSecurityContext(), this), context.getThisObject(), "${" + _script.trim() + "}", "FlowDataSource(" + getUuid() + ")");
-					context.setData(getUuid(), result);
-					return result;
-				} catch (FrameworkException fex) {
-
-					throw new FlowException(fex, this);
-				}
-			}
-
-		} else {
-
-			return context.getData(getUuid());
-		}
-
-		return null;
-
+	public final Object get(final Context context) throws FlowException {
+		return traits.getMethod(DataSourceOperations.class).get(context, this);
 	}
 
 	@Override
-	public FlowExceptionHandler getExceptionHandler(final Context context) {
+	public final FlowExceptionHandler getExceptionHandler(final Context context) {
 		return getExceptionHandler();
 	}
 

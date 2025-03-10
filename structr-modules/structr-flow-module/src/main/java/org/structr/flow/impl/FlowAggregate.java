@@ -23,7 +23,6 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.Traits;
 import org.structr.flow.api.Aggregation;
-import org.structr.flow.api.DataSource;
 import org.structr.flow.api.ThrowingElement;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
@@ -32,37 +31,26 @@ import org.structr.module.api.DeployableEntity;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class FlowAggregate extends FlowNode implements Aggregation, DataSource, DeployableEntity, ThrowingElement {
+public class FlowAggregate extends FlowDataSource implements Aggregation, DeployableEntity, ThrowingElement {
 
 	public FlowAggregate(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);
 	}
 
-	public String getScript() {
+	public final String getScript() {
 		return wrappedObject.getProperty(traits.key("script"));
 	}
 
-	public void setScript(final String script) throws FrameworkException {
+	public final void setScript(final String script) throws FrameworkException {
 		wrappedObject.setProperty(traits.key("script"), script);
 	}
 
-	public FlowDataSource getStartValueSource() {
+	public final FlowDataSource getStartValueSource() {
 
 		final NodeInterface startValueSource = wrappedObject.getProperty(traits.key("startValue"));
 		if (startValueSource != null) {
 
 			return startValueSource.as(FlowDataSource.class);
-		}
-
-		return null;
-	}
-
-	public FlowExceptionHandler getExceptionHandler() {
-
-		final NodeInterface exceptionHandler = wrappedObject.getProperty(traits.key("exceptionHandler"));
-		if (exceptionHandler != null) {
-
-			return exceptionHandler.as(FlowExceptionHandler.class);
 		}
 
 		return null;
@@ -96,28 +84,6 @@ public class FlowAggregate extends FlowNode implements Aggregation, DataSource, 
 			throw new FlowException(ex, this);
 		}
 
-	}
-
-	@Override
-	public Object get(final Context context) throws FlowException {
-
-		if (context.getData(getUuid()) == null) {
-
-			FlowDataSource startValue = getStartValueSource();
-
-			if (startValue != null) {
-
-				context.setData(getUuid(), startValue.get(context));
-			}
-
-		}
-
-		return context.getData(getUuid());
-	}
-
-	@Override
-	public FlowExceptionHandler getExceptionHandler(final Context context) {
-		return getExceptionHandler();
 	}
 
 	@Override

@@ -45,7 +45,6 @@ import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.schema.action.Function;
@@ -74,119 +73,6 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	public DOMNodeTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);
 	}
-
-	/*
-	static class Impl { static {
-
-		// DOMNodes can be targets of a reload or redirect after a success or failure of actions defined by ActionMapping nodes
-		type.addViewProperty(PropertyView.Ui, "reloadingActions");
-		type.addViewProperty(PropertyView.Ui, "failureActions");
-		type.addViewProperty(PropertyView.Ui, "successNotificationActions");
-		type.addViewProperty(PropertyView.Ui, "failureNotificationActions");
-
-		type.overrideMethod("getSiblingLinkType",          false, "return DOMNodeCONTAINS_NEXT_SIBLINGDOMNode.class;");
-		type.overrideMethod("getChildLinkType",            false, "return DOMNodeCONTAINSDOMNode.class;");
-
-
-		// LinkedTreeNode
-
-		// ContextAwareEntity
-	}}
-
-	public static final Set<String> cloneBlacklist = new LinkedHashSet<>(Arrays.asList(new String[] {
-		"id", "type", "ownerDocument", "pageId", "parent", "parentId", "syncedNodes", "syncedNodesIds", "children", "childrenIds", "linkable", "linkableId", "path", "relationshipId", "triggeredActions", "reloadingActions", "failureActions", "successNotificationActions", "failureNotificationActions"
-	}));
-
-	boolean isSynced();
-	boolean isSharedComponent();
-	boolean contentEquals(final DOMNode otherNode);
-	boolean isVoidElement();
-	boolean avoidWhitespace();
-	boolean inTrash();
-	boolean dontCache();
-	boolean hideOnIndex();
-	boolean hideOnDetail();
-	boolean renderDetails();
-	boolean displayForLocale(final RenderContext renderContext);
-	boolean displayForConditions(final RenderContext renderContext);
-	boolean shouldBeRendered(final RenderContext renderContext);
-
-	int getChildPosition(final DOMNode otherNode);
-
-	String getIdHash();
-	String getIdHashOrProperty();
-	String getShowConditions();
-	String getHideConditions();
-	String getContent(final RenderContext.EditMode editMode) throws FrameworkException;
-	String getDataHash();
-	String getDataKey();
-	String getPositionPath();
-
-	default String getCssClass() {
-		return null;
-	}
-
-	default void renderManagedAttributes(final AsyncBuffer out, final SecurityContext securityContext, final RenderContext renderContext) throws FrameworkException {
-	}
-
-	String getCypherQuery();
-	String getRestQuery();
-	String getXpathQuery();
-	String getFunctionQuery();
-
-	String getPagePath();
-	String getContextName();
-	String getSharedComponentConfiguration();
-
-	@Override
-	DOMNode getPreviousSibling();
-
-	@Override
-	DOMNode getNextSibling();
-
-	DOMNode getParent();
-	DOMNode getSharedComponent();
-	Iterable<DOMNode> getChildren();
-	Iterable<DOMNode> getSyncedNodes();
-
-	@Override
-	Page getOwnerDocument();
-	Page getOwnerDocumentAsSuperUser();
-	Page getClosestPage();
-
-	@Override
-	public void setOwnerDocument(Page page) throws FrameworkException {
-
-	}
-
-	void setOwnerDocument(final Page page) throws FrameworkException;
-	void setSharedComponent(final DOMNode sharedComponent) throws FrameworkException;
-
-	Template getClosestTemplate(final Page page);
-
-	void updateFromNode(final DOMNode otherNode) throws FrameworkException;
-	void setVisibility(final boolean publicUsers, final boolean authenticatedUsers) throws FrameworkException;
-	void handleNewChild(final Node newChild);
-	void checkIsChild(final Node otherNode) throws DOMException;
-	void checkHierarchy(Node otherNode) throws DOMException;
-	void checkSameDocument(Node otherNode) throws DOMException;
-	void checkWriteAccess() throws DOMException;
-	void checkReadAccess() throws DOMException;
-
-	void renderCustomAttributes(final AsyncBuffer out, final SecurityContext securityContext, final RenderContext renderContext) throws FrameworkException;
-	void getSecurityInstructions(final Set<String> instructions);
-	void getVisibilityInstructions(final Set<String> instructions);
-	void getLinkableInstructions(final Set<String> instructions);
-	void getContentInstructions(final Set<String> instructions);
-	void renderSharedComponentConfiguration(final AsyncBuffer out, final EditMode editMode);
-
-	List<RelationshipInterface> getChildRelationships();
-
-	void doAppendChild(final DOMNode node) throws FrameworkException;
-	void doRemoveChild(final DOMNode node) throws FrameworkException;
-
-	Set<PropertyKey> getDataPropertyKeys();
-	*/
 
 	/**
 	 * Recursively clone given node, all its direct children and connect the cloned child nodes to the clone parent node.

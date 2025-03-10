@@ -19,14 +19,13 @@
 package org.structr.flow;
 
 import com.google.gson.Gson;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.datasources.DataSources;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.function.Functions;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.flow.datasource.FlowContainerDataSource;
 import org.structr.flow.impl.FlowFunction;
 import org.structr.flow.impl.rels.*;
@@ -43,8 +42,6 @@ import java.util.Set;
  */
 public class FlowModule implements StructrModule {
 
-	private static final Logger logger = LoggerFactory.getLogger(FlowModule.class.getName());
-
 	@Override
 	public void onLoad(final LicenseManager licenseManager) {
 
@@ -55,6 +52,10 @@ public class FlowModule implements StructrModule {
 		if (licensed) {
 
 			StructrTraits.registerRelationshipType("DOMNodeFLOWFlowContainer",            new DOMNodeFLOWFlowContainer());
+
+			// register DOMNode -> FlowContainer relationship
+			Traits.of("DOMNode").registerImplementation(new ExtendedDOMNodeForFlows(), false);
+
 			StructrTraits.registerRelationshipType("FlowActiveContainerConfiguration",    new FlowActiveContainerConfiguration());
 			StructrTraits.registerRelationshipType("FlowAggregateStartValue",             new FlowAggregateStartValue());
 			StructrTraits.registerRelationshipType("FlowCallContainer",                   new FlowCallContainer());
@@ -120,7 +121,7 @@ public class FlowModule implements StructrModule {
 			StructrTraits.registerNodeType("FlowStore",                  new FlowBaseNodeTraitDefinition(), new FlowNodeTraitDefinition(), new FlowStoreTraitDefinition());
 			StructrTraits.registerNodeType("FlowSwitch",                 new FlowBaseNodeTraitDefinition(), new FlowNodeTraitDefinition(), new FlowSwitchTraitDefinition());
 			StructrTraits.registerNodeType("FlowSwitchCase",             new FlowBaseNodeTraitDefinition(), new FlowNodeTraitDefinition(), new FlowSwitchCaseTraitDefinition());
-			StructrTraits.registerNodeType("FlowTypeQuery",              new FlowBaseNodeTraitDefinition(), new FlowNodeTraitDefinition(), new FlowTypeQueryTraitDefinition());
+			StructrTraits.registerNodeType("FlowTypeQuery",              new FlowBaseNodeTraitDefinition(), new FlowNodeTraitDefinition(), new FlowDataSourceTraitDefinition(), new FlowTypeQueryTraitDefinition());
 		}
 	}
 
@@ -137,7 +138,7 @@ public class FlowModule implements StructrModule {
 
 	@Override
 	public Set<String> getDependencies() {
-		return null;
+		return Set.of("ui");
 	}
 
 	@Override

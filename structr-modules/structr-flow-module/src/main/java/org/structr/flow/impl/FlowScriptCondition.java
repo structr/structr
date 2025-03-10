@@ -18,13 +18,9 @@
  */
 package org.structr.flow.impl;
 
-import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.script.Scripting;
 import org.structr.core.traits.Traits;
 import org.structr.flow.api.ThrowingElement;
-import org.structr.flow.engine.Context;
-import org.structr.flow.engine.FlowException;
 import org.structr.module.api.DeployableEntity;
 
 import java.util.Map;
@@ -36,11 +32,11 @@ public class FlowScriptCondition extends FlowCondition implements DeployableEnti
 		super(traits, wrappedObject);
 	}
 
-	public String getScript() {
+	public final String getScript() {
 		return wrappedObject.getProperty(traits.key("script"));
 	}
 
-	public FlowDataSource getScriptSource() {
+	public final FlowDataSource getScriptSource() {
 
 		final NodeInterface scriptSource = wrappedObject.getProperty(traits.key("scriptSource"));
 		if (scriptSource != null) {
@@ -49,55 +45,6 @@ public class FlowScriptCondition extends FlowCondition implements DeployableEnti
 		}
 
 		return null;
-	}
-
-	public FlowExceptionHandler getExceptionHandler() {
-
-		final NodeInterface exceptionHandler = wrappedObject.getProperty(traits.key("exceptionHandler"));
-		if (exceptionHandler != null) {
-
-			return exceptionHandler.as(FlowExceptionHandler.class);
-		}
-
-		return null;
-	}
-
-	@Override
-	public Object get(final Context context) throws FlowException {
-
-		try {
-
-			final FlowDataSource _ds = getDataSource();
-			final FlowDataSource _sc = getScriptSource();
-			final String _script     = getScript();
-
-			final String _dynamicScript = _sc != null ? (String)_sc.get(context) : null;
-
-			if (_script != null || _dynamicScript != null) {
-
-					if (_ds != null) {
-						context.setData(getUuid(), _ds.get(context));
-					}
-
-					final String finalScript = _dynamicScript != null ? _dynamicScript : _script;
-
-					Object result =  Scripting.evaluate(context.getActionContext(getSecurityContext(), this), context.getThisObject(), "${" + finalScript.trim() + "}", "FlowScriptCondition(" + getUuid() + ")");
-					context.setData(getUuid(), result);
-
-					return result;
-			}
-
-		} catch (FrameworkException fex) {
-
-			throw new FlowException(fex, this);
-		}
-
-		return null;
-	}
-
-	@Override
-	public FlowExceptionHandler getExceptionHandler(Context context) {
-		return getExceptionHandler();
 	}
 
 	@Override

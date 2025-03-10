@@ -21,10 +21,7 @@ package org.structr.flow.impl;
 import org.structr.api.util.Iterables;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-import org.structr.flow.engine.Context;
-import org.structr.flow.engine.FlowException;
 
-import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -37,33 +34,14 @@ public class FlowIsTrue extends FlowCondition {
 		super(traits, wrappedObject);
 	}
 
-	public Iterable<FlowDataSource> getDataSources() {
+	public final Iterable<FlowDataSource> getDataSources() {
 
 		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key("dataSources"));
 
 		return Iterables.map(n -> n.as(FlowDataSource.class), nodes);
 	}
 
-	@Override
-	public Object get(final Context context) throws FlowException {
-
-		final List<FlowDataSource> _dataSources = Iterables.toList(getDataSources());
-		if (_dataSources.isEmpty()) {
-
-			return false;
-		}
-
-		Boolean result = null;
-
-		for (final FlowDataSource _dataSource : _dataSources) {
-
-			result = combine(result, FlowLogicCondition.getBoolean(context, _dataSource));
-		}
-
-		return result;
-	}
-
-	private Boolean combine(Boolean result, Boolean value) {
+	public final Boolean combine(final Boolean result, final Boolean value) {
 
 		if (result == null) {
 

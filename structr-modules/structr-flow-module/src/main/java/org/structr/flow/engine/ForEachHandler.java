@@ -52,6 +52,7 @@ public class ForEachHandler implements FlowHandler {
 
 				final Context cleanedLoopContext = new Context(context);
 				traverseAndEvaluate(element, (el) -> {
+
 					if (el instanceof FlowAggregate) {
 						cleanedLoopContext.setData(((FlowAggregate) el).getUuid(), null);
 					}

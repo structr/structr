@@ -18,27 +18,14 @@
  */
 package org.structr.flow.impl;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.BooleanProperty;
-import org.structr.core.property.DoubleProperty;
-import org.structr.core.property.IntProperty;
-import org.structr.core.property.StringProperty;
 import org.structr.core.traits.Traits;
-import org.structr.flow.api.DataSource;
-import org.structr.flow.engine.Context;
 import org.structr.module.api.DeployableEntity;
 
 import java.util.Map;
 import java.util.TreeMap;
 
-public class FlowConstant extends FlowBaseNode implements DataSource, DeployableEntity {
-
-	private static final Logger logger = LoggerFactory.getLogger(FlowConstant.class);
+public class FlowConstant extends FlowDataSource implements DeployableEntity {
 
 	public enum ConstantType {
 		String,
@@ -52,59 +39,12 @@ public class FlowConstant extends FlowBaseNode implements DataSource, Deployable
 		super(traits, wrappedObject);
 	}
 
-	public String getConstantType() {
+	public final String getConstantType() {
 		return wrappedObject.getProperty(traits.key("constantType"));
 	}
 
-	public Object getValue() {
+	public final Object getValue() {
 		return wrappedObject.getProperty(traits.key("value"));
-	}
-
-	@Override
-	public Object get(Context context) {
-
-		final SecurityContext securityContext = getSecurityContext();
-		final String cType                    = getConstantType();
-		final Object val                      =  getValue();
-
-		if (val != null) {
-
-			try {
-
-				PropertyConverter converter = null;
-
-				if (cType != null) {
-
-					switch (cType) {
-
-						case "String":
-							converter = new StringProperty("").inputConverter(securityContext);
-							break;
-						case "Boolean":
-							converter = new BooleanProperty("").inputConverter(securityContext);
-							break;
-						case "Integer":
-							converter = new IntProperty("").inputConverter(securityContext);
-							break;
-						case "Double":
-							converter = new DoubleProperty("").inputConverter(securityContext);
-							break;
-						default:
-							converter = new StringProperty("").inputConverter(securityContext);
-					}
-
-				}
-
-				return converter != null ? converter.convert(val) : val;
-
-			} catch (FrameworkException ex) {
-				logger.warn("FlowConstant: Could not convert given value. " + ex.getMessage());
-			}
-
-		}
-
-		return null;
-
 	}
 
 	@Override
