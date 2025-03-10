@@ -369,9 +369,9 @@ public class PropertyMap {
 				final String key   = entry.getKey();
 				final Object value = entry.getValue();
 
-				if (key != null && traits.hasKey(key)) {
+				if (key != null) {
 
-					final PropertyKey propertyKey = traits.key(key);
+					final PropertyKey propertyKey = traits.hasKey(key) ? traits.key(key) : new GenericProperty(key);
 
 					if (propertyKey instanceof GenericProperty) {
 
