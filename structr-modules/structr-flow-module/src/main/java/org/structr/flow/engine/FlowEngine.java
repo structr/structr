@@ -23,7 +23,10 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.flow.api.*;
+import org.structr.flow.api.FlowHandler;
+import org.structr.flow.api.FlowResult;
+import org.structr.flow.api.FlowType;
+import org.structr.flow.api.ThrowingElement;
 import org.structr.flow.impl.FlowBaseNode;
 import org.structr.flow.impl.FlowContainer;
 import org.structr.flow.impl.FlowExceptionHandler;
@@ -59,16 +62,16 @@ public class FlowEngine {
 		return this.execute(this.context,step);
 	}
 
-	public FlowResult execute(final Context context, final FlowElement step) throws FrameworkException{
+	public FlowResult execute(final Context context, final FlowNode step) throws FrameworkException{
 
-		FlowElement current = step;
+		FlowNode current = step;
 
 		while (current != null) {
 
 			final FlowHandler handler = handlers.get(current.getFlowType());
 			if (handler != null) {
 
-				FlowElement next = null;
+				FlowNode next = null;
 
 				try {
 
@@ -84,7 +87,7 @@ public class FlowEngine {
 
 					if (next.equals(current)) {
 
-						context.error(new FlowError("FlowElement is connected to itself. Cancelling execution to prevent unlimited recursion.", null));
+						context.error(new FlowError("FlowNode is connected to itself. Cancelling execution to prevent unlimited recursion.", null));
 
 					}
 
@@ -122,7 +125,7 @@ public class FlowEngine {
 		handlers.put(FlowType.Switch,       new SwitchHandler());
 	}
 
-	protected FlowResult handleException(final Context context, final FlowException exception, final FlowElement current) throws FrameworkException {
+	protected FlowResult handleException(final Context context, final FlowException exception, final FlowNode current) throws FrameworkException {
 
 		ThrowingElement throwingElement = exception.getThrowingElement();
 

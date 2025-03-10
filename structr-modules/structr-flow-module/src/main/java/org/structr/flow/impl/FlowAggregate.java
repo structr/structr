@@ -46,12 +46,12 @@ public class FlowAggregate extends FlowNode implements Aggregation, DataSource, 
 		wrappedObject.setProperty(traits.key("script"), script);
 	}
 
-	public DataSource getStartValueSource() {
+	public FlowDataSource getStartValueSource() {
 
-		final NodeInterface startValueSource = wrappedObject.getProperty(traits.key("startValueSource"));
+		final NodeInterface startValueSource = wrappedObject.getProperty(traits.key("startValue"));
 		if (startValueSource != null) {
 
-			return startValueSource.as(DataSource.class);
+			return startValueSource.as(FlowDataSource.class);
 		}
 
 		return null;
@@ -73,9 +73,9 @@ public class FlowAggregate extends FlowNode implements Aggregation, DataSource, 
 
 		try {
 
-			final String _script        = getScript();
-			final DataSource ds         = getDataSource();
-			final DataSource startValue = getStartValueSource();
+			final String _script            = getScript();
+			final FlowDataSource ds         = getDataSource();
+			final FlowDataSource startValue = getStartValueSource();
 
 			if (_script != null && startValue != null && ds != null) {
 
@@ -103,7 +103,7 @@ public class FlowAggregate extends FlowNode implements Aggregation, DataSource, 
 
 		if (context.getData(getUuid()) == null) {
 
-			DataSource startValue = getStartValueSource();
+			FlowDataSource startValue = getStartValueSource();
 
 			if (startValue != null) {
 

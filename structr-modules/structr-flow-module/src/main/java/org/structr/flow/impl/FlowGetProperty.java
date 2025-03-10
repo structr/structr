@@ -24,7 +24,6 @@ import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
-import org.structr.flow.api.DataSource;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
 
@@ -42,23 +41,23 @@ public class FlowGetProperty extends FlowDataSource {
 		super(traits, wrappedObject);
 	}
 
-	public DataSource getNodeSource() {
+	public FlowDataSource getNodeSource() {
 
 		final NodeInterface node = wrappedObject.getProperty(traits.key("nodeSource"));
 		if (node != null) {
 
-			return node.as(DataSource.class);
+			return node.as(FlowDataSource.class);
 		}
 
 		return null;
 	}
 
-	public DataSource getPropertyNameSource() {
+	public FlowDataSource getPropertyNameSource() {
 
 		final NodeInterface node = wrappedObject.getProperty(traits.key("propertyNameSource"));
 		if (node != null) {
 
-			return node.as(DataSource.class);
+			return node.as(FlowDataSource.class);
 		}
 
 		return null;
@@ -71,9 +70,9 @@ public class FlowGetProperty extends FlowDataSource {
 	@Override
 	public Object get(final Context context) throws FlowException {
 
-		final DataSource _nodeSource = getNodeSource();
-		final DataSource _nameSource = getPropertyNameSource();
-		final String _propertyName   = getPropertyName();
+		final FlowDataSource _nodeSource = getNodeSource();
+		final FlowDataSource _nameSource = getPropertyNameSource();
+		final String _propertyName       = getPropertyName();
 
 		if (_nodeSource != null && (_nameSource != null || _propertyName != null) ) {
 

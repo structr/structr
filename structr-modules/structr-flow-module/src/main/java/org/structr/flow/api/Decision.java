@@ -18,17 +18,15 @@
  */
 package org.structr.flow.api;
 
+import org.structr.flow.impl.FlowDataSource;
+import org.structr.flow.impl.FlowNode;
+
 /**
  *
  */
-public interface Decision extends FlowElement {
+public interface Decision {
 
-	DataSource getCondition();
-	FlowElement getTrueElement();
-	FlowElement getFalseElement();
-
-	@Override
-	default FlowType getFlowType() {
-		return FlowType.Decision;
-	}
+	FlowDataSource getCondition();
+	FlowNode getTrueElement();
+	FlowNode getFalseElement();
 }

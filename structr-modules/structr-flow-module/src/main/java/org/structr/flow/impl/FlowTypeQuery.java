@@ -45,7 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class FlowTypeQuery extends FlowBaseNode implements DataSource, DeployableEntity {
+public class FlowTypeQuery extends FlowDataSource implements DataSource, DeployableEntity {
 
 	private static final Logger logger = LoggerFactory.getLogger(FlowTypeQuery.class);
 
@@ -188,7 +188,7 @@ public class FlowTypeQuery extends FlowBaseNode implements DataSource, Deployabl
 
 			try {
 
-				final DataSource ds = getDataSource();
+				final FlowDataSource ds = getDataSource();
 				if (ds != null) {
 
 					final Object data = ds.get(context);

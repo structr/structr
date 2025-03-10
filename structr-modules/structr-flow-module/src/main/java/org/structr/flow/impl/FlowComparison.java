@@ -39,11 +39,11 @@ public class FlowComparison extends FlowCondition implements DataSource, Deploya
 		super(traits, wrappedObject);
 	}
 
-	public Iterable<DataSource> getDataSources() {
+	public Iterable<FlowDataSource> getDataSources() {
 
 		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key("dataSources"));
 
-		return Iterables.map(n -> n.as(DataSource.class), nodes);
+		return Iterables.map(n -> n.as(FlowDataSource.class), nodes);
 	}
 
 	public String getOperation() {
@@ -53,14 +53,14 @@ public class FlowComparison extends FlowCondition implements DataSource, Deploya
 	@Override
 	public Object get(final Context context) throws FlowException {
 
-		final List<DataSource> _dataSources = Iterables.toList(getDataSources());
+		final List<FlowDataSource> _dataSources = Iterables.toList(getDataSources());
 		if (_dataSources.isEmpty()) {
 
 			return false;
 		}
 
-		final DataSource _dataSource = getDataSource();
-		final String op = getOperation();
+		final FlowDataSource _dataSource = getDataSource();
+		final String op                  = getOperation();
 
 		if (_dataSource == null || op == null) {
 			return false;
@@ -70,7 +70,7 @@ public class FlowComparison extends FlowCondition implements DataSource, Deploya
 
 		Boolean result = true;
 
-		for (final DataSource _ds : _dataSources) {
+		for (final FlowDataSource _ds : _dataSources) {
 
 			Object data = _ds.get(context);
 

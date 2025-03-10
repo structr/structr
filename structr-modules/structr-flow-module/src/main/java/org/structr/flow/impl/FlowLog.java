@@ -24,7 +24,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.Traits;
-import org.structr.flow.api.DataSource;
 import org.structr.flow.api.ThrowingElement;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
@@ -67,17 +66,17 @@ public class FlowLog extends FlowActionNode implements DeployableEntity, Throwin
 
 		try {
 
-			final DataSource _dataSource = getDataSource();
-
-			// make data available to action if present
+			final FlowDataSource _dataSource = getDataSource();
 			if (_dataSource != null) {
+
+				// make data available to action if present
 				context.setData(getUuid(), _dataSource.get(context));
 			}
 
 			// Evaluate script and write result to context
-			Object result = Scripting.evaluate(context.getActionContext(getSecurityContext(), this), this, "${" + _script.trim() + "}", "FlowAction(" + getUuid() + ")");
+			final Object result = Scripting.evaluate(context.getActionContext(getSecurityContext(), this), this, "${" + _script.trim() + "}", "FlowAction(" + getUuid() + ")");
 
-			FlowContainer container = getFlowContainer();
+			final FlowContainer container = getFlowContainer();
 
 			logger.info( (container.getName() != null ? ("[" + container.getEffectiveName() + "]") : "") + ("([" + getType() + "]" + getUuid() + "): ") + result	);
 

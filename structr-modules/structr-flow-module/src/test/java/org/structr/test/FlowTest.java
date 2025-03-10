@@ -20,6 +20,7 @@ package org.structr.test;
 
 import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
+import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Group;
 import org.structr.core.graph.NodeAttribute;
@@ -135,6 +136,8 @@ public class FlowTest extends StructrUiTest {
 	public void testFlowRepeater() {
 
 		try (final Tx tx = app.tx()) {
+
+			Settings.CypherDebugLogging.setValue(true);
 
 			// create admin user
 			createTestNode(StructrTraits.USER,

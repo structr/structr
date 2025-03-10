@@ -24,7 +24,11 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.operations.FrameworkMethod;
+import org.structr.flow.api.FlowType;
 import org.structr.flow.impl.FlowAggregate;
+import org.structr.flow.impl.FlowNode;
+import org.structr.flow.traits.operations.GetFlowType;
 
 import java.util.Map;
 import java.util.Set;
@@ -33,6 +37,21 @@ public class FlowAggregateTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public FlowAggregateTraitDefinition() {
 		super("FlowAggregate");
+	}
+
+	@Override
+	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+
+		return Map.of(
+			GetFlowType.class,
+			new GetFlowType() {
+
+				@Override
+				public FlowType getFlowType(FlowNode flowNode) {
+					return FlowType.Aggregation;
+				}
+			}
+		);
 	}
 
 	@Override
@@ -48,14 +67,14 @@ public class FlowAggregateTraitDefinition extends AbstractNodeTraitDefinition {
 
 		final Property<NodeInterface> dataSource           = new StartNode("dataSource", "FlowDataInput");
 		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes("dataTarget", "FlowDataInput");
-		final Property<NodeInterface> startValueSource     = new StartNode("startValue", "FlowAggregateStartValue");
+		final Property<NodeInterface> startValue           = new StartNode("startValue", "FlowAggregateStartValue");
 		final Property<NodeInterface> exceptionHandler     = new EndNode("exceptionHandler", "FlowExceptionHandlerNodes");
 		final Property<String> script                      = new StringProperty("script");
 
 		return newSet(
 			dataSource,
 			dataTarget,
-			startValueSource,
+			startValue,
 			exceptionHandler,
 			script
 		);
@@ -67,11 +86,11 @@ public class FlowAggregateTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"script", "startValueSource", "dataSource", "dataTarget", "exceptionHandler", "isStartNodeOfContainer"
+				"script", "startValue", "dataSource", "dataTarget", "exceptionHandler", "isStartNodeOfContainer"
 			),
 			PropertyView.Ui,
 			newSet(
-				"script", "startValueSource", "dataSource", "dataTarget", "exceptionHandler", "isStartNodeOfContainer"
+				"script", "startValue", "dataSource", "dataTarget", "exceptionHandler", "isStartNodeOfContainer"
 			)
 		);
 	}

@@ -55,9 +55,9 @@ public class FlowStore extends FlowNode implements Store, DataSource, Deployable
 	@Override
 	public void handleStorage(Context context) throws FlowException {
 
-		final String op     = getOperation();
-		final String _key   = getKey();
-		final DataSource ds = getDataSource();
+		final String op         = getOperation();
+		final String _key       = getKey();
+		final FlowDataSource ds = getDataSource();
 
 		if(op != null && _key != null ) {
 

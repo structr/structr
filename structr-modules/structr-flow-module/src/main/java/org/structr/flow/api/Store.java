@@ -21,12 +21,7 @@ package org.structr.flow.api;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
 
-public interface Store extends FlowElement {
+public interface Store {
 
 	void handleStorage(final Context context) throws FlowException;
-
-	@Override
-	default FlowType getFlowType() {
-		return FlowType.Store;
-	}
 }

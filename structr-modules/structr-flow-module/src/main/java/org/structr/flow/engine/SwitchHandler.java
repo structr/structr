@@ -18,44 +18,37 @@
  */
 package org.structr.flow.engine;
 
-import org.structr.flow.api.DataSource;
-import org.structr.flow.api.FlowElement;
 import org.structr.flow.api.FlowHandler;
-import org.structr.flow.api.Switch;
+import org.structr.flow.impl.FlowDataSource;
+import org.structr.flow.impl.FlowNode;
 import org.structr.flow.impl.FlowSwitch;
 import org.structr.flow.impl.FlowSwitchCase;
 
-public class SwitchHandler implements FlowHandler<Switch> {
+public class SwitchHandler implements FlowHandler {
 
 	@Override
-	public FlowElement handle(Context context, Switch flowElement) throws FlowException {
+	public FlowNode handle(final Context context, final FlowNode switchElement) throws FlowException {
 
-		if (flowElement instanceof FlowSwitch) {
+		final FlowDataSource _ds = switchElement.getDataSource();
+		if (_ds != null) {
 
-			final FlowSwitch switchElement = (FlowSwitch) flowElement;
-			final DataSource _ds           = switchElement.getDataSource();
+			final Iterable<FlowSwitchCase> cases = switchElement.as(FlowSwitch.class).getCases();
+			final Object data                    = _ds.get(context);
 
-			if (_ds != null) {
+			if (cases != null) {
 
-				final Iterable<FlowSwitchCase> cases = switchElement.getCases();
-				final Object data                    = _ds.get(context);
+				for (FlowSwitchCase switchCase : cases) {
 
-				if (cases != null) {
+					final String caseValue = switchCase.getSwitchCase();
 
-					for (FlowSwitchCase switchCase : cases) {
+					if (caseValue != null && data != null && caseValue.equals(data.toString())) {
 
-						final String caseValue = switchCase.getSwitchCase();
-
-						if (caseValue != null && data != null && caseValue.equals(data.toString())) {
-
-							return switchCase.next();
-						}
+						return switchCase.next();
 					}
 				}
 			}
-
 		}
 
-		return flowElement.next();
+		return switchElement.next();
 	}
 }

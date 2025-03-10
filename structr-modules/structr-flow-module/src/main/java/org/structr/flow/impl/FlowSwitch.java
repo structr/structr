@@ -21,8 +21,6 @@ package org.structr.flow.impl;
 import org.structr.api.util.Iterables;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-import org.structr.flow.api.FlowElement;
-import org.structr.flow.api.FlowType;
 import org.structr.flow.api.Switch;
 import org.structr.module.api.DeployableEntity;
 
@@ -40,17 +38,12 @@ public class FlowSwitch extends FlowNode implements Switch, DeployableEntity {
 	}
 
 	@Override
-	public FlowType getFlowType() {
-		return FlowType.Switch;
-	}
-
-	@Override
-	public FlowElement next() {
+	public FlowNode next() {
 
 		final NodeInterface node = wrappedObject.getProperty(traits.key("default"));
 		if (node != null) {
 
-			return node.as(FlowElement.class);
+			return node.as(FlowNode.class);
 		}
 
 		return null;

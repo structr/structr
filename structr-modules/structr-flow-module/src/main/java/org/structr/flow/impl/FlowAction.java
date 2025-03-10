@@ -64,7 +64,7 @@ public class FlowAction extends FlowActionNode implements DataSource, Deployable
 
 			try {
 
-				final DataSource _dataSource = getDataSource();
+				final FlowDataSource _dataSource = getDataSource();
 
 				// make data available to action if present
 				if (_dataSource != null) {

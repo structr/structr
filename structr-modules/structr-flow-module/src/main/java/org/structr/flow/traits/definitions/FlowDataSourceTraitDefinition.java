@@ -49,13 +49,11 @@ public class FlowDataSourceTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> dataSource           = new StartNode("dataSource", "FlowDataInput");
 		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes("dataTarget", "FlowDataInput");
 		final Property<NodeInterface> exceptionHandler     = new EndNode("exceptionHandler", "FlowExceptionHandlerNodes");
 		final Property<String> query                       = new StringProperty("query");
 
 		return newSet(
-			dataSource,
 			dataTarget,
 			exceptionHandler,
 			query

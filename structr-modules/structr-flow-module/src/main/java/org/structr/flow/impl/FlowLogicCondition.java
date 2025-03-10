@@ -21,7 +21,6 @@ package org.structr.flow.impl;
 import org.structr.api.util.Iterables;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-import org.structr.flow.api.DataSource;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
 import org.structr.module.api.DeployableEntity;
@@ -79,7 +78,7 @@ public abstract class FlowLogicCondition extends FlowCondition implements Deploy
 	}
 
 	// ----- protected methods -----
-	protected static boolean getBoolean(final Context context, final DataSource source) throws FlowException {
+	protected static boolean getBoolean(final Context context, final FlowDataSource source) throws FlowException {
 
 		if (source != null) {
 

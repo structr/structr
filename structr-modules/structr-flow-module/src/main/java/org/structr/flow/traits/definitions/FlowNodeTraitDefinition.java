@@ -18,13 +18,11 @@
  */
 package org.structr.flow.traits.definitions;
 
-import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
-import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.flow.impl.FlowNode;
 
@@ -45,7 +43,7 @@ public class FlowNodeTraitDefinition extends AbstractNodeTraitDefinition {
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
 		return Map.of(
-			FlowNode.class, (traits, node) -> Traits.getTrait(Iterables.last(traits.getAllTraits())).getNodeTraitFactories().values().iterator().next().newInstance(traits, node)
+			FlowNode.class, (traits, node) -> new FlowNode(traits, node)
 		);
 	}
 

@@ -18,9 +18,8 @@
  */
 package org.structr.flow.api;
 
-public interface Exception extends FlowElement {
+public interface Exception {
 
-	@Override
 	default FlowType getFlowType() {
 		return FlowType.Exception;
 	}

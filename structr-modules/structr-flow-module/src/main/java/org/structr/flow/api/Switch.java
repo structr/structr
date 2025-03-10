@@ -18,9 +18,5 @@
  */
 package org.structr.flow.api;
 
-public interface Switch extends FlowElement {
-
-	default FlowType getFlowType() {
-		return FlowType.Switch;
-	}
+public interface Switch {
 }

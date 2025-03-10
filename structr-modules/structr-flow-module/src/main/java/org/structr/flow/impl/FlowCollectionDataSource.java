@@ -21,7 +21,6 @@ package org.structr.flow.impl;
 import org.structr.api.util.Iterables;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-import org.structr.flow.api.DataSource;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
 import org.structr.module.api.DeployableEntity;
@@ -37,7 +36,7 @@ public class FlowCollectionDataSource extends FlowDataSource implements Deployab
 		super(traits, wrappedObject);
 	}
 
-	public Iterable<DataSource> getDataSources() {
+	public Iterable<FlowDataSource> getDataSources() {
 
 		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key("dataSources"));
 
@@ -47,12 +46,12 @@ public class FlowCollectionDataSource extends FlowDataSource implements Deployab
 	@Override
 	public Object get(final Context context) throws FlowException {
 
-		List<DataSource> sources = Iterables.toList(getDataSources());
-		List<Object> result      = new ArrayList<>();
+		final List<FlowDataSource> sources = Iterables.toList(getDataSources());
+		final List<Object> result      = new ArrayList<>();
 
 		if (sources != null && sources.size() > 0) {
 
-			for (DataSource source : sources) {
+			for (final FlowDataSource source : sources) {
 
 				result.add(source.get(context));
 

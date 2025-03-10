@@ -20,7 +20,6 @@ package org.structr.flow.impl;
 
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-import org.structr.flow.api.DataSource;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
 import org.structr.module.api.DeployableEntity;
@@ -40,10 +39,11 @@ public class FlowParameterInput extends FlowBaseNode implements DeployableEntity
 
 	public void process(final Context context, final Context functionContext) throws FlowException {
 
-		final DataSource _ds = getDataSource();
-		final String _key    = getKey();
+		final FlowDataSource _ds = getDataSource();
+		final String _key        = getKey();
 
 		if(_ds != null && _key != null) {
+
 			Object data = _ds.get(context);
 			functionContext.setParameter(_key, data);
 		}

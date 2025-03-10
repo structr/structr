@@ -69,7 +69,7 @@ public class FlowFilter extends FlowNode implements DataSource, Filter, Deployab
 	@Override
 	public void filter(Context context) throws FlowException {
 
-		final DataSource ds           = getDataSource();
+		final FlowDataSource ds       = getDataSource();
 		final FlowCondition condition = getCondition();
 
 		if (ds != null) {

@@ -20,7 +20,6 @@ package org.structr.flow.impl;
 
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-import org.structr.flow.api.DataSource;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
 
@@ -38,7 +37,7 @@ public class FlowFirst extends FlowDataSource {
 	@Override
 	public Object get(final Context context) throws FlowException {
 
-		final DataSource _dataSource = getDataSource();
+		final FlowDataSource _dataSource = getDataSource();
 		if (_dataSource != null) {
 
 			Object currentData = context.getData(getUuid());

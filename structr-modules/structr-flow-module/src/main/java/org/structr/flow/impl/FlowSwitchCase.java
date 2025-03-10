@@ -20,7 +20,6 @@ package org.structr.flow.impl;
 
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-import org.structr.flow.api.FlowType;
 import org.structr.flow.api.Switch;
 import org.structr.module.api.DeployableEntity;
 
@@ -31,11 +30,6 @@ public class FlowSwitchCase extends FlowNode implements Switch, DeployableEntity
 
 	public FlowSwitchCase(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);
-	}
-
-	@Override
-	public FlowType getFlowType() {
-		return FlowType.Switch;
 	}
 
 	public String getSwitchCase() {

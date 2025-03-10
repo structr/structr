@@ -48,17 +48,6 @@ public class FlowDataSource extends FlowBaseNode implements DataSource, Deployab
 		wrappedObject.setProperty(traits.key("query"), query);
 	}
 
-	public DataSource getDataSource() {
-
-		final NodeInterface node = wrappedObject.getProperty(traits.key("dataSource"));
-		if (node != null) {
-
-			return node.as(DataSource.class);
-		}
-
-		return null;
-	}
-
 	public FlowExceptionHandler getExceptionHandler() {
 
 		final NodeInterface exceptionHandler = wrappedObject.getProperty(traits.key("exceptionHandler"));
@@ -75,7 +64,7 @@ public class FlowDataSource extends FlowBaseNode implements DataSource, Deployab
 
 		if (!context.hasData(getUuid())) {
 
-			final DataSource _ds = getDataSource();
+			final FlowDataSource _ds = getDataSource();
 			if (_ds != null) {
 				Object data = _ds.get(context);
 				context.setData(getUuid(), data);

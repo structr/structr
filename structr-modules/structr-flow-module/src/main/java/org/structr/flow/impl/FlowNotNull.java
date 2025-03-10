@@ -39,23 +39,23 @@ public class FlowNotNull extends FlowCondition implements DataSource, Deployable
 		super(traits, wrappedObject);
 	}
 
-	public Iterable<DataSource> getDataSources() {
+	public Iterable<FlowDataSource> getDataSources() {
 
 		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key("dataSources"));
 
-		return Iterables.map(n -> n.as(DataSource.class), nodes);
+		return Iterables.map(n -> n.as(FlowDataSource.class), nodes);
 	}
 
 	@Override
 	public Object get(final Context context) throws FlowException {
 
-		final List<DataSource> _dataSources = Iterables.toList(getDataSources());
+		final List<FlowDataSource> _dataSources = Iterables.toList(getDataSources());
 		if (_dataSources.isEmpty()) {
 
 			return false;
 		}
 
-		for (final DataSource _dataSource : _dataSources) {
+		for (final FlowDataSource _dataSource : _dataSources) {
 
 			if (_dataSource.get(context) == null) {
 				return false;

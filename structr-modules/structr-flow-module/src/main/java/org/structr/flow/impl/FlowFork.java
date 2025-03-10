@@ -69,7 +69,7 @@ public class FlowFork extends FlowNode implements Fork, DataSource, DeployableEn
 		// Call get while handling the fork process to clear local data and cache given data from dataSource
 		context.setData(getUuid(), null);
 
-		DataSource _ds = getDataSource();
+		FlowDataSource _ds = getDataSource();
 		if (_ds != null) {
 
 			context.setData(getUuid(), _ds.get(context));
@@ -83,7 +83,7 @@ public class FlowFork extends FlowNode implements Fork, DataSource, DeployableEn
 		Object data = context.getData(getUuid());
 		if (data == null) {
 
-			DataSource _ds = getDataSource();
+			FlowDataSource _ds = getDataSource();
 			if (_ds != null) {
 
 				data = _ds.get(context);

@@ -26,16 +26,11 @@ import org.structr.flow.impl.FlowNode;
 /**
  *
  */
-public interface Fork extends FlowElement {
+public interface Fork {
 
 	void handle(Context context) throws FlowException;
 
 	FlowNode getForkBody();
 
 	SecurityContext getSecurityContext();
-
-	@Override
-	default FlowType getFlowType() {
-		return FlowType.Fork;
-	}
 }

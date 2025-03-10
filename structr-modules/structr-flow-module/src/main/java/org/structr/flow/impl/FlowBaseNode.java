@@ -22,7 +22,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
-import org.structr.flow.api.DataSource;
 import org.structr.module.api.DeployableEntity;
 
 import java.util.Map;
@@ -36,12 +35,12 @@ public abstract class FlowBaseNode extends AbstractNodeTraitWrapper implements D
 		super(traits, wrappedObject);
 	}
 
-	public DataSource getDataSource() {
+	public FlowDataSource getDataSource() {
 
 		final NodeInterface dataSource = wrappedObject.getProperty(traits.key("dataSource"));
 		if (dataSource != null) {
 
-			return dataSource.as(DataSource.class);
+			return dataSource.as(FlowDataSource.class);
 		}
 
 		return null;
@@ -58,7 +57,7 @@ public abstract class FlowBaseNode extends AbstractNodeTraitWrapper implements D
 		return null;
 	}
 
-	public void setDataSource(final DataSource dataSource) throws FrameworkException {
+	public void setDataSource(final FlowDataSource dataSource) throws FrameworkException {
 		wrappedObject.setProperty(traits.key("dataSource"), dataSource);
 	}
 

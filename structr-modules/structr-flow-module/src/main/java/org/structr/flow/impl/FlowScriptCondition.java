@@ -22,7 +22,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.Traits;
-import org.structr.flow.api.DataSource;
 import org.structr.flow.api.ThrowingElement;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
@@ -31,7 +30,7 @@ import org.structr.module.api.DeployableEntity;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class FlowScriptCondition extends FlowCondition implements 	DeployableEntity, ThrowingElement {
+public class FlowScriptCondition extends FlowCondition implements DeployableEntity, ThrowingElement {
 
 	public FlowScriptCondition(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);
@@ -41,12 +40,12 @@ public class FlowScriptCondition extends FlowCondition implements 	DeployableEnt
 		return wrappedObject.getProperty(traits.key("script"));
 	}
 
-	public DataSource getScriptSource() {
+	public FlowDataSource getScriptSource() {
 
 		final NodeInterface scriptSource = wrappedObject.getProperty(traits.key("scriptSource"));
 		if (scriptSource != null) {
 
-			return scriptSource.as(DataSource.class);
+			return scriptSource.as(FlowDataSource.class);
 		}
 
 		return null;
@@ -68,9 +67,9 @@ public class FlowScriptCondition extends FlowCondition implements 	DeployableEnt
 
 		try {
 
-			final DataSource _ds = getDataSource();
-			final DataSource _sc = getScriptSource();
-			final String _script = getScript();
+			final FlowDataSource _ds = getDataSource();
+			final FlowDataSource _sc = getScriptSource();
+			final String _script     = getScript();
 
 			final String _dynamicScript = _sc != null ? (String)_sc.get(context) : null;
 

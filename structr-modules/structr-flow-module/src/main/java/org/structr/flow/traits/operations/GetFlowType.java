@@ -16,17 +16,13 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.flow.api;
+package org.structr.flow.traits.operations;
 
-import org.structr.flow.impl.FlowContainer;
+import org.structr.core.traits.operations.FrameworkMethod;
+import org.structr.flow.api.FlowType;
+import org.structr.flow.impl.FlowNode;
 
-/**
- *
- */
-public interface FlowElement {
+public abstract class GetFlowType extends FrameworkMethod<GetFlowType> {
 
-	FlowType getFlowType();
-	FlowContainer getFlowContainer();
-	FlowElement next();
-
+	public abstract FlowType getFlowType(final FlowNode flowNode);
 }

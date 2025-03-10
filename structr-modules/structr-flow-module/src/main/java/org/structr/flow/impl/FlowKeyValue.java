@@ -49,8 +49,8 @@ public class FlowKeyValue extends FlowBaseNode implements DataSource, Deployable
 	@Override
 	public Object get(final Context context) throws FlowException {
 
-		final String _key    = getKey();
-		final DataSource _ds = getDataSource();
+		final String _key        = getKey();
+		final FlowDataSource _ds = getDataSource();
 
 		if (_key != null && _ds != null) {
 

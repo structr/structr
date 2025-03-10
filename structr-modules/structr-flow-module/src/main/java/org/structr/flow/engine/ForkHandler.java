@@ -29,7 +29,6 @@ import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
-import org.structr.flow.api.FlowElement;
 import org.structr.flow.api.FlowHandler;
 import org.structr.flow.api.Fork;
 import org.structr.flow.impl.FlowFork;
@@ -43,15 +42,16 @@ import java.util.concurrent.Future;
 /**
  *
  */
-public class ForkHandler implements FlowHandler<FlowFork> {
+public class ForkHandler implements FlowHandler {
 
 	private static final Logger logger = LoggerFactory.getLogger(ForkHandler.class);
 	private static final ExecutorService threadExecutor = Executors.newSingleThreadExecutor();
 
 	@Override
-	public FlowElement handle(Context context, FlowFork flowElement) throws FlowException {
+	public FlowNode handle(Context context, FlowNode flowNode) throws FlowException {
 
-		FlowNode forkBody = flowElement.getForkBody();
+		final FlowFork flowElement = flowNode.as(FlowFork.class);
+		final FlowNode forkBody    = flowElement.getForkBody();
 
 		if (forkBody != null) {
 
@@ -143,7 +143,7 @@ public class ForkHandler implements FlowHandler<FlowFork> {
 
 						final FlowEngine engine = new FlowEngine(context);
 
-						result = engine.execute(context, startNode.as(FlowElement.class));
+						result = engine.execute(context, startNode.as(FlowNode.class));
 
 						tx.success();
 					}

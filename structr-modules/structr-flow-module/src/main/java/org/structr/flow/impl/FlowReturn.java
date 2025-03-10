@@ -22,7 +22,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.Traits;
-import org.structr.flow.api.DataSource;
 import org.structr.flow.api.Return;
 import org.structr.flow.api.ThrowingElement;
 import org.structr.flow.engine.Context;
@@ -59,8 +58,8 @@ public class FlowReturn extends FlowNode implements Return, DeployableEntity, Th
 	@Override
 	public Object getResult(final Context context) throws FlowException {
 
-		final DataSource ds  = getDataSource();
-		final String _script = getResult();
+		final FlowDataSource ds = getDataSource();
+		final String _script    = getResult();
 
 		String script = _script;
 		if (script == null || script.equals("")) {

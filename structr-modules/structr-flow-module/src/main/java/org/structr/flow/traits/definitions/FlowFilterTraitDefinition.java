@@ -27,7 +27,11 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StartNode;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.operations.FrameworkMethod;
+import org.structr.flow.api.FlowType;
 import org.structr.flow.impl.FlowFilter;
+import org.structr.flow.impl.FlowNode;
+import org.structr.flow.traits.operations.GetFlowType;
 
 import java.util.Map;
 import java.util.Set;
@@ -36,6 +40,21 @@ public class FlowFilterTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public FlowFilterTraitDefinition() {
 		super("FlowFilter");
+	}
+
+	@Override
+	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+
+		return Map.of(
+			GetFlowType.class,
+			new GetFlowType() {
+
+				@Override
+				public FlowType getFlowType(FlowNode flowNode) {
+					return FlowType.Filter;
+				}
+			}
+		);
 	}
 
 	@Override

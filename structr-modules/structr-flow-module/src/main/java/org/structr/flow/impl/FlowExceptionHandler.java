@@ -23,7 +23,6 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.api.Exception;
-import org.structr.flow.api.FlowType;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
 import org.structr.module.api.DeployableEntity;
@@ -47,11 +46,6 @@ public class FlowExceptionHandler extends FlowNode implements Exception, DataSou
 	@Override
 	public Object get(Context context) throws FlowException {
 		return context.getData(getUuid());
-	}
-
-	@Override
-	public FlowType getFlowType() {
-		return FlowType.Exception;
 	}
 
 	@Override

@@ -24,12 +24,7 @@ import org.structr.flow.engine.FlowException;
 /**
  *
  */
-public interface Action extends FlowElement {
+public interface Action {
 
 	void execute(final Context context) throws FlowException;
-
-	@Override
-	default FlowType getFlowType() {
-		return FlowType.Action;
-	}
 }

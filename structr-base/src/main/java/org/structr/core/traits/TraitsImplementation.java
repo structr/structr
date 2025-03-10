@@ -294,7 +294,7 @@ public class TraitsImplementation implements Traits {
 			}
 		}
 
-		throw new RuntimeException("Type " + this.typeName + " does not have the " + type + " trait.");
+		throw new RuntimeException("Type " + this.typeName + " does not define a factory for " + type.getSimpleName());
 	}
 
 	@Override
