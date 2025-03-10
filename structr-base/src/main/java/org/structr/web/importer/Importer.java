@@ -64,6 +64,7 @@ import org.structr.web.traits.definitions.FileTraitDefinition;
 import org.structr.web.traits.definitions.dom.ContentTraitDefinition;
 import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
 import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
+import org.structr.web.traits.definitions.html.Input;
 import org.structr.websocket.command.CreateComponentCommand;
 
 import java.io.*;
@@ -652,7 +653,7 @@ public class Importer {
 
 						newNode = page.createTextNode(content);
 
-						final PropertyKey<String> typeKey = Traits.of("Input").key("_html_type");
+						final PropertyKey<String> typeKey = Traits.of(StructrTraits.INPUT).key(Input.TYPE_PROPERTY);
 
 						if (parent != null && "text/css".equals(parent.getProperty(typeKey))) {
 							newNode.setProperty(contentTypeKey, "text/css");
@@ -877,7 +878,7 @@ public class Importer {
 
 				if (StringUtils.isNotBlank(classString.toString())) {
 
-					newNodeProperties.put(Traits.of(StructrTraits.DOM_ELEMENT).key("_html_class"), StringUtils.trim(classString.toString()));
+					newNodeProperties.put(Traits.of(StructrTraits.DOM_ELEMENT).key(DOMElementTraitDefinition._HTML_CLASS_PROPERTY), StringUtils.trim(classString.toString()));
 				}
 
 				for (Attribute nodeAttr : node.attributes()) {
@@ -995,7 +996,7 @@ public class Importer {
 
 				if ("script".equals(tag)) {
 
-					final PropertyKey<String> typeKey = Traits.of("Input").key("_html_type");
+					final PropertyKey<String> typeKey = Traits.of(StructrTraits.INPUT).key(Input.TYPE_PROPERTY);
 					final String contentType          = newNode.getProperty(typeKey);
 
 					if (contentType == null) {
@@ -1051,7 +1052,7 @@ public class Importer {
 
 				} else if ("style".equals(tag)) {
 
-					final PropertyKey<String> typeKey = Traits.of("Input").key("_html_type");
+					final PropertyKey<String> typeKey = Traits.of(StructrTraits.INPUT).key(Input.TYPE_PROPERTY);
 					final String contentType          = newNode.getProperty(typeKey);
 
 					if (contentType == null) {

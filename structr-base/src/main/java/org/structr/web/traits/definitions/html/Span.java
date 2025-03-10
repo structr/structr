@@ -18,6 +18,7 @@
  */
 package org.structr.web.traits.definitions.html;
 
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.web.traits.operations.AvoidWhitespace;
 
@@ -26,7 +27,7 @@ import java.util.Map;
 public class Span extends GenericHtmlElementTraitDefinition {
 
 	public Span() {
-		super("Span");
+		super(StructrTraits.SPAN);
 	}
 
 	@Override

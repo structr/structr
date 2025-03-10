@@ -20,21 +20,25 @@ package org.structr.web.traits.definitions.html;
 
 import org.structr.common.PropertyView;
 import org.structr.core.property.PropertyKey;
-import org.structr.web.common.HtmlProperty;
+import org.structr.core.property.StringProperty;
+import org.structr.core.traits.StructrTraits;
 
 import java.util.Map;
 import java.util.Set;
 
 public class Li extends GenericHtmlElementTraitDefinition {
 
+	public static final String VALUE_PROPERTY = getPrefixedHTMLAttributeName("value");
+
+
 	public Li() {
-		super("Li");
+		super(StructrTraits.LI);
 	}
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final PropertyKey<String> valueProperty = new HtmlProperty("value");
+		final PropertyKey<String> valueProperty = new StringProperty(VALUE_PROPERTY);
 
 		return newSet(
 			valueProperty
@@ -47,7 +51,7 @@ public class Li extends GenericHtmlElementTraitDefinition {
 		return Map.of(
 			PropertyView.Html,
 			newSet(
-				"_html_value"
+					VALUE_PROPERTY
 			)
 		);
 	}

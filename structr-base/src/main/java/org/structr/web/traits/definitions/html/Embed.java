@@ -20,8 +20,9 @@ package org.structr.web.traits.definitions.html;
 
 import org.structr.common.PropertyView;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.StringProperty;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.operations.FrameworkMethod;
-import org.structr.web.common.HtmlProperty;
 import org.structr.web.traits.operations.IsVoidElement;
 
 import java.util.Map;
@@ -29,8 +30,13 @@ import java.util.Set;
 
 public class Embed extends GenericHtmlElementTraitDefinition {
 
+	public static final String SRC_PROPERTY    = getPrefixedHTMLAttributeName("src");
+	public static final String TYPE_PROPERTY   = getPrefixedHTMLAttributeName("type");
+	public static final String WIDTH_PROPERTY  = getPrefixedHTMLAttributeName("width");
+	public static final String HEIGHT_PROPERTY = getPrefixedHTMLAttributeName("height");
+
 	public Embed() {
-		super("Embed");
+		super(StructrTraits.EMBED);
 	}
 
 	@Override
@@ -56,10 +62,10 @@ public class Embed extends GenericHtmlElementTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final PropertyKey<String> srcProperty = new HtmlProperty("src");
-		final PropertyKey<String> typeProperty = new HtmlProperty("type");
-		final PropertyKey<String> widthProperty = new HtmlProperty("width");
-		final PropertyKey<String> heightProperty = new HtmlProperty("height");
+		final PropertyKey<String> srcProperty    = new StringProperty(SRC_PROPERTY);
+		final PropertyKey<String> typeProperty   = new StringProperty(TYPE_PROPERTY);
+		final PropertyKey<String> widthProperty  = new StringProperty(WIDTH_PROPERTY);
+		final PropertyKey<String> heightProperty = new StringProperty(HEIGHT_PROPERTY);
 
 		return newSet(
 			srcProperty, typeProperty, widthProperty, heightProperty
@@ -72,7 +78,7 @@ public class Embed extends GenericHtmlElementTraitDefinition {
 		return Map.of(
 			PropertyView.Html,
 			newSet(
-				"_html_src", "_html_type", "_html_width", "_html_height"
+					SRC_PROPERTY, TYPE_PROPERTY, WIDTH_PROPERTY, HEIGHT_PROPERTY
 			)
 		);
 	}

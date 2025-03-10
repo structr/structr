@@ -20,8 +20,9 @@ package org.structr.web.traits.definitions.html;
 
 import org.structr.common.PropertyView;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.StringProperty;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.operations.FrameworkMethod;
-import org.structr.web.common.HtmlProperty;
 import org.structr.web.traits.operations.IsVoidElement;
 
 import java.util.Map;
@@ -29,8 +30,12 @@ import java.util.Set;
 
 public class Source extends GenericHtmlElementTraitDefinition {
 
+	public static final String SRC_PROPERTY   = getPrefixedHTMLAttributeName("src");
+	public static final String TYPE_PROPERTY  = getPrefixedHTMLAttributeName("type");
+	public static final String MEDIA_PROPERTY = getPrefixedHTMLAttributeName("media");
+
 	public Source() {
-		super("Source");
+		super(StructrTraits.SOURCE);
 	}
 
 	@Override
@@ -56,9 +61,9 @@ public class Source extends GenericHtmlElementTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final PropertyKey<String> srcProperty = new HtmlProperty("src");
-		final PropertyKey<String> typeProperty = new HtmlProperty("type");
-		final PropertyKey<String> mediaProperty = new HtmlProperty("media");
+		final PropertyKey<String> srcProperty   = new StringProperty(SRC_PROPERTY);
+		final PropertyKey<String> typeProperty  = new StringProperty(TYPE_PROPERTY);
+		final PropertyKey<String> mediaProperty = new StringProperty(MEDIA_PROPERTY);
 
 		return newSet(
 			srcProperty, typeProperty, mediaProperty
@@ -71,7 +76,7 @@ public class Source extends GenericHtmlElementTraitDefinition {
 		return Map.of(
 			PropertyView.Html,
 			newSet(
-				"_html_src", "_html_type", "_html_media"
+					SRC_PROPERTY, TYPE_PROPERTY, MEDIA_PROPERTY
 			)
 		);
 	}

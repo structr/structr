@@ -20,8 +20,9 @@ package org.structr.web.traits.definitions.html;
 
 import org.structr.common.PropertyView;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.StringProperty;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.operations.FrameworkMethod;
-import org.structr.web.common.HtmlProperty;
 import org.structr.web.traits.operations.IsVoidElement;
 
 import java.util.Map;
@@ -29,8 +30,11 @@ import java.util.Set;
 
 public class Base extends GenericHtmlElementTraitDefinition {
 
+	public static final String HREF_PROPERTY     = getPrefixedHTMLAttributeName("href");
+	public static final String TARGET_PROPERTY   = getPrefixedHTMLAttributeName("target");
+
 	public Base() {
-		super("Base");
+		super(StructrTraits.BASE);
 	}
 
 	@Override
@@ -56,8 +60,8 @@ public class Base extends GenericHtmlElementTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final PropertyKey<String> hrefProperty = new HtmlProperty("href");
-		final PropertyKey<String> targetProperty = new HtmlProperty("target");
+		final PropertyKey<String> hrefProperty   = new StringProperty(HREF_PROPERTY);
+		final PropertyKey<String> targetProperty = new StringProperty(TARGET_PROPERTY);
 
 		return newSet(
 			hrefProperty, targetProperty
@@ -69,7 +73,7 @@ public class Base extends GenericHtmlElementTraitDefinition {
 
 		return Map.of(
 			PropertyView.Html,
-			newSet("_html_href", "_html_target")
+			newSet(HREF_PROPERTY, TARGET_PROPERTY)
 		);
 	}
 }

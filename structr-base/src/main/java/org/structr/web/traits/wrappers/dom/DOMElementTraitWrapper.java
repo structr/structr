@@ -120,7 +120,7 @@ public class DOMElementTraitWrapper extends DOMNodeTraitWrapper implements DOMEl
 
 	@Override
 	public String getHtmlName() {
-		// FIXME ? Where is _html_name defined? should it be on DOMElement?
+		// FIXME ? _html_name is only defined on some elements, wont this break?
 		return wrappedObject.getProperty(traits.key("_html_name"));
 	}
 
@@ -147,6 +147,7 @@ public class DOMElementTraitWrapper extends DOMNodeTraitWrapper implements DOMEl
 	@Override
 	public void setAttribute(final String name, final String value) throws FrameworkException {
 
+		// FIXME: no clue how this will ever be called (outside from tests)
 		final PropertyKey<String> key = findOrCreateAttributeKey(name);
 
 		wrappedObject.setProperty(key, value);

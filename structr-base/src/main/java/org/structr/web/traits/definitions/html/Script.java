@@ -27,11 +27,11 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.StringProperty;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
-import org.structr.web.common.HtmlProperty;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.traits.operations.HandleNewChild;
@@ -41,8 +41,14 @@ import java.util.Set;
 
 public class Script extends GenericHtmlElementTraitDefinition {
 
+	public static final String SRC_PROPERTY     = getPrefixedHTMLAttributeName("src");
+	public static final String ASYNC_PROPERTY   = getPrefixedHTMLAttributeName("async");
+	public static final String DEFER_PROPERTY   = getPrefixedHTMLAttributeName("defer");
+	public static final String TYPE_PROPERTY    = getPrefixedHTMLAttributeName("type");
+	public static final String CHARSET_PROPERTY = getPrefixedHTMLAttributeName("charset");
+
 	public Script() {
-		super("Script");
+		super(StructrTraits.SCRIPT);
 	}
 
 	@Override
@@ -57,7 +63,7 @@ public class Script extends GenericHtmlElementTraitDefinition {
 				@Override
 				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
-					final PropertyKey<String> key = graphObject.getTraits().key("_html_type");
+					final PropertyKey<String> key = graphObject.getTraits().key(TYPE_PROPERTY);
 					final String value            = graphObject.getProperty(key);
 
 					if (StringUtils.isBlank(value)) {
@@ -86,7 +92,7 @@ public class Script extends GenericHtmlElementTraitDefinition {
 					if (newChild.is(StructrTraits.CONTENT)) {
 
 						try {
-							final PropertyKey<String> key = node.getTraits().key("_html_type");
+							final PropertyKey<String> key = node.getTraits().key(TYPE_PROPERTY);
 							final String scriptType       = node.getProperty(key);
 
 							if (StringUtils.isNotBlank(scriptType) && StringUtils.isBlank(newChild.as(Content.class).getContentType())) {
@@ -112,11 +118,11 @@ public class Script extends GenericHtmlElementTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final PropertyKey<String> srcProperty = new HtmlProperty("src");
-		final PropertyKey<String> asyncProperty = new HtmlProperty("async");
-		final PropertyKey<String> deferProperty = new HtmlProperty("defer");
-		final PropertyKey<String> typeProperty = new HtmlProperty("type");
-		final PropertyKey<String> charsetProperty = new HtmlProperty("charset");
+		final PropertyKey<String> srcProperty     = new StringProperty(SRC_PROPERTY);
+		final PropertyKey<String> asyncProperty   = new StringProperty(ASYNC_PROPERTY);
+		final PropertyKey<String> deferProperty   = new StringProperty(DEFER_PROPERTY);
+		final PropertyKey<String> typeProperty    = new StringProperty(TYPE_PROPERTY);
+		final PropertyKey<String> charsetProperty = new StringProperty(CHARSET_PROPERTY);
 
 		return newSet(
 			srcProperty, asyncProperty, deferProperty, typeProperty, charsetProperty
@@ -129,7 +135,7 @@ public class Script extends GenericHtmlElementTraitDefinition {
 		return Map.of(
 			PropertyView.Html,
 			newSet(
-				"_html_src", "_html_async", "_html_defer", "_html_type", "_html_charset"
+					SRC_PROPERTY, ASYNC_PROPERTY, DEFER_PROPERTY, TYPE_PROPERTY, CHARSET_PROPERTY
 			)
 		);
 	}

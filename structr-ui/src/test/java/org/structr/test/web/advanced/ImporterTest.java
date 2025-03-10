@@ -34,6 +34,7 @@ import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.importer.Importer;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.html.Script;
 import org.testng.annotations.Test;
 
 import java.util.ArrayList;
@@ -362,7 +363,7 @@ public class ImporterTest extends StructrUiTest {
 
 			compare(expected, actual);
 
-			final NodeInterface secondScriptElement = app.nodeQuery("Script").blank(Traits.of("Script").key("_html_src")).getFirst();
+			final NodeInterface secondScriptElement = app.nodeQuery(StructrTraits.SCRIPT).blank(Traits.of(StructrTraits.SCRIPT).key(Script.SRC_PROPERTY)).getFirst();
 
 			assertNull(secondScriptElement.getOutgoingRelationship(StructrTraits.LINK_SOURCE_LINK_LINKABLE));
 
@@ -396,7 +397,7 @@ public class ImporterTest extends StructrUiTest {
 
 			NodeInterface script = app.nodeQuery("Script").getFirst();
 
-			assertEquals("Script type is not imported correctly", "module", script.getProperty(Traits.of("Script").key("_html_type")));
+			assertEquals("Script type is not imported correctly", "module", script.getProperty(Traits.of(StructrTraits.SCRIPT).key(Script.TYPE_PROPERTY)));
 
 			tx.success();
 

@@ -20,6 +20,9 @@ package org.structr.core.traits.definitions;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
+import org.apache.poi.ss.formula.functions.T;
+import org.structr.core.property.PropertyKey;
 
 public abstract class AbstractNodeTraitDefinition extends AbstractTraitDefinition {
 
@@ -40,6 +43,29 @@ public abstract class AbstractNodeTraitDefinition extends AbstractTraitDefinitio
 		// keep order (Set.of(..) doesn't)
 		for (final T entry : entries) {
 			set.add(entry);
+		}
+
+		return set;
+	}
+
+	protected Set<String> newSetFromPropertyKeys(final PropertyKey... entries) {
+
+		final Set<String> set = new LinkedHashSet<>();
+
+		// keep order (Set.of(..) doesn't)
+		for (final PropertyKey entry : entries) {
+			set.add(entry.jsonName());
+		}
+
+		return set;
+	}
+
+	protected Set<String> newSetFromPropertyKeySet(final Set<PropertyKey> keySet) {
+
+		final Set<String> set = new LinkedHashSet<>();
+
+		for (final PropertyKey entry : keySet) {
+			set.add(entry.jsonName());
 		}
 
 		return set;

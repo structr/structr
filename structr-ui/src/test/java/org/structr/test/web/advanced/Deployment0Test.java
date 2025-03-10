@@ -29,6 +29,8 @@ import org.structr.web.entity.dom.*;
 import org.structr.web.traits.definitions.dom.ContentTraitDefinition;
 import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 import org.structr.web.traits.definitions.dom.PageTraitDefinition;
+import org.structr.web.traits.definitions.html.Link;
+import org.structr.web.traits.definitions.html.Script;
 import org.structr.websocket.command.CreateComponentCommand;
 import org.testng.annotations.Test;
 
@@ -351,7 +353,7 @@ public class Deployment0Test extends DeploymentTestBase {
 			);
 
 			// workaround for strange importer behaviour
-			script.setProperty(Traits.of("Script").key("_html_type"), "text/javascript");
+			script.setProperty(Traits.of(StructrTraits.SCRIPT).key(Script.TYPE_PROPERTY), "text/javascript");
 			content.setProperty(Traits.of(StructrTraits.CONTENT).key(ContentTraitDefinition.CONTENT_TYPE_PROPERTY), "text/javascript");
 
 			tx.success();
@@ -381,9 +383,9 @@ public class Deployment0Test extends DeploymentTestBase {
 			final DOMElement link3  = createElement(page, head, "link");
 
 			final PropertyMap link3Properties = new PropertyMap();
-			link3Properties.put(Traits.of("Link").key("_html_href"), "/");
-			link3Properties.put(Traits.of("Link").key("_html_media"), "screen");
-			link3Properties.put(Traits.of("Link").key("_html_type"), "stylesheet");
+			link3Properties.put(Traits.of(StructrTraits.LINK).key(Link.HREF_PROPERTY),  "/");
+			link3Properties.put(Traits.of(StructrTraits.LINK).key(Link.MEDIA_PROPERTY), "screen");
+			link3Properties.put(Traits.of(StructrTraits.LINK).key(Link.TYPE_PROPERTY),  "stylesheet");
 			link3.setProperties(link3.getSecurityContext(), link3Properties);
 
 			final DOMElement body       = createElement(page, html, "body");

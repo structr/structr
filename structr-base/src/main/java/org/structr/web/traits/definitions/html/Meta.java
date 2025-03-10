@@ -20,8 +20,9 @@ package org.structr.web.traits.definitions.html;
 
 import org.structr.common.PropertyView;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.StringProperty;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.operations.FrameworkMethod;
-import org.structr.web.common.HtmlProperty;
 import org.structr.web.traits.operations.IsVoidElement;
 
 import java.util.Map;
@@ -29,8 +30,13 @@ import java.util.Set;
 
 public class Meta extends GenericHtmlElementTraitDefinition {
 
+	public static final String NAME_PROPERTY       = getPrefixedHTMLAttributeName("name");
+	public static final String HTTP_EQUIV_PROPERTY = getPrefixedHTMLAttributeName("http-equiv");
+	public static final String CONTENT_PROPERTY    = getPrefixedHTMLAttributeName("content");
+	public static final String CHARSET_PROPERTY    = getPrefixedHTMLAttributeName("charset");
+
 	public Meta() {
-		super("Meta");
+		super(StructrTraits.META);
 	}
 
 	@Override
@@ -56,10 +62,10 @@ public class Meta extends GenericHtmlElementTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final PropertyKey<String> nameProperty      = new HtmlProperty("name");
-		final PropertyKey<String> httpEquivProperty = new HtmlProperty("http-equiv");
-		final PropertyKey<String> contentProperty   = new HtmlProperty("content");
-		final PropertyKey<String> charsetProperty   = new HtmlProperty("charset");
+		final PropertyKey<String> nameProperty      = new StringProperty(NAME_PROPERTY);
+		final PropertyKey<String> httpEquivProperty = new StringProperty(HTTP_EQUIV_PROPERTY);
+		final PropertyKey<String> contentProperty   = new StringProperty(CONTENT_PROPERTY);
+		final PropertyKey<String> charsetProperty   = new StringProperty(CHARSET_PROPERTY);
 
 		return newSet(
 			nameProperty, httpEquivProperty, contentProperty, charsetProperty
@@ -72,7 +78,7 @@ public class Meta extends GenericHtmlElementTraitDefinition {
 		return Map.of(
 			PropertyView.Html,
 			newSet(
-				"_html_name", "_html_http-equiv", "_html_content", "_html_charset"
+					NAME_PROPERTY, HTTP_EQUIV_PROPERTY, CONTENT_PROPERTY, CHARSET_PROPERTY
 			)
 		);
 	}

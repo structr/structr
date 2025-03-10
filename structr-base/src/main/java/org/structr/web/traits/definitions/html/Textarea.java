@@ -20,8 +20,9 @@ package org.structr.web.traits.definitions.html;
 
 import org.structr.common.PropertyView;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.StringProperty;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.operations.FrameworkMethod;
-import org.structr.web.common.HtmlProperty;
 import org.structr.web.traits.operations.AvoidWhitespace;
 
 import java.util.Map;
@@ -29,8 +30,21 @@ import java.util.Set;
 
 public class Textarea extends GenericHtmlElementTraitDefinition {
 
+	public static final String NAME_PROPERTY        = getPrefixedHTMLAttributeName("name");
+	public static final String DISABLED_PROPERTY    = getPrefixedHTMLAttributeName("disabled");
+	public static final String FORM_PROPERTY        = getPrefixedHTMLAttributeName("form");
+	public static final String READONLY_PROPERTY    = getPrefixedHTMLAttributeName("readonly");
+	public static final String MAXLENGTH_PROPERTY   = getPrefixedHTMLAttributeName("maxlength");
+	public static final String AUTOFOCUS_PROPERTY   = getPrefixedHTMLAttributeName("autofocus");
+	public static final String REQUIRED_PROPERTY    = getPrefixedHTMLAttributeName("required");
+	public static final String PLACEHOLDER_PROPERTY = getPrefixedHTMLAttributeName("placeholder");
+	public static final String DIRNAME_PROPERTY     = getPrefixedHTMLAttributeName("dirname");
+	public static final String ROWS_PROPERTY        = getPrefixedHTMLAttributeName("rows");
+	public static final String WRAP_PROPERTY        = getPrefixedHTMLAttributeName("wrap");
+	public static final String COLS_PROPERTY        = getPrefixedHTMLAttributeName("cols");
+
 	public Textarea() {
-		super("Textarea");
+		super(StructrTraits.TEXTAREA);
 	}
 
 	@Override
@@ -56,18 +70,18 @@ public class Textarea extends GenericHtmlElementTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final PropertyKey<String> nameProperty = new HtmlProperty("name");
-		final PropertyKey<String> disabledProperty = new HtmlProperty("disabled");
-		final PropertyKey<String> formProperty = new HtmlProperty("form");
-		final PropertyKey<String> readonlyProperty = new HtmlProperty("readonly");
-		final PropertyKey<String> maxlengthProperty = new HtmlProperty("maxlength");
-		final PropertyKey<String> autofocusProperty = new HtmlProperty("autofocus");
-		final PropertyKey<String> requiredProperty = new HtmlProperty("required");
-		final PropertyKey<String> placeholderProperty = new HtmlProperty("placeholder");
-		final PropertyKey<String> dirnameProperty = new HtmlProperty("dirname");
-		final PropertyKey<String> rowsProperty = new HtmlProperty("rows");
-		final PropertyKey<String> wrapProperty = new HtmlProperty("wrap");
-		final PropertyKey<String> colsProperty = new HtmlProperty("cols");
+		final PropertyKey<String> nameProperty        = new StringProperty(NAME_PROPERTY);
+		final PropertyKey<String> disabledProperty    = new StringProperty(DISABLED_PROPERTY);
+		final PropertyKey<String> formProperty        = new StringProperty(FORM_PROPERTY);
+		final PropertyKey<String> readonlyProperty    = new StringProperty(READONLY_PROPERTY);
+		final PropertyKey<String> maxlengthProperty   = new StringProperty(MAXLENGTH_PROPERTY);
+		final PropertyKey<String> autofocusProperty   = new StringProperty(AUTOFOCUS_PROPERTY);
+		final PropertyKey<String> requiredProperty    = new StringProperty(REQUIRED_PROPERTY);
+		final PropertyKey<String> placeholderProperty = new StringProperty(PLACEHOLDER_PROPERTY);
+		final PropertyKey<String> dirnameProperty     = new StringProperty(DIRNAME_PROPERTY);
+		final PropertyKey<String> rowsProperty        = new StringProperty(ROWS_PROPERTY);
+		final PropertyKey<String> wrapProperty        = new StringProperty(WRAP_PROPERTY);
+		final PropertyKey<String> colsProperty        = new StringProperty(COLS_PROPERTY);
 
 		return newSet(
 			nameProperty, disabledProperty, formProperty, readonlyProperty, maxlengthProperty, autofocusProperty,
@@ -81,8 +95,8 @@ public class Textarea extends GenericHtmlElementTraitDefinition {
 		return Map.of(
 			PropertyView.Html,
 			newSet(
-				"_html_name", "_html_disabled", "_html_form", "_html_readonly", "_html_maxlength", "_html_autofocus",
-				"_html_required", "_html_placeholder", "_html_dirname", "_html_rows", "_html_wrap", "_html_cols"
+					NAME_PROPERTY, DISABLED_PROPERTY, FORM_PROPERTY, READONLY_PROPERTY, MAXLENGTH_PROPERTY, AUTOFOCUS_PROPERTY,
+					REQUIRED_PROPERTY, PLACEHOLDER_PROPERTY, DIRNAME_PROPERTY, ROWS_PROPERTY, WRAP_PROPERTY, COLS_PROPERTY
 			)
 		);
 	}

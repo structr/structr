@@ -18,6 +18,7 @@
  */
 package org.structr.web.traits.definitions.html;
 
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.web.traits.operations.IsVoidElement;
 
@@ -26,7 +27,7 @@ import java.util.Map;
 public class Hr extends GenericHtmlElementTraitDefinition {
 
 	public Hr() {
-		super("Hr");
+		super(StructrTraits.HR);
 	}
 
 	@Override

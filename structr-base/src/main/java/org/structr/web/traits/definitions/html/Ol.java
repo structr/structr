@@ -20,22 +20,26 @@ package org.structr.web.traits.definitions.html;
 
 import org.structr.common.PropertyView;
 import org.structr.core.property.PropertyKey;
-import org.structr.web.common.HtmlProperty;
+import org.structr.core.property.StringProperty;
+import org.structr.core.traits.StructrTraits;
 
 import java.util.Map;
 import java.util.Set;
 
 public class Ol extends GenericHtmlElementTraitDefinition {
 
+	public static final String REVERSED_PROPERTY = getPrefixedHTMLAttributeName("reversed");
+	public static final String START_PROPERTY    = getPrefixedHTMLAttributeName("start");
+
 	public Ol() {
-		super("Ol");
+		super(StructrTraits.OL);
 	}
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final PropertyKey<String> reversedProperty = new HtmlProperty("reversed");
-		final PropertyKey<String> startProperty = new HtmlProperty("start");
+		final PropertyKey<String> reversedProperty = new StringProperty(REVERSED_PROPERTY);
+		final PropertyKey<String> startProperty    = new StringProperty(START_PROPERTY);
 
 		return newSet(
 			reversedProperty, startProperty
@@ -48,7 +52,7 @@ public class Ol extends GenericHtmlElementTraitDefinition {
 		return Map.of(
 			PropertyView.Html,
 			newSet(
-				"_html_reversed", "_html_start"
+					REVERSED_PROPERTY, START_PROPERTY
 			)
 		);
 	}

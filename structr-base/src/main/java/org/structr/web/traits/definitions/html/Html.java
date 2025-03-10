@@ -22,9 +22,9 @@ import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.web.common.AsyncBuffer;
-import org.structr.web.common.HtmlProperty;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.traits.operations.OpeningTag;
@@ -34,8 +34,11 @@ import java.util.Set;
 
 public class Html extends GenericHtmlElementTraitDefinition {
 
+	public static final String MANIFEST_PROPERTY           = getPrefixedHTMLAttributeName("manifest");
+	public static final String CUSTOM_OPENING_TAG_PROPERTY = "customOpeningTag";
+
 	public Html() {
-		super("Html");
+		super(StructrTraits.HTML);
 	}
 
 	@Override
@@ -51,7 +54,7 @@ public class Html extends GenericHtmlElementTraitDefinition {
 				@Override
 				public void openingTag(final DOMElement node, final AsyncBuffer out, final String tag, final RenderContext.EditMode editMode, final RenderContext renderContext, final int depth) throws FrameworkException {
 
-					final String custTag = node.getProperty(node.getTraits().key("customOpeningTag"));
+					final String custTag = node.getProperty(node.getTraits().key(CUSTOM_OPENING_TAG_PROPERTY));
 					if (custTag != null) {
 
 						// fixme: not sure if this works at all...
@@ -71,8 +74,8 @@ public class Html extends GenericHtmlElementTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final PropertyKey<String> manifestProperty = new HtmlProperty("manifest");
-		final PropertyKey<String> customOpeningTag = new StringProperty("customOpeningTag");
+		final PropertyKey<String> manifestProperty = new StringProperty(MANIFEST_PROPERTY);
+		final PropertyKey<String> customOpeningTag = new StringProperty(CUSTOM_OPENING_TAG_PROPERTY);
 
 		return newSet(
 			manifestProperty, customOpeningTag
@@ -85,11 +88,11 @@ public class Html extends GenericHtmlElementTraitDefinition {
 		return Map.of(
 			PropertyView.Ui,
 			newSet(
-				"_html_manifest", "customOpeningTag"
+				MANIFEST_PROPERTY, CUSTOM_OPENING_TAG_PROPERTY
 			),
 			PropertyView.Html,
 			newSet(
-				"_html_manifest"
+				MANIFEST_PROPERTY
 			)
 		);
 	}

@@ -39,7 +39,7 @@ import java.util.Map.Entry;
 public class TemplateElement extends GenericHtmlElementTraitDefinition {
 
 	public TemplateElement() {
-		super("TemplateElement");
+		super(StructrTraits.TEMPLATEELEMENT);
 	}
 
 	@Override

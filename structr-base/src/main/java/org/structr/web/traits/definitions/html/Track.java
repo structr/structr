@@ -20,8 +20,9 @@ package org.structr.web.traits.definitions.html;
 
 import org.structr.common.PropertyView;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.StringProperty;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.operations.FrameworkMethod;
-import org.structr.web.common.HtmlProperty;
 import org.structr.web.traits.operations.IsVoidElement;
 
 import java.util.Map;
@@ -29,8 +30,14 @@ import java.util.Set;
 
 public class Track extends GenericHtmlElementTraitDefinition {
 
+	public static final String KIND_PROPERTY    = getPrefixedHTMLAttributeName("kind");
+	public static final String SRC_PROPERTY     = getPrefixedHTMLAttributeName("src");
+	public static final String SRCLANG_PROPERTY = getPrefixedHTMLAttributeName("srclang");
+	public static final String LABEL_PROPERTY   = getPrefixedHTMLAttributeName("label");
+	public static final String DEFAULT_PROPERTY = getPrefixedHTMLAttributeName("default");
+
 	public Track() {
-		super("Track");
+		super(StructrTraits.TRACK);
 	}
 
 	@Override
@@ -56,11 +63,11 @@ public class Track extends GenericHtmlElementTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final PropertyKey<String> kindProperty = new HtmlProperty("kind");
-		final PropertyKey<String> srcProperty = new HtmlProperty("src");
-		final PropertyKey<String> srclangProperty = new HtmlProperty("srclang");
-		final PropertyKey<String> labelProperty = new HtmlProperty("label");
-		final PropertyKey<String> defaultProperty = new HtmlProperty("default");
+		final PropertyKey<String> kindProperty    = new StringProperty(KIND_PROPERTY);
+		final PropertyKey<String> srcProperty     = new StringProperty(SRC_PROPERTY);
+		final PropertyKey<String> srclangProperty = new StringProperty(SRCLANG_PROPERTY);
+		final PropertyKey<String> labelProperty   = new StringProperty(LABEL_PROPERTY);
+		final PropertyKey<String> defaultProperty = new StringProperty(DEFAULT_PROPERTY);
 
 		return newSet(
 			kindProperty, srcProperty, srclangProperty, labelProperty, defaultProperty
@@ -73,7 +80,7 @@ public class Track extends GenericHtmlElementTraitDefinition {
 		return Map.of(
 			PropertyView.Html,
 			newSet(
-				"_html_kind", "_html_src", "_html_srclang", "_html_label", "_html_default"
+					KIND_PROPERTY, SRC_PROPERTY, SRCLANG_PROPERTY, LABEL_PROPERTY, DEFAULT_PROPERTY
 			)
 		);
 	}
