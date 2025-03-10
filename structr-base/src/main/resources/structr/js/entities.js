@@ -732,7 +732,9 @@ let _Entities = {
 		let cell = $(`.value.${key}_`, container);
 		cell.css('height', '60px');
 
-		let fetchKey = (key === 'syncedNodesIds') ? 'syncedNodes' : key;
+		let fetchKey = key;
+		if (key === 'syncedNodesIds') { fetchKey = 'syncedNodes'; }
+		if (key === 'childrenIds') { fetchKey = 'children'; }
 
 		fetch(`${Structr.rootUrl + entity.type}/${entity.id}/${fetchKey}?${Structr.getRequestParameterName('pageSize')}=${pageSize}&${Structr.getRequestParameterName('page')}=${page}`, {
 			headers: _Helpers.getHeadersForCustomView(['id', 'name'])
