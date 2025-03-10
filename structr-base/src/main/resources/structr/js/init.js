@@ -277,7 +277,7 @@ let Structr = {
 		let dialogBox = _Dialogs.custom.getDialogBoxElement();
 		if (dialogBox && dialogBox.offsetParent) {
 
-			let reconnectDialogElement = dialogBox.querySelector('#reconnect-dialog')
+			let reconnectDialogElement = dialogBox.querySelector('#reconnect-dialog');
 			if (!reconnectDialogElement) {
 
 				let parent = dialogBox.parentNode;
@@ -1805,9 +1805,12 @@ let Structr = {
 
 		_Dialogs.basic.append(reconnectDialog, { padding: '1rem' });
 	},
+	getReconnectDialogElement: () => {
+		return document.getElementById('reconnect-dialog');
+	},
 	hideReconnectDialog: () => {
 		// remove reconnect dialog
-		let reconnectMessage = document.getElementById('reconnect-dialog');
+		let reconnectMessage = Structr.getReconnectDialogElement();
 		_Dialogs.basic.removeBlockerAround(reconnectMessage);
 	},
 	dropdownOpenEventName: 'dropdown-opened',
