@@ -21,7 +21,6 @@ package org.structr.flow.impl;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-import org.structr.flow.api.ForEach;
 import org.structr.flow.api.ThrowingElement;
 import org.structr.module.api.DeployableEntity;
 
@@ -31,7 +30,7 @@ import java.util.TreeMap;
 /**
  *
  */
-public class FlowForEach extends FlowDataSource implements ForEach, DeployableEntity, ThrowingElement {
+public class FlowForEach extends FlowDataSource implements DeployableEntity, ThrowingElement {
 
 	public FlowForEach(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);

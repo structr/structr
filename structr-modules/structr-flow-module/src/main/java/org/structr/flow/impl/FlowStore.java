@@ -22,7 +22,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-import org.structr.flow.api.Store;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
 import org.structr.module.api.DeployableEntity;
@@ -30,7 +29,7 @@ import org.structr.module.api.DeployableEntity;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class FlowStore extends FlowDataSource implements Store, DeployableEntity {
+public class FlowStore extends FlowDataSource implements DeployableEntity {
 
 	private static final Logger logger = LoggerFactory.getLogger(FlowStore.class);
 
@@ -51,8 +50,7 @@ public class FlowStore extends FlowDataSource implements Store, DeployableEntity
 		return wrappedObject.getProperty(traits.key("key"));
 	}
 
-	@Override
-	public void handleStorage(Context context) throws FlowException {
+	public final void handleStorage(final Context context) throws FlowException {
 
 		final String op         = getOperation();
 		final String _key       = getKey();

@@ -22,7 +22,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.Traits;
-import org.structr.flow.api.Return;
 import org.structr.flow.api.ThrowingElement;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
@@ -34,7 +33,7 @@ import java.util.TreeMap;
 /**
  *
  */
-public class FlowReturn extends FlowNode implements Return, DeployableEntity, ThrowingElement {
+public class FlowReturn extends FlowNode implements DeployableEntity, ThrowingElement {
 
 	public FlowReturn(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);
@@ -55,7 +54,6 @@ public class FlowReturn extends FlowNode implements Return, DeployableEntity, Th
 		return null;
 	}
 
-	@Override
 	public Object getResult(final Context context) throws FlowException {
 
 		final FlowDataSource ds = getDataSource();

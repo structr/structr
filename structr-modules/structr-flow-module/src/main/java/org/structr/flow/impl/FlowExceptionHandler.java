@@ -21,13 +21,12 @@ package org.structr.flow.impl;
 import org.structr.api.util.Iterables;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-import org.structr.flow.api.Exception;
 import org.structr.module.api.DeployableEntity;
 
 import java.util.Map;
 import java.util.TreeMap;
 
-public class FlowExceptionHandler extends FlowDataSource implements Exception, DeployableEntity {
+public class FlowExceptionHandler extends FlowDataSource implements DeployableEntity {
 
 	public FlowExceptionHandler(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);

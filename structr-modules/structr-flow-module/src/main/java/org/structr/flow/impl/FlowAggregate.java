@@ -22,7 +22,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.Traits;
-import org.structr.flow.api.Aggregation;
 import org.structr.flow.api.ThrowingElement;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
@@ -31,7 +30,7 @@ import org.structr.module.api.DeployableEntity;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class FlowAggregate extends FlowDataSource implements Aggregation, DeployableEntity, ThrowingElement {
+public class FlowAggregate extends FlowDataSource implements DeployableEntity, ThrowingElement {
 
 	public FlowAggregate(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);
@@ -56,7 +55,6 @@ public class FlowAggregate extends FlowDataSource implements Aggregation, Deploy
 		return null;
 	}
 
-	@Override
 	public void aggregate(final Context context) throws FlowException {
 
 		try {

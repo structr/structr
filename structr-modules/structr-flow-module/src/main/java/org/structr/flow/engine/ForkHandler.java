@@ -30,7 +30,6 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.flow.api.FlowHandler;
-import org.structr.flow.api.Fork;
 import org.structr.flow.impl.FlowFork;
 import org.structr.flow.impl.FlowNode;
 
@@ -139,7 +138,7 @@ public class ForkHandler implements FlowHandler {
 
 					try (final Tx tx = app.tx()) {
 
-						fork.as(Fork.class).handle(context);
+						fork.as(FlowFork.class).handle(context);
 
 						final FlowEngine engine = new FlowEngine(context);
 

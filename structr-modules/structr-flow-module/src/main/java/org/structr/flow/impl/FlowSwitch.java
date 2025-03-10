@@ -21,10 +21,9 @@ package org.structr.flow.impl;
 import org.structr.api.util.Iterables;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-import org.structr.flow.api.Switch;
 import org.structr.module.api.DeployableEntity;
 
-public class FlowSwitch extends FlowNode implements Switch, DeployableEntity {
+public class FlowSwitch extends FlowNode implements DeployableEntity {
 
 	public FlowSwitch(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);

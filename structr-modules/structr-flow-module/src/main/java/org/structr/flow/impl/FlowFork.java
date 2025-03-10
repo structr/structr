@@ -20,7 +20,6 @@ package org.structr.flow.impl;
 
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-import org.structr.flow.api.Fork;
 import org.structr.flow.api.ThrowingElement;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
@@ -29,7 +28,7 @@ import org.structr.module.api.DeployableEntity;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class FlowFork extends FlowDataSource implements Fork, DeployableEntity, ThrowingElement {
+public class FlowFork extends FlowDataSource implements DeployableEntity, ThrowingElement {
 
 	public FlowFork(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);
@@ -46,7 +45,6 @@ public class FlowFork extends FlowDataSource implements Fork, DeployableEntity, 
 		return null;
 	}
 
-	@Override
 	public void handle(final Context context) throws FlowException {
 
 		// Call get while handling the fork process to clear local data and cache given data from dataSource

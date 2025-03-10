@@ -20,13 +20,12 @@ package org.structr.flow.impl;
 
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-import org.structr.flow.api.Switch;
 import org.structr.module.api.DeployableEntity;
 
 import java.util.Map;
 import java.util.TreeMap;
 
-public class FlowSwitchCase extends FlowNode implements Switch, DeployableEntity {
+public class FlowSwitchCase extends FlowNode implements DeployableEntity {
 
 	public FlowSwitchCase(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);

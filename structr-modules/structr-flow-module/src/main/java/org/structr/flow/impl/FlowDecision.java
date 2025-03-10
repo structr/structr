@@ -20,7 +20,6 @@ package org.structr.flow.impl;
 
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-import org.structr.flow.api.Decision;
 import org.structr.module.api.DeployableEntity;
 
 import java.util.Map;
@@ -29,13 +28,12 @@ import java.util.TreeMap;
 /**
  *
  */
-public class FlowDecision extends FlowNode implements Decision, DeployableEntity {
+public class FlowDecision extends FlowNode implements DeployableEntity {
 
 	public FlowDecision(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);
 	}
 
-	@Override
 	public FlowDataSource getCondition() {
 
 		final NodeInterface node = wrappedObject.getProperty(traits.key("condition"));
@@ -47,7 +45,6 @@ public class FlowDecision extends FlowNode implements Decision, DeployableEntity
 		return null;
 	}
 
-	@Override
 	public FlowNode getTrueElement() {
 
 		final NodeInterface node = wrappedObject.getProperty(traits.key("trueElement"));
@@ -59,7 +56,6 @@ public class FlowDecision extends FlowNode implements Decision, DeployableEntity
 		return null;
 	}
 
-	@Override
 	public FlowNode getFalseElement() {
 
 		final NodeInterface node = wrappedObject.getProperty(traits.key("falseElement"));
