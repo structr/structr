@@ -160,7 +160,7 @@ let _Crud = {
 			};
 
 			if (!_Crud.type) {
-				setCurrentTypeIfPossible(_Helpers.urlParam('type'));
+				setCurrentTypeIfPossible(_Helpers.getURLParameter('type'));
 			}
 
 			if (!_Crud.type) {
@@ -1966,8 +1966,8 @@ let _Crud = {
 			crudPagerDataKey: 'structrCrudPagerData_' + location.port + '_',
 			addPager: (type, el) => {
 
-				_Crud.page[type]     ??= _Helpers.urlParam('page') ?? (_Crud.objectList.pager.defaultPage ?? 1);
-				_Crud.pageSize[type] ??= _Helpers.urlParam('pageSize') ?? (_Crud.objectList.pager.defaultPageSize ?? 10);
+				_Crud.page[type]     ??= _Helpers.getURLParameter('page') ?? (_Crud.objectList.pager.defaultPage ?? 1);
+				_Crud.pageSize[type] ??= _Helpers.getURLParameter('pageSize') ?? (_Crud.objectList.pager.defaultPageSize ?? 10);
 
 				el.insertAdjacentHTML('beforeend', _Crud.objectList.pager.templates.pagerHTML({ type }));
 
@@ -2110,11 +2110,11 @@ let _Crud = {
 				// Priority: JS vars -> Local Storage -> URL -> Default
 
 				if (!_Crud.view[type]) {
-					_Crud.view[type]     = _Helpers.urlParam('view');
-					_Crud.sort[type]     = _Helpers.urlParam('sort');
-					_Crud.order[type]    = _Helpers.urlParam('order');
-					_Crud.pageSize[type] = _Helpers.urlParam('pageSize');
-					_Crud.page[type]     = _Helpers.urlParam('page');
+					_Crud.view[type]     = _Helpers.getURLParameter('view');
+					_Crud.sort[type]     = _Helpers.getURLParameter('sort');
+					_Crud.order[type]    = _Helpers.getURLParameter('order');
+					_Crud.pageSize[type] = _Helpers.getURLParameter('pageSize');
+					_Crud.page[type]     = _Helpers.getURLParameter('page');
 				}
 
 				if (!_Crud.view[type]) {

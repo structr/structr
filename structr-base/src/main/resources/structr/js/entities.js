@@ -857,7 +857,7 @@ let _Entities = {
 		for (let key of keys) {
 
 			let valueCell    = undefined;
-			let isReadOnly   = _Helpers.isIn(key, _Entities.readOnlyAttrs) || (typeInfo[key]?.readOnly ?? false);
+			let isReadOnly   = _Entities.readOnlyAttrs.includes(key) || (typeInfo[key]?.readOnly ?? false);
 			let isSystem     = (typeInfo[key]?.system ?? false);
 			let isBoolean    = (typeInfo[key]?.type === 'Boolean');
 			let isDate       = (typeInfo[key]?.type === 'Date');
@@ -868,7 +868,7 @@ let _Entities = {
 
 				let showKeyInitially = (key === '_html_class' || key === '_html_id');
 				for (let mostUsed of _Elements.mostUsedAttrs) {
-					if (_Helpers.isIn(entity.tag, mostUsed.elements) && _Helpers.isIn(key.substring(6), mostUsed.attrs)) {
+					if (mostUsed.elements.includes(entity.tag) && mostUsed.attrs.includes(key.substring(6))) {
 						showKeyInitially = true;
 						focusAttr = mostUsed.focus ? mostUsed.focus : focusAttr;
 					}
@@ -1150,6 +1150,14 @@ let _Entities = {
 							_Dialogs.custom.showAndHideInfoBoxMessage(`New property "${key}" has been added and saved with value "${val}".`, 'success', 2000, 1000);
 
 							_Entities.activateInput(newValueInput, id, newKey, entity.type, typeInfo, onUpdateCallback);
+
+							newRow.querySelector(`#${_Entities.null_prefix}${newKey}`).addEventListener('click', () => {
+
+								_Entities.setProperty(id, newKey, null, false, (newVal) => {
+									newRow.remove();
+									_Dialogs.custom.showAndHideInfoBoxMessage(`Custom HTML property "${key}" has been removed`, 'success', 2000, 1000);
+								});
+							});
 						});
 					}
 				}
