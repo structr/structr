@@ -879,26 +879,14 @@ let _Entities = {
 					showKeyInitially = true;
 				}
 
-				let displayKey  = _Entities.getDisplayKeyForHTMLKey(key);
-
-				let rowClass = '';
-				if  (showKeyInitially === false) {
-					rowClass = 'hidden';
-				}
-
 				let value = res[key];
-				let row   = _Helpers.createSingleDOMElementFromHTML(`
-					<tr class="${rowClass}">
-						<td class="key">
-							<span class="flex justify-between items-center">
-								<span>${displayKey}</span>
-								<span class="${_Entities.classNameForEmptyStringWarningContainer} flex"></span>
-							</span>
-						</td>
-						<td class="value ${key}_">${_Helpers.formatValueInputField(key, value, typeInfo[key])}</td>
-						<td>${_Entities.getNullIconForKey(key)}</td>
-					</tr>
-				`);
+				let row   = _Helpers.createSingleDOMElementFromHTML(_Entities.templates.propertyRow({
+					rowClass: (showKeyInitially === false) ? 'hidden' : '',
+					displayKey: _Entities.getDisplayKeyForHTMLKey(key),
+					key,
+					value,
+					typeInfo: typeInfo[key]
+				}));
 				propsTable[0].appendChild(row);
 				valueCell = $(`.value.${key}_`, propsTable);
 
@@ -1143,26 +1131,25 @@ let _Entities = {
 
 						Command.setProperty(id, newKey, val, false, (newVal) => {
 
-							_Helpers.blinkGreen(exitedInput);
-							_Dialogs.custom.showAndHideInfoBoxMessage(`New property "${newKey}" has been added and saved with value "${val}".`, 'success', 2000, 1000);
+							// replace input so that the old event (this function) is removed and we can attach new elements via "activateInput"
+							let newRow = _Helpers.createSingleDOMElementFromHTML(_Entities.templates.propertyRow({
+								rowClass: '',
+								displayKey: _Entities.getDisplayKeyForHTMLKey(key),
+								key: newKey,
+								value: val,
+								typeInfo: typeInfo[key]
+							}));
 
-							keyInput.replaceWith(key);
-							valInput.name = newKey;
+							_Helpers.fastRemoveAllChildren(row);
 
-							let nullIcon = _Helpers.createSingleDOMElementFromHTML(_Entities.getNullIconForKey(newKey));
-							row.querySelector('td:last-of-type').appendChild(nullIcon);
-							nullIcon.addEventListener('click', () => {
+							row.replaceWith(newRow);
 
-								let key = nullIcon.getAttribute('id').substring(_Entities.null_prefix.length);
+							let newValueInput = newRow.querySelector('input');
+							_Helpers.blinkGreen(newValueInput);
 
-								_Entities.setProperty(id, key, null, false, (newVal) => {
-									row.remove();
-									_Dialogs.custom.showAndHideInfoBoxMessage(`Custom HTML property "${key}" has been removed`, 'success', 2000, 1000);
-								});
-							});
+							_Dialogs.custom.showAndHideInfoBoxMessage(`New property "${key}" has been added and saved with value "${val}".`, 'success', 2000, 1000);
 
-							// deactivate this function and resume regular save-actions
-							_Entities.activateInput(valInput, id, key, entity.type, typeInfo);
+							_Entities.activateInput(newValueInput, id, newKey, entity.type, typeInfo, onUpdateCallback);
 						});
 					}
 				}
@@ -1465,7 +1452,6 @@ let _Entities = {
 					input.classList.remove('active');
 
 					for (let icon of input.parentNode.querySelectorAll('.icon')) {
-						console.log(icon)
 						icon.remove();
 					}
 				});
@@ -2458,6 +2444,20 @@ let _Entities = {
 				input.val(oldVal);
 			}
 		});
+	},
+	templates: {
+		propertyRow: config => `
+			<tr class="${config.rowClass}">
+				<td class="key">
+					<span class="flex justify-between items-center">
+						<span>${config.displayKey}</span>
+						<span class="${_Entities.classNameForEmptyStringWarningContainer} flex"></span>
+					</span>
+				</td>
+				<td class="value ${config.key}_">${_Helpers.formatValueInputField(config.key, config.value, config.typeInfo)}</td>
+				<td>${_Entities.getNullIconForKey(config.key)}</td>
+			</tr>
+		`
 	},
 
 	basicTab: {
