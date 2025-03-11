@@ -2399,7 +2399,7 @@ let _Code = {
 
 			return pathToOpen;
 		},
-		navigateToSchemaObjectFromAnywhere: (obj) => {
+		navigateToSchemaObjectFromAnywhere: (obj, updateLocationStack = false) => {
 
 			let pathToOpen = _Code.helpers.getPathToOpenForSchemaObjectFromError(obj);
 			let timeout    = (window.location.hash === '#code') ? 100 : 1000;
@@ -2407,7 +2407,7 @@ let _Code = {
 			window.location.href = '#code';
 
 			window.setTimeout(() => {
-				_Code.tree.findAndOpenNode(pathToOpen, false);
+				_Code.tree.findAndOpenNode(pathToOpen, updateLocationStack);
 			}, timeout);
 		},
 		handleKeyDownEvent: (e) => {
