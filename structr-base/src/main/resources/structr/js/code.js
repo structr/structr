@@ -204,7 +204,7 @@ let _Code = {
 								data: {
 									svgIcon: _Icons.getSvgIcon(_Icons.iconFolderClosed, 16, 24),
 									key:     'SchemaNode',
-									query:   { isBuiltinType: false, isServiceClass: false },
+									query:   { isServiceClass: false },
 									content: 'custom',
 									path:    '/root/custom',
 								},
@@ -223,20 +223,21 @@ let _Code = {
 									path:    '/root/services',
 								},
 							},
-							{
-								id:       '/root/builtin',
-								text:     'Built-In',
-								children: true,
-								icon:     _Icons.nonExistentEmptyIcon,
-								li_attr:  { 'data-id': 'builtin' },
-								data: {
-									svgIcon: _Icons.getSvgIcon(_Icons.iconFolderClosed, 16, 24),
-									key:     'SchemaNode',
-									query:   { isBuiltinType: true },
-									content: 'builtin',
-									path:    '/root/builtin'
-								},
-							},
+							// maybe show something like "overrides"
+							// {
+							// 	id:       '/root/builtin',
+							// 	text:     'Built-In',
+							// 	children: true,
+							// 	icon:     _Icons.nonExistentEmptyIcon,
+							// 	li_attr:  { 'data-id': 'builtin' },
+							// 	data: {
+							// 		svgIcon: _Icons.getSvgIcon(_Icons.iconFolderClosed, 16, 24),
+							// 		key:     'SchemaNode',
+							// 		query:   { isBuiltinType: true },
+							// 		content: 'builtin',
+							// 		path:    '/root/builtin'
+							// 	},
+							// },
 							{
 								id:       '/root/workingsets',
 								text:     'Working Sets',
