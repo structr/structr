@@ -25,6 +25,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StartNodes;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.flow.impl.FlowCondition;
 
 import java.util.Map;
 import java.util.Set;
@@ -42,7 +43,7 @@ public class FlowConditionTraitDefinition extends AbstractNodeTraitDefinition {
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
 		return Map.of(
-			//FlowCondition.class, (traits, node) -> new FlowCondition(traits, node)
+			FlowCondition.class, (traits, node) -> new FlowCondition(traits, node)
 		);
 	}
 

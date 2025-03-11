@@ -46,6 +46,14 @@ public class FlowLogicConditionTraitDefinition extends AbstractNodeTraitDefiniti
 	}
 
 	@Override
+	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
+		return Map.of(
+			FlowLogicCondition.class, (traits, node) -> new FlowLogicCondition(traits, node)
+		);
+	}
+
+	@Override
 	public Map<Class, FrameworkMethod> getFrameworkMethods() {
 
 		return Map.of(
@@ -87,14 +95,6 @@ public class FlowLogicConditionTraitDefinition extends AbstractNodeTraitDefiniti
 					return result;
 				}
 			}
-		);
-	}
-
-	@Override
-	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
-
-		return Map.of(
-			//FlowLogicCondition.class, (traits, node) -> new FlowLogicCondition(traits, node)
 		);
 	}
 

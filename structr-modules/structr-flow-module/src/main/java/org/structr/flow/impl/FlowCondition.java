@@ -25,7 +25,7 @@ import org.structr.core.traits.Traits;
 /**
  *
  */
-public abstract class FlowCondition extends FlowDataSource {
+public class FlowCondition extends FlowDataSource {
 
 	public FlowCondition(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);
