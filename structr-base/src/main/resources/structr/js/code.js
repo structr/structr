@@ -1594,6 +1594,7 @@ let _Code = {
 					language: 'auto',
 					lint: true,
 					autocomplete: true,
+					isAutoscriptEnv: true,
 					changeFn: (editor, entity) => {
 						_Code.persistence.updateDirtyFlag(entity);
 					}

@@ -3843,6 +3843,7 @@ let _Schema = {
 				language: 'auto',
 				lint: true,
 				autocomplete: true,
+				isAutoscriptEnv: true,
 				changeFn: (editor, entity) => {
 
 					methodData.source = editor.getValue();
