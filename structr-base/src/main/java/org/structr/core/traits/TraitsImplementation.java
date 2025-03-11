@@ -40,7 +40,11 @@ public class TraitsImplementation implements Traits {
 	private static final Map<String, Traits> globalTypeMap = new LinkedHashMap<>();
 	private static final Map<String, Trait> globalTraitMap = new LinkedHashMap<>();
 
-	private final Map<String, TraitDefinition> traits = new LinkedHashMap<>();
+	private final Map<String, TraitDefinition> traits                   = new LinkedHashMap<>();
+	private final Map<String, PropertyKey> keyCache                     = new LinkedHashMap<>();
+	private final Map<Class, FrameworkMethod> frameworkMethodCache      = new LinkedHashMap<>();
+	private final Map<Class, Set<LifecycleMethod>> lifecycleMethodCache = new LinkedHashMap<>();
+
 	private final boolean isNodeType;
 	private final boolean isRelationshipType;
 	private final boolean isBuiltInType;
@@ -93,7 +97,11 @@ public class TraitsImplementation implements Traits {
 
 	private <T> PropertyKey<T> key(final String name, final boolean throwException) {
 
-		PropertyKey<T> key = null;
+		PropertyKey<T> key = keyCache.get(name);
+		if (key != null) {
+
+			return key;
+		}
 
 		for (final Trait trait : getTraits()) {
 
@@ -106,6 +114,9 @@ public class TraitsImplementation implements Traits {
 
 		// return last key, not first
 		if (key != null) {
+
+			keyCache.put(name, key);
+
 			return key;
 		}
 
@@ -118,29 +129,11 @@ public class TraitsImplementation implements Traits {
 
 	@Override
 	public boolean hasKey(final String name) {
-
-		for (final Trait trait : getTraits()) {
-
-			if (trait.getPropertyKeys().containsKey(name)) {
-				return true;
-			}
-		}
-
-		return false;
+		return key(name, false) != null;
 	}
 
 	@Override
 	public boolean hasDynamicMethod(final String name) {
-
-		/*
-		for (final Trait trait : getTraits()) {
-
-			if (trait.getDynamicMethods().containsKey(name)) {
-				return true;
-			}
-		}
-		*/
-
 		return false;
 	}
 
@@ -214,7 +207,13 @@ public class TraitsImplementation implements Traits {
 	@Override
 	public <T extends LifecycleMethod> Set<T> getMethods(final Class<T> type) {
 
-		final Set<T> methods = new LinkedHashSet<>();
+		Set<T> methods = (Set) lifecycleMethodCache.get(type);
+		if (methods != null) {
+
+			return methods;
+		}
+
+		methods = new LinkedHashSet<>();
 
 		for (final Trait trait : getTraits()) {
 
@@ -225,13 +224,20 @@ public class TraitsImplementation implements Traits {
 			}
 		}
 
+		// store in cache
+		lifecycleMethodCache.put(type, (Set)methods);
+
 		return methods;
 	}
 
 	@Override
 	public <T extends FrameworkMethod> T getMethod(final Class<T> type) {
 
-		T current = null;
+		T current = (T) frameworkMethodCache.get(type);
+
+		if (current != null) {
+			return current;
+		}
 
 		for (final Trait trait : getTraits()) {
 
@@ -245,6 +251,11 @@ public class TraitsImplementation implements Traits {
 
 				current = method;
 			}
+		}
+
+		if (current != null) {
+
+			frameworkMethodCache.put(type, current);
 		}
 
 		return current;
@@ -377,6 +388,11 @@ public class TraitsImplementation implements Traits {
 
 	@Override
 	public Map<String, Map<String, PropertyKey>> removeDynamicTraits() {
+
+		// clear caches
+		keyCache.clear();
+		frameworkMethodCache.clear();
+		lifecycleMethodCache.clear();
 
 		final Map<String, Map<String, PropertyKey>> removedProperties = new LinkedHashMap<>();
 		final Set<String> traitsToRemove                              = new LinkedHashSet<>();
