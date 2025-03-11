@@ -20,21 +20,24 @@ package org.structr.web.traits.definitions.html;
 
 import org.structr.common.PropertyView;
 import org.structr.core.property.PropertyKey;
-import org.structr.web.common.HtmlProperty;
+import org.structr.core.property.StringProperty;
+import org.structr.core.traits.StructrTraits;
 
 import java.util.Map;
 import java.util.Set;
 
 public class Slot extends GenericHtmlElementTraitDefinition {
 
+	public static final String NAME_PROPERTY = getPrefixedHTMLAttributeName("name");
+
 	public Slot() {
-		super("Slot");
+		super(StructrTraits.SLOT);
 	}
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final PropertyKey<String> nameProperty = new HtmlProperty("name");
+		final PropertyKey<String> nameProperty = new StringProperty(NAME_PROPERTY);
 
 		return newSet(
 			nameProperty
@@ -47,7 +50,7 @@ public class Slot extends GenericHtmlElementTraitDefinition {
 		return Map.of(
 			PropertyView.Html,
 			newSet(
-				"_html_name"
+					NAME_PROPERTY
 			)
 		);
 	}

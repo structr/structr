@@ -110,11 +110,14 @@ public class StructrJsonHtmlWriter implements RestWriter {
 		// baseUrl ist not really a baseUrl, it is the full path. it also does not (necessarily) contain the ApplicationRootPath
 		// to be safe, try to remove both (restPath already contains ApplicationRootPath)
 		// currentType is also a misnomer - it can also be "<type>/<uuid>"
-		String currentType = baseUrl.replace(restPath + "/", "")												// remove longest REST path (including applicationRootPah)
+		final String currentType = baseUrl.replace(restPath + "/", "")										// remove longest REST path (including applicationRootPah)
 				.replace(StringUtils.removeEnd(Settings.RestServletPath.getValue(), "/*") + "/", "")	// remove REST path (without applicationRootPah)
 				.replace("/" + propertyView, "");																// remove current view
 
-		final Set<String> views = (Traits.exists(currentType)) ? Traits.of(currentType).getViewNames() : Traits.getAllViews();
+		// try to isolate type (could still have trailing bits like UUID or even a method)
+		final String isolatedType = (currentType.contains("/")) ? currentType.substring(0, currentType.indexOf("/")) : currentType;
+
+		final Set<String> views = (Traits.exists(isolatedType)) ? Traits.of(isolatedType).getViewNames() : Traits.getAllViews();
 
 		for (String view : views.stream().sorted().toList()) {
 

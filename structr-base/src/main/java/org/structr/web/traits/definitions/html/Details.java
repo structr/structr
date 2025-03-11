@@ -20,21 +20,24 @@ package org.structr.web.traits.definitions.html;
 
 import org.structr.common.PropertyView;
 import org.structr.core.property.PropertyKey;
-import org.structr.web.common.HtmlProperty;
+import org.structr.core.property.StringProperty;
+import org.structr.core.traits.StructrTraits;
 
 import java.util.Map;
 import java.util.Set;
 
 public class Details extends GenericHtmlElementTraitDefinition {
 
+	public static final String OPEN_PROPERTY = getPrefixedHTMLAttributeName("open");
+
 	public Details() {
-		super("Details");
+		super(StructrTraits.DETAILS);
 	}
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final PropertyKey<String> openProperty = new HtmlProperty("open");
+		final PropertyKey<String> openProperty = new StringProperty(OPEN_PROPERTY);
 
 		return newSet(
 			openProperty
@@ -47,7 +50,7 @@ public class Details extends GenericHtmlElementTraitDefinition {
 		return Map.of(
 			PropertyView.Html,
 			newSet(
-				"_html_open"
+					OPEN_PROPERTY
 			)
 		);
 	}

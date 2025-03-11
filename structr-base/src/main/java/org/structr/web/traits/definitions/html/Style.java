@@ -27,11 +27,11 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.StringProperty;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
-import org.structr.web.common.HtmlProperty;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.traits.operations.HandleNewChild;
@@ -41,8 +41,12 @@ import java.util.Set;
 
 public class Style extends GenericHtmlElementTraitDefinition {
 
+	public static final String MEDIA_PROPERTY  = getPrefixedHTMLAttributeName("media");
+	public static final String TYPE_PROPERTY   = getPrefixedHTMLAttributeName("type");
+	public static final String SCOPED_PROPERTY = getPrefixedHTMLAttributeName("scoped");
+
 	public Style() {
-		super("Style");
+		super(StructrTraits.STYLE);
 	}
 
 	@Override
@@ -58,7 +62,7 @@ public class Style extends GenericHtmlElementTraitDefinition {
 				@Override
 				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
-					final PropertyKey<String> key = graphObject.getTraits().key("_html_type");
+					final PropertyKey<String> key = graphObject.getTraits().key(TYPE_PROPERTY);
 					final String value            = graphObject.getProperty(key);
 
 					if (StringUtils.isBlank(value)) {
@@ -116,9 +120,9 @@ public class Style extends GenericHtmlElementTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final PropertyKey<String> mediaProperty = new HtmlProperty("media");
-		final PropertyKey<String> typeProperty = new HtmlProperty("type");
-		final PropertyKey<String> scopedProperty = new HtmlProperty("scoped");
+		final PropertyKey<String> mediaProperty  = new StringProperty(MEDIA_PROPERTY);
+		final PropertyKey<String> typeProperty   = new StringProperty(TYPE_PROPERTY);
+		final PropertyKey<String> scopedProperty = new StringProperty(SCOPED_PROPERTY);
 
 		return newSet(
 			mediaProperty, typeProperty, scopedProperty
@@ -131,7 +135,7 @@ public class Style extends GenericHtmlElementTraitDefinition {
 		return Map.of(
 			PropertyView.Html,
 			newSet(
-				"_html_media", "_html_type", "_html_scoped"
+					MEDIA_PROPERTY, TYPE_PROPERTY, SCOPED_PROPERTY
 			)
 		);
 	}

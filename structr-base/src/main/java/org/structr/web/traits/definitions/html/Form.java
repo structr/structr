@@ -20,28 +20,38 @@ package org.structr.web.traits.definitions.html;
 
 import org.structr.common.PropertyView;
 import org.structr.core.property.PropertyKey;
-import org.structr.web.common.HtmlProperty;
+import org.structr.core.property.StringProperty;
+import org.structr.core.traits.StructrTraits;
 
 import java.util.Map;
 import java.util.Set;
 
 public class Form extends GenericHtmlElementTraitDefinition {
 
+	public static final String ACCEPT_CHARSET_PROPERTY = getPrefixedHTMLAttributeName("accept-charset");
+	public static final String ACTION_PROPERTY         = getPrefixedHTMLAttributeName("action");
+	public static final String AUTOCOMPLETE_PROPERTY   = getPrefixedHTMLAttributeName("autocomplete");
+	public static final String ENCTYPE_PROPERTY        = getPrefixedHTMLAttributeName("enctype");
+	public static final String METHOD_PROPERTY         = getPrefixedHTMLAttributeName("method");
+	public static final String NAME_PROPERTY           = getPrefixedHTMLAttributeName("name");
+	public static final String NOVALIDATE_PROPERTY     = getPrefixedHTMLAttributeName("novalidate");
+	public static final String TARGET_PROPERTY         = getPrefixedHTMLAttributeName("target");
+
 	public Form() {
-		super("Form");
+		super(StructrTraits.FORM);
 	}
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final PropertyKey<String> acceptCharsetProperty = new HtmlProperty("accept-charset");
-		final PropertyKey<String> actionProperty = new HtmlProperty("action");
-		final PropertyKey<String> autocompleteProperty = new HtmlProperty("autocomplete");
-		final PropertyKey<String> enctypeProperty = new HtmlProperty("enctype");
-		final PropertyKey<String> methodProperty = new HtmlProperty("method");
-		final PropertyKey<String> nameProperty = new HtmlProperty("name");
-		final PropertyKey<String> novalidateProperty = new HtmlProperty("novalidate");
-		final PropertyKey<String> targetProperty = new HtmlProperty("target");
+		final PropertyKey<String> acceptCharsetProperty = new StringProperty(ACCEPT_CHARSET_PROPERTY);
+		final PropertyKey<String> actionProperty        = new StringProperty(ACTION_PROPERTY);
+		final PropertyKey<String> autocompleteProperty  = new StringProperty(AUTOCOMPLETE_PROPERTY);
+		final PropertyKey<String> enctypeProperty       = new StringProperty(ENCTYPE_PROPERTY);
+		final PropertyKey<String> methodProperty        = new StringProperty(METHOD_PROPERTY);
+		final PropertyKey<String> nameProperty          = new StringProperty(NAME_PROPERTY);
+		final PropertyKey<String> novalidateProperty    = new StringProperty(NOVALIDATE_PROPERTY);
+		final PropertyKey<String> targetProperty        = new StringProperty(TARGET_PROPERTY);
 
 		return newSet(
 			acceptCharsetProperty, actionProperty, autocompleteProperty, enctypeProperty, methodProperty, nameProperty, novalidateProperty, targetProperty
@@ -54,7 +64,8 @@ public class Form extends GenericHtmlElementTraitDefinition {
 		return Map.of(
 			PropertyView.Html,
 			newSet(
-				"_html_accept-charset", "_html_action", "_html_autocomplete", "_html_enctype", "_html_method", "_html_name", "_html_novalidate", "_html_target"
+					ACCEPT_CHARSET_PROPERTY, ACTION_PROPERTY, AUTOCOMPLETE_PROPERTY, ENCTYPE_PROPERTY, METHOD_PROPERTY,
+					NAME_PROPERTY, NOVALIDATE_PROPERTY, TARGET_PROPERTY
 			)
 		);
 	}

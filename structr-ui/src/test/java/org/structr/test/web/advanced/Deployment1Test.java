@@ -41,6 +41,7 @@ import org.structr.web.traits.definitions.FileTraitDefinition;
 import org.structr.web.traits.definitions.LinkableTraitDefinition;
 import org.structr.web.traits.definitions.dom.ContentTraitDefinition;
 import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
+import org.structr.web.traits.definitions.html.Script;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -101,7 +102,7 @@ public class Deployment1Test extends DeploymentTestBase {
 			final DOMElement script1 = createElement(page, body, "script");
 			final DOMElement script2 = createElement(page, body, "script");
 
-			script1.setProperty(Traits.of("Script").key("_html_type"), "text/javascript");
+			script1.setProperty(Traits.of(StructrTraits.SCRIPT).key(Script.TYPE_PROPERTY), "text/javascript");
 
 			createContent(page, script1, "");
 
@@ -498,7 +499,7 @@ public class Deployment1Test extends DeploymentTestBase {
 		// check
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface node = app.getNodeById("A", a_uuid);
+			final NodeInterface node = app.getNodeById(StructrTraits.A, a_uuid);
 			final LinkSource a       = node.as(LinkSource.class);
 
 			assertNotNull("A element was not created!", a);

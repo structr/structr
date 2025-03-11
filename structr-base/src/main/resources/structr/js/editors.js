@@ -40,6 +40,173 @@ require(['vs/editor/editor.main'], () => {
 			[/[^}]+/, ""]
 		]
 	});
+
+	// add custom definition provider, so we can hook into "Go to definition"
+	monaco.languages.registerDefinitionProvider('javascript', {
+		provideDefinition: (model, position, cancellationToken) => {
+
+			if (Structr.isModuleActive(_Code)) {
+
+				return new Promise((resolve) => {
+
+					let wordAtPos = model.getWordAtPosition(position);
+					// console.log(`Looking up definition for word (${wordAtPos.word}) at position ${position}`, wordAtPos);
+
+					let definitionForCurrentModel = {
+						uri: model.uri,
+						range: new monaco.Range(position.lineNumber, wordAtPos.startColumn, position.lineNumber, wordAtPos.endColumn)
+					};
+
+					let queryURL = `/structr/rest/NodeInterface?type=SchemaMethod;SchemaNode;SchemaProperty&name=${wordAtPos.word}`;
+
+					fetch(queryURL).then(response => {
+						if (response.ok) {
+							return response.json();
+						}
+					}).then(data => {
+
+						let getPropertyNameForEntity = (entity) => {
+							switch (entity.type) {
+								case 'SchemaMethod':
+									return 'source';
+								case 'SchemaNode':
+								case 'SchemaProperty':
+									return entity.name;
+							}
+
+							return 'source';
+						};
+
+						let getSourcePreviewForEntity = (entity) => {
+							switch (entity.type) {
+								case 'SchemaMethod':
+									return entity.source;
+								case 'SchemaNode':
+									return 'Schema Type';
+								case 'SchemaProperty':
+									return 'Schema Attribute on type: ' + entity.schemaNode?.name;
+							}
+
+							return 'unable to show preview';
+						};
+
+						// transform results to definitions
+						let foundDefinitions = data.result.map(entity => {
+
+							let propertyName = getPropertyNameForEntity(entity);
+							let modelUri     = _Editors.getModelURI(entity, propertyName);
+
+							if (!monaco.editor.getModel(modelUri)) {
+
+								// model must exist for preview
+								monaco.editor.createModel(getSourcePreviewForEntity(entity), 'javascript', _Editors.getModelURI(entity, propertyName, {
+									isFromCustomDefinitionProvider: true,
+									structr_entity: entity
+								}));
+							}
+
+							return {
+								uri: modelUri,
+								range: new monaco.Range(0, 0, 0, 0)
+							};
+						});
+
+						let definitions = [
+							definitionForCurrentModel,	// without the definition for the current model, the cursor does not change (unless there is more than 1 definition)
+							...foundDefinitions
+						];
+
+						resolve(definitions);
+					});
+				});
+			}
+
+			return undefined;
+		}
+	});
+
+	monaco.editor.registerEditorOpener({
+		openCodeEditor(sourceEditor, resourceUri, selectionOrPosition) {
+
+			if (Structr.isModuleActive(_Code)) {
+
+				let targetModel = monaco.editor.getModel(resourceUri);
+
+				if (targetModel.uri.isFromCustomDefinitionProvider === true) {
+
+					if (_Code.persistence.isDirty()) {
+
+						_Dialogs.confirmation.showPromise("You have unsaved changes, jump without saving?", false).then(result => {
+
+							if (result === true) {
+
+								_Code.persistence.forceNotDirty();
+
+								_Code.helpers.navigateToSchemaObjectFromAnywhere(targetModel.uri.structr_entity, true);
+								return true;
+							}
+						});
+
+					} else {
+
+						_Code.helpers.navigateToSchemaObjectFromAnywhere(targetModel.uri.structr_entity, true);
+						return true;
+					}
+
+				} else {
+
+					console.log('URI is not from custom definition provider... not doing anything');
+				}
+			}
+
+			return false;
+		}
+	});
+
+	// useless?
+	// monaco.editor.registerLinkOpener({
+	// 	open: function (resource) {
+	// 		console.log('Custom link opener: ', resource)
+	// 		return false;
+	// 	}
+	// });
+
+	// show hover info...
+	// monaco.languages.registerHoverProvider('javascript', {
+	// 	provideHover: function (model, position) {
+	//
+	// 		// console.log('Hover Provider: ', model, position)
+	//
+	// 		let wordAtPos = model.getWordAtPosition(position);
+	//
+	// 		let definitionFound = (wordAtPos?.word === 'deactivatedAtTheMoment');
+	//
+	// 		if (definitionFound) {
+	//
+	// 			// TODO: create model
+	// 			// TODO: get URI from model to put in the link
+	//
+	// 			return {
+	// 				range: new monaco.Range(
+	// 					2,
+	// 					1,
+	// 					2,
+	// 					10
+	// 				),
+	// 				contents: [
+	// 					{ value: "**SOURCE**" },
+	// 					{
+	// 						value:
+	// 							'<a href="fcc64fd05ef64bf391607e7fd9c5954b">Hello</a> World!',
+	// 						supportHtml: true
+	// 					},
+	// 				],
+	// 			};
+	// 		}
+	//
+	// 		return undefined;
+	// 	},
+	// });
 });
 
 let _Editors = {
@@ -465,14 +632,33 @@ let _Editors = {
 
 		return monaco.languages.CompletionItemKind.Function;
 	},
-	getModelURI: (id, propertyName, extraInfo) => {
+	getPathForEntityAndPropertyName: (entity, propertyName) => {
+
+		let path = `${entity.id}/${propertyName}`;
+
+		switch (entity.type) {
+			case 'SchemaMethod':
+				path = `${entity.schemaNode?.isServiceClass ? 'Service' : 'Custom'}/${entity.schemaNode?.name}/${entity.name}/${propertyName}`	// must include propertyName because for methods "source" and "openAPIConfig" are created
+				break;
+			case 'SchemaNode':
+				path = `${entity.isServiceClass ? 'Service' : 'Custom'}/${propertyName}`	// entity.name should be equal to propertyName
+				break;
+			case 'SchemaProperty':
+				path = `${entity.schemaNode?.isServiceClass ? 'Service' : 'Custom'}/${entity.schemaNode?.name}/Property/${propertyName}`	// entity.name should be equal to propertyName
+				break;
+		}
+
+		return path;
+
+	},
+	getModelURI: (entity, propertyName, extraInfo) => {
 
 		let uri = monaco.Uri.from({
 			scheme: 'file', // keeps history even after switching editors in code
-			path:   `/${id}/${propertyName}`,
+			path:   _Editors.getPathForEntityAndPropertyName(entity, propertyName)
 		});
 
-		uri.structr_uuid     = id;
+		uri.structr_uuid     = entity.id;
 		uri.structr_property = propertyName;
 
 		for (let key in extraInfo) {
@@ -503,11 +689,16 @@ let _Editors = {
 
 			// A bit hacky to transport additional configuration to deeper layers...
 			let extraModelConfig = {
-				isAutoscriptEnv: customConfig.isAutoscriptEnv,
+				isAutoscriptEnv:        customConfig.isAutoscriptEnv,
 				forceAllowAutoComplete: customConfig.forceAllowAutoComplete
 			}
 
-			storageContainer.model = monaco.editor.createModel(editorText, language, _Editors.getModelURI(entity.id, propertyName, extraModelConfig));
+			// find and dispose previously created models for same element (possibly done from definitionProvider)
+			let modelUri = _Editors.getModelURI(entity, propertyName, extraModelConfig);
+			let prevModel = monaco.editor.getModel(modelUri);
+			prevModel?.dispose();
+
+			storageContainer.model = monaco.editor.createModel(editorText, language, modelUri);
 		}
 
 		let monacoConfig = Object.assign(_Editors.getOurSavedEditorOptionsForEditor(), {

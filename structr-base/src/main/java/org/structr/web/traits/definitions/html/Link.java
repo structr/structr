@@ -20,8 +20,9 @@ package org.structr.web.traits.definitions.html;
 
 import org.structr.common.PropertyView;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.StringProperty;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.operations.FrameworkMethod;
-import org.structr.web.common.HtmlProperty;
 import org.structr.web.traits.operations.IsVoidElement;
 
 import java.util.Map;
@@ -29,8 +30,15 @@ import java.util.Set;
 
 public class Link extends GenericHtmlElementTraitDefinition {
 
+	public static final String HREF_PROPERTY     = getPrefixedHTMLAttributeName("href");
+	public static final String REL_PROPERTY      = getPrefixedHTMLAttributeName("rel");
+	public static final String MEDIA_PROPERTY    = getPrefixedHTMLAttributeName("media");
+	public static final String HREFLANG_PROPERTY = getPrefixedHTMLAttributeName("hreflang");
+	public static final String TYPE_PROPERTY     = getPrefixedHTMLAttributeName("type");
+	public static final String SIZES_PROPERTY    = getPrefixedHTMLAttributeName("sizes");
+
 	public Link() {
-		super("Link");
+		super(StructrTraits.LINK);
 	}
 
 	@Override
@@ -56,12 +64,12 @@ public class Link extends GenericHtmlElementTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final PropertyKey<String> hrefProperty     = new HtmlProperty("href");
-		final PropertyKey<String> relProperty      = new HtmlProperty("rel");
-		final PropertyKey<String> mediaProperty    = new HtmlProperty("media");
-		final PropertyKey<String> hreflangProperty = new HtmlProperty("hreflang");
-		final PropertyKey<String> typeProperty     = new HtmlProperty("type");
-		final PropertyKey<String> sizesProperty    = new HtmlProperty("sizes");
+		final PropertyKey<String> hrefProperty     = new StringProperty(HREF_PROPERTY);
+		final PropertyKey<String> relProperty      = new StringProperty(REL_PROPERTY);
+		final PropertyKey<String> mediaProperty    = new StringProperty(MEDIA_PROPERTY);
+		final PropertyKey<String> hreflangProperty = new StringProperty(HREFLANG_PROPERTY);
+		final PropertyKey<String> typeProperty     = new StringProperty(TYPE_PROPERTY);
+		final PropertyKey<String> sizesProperty    = new StringProperty(SIZES_PROPERTY);
 
 		return newSet(
 			hrefProperty, relProperty, mediaProperty, hreflangProperty, typeProperty, sizesProperty
@@ -74,7 +82,7 @@ public class Link extends GenericHtmlElementTraitDefinition {
 		return Map.of(
 			PropertyView.Html,
 			newSet(
-				"_html_href", "_html_rel", "_html_media", "_html_hreflang", "_html_type", "_html_sizes"
+					HREF_PROPERTY, REL_PROPERTY, MEDIA_PROPERTY, HREFLANG_PROPERTY, TYPE_PROPERTY, SIZES_PROPERTY
 			)
 		);
 	}

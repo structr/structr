@@ -20,23 +20,28 @@ package org.structr.web.traits.definitions.html;
 
 import org.structr.common.PropertyView;
 import org.structr.core.property.PropertyKey;
-import org.structr.web.common.HtmlProperty;
+import org.structr.core.property.StringProperty;
+import org.structr.core.traits.StructrTraits;
 
 import java.util.Map;
 import java.util.Set;
 
 public class Td extends GenericHtmlElementTraitDefinition {
 
+	public static final String COLSPAN_PROPERTY = getPrefixedHTMLAttributeName("colspan");
+	public static final String ROWSPAN_PROPERTY = getPrefixedHTMLAttributeName("rowspan");
+	public static final String HEADERS_PROPERTY = getPrefixedHTMLAttributeName("headers");
+
 	public Td() {
-		super("Td");
+		super(StructrTraits.TD);
 	}
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final PropertyKey<String> colspanProperty = new HtmlProperty("colspan");
-		final PropertyKey<String> rowspanProperty = new HtmlProperty("rowspan");
-		final PropertyKey<String> headersProperty = new HtmlProperty("headers");
+		final PropertyKey<String> colspanProperty = new StringProperty(COLSPAN_PROPERTY);
+		final PropertyKey<String> rowspanProperty = new StringProperty(ROWSPAN_PROPERTY);
+		final PropertyKey<String> headersProperty = new StringProperty(HEADERS_PROPERTY);
 
 		return newSet(
 			colspanProperty, rowspanProperty, headersProperty
@@ -49,7 +54,7 @@ public class Td extends GenericHtmlElementTraitDefinition {
 		return Map.of(
 			PropertyView.Html,
 			newSet(
-				"_html_colspan", "_html_rowspan", "_html_headers"
+					COLSPAN_PROPERTY, ROWSPAN_PROPERTY, HEADERS_PROPERTY
 			)
 		);
 	}

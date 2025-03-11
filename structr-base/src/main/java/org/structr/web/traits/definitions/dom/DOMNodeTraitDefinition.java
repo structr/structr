@@ -54,6 +54,7 @@ import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.property.CustomHtmlAttributeProperty;
 import org.structr.web.property.DOMNodeSortedChildrenProperty;
+import org.structr.web.traits.definitions.html.Option;
 import org.structr.web.traits.operations.*;
 import org.structr.web.traits.wrappers.dom.DOMNodeTraitWrapper;
 import org.w3c.dom.DOMException;
@@ -101,7 +102,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String FLOW_PROPERTY                           = "flow";
 
 	private static final String[] rawProps = new String[] {
-			DATA_KEY_PROPERTY, REST_QUERY_PROPERTY, CYPHER_QUERY_PROPERTY, FUNCTION_QUERY_PROPERTY, "selectedValues", FLOW_PROPERTY,
+			DATA_KEY_PROPERTY, REST_QUERY_PROPERTY, CYPHER_QUERY_PROPERTY, FUNCTION_QUERY_PROPERTY, Option.SELECTEDVALUES_PROPERTY, FLOW_PROPERTY,
 			"hideOnIndex", "hideOnDetail", // FIXME: these dont exist anymore!?
 			SHOW_FOR_LOCALES_PROPERTY, HIDE_FOR_LOCALES_PROPERTY, SHOW_CONDITIONS_PROPERTY, HIDE_CONDITIONS_PROPERTY
 	};

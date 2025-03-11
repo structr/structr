@@ -20,7 +20,8 @@ package org.structr.web.traits.definitions.html;
 
 import org.structr.common.PropertyView;
 import org.structr.core.property.PropertyKey;
-import org.structr.web.common.HtmlProperty;
+import org.structr.core.property.StringProperty;
+import org.structr.core.traits.StructrTraits;
 
 import java.util.Map;
 import java.util.Set;
@@ -30,20 +31,28 @@ import java.util.Set;
  */
 public class Audio extends GenericHtmlElementTraitDefinition {
 
+	public static final String SRC_PROPERTY         = getPrefixedHTMLAttributeName("src");
+	public static final String CROSSORIGIN_PROPERTY = getPrefixedHTMLAttributeName("crossorigin");
+	public static final String PRELOAD_PROPERTY     = getPrefixedHTMLAttributeName("preload");
+	public static final String AUTOPLAY_PROPERTY    = getPrefixedHTMLAttributeName("autoplay");
+	public static final String LOOP_PROPERTY        = getPrefixedHTMLAttributeName("loop");
+	public static final String MUTED_PROPERTY       = getPrefixedHTMLAttributeName("muted");
+	public static final String CONTROLS_PROPERTY    = getPrefixedHTMLAttributeName("controls");
+
 	public Audio() {
-		super("Audio");
+		super(StructrTraits.AUDIO);
 	}
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final PropertyKey<String> srcProperty = new HtmlProperty("src");
-		final PropertyKey<String> crossoriginProperty = new HtmlProperty("crossorigin");
-		final PropertyKey<String> preloadProperty = new HtmlProperty("preload");
-		final PropertyKey<String> autoplayProperty = new HtmlProperty("autoplay");
-		final PropertyKey<String> loopProperty = new HtmlProperty("loop");
-		final PropertyKey<String> mutedProperty = new HtmlProperty("muted");
-		final PropertyKey<String> controlsProperty = new HtmlProperty("controls");
+		final PropertyKey<String> srcProperty         = new StringProperty(SRC_PROPERTY);
+		final PropertyKey<String> crossoriginProperty = new StringProperty(CROSSORIGIN_PROPERTY);
+		final PropertyKey<String> preloadProperty     = new StringProperty(PRELOAD_PROPERTY);
+		final PropertyKey<String> autoplayProperty    = new StringProperty(AUTOPLAY_PROPERTY);
+		final PropertyKey<String> loopProperty        = new StringProperty(LOOP_PROPERTY);
+		final PropertyKey<String> mutedProperty       = new StringProperty(MUTED_PROPERTY);
+		final PropertyKey<String> controlsProperty    = new StringProperty(CONTROLS_PROPERTY);
 
 		return newSet(
 			srcProperty, crossoriginProperty, preloadProperty, autoplayProperty, loopProperty, mutedProperty, controlsProperty
@@ -56,7 +65,7 @@ public class Audio extends GenericHtmlElementTraitDefinition {
 		return Map.of(
 			PropertyView.Html,
 			newSet(
-				"_html_src", "_html_crossorigin", "_html_preload", "_html_autoplay", "_html_loop", "_html_muted", "_html_controls"
+					SRC_PROPERTY, CROSSORIGIN_PROPERTY, PRELOAD_PROPERTY, AUTOPLAY_PROPERTY, LOOP_PROPERTY, MUTED_PROPERTY, CONTROLS_PROPERTY
 			)
 		);
 	}

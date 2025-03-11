@@ -20,8 +20,9 @@ package org.structr.web.traits.definitions.html;
 
 import org.structr.common.PropertyView;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.StringProperty;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.operations.FrameworkMethod;
-import org.structr.web.common.HtmlProperty;
 import org.structr.web.traits.operations.AvoidWhitespace;
 import org.structr.web.traits.operations.IsVoidElement;
 
@@ -30,8 +31,16 @@ import java.util.Set;
 
 public class Img extends GenericHtmlElementTraitDefinition {
 
+	public static final String ALT_PROPERTY         = getPrefixedHTMLAttributeName("alt");
+	public static final String SRC_PROPERTY         = getPrefixedHTMLAttributeName("src");
+	public static final String CROSSORIGIN_PROPERTY = getPrefixedHTMLAttributeName("crossorigin");
+	public static final String USEMAP_PROPERTY      = getPrefixedHTMLAttributeName("usemap");
+	public static final String ISMAP_PROPERTY       = getPrefixedHTMLAttributeName("ismap");
+	public static final String WIDTH_PROPERTY       = getPrefixedHTMLAttributeName("width");
+	public static final String HEIGHT_PROPERTY      = getPrefixedHTMLAttributeName("height");
+
 	public Img() {
-		super("Img");
+		super(StructrTraits.IMG);
 	}
 
 	@Override
@@ -69,13 +78,13 @@ public class Img extends GenericHtmlElementTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final PropertyKey<String> altProperty = new HtmlProperty("alt");
-		final PropertyKey<String> srcProperty = new HtmlProperty("src");
-		final PropertyKey<String> crossoriginProperty = new HtmlProperty("crossorigin");
-		final PropertyKey<String> usemapProperty = new HtmlProperty("usemap");
-		final PropertyKey<String> ismapProperty = new HtmlProperty("ismap");
-		final PropertyKey<String> widthProperty = new HtmlProperty("width");
-		final PropertyKey<String> heightProperty = new HtmlProperty("height");
+		final PropertyKey<String> altProperty         = new StringProperty(ALT_PROPERTY);
+		final PropertyKey<String> srcProperty         = new StringProperty(SRC_PROPERTY);
+		final PropertyKey<String> crossoriginProperty = new StringProperty(CROSSORIGIN_PROPERTY);
+		final PropertyKey<String> usemapProperty      = new StringProperty(USEMAP_PROPERTY);
+		final PropertyKey<String> ismapProperty       = new StringProperty(ISMAP_PROPERTY);
+		final PropertyKey<String> widthProperty       = new StringProperty(WIDTH_PROPERTY);
+		final PropertyKey<String> heightProperty      = new StringProperty(HEIGHT_PROPERTY);
 
 		return newSet(
 			altProperty, srcProperty, crossoriginProperty, usemapProperty, ismapProperty, widthProperty, heightProperty
@@ -88,7 +97,7 @@ public class Img extends GenericHtmlElementTraitDefinition {
 		return Map.of(
 			PropertyView.Html,
 			newSet(
-				"_html_alt", "_html_src", "_html_crossorigin", "_html_usemap", "_html_ismap", "_html_width", "_html_height"
+					ALT_PROPERTY, SRC_PROPERTY, CROSSORIGIN_PROPERTY, USEMAP_PROPERTY, ISMAP_PROPERTY, WIDTH_PROPERTY, HEIGHT_PROPERTY
 			)
 		);
 	}

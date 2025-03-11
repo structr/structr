@@ -20,30 +20,42 @@ package org.structr.web.traits.definitions.html;
 
 import org.structr.common.PropertyView;
 import org.structr.core.property.PropertyKey;
-import org.structr.web.common.HtmlProperty;
+import org.structr.core.property.StringProperty;
+import org.structr.core.traits.StructrTraits;
 
 import java.util.Map;
 import java.util.Set;
 
 public class Button extends GenericHtmlElementTraitDefinition {
 
+	public static final String AUTOFOCUS_PROPERTY      = getPrefixedHTMLAttributeName("autofocus");
+	public static final String DISABLED_PROPERTY       = getPrefixedHTMLAttributeName("disabled");
+	public static final String FORM_PROPERTY           = getPrefixedHTMLAttributeName("form");
+	public static final String FORMACTION_PROPERTY     = getPrefixedHTMLAttributeName("formaction");
+	public static final String FORMENCTYPE_PROPERTY    = getPrefixedHTMLAttributeName("formenctype");
+	public static final String FORMMETHOD_PROPERTY     = getPrefixedHTMLAttributeName("formmethod");
+	public static final String FORMNOVALIDATE_PROPERTY = getPrefixedHTMLAttributeName("formnovalidate");
+	public static final String FORMTARGET_PROPERTY     = getPrefixedHTMLAttributeName("formtarget");
+	public static final String TYPE_PROPERTY           = getPrefixedHTMLAttributeName("type");
+	public static final String VALUE_PROPERTY          = getPrefixedHTMLAttributeName("value");
+
 	public Button() {
-		super("Button");
+		super(StructrTraits.BUTTON);
 	}
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final PropertyKey<String> autofocusProperty = new HtmlProperty("autofocus");
-		final PropertyKey<String> disabledProperty = new HtmlProperty("disabled");
-		final PropertyKey<String> formProperty = new HtmlProperty("form");
-		final PropertyKey<String> formactionProperty = new HtmlProperty("formaction");
-		final PropertyKey<String> formenctypeProperty = new HtmlProperty("formenctype");
-		final PropertyKey<String> formmethodProperty = new HtmlProperty("formmethod");
-		final PropertyKey<String> formnovalidateProperty = new HtmlProperty("formnovalidate");
-		final PropertyKey<String> formtargetProperty = new HtmlProperty("formtarget");
-		final PropertyKey<String> typeProperty = new HtmlProperty("type");
-		final PropertyKey<String> valueProperty = new HtmlProperty("value");
+		final PropertyKey<String> autofocusProperty      = new StringProperty(AUTOFOCUS_PROPERTY);
+		final PropertyKey<String> disabledProperty       = new StringProperty(DISABLED_PROPERTY);
+		final PropertyKey<String> formProperty           = new StringProperty(FORM_PROPERTY);
+		final PropertyKey<String> formactionProperty     = new StringProperty(FORMACTION_PROPERTY);
+		final PropertyKey<String> formenctypeProperty    = new StringProperty(FORMENCTYPE_PROPERTY);
+		final PropertyKey<String> formmethodProperty     = new StringProperty(FORMMETHOD_PROPERTY);
+		final PropertyKey<String> formnovalidateProperty = new StringProperty(FORMNOVALIDATE_PROPERTY);
+		final PropertyKey<String> formtargetProperty     = new StringProperty(FORMTARGET_PROPERTY);
+		final PropertyKey<String> typeProperty           = new StringProperty(TYPE_PROPERTY);
+		final PropertyKey<String> valueProperty          = new StringProperty(VALUE_PROPERTY);
 
 		return newSet(
 			autofocusProperty, disabledProperty, formProperty, formactionProperty, formenctypeProperty,
@@ -57,8 +69,8 @@ public class Button extends GenericHtmlElementTraitDefinition {
 		return Map.of(
 			PropertyView.Html,
 			newSet(
-				"_html_autofocus", "_html_disabled", "_html_form", "_html_formaction", "_html_formenctype",
-				"_html_formmethod", "_html_formnovalidate", "_html_formtarget", "_html_type", "_html_value"
+					AUTOFOCUS_PROPERTY, DISABLED_PROPERTY, FORM_PROPERTY, FORMACTION_PROPERTY, FORMENCTYPE_PROPERTY,
+					FORMMETHOD_PROPERTY, FORMNOVALIDATE_PROPERTY, FORMTARGET_PROPERTY, TYPE_PROPERTY, VALUE_PROPERTY
 			)
 		);
 	}

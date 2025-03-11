@@ -20,22 +20,26 @@ package org.structr.web.traits.definitions.html;
 
 import org.structr.common.PropertyView;
 import org.structr.core.property.PropertyKey;
-import org.structr.web.common.HtmlProperty;
+import org.structr.core.property.StringProperty;
+import org.structr.core.traits.StructrTraits;
 
 import java.util.Map;
 import java.util.Set;
 
 public class Label extends GenericHtmlElementTraitDefinition {
 
+	public static final String FOR_PROPERTY  = getPrefixedHTMLAttributeName("for");
+	public static final String FORM_PROPERTY = getPrefixedHTMLAttributeName("form");
+
 	public Label() {
-		super("Label");
+		super(StructrTraits.LABEL);
 	}
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final PropertyKey<String> forProperty = new HtmlProperty("for");
-		final PropertyKey<String> formProperty = new HtmlProperty("form");
+		final PropertyKey<String> forProperty  = new StringProperty(FOR_PROPERTY);
+		final PropertyKey<String> formProperty = new StringProperty(FORM_PROPERTY);
 
 		return newSet(
 			forProperty, formProperty
@@ -48,7 +52,7 @@ public class Label extends GenericHtmlElementTraitDefinition {
 		return Map.of(
 			PropertyView.Html,
 			newSet(
-				"_html_form", "_html_for"
+					FOR_PROPERTY, FORM_PROPERTY
 			)
 		);
 	}

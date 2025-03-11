@@ -44,6 +44,8 @@ import org.structr.web.entity.dom.Page;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
 import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
+import org.structr.web.traits.definitions.html.Option;
+import org.structr.web.traits.definitions.html.Select;
 import org.structr.websocket.command.CreateComponentCommand;
 import org.testng.annotations.Test;
 
@@ -195,15 +197,15 @@ public class Deployment5Test extends DeploymentTestBase {
 			final DOMElement sel1 = createElement(page1, div1,  "select");
 			final DOMElement opt1 = createElement(page1, sel1,  "option", "${group.name}");
 
-			sel1.setProperty(Traits.of("Select").key("_html_multiple"), "multiple");
+			sel1.setProperty(Traits.of(StructrTraits.SELECT).key(Select.MULTIPLE_PROPERTY), "multiple");
 
 			// repeater config
 			opt1.setProperty(Traits.of(StructrTraits.DOM_ELEMENT).key(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY), "find('Group', sort('name'))");
 			opt1.setProperty(Traits.of(StructrTraits.DOM_ELEMENT).key(DOMNodeTraitDefinition.DATA_KEY_PROPERTY),       "group");
 
 			// special keys for Option element
-			opt1.setProperty(Traits.of("Option").key("selectedValues"), "current.members");
-			opt1.setProperty(Traits.of("Option").key("_html_value"),    "${group.id}");
+			opt1.setProperty(Traits.of(StructrTraits.OPTION).key(Option.SELECTEDVALUES_PROPERTY), "current.members");
+			opt1.setProperty(Traits.of(StructrTraits.OPTION).key(Option.VALUE_PROPERTY),          "${group.id}");
 
 			tx.success();
 

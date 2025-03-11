@@ -42,6 +42,8 @@ import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
+import org.structr.web.traits.definitions.html.Option;
+import org.structr.web.traits.definitions.html.Select;
 import org.testng.annotations.Test;
 
 import java.util.LinkedList;
@@ -106,13 +108,13 @@ public class RepeaterTest extends StructrUiTest {
 			final DOMNode option = createElement(page1, select, "option", "${task.name}");
 
 
-			select.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY),  "find('Project')");
-			select.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.DATA_KEY_PROPERTY),        "project");
-			select.setProperty(Traits.of("Select").key("_html_multiple"), "multiple");
+			select.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY), "find('Project')");
+			select.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.DATA_KEY_PROPERTY),       "project");
+			select.setProperty(Traits.of(StructrTraits.SELECT).key(Select.MULTIPLE_PROPERTY),                         "multiple");
 
-			option.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY),  "find('Task', sort('name'))");
-			option.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.DATA_KEY_PROPERTY),        "task");
-			option.setProperty(Traits.of("Option").key("_html_value"),     "${task.id}");
+			option.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY), "find('Task', sort('name'))");
+			option.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.DATA_KEY_PROPERTY),       "task");
+			option.setProperty(Traits.of(StructrTraits.OPTION).key(Option.VALUE_PROPERTY),                            "${task.id}");
 
 			tx.success();
 

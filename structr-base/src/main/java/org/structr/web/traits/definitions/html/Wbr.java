@@ -18,6 +18,7 @@
  */
 package org.structr.web.traits.definitions.html;
 
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.web.traits.operations.AvoidWhitespace;
 import org.structr.web.traits.operations.IsVoidElement;
@@ -27,7 +28,7 @@ import java.util.Map;
 public class Wbr extends GenericHtmlElementTraitDefinition {
 
 	public Wbr() {
-		super("Wbr");
+		super(StructrTraits.WBR);
 	}
 
 	@Override

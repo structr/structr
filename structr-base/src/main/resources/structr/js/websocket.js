@@ -125,7 +125,10 @@ let StructrWS = {
 	stopPing: () => {
 		StructrWS.wsWorker.postMessage({ type: 'stopPing' });
 	},
+	consecutiveNotLoggedIn: 0,
 	onopen: (workerMessage) => {
+
+		StructrWS.consecutiveNotLoggedIn = 0;
 
 		Structr.hideReconnectDialog();
 
@@ -150,7 +153,17 @@ let StructrWS = {
 				// we just moved the UI off-screen to be able to show the reconnect dialog.
 				// if we did not move the UI off-screen, we are already showing the reconnect dialog
 				Structr.showReconnectDialog();
+
+			} else if (!StructrWS.user && !movedOffscreen) {
+
+				if (StructrWS.consecutiveNotLoggedIn++ > 5) {
+
+					if (!Structr.getReconnectDialogElement()) {
+						Structr.showReconnectDialog();
+					}
+				}
 			}
+
 			StructrWS.reconnect({ source: 'onclose' });
 
 		}, 100);
