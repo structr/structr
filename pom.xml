@@ -58,7 +58,7 @@
 		<test.forkCount>4</test.forkCount>
 		<slf4j.version>2.0.0</slf4j.version>
 		<tika.version>2.9.1</tika.version>
-		<pulsar.version>3.2.0</pulsar.version>
+		<pulsar.version>4.0.3</pulsar.version>
 	</properties>
 
 	<modules>
@@ -118,20 +118,26 @@
 			</dependency>
 			<dependency>
 				<groupId>org.bouncycastle</groupId>
-				<artifactId>bcmail-jdk15on</artifactId>
-				<version>1.67</version>
+				<artifactId>bcutil-jdk18on</artifactId>
+				<version>1.77</version>
 				<optional>true</optional>
 			</dependency>
 			<dependency>
 				<groupId>org.bouncycastle</groupId>
-				<artifactId>bcprov-jdk15on</artifactId>
-				<version>1.67</version>
+				<artifactId>bcmail-jdk18on</artifactId>
+				<version>1.77</version>
 				<optional>true</optional>
 			</dependency>
 			<dependency>
 				<groupId>org.bouncycastle</groupId>
-				<artifactId>bcpkix-jdk15on</artifactId>
-				<version>1.67</version>
+				<artifactId>bcprov-jdk18on</artifactId>
+				<version>1.77</version>
+				<optional>true</optional>
+			</dependency>
+			<dependency>
+				<groupId>org.bouncycastle</groupId>
+				<artifactId>bcpkix-jdk18on</artifactId>
+				<version>1.77</version>
 				<optional>true</optional>
 			</dependency>
 			<dependency>
