@@ -834,7 +834,7 @@ let _Schema = {
 		},
 		loadNode: (entity, mainTabs, contentDiv, targetView = 'local', callbackCancel) => {
 
-			if (!Structr.isModuleActive(_Code) && (targetView === 'source-code' || targetView === 'working-sets')) {
+			if (!Structr.isModuleActive(_Code) && (targetView === 'working-sets')) {
 				targetView = 'basic';
 			}
 
@@ -864,15 +864,13 @@ let _Schema = {
 
 			if (Structr.isModuleActive(_Code)) {
 
-				// only show the following tabs in the Code area where it is not opened in a popup
+				// only show the following tab in the Code area where it is not opened in a popup
 
 				if (entity.isServiceClass === false) {
 					let workingSetsTabContent = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'working-sets', 'Working Sets', targetView === 'working-sets');
 					workingSetsTabContent.classList.add('relative');
 					_Schema.nodes.appendWorkingSets(workingSetsTabContent, entity);
 				}
-
-				_Schema.nodes.appendGeneratedSourceCodeTab(entity, mainTabs, contentDiv, targetView);
 			}
 
 			_Schema.bulkDialogsGeneral.overrideDialogCancel(mainTabs, callbackCancel);
@@ -1130,21 +1128,7 @@ let _Schema = {
 			});
 
 		},
-		appendGeneratedSourceCodeTab: (entity, mainTabs, contentDiv, targetView) => {
 
-			let generatedSourceTabShowCallback = (tabContent) => {
-				_Schema.showGeneratedSource(tabContent.querySelector('.generated-source')).then(() => {
-					_Editors.resizeVisibleEditors();
-				});
-			};
-			let tabContent = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'source-code', 'Source Code', targetView === 'source-code', generatedSourceTabShowCallback, false, true);
-
-			tabContent.insertAdjacentHTML('beforeend', `<div class="generated-source" data-type-name="${entity.type}" data-type-id="${entity.id}"></div>`);
-
-			if (targetView === 'source-code') {
-				generatedSourceTabShowCallback(tabContent);
-			}
-		},
 		getTypeDefinitionDataFromForm: (tabContent, entity) => {
 			return _Code.persistence.collectDataFromContainer(tabContent, entity);
 		},
@@ -3843,6 +3827,7 @@ let _Schema = {
 				language: 'auto',
 				lint: true,
 				autocomplete: true,
+				isAutoscriptEnv: true,
 				changeFn: (editor, entity) => {
 
 					methodData.source = editor.getValue();
@@ -4180,43 +4165,6 @@ let _Schema = {
 					</div>
 				</div>
 			`,
-		}
-	},
-	showGeneratedSource: async (sourceContainer) => {
-
-		if (sourceContainer) {
-
-			let typeName = sourceContainer.dataset.typeName;
-			let typeId   = sourceContainer.dataset.typeId;
-
-			if (typeName && typeId) {
-
-				_Helpers.fastRemoveAllChildren(sourceContainer);
-
-				sourceContainer.classList.add('h-full');
-
-				let response = await fetch(Structr.rootUrl + typeName + '/' + typeId + '/getGeneratedSourceCode', { method: 'POST' });
-
-				if (response.ok) {
-
-					// remove id so we do not refresh the editor all the time
-					sourceContainer.dataset.typeId = '';
-
-					let result = await response.json();
-
-					let typeSourceConfig = {
-						value: result.result,
-						language: 'java',
-						lint: false,
-						autocomplete: false,
-						readOnly: true
-					};
-
-					_Editors.getMonacoEditor({}, 'source-code', sourceContainer, typeSourceConfig);
-
-					_Editors.resizeVisibleEditors();
-				}
-			}
 		}
 	},
 	resize: () => {

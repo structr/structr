@@ -173,20 +173,6 @@ document.addEventListener("DOMContentLoaded", () => {
 			let { dialogText } = _Dialogs.custom.openDialog('Bulk Editing Helper (Ctrl-Alt-E)');
 			new RefactoringHelper(dialogText).show();
 		}
-
-		// ctrl-u / cmd-u: show generated source in schema or code area
-		if ((code === 'KeyU' || keyCode === 85) && ((!_Helpers.isMac() && event.ctrlKey) || (_Helpers.isMac() && event.metaKey))) {
-
-			let sourceCodeTab = document.querySelector('li#tab-source-code');
-
-			if (sourceCodeTab) {
-
-				event.preventDefault();
-
-				sourceCodeTab.dispatchEvent(new Event('click'));
-				sourceCodeTab.style.display = null;
-			}
-		}
 	});
 
 	window.addEventListener('resize', Structr.resize);
