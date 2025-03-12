@@ -108,6 +108,7 @@ require(['vs/editor/editor.main'], () => {
 							return {
 								uri: modelUri,
 								range: new monaco.Range(0, 0, 0, 0)
+								// re: range: the name of the result will not show up in the source, thus, we do not want text highlighting and use a range before line 1
 							};
 						});
 
@@ -115,6 +116,8 @@ require(['vs/editor/editor.main'], () => {
 							definitionForCurrentModel,	// without the definition for the current model, the cursor does not change (unless there is more than 1 definition)
 							...foundDefinitions
 						];
+
+						// console.log(`found ${definitions.length} definitions`);
 
 						resolve(definitions);
 					});
@@ -161,6 +164,19 @@ require(['vs/editor/editor.main'], () => {
 
 			return false;
 		}
+	});
+
+	monaco.editor.onDidCreateEditor(newEditor => {
+
+		newEditor.onDidChangeModel(e => {
+
+			// we currently never change models, this only serves as a helper for definition peek window to keep display-only models from being written to
+			let allowWrite = (e.oldModelUrl === null || e.newModelUrl?.isFromCustomDefinitionProvider !== true);
+
+			newEditor.updateOptions({
+				readOnly: !allowWrite
+			});
+		});
 	});
 
 	// useless?
