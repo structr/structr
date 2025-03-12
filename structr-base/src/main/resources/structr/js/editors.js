@@ -107,19 +107,13 @@ require(['vs/editor/editor.main'], () => {
 
 							return {
 								uri: modelUri,
-								range: new monaco.Range(0, 0, 0, 0)
-								// re: range: the name of the result will not show up in the source, thus, we do not want text highlighting and use a range before line 1
+								range: new monaco.Range(1, 1, 1, 1)		// fake range, but must be >= 1 to not break monaco code
 							};
 						});
 
-						let definitions = [
-							definitionForCurrentModel,	// without the definition for the current model, the cursor does not change (unless there is more than 1 definition)
-							...foundDefinitions
-						];
+						// console.log(`found ${foundDefinitions.length} definitions`);
 
-						// console.log(`found ${definitions.length} definitions`);
-
-						resolve(definitions);
+						resolve(foundDefinitions);
 					});
 				});
 			}
