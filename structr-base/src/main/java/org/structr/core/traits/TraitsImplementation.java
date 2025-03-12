@@ -44,6 +44,8 @@ public class TraitsImplementation implements Traits {
 	private final Map<String, PropertyKey> keyCache                     = new LinkedHashMap<>();
 	private final Map<Class, FrameworkMethod> frameworkMethodCache      = new LinkedHashMap<>();
 	private final Map<Class, Set<LifecycleMethod>> lifecycleMethodCache = new LinkedHashMap<>();
+	private final Set<Trait> localTraitsCache                           = new LinkedHashSet<>();
+	private Map<String, AbstractMethod> dynamicMethodCache              = null;
 
 	private final boolean isNodeType;
 	private final boolean isRelationshipType;
@@ -77,9 +79,9 @@ public class TraitsImplementation implements Traits {
 
 		final Set<String> labels = new LinkedHashSet<>();
 
-		for (final TraitDefinition definition : traits.values()) {
+		for (final Trait trait : getTraits()) {
 
-			labels.add(definition.getLabel());
+			labels.add(trait.getLabel());
 		}
 
 		return labels;
@@ -264,15 +266,19 @@ public class TraitsImplementation implements Traits {
 	@Override
 	public Map<String, AbstractMethod> getDynamicMethods() {
 
-		final Map<String, AbstractMethod> methods = new LinkedHashMap<>();
+		if (dynamicMethodCache != null) {
+			return dynamicMethodCache;
+		}
+
+		dynamicMethodCache = new LinkedHashMap<>();
 
 		for (final Trait trait : getTraits()) {
 
 			// this is the place where we can detect clashes!
-			methods.putAll(trait.getDynamicMethods());
+			dynamicMethodCache.putAll(trait.getDynamicMethods());
 		}
 
-		return methods;
+		return dynamicMethodCache;
 	}
 
 	@Override
@@ -393,6 +399,8 @@ public class TraitsImplementation implements Traits {
 		keyCache.clear();
 		frameworkMethodCache.clear();
 		lifecycleMethodCache.clear();
+		localTraitsCache.clear();
+		dynamicMethodCache = null;
 
 		final Map<String, Map<String, PropertyKey>> removedProperties = new LinkedHashMap<>();
 		final Set<String> traitsToRemove                              = new LinkedHashSet<>();
@@ -434,18 +442,22 @@ public class TraitsImplementation implements Traits {
 	// ----- private methods -----
 	private Set<Trait> getTraits() {
 
-		final Set<Trait> set = new LinkedHashSet<>();
+		if (!localTraitsCache.isEmpty()) {
+			return localTraitsCache;
+		}
+
+		final Set<Trait> localTraitsCache = new LinkedHashSet<>();
 
 		for (final String name : traits.keySet()) {
 
 			final Trait trait = globalTraitMap.get(name);
 			if (trait != null) {
 
-				set.add(trait);
+				localTraitsCache.add(trait);
 			}
 		}
 
-		return set;
+		return localTraitsCache;
 	}
 
 	// ----- static methods -----
@@ -521,7 +533,7 @@ public class TraitsImplementation implements Traits {
 		return null;
 	}
 
-	static boolean exists(String name) {
+	static boolean exists(final String name) {
 		return TraitsImplementation.globalTypeMap.containsKey(name);
 	}
 
@@ -529,7 +541,7 @@ public class TraitsImplementation implements Traits {
 		return getAllTypes(null);
 	}
 
-	static Set<String> getAllTypes(Predicate<Traits> filter) {
+	static Set<String> getAllTypes(final Predicate<Traits> filter) {
 
 		final Set<String> types = new LinkedHashSet<>();
 
@@ -544,7 +556,7 @@ public class TraitsImplementation implements Traits {
 		return types;
 	}
 
-	static <T> PropertyKey<T> key(String type, String name) {
+	static <T> PropertyKey<T> key(final String type, final String name) {
 
 		final Traits traits = Traits.of(type);
 		if (traits != null) {
