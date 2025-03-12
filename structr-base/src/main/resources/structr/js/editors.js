@@ -52,11 +52,6 @@ require(['vs/editor/editor.main'], () => {
 					let wordAtPos = model.getWordAtPosition(position);
 					// console.log(`Looking up definition for word (${wordAtPos.word}) at position ${position}`, wordAtPos);
 
-					let definitionForCurrentModel = {
-						uri: model.uri,
-						range: new monaco.Range(position.lineNumber, wordAtPos.startColumn, position.lineNumber, wordAtPos.endColumn)
-					};
-
 					let queryURL = `/structr/rest/NodeInterface?type=SchemaMethod;SchemaNode;SchemaProperty&name=${wordAtPos.word}`;
 
 					fetch(queryURL).then(response => {
