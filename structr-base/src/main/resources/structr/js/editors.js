@@ -94,10 +94,7 @@ require(['vs/editor/editor.main'], () => {
 							if (!monaco.editor.getModel(modelUri)) {
 
 								// model must exist for preview
-								monaco.editor.createModel(getSourcePreviewForEntity(entity), 'javascript', _Editors.getModelURI(entity, propertyName, {
-									isFromCustomDefinitionProvider: true,
-									structr_entity: entity
-								}));
+								monaco.editor.createModel(getSourcePreviewForEntity(entity), 'javascript', _Editors.getModelURI(entity, propertyName));
 							}
 
 							return {
@@ -122,32 +119,32 @@ require(['vs/editor/editor.main'], () => {
 
 			if (Structr.isModuleActive(_Code)) {
 
-				let targetModel = monaco.editor.getModel(resourceUri);
+				let targetModel    = monaco.editor.getModel(resourceUri);
+				let structr_entity = targetModel.uri.structr_entity;
 
-				if (targetModel.uri.isFromCustomDefinitionProvider === true) {
+				let isSameBulkEdit = (structr_entity.type === 'SchemaMethod' && document.querySelector(`.schema-grid-row.contents[data-method-id="${structr_entity.id}"]`));
 
-					if (_Code.persistence.isDirty()) {
+				if (isSameBulkEdit) {
 
-						_Dialogs.confirmation.showPromise("You have unsaved changes, jump without saving?", false).then(result => {
+					document.querySelector(`.schema-grid-row.contents[data-method-id="${structr_entity.id}"] .edit-action`).dispatchEvent(new Event('click'));
 
-							if (result === true) {
+				} else if (_Code.persistence.isDirty()) {
 
-								_Code.persistence.forceNotDirty();
+					_Dialogs.confirmation.showPromise("You have unsaved changes, jump without saving?", false).then(result => {
 
-								_Code.helpers.navigateToSchemaObjectFromAnywhere(targetModel.uri.structr_entity, true);
-								return true;
-							}
-						});
+						if (result === true) {
 
-					} else {
+							_Code.persistence.forceNotDirty();
 
-						_Code.helpers.navigateToSchemaObjectFromAnywhere(targetModel.uri.structr_entity, true);
-						return true;
-					}
+							_Code.helpers.navigateToSchemaObjectFromAnywhere(structr_entity, true);
+							return true;
+						}
+					});
 
 				} else {
 
-					console.log('URI is not from custom definition provider... not doing anything');
+					_Code.helpers.navigateToSchemaObjectFromAnywhere(structr_entity, true);
+					return true;
 				}
 			}
 
@@ -665,6 +662,7 @@ let _Editors = {
 
 		uri.structr_uuid     = entity.id;
 		uri.structr_property = propertyName;
+		uri.structr_entity   = entity;
 
 		for (let key in extraInfo) {
 			uri[key]  = extraInfo[key];
