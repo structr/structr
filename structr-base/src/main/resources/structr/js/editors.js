@@ -52,11 +52,6 @@ require(['vs/editor/editor.main'], () => {
 					let wordAtPos = model.getWordAtPosition(position);
 					// console.log(`Looking up definition for word (${wordAtPos.word}) at position ${position}`, wordAtPos);
 
-					let definitionForCurrentModel = {
-						uri: model.uri,
-						range: new monaco.Range(position.lineNumber, wordAtPos.startColumn, position.lineNumber, wordAtPos.endColumn)
-					};
-
 					let queryURL = `/structr/rest/NodeInterface?type=SchemaMethod;SchemaNode;SchemaProperty&name=${wordAtPos.word}`;
 
 					fetch(queryURL).then(response => {
@@ -99,27 +94,18 @@ require(['vs/editor/editor.main'], () => {
 							if (!monaco.editor.getModel(modelUri)) {
 
 								// model must exist for preview
-								monaco.editor.createModel(getSourcePreviewForEntity(entity), 'javascript', _Editors.getModelURI(entity, propertyName, {
-									isFromCustomDefinitionProvider: true,
-									structr_entity: entity
-								}));
+								monaco.editor.createModel(getSourcePreviewForEntity(entity), 'javascript', _Editors.getModelURI(entity, propertyName));
 							}
 
 							return {
 								uri: modelUri,
-								range: new monaco.Range(0, 0, 0, 0)
-								// re: range: the name of the result will not show up in the source, thus, we do not want text highlighting and use a range before line 1
+								range: new monaco.Range(1, 1, 1, 1)		// fake range, but must be >= 1 to not break monaco code
 							};
 						});
 
-						let definitions = [
-							definitionForCurrentModel,	// without the definition for the current model, the cursor does not change (unless there is more than 1 definition)
-							...foundDefinitions
-						];
+						// console.log(`found ${foundDefinitions.length} definitions`);
 
-						// console.log(`found ${definitions.length} definitions`);
-
-						resolve(definitions);
+						resolve(foundDefinitions);
 					});
 				});
 			}
@@ -133,32 +119,31 @@ require(['vs/editor/editor.main'], () => {
 
 			if (Structr.isModuleActive(_Code)) {
 
-				let targetModel = monaco.editor.getModel(resourceUri);
+				let targetModel    = monaco.editor.getModel(resourceUri);
+				let structr_entity = targetModel.uri.structr_entity;
+				let isSameBulkEdit = (structr_entity.type === 'SchemaMethod' && document.querySelector(`.schema-grid-row.contents[data-method-id="${structr_entity.id}"]`));
 
-				if (targetModel.uri.isFromCustomDefinitionProvider === true) {
+				if (isSameBulkEdit) {
 
-					if (_Code.persistence.isDirty()) {
+					document.querySelector(`.schema-grid-row.contents[data-method-id="${structr_entity.id}"] .edit-action`).dispatchEvent(new Event('click'));
 
-						_Dialogs.confirmation.showPromise("You have unsaved changes, jump without saving?", false).then(result => {
+				} else if (_Code.persistence.isDirty()) {
 
-							if (result === true) {
+					_Dialogs.confirmation.showPromise("You have unsaved changes, jump without saving?", false).then(result => {
 
-								_Code.persistence.forceNotDirty();
+						if (result === true) {
 
-								_Code.helpers.navigateToSchemaObjectFromAnywhere(targetModel.uri.structr_entity, true);
-								return true;
-							}
-						});
+							_Code.persistence.forceNotDirty();
 
-					} else {
-
-						_Code.helpers.navigateToSchemaObjectFromAnywhere(targetModel.uri.structr_entity, true);
-						return true;
-					}
+							_Code.helpers.navigateToSchemaObjectFromAnywhere(structr_entity, true);
+							return true;
+						}
+					});
 
 				} else {
 
-					console.log('URI is not from custom definition provider... not doing anything');
+					_Code.helpers.navigateToSchemaObjectFromAnywhere(structr_entity, true);
+					return true;
 				}
 			}
 
@@ -171,58 +156,13 @@ require(['vs/editor/editor.main'], () => {
 		newEditor.onDidChangeModel(e => {
 
 			// we currently never change models, this only serves as a helper for definition peek window to keep display-only models from being written to
-			let allowWrite = (e.oldModelUrl === null || e.newModelUrl?.isFromCustomDefinitionProvider !== true);
+			let allowWrite = (e.oldModelUrl === null);
 
 			newEditor.updateOptions({
 				readOnly: !allowWrite
 			});
 		});
 	});
-
-	// useless?
-	// monaco.editor.registerLinkOpener({
-	// 	open: function (resource) {
-	// 		console.log('Custom link opener: ', resource)
-	// 		return false;
-	// 	}
-	// });
-
-	// show hover info...
-	// monaco.languages.registerHoverProvider('javascript', {
-	// 	provideHover: function (model, position) {
-	//
-	// 		// console.log('Hover Provider: ', model, position)
-	//
-	// 		let wordAtPos = model.getWordAtPosition(position);
-	//
-	// 		let definitionFound = (wordAtPos?.word === 'deactivatedAtTheMoment');
-	//
-	// 		if (definitionFound) {
-	//
-	// 			// TODO: create model
-	// 			// TODO: get URI from model to put in the link
-	//
-	// 			return {
-	// 				range: new monaco.Range(
-	// 					2,
-	// 					1,
-	// 					2,
-	// 					10
-	// 				),
-	// 				contents: [
-	// 					{ value: "**SOURCE**" },
-	// 					{
-	// 						value:
-	// 							'<a href="fcc64fd05ef64bf391607e7fd9c5954b">Hello</a> World!',
-	// 						supportHtml: true
-	// 					},
-	// 				],
-	// 			};
-	// 		}
-	//
-	// 		return undefined;
-	// 	},
-	// });
 });
 
 let _Editors = {
@@ -676,6 +616,7 @@ let _Editors = {
 
 		uri.structr_uuid     = entity.id;
 		uri.structr_property = propertyName;
+		uri.structr_entity   = entity;
 
 		for (let key in extraInfo) {
 			uri[key]  = extraInfo[key];
