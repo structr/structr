@@ -121,7 +121,6 @@ require(['vs/editor/editor.main'], () => {
 
 				let targetModel    = monaco.editor.getModel(resourceUri);
 				let structr_entity = targetModel.uri.structr_entity;
-
 				let isSameBulkEdit = (structr_entity.type === 'SchemaMethod' && document.querySelector(`.schema-grid-row.contents[data-method-id="${structr_entity.id}"]`));
 
 				if (isSameBulkEdit) {
@@ -157,58 +156,13 @@ require(['vs/editor/editor.main'], () => {
 		newEditor.onDidChangeModel(e => {
 
 			// we currently never change models, this only serves as a helper for definition peek window to keep display-only models from being written to
-			let allowWrite = (e.oldModelUrl === null || e.newModelUrl?.isFromCustomDefinitionProvider !== true);
+			let allowWrite = (e.oldModelUrl === null);
 
 			newEditor.updateOptions({
 				readOnly: !allowWrite
 			});
 		});
 	});
-
-	// useless?
-	// monaco.editor.registerLinkOpener({
-	// 	open: function (resource) {
-	// 		console.log('Custom link opener: ', resource)
-	// 		return false;
-	// 	}
-	// });
-
-	// show hover info...
-	// monaco.languages.registerHoverProvider('javascript', {
-	// 	provideHover: function (model, position) {
-	//
-	// 		// console.log('Hover Provider: ', model, position)
-	//
-	// 		let wordAtPos = model.getWordAtPosition(position);
-	//
-	// 		let definitionFound = (wordAtPos?.word === 'deactivatedAtTheMoment');
-	//
-	// 		if (definitionFound) {
-	//
-	// 			// TODO: create model
-	// 			// TODO: get URI from model to put in the link
-	//
-	// 			return {
-	// 				range: new monaco.Range(
-	// 					2,
-	// 					1,
-	// 					2,
-	// 					10
-	// 				),
-	// 				contents: [
-	// 					{ value: "**SOURCE**" },
-	// 					{
-	// 						value:
-	// 							'<a href="fcc64fd05ef64bf391607e7fd9c5954b">Hello</a> World!',
-	// 						supportHtml: true
-	// 					},
-	// 				],
-	// 			};
-	// 		}
-	//
-	// 		return undefined;
-	// 	},
-	// });
 });
 
 let _Editors = {
