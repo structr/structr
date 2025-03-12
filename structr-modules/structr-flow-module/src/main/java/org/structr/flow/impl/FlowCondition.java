@@ -19,6 +19,7 @@
 package org.structr.flow.impl;
 
 import org.structr.api.util.Iterables;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 
@@ -36,5 +37,9 @@ public class FlowCondition extends FlowDataSource {
 		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key("conditions"));
 
 		return Iterables.map(n -> n.as(FlowCondition.class), nodes);
+	}
+
+	public void setConditions(final Iterable<FlowCondition> conditions) throws FrameworkException {
+		wrappedObject.setProperty(traits.key("conditions"), conditions);
 	}
 }

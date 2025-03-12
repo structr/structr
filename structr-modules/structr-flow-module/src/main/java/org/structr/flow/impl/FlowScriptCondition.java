@@ -18,6 +18,7 @@
  */
 package org.structr.flow.impl;
 
+import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 import org.structr.flow.api.ThrowingElement;
@@ -36,6 +37,10 @@ public class FlowScriptCondition extends FlowCondition implements DeployableEnti
 		return wrappedObject.getProperty(traits.key("script"));
 	}
 
+	public final void setScript(final String script) throws FrameworkException {
+		wrappedObject.setProperty(traits.key("script"), script);
+	}
+
 	public final FlowDataSource getScriptSource() {
 
 		final NodeInterface scriptSource = wrappedObject.getProperty(traits.key("scriptSource"));
@@ -45,6 +50,10 @@ public class FlowScriptCondition extends FlowCondition implements DeployableEnti
 		}
 
 		return null;
+	}
+
+	public void setScriptSource(final String scriptSource) throws FrameworkException {
+		wrappedObject.setProperty(traits.key("scriptSource"), scriptSource);
 	}
 
 	@Override

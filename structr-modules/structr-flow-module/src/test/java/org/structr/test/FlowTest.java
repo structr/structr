@@ -20,6 +20,7 @@ package org.structr.test;
 
 import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
+import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Group;
 import org.structr.core.graph.NodeAttribute;
@@ -36,6 +37,7 @@ import org.structr.web.entity.dom.Page;
 import org.testng.annotations.Test;
 
 import java.util.*;
+import java.util.concurrent.Flow;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -120,6 +122,85 @@ public class FlowTest extends StructrUiTest {
 			forEach.setLoopBody(agg);
 
 			container.evaluate(securityContext, new HashMap<>());
+
+			tx.success();
+
+		} catch (Throwable ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+
+	}
+
+	@Test
+	public void testFlowDecision() {
+
+		try (final Tx tx = app.tx()) {
+
+			FlowContainer container = app.create("FlowContainer", "testFlowDecision").as(FlowContainer.class);
+
+			FlowDecision flowDecision = app.create("FlowDecision").as(FlowDecision.class);
+			flowDecision.setFlowContainer(container);
+			container.setStartNode(flowDecision);
+
+			FlowReturn flowReturnTrue = app.create("FlowReturn").as(FlowReturn.class);
+			flowReturnTrue.setFlowContainer(container);
+			flowReturnTrue.setResult("'SUCCESS'");
+			flowDecision.setTrueElement(flowReturnTrue);
+
+			FlowReturn flowReturnFalse = app.create("FlowReturn").as(FlowReturn.class);
+			flowReturnFalse.setFlowContainer(container);
+			flowReturnFalse.setResult("'FAILURE'");
+			flowDecision.setFalseElement(flowReturnFalse);
+
+			List<Object> result = Iterables.toList(container.evaluate(securityContext, new HashMap<>()));
+			assertTrue("Result of decision element with two returns should be equal to the failure return element.", result != null && result.size() == 1 && "FAILURE".equals(result.get(0)));
+
+			FlowAnd flowAnd  = app.create("FlowAnd").as(FlowAnd.class);
+			flowAnd.setFlowContainer(container);
+			flowDecision.setCondition(flowAnd);
+
+			result = Iterables.toList(container.evaluate(securityContext, new HashMap<>()));
+			assertTrue("Empty AND element should yield failure result.", result != null && result.size() == 1 && "FAILURE".equals(result.get(0)));
+
+			// Get conditions for flowAnd
+			List<FlowCondition> conditions = Iterables.toList(flowAnd.getConditions());
+
+			FlowScriptCondition flowScriptCondition = app.create("FlowScriptCondition").as(FlowScriptCondition.class);
+			flowScriptCondition.setFlowContainer(container);
+			flowScriptCondition.setScript("true");
+			conditions.add(flowScriptCondition);
+
+			// Update flowAnd with it's new conditions
+			flowAnd.setConditions(conditions);
+
+			result = Iterables.toList(container.evaluate(securityContext, new HashMap<>()));
+			assertTrue("flowAnd should return true, since it only has one script condition returning true as well.", result != null && result.size() == 1 && "SUCCESS".equals(result.get(0)));
+
+			// Flip the output of the script condition
+			flowScriptCondition.setScriptSource("false");
+
+			result = Iterables.toList(container.evaluate(securityContext, new HashMap<>()));
+			assertTrue("Result should be false after ScriptCondition has had it's output flipped.", result != null && result.size() == 1 && "FAILURE".equals(result.get(0)));
+
+			// Add second condition to flowAnd
+			FlowNot flowNot = app.create("FlowNot").as(FlowNot.class);
+			flowNot.setFlowContainer(container);
+			conditions.add(flowNot);
+			flowAnd.setConditions(conditions);
+
+			FlowNotNull flowNotNull = app.create("FlowNotNull").as(FlowNotNull.class);
+			flowNotNull.setFlowContainer(container);
+			flowNot.setConditions(List.of(flowNotNull));
+
+			// Revert flowScriptCondition back to true
+			flowScriptCondition.setScriptSource("true");
+
+			// With flowNotNull(null)->flowNot && flowScriptCondition("true") -> flowAnd, we should get a success result
+			result = Iterables.toList(container.evaluate(securityContext, new HashMap<>()));
+			assertTrue("With flowNotNull(null)->flowNot && flowScriptCondition(\"true\") -> flowAnd, result should be SUCCESS", result != null && result.size() == 1 && "SUCCESS".equals(result.get(0)));
 
 			tx.success();
 

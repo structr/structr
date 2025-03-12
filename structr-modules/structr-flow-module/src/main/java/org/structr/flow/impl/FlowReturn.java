@@ -43,6 +43,10 @@ public class FlowReturn extends FlowNode implements DeployableEntity, ThrowingEl
 		return wrappedObject.getProperty(traits.key("result"));
 	}
 
+	public void setResult(final String result) throws FrameworkException {
+		wrappedObject.setProperty(traits.key("result"), result);
+	}
+
 	public FlowExceptionHandler getExceptionHandler() {
 
 		final NodeInterface exceptionHandler = wrappedObject.getProperty(traits.key("exceptionHandler"));

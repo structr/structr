@@ -18,6 +18,7 @@
  */
 package org.structr.flow.impl;
 
+import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 import org.structr.module.api.DeployableEntity;
@@ -34,15 +35,19 @@ public class FlowDecision extends FlowNode implements DeployableEntity {
 		super(traits, wrappedObject);
 	}
 
-	public FlowDataSource getCondition() {
+	public FlowCondition getCondition() {
 
 		final NodeInterface node = wrappedObject.getProperty(traits.key("condition"));
 		if (node != null) {
 
-			return node.as(FlowDataSource.class);
+			return node.as(FlowCondition.class);
 		}
 
 		return null;
+	}
+
+	public void setCondition(final FlowDataSource condition) throws FrameworkException {
+		wrappedObject.setProperty(traits.key("condition"), condition);
 	}
 
 	public FlowNode getTrueElement() {
@@ -65,6 +70,14 @@ public class FlowDecision extends FlowNode implements DeployableEntity {
 		}
 
 		return null;
+	}
+
+	public void setTrueElement(final FlowNode trueElement) throws FrameworkException {
+		wrappedObject.setProperty(traits.key("trueElement"), trueElement);
+	}
+
+	public void setFalseElement(final FlowNode falseElement) throws FrameworkException {
+		wrappedObject.setProperty(traits.key("falseElement"), falseElement);
 	}
 
 	@Override
