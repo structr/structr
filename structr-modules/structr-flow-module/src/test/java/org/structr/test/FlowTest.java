@@ -180,7 +180,7 @@ public class FlowTest extends StructrUiTest {
 			assertTrue("flowAnd should return true, since it only has one script condition returning true as well.", result != null && result.size() == 1 && "SUCCESS".equals(result.get(0)));
 
 			// Flip the output of the script condition
-			flowScriptCondition.setScriptSource("false");
+			flowScriptCondition.setScript("false");
 
 			result = Iterables.toList(container.evaluate(securityContext, new HashMap<>()));
 			assertTrue("Result should be false after ScriptCondition has had it's output flipped.", result != null && result.size() == 1 && "FAILURE".equals(result.get(0)));
@@ -196,7 +196,7 @@ public class FlowTest extends StructrUiTest {
 			flowNot.setConditions(List.of(flowNotNull));
 
 			// Revert flowScriptCondition back to true
-			flowScriptCondition.setScriptSource("true");
+			flowScriptCondition.setScript("true");
 
 			// With flowNotNull(null)->flowNot && flowScriptCondition("true") -> flowAnd, we should get a success result
 			result = Iterables.toList(container.evaluate(securityContext, new HashMap<>()));

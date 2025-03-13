@@ -77,7 +77,7 @@ public class FlowLogicConditionTraitDefinition extends AbstractNodeTraitDefiniti
 					final List<FlowCondition> _dataSources = Iterables.toList(flowNode.getConditions());
 					if (_dataSources.isEmpty()) {
 
-						return false;
+						return flowNode.combine(null, false);
 					}
 
 					if (_dataSources.size() == 1) {

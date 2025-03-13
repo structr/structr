@@ -21,7 +21,9 @@ package org.structr.flow.traits.definitions;
 import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.EndNode;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.StartNode;
 import org.structr.core.property.StartNodes;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
@@ -51,9 +53,11 @@ public class FlowConditionTraitDefinition extends AbstractNodeTraitDefinition {
 	public Set<PropertyKey> getPropertyKeys() {
 
 		final PropertyKey<Iterable<NodeInterface>> conditions = new StartNodes("conditions", "FlowConditionCondition");
+		final PropertyKey<NodeInterface> result = new EndNode("result", "FlowConditionCondition");
 
 		return newSet(
-			conditions
+			conditions,
+			result
 		);
 	}
 
@@ -63,11 +67,11 @@ public class FlowConditionTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"conditions"
+				"conditions", "result"
 			),
 			PropertyView.Ui,
 			newSet(
-				"conditions"
+				"conditions", "result"
 			)
 		);
 	}
