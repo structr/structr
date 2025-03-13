@@ -1150,27 +1150,27 @@ let _Schema = {
 		},
 		getTypeDefinitionChanges: (entity, newData) => {
 
+			let hasArrayChanged = (key) => {
+
+				let prevValue = entity[key] ?? [];
+				let newValue  = newData[key];
+
+				if (prevValue.length === newValue.length) {
+
+					let difference = prevValue.filter(t => !newValue.includes(t));
+					return (difference.length > 0);
+				}
+
+				return true;
+			};
+
 			for (let key in newData) {
 
 				let shouldDelete = (entity[key] === newData[key]);
 
-				if (key === 'tags') {
+				if (key === 'tags' || key === 'inheritedTraits') {
 
-					let prevTags = entity[key] ?? [];
-					let newTags  = newData[key];
-					if (!prevTags && newTags.length === 0) {
-						shouldDelete = true
-					} else if (prevTags.length === newTags.length) {
-						let difference = prevTags.filter(t => !newTags.includes(t));
-						shouldDelete = (difference.length === 0);
-					}
-
-				} else if (key === 'inheritedTraits') {
-
-					let inheritedTraitsWereEmpty = (entity.inheritedTraits === null || entity.inheritedTraits?.length === 0);
-					let inheritedTraitsAreEmpty  = (newData.inheritedTraits.length === 0);
-
-					shouldDelete = (inheritedTraitsWereEmpty && inheritedTraitsAreEmpty);
+					shouldDelete = !hasArrayChanged(key);
 				}
 
 				if (shouldDelete) {
