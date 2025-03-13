@@ -841,7 +841,7 @@ let _Schema = {
 			let tabControls = {};
 
 			let basicTabContent        = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'basic', 'Basic', targetView === 'basic');
-			tabControls.basic          = _Schema.nodes.appendBasicNodeInfo(basicTabContent, entity, mainTabs);
+			tabControls.basic          = _Schema.nodes.appendBasicNodeInfo(basicTabContent, entity);
 
 			if (entity.isServiceClass === false) {
 
@@ -1000,7 +1000,7 @@ let _Schema = {
 				changeFn?.();
 			});
 		},
-		appendBasicNodeInfo: (tabContent, entity, mainTabs) => {
+		appendBasicNodeInfo: (tabContent, entity) => {
 
 			tabContent.appendChild(_Helpers.createSingleDOMElementFromHTML(_Schema.templates.typeBasicTab({ isServiceClass: entity?.isServiceClass, isCreate: !entity })));
 
@@ -1167,7 +1167,10 @@ let _Schema = {
 
 				} else if (key === 'inheritedTraits') {
 
-					shouldDelete = (entity.inheritedTraits === null && newData.inheritedTraits.length === 0);
+					let inheritedTraitsWereEmpty = (entity.inheritedTraits === null || entity.inheritedTraits?.length === 0);
+					let inheritedTraitsAreEmpty  = (newData.inheritedTraits.length === 0);
+
+					shouldDelete = (inheritedTraitsWereEmpty && inheritedTraitsAreEmpty);
 				}
 
 				if (shouldDelete) {
