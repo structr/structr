@@ -18,6 +18,7 @@
  */
 package org.structr.flow.impl;
 
+import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
@@ -56,6 +57,15 @@ public class FlowDataSource extends FlowNode implements DeployableEntity, Throwi
 		}
 
 		return null;
+	}
+
+	public void setDataTarget(final Iterable<FlowBaseNode> nodes) throws FrameworkException {
+		wrappedObject.setProperty(traits.key("dataTarget"), nodes);
+	}
+
+	public final Iterable<FlowBaseNode> getDataTarget() {
+		final Iterable<NodeInterface> dataTargets = wrappedObject.getProperty(traits.key("dataTarget"));
+		return Iterables.map(n -> n.as(FlowBaseNode.class), dataTargets);
 	}
 
 	public final Object get(final Context context) throws FlowException {

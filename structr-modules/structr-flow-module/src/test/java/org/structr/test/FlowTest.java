@@ -37,7 +37,6 @@ import org.structr.web.entity.dom.Page;
 import org.testng.annotations.Test;
 
 import java.util.*;
-import java.util.concurrent.Flow;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -135,7 +134,7 @@ public class FlowTest extends StructrUiTest {
 	}
 
 	@Test
-	public void testFlowDecision() {
+	public void testFlowLogicElements() {
 
 		try (final Tx tx = app.tx()) {
 
@@ -201,6 +200,76 @@ public class FlowTest extends StructrUiTest {
 			// With flowNotNull(null)->flowNot && flowScriptCondition("true") -> flowAnd, we should get a success result
 			result = Iterables.toList(container.evaluate(securityContext, new HashMap<>()));
 			assertTrue("With flowNotNull(null)->flowNot && flowScriptCondition(\"true\") -> flowAnd, result should be SUCCESS", result != null && result.size() == 1 && "SUCCESS".equals(result.get(0)));
+
+			FlowDataSource flowNotNullDataSource = app.create("FlowDataSource").as(FlowDataSource.class);
+			flowNotNullDataSource.setFlowContainer(container);
+			flowNotNullDataSource.setDataTarget(List.of(flowNotNull));
+			// Ensure datasource was properly linked
+			assertEquals(1, Iterables.toList(flowNotNull.getDataSources()).size());
+
+			// With flowNotNullDataSource(null)->flowNotNull->flowNot && flowScriptCondition("true") -> flowAnd, we should get a success result
+			result = Iterables.toList(container.evaluate(securityContext, new HashMap<>()));
+			assertTrue("flowNotNullDataSource(null)->flowNotNull->flowNot && flowScriptCondition(\"true\") -> flowAnd, result should be SUCCESS", result != null && result.size() == 1 && "SUCCESS".equals(result.get(0)));
+
+			flowNotNullDataSource.setQuery("'No longer empty'");
+			// With flowNotNullDataSource('No longer empty')->flowNotNull->flowNot && flowScriptCondition("true") -> flowAnd, we should get a failure result
+			result = Iterables.toList(container.evaluate(securityContext, new HashMap<>()));
+			assertTrue("flowNotNullDataSource('No longer empty')->flowNotNull->flowNot && flowScriptCondition(\"true\") -> flowAnd, result should be FAILURE", result != null && result.size() == 1 && "FAILURE".equals(result.get(0)));
+
+			// Set data source back to null, so the expression becomes true
+			flowNotNullDataSource.setQuery(null);
+
+			FlowOr flowOr = app.create("FlowOr").as(FlowOr.class);
+			flowOr.setFlowContainer(container);
+			conditions.add(flowOr);
+			flowAnd.setConditions(conditions);
+
+			// With the former flowAnd conditions being true and our new florOr being false, we should get a failure
+			result = Iterables.toList(container.evaluate(securityContext, new HashMap<>()));
+			assertTrue("flowOr(null) && flowNotNullDataSource(null)->flowNotNull->flowNot && flowScriptCondition(\"true\") -> flowAnd, result should be FAILURE", result != null && result.size() == 1 && "FAILURE".equals(result.get(0)));
+
+			FlowNotEmpty flowNotEmpty = app.create("FlowNotEmpty").as(FlowNotEmpty.class);
+			flowNotEmpty.setFlowContainer(container);
+			flowOr.setConditions(List.of(flowNotEmpty));
+
+			FlowCollectionDataSource flowCollectionDataSource = app.create("FlowCollectionDataSource").as(FlowCollectionDataSource.class);
+			flowCollectionDataSource.setFlowContainer(container);
+			flowNotEmpty.setDataSources(List.of(flowCollectionDataSource));
+
+			// FlowNotEmpty should detect empty collection data source as such and result should be FAILURE
+			result = Iterables.toList(container.evaluate(securityContext, new HashMap<>()));
+			assertTrue("flowCollectionDataSource(null)->flowNotEmpty->flowOr && flowNotNullDataSource(null)->flowNotNull->flowNot && flowScriptCondition(\"true\") -> flowAnd, result should be FAILURE", result != null && result.size() == 1 && "FAILURE".equals(result.get(0)));
+
+			FlowDataSource flowCollectionDataSourceDS1 = app.create("FlowDataSource").as(FlowDataSource.class);
+			flowCollectionDataSourceDS1.setFlowContainer(container);
+			flowCollectionDataSource.setDataSources(List.of(flowCollectionDataSourceDS1));
+
+			// FlowNotEmpty should detect filled collection data source as such and result should be SUCCESS
+			result = Iterables.toList(container.evaluate(securityContext, new HashMap<>()));
+			assertTrue("flowCollectionDataSourceDS1->flowCollectionDataSource->flowNotEmpty->flowOr && flowNotNullDataSource(null)->flowNotNull->flowNot && flowScriptCondition(\"true\") -> flowAnd, result should be SUCCESS", result != null && result.size() == 1 && "SUCCESS".equals(result.get(0)));
+
+			FlowIsTrue flowIsTrue = app.create("FlowIsTrue").as(FlowIsTrue.class);
+			flowIsTrue.setFlowContainer(container);
+			conditions.add(flowIsTrue);
+			flowAnd.setConditions(conditions);
+
+			// Newly added flowIsTrue in flowAnd conditions should turn the expression false
+			result = Iterables.toList(container.evaluate(securityContext, new HashMap<>()));
+			assertTrue("flowIsTrue(null) && flowCollectionDataSourceDS1->flowCollectionDataSource->flowNotEmpty->flowOr && flowNotNullDataSource(null)->flowNotNull->flowNot && flowScriptCondition(\"true\") -> flowAnd, result should be FAILURE", result != null && result.size() == 1 && "FAILURE".equals(result.get(0)));
+
+			FlowDataSource flowIsTrueDataSource = app.create("FlowDataSource").as(FlowDataSource.class);
+			flowIsTrueDataSource.setFlowContainer(container);
+			flowIsTrueDataSource.setQuery("true");
+			flowIsTrue.setDataSources(List.of(flowIsTrueDataSource));
+
+			// flowIsTrue should now make the entire expression evaluate as SUCCESS
+			result = Iterables.toList(container.evaluate(securityContext, new HashMap<>()));
+			assertTrue("flowIsTrueDataSource(\"true\")->flowIsTrue && flowCollectionDataSourceDS1->flowCollectionDataSource->flowNotEmpty->flowOr && flowNotNullDataSource(null)->flowNotNull->flowNot && flowScriptCondition(\"true\") -> flowAnd, result should be SUCCESS", result != null && result.size() == 1 && "SUCCESS".equals(result.get(0)));
+
+			flowIsTrueDataSource.setQuery("false");
+			// flowIsTrue should now make the entire expression evaluate as FAILURE
+			result = Iterables.toList(container.evaluate(securityContext, new HashMap<>()));
+			assertTrue("flowIsTrueDataSource(\"false\")->flowIsTrue && flowCollectionDataSourceDS1->flowCollectionDataSource->flowNotEmpty->flowOr && flowNotNullDataSource(null)->flowNotNull->flowNot && flowScriptCondition(\"true\") -> flowAnd, result should be FAILURE", result != null && result.size() == 1 && "FAILURE".equals(result.get(0)));
 
 			tx.success();
 

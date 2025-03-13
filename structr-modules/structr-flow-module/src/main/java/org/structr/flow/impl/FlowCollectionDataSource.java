@@ -19,6 +19,7 @@
 package org.structr.flow.impl;
 
 import org.structr.api.util.Iterables;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 import org.structr.module.api.DeployableEntity;
@@ -30,6 +31,10 @@ public class FlowCollectionDataSource extends FlowDataSource implements Deployab
 
 	public FlowCollectionDataSource(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);
+	}
+
+	public final void setDataSources(final Iterable<FlowDataSource> dataSources) throws FrameworkException {
+		wrappedObject.setProperty(traits.key("dataSources"), dataSources);
 	}
 
 	public final Iterable<FlowDataSource> getDataSources() {

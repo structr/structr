@@ -19,6 +19,7 @@
 package org.structr.flow.impl;
 
 import org.structr.api.util.Iterables;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 import org.structr.module.api.DeployableEntity;
@@ -40,6 +41,10 @@ public class FlowNotEmpty extends FlowCondition implements DeployableEntity {
 		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key("dataSources"));
 
 		return Iterables.map(n -> n.as(FlowDataSource.class), nodes);
+	}
+
+	public void setDataSources(final Iterable<FlowDataSource> dataSources) throws FrameworkException {
+		wrappedObject.setProperty(traits.key("dataSources"), dataSources);
 	}
 
 	@Override
