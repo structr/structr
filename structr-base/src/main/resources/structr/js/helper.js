@@ -125,9 +125,6 @@ let _Helpers = {
 
 		return escapeWhitespace ? escapedStr.replace(/ /g, '&nbsp;') : escapedStr;
 	},
-	utf8_to_b64: (str) => {
-		return window.btoa(unescape(encodeURIComponent(str)));
-	},
 	expandNewline: (text) => {
 		// Expand literal '\n' to newline, which is encoded as '\\n' in HTML attribute values.
 		return text.replace(/\\\\n/g, '<br>');

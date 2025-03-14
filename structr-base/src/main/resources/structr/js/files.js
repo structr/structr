@@ -608,6 +608,7 @@ let _Files = {
 			let node          = Structr.node(file.id);
 			node.find('.size').text(fileSize);
 
+			// keep this code identical to "updateTextFile" code to ensure functionality
 			let chunks = Math.ceil(fileSize / _Files.chunkSize);
 
 			for (let c = 0; c < chunks; c++) {
@@ -621,6 +622,28 @@ let _Files = {
 		for (let fileObj of _Files.fileUploadList) {
 			if (file.id === fileObj.id) {
 				worker.postMessage(fileObj);
+			}
+		}
+	},
+	updateTextFile: (file, text, finishCallback) => {
+
+		if (text === "") {
+
+			Command.chunk(file.id, 0, _Files.chunkSize, "", 1, finishCallback);
+
+		} else {
+
+			let binaryContent = new TextEncoder().encode(text);
+			let byteLength    = binaryContent.length;
+
+			// keep this code identical to "uploadFile" code to ensure functionality
+			let chunks = Math.ceil(byteLength / _Files.chunkSize);
+
+			for (let c = 0; c < chunks; c++) {
+				let start = c * _Files.chunkSize;
+				let end   = (c + 1) * _Files.chunkSize;
+				let chunk = window.btoa(String.fromCharCode.apply(null, new Uint8Array(binaryContent.slice(start, end))));
+				Command.chunk(file.id, c, _Files.chunkSize, chunk, chunks, ((c+1 === chunks) ? finishCallback : undefined));
 			}
 		}
 	},
@@ -1744,19 +1767,6 @@ let _Files = {
 						}
 					}
 				}
-			}
-		}
-	},
-	updateTextFile: function(file, text, callback) {
-		if (text === "") {
-			Command.chunk(file.id, 0, _Files.chunkSize, "", 1, callback);
-		} else {
-			var chunks = Math.ceil(text.length / _Files.chunkSize);
-			for (var c = 0; c < chunks; c++) {
-				var start = c * _Files.chunkSize;
-				var end = (c + 1) * _Files.chunkSize;
-				var chunk = _Helpers.utf8_to_b64(text.substring(start, end));
-				Command.chunk(file.id, c, _Files.chunkSize, chunk, chunks, ((c+1 === chunks) ? callback : undefined));
 			}
 		}
 	},
