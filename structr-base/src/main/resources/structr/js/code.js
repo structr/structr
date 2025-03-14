@@ -2394,11 +2394,18 @@ let _Code = {
 	helpers: {
 		getAttributesToFetchForErrorObject: () => 'id,type,name,content,isStatic,ownerDocument,schemaNode',
 		getPathToOpenForSchemaObjectFromError: (obj) => {
-			let firstSubFolder = (obj.schemaNode?.isServiceClass === true) ? 'services' : 'custom';
-			let typeFolder     = (obj.type === 'SchemaProperty') ? 'properties' : 'methods';
-			let pathToOpen     = (obj.schemaNode) ? `/root/${firstSubFolder}/${obj.schemaNode.id}/${typeFolder}/${obj.id}` : `/globals/${obj.id}`;
 
-			return pathToOpen;
+			if (obj.type === 'SchemaNode') {
+
+				return `/root/${obj.isServiceClass === true ? 'services' : 'custom'}/${obj.id}`;
+
+			} else {
+
+				let firstSubFolder = (obj.schemaNode?.isServiceClass === true) ? 'services' : 'custom';
+				let typeFolder     = (obj.type === 'SchemaProperty') ? 'properties' : 'methods';
+
+				return (obj.schemaNode) ? `/root/${firstSubFolder}/${obj.schemaNode.id}/${typeFolder}/${obj.id}` : `/globals/${obj.id}`;
+			}
 		},
 		navigateToSchemaObjectFromAnywhere: (obj, updateLocationStack = false) => {
 
