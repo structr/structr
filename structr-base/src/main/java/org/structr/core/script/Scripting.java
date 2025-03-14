@@ -263,6 +263,7 @@ public class Scripting {
 
 			final Value value = evaluatePolyglot(actionContext, engineName, context, entity, snippet);
 			result = PolyglotWrapper.unwrap(actionContext, value);
+
 		} finally {
 
 			context.leave();
@@ -285,19 +286,26 @@ public class Scripting {
 			Source source = null;
 
 			switch (engineName) {
+
 				case "js" -> {
+
 					final String code   = Scripting.embedInFunction(snippet);
 					source = Source.newBuilder("js", code, snippet.getName()).mimeType(snippet.getMimeType()).build();
 				}
+
 				default -> {
+
 					source = Source.newBuilder(engineName, snippet.getSource(), snippet.getName()).build();
 				}
 			}
 
 			try {
 				if (source != null) {
+
 					return context.eval(source);
+
 				} else {
+
 					return null;
 				}
 
@@ -352,8 +360,9 @@ public class Scripting {
 	}
 
 	public static String[] splitSnippetIntoEngineAndScript(final String snippet) {
+
 		final boolean isAutoScriptingEnv = !(snippet.startsWith("${") && snippet.endsWith("}"));
-		final boolean isJavascript = (snippet.startsWith("${{") && snippet.endsWith("}}")) || (isAutoScriptingEnv && (snippet.startsWith("{") && snippet.endsWith("}")));
+		final boolean isJavascript       = (snippet.startsWith("${{") && snippet.endsWith("}}")) || (isAutoScriptingEnv && (snippet.startsWith("{") && snippet.endsWith("}")));
 
 		String engine = "";
 		String script = "";
@@ -362,6 +371,7 @@ public class Scripting {
 
 			engine = "js";
 			script = snippet.substring(isAutoScriptingEnv ? 1 : 3, snippet.length() - (isAutoScriptingEnv ? 1 : 2));
+
 		} else {
 
 			final Matcher matcher = ScriptEngineExpression.matcher(isAutoScriptingEnv ? String.format("${%s}", snippet) : snippet);
@@ -399,6 +409,7 @@ public class Scripting {
 				transpiledSource = reassembledScript.toString();
 				// Change mimetype to module since import statements have been found.
 				snippet.setMimeType("application/javascript+module");
+
 			} else {
 
 				transpiledSource = "function main() {" + snippet.getSource() + "\n}\n\nmain();";
