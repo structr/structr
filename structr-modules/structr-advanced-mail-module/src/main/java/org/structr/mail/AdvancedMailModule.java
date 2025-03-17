@@ -32,6 +32,7 @@ import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
 
 import java.util.Set;
+import org.yecht.Data;
 
 
 public class AdvancedMailModule implements StructrModule {
@@ -43,8 +44,8 @@ public class AdvancedMailModule implements StructrModule {
 	@Override
 	public void registerModuleFunctions(final LicenseManager licenseManager) {
 
-		StructrTraits.registerRelationshipType("EMailMessageHAS_ATTACHMENTFile", new EMailMessageHAS_ATTACHMENTFile());
-		StructrTraits.registerRelationshipType("MailboxCONTAINS_EMAILMESSAGESEMailMessage", new MailboxCONTAINS_EMAILMESSAGESEMailMessage());
+		StructrTraits.registerRelationshipType(StructrTraits.EMAIL_MESSAGE_HAS_ATTACHMENT_FILE,             new EMailMessageHAS_ATTACHMENTFile());
+		StructrTraits.registerRelationshipType(StructrTraits.MAILBOX_CONTAINS_EMAIL_MESSAGES_EMAIL_MESSAGE, new MailboxCONTAINS_EMAILMESSAGESEMailMessage());
 
 		StructrTraits.registerNodeType(StructrTraits.EMAIL_MESSAGE, new EMailMessageTraitDefinition());
 		StructrTraits.registerNodeType(StructrTraits.MAILBOX,       new MailboxTraitDefinition());

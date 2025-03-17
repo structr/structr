@@ -469,7 +469,7 @@ public class SchemaHelper {
 
 			// built-in schema views are controlled manually, but all user-generated
 			// schema changes are expected to be added to "custom" view.
-			if (!outRel.getProperty(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("isPartOfBuiltInSchema"))) {
+			if (!outRel.getProperty(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaMethodTraitDefinition.IS_PART_OF_BUILT_IN_SCHEMA_PROPERTY))) {
 				addPropertyToView(PropertyView.Custom, propertyName, viewProperties);
 			}
 
@@ -492,7 +492,7 @@ public class SchemaHelper {
 
 			// built-in schema views are controlled manually, but all user-generated
 			// schema changes are expected to be added to "custom" view.
-			if (!inRel.getProperty(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("isPartOfBuiltInSchema"))) {
+			if (!inRel.getProperty(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaMethodTraitDefinition.IS_PART_OF_BUILT_IN_SCHEMA_PROPERTY))) {
 				SchemaHelper.addPropertyToView(PropertyView.Custom, propertyName, viewProperties);
 			}
 
@@ -1351,7 +1351,7 @@ public class SchemaHelper {
 
 		// we expect the static schema node name to be a fully-qualified class name
 		if (!fqcn.contains(".")) {
-			throw new FrameworkException(422, "", new SemanticErrorToken(StructrTraits.SCHEMA_GRANT, "staticSchemaNodeName", "must_be_fully_qualified_class_name").withDetail(fqcn));
+			throw new FrameworkException(422, "", new SemanticErrorToken(StructrTraits.SCHEMA_GRANT, SchemaGrantTraitDefinition.STATIC_SCHEMA_NODE_NAME_PROPERTY, "must_be_fully_qualified_class_name").withDetail(fqcn));
 		}
 
 		final App app = StructrApp.getInstance();
@@ -1750,7 +1750,7 @@ public class SchemaHelper {
 
 		for (final SchemaRelationshipNode out : schemaNode.getProperty(SchemaNode.relatedTo)) {
 
-			if (propertyName.equals(out.getProperty(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetJsonName")))) {
+			if (propertyName.equals(out.getProperty(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.TARGET_JSON_NAME_PROPERTY)))) {
 				return true;
 			}
 
@@ -1761,7 +1761,7 @@ public class SchemaHelper {
 
 		for (final SchemaRelationshipNode in : schemaNode.getProperty(SchemaNode.relatedFrom)) {
 
-			if (propertyName.equals(in.getProperty(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceJsonName")))) {
+			if (propertyName.equals(in.getProperty(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.SOURCE_JSON_NAME_PROPERTY)))) {
 				return true;
 			}
 

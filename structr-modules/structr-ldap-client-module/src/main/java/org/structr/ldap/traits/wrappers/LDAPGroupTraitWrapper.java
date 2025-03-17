@@ -30,6 +30,7 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.GroupTraitWrapper;
 import org.structr.ldap.LDAPGroup;
 import org.structr.ldap.LDAPService;
+import org.structr.ldap.traits.definitions.LDAPGroupTraitDefinition;
 
 /**
  */
@@ -42,23 +43,23 @@ public class LDAPGroupTraitWrapper extends GroupTraitWrapper implements LDAPGrou
 	}
 
 	public void setDistinguishedName(final String distinguishedName) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("distinguishedName"), distinguishedName);
+		wrappedObject.setProperty(traits.key(LDAPGroupTraitDefinition.DISTINGUISHED_NAME_PROPERTY), distinguishedName);
 	}
 
 	public String getDistinguishedName() {
-		return wrappedObject.getProperty(traits.key("distinguishedName"));
+		return wrappedObject.getProperty(traits.key(LDAPGroupTraitDefinition.DISTINGUISHED_NAME_PROPERTY));
 	}
 
 	public String getPath() {
-		return wrappedObject.getProperty(traits.key("path"));
+		return wrappedObject.getProperty(traits.key(LDAPGroupTraitDefinition.PATH_PROPERTY));
 	}
 
 	public String getFilter() {
-		return wrappedObject.getProperty(traits.key("filter"));
+		return wrappedObject.getProperty(traits.key(LDAPGroupTraitDefinition.FILTER_PROPERTY));
 	}
 
 	public String getScope() {
-		return wrappedObject.getProperty(traits.key("scope"));
+		return wrappedObject.getProperty(traits.key(LDAPGroupTraitDefinition.SCOPE_PROPERTY));
 	}
 
 	@Override

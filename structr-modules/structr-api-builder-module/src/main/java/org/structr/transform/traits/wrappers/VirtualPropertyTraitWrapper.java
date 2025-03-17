@@ -24,6 +24,7 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.transform.Transformation;
 import org.structr.transform.VirtualProperty;
+import org.structr.transform.traits.definitions.VirtualPropertyTraitDefinition;
 
 public class VirtualPropertyTraitWrapper extends AbstractNodeTraitWrapper implements VirtualProperty {
 
@@ -38,27 +39,27 @@ public class VirtualPropertyTraitWrapper extends AbstractNodeTraitWrapper implem
 
 	@Override
 	public Integer getPosition() {
-		return wrappedObject.getProperty(traits.key("position"));
+		return wrappedObject.getProperty(traits.key(VirtualPropertyTraitDefinition.POSITION_PROPERTY));
 	}
 
 	@Override
 	public String getSourceName() {
-		return wrappedObject.getProperty(traits.key("sourceName"));
+		return wrappedObject.getProperty(traits.key(VirtualPropertyTraitDefinition.SOURCE_NAME_PROPERTY));
 	}
 
 	@Override
 	public String getTargetName() {
-		return wrappedObject.getProperty(traits.key("targetName"));
+		return wrappedObject.getProperty(traits.key(VirtualPropertyTraitDefinition.TARGET_NAME_PROPERTY));
 	}
 
 	@Override
 	public String getOutputFunction() {
-		return wrappedObject.getProperty(traits.key("outputFunction"));
+		return wrappedObject.getProperty(traits.key(VirtualPropertyTraitDefinition.OUTPUT_FUNCTION_PROPERTY));
 	}
 
 	@Override
 	public String getInputFunction() {
-		return wrappedObject.getProperty(traits.key("inputFunction"));
+		return wrappedObject.getProperty(traits.key(VirtualPropertyTraitDefinition.INPUT_FUNCTION_PROPERTY));
 	}
 
 	@Override

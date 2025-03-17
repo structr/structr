@@ -20,71 +20,38 @@ package org.structr.flow.impl;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.core.property.EndNodes;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNode;
-import org.structr.core.property.StringProperty;
-import org.structr.flow.api.DataSource;
-import org.structr.flow.api.KeyValue;
-import org.structr.flow.engine.Context;
-import org.structr.flow.engine.FlowException;
-import org.structr.flow.impl.rels.FlowDataInput;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.Traits;
 import org.structr.module.api.DeployableEntity;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
  *
  */
-public class FlowKeyValue extends FlowBaseNode implements DataSource, DeployableEntity {
+public class FlowKeyValue extends FlowDataSource implements DeployableEntity {
 
 	private static final Logger logger = LoggerFactory.getLogger(FlowKeyValue.class);
 
-	public static final Property<DataSource> dataSource 		= new StartNode<>("dataSource", FlowDataInput.class);
-	public static final Property<Iterable<FlowBaseNode>> dataTarget = new EndNodes<>("dataTarget", FlowDataInput.class);
+	public FlowKeyValue(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
+	}
 
-	public static final Property<String> key             		= new StringProperty("key");
-
-	public static final View defaultView = new View(FlowKeyValue.class, PropertyView.Public, key, dataSource, dataTarget);
-	public static final View uiView      = new View(FlowKeyValue.class, PropertyView.Ui, key, dataSource, dataTarget);
-
-	@Override
-	public Object get(final Context context) throws FlowException {
-
-		final String _key   = getProperty(key);
-		final DataSource _ds = getProperty(dataSource);
-
-		if (_key != null && _ds != null) {
-
-			final Object data = _ds.get(context);
-			if (_key.length() > 0) {
-
-				return new KeyValue(_key, data);
-			} else {
-
-				logger.warn("Unable to evaluate FlowKeyValue {}, key was empty", getUuid());
-			}
-
-		} else {
-
-			logger.warn("Unable to evaluate FlowKeyValue {}, missing at least one source.", getUuid());
-		}
-
-		return null;
+	public final String getKey() {
+		return wrappedObject.getProperty(traits.key("key"));
 	}
 
 	@Override
 	public Map<String, Object> exportData() {
-		Map<String, Object> result = new HashMap<>();
 
-		result.put("id", this.getUuid());
-		result.put("type", this.getClass().getSimpleName());
-		result.put("key", this.getProperty(key));
-		result.put("visibleToPublicUsers", this.getProperty(visibleToPublicUsers));
-		result.put("visibleToAuthenticatedUsers", this.getProperty(visibleToAuthenticatedUsers));
+		final Map<String, Object> result = new TreeMap<>();
+
+		result.put("id",                          getUuid());
+		result.put("type",                        getType());
+		result.put("key",                         getKey());
+		result.put("visibleToPublicUsers",        isVisibleToPublicUsers());
+		result.put("visibleToAuthenticatedUsers", isVisibleToAuthenticatedUsers());
 
 		return result;
 	}

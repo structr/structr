@@ -28,6 +28,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.web.traits.definitions.ImageTraitDefinition;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -92,7 +93,7 @@ public class GetByTypeCommand extends AbstractCommand {
 
 			// for image lists, suppress thumbnails
 			if (traits.contains(StructrTraits.IMAGE)) {
-				query.and(traits.key("isThumbnail"), false);
+				query.and(traits.key(ImageTraitDefinition.IS_THUMBNAIL_PROPERTY), false);
 			}
 
 			webSocketData.setResult(query.getResultStream());

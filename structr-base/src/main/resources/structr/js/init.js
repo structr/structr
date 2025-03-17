@@ -173,20 +173,6 @@ document.addEventListener("DOMContentLoaded", () => {
 			let { dialogText } = _Dialogs.custom.openDialog('Bulk Editing Helper (Ctrl-Alt-E)');
 			new RefactoringHelper(dialogText).show();
 		}
-
-		// ctrl-u / cmd-u: show generated source in schema or code area
-		if ((code === 'KeyU' || keyCode === 85) && ((!_Helpers.isMac() && event.ctrlKey) || (_Helpers.isMac() && event.metaKey))) {
-
-			let sourceCodeTab = document.querySelector('li#tab-source-code');
-
-			if (sourceCodeTab) {
-
-				event.preventDefault();
-
-				sourceCodeTab.dispatchEvent(new Event('click'));
-				sourceCodeTab.style.display = null;
-			}
-		}
 	});
 
 	window.addEventListener('resize', Structr.resize);
@@ -277,7 +263,7 @@ let Structr = {
 		let dialogBox = _Dialogs.custom.getDialogBoxElement();
 		if (dialogBox && dialogBox.offsetParent) {
 
-			let reconnectDialogElement = dialogBox.querySelector('#reconnect-dialog')
+			let reconnectDialogElement = dialogBox.querySelector('#reconnect-dialog');
 			if (!reconnectDialogElement) {
 
 				let parent = dialogBox.parentNode;
@@ -1805,9 +1791,12 @@ let Structr = {
 
 		_Dialogs.basic.append(reconnectDialog, { padding: '1rem' });
 	},
+	getReconnectDialogElement: () => {
+		return document.getElementById('reconnect-dialog');
+	},
 	hideReconnectDialog: () => {
 		// remove reconnect dialog
-		let reconnectMessage = document.getElementById('reconnect-dialog');
+		let reconnectMessage = Structr.getReconnectDialogElement();
 		_Dialogs.basic.removeBlockerAround(reconnectMessage);
 	},
 	dropdownOpenEventName: 'dropdown-opened',

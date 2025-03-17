@@ -29,6 +29,8 @@ import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.ImageTraitDefinition;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -83,11 +85,11 @@ public class ListCommand extends AbstractCommand {
 		if (type.contains(StructrTraits.FILE)) {
 
 			if (rootOnly) {
-				query.and(Traits.of(StructrTraits.FILE).key("hasParent"), false);
+				query.and(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.HAS_PARENT_PROPERTY), false);
 			}
 
 			// inverted as isThumbnail is not necessarily present in all objects inheriting from FileBase
-			query.not().and(Traits.of(StructrTraits.IMAGE).key("isThumbnail"), true);
+			query.not().and(Traits.of(StructrTraits.IMAGE).key(ImageTraitDefinition.IS_THUMBNAIL_PROPERTY), true);
 
 			TransactionCommand.getCurrentTransaction().prefetch(StructrTraits.ABSTRACT_FILE, StructrTraits.ABSTRACT_FILE, Set.of(
 				"all/INCOMING/CONTAINS",
@@ -98,7 +100,7 @@ public class ListCommand extends AbstractCommand {
 		// important
 		if (type.contains(StructrTraits.FOLDER) && rootOnly) {
 
-			query.and(Traits.of(StructrTraits.FOLDER).key("hasParent"), false);
+			query.and(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.HAS_PARENT_PROPERTY), false);
 
 			TransactionCommand.getCurrentTransaction().prefetch(StructrTraits.ABSTRACT_FILE, StructrTraits.ABSTRACT_FILE, Set.of(
 				"all/INCOMING/CONTAINS",

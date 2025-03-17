@@ -28,8 +28,27 @@ import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import java.util.Date;
 import java.util.Map;
 import java.util.Set;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 
 public class EMailMessageTraitDefinition extends AbstractNodeTraitDefinition {
+
+	public static final String ATTACHED_FILES_PROPERTY = "attachedFiles";
+	public static final String MAILBOX_PROPERTY        = "mailbox";
+	public static final String SUBJECT_PROPERTY        = "subject";
+	public static final String FROM_PROPERTY           = "from";
+	public static final String FROM_MAIL_PROPERTY      = "fromMail";
+	public static final String TO_PROPERTY             = "to";
+	public static final String CC_PROPERTY             = "cc";
+	public static final String BCC_PROPERTY            = "bcc";
+	public static final String REPLY_TO_PROPERTY       = "replyTo";
+	public static final String CONTENT_PROPERTY        = "content";
+	public static final String HTML_CONTENT_PROPERTY   = "htmlContent";
+	public static final String FOLDER_PROPERTY         = "folder";
+	public static final String HEADER_PROPERTY         = "header";
+	public static final String MESSAGE_ID_PROPERTY     = "messageId";
+	public static final String IN_REPLY_TO_PROPERTY    = "inReplyTo";
+	public static final String RECEIVED_DATE_PROPERTY  = "receivedDate";
+	public static final String SENT_DATE_PROPERTY      = "sentDate";
 
 	public EMailMessageTraitDefinition() {
 		super(StructrTraits.EMAIL_MESSAGE);
@@ -38,25 +57,25 @@ public class EMailMessageTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Iterable<NodeInterface>> attachedFilesProperty = new EndNodes("attachedFiles", "EMailMessageHAS_ATTACHMENTFile");
-		final Property<NodeInterface> mailboxProperty = new StartNode("mailbox", "MailboxCONTAINS_EMAILMESSAGESEMailMessage");
+		final Property<Iterable<NodeInterface>> attachedFilesProperty = new EndNodes(ATTACHED_FILES_PROPERTY, StructrTraits.EMAIL_MESSAGE_HAS_ATTACHMENT_FILE);
+		final Property<NodeInterface> mailboxProperty                 = new StartNode(MAILBOX_PROPERTY, StructrTraits.MAILBOX_CONTAINS_EMAIL_MESSAGES_EMAIL_MESSAGE);
 
-		final Property<String> subjectProperty = new StringProperty("subject").indexed();
-		final Property<String> fromProperty = new StringProperty("from").indexed();
-		final Property<String> fromMailProperty = new StringProperty("fromMail").indexed();
-		final Property<String> toProperty = new StringProperty("to").indexed();
-		final Property<String> ccProperty = new StringProperty("cc").indexed();
-		final Property<String> bccProperty = new StringProperty("bcc").indexed();
-		final Property<String> replyToProperty = new StringProperty("replyTo").indexed();
-		final Property<String> contentProperty = new StringProperty("content");
-		final Property<String> htmlContentProperty = new StringProperty("htmlContent");
-		final Property<String> folderProperty = new StringProperty("folder").indexed();
-		final Property<String> headerProperty = new StringProperty("header");
-		final Property<String> messageIdProperty = new StringProperty("messageId").indexed();
-		final Property<String> inReplyToProperty = new StringProperty("inReplyTo").indexed();
+		final Property<String> subjectProperty                        = new StringProperty(SUBJECT_PROPERTY).indexed();
+		final Property<String> fromProperty                           = new StringProperty(FROM_PROPERTY).indexed();
+		final Property<String> fromMailProperty                       = new StringProperty(FROM_MAIL_PROPERTY).indexed();
+		final Property<String> toProperty                             = new StringProperty(TO_PROPERTY).indexed();
+		final Property<String> ccProperty                             = new StringProperty(CC_PROPERTY).indexed();
+		final Property<String> bccProperty                            = new StringProperty(BCC_PROPERTY).indexed();
+		final Property<String> replyToProperty                        = new StringProperty(REPLY_TO_PROPERTY).indexed();
+		final Property<String> contentProperty                        = new StringProperty(CONTENT_PROPERTY);
+		final Property<String> htmlContentProperty                    = new StringProperty(HTML_CONTENT_PROPERTY);
+		final Property<String> folderProperty                         = new StringProperty(FOLDER_PROPERTY).indexed();
+		final Property<String> headerProperty                         = new StringProperty(HEADER_PROPERTY);
+		final Property<String> messageIdProperty                      = new StringProperty(MESSAGE_ID_PROPERTY).indexed();
+		final Property<String> inReplyToProperty                      = new StringProperty(IN_REPLY_TO_PROPERTY).indexed();
 
-		final Property<Date> receivedDateProperty = new DateProperty("receivedDate").indexed();
-		final Property<Date> sentDateProperty = new DateProperty("sentDate").indexed();
+		final Property<Date> receivedDateProperty                     = new DateProperty(RECEIVED_DATE_PROPERTY).indexed();
+		final Property<Date> sentDateProperty                         = new DateProperty(SENT_DATE_PROPERTY).indexed();
 
 		return newSet(
 			attachedFilesProperty,
@@ -86,9 +105,10 @@ public class EMailMessageTraitDefinition extends AbstractNodeTraitDefinition {
 
 			PropertyView.Public,
 			newSet(
-				"id", "type", "subject", "from", "fromMail", "to", "cc", "bcc", "replyTo",
-				"content", "htmlContent", "folder", "header", "messageId", "inReplyTo",
-				"receivedDate", "sentDate"
+					GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, SUBJECT_PROPERTY,
+				FROM_PROPERTY, FROM_MAIL_PROPERTY, TO_PROPERTY, CC_PROPERTY, BCC_PROPERTY, REPLY_TO_PROPERTY,
+				CONTENT_PROPERTY, HTML_CONTENT_PROPERTY, FOLDER_PROPERTY, HEADER_PROPERTY, MESSAGE_ID_PROPERTY, IN_REPLY_TO_PROPERTY,
+				RECEIVED_DATE_PROPERTY, SENT_DATE_PROPERTY
 			)
 		);
 	}

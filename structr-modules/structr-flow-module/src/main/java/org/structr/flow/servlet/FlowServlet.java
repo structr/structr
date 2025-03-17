@@ -37,7 +37,10 @@ import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.Traits;
 import org.structr.flow.impl.FlowContainer;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.servlet.JsonRestServlet;
@@ -59,14 +62,12 @@ public class FlowServlet extends JsonRestServlet {
 
 		SecurityContext securityContext = null;
 		Authenticator authenticator     = null;
-		ResultStream result             = null;
 
 		setCustomResponseHeaders(response);
 
 		try {
 
 			final Map<String, Object> flowParameters = new HashMap<>();
-			final Iterable<Object> flowResult;
 			final int depth = Services.parseInt(request.getParameter(RequestKeywords.OutputDepth.keyword()), config.getOutputNestingDepth());
 
 			// first thing to do!
@@ -84,20 +85,21 @@ public class FlowServlet extends JsonRestServlet {
 			final App app = StructrApp.getInstance(securityContext);
 
 			// evaluate constraints and measure query time
-			double queryTimeStart    = System.nanoTime();
+			double queryTimeStart = System.nanoTime();
 
 			try (final Tx tx = app.tx()) {
 
-				final String flowName = request.getPathInfo().substring(1);
-				final FlowContainer flow = flowName.length() > 0 ? StructrApp.getInstance(securityContext).nodeQuery("FlowContainer").and(FlowContainer.effectiveName, flowName).getFirst() : null;
+				final PropertyKey<String> nameKey = Traits.of("FlowContainer").key("effectiveName");
+				final String flowName             = request.getPathInfo().substring(1);
+				final NodeInterface flowNode      = flowName.length() > 0 ? StructrApp.getInstance(securityContext).nodeQuery("FlowContainer").and(nameKey, flowName).getFirst() : null;
 
 				tx.prefetchHint("Flow " + flowName);
 
-				if (flow != null) {
+				if (flowNode != null) {
 
-					flowResult = flow.evaluate(securityContext, flowParameters);
-
-					result = new PagingIterable<>("FlowContainer " + flow.getUuid(), flowResult);
+					final FlowContainer flow          = flowNode.as(FlowContainer.class);
+					final Iterable<Object> flowResult = flow.evaluate(securityContext, flowParameters);
+					ResultStream result               =  new PagingIterable<>("FlowContainer " + flow.getUuid(), flowResult);
 
 					if (returnContent) {
 
@@ -172,7 +174,7 @@ public class FlowServlet extends JsonRestServlet {
 
 	@Override
 	public String getModuleName() {
-		return "api-builder";
+		return "flow";
 	}
 
 	@Override
@@ -182,9 +184,9 @@ public class FlowServlet extends JsonRestServlet {
 
 	@Override
 	protected void doPost(final HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
 		SecurityContext securityContext = null;
 		Authenticator authenticator     = null;
-		ResultStream result             = null;
 
 		setCustomResponseHeaders(response);
 
@@ -195,7 +197,6 @@ public class FlowServlet extends JsonRestServlet {
 
 		try {
 
-			final Iterable<Object> flowResult;
 			final int depth = Services.parseInt(request.getParameter(RequestKeywords.OutputDepth.keyword()), config.getOutputNestingDepth());
 
 			// first thing to do!
@@ -217,14 +218,15 @@ public class FlowServlet extends JsonRestServlet {
 
 			try (final Tx tx = app.tx()) {
 
-				final String flowName = request.getPathInfo().substring(1);
-				final FlowContainer flow = flowName.length() > 0 ? StructrApp.getInstance(securityContext).nodeQuery("FlowContainer").and(FlowContainer.effectiveName, flowName).getFirst() : null;
+				final PropertyKey<String> nameKey = Traits.of("FlowContainer").key("effectiveName");
+				final String flowName             = request.getPathInfo().substring(1);
+				final NodeInterface flowNode      = flowName.length() > 0 ? StructrApp.getInstance(securityContext).nodeQuery("FlowContainer").and(nameKey, flowName).getFirst() : null;
 
-				if (flow != null) {
+				if (flowNode != null) {
 
-					flowResult = flow.evaluate(securityContext, flowParameters);
-
-					result = new PagingIterable<>("FlowContainer " + flow.getUuid(), flowResult);
+					final FlowContainer flow          = flowNode.as(FlowContainer.class);
+					final Iterable<Object> flowResult = flow.evaluate(securityContext, flowParameters);
+					final ResultStream result         = new PagingIterable<>("FlowContainer " + flow.getUuid(), flowResult);
 
 					// timing..
 					double queryTimeEnd = System.nanoTime();

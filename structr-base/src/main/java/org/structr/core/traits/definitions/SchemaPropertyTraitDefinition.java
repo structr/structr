@@ -41,6 +41,38 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 
 	private static final String schemaPropertyNamePattern = "[_A-Za-z][\\-_0-9A-Za-z]*";
 
+	public static final String SCHEMA_NODE_PROPERTY                = "schemaNode";
+	public static final String SCHEMA_VIEWS_PROPERTY               = "schemaViews";
+	public static final String EXCLUDED_VIEWS_PROPERTY             = "excludedViews";
+	public static final String DECLARING_UUID_PROPERTY             = "declaringUuid";
+	public static final String STATIC_SCHEMA_NODE_NAME_PROPERTY    = "staticSchemaNodeName";
+	public static final String DECLARING_CLASS_PROPERTY            = "declaringClass";
+	public static final String DEFAULT_VALUE_PROPERTY              = "defaultValue";
+	public static final String PROPERTY_TYPE_PROPERTY              = "propertyType";
+	public static final String CONTENT_TYPE_PROPERTY               = "contentType";
+	public static final String DB_NAME_PROPERTY                    = "dbName";
+	public static final String FQCN_PROPERTY                       = "fqcn";
+	public static final String FORMAT_PROPERTY                     = "format";
+	public static final String TYPE_HINT_PROPERTY                  = "typeHint";
+	public static final String HINT_PROPERTY                       = "hint";
+	public static final String CATEGORY_PROPERTY                   = "category";
+	public static final String NOT_NULL_PROPERTY                   = "notNull";
+	public static final String COMPOUND_PROPERTY                   = "compound";
+	public static final String UNIQUE_PROPERTY                     = "unique";
+	public static final String INDEXED_PROPERTY                    = "indexed";
+	public static final String READ_ONLY_PROPERTY                  = "readOnly";
+	public static final String IS_DYNAMIC_PROPERTY                 = "isDynamic";
+	public static final String IS_BUILTIN_PROPERTY_PROPERTY        = "isBuiltinProperty";
+	public static final String IS_PART_OF_BUILT_IN_SCHEMA_PROPERTY = "isPartOfBuiltInSchema";
+	public static final String IS_CACHING_ENABLED_PROPERTY         = "isCachingEnabled";
+	public static final String CONTENT_HASH_PROPERTY               = "contentHash";
+	public static final String READ_FUNCTION_PROPERTY              = "readFunction";
+	public static final String WRITE_FUNCTION_PROPERTY             = "writeFunction";
+	public static final String OPEN_API_RETURN_TYPE_PROPERTY       = "openAPIReturnType";
+	public static final String VALIDATORS_PROPERTY                 = "validators";
+	public static final String TRANSFORMERS_PROPERTY               = "transformers";
+
+
 	public SchemaPropertyTraitDefinition() {
 		super(StructrTraits.SCHEMA_PROPERTY);
 	}
@@ -72,39 +104,37 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface>           schemaNode    = new StartNode("schemaNode", StructrTraits.SCHEMA_NODE_PROPERTY, new PropertySetNotion<>(newSet("id", "name")));
-		final Property<Iterable<NodeInterface>> schemaViews   = new StartNodes("schemaViews", StructrTraits.SCHEMA_VIEW_PROPERTY, new PropertySetNotion<>(newSet("id", "name")));
-		final Property<Iterable<NodeInterface>> excludedViews = new StartNodes("excludedViews", StructrTraits.SCHEMA_EXCLUDED_VIEW_PROPERTY, new PropertySetNotion<>(newSet("id", "name")));
+		final Property<NodeInterface>           schemaNode    = new StartNode(SCHEMA_NODE_PROPERTY, StructrTraits.SCHEMA_NODE_PROPERTY, new PropertySetNotion<>(newSet(GraphObjectTraitDefinition.ID_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY)));
+		final Property<Iterable<NodeInterface>> schemaViews   = new StartNodes(SCHEMA_VIEWS_PROPERTY, StructrTraits.SCHEMA_VIEW_PROPERTY, new PropertySetNotion<>(newSet(GraphObjectTraitDefinition.ID_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY)));
+		final Property<Iterable<NodeInterface>> excludedViews = new StartNodes(EXCLUDED_VIEWS_PROPERTY, StructrTraits.SCHEMA_EXCLUDED_VIEW_PROPERTY, new PropertySetNotion<>(newSet(GraphObjectTraitDefinition.ID_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY)));
 
-		final Property<String>             declaringUuid         = new StringProperty("declaringUuid");
-		final Property<String>             staticSchemaNodeName  = new StringProperty("staticSchemaNodeName");
-		final Property<String>             declaringClass        = new StringProperty("declaringClass");
-		final Property<String>             defaultValue          = new StringProperty("defaultValue");
-		final Property<String>             propertyType          = new StringProperty("propertyType").indexed();
-		final Property<String>             contentType           = new StringProperty("contentType");
-		final Property<String>             dbName                = new StringProperty("dbName");
-		final Property<String>             fqcn                  = new StringProperty("fqcn");
-		final Property<String>             format                = new StringProperty("format");
-		final Property<String>             typeHint              = new StringProperty("typeHint");
-		final Property<String>             hint                  = new StringProperty("hint");
-		final Property<String>             category              = new StringProperty("category");
-		final Property<Boolean>            notNull               = new BooleanProperty("notNull");
-		final Property<Boolean>            compound              = new BooleanProperty("compound");
-		final Property<Boolean>            unique                = new BooleanProperty("unique");
-		final Property<Boolean>            indexed               = new BooleanProperty("indexed");
-		final Property<Boolean>            readOnly              = new BooleanProperty("readOnly");
-		final Property<Boolean>            isDynamic             = new BooleanProperty("isDynamic");
-		final Property<Boolean>            isBuiltinProperty     = new BooleanProperty("isBuiltinProperty");
-		final Property<Boolean>            isPartOfBuiltInSchema = new BooleanProperty("isPartOfBuiltInSchema");
-		final Property<Boolean>            isDefaultInUi         = new BooleanProperty("isDefaultInUi");
-		final Property<Boolean>            isDefaultInPublic     = new BooleanProperty("isDefaultInPublic");
-		final Property<Boolean>            isCachingEnabled      = new BooleanProperty("isCachingEnabled").defaultValue(false);
-		final Property<String>             contentHash           = new StringProperty("contentHash");
-		final Property<String>             readFunction          = new StringProperty("readFunction");
-		final Property<String>             writeFunction         = new StringProperty("writeFunction");
-		final Property<String>             openAPIReturnType     = new StringProperty("openAPIReturnType");
-		final Property<String[]>           validators            = new ArrayProperty("validators", String.class);
-		final Property<String[]>           transformers          = new ArrayProperty("transformers", String.class);
+		final Property<String>             declaringUuid         = new StringProperty(DECLARING_UUID_PROPERTY);
+		final Property<String>             staticSchemaNodeName  = new StringProperty(STATIC_SCHEMA_NODE_NAME_PROPERTY);
+		final Property<String>             declaringClass        = new StringProperty(DECLARING_CLASS_PROPERTY);
+		final Property<String>             defaultValue          = new StringProperty(DEFAULT_VALUE_PROPERTY);
+		final Property<String>             propertyType          = new StringProperty(PROPERTY_TYPE_PROPERTY).indexed();
+		final Property<String>             contentType           = new StringProperty(CONTENT_TYPE_PROPERTY);
+		final Property<String>             dbName                = new StringProperty(DB_NAME_PROPERTY);
+		final Property<String>             fqcn                  = new StringProperty(FQCN_PROPERTY);
+		final Property<String>             format                = new StringProperty(FORMAT_PROPERTY);
+		final Property<String>             typeHint              = new StringProperty(TYPE_HINT_PROPERTY);
+		final Property<String>             hint                  = new StringProperty(HINT_PROPERTY);
+		final Property<String>             category              = new StringProperty(CATEGORY_PROPERTY);
+		final Property<Boolean>            notNull               = new BooleanProperty(NOT_NULL_PROPERTY);
+		final Property<Boolean>            compound              = new BooleanProperty(COMPOUND_PROPERTY);
+		final Property<Boolean>            unique                = new BooleanProperty(UNIQUE_PROPERTY);
+		final Property<Boolean>            indexed               = new BooleanProperty(INDEXED_PROPERTY);
+		final Property<Boolean>            readOnly              = new BooleanProperty(READ_ONLY_PROPERTY);
+		final Property<Boolean>            isDynamic             = new BooleanProperty(IS_DYNAMIC_PROPERTY);
+		final Property<Boolean>            isBuiltinProperty     = new BooleanProperty(IS_BUILTIN_PROPERTY_PROPERTY);
+		final Property<Boolean>            isPartOfBuiltInSchema = new BooleanProperty(IS_PART_OF_BUILT_IN_SCHEMA_PROPERTY);
+		final Property<Boolean>            isCachingEnabled      = new BooleanProperty(IS_CACHING_ENABLED_PROPERTY).defaultValue(false);
+		final Property<String>             contentHash           = new StringProperty(CONTENT_HASH_PROPERTY);
+		final Property<String>             readFunction          = new StringProperty(READ_FUNCTION_PROPERTY);
+		final Property<String>             writeFunction         = new StringProperty(WRITE_FUNCTION_PROPERTY);
+		final Property<String>             openAPIReturnType     = new StringProperty(OPEN_API_RETURN_TYPE_PROPERTY);
+		final Property<String[]>           validators            = new ArrayProperty(VALIDATORS_PROPERTY, String.class);
+		final Property<String[]>           transformers          = new ArrayProperty(TRANSFORMERS_PROPERTY, String.class);
 
 		return newSet(
 
@@ -131,8 +161,6 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 			isDynamic,
 			isBuiltinProperty,
 			isPartOfBuiltInSchema,
-			isDefaultInUi,
-			isDefaultInPublic,
 			isCachingEnabled,
 			contentHash,
 			readFunction,
@@ -150,22 +178,45 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 
 				PropertyView.Public,
 				newSet(
-						"id", "typeHandler", "name", "dbName", "schemaNode", "schemaViews", "excludedViews", "propertyType", "contentType", "format", "fqcn", "typeHint", "hint", "category", "notNull", "compound", "unique", "indexed", "readOnly", "defaultValue", "isBuiltinProperty", "declaringClass", "isDynamic", "readFunction", "writeFunction", "openAPIReturnType", "validators", "transformers", "isCachingEnabled"
+						GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY,
+						DB_NAME_PROPERTY, SCHEMA_NODE_PROPERTY, SCHEMA_VIEWS_PROPERTY, EXCLUDED_VIEWS_PROPERTY, PROPERTY_TYPE_PROPERTY,
+						CONTENT_TYPE_PROPERTY, FORMAT_PROPERTY, FQCN_PROPERTY, TYPE_HINT_PROPERTY, HINT_PROPERTY, CATEGORY_PROPERTY,
+						NOT_NULL_PROPERTY, COMPOUND_PROPERTY, UNIQUE_PROPERTY, INDEXED_PROPERTY, READ_ONLY_PROPERTY, DEFAULT_VALUE_PROPERTY,
+						IS_BUILTIN_PROPERTY_PROPERTY, DECLARING_CLASS_PROPERTY, IS_DYNAMIC_PROPERTY, READ_FUNCTION_PROPERTY,
+						WRITE_FUNCTION_PROPERTY, OPEN_API_RETURN_TYPE_PROPERTY, VALIDATORS_PROPERTY, TRANSFORMERS_PROPERTY, IS_CACHING_ENABLED_PROPERTY
 				),
 
 				PropertyView.Ui,
 				newSet(
-						"id", "typeHandler", "name", "dbName", GraphObjectTraitDefinition.CREATED_BY_PROPERTY, "hidden", GraphObjectTraitDefinition.CREATED_DATE_PROPERTY, GraphObjectTraitDefinition.LAST_MODIFIED_DATE_PROPERTY, GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, "schemaNode", "schemaViews", "excludedViews", "propertyType", "contentType", "fqcn", "format", "typeHint", "hint", "category", "notNull", "compound", "unique", "indexed", "readOnly", "defaultValue", "isBuiltinProperty", "declaringClass", "isDynamic", "readFunction", "writeFunction", "openAPIReturnType", "validators", "transformers", "isCachingEnabled"
+						GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY,
+						DB_NAME_PROPERTY, GraphObjectTraitDefinition.CREATED_BY_PROPERTY, NodeInterfaceTraitDefinition.HIDDEN_PROPERTY,
+						GraphObjectTraitDefinition.CREATED_DATE_PROPERTY, GraphObjectTraitDefinition.LAST_MODIFIED_DATE_PROPERTY,
+						GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY,
+						SCHEMA_NODE_PROPERTY, SCHEMA_VIEWS_PROPERTY, EXCLUDED_VIEWS_PROPERTY, PROPERTY_TYPE_PROPERTY, CONTENT_TYPE_PROPERTY,
+						FQCN_PROPERTY, FORMAT_PROPERTY, TYPE_HINT_PROPERTY, HINT_PROPERTY, CATEGORY_PROPERTY, NOT_NULL_PROPERTY,
+						COMPOUND_PROPERTY, UNIQUE_PROPERTY, INDEXED_PROPERTY, READ_ONLY_PROPERTY, DEFAULT_VALUE_PROPERTY,
+						IS_BUILTIN_PROPERTY_PROPERTY, DECLARING_CLASS_PROPERTY, IS_DYNAMIC_PROPERTY, READ_FUNCTION_PROPERTY,
+						WRITE_FUNCTION_PROPERTY, OPEN_API_RETURN_TYPE_PROPERTY, VALIDATORS_PROPERTY, TRANSFORMERS_PROPERTY, IS_CACHING_ENABLED_PROPERTY
 				),
 
 				"schema",
 				newSet(
-						"id", "typeHandler", "name", "dbName", "schemaNode", "excludedViews", "schemaViews", "propertyType", "contentType", "format", "fqcn", "typeHint", "hint", "category", "notNull", "compound", "unique", "indexed", "readOnly", "defaultValue", "isBuiltinProperty", "isDefaultInUi", "isDefaultInPublic", "declaringClass", "isDynamic", "readFunction", "writeFunction", "openAPIReturnType", "validators", "transformers", "isCachingEnabled"
+						GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY,
+						DB_NAME_PROPERTY, SCHEMA_NODE_PROPERTY, EXCLUDED_VIEWS_PROPERTY, SCHEMA_VIEWS_PROPERTY, PROPERTY_TYPE_PROPERTY,
+						CONTENT_TYPE_PROPERTY, FORMAT_PROPERTY, FQCN_PROPERTY, TYPE_HINT_PROPERTY, HINT_PROPERTY, CATEGORY_PROPERTY,
+						NOT_NULL_PROPERTY, COMPOUND_PROPERTY, UNIQUE_PROPERTY, INDEXED_PROPERTY, READ_ONLY_PROPERTY, DEFAULT_VALUE_PROPERTY,
+						IS_BUILTIN_PROPERTY_PROPERTY, DECLARING_CLASS_PROPERTY, IS_DYNAMIC_PROPERTY, READ_FUNCTION_PROPERTY,
+						WRITE_FUNCTION_PROPERTY, OPEN_API_RETURN_TYPE_PROPERTY, VALIDATORS_PROPERTY, TRANSFORMERS_PROPERTY, IS_CACHING_ENABLED_PROPERTY
 				),
 
 				"export",
 				newSet(
-						"id", "typeHandler", "name", "schemaNode", "schemaViews", "excludedViews", "dbName", "propertyType", "contentType", "format", "fqcn", "typeHint", "hint", "category", "notNull", "compound", "unique", "indexed", "readOnly", "defaultValue", "isBuiltinProperty", "isDefaultInUi", "isDefaultInPublic", "declaringClass", "isDynamic", "readFunction", "writeFunction", "openAPIReturnType", "validators", "transformers", "isCachingEnabled"
+						GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY,
+						SCHEMA_NODE_PROPERTY, SCHEMA_VIEWS_PROPERTY, EXCLUDED_VIEWS_PROPERTY, DB_NAME_PROPERTY, PROPERTY_TYPE_PROPERTY,
+						CONTENT_TYPE_PROPERTY, FORMAT_PROPERTY, FQCN_PROPERTY, TYPE_HINT_PROPERTY, HINT_PROPERTY, CATEGORY_PROPERTY,
+						NOT_NULL_PROPERTY, COMPOUND_PROPERTY, UNIQUE_PROPERTY, INDEXED_PROPERTY, READ_ONLY_PROPERTY, DEFAULT_VALUE_PROPERTY,
+						IS_BUILTIN_PROPERTY_PROPERTY, DECLARING_CLASS_PROPERTY, IS_DYNAMIC_PROPERTY, READ_FUNCTION_PROPERTY,
+						WRITE_FUNCTION_PROPERTY, OPEN_API_RETURN_TYPE_PROPERTY, VALIDATORS_PROPERTY, TRANSFORMERS_PROPERTY, IS_CACHING_ENABLED_PROPERTY
 				)
 		);
 	}
@@ -221,12 +272,9 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 
 		super.onModification(securityContext, errorBuffer, modificationQueue);
 
-		final String uuid = getUuid();
-		if (uuid != null) {
+		// acknowledge all events for this node when it is modified
+		RuntimeEventLog.acknowledgeAllEventsForId(getUuid());
 
-			// acknowledge all events for this node when it is modified
-			RuntimeEventLog.getEvents(e -> uuid.equals(e.getData().get("id"))).stream().forEach(e -> e.acknowledge());
-		}
 
 		if (getProperty(schemaNode) == null) {
 			StructrApp.getInstance().delete(this);

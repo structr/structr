@@ -20,8 +20,9 @@ package org.structr.web.traits.definitions.html;
 
 import org.structr.common.PropertyView;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.StringProperty;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.operations.FrameworkMethod;
-import org.structr.web.common.HtmlProperty;
 import org.structr.web.traits.operations.IsVoidElement;
 
 import java.util.Map;
@@ -29,8 +30,10 @@ import java.util.Set;
 
 public class Param extends GenericHtmlElementTraitDefinition {
 
+	public static final String VALUE_PROPERTY = getPrefixedHTMLAttributeName("value");
+
 	public Param() {
-		super("Param");
+		super(StructrTraits.PARAM);
 	}
 
 	@Override
@@ -56,7 +59,7 @@ public class Param extends GenericHtmlElementTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final PropertyKey<String> valueProperty = new HtmlProperty("value");
+		final PropertyKey<String> valueProperty = new StringProperty(VALUE_PROPERTY);
 
 		return newSet(
 			valueProperty
@@ -69,7 +72,7 @@ public class Param extends GenericHtmlElementTraitDefinition {
 		return Map.of(
 			PropertyView.Html,
 			newSet(
-				"_html_value"
+					VALUE_PROPERTY
 			)
 		);
 	}

@@ -26,6 +26,7 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.event.RuntimeEvent;
 import org.structr.common.event.RuntimeEventLog;
 import org.structr.common.helper.CaseHelper;
 import org.structr.core.GraphObject;
@@ -53,6 +54,7 @@ import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.property.CustomHtmlAttributeProperty;
 import org.structr.web.property.DOMNodeSortedChildrenProperty;
+import org.structr.web.traits.definitions.html.Option;
 import org.structr.web.traits.operations.*;
 import org.structr.web.traits.wrappers.dom.DOMNodeTraitWrapper;
 import org.w3c.dom.DOMException;
@@ -64,11 +66,48 @@ import java.util.*;
  */
 public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String PARENT_PROPERTY                         = "parent";
+	public static final String CHILDREN_PROPERTY                       = "children";
+	public static final String PREVIOUS_SIBLING_PROPERTY               = "previousSibling";
+	public static final String NEXT_SIBLING_PROPERTY                   = "nextSibling";
+	public static final String SHARED_COMPONENT_PROPERTY               = "sharedComponent";
+	public static final String SYNCED_NODES_PROPERTY                   = "syncedNodes";
+	public static final String OWNER_DOCUMENT_PROPERTY                 = "ownerDocument";
+	public static final String RELOADING_ACTIONS_PROPERTY              = "reloadingActions";
+	public static final String FAILURE_ACTIONS_PROPERTY                = "failureActions";
+	public static final String SUCCESS_NOTIFICATION_ACTIONS_PROPERTY   = "successNotificationActions";
+	public static final String FAILURE_NOTIFICATION_ACTIONS_PROPERTY   = "failureNotificationActions";
+	public static final String SORTED_CHILDREN_PROPERTY                = "sortedChildren";
+	public static final String CHILDREN_IDS_PROPERTY                   = "childrenIds";
+	public static final String NEXT_SIBLING_ID_PROPERTY                = "nextSiblingId";
+	public static final String PAGE_ID_PROPERTY                        = "pageId";
+	public static final String PARENT_ID_PROPERTY                      = "parentId";
+	public static final String SHARED_COMPONENT_ID_PROPERTY            = "sharedComponentId";
+	public static final String SYNCED_NODES_IDS_PROPERTY               = "syncedNodesIds";
+	public static final String DATA_KEY_PROPERTY                       = "dataKey";
+	public static final String CYPHER_QUERY_PROPERTY                   = "cypherQuery";
+	public static final String REST_QUERY_PROPERTY                     = "restQuery";
+	public static final String FUNCTION_QUERY_PROPERTY                 = "functionQuery";
+	public static final String SHOW_FOR_LOCALES_PROPERTY               = "showForLocales";
+	public static final String HIDE_FOR_LOCALES_PROPERTY               = "hideForLocales";
+	public static final String SHOW_CONDITIONS_PROPERTY                = "showConditions";
+	public static final String HIDE_CONDITIONS_PROPERTY                = "hideConditions";
+	public static final String SHARED_COMPONENT_CONFIGURATION_PROPERTY = "sharedComponentConfiguration";
+	public static final String DATA_STRUCTR_ID_PROPERTY                = "data-structr-id";
+	public static final String DATA_STRUCTR_HASH_PROPERTY              = "data-structr-hash";
+	public static final String DONT_CACHE_PROPERTY                     = "dontCache";
+	public static final String IS_DOM_NODE_PROPERTY                    = "isDOMNode";
+	public static final String HAS_SHARED_COMPONENT_PROPERTY           = "hasSharedComponent";
+	public static final String DOM_SORT_POSITION_PROPERTY              = "domSortPosition";
+	public static final String FLOW_PROPERTY                           = "flow";
+
 	private static final String[] rawProps = new String[] {
-		"dataKey", "restQuery", "cypherQuery", "functionQuery", "selectedValues", "flow", "hideOnIndex", "hideOnDetail", "showForLocales", "hideForLocales", "showConditions", "hideConditions"
+			DATA_KEY_PROPERTY, REST_QUERY_PROPERTY, CYPHER_QUERY_PROPERTY, FUNCTION_QUERY_PROPERTY, Option.SELECTEDVALUES_PROPERTY, FLOW_PROPERTY,
+			"hideOnIndex", "hideOnDetail", // FIXME: these dont exist anymore!?
+			SHOW_FOR_LOCALES_PROPERTY, HIDE_FOR_LOCALES_PROPERTY, SHOW_CONDITIONS_PROPERTY, HIDE_CONDITIONS_PROPERTY
 	};
 
-	private static final Set<String> DataAttributeOutputBlacklist = Set.of("data-structr-manual-reload-target");
+	private static final Set<String> DataAttributeOutputBlacklist = Set.of(DOMElementTraitDefinition.DATA_STRUCTR_MANUAL_RELOAD_TARGET_PROPERTY);
 
 	public DOMNodeTraitDefinition() {
 		super(StructrTraits.DOM_NODE);
@@ -104,12 +143,8 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					domNode.checkName(errorBuffer);
 					domNode.syncName(errorBuffer);
 
-					final String uuid = domNode.getUuid();
-					if (uuid != null) {
-
-						// acknowledge all events for this node when it is modified
-						RuntimeEventLog.getEvents(e -> uuid.equals(e.getData().get("id"))).stream().forEach(e -> e.acknowledge());
-					}
+					// acknowledge all events for this node when it is modified
+					RuntimeEventLog.acknowledgeAllEventsForId(domNode.getUuid());
 				}
 			}
 		);
@@ -137,7 +172,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 						data.put("page", page.getName());
 					}
 
-					data.put("path", node.getPagePath());
+					data.put(DOMElementTraitDefinition.PATH_PROPERTY, node.getPagePath());
 				}
 			}
 		);
@@ -571,42 +606,42 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> parentProperty                               = new StartNode("parent", "DOMNodeCONTAINSDOMNode").category(DOMNode.PAGE_CATEGORY);
-		final Property<Iterable<NodeInterface>> childrenProperty                   = new EndNodes("children", "DOMNodeCONTAINSDOMNode").category(DOMNode.PAGE_CATEGORY);
-		final Property<NodeInterface> previousSiblingProperty                      = new StartNode("previousSibling", "DOMNodeCONTAINS_NEXT_SIBLINGDOMNode").category(DOMNode.PAGE_CATEGORY);
-		final Property<NodeInterface> nextSiblingProperty                          = new EndNode("nextSibling", "DOMNodeCONTAINS_NEXT_SIBLINGDOMNode").category(DOMNode.PAGE_CATEGORY);
-		final Property<NodeInterface> sharedComponentProperty                      = new StartNode("sharedComponent", "DOMNodeSYNCDOMNode").category(DOMNode.PAGE_CATEGORY);
-		final Property<Iterable<NodeInterface>> syncedNodesProperty                = new EndNodes("syncedNodes", "DOMNodeSYNCDOMNode").category(DOMNode.PAGE_CATEGORY);
-		final Property<NodeInterface> ownerDocumentProperty                        = new EndNode("ownerDocument", "DOMNodePAGEPage").category(DOMNode.PAGE_CATEGORY);
-		final Property<Iterable<NodeInterface>> reloadingActionsProperty           = new EndNodes("reloadingActions", "DOMNodeSUCCESS_TARGETActionMapping");
-		final Property<Iterable<NodeInterface>> failureActionsProperty             = new EndNodes("failureActions", "DOMNodeFAILURE_TARGETActionMapping");
-		final Property<Iterable<NodeInterface>> successNotificationActionsProperty = new EndNodes("successNotificationActions", "DOMNodeSUCCESS_NOTIFICATION_ELEMENTActionMapping");
-		final Property<Iterable<NodeInterface>> failureNotificationActionsProperty = new EndNodes("failureNotificationActions", "DOMNodeFAILURE_NOTIFICATION_ELEMENTActionMapping");
-		final Property<Iterable<DOMNode>> sortedChildrenProperty                   = new DOMNodeSortedChildrenProperty("sortedChildren").typeHint("DOMNode[]");
-		final Property<String> childrenIdsProperty                                 = new CollectionIdProperty("childrenIds", StructrTraits.DOM_NODE, "children", StructrTraits.DOM_NODE).category("Page Structure");
-		final Property<String> nextSiblingIdProperty                               = new EntityIdProperty("nextSiblingId", StructrTraits.DOM_NODE, "nextSibling", StructrTraits.DOM_NODE).category("Page Structure");
-		final Property<String> pageIdProperty                                      = new EntityIdProperty("pageId", StructrTraits.DOM_NODE, "ownerDocument", StructrTraits.PAGE).category("Page Structure");
-		final Property<String> parentIdProperty                                    = new EntityIdProperty("parentId", StructrTraits.DOM_NODE, "parent", StructrTraits.DOM_NODE).category("Page Structure");
-		final Property<String> sharedComponentIdProperty                           = new EntityIdProperty("sharedComponentId", StructrTraits.DOM_NODE, "sharedComponent", StructrTraits.DOM_NODE).format("sharedComponent, {},");
-		final Property<String> syncedNodesIdsProperty                              = new CollectionIdProperty("syncedNodesIds", StructrTraits.DOM_NODE, "syncedNodes", StructrTraits.DOM_NODE);
-		final Property<String> dataKeyProperty                                     = new StringProperty("dataKey").indexed().category(DOMNode.QUERY_CATEGORY);
-		final Property<String> cypherQueryProperty                                 = new StringProperty("cypherQuery").category(DOMNode.QUERY_CATEGORY);
-		final Property<String> restQueryProperty                                   = new StringProperty("restQuery").category(DOMNode.QUERY_CATEGORY);
-		final Property<String> functionQueryProperty                               = new StringProperty("functionQuery").category(DOMNode.QUERY_CATEGORY);
-		final Property<String> showForLocalesProperty                              = new StringProperty("showForLocales").indexed().category(GraphObject.VISIBILITY_CATEGORY);
-		final Property<String> hideForLocalesProperty                              = new StringProperty("hideForLocales").indexed().category(GraphObject.VISIBILITY_CATEGORY);
-		final Property<String> showConditionsProperty                              = new StringProperty("showConditions").indexed().category(GraphObject.VISIBILITY_CATEGORY).hint("Conditions which have to be met in order for the element to be shown.<br><br>This is an 'auto-script' environment, meaning that the text is automatically surrounded with ${}");
-		final Property<String> hideConditionsProperty                              = new StringProperty("hideConditions").indexed().category(GraphObject.VISIBILITY_CATEGORY).hint("Conditions which have to be met in order for the element to be hidden.<br><br>This is an 'auto-script' environment, meaning that the text is automatically surrounded with ${}");
-		final Property<String> sharedComponentConfigurationProperty                = new StringProperty("sharedComponentConfiguration").format("multi-line").category(DOMNode.PAGE_CATEGORY).hint("The contents of this field will be evaluated before rendering this component. This is usually used to customize shared components to make them more flexible.<br><br>This is an 'auto-script' environment, meaning that the text is automatically surrounded with ${}");
-		final Property<String> dataStructrIdProperty                               = new StringProperty("data-structr-id").hint("Set to ${current.id} most of the time").category(DOMNode.PAGE_CATEGORY);
-		final Property<String> dataStructrHashProperty                             = new StringProperty("data-structr-hash").category(DOMNode.PAGE_CATEGORY);
-		final Property<Boolean> dontCacheProperty                                  = new BooleanProperty("dontCache").defaultValue(false);
-		final Property<Boolean> isDOMNodeProperty                                  = new ConstantBooleanProperty("isDOMNode", true).category(DOMNode.PAGE_CATEGORY);
-		final Property<Boolean> hasSharedComponent                                 = new BooleanProperty("hasSharedComponent").indexed();
-		final Property<Integer> domSortPositionProperty                            = new IntProperty("domSortPosition").category(DOMNode.PAGE_CATEGORY);
+		final Property<NodeInterface> parentProperty                               = new StartNode(PARENT_PROPERTY, StructrTraits.DOM_NODE_CONTAINS_DOM_NODE).category(DOMNode.PAGE_CATEGORY);
+		final Property<Iterable<NodeInterface>> childrenProperty                   = new EndNodes(CHILDREN_PROPERTY, StructrTraits.DOM_NODE_CONTAINS_DOM_NODE).category(DOMNode.PAGE_CATEGORY);
+		final Property<NodeInterface> previousSiblingProperty                      = new StartNode(PREVIOUS_SIBLING_PROPERTY, StructrTraits.DOM_NODE_CONTAINS_NEXT_SIBLING_DOM_NODE).category(DOMNode.PAGE_CATEGORY);
+		final Property<NodeInterface> nextSiblingProperty                          = new EndNode(NEXT_SIBLING_PROPERTY, StructrTraits.DOM_NODE_CONTAINS_NEXT_SIBLING_DOM_NODE).category(DOMNode.PAGE_CATEGORY);
+		final Property<NodeInterface> sharedComponentProperty                      = new StartNode(SHARED_COMPONENT_PROPERTY, StructrTraits.DOM_NODE_SYNC_DOM_NODE).category(DOMNode.PAGE_CATEGORY);
+		final Property<Iterable<NodeInterface>> syncedNodesProperty                = new EndNodes(SYNCED_NODES_PROPERTY, StructrTraits.DOM_NODE_SYNC_DOM_NODE).category(DOMNode.PAGE_CATEGORY);
+		final Property<NodeInterface> ownerDocumentProperty                        = new EndNode(OWNER_DOCUMENT_PROPERTY, StructrTraits.DOM_NODE_PAGE_PAGE).category(DOMNode.PAGE_CATEGORY);
+		final Property<Iterable<NodeInterface>> reloadingActionsProperty           = new EndNodes(RELOADING_ACTIONS_PROPERTY, StructrTraits.DOM_NODE_SUCCESS_TARGET_ACTION_MAPPING);
+		final Property<Iterable<NodeInterface>> failureActionsProperty             = new EndNodes(FAILURE_ACTIONS_PROPERTY, StructrTraits.DOM_NODE_FAILURE_TARGET_ACTION_MAPPING);
+		final Property<Iterable<NodeInterface>> successNotificationActionsProperty = new EndNodes(SUCCESS_NOTIFICATION_ACTIONS_PROPERTY, StructrTraits.DOM_NODE_SUCCESS_NOTIFICATION_ELEMENT_ACTION_MAPPING);
+		final Property<Iterable<NodeInterface>> failureNotificationActionsProperty = new EndNodes(FAILURE_NOTIFICATION_ACTIONS_PROPERTY, StructrTraits.DOM_NODE_FAILURE_NOTIFICATION_ELEMENT_ACTION_MAPPING);
+		final Property<Iterable<DOMNode>> sortedChildrenProperty                   = new DOMNodeSortedChildrenProperty(SORTED_CHILDREN_PROPERTY).typeHint("DOMNode[]");
+		final Property<String> childrenIdsProperty                                 = new CollectionIdProperty(CHILDREN_IDS_PROPERTY, StructrTraits.DOM_NODE, DOMNodeTraitDefinition.CHILDREN_PROPERTY, StructrTraits.DOM_NODE).category("Page Structure");
+		final Property<String> nextSiblingIdProperty                               = new EntityIdProperty(NEXT_SIBLING_ID_PROPERTY, StructrTraits.DOM_NODE, NEXT_SIBLING_PROPERTY, StructrTraits.DOM_NODE).category("Page Structure");
+		final Property<String> pageIdProperty                                      = new EntityIdProperty(PAGE_ID_PROPERTY, StructrTraits.DOM_NODE, OWNER_DOCUMENT_PROPERTY, StructrTraits.PAGE).category("Page Structure");
+		final Property<String> parentIdProperty                                    = new EntityIdProperty(PARENT_ID_PROPERTY, StructrTraits.DOM_NODE, PARENT_PROPERTY, StructrTraits.DOM_NODE).category("Page Structure");
+		final Property<String> sharedComponentIdProperty                           = new EntityIdProperty(SHARED_COMPONENT_ID_PROPERTY, StructrTraits.DOM_NODE, SHARED_COMPONENT_PROPERTY, StructrTraits.DOM_NODE).format("sharedComponent, {},");
+		final Property<String> syncedNodesIdsProperty                              = new CollectionIdProperty(SYNCED_NODES_IDS_PROPERTY, StructrTraits.DOM_NODE, SYNCED_NODES_PROPERTY, StructrTraits.DOM_NODE);
+		final Property<String> dataKeyProperty                                     = new StringProperty(DATA_KEY_PROPERTY).indexed().category(DOMNode.QUERY_CATEGORY);
+		final Property<String> cypherQueryProperty                                 = new StringProperty(CYPHER_QUERY_PROPERTY).category(DOMNode.QUERY_CATEGORY);
+		final Property<String> restQueryProperty                                   = new StringProperty(REST_QUERY_PROPERTY).category(DOMNode.QUERY_CATEGORY);
+		final Property<String> functionQueryProperty                               = new StringProperty(FUNCTION_QUERY_PROPERTY).category(DOMNode.QUERY_CATEGORY);
+		final Property<String> showForLocalesProperty                              = new StringProperty(SHOW_FOR_LOCALES_PROPERTY).indexed().category(GraphObject.VISIBILITY_CATEGORY);
+		final Property<String> hideForLocalesProperty                              = new StringProperty(HIDE_FOR_LOCALES_PROPERTY).indexed().category(GraphObject.VISIBILITY_CATEGORY);
+		final Property<String> showConditionsProperty                              = new StringProperty(SHOW_CONDITIONS_PROPERTY).indexed().category(GraphObject.VISIBILITY_CATEGORY).hint("Conditions which have to be met in order for the element to be shown.<br><br>This is an 'auto-script' environment, meaning that the text is automatically surrounded with ${}");
+		final Property<String> hideConditionsProperty                              = new StringProperty(HIDE_CONDITIONS_PROPERTY).indexed().category(GraphObject.VISIBILITY_CATEGORY).hint("Conditions which have to be met in order for the element to be hidden.<br><br>This is an 'auto-script' environment, meaning that the text is automatically surrounded with ${}");
+		final Property<String> sharedComponentConfigurationProperty                = new StringProperty(SHARED_COMPONENT_CONFIGURATION_PROPERTY).format("multi-line").category(DOMNode.PAGE_CATEGORY).hint("The contents of this field will be evaluated before rendering this component. This is usually used to customize shared components to make them more flexible.<br><br>This is an 'auto-script' environment, meaning that the text is automatically surrounded with ${}");
+		final Property<String> dataStructrIdProperty                               = new StringProperty(DATA_STRUCTR_ID_PROPERTY).hint("Set to ${current.id} most of the time").category(DOMNode.PAGE_CATEGORY);
+		final Property<String> dataStructrHashProperty                             = new StringProperty(DATA_STRUCTR_HASH_PROPERTY).category(DOMNode.PAGE_CATEGORY);
+		final Property<Boolean> dontCacheProperty                                  = new BooleanProperty(DONT_CACHE_PROPERTY).defaultValue(false);
+		final Property<Boolean> isDOMNodeProperty                                  = new ConstantBooleanProperty(IS_DOM_NODE_PROPERTY, true).category(DOMNode.PAGE_CATEGORY);
+		final Property<Boolean> hasSharedComponent                                 = new BooleanProperty(HAS_SHARED_COMPONENT_PROPERTY).indexed();
+		final Property<Integer> domSortPositionProperty                            = new IntProperty(DOM_SORT_POSITION_PROPERTY).category(DOMNode.PAGE_CATEGORY);
 
 
-		//final Property<NodeInterface> flow                                               = new EndNode("flow", "DOMNodeFLOWFlowContainer");
+		//final Property<NodeInterface> flow                                               = new EndNode(FLOW_PROPERTY, "DOMNodeFLOWFlowContainer");
 
 
 		return Set.of(
@@ -652,7 +687,10 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 			PropertyView.Ui,
-			newSet("reloadingActions", "failureActions", "successNotificationActions", "failureNotificationActions")
+			newSet(
+					DOMNodeTraitDefinition.RELOADING_ACTIONS_PROPERTY, DOMNodeTraitDefinition.FAILURE_ACTIONS_PROPERTY,
+					DOMNodeTraitDefinition.SUCCESS_NOTIFICATION_ACTIONS_PROPERTY, DOMNodeTraitDefinition.FAILURE_NOTIFICATION_ACTIONS_PROPERTY
+			)
 		);
 	}
 

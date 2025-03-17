@@ -26,7 +26,7 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class DOMNodeFAILURE_NOTIFICATION_ELEMENTActionMapping extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public DOMNodeFAILURE_NOTIFICATION_ELEMENTActionMapping() {
-		super("DOMNodeFAILURE_NOTIFICATION_ELEMENTActionMapping");
+		super(StructrTraits.DOM_NODE_FAILURE_NOTIFICATION_ELEMENT_ACTION_MAPPING);
 	}
 
 	@Override

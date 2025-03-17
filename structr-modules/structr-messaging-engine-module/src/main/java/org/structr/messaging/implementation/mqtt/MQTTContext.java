@@ -29,6 +29,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.messaging.implementation.mqtt.entity.MQTTClient;
 
 import java.util.HashMap;
@@ -153,7 +154,7 @@ public abstract class MQTTContext {
 
 			try (final Tx tx = app.tx()) {
 
-				for (final NodeInterface clientNode : app.nodeQuery("MQTTClient").getAsList()) {
+				for (final NodeInterface clientNode : app.nodeQuery(StructrTraits.MQTT_CLIENT).getAsList()) {
 
 					MQTTClient client = clientNode.as(MQTTClient.class);
 

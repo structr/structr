@@ -29,7 +29,9 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.AfterCreation;
 import org.structr.feed.entity.AbstractFeedItem;
@@ -44,8 +46,13 @@ import java.util.Set;
  */
 public class FeedItemContentTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String ITEM_PROPERTY      = "item";
+	public static final String MODE_PROPERTY      = "mode";
+	public static final String ITEM_TYPE_PROPERTY = "itemType";
+	public static final String VALUE_PROPERTY     = "value";
+
 	public FeedItemContentTraitDefinition() {
-		super("FeedItemContent");
+		super(StructrTraits.FEED_ITEM_CONTENT);
 	}
 
 	@Override
@@ -65,10 +72,10 @@ public class FeedItemContentTraitDefinition extends AbstractNodeTraitDefinition 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> itemProperty   = new StartNode("item", "FeedItemFEED_ITEM_CONTENTSFeedItemContent");
-		final Property<String> modeProperty     = new StringProperty("mode");
-		final Property<String> itemTypeProperty = new StringProperty("itemType");
-		final Property<String> valueProperty    = new StringProperty("value");
+		final Property<NodeInterface> itemProperty = new StartNode(ITEM_PROPERTY, StructrTraits.FEED_ITEM_FEED_ITEM_CONTENTS_FEED_ITEM_CONTENT);
+		final Property<String> modeProperty        = new StringProperty(MODE_PROPERTY);
+		final Property<String> itemTypeProperty    = new StringProperty(ITEM_TYPE_PROPERTY);
+		final Property<String> valueProperty       = new StringProperty(VALUE_PROPERTY);
 
 		return newSet(
 			itemProperty,
@@ -97,11 +104,11 @@ public class FeedItemContentTraitDefinition extends AbstractNodeTraitDefinition 
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"owner", "mode", "itemType", "value"
+					NodeInterfaceTraitDefinition.OWNER_PROPERTY, MODE_PROPERTY, ITEM_TYPE_PROPERTY, VALUE_PROPERTY
 			),
 			PropertyView.Ui,
 			newSet(
-				"mode", "itemType", "value", "item"
+					MODE_PROPERTY, ITEM_TYPE_PROPERTY, VALUE_PROPERTY, ITEM_PROPERTY
 			)
 		);
 	}

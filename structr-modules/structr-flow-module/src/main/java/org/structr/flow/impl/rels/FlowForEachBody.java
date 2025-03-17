@@ -20,35 +20,57 @@ package org.structr.flow.impl.rels;
 
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
-import org.structr.common.PermissionPropagation;
-import org.structr.core.entity.OneToOne;
 import org.structr.core.entity.Relation;
-import org.structr.flow.impl.FlowForEach;
-import org.structr.flow.impl.FlowNode;
+import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
+import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
 /**
  *
  */
-public class FlowForEachBody extends OneToOne<FlowForEach, FlowNode> implements PermissionPropagation {
+public class FlowForEachBody extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
-	@Override
-	public Class<FlowForEach> getSourceType() {
-		return FlowForEach.class;
+	public FlowForEachBody() {
+		super("FlowForEachBody");
 	}
 
 	@Override
-	public Class<FlowNode> getTargetType() {
-		return FlowNode.class;
+	public String getSourceType() {
+		return "FlowForEach";
 	}
 
 	@Override
-	public String name() {
+	public String getTargetType() {
+		return "FlowNode";
+	}
+
+	@Override
+	public String getRelationshipType() {
 		return "LOOP_BODY";
+	}
+
+	@Override
+	public Relation.Multiplicity getSourceMultiplicity() {
+		return Relation.Multiplicity.One;
+	}
+
+	@Override
+	public Relation.Multiplicity getTargetMultiplicity() {
+		return Relation.Multiplicity.One;
+	}
+
+	@Override
+	public int getCascadingDeleteFlag() {
+		return 0;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
 		return Relation.ALWAYS;
+	}
+
+	@Override
+	public boolean isInternal() {
+		return false;
 	}
 
 	@Override

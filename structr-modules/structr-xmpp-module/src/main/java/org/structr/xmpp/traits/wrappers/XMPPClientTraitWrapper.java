@@ -23,6 +23,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.xmpp.XMPPClient;
+import org.structr.xmpp.traits.definitions.XMPPClientTraitDefinition;
 
 /**
  *
@@ -36,46 +37,46 @@ public class XMPPClientTraitWrapper extends AbstractNodeTraitWrapper implements 
 
 	@Override
 	public String getUsername() {
-		return wrappedObject.getProperty(traits.key("xmppUsername"));
+		return wrappedObject.getProperty(traits.key(XMPPClientTraitDefinition.XMPP_USERNAME_PROPERTY));
 	}
 
 	@Override
 	public String getPassword() {
-		return wrappedObject.getProperty(traits.key("xmppPassword"));
+		return wrappedObject.getProperty(traits.key(XMPPClientTraitDefinition.XMPP_PASSWORD_PROPERTY));
 	}
 
 	@Override
 	public String getService() {
-		return wrappedObject.getProperty(traits.key("xmppService"));
+		return wrappedObject.getProperty(traits.key(XMPPClientTraitDefinition.XMPP_SERVICE_PROPERTY));
 	}
 
 	@Override
 	public String getHostName() {
-		return wrappedObject.getProperty(traits.key("xmppHost"));
+		return wrappedObject.getProperty(traits.key(XMPPClientTraitDefinition.XMPP_HOST_PROPERTY));
 	}
 
 	@Override
 	public int getPort() {
-		return wrappedObject.getProperty(traits.key("xmppPort"));
+		return wrappedObject.getProperty(traits.key(XMPPClientTraitDefinition.XMPP_PORT_PROPERTY));
 	}
 
 	@Override
 	public void setIsConnected(final boolean isConnected) throws FrameworkException {
-		setProperty(traits.key("isConnected"), isConnected);
+		setProperty(traits.key(XMPPClientTraitDefinition.IS_CONNECTED_PROPERTY), isConnected);
 	}
 
 	@Override
 	public String getPresenceMode() {
-		return wrappedObject.getProperty(traits.key("presenceMode"));
+		return wrappedObject.getProperty(traits.key(XMPPClientTraitDefinition.PRESENCE_MODE_PROPERTY));
 	}
 
 	@Override
 	public boolean getIsConnected() {
-		return wrappedObject.getProperty(traits.key("isConnected"));
+		return wrappedObject.getProperty(traits.key(XMPPClientTraitDefinition.IS_CONNECTED_PROPERTY));
 	}
 
 	@Override
 	public boolean getIsEnabled() {
-		return wrappedObject.getProperty(traits.key("isEnabled"));
+		return wrappedObject.getProperty(traits.key(XMPPClientTraitDefinition.IS_ENABLED_PROPERTY));
 	}
 }

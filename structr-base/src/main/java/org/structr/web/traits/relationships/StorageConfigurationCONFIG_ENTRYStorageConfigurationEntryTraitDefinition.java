@@ -21,23 +21,24 @@ package org.structr.web.traits.relationships;
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
 import org.structr.core.entity.Relation;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
 public class StorageConfigurationCONFIG_ENTRYStorageConfigurationEntryTraitDefinition extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public StorageConfigurationCONFIG_ENTRYStorageConfigurationEntryTraitDefinition() {
-		super("StorageConfigurationCONFIG_ENTRYStorageConfigurationEntry");
+		super(StructrTraits.STORAGE_CONFIGURATION_CONFIG_ENTRY_STORAGE_CONFIGURATION_ENTRY);
 	}
 
 	@Override
 	public String getSourceType() {
-		return "StorageConfiguration";
+		return StructrTraits.STORAGE_CONFIGURATION;
 	}
 
 	@Override
 	public String getTargetType() {
-		return "StorageConfigurationEntry";
+		return StructrTraits.STORAGE_CONFIGURATION_ENTRY;
 	}
 
 	@Override

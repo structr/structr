@@ -27,6 +27,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.LifecycleMethodAdapter;
 import org.structr.core.traits.operations.graphobject.*;
@@ -45,7 +46,7 @@ public class SchemaMethodTraitWrapper extends AbstractNodeTraitWrapper implement
 	@Override
 	public AbstractSchemaNode getSchemaNode() {
 
-		final NodeInterface node = wrappedObject.getProperty(traits.key("schemaNode"));
+		final NodeInterface node = wrappedObject.getProperty(traits.key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY));
 		if (node != null) {
 
 			return node.as(AbstractSchemaNode.class);
@@ -57,14 +58,14 @@ public class SchemaMethodTraitWrapper extends AbstractNodeTraitWrapper implement
 	@Override
 	public Iterable<SchemaMethodParameter> getParameters() {
 
-		final PropertyKey<Iterable<NodeInterface>> key = traits.key("parameters");
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key(SchemaMethodTraitDefinition.PARAMETERS_PROPERTY);
 
 		return Iterables.map(n -> n.as(SchemaMethodParameter.class), wrappedObject.getProperty(key));
 	}
 
 	@Override
 	public String getStaticSchemaNodeName() {
-		return wrappedObject.getProperty(traits.key("staticSchemaNodeName"));
+		return wrappedObject.getProperty(traits.key(SchemaMethodTraitDefinition.STATIC_SCHEMA_NODE_NAME_PROPERTY));
 	}
 
 	@Override
@@ -74,92 +75,92 @@ public class SchemaMethodTraitWrapper extends AbstractNodeTraitWrapper implement
 
 	@Override
 	public String getSource() {
-		return wrappedObject.getProperty(traits.key("source"));
+		return wrappedObject.getProperty(traits.key(SchemaMethodTraitDefinition.SOURCE_PROPERTY));
 	}
 
 	@Override
 	public String getSummary() {
-		return wrappedObject.getProperty(traits.key("summary"));
+		return wrappedObject.getProperty(traits.key(SchemaMethodTraitDefinition.SUMMARY_PROPERTY));
 	}
 
 	@Override
 	public String getDescription() {
-		return wrappedObject.getProperty(traits.key("description"));
+		return wrappedObject.getProperty(traits.key(SchemaMethodTraitDefinition.DESCRIPTION_PROPERTY));
 	}
 
 	@Override
 	public String getCodeType() {
-		return wrappedObject.getProperty(traits.key("codeType"));
+		return wrappedObject.getProperty(traits.key(SchemaMethodTraitDefinition.CODE_TYPE_PROPERTY));
 	}
 
 	@Override
 	public String getReturnType() {
-		return wrappedObject.getProperty(traits.key("returnType"));
+		return wrappedObject.getProperty(traits.key(SchemaMethodTraitDefinition.RETURN_TYPE_PROPERTY));
 	}
 
 	@Override
 	public String getOpenAPIReturnType() {
-		return wrappedObject.getProperty(traits.key("openAPIReturnType"));
+		return wrappedObject.getProperty(traits.key(SchemaMethodTraitDefinition.OPEN_API_RETURN_TYPE_PROPERTY));
 	}
 
 	@Override
 	public String getVirtualFileName() {
-		return wrappedObject.getProperty(traits.key("virtualFileName"));
+		return wrappedObject.getProperty(traits.key(SchemaMethodTraitDefinition.VIRTUAL_FILE_NAME_PROPERTY));
 	}
 
 	@Override
 	public String getSignature() {
-		return wrappedObject.getProperty(traits.key("signature"));
+		return wrappedObject.getProperty(traits.key(SchemaMethodTraitDefinition.SIGNATURE_PROPERTY));
 	}
 
 	@Override
 	public String[] getExceptions() {
-		return wrappedObject.getProperty(traits.key("exceptions"));
+		return wrappedObject.getProperty(traits.key(SchemaMethodTraitDefinition.EXCEPTIONS_PROPERTY));
 	}
 
 	@Override
 	public String[] getTags() {
-		return wrappedObject.getProperty(traits.key("tags"));
+		return wrappedObject.getProperty(traits.key(SchemaMethodTraitDefinition.TAGS_PROPERTY));
 	}
 
 	@Override
 	public boolean callSuper() {
-		return wrappedObject.getProperty(traits.key("callSuper"));
+		return wrappedObject.getProperty(traits.key(SchemaMethodTraitDefinition.CALL_SUPER_PROPERTY));
 	}
 
 	@Override
 	public boolean overridesExisting() {
-		return wrappedObject.getProperty(traits.key("overridesExisting"));
+		return wrappedObject.getProperty(traits.key(SchemaMethodTraitDefinition.OVERRIDES_EXISTING_PROPERTY));
 	}
 
 	@Override
 	public boolean doExport() {
-		return wrappedObject.getProperty(traits.key("doExport"));
+		return wrappedObject.getProperty(traits.key(SchemaMethodTraitDefinition.DO_EXPORT_PROPERTY));
 	}
 
 	@Override
 	public boolean includeInOpenAPI() {
-		return wrappedObject.getProperty(traits.key("includeInOpenAPI"));
+		return wrappedObject.getProperty(traits.key(SchemaMethodTraitDefinition.INCLUDE_IN_OPEN_API_PROPERTY));
 	}
 
 	@Override
 	public boolean isStaticMethod() {
-		return wrappedObject.getProperty(traits.key("isStatic"));
+		return wrappedObject.getProperty(traits.key(SchemaMethodTraitDefinition.IS_STATIC_PROPERTY));
 	}
 
 	@Override
 	public boolean isPrivateMethod() {
-		return wrappedObject.getProperty(traits.key("isPrivate"));
+		return wrappedObject.getProperty(traits.key(SchemaMethodTraitDefinition.IS_PRIVATE_PROPERTY));
 	}
 
 	@Override
 	public boolean returnRawResult() {
-		return wrappedObject.getProperty(traits.key("returnRawResult"));
+		return wrappedObject.getProperty(traits.key(SchemaMethodTraitDefinition.RETURN_RAW_RESULT_PROPERTY));
 	}
 
 	@Override
 	public String getHttpVerb() {
-		return wrappedObject.getProperty(traits.key("httpVerb"));
+		return wrappedObject.getProperty(traits.key(SchemaMethodTraitDefinition.HTTP_VERB_PROPERTY));
 	}
 
 	public SchemaMethodParameter getSchemaMethodParameter(final String name) {

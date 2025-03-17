@@ -45,7 +45,7 @@ public class CustomResponseHeadersTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			// create a page
 			final Page newPage = Page.createNewPage(securityContext, "customHeadersTestPage");
@@ -71,7 +71,7 @@ public class CustomResponseHeadersTest extends StructrUiTest {
 		RestAssured
 		.given()
 			.accept("text/html")
-			.headers("X-User", "admin" , "X-Password", "admin")
+			.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.filter(ResponseLoggingFilter.logResponseTo(System.out))
 
 		.expect()

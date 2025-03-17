@@ -31,6 +31,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
@@ -49,8 +50,12 @@ import java.util.Set;
 
 public class KafkaClientTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String SERVERS_PROPERTY  = "servers";
+	public static final String GROUP_ID_PROPERTY = "groupId";
+	public static final String ENABLED_PROPERTY  = "enabled";
+
 	public KafkaClientTraitDefinition() {
-		super("KafkaClient");
+		super(StructrTraits.KAFKA_CLIENT);
 	}
 
 	@Override
@@ -80,7 +85,7 @@ public class KafkaClientTraitDefinition extends AbstractNodeTraitDefinition {
 					final KafkaClient client = graphObject.as(KafkaClient.class);
 					final Traits traits = client.getTraits();
 
-					if (modificationQueue.isPropertyModified(client, traits.key("servers")) || modificationQueue.isPropertyModified(client, traits.key("groupId"))) {
+					if (modificationQueue.isPropertyModified(client, traits.key(SERVERS_PROPERTY)) || modificationQueue.isPropertyModified(client, traits.key(GROUP_ID_PROPERTY))) {
 						client.refreshConfiguration();
 					}
 				}
@@ -154,9 +159,9 @@ public class KafkaClientTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<String[]> serversProperty = new ArrayProperty("servers", String.class);
-		final Property<String> groupIdProperty   = new StringProperty("groupId");
-		final Property<Boolean> enabledProperty  = new BooleanProperty("enabled").defaultValue(false);
+		final Property<String[]> serversProperty = new ArrayProperty(SERVERS_PROPERTY, String.class);
+		final Property<String> groupIdProperty   = new StringProperty(GROUP_ID_PROPERTY);
+		final Property<Boolean> enabledProperty  = new BooleanProperty(ENABLED_PROPERTY).defaultValue(false);
 
 		return newSet(
 			serversProperty,
@@ -176,11 +181,11 @@ public class KafkaClientTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"servers", "groupId", "enabled", "subscribers"
+					SERVERS_PROPERTY, GROUP_ID_PROPERTY, ENABLED_PROPERTY, MessageClientTraitDefinition.SUBSCRIBERS_PROPERTY
 			),
 			PropertyView.Ui,
 			newSet(
-				"servers", "groupId", "enabled", "subscribers"
+					SERVERS_PROPERTY, GROUP_ID_PROPERTY, ENABLED_PROPERTY, MessageClientTraitDefinition.SUBSCRIBERS_PROPERTY
 			)
 		);
 	}

@@ -46,6 +46,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GroupTraitDefinition;
+import org.structr.ldap.traits.definitions.LDAPUserTraitDefinition;
 import org.structr.schema.SchemaService;
 
 import java.io.IOException;
@@ -210,13 +211,13 @@ public class LDAPService extends Thread implements SingletonService {
 
 			try (final Tx tx = app.tx()) {
 
-				for (final NodeInterface member : app.nodeQuery("LDAPUser").getResultStream()) {
+				for (final NodeInterface member : app.nodeQuery(StructrTraits.LDAP_USER).getResultStream()) {
 
 					boolean hasLDAPGroups = false;
 
 					for (final Group group : member.as(LDAPUser.class).getGroups()) {
 
-						if (group.is("LDAPGroup")) {
+						if (group.is(StructrTraits.LDAP_GROUP)) {
 
 							hasLDAPGroups = true;
 							break;
@@ -244,19 +245,19 @@ public class LDAPService extends Thread implements SingletonService {
 
 		final App app                = StructrApp.getInstance();
 		final PropertyMap attributes = new PropertyMap();
-		final Traits userTraits      = Traits.of("LDAPUser");
+		final Traits userTraits      = Traits.of(StructrTraits.LDAP_USER);
 		final String originId        = getOriginId(userEntry);
 
 		if (originId != null) {
 
-			attributes.put(userTraits.key("originId"), originId);
+			attributes.put(userTraits.key(LDAPUserTraitDefinition.ORIGIN_ID_PROPERTY), originId);
 
-			NodeInterface userNode = app.nodeQuery("LDAPUser").and(attributes).getFirst();
+			NodeInterface userNode = app.nodeQuery(StructrTraits.LDAP_USER).and(attributes).getFirst();
 			if (userNode == null) {
 
 				logger.debug("Creating new user for originId {}", originId);
 
-				userNode = app.create("LDAPUser", attributes);
+				userNode = app.create(StructrTraits.LDAP_USER, attributes);
 				if (userNode != null) {
 
 					logger.debug("User created: {}", userNode.getUuid());

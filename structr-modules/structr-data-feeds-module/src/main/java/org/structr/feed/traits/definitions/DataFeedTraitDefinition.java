@@ -31,6 +31,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
@@ -46,8 +47,17 @@ import java.util.Set;
 
 public class DataFeedTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String ITEMS_PROPERTY           = "items";
+	public static final String URL_PROPERTY             = "url";
+	public static final String FEED_TYPE_PROPERTY       = "feedType";
+	public static final String DESCRIPTION_PROPERTY     = "description";
+	public static final String UPDATE_INTERVAL_PROPERTY = "updateInterval";
+	public static final String LAST_UPDATED_PROPERTY    = "lastUpdated";
+	public static final String MAX_AGE_PROPERTY         = "maxAge";
+	public static final String MAX_ITEMS_PROPERTY       = "maxItems";
+
 	public DataFeedTraitDefinition() {
-		super("DataFeed");
+		super(StructrTraits.DATA_FEED);
 	}
 
 	@Override
@@ -60,7 +70,7 @@ public class DataFeedTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
 
-					final PropertyKey<String> urlProperty = obj.getTraits().key("url");
+					final PropertyKey<String> urlProperty = obj.getTraits().key(URL_PROPERTY);
 
 					return ValidationHelper.isValidPropertyNotNull(obj, urlProperty, errorBuffer);
 				}
@@ -108,16 +118,17 @@ public class DataFeedTraitDefinition extends AbstractNodeTraitDefinition {
 					entity.as(DataFeed.class).updateFeed(securityContext);
 					return null;
 				}
-			},
-
-			new JavaMethod("updateFeed", false, false) {
-
-				@Override
-				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
-					entity.as(DataFeed.class).updateFeed(securityContext);
-					return null;
-				}
 			}
+
+			// FIXME: why was that here twice?
+//			new JavaMethod("updateFeed", false, false) {
+//
+//				@Override
+//				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
+//					entity.as(DataFeed.class).updateFeed(securityContext);
+//					return null;
+//				}
+//			}
 		);
 	}
 
@@ -132,14 +143,14 @@ public class DataFeedTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Iterable<NodeInterface>> itemsProperty = new EndNodes("items", "DataFeedHAS_FEED_ITEMSFeedItem");
-		final Property<String> urlProperty                    = new StringProperty("url").indexed().notNull();
-		final Property<String> feedTypeProperty               = new StringProperty("feedType");
-		final Property<String> descriptionProperty            = new StringProperty("description");
-		final Property<Long> updateIntervalProperty           = new LongProperty("updateInterval");
-		final Property<Date> lastUpdatedProperty              = new DateProperty("lastUpdated");
-		final Property<Long> maxAgeProperty                   = new LongProperty("maxAge");
-		final Property<Integer> maxItemsProperty              = new IntProperty("maxItems");
+		final Property<Iterable<NodeInterface>> itemsProperty = new EndNodes(ITEMS_PROPERTY, StructrTraits.DATA_FEED_HAS_FEED_ITEMS_FEED_ITEM);
+		final Property<String> urlProperty                    = new StringProperty(URL_PROPERTY).indexed().notNull();
+		final Property<String> feedTypeProperty               = new StringProperty(FEED_TYPE_PROPERTY);
+		final Property<String> descriptionProperty            = new StringProperty(DESCRIPTION_PROPERTY);
+		final Property<Long> updateIntervalProperty           = new LongProperty(UPDATE_INTERVAL_PROPERTY);
+		final Property<Date> lastUpdatedProperty              = new DateProperty(LAST_UPDATED_PROPERTY);
+		final Property<Long> maxAgeProperty                   = new LongProperty(MAX_AGE_PROPERTY);
+		final Property<Integer> maxItemsProperty              = new IntProperty(MAX_ITEMS_PROPERTY);
 
 		return newSet(
 			itemsProperty,
@@ -159,12 +170,12 @@ public class DataFeedTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"url", "feedType", "description", "items"
+				URL_PROPERTY, FEED_TYPE_PROPERTY, DESCRIPTION_PROPERTY, ITEMS_PROPERTY
 			),
 			PropertyView.Ui,
 			newSet(
-				"description", "feedType", "maxAge", "url", "updateInterval",
-				"lastUpdated", "maxItems", "maxItems", "items"
+				DESCRIPTION_PROPERTY, FEED_TYPE_PROPERTY, MAX_AGE_PROPERTY, URL_PROPERTY, UPDATE_INTERVAL_PROPERTY,
+				LAST_UPDATED_PROPERTY, MAX_ITEMS_PROPERTY, ITEMS_PROPERTY
 			)
 		);
 	}

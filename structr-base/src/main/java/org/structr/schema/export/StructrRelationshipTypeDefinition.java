@@ -40,6 +40,7 @@ import java.net.URI;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import org.structr.core.traits.definitions.SchemaRelationshipNodeTraitDefinition;
 
 /**
  *
@@ -504,36 +505,36 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 			_schemaNode = app.create(StructrTraits.SCHEMA_RELATIONSHIP_NODE, getName()).as(SchemaRelationshipNode.class);
 		}
 
-		properties.put(traits.key("relationshipType"),    getRelationship());
-		properties.put(traits.key("sourceJsonName"),      sourcePropertyName);
-		properties.put(traits.key("targetJsonName"),      targetPropertyName);
-		properties.put(traits.key("sourceMultiplicity"),  getSourceMultiplicity(cardinality));
-		properties.put(traits.key("targetMultiplicity"),  getTargetMultiplicity(cardinality));
-		properties.put(traits.key("cascadingDeleteFlag"), getCascadingFlag(cascadingDelete));
-		properties.put(traits.key("autocreationFlag"),    getCascadingFlag(cascadingCreate));
+		properties.put(traits.key(SchemaRelationshipNodeTraitDefinition.RELATIONSHIP_TYPE_PROPERTY),     getRelationship());
+		properties.put(traits.key(SchemaRelationshipNodeTraitDefinition.SOURCE_JSON_NAME_PROPERTY),      sourcePropertyName);
+		properties.put(traits.key(SchemaRelationshipNodeTraitDefinition.TARGET_JSON_NAME_PROPERTY),      targetPropertyName);
+		properties.put(traits.key(SchemaRelationshipNodeTraitDefinition.SOURCE_MULTIPLICITY_PROPERTY),   getSourceMultiplicity(cardinality));
+		properties.put(traits.key(SchemaRelationshipNodeTraitDefinition.TARGET_MULTIPLICITY_PROPERTY),   getTargetMultiplicity(cardinality));
+		properties.put(traits.key(SchemaRelationshipNodeTraitDefinition.CASCADING_DELETE_FLAG_PROPERTY), getCascadingFlag(cascadingDelete));
+		properties.put(traits.key(SchemaRelationshipNodeTraitDefinition.AUTOCREATION_FLAG_PROPERTY),     getCascadingFlag(cascadingCreate));
 
 		if (permissionPropagation != null) {
-			properties.put(traits.key("permissionPropagation"), permissionPropagation.name());
+			properties.put(traits.key(SchemaRelationshipNodeTraitDefinition.PERMISSION_PROPAGATION_PROPERTY), permissionPropagation.name());
 		}
 
 		if (readPropagation != null) {
-			properties.put(traits.key("readPropagation"), readPropagation.name());
+			properties.put(traits.key(SchemaRelationshipNodeTraitDefinition.READ_PROPAGATION_PROPERTY), readPropagation.name());
 		}
 
 		if (writePropagation != null) {
-			properties.put(traits.key("writePropagation"), writePropagation.name());
+			properties.put(traits.key(SchemaRelationshipNodeTraitDefinition.WRITE_PROPAGATION_PROPERTY), writePropagation.name());
 		}
 
 		if (deletePropagation != null) {
-			properties.put(traits.key("deletePropagation"), deletePropagation.name());
+			properties.put(traits.key(SchemaRelationshipNodeTraitDefinition.DELETE_PROPAGATION_PROPERTY), deletePropagation.name());
 		}
 
 		if (accessControlPropagation != null)  {
-			properties.put(traits.key("accessControlPropagation"), accessControlPropagation.name());
+			properties.put(traits.key(SchemaRelationshipNodeTraitDefinition.ACCESS_CONTROL_PROPAGATION_PROPERTY), accessControlPropagation.name());
 		}
 
 		if (aclHiddenProperties != null) {
-			properties.put(traits.key("propertyMask"), aclHiddenProperties);
+			properties.put(traits.key(SchemaRelationshipNodeTraitDefinition.PROPERTY_MASK_PROPERTY), aclHiddenProperties);
 		}
 
 		_schemaNode.setProperties(SecurityContext.getSuperUserInstance(), properties);

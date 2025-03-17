@@ -20,12 +20,15 @@ package org.structr.web.traits.definitions.html;
 
 import org.structr.common.PropertyView;
 import org.structr.core.property.PropertyKey;
-import org.structr.web.common.HtmlProperty;
+import org.structr.core.property.StringProperty;
 
 import java.util.Map;
 import java.util.Set;
 
 public class Canvas extends GenericHtmlElementTraitDefinition {
+
+	public static final String WIDTH_PROPERTY  = getPrefixedHTMLAttributeName("width");
+	public static final String HEIGHT_PROPERTY = getPrefixedHTMLAttributeName("height");
 
 	public Canvas() {
 		super("Canvas");
@@ -34,8 +37,8 @@ public class Canvas extends GenericHtmlElementTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final PropertyKey<String> widthProperty = new HtmlProperty("width");
-		final PropertyKey<String> heightProperty = new HtmlProperty("height");
+		final PropertyKey<String> widthProperty  = new StringProperty(WIDTH_PROPERTY);
+		final PropertyKey<String> heightProperty = new StringProperty(HEIGHT_PROPERTY);
 
 		return newSet(
 			widthProperty,
@@ -49,7 +52,7 @@ public class Canvas extends GenericHtmlElementTraitDefinition {
 		return Map.of(
 			PropertyView.Html,
 			newSet(
-				"_html_width", "_html_height"
+					WIDTH_PROPERTY, HEIGHT_PROPERTY
 			)
 		);
 	}

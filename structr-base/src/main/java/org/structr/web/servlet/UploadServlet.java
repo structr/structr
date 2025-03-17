@@ -288,7 +288,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 						} else if (isVideo) {
 
-							cls = Traits.of("VideoFile");
+							cls = Traits.of(StructrTraits.VIDEO_FILE);
 							if (cls == null) {
 
 								logger.warn("Unable to create entity of type VideoFile, class is not defined.");

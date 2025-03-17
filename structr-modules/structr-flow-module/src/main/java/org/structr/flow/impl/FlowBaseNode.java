@@ -18,10 +18,63 @@
  */
 package org.structr.flow.impl;
 
+import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.module.api.DeployableEntity;
+
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  */
-public interface FlowBaseNode extends NodeInterface, DeployableEntity {
+public class FlowBaseNode extends AbstractNodeTraitWrapper implements DeployableEntity {
+
+	public FlowBaseNode(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
+	}
+
+	public final FlowDataSource getDataSource() {
+
+		final NodeInterface dataSource = wrappedObject.getProperty(traits.key("dataSource"));
+		if (dataSource != null) {
+
+			return dataSource.as(FlowDataSource.class);
+		}
+
+		return null;
+	}
+
+	public final FlowContainer getFlowContainer() {
+
+		final NodeInterface node = wrappedObject.getProperty(traits.key("flowContainer"));
+		if (node != null) {
+
+			return node.as(FlowContainer.class);
+		}
+
+		return null;
+	}
+
+	public final void setDataSource(final FlowDataSource dataSource) throws FrameworkException {
+		wrappedObject.setProperty(traits.key("dataSource"), dataSource);
+	}
+
+	public final void setFlowContainer(final FlowContainer flowContainer) throws FrameworkException {
+		wrappedObject.setProperty(traits.key("flowContainer"), flowContainer);
+	}
+
+	@Override
+	public Map<String, Object> exportData() {
+
+		final Map<String, Object> result = new TreeMap<>();
+
+		result.put("id",                          getUuid());
+		result.put("type",                        getType());
+		result.put("visibleToPublicUsers",        isVisibleToPublicUsers());
+		result.put("visibleToAuthenticatedUsers", isVisibleToAuthenticatedUsers());
+
+		return result;
+	}
 }

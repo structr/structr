@@ -32,10 +32,10 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.web.common.AsyncBuffer;
-import org.structr.web.common.HtmlProperty;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.traits.operations.RenderManagedAttributes;
@@ -46,19 +46,25 @@ import java.util.Set;
 
 public class Option extends GenericHtmlElementTraitDefinition {
 
+	public static final String VALUE_PROPERTY          = getPrefixedHTMLAttributeName("value");
+	public static final String DISABLED_PROPERTY       = getPrefixedHTMLAttributeName("disabled");
+	public static final String SELECTED_PROPERTY       = getPrefixedHTMLAttributeName("selected");
+	public static final String LABEL_PROPERTY          = getPrefixedHTMLAttributeName("label");
+	public static final String SELECTEDVALUES_PROPERTY = "selectedValues";
+
 	public Option() {
-		super("Option");
+		super(StructrTraits.OPTION);
 	}
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final PropertyKey<String> valueProperty = new HtmlProperty("value");
-		final PropertyKey<String> disabledProperty = new HtmlProperty("disabled");
-		final PropertyKey<String> selectedProperty = new HtmlProperty("selected");
-		final PropertyKey<String> labelProperty = new HtmlProperty("label");
+		final PropertyKey<String> valueProperty          = new StringProperty(VALUE_PROPERTY);
+		final PropertyKey<String> disabledProperty       = new StringProperty(DISABLED_PROPERTY);
+		final PropertyKey<String> selectedProperty       = new StringProperty(SELECTED_PROPERTY);
+		final PropertyKey<String> labelProperty          = new StringProperty(LABEL_PROPERTY);
 
-		final PropertyKey<String> selectedValuesProperty = new StringProperty("selectedValues");
+		final PropertyKey<String> selectedValuesProperty = new StringProperty(SELECTEDVALUES_PROPERTY);
 
 		return newSet(
 			valueProperty, disabledProperty, selectedProperty, labelProperty, selectedValuesProperty
@@ -71,11 +77,11 @@ public class Option extends GenericHtmlElementTraitDefinition {
 		return Map.of(
 			PropertyView.Ui,
 			newSet(
-				"selectedValues"
+					SELECTEDVALUES_PROPERTY
 			),
 			PropertyView.Html,
 			newSet(
-				"_html_value", "_html_disabled", "_html_selected", "_html_label", "selectedValues"
+					VALUE_PROPERTY, DISABLED_PROPERTY, SELECTED_PROPERTY, LABEL_PROPERTY, SELECTEDVALUES_PROPERTY
 			)
 		);
 	}
@@ -112,7 +118,7 @@ public class Option extends GenericHtmlElementTraitDefinition {
 		type.setCategory("html");
 
 
-		type.addPropertyGetter("selectedValues", String.class);
+		type.addPropertyGetter(SELECTEDVALUES_PROPERTY, String.class);
 	}}
 
 	String getSelectedValues();
@@ -132,12 +138,12 @@ public class Option extends GenericHtmlElementTraitDefinition {
 				// make sure the unmanaged "selected" attribute is not set
 				final Traits traits                = node.getTraits();
 				final PropertyKey<String> valueKey = new StringProperty("value");
-				final String originalSelected      = node.getProperty(traits.key("_html_selected"));
+				final String originalSelected      = node.getProperty(traits.key(SELECTED_PROPERTY));
 
 				if (StringUtils.isEmpty(originalSelected)) {
 
 					// fetch selectedValues expression
-					final String selectedValuesExpression = node.getProperty(traits.key("selectedValues"));
+					final String selectedValuesExpression = node.getProperty(traits.key(SELECTEDVALUES_PROPERTY));
 					if (selectedValuesExpression != null) {
 
 						// evaluate selectedValues expression

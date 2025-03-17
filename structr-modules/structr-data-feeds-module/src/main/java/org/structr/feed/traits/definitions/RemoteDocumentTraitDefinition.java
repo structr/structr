@@ -22,7 +22,9 @@ import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.feed.entity.RemoteDocument;
 import org.structr.feed.traits.wrappers.RemoteDocumentTraitWrapper;
 
@@ -35,18 +37,24 @@ import java.util.Set;
  */
 public class RemoteDocumentTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String URL_PROPERTY               = "url";
+	public static final String CONTENT_TYPE_PROPERTY      = "contentType";
+	public static final String CHECKSUM_PROPERTY          = "checksum";
+	public static final String CACHE_FOR_SECONDS_PROPERTY = "cacheForSeconds";
+	public static final String VERSION_PROPERTY           = "version";
+
 	public RemoteDocumentTraitDefinition() {
-		super("RemoteDocument");
+		super(StructrTraits.REMOTE_DOCUMENT);
 	}
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<String> urlProperty              = new StringProperty("url");
-		final Property<String> contentTypeProperty      = new StringProperty("contentType");
-		final Property<Long> checksumProperty           = new LongProperty("checksum").readOnly();
-		final Property<Integer> cacheForSecondsProperty = new IntProperty("cacheForSeconds");
-		final Property<Integer> versionProperty         = new IntProperty("version").readOnly();
+		final Property<String> urlProperty              = new StringProperty(URL_PROPERTY);
+		final Property<String> contentTypeProperty      = new StringProperty(CONTENT_TYPE_PROPERTY);
+		final Property<Long> checksumProperty           = new LongProperty(CHECKSUM_PROPERTY).readOnly();
+		final Property<Integer> cacheForSecondsProperty = new IntProperty(CACHE_FOR_SECONDS_PROPERTY);
+		final Property<Integer> versionProperty         = new IntProperty(VERSION_PROPERTY).readOnly();
 
 		return newSet(
 			urlProperty,
@@ -63,11 +71,11 @@ public class RemoteDocumentTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"name", "owner", "url", "contentType"
+					NodeInterfaceTraitDefinition.NAME_PROPERTY, NodeInterfaceTraitDefinition.OWNER_PROPERTY, URL_PROPERTY, CONTENT_TYPE_PROPERTY
 			),
 			PropertyView.Ui,
 			newSet(
-				"url", "checksum", "cacheForSeconds", "version", "contentType"
+					URL_PROPERTY, CHECKSUM_PROPERTY, CACHE_FOR_SECONDS_PROPERTY, VERSION_PROPERTY, CONTENT_TYPE_PROPERTY
 			)
 		);
 	}

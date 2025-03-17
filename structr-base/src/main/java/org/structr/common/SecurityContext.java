@@ -40,6 +40,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.SchemaHelper;
 import org.structr.web.entity.File;
 
@@ -47,6 +48,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.structr.web.traits.definitions.FileTraitDefinition;
 
 /**
  * Encapsulates the current user and access path and provides methods to query
@@ -967,8 +969,8 @@ public class SecurityContext {
 				try (final Tx tx = app.tx()) {
 
 					final List<NodeInterface> jsFiles = app.nodeQuery(StructrTraits.FILE)
-							.and(Traits.key(StructrTraits.FILE, "name"), fileName)
-							.and(Traits.key(StructrTraits.FILE, "useAsJavascriptLibrary"), true)
+							.and(Traits.key(StructrTraits.FILE, NodeInterfaceTraitDefinition.NAME_PROPERTY), fileName)
+							.and(Traits.key(StructrTraits.FILE, FileTraitDefinition.USE_AS_JAVASCRIPT_LIBRARY_PROPERTY), true)
 							.getAsList();
 
 					if (jsFiles.isEmpty()) {

@@ -282,19 +282,17 @@ public abstract class StructrUiTest {
 		return nodes;
 	}
 
-	public static final String ADMIN_USERNAME = "admin";
-	public static final String ADMIN_PASSWORD = "admin";
+	public static final String ADMIN_USERNAME    = "admin";
+	public static final String ADMIN_PASSWORD    = "admin";
+	public static final String X_USER_HEADER     = "X-User";
+	public static final String X_PASSWORD_HEADER = "X-Password";
 
 	protected NodeInterface createAdminUser() {
-		return createAdminUser(ADMIN_USERNAME, ADMIN_PASSWORD);
-	}
-
-	protected NodeInterface createAdminUser(final String username, final String password) {
 
 		final PropertyMap properties = new PropertyMap();
 
-		properties.put(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), username);
-		properties.put(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.PASSWORD_PROPERTY), password);
+		properties.put(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), ADMIN_USERNAME);
+		properties.put(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.PASSWORD_PROPERTY), ADMIN_PASSWORD);
 		properties.put(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY), true);
 
 		NodeInterface user = null;
@@ -377,8 +375,8 @@ public abstract class StructrUiTest {
 
 				.given()
 					.contentType("application/json; charset=UTF-8")
-					.header("X-User", "superadmin")
-					.header("X-Password", "sehrgeheim")
+					.header(X_USER_HEADER, "superadmin")
+					.header(X_PASSWORD_HEADER, "sehrgeheim")
 					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 
 				.expect()
@@ -393,8 +391,8 @@ public abstract class StructrUiTest {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.header("X-User", "superadmin")
-				.header("X-Password", "sehrgeheim")
+				.header(X_USER_HEADER, "superadmin")
+				.header(X_PASSWORD_HEADER, "sehrgeheim")
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.body(" { 'signature' : '" + signature + "', 'flags': " + flags + ", 'visibleToPublicUsers': true } ")
 
@@ -426,8 +424,8 @@ public abstract class StructrUiTest {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.header("X-User", username)
-				.header("X-Password", password)
+				.header(X_USER_HEADER, username)
+				.header(X_PASSWORD_HEADER, password)
 
 			.expect()
 				.statusCode(expectedStatusCode)
@@ -458,8 +456,8 @@ public abstract class StructrUiTest {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.header("X-User", username)
-				.header("X-Password", password)
+				.header(X_USER_HEADER, username)
+				.header(X_PASSWORD_HEADER, password)
 				.body(body)
 
 			.expect()
@@ -490,8 +488,8 @@ public abstract class StructrUiTest {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.header("X-User", username)
-				.header("X-Password", password)
+				.header(X_USER_HEADER, username)
+				.header(X_PASSWORD_HEADER, password)
 				.body(body)
 
 			.expect()
@@ -521,8 +519,8 @@ public abstract class StructrUiTest {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.header("X-User", username)
-				.header("X-Password", password)
+				.header(X_USER_HEADER, username)
+				.header(X_PASSWORD_HEADER, password)
 
 			.expect()
 				.statusCode(expectedStatusCode)
@@ -608,8 +606,8 @@ public abstract class StructrUiTest {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-				.header("X-User", name)
-				.header("X-Password", password)
+				.header(X_USER_HEADER, name)
+				.header(X_PASSWORD_HEADER, password)
 
 			.body(buf.toString())
 				.expect().statusCode(201)
@@ -638,8 +636,8 @@ public abstract class StructrUiTest {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-				.header("X-User", Settings.SuperUserName.getValue())
-				.header("X-Password", Settings.SuperUserPassword.getValue())
+				.header(X_USER_HEADER, Settings.SuperUserName.getValue())
+				.header(X_PASSWORD_HEADER, Settings.SuperUserPassword.getValue())
 
 			.body(buf.toString())
 				.expect().statusCode(201)

@@ -33,6 +33,7 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.messaging.engine.entities.MessageClient;
 import org.structr.messaging.engine.entities.MessageSubscriber;
+import org.structr.messaging.traits.definitions.MessageSubscriberTraitDefinition;
 import org.structr.rest.RestMethodResult;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
@@ -47,16 +48,16 @@ public class MessageSubscriberTraitWrapper extends AbstractNodeTraitWrapper impl
 	}
 
 	public String getTopic() {
-		return wrappedObject.getProperty(traits.key("topic"));
+		return wrappedObject.getProperty(traits.key(MessageSubscriberTraitDefinition.TOPIC_PROPERTY));
 	}
 
 	public String getCallback() {
-		return wrappedObject.getProperty(traits.key("callback"));
+		return wrappedObject.getProperty(traits.key(MessageSubscriberTraitDefinition.CALLBACK_PROPERTY));
 	}
 
 	public Iterable<MessageClient> getClients() {
 
-		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key("clients"));
+		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key(MessageSubscriberTraitDefinition.CLIENTS_PROPERTY));
 
 		return Iterables.map(n -> n.as(MessageClient.class), nodes);
 	}

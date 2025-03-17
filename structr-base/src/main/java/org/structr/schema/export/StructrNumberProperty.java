@@ -29,6 +29,7 @@ import org.structr.core.entity.SchemaProperty;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
 import org.structr.schema.SchemaHelper.Type;
 import org.structr.schema.parser.DoublePropertyGenerator;
 
@@ -192,7 +193,7 @@ public class StructrNumberProperty extends StructrPropertyDefinition implements 
 		final Traits traits           = Traits.of(StructrTraits.SCHEMA_PROPERTY);
 		final PropertyMap properties  = new PropertyMap();
 
-		properties.put(traits.key("propertyType"), Type.Double.name());
+		properties.put(traits.key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), Type.Double.name());
 
 		if (minimum != null && maximum != null) {
 
@@ -214,7 +215,7 @@ public class StructrNumberProperty extends StructrPropertyDefinition implements 
 				range.append("]");
 			}
 
-			properties.put(traits.key("format"), range.toString());
+			properties.put(traits.key(SchemaPropertyTraitDefinition.FORMAT_PROPERTY), range.toString());
 		}
 
 		property.setProperties(SecurityContext.getSuperUserInstance(), properties);

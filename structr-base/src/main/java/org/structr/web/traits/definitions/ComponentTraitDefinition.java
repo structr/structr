@@ -27,6 +27,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
@@ -39,8 +40,11 @@ import java.util.Set;
  */
 public class ComponentTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String KIND_PROPERTY     = "kind";
+	public static final String POSITION_PROPERTY = "position";
+
 	public ComponentTraitDefinition() {
-		super("Component");
+		super(StructrTraits.COMPONENT);
 	}
 
 	@Override
@@ -71,8 +75,8 @@ public class ComponentTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<String> kindProperty      = new StringProperty("kind");
-		final Property<Integer> positionProperty = new IntProperty("position");
+		final Property<String> kindProperty      = new StringProperty(KIND_PROPERTY);
+		final Property<Integer> positionProperty = new IntProperty(POSITION_PROPERTY);
 
 		return Set.of(
 			kindProperty,
@@ -85,9 +89,10 @@ public class ComponentTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 			PropertyView.Public,
-			newSet("kind"),
+			newSet(KIND_PROPERTY),
+
 			PropertyView.Ui,
-			newSet("kind")
+			newSet(KIND_PROPERTY)
 		);
 	}
 

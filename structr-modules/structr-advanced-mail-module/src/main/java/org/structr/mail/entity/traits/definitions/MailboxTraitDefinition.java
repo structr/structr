@@ -35,6 +35,8 @@ import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.mail.entity.Mailbox;
@@ -49,6 +51,16 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 public class MailboxTraitDefinition extends AbstractNodeTraitDefinition {
+
+	public static final String EMAILS_PROPERTY                      = "emails";
+	public static final String HOST_PROPERTY                        = "host";
+	public static final String USER_PROPERTY                        = "user";
+	public static final String OVERRIDE_MAIL_ENTITY_TYPE_PROPERTY   = "overrideMailEntityType";
+	public static final String PASSWORD_PROPERTY                    = "password";
+	public static final String FOLDERS_PROPERTY                     = "folders";
+	public static final String MAIL_PROTOCOL_PROPERTY               = "mailProtocol";
+	public static final String PORT_PROPERTY                        = "port";
+	public static final String AVAILABLE_FOLDERS_ON_SERVER_PROPERTY = "availableFoldersOnServer";
 
 	public MailboxTraitDefinition() {
 		super(StructrTraits.MAILBOX);
@@ -68,10 +80,10 @@ public class MailboxTraitDefinition extends AbstractNodeTraitDefinition {
 					final Mailbox node = obj.as(Mailbox.class);
 					boolean valid      = true;
 
-					valid &= ValidationHelper.isValidPropertyNotNull(node, traits.key("folders"), errorBuffer);
-					valid &= ValidationHelper.isValidPropertyNotNull(node, traits.key("host"), errorBuffer);
-					valid &= ValidationHelper.isValidPropertyNotNull(node, traits.key("user"), errorBuffer);
-					valid &= ValidationHelper.isValidPropertyNotNull(node, traits.key("mailProtocol"), errorBuffer);
+					valid &= ValidationHelper.isValidPropertyNotNull(node, traits.key(FOLDERS_PROPERTY), errorBuffer);
+					valid &= ValidationHelper.isValidPropertyNotNull(node, traits.key(HOST_PROPERTY), errorBuffer);
+					valid &= ValidationHelper.isValidPropertyNotNull(node, traits.key(USER_PROPERTY), errorBuffer);
+					valid &= ValidationHelper.isValidPropertyNotNull(node, traits.key(MAIL_PROTOCOL_PROPERTY), errorBuffer);
 
 					return valid;
 				}
@@ -96,15 +108,15 @@ public class MailboxTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Iterable<NodeInterface>> emailsProperty  = new EndNodes("emails", "MailboxCONTAINS_EMAILMESSAGESEMailMessage");
-		final Property<String> hostProperty                     = new StringProperty("host").indexed().notNull();
-		final Property<String> userProperty                     = new StringProperty("user").indexed().notNull();
-		final Property<String> overrideMailEntityTypeProperty   = new StringProperty("overrideMailEntityType").indexed();
-		final Property<String> passwordProperty                 = new EncryptedStringProperty("password").indexed();
-		final Property<String[]> foldersProperty                = new ArrayProperty("folders", String.class).indexed();
-		final Property<String> mailProtocolProperty             = new EnumProperty("mailProtocol", Set.of("pop3", "imaps")).indexed().notNull();
-		final Property<Integer> portProperty                    = new IntProperty("port").indexed();
-		final Property<Object> availableFoldersOnServerProperty = new FunctionProperty("availableFoldersOnServer").readFunction("{return Structr.this.getAvailableFoldersOnServer()}");
+		final Property<Iterable<NodeInterface>> emailsProperty  = new EndNodes(EMAILS_PROPERTY, StructrTraits.MAILBOX_CONTAINS_EMAIL_MESSAGES_EMAIL_MESSAGE);
+		final Property<String> hostProperty                     = new StringProperty(HOST_PROPERTY).indexed().notNull();
+		final Property<String> userProperty                     = new StringProperty(USER_PROPERTY).indexed().notNull();
+		final Property<String> overrideMailEntityTypeProperty   = new StringProperty(OVERRIDE_MAIL_ENTITY_TYPE_PROPERTY).indexed();
+		final Property<String> passwordProperty                 = new EncryptedStringProperty(PASSWORD_PROPERTY).indexed();
+		final Property<String[]> foldersProperty                = new ArrayProperty(FOLDERS_PROPERTY, String.class).indexed();
+		final Property<String> mailProtocolProperty             = new EnumProperty(MAIL_PROTOCOL_PROPERTY, Set.of("pop3", "imaps")).indexed().notNull();
+		final Property<Integer> portProperty                    = new IntProperty(PORT_PROPERTY).indexed();
+		final Property<Object> availableFoldersOnServerProperty = new FunctionProperty(AVAILABLE_FOLDERS_ON_SERVER_PROPERTY).readFunction("{return Structr.this.getAvailableFoldersOnServer()}");
 
 		return newSet(
 			emailsProperty,
@@ -123,10 +135,12 @@ public class MailboxTraitDefinition extends AbstractNodeTraitDefinition {
 	public Map<String, Set<String>> getViews() {
 
 		return Map.of(
+
 			PropertyView.Public,
-			newSet("id", "type", "name"),
+			newSet(GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY),
+
 			PropertyView.Ui,
-			newSet("host", "user", "overrideMailEntityType", "password", "folders", "mailProtocol", "port", "availableFoldersOnServer")
+			newSet(HOST_PROPERTY, USER_PROPERTY, OVERRIDE_MAIL_ENTITY_TYPE_PROPERTY, PASSWORD_PROPERTY, FOLDERS_PROPERTY, MAIL_PROTOCOL_PROPERTY, PORT_PROPERTY, AVAILABLE_FOLDERS_ON_SERVER_PROPERTY)
 		);
 	}
 

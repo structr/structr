@@ -40,7 +40,7 @@ public interface KafkaClient extends MessageClient {
 
 			try (final Tx tx = app.tx()) {
 
-				for (final KafkaClient client : app.nodeQuery("KafkaClient").getAsList()) {
+				for (final KafkaClient client : app.nodeQuery(StructrTraits.KAFKA_CLIENT).getAsList()) {
 					client.setup();
 				}
 

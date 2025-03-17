@@ -49,6 +49,9 @@ import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
 import org.structr.web.entity.User;
 import org.structr.web.property.ThumbnailProperty;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.FileTraitDefinition;
+import org.structr.web.traits.definitions.ImageTraitDefinition;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -67,6 +70,8 @@ public class UiTest extends StructrUiTest {
 	private static String base64Image  = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAWAAAABUCAYAAAC8/e1DAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA2ZpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDo2RjYyNjlFMUNFMTNFMjExQTQ2N0ZGMDI2MEZEQ0Q3NSIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDo2MDcwOEExQzEzRDMxMUUyQTMyQzlEQjBGNTBBQUUwMSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDo2MDcwOEExQjEzRDMxMUUyQTMyQzlEQjBGNTBBQUUwMSIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ1M2IChXaW5kb3dzKSI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOkYzODhBQzYwRDIxM0UyMTFBNDY3RkYwMjYwRkRDRDc1IiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOjZGNjI2OUUxQ0UxM0UyMTFBNDY3RkYwMjYwRkRDRDc1Ii8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+xNxK9AAAAt9JREFUeNrs3TFOKlEUgGGuIWhGSwmVLoMlWFi8ddiZuA41sTMuw9LlYGWBEqOE4DC8c4mNhSUzhvt9yQ2813GCf46DOmk8Hu9dXl7+q6rqPqU06gGwNev1+mU+n1/c3d099uPfB+Eh/nMYx3QAtmuUmxuPTznAh+IL0Kphbm8O8GC1WhkHQLsGOcCpaRqjAGhXygHu2YAB2ifAAF0GuK5rkwCwAQPYgAEQYIAdDbBLEAA2YAABBqCFALsEASDAAGUF2CUIABswQFkB9tfQAGzAAGUF2DVggI4CvFgsTALABgxQUIDdkBOgfXtGACDAAAIMgAADCDAAAgwgwAAIMIAAAyDAAH/a5leRU0omAWADBrABA2ADBtjNAK/Dm1EAtCOaO8sPOcDL19fXm6Zp3o0FYLuitbNo7nVubxqPx1U8OY1zEucojgvC3egbAYV81516Py9/5jtC5DsD19/Pd3r5jfMR5znOJH/R5xvCTeJM4wwEuNM3JpQg/RKmpoDXnl/nMs5nbm//+Pi4d3V1dVZV1X1KaeS9AbDFAq/XL/P5/OL29vYxb8AH+/v7D03TDI0GYOtGubnx+JQDfBhFHroxJ0Br8sJ7mAM8iO3XOADaNcgBTgIM0Lq0+dGn1WplFAAt2wTYBgzQUYC/vr5MAqCLALsEASDAAGUF2CUIgI4C7EM4gI4CXNe1SQAIMEBBAfYhHIAAA5QVYJcgAGzAAGUF2N8CBugowC5BAAgwQFkBXiwWJgFgAwYoKMA+hANo354RAAgwgAADIMAAAgyAAAMIMAACDCDAAAgwwJ+2+VXklJJJANiAAWzAANiAAXYzwOvwZhQA7YjmzvJDDvByOp3eNE3zbiwA2xWtnUVzr3N70/n5eRVPTuOcxDmK44JwN/pGQCHfdafez8uf+Y4Qqzj19/OdXn7jfMR5jjPJX/T5hnCTONM4AwHu9I0JJUi/hKkp4LXn17mM85nb+1+AAQDuVAgNv/BqVwAAAABJRU5ErkJggg==";
 	private static final Logger logger = LoggerFactory.getLogger(UiTest.class.getName());
 
+	public static final String THUMBNAIL_PROPERTY              = "thumbnail";
+
 	@Test
 	public void test01CreateThumbnail() {
 
@@ -81,7 +86,7 @@ public class UiTest extends StructrUiTest {
 			assertNotNull(img);
 			assertTrue(img.is(StructrTraits.IMAGE));
 
-			Image tn = img.getProperty(Traits.of(imageType).key("thumbnail"));
+			Image tn = img.getProperty(Traits.of(imageType).key(THUMBNAIL_PROPERTY));
 
 			tx.success();
 		} catch (Exception ex) {
@@ -100,12 +105,12 @@ public class UiTest extends StructrUiTest {
 					// so we need to allow this thread to break the transaction isolation..
 					immutableImage.getNode().invalidate();
 
-					return immutableImage.getProperty(Traits.of(imageType).key("thumbnail")) != null;
+					return immutableImage.getProperty(Traits.of(imageType).key(THUMBNAIL_PROPERTY)) != null;
 				},
 				()->fail("Exceeded timeout while waiting for thumbnail creation."),
 				30000, 1000);
 
-			Image tn = img.getProperty(Traits.of(imageType).key("thumbnail"));
+			Image tn = img.getProperty(Traits.of(imageType).key(THUMBNAIL_PROPERTY));
 
 			assertNotNull(tn);
 			assertEquals(Integer.valueOf(200), tn.getWidth());
@@ -138,8 +143,8 @@ public class UiTest extends StructrUiTest {
 			assertTrue(testImage.is(StructrTraits.IMAGE));
 
 			// Retrieve tn properties to force their generation
-			final Image tnSmall = testImage.getProperty(Traits.of(StructrTraits.IMAGE).key("tnSmall"));
-			final Image tnMid = testImage.getProperty(Traits.of(StructrTraits.IMAGE).key("tnMid"));
+			final Image tnSmall = testImage.getProperty(Traits.of(StructrTraits.IMAGE).key(ImageTraitDefinition.TN_SMALL_PROPERTY));
+			final Image tnMid = testImage.getProperty(Traits.of(StructrTraits.IMAGE).key(ImageTraitDefinition.TN_MID_PROPERTY));
 
 			tx.success();
 		} catch (Exception ex) {
@@ -158,12 +163,12 @@ public class UiTest extends StructrUiTest {
 					// so we need to allow this thread to break the transaction isolation..
 					immutableImage.getNode().invalidate();
 
-					return immutableImage.getProperty(Traits.of(StructrTraits.IMAGE).key("tnSmall")) != null && immutableImage.getProperty(Traits.of(StructrTraits.IMAGE).key("tnMid")) != null;
+					return immutableImage.getProperty(Traits.of(StructrTraits.IMAGE).key(ImageTraitDefinition.TN_SMALL_PROPERTY)) != null && immutableImage.getProperty(Traits.of(StructrTraits.IMAGE).key(ImageTraitDefinition.TN_MID_PROPERTY)) != null;
 				},
 				()->fail("Exceeded timeout while waiting for thumbnail creation."),
 				30000, 1000);
-			final Image tnSmall = testImage.getProperty(Traits.of(StructrTraits.IMAGE).key("tnSmall"));
-			final Image tnMid = testImage.getProperty(Traits.of(StructrTraits.IMAGE).key("tnMid"));
+			final Image tnSmall = testImage.getProperty(Traits.of(StructrTraits.IMAGE).key(ImageTraitDefinition.TN_SMALL_PROPERTY));
+			final Image tnMid = testImage.getProperty(Traits.of(StructrTraits.IMAGE).key(ImageTraitDefinition.TN_MID_PROPERTY));
 
 			assertEquals("Initial small thumbnail name not as expected", ImageHelper.getThumbnailName(initialImageName, tnSmall.getWidth(), tnSmall.getHeight()), tnSmall.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)));
 			assertEquals("Initial mid thumbnail name not as expected", ImageHelper.getThumbnailName(initialImageName, tnMid.getWidth(), tnMid.getHeight()), tnMid.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)));
@@ -189,8 +194,8 @@ public class UiTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final Image tnSmall = testImage.getProperty(Traits.of(StructrTraits.IMAGE).key("tnSmall"));
-			final Image tnMid   = testImage.getProperty(Traits.of(StructrTraits.IMAGE).key("tnMid"));
+			final Image tnSmall = testImage.getProperty(Traits.of(StructrTraits.IMAGE).key(ImageTraitDefinition.TN_SMALL_PROPERTY));
+			final Image tnMid   = testImage.getProperty(Traits.of(StructrTraits.IMAGE).key(ImageTraitDefinition.TN_MID_PROPERTY));
 
 			assertEquals("Small Thumbnail name not auto-renamed as expected", ImageHelper.getThumbnailName(renamedImageName, tnSmall.getWidth(), tnSmall.getHeight()), tnSmall.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)));
 			assertEquals("Mid Thumbnail name not auto-renamed as expected", ImageHelper.getThumbnailName(renamedImageName, tnMid.getWidth(), tnMid.getHeight()), tnMid.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)));
@@ -223,9 +228,9 @@ public class UiTest extends StructrUiTest {
 			assertNotNull(subclassTestImage);
 			assertTrue(subclassTestImage.is(StructrTraits.IMAGE));
 
-			final Image tnSmall  = subclassTestImage.getProperty(Traits.of(testImageType).key("tnSmall"));
-			final Image tnMid    = subclassTestImage.getProperty(Traits.of(testImageType).key("tnMid"));
-			final Image tnCustom = subclassTestImage.getProperty(Traits.of(testImageType).key("thumbnail"));
+			final Image tnSmall  = subclassTestImage.getProperty(Traits.of(testImageType).key(ImageTraitDefinition.TN_SMALL_PROPERTY));
+			final Image tnMid    = subclassTestImage.getProperty(Traits.of(testImageType).key(ImageTraitDefinition.TN_MID_PROPERTY));
+			final Image tnCustom = subclassTestImage.getProperty(Traits.of(testImageType).key(THUMBNAIL_PROPERTY));
 
 			tx.success();
 
@@ -243,17 +248,17 @@ public class UiTest extends StructrUiTest {
 							// allow inner node to be updated
 							immutableImage.getNode().invalidate();
 
-							return immutableImage.getProperty(Traits.of(testImageType).key("tnSmall")) != null &&
-							immutableImage.getProperty(Traits.of(testImageType).key("tnMid")) != null &&
-							immutableImage.getProperty(Traits.of(testImageType).key("thumbnail")) != null;
+							return immutableImage.getProperty(Traits.of(testImageType).key(ImageTraitDefinition.TN_SMALL_PROPERTY)) != null &&
+							immutableImage.getProperty(Traits.of(testImageType).key(ImageTraitDefinition.TN_MID_PROPERTY)) != null &&
+							immutableImage.getProperty(Traits.of(testImageType).key(THUMBNAIL_PROPERTY)) != null;
 					},
 					()->fail("Exceeded timeout while waiting for thumbnail creation."),
 					60000,
 					5000
 			);
-			final Image tnSmall  = subclassTestImage.getProperty(Traits.of(testImageType).key("tnSmall"));
-			final Image tnMid    = subclassTestImage.getProperty(Traits.of(testImageType).key("tnMid"));
-			final Image tnCustom = subclassTestImage.getProperty(Traits.of(testImageType).key("thumbnail"));
+			final Image tnSmall  = subclassTestImage.getProperty(Traits.of(testImageType).key(ImageTraitDefinition.TN_SMALL_PROPERTY));
+			final Image tnMid    = subclassTestImage.getProperty(Traits.of(testImageType).key(ImageTraitDefinition.TN_MID_PROPERTY));
+			final Image tnCustom = subclassTestImage.getProperty(Traits.of(testImageType).key(THUMBNAIL_PROPERTY));
 
 			assertEquals("Initial small thumbnail name not as expected", ImageHelper.getThumbnailName(initialImageName, tnSmall.getWidth(), tnSmall.getHeight()), tnSmall.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)));
 			assertEquals("Initial mid thumbnail name not as expected", ImageHelper.getThumbnailName(initialImageName, tnMid.getWidth(), tnMid.getHeight()), tnMid.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)));
@@ -280,9 +285,9 @@ public class UiTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final Image tnSmall  = subclassTestImage.getProperty(Traits.of(testImageType).key("tnSmall"));
-			final Image tnMid    = subclassTestImage.getProperty(Traits.of(testImageType).key("tnMid"));
-			final Image tnCustom = subclassTestImage.getProperty(Traits.of(testImageType).key("thumbnail"));
+			final Image tnSmall  = subclassTestImage.getProperty(Traits.of(testImageType).key(ImageTraitDefinition.TN_SMALL_PROPERTY));
+			final Image tnMid    = subclassTestImage.getProperty(Traits.of(testImageType).key(ImageTraitDefinition.TN_MID_PROPERTY));
+			final Image tnCustom = subclassTestImage.getProperty(Traits.of(testImageType).key(THUMBNAIL_PROPERTY));
 
 			assertEquals("Small Thumbnail name not auto-renamed as expected for image subclass", ImageHelper.getThumbnailName(renamedImageName, tnSmall.getWidth(), tnSmall.getHeight()), tnSmall.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)));
 			assertEquals("Mid Thumbnail name not auto-renamed as expected for image subclass", ImageHelper.getThumbnailName(renamedImageName, tnMid.getWidth(), tnMid.getHeight()), tnMid.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)));
@@ -430,7 +435,7 @@ public class UiTest extends StructrUiTest {
 			assertNotNull(file1);
 			assertEquals(file1.getPath(), "/file1");
 
-			file1.setProperty(Traits.of(StructrTraits.FILE).key("parent"), folder1);
+			file1.setProperty(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY), folder1);
 			assertEquals(file1.getPath(), "/folder1/file1");
 
 			tx.success();
@@ -445,7 +450,7 @@ public class UiTest extends StructrUiTest {
 			assertNotNull(image1);
 			assertEquals(image1.getPath(), "/image1");
 
-			image1.setProperty(Traits.of(StructrTraits.FILE).key("parent"), folder1);
+			image1.setProperty(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY), folder1);
 			assertEquals(image1.getPath(), "/folder1/image1");
 
 			tx.success();
@@ -474,8 +479,8 @@ public class UiTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			file = app.create(StructrTraits.FILE,
-				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),      "test.txt"),
-				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key("base64Data"), base64Data)
+				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test.txt"),
+				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.BASE64_DATA_PROPERTY),   base64Data)
 			).as(File.class);
 
 			tx.success();
@@ -690,7 +695,7 @@ public class UiTest extends StructrUiTest {
 
 			file1 = app.create(StructrTraits.FILE,
 				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test.txt"),
-				new NodeAttribute<>(Traits.of(StructrTraits.ABSTRACT_FILE).key("parent"), folder)
+				new NodeAttribute<>(Traits.of(StructrTraits.ABSTRACT_FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY), folder)
 			).as(File.class);
 
 			assertNotNull(file1);
@@ -706,7 +711,7 @@ public class UiTest extends StructrUiTest {
 
 			file2 = app.create(StructrTraits.FILE,
 				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test.txt"),
-				new NodeAttribute<>(Traits.of(StructrTraits.ABSTRACT_FILE).key("parent"), folder)
+				new NodeAttribute<>(Traits.of(StructrTraits.ABSTRACT_FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY), folder)
 			).as(File.class);
 
 			assertNotNull(file2);
@@ -754,7 +759,7 @@ public class UiTest extends StructrUiTest {
 
 			file1 = app.create(StructrTraits.FILE,
 				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test.txt"),
-				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key("parent"), folder1)
+				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY), folder1)
 			).as(File.class);
 
 			assertNotNull(file1);
@@ -762,7 +767,7 @@ public class UiTest extends StructrUiTest {
 
 			file2 = app.create(StructrTraits.FILE,
 				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test.txt"),
-				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key("parent"), folder2)
+				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY), folder2)
 			).as(File.class);
 
 			assertNotNull(file2);
@@ -930,8 +935,8 @@ public class UiTest extends StructrUiTest {
 			image.as(AccessControllable.class).grant(Permission.delete, tester);
 			image.as(AccessControllable.class).grant(Permission.read, tester);
 
-			image.getProperty(Traits.of(StructrTraits.IMAGE).key("tnSmall"));
-			image.getProperty(Traits.of(StructrTraits.IMAGE).key("tnMid"));
+			image.getProperty(Traits.of(StructrTraits.IMAGE).key(ImageTraitDefinition.TN_SMALL_PROPERTY));
+			image.getProperty(Traits.of(StructrTraits.IMAGE).key(ImageTraitDefinition.TN_MID_PROPERTY));
 
 			tx.success();
 		} catch (IOException | FrameworkException fex) {
@@ -949,8 +954,8 @@ public class UiTest extends StructrUiTest {
 						// so we need to allow this thread to break the transaction isolation..
 						immutableImage.getNode().invalidate();
 
-						immutableImage.getProperty(Traits.of(StructrTraits.IMAGE).key("tnSmall"));
-						immutableImage.getProperty(Traits.of(StructrTraits.IMAGE).key("tnMid"));
+						immutableImage.getProperty(Traits.of(StructrTraits.IMAGE).key(ImageTraitDefinition.TN_SMALL_PROPERTY));
+						immutableImage.getProperty(Traits.of(StructrTraits.IMAGE).key(ImageTraitDefinition.TN_MID_PROPERTY));
 						return (Iterables.count(immutableImage.as(Image.class).getThumbnails()) == 2);
 					},
 					()->fail("Exceeded timeout while waiting for thumbnail generation"),
@@ -1021,7 +1026,7 @@ public class UiTest extends StructrUiTest {
 
 			type.addTrait(StructrTraits.IMAGE);
 
-			type.addCustomProperty("thumbnail", ThumbnailProperty.class.getName()).setFormat("200, 100, false");
+			type.addCustomProperty(THUMBNAIL_PROPERTY, ThumbnailProperty.class.getName()).setFormat("200, 100, false");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 

@@ -29,6 +29,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
@@ -51,7 +52,7 @@ import java.util.Set;
 public class CommentTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public CommentTraitDefinition() {
-		super("Comment");
+		super(StructrTraits.COMMENT);
 	}
 
 	@Override
@@ -67,7 +68,7 @@ public class CommentTraitDefinition extends AbstractNodeTraitDefinition {
 
 					final Traits traits = graphObject.getTraits();
 
-					graphObject.setProperty(traits.key("contentType"), "text/html");
+					graphObject.setProperty(traits.key(ContentTraitDefinition.CONTENT_TYPE_PROPERTY), "text/html");
 				}
 			}
 		);
@@ -107,7 +108,7 @@ public class CommentTraitDefinition extends AbstractNodeTraitDefinition {
 
 							} else {
 
-								final PropertyKey<String> key = thisNode.getTraits().key("content");
+								final PropertyKey<String> key = thisNode.getTraits().key(ContentTraitDefinition.CONTENT_PROPERTY);
 
 								_content = thisNode.getPropertyWithVariableReplacement(renderContext, key);
 

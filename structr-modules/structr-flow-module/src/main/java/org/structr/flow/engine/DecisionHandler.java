@@ -18,20 +18,21 @@
  */
 package org.structr.flow.engine;
 
-import org.structr.flow.api.DataSource;
-import org.structr.flow.api.Decision;
-import org.structr.flow.api.FlowElement;
 import org.structr.flow.api.FlowHandler;
+import org.structr.flow.impl.FlowDataSource;
+import org.structr.flow.impl.FlowDecision;
+import org.structr.flow.impl.FlowNode;
 
 /**
  *
  */
-public class DecisionHandler implements FlowHandler<Decision> {
+public class DecisionHandler implements FlowHandler {
 
 	@Override
-	public FlowElement handle(final Context context, final Decision flowElement) throws FlowException {
+	public FlowNode handle(final Context context, final FlowNode flowNode) throws FlowException {
 
-		final DataSource condition = flowElement.getCondition();
+		final FlowDecision flowElement = flowNode.as(FlowDecision.class);
+		final FlowDataSource condition = flowElement.getCondition();
 
 		if (condition != null) {
 

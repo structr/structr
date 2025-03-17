@@ -39,6 +39,9 @@ import org.structr.core.traits.definitions.GroupTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
+import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
+import org.structr.core.traits.definitions.SchemaRelationshipNodeTraitDefinition;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.test.web.StructrUiTest;
@@ -48,6 +51,7 @@ import org.structr.web.entity.Linkable;
 import org.structr.web.entity.User;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
+import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 import org.testng.annotations.Test;
 
 import java.net.HttpCookie;
@@ -78,11 +82,11 @@ public class RenderContextTest extends StructrUiTest {
 			final PropertyMap properties = new PropertyMap();
 			properties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY), itemNode.getUuid());
 			properties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY), itemNode.getUuid());
-			properties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("relationshipType"), "CHILD");
-			properties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceMultiplicity"), "1");
-			properties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetMultiplicity"), "*");
-			properties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceJsonName"), "parentItem");
-			properties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetJsonName"), "children");
+			properties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.RELATIONSHIP_TYPE_PROPERTY), "CHILD");
+			properties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.SOURCE_MULTIPLICITY_PROPERTY), "1");
+			properties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.TARGET_MULTIPLICITY_PROPERTY), "*");
+			properties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.SOURCE_JSON_NAME_PROPERTY), "parentItem");
+			properties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.TARGET_JSON_NAME_PROPERTY), "children");
 
 			app.create(StructrTraits.SCHEMA_RELATIONSHIP_NODE, properties);
 
@@ -96,7 +100,6 @@ public class RenderContextTest extends StructrUiTest {
 			fail("Unexpected exception");
 		}
 
-		final ConfigurationProvider config = StructrApp.getConfiguration();
 		final String itemClass             = "Item";
 		final PropertyKey childrenProperty = Traits.of(itemClass).key("children");
 
@@ -170,15 +173,15 @@ public class RenderContextTest extends StructrUiTest {
 			final NodeInterface schemaNode = app.create(StructrTraits.SCHEMA_NODE, "Item");
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), schemaNode),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), schemaNode),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testMethodCalled"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Boolean")
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "Boolean")
 			);
 
 			app.create(StructrTraits.SCHEMA_METHOD,
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("schemaNode"), schemaNode),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY), schemaNode),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testMethod"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "set(this, 'testMethodCalled', true)")
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "set(this, 'testMethodCalled', true)")
 			);
 
 			// compile the stuff
@@ -189,7 +192,6 @@ public class RenderContextTest extends StructrUiTest {
 			fail("Unexpected exception");
 		}
 
-		final ConfigurationProvider config = StructrApp.getConfiguration();
 		final String itemClass              = "Item";
 
 		// create parent/child relationship
@@ -240,17 +242,17 @@ public class RenderContextTest extends StructrUiTest {
 			final NodeInterface projectNode = app.create(StructrTraits.SCHEMA_NODE, "Project");
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
-				new NodeAttribute(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), projectNode),
+				new NodeAttribute(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), projectNode),
 				new NodeAttribute(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "taskList"),
-				new NodeAttribute(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Notion"),
-				new NodeAttribute(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("format"), "tasks, id, name")
+				new NodeAttribute(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "Notion"),
+				new NodeAttribute(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.FORMAT_PROPERTY), "tasks, id, name")
 			);
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
-				new NodeAttribute(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), projectNode),
+				new NodeAttribute(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), projectNode),
 				new NodeAttribute(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "taskNames"),
-				new NodeAttribute(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Notion"),
-				new NodeAttribute(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("format"), "tasks, name")
+				new NodeAttribute(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "Notion"),
+				new NodeAttribute(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.FORMAT_PROPERTY), "tasks, name")
 			);
 
 			final NodeInterface taskNode = app.create(StructrTraits.SCHEMA_NODE,
@@ -261,12 +263,12 @@ public class RenderContextTest extends StructrUiTest {
 			final PropertyMap taskProperties = new PropertyMap();
 			taskProperties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.SOURCE_NODE_PROPERTY), projectNode);
 			taskProperties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.TARGET_NODE_PROPERTY), taskNode);
-			taskProperties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("relationshipType"), "TASK");
-			taskProperties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("relationshipType"), "TASK");
-			taskProperties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceMultiplicity"), "1");
-			taskProperties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetMultiplicity"), "*");
-			taskProperties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceJsonName"), "project");
-			taskProperties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetJsonName"), "tasks");
+			taskProperties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.RELATIONSHIP_TYPE_PROPERTY), "TASK");
+			taskProperties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.RELATIONSHIP_TYPE_PROPERTY), "TASK");
+			taskProperties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.SOURCE_MULTIPLICITY_PROPERTY), "1");
+			taskProperties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.TARGET_MULTIPLICITY_PROPERTY), "*");
+			taskProperties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.SOURCE_JSON_NAME_PROPERTY), "project");
+			taskProperties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.TARGET_JSON_NAME_PROPERTY), "tasks");
 
 			app.create(StructrTraits.SCHEMA_RELATIONSHIP_NODE, taskProperties);
 
@@ -274,11 +276,11 @@ public class RenderContextTest extends StructrUiTest {
 			final PropertyMap currentTaskProperties = new PropertyMap();
 			currentTaskProperties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.SOURCE_NODE_PROPERTY), projectNode);
 			currentTaskProperties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.TARGET_NODE_PROPERTY), taskNode);
-			currentTaskProperties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("relationshipType"), "CURRENT");
-			currentTaskProperties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceMultiplicity"), "1");
-			currentTaskProperties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetMultiplicity"), "1");
-			currentTaskProperties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceJsonName"), "projectOfCurrentTask");
-			currentTaskProperties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetJsonName"), "currentTask");
+			currentTaskProperties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.RELATIONSHIP_TYPE_PROPERTY), "CURRENT");
+			currentTaskProperties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.SOURCE_MULTIPLICITY_PROPERTY), "1");
+			currentTaskProperties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.TARGET_MULTIPLICITY_PROPERTY), "1");
+			currentTaskProperties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.SOURCE_JSON_NAME_PROPERTY), "projectOfCurrentTask");
+			currentTaskProperties.put(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.TARGET_JSON_NAME_PROPERTY), "currentTask");
 
 			app.create(StructrTraits.SCHEMA_RELATIONSHIP_NODE, currentTaskProperties);
 
@@ -292,9 +294,8 @@ public class RenderContextTest extends StructrUiTest {
 			fail("Unexpected exception");
 		}
 
-		final ConfigurationProvider config = StructrApp.getConfiguration();
-		final String projectClass           = "Project";
-		final String taskClass              = "Task";
+		final String projectClass          = "Project";
+		final String taskClass             = "Task";
 		final PropertyKey currentTaskKey   = Traits.of(projectClass).key("currentTask");
 		final PropertyKey tasksKey         = Traits.of(projectClass).key("tasks");
 
@@ -444,8 +445,8 @@ public class RenderContextTest extends StructrUiTest {
 			div4.appendChild(p4);
 
 			final PropertyMap p4Properties = new PropertyMap();
-			p4Properties.put(Traits.of(StructrTraits.DOM_ELEMENT).key("restQuery"), "/divs");
-			p4Properties.put(Traits.of(StructrTraits.DOM_ELEMENT).key("dataKey"), "div");
+			p4Properties.put(Traits.of(StructrTraits.DOM_ELEMENT).key(DOMNodeTraitDefinition.REST_QUERY_PROPERTY), "/divs");
+			p4Properties.put(Traits.of(StructrTraits.DOM_ELEMENT).key(DOMNodeTraitDefinition.DATA_KEY_PROPERTY), "div");
 			p4.setProperties(p4.getSecurityContext(), p4Properties);
 
 			final List<DOMNode> paragraphs = page.getElementsByTagName("p");
@@ -462,7 +463,7 @@ public class RenderContextTest extends StructrUiTest {
 			assertNotNull("User tester2 should exist.", tester2);
 
 			// create admin user for later use
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			pageId = page.getUuid();
 			p1Id   = p1.getUuid();
@@ -576,9 +577,9 @@ public class RenderContextTest extends StructrUiTest {
 			final String sessionId       = HttpCookie.parse(sessionIdCookie).get(0).getValue();
 
 			// test authenticated GET request using session ID cookie
-			assertEquals("Invalid authenticated GET result", "admin",   Scripting.replaceVariables(ctx, page, "${add_header('Cookie', 'JSESSIONID=" + sessionId + ";Path=/')}${from_json(GET('http://localhost:" + httpPort + "/structr/rest/User?_sort=name').body).result[0].name}"));
-			assertEquals("Invalid authenticated GET result", "tester1", Scripting.replaceVariables(ctx, page, "${add_header('Cookie', 'JSESSIONID=" + sessionId + ";Path=/')}${from_json(GET('http://localhost:" + httpPort + "/structr/rest/User?_sort=name').body).result[1].name}"));
-			assertEquals("Invalid authenticated GET result", "tester2", Scripting.replaceVariables(ctx, page, "${add_header('Cookie', 'JSESSIONID=" + sessionId + ";Path=/')}${from_json(GET('http://localhost:" + httpPort + "/structr/rest/User?_sort=name').body).result[2].name}"));
+			assertEquals("Invalid authenticated GET result", ADMIN_USERNAME, Scripting.replaceVariables(ctx, page, "${add_header('Cookie', 'JSESSIONID=" + sessionId + ";Path=/')}${from_json(GET('http://localhost:" + httpPort + "/structr/rest/User?_sort=name').body).result[0].name}"));
+			assertEquals("Invalid authenticated GET result", "tester1",      Scripting.replaceVariables(ctx, page, "${add_header('Cookie', 'JSESSIONID=" + sessionId + ";Path=/')}${from_json(GET('http://localhost:" + httpPort + "/structr/rest/User?_sort=name').body).result[1].name}"));
+			assertEquals("Invalid authenticated GET result", "tester2",      Scripting.replaceVariables(ctx, page, "${add_header('Cookie', 'JSESSIONID=" + sessionId + ";Path=/')}${from_json(GET('http://localhost:" + httpPort + "/structr/rest/User?_sort=name').body).result[2].name}"));
 
 			// locale
 			final String localeString = ctx.getLocale().toString();
@@ -653,20 +654,20 @@ public class RenderContextTest extends StructrUiTest {
 			final NodeInterface taskNode  = app.create(StructrTraits.SCHEMA_NODE, "Task");
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
-				new NodeAttribute(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), taskNode),
+				new NodeAttribute(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), taskNode),
 				new NodeAttribute(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "task"),
-				new NodeAttribute(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "String")
+				new NodeAttribute(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "String")
 			);
 
 			// create a schema relationship between them
 			createTestNode(StructrTraits.SCHEMA_RELATIONSHIP_NODE,
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.SOURCE_NODE_PROPERTY), projectNode),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.TARGET_NODE_PROPERTY), taskNode),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("relationshipType"), "has"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceMultiplicity"), "1"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetMultiplicity"), "*"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("sourceJsonName"), "project"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("targetJsonName"), "tasks")
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.RELATIONSHIP_TYPE_PROPERTY), "has"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.SOURCE_MULTIPLICITY_PROPERTY), "1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.TARGET_MULTIPLICITY_PROPERTY), "*"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.SOURCE_JSON_NAME_PROPERTY), "project"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.TARGET_JSON_NAME_PROPERTY), "tasks")
 			);
 
 			tx.success();

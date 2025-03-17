@@ -34,7 +34,7 @@ import java.util.Set;
 public class LinkSourceLINKLinkableTraitDefinition extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public LinkSourceLINKLinkableTraitDefinition() {
-		super("LinkSourceLINKLinkable");
+		super(StructrTraits.LINK_SOURCE_LINK_LINKABLE);
 	}
 
 	@Override

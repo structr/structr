@@ -25,6 +25,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StartNode;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
@@ -36,14 +37,10 @@ import java.util.Set;
 
 public class CssDeclarationTraitDefinition extends AbstractNodeTraitDefinition {
 
-	/*
-	public static final View uiView = new View(CssRule.class, PropertyView.Ui,
-		ruleProperty
-	);
-	*/
+	public static final String RULE_PROPERTY = "rule";
 
 	public CssDeclarationTraitDefinition() {
-		super("CssDeclaration");
+		super(StructrTraits.CSS_DECLARATION);
 	}
 
 	@Override
@@ -72,7 +69,7 @@ public class CssDeclarationTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> ruleProperty = new StartNode("rule", "CssRuleHAS_DECLARATIONCssDeclaration");
+		final Property<NodeInterface> ruleProperty = new StartNode(RULE_PROPERTY, StructrTraits.CSS_RULE_HAS_DECLARATION_CSS_DECLARATION);
 
 		return Set.of(
 			ruleProperty

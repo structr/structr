@@ -33,7 +33,6 @@ import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.flow.impl.FlowBaseNode;
-import org.structr.flow.traits.wrappers.FlowBaseNodeTraitWrapper;
 
 import java.util.Map;
 import java.util.Set;
@@ -50,11 +49,12 @@ public class FlowBaseNodeTraitDefinition extends AbstractNodeTraitDefinition {
 	public Map<Class, LifecycleMethod> getLifecycleMethods() {
 
 		return Map.of(
+
 			OnCreation.class,
 			new OnCreation() {
+
 				@Override
 				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
-
 					graphObject.setVisibility(true, true);
 				}
 			}
@@ -63,8 +63,9 @@ public class FlowBaseNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
 		return Map.of(
-			FlowBaseNode.class, (traits, node) -> new FlowBaseNodeTraitWrapper(traits, node)
+			FlowBaseNode.class, (traits, node) -> new FlowBaseNode(traits, node)
 		);
 	}
 
@@ -72,9 +73,11 @@ public class FlowBaseNodeTraitDefinition extends AbstractNodeTraitDefinition {
 	public Set<PropertyKey> getPropertyKeys() {
 
 		final Property<NodeInterface> flowContainer = new StartNode("flowContainer", "FlowContainerBaseNode").indexed();
+		final Property<NodeInterface> dataSource    = new StartNode("dataSource", "FlowDataInput");
 
 		return newSet(
-			flowContainer
+			flowContainer,
+			dataSource
 		);
 	}
 
@@ -82,6 +85,7 @@ public class FlowBaseNodeTraitDefinition extends AbstractNodeTraitDefinition {
 	public Map<String, Set<String>> getViews() {
 
 		return Map.of(
+
 			PropertyView.Ui,
 			newSet(
 				"flowContainer"

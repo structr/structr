@@ -19,23 +19,24 @@
 package org.structr.web.traits.relationships;
 
 import org.structr.core.entity.Relation;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
 public class CssRuleHAS_DECLARATIONCssDeclaration extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public CssRuleHAS_DECLARATIONCssDeclaration() {
-		super("CssRuleHAS_DECLARATIONCssDeclaration");
+		super(StructrTraits.CSS_RULE_HAS_DECLARATION_CSS_DECLARATION);
 	} // OneToMany<CssRule, CssDeclaration> {
 	
 	@Override
 	public String getSourceType() {
-		return "CssRule";
+		return StructrTraits.CSS_RULE;
 	}
 
 	@Override
 	public String getTargetType() {
-		return "CssDeclaration";
+		return StructrTraits.CSS_DECLARATION;
 	}
 
 	@Override

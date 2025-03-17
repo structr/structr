@@ -25,6 +25,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
@@ -39,8 +40,11 @@ import java.util.Set;
  */
 public class ApplicationConfigurationDataNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String CONFIG_TYPE_PROPERTY = "configType";
+	public static final String CONTENT_PROPERTY     = "content";
+
 	public ApplicationConfigurationDataNodeTraitDefinition() {
-		super("ApplicationConfigurationDataNode");
+		super(StructrTraits.APPLICATION_CONFIGURATION_DATA_NODE);
 	}
 
 	@Override
@@ -69,8 +73,8 @@ public class ApplicationConfigurationDataNodeTraitDefinition extends AbstractNod
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<String> configTypeProperty = new StringProperty("configType").indexed();
-		final Property<String> contentProperty    = new StringProperty("content");
+		final Property<String> configTypeProperty = new StringProperty(CONFIG_TYPE_PROPERTY).indexed();
+		final Property<String> contentProperty    = new StringProperty(CONTENT_PROPERTY);
 
 		return Set.of(
 			configTypeProperty,
@@ -83,7 +87,7 @@ public class ApplicationConfigurationDataNodeTraitDefinition extends AbstractNod
 
 		return Map.of(
 				PropertyView.Ui,
-				newSet("configType", "content")
+				newSet(CONFIG_TYPE_PROPERTY, CONTENT_PROPERTY)
 		);
 	}
 

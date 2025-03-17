@@ -376,7 +376,7 @@ public class UiScriptingTest extends StructrUiTest {
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("readFunction"),         "this.folders")
 			);
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			tx.success();
 
@@ -444,7 +444,7 @@ public class UiScriptingTest extends StructrUiTest {
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("readFunction"),         "this.folders")
 			);
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			// create non-admin user
 			createTestNode(StructrTraits.USER,
@@ -542,7 +542,7 @@ public class UiScriptingTest extends StructrUiTest {
 			content.setProperty(Traits.of(StructrTraits.DOM_NODE).key("dataKey"), "test");
 			content.setProperty(Traits.of(StructrTraits.CONTENT).key("content"), "${test.name}");
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			tx.success();
 
@@ -596,7 +596,7 @@ public class UiScriptingTest extends StructrUiTest {
 			item.setProperty(Traits.of("Table").key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "item");
 			item.appendChild(txt);
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			tx.success();
 
@@ -657,7 +657,7 @@ public class UiScriptingTest extends StructrUiTest {
 			// store UUID for later use
 			uuid = group.getUuid();
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			tx.success();
 
@@ -712,7 +712,7 @@ public class UiScriptingTest extends StructrUiTest {
 			// store UUID for later use
 			uuid = page.getUuid();
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			tx.success();
 
@@ -751,7 +751,7 @@ public class UiScriptingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			// create test user
 			tester = createTestNode(StructrTraits.USER,
@@ -1109,7 +1109,7 @@ public class UiScriptingTest extends StructrUiTest {
 			// setup scripting repeater
 			content.setProperty(Traits.of(StructrTraits.CONTENT).key("content"), "{${42}${print('123')}${{ 'test'; }}$$${page.name}}${{ 99; }}");
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			tx.success();
 
@@ -1179,7 +1179,7 @@ public class UiScriptingTest extends StructrUiTest {
 			);
 
 			// create admin user
-			final User user = createAdminUser("admin", "admin").as(User.class);
+			final User user = createAdminUser().as(User.class);
 
 			userId = user.getUuid();
 

@@ -96,7 +96,7 @@ public abstract class FrontendTest extends StructrUiTest {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-				.headers("X-User", ADMIN_USERNAME , "X-Password", ADMIN_PASSWORD)
+				.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
 
 			.body(buf.toString())
 				.expect().statusCode(201)

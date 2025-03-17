@@ -51,11 +51,16 @@ public class MediaTest extends StructrUiTest {
 			return;
 		}
 
-		final String type = "VideoFile";
+		if (System.getProperty("os.name").equals("Mac OS X")) {
+			logger.info("Not performing test because `avconv` behaves differently on Mac!");
+			return;
+		}
+
+		final String type = StructrTraits.VIDEO_FILE;
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			// create AutoClosable input stream
 			try (final InputStream is = MediaTest.class.getResourceAsStream("/test.mp4")) {
@@ -73,11 +78,11 @@ public class MediaTest extends StructrUiTest {
 		RestAssured
 			.given()
 			.filter(ResponseLoggingFilter.logResponseTo(System.out))
-			.header("X-User", "admin")
-			.header("X-Password", "admin")
+			.header(X_USER_HEADER, ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.expect()
 			.statusCode(200)
-			.body("result[0].type",                  equalTo("VideoFile"))
+			.body("result[0].type",                  equalTo(StructrTraits.VIDEO_FILE))
 			.body("result[0].name",                  equalTo("test.mp4"))
 			.body("result[0].path",                  equalTo("/test.mp4"))
 			.body("result[0].checksum",              equalTo(3346681520328299771L))

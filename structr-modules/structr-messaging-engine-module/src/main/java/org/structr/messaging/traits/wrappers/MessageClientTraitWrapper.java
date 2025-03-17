@@ -26,6 +26,7 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.messaging.engine.entities.MessageClient;
 import org.structr.messaging.engine.entities.MessageSubscriber;
+import org.structr.messaging.traits.definitions.MessageClientTraitDefinition;
 import org.structr.messaging.traits.operations.MessageClientOperations;
 import org.structr.rest.RestMethodResult;
 
@@ -35,19 +36,20 @@ public class MessageClientTraitWrapper extends AbstractNodeTraitWrapper implemen
 		super(traits, wrappedObject);
 	}
 
+	// FIXME: isEnabled only exists on the types inheriting from MessageClient (XMPPClient:isEnabled, KafkaClient.enabled, PulsarClient.enabled)
 	public boolean getIsEnabled() {
 		return wrappedObject.getProperty(traits.key("isEnabled"));
 	}
 
 	public Iterable<MessageSubscriber> getSubscribers() {
 
-		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key("subscribers"));
+		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key(MessageClientTraitDefinition.SUBSCRIBERS_PROPERTY));
 
 		return Iterables.map(n -> n.as(MessageSubscriber.class), nodes);
 	}
 
 	public void setSubscribers(final Iterable<MessageSubscriber> subscribers) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("subscribers"), subscribers);
+		wrappedObject.setProperty(traits.key(MessageClientTraitDefinition.SUBSCRIBERS_PROPERTY), subscribers);
 	}
 
 	@Override

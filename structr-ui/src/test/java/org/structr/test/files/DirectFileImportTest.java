@@ -30,6 +30,7 @@ import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 import org.structr.web.maintenance.DirectFileImportCommand;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 import org.testng.annotations.Test;
 
 import java.io.FileWriter;
@@ -122,7 +123,7 @@ public class DirectFileImportTest extends StructrUiTest {
 	@Test
 	public void testDirectFileImportWithRelativeDirectory() {
 
-		final PropertyKey<String> pathKey = Traits.of(StructrTraits.FILE).key("path");
+		final PropertyKey<String> pathKey = Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY);
 		final String dirName              = "directFileImportTestRelativeDirectory";
 		final Path base                   = Paths.get(basePath);
 		Path testDir                      = null;
@@ -180,7 +181,7 @@ public class DirectFileImportTest extends StructrUiTest {
 	@Test
 	public void testDirectFileImportWithAbsoluteDirectory() {
 
-		final PropertyKey<String> pathKey = Traits.of(StructrTraits.FILE).key("path");
+		final PropertyKey<String> pathKey = Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY);
 		Path testDir      = null;
 		String importPath = null;
 
@@ -1017,7 +1018,7 @@ public class DirectFileImportTest extends StructrUiTest {
 	@Test
 	public void testDirectFileImportWithPattern() {
 
-		final PropertyKey<String> pathKey = Traits.of(StructrTraits.FILE).key("path");
+		final PropertyKey<String> pathKey = Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY);
 		Path testDir      = null;
 		String importPath = null;
 

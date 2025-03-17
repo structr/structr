@@ -27,6 +27,7 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.test.web.StructrUiTest;
+import org.structr.xmpp.traits.definitions.XMPPClientTraitDefinition;
 import org.testng.annotations.Test;
 
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -38,12 +39,12 @@ public class XMPPTest extends StructrUiTest {
 	@Test
 	public void testMQTT() {
 
-		final String clientType   = "XMPPClient";
-		final Traits clientTraits = Traits.of("XMPPClient");
+		final String clientType   = StructrTraits.XMPP_CLIENT;
+		final Traits clientTraits = Traits.of(clientType);
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			tx.success();
 
@@ -54,12 +55,12 @@ public class XMPPTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create(clientType,
-				new NodeAttribute<>(clientTraits.key("xmppUsername"),  "username"),
-				new NodeAttribute<>(clientTraits.key("xmppPassword"),  "password"),
-				new NodeAttribute<>(clientTraits.key("xmppService"),   "service"),
-				new NodeAttribute<>(clientTraits.key("xmppHost"),      "host"),
-				new NodeAttribute<>(clientTraits.key("xmppPort"),      12345),
-				new NodeAttribute<>(clientTraits.key("presenceMode"),  "available")
+				new NodeAttribute<>(clientTraits.key(XMPPClientTraitDefinition.XMPP_USERNAME_PROPERTY),  "username"),
+				new NodeAttribute<>(clientTraits.key(XMPPClientTraitDefinition.XMPP_PASSWORD_PROPERTY),  "password"),
+				new NodeAttribute<>(clientTraits.key(XMPPClientTraitDefinition.XMPP_SERVICE_PROPERTY),   "service"),
+				new NodeAttribute<>(clientTraits.key(XMPPClientTraitDefinition.XMPP_HOST_PROPERTY),      "host"),
+				new NodeAttribute<>(clientTraits.key(XMPPClientTraitDefinition.XMPP_PORT_PROPERTY),      12345),
+				new NodeAttribute<>(clientTraits.key(XMPPClientTraitDefinition.PRESENCE_MODE_PROPERTY),  "available")
 			);
 
 			tx.success();
@@ -72,11 +73,11 @@ public class XMPPTest extends StructrUiTest {
 		RestAssured
 			.given()
 			.filter(ResponseLoggingFilter.logResponseTo(System.out))
-			.header("X-User", "admin")
-			.header("X-Password", "admin")
+			.header(X_USER_HEADER, ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.expect()
 			.statusCode(200)
-			.body("result[0].type",                  equalTo("XMPPClient"))
+			.body("result[0].type",                  equalTo(clientType))
 			.body("result[0].isEnabled",             equalTo(false))
 			.body("result[0].isConnected",           equalTo(false))
 			.body("result[0].xmppUsername",          equalTo("username"))
@@ -86,7 +87,7 @@ public class XMPPTest extends StructrUiTest {
 			.body("result[0].xmppPort",              equalTo(12345))
 			.body("result[0].presenceMode",          equalTo("available"))
 			.when()
-			.get("/XMPPClient");
+			.get("/" + clientType);
 	}
 
 }

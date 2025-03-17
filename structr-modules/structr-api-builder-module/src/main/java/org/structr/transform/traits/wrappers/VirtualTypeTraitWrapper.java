@@ -41,6 +41,8 @@ import org.structr.transform.VirtualType;
 
 import java.util.*;
 import java.util.function.Function;
+import org.structr.transform.traits.definitions.VirtualPropertyTraitDefinition;
+import org.structr.transform.traits.definitions.VirtualTypeTraitDefinition;
 
 public class VirtualTypeTraitWrapper extends AbstractNodeTraitWrapper implements VirtualType {
 
@@ -55,22 +57,22 @@ public class VirtualTypeTraitWrapper extends AbstractNodeTraitWrapper implements
 
 	@Override
 	public String getSourceType() {
-		return wrappedObject.getProperty(traits.key("sourceType"));
+		return wrappedObject.getProperty(traits.key(VirtualTypeTraitDefinition.SOURCE_TYPE_PROPERTY));
 	}
 
 	@Override
 	public Integer getPosition() {
-		return wrappedObject.getProperty(traits.key("position"));
+		return wrappedObject.getProperty(traits.key(VirtualTypeTraitDefinition.POSITION_PROPERTY));
 	}
 
 	@Override
 	public String getFilterExpression() {
-		return wrappedObject.getProperty(traits.key("filterExpression"));
+		return wrappedObject.getProperty(traits.key(VirtualTypeTraitDefinition.FILTER_EXPRESSION_PROPERTY));
 	}
 
 	@Override
 	public Iterable<NodeInterface> getVirtualProperties() {
-		return wrappedObject.getProperty(traits.key("properties"));
+		return wrappedObject.getProperty(traits.key(VirtualTypeTraitDefinition.PROPERTIES_PROPERTY));
 	}
 
 	@Override
@@ -123,7 +125,7 @@ public class VirtualTypeTraitWrapper extends AbstractNodeTraitWrapper implements
 
 		final Traits traits = Traits.of("VirtualProperty");
 
-		Collections.sort(source, traits.key("position").sorted(false));
+		Collections.sort(source, traits.key(VirtualPropertyTraitDefinition.POSITION_PROPERTY).sorted(false));
 
 		return source;
 	}

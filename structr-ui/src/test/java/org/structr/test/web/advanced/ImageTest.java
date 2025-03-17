@@ -42,6 +42,8 @@ import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.ImageTraitDefinition;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -154,10 +156,10 @@ public class ImageTest extends StructrUiTest {
 			boolean allThumbnailsAvailable = true;
 			try (final Tx tx = app.tx()) {
 
-				final List<NodeInterface> images = app.nodeQuery(StructrTraits.IMAGE).and(Traits.of(StructrTraits.IMAGE).key("isThumbnail"), false).getAsList();
+				final List<NodeInterface> images = app.nodeQuery(StructrTraits.IMAGE).and(Traits.of(StructrTraits.IMAGE).key(ImageTraitDefinition.IS_THUMBNAIL_PROPERTY), false).getAsList();
 				for (NodeInterface img : images) {
 
-					allThumbnailsAvailable &= img.getProperty(Traits.of(StructrTraits.IMAGE).key("tnMid")) != null;
+					allThumbnailsAvailable &= img.getProperty(Traits.of(StructrTraits.IMAGE).key(ImageTraitDefinition.TN_MID_PROPERTY)) != null;
 				}
 
 				tx.success();
@@ -176,7 +178,7 @@ public class ImageTest extends StructrUiTest {
 
 			System.out.println("############# Folders:");
 
-			final List<NodeInterface> folders = app.nodeQuery(StructrTraits.FOLDER).sort(Traits.of(StructrTraits.FOLDER).key("path")).getAsList();
+			final List<NodeInterface> folders = app.nodeQuery(StructrTraits.FOLDER).sort(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.PATH_PROPERTY)).getAsList();
 
 			folders.stream().forEach(f -> {
 				System.out.println(f.as(Folder.class).getPath());
@@ -294,7 +296,7 @@ public class ImageTest extends StructrUiTest {
 			}
 
 			// request thumbnail creation
-			image.getProperty(Traits.of(StructrTraits.IMAGE).key("tnMid"));
+			image.getProperty(Traits.of(StructrTraits.IMAGE).key(ImageTraitDefinition.TN_MID_PROPERTY));
 
 		} catch (IOException ioex) {
 			ioex.printStackTrace();

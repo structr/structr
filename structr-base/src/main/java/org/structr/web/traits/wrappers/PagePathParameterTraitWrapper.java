@@ -25,6 +25,7 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.schema.parser.DatePropertyGenerator;
 import org.structr.web.entity.path.PagePathParameter;
+import org.structr.web.traits.definitions.PagePathParameterTraitDefinition;
 
 /**
  *
@@ -37,27 +38,27 @@ public class PagePathParameterTraitWrapper extends AbstractNodeTraitWrapper impl
 
 	@Override
 	public Integer getPosition() {
-		return wrappedObject.getProperty(traits.key("position"));
+		return wrappedObject.getProperty(traits.key(PagePathParameterTraitDefinition.POSITION_PROPERTY));
 	}
 
 	@Override
 	public void setPosition(final Integer position) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("position"), position);
+		wrappedObject.setProperty(traits.key(PagePathParameterTraitDefinition.POSITION_PROPERTY), position);
 	}
 
 	@Override
 	public String getValueType() {
-		return wrappedObject.getProperty(traits.key("valueType"));
+		return wrappedObject.getProperty(traits.key(PagePathParameterTraitDefinition.VALUE_TYPE_PROPERTY));
 	}
 
 	@Override
 	public String getDefaultValue() {
-		return wrappedObject.getProperty(traits.key("defaultValue"));
+		return wrappedObject.getProperty(traits.key(PagePathParameterTraitDefinition.DEFAULT_VALUE_PROPERTY));
 	}
 
 	@Override
 	public boolean getIsOptional() {
-		return wrappedObject.getProperty(traits.key("isOptional"));
+		return wrappedObject.getProperty(traits.key(PagePathParameterTraitDefinition.IS_OPTIONAL_PROPERTY));
 	}
 
 	@Override

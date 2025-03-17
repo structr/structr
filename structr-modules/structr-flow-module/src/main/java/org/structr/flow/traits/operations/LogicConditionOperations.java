@@ -16,19 +16,12 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.flow.api;
+package org.structr.flow.traits.operations;
 
-/**
- *
- */
-public interface Decision extends FlowElement {
+import org.structr.core.traits.operations.FrameworkMethod;
+import org.structr.flow.impl.FlowLogicCondition;
 
-	DataSource getCondition();
-	FlowElement getTrueElement();
-	FlowElement getFalseElement();
+public abstract class LogicConditionOperations extends FrameworkMethod<LogicConditionOperations> {
 
-	@Override
-	default FlowType getFlowType() {
-		return FlowType.Decision;
-	}
+	public abstract Boolean combine(final FlowLogicCondition condition, final Boolean result, final Boolean value);
 }

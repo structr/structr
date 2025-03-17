@@ -28,6 +28,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
 import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.parser.*;
@@ -66,13 +67,13 @@ public class SchemaPropertyTraitWrapper extends AbstractNodeTraitWrapper impleme
 
 	@Override
 	public String getStaticSchemaNodeName() {
-		return wrappedObject.getProperty(traits.key("staticSchemaNodeName"));
+		return wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.STATIC_SCHEMA_NODE_NAME_PROPERTY));
 	}
 
 	@Override
 	public SchemaHelper.Type getPropertyType() {
 
-		final String _type = wrappedObject.getProperty(traits.key("propertyType"));
+		final String _type = wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY));
 		if (_type != null) {
 
 			try {
@@ -93,13 +94,13 @@ public class SchemaPropertyTraitWrapper extends AbstractNodeTraitWrapper impleme
 
 	@Override
 	public String getContentType() {
-		return wrappedObject.getProperty(traits.key("contentType"));
+		return wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.CONTENT_TYPE_PROPERTY));
 	}
 
 	@Override
 	public boolean isNotNull() {
 
-		final Boolean isNotNull = wrappedObject.getProperty(traits.key("notNull"));
+		final Boolean isNotNull = wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.NOT_NULL_PROPERTY));
 		if (isNotNull != null && isNotNull) {
 
 			return true;
@@ -111,67 +112,47 @@ public class SchemaPropertyTraitWrapper extends AbstractNodeTraitWrapper impleme
 	@Override
 	public boolean isCompound() {
 
-		final Boolean isCompoundUnique = wrappedObject.getProperty(traits.key("compound"));
-		if (isCompoundUnique != null && isCompoundUnique) {
+		final Boolean isCompoundUnique = wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.COMPOUND_PROPERTY));
 
-			return true;
-		}
-
-		return false;
+		return Boolean.TRUE.equals(isCompoundUnique);
 	}
 
 	@Override
 	public boolean isUnique() {
 
-		final Boolean isUnique = wrappedObject.getProperty(traits.key("unique"));
-		if (isUnique != null && isUnique) {
+		final Boolean isUnique = wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.UNIQUE_PROPERTY));
 
-			return true;
-		}
-
-		return false;
+		return Boolean.TRUE.equals(isUnique);
 	}
 
 	@Override
 	public boolean isIndexed() {
 
-		final Boolean isIndexed = wrappedObject.getProperty(traits.key("indexed"));
-		if (isIndexed != null && isIndexed) {
+		final Boolean isIndexed = wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.INDEXED_PROPERTY));
 
-			return true;
-		}
-
-		return false;
+		return Boolean.TRUE.equals(isIndexed);
 	}
 
 	@Override
 	public boolean isReadOnly() {
 
-		final Boolean isReadOnly = wrappedObject.getProperty(traits.key("readOnly"));
-		if (isReadOnly != null && isReadOnly) {
+		final Boolean isReadOnly = wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.READ_ONLY_PROPERTY));
 
-			return true;
-		}
-
-		return false;
+		return Boolean.TRUE.equals(isReadOnly);
 	}
 
 	@Override
 	public boolean isCachingEnabled() {
 
-		final Boolean _isCachingEnabled = wrappedObject.getProperty(traits.key("isCachingEnabled"));
-		if (_isCachingEnabled != null && _isCachingEnabled) {
+		final Boolean _isCachingEnabled = wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.IS_CACHING_ENABLED_PROPERTY));
 
-			return true;
-		}
-
-		return false;
+		return Boolean.TRUE.equals(_isCachingEnabled);
 	}
 
 	@Override
 	public AbstractSchemaNode getSchemaNode() {
 
-		final NodeInterface node = wrappedObject.getProperty(traits.key("schemaNode"));
+		final NodeInterface node = wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY));
 		if (node != null) {
 
 			return node.as(AbstractSchemaNode.class);
@@ -181,29 +162,24 @@ public class SchemaPropertyTraitWrapper extends AbstractNodeTraitWrapper impleme
 	}
 
 	@Override
-	public String getSource() {
-		return wrappedObject.getProperty(traits.key("source"));
-	}
-
-	@Override
 	public String getDbName() {
-		return wrappedObject.getProperty(traits.key("dbName"));
+		return wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.DB_NAME_PROPERTY));
 	}
 
 	@Override
 	public String getDefaultValue() {
-		return wrappedObject.getProperty(traits.key("defaultValue"));
+		return wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.DEFAULT_VALUE_PROPERTY));
 	}
 
 	@Override
 	public String getTypeHint() {
-		return wrappedObject.getProperty(traits.key("typeHint"));
+		return wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.TYPE_HINT_PROPERTY));
 	}
 
 	@Override
 	public String getFormat() {
 
-		String _format = wrappedObject.getProperty(traits.key("format"));
+		String _format = wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.FORMAT_PROPERTY));
 		if (_format != null) {
 
 			_format = _format.trim();
@@ -214,22 +190,22 @@ public class SchemaPropertyTraitWrapper extends AbstractNodeTraitWrapper impleme
 
 	@Override
 	public String getHint() {
-		return wrappedObject.getProperty(traits.key("hint"));
+		return wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.HINT_PROPERTY));
 	}
 
 	@Override
 	public String getCategory() {
-		return wrappedObject.getProperty(traits.key("category"));
+		return wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.CATEGORY_PROPERTY));
 	}
 
 	public boolean isRequired() {
-		return wrappedObject.getProperty(traits.key("notNull"));
+		return wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.NOT_NULL_PROPERTY));
 	}
 
 	@Override
 	public String getReadFunction() {
 
-		String _readFunction = wrappedObject.getProperty(traits.key("readFunction"));
+		String _readFunction = wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.READ_FUNCTION_PROPERTY));
 		if (_readFunction != null) {
 
 			_readFunction = _readFunction.trim();
@@ -241,7 +217,7 @@ public class SchemaPropertyTraitWrapper extends AbstractNodeTraitWrapper impleme
 	@Override
 	public String getWriteFunction() {
 
-		String _writeFunction = wrappedObject.getProperty(traits.key("writeFunction"));
+		String _writeFunction = wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.WRITE_FUNCTION_PROPERTY));
 		if (_writeFunction != null) {
 
 			_writeFunction = _writeFunction.trim();
@@ -253,7 +229,7 @@ public class SchemaPropertyTraitWrapper extends AbstractNodeTraitWrapper impleme
 	@Override
 	public String getOpenAPIReturnType() {
 
-		String _openAPIReturnType = wrappedObject.getProperty(traits.key("openAPIReturnType"));
+		String _openAPIReturnType = wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.OPEN_API_RETURN_TYPE_PROPERTY));
 		if (_openAPIReturnType != null) {
 
 			_openAPIReturnType = _openAPIReturnType.trim();
@@ -264,12 +240,12 @@ public class SchemaPropertyTraitWrapper extends AbstractNodeTraitWrapper impleme
 
 	@Override
 	public String[] getTransformators() {
-		return wrappedObject.getProperty(traits.key("transformers"));
+		return wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.TRANSFORMERS_PROPERTY));
 	}
 
 	@Override
 	public String[] getValidators() {
-		return wrappedObject.getProperty(traits.key("validators"));
+		return wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.VALIDATORS_PROPERTY));
 	}
 
 	@Override
@@ -302,33 +278,31 @@ public class SchemaPropertyTraitWrapper extends AbstractNodeTraitWrapper impleme
 
 	@Override
 	public String getFqcn() {
-		return wrappedObject.getProperty(traits.key("fqcn"));
+		return wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.FQCN_PROPERTY));
 	}
 
 	public String getContentHash() {
 
 		int _contentHash = 77;
 
-		_contentHash = addContentHash(traits.key("defaultValue"),      _contentHash);
-		_contentHash = addContentHash(traits.key("propertyType"),      _contentHash);
-		_contentHash = addContentHash(traits.key("contentType"),       _contentHash);
-		_contentHash = addContentHash(traits.key("dbName"),            _contentHash);
-		_contentHash = addContentHash(traits.key("format"),            _contentHash);
-		_contentHash = addContentHash(traits.key("typeHint"),          _contentHash);
-		_contentHash = addContentHash(traits.key("notNull"),           _contentHash);
-		_contentHash = addContentHash(traits.key("unique"),            _contentHash);
-		_contentHash = addContentHash(traits.key("indexed"),           _contentHash);
-		_contentHash = addContentHash(traits.key("readOnly"),          _contentHash);
-		_contentHash = addContentHash(traits.key("isDynamic"),         _contentHash);
-		_contentHash = addContentHash(traits.key("isBuiltinProperty"), _contentHash);
-		_contentHash = addContentHash(traits.key("isDefaultInUi"),     _contentHash);
-		_contentHash = addContentHash(traits.key("isDefaultInPublic"), _contentHash);
-		_contentHash = addContentHash(traits.key("isCachingEnabled"),  _contentHash);
-		_contentHash = addContentHash(traits.key("readFunction"),      _contentHash);
-		_contentHash = addContentHash(traits.key("writeFunction"),     _contentHash);
-		_contentHash = addContentHash(traits.key("openAPIReturnType"), _contentHash);
-		_contentHash = addContentHash(traits.key("transformers"),      _contentHash);
-		_contentHash = addContentHash(traits.key("validators"),        _contentHash);
+		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.DEFAULT_VALUE_PROPERTY),        _contentHash);
+		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY),        _contentHash);
+		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.CONTENT_TYPE_PROPERTY),         _contentHash);
+		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.DB_NAME_PROPERTY),              _contentHash);
+		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.FORMAT_PROPERTY),               _contentHash);
+		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.TYPE_HINT_PROPERTY),            _contentHash);
+		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.NOT_NULL_PROPERTY),             _contentHash);
+		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.UNIQUE_PROPERTY),               _contentHash);
+		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.INDEXED_PROPERTY),              _contentHash);
+		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.READ_ONLY_PROPERTY),            _contentHash);
+		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.IS_DYNAMIC_PROPERTY),           _contentHash);
+		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.IS_BUILTIN_PROPERTY_PROPERTY),  _contentHash);
+		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.IS_CACHING_ENABLED_PROPERTY),   _contentHash);
+		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.READ_FUNCTION_PROPERTY),        _contentHash);
+		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.WRITE_FUNCTION_PROPERTY),       _contentHash);
+		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.OPEN_API_RETURN_TYPE_PROPERTY), _contentHash);
+		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.TRANSFORMERS_PROPERTY),         _contentHash);
+		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.VALIDATORS_PROPERTY),           _contentHash);
 
 		return Integer.toHexString(_contentHash);
 	}
@@ -390,7 +364,7 @@ public class SchemaPropertyTraitWrapper extends AbstractNodeTraitWrapper impleme
 	}
 
 	public void setFqcn(final String value) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("fqcn"), value);
+		wrappedObject.setProperty(traits.key(SchemaPropertyTraitDefinition.FQCN_PROPERTY), value);
 	}
 
 	public String getFullName() {

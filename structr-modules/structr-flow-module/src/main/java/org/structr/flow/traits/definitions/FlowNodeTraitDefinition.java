@@ -25,7 +25,6 @@ import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.flow.impl.FlowNode;
-import org.structr.flow.traits.wrappers.FlowNodeTraitWrapper;
 
 import java.util.Map;
 import java.util.Set;
@@ -44,7 +43,7 @@ public class FlowNodeTraitDefinition extends AbstractNodeTraitDefinition {
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
 		return Map.of(
-			FlowNode.class, (traits, node) -> new FlowNodeTraitWrapper(traits, node)
+			FlowNode.class, (traits, node) -> new FlowNode(traits, node)
 		);
 	}
 

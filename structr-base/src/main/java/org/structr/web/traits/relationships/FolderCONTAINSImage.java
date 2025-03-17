@@ -26,7 +26,7 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class FolderCONTAINSImage extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public FolderCONTAINSImage() {
-		super("FolderCONTAINSImage");
+		super(StructrTraits.FOLDER_CONTAINS_IMAGE);
 	}
 
 	@Override

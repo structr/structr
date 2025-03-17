@@ -26,6 +26,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
@@ -42,8 +43,14 @@ import java.util.Set;
  */
 public class LogEventTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String MESSAGE_PROPERTY   = "message";
+	public static final String ACTION_PROPERTY    = "action";
+	public static final String TIMESTAMP_PROPERTY = "timestamp";
+	public static final String SUBJECT_PROPERTY   = "subject";
+	public static final String OBJECT_PROPERTY    = "object";
+
 	public LogEventTraitDefinition() {
-		super("LogEvent");
+		super(StructrTraits.LOG_EVENT);
 	}
 
 	@Override
@@ -72,11 +79,11 @@ public class LogEventTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<String> messageProperty   = new StringProperty("message");
-		final Property<String> actionProperty    = new StringProperty("action").indexed();
-		final Property<Date>   timestampProperty = new ISO8601DateProperty("timestamp").indexed();
-		final Property<String> subjectProperty   = new StringProperty("subject").indexed();
-		final Property<String> objectProperty    = new StringProperty("object").indexed();
+		final Property<String> messageProperty   = new StringProperty(MESSAGE_PROPERTY);
+		final Property<String> actionProperty    = new StringProperty(ACTION_PROPERTY).indexed();
+		final Property<Date>   timestampProperty = new ISO8601DateProperty(TIMESTAMP_PROPERTY).indexed();
+		final Property<String> subjectProperty   = new StringProperty(SUBJECT_PROPERTY).indexed();
+		final Property<String> objectProperty    = new StringProperty(OBJECT_PROPERTY).indexed();
 
 		return newSet(
 			messageProperty,
@@ -93,7 +100,7 @@ public class LogEventTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"action", "message", "timestamp", "subject", "object"
+				ACTION_PROPERTY, MESSAGE_PROPERTY, TIMESTAMP_PROPERTY, SUBJECT_PROPERTY, OBJECT_PROPERTY
 			)
 		);
 	}

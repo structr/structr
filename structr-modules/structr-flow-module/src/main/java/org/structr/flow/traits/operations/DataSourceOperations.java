@@ -16,9 +16,14 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.flow.impl;
+package org.structr.flow.traits.operations;
 
-import org.structr.flow.api.Action;
+import org.structr.core.traits.operations.FrameworkMethod;
+import org.structr.flow.engine.Context;
+import org.structr.flow.engine.FlowException;
+import org.structr.flow.impl.FlowDataSource;
 
-public abstract class FlowActionNode extends FlowNode implements Action {
+public abstract class DataSourceOperations extends FrameworkMethod<DataSourceOperations> {
+
+	public abstract Object get(final Context context, final FlowDataSource dataSource) throws FlowException;
 }

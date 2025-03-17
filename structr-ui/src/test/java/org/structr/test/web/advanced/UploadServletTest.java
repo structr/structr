@@ -52,7 +52,7 @@ public class UploadServletTest extends StructrUiTest {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			tx.success();
 
@@ -64,8 +64,8 @@ public class UploadServletTest extends StructrUiTest {
 
 		final String response = RestAssured
 			.given()
-				.header("X-User",       "admin")
-				.header("X-Password",   "admin")
+				.header(X_USER_HEADER,       ADMIN_USERNAME)
+				.header(X_PASSWORD_HEADER,   ADMIN_PASSWORD)
 				.multiPart("file",      "test.txt", "This is a test!".getBytes(Charset.forName("utf-8")), "text/plain")
 
 			.expect()
@@ -104,7 +104,7 @@ public class UploadServletTest extends StructrUiTest {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			tx.success();
 
@@ -116,8 +116,8 @@ public class UploadServletTest extends StructrUiTest {
 
 		final String locationHeader = RestAssured
 			.given()
-				.header("X-User",       "admin")
-				.header("X-Password",   "admin")
+				.header(X_USER_HEADER,       ADMIN_USERNAME)
+				.header(X_PASSWORD_HEADER,   ADMIN_PASSWORD)
 				.multiPart("redirectOnSuccess",    "/nonexisting-url/")
 				.multiPart("appendUuidOnRedirect", "true")
 				.multiPart("uploadFolderPath",     "/uploads")
@@ -161,7 +161,7 @@ public class UploadServletTest extends StructrUiTest {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			JsonSchema schema   = StructrSchema.createFromDatabase(app);
 			final JsonType ext  = schema.addType("ExtendedFile");
@@ -181,8 +181,8 @@ public class UploadServletTest extends StructrUiTest {
 
 		RestAssured
 			.given()
-				.header("X-User",     "admin")
-				.header("X-Password", "admin")
+				.header(X_USER_HEADER,     ADMIN_USERNAME)
+				.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 				.multiPart("type",    "ExtendedFile")
 				.multiPart("file",    "test.txt", "This is a test!".getBytes(Charset.forName("utf-8")), "text/plain")
 
@@ -217,7 +217,7 @@ public class UploadServletTest extends StructrUiTest {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			tx.success();
 
@@ -229,8 +229,8 @@ public class UploadServletTest extends StructrUiTest {
 
 		final String locationHeader = RestAssured
 			.given()
-				.header("X-User",       "admin")
-				.header("X-Password",   "admin")
+				.header(X_USER_HEADER,       ADMIN_USERNAME)
+				.header(X_PASSWORD_HEADER,   ADMIN_PASSWORD)
 				.multiPart("redirectOnSuccess",    "/nonexisting-url/")
 				.multiPart("uploadFolderPath",     "/uploads")
 				.multiPart("file",                 "test.txt", "This is a test!".getBytes(Charset.forName("utf-8")), "text/plain")
@@ -271,7 +271,7 @@ public class UploadServletTest extends StructrUiTest {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			JsonSchema schema   = StructrSchema.createFromDatabase(app);
 			final JsonType type = schema.getType(StructrTraits.FILE);
@@ -291,8 +291,8 @@ public class UploadServletTest extends StructrUiTest {
 		RestAssured.basePath = "/";
 		RestAssured
 			.given()
-				.header("X-User",       "admin")
-				.header("X-Password",   "admin")
+				.header(X_USER_HEADER,       ADMIN_USERNAME)
+				.header(X_PASSWORD_HEADER,   ADMIN_PASSWORD)
 				.multiPart("file", "test.txt", "This is a test!".getBytes(Charset.forName("utf-8")), "text/plain")
 
 			.expect()

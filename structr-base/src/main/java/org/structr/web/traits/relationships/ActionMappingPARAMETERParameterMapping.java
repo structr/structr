@@ -26,7 +26,7 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class ActionMappingPARAMETERParameterMapping extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public ActionMappingPARAMETERParameterMapping() {
-		super("ActionMappingPARAMETERParameterMapping");
+		super(StructrTraits.ACTION_MAPPING_PARAMETER_PARAMETER_MAPPING);
 	}
 
 	@Override

@@ -18,43 +18,50 @@
  */
 package org.structr.flow.impl;
 
-import org.structr.common.PropertyView;
-import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.property.*;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.script.Scripting;
-import org.structr.flow.api.Aggregation;
-import org.structr.flow.api.DataSource;
+import org.structr.core.traits.Traits;
 import org.structr.flow.api.ThrowingElement;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
-import org.structr.flow.impl.rels.FlowAggregateStartValue;
-import org.structr.flow.impl.rels.FlowDataInput;
-import org.structr.flow.impl.rels.FlowExceptionHandlerNodes;
 import org.structr.module.api.DeployableEntity;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
-public class FlowAggregate extends FlowNode implements Aggregation, DataSource, DeployableEntity, ThrowingElement {
+public class FlowAggregate extends FlowDataSource implements DeployableEntity, ThrowingElement {
 
-	public static final Property<DataSource> dataSource                 = new StartNode<>("dataSource", FlowDataInput.class);
-	public static final Property<Iterable<FlowBaseNode>> dataTarget     = new EndNodes<>("dataTarget", FlowDataInput.class);
-	public static final Property<DataSource> startValueSource           = new StartNode<>("startValue", FlowAggregateStartValue.class);
-	public static final Property<FlowExceptionHandler> exceptionHandler = new EndNode<>("exceptionHandler", FlowExceptionHandlerNodes.class);
-	public static final Property<String> script                         = new StringProperty("script");
+	public FlowAggregate(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
+	}
 
-	public static final View defaultView 									= new View(FlowAction.class, PropertyView.Public, script, startValueSource, dataSource, dataTarget, exceptionHandler, isStartNodeOfContainer);
-	public static final View uiView      									= new View(FlowAction.class, PropertyView.Ui,     script, startValueSource, dataSource, dataTarget, exceptionHandler, isStartNodeOfContainer);
+	public final String getScript() {
+		return wrappedObject.getProperty(traits.key("script"));
+	}
 
-	@Override
-	public void aggregate(Context context) throws FlowException {
+	public final void setScript(final String script) throws FrameworkException {
+		wrappedObject.setProperty(traits.key("script"), script);
+	}
+
+	public final FlowDataSource getStartValueSource() {
+
+		final NodeInterface startValueSource = wrappedObject.getProperty(traits.key("startValue"));
+		if (startValueSource != null) {
+
+			return startValueSource.as(FlowDataSource.class);
+		}
+
+		return null;
+	}
+
+	public void aggregate(final Context context) throws FlowException {
 
 		try {
 
-			String _script = getProperty(script);
-			DataSource ds = getProperty(dataSource);
-			DataSource startValue = getProperty(startValueSource);
+			final String _script            = getScript();
+			final FlowDataSource ds         = getDataSource();
+			final FlowDataSource startValue = getStartValueSource();
 
 			if (_script != null && startValue != null && ds != null) {
 
@@ -64,7 +71,7 @@ public class FlowAggregate extends FlowNode implements Aggregation, DataSource, 
 
 				context.setAggregation(getUuid(), ds.get(context));
 
-				Object result = Scripting.evaluate(context.getActionContext(securityContext, this), this, "${" + _script.trim() + "}", "FlowAggregate(" + getUuid() + ")");
+				Object result = Scripting.evaluate(context.getActionContext(getSecurityContext(), this), this, "${" + _script.trim() + "}", "FlowAggregate(" + getUuid() + ")");
 
 				context.setData(getUuid(), result);
 
@@ -78,37 +85,15 @@ public class FlowAggregate extends FlowNode implements Aggregation, DataSource, 
 	}
 
 	@Override
-	public Object get(Context context) throws FlowException {
-
-		if (context.getData(getUuid()) == null) {
-
-			DataSource startValue = getProperty(startValueSource);
-
-			if (startValue != null) {
-
-				context.setData(getUuid(), startValue.get(context));
-			}
-
-		}
-
-		return context.getData(getUuid());
-	}
-
-	@Override
-	public FlowExceptionHandler getExceptionHandler(Context context) {
-		return getProperty(exceptionHandler);
-	}
-
-	@Override
 	public Map<String, Object> exportData() {
-		Map<String, Object> result = new HashMap<>();
 
-		result.put("id", this.getUuid());
-		result.put("type", this.getClass().getSimpleName());
-		result.put("script", this.getProperty(script));
+		final Map<String, Object> result = new TreeMap<>();
 
-		result.put("visibleToPublicUsers", this.getProperty(visibleToPublicUsers));
-		result.put("visibleToAuthenticatedUsers", this.getProperty(visibleToAuthenticatedUsers));
+		result.put("id",                          getUuid());
+		result.put("type",                        getType());
+		result.put("script",                      getScript());
+		result.put("visibleToPublicUsers",        isVisibleToPublicUsers());
+		result.put("visibleToAuthenticatedUsers", isVisibleToAuthenticatedUsers());
 
 		return result;
 	}

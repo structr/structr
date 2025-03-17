@@ -18,90 +18,14 @@
  */
 package org.structr.flow.impl;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.converter.PropertyConverter;
-import org.structr.core.property.*;
-import org.structr.flow.api.DataSource;
-import org.structr.flow.engine.Context;
-import org.structr.flow.impl.rels.FlowDataInput;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.Traits;
 import org.structr.module.api.DeployableEntity;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
-public class FlowConstant extends FlowBaseNode implements DataSource, DeployableEntity {
-
-	private static final Logger logger                              = LoggerFactory.getLogger(FlowConstant.class);
-	public static final Property<Iterable<FlowBaseNode>> dataTarget = new EndNodes<>("dataTarget", FlowDataInput.class);
-	public static final Property<String> value                      = new StringProperty("value");
-	public static final Property<ConstantType> constantType         = new EnumProperty<>("constantType", ConstantType.class);
-
-	public static final View defaultView = new View(FlowDataSource.class, PropertyView.Public, value, dataTarget, constantType);
-	public static final View uiView      = new View(FlowDataSource.class, PropertyView.Public, value, dataTarget, constantType);
-
-
-	@Override
-	public Object get(Context context) {
-
-		ConstantType cType = getProperty(constantType);
-		Object val =  getProperty(value);
-
-		if (val != null) {
-
-			try {
-
-				PropertyConverter converter = null;
-
-				if (cType != null) {
-
-					switch (cType) {
-						case String:
-							converter = new StringProperty("").inputConverter(securityContext);
-							break;
-						case Boolean:
-							converter = new BooleanProperty("").inputConverter(securityContext);
-							break;
-						case Integer:
-							converter = new IntProperty("").inputConverter(securityContext);
-							break;
-						case Double:
-							converter = new DoubleProperty("").inputConverter(securityContext);
-							break;
-						default:
-							converter = new StringProperty("").inputConverter(securityContext);
-					}
-
-				}
-
-				return converter != null ? converter.convert(val) : val;
-
-			} catch (FrameworkException ex) {
-				logger.warn("FlowConstant: Could not convert given value. " + ex.getMessage());
-			}
-
-		}
-
-		return null;
-
-	}
-
-	@Override
-	public Map<String, Object> exportData() {
-		Map<String, Object> result = new HashMap<>();
-
-		result.put("id", this.getUuid());
-		result.put("type", this.getClass().getSimpleName());
-		result.put("value", this.getProperty(value));
-		result.put("constantType", this.getProperty(constantType));
-		result.put("visibleToPublicUsers", this.getProperty(visibleToPublicUsers));
-		result.put("visibleToAuthenticatedUsers", this.getProperty(visibleToAuthenticatedUsers));
-
-		return result;
-	}
+public class FlowConstant extends FlowDataSource implements DeployableEntity {
 
 	public enum ConstantType {
 		String,
@@ -109,5 +33,32 @@ public class FlowConstant extends FlowBaseNode implements DataSource, Deployable
 		Integer,
 		Double,
 		Date
+	}
+
+	public FlowConstant(Traits traits, NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
+	}
+
+	public final String getConstantType() {
+		return wrappedObject.getProperty(traits.key("constantType"));
+	}
+
+	public final Object getValue() {
+		return wrappedObject.getProperty(traits.key("value"));
+	}
+
+	@Override
+	public Map<String, Object> exportData() {
+
+		final Map<String, Object> result = new TreeMap<>();
+
+		result.put("id",                          getUuid());
+		result.put("type",                        getType());
+		result.put("value",                       getValue());
+		result.put("constantType",                getConstantType());
+		result.put("visibleToPublicUsers",        isVisibleToPublicUsers());
+		result.put("visibleToAuthenticatedUsers", isVisibleToAuthenticatedUsers());
+
+		return result;
 	}
 }

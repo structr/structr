@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 /**
  * A URLConnection that fetches a SecurityContext using a custom URL scheme
@@ -68,7 +69,7 @@ public class StructrURLConnection extends URLConnection {
 
 				final NodeInterface node = app
 					.nodeQuery(StructrTraits.FILE)
-					.and(Traits.of(StructrTraits.FILE).key("path"), url.getPath())
+					.and(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY), url.getPath())
 					.getFirst();
 
 				if (node != null) {

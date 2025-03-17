@@ -23,6 +23,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
@@ -34,14 +35,14 @@ import java.util.Set;
 
 public class CssRuleTraitDefinition extends AbstractNodeTraitDefinition {
 
-	/*
-	public static final View uiView = new View(CssRule.class, PropertyView.Ui,
-		cssTextProperty, ruleTypeProperty, childRulesProperty, parentRuleProperty, selectorsProperty
-	);
-	*/
+	public static final String CHILD_RULES_PROPERTY = "childRules";
+	public static final String PARENT_RULE_PROPERTY = "parentRule";
+	public static final String SELECTORS_PROPERTY   = "selectors";
+	public static final String CSS_TEXT_PROPERTY    = "cssText";
+	public static final String RULE_TYPE_PROPERTY   = "ruleType";
 
 	public CssRuleTraitDefinition() {
-		super("CssRule");
+		super(StructrTraits.CSS_RULE);
 	}
 
 	@Override
@@ -70,11 +71,11 @@ public class CssRuleTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Iterable<NodeInterface>> childRulesProperty = new EndNodes("childRules", "CssRuleCONTAINSCssRule");
-		final Property<NodeInterface> parentRuleProperty           = new StartNode("parentRule", "CssRuleCONTAINSCssRule");
-		final Property<Iterable<NodeInterface>> selectorsProperty  = new EndNodes("selectors", "CssRuleHAS_SELECTORCssSelector");
-		final Property<String> cssTextProperty                     = new StringProperty("cssText").indexed();
-		final Property<Integer>  ruleTypeProperty                  = new IntProperty("ruleType").indexed();
+		final Property<Iterable<NodeInterface>> childRulesProperty = new EndNodes(CHILD_RULES_PROPERTY, StructrTraits.CSS_RULE_CONTAINS_CSS_RULE);
+		final Property<NodeInterface> parentRuleProperty           = new StartNode(PARENT_RULE_PROPERTY, StructrTraits.CSS_RULE_CONTAINS_CSS_RULE);
+		final Property<Iterable<NodeInterface>> selectorsProperty  = new EndNodes(SELECTORS_PROPERTY, StructrTraits.CSS_RULE_HAS_SELECTOR_CSS_SELECTOR);
+		final Property<String> cssTextProperty                     = new StringProperty(CSS_TEXT_PROPERTY).indexed();
+		final Property<Integer>  ruleTypeProperty                  = new IntProperty(RULE_TYPE_PROPERTY).indexed();
 
 		return Set.of(
 			childRulesProperty,

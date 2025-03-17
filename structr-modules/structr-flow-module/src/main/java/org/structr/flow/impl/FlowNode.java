@@ -18,14 +18,38 @@
  */
 package org.structr.flow.impl;
 
-import org.structr.flow.api.FlowElement;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.Traits;
+import org.structr.flow.api.FlowType;
+import org.structr.flow.traits.operations.GetFlowType;
 
 
 /**
  *
  */
-public interface FlowNode extends FlowBaseNode, FlowElement {
+public class FlowNode extends FlowBaseNode {
 
-	FlowContainer getFlowContainer();
-	FlowElement next();
+	public FlowNode(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
+	}
+
+	public final FlowType getFlowType() {
+		return traits.getMethod(GetFlowType.class).getFlowType(this);
+	}
+
+	public FlowNode next() {
+
+		final NodeInterface node = wrappedObject.getProperty(traits.key("next"));
+		if (node != null) {
+
+			return node.as(FlowNode.class);
+		}
+
+		return null;
+	}
+
+	public void setNext(final FlowNode next) throws FrameworkException {
+		wrappedObject.setProperty(traits.key("next"), next);
+	}
 }

@@ -34,7 +34,7 @@ import java.util.Set;
 public class DOMNodeSYNCDOMNode extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public DOMNodeSYNCDOMNode() {
-		super("DOMNodeSYNCDOMNode");
+		super(StructrTraits.DOM_NODE_SYNC_DOM_NODE);
 	}
 
 	@Override

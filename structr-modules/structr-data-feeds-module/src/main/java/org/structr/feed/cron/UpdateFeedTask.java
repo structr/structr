@@ -25,6 +25,7 @@ import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
 import org.structr.feed.entity.DataFeed;
 
 import java.util.Collections;
@@ -42,7 +43,7 @@ public class UpdateFeedTask<T extends DataFeed> extends AbstractTask<T> {
 	public List<T> getWorkObjects() {
 
 		try {
-			final Iterable<NodeInterface> nodes = StructrApp.getInstance().nodeQuery("DataFeed").getResultStream();
+			final Iterable<NodeInterface> nodes = StructrApp.getInstance().nodeQuery(StructrTraits.DATA_FEED).getResultStream();
 
 			return (List<T>)Iterables.toList(Iterables.map(n -> n.as(DataFeed.class), nodes));
 

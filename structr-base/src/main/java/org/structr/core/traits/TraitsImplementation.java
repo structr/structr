@@ -40,7 +40,13 @@ public class TraitsImplementation implements Traits {
 	private static final Map<String, Traits> globalTypeMap = new LinkedHashMap<>();
 	private static final Map<String, Trait> globalTraitMap = new LinkedHashMap<>();
 
-	private final Map<String, TraitDefinition> traits = new LinkedHashMap<>();
+	private final Map<String, TraitDefinition> traits                   = new LinkedHashMap<>();
+	private final Map<String, PropertyKey> keyCache                     = new LinkedHashMap<>();
+	private final Map<Class, FrameworkMethod> frameworkMethodCache      = new LinkedHashMap<>();
+	private final Map<Class, Set<LifecycleMethod>> lifecycleMethodCache = new LinkedHashMap<>();
+	private final Set<Trait> localTraitsCache                           = new LinkedHashSet<>();
+	private Map<String, AbstractMethod> dynamicMethodCache              = null;
+
 	private final boolean isNodeType;
 	private final boolean isRelationshipType;
 	private final boolean isBuiltInType;
@@ -73,9 +79,9 @@ public class TraitsImplementation implements Traits {
 
 		final Set<String> labels = new LinkedHashSet<>();
 
-		for (final TraitDefinition definition : traits.values()) {
+		for (final Trait trait : getTraits()) {
 
-			labels.add(definition.getLabel());
+			labels.add(trait.getLabel());
 		}
 
 		return labels;
@@ -93,7 +99,11 @@ public class TraitsImplementation implements Traits {
 
 	private <T> PropertyKey<T> key(final String name, final boolean throwException) {
 
-		PropertyKey<T> key = null;
+		PropertyKey<T> key = keyCache.get(name);
+		if (key != null) {
+
+			return key;
+		}
 
 		for (final Trait trait : getTraits()) {
 
@@ -106,6 +116,9 @@ public class TraitsImplementation implements Traits {
 
 		// return last key, not first
 		if (key != null) {
+
+			keyCache.put(name, key);
+
 			return key;
 		}
 
@@ -118,29 +131,11 @@ public class TraitsImplementation implements Traits {
 
 	@Override
 	public boolean hasKey(final String name) {
-
-		for (final Trait trait : getTraits()) {
-
-			if (trait.getPropertyKeys().containsKey(name)) {
-				return true;
-			}
-		}
-
-		return false;
+		return key(name, false) != null;
 	}
 
 	@Override
 	public boolean hasDynamicMethod(final String name) {
-
-		/*
-		for (final Trait trait : getTraits()) {
-
-			if (trait.getDynamicMethods().containsKey(name)) {
-				return true;
-			}
-		}
-		*/
-
 		return false;
 	}
 
@@ -214,7 +209,13 @@ public class TraitsImplementation implements Traits {
 	@Override
 	public <T extends LifecycleMethod> Set<T> getMethods(final Class<T> type) {
 
-		final Set<T> methods = new LinkedHashSet<>();
+		Set<T> methods = (Set) lifecycleMethodCache.get(type);
+		if (methods != null) {
+
+			return methods;
+		}
+
+		methods = new LinkedHashSet<>();
 
 		for (final Trait trait : getTraits()) {
 
@@ -225,13 +226,20 @@ public class TraitsImplementation implements Traits {
 			}
 		}
 
+		// store in cache
+		lifecycleMethodCache.put(type, (Set)methods);
+
 		return methods;
 	}
 
 	@Override
 	public <T extends FrameworkMethod> T getMethod(final Class<T> type) {
 
-		T current = null;
+		T current = (T) frameworkMethodCache.get(type);
+
+		if (current != null) {
+			return current;
+		}
 
 		for (final Trait trait : getTraits()) {
 
@@ -247,21 +255,30 @@ public class TraitsImplementation implements Traits {
 			}
 		}
 
+		if (current != null) {
+
+			frameworkMethodCache.put(type, current);
+		}
+
 		return current;
 	}
 
 	@Override
 	public Map<String, AbstractMethod> getDynamicMethods() {
 
-		final Map<String, AbstractMethod> methods = new LinkedHashMap<>();
+		if (dynamicMethodCache != null) {
+			return dynamicMethodCache;
+		}
+
+		dynamicMethodCache = new LinkedHashMap<>();
 
 		for (final Trait trait : getTraits()) {
 
 			// this is the place where we can detect clashes!
-			methods.putAll(trait.getDynamicMethods());
+			dynamicMethodCache.putAll(trait.getDynamicMethods());
 		}
 
-		return methods;
+		return dynamicMethodCache;
 	}
 
 	@Override
@@ -294,7 +311,7 @@ public class TraitsImplementation implements Traits {
 			}
 		}
 
-		throw new RuntimeException("Type " + this.typeName + " does not have the " + type + " trait.");
+		throw new RuntimeException("Type " + this.typeName + " does not define a factory for " + type.getSimpleName());
 	}
 
 	@Override
@@ -378,6 +395,13 @@ public class TraitsImplementation implements Traits {
 	@Override
 	public Map<String, Map<String, PropertyKey>> removeDynamicTraits() {
 
+		// clear caches
+		keyCache.clear();
+		frameworkMethodCache.clear();
+		lifecycleMethodCache.clear();
+		localTraitsCache.clear();
+		dynamicMethodCache = null;
+
 		final Map<String, Map<String, PropertyKey>> removedProperties = new LinkedHashMap<>();
 		final Set<String> traitsToRemove                              = new LinkedHashSet<>();
 
@@ -418,18 +442,22 @@ public class TraitsImplementation implements Traits {
 	// ----- private methods -----
 	private Set<Trait> getTraits() {
 
-		final Set<Trait> set = new LinkedHashSet<>();
+		if (!localTraitsCache.isEmpty()) {
+			return localTraitsCache;
+		}
+
+		final Set<Trait> localTraitsCache = new LinkedHashSet<>();
 
 		for (final String name : traits.keySet()) {
 
 			final Trait trait = globalTraitMap.get(name);
 			if (trait != null) {
 
-				set.add(trait);
+				localTraitsCache.add(trait);
 			}
 		}
 
-		return set;
+		return localTraitsCache;
 	}
 
 	// ----- static methods -----
@@ -505,7 +533,7 @@ public class TraitsImplementation implements Traits {
 		return null;
 	}
 
-	static boolean exists(String name) {
+	static boolean exists(final String name) {
 		return TraitsImplementation.globalTypeMap.containsKey(name);
 	}
 
@@ -513,7 +541,7 @@ public class TraitsImplementation implements Traits {
 		return getAllTypes(null);
 	}
 
-	static Set<String> getAllTypes(Predicate<Traits> filter) {
+	static Set<String> getAllTypes(final Predicate<Traits> filter) {
 
 		final Set<String> types = new LinkedHashSet<>();
 
@@ -528,7 +556,7 @@ public class TraitsImplementation implements Traits {
 		return types;
 	}
 
-	static <T> PropertyKey<T> key(String type, String name) {
+	static <T> PropertyKey<T> key(final String type, final String name) {
 
 		final Traits traits = Traits.of(type);
 		if (traits != null) {

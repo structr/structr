@@ -25,6 +25,7 @@ import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
@@ -41,7 +42,7 @@ import java.util.Set;
 public class LogSubjectTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public LogSubjectTraitDefinition() {
-		super("LogSubject");
+		super(StructrTraits.LOG_SUBJECT);
 	}
 
 	@Override
@@ -70,7 +71,7 @@ public class LogSubjectTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Iterable<NodeInterface>> logEvents = new EndNodes("logEvents", "SubjectEventRelationship");
+		final Property<Iterable<NodeInterface>> logEvents = new EndNodes(LogObjectTraitDefinition.LOG_EVENTS_PROPERTY, StructrTraits.SUBJECT_EVENT_RELATIONSHIP);
 
 		return newSet(
 			logEvents

@@ -55,7 +55,7 @@ public class GraphQLTest extends StructrUiTest {
 				is.close();
 			}
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			tx.success();
 
@@ -92,8 +92,8 @@ public class GraphQLTest extends StructrUiTest {
 		RestAssured.given()
 
 				.filter(ResponseLoggingFilter.logResponseTo(System.out))
-				.header("X-User", "admin")
-				.header("X-Password", "admin")
+				.header(X_USER_HEADER, ADMIN_USERNAME)
+				.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 				.contentType("application/json; charset=UTF-8")
 			//.body("{ Image(isThumbnail: {_equals: false}) { tnSmall { imageData, base64Data }}}")
 				.body("{ Image(isThumbnail: {_equals: false}) { tnSmall { imageData, base64Data }}}")

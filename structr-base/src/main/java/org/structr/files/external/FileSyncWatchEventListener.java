@@ -38,6 +38,8 @@ import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 
 import java.nio.file.Path;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.FolderTraitDefinition;
 
 /**
  * Implementation of the watch event listener interface that syncs
@@ -185,8 +187,8 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 	private NodeInterface getOrCreate(final NodeInterface parentFolder, final String fileName, final boolean isFile, final boolean doCreate, final String folderType, final String fileType) throws FrameworkException {
 
 		final Traits traits                        = Traits.of(StructrTraits.ABSTRACT_FILE);
-		final PropertyKey<Boolean> isExternalKey   = traits.key("isExternal");
-		final PropertyKey<NodeInterface> parentKey = traits.key("parent");
+		final PropertyKey<Boolean> isExternalKey   = traits.key(AbstractFileTraitDefinition.IS_EXTERNAL_PROPERTY);
+		final PropertyKey<NodeInterface> parentKey = traits.key(AbstractFileTraitDefinition.PARENT_PROPERTY);
 		final PropertyKey<String> nameKey          = traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 		final App app                              = StructrApp.getInstance();
 		final String type                          = isFile ? (fileType != null ? fileType : StructrTraits.FILE) : (folderType != null ? folderType : StructrTraits.FOLDER);
@@ -216,8 +218,8 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 
 		void handle() throws FrameworkException {
 
-			final PropertyKey<Boolean> doFulltextIndexing = Traits.of(StructrTraits.FOLDER).key("mountDoFulltextIndexing");
-			final PropertyKey<Long> lastSeenMounted       = Traits.of(StructrTraits.ABSTRACT_FILE).key("lastSeenMounted");
+			final PropertyKey<Boolean> doFulltextIndexing = Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_DO_FULLTEXT_INDEXING_PROPERTY);
+			final PropertyKey<Long> lastSeenMounted       = Traits.of(StructrTraits.ABSTRACT_FILE).key(AbstractFileTraitDefinition.LAST_SEEN_MOUNTED_PROPERTY);
 
 			if (file.is(StructrTraits.FILE)) {
 

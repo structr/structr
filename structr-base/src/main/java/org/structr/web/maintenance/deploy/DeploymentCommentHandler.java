@@ -39,6 +39,9 @@ import org.structr.web.importer.CommentHandler;
 import org.structr.web.maintenance.DeployCommand;
 
 import java.util.*;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.dom.ContentTraitDefinition;
+import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 
 /**
  *
@@ -89,7 +92,7 @@ public class DeploymentCommentHandler implements CommentHandler {
 
 			if (node.is(StructrTraits.LINK_SOURCE)) {
 
-				final NodeInterface file = StructrApp.getInstance().nodeQuery(StructrTraits.LINKABLE).and(Traits.of(StructrTraits.ABSTRACT_FILE).key("path"), parameters).getFirst();
+				final NodeInterface file = StructrApp.getInstance().nodeQuery(StructrTraits.LINKABLE).and(Traits.of(StructrTraits.ABSTRACT_FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY), parameters).getFirst();
 				if (file != null) {
 
 					final LinkSource linkSource = node.as(LinkSource.class);
@@ -107,7 +110,7 @@ public class DeploymentCommentHandler implements CommentHandler {
 		});
 
 		handlers.put("content", (final Page page, final DOMNode node, final String parameters) -> {
-			node.setProperty(Traits.of(StructrTraits.CONTENT).key("contentType"), parameters);
+			node.setProperty(Traits.of(StructrTraits.CONTENT).key(ContentTraitDefinition.CONTENT_TYPE_PROPERTY), parameters);
 		});
 
 		handlers.put("name", (final Page page, final DOMNode node, final String parameters) -> {
@@ -115,19 +118,19 @@ public class DeploymentCommentHandler implements CommentHandler {
 		});
 
 		handlers.put("show", (final Page page, final DOMNode node, final String parameters) -> {
-			node.setProperty(Traits.of(StructrTraits.DOM_NODE).key("showConditions"), DOMNode.unescapeForHtmlAttributes(DOMNode.unescapeForHtmlAttributes(parameters)));
+			node.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.SHOW_CONDITIONS_PROPERTY), DOMNode.unescapeForHtmlAttributes(DOMNode.unescapeForHtmlAttributes(parameters)));
 		});
 
 		handlers.put("hide", (final Page page, final DOMNode node, final String parameters) -> {
-			node.setProperty(Traits.of(StructrTraits.DOM_NODE).key("hideConditions"), DOMNode.unescapeForHtmlAttributes(DOMNode.unescapeForHtmlAttributes(parameters)));
+			node.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.HIDE_CONDITIONS_PROPERTY), DOMNode.unescapeForHtmlAttributes(DOMNode.unescapeForHtmlAttributes(parameters)));
 		});
 
 		handlers.put("show-for-locales", (final Page page, final DOMNode node, final String parameters) -> {
-			node.setProperty(Traits.of(StructrTraits.DOM_NODE).key("showForLocales"), DOMNode.unescapeForHtmlAttributes(DOMNode.unescapeForHtmlAttributes(parameters)));
+			node.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.SHOW_FOR_LOCALES_PROPERTY), DOMNode.unescapeForHtmlAttributes(DOMNode.unescapeForHtmlAttributes(parameters)));
 		});
 
 		handlers.put("hide-for-locales", (final Page page, final DOMNode node, final String parameters) -> {
-			node.setProperty(Traits.of(StructrTraits.DOM_NODE).key("hideForLocales"), DOMNode.unescapeForHtmlAttributes(DOMNode.unescapeForHtmlAttributes(parameters)));
+			node.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.HIDE_FOR_LOCALES_PROPERTY), DOMNode.unescapeForHtmlAttributes(DOMNode.unescapeForHtmlAttributes(parameters)));
 		});
 
 		handlers.put("owner", (final Page page, final DOMNode node, final String parameters) -> {

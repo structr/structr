@@ -23,6 +23,7 @@ import org.structr.core.entity.SchemaGrant;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.SchemaGrantTraitDefinition;
 
 /**
  *
@@ -61,7 +62,7 @@ public class SchemaGrantTraitWrapper extends AbstractNodeTraitWrapper implements
 	@Override
 	public SchemaNode getSchemaNode() {
 
-		final NodeInterface node = wrappedObject.getProperty(traits.key("schemaNode"));
+		final NodeInterface node = wrappedObject.getProperty(traits.key(SchemaGrantTraitDefinition.SCHEMA_NODE_PROPERTY));
 		if (node != null) {
 
 			return node.as(SchemaNode.class);
@@ -72,7 +73,7 @@ public class SchemaGrantTraitWrapper extends AbstractNodeTraitWrapper implements
 
 	@Override
 	public String getStaticSchemaNodeName() {
-		return wrappedObject.getProperty(traits.key("staticSchemaNodeName"));
+		return wrappedObject.getProperty(traits.key(SchemaGrantTraitDefinition.STATIC_SCHEMA_NODE_NAME_PROPERTY));
 	}
 
 	@Override

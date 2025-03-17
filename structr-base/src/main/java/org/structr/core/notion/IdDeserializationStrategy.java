@@ -36,6 +36,8 @@ import org.structr.core.traits.Traits;
 
 import java.util.*;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 
 /**
  * Deserializes a {@link GraphObject} using the UUID property.
@@ -251,7 +253,7 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> extends Deser
 	}
 
 	private boolean isIdentifying(final Traits actualType, final PropertyKey key) {
-		return (actualType.contains(StructrTraits.PRINCIPAL) && ("name".equals(key.jsonName()) || "eMail".equals(key.jsonName())));
+		return (actualType.contains(StructrTraits.PRINCIPAL) && (NodeInterfaceTraitDefinition.NAME_PROPERTY.equals(key.jsonName()) || PrincipalTraitDefinition.EMAIL_PROPERTY.equals(key.jsonName())));
 	}
 
 	private List<T> convert(final Iterable<NodeInterface> iterable) {

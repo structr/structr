@@ -22,6 +22,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.mail.entity.Mailbox;
+import org.structr.mail.entity.traits.definitions.MailboxTraitDefinition;
 
 public class MailboxTraitWrapper extends AbstractNodeTraitWrapper implements Mailbox {
 
@@ -30,30 +31,30 @@ public class MailboxTraitWrapper extends AbstractNodeTraitWrapper implements Mai
 	}
 
 	public String getHost() {
-		return wrappedObject.getProperty(traits.key("host"));
+		return wrappedObject.getProperty(traits.key(MailboxTraitDefinition.HOST_PROPERTY));
 	}
 
 	public String getUser() {
-		return wrappedObject.getProperty(traits.key("user"));
+		return wrappedObject.getProperty(traits.key(MailboxTraitDefinition.USER_PROPERTY));
 	}
 
 	public String getPassword() {
-		return wrappedObject.getProperty(traits.key("password"));
+		return wrappedObject.getProperty(traits.key(MailboxTraitDefinition.PASSWORD_PROPERTY));
 	}
 
 	public String getOverrideMailEntityType() {
-		return wrappedObject.getProperty(traits.key("overrideMailEntityType"));
+		return wrappedObject.getProperty(traits.key(MailboxTraitDefinition.OVERRIDE_MAIL_ENTITY_TYPE_PROPERTY));
 	}
 
 	public String[] getFolders() {
-		return wrappedObject.getProperty(traits.key("folders"));
+		return wrappedObject.getProperty(traits.key(MailboxTraitDefinition.FOLDERS_PROPERTY));
 	}
 
 	public Object getMailProtocol() {
-		return wrappedObject.getProperty(traits.key("mailProtocol"));
+		return wrappedObject.getProperty(traits.key(MailboxTraitDefinition.MAIL_PROTOCOL_PROPERTY));
 	}
 
 	public Integer getPort() {
-		return wrappedObject.getProperty(traits.key("port"));
+		return wrappedObject.getProperty(traits.key(MailboxTraitDefinition.PORT_PROPERTY));
 	}
 }

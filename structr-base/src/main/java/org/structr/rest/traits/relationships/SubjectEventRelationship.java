@@ -41,7 +41,7 @@ import static org.structr.core.entity.Relation.Multiplicity.One;
 public class SubjectEventRelationship extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public SubjectEventRelationship() {
-		super("SubjectEventRelationship");
+		super(StructrTraits.SUBJECT_EVENT_RELATIONSHIP);
 	}
 
 	@Override
@@ -51,7 +51,7 @@ public class SubjectEventRelationship extends AbstractRelationshipTraitDefinitio
 
 	@Override
 	public String getTargetType() {
-		return "LogEvent";
+		return StructrTraits.LOG_EVENT;
 	}
 
 	@Override

@@ -47,6 +47,7 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.mail.entity.Mailbox;
+import org.structr.mail.entity.traits.definitions.EMailMessageTraitDefinition;
 import org.structr.schema.SchemaService;
 import org.structr.web.common.FileHelper;
 
@@ -143,7 +144,6 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 			logger.warn("Could not retrieve folders for mailbox[" + mb.getUuid() + "] since not all required attributes were specified.");
 			return new ArrayList<>();
 		}
-
 	}
 
 	@Override
@@ -228,24 +228,24 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 
 		try (final Tx tx = app.tx()) {
 
-			final Traits traits = Traits.of("EmailMessage");
+			final Traits traits = Traits.of(StructrTraits.EMAIL_MESSAGE);
 			PropertyMap props = new PropertyMap();
 
-			props.put(traits.key("from"),           amc.getDisplayName(amc.getFromName(), amc.getFromAddress()));
-			props.put(traits.key("fromMail"),       amc.getFromAddress());
-			props.put(traits.key("to"),             amc.getCombinedDisplayNames(amc.getTo()));
-			props.put(traits.key("subject"),        amc.getSubject());
-			props.put(traits.key("content"),        amc.getTextContent());
-			props.put(traits.key("htmlContent"),    amc.getHtmlContent());
-			props.put(traits.key("sentDate"),       new Date());
+			props.put(traits.key(EMailMessageTraitDefinition.FROM_PROPERTY),           amc.getDisplayName(amc.getFromName(), amc.getFromAddress()));
+			props.put(traits.key(EMailMessageTraitDefinition.FROM_MAIL_PROPERTY),       amc.getFromAddress());
+			props.put(traits.key(EMailMessageTraitDefinition.TO_PROPERTY),             amc.getCombinedDisplayNames(amc.getTo()));
+			props.put(traits.key(EMailMessageTraitDefinition.SUBJECT_PROPERTY),        amc.getSubject());
+			props.put(traits.key(EMailMessageTraitDefinition.CONTENT_PROPERTY),        amc.getTextContent());
+			props.put(traits.key(EMailMessageTraitDefinition.HTML_CONTENT_PROPERTY),    amc.getHtmlContent());
+			props.put(traits.key(EMailMessageTraitDefinition.SENT_DATE_PROPERTY),       new Date());
 
-			props.put(traits.key("messageId"),      messageId);
-			props.put(traits.key("inReplyTo"),      amc.getInReplyTo());
+			props.put(traits.key(EMailMessageTraitDefinition.MESSAGE_ID_PROPERTY),      messageId);
+			props.put(traits.key(EMailMessageTraitDefinition.IN_REPLY_TO_PROPERTY),      amc.getInReplyTo());
 
-			props.put(traits.key("header"),         new Gson().toJson(amc.getCustomHeaders()));
+			props.put(traits.key(EMailMessageTraitDefinition.HEADER_PROPERTY),         new Gson().toJson(amc.getCustomHeaders()));
 
-			props.put(traits.key("replyTo"),        amc.getCombinedDisplayNames(amc.getReplyTo()));
-			props.put(traits.key("bcc"),            amc.getCombinedDisplayNames(amc.getBcc()));
+			props.put(traits.key(EMailMessageTraitDefinition.REPLY_TO_PROPERTY),        amc.getCombinedDisplayNames(amc.getReplyTo()));
+			props.put(traits.key(EMailMessageTraitDefinition.BCC_PROPERTY),            amc.getCombinedDisplayNames(amc.getBcc()));
 
 
 			if (amc.getAttachments().size() > 0) {
@@ -261,7 +261,7 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 					}
 				}
 
-				props.put(traits.key("attachedFiles"), concreteAttachedFiles);
+				props.put(traits.key(EMailMessageTraitDefinition.ATTACHED_FILES_PROPERTY), concreteAttachedFiles);
 			}
 
 			// not setting folder/receivedDate
@@ -388,20 +388,20 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 
 			for (int i = 0; i < p.getCount(); i++) {
 
-				final String htmlContent = result.get("htmlContent") != null ? result.get("htmlContent") : "";
-				final String content     = result.get("content") != null ? result.get("content") : "";
+				final String htmlContent = result.get(EMailMessageTraitDefinition.HTML_CONTENT_PROPERTY) != null ? result.get(EMailMessageTraitDefinition.HTML_CONTENT_PROPERTY) : "";
+				final String content     = result.get(EMailMessageTraitDefinition.CONTENT_PROPERTY) != null ? result.get(EMailMessageTraitDefinition.CONTENT_PROPERTY) : "";
 
 				BodyPart part = (BodyPart) p.getBodyPart(i);
 				if (part.getContent() instanceof Multipart) {
 
 					final Map<String,String> subResult = handleMultipart(mb, message, (Multipart)part.getContent(), attachments);
 
-					if (subResult.get("content") != null) {
-						result.put("content", content.concat(subResult.get("content")));
+					if (subResult.get(EMailMessageTraitDefinition.CONTENT_PROPERTY) != null) {
+						result.put(EMailMessageTraitDefinition.CONTENT_PROPERTY, content.concat(subResult.get(EMailMessageTraitDefinition.CONTENT_PROPERTY)));
 					}
 
-					if (subResult.get("htmlContent") != null) {
-						result.put("htmlContent", htmlContent.concat(subResult.get("htmlContent")));
+					if (subResult.get(EMailMessageTraitDefinition.HTML_CONTENT_PROPERTY) != null) {
+						result.put(EMailMessageTraitDefinition.HTML_CONTENT_PROPERTY, htmlContent.concat(subResult.get(EMailMessageTraitDefinition.HTML_CONTENT_PROPERTY)));
 					}
 
 
@@ -418,11 +418,11 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 
 					if (part.isMimeType("text/html")) {
 
-						result.put("htmlContent", htmlContent.concat(getText(part)));
+						result.put(EMailMessageTraitDefinition.HTML_CONTENT_PROPERTY, htmlContent.concat(getText(part)));
 
 					} else if (part.isMimeType("text/plain")) {
 
-						result.put("content", content.concat(getText(part)));
+						result.put(EMailMessageTraitDefinition.CONTENT_PROPERTY, content.concat(getText(part)));
 
 					} else if (!part.isMimeType("message/delivery-status")){
 
@@ -678,42 +678,47 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 
 						// Try to match via messageId first
 						if (messageId != null) {
-							existingEMailMessage = app.nodeQuery(entityType).and(traits.key("messageId"), messageId).getFirst();
+							existingEMailMessage = app.nodeQuery(entityType).and(traits.key(EMailMessageTraitDefinition.MESSAGE_ID_PROPERTY), messageId).getFirst();
 						}
 						// If messageId can't be matched, use fallback
 						if (existingEMailMessage == null) {
-							existingEMailMessage = app.nodeQuery(entityType).and(traits.key("subject"), message.getSubject()).and(traits.key("from"), from).and(traits.key("to"), to).and(traits.key("receivedDate"), message.getReceivedDate()).and(traits.key("sentDate"), message.getSentDate()).getFirst();
+							existingEMailMessage = app.nodeQuery(entityType)
+									.and(traits.key(EMailMessageTraitDefinition.SUBJECT_PROPERTY), message.getSubject())
+									.and(traits.key(EMailMessageTraitDefinition.FROM_PROPERTY), from)
+									.and(traits.key(EMailMessageTraitDefinition.TO_PROPERTY), to)
+									.and(traits.key(EMailMessageTraitDefinition.RECEIVED_DATE_PROPERTY), message.getReceivedDate())
+									.and(traits.key(EMailMessageTraitDefinition.SENT_DATE_PROPERTY), message.getSentDate()).getFirst();
 						}
 
 						if (existingEMailMessage == null) {
 
-							pm.put(traits.key("subject"), message.getSubject());
-							pm.put(traits.key("from"), from);
+							pm.put(traits.key(EMailMessageTraitDefinition.SUBJECT_PROPERTY), message.getSubject());
+							pm.put(traits.key(EMailMessageTraitDefinition.FROM_PROPERTY), from);
 
 
 							final Pattern pattern = Pattern.compile(".* <(.*)>");
 							final Matcher matcher = pattern.matcher(from);
 							if (matcher.matches()) {
-								pm.put(traits.key("fromMail"), matcher.group(1));
+								pm.put(traits.key(EMailMessageTraitDefinition.FROM_MAIL_PROPERTY), matcher.group(1));
 							} else {
-								pm.put(traits.key("fromMail"), from);
+								pm.put(traits.key(EMailMessageTraitDefinition.FROM_MAIL_PROPERTY), from);
 							}
 
-							pm.put(traits.key("to"), to);
-							pm.put(traits.key("cc"), cc);
-							pm.put(traits.key("bcc"), bcc);
-							pm.put(traits.key("folder"), message.getFolder().getFullName());
-							pm.put(traits.key("receivedDate"), message.getReceivedDate());
-							pm.put(traits.key("sentDate"), message.getSentDate());
-							pm.put(traits.key("mailbox"), mailbox);
-							pm.put(traits.key("header"), gson.toJson(headers));
+							pm.put(traits.key(EMailMessageTraitDefinition.TO_PROPERTY), to);
+							pm.put(traits.key(EMailMessageTraitDefinition.CC_PROPERTY), cc);
+							pm.put(traits.key(EMailMessageTraitDefinition.BCC_PROPERTY), bcc);
+							pm.put(traits.key(EMailMessageTraitDefinition.FOLDER_PROPERTY), message.getFolder().getFullName());
+							pm.put(traits.key(EMailMessageTraitDefinition.RECEIVED_DATE_PROPERTY), message.getReceivedDate());
+							pm.put(traits.key(EMailMessageTraitDefinition.SENT_DATE_PROPERTY), message.getSentDate());
+							pm.put(traits.key(EMailMessageTraitDefinition.MAILBOX_PROPERTY), mailbox);
+							pm.put(traits.key(EMailMessageTraitDefinition.HEADER_PROPERTY), gson.toJson(headers));
 
 							if (messageId != null) {
-								pm.put(traits.key("messageId"), messageId);
+								pm.put(traits.key(EMailMessageTraitDefinition.MESSAGE_ID_PROPERTY), messageId);
 							}
 
 							if (inReplyTo != null) {
-								pm.put(traits.key("inReplyTo"), inReplyTo);
+								pm.put(traits.key(EMailMessageTraitDefinition.IN_REPLY_TO_PROPERTY), inReplyTo);
 							}
 
 							// Handle content extraction
@@ -726,8 +731,8 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 							if (message.getContentType().contains("multipart")) {
 
 								final Map<String, String> result = handleMultipart(mailbox, message, (Multipart)contentObj, attachments);
-								content = result.get("content");
-								htmlContent = result.get("htmlContent");
+								content = result.get(EMailMessageTraitDefinition.CONTENT_PROPERTY);
+								htmlContent = result.get(EMailMessageTraitDefinition.HTML_CONTENT_PROPERTY);
 
 							} else if (message.getContentType().contains("text/plain")){
 
@@ -738,9 +743,9 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 								htmlContent = contentObj.toString();
 							}
 
-							pm.put(traits.key("content"), content);
-							pm.put(traits.key("htmlContent"), htmlContent);
-							pm.put(traits.key("attachedFiles"), attachments);
+							pm.put(traits.key(EMailMessageTraitDefinition.CONTENT_PROPERTY), content);
+							pm.put(traits.key(EMailMessageTraitDefinition.HTML_CONTENT_PROPERTY), htmlContent);
+							pm.put(traits.key(EMailMessageTraitDefinition.ATTACHED_FILES_PROPERTY), attachments);
 
 							app.create(entityType, pm);
 						}

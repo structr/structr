@@ -26,6 +26,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.storage.providers.local.LocalFSStorageProvider;
@@ -36,6 +37,7 @@ import org.structr.web.entity.StorageConfiguration;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.Map.Entry;
+import org.structr.web.traits.definitions.StorageConfigurationTraitDefinition;
 
 public abstract class StorageProviderFactory {
 
@@ -52,14 +54,14 @@ public abstract class StorageProviderFactory {
 	 */
 	public static StorageConfiguration createConfig(final String name, final Class<? extends StorageProvider> impl, final Map<String, String> configuration) throws FrameworkException {
 
-		final Traits traits = Traits.of("StorageConfiguration");
+		final Traits traits = Traits.of(StructrTraits.STORAGE_CONFIGURATION);
 		final App app       = StructrApp.getInstance();
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface node = app.create("StorageConfiguration",
-				new NodeAttribute<>(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     name),
-				new NodeAttribute<>(traits.key("provider"), impl.getName())
+			final NodeInterface node = app.create(StructrTraits.STORAGE_CONFIGURATION,
+				new NodeAttribute<>(traits.key(StorageConfigurationTraitDefinition.NAME_PROPERTY),     name),
+				new NodeAttribute<>(traits.key(StorageConfigurationTraitDefinition.PROVIDER_PROPERTY), impl.getName())
 			);
 
 			final StorageConfiguration sc = node.as(StorageConfiguration.class);

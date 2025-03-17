@@ -54,7 +54,7 @@ public abstract class FlowAbstractDeploymentHandler implements FlowDeploymentInt
 			"FlowFork",
 			"FlowForkJoin",
 			"FlowSwitch",
-			"FlowSwitchCas",
+			"FlowSwitchCase"
 	};
 
 	protected static final String[] relsToExport = {
@@ -81,7 +81,7 @@ public abstract class FlowAbstractDeploymentHandler implements FlowDeploymentInt
 			"FlowContainerPackagePackage",
 			"FlowConditionBaseNode",
 			"FlowForkBody",
-			"FlowSwitchCase",
+			"FlowSwitchCases"
 	};
 
 }

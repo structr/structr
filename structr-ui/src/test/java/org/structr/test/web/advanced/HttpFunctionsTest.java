@@ -53,7 +53,7 @@ public class HttpFunctionsTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			tx.success();
 
@@ -71,8 +71,8 @@ public class HttpFunctionsTest extends StructrUiTest {
 			final ActionContext ctx = new ActionContext(securityContext);
 			final Gson gson         = new GsonBuilder().create();
 
-			ctx.addHeader("X-User",     "admin");
-			ctx.addHeader("X-Password", "admin");
+			ctx.addHeader(X_USER_HEADER,     ADMIN_USERNAME);
+			ctx.addHeader(X_PASSWORD_HEADER, ADMIN_PASSWORD);
 
 			// test POST
 			final GraphObjectMap postResponse  = (GraphObjectMap)Scripting.evaluate(ctx, null, "${POST('http://localhost:"  + httpPort + "/structr/rest/Group', '{ name: post }')}", "test");

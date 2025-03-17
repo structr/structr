@@ -34,6 +34,7 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
 import org.testng.annotations.Test;
@@ -57,10 +58,10 @@ public class SchemaMethodsTest extends FrontendTest {
 		try (final Tx tx = app.tx()) {
 
 			final PropertyMap testFileMethodProperties = new PropertyMap();
-			testFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),                 schemaMethodName);
-			testFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key("staticSchemaNodeName"), StructrTraits.FILE);
-			testFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"),               "(log('test01SchemaMethodOnBuiltinType successful'))");
-			testFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key("isStatic"),             true);
+			testFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),                   schemaMethodName);
+			testFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.STATIC_SCHEMA_NODE_NAME_PROPERTY), StructrTraits.FILE);
+			testFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY),                  "(log('test01SchemaMethodOnBuiltinType successful'))");
+			testFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.IS_STATIC_PROPERTY),               true);
 
 			final NodeInterface testFileMethod = app.create(StructrTraits.SCHEMA_METHOD, testFileMethodProperties);
 
@@ -90,7 +91,7 @@ public class SchemaMethodsTest extends FrontendTest {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-				.headers("X-User", ADMIN_USERNAME , "X-Password", ADMIN_PASSWORD)
+				.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.body("{}")
 			.expect()
 				.statusCode(200)
@@ -112,9 +113,9 @@ public class SchemaMethodsTest extends FrontendTest {
 
 			final PropertyMap testFooFileMethodProperties = new PropertyMap();
 			testFooFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),      schemaMethodName);
-			testFooFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"),    "(log('test02SchemaMethodOnCustomType successful'))");
-			testFooFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key("schemaNode"), fooFileDef);
-			testFooFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key("isStatic"),   true);
+			testFooFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY),    "(log('test02SchemaMethodOnCustomType successful'))");
+			testFooFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY), fooFileDef);
+			testFooFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.IS_STATIC_PROPERTY),   true);
 
 			app.create(StructrTraits.SCHEMA_METHOD, testFooFileMethodProperties);
 
@@ -145,7 +146,7 @@ public class SchemaMethodsTest extends FrontendTest {
 					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-					.headers("X-User", ADMIN_USERNAME , "X-Password", ADMIN_PASSWORD)
+					.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
 				.body("{}")
 				.expect()
 					.statusCode(200)
@@ -183,8 +184,8 @@ public class SchemaMethodsTest extends FrontendTest {
 			// Add schema method "testFileMethod" to built-in File class
 			final PropertyMap testFileMethodProperties = new PropertyMap();
 			testFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), schemaMethodName);
-			testFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "(log('test03SchemaMethodOnEntityOfBuiltinType successful'))");
-			testFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key("staticSchemaNodeName"), builtinTypeName);
+			testFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "(log('test03SchemaMethodOnEntityOfBuiltinType successful'))");
+			testFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.STATIC_SCHEMA_NODE_NAME_PROPERTY), builtinTypeName);
 
 			app.create(StructrTraits.SCHEMA_METHOD, testFileMethodProperties);
 
@@ -219,7 +220,7 @@ public class SchemaMethodsTest extends FrontendTest {
 					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-					.headers("X-User", ADMIN_USERNAME , "X-Password", ADMIN_PASSWORD)
+					.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
 				.body("{}")
 				.expect()
 					.statusCode(200)
@@ -249,8 +250,8 @@ public class SchemaMethodsTest extends FrontendTest {
 
 			final PropertyMap testFooFileMethodProperties = new PropertyMap();
 			testFooFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), schemaMethodName);
-			testFooFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "(log('test04SchemaMethodOnEntityOfCustomType successful'))");
-			testFooFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key("schemaNode"), fooFileDef);
+			testFooFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "(log('test04SchemaMethodOnEntityOfCustomType successful'))");
+			testFooFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY), fooFileDef);
 
 			app.create(StructrTraits.SCHEMA_METHOD, testFooFileMethodProperties);
 
@@ -283,7 +284,7 @@ public class SchemaMethodsTest extends FrontendTest {
 					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-					.headers("X-User", ADMIN_USERNAME , "X-Password", ADMIN_PASSWORD)
+					.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
 				.body("{}")
 				.expect()
 					.statusCode(200)
@@ -321,9 +322,9 @@ public class SchemaMethodsTest extends FrontendTest {
 			// Add schema method "testFileMethod" to built-in File class
 			final PropertyMap testFileMethodProperties = new PropertyMap();
 			testFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), schemaMethodName);
-			testFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "(log('test05InheritedSchemaMethodOnBuildinType successful'))");
-			testFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key("staticSchemaNodeName"), builtinTypeName);
-			testFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key("isStatic"), true);
+			testFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "(log('test05InheritedSchemaMethodOnBuildinType successful'))");
+			testFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.STATIC_SCHEMA_NODE_NAME_PROPERTY), builtinTypeName);
+			testFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.IS_STATIC_PROPERTY), true);
 
 			app.create(StructrTraits.SCHEMA_METHOD, testFileMethodProperties);
 
@@ -345,7 +346,7 @@ public class SchemaMethodsTest extends FrontendTest {
 					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-					.headers("X-User", ADMIN_USERNAME , "X-Password", ADMIN_PASSWORD)
+					.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
 				.body("{}")
 				.expect()
 					.statusCode(200)
@@ -384,8 +385,8 @@ public class SchemaMethodsTest extends FrontendTest {
 			// Add schema method "testFileMethod" to built-in File class
 			final PropertyMap testFileMethodProperties = new PropertyMap();
 			testFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), schemaMethodName);
-			testFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "(log('test06InheritedSchemaMethodOnEntityOfBuiltinType successful'))");
-			testFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key("staticSchemaNodeName"), builtinTypeName);
+			testFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "(log('test06InheritedSchemaMethodOnEntityOfBuiltinType successful'))");
+			testFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.STATIC_SCHEMA_NODE_NAME_PROPERTY), builtinTypeName);
 
 			app.create(StructrTraits.SCHEMA_METHOD, testFileMethodProperties);
 
@@ -410,7 +411,7 @@ public class SchemaMethodsTest extends FrontendTest {
 					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-					.headers("X-User", ADMIN_USERNAME , "X-Password", ADMIN_PASSWORD)
+					.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
 				.body("{}")
 				.expect()
 					.statusCode(200)
@@ -437,7 +438,7 @@ public class SchemaMethodsTest extends FrontendTest {
 				"\n" +
 				"	newGroup.addMember({ user: newUser });\n" +
 				"\n" +
-				"	newGroup.members.length;" +
+				"	return newGroup.members.length;" +
 				"}}";
 
 		try (final Tx tx = app.tx()) {
@@ -463,7 +464,7 @@ public class SchemaMethodsTest extends FrontendTest {
 				"\n" +
 				"	group.removeMember({ user: user });\n" +
 				"\n" +
-				"	(beforeRemove + ' - after: ' + group.members.length);" +
+				"	return beforeRemove + ' - after: ' + group.members.length;" +
 				"}}";
 
 		try (final Tx tx = app.tx()) {
@@ -498,13 +499,13 @@ public class SchemaMethodsTest extends FrontendTest {
 			// create global schema method for JavaScript
 			app.create(StructrTraits.SCHEMA_METHOD,
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "globalTest1"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "{ Structr.find('Test')[0].sendError(); }")
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "{ Structr.find('Test')[0].sendError(); }")
 			);
 
 			// create global schema method for StructrScript
 			app.create(StructrTraits.SCHEMA_METHOD,
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "globalTest2"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "first(find('Test')).sendError")
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "first(find('Test')).sendError")
 			);
 
 			tx.success();
@@ -539,7 +540,7 @@ public class SchemaMethodsTest extends FrontendTest {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-				.headers("X-User", ADMIN_USERNAME , "X-Password", ADMIN_PASSWORD)
+				.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
 				.body("{}")
 
 			.expect()
@@ -564,7 +565,7 @@ public class SchemaMethodsTest extends FrontendTest {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-				.headers("X-User", ADMIN_USERNAME , "X-Password", ADMIN_PASSWORD)
+				.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
 				.body("{}")
 
 			.expect()
@@ -589,7 +590,7 @@ public class SchemaMethodsTest extends FrontendTest {
 			// create global schema method for JavaScript
 			app.create(StructrTraits.SCHEMA_METHOD,
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "globalTest1"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "{ return { success: true, value: 123 }; }")
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "{ return { success: true, value: 123 }; }")
 			);
 
 			// create admin user to call global schema methods with
@@ -611,7 +612,7 @@ public class SchemaMethodsTest extends FrontendTest {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-				.headers("X-User", ADMIN_USERNAME , "X-Password", ADMIN_PASSWORD)
+				.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
 				.body("{}")
 
 			.expect()
@@ -637,9 +638,9 @@ public class SchemaMethodsTest extends FrontendTest {
 
 			testFooFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key(GraphObjectTraitDefinition.ID_PROPERTY), schemaMethodId);
 			testFooFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), schemaMethodName);
-			testFooFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "{ return 'test'; }");
-			testFooFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key("schemaNode"), fooFileDef);
-			testFooFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key("isStatic"), true);
+			testFooFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "{ return 'test'; }");
+			testFooFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY), fooFileDef);
+			testFooFileMethodProperties.put(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.IS_STATIC_PROPERTY), true);
 
 			app.create(StructrTraits.SCHEMA_METHOD, testFooFileMethodProperties);
 
@@ -666,7 +667,7 @@ public class SchemaMethodsTest extends FrontendTest {
 				.given()
 				.contentType("application/json; charset=UTF-8")
 				.filter(ResponseLoggingFilter.logResponseTo(System.out))
-				.headers("X-User", ADMIN_USERNAME , "X-Password", ADMIN_PASSWORD)
+				.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
 				.expect()
 				.statusCode(200)
 				.body("result", equalTo("test"))
@@ -689,8 +690,8 @@ public class SchemaMethodsTest extends FrontendTest {
 				.given()
 				.contentType("application/json; charset=UTF-8")
 				.filter(ResponseLoggingFilter.logResponseTo(System.out))
-				.headers("X-User", ADMIN_USERNAME , "X-Password", ADMIN_PASSWORD)
-				.body("{ source: '{ \"test2\"; }' }")
+				.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
+				.body("{ source: '{ return \"test2\"; }' }")
 				.expect()
 				.statusCode(200)
 				.when()

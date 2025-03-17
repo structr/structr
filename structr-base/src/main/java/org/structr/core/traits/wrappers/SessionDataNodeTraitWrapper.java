@@ -23,6 +23,7 @@ import org.structr.core.entity.SessionDataNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.SessionDataNodeTraitDefinition;
 
 public class SessionDataNodeTraitWrapper extends AbstractNodeTraitWrapper implements SessionDataNode {
 
@@ -33,7 +34,7 @@ public class SessionDataNodeTraitWrapper extends AbstractNodeTraitWrapper implem
 	@Override
 	public void incrementVersion() throws FrameworkException {
 
-		final PropertyKey<Long> versionProperty = traits.key("version");
+		final PropertyKey<Long> versionProperty = traits.key(SessionDataNodeTraitDefinition.VERSION_PROPERTY);
 
 		// increment version on each change
 		final Long version = wrappedObject.getProperty(versionProperty);

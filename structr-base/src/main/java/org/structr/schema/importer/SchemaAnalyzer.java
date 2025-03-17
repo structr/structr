@@ -41,6 +41,7 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.SchemaRelationshipNodeTraitDefinition;
 import org.structr.schema.ConfigurationProvider;
 
 import java.io.File;
@@ -460,7 +461,7 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 
 						propertyMap.put(traits.key(RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY),         startNode.getUuid());
 						propertyMap.put(traits.key(RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY),         endNode.getUuid());
-						propertyMap.put(traits.key("relationshipType"), relationshipType);
+						propertyMap.put(traits.key(SchemaRelationshipNodeTraitDefinition.RELATIONSHIP_TYPE_PROPERTY), relationshipType);
 
 						app.create(StructrTraits.SCHEMA_RELATIONSHIP_NODE, propertyMap);
 

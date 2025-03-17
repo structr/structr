@@ -45,6 +45,8 @@ import java.nio.file.FileVisitor;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.ImageTraitDefinition;
 
 public class FileImportVisitor implements FileVisitor<Path> {
 
@@ -152,7 +154,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 			if (!basePath.equals(folderObj.getParent())) {
 
 				final String parentPath = harmonizeFileSeparators("/", basePath.relativize(folderObj.getParent()).toString());
-				folderProperties.put(traits.key("parent"), getExistingFolder(parentPath));
+				folderProperties.put(traits.key(AbstractFileTraitDefinition.PARENT_PROPERTY), getExistingFolder(parentPath));
 			}
 
 			// load properties from files.json
@@ -217,9 +219,9 @@ public class FileImportVisitor implements FileVisitor<Path> {
 					parent = getExistingFolder(parentPath);
 				}
 
-				if (traits.hasKey("isThumbnail")) {
+				if (traits.hasKey(ImageTraitDefinition.IS_THUMBNAIL_PROPERTY)) {
 
-					final PropertyKey isThumbnailKey = traits.key("isThumbnail");
+					final PropertyKey isThumbnailKey = traits.key(ImageTraitDefinition.IS_THUMBNAIL_PROPERTY);
 
 					if (fileProperties.containsKey(isThumbnailKey) && (boolean) fileProperties.get(isThumbnailKey)) {
 
@@ -261,8 +263,8 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 						if (parent != null) {
 
-							props.put(traits.key("hasParent"), true);
-							props.put(traits.key("parent"), parent);
+							props.put(traits.key(AbstractFileTraitDefinition.HAS_PARENT_PROPERTY), true);
+							props.put(traits.key(AbstractFileTraitDefinition.PARENT_PROPERTY), parent);
 						}
 
 						newFileUuid = fileProperties.get(idProperty);
@@ -336,7 +338,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 	private void handleThumbnails(final Image img) {
 
-		final String thumbnailRel = "ImageTHUMBNAILImage";
+		final String thumbnailRel = StructrTraits.IMAGE_THUMBNAIL_IMAGE;
 		final Traits traits       = Traits.of(thumbnailRel);
 
 		if (img.isThumbnail()) {

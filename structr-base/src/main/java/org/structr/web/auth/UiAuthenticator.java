@@ -49,6 +49,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.CorsSettingTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.core.traits.wrappers.ResourceAccessTraitWrapper;
@@ -229,15 +230,15 @@ public class UiAuthenticator implements Authenticator {
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
-			final NodeInterface corsSettingObjectFromDatabase = StructrApp.getInstance().nodeQuery(StructrTraits.CORS_SETTING).and(traits.key("requestUri"), requestUri).getFirst();
+			final NodeInterface corsSettingObjectFromDatabase = StructrApp.getInstance().nodeQuery(StructrTraits.CORS_SETTING).and(traits.key(CorsSettingTraitDefinition.REQUEST_URI_PROPERTY), requestUri).getFirst();
 			if (corsSettingObjectFromDatabase != null) {
 
-				acceptedOriginsString = (String)  getEffectiveCorsSettingValue(corsSettingObjectFromDatabase, "acceptedOrigins",  acceptedOriginsString);
-				maxAge                = (Integer) getEffectiveCorsSettingValue(corsSettingObjectFromDatabase, "maxAge",           maxAge);
-				allowMethods          = (String)  getEffectiveCorsSettingValue(corsSettingObjectFromDatabase, "allowMethods",     allowMethods);
-				allowHeaders          = (String)  getEffectiveCorsSettingValue(corsSettingObjectFromDatabase, "allowHeaders",     allowHeaders);
-				allowCredentials      = (String)  getEffectiveCorsSettingValue(corsSettingObjectFromDatabase, "allowCredentials", allowCredentials);
-				exposeHeaders         = (String)  getEffectiveCorsSettingValue(corsSettingObjectFromDatabase, "exposeHeaders",    exposeHeaders);
+				acceptedOriginsString = (String)  getEffectiveCorsSettingValue(corsSettingObjectFromDatabase, CorsSettingTraitDefinition.ACCEPTED_ORIGINS_PROPERTY,  acceptedOriginsString);
+				maxAge                = (Integer) getEffectiveCorsSettingValue(corsSettingObjectFromDatabase, CorsSettingTraitDefinition.MAX_AGE_PROPERTY,           maxAge);
+				allowMethods          = (String)  getEffectiveCorsSettingValue(corsSettingObjectFromDatabase, CorsSettingTraitDefinition.ALLOW_METHODS_PROPERTY,     allowMethods);
+				allowHeaders          = (String)  getEffectiveCorsSettingValue(corsSettingObjectFromDatabase, CorsSettingTraitDefinition.ALLOW_HEADERS_PROPERTY,     allowHeaders);
+				allowCredentials      = (String)  getEffectiveCorsSettingValue(corsSettingObjectFromDatabase, CorsSettingTraitDefinition.ALLOW_CREDENTIALS_PROPERTY, allowCredentials);
+				exposeHeaders         = (String)  getEffectiveCorsSettingValue(corsSettingObjectFromDatabase, CorsSettingTraitDefinition.EXPOSE_HEADERS_PROPERTY,    exposeHeaders);
 			}
 
 			tx.success();

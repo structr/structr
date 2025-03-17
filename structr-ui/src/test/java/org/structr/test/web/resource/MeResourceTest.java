@@ -52,7 +52,7 @@ public class MeResourceTest extends StructrUiTest {
 		// create 100 test nodes and set names
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface user = createAdminUser("admin", "admin");
+			final NodeInterface user = createAdminUser();
 
 			uuid = user.getUuid();
 
@@ -67,13 +67,13 @@ public class MeResourceTest extends StructrUiTest {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.headers("x-user", "admin", "x-password", "admin")
+				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
 				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 
 			.expect()
 				.statusCode(200)
 				.body("result.id",                          equalTo(uuid))
-				.body("result.name",                        equalTo("admin"))
+				.body("result.name",                        equalTo(ADMIN_USERNAME))
 				.body("result.isUser",                      equalTo(true))
 				.body("result.isAdmin",                     equalTo(null))
 				.body("result.visibleToPublicUsers",        equalTo((Object)null))
@@ -89,12 +89,12 @@ public class MeResourceTest extends StructrUiTest {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.headers("x-user", "admin", "x-password", "admin")
+				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
 
 			.expect()
 				.statusCode(200)
 				.body("result.id",                          equalTo(uuid))
-				.body("result.name",                        equalTo("admin"))
+				.body("result.name",                        equalTo(ADMIN_USERNAME))
 				.body("result.isUser",                      equalTo(true))
 				.body("result.isAdmin",                     equalTo(true))
 				.body("result.visibleToPublicUsers",        equalTo(false))
@@ -114,7 +114,7 @@ public class MeResourceTest extends StructrUiTest {
 		// create 100 test nodes and set names
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface user = createAdminUser("admin", "admin");
+			final NodeInterface user = createAdminUser();
 
 			uuid = user.getUuid();
 
@@ -128,12 +128,12 @@ public class MeResourceTest extends StructrUiTest {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.headers("x-user", "admin", "x-password", "admin")
+				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
 
 			.expect()
 				.statusCode(200)
 				.body("result.id",      equalTo(uuid))
-				.body("result.name",    equalTo("admin"))
+				.body("result.name",    equalTo(ADMIN_USERNAME))
 				.body("result.isUser",  equalTo(true))
 				.body("result.isAdmin", equalTo(true))
 				.body("result.eMail",   equalTo(null))
@@ -147,7 +147,7 @@ public class MeResourceTest extends StructrUiTest {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.headers("x-user", "admin", "x-password", "admin")
+				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
 				.body("{ eMail: 'tester@test.com' }")
 
 			.expect()
@@ -161,12 +161,12 @@ public class MeResourceTest extends StructrUiTest {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.headers("x-user", "admin", "x-password", "admin")
+				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
 
 			.expect()
 				.statusCode(200)
 				.body("result.id",      equalTo(uuid))
-				.body("result.name",    equalTo("admin"))
+				.body("result.name",    equalTo(ADMIN_USERNAME))
 				.body("result.isUser",  equalTo(true))
 				.body("result.isAdmin", equalTo(true))
 				.body("result.eMail",   equalTo("tester@test.com"))
@@ -180,7 +180,7 @@ public class MeResourceTest extends StructrUiTest {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.headers("x-user", "admin", "x-password", "admin")
+				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
 				.body("{ eMail: 'tester2@test.com' }")
 
 			.expect()
@@ -194,12 +194,12 @@ public class MeResourceTest extends StructrUiTest {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.headers("x-user", "admin", "x-password", "admin")
+				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
 
 			.expect()
 				.statusCode(200)
 				.body("result.id",      equalTo(uuid))
-				.body("result.name",    equalTo("admin"))
+				.body("result.name",    equalTo(ADMIN_USERNAME))
 				.body("result.isUser",  equalTo(true))
 				.body("result.isAdmin", equalTo(true))
 				.body("result.eMail",   equalTo("tester2@test.com"))
@@ -223,7 +223,7 @@ public class MeResourceTest extends StructrUiTest {
 
 			StructrSchema.replaceDatabaseSchema(app, schema);
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			tx.success();
 
@@ -236,7 +236,7 @@ public class MeResourceTest extends StructrUiTest {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.headers("x-user", "admin", "x-password", "admin")
+				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
 				.body("{ value1: test, value2: 32 }")
 
 			.expect()
@@ -255,7 +255,7 @@ public class MeResourceTest extends StructrUiTest {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.headers("x-user", "admin", "x-password", "admin")
+				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
 				.body("{ value1: test, value2: 32 }")
 
 			.expect()
@@ -275,7 +275,7 @@ public class MeResourceTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			tx.success();
 
@@ -288,7 +288,7 @@ public class MeResourceTest extends StructrUiTest {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.headers("x-user", "admin", "x-password", "admin")
+				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
 
 			.expect()
 				.statusCode(200)
@@ -301,7 +301,7 @@ public class MeResourceTest extends StructrUiTest {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.headers("x-user", "admin", "x-password", "admin")
+				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
 
 			.expect()
 				.statusCode(401)

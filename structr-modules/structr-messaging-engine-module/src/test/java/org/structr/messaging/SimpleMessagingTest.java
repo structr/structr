@@ -21,9 +21,12 @@ package org.structr.messaging;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.Tx;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.messaging.engine.entities.MessageClient;
 import org.structr.messaging.engine.entities.MessageSubscriber;
+import org.structr.messaging.traits.definitions.MessageClientTraitDefinition;
+import org.structr.messaging.traits.definitions.MessageSubscriberTraitDefinition;
 import org.structr.schema.action.ActionContext;
 import org.testng.annotations.Test;
 
@@ -41,17 +44,17 @@ public class SimpleMessagingTest extends MessagingTestBase  {
 		try(final Tx tx = app.tx()) {
 
 			final List<MessageSubscriber> subList = new ArrayList<>();
-			final MessageClient client1           = app.create("MessageClient", "client1").as(MessageClient.class);
-			final MessageSubscriber sub           = app.create("MessageSubscriber", "sub").as(MessageSubscriber.class);
-			final Traits subscriberTraits         = Traits.of("MessageSubscriber");
-			final Traits clientTraits             = Traits.of("MessageClient");
+			final MessageClient client1           = app.create(StructrTraits.MESSAGE_CLIENT, "client1").as(MessageClient.class);
+			final MessageSubscriber sub           = app.create(StructrTraits.MESSAGE_SUBSCRIBER, "sub").as(MessageSubscriber.class);
+			final Traits subscriberTraits         = Traits.of(StructrTraits.MESSAGE_SUBSCRIBER);
+			final Traits clientTraits             = Traits.of(StructrTraits.MESSAGE_CLIENT);
 
 			subList.add(sub);
 
-			client1.setProperty(clientTraits.key("subscribers"), subList);
+			client1.setProperty(clientTraits.key(MessageClientTraitDefinition.SUBSCRIBERS_PROPERTY), subList);
 
-			sub.setProperty(subscriberTraits.key("topic"), "test");
-			sub.setProperty(subscriberTraits.key("callback"), "set(this, 'name', retrieve('message'))");
+			sub.setProperty(subscriberTraits.key(MessageSubscriberTraitDefinition.TOPIC_PROPERTY),    "test");
+			sub.setProperty(subscriberTraits.key(MessageSubscriberTraitDefinition.CALLBACK_PROPERTY), "set(this, 'name', retrieve('message'))");
 
 			Scripting.replaceVariables(new ActionContext(securityContext, null), client1, "${{Structr.log('Sending message'); Structr.get('this').sendMessage('test','testmessage');}}");
 

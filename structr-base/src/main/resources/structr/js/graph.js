@@ -585,7 +585,7 @@ let _Graph = {
 
 	drawNode: function(node, x, y) {
 
-		if (_Helpers.isIn(node.id, _Graph.nodeIds) || _Helpers.isIn(node.type, _Graph.filteredNodeTypes)) {
+		if (_Graph.nodeIds.includes(node.id) || _Graph.filteredNodeTypes.includes(node.type)) {
 			return;
 		}
 		_Graph.nodeIds.push(node.id);
@@ -614,7 +614,7 @@ let _Graph = {
 				color: _Graph.color[node.type],
 				nodeType: node.type,
 				name: node.name,
-				hidden: _Helpers.isIn(node.type, _Graph.hiddenNodeTypes)
+				hidden: _Graph.hiddenNodeTypes.includes(node.type)
 			});
 
 			_Graph.graphBrowser.dataChanged();
@@ -640,7 +640,7 @@ let _Graph = {
 				type: _Graph.edgeType,
 				relType: r.type,
 				relName: r.relType,
-				hidden: _Helpers.isIn(r.relType, _Graph.hiddenRelTypes),
+				hidden: _Graph.hiddenRelTypes.includes(r.relType),
 				count: c
 			});
 			_Graph.updateRelationshipTypes();
@@ -748,14 +748,14 @@ let _Graph = {
 
 				var nodeType = node.name;
 
-				if (!_Helpers.isIn(nodeType, Object.keys(_Graph.color))) {
+				if (!Object.keys(_Graph.color).includes(nodeType)) {
 					_Graph.color[nodeType] = _Graph.colors[_Graph.colorCntr++];
 				}
 
 				nodeTypesBox.append(`<div id="node-type-${nodeType}" class="node-type" data-node-type="${nodeType}"><input type="checkbox" class="toggle-type" checked="checked"> <div class="circle" style="background-color: ${_Graph.color[nodeType]}"></div>${nodeType}</div>`);
 				var nt = $('#node-type-' + nodeType, nodeTypesBox);
 
-				if (_Helpers.isIn(nodeType, _Graph.hiddenNodeTypes)) {
+				if (_Graph.hiddenNodeTypes.includes(nodeType)) {
 					nt.attr('data-hidden', 1);
 					nt.addClass('hidden-node-type');
 				}
@@ -801,7 +801,7 @@ let _Graph = {
 
 	setNodeColor: (node) => {
 
-		if (!_Helpers.isIn(node.type, Object.keys(_Graph.color))) {
+		if (!Object.keys(_Graph.color).includes(node.type)) {
 
 			node.color = _Graph.colors[_Graph.color++];
 			_Graph.color[node.type] = node.color;
@@ -814,7 +814,7 @@ let _Graph = {
 
 	setRelationshipColor: (rel) => {
 
-		if (!_Helpers.isIn(rel.relType, Object.keys(_Graph.relColors))) {
+		if (!Object.keys(_Graph.relColors).includes(rel.relType)) {
 
 			rel.color = _Graph.colors[_Graph.color++];
 			_Graph.relColors[rel.relType] = rel.color;
@@ -835,7 +835,7 @@ let _Graph = {
 
 			relTypesBox.append(`<div id="rel-type-${relType}">${relType}</div>`);
 			var rt = $('#rel-type-' + relType, relTypesBox);
-			if (_Helpers.isIn(relType, _Graph.hiddenRelTypes)) {
+			if (_Graph.hiddenRelTypes.includes(relType)) {
 				rt.attr('data-hidden', 1);
 				rt.addClass('hidden-node-type');
 			}

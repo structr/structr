@@ -42,6 +42,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.xmpp.handler.*;
 
 import java.io.IOException;
@@ -79,7 +80,7 @@ public class XMPPContext {
 
 				try (final Tx tx = app.tx()) {
 
-					for (final NodeInterface clientNode : app.nodeQuery("XMPPClient").getAsList()) {
+					for (final NodeInterface clientNode : app.nodeQuery(StructrTraits.XMPP_CLIENT).getAsList()) {
 
 						final XMPPClient client = clientNode.as(XMPPClient.class);
 

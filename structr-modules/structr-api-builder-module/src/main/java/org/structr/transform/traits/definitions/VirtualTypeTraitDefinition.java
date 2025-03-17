@@ -24,7 +24,9 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.transform.VirtualType;
@@ -38,12 +40,14 @@ import java.util.Set;
  */
 public class VirtualTypeTraitDefinition extends AbstractNodeTraitDefinition {
 
-	public VirtualTypeTraitDefinition() {
-		super("VirtualType");
-	}
+	public static final String PROPERTIES_PROPERTY        = "properties";
+	public static final String FILTER_EXPRESSION_PROPERTY = "filterExpression";
+	public static final String SOURCE_TYPE_PROPERTY       = "sourceType";
+	public static final String POSITION_PROPERTY          = "position";
 
-	/*
-	*/
+	public VirtualTypeTraitDefinition() {
+		super(StructrTraits.VIRTUAL_TYPE);
+	}
 
 	@Override
 	public Map<Class, LifecycleMethod> getLifecycleMethods() {
@@ -71,10 +75,10 @@ public class VirtualTypeTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Iterable<NodeInterface>> propertiesProperty = new EndNodes("properties", "VirtualTypevirtualPropertyVirtualProperty");
-		final Property<String> filterExpressionProperty            = new StringProperty("filterExpression");
-		final Property<String> sourceTypeProperty                  = new StringProperty("sourceType");
-		final Property<Integer> positionProperty                   = new IntProperty("position").indexed();
+		final Property<Iterable<NodeInterface>> propertiesProperty = new EndNodes(PROPERTIES_PROPERTY, StructrTraits.VIRTUAL_TYPE_VIRTUAL_PROPERTY_VIRTUAL_PROPERTY);
+		final Property<String> filterExpressionProperty            = new StringProperty(FILTER_EXPRESSION_PROPERTY);
+		final Property<String> sourceTypeProperty                  = new StringProperty(SOURCE_TYPE_PROPERTY);
+		final Property<Integer> positionProperty                   = new IntProperty(POSITION_PROPERTY).indexed();
 
 		return Set.of(
 			propertiesProperty,
@@ -90,11 +94,11 @@ public class VirtualTypeTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"name", "filterExpression", "sourceType", "position", "properties"
+					NodeInterfaceTraitDefinition.NAME_PROPERTY, FILTER_EXPRESSION_PROPERTY, SOURCE_TYPE_PROPERTY, POSITION_PROPERTY, PROPERTIES_PROPERTY
 			),
 			PropertyView.Ui,
 			newSet(
-				"filterExpression", "sourceType", "position", "properties"
+					FILTER_EXPRESSION_PROPERTY, SOURCE_TYPE_PROPERTY, POSITION_PROPERTY, PROPERTIES_PROPERTY
 			)
 		);
 	}

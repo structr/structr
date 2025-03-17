@@ -20,26 +20,34 @@ package org.structr.web.traits.definitions.html;
 
 import org.structr.common.PropertyView;
 import org.structr.core.property.PropertyKey;
-import org.structr.web.common.HtmlProperty;
+import org.structr.core.property.StringProperty;
 
 import java.util.Map;
 import java.util.Set;
+import org.structr.core.traits.StructrTraits;
 
 public class Object extends GenericHtmlElementTraitDefinition {
 
+	public static final String TYPE_PROPERTY          = getPrefixedHTMLAttributeName("type");
+	public static final String TYPEMUSTMATCH_PROPERTY = getPrefixedHTMLAttributeName("typemustmatch");
+	public static final String USEMAP_PROPERTY        = getPrefixedHTMLAttributeName("usemap");
+	public static final String FORM_PROPERTY          = getPrefixedHTMLAttributeName("form");
+	public static final String WIDTH_PROPERTY         = getPrefixedHTMLAttributeName("width");
+	public static final String HEIGHT_PROPERTY        = getPrefixedHTMLAttributeName("height");
+
 	public Object() {
-		super("Object");
+		super(StructrTraits.OBJECT);
 	}
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final PropertyKey<String> typeProperty = new HtmlProperty("type");
-		final PropertyKey<String> typemustmatchProperty = new HtmlProperty("typemustmatch");
-		final PropertyKey<String> usemapProperty = new HtmlProperty("usemap");
-		final PropertyKey<String> formProperty = new HtmlProperty("form");
-		final PropertyKey<String> widthProperty = new HtmlProperty("width");
-		final PropertyKey<String> heightProperty = new HtmlProperty("height");
+		final PropertyKey<String> typeProperty          = new StringProperty(TYPE_PROPERTY);
+		final PropertyKey<String> typemustmatchProperty = new StringProperty(TYPEMUSTMATCH_PROPERTY);
+		final PropertyKey<String> usemapProperty        = new StringProperty(USEMAP_PROPERTY);
+		final PropertyKey<String> formProperty          = new StringProperty(FORM_PROPERTY);
+		final PropertyKey<String> widthProperty         = new StringProperty(WIDTH_PROPERTY);
+		final PropertyKey<String> heightProperty        = new StringProperty(HEIGHT_PROPERTY);
 
 		return newSet(
 			typeProperty, typemustmatchProperty, usemapProperty, formProperty, widthProperty, heightProperty
@@ -52,7 +60,7 @@ public class Object extends GenericHtmlElementTraitDefinition {
 		return Map.of(
 			PropertyView.Html,
 			newSet(
-				"_html_type", "_html_typemustmatch", "_html_usemap", "_html_form", "_html_width", "_html_height"
+					TYPE_PROPERTY, TYPEMUSTMATCH_PROPERTY, USEMAP_PROPERTY, FORM_PROPERTY, WIDTH_PROPERTY, HEIGHT_PROPERTY
 			)
 		);
 	}

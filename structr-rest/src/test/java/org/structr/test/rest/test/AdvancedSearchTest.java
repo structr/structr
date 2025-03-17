@@ -36,6 +36,8 @@ import org.structr.core.property.StringProperty;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
+import org.structr.core.traits.definitions.SchemaViewTraitDefinition;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.structr.test.rest.common.TestEnum;
 import org.testng.annotations.Test;
@@ -712,8 +714,8 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				node = app.create(StructrTraits.SCHEMA_NODE, new Name("TestType"));
 
 				final NodeInterface property = app.create(StructrTraits.SCHEMA_PROPERTY, "test");
-				property.setProperty(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"), node);
-				property.setProperty(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Integer");
+				property.setProperty(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), node);
+				property.setProperty(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "Integer");
 
 				tx.success();
 			}
@@ -863,13 +865,13 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				node = app.create(StructrTraits.SCHEMA_NODE, new Name("TestType"));
 
 				final NodeInterface status = app.create(StructrTraits.SCHEMA_PROPERTY, "status");
-				status.setProperty(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"),   node);
-				status.setProperty(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Enum");
-				status.setProperty(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("format"),       "one,  two, three");
+				status.setProperty(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY),   node);
+				status.setProperty(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "Enum");
+				status.setProperty(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.FORMAT_PROPERTY),       "one,  two, three");
 
 				final NodeInterface view = app.create(StructrTraits.SCHEMA_VIEW, "ui");
-				view.setProperty(Traits.of(StructrTraits.SCHEMA_VIEW).key("schemaNode"),         node);
-				view.setProperty(Traits.of(StructrTraits.SCHEMA_VIEW).key("nonGraphProperties"), "status");
+				view.setProperty(Traits.of(StructrTraits.SCHEMA_VIEW).key(SchemaViewTraitDefinition.SCHEMA_NODE_PROPERTY),         node);
+				view.setProperty(Traits.of(StructrTraits.SCHEMA_VIEW).key(SchemaViewTraitDefinition.NON_GRAPH_PROPERTIES_PROPERTY), "status");
 
 				tx.success();
 			}
@@ -1287,8 +1289,6 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[0].lastModifiedDate",            notNullValue())
 				.body("result[0].visibleToPublicUsers",        equalTo(false))
 				.body("result[0].visibleToAuthenticatedUsers", equalTo(false))
-				.body("result[0].visibilityStartDate",         nullValue())
-				.body("result[0].visibilityEndDate",           nullValue())
 				.body("result[0].createdBy",                   equalTo(Principal.SUPERUSER_ID))
 				.body("result[0].hidden",                      equalTo(false))
 				.body("result[0].owner",                       nullValue())

@@ -29,9 +29,6 @@ import org.structr.schema.action.Actions;
 
 import java.util.Set;
 
-/**
- *
- */
 public class CoreModule implements StructrModule {
 
 	@Override

@@ -39,6 +39,13 @@ public class SchemaViewTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public static final String schemaViewNamePattern    = "[a-zA-Z_][a-zA-Z0-9_]*";
 
+	public static final String SCHEMA_NODE_PROPERTY             = "schemaNode";
+	public static final String SCHEMA_PROPERTIES_PROPERTY       = "schemaProperties";
+	public static final String IS_BUILTIN_VIEW_PROPERTY         = "isBuiltinView";
+	public static final String STATIC_SCHEMA_NODE_NAME_PROPERTY = "staticSchemaNodeName";
+	public static final String NON_GRAPH_PROPERTIES_PROPERTY    = "nonGraphProperties";
+	public static final String SORT_ORDER_PROPERTY              = "sortOrder";
+
 	public SchemaViewTraitDefinition() {
 		super(StructrTraits.SCHEMA_VIEW);
 	}
@@ -53,12 +60,12 @@ public class SchemaViewTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface>           schemaNode           = new StartNode("schemaNode", StructrTraits.SCHEMA_NODE_VIEW, new PropertySetNotion<>(newSet("id", "name")));
-		final Property<Iterable<NodeInterface>> schemaProperties     = new EndNodes("schemaProperties", StructrTraits.SCHEMA_VIEW_PROPERTY, new PropertySetNotion<>(newSet("id", "name")));
-		final Property<Boolean>                 isBuiltinView        = new BooleanProperty("isBuiltinView");
-		final Property<String>                  staticSchemaNodeName = new StringProperty("staticSchemaNodeName");
-		final Property<String>                  nonGraphProperties   = new StringProperty("nonGraphProperties");
-		final Property<String>                  sortOrder            = new StringProperty("sortOrder");
+		final Property<NodeInterface>           schemaNode           = new StartNode(SCHEMA_NODE_PROPERTY, StructrTraits.SCHEMA_NODE_VIEW, new PropertySetNotion<>(newSet(GraphObjectTraitDefinition.ID_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY)));
+		final Property<Iterable<NodeInterface>> schemaProperties     = new EndNodes(SCHEMA_PROPERTIES_PROPERTY, StructrTraits.SCHEMA_VIEW_PROPERTY, new PropertySetNotion<>(newSet(GraphObjectTraitDefinition.ID_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY)));
+		final Property<Boolean>                 isBuiltinView        = new BooleanProperty(IS_BUILTIN_VIEW_PROPERTY);
+		final Property<String>                  staticSchemaNodeName = new StringProperty(STATIC_SCHEMA_NODE_NAME_PROPERTY);
+		final Property<String>                  nonGraphProperties   = new StringProperty(NON_GRAPH_PROPERTIES_PROPERTY);
+		final Property<String>                  sortOrder            = new StringProperty(SORT_ORDER_PROPERTY);
 
 		return newSet(
 			schemaNode,
@@ -77,22 +84,22 @@ public class SchemaViewTraitDefinition extends AbstractNodeTraitDefinition {
 
 				PropertyView.Public,
 				newSet(
-						"id", "name", "schemaNode", "schemaProperties", "nonGraphProperties"
+						GraphObjectTraitDefinition.ID_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY, SCHEMA_NODE_PROPERTY, SCHEMA_PROPERTIES_PROPERTY, NON_GRAPH_PROPERTIES_PROPERTY
 				),
 
 				PropertyView.Ui,
 				newSet(
-						"id", "name", "schemaNode", "schemaProperties", "nonGraphProperties", "isBuiltinView", "sortOrder"
+						GraphObjectTraitDefinition.ID_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY, SCHEMA_NODE_PROPERTY, SCHEMA_PROPERTIES_PROPERTY, NON_GRAPH_PROPERTIES_PROPERTY, IS_BUILTIN_VIEW_PROPERTY, SORT_ORDER_PROPERTY
 				),
 
 				"schema",
 				newSet(
-						"id", "name", "schemaNode", "schemaProperties", "nonGraphProperties", "isBuiltinView", "sortOrder"
+						GraphObjectTraitDefinition.ID_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY, SCHEMA_NODE_PROPERTY, SCHEMA_PROPERTIES_PROPERTY, NON_GRAPH_PROPERTIES_PROPERTY, IS_BUILTIN_VIEW_PROPERTY, SORT_ORDER_PROPERTY
 				),
 
 				"export",
 				newSet(
-						"id", "typeHandler", "name", "schemaNode", "nonGraphProperties", "isBuiltinView", "sortOrder"
+						GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY, SCHEMA_NODE_PROPERTY, NON_GRAPH_PROPERTIES_PROPERTY, IS_BUILTIN_VIEW_PROPERTY, SORT_ORDER_PROPERTY
 				)
 		);
 	}

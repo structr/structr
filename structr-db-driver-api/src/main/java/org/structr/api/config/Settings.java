@@ -840,11 +840,12 @@ public class Settings {
 
 			final boolean isFileCreation = !fileHandler.getFile().exists();
 
-			if (fileHandler.getFile().getFreeSpace() < 1024 * 1024) {
+			final long freeSpace = (!isFileCreation ? fileHandler.getFile().getFreeSpace() : new File(new File("").getAbsolutePath()).getFreeSpace());
+
+			if (freeSpace < 1024 * 1024) {
 				logger.error("Refusing to start with less than 1 MB of disk space.");
 				System.exit(1);
 			}
-
 
 			fileHandler.save();
 

@@ -18,6 +18,7 @@
  */
 package org.structr.web.traits.definitions.html;
 
+import org.structr.common.PropertyView;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.PropertyKey;
@@ -99,5 +100,9 @@ public class GenericHtmlElementTraitDefinition extends AbstractNodeTraitDefiniti
 	@Override
 	public Relation getRelation() {
 		return null;
+	}
+
+	protected static String getPrefixedHTMLAttributeName(final String name) {
+		return PropertyView.Html.concat(name);
 	}
 }

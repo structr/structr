@@ -22,6 +22,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.web.entity.ApplicationConfigurationDataNode;
+import org.structr.web.traits.definitions.ApplicationConfigurationDataNodeTraitDefinition;
 
 public class ApplicationConfigurationDataNodeTraitWrapper extends AbstractNodeTraitWrapper implements ApplicationConfigurationDataNode {
 
@@ -36,11 +37,11 @@ public class ApplicationConfigurationDataNodeTraitWrapper extends AbstractNodeTr
 
 	@Override
 	public String getConfigType() {
-		return wrappedObject.getProperty(traits.key("configType"));
+		return wrappedObject.getProperty(traits.key(ApplicationConfigurationDataNodeTraitDefinition.CONFIG_TYPE_PROPERTY));
 	}
 
 	@Override
 	public String getContent() {
-		return wrappedObject.getProperty(traits.key("content"));
+		return wrappedObject.getProperty(traits.key(ApplicationConfigurationDataNodeTraitDefinition.CONTENT_PROPERTY));
 	}
 }

@@ -24,8 +24,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
 import org.structr.core.datasources.GraphDataSource;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.Traits;
 import org.structr.flow.impl.FlowContainer;
@@ -49,33 +49,41 @@ public class FlowContainerDataSource implements GraphDataSource<Iterable<GraphOb
 	public Iterable<GraphObject> getData(final ActionContext actionContext, final NodeInterface referenceNode) throws FrameworkException {
 
 		final RenderContext renderContext = (RenderContext) actionContext;
-		
-		final AbstractNode flow = referenceNode.getProperty(Traits.of(StructrTraits.DOM_NODE).key("flow"));
-		if (flow == null) {
+		final Traits traits               = Traits.of("DOMNode");
 
-			return null;
-		}
+		if (traits.hasKey("flow")) {
 
-		try {
+			final PropertyKey<NodeInterface> flowKey = Traits.of("DOMNode").key("flow");
+			final NodeInterface flowNode             = referenceNode.getProperty(flowKey);
 
-			final Object result = Scripting.evaluate(renderContext, referenceNode, "${flow('" + (flow.getProperty(FlowContainer.effectiveName)) + "')}", "flow query");
-			if (result instanceof Iterable) {
+			if (flowNode != null) {
 
-				return FlowContainerDataSource.map((Iterable)result);
+				try {
 
-			} else if (result instanceof Object[]) {
+					final FlowContainer flow = flowNode.as(FlowContainer.class);
+					final Object result = Scripting.evaluate(renderContext, referenceNode, "${flow('" + flow.getEffectiveName() + "')}", "flow query");
 
-				return (List<GraphObject>) UiFunction.toGraphObject(result, 1);
-			} else if (result != null) {
+					if (result instanceof Iterable) {
 
-				// Handle single result.
-				List<GraphObject> results = new ArrayList<>();
-				results.add((GraphObject)UiFunction.toGraphObject(result, 1));
-				return results ;
+						return FlowContainerDataSource.map((Iterable) result);
+
+					} else if (result instanceof Object[]) {
+
+						return (List<GraphObject>) UiFunction.toGraphObject(result, 1);
+
+					} else if (result != null) {
+
+						// Handle single result.
+						List<GraphObject> results = new ArrayList<>();
+						results.add((GraphObject) UiFunction.toGraphObject(result, 1));
+
+						return results;
+					}
+
+				} catch (UnlicensedScriptException ex) {
+					ex.log(LoggerFactory.getLogger(FlowContainerDataSource.class));
+				}
 			}
-
-		} catch (UnlicensedScriptException ex) {
-			ex.log(LoggerFactory.getLogger(FlowContainerDataSource.class));
 		}
 
 		return null;

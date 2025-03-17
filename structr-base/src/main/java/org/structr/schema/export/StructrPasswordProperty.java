@@ -27,6 +27,7 @@ import org.structr.core.entity.SchemaProperty;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
 import org.structr.schema.SchemaHelper.Type;
 
 /**
@@ -51,9 +52,9 @@ public class StructrPasswordProperty extends StructrPropertyDefinition implement
 		final Traits traits           = Traits.of(StructrTraits.SCHEMA_PROPERTY);
 		final PropertyMap properties  = new PropertyMap();
 
-		properties.put(traits.key("propertyType"), Type.Password.name());
-		properties.put(traits.key("format"), getFormat());
-		properties.put(traits.key("contentType"), getContentType());
+		properties.put(traits.key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), Type.Password.name());
+		properties.put(traits.key(SchemaPropertyTraitDefinition.FORMAT_PROPERTY), getFormat());
+		properties.put(traits.key(SchemaPropertyTraitDefinition.CONTENT_TYPE_PROPERTY), getContentType());
 
 		property.setProperties(SecurityContext.getSuperUserInstance(), properties);
 

@@ -26,7 +26,7 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class UserWORKING_DIRFolder extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public UserWORKING_DIRFolder() {
-		super("UserWORKING_DIRFolder");
+		super(StructrTraits.USER_WORKING_DIR_FOLDER);
 	}
 
 	@Override

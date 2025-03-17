@@ -22,6 +22,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.payment.entity.PaymentItemNode;
+import org.structr.payment.traits.definitions.PaymentItemNodeTraitDefinition;
 
 /**
  *
@@ -34,26 +35,26 @@ public class PaymentItemNodeTraitWrapper extends AbstractNodeTraitWrapper implem
 
 	@Override
 	public int getAmount() {
-		return wrappedObject.getProperty(traits.key("amount"));
+		return wrappedObject.getProperty(traits.key(PaymentItemNodeTraitDefinition.AMOUNT_PROPERTY));
 	}
 
 	@Override
 	public int getQuantity() {
-		return wrappedObject.getProperty(traits.key("quantity"));
+		return wrappedObject.getProperty(traits.key(PaymentItemNodeTraitDefinition.QUANTITY_PROPERTY));
 	}
 
 	@Override
 	public String getDescription() {
-		return wrappedObject.getProperty(traits.key("description"));
+		return wrappedObject.getProperty(traits.key(PaymentItemNodeTraitDefinition.DESCRIPTION_PROPERTY));
 	}
 
 	@Override
 	public String getItemNumber() {
-		return wrappedObject.getProperty(traits.key("number"));
+		return wrappedObject.getProperty(traits.key(PaymentItemNodeTraitDefinition.NUMBER_PROPERTY));
 	}
 
 	@Override
 	public String getItemUrl() {
-		return wrappedObject.getProperty(traits.key("url"));
+		return wrappedObject.getProperty(traits.key(PaymentItemNodeTraitDefinition.URL_PROPERTY));
 	}
 }

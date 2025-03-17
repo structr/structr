@@ -30,6 +30,8 @@ import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.SchemaMethodParameterTraitDefinition;
+import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
 import org.structr.test.web.advanced.HttpFunctionsTest;
@@ -247,39 +249,39 @@ public class OpenAPITest extends StructrUiTest {
 			// add global schema methods (no way of doing this with JsonSchema.. :'()
 			app.create(StructrTraits.SCHEMA_METHOD,
 					new NodeAttribute<>(methodTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "globalTest"),
-					new NodeAttribute<>(methodTraits.key("source"), "log('GlobalTest')"),
-					new NodeAttribute<>(methodTraits.key("includeInOpenAPI"), true),
-					new NodeAttribute<>(methodTraits.key("tags"), new String[] { "test", "customer" })
+					new NodeAttribute<>(methodTraits.key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "log('GlobalTest')"),
+					new NodeAttribute<>(methodTraits.key(SchemaMethodTraitDefinition.INCLUDE_IN_OPEN_API_PROPERTY), true),
+					new NodeAttribute<>(methodTraits.key(SchemaMethodTraitDefinition.TAGS_PROPERTY), new String[] { "test", "customer" })
 			);
 
 			app.create(StructrTraits.SCHEMA_METHOD,
 					new NodeAttribute<>(methodTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "globalTestParams"),
-					new NodeAttribute<>(methodTraits.key("source"), "log('GlobalTest')"),
-					new NodeAttribute<>(methodTraits.key("includeInOpenAPI"), true),
-					new NodeAttribute<>(methodTraits.key("tags"), new String[] { "test", "customer" }),
-					new NodeAttribute<>(methodTraits.key("parameters"), List.of(
-							app.create(StructrTraits.SCHEMA_METHOD_PARAMETER, new NodeAttribute<>(paramTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "id"), new NodeAttribute<>(paramTraits.key("parameterType"), "string")),
-							app.create(StructrTraits.SCHEMA_METHOD_PARAMETER, new NodeAttribute<>(paramTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "index"), new NodeAttribute<>(paramTraits.key("parameterType"), "integer"))
+					new NodeAttribute<>(methodTraits.key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "log('GlobalTest')"),
+					new NodeAttribute<>(methodTraits.key(SchemaMethodTraitDefinition.INCLUDE_IN_OPEN_API_PROPERTY), true),
+					new NodeAttribute<>(methodTraits.key(SchemaMethodTraitDefinition.TAGS_PROPERTY), new String[] { "test", "customer" }),
+					new NodeAttribute<>(methodTraits.key(SchemaMethodTraitDefinition.PARAMETERS_PROPERTY), List.of(
+							app.create(StructrTraits.SCHEMA_METHOD_PARAMETER, new NodeAttribute<>(paramTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "id"), new NodeAttribute<>(paramTraits.key(SchemaMethodParameterTraitDefinition.PARAMETER_TYPE_PROPERTY), "string")),
+							app.create(StructrTraits.SCHEMA_METHOD_PARAMETER, new NodeAttribute<>(paramTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "index"), new NodeAttribute<>(paramTraits.key(SchemaMethodParameterTraitDefinition.PARAMETER_TYPE_PROPERTY), "integer"))
 					))
 			);
 
 			app.create(StructrTraits.SCHEMA_METHOD,
 					new NodeAttribute<>(methodTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "globalTestParamsReturn"),
-					new NodeAttribute<>(methodTraits.key("source"), "log('GlobalTest')"),
-					new NodeAttribute<>(methodTraits.key("includeInOpenAPI"), true),
-					new NodeAttribute<>(methodTraits.key("tags"), new String[] { "test", "customer" }),
-					new NodeAttribute<>(methodTraits.key("parameters"), List.of(
-							app.create(StructrTraits.SCHEMA_METHOD_PARAMETER, new NodeAttribute<>(paramTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "id"), new NodeAttribute<>(paramTraits.key("parameterType"), "string")),
-							app.create(StructrTraits.SCHEMA_METHOD_PARAMETER, new NodeAttribute<>(paramTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "index"), new NodeAttribute<>(paramTraits.key("parameterType"), "integer"))
+					new NodeAttribute<>(methodTraits.key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "log('GlobalTest')"),
+					new NodeAttribute<>(methodTraits.key(SchemaMethodTraitDefinition.INCLUDE_IN_OPEN_API_PROPERTY), true),
+					new NodeAttribute<>(methodTraits.key(SchemaMethodTraitDefinition.TAGS_PROPERTY), new String[] { "test", "customer" }),
+					new NodeAttribute<>(methodTraits.key(SchemaMethodTraitDefinition.PARAMETERS_PROPERTY), List.of(
+							app.create(StructrTraits.SCHEMA_METHOD_PARAMETER, new NodeAttribute<>(paramTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "id"), new NodeAttribute<>(paramTraits.key(SchemaMethodParameterTraitDefinition.PARAMETER_TYPE_PROPERTY), "string")),
+							app.create(StructrTraits.SCHEMA_METHOD_PARAMETER, new NodeAttribute<>(paramTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "index"), new NodeAttribute<>(paramTraits.key(SchemaMethodParameterTraitDefinition.PARAMETER_TYPE_PROPERTY), "integer"))
 					)),
-					new NodeAttribute<>(methodTraits.key("returnType"), returnTypeJson)
+					new NodeAttribute<>(methodTraits.key(SchemaMethodTraitDefinition.RETURN_TYPE_PROPERTY), returnTypeJson)
 			);
 
 			app.create(StructrTraits.SCHEMA_METHOD,
 					new NodeAttribute<>(methodTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "globalOther"),
-					new NodeAttribute<>(methodTraits.key("source"), "log('GlobalOther')"),
-					new NodeAttribute<>(methodTraits.key("includeInOpenAPI"), true),
-					new NodeAttribute<>(methodTraits.key("tags"), new String[] { "test", "contact" })
+					new NodeAttribute<>(methodTraits.key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "log('GlobalOther')"),
+					new NodeAttribute<>(methodTraits.key(SchemaMethodTraitDefinition.INCLUDE_IN_OPEN_API_PROPERTY), true),
+					new NodeAttribute<>(methodTraits.key(SchemaMethodTraitDefinition.TAGS_PROPERTY), new String[] { "test", "contact" })
 			);
 
 			StructrSchema.extendDatabaseSchema(app, schema);
@@ -785,8 +787,8 @@ public class OpenAPITest extends StructrUiTest {
 				.contentType("application/json; charset=UTF-8")
 				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 
-				.header("X-User",     username)
-				.header("X-Password", password)
+				.header(X_USER_HEADER,     username)
+				.header(X_PASSWORD_HEADER, password)
 
 				.expect()
 				.statusCode(200)

@@ -37,6 +37,7 @@ import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.messaging.engine.entities.MessageClient;
@@ -51,8 +52,10 @@ import java.util.Set;
 
 public class MessageClientTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String SUBSCRIBERS_PROPERTY = "subscribers";
+
 	public MessageClientTraitDefinition() {
-		super("MessageClient");
+		super(StructrTraits.MESSAGE_CLIENT);
 	}
 
 	@Override
@@ -175,7 +178,7 @@ public class MessageClientTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Iterable<NodeInterface>> subscribersProperty = new EndNodes("subscribers", "MessageClientHASMessageSubscriber");
+		final Property<Iterable<NodeInterface>> subscribersProperty = new EndNodes(SUBSCRIBERS_PROPERTY, StructrTraits.MESSAGE_CLIENT_HAS_MESSAGE_SUBSCRIBER);
 
 		return newSet(
 			subscribersProperty
@@ -188,11 +191,11 @@ public class MessageClientTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"subscribers"
+					SUBSCRIBERS_PROPERTY
 			),
 			PropertyView.Ui,
 			newSet(
-				"subscribers"
+					SUBSCRIBERS_PROPERTY
 			)
 		);
 	}

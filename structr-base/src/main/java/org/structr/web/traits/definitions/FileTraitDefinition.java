@@ -25,6 +25,7 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.event.RuntimeEvent;
 import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
@@ -40,6 +41,7 @@ import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.AfterCreation;
@@ -65,6 +67,26 @@ import java.util.Set;
  *
  */
 public class FileTraitDefinition extends AbstractNodeTraitDefinition {
+
+	public static final String FILE_PARENT_PROPERTY               = "fileParent";
+	public static final String CONTENT_TYPE_PROPERTY              = "contentType";
+	public static final String DONT_CACHE_PROPERTY                = "dontCache";
+	public static final String INDEXED_PROPERTY                   = "indexed";
+	public static final String IS_FILE_PROPERTY                   = "isFile";
+	public static final String IS_TEMPLATE_PROPERTY               = "isTemplate";
+	public static final String USE_AS_JAVASCRIPT_LIBRARY_PROPERTY = "useAsJavascriptLibrary";
+	public static final String CACHE_FOR_SECONDS_PROPERTY         = "cacheForSeconds";
+	public static final String POSITION_PROPERTY                  = "position";
+	public static final String VERSION_PROPERTY                   = "version";
+	public static final String MD5_PROPERTY                       = "md5";
+	public static final String SHA1_PROPERTY                      = "sha1";
+	public static final String SHA512_PROPERTY                    = "sha512";
+	public static final String URL_PROPERTY                       = "url";
+	public static final String CHECKSUM_PROPERTY                  = "checksum";
+	public static final String CRC32_PROPERTY                     = "crc32";
+	public static final String FILE_MODIFICATION_DATE_PROPERTY    = "fileModificationDate";
+	public static final String SIZE_PROPERTY                      = "size";
+	public static final String BASE64_DATA_PROPERTY               = "base64Data";
 
 	public FileTraitDefinition() {
 		super(StructrTraits.FILE);
@@ -117,11 +139,7 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 						graphObject.setSecurityContext(previousSecurityContext);
 
 						// acknowledge all events for this node when it is modified
-						final String uuid = thisFile.getUuid();
-						if (uuid != null) {
-
-							RuntimeEventLog.getEvents(e -> uuid.equals(e.getData().get("id"))).stream().forEach(e -> e.acknowledge());
-						}
+						RuntimeEventLog.acknowledgeAllEventsForId(thisFile.getUuid());
 					}
 				}
 			},
@@ -263,25 +281,25 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> fileParentProperty  = new StartNode("fileParent", "FolderCONTAINSFile");
-		final Property<String> contentTypeProperty        = new StringProperty("contentType");
-		final Property<Boolean> dontCacheProperty         = new BooleanProperty("dontCache").defaultValue(false);
-		final Property<Boolean> indexedProperty           = new BooleanProperty("indexed");
-		final Property<Boolean> isFileProperty            = new ConstantBooleanProperty("isFile", true).readOnly();
-		final Property<Boolean> isTemplateProperty        = new BooleanProperty("isTemplate");
-		final Property<Boolean> useAsJavascriptLibrary    = new BooleanProperty("useAsJavascriptLibrary").indexed();
-		final Property<Integer> cacheForSecondsProperty   = new IntProperty("cacheForSeconds");
-		final Property<Integer> positionProperty          = new IntProperty("position").indexed();
-		final Property<Integer> versionProperty           = new IntProperty("version").indexed();
-		final Property<String> md5Property                = new StringProperty("md5");
-		final Property<String> sha1Property               = new StringProperty("sha1");
-		final Property<String> sha512Property             = new StringProperty("sha512");
-		final Property<String> urlProperty                = new StringProperty("url");
-		final Property<Long> checksumProperty             = new LongProperty("checksum").indexed();
-		final Property<Long> crc32Property                = new LongProperty("crc32").indexed();
-		final Property<Long> fileModificationDateProperty = new LongProperty("fileModificationDate");
-		final Property<Long> sizeProperty                 = new LongProperty("size").indexed();
-		final Property<String> base64DataProperty         = new FileDataProperty("base64Data").typeHint("String");
+		final Property<NodeInterface> fileParentProperty  = new StartNode(FILE_PARENT_PROPERTY, StructrTraits.FOLDER_CONTAINS_FILE);
+		final Property<String> contentTypeProperty        = new StringProperty(CONTENT_TYPE_PROPERTY);
+		final Property<Boolean> dontCacheProperty         = new BooleanProperty(DONT_CACHE_PROPERTY).defaultValue(false);
+		final Property<Boolean> indexedProperty           = new BooleanProperty(INDEXED_PROPERTY);
+		final Property<Boolean> isFileProperty            = new ConstantBooleanProperty(IS_FILE_PROPERTY, true).readOnly();
+		final Property<Boolean> isTemplateProperty        = new BooleanProperty(IS_TEMPLATE_PROPERTY);
+		final Property<Boolean> useAsJavascriptLibrary    = new BooleanProperty(USE_AS_JAVASCRIPT_LIBRARY_PROPERTY).indexed();
+		final Property<Integer> cacheForSecondsProperty   = new IntProperty(CACHE_FOR_SECONDS_PROPERTY);
+		final Property<Integer> positionProperty          = new IntProperty(POSITION_PROPERTY).indexed();
+		final Property<Integer> versionProperty           = new IntProperty(VERSION_PROPERTY).indexed();
+		final Property<String> md5Property                = new StringProperty(MD5_PROPERTY);
+		final Property<String> sha1Property               = new StringProperty(SHA1_PROPERTY);
+		final Property<String> sha512Property             = new StringProperty(SHA512_PROPERTY);
+		final Property<String> urlProperty                = new StringProperty(URL_PROPERTY);
+		final Property<Long> checksumProperty             = new LongProperty(CHECKSUM_PROPERTY).indexed();
+		final Property<Long> crc32Property                = new LongProperty(CRC32_PROPERTY).indexed();
+		final Property<Long> fileModificationDateProperty = new LongProperty(FILE_MODIFICATION_DATE_PROPERTY);
+		final Property<Long> sizeProperty                 = new LongProperty(SIZE_PROPERTY).indexed();
+		final Property<String> base64DataProperty         = new FileDataProperty(BASE64_DATA_PROPERTY).typeHint("String");
 
 		return Set.of(
 			fileParentProperty,
@@ -312,14 +330,17 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"url", "isFile", "isTemplate", "indexed", "size", "fileModificationDate", "dontCache",
-				"includeInFrontendExport", "owner", "contentType", "isMounted"
+					URL_PROPERTY, IS_FILE_PROPERTY, IS_TEMPLATE_PROPERTY, INDEXED_PROPERTY, SIZE_PROPERTY, FILE_MODIFICATION_DATE_PROPERTY,
+					DONT_CACHE_PROPERTY, AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY, NodeInterfaceTraitDefinition.OWNER_PROPERTY,
+					CONTENT_TYPE_PROPERTY, AbstractFileTraitDefinition.IS_MOUNTED_PROPERTY
 			),
+
 			PropertyView.Ui,
 			newSet(
-				"url", "isFile", "isTemplate", "indexed", "size", "cacheForSeconds", "version", "checksum",
-				"md5", "dontCache", "includeInFrontendExport", "owner", "hasParent", "path", "contentType",
-				"useAsJavascriptLibrary"
+					URL_PROPERTY, IS_FILE_PROPERTY, IS_TEMPLATE_PROPERTY, INDEXED_PROPERTY, SIZE_PROPERTY, CACHE_FOR_SECONDS_PROPERTY,
+					VERSION_PROPERTY, CHECKSUM_PROPERTY, MD5_PROPERTY, DONT_CACHE_PROPERTY, AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY,
+					NodeInterfaceTraitDefinition.OWNER_PROPERTY, AbstractFileTraitDefinition.HAS_PARENT_PROPERTY, AbstractFileTraitDefinition.PATH_PROPERTY,
+					CONTENT_TYPE_PROPERTY, USE_AS_JAVASCRIPT_LIBRARY_PROPERTY
 			)
 		);
 	}
@@ -442,9 +463,9 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 		}
 
 		final Traits traits                                             = Traits.of(StructrTraits.FILE);
-		final PropertyKey<StorageConfiguration> storageConfigurationKey = traits.key("storageConfiguration");
-		final PropertyKey<Folder> parentKey                             = traits.key("parent");
-		final PropertyKey<String> parentIdKey                           = traits.key("parentId");
+		final PropertyKey<StorageConfiguration> storageConfigurationKey = traits.key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY);
+		final PropertyKey<Folder> parentKey                             = traits.key(AbstractFileTraitDefinition.PARENT_PROPERTY);
+		final PropertyKey<String> parentIdKey                           = traits.key(AbstractFileTraitDefinition.PARENT_ID_PROPERTY);
 
 		if (key.equals(storageConfigurationKey)) {
 
@@ -480,9 +501,9 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 		}
 
 		final Traits traits                                      = Traits.of(StructrTraits.FILE);
-		final PropertyKey<NodeInterface> storageConfigurationKey = traits.key("storageConfiguration");
-		final PropertyKey<NodeInterface> parentKey               = traits.key("parent");
-		final PropertyKey<String> parentIdKey                    = traits.key("parentId");
+		final PropertyKey<NodeInterface> storageConfigurationKey = traits.key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY);
+		final PropertyKey<NodeInterface> parentKey               = traits.key(AbstractFileTraitDefinition.PARENT_PROPERTY);
+		final PropertyKey<String> parentIdKey                    = traits.key(AbstractFileTraitDefinition.PARENT_ID_PROPERTY);
 
 		if (properties.containsKey(storageConfigurationKey)) {
 

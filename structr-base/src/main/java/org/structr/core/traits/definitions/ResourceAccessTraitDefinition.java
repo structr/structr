@@ -71,6 +71,10 @@ import java.util.Set;
  */
 public class ResourceAccessTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String SIGNATURE_PROPERTY          = "signature";
+	public static final String FLAGS_PROPERTY              = "flags";
+	public static final String IS_RESOURCE_ACCESS_PROPERTY = "isResourceAccess";
+
 	public ResourceAccessTraitDefinition(final String name) {
 		super(name);
 	}
@@ -89,8 +93,8 @@ public class ResourceAccessTraitDefinition extends AbstractNodeTraitDefinition {
 
 					final Traits traits = obj.getTraits();
 
-					valid &= ValidationHelper.isValidStringNotBlank(obj, traits.key("signature"), errorBuffer);
-					valid &= ValidationHelper.isValidPropertyNotNull(obj, traits.key("flags"),    errorBuffer);
+					valid &= ValidationHelper.isValidStringNotBlank(obj, traits.key(SIGNATURE_PROPERTY), errorBuffer);
+					valid &= ValidationHelper.isValidPropertyNotNull(obj, traits.key(FLAGS_PROPERTY),    errorBuffer);
 
 					return valid;
 				}
@@ -136,9 +140,9 @@ public class ResourceAccessTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<String>               signature          = new StringProperty("signature").indexed();
-		final Property<Long>                 flags              = new LongProperty("flags").indexed();
-		final Property<Boolean>              isResourceAccess   = new ConstantBooleanProperty("isResourceAccess", true);
+		final Property<String>               signature          = new StringProperty(SIGNATURE_PROPERTY).indexed();
+		final Property<Long>                 flags              = new LongProperty(FLAGS_PROPERTY).indexed();
+		final Property<Boolean>              isResourceAccess   = new ConstantBooleanProperty(IS_RESOURCE_ACCESS_PROPERTY, true);
 
 		return newSet(
 			signature,
@@ -153,11 +157,11 @@ public class ResourceAccessTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"signature", "flags", "isResourceAccess"
+					SIGNATURE_PROPERTY, FLAGS_PROPERTY, IS_RESOURCE_ACCESS_PROPERTY
 			),
 			PropertyView.Ui,
 			newSet(
-				"signature", "flags", "isResourceAccess"
+					SIGNATURE_PROPERTY, FLAGS_PROPERTY, IS_RESOURCE_ACCESS_PROPERTY
 			)
 		);
 	}

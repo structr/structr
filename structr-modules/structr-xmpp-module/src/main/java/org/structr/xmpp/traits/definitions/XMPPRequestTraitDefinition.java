@@ -24,6 +24,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.xmpp.XMPPRequest;
 import org.structr.xmpp.traits.wrappers.XMPPRequestTraitWrapper;
@@ -37,17 +38,22 @@ import java.util.Set;
  */
 public class XMPPRequestTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String CLIENT_PROPERTY       = "client";
+	public static final String SENDER_PROPERTY       = "sender";
+	public static final String CONTENT_PROPERTY      = "content";
+	public static final String REQUEST_TYPE_PROPERTY = "requestType";
+
 	public XMPPRequestTraitDefinition() {
-		super("XMPPRequest");
+		super(StructrTraits.XMPP_REQUEST);
 	}
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> client = new StartNode("client", "XMPPClientRequest");
-		final Property<String> sender        = new StringProperty("sender").indexed();
-		final Property<String> content       = new StringProperty("content");
-		final Property<String> requestType   = new EnumProperty("requestType", Type.class);
+		final Property<NodeInterface> client = new StartNode(CLIENT_PROPERTY, StructrTraits.XMPP_CLIENT_REQUEST);
+		final Property<String> sender        = new StringProperty(SENDER_PROPERTY).indexed();
+		final Property<String> content       = new StringProperty(CONTENT_PROPERTY);
+		final Property<String> requestType   = new EnumProperty(REQUEST_TYPE_PROPERTY, Type.class);
 
 		return newSet(
 			client,
@@ -63,11 +69,11 @@ public class XMPPRequestTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"client", "sender", "content", "requestType"
+				CLIENT_PROPERTY, SENDER_PROPERTY, CONTENT_PROPERTY, REQUEST_TYPE_PROPERTY
 			),
 			PropertyView.Ui,
 			newSet(
-				"client", "sender", "content", "requestType"
+				CLIENT_PROPERTY, SENDER_PROPERTY, CONTENT_PROPERTY, REQUEST_TYPE_PROPERTY
 			)
 		);
 	}

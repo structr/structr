@@ -19,23 +19,24 @@
 package org.structr.feed.traits.relationship;
 
 import org.structr.core.entity.Relation;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
 public class FeedItemFEED_ITEM_CONTENTSFeedItemContent extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public FeedItemFEED_ITEM_CONTENTSFeedItemContent() {
-		super("FeedItemFEED_ITEM_CONTENTSFeedItemContent");
+		super(StructrTraits.FEED_ITEM_FEED_ITEM_CONTENTS_FEED_ITEM_CONTENT);
 	}
 
 	@Override
 	public String getSourceType() {
-		return "FeedItem";
+		return StructrTraits.FEED_ITEM;
 	}
 
 	@Override
 	public String getTargetType() {
-		return "FeedItemContent";
+		return StructrTraits.FEED_ITEM_CONTENT;
 	}
 
 	@Override

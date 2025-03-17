@@ -26,7 +26,7 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class DOMElementINPUT_ELEMENTParameterMapping extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public DOMElementINPUT_ELEMENTParameterMapping() {
-		super("DOMElementINPUT_ELEMENTParameterMapping");
+		super(StructrTraits.DOM_ELEMENT_INPUT_ELEMENT_PARAMETER_MAPPING);
 	}
 
 	@Override

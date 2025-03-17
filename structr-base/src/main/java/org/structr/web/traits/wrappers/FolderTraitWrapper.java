@@ -33,6 +33,7 @@ import org.structr.web.entity.Image;
 
 import java.util.LinkedList;
 import java.util.List;
+import org.structr.web.traits.definitions.FolderTraitDefinition;
 
 public class FolderTraitWrapper extends AbstractFileTraitWrapper implements Folder {
 
@@ -42,28 +43,28 @@ public class FolderTraitWrapper extends AbstractFileTraitWrapper implements Fold
 
 	@Override
 	public String getMountTarget() {
-		return wrappedObject.getProperty(traits.key("mountTarget"));
+		return wrappedObject.getProperty(traits.key(FolderTraitDefinition.MOUNT_TARGET_PROPERTY));
 	}
 
 	@Override
 	public String getMountTargetFileType() {
-		return wrappedObject.getProperty(traits.key("mountTargetFileType"));
+		return wrappedObject.getProperty(traits.key(FolderTraitDefinition.MOUNT_TARGET_FILE_TYPE_PROPERTY));
 	}
 
 	@Override
 	public String getMountTargetFolderType() {
-		return wrappedObject.getProperty(traits.key("mountTargetFolderType"));
+		return wrappedObject.getProperty(traits.key(FolderTraitDefinition.MOUNT_TARGET_FOLDER_TYPE_PROPERTY));
 	}
 
 	@Override
 	public String getEnabledChecksums() {
-		return wrappedObject.getProperty(traits.key("enabledChecksums"));
+		return wrappedObject.getProperty(traits.key(FolderTraitDefinition.ENABLED_CHECKSUMS_PROPERTY));
 	}
 
 	@Override
 	public Iterable<AbstractFile> getChildren() {
 
-		final PropertyKey<Iterable<NodeInterface>> childrenKey = traits.key("children");
+		final PropertyKey<Iterable<NodeInterface>> childrenKey = traits.key(FolderTraitDefinition.CHILDREN_PROPERTY);
 
 		// wrap nodes in AbstractFile wrapper
 		return Iterables.map(c -> c.as(AbstractFile.class), wrappedObject.getProperty(childrenKey));

@@ -20,22 +20,26 @@ package org.structr.web.traits.definitions.html;
 
 import org.structr.common.PropertyView;
 import org.structr.core.property.PropertyKey;
-import org.structr.web.common.HtmlProperty;
+import org.structr.core.property.StringProperty;
+import org.structr.core.traits.StructrTraits;
 
 import java.util.Map;
 import java.util.Set;
 
 public class Optgroup extends GenericHtmlElementTraitDefinition {
 
+	public static final String DISABLED_PROPERTY = getPrefixedHTMLAttributeName("disabled");
+	public static final String LABEL_PROPERTY    = getPrefixedHTMLAttributeName("label");
+
 	public Optgroup() {
-		super("Optgroup");
+		super(StructrTraits.OPTGROUP);
 	}
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final PropertyKey<String> disabledProperty = new HtmlProperty("disabled");
-		final PropertyKey<String> labelProperty = new HtmlProperty("label");
+		final PropertyKey<String> disabledProperty = new StringProperty(DISABLED_PROPERTY);
+		final PropertyKey<String> labelProperty    = new StringProperty(LABEL_PROPERTY);
 
 		return newSet(
 			disabledProperty, labelProperty
@@ -48,7 +52,7 @@ public class Optgroup extends GenericHtmlElementTraitDefinition {
 		return Map.of(
 			PropertyView.Html,
 			newSet(
-				"_html_disabled", "_html_label"
+					DISABLED_PROPERTY, LABEL_PROPERTY
 			)
 		);
 	}

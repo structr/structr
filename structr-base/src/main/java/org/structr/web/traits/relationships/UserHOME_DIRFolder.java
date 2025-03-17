@@ -26,7 +26,7 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class UserHOME_DIRFolder extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public UserHOME_DIRFolder() {
-		super("UserHOME_DIRFolder");
+		super(StructrTraits.USER_HOME_DIR_FOLDER);
 	}
 
 	@Override

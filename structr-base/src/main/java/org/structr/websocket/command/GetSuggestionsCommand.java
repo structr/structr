@@ -30,6 +30,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.web.entity.Widget;
+import org.structr.web.traits.definitions.WidgetTraitDefinition;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -56,7 +57,7 @@ public class GetSuggestionsCommand extends AbstractCommand {
 		setDoTransactionNotifications(false);
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
-		final PropertyKey selectorsKey        = Traits.of(StructrTraits.WIDGET).key("selectors");
+		final PropertyKey selectorsKey        = Traits.of(StructrTraits.WIDGET).key(WidgetTraitDefinition.SELECTORS_PROPERTY);
 		final List<String> classes            = webSocketData.getNodeDataStringList("classes");
 		final String name                     = webSocketData.getNodeDataStringValue("name");
 		final String htmlId                   = webSocketData.getNodeDataStringValue("htmlId");

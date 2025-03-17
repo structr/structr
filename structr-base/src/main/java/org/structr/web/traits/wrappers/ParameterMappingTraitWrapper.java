@@ -23,6 +23,7 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.event.ParameterMapping;
+import org.structr.web.traits.definitions.ParameterMappingTraitDefinition;
 
 public class ParameterMappingTraitWrapper extends AbstractNodeTraitWrapper implements ParameterMapping {
 
@@ -33,7 +34,7 @@ public class ParameterMappingTraitWrapper extends AbstractNodeTraitWrapper imple
 	@Override
 	public DOMElement getInputElement() {
 
-		final NodeInterface node = wrappedObject.getProperty(traits.key("inputElement"));
+		final NodeInterface node = wrappedObject.getProperty(traits.key(ParameterMappingTraitDefinition.INPUT_ELEMENT_PROPERTY));
 		if (node != null) {
 
 			return node.as(DOMElement.class);
@@ -44,31 +45,31 @@ public class ParameterMappingTraitWrapper extends AbstractNodeTraitWrapper imple
 
 	@Override
 	public String getParameterType() {
-		return wrappedObject.getProperty(traits.key("parameterType"));
+		return wrappedObject.getProperty(traits.key(ParameterMappingTraitDefinition.PARAMETER_TYPE_PROPERTY));
 	}
 
 	@Override
 	public String getParameterName() {
-		return wrappedObject.getProperty(traits.key("parameterName"));
+		return wrappedObject.getProperty(traits.key(ParameterMappingTraitDefinition.PARAMETER_NAME_PROPERTY));
 	}
 
 	@Override
 	public String getConstantValue() {
-		return wrappedObject.getProperty(traits.key("constantValue"));
+		return wrappedObject.getProperty(traits.key(ParameterMappingTraitDefinition.CONSTANT_VALUE_PROPERTY));
 	}
 
 	@Override
 	public String getScriptExpression() {
-		return wrappedObject.getProperty(traits.key("scriptExpression"));
+		return wrappedObject.getProperty(traits.key(ParameterMappingTraitDefinition.SCRIPT_EXPRESSION_PROPERTY));
 	}
 
 	@Override
 	public String getMethodResult() {
-		return wrappedObject.getProperty(traits.key("methodResult"));
+		return wrappedObject.getProperty(traits.key(ParameterMappingTraitDefinition.METHOD_RESULT_PROPERTY));
 	}
 
 	@Override
 	public String getFlowResult() {
-		return wrappedObject.getProperty(traits.key("flowResult"));
+		return wrappedObject.getProperty(traits.key(ParameterMappingTraitDefinition.FLOW_RESULT_PROPERTY));
 	}
 }

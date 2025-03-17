@@ -33,6 +33,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.SessionDataNodeTraitDefinition;
 import org.structr.rest.auth.AuthHelper;
 
 import java.util.Date;
@@ -77,9 +78,9 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 					final PropertyMap properties = new PropertyMap();
 
-					properties.put(sessionTraits.key("lastAccessed"), new Date(data.getLastAccessed()));
-					properties.put(sessionTraits.key("cpath"),        data.getContextPath());
-					properties.put(sessionTraits.key("vhost"),        data.getVhost());
+					properties.put(sessionTraits.key(SessionDataNodeTraitDefinition.LAST_ACCESSED_PROPERTY), new Date(data.getLastAccessed()));
+					properties.put(sessionTraits.key(SessionDataNodeTraitDefinition.CONTEXT_PATH_PROPERTY),  data.getContextPath());
+					properties.put(sessionTraits.key(SessionDataNodeTraitDefinition.VHOST_PROPERTY),         data.getVhost());
 
 					node.setProperties(ctx, properties);
 				}
@@ -117,7 +118,7 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 			tx.prefetchHint("StructrSessionDataStore exists");
 
-			final NodeInterface node = app.nodeQuery(StructrTraits.SESSION_DATA_NODE).and(Traits.of(StructrTraits.SESSION_DATA_NODE).key("sessionId"), id).getFirst();
+			final NodeInterface node = app.nodeQuery(StructrTraits.SESSION_DATA_NODE).and(Traits.of(StructrTraits.SESSION_DATA_NODE).key(SessionDataNodeTraitDefinition.SESSION_ID_PROPERTY), id).getFirst();
 
 			tx.success();
 
@@ -148,13 +149,13 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 			tx.prefetchHint("StructrSessionDataStore load");
 
 			final Traits traits      = Traits.of(StructrTraits.SESSION_DATA_NODE);
-			final NodeInterface node = app.nodeQuery(StructrTraits.SESSION_DATA_NODE).and(traits.key("sessionId"), id).getFirst();
+			final NodeInterface node = app.nodeQuery(StructrTraits.SESSION_DATA_NODE).and(traits.key(SessionDataNodeTraitDefinition.SESSION_ID_PROPERTY), id).getFirst();
 			if (node != null) {
 
 				result = new SessionData(
 						id,
-						node.getProperty(traits.key("cpath")),
-						node.getProperty(traits.key("vhost")),
+						node.getProperty(traits.key(SessionDataNodeTraitDefinition.CONTEXT_PATH_PROPERTY)),
+						node.getProperty(traits.key(SessionDataNodeTraitDefinition.VHOST_PROPERTY)),
 						node.getCreatedDate().getTime(),
 						node.getLastModifiedDate().getTime(),
 						node.getLastModifiedDate().getTime(),
@@ -190,7 +191,7 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 			tx.prefetchHint("StructrSessionDataStore delete");
 
 			// delete nodes
-			for (final NodeInterface node : app.nodeQuery(StructrTraits.SESSION_DATA_NODE).and(traits.key("sessionId"), id).getAsList()) {
+			for (final NodeInterface node : app.nodeQuery(StructrTraits.SESSION_DATA_NODE).and(traits.key(SessionDataNodeTraitDefinition.SESSION_ID_PROPERTY), id).getAsList()) {
 
 				app.delete(node);
 			}
@@ -235,9 +236,9 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 			tx.prefetchHint("StructrSessionDataStore doCheckExpired");
 
-			for (final NodeInterface node : app.nodeQuery(StructrTraits.SESSION_DATA_NODE).andRange(traits.key("lastAccessed"), new Date(0), timeoutDate).getAsList()) {
+			for (final NodeInterface node : app.nodeQuery(StructrTraits.SESSION_DATA_NODE).andRange(traits.key(SessionDataNodeTraitDefinition.LAST_ACCESSED_PROPERTY), new Date(0), timeoutDate).getAsList()) {
 
-				candidates.add(node.getProperty(traits.key("sessionId")));
+				candidates.add(node.getProperty(traits.key(SessionDataNodeTraitDefinition.SESSION_ID_PROPERTY)));
 			}
 
 			tx.success();
@@ -274,9 +275,9 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 			tx.prefetchHint("StructrSessionDataStore doGetExpired");
 
-			for (final NodeInterface node : app.nodeQuery(StructrTraits.SESSION_DATA_NODE).andRange(traits.key("lastAccessed"), new Date(0), timeoutDate).getAsList()) {
+			for (final NodeInterface node : app.nodeQuery(StructrTraits.SESSION_DATA_NODE).andRange(traits.key(SessionDataNodeTraitDefinition.LAST_ACCESSED_PROPERTY), new Date(0), timeoutDate).getAsList()) {
 
-				candidates.add(node.getProperty(traits.key("sessionId")));
+				candidates.add(node.getProperty(traits.key(SessionDataNodeTraitDefinition.SESSION_ID_PROPERTY)));
 			}
 
 			tx.success();
@@ -320,10 +321,10 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 	private NodeInterface getOrCreateSessionDataNode(final App app, final Traits traits, final String id) throws FrameworkException {
 
-		NodeInterface node = app.nodeQuery(StructrTraits.SESSION_DATA_NODE).and(traits.key("sessionId"), id).getFirst();
+		NodeInterface node = app.nodeQuery(StructrTraits.SESSION_DATA_NODE).and(traits.key(SessionDataNodeTraitDefinition.SESSION_ID_PROPERTY), id).getFirst();
 		if (node == null) {
 
-			node= app.create(StructrTraits.SESSION_DATA_NODE, new NodeAttribute<>(traits.key("sessionId"), id));
+			node= app.create(StructrTraits.SESSION_DATA_NODE, new NodeAttribute<>(traits.key(SessionDataNodeTraitDefinition.SESSION_ID_PROPERTY), id));
 		}
 
 		return node;

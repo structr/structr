@@ -36,7 +36,11 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.AbstractSchemaNodeTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
+import org.structr.core.traits.definitions.SchemaNodeTraitDefinition;
+import org.structr.core.traits.definitions.SchemaViewTraitDefinition;
 import org.structr.schema.openapi.common.OpenAPISchemaReference;
 import org.structr.schema.openapi.operation.*;
 import org.structr.schema.openapi.parameter.OpenAPIPropertyQueryParameter;
@@ -1051,13 +1055,13 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		final PropertyMap nodeProperties                   = new PropertyMap();
 
 		// properties that always need to be set
-		createProperties.put(schemaNodeTraits.key("isInterface"),            isInterface);
-		createProperties.put(schemaNodeTraits.key("isAbstract"),             isAbstract);
-		createProperties.put(schemaNodeTraits.key("category"),               category);
-		createProperties.put(schemaNodeTraits.key("isServiceClass"),         isServiceClass);
-		createProperties.put(schemaNodeTraits.key("changelogDisabled"),      changelogDisabled);
-		createProperties.put(schemaNodeTraits.key("defaultVisibleToPublic"), visibleToPublicUsers);
-		createProperties.put(schemaNodeTraits.key("defaultVisibleToAuth"),   visibleToAuthenticatedUsers);
+		createProperties.put(schemaNodeTraits.key(SchemaNodeTraitDefinition.IS_INTERFACE_PROPERTY),               isInterface);
+		createProperties.put(schemaNodeTraits.key(SchemaNodeTraitDefinition.IS_ABSTRACT_PROPERTY),                isAbstract);
+		createProperties.put(schemaNodeTraits.key(SchemaNodeTraitDefinition.CATEGORY_PROPERTY),                   category);
+		createProperties.put(schemaNodeTraits.key(AbstractSchemaNodeTraitDefinition.IS_SERVICE_CLASS_PROPERTY),   isServiceClass);
+		createProperties.put(schemaNodeTraits.key(AbstractSchemaNodeTraitDefinition.CHANGELOG_DISABLED_PROPERTY), changelogDisabled);
+		createProperties.put(schemaNodeTraits.key(SchemaNodeTraitDefinition.DEFAULT_VISIBLE_TO_PUBLIC_PROPERTY),  visibleToPublicUsers);
+		createProperties.put(schemaNodeTraits.key(SchemaNodeTraitDefinition.DEFAULT_VISIBLE_TO_AUTH_PROPERTY),    visibleToAuthenticatedUsers);
 
 		final T newSchemaNode = createSchemaNode(schemaNodes, schemaRels, app, createProperties);
 
@@ -1094,18 +1098,18 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 
 				viewNode = app.create(StructrTraits.SCHEMA_VIEW,
-					new NodeAttribute<>(schemaViewTraits.key("schemaNode"), newSchemaNode),
+					new NodeAttribute<>(schemaViewTraits.key(SchemaViewTraitDefinition.SCHEMA_NODE_PROPERTY), newSchemaNode),
 					new NodeAttribute<>(schemaViewTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), view.getKey())
 				).as(SchemaView.class);
 			}
 
 			final PropertyMap updateProperties = new PropertyMap();
 
-			updateProperties.put(schemaViewTraits.key("schemaProperties"), viewProperties);
-			updateProperties.put(schemaViewTraits.key("nonGraphProperties"), StringUtils.join(nonGraphProperties, ", "));
+			updateProperties.put(schemaViewTraits.key(SchemaViewTraitDefinition.SCHEMA_PROPERTIES_PROPERTY), viewProperties);
+			updateProperties.put(schemaViewTraits.key(SchemaViewTraitDefinition.NON_GRAPH_PROPERTIES_PROPERTY), StringUtils.join(nonGraphProperties, ", "));
 
 			if (viewOrder.containsKey(view.getKey())) {
-				updateProperties.put(schemaViewTraits.key("sortOrder"), viewOrder.get(view.getKey()));
+				updateProperties.put(schemaViewTraits.key(SchemaViewTraitDefinition.SORT_ORDER_PROPERTY), viewOrder.get(view.getKey()));
 			}
 
 			// update properties of existing or new schema view node
@@ -1138,14 +1142,14 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		}
 
 		if (!mergedTags.isEmpty()) {
-			nodeProperties.put(schemaNodeTraits.key("tags"), listToArray(mergedTags));
+			nodeProperties.put(schemaNodeTraits.key(AbstractSchemaNodeTraitDefinition.TAGS_PROPERTY), listToArray(mergedTags));
 		}
 
-		nodeProperties.put(schemaNodeTraits.key("inheritedTraits"),   getInheritedTraits().toArray(new String[0]));
-		nodeProperties.put(schemaNodeTraits.key("includeInOpenAPI"),  includeInOpenAPI());
-		nodeProperties.put(schemaNodeTraits.key("summary"),           getSummary());
-		nodeProperties.put(schemaNodeTraits.key("description"),       getDescription());
-		nodeProperties.put(schemaNodeTraits.key("icon"),              getIcon());
+		nodeProperties.put(schemaNodeTraits.key(SchemaNodeTraitDefinition.INHERITED_TRAITS_PROPERTY),      getInheritedTraits().toArray(new String[0]));
+		nodeProperties.put(schemaNodeTraits.key(SchemaMethodTraitDefinition.INCLUDE_IN_OPEN_API_PROPERTY), includeInOpenAPI());
+		nodeProperties.put(schemaNodeTraits.key(AbstractSchemaNodeTraitDefinition.SUMMARY_PROPERTY),       getSummary());
+		nodeProperties.put(schemaNodeTraits.key(AbstractSchemaNodeTraitDefinition.DESCRIPTION_PROPERTY),   getDescription());
+		nodeProperties.put(schemaNodeTraits.key(AbstractSchemaNodeTraitDefinition.ICON_PROPERTY),          getIcon());
 
 		newSchemaNode.setProperties(SecurityContext.getSuperUserInstance(), nodeProperties);
 

@@ -18,19 +18,19 @@
  */
 package org.structr.flow.engine;
 
-import org.structr.flow.api.Action;
-import org.structr.flow.api.FlowElement;
 import org.structr.flow.api.FlowHandler;
+import org.structr.flow.impl.FlowAction;
+import org.structr.flow.impl.FlowNode;
 
 /**
  *
  */
-public class ActionHandler implements FlowHandler<Action> {
+public class ActionHandler implements FlowHandler {
 
 	@Override
-	public FlowElement handle(final Context context, final Action flowElement) throws FlowException {
+	public FlowNode handle(final Context context, final FlowNode flowElement) throws FlowException {
 
-		flowElement.execute(context);
+		flowElement.as(FlowAction.class).execute(context);
 
 		return flowElement.next();
 	}

@@ -33,7 +33,7 @@ public class DOMNodeCONTAINSDOMNode extends AbstractRelationshipTraitDefinition 
 	private static final Property<Integer> position  = new IntProperty("position");
 
 	public DOMNodeCONTAINSDOMNode() {
-		super("DOMNodeCONTAINSDOMNode");
+		super(StructrTraits.DOM_NODE_CONTAINS_DOM_NODE);
 	}
 
 	@Override

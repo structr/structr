@@ -59,6 +59,12 @@ import org.structr.web.entity.Linkable;
 import org.structr.web.entity.dom.*;
 import org.structr.web.maintenance.DeployCommand;
 import org.structr.web.property.CustomHtmlAttributeProperty;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.FileTraitDefinition;
+import org.structr.web.traits.definitions.dom.ContentTraitDefinition;
+import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
+import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
+import org.structr.web.traits.definitions.html.Input;
 import org.structr.websocket.command.CreateComponentCommand;
 
 import java.io.*;
@@ -560,7 +566,7 @@ public class Importer {
 				if (removeHashAttribute) {
 
 					// Remove data-structr-hash attribute
-					node.removeAttr("data-structr-hash");
+					node.removeAttr(DOMNodeTraitDefinition.DATA_STRUCTR_HASH_PROPERTY);
 				}
 			}
 
@@ -635,7 +641,7 @@ public class Importer {
 
 				if (page != null) {
 
-					final PropertyKey<String> contentTypeKey = Traits.of(StructrTraits.CONTENT).key("contentType");
+					final PropertyKey<String> contentTypeKey = Traits.of(StructrTraits.CONTENT).key(ContentTraitDefinition.CONTENT_TYPE_PROPERTY);
 
 					// create comment or content node
 					if (!StringUtils.isBlank(comment)) {
@@ -647,7 +653,7 @@ public class Importer {
 
 						newNode = page.createTextNode(content);
 
-						final PropertyKey<String> typeKey = Traits.of("Input").key("_html_type");
+						final PropertyKey<String> typeKey = Traits.of(StructrTraits.INPUT).key(Input.TYPE_PROPERTY);
 
 						if (parent != null && "text/css".equals(parent.getProperty(typeKey))) {
 							newNode.setProperty(contentTypeKey, "text/css");
@@ -659,7 +665,7 @@ public class Importer {
 				final String source = node.toString();
 				newNode = page.createTextNode(source);
 
-				final PropertyKey<String> contentTypeKey = Traits.of(StructrTraits.CONTENT).key("contentType");
+				final PropertyKey<String> contentTypeKey = Traits.of(StructrTraits.CONTENT).key(ContentTraitDefinition.CONTENT_TYPE_PROPERTY);
 				newNode.setProperty(contentTypeKey, "text/xml");
 
 			} else if ("structr:template".equals(tag)) {
@@ -837,7 +843,7 @@ public class Importer {
 			if (newNode != null) {
 
 				// save root element for later use
-				if (rootElement == null && !(newNode.is("Comment"))) {
+				if (rootElement == null && !(newNode.is(StructrTraits.COMMENT))) {
 					rootElement = newNode;
 				}
 
@@ -867,12 +873,12 @@ public class Importer {
 				// "id" attribute: Put it into the "_html_id" field
 				if (StringUtils.isNotBlank(id)) {
 
-					newNodeProperties.put(Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id"), id);
+					newNodeProperties.put(Traits.of(StructrTraits.DOM_ELEMENT).key(DOMElementTraitDefinition._HTML_ID_PROPERTY), id);
 				}
 
 				if (StringUtils.isNotBlank(classString.toString())) {
 
-					newNodeProperties.put(Traits.of(StructrTraits.DOM_ELEMENT).key("_html_class"), StringUtils.trim(classString.toString()));
+					newNodeProperties.put(Traits.of(StructrTraits.DOM_ELEMENT).key(DOMElementTraitDefinition._HTML_CLASS_PROPERTY), StringUtils.trim(classString.toString()));
 				}
 
 				for (Attribute nodeAttr : node.attributes()) {
@@ -990,7 +996,7 @@ public class Importer {
 
 				if ("script".equals(tag)) {
 
-					final PropertyKey<String> typeKey = Traits.of("Input").key("_html_type");
+					final PropertyKey<String> typeKey = Traits.of(StructrTraits.INPUT).key(Input.TYPE_PROPERTY);
 					final String contentType          = newNode.getProperty(typeKey);
 
 					if (contentType == null) {
@@ -1046,7 +1052,7 @@ public class Importer {
 
 				} else if ("style".equals(tag)) {
 
-					final PropertyKey<String> typeKey = Traits.of("Input").key("_html_type");
+					final PropertyKey<String> typeKey = Traits.of(StructrTraits.INPUT).key(Input.TYPE_PROPERTY);
 					final String contentType          = newNode.getProperty(typeKey);
 
 					if (contentType == null) {
@@ -1151,8 +1157,8 @@ public class Importer {
 	 */
 	private File fileExists(final String path, final long checksum) throws FrameworkException {
 
-		final PropertyKey<Long> checksumKey = Traits.of(StructrTraits.FILE).key("checksum");
-		final PropertyKey<String> pathKey   = Traits.of(StructrTraits.FILE).key("path");
+		final PropertyKey<Long> checksumKey = Traits.of(StructrTraits.FILE).key(FileTraitDefinition.CHECKSUM_PROPERTY);
+		final PropertyKey<String> pathKey   = Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY);
 
 		final NodeInterface node = app.nodeQuery(StructrTraits.FILE).and(pathKey, path).and(checksumKey, checksum).getFirst();
 		if (node != null) {
@@ -1338,7 +1344,7 @@ public class Importer {
 					}
 
 					// set export flag according to user preference
-					fileNode.setProperty(Traits.of(StructrTraits.FILE).key("includeInFrontendExport"), includeInExport);
+					fileNode.setProperty(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY), includeInExport);
 				}
 
 			} else {
@@ -1368,27 +1374,27 @@ public class Importer {
 
 	private File createFileNode(final String path, final String contentType, final long size, final long checksum, final String fileClass) throws FrameworkException {
 
-		final PropertyKey<Integer> versionKey      = Traits.of(StructrTraits.FILE).key("version");
-		final PropertyKey<NodeInterface> parentKey = Traits.of(StructrTraits.FILE).key("parent");
-		final PropertyKey<String> contentTypeKey   = Traits.of(StructrTraits.FILE).key("contentType");
-		final PropertyKey<Long> checksumKey        = Traits.of(StructrTraits.FILE).key("checksum");
-		final PropertyKey<Long> sizeKey            = Traits.of(StructrTraits.FILE).key("size");
+		final PropertyKey<Integer> versionKey      = Traits.of(StructrTraits.FILE).key(FileTraitDefinition.VERSION_PROPERTY);
+		final PropertyKey<NodeInterface> parentKey = Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY);
+		final PropertyKey<String> contentTypeKey   = Traits.of(StructrTraits.FILE).key(FileTraitDefinition.CONTENT_TYPE_PROPERTY);
+		final PropertyKey<Long> checksumKey        = Traits.of(StructrTraits.FILE).key(FileTraitDefinition.CHECKSUM_PROPERTY);
+		final PropertyKey<Long> sizeKey            = Traits.of(StructrTraits.FILE).key(FileTraitDefinition.SIZE_PROPERTY);
 		final NodeInterface parentFolder           = FileHelper.createFolderPath(securityContext, PathHelper.getFolderPath(path));
 		final Traits traits                        = Traits.of(fileClass != null ? fileClass : StructrTraits.FILE);
 
 		if (parentFolder != null) {
 
 			// set export flag according to user preference
-			parentFolder.setProperty(Traits.of(StructrTraits.FILE).key("includeInFrontendExport"), includeInExport);
+			parentFolder.setProperty(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY), includeInExport);
 		}
 
 		return app.create(traits.getName(),
-			new NodeAttribute(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),                        PathHelper.getName(path)),
-			new NodeAttribute(traits.key("parent"),                      parentFolder),
-			new NodeAttribute(traits.key("contentType"),                 contentType),
-			new NodeAttribute(traits.key("size"),                        size),
-			new NodeAttribute(traits.key("checksum"),                    checksum),
-			new NodeAttribute(traits.key("version"),                     1),
+			new NodeAttribute(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),                         PathHelper.getName(path)),
+			new NodeAttribute(traits.key(AbstractFileTraitDefinition.PARENT_PROPERTY),                        parentFolder),
+			new NodeAttribute(traits.key(FileTraitDefinition.CONTENT_TYPE_PROPERTY),                          contentType),
+			new NodeAttribute(traits.key(FileTraitDefinition.SIZE_PROPERTY),                                  size),
+			new NodeAttribute(traits.key(FileTraitDefinition.CHECKSUM_PROPERTY),                              checksum),
+			new NodeAttribute(traits.key(FileTraitDefinition.VERSION_PROPERTY),                               1),
 			new NodeAttribute(traits.key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY),        publicVisible),
 			new NodeAttribute(traits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), authVisible)
 
@@ -1459,8 +1465,8 @@ public class Importer {
 			return null;
 		}
 
-		final PropertyKey<NodeInterface> ownerDocumentKey = Traits.of(StructrTraits.DOM_NODE).key("ownerDocument");
-		final PropertyKey<NodeInterface> parentKey        = Traits.of(StructrTraits.DOM_NODE).key("parent");
+		final PropertyKey<NodeInterface> ownerDocumentKey = Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.OWNER_DOCUMENT_PROPERTY);
+		final PropertyKey<NodeInterface> parentKey        = Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.PARENT_PROPERTY);
 		final ShadowDocument shadowDocument               = CreateComponentCommand.getOrCreateHiddenDocument();
 
 		for (final NodeInterface n : StructrApp.getInstance().nodeQuery(StructrTraits.DOM_NODE).andName(name).and(ownerDocumentKey, shadowDocument).getAsList()) {
@@ -1481,7 +1487,7 @@ public class Importer {
 		}
 
 		final Traits traits                                 = Traits.of(StructrTraits.DOM_NODE);
-		final PropertyKey<NodeInterface> sharedComponentKey = traits.key("sharedComponent");
+		final PropertyKey<NodeInterface> sharedComponentKey = traits.key(DOMNodeTraitDefinition.SHARED_COMPONENT_PROPERTY);
 		final PropertyKey<String> nameKey                   = traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 
 		for (final NodeInterface n : StructrApp.getInstance().nodeQuery(StructrTraits.TEMPLATE).andName(name).and().notBlank(nameKey).getAsList()) {
@@ -1558,8 +1564,8 @@ public class Importer {
 	private NodeInterface createNewTemplateNode(final NodeInterface parent, final String content, final String contentType) throws FrameworkException {
 
 		final Traits traits                      = Traits.of(StructrTraits.TEMPLATE);
-		final PropertyKey<String> contentTypeKey = traits.key("contentType");
-		final PropertyKey<String> contentKey     = traits.key("content");
+		final PropertyKey<String> contentTypeKey = traits.key(ContentTraitDefinition.CONTENT_TYPE_PROPERTY);
+		final PropertyKey<String> contentKey     = traits.key(ContentTraitDefinition.CONTENT_PROPERTY);
 		final PropertyKey<Boolean> vtpuKey       = traits.key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY);
 		final PropertyKey<Boolean> vtauKey       = traits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY);
 		final PropertyMap map                    = new PropertyMap();

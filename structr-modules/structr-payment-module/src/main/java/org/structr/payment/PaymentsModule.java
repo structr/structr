@@ -42,10 +42,10 @@ public class PaymentsModule implements StructrModule {
 	@Override
 	public void onLoad(final LicenseManager licenseManager) {
 
-		StructrTraits.registerRelationshipType("PaymentNodepaymentItemPaymentItem", new PaymentNodepaymentItemPaymentItem());
+		StructrTraits.registerRelationshipType(StructrTraits.PAYMENT_NODE_PAYMENT_ITEM_PAYMENT_ITEM, new PaymentNodepaymentItemPaymentItem());
 
-		StructrTraits.registerNodeType("PaymentNode",     new PaymentNodeTraitDefinition());
-		StructrTraits.registerNodeType("PaymentItemNode", new PaymentItemNodeTraitDefinition());
+		StructrTraits.registerNodeType(StructrTraits.PAYMENT_NODE,      new PaymentNodeTraitDefinition());
+		StructrTraits.registerNodeType(StructrTraits.PAYMENT_ITEM_NODE, new PaymentItemNodeTraitDefinition());
 
 		// read configuration..
 		checkString("paypal.mode",      Settings.getOrCreateStringSetting("paypal", "mode").getValue(),      "paypal.mode not set, please set to either sandbox or live.");

@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import org.structr.messaging.traits.definitions.PulsarClientTraitDefinition;
 
 public class PulsarClientTraitWrapper extends MessageClientTraitWrapper implements org.structr.messaging.implementation.pulsar.PulsarClient {
 
@@ -44,21 +45,21 @@ public class PulsarClientTraitWrapper extends MessageClientTraitWrapper implemen
 	}
 
 	public boolean getEnabled() {
-		return wrappedObject.getProperty(traits.key("enabled"));
+		return wrappedObject.getProperty(traits.key(PulsarClientTraitDefinition.ENABLED_PROPERTY));
 	}
 
 	@Override
 	public void setEnabled(final boolean enabled) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("enabled"), enabled);
+		wrappedObject.setProperty(traits.key(PulsarClientTraitDefinition.ENABLED_PROPERTY), enabled);
 	}
 
 	@Override
 	public String[] getServers() {
-		return wrappedObject.getProperty(traits.key("servers"));
+		return wrappedObject.getProperty(traits.key(PulsarClientTraitDefinition.SERVERS_PROPERTY));
 	}
 
 	public void setServers(final String[] servers) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("servers"), servers);
+		wrappedObject.setProperty(traits.key(PulsarClientTraitDefinition.SERVERS_PROPERTY), servers);
 	}
 
 	@Override

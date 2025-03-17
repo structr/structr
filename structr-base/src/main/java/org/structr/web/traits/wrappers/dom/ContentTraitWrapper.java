@@ -33,6 +33,7 @@ import org.structr.web.entity.dom.DOMNode;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
+import org.structr.web.traits.definitions.dom.ContentTraitDefinition;
 
 /**
  * Represents a content node. This class implements the org.w3c.dom.Text interface.
@@ -45,20 +46,20 @@ public class ContentTraitWrapper extends DOMNodeTraitWrapper implements Content 
 	}
 
 	@Override public String getContent() {
-		return wrappedObject.getProperty(traits.key("content"));
+		return wrappedObject.getProperty(traits.key(ContentTraitDefinition.CONTENT_PROPERTY));
 	}
 
 	@Override public void setContent(final String content) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("content"), content);
+		wrappedObject.setProperty(traits.key(ContentTraitDefinition.CONTENT_PROPERTY), content);
 	}
 
 	@Override public void setContentType(final String contentType) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("contentType"), contentType);
+		wrappedObject.setProperty(traits.key(ContentTraitDefinition.CONTENT_TYPE_PROPERTY), contentType);
 	}
 
 	@Override
 	public final String getContentType() {
-		return wrappedObject.getProperty(traits.key("contentType"));
+		return wrappedObject.getProperty(traits.key(ContentTraitDefinition.CONTENT_TYPE_PROPERTY));
 	}
 
 	@Override

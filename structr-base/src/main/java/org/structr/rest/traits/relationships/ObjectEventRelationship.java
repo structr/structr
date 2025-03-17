@@ -38,7 +38,7 @@ import java.util.Set;
 public class ObjectEventRelationship extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public ObjectEventRelationship() {
-		super("ObjectEventRelationship");
+		super(StructrTraits.OBJECT_EVENT_RELATIONSHIP);
 	}
 
 	@Override
@@ -48,7 +48,7 @@ public class ObjectEventRelationship extends AbstractRelationshipTraitDefinition
 
 	@Override
 	public String getSourceType() {
-		return "LogEvent";
+		return StructrTraits.LOG_EVENT;
 	}
 
 	@Override

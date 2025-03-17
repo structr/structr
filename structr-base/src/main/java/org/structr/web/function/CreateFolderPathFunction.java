@@ -50,8 +50,6 @@ public class CreateFolderPathFunction extends UiAdvancedFunction {
 		if (sources != null && sources.length > 0) {
 
 			final SecurityContext securityContext = ctx.getSecurityContext();
-			final ConfigurationProvider config = StructrApp.getConfiguration();
-			PropertyMap propertyMap;
 			String path = null;
 
 			// extension for native JavaScript objects

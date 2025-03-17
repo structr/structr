@@ -35,7 +35,9 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.LocalizationTraitDefinition;
+import org.structr.core.traits.definitions.MailTemplateTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.SchemaNodeTraitDefinition;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
@@ -43,6 +45,11 @@ import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.FileTraitDefinition;
+import org.structr.web.traits.definitions.LinkableTraitDefinition;
+import org.structr.web.traits.definitions.dom.ContentTraitDefinition;
+import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -89,7 +96,7 @@ public class Deployment2Test extends DeploymentTestBase {
 			final DOMElement div1  = createElement(page, body, "div");
 
 			final Content content = createContent(page, div1, "<b>Test</b>");
-			content.setProperty(Traits.of(StructrTraits.CONTENT).key("contentType"), "text/html");
+			content.setProperty(Traits.of(StructrTraits.CONTENT).key(ContentTraitDefinition.CONTENT_TYPE_PROPERTY), "text/html");
 
 			// create grants
 			page.as(AccessControllable.class).grant(Permission.read, user2);
@@ -210,8 +217,8 @@ public class Deployment2Test extends DeploymentTestBase {
 		try (final Tx tx = app.tx()) {
 
 			// create some files and folders
-			final NodeInterface folder1  = app.create(StructrTraits.FOLDER, new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Folder1"), new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key("includeInFrontendExport"), true));
-			final NodeInterface folder2  = app.create(StructrTraits.FOLDER, new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Folder2"), new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key("parent"), folder1));
+			final NodeInterface folder1  = app.create(StructrTraits.FOLDER, new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Folder1"), new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY), true));
+			final NodeInterface folder2  = app.create(StructrTraits.FOLDER, new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Folder2"), new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.PARENT_PROPERTY), folder1));
 
 			final NodeInterface file1  = FileHelper.createFile(securityContext, "test".getBytes(), "text/plain", StructrTraits.FILE, "test1.txt", true);
 			final NodeInterface file2  = FileHelper.createFile(securityContext, "test".getBytes(), "text/plain", StructrTraits.FILE, "test2.txt", true);
@@ -279,9 +286,9 @@ public class Deployment2Test extends DeploymentTestBase {
 			final Content content2 = createContent(page, div1, "${find('User', 'name', '@structr')[0].id}");
 			final Content content3 = createContent(page, div1, "${find('User', 'name', '@structr')[0].id}");
 
-			content1.setProperty(Traits.of(StructrTraits.DOM_NODE).key("showConditions"), "eq(current.type, 'MyTestFolder')");
-			content2.setProperty(Traits.of(StructrTraits.DOM_NODE).key("showConditions"), "if(equal(extract(first(find('User', 'name' 'structr')), 'name'), '@structr'), true, false)");
-			content3.setProperty(Traits.of(StructrTraits.DOM_NODE).key("showConditions"), "(((((([]))))))"); // for testing only
+			content1.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.SHOW_CONDITIONS_PROPERTY), "eq(current.type, 'MyTestFolder')");
+			content2.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.SHOW_CONDITIONS_PROPERTY), "if(equal(extract(first(find('User', 'name' 'structr')), 'name'), '@structr'), true, false)");
+			content3.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.SHOW_CONDITIONS_PROPERTY), "(((((([]))))))"); // for testing only
 
 			tx.success();
 
@@ -308,13 +315,13 @@ public class Deployment2Test extends DeploymentTestBase {
 			// create extended folder class
 			app.create(StructrTraits.SCHEMA_NODE,
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "ExtendedFolder"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key("inheritedTraits"), new String[] { StructrTraits.FOLDER })
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key(SchemaNodeTraitDefinition.INHERITED_TRAITS_PROPERTY), new String[] { StructrTraits.FOLDER })
 			);
 
 			// create extended file class
 			app.create(StructrTraits.SCHEMA_NODE,
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "ExtendedFile"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key("inheritedTraits"), new String[] { StructrTraits.FILE })
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key(SchemaNodeTraitDefinition.INHERITED_TRAITS_PROPERTY), new String[] { StructrTraits.FILE })
 			);
 
 			tx.success();
@@ -331,17 +338,17 @@ public class Deployment2Test extends DeploymentTestBase {
 			final NodeInterface folder1 = app.create("ExtendedFolder", "folder1");
 			final NodeInterface folder2 = app.create("ExtendedFolder",
 				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "folder2"),
-				new NodeAttribute(Traits.of(StructrTraits.FOLDER).key("parent"), folder1)
+				new NodeAttribute(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.PARENT_PROPERTY), folder1)
 			);
 
 			app.create("ExtendedFile",
 				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "file1.txt"),
-				new NodeAttribute(Traits.of(StructrTraits.FILE).key("parent"), folder1)
+				new NodeAttribute(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY), folder1)
 			);
 
 			app.create("ExtendedFile",
 				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "file2.txt"),
-				new NodeAttribute(Traits.of(StructrTraits.FILE).key("parent"), folder2)
+				new NodeAttribute(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY), folder2)
 			);
 
 			tx.success();
@@ -370,7 +377,7 @@ public class Deployment2Test extends DeploymentTestBase {
 			final DOMElement div1         = createElement(page, body, "div");
 			final Content content1 = createContent(page, div1, "<div><script>var test = '<h3>Title</h3>';</script></div>");
 
-			content1.setProperty(Traits.of(StructrTraits.CONTENT).key("contentType"), "text/html");
+			content1.setProperty(Traits.of(StructrTraits.CONTENT).key(ContentTraitDefinition.CONTENT_TYPE_PROPERTY), "text/html");
 
 			tx.success();
 
@@ -396,13 +403,13 @@ public class Deployment2Test extends DeploymentTestBase {
 
 			file1.setProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
 			file1.setProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
-			file1.setProperty(Traits.of(StructrTraits.FILE).key("enableBasicAuth"), true);
-			file1.setProperty(Traits.of(StructrTraits.FILE).key("useAsJavascriptLibrary"), true);
+			file1.setProperty(Traits.of(StructrTraits.FILE).key(LinkableTraitDefinition.ENABLE_BASIC_AUTH_PROPERTY), true);
+			file1.setProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.USE_AS_JAVASCRIPT_LIBRARY_PROPERTY), true);
 
 			file2.setProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
 			file2.setProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
-			file2.setProperty(Traits.of(StructrTraits.FILE).key("enableBasicAuth"), true);
-			file2.setProperty(Traits.of(StructrTraits.FILE).key("includeInFrontendExport"), true);
+			file2.setProperty(Traits.of(StructrTraits.FILE).key(LinkableTraitDefinition.ENABLE_BASIC_AUTH_PROPERTY), true);
+			file2.setProperty(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY), true);
 
 			tx.success();
 
@@ -425,15 +432,15 @@ public class Deployment2Test extends DeploymentTestBase {
 
 			assertTrue("Deployment import does not restore attributes correctly",  file1.getProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY)));
 			assertTrue("Deployment import does not restore attributes correctly",  file1.getProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY)));
-			assertTrue("Deployment import does not restore attributes correctly",  file1.getProperty(Traits.of(StructrTraits.FILE).key("enableBasicAuth")));
-			assertTrue("Deployment import does not restore attributes correctly",  file1.getProperty(Traits.of(StructrTraits.FILE).key("useAsJavascriptLibrary")));
-			assertFalse("Deployment import does not restore attributes correctly", file1.getProperty(Traits.of(StructrTraits.FILE).key("includeInFrontendExport")));
+			assertTrue("Deployment import does not restore attributes correctly",  file1.getProperty(Traits.of(StructrTraits.FILE).key(LinkableTraitDefinition.ENABLE_BASIC_AUTH_PROPERTY)));
+			assertTrue("Deployment import does not restore attributes correctly",  file1.getProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.USE_AS_JAVASCRIPT_LIBRARY_PROPERTY)));
+			assertFalse("Deployment import does not restore attributes correctly", file1.getProperty(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY)));
 
 			assertTrue("Deployment import does not restore attributes correctly",  file2.getProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY)));
 			assertTrue("Deployment import does not restore attributes correctly",  file2.getProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY)));
-			assertTrue("Deployment import does not restore attributes correctly",  file2.getProperty(Traits.of(StructrTraits.FILE).key("enableBasicAuth")));
-			assertFalse("Deployment import does not restore attributes correctly", file2.getProperty(Traits.of(StructrTraits.FILE).key("useAsJavascriptLibrary")));
-			assertTrue("Deployment import does not restore attributes correctly" , file2.getProperty(Traits.of(StructrTraits.FILE).key("includeInFrontendExport")));
+			assertTrue("Deployment import does not restore attributes correctly",  file2.getProperty(Traits.of(StructrTraits.FILE).key(LinkableTraitDefinition.ENABLE_BASIC_AUTH_PROPERTY)));
+			assertFalse("Deployment import does not restore attributes correctly", file2.getProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.USE_AS_JAVASCRIPT_LIBRARY_PROPERTY)));
+			assertTrue("Deployment import does not restore attributes correctly" , file2.getProperty(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY)));
 
 			tx.success();
 
@@ -449,16 +456,16 @@ public class Deployment2Test extends DeploymentTestBase {
 		try (final Tx tx = app.tx()) {
 
 			app.create(StructrTraits.MAIL_TEMPLATE,
-				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),   "template1"),
-				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key("locale"), "de_DE"),
-				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key("text"),   "text1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),                  "template1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key(MailTemplateTraitDefinition.LOCALE_PROPERTY),                 "de_DE"),
+				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key(MailTemplateTraitDefinition.TEXT_PROPERTY),                   "text1"),
 				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)
 			);
 
 			app.create(StructrTraits.MAIL_TEMPLATE,
-				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),   "template2"),
-				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key("locale"), "en"),
-				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key("text"),   "text2"),
+				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),                         "template2"),
+				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key(MailTemplateTraitDefinition.LOCALE_PROPERTY),                        "en"),
+				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key(MailTemplateTraitDefinition.TEXT_PROPERTY),                          "text2"),
 				new NodeAttribute<>(Traits.of(StructrTraits.MAIL_TEMPLATE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true)
 			);
 
@@ -482,14 +489,14 @@ public class Deployment2Test extends DeploymentTestBase {
 			assertNotNull("Invalid deployment result", template2);
 
 			assertEquals("Invalid MailTemplate deployment result", "template1", template1.getProperty(Traits.of(StructrTraits.MAIL_TEMPLATE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)));
-			assertEquals("Invalid MailTemplate deployment result", "de_DE",     template1.getProperty(Traits.of(StructrTraits.MAIL_TEMPLATE).key("locale")));
-			assertEquals("Invalid MailTemplate deployment result", "text1",     template1.getProperty(Traits.of(StructrTraits.MAIL_TEMPLATE).key("text")));
+			assertEquals("Invalid MailTemplate deployment result", "de_DE",     template1.getProperty(Traits.of(StructrTraits.MAIL_TEMPLATE).key(MailTemplateTraitDefinition.LOCALE_PROPERTY)));
+			assertEquals("Invalid MailTemplate deployment result", "text1",     template1.getProperty(Traits.of(StructrTraits.MAIL_TEMPLATE).key(MailTemplateTraitDefinition.TEXT_PROPERTY)));
 			assertEquals("Invalid MailTemplate deployment result", true,        (boolean)template1.getProperty(Traits.of(StructrTraits.MAIL_TEMPLATE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY)));
 			assertEquals("Invalid MailTemplate deployment result", false,       (boolean)template1.getProperty(Traits.of(StructrTraits.MAIL_TEMPLATE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY)));
 
 			assertEquals("Invalid MailTemplate deployment result", "template2", template2.getProperty(Traits.of(StructrTraits.MAIL_TEMPLATE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)));
-			assertEquals("Invalid MailTemplate deployment result", "en",        template2.getProperty(Traits.of(StructrTraits.MAIL_TEMPLATE).key("locale")));
-			assertEquals("Invalid MailTemplate deployment result", "text2",     template2.getProperty(Traits.of(StructrTraits.MAIL_TEMPLATE).key("text")));
+			assertEquals("Invalid MailTemplate deployment result", "en",        template2.getProperty(Traits.of(StructrTraits.MAIL_TEMPLATE).key(MailTemplateTraitDefinition.LOCALE_PROPERTY)));
+			assertEquals("Invalid MailTemplate deployment result", "text2",     template2.getProperty(Traits.of(StructrTraits.MAIL_TEMPLATE).key(MailTemplateTraitDefinition.TEXT_PROPERTY)));
 			assertEquals("Invalid MailTemplate deployment result", false,       (boolean)template2.getProperty(Traits.of(StructrTraits.MAIL_TEMPLATE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY)));
 			assertEquals("Invalid MailTemplate deployment result", true,        (boolean)template2.getProperty(Traits.of(StructrTraits.MAIL_TEMPLATE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY)));
 

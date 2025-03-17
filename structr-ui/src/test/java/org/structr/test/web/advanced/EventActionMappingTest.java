@@ -39,6 +39,9 @@ import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
+import org.structr.web.traits.definitions.ActionMappingTraitDefinition;
+import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
+import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 import org.testng.annotations.Test;
 
 import java.util.*;
@@ -60,7 +63,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Page page1     = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div    = page1.getElementsByTagName("div").get(0);
@@ -70,22 +73,22 @@ public class EventActionMappingTest extends StructrUiTest {
 			div.appendChild(btn);
 			btn.appendChild(text);
 
-			btn.setProperty(Traits.of("Button").key("_html_id"), "button");
+			btn.setProperty(Traits.of("Button").key(DOMElementTraitDefinition._HTML_ID_PROPERTY), "button");
 
 			uuid = btn.getUuid();
 
 			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.EVENT_PROPERTY), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.ACTION_PROPERTY), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.DATA_TYPE_PROPERTY), "Project");
 
 			// success notifications (possible values are system-alert, inline-text-message, custom-dialog, custom-dialog-linked)
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dialogType"), "okcancel");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dialogTitle"), "example-dialog-title-${me.name}");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dialogText"), "example-dialog-text-${me.name}");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.DIALOG_TYPE_PROPERTY), "okcancel");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.DIALOG_TITLE_PROPERTY), "example-dialog-title-${me.name}");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.DIALOG_TEXT_PROPERTY), "example-dialog-text-${me.name}");
 
 			tx.success();
 
@@ -97,19 +100,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		RestAssured.basePath = "/";
 
-		// test successful basic auth
-		final String html = RestAssured
-			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
-			.expect()
-			.statusCode(200)
-			.when()
-			.get("/html/page1")
-			.andReturn()
-			.body().asString();
-
-		System.out.println(html);
+		final String html = fetchPageHtml("/html/page1");
 
 		final Document doc              = Jsoup.parse(html);
 		final Element button            = doc.getElementById("button");
@@ -120,7 +111,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put("data-structr-event", "click");
 		expectedValues.put("data-structr-action", "create");
 		expectedValues.put("data-structr-target", "Project");
-		expectedValues.put("data-structr-id", uuid);
+		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, uuid);
 
 		expectedValues.put("data-structr-dialog-type", "okcancel");
 		expectedValues.put("data-structr-dialog-title", "example-dialog-title-admin");
@@ -130,7 +121,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
 		expectedNullValues.add("data-structr-id-expression");
-		expectedNullValues.add("data-structr-reload-target");    // reload-target is deprecated, replaced by success-target and failure-target
+		expectedNullValues.add(DOMElementTraitDefinition.DATA_STRUCTR_RELOAD_TARGET_PROPERTY);    // reload-target is deprecated, replaced by success-target and failure-target
 		expectedNullValues.add("data-structr-success-notifications");
 		expectedNullValues.add("data-structr-success-notifications-partial");
 		expectedNullValues.add("data-structr-success-notifications-event");
@@ -157,7 +148,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Page page1     = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div    = page1.getElementsByTagName("div").get(0);
@@ -167,20 +158,20 @@ public class EventActionMappingTest extends StructrUiTest {
 			div.appendChild(btn);
 			btn.appendChild(text);
 
-			btn.setProperty(Traits.of("Button").key("_html_id"), "button");
+			btn.setProperty(Traits.of("Button").key(DOMElementTraitDefinition._HTML_ID_PROPERTY), "button");
 
 			uuid = btn.getUuid();
 
 			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.EVENT_PROPERTY), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.ACTION_PROPERTY), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.DATA_TYPE_PROPERTY), "Project");
 
 			// success notifications (possible values are system-alert, inline-text-message, custom-dialog, custom-dialog-linked)
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successNotifications"), "system-alert");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_PROPERTY), "system-alert");
 
 			tx.success();
 
@@ -192,19 +183,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		RestAssured.basePath = "/";
 
-		// test successful basic auth
-		final String html = RestAssured
-			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
-			.expect()
-			.statusCode(200)
-			.when()
-			.get("/html/page1")
-			.andReturn()
-			.body().asString();
-
-		System.out.println(html);
+		final String html = fetchPageHtml("/html/page1");
 
 		final Document doc   = Jsoup.parse(html);
 		final Element button = doc.getElementById("button");
@@ -215,13 +194,13 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put("data-structr-event", "click");
 		expectedValues.put("data-structr-action", "create");
 		expectedValues.put("data-structr-target", "Project");
-		expectedValues.put("data-structr-id", uuid);
+		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, uuid);
 		expectedValues.put("data-structr-success-notifications", "system-alert");
 
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
 		expectedNullValues.add("data-structr-id-expression");
-		expectedNullValues.add("data-structr-reload-target");    // reload-target is deprecated, replaced by success-target and failure-target
+		expectedNullValues.add(DOMElementTraitDefinition.DATA_STRUCTR_RELOAD_TARGET_PROPERTY);    // reload-target is deprecated, replaced by success-target and failure-target
 		expectedNullValues.add("data-structr-dialog-type");
 		expectedNullValues.add("data-structr-dialog-title");
 		expectedNullValues.add("data-structr-dialog-text");
@@ -253,7 +232,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div  = page1.getElementsByTagName("div").get(0);
@@ -263,20 +242,20 @@ public class EventActionMappingTest extends StructrUiTest {
 			div.appendChild(btn);
 			btn.appendChild(text);
 
-			btn.setProperty(Traits.of("Button").key("_html_id"), "button");
+			btn.setProperty(Traits.of("Button").key(DOMElementTraitDefinition._HTML_ID_PROPERTY), "button");
 
 			uuid = btn.getUuid();
 
 			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.EVENT_PROPERTY), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.ACTION_PROPERTY), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.DATA_TYPE_PROPERTY), "Project");
 
 			// success notifications (possible values are system-alert, inline-text-message, custom-dialog, custom-dialog-linked)
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successNotifications"), "inline-text-message");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_PROPERTY), "inline-text-message");
 
 			tx.success();
 
@@ -288,19 +267,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		RestAssured.basePath = "/";
 
-		// test successful basic auth
-		final String html = RestAssured
-			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
-			.expect()
-			.statusCode(200)
-			.when()
-			.get("/html/page1")
-			.andReturn()
-			.body().asString();
-
-		System.out.println(html);
+		final String html = fetchPageHtml("/html/page1");
 
 		final Document doc   = Jsoup.parse(html);
 		final Element button = doc.getElementById("button");
@@ -311,13 +278,13 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put("data-structr-event", "click");
 		expectedValues.put("data-structr-action", "create");
 		expectedValues.put("data-structr-target", "Project");
-		expectedValues.put("data-structr-id", uuid);
+		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, uuid);
 		expectedValues.put("data-structr-success-notifications", "inline-text-message");
 
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
 		expectedNullValues.add("data-structr-id-expression");
-		expectedNullValues.add("data-structr-reload-target");    // reload-target is deprecated, replaced by success-target and failure-target
+		expectedNullValues.add(DOMElementTraitDefinition.DATA_STRUCTR_RELOAD_TARGET_PROPERTY);    // reload-target is deprecated, replaced by success-target and failure-target
 		expectedNullValues.add("data-structr-dialog-type");
 		expectedNullValues.add("data-structr-dialog-title");
 		expectedNullValues.add("data-structr-dialog-text");
@@ -345,13 +312,13 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testSuccessNotificationAttributesForCustomLinkedDialog() {
 
-		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key(DOMElementTraitDefinition._HTML_ID_PROPERTY);
 		String buttonUuid                   = null;
 		String notificationUuid             = null;
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Page page1     = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div    = page1.getElementsByTagName("div").get(0);
@@ -372,14 +339,14 @@ public class EventActionMappingTest extends StructrUiTest {
 			notificationUuid = notificationElement.getUuid();
 
 			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);// base setup
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.EVENT_PROPERTY), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.ACTION_PROPERTY), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.DATA_TYPE_PROPERTY), "Project");
 
 			// success notifications (possible values are system-alert, inline-text-message, custom-dialog, custom-dialog-linked)
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successNotifications"), "custom-dialog-linked");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successNotificationElements"), List.of(notificationElement));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_PROPERTY), "custom-dialog-linked");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.SUCCESS_NOTIFICATION_ELEMENTS_PROPERTY), List.of(notificationElement));
 
 			tx.success();
 
@@ -391,19 +358,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		RestAssured.basePath = "/";
 
-		// test successful basic auth
-		final String html = RestAssured
-			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
-			.expect()
-			.statusCode(200)
-			.when()
-			.get("/html/page1")
-			.andReturn()
-			.body().asString();
-
-		System.out.println(html);
+		final String html = fetchPageHtml("/html/page1");
 
 		final Document doc   = Jsoup.parse(html);
 		final Element button = doc.getElementById("button");
@@ -414,7 +369,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put("data-structr-event", "click");
 		expectedValues.put("data-structr-action", "create");
 		expectedValues.put("data-structr-target", "Project");
-		expectedValues.put("data-structr-id", buttonUuid);
+		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, buttonUuid);
 		expectedValues.put("data-structr-success-notifications", "custom-dialog-linked");
 		expectedValues.put("data-structr-success-notifications-custom-dialog-element", "[data-structr-id='" + notificationUuid + "']");
 
@@ -422,7 +377,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
 		expectedNullValues.add("data-structr-id-expression");
-		expectedNullValues.add("data-structr-reload-target");    // reload-target is deprecated, replaced by success-target and failure-target
+		expectedNullValues.add(DOMElementTraitDefinition.DATA_STRUCTR_RELOAD_TARGET_PROPERTY);    // reload-target is deprecated, replaced by success-target and failure-target
 		expectedNullValues.add("data-structr-dialog-type");
 		expectedNullValues.add("data-structr-dialog-title");
 		expectedNullValues.add("data-structr-dialog-text");
@@ -450,12 +405,12 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testSuccessNotificationAttributesForCustomDialog() {
 
-		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key(DOMElementTraitDefinition._HTML_ID_PROPERTY);
 		String buttonUuid                   = null;
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div  = page1.getElementsByTagName("div").get(0);
@@ -476,14 +431,14 @@ public class EventActionMappingTest extends StructrUiTest {
 			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.EVENT_PROPERTY), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.ACTION_PROPERTY), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.DATA_TYPE_PROPERTY), "Project");
 
 			// success notifications (possible values are system-alert, inline-text-message, custom-dialog, custom-dialog-linked)
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successNotifications"), "custom-dialog");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successNotificationsPartial"), "#notification-element");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_PROPERTY), "custom-dialog");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_PARTIAL_PROPERTY), "#notification-element");
 
 			tx.success();
 
@@ -495,19 +450,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		RestAssured.basePath = "/";
 
-		// test successful basic auth
-		final String html = RestAssured
-			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
-			.expect()
-			.statusCode(200)
-			.when()
-			.get("/html/page1")
-			.andReturn()
-			.body().asString();
-
-		System.out.println(html);
+		final String html = fetchPageHtml("/html/page1");
 
 		final Document doc   = Jsoup.parse(html);
 		final Element button = doc.getElementById("button");
@@ -518,7 +461,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put("data-structr-event", "click");
 		expectedValues.put("data-structr-action", "create");
 		expectedValues.put("data-structr-target", "Project");
-		expectedValues.put("data-structr-id", buttonUuid);
+		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, buttonUuid);
 		expectedValues.put("data-structr-success-notifications", "custom-dialog");
 		expectedValues.put("data-structr-success-notifications-partial", "#notification-element");
 
@@ -526,7 +469,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
 		expectedNullValues.add("data-structr-id-expression");
-		expectedNullValues.add("data-structr-reload-target");    // reload-target is deprecated, replaced by success-target and failure-target
+		expectedNullValues.add(DOMElementTraitDefinition.DATA_STRUCTR_RELOAD_TARGET_PROPERTY);    // reload-target is deprecated, replaced by success-target and failure-target
 		expectedNullValues.add("data-structr-dialog-type");
 		expectedNullValues.add("data-structr-dialog-title");
 		expectedNullValues.add("data-structr-dialog-text");
@@ -554,12 +497,12 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testSuccessNotificationAttributesForEvent() {
 
-		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key(DOMElementTraitDefinition._HTML_ID_PROPERTY);
 		String buttonUuid                   = null;
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div  = page1.getElementsByTagName("div").get(0);
@@ -576,14 +519,14 @@ public class EventActionMappingTest extends StructrUiTest {
 			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.EVENT_PROPERTY), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.ACTION_PROPERTY), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.DATA_TYPE_PROPERTY), "Project");
 
 			// success notifications (possible values are system-alert, inline-text-message, custom-dialog, custom-dialog-linked, fire-event)
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successNotifications"), "fire-event");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successNotificationsEvent"), "success-notification-event");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_PROPERTY), "fire-event");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_EVENT_PROPERTY), "success-notification-event");
 
 			tx.success();
 
@@ -595,19 +538,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		RestAssured.basePath = "/";
 
-		// test successful basic auth
-		final String html = RestAssured
-			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
-			.expect()
-			.statusCode(200)
-			.when()
-			.get("/html/page1")
-			.andReturn()
-			.body().asString();
-
-		System.out.println(html);
+		final String html = fetchPageHtml("/html/page1");
 
 		final Document doc   = Jsoup.parse(html);
 		final Element button = doc.getElementById("button");
@@ -618,7 +549,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put("data-structr-event", "click");
 		expectedValues.put("data-structr-action", "create");
 		expectedValues.put("data-structr-target", "Project");
-		expectedValues.put("data-structr-id", buttonUuid);
+		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, buttonUuid);
 		expectedValues.put("data-structr-success-notifications", "fire-event");
 		expectedValues.put("data-structr-success-notifications-event", "success-notification-event");
 
@@ -626,7 +557,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
 		expectedNullValues.add("data-structr-id-expression");
-		expectedNullValues.add("data-structr-reload-target");    // reload-target is deprecated, replaced by success-target and failure-target
+		expectedNullValues.add(DOMElementTraitDefinition.DATA_STRUCTR_RELOAD_TARGET_PROPERTY);    // reload-target is deprecated, replaced by success-target and failure-target
 		expectedNullValues.add("data-structr-dialog-type");
 		expectedNullValues.add("data-structr-dialog-title");
 		expectedNullValues.add("data-structr-dialog-text");
@@ -650,6 +581,7 @@ public class EventActionMappingTest extends StructrUiTest {
 			assertEquals("Wrong value for EAM attribute " + key, null, attrs.get(key));
 		}
 	}
+
 	@Test
 	public void testFailureNotificationAttributesForSystemAlert() {
 
@@ -657,7 +589,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div  = page1.getElementsByTagName("div").get(0);
@@ -667,20 +599,20 @@ public class EventActionMappingTest extends StructrUiTest {
 			div.appendChild(btn);
 			btn.appendChild(text);
 
-			btn.setProperty(Traits.of("Button").key("_html_id"), "button");
+			btn.setProperty(Traits.of("Button").key(DOMElementTraitDefinition._HTML_ID_PROPERTY), "button");
 
 			uuid = btn.getUuid();
 
 			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.EVENT_PROPERTY), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.ACTION_PROPERTY), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.DATA_TYPE_PROPERTY), "Project");
 
 			// failure notifications (possible values are system-alert, inline-text-message, custom-dialog, custom-dialog-linked)
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failureNotifications"), "system-alert");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_PROPERTY), "system-alert");
 
 			tx.success();
 
@@ -692,19 +624,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		RestAssured.basePath = "/";
 
-		// test successful basic auth
-		final String html = RestAssured
-			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
-			.expect()
-			.statusCode(200)
-			.when()
-			.get("/html/page1")
-			.andReturn()
-			.body().asString();
-
-		System.out.println(html);
+		final String html = fetchPageHtml("/html/page1");
 
 		final Document doc   = Jsoup.parse(html);
 		final Element button = doc.getElementById("button");
@@ -715,13 +635,13 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put("data-structr-event", "click");
 		expectedValues.put("data-structr-action", "create");
 		expectedValues.put("data-structr-target", "Project");
-		expectedValues.put("data-structr-id", uuid);
+		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, uuid);
 		expectedValues.put("data-structr-failure-notifications", "system-alert");
 
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
 		expectedNullValues.add("data-structr-id-expression");
-		expectedNullValues.add("data-structr-reload-target");    // reload-target is deprecated, replaced by success-target and failure-target
+		expectedNullValues.add(DOMElementTraitDefinition.DATA_STRUCTR_RELOAD_TARGET_PROPERTY);    // reload-target is deprecated, replaced by success-target and failure-target
 		expectedNullValues.add("data-structr-dialog-type");
 		expectedNullValues.add("data-structr-dialog-title");
 		expectedNullValues.add("data-structr-dialog-text");
@@ -753,7 +673,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div  = page1.getElementsByTagName("div").get(0);
@@ -763,20 +683,20 @@ public class EventActionMappingTest extends StructrUiTest {
 			div.appendChild(btn);
 			btn.appendChild(text);
 
-			btn.setProperty(Traits.of("Button").key("_html_id"), "button");
+			btn.setProperty(Traits.of("Button").key(DOMElementTraitDefinition._HTML_ID_PROPERTY), "button");
 
 			uuid = btn.getUuid();
 
 			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.EVENT_PROPERTY), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.ACTION_PROPERTY), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.DATA_TYPE_PROPERTY), "Project");
 
 			// failure notifications (possible values are system-alert, inline-text-message, custom-dialog, custom-dialog-linked)
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failureNotifications"), "inline-text-message");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_PROPERTY), "inline-text-message");
 
 			tx.success();
 
@@ -788,19 +708,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		RestAssured.basePath = "/";
 
-		// test successful basic auth
-		final String html = RestAssured
-			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
-			.expect()
-			.statusCode(200)
-			.when()
-			.get("/html/page1")
-			.andReturn()
-			.body().asString();
-
-		System.out.println(html);
+		final String html = fetchPageHtml("/html/page1");
 
 		final Document doc   = Jsoup.parse(html);
 		final Element button = doc.getElementById("button");
@@ -811,13 +719,13 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put("data-structr-event", "click");
 		expectedValues.put("data-structr-action", "create");
 		expectedValues.put("data-structr-target", "Project");
-		expectedValues.put("data-structr-id", uuid);
+		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, uuid);
 		expectedValues.put("data-structr-failure-notifications", "inline-text-message");
 
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
 		expectedNullValues.add("data-structr-id-expression");
-		expectedNullValues.add("data-structr-reload-target");    // reload-target is deprecated, replaced by success-target and failure-target
+		expectedNullValues.add(DOMElementTraitDefinition.DATA_STRUCTR_RELOAD_TARGET_PROPERTY);    // reload-target is deprecated, replaced by success-target and failure-target
 		expectedNullValues.add("data-structr-dialog-type");
 		expectedNullValues.add("data-structr-dialog-title");
 		expectedNullValues.add("data-structr-dialog-text");
@@ -845,13 +753,13 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testFailureNotificationAttributesForCustomLinkedDialog() {
 
-		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key(DOMElementTraitDefinition._HTML_ID_PROPERTY);
 		String buttonUuid                   = null;
 		String notificationUuid             = null;
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div  = page1.getElementsByTagName("div").get(0);
@@ -874,14 +782,14 @@ public class EventActionMappingTest extends StructrUiTest {
 			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.EVENT_PROPERTY), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.ACTION_PROPERTY), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.DATA_TYPE_PROPERTY), "Project");
 
 			// failure notifications (possible values are system-alert, inline-text-message, custom-dialog, custom-dialog-linked)
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failureNotifications"), "custom-dialog-linked");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failureNotificationElements"), List.of(notificationElement));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_PROPERTY), "custom-dialog-linked");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.FAILURE_NOTIFICATION_ELEMENTS_PROPERTY), List.of(notificationElement));
 
 			tx.success();
 
@@ -893,19 +801,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		RestAssured.basePath = "/";
 
-		// test successful basic auth
-		final String html = RestAssured
-			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
-			.expect()
-			.statusCode(200)
-			.when()
-			.get("/html/page1")
-			.andReturn()
-			.body().asString();
-
-		System.out.println(html);
+		final String html = fetchPageHtml("/html/page1");
 
 		final Document doc   = Jsoup.parse(html);
 		final Element button = doc.getElementById("button");
@@ -916,7 +812,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put("data-structr-event", "click");
 		expectedValues.put("data-structr-action", "create");
 		expectedValues.put("data-structr-target", "Project");
-		expectedValues.put("data-structr-id", buttonUuid);
+		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, buttonUuid);
 		expectedValues.put("data-structr-failure-notifications", "custom-dialog-linked");
 		expectedValues.put("data-structr-failure-notifications-custom-dialog-element", "[data-structr-id='" + notificationUuid + "']");
 
@@ -924,7 +820,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
 		expectedNullValues.add("data-structr-id-expression");
-		expectedNullValues.add("data-structr-reload-target");    // reload-target is deprecated, replaced by success-target and failure-target
+		expectedNullValues.add(DOMElementTraitDefinition.DATA_STRUCTR_RELOAD_TARGET_PROPERTY);    // reload-target is deprecated, replaced by success-target and failure-target
 		expectedNullValues.add("data-structr-dialog-type");
 		expectedNullValues.add("data-structr-dialog-title");
 		expectedNullValues.add("data-structr-dialog-text");
@@ -952,12 +848,12 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testFailureNotificationAttributesForEvent() {
 
-		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key(DOMElementTraitDefinition._HTML_ID_PROPERTY);
 		String buttonUuid                   = null;
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div  = page1.getElementsByTagName("div").get(0);
@@ -974,14 +870,14 @@ public class EventActionMappingTest extends StructrUiTest {
 			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.EVENT_PROPERTY), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.ACTION_PROPERTY), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.DATA_TYPE_PROPERTY), "Project");
 
 			// failure notifications (possible values are system-alert, inline-text-message, custom-dialog, custom-dialog-linked)
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failureNotifications"), "fire-event");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failureNotificationsEvent"), "failure-notification-event");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_PROPERTY), "fire-event");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_EVENT_PROPERTY), "failure-notification-event");
 
 			tx.success();
 
@@ -993,19 +889,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		RestAssured.basePath = "/";
 
-		// test successful basic auth
-		final String html = RestAssured
-			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
-			.expect()
-			.statusCode(200)
-			.when()
-			.get("/html/page1")
-			.andReturn()
-			.body().asString();
-
-		System.out.println(html);
+		final String html = fetchPageHtml("/html/page1");
 
 		final Document doc   = Jsoup.parse(html);
 		final Element button = doc.getElementById("button");
@@ -1016,7 +900,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put("data-structr-event", "click");
 		expectedValues.put("data-structr-action", "create");
 		expectedValues.put("data-structr-target", "Project");
-		expectedValues.put("data-structr-id", buttonUuid);
+		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, buttonUuid);
 		expectedValues.put("data-structr-failure-notifications", "fire-event");
 		expectedValues.put("data-structr-failure-notifications-event", "failure-notification-event");
 
@@ -1024,7 +908,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
 		expectedNullValues.add("data-structr-id-expression");
-		expectedNullValues.add("data-structr-reload-target");    // reload-target is deprecated, replaced by success-target and failure-target
+		expectedNullValues.add(DOMElementTraitDefinition.DATA_STRUCTR_RELOAD_TARGET_PROPERTY);    // reload-target is deprecated, replaced by success-target and failure-target
 		expectedNullValues.add("data-structr-dialog-type");
 		expectedNullValues.add("data-structr-dialog-title");
 		expectedNullValues.add("data-structr-dialog-text");
@@ -1052,12 +936,12 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testFailureNotificationAttributesForCustomDialog() {
 
-		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key(DOMElementTraitDefinition._HTML_ID_PROPERTY);
 		String buttonUuid                   = null;
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div  = page1.getElementsByTagName("div").get(0);
@@ -1078,14 +962,14 @@ public class EventActionMappingTest extends StructrUiTest {
 			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.EVENT_PROPERTY), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.ACTION_PROPERTY), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.DATA_TYPE_PROPERTY), "Project");
 
 			// failure notifications (possible values are system-alert, inline-text-message, custom-dialog, custom-dialog-linked)
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failureNotifications"), "custom-dialog");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failureNotificationsPartial"), "#notification-element");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_PROPERTY), "custom-dialog");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_PARTIAL_PROPERTY), "#notification-element");
 
 			tx.success();
 
@@ -1097,19 +981,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		RestAssured.basePath = "/";
 
-		// test successful basic auth
-		final String html = RestAssured
-			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
-			.expect()
-			.statusCode(200)
-			.when()
-			.get("/html/page1")
-			.andReturn()
-			.body().asString();
-
-		System.out.println(html);
+		final String html = fetchPageHtml("/html/page1");
 
 		final Document doc   = Jsoup.parse(html);
 		final Element button = doc.getElementById("button");
@@ -1120,7 +992,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put("data-structr-event", "click");
 		expectedValues.put("data-structr-action", "create");
 		expectedValues.put("data-structr-target", "Project");
-		expectedValues.put("data-structr-id", buttonUuid);
+		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, buttonUuid);
 		expectedValues.put("data-structr-failure-notifications", "custom-dialog");
 		expectedValues.put("data-structr-failure-notifications-partial", "#notification-element");
 
@@ -1128,7 +1000,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
 		expectedNullValues.add("data-structr-id-expression");
-		expectedNullValues.add("data-structr-reload-target");    // reload-target is deprecated, replaced by success-target and failure-target
+		expectedNullValues.add(DOMElementTraitDefinition.DATA_STRUCTR_RELOAD_TARGET_PROPERTY);    // reload-target is deprecated, replaced by success-target and failure-target
 		expectedNullValues.add("data-structr-dialog-type");
 		expectedNullValues.add("data-structr-dialog-title");
 		expectedNullValues.add("data-structr-dialog-text");
@@ -1159,7 +1031,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div  = page1.getElementsByTagName("div").get(0);
@@ -1169,21 +1041,21 @@ public class EventActionMappingTest extends StructrUiTest {
 			div.appendChild(btn);
 			btn.appendChild(text);
 
-			btn.setProperty(Traits.of("Button").key("_html_id"), "button");
+			btn.setProperty(Traits.of("Button").key(DOMElementTraitDefinition._HTML_ID_PROPERTY), "button");
 
 			uuid = btn.getUuid();
 
 			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.EVENT_PROPERTY), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.ACTION_PROPERTY), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.DATA_TYPE_PROPERTY), "Project");
 
-			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, naviate-to-url, fire-event, full-page-reload, sign-out, none)
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successBehaviour"), "partial-refresh");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successPartial"), "#name-of-success-partial");
+			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, navigate-to-url, fire-event, full-page-reload, sign-out, none)
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.SUCCESS_BEHAVIOUR_PROPERTY), "partial-refresh");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.SUCCESS_PARTIAL_PROPERTY), "#name-of-success-partial");
 
 			tx.success();
 
@@ -1195,19 +1067,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		RestAssured.basePath = "/";
 
-		// test successful basic auth
-		final String html = RestAssured
-			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
-			.expect()
-			.statusCode(200)
-			.when()
-			.get("/html/page1")
-			.andReturn()
-			.body().asString();
-
-		System.out.println(html);
+		final String html = fetchPageHtml("/html/page1");
 
 		final Document doc   = Jsoup.parse(html);
 		final Element button = doc.getElementById("button");
@@ -1218,7 +1078,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put("data-structr-event", "click");
 		expectedValues.put("data-structr-action", "create");
 		expectedValues.put("data-structr-target", "Project");
-		expectedValues.put("data-structr-id", uuid);
+		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, uuid);
 
 		expectedValues.put("data-structr-success-target", "#name-of-success-partial");
 
@@ -1227,7 +1087,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
 		expectedNullValues.add("data-structr-id-expression");
-		expectedNullValues.add("data-structr-reload-target");    // reload-target is deprecated, replaced by success-target and failure-target
+		expectedNullValues.add(DOMElementTraitDefinition.DATA_STRUCTR_RELOAD_TARGET_PROPERTY);    // reload-target is deprecated, replaced by success-target and failure-target
 		expectedNullValues.add("data-structr-dialog-type");
 		expectedNullValues.add("data-structr-dialog-title");
 		expectedNullValues.add("data-structr-dialog-text");
@@ -1255,13 +1115,13 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testSuccessBehaviourAttributesForLinkedPartialReload() {
 
-		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key(DOMElementTraitDefinition._HTML_ID_PROPERTY);
 		String buttonUuid                   = null;
 		String divUuid                      = null;
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div      = page1.getElementsByTagName("div").get(0);
@@ -1280,14 +1140,14 @@ public class EventActionMappingTest extends StructrUiTest {
 			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.EVENT_PROPERTY), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.ACTION_PROPERTY), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.DATA_TYPE_PROPERTY), "Project");
 
-			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, naviate-to-url, fire-event, full-page-reload, sign-out, none)
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successBehaviour"), "partial-refresh-linked");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successTargets"), List.of(div));
+			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, navigate-to-url, fire-event, full-page-reload, sign-out, none)
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.SUCCESS_BEHAVIOUR_PROPERTY), "partial-refresh-linked");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.SUCCESS_TARGETS_PROPERTY), List.of(div));
 
 			tx.success();
 
@@ -1299,19 +1159,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		RestAssured.basePath = "/";
 
-		// test successful basic auth
-		final String html = RestAssured
-			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
-			.expect()
-			.statusCode(200)
-			.when()
-			.get("/html/page1")
-			.andReturn()
-			.body().asString();
-
-		System.out.println(html);
+		final String html = fetchPageHtml("/html/page1");
 
 		final Document doc    = Jsoup.parse(html);
 		final Element div     = doc.getElementById("parent-container");
@@ -1323,7 +1171,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put("data-structr-event", "click");
 		expectedValues.put("data-structr-action", "create");
 		expectedValues.put("data-structr-target", "Project");
-		expectedValues.put("data-structr-id", buttonUuid);
+		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, buttonUuid);
 
 		expectedValues.put("data-structr-success-target", "[data-structr-id='" + divUuid + "']");
 
@@ -1332,7 +1180,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
 		expectedNullValues.add("data-structr-id-expression");
-		expectedNullValues.add("data-structr-reload-target");    // reload-target is deprecated, replaced by success-target and failure-target
+		expectedNullValues.add(DOMElementTraitDefinition.DATA_STRUCTR_RELOAD_TARGET_PROPERTY);    // reload-target is deprecated, replaced by success-target and failure-target
 		expectedNullValues.add("data-structr-dialog-type");
 		expectedNullValues.add("data-structr-dialog-title");
 		expectedNullValues.add("data-structr-dialog-text");
@@ -1360,18 +1208,18 @@ public class EventActionMappingTest extends StructrUiTest {
 		final Map<String, String> divAttrs = getAttributes(div);
 
 		// reload target must have data-structr-id attribute
-		assertEquals("Wrong value for EAM attribute data-structr-id on reload target", divUuid, divAttrs.get("data-structr-id"));
+		assertEquals("Wrong value for EAM attribute data-structr-id on reload target", divUuid, divAttrs.get(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY));
 	}
 
 	@Test
 	public void testSuccessBehaviourAttributesForURL() {
 
-		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key(DOMElementTraitDefinition._HTML_ID_PROPERTY);
 		String buttonUuid                   = null;
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div      = page1.getElementsByTagName("div").get(0);
@@ -1389,14 +1237,14 @@ public class EventActionMappingTest extends StructrUiTest {
 			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.EVENT_PROPERTY), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.ACTION_PROPERTY), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.DATA_TYPE_PROPERTY), "Project");
 
-			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, naviate-to-url, fire-event, full-page-reload, sign-out, none)
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successBehaviour"), "navigate-to-url");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successURL"), "/success");
+			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, navigate-to-url, fire-event, full-page-reload, sign-out, none)
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.SUCCESS_BEHAVIOUR_PROPERTY), "navigate-to-url");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.SUCCESS_URL_PROPERTY), "/success");
 
 			tx.success();
 
@@ -1408,19 +1256,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		RestAssured.basePath = "/";
 
-		// test successful basic auth
-		final String html = RestAssured
-			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
-			.expect()
-			.statusCode(200)
-			.when()
-			.get("/html/page1")
-			.andReturn()
-			.body().asString();
-
-		System.out.println(html);
+		final String html = fetchPageHtml("/html/page1");
 
 		final Document doc    = Jsoup.parse(html);
 		final Element div     = doc.getElementById("parent-container");
@@ -1432,7 +1268,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put("data-structr-event", "click");
 		expectedValues.put("data-structr-action", "create");
 		expectedValues.put("data-structr-target", "Project");
-		expectedValues.put("data-structr-id", buttonUuid);
+		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, buttonUuid);
 
 		expectedValues.put("data-structr-success-target", "url:/success");
 
@@ -1441,7 +1277,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
 		expectedNullValues.add("data-structr-id-expression");
-		expectedNullValues.add("data-structr-reload-target");    // reload-target is deprecated, replaced by success-target and failure-target
+		expectedNullValues.add(DOMElementTraitDefinition.DATA_STRUCTR_RELOAD_TARGET_PROPERTY);    // reload-target is deprecated, replaced by success-target and failure-target
 		expectedNullValues.add("data-structr-dialog-type");
 		expectedNullValues.add("data-structr-dialog-title");
 		expectedNullValues.add("data-structr-dialog-text");
@@ -1469,12 +1305,12 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testSuccessBehaviourAttributesForEvent() {
 
-		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key(DOMElementTraitDefinition._HTML_ID_PROPERTY);
 		String buttonUuid                   = null;
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div      = page1.getElementsByTagName("div").get(0);
@@ -1492,14 +1328,14 @@ public class EventActionMappingTest extends StructrUiTest {
 			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.EVENT_PROPERTY), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.ACTION_PROPERTY), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.DATA_TYPE_PROPERTY), "Project");
 
-			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, naviate-to-url, fire-event, full-page-reload, sign-out, none)
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successBehaviour"), "fire-event");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successEvent"), "success-event");
+			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, navigate-to-url, fire-event, full-page-reload, sign-out, none)
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.SUCCESS_BEHAVIOUR_PROPERTY), "fire-event");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.SUCCESS_EVENT_PROPERTY), "success-event");
 
 			tx.success();
 
@@ -1511,19 +1347,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		RestAssured.basePath = "/";
 
-		// test successful basic auth
-		final String html = RestAssured
-			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
-			.expect()
-			.statusCode(200)
-			.when()
-			.get("/html/page1")
-			.andReturn()
-			.body().asString();
-
-		System.out.println(html);
+		final String html = fetchPageHtml("/html/page1");
 
 		final Document doc    = Jsoup.parse(html);
 		final Element div     = doc.getElementById("parent-container");
@@ -1535,7 +1359,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put("data-structr-event", "click");
 		expectedValues.put("data-structr-action", "create");
 		expectedValues.put("data-structr-target", "Project");
-		expectedValues.put("data-structr-id", buttonUuid);
+		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, buttonUuid);
 
 		expectedValues.put("data-structr-success-target", "event:success-event");
 
@@ -1544,7 +1368,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
 		expectedNullValues.add("data-structr-id-expression");
-		expectedNullValues.add("data-structr-reload-target");    // reload-target is deprecated, replaced by success-target and failure-target
+		expectedNullValues.add(DOMElementTraitDefinition.DATA_STRUCTR_RELOAD_TARGET_PROPERTY);    // reload-target is deprecated, replaced by success-target and failure-target
 		expectedNullValues.add("data-structr-dialog-type");
 		expectedNullValues.add("data-structr-dialog-title");
 		expectedNullValues.add("data-structr-dialog-text");
@@ -1572,12 +1396,12 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testSuccessBehaviourAttributesForFullPageReload() {
 
-		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key(DOMElementTraitDefinition._HTML_ID_PROPERTY);
 		String buttonUuid                   = null;
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div      = page1.getElementsByTagName("div").get(0);
@@ -1595,13 +1419,13 @@ public class EventActionMappingTest extends StructrUiTest {
 			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.EVENT_PROPERTY), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.ACTION_PROPERTY), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.DATA_TYPE_PROPERTY), "Project");
 
-			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, naviate-to-url, fire-event, full-page-reload, sign-out, none)
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successBehaviour"), "full-page-reload");
+			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, navigate-to-url, fire-event, full-page-reload, sign-out, none)
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.SUCCESS_BEHAVIOUR_PROPERTY), "full-page-reload");
 
 			tx.success();
 
@@ -1613,19 +1437,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		RestAssured.basePath = "/";
 
-		// test successful basic auth
-		final String html = RestAssured
-			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
-			.expect()
-			.statusCode(200)
-			.when()
-			.get("/html/page1")
-			.andReturn()
-			.body().asString();
-
-		System.out.println(html);
+		final String html = fetchPageHtml("/html/page1");
 
 		final Document doc    = Jsoup.parse(html);
 		final Element div     = doc.getElementById("parent-container");
@@ -1637,7 +1449,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put("data-structr-event", "click");
 		expectedValues.put("data-structr-action", "create");
 		expectedValues.put("data-structr-target", "Project");
-		expectedValues.put("data-structr-id", buttonUuid);
+		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, buttonUuid);
 
 		expectedValues.put("data-structr-success-target", "url:");
 
@@ -1646,7 +1458,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
 		expectedNullValues.add("data-structr-id-expression");
-		expectedNullValues.add("data-structr-reload-target");    // reload-target is deprecated, replaced by success-target and failure-target
+		expectedNullValues.add(DOMElementTraitDefinition.DATA_STRUCTR_RELOAD_TARGET_PROPERTY);    // reload-target is deprecated, replaced by success-target and failure-target
 		expectedNullValues.add("data-structr-dialog-type");
 		expectedNullValues.add("data-structr-dialog-title");
 		expectedNullValues.add("data-structr-dialog-text");
@@ -1674,12 +1486,12 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testSuccessBehaviourAttributesForSignout() {
 
-		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key(DOMElementTraitDefinition._HTML_ID_PROPERTY);
 		String buttonUuid                   = null;
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div      = page1.getElementsByTagName("div").get(0);
@@ -1697,13 +1509,13 @@ public class EventActionMappingTest extends StructrUiTest {
 			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.EVENT_PROPERTY), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.ACTION_PROPERTY), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.DATA_TYPE_PROPERTY), "Project");
 
-			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, naviate-to-url, fire-event, full-page-reload, sign-out, none)
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successBehaviour"), "sign-out");
+			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, navigate-to-url, fire-event, full-page-reload, sign-out, none)
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.SUCCESS_BEHAVIOUR_PROPERTY), "sign-out");
 
 			tx.success();
 
@@ -1715,19 +1527,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		RestAssured.basePath = "/";
 
-		// test successful basic auth
-		final String html = RestAssured
-			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
-			.expect()
-			.statusCode(200)
-			.when()
-			.get("/html/page1")
-			.andReturn()
-			.body().asString();
-
-		System.out.println(html);
+		final String html = fetchPageHtml("/html/page1");
 
 		final Document doc    = Jsoup.parse(html);
 		final Element div     = doc.getElementById("parent-container");
@@ -1739,7 +1539,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put("data-structr-event", "click");
 		expectedValues.put("data-structr-action", "create");
 		expectedValues.put("data-structr-target", "Project");
-		expectedValues.put("data-structr-id", buttonUuid);
+		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, buttonUuid);
 
 		expectedValues.put("data-structr-success-target", "sign-out");
 
@@ -1748,7 +1548,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
 		expectedNullValues.add("data-structr-id-expression");
-		expectedNullValues.add("data-structr-reload-target");    // reload-target is deprecated, replaced by success-target and failure-target
+		expectedNullValues.add(DOMElementTraitDefinition.DATA_STRUCTR_RELOAD_TARGET_PROPERTY);    // reload-target is deprecated, replaced by success-target and failure-target
 		expectedNullValues.add("data-structr-dialog-type");
 		expectedNullValues.add("data-structr-dialog-title");
 		expectedNullValues.add("data-structr-dialog-text");
@@ -1780,7 +1580,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div  = page1.getElementsByTagName("div").get(0);
@@ -1790,20 +1590,20 @@ public class EventActionMappingTest extends StructrUiTest {
 			div.appendChild(btn);
 			btn.appendChild(text);
 
-			btn.setProperty(Traits.of("Button").key("_html_id"), "button");
+			btn.setProperty(Traits.of("Button").key(DOMElementTraitDefinition._HTML_ID_PROPERTY), "button");
 
 			uuid = btn.getUuid();
 
 			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.EVENT_PROPERTY), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.ACTION_PROPERTY), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.DATA_TYPE_PROPERTY), "Project");
 
-			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, naviate-to-url, fire-event, full-page-reload, sign-out, none)
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("successBehaviour"), "none");
+			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, navigate-to-url, fire-event, full-page-reload, sign-out, none)
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.SUCCESS_BEHAVIOUR_PROPERTY), "none");
 
 			tx.success();
 
@@ -1815,19 +1615,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		RestAssured.basePath = "/";
 
-		// test successful basic auth
-		final String html = RestAssured
-			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
-			.expect()
-			.statusCode(200)
-			.when()
-			.get("/html/page1")
-			.andReturn()
-			.body().asString();
-
-		System.out.println(html);
+		final String html = fetchPageHtml("/html/page1");
 
 		final Document doc   = Jsoup.parse(html);
 		final Element button = doc.getElementById("button");
@@ -1838,12 +1626,12 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put("data-structr-event", "click");
 		expectedValues.put("data-structr-action", "create");
 		expectedValues.put("data-structr-target", "Project");
-		expectedValues.put("data-structr-id", uuid);
+		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, uuid);
 
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
 		expectedNullValues.add("data-structr-id-expression");
-		expectedNullValues.add("data-structr-reload-target");    // reload-target is deprecated, replaced by success-target and failure-target
+		expectedNullValues.add(DOMElementTraitDefinition.DATA_STRUCTR_RELOAD_TARGET_PROPERTY);    // reload-target is deprecated, replaced by success-target and failure-target
 		expectedNullValues.add("data-structr-dialog-type");
 		expectedNullValues.add("data-structr-dialog-title");
 		expectedNullValues.add("data-structr-dialog-text");
@@ -1876,7 +1664,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div  = page1.getElementsByTagName("div").get(0);
@@ -1885,22 +1673,21 @@ public class EventActionMappingTest extends StructrUiTest {
 
 			div.appendChild(btn);
 			btn.appendChild(text);
-
-			btn.setProperty(Traits.of("Button").key("_html_id"), "button");
+			btn.setProperty(Traits.of("Button").key(DOMElementTraitDefinition._HTML_ID_PROPERTY), "button");
 
 			uuid = btn.getUuid();
 
 			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.EVENT_PROPERTY), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.ACTION_PROPERTY), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.DATA_TYPE_PROPERTY), "Project");
 
-			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, naviate-to-url, fire-event, full-page-reload, sign-out, none)
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failureBehaviour"), "partial-refresh");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failurePartial"), "#name-of-failure-partial");
+			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, navigate-to-url, fire-event, full-page-reload, sign-out, none)
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.FAILURE_BEHAVIOUR_PROPERTY), "partial-refresh");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.FAILURE_PARTIAL_PROPERTY), "#name-of-failure-partial");
 
 			tx.success();
 
@@ -1912,19 +1699,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		RestAssured.basePath = "/";
 
-		// test successful basic auth
-		final String html = RestAssured
-			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
-			.expect()
-			.statusCode(200)
-			.when()
-			.get("/html/page1")
-			.andReturn()
-			.body().asString();
-
-		System.out.println(html);
+		final String html = fetchPageHtml("/html/page1");
 
 		final Document doc   = Jsoup.parse(html);
 		final Element button = doc.getElementById("button");
@@ -1935,7 +1710,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put("data-structr-event", "click");
 		expectedValues.put("data-structr-action", "create");
 		expectedValues.put("data-structr-target", "Project");
-		expectedValues.put("data-structr-id", uuid);
+		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, uuid);
 
 		expectedValues.put("data-structr-failure-target", "#name-of-failure-partial");
 
@@ -1944,7 +1719,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
 		expectedNullValues.add("data-structr-id-expression");
-		expectedNullValues.add("data-structr-reload-target");    // reload-target is deprecated, replaced by success-target and failure-target
+		expectedNullValues.add(DOMElementTraitDefinition.DATA_STRUCTR_RELOAD_TARGET_PROPERTY);    // reload-target is deprecated, replaced by success-target and failure-target
 		expectedNullValues.add("data-structr-dialog-type");
 		expectedNullValues.add("data-structr-dialog-title");
 		expectedNullValues.add("data-structr-dialog-text");
@@ -1972,13 +1747,13 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testFailureBehaviourAttributesForLinkedPartialReload() {
 
-		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key(DOMElementTraitDefinition._HTML_ID_PROPERTY);
 		String buttonUuid                   = null;
 		String divUuid                      = null;
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div      = page1.getElementsByTagName("div").get(0);
@@ -1997,14 +1772,14 @@ public class EventActionMappingTest extends StructrUiTest {
 			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.EVENT_PROPERTY), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.ACTION_PROPERTY), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.DATA_TYPE_PROPERTY), "Project");
 
-			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, naviate-to-url, fire-event, full-page-reload, sign-out, none)
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failureBehaviour"), "partial-refresh-linked");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failureTargets"), List.of(div));
+			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, navigate-to-url, fire-event, full-page-reload, sign-out, none)
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.FAILURE_BEHAVIOUR_PROPERTY), "partial-refresh-linked");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.FAILURE_TARGETS_PROPERTY), List.of(div));
 
 			tx.success();
 
@@ -2016,19 +1791,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		RestAssured.basePath = "/";
 
-		// test successful basic auth
-		final String html = RestAssured
-			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
-			.expect()
-			.statusCode(200)
-			.when()
-			.get("/html/page1")
-			.andReturn()
-			.body().asString();
-
-		System.out.println(html);
+		final String html = fetchPageHtml("/html/page1");
 
 		final Document doc    = Jsoup.parse(html);
 		final Element div     = doc.getElementById("parent-container");
@@ -2040,7 +1803,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put("data-structr-event", "click");
 		expectedValues.put("data-structr-action", "create");
 		expectedValues.put("data-structr-target", "Project");
-		expectedValues.put("data-structr-id", buttonUuid);
+		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, buttonUuid);
 
 		expectedValues.put("data-structr-failure-target", "[data-structr-id='" + divUuid + "']");
 
@@ -2049,7 +1812,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
 		expectedNullValues.add("data-structr-id-expression");
-		expectedNullValues.add("data-structr-reload-target");    // reload-target is deprecated, replaced by success-target and failure-target
+		expectedNullValues.add(DOMElementTraitDefinition.DATA_STRUCTR_RELOAD_TARGET_PROPERTY);    // reload-target is deprecated, replaced by success-target and failure-target
 		expectedNullValues.add("data-structr-dialog-type");
 		expectedNullValues.add("data-structr-dialog-title");
 		expectedNullValues.add("data-structr-dialog-text");
@@ -2077,18 +1840,18 @@ public class EventActionMappingTest extends StructrUiTest {
 		final Map<String, String> divAttrs = getAttributes(div);
 
 		// reload target must have data-structr-id attribute
-		assertEquals("Wrong value for EAM attribute data-structr-id on reload target", divUuid, divAttrs.get("data-structr-id"));
+		assertEquals("Wrong value for EAM attribute data-structr-id on reload target", divUuid, divAttrs.get(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY));
 	}
 
 	@Test
 	public void testFailureBehaviourAttributesForURL() {
 
-		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key(DOMElementTraitDefinition._HTML_ID_PROPERTY);
 		String buttonUuid                   = null;
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div      = page1.getElementsByTagName("div").get(0);
@@ -2106,14 +1869,14 @@ public class EventActionMappingTest extends StructrUiTest {
 			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.EVENT_PROPERTY), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.ACTION_PROPERTY), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.DATA_TYPE_PROPERTY), "Project");
 
-			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, naviate-to-url, fire-event, full-page-reload, sign-out, none)
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failureBehaviour"), "navigate-to-url");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failureURL"), "/failure");
+			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, navigate-to-url, fire-event, full-page-reload, sign-out, none)
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.FAILURE_BEHAVIOUR_PROPERTY), "navigate-to-url");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.FAILURE_URL_PROPERTY), "/failure");
 
 			tx.success();
 
@@ -2125,19 +1888,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		RestAssured.basePath = "/";
 
-		// test successful basic auth
-		final String html = RestAssured
-			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
-			.expect()
-			.statusCode(200)
-			.when()
-			.get("/html/page1")
-			.andReturn()
-			.body().asString();
-
-		System.out.println(html);
+		final String html = fetchPageHtml("/html/page1");
 
 		final Document doc    = Jsoup.parse(html);
 		final Element div     = doc.getElementById("parent-container");
@@ -2149,7 +1900,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put("data-structr-event", "click");
 		expectedValues.put("data-structr-action", "create");
 		expectedValues.put("data-structr-target", "Project");
-		expectedValues.put("data-structr-id", buttonUuid);
+		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, buttonUuid);
 
 		expectedValues.put("data-structr-failure-target", "url:/failure");
 
@@ -2158,7 +1909,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
 		expectedNullValues.add("data-structr-id-expression");
-		expectedNullValues.add("data-structr-reload-target");    // reload-target is deprecated, replaced by success-target and failure-target
+		expectedNullValues.add(DOMElementTraitDefinition.DATA_STRUCTR_RELOAD_TARGET_PROPERTY);    // reload-target is deprecated, replaced by success-target and failure-target
 		expectedNullValues.add("data-structr-dialog-type");
 		expectedNullValues.add("data-structr-dialog-title");
 		expectedNullValues.add("data-structr-dialog-text");
@@ -2186,12 +1937,12 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testFailureBehaviourAttributesForEvent() {
 
-		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key(DOMElementTraitDefinition._HTML_ID_PROPERTY);
 		String buttonUuid                   = null;
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div      = page1.getElementsByTagName("div").get(0);
@@ -2209,14 +1960,14 @@ public class EventActionMappingTest extends StructrUiTest {
 			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.EVENT_PROPERTY), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.ACTION_PROPERTY), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.DATA_TYPE_PROPERTY), "Project");
 
-			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, naviate-to-url, fire-event, full-page-reload, sign-out, none)
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failureBehaviour"), "fire-event");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failureEvent"), "failure-event");
+			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, navigate-to-url, fire-event, full-page-reload, sign-out, none)
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.FAILURE_BEHAVIOUR_PROPERTY), "fire-event");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.FAILURE_EVENT_PROPERTY), "failure-event");
 
 			tx.success();
 
@@ -2228,19 +1979,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		RestAssured.basePath = "/";
 
-		// test successful basic auth
-		final String html = RestAssured
-			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
-			.expect()
-			.statusCode(200)
-			.when()
-			.get("/html/page1")
-			.andReturn()
-			.body().asString();
-
-		System.out.println(html);
+		final String html = fetchPageHtml("/html/page1");
 
 		final Document doc    = Jsoup.parse(html);
 		final Element div     = doc.getElementById("parent-container");
@@ -2252,7 +1991,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put("data-structr-event", "click");
 		expectedValues.put("data-structr-action", "create");
 		expectedValues.put("data-structr-target", "Project");
-		expectedValues.put("data-structr-id", buttonUuid);
+		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, buttonUuid);
 
 		expectedValues.put("data-structr-failure-target", "event:failure-event");
 
@@ -2261,7 +2000,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
 		expectedNullValues.add("data-structr-id-expression");
-		expectedNullValues.add("data-structr-reload-target");    // reload-target is deprecated, replaced by success-target and failure-target
+		expectedNullValues.add(DOMElementTraitDefinition.DATA_STRUCTR_RELOAD_TARGET_PROPERTY);    // reload-target is deprecated, replaced by success-target and failure-target
 		expectedNullValues.add("data-structr-dialog-type");
 		expectedNullValues.add("data-structr-dialog-title");
 		expectedNullValues.add("data-structr-dialog-text");
@@ -2289,12 +2028,12 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testFailureBehaviourAttributesForFullPageReload() {
 
-		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key(DOMElementTraitDefinition._HTML_ID_PROPERTY);
 		String buttonUuid                   = null;
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Page page1   = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div      = page1.getElementsByTagName("div").get(0);
@@ -2312,13 +2051,13 @@ public class EventActionMappingTest extends StructrUiTest {
 			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.EVENT_PROPERTY), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.ACTION_PROPERTY), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.DATA_TYPE_PROPERTY), "Project");
 
-			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, naviate-to-url, fire-event, full-page-reload, sign-out, none)
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failureBehaviour"), "full-page-reload");
+			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, navigate-to-url, fire-event, full-page-reload, sign-out, none)
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.FAILURE_BEHAVIOUR_PROPERTY), "full-page-reload");
 
 			tx.success();
 
@@ -2330,19 +2069,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		RestAssured.basePath = "/";
 
-		// test successful basic auth
-		final String html = RestAssured
-			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
-			.expect()
-			.statusCode(200)
-			.when()
-			.get("/html/page1")
-			.andReturn()
-			.body().asString();
-
-		System.out.println(html);
+		final String html = fetchPageHtml("/html/page1");
 
 		final Document doc    = Jsoup.parse(html);
 		final Element div     = doc.getElementById("parent-container");
@@ -2354,7 +2081,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put("data-structr-event", "click");
 		expectedValues.put("data-structr-action", "create");
 		expectedValues.put("data-structr-target", "Project");
-		expectedValues.put("data-structr-id", buttonUuid);
+		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, buttonUuid);
 
 		expectedValues.put("data-structr-failure-target", "url:");
 
@@ -2363,7 +2090,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
 		expectedNullValues.add("data-structr-id-expression");
-		expectedNullValues.add("data-structr-reload-target");    // reload-target is deprecated, replaced by success-target and failure-target
+		expectedNullValues.add(DOMElementTraitDefinition.DATA_STRUCTR_RELOAD_TARGET_PROPERTY);    // reload-target is deprecated, replaced by success-target and failure-target
 		expectedNullValues.add("data-structr-dialog-type");
 		expectedNullValues.add("data-structr-dialog-title");
 		expectedNullValues.add("data-structr-dialog-text");
@@ -2391,12 +2118,12 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testFailureBehaviourAttributesForSignout() {
 
-		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key("_html_id");
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key(DOMElementTraitDefinition._HTML_ID_PROPERTY);
 		String buttonUuid                   = null;
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
 			final Page page1     = Page.createSimplePage(securityContext, "page1");
 			final DOMNode div    = page1.getElementsByTagName("div").get(0);
@@ -2414,13 +2141,13 @@ public class EventActionMappingTest extends StructrUiTest {
 			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.EVENT_PROPERTY), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.ACTION_PROPERTY), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.DATA_TYPE_PROPERTY), "Project");
 
-			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, naviate-to-url, fire-event, full-page-reload, sign-out, none)
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failureBehaviour"), "sign-out");
+			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, navigate-to-url, fire-event, full-page-reload, sign-out, none)
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.FAILURE_BEHAVIOUR_PROPERTY), "sign-out");
 
 			tx.success();
 
@@ -2432,19 +2159,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		RestAssured.basePath = "/";
 
-		// test successful basic auth
-		final String html = RestAssured
-			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
-			.expect()
-			.statusCode(200)
-			.when()
-			.get("/html/page1")
-			.andReturn()
-			.body().asString();
-
-		System.out.println(html);
+		final String html = fetchPageHtml("/html/page1");
 
 		final Document doc    = Jsoup.parse(html);
 		final Element div     = doc.getElementById("parent-container");
@@ -2456,7 +2171,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put("data-structr-event", "click");
 		expectedValues.put("data-structr-action", "create");
 		expectedValues.put("data-structr-target", "Project");
-		expectedValues.put("data-structr-id", buttonUuid);
+		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, buttonUuid);
 
 		expectedValues.put("data-structr-failure-target", "sign-out");
 
@@ -2465,7 +2180,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
 		expectedNullValues.add("data-structr-id-expression");
-		expectedNullValues.add("data-structr-reload-target");    // reload-target is deprecated, replaced by success-target and failure-target
+		expectedNullValues.add(DOMElementTraitDefinition.DATA_STRUCTR_RELOAD_TARGET_PROPERTY);    // reload-target is deprecated, replaced by success-target and failure-target
 		expectedNullValues.add("data-structr-dialog-type");
 		expectedNullValues.add("data-structr-dialog-title");
 		expectedNullValues.add("data-structr-dialog-text");
@@ -2497,30 +2212,30 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createAdminUser("admin", "admin");
+			createAdminUser();
 
-			final Page page1   = Page.createSimplePage(securityContext, "page1");
-			final DOMNode div  = page1.getElementsByTagName("div").get(0);
-			final DOMElement btn   = page1.createElement("button");
+			final Page page1     = Page.createSimplePage(securityContext, "page1");
+			final DOMNode div    = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn = page1.createElement("button");
 			final Content text   = page1.createTextNode("Create");
 
 			div.appendChild(btn);
 			btn.appendChild(text);
 
-			btn.setProperty(Traits.of("Button").key("_html_id"), "button");
+			btn.setProperty(Traits.of("Button").key(DOMElementTraitDefinition._HTML_ID_PROPERTY), "button");
 
 			uuid = btn.getUuid();
 
 			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
 
 			// base setup
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("triggerElements"), List.of(btn));
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("event"), "click");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("action"), "create");
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("dataType"), "Project");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.EVENT_PROPERTY), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.ACTION_PROPERTY), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.DATA_TYPE_PROPERTY), "Project");
 
-			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, naviate-to-url, fire-event, full-page-reload, sign-out, none)
-			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key("failureBehaviour"), "none");
+			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, navigate-to-url, fire-event, full-page-reload, sign-out, none)
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.FAILURE_BEHAVIOUR_PROPERTY), "none");
 
 			tx.success();
 
@@ -2532,19 +2247,7 @@ public class EventActionMappingTest extends StructrUiTest {
 
 		RestAssured.basePath = "/";
 
-		// test successful basic auth
-		final String html = RestAssured
-			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
-			.expect()
-			.statusCode(200)
-			.when()
-			.get("/html/page1")
-			.andReturn()
-			.body().asString();
-
-		System.out.println(html);
+		final String html = fetchPageHtml("/html/page1");
 
 		final Document doc   = Jsoup.parse(html);
 		final Element button = doc.getElementById("button");
@@ -2555,12 +2258,12 @@ public class EventActionMappingTest extends StructrUiTest {
 		expectedValues.put("data-structr-event", "click");
 		expectedValues.put("data-structr-action", "create");
 		expectedValues.put("data-structr-target", "Project");
-		expectedValues.put("data-structr-id", uuid);
+		expectedValues.put(DOMNodeTraitDefinition.DATA_STRUCTR_ID_PROPERTY, uuid);
 
 		final Set<String> expectedNullValues = new LinkedHashSet<>();
 
 		expectedNullValues.add("data-structr-id-expression");
-		expectedNullValues.add("data-structr-reload-target");    // reload-target is deprecated, replaced by success-target and failure-target
+		expectedNullValues.add(DOMElementTraitDefinition.DATA_STRUCTR_RELOAD_TARGET_PROPERTY);    // reload-target is deprecated, replaced by success-target and failure-target
 		expectedNullValues.add("data-structr-dialog-type");
 		expectedNullValues.add("data-structr-dialog-title");
 		expectedNullValues.add("data-structr-dialog-text");
@@ -2596,5 +2299,23 @@ public class EventActionMappingTest extends StructrUiTest {
 		}
 
 		return map;
+	}
+
+	private String fetchPageHtml(final String path) {
+
+		final String html = RestAssured
+			.given()
+				.header(X_USER_HEADER,     ADMIN_USERNAME)
+				.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
+			.expect()
+				.statusCode(200)
+			.when()
+				.get(path)
+			.andReturn()
+				.body().asString();
+
+//		System.out.println(html);
+
+		return html;
 	}
 }

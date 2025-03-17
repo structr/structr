@@ -60,18 +60,18 @@ public class AbstractFileTraitWrapper extends AbstractNodeTraitWrapper implement
 
 	@Override
 	public void setParent(final Folder parent) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("parent"), parent);
+		wrappedObject.setProperty(traits.key(AbstractFileTraitDefinition.PARENT_PROPERTY), parent);
 	}
 
 	@Override
 	public void setHasParent(final boolean hasParent) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("hasParent"), hasParent);
+		wrappedObject.setProperty(traits.key(AbstractFileTraitDefinition.HAS_PARENT_PROPERTY), hasParent);
 	}
 
 	@Override
 	public Folder getParent() {
 
-		final NodeInterface node = wrappedObject.getProperty(traits.key("parent"));
+		final NodeInterface node = wrappedObject.getProperty(traits.key(AbstractFileTraitDefinition.PARENT_PROPERTY));
 		if (node != null) {
 
 			return node.as(Folder.class);
@@ -82,7 +82,7 @@ public class AbstractFileTraitWrapper extends AbstractNodeTraitWrapper implement
 
 	@Override
 	public String getPath() {
-		return wrappedObject.getProperty(traits.key("path"));
+		return wrappedObject.getProperty(traits.key(AbstractFileTraitDefinition.PATH_PROPERTY));
 	}
 
 	@Override
@@ -112,7 +112,7 @@ public class AbstractFileTraitWrapper extends AbstractNodeTraitWrapper implement
 	@Override
 	public StorageConfiguration getStorageConfiguration() {
 
-		final NodeInterface node = wrappedObject.getProperty(traits.key("storageConfiguration"));
+		final NodeInterface node = wrappedObject.getProperty(traits.key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY));
 		if (node != null) {
 
 			return node.as(StorageConfiguration.class);
@@ -144,12 +144,12 @@ public class AbstractFileTraitWrapper extends AbstractNodeTraitWrapper implement
 
 	@Override
 	public boolean isExternal() {
-		return wrappedObject.getProperty(traits.key("isExternal"));
+		return wrappedObject.getProperty(traits.key(AbstractFileTraitDefinition.IS_EXTERNAL_PROPERTY));
 	}
 
 	@Override
 	public boolean getHasParent() {
-		return wrappedObject.getProperty(traits.key("hasParent"));
+		return wrappedObject.getProperty(traits.key(AbstractFileTraitDefinition.HAS_PARENT_PROPERTY));
 	}
 
 	@Override
@@ -174,7 +174,7 @@ public class AbstractFileTraitWrapper extends AbstractNodeTraitWrapper implement
 	@Override
 	public boolean includeInFrontendExport() {
 
-		if (wrappedObject.getProperty(traits.key("includeInFrontendExport"))) {
+		if (wrappedObject.getProperty(traits.key(AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY))) {
 
 			return true;
 		}
@@ -281,7 +281,7 @@ public class AbstractFileTraitWrapper extends AbstractNodeTraitWrapper implement
 		final String filePath = getPath();
 		if (filePath != null) {
 
-			final PropertyKey<String> pathKey = traits.key("path");
+			final PropertyKey<String> pathKey = traits.key(AbstractFileTraitDefinition.PATH_PROPERTY);
 			final List<NodeInterface> files   = StructrApp.getInstance().nodeQuery(StructrTraits.ABSTRACT_FILE).and(pathKey, filePath).getAsList();
 
 			for (final NodeInterface file : files) {

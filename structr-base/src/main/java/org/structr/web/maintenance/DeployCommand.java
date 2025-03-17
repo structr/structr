@@ -36,6 +36,7 @@ import org.structr.common.AccessControllable;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.VersionHelper;
+import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
@@ -48,9 +49,13 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.CorsSettingTraitDefinition;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.LocalizationTraitDefinition;
+import org.structr.core.traits.definitions.MailTemplateTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.ResourceAccessTraitDefinition;
+import org.structr.core.traits.definitions.SchemaGrantTraitDefinition;
 import org.structr.core.traits.relationships.SecurityRelationshipDefinition;
 import org.structr.module.StructrModule;
 import org.structr.rest.resource.MaintenanceResource;
@@ -66,6 +71,19 @@ import org.structr.web.entity.dom.*;
 import org.structr.web.entity.event.ActionMapping;
 import org.structr.web.entity.event.ParameterMapping;
 import org.structr.web.maintenance.deploy.*;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.ActionMappingTraitDefinition;
+import org.structr.web.traits.definitions.ApplicationConfigurationDataNodeTraitDefinition;
+import org.structr.web.traits.definitions.FileTraitDefinition;
+import org.structr.web.traits.definitions.ImageTraitDefinition;
+import org.structr.web.traits.definitions.LinkableTraitDefinition;
+import org.structr.web.traits.definitions.ParameterMappingTraitDefinition;
+import org.structr.web.traits.definitions.SiteTraitDefinition;
+import org.structr.web.traits.definitions.WidgetTraitDefinition;
+import org.structr.web.traits.definitions.dom.ContentTraitDefinition;
+import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
+import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
+import org.structr.web.traits.definitions.dom.PageTraitDefinition;
 import org.structr.websocket.command.CreateComponentCommand;
 
 import java.io.*;
@@ -734,9 +752,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		logger.info("Exporting files (unchanged files will be skipped)");
 
 		final Traits traits                 = Traits.of(StructrTraits.FILE);
-		final PropertyKey<Boolean> inclKey  = traits.key("includeInFrontendExport");
-		final PropertyKey<Boolean> jsKey    = traits.key("useAsJavascriptLibrary");
-		final PropertyKey<Folder> parentKey = traits.key("parent");
+		final PropertyKey<Boolean> inclKey  = traits.key(AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY);
+		final PropertyKey<Boolean> jsKey    = traits.key(FileTraitDefinition.USE_AS_JAVASCRIPT_LIBRARY_PROPERTY);
+		final PropertyKey<Folder> parentKey = traits.key(AbstractFileTraitDefinition.PARENT_PROPERTY);
 		final Map<String, Object> config    = new TreeMap<>();
 		final App app                       = StructrApp.getInstance();
 
@@ -872,16 +890,16 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface node : app.nodeQuery("Site").sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getAsList()) {
+			for (final NodeInterface node : app.nodeQuery(StructrTraits.SITE).sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getAsList()) {
 
 				final Site site                 = node.as(Site.class);
 				final Map<String, Object> entry = new TreeMap<>();
 				sites.add(entry);
 
-				entry.put(GraphObjectTraitDefinition.ID_PROPERTY,                          site.getUuid());
-				entry.put(NodeInterfaceTraitDefinition.NAME_PROPERTY,                        site.getName());
-				entry.put("hostname",                    site.getHostname());
-				entry.put("port",                        site.getPort());
+				entry.put(GraphObjectTraitDefinition.ID_PROPERTY,                             site.getUuid());
+				entry.put(NodeInterfaceTraitDefinition.NAME_PROPERTY,                         site.getName());
+				entry.put(SiteTraitDefinition.HOSTNAME_PROPERTY,                              site.getHostname());
+				entry.put(SiteTraitDefinition.PORT_PROPERTY,                                  site.getPort());
 				entry.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, site.isVisibleToAuthenticatedUsers());
 				entry.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        site.isVisibleToPublicUsers());
 
@@ -891,7 +909,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					pageNames.add(page.getName());
 				}
 
-				entry.put("pages", pageNames);
+				entry.put(SiteTraitDefinition.PAGES_PROPERTY, pageNames);
 
 				exportOwnershipAndSecurity(node, entry);
 			}
@@ -1064,9 +1082,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final SchemaGrant schemaGrant   = node.as(SchemaGrant.class);
 				grants.add(grant);
 
-				grant.put("id",                          schemaGrant.getUuid());
+				grant.put(GraphObjectTraitDefinition.ID_PROPERTY,                          schemaGrant.getUuid());
 				grant.put("principal",                   Map.of("name", schemaGrant.getPrincipalName()));
-				grant.put("staticSchemaNodeName",        schemaGrant.getStaticSchemaNodeName());
+				grant.put(SchemaGrantTraitDefinition.STATIC_SCHEMA_NODE_NAME_PROPERTY,        schemaGrant.getStaticSchemaNodeName());
 				grant.put("allowRead",                   schemaGrant.allowRead());
 				grant.put("allowWrite",                  schemaGrant.allowWrite());
 				grant.put("allowDelete",                 schemaGrant.allowDelete());
@@ -1076,7 +1094,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final SchemaNode optionalSchemaNode = schemaGrant.getSchemaNode();
 				if (optionalSchemaNode != null) {
 
-					grant.put("schemaNode", Map.of("id", optionalSchemaNode.getUuid()));
+					grant.put(SchemaGrantTraitDefinition.SCHEMA_NODE_PROPERTY, Map.of("id", optionalSchemaNode.getUuid()));
 				}
 			}
 
@@ -1092,22 +1110,22 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		final List<Map<String, Object>> grants = new LinkedList<>();
 		final Traits traits                    = Traits.of(StructrTraits.RESOURCE_ACCESS);
-		final PropertyKey<String> signatureKey = traits.key("signature");
-		final PropertyKey<Long> flagsKey       = traits.key("flags");
+		final PropertyKey<String> signatureKey = traits.key(ResourceAccessTraitDefinition.SIGNATURE_PROPERTY);
+		final PropertyKey<Long> flagsKey       = traits.key(ResourceAccessTraitDefinition.FLAGS_PROPERTY);
 		final App app                          = StructrApp.getInstance();
 
 		final List<String> unreachableGrants = new LinkedList<>();
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface res : app.nodeQuery(StructrTraits.RESOURCE_ACCESS).sort(traits.key("signature")).getAsList()) {
+			for (final NodeInterface res : app.nodeQuery(StructrTraits.RESOURCE_ACCESS).sort(traits.key(ResourceAccessTraitDefinition.SIGNATURE_PROPERTY)).getAsList()) {
 
 				final Map<String, Object> grant = new TreeMap<>();
 				grants.add(grant);
 
-				grant.put(GraphObjectTraitDefinition.ID_PROPERTY,                          res.getProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY)));
-				grant.put("signature",                   res.getProperty(signatureKey));
-				grant.put("flags",                       res.getProperty(flagsKey));
+				grant.put(GraphObjectTraitDefinition.ID_PROPERTY,                             res.getProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY)));
+				grant.put(ResourceAccessTraitDefinition.SIGNATURE_PROPERTY,                   res.getProperty(signatureKey));
+				grant.put(ResourceAccessTraitDefinition.FLAGS_PROPERTY,                       res.getProperty(flagsKey));
 				grant.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        res.isVisibleToPublicUsers());
 				grant.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, res.isVisibleToAuthenticatedUsers());
 
@@ -1150,19 +1168,19 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface corsSetting : app.nodeQuery(StructrTraits.CORS_SETTING).sort(traits.key("requestUri")).getAsList()) {
+			for (final NodeInterface corsSetting : app.nodeQuery(StructrTraits.CORS_SETTING).sort(traits.key(CorsSettingTraitDefinition.REQUEST_URI_PROPERTY)).getAsList()) {
 
 				final Map<String, Object> entry = new LinkedHashMap<>();
 				corsSettings.add(entry);
 
-				putData(entry, "id",               corsSetting.getProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY)));
-				putData(entry, "requestUri",       corsSetting.getProperty(traits.key("requestUri")));
-				putData(entry, "acceptedOrigins",  corsSetting.getProperty(traits.key("acceptedOrigins")));
-				putData(entry, "maxAge",           corsSetting.getProperty(traits.key("maxAge")));
-				putData(entry, "allowMethods",     corsSetting.getProperty(traits.key("allowMethods")));
-				putData(entry, "allowHeaders",     corsSetting.getProperty(traits.key("allowHeaders")));
-				putData(entry, "allowCredentials", corsSetting.getProperty(traits.key("allowCredentials")));
-				putData(entry, "exposeHeaders",    corsSetting.getProperty(traits.key("exposeHeaders")));
+				putData(entry, GraphObjectTraitDefinition.ID_PROPERTY,                corsSetting.getProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY)));
+				putData(entry, CorsSettingTraitDefinition.REQUEST_URI_PROPERTY,       corsSetting.getProperty(traits.key(CorsSettingTraitDefinition.REQUEST_URI_PROPERTY)));
+				putData(entry, CorsSettingTraitDefinition.ACCEPTED_ORIGINS_PROPERTY,  corsSetting.getProperty(traits.key(CorsSettingTraitDefinition.ACCEPTED_ORIGINS_PROPERTY)));
+				putData(entry, CorsSettingTraitDefinition.MAX_AGE_PROPERTY,           corsSetting.getProperty(traits.key(CorsSettingTraitDefinition.MAX_AGE_PROPERTY)));
+				putData(entry, CorsSettingTraitDefinition.ALLOW_METHODS_PROPERTY,     corsSetting.getProperty(traits.key(CorsSettingTraitDefinition.ALLOW_METHODS_PROPERTY)));
+				putData(entry, CorsSettingTraitDefinition.ALLOW_HEADERS_PROPERTY,     corsSetting.getProperty(traits.key(CorsSettingTraitDefinition.ALLOW_HEADERS_PROPERTY)));
+				putData(entry, CorsSettingTraitDefinition.ALLOW_CREDENTIALS_PROPERTY, corsSetting.getProperty(traits.key(CorsSettingTraitDefinition.ALLOW_CREDENTIALS_PROPERTY)));
+				putData(entry, CorsSettingTraitDefinition.EXPOSE_HEADERS_PROPERTY,    corsSetting.getProperty(traits.key(CorsSettingTraitDefinition.EXPOSE_HEADERS_PROPERTY)));
 			}
 
 			tx.success();
@@ -1295,7 +1313,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		putData(config, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, node.isVisibleToAuthenticatedUsers());
 
 		if (node.is(StructrTraits.CONTENT)) {
-			putData(config, "contentType", node.as(Content.class).getContentType());
+			putData(config, ContentTraitDefinition.CONTENT_TYPE_PROPERTY, node.as(Content.class).getContentType());
 		}
 
 		if (node.is(StructrTraits.TEMPLATE)) {
@@ -1311,20 +1329,21 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Linkable linkable = node.as(Linkable.class);
 			final Page page         = node.as(Page.class);
 
-			putData(config, "basicAuthRealm",          linkable.getBasicAuthRealm());
-			putData(config, "cacheForSeconds",         page.getCacheForSeconds());
-			putData(config, "category",                page.getCategory());
-			putData(config, "contentType",             page.getContentType());
-			putData(config, "dontCache",               page.dontCache());
-			putData(config, "enableBasicAuth",         linkable.getEnableBasicAuth());
-			putData(config, "hidden",                  page.isHidden());
-			putData(config, "hideConditions",          page.getHideConditions());
-			putData(config, "pageCreatesRawData",      page.pageCreatesRawData());
-			putData(config, "path",                    page.getPath());
-			putData(config, "position",                page.getPosition());
-			putData(config, "showConditions",          page.getShowConditions());
-			putData(config, "showOnErrorCodes",        page.getShowOnErrorCodes());
+			putData(config, LinkableTraitDefinition.BASIC_AUTH_REALM_PROPERTY,  linkable.getBasicAuthRealm());
+			putData(config, PageTraitDefinition.CACHE_FOR_SECONDS_PROPERTY,     page.getCacheForSeconds());
+			putData(config, PageTraitDefinition.CATEGORY_PROPERTY,              page.getCategory());
+			putData(config, PageTraitDefinition.CONTENT_TYPE_PROPERTY,          page.getContentType());
+			putData(config, DOMNodeTraitDefinition.DONT_CACHE_PROPERTY,         page.dontCache());
+			putData(config, LinkableTraitDefinition.ENABLE_BASIC_AUTH_PROPERTY, linkable.getEnableBasicAuth());
+			putData(config, NodeInterfaceTraitDefinition.HIDDEN_PROPERTY,       page.isHidden());
+			putData(config, PageTraitDefinition.PAGE_CREATES_RAW_DATA_PROPERTY, page.pageCreatesRawData());
+			putData(config, DOMElementTraitDefinition.PATH_PROPERTY,            page.getPath());
+			putData(config, PageTraitDefinition.POSITION_PROPERTY,              page.getPosition());
+			putData(config, PageTraitDefinition.SHOW_ON_ERROR_CODES_PROPERTY,   page.getShowOnErrorCodes());
 
+			// FIXME? show conditions for a page?
+			putData(config, DOMNodeTraitDefinition.SHOW_CONDITIONS_PROPERTY,    page.getShowConditions());
+			putData(config, DOMNodeTraitDefinition.HIDE_CONDITIONS_PROPERTY,    page.getHideConditions());
 		}
 
 		final Traits traits = node.getTraits();
@@ -1354,31 +1373,31 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			final File file = abstractFile.as(File.class);
 
-			putData(config, "isTemplate",              file.isTemplate());
-			putData(config, "dontCache",               file.dontCache());
-			putData(config, "contentType",             file.getContentType());
-			putData(config, "cacheForSeconds",         file.getCacheForSeconds());
-			putData(config, "useAsJavascriptLibrary",  file.useAsJavascriptLibrary());
+			putData(config, FileTraitDefinition.IS_TEMPLATE_PROPERTY,               file.isTemplate());
+			putData(config, FileTraitDefinition.DONT_CACHE_PROPERTY,                file.dontCache());
+			putData(config, FileTraitDefinition.CONTENT_TYPE_PROPERTY,              file.getContentType());
+			putData(config, FileTraitDefinition.CACHE_FOR_SECONDS_PROPERTY,         file.getCacheForSeconds());
+			putData(config, FileTraitDefinition.USE_AS_JAVASCRIPT_LIBRARY_PROPERTY, file.useAsJavascriptLibrary());
 		}
 
-		putData(config, "includeInFrontendExport", abstractFile.includeInFrontendExport());
+		putData(config, AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY, abstractFile.includeInFrontendExport());
 
 		if (abstractFile.is(StructrTraits.LINKABLE)) {
 
 			final Linkable linkable = abstractFile.as(Linkable.class);
 
-			putData(config, "basicAuthRealm",  linkable.getBasicAuthRealm());
-			putData(config, "enableBasicAuth", linkable.getEnableBasicAuth());
+			putData(config, LinkableTraitDefinition.BASIC_AUTH_REALM_PROPERTY,  linkable.getBasicAuthRealm());
+			putData(config, LinkableTraitDefinition.ENABLE_BASIC_AUTH_PROPERTY, linkable.getEnableBasicAuth());
 		}
 
 		if (abstractFile.is(StructrTraits.IMAGE)) {
 
 			final Image image = abstractFile.as(Image.class);
 
-			putData(config, "isThumbnail", image.isThumbnail());
-			putData(config, "isImage",     image.isImage());
-			putData(config, "width",       image.getWidth());
-			putData(config, "height",      image.getHeight());
+			putData(config, ImageTraitDefinition.IS_THUMBNAIL_PROPERTY, image.isThumbnail());
+			putData(config, ImageTraitDefinition.IS_IMAGE_PROPERTY,     image.isImage());
+			putData(config, ImageTraitDefinition.WIDTH_PROPERTY,        image.getWidth());
+			putData(config, ImageTraitDefinition.HEIGHT_PROPERTY,       image.getHeight());
 		}
 
 		final Traits traits = node.getTraits();
@@ -1565,7 +1584,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					putData(entry, GraphObjectTraitDefinition.ID_PROPERTY,                            mailTemplate.getUuid());
 					putData(entry, NodeInterfaceTraitDefinition.NAME_PROPERTY,                        mailTemplate.getName());
 					putData(entry, "filename",                    filename);
-					putData(entry, "locale",                      mailTemplate.getLocale());
+					putData(entry, MailTemplateTraitDefinition.LOCALE_PROPERTY,                      mailTemplate.getLocale());
 					putData(entry, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, mailTemplate.isVisibleToAuthenticatedUsers());
 					putData(entry, GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        mailTemplate.isVisibleToPublicUsers());
 
@@ -1613,13 +1632,13 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				putData(entry, NodeInterfaceTraitDefinition.NAME_PROPERTY,                         widget.getName());
 				putData(entry, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, widget.isVisibleToAuthenticatedUsers());
 				putData(entry, GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        widget.isVisibleToPublicUsers());
-				putData(entry, "source",                      widget.getSource());
-				putData(entry, "description",                 widget.getDescription());
-				putData(entry, "isWidget",                    widget.isWidget());
-				putData(entry, "treePath",                    widget.getTreePath());
-				putData(entry, "configuration",               widget.getConfiguration());
-				putData(entry, "isPageTemplate",              widget.isPageTemplate());
-				putData(entry, "selectors",                   widget.getSelectors());
+				putData(entry, WidgetTraitDefinition.SOURCE_PROPERTY,                              widget.getSource());
+				putData(entry, WidgetTraitDefinition.DESCRIPTION_PROPERTY,                         widget.getDescription());
+				putData(entry, WidgetTraitDefinition.IS_WIDGET_PROPERTY,                           widget.isWidget());
+				putData(entry, WidgetTraitDefinition.TREE_PATH_PROPERTY,                           widget.getTreePath());
+				putData(entry, WidgetTraitDefinition.CONFIGURATION_PROPERTY,                       widget.getConfiguration());
+				putData(entry, WidgetTraitDefinition.IS_PAGE_TEMPLATE_PROPERTY,                    widget.isPageTemplate());
+				putData(entry, WidgetTraitDefinition.SELECTORS_PROPERTY,                           widget.getSelectors());
 			}
 
 			tx.success();
@@ -1633,24 +1652,24 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		logger.info("Exporting application configuration data");
 
 		final List<Map<String, Object>> applicationConfigurationDataNodes = new LinkedList<>();
-		final Traits traits                                               = Traits.of("ApplicationConfigurationDataNode");
+		final Traits traits                                               = Traits.of(StructrTraits.APPLICATION_CONFIGURATION_DATA_NODE);
 		final App app                                                     = StructrApp.getInstance();
 
-		final PropertyKey<String> configTypeKey = traits.key("configType");
+		final PropertyKey<String> configTypeKey = traits.key(ApplicationConfigurationDataNodeTraitDefinition.CONFIG_TYPE_PROPERTY);
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface node : app.nodeQuery("ApplicationConfigurationDataNode").sort(configTypeKey).getAsList()) {
+			for (final NodeInterface node : app.nodeQuery(StructrTraits.APPLICATION_CONFIGURATION_DATA_NODE).sort(configTypeKey).getAsList()) {
 
 				final ApplicationConfigurationDataNode acdn = node.as(ApplicationConfigurationDataNode.class);
 				final Map<String, Object> entry             = new TreeMap<>();
 
 				applicationConfigurationDataNodes.add(entry);
 
-				entry.put("id",         acdn.getUuid());
-				entry.put("name",       acdn.getName());
-				entry.put("configType", acdn.getConfigType());
-				entry.put("content",    acdn.getContent());
+				entry.put(GraphObjectTraitDefinition.ID_PROPERTY,                               acdn.getUuid());
+				entry.put(NodeInterfaceTraitDefinition.NAME_PROPERTY,                           acdn.getName());
+				entry.put(ApplicationConfigurationDataNodeTraitDefinition.CONFIG_TYPE_PROPERTY, acdn.getConfigType());
+				entry.put(ApplicationConfigurationDataNodeTraitDefinition.CONTENT_PROPERTY,     acdn.getContent());
 
 				exportOwnershipAndSecurity(node, entry);
 			}
@@ -1662,9 +1681,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			@Override
 			public String getKey (Map<String, Object> map) {
 
-				final Object configType = map.get("configType");
-				final Object name       = map.get("name");
-				final Object id         = map.get("id");
+				final Object configType = map.get(ApplicationConfigurationDataNodeTraitDefinition.CONFIG_TYPE_PROPERTY);
+				final Object name       = map.get(NodeInterfaceTraitDefinition.NAME_PROPERTY);
+				final Object id         = map.get(GraphObjectTraitDefinition.ID_PROPERTY);
 
 				return (configType != null ? configType.toString() : "00-configType").concat((name != null ? name.toString() : "00-name")).concat(id.toString());
 			}
@@ -1706,10 +1725,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			@Override
 			public String getKey (Map<String, Object> map) {
 
-				final Object name   = map.get("name");
-				final Object domain = map.get("domain");
-				final Object locale = map.get("locale");
-				final Object id     = map.get("id");
+				final Object name   = map.get(NodeInterfaceTraitDefinition.NAME_PROPERTY);
+				final Object domain = map.get(LocalizationTraitDefinition.DOMAIN_PROPERTY);
+				final Object locale = map.get(LocalizationTraitDefinition.LOCALE_PROPERTY);
+				final Object id     = map.get(GraphObjectTraitDefinition.ID_PROPERTY);
 
 				// null domain is replaced by a string so that those localizations are shown first
 				return (name != null ? name.toString() : "null").concat((domain != null ? domain.toString() : "00-nulldomain")).concat((locale != null ? locale.toString() : "null")).concat(id.toString());
@@ -1742,66 +1761,66 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final List<DOMElement> triggerElements = Iterables.toList(actionMapping.getTriggerElements());
 				if (!triggerElements.isEmpty()) {
 
-					putData(entry, "triggerElements", triggerElements.stream().map(domElement -> domElement.getUuid()).collect(Collectors.toList()));
+					putData(entry, ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY, triggerElements.stream().map(domElement -> domElement.getUuid()).collect(Collectors.toList()));
 				}
 
 				final List<DOMNode> successTargets = Iterables.toList(actionMapping.getSuccessTargets());
 				if (!successTargets.isEmpty()) {
 
-					putData(entry, "successTargets", successTargets.stream().map(domNode -> domNode.getUuid()).collect(Collectors.toList()));
+					putData(entry, ActionMappingTraitDefinition.SUCCESS_TARGETS_PROPERTY, successTargets.stream().map(domNode -> domNode.getUuid()).collect(Collectors.toList()));
 				}
 
 				List<DOMNode> successNotificationElements = Iterables.toList(actionMapping.getSuccessNotificationElements());
 				if (!successNotificationElements.isEmpty()) {
 
-					putData(entry, "successNotificationElements", successNotificationElements.stream().map(domNode -> domNode.getUuid()).collect(Collectors.toList()));
+					putData(entry, ActionMappingTraitDefinition.SUCCESS_NOTIFICATION_ELEMENTS_PROPERTY, successNotificationElements.stream().map(domNode -> domNode.getUuid()).collect(Collectors.toList()));
 				}
 
 				final List<DOMNode> failureTargets = Iterables.toList(actionMapping.getFailureTargets());
 				if (!failureTargets.isEmpty()) {
 
-					putData(entry, "failureTargets", failureTargets.stream().map(domNode -> domNode.getUuid()).collect(Collectors.toList()));
+					putData(entry, ActionMappingTraitDefinition.FAILURE_TARGETS_PROPERTY, failureTargets.stream().map(domNode -> domNode.getUuid()).collect(Collectors.toList()));
 				}
 
 				List<DOMNode> failureNotificationElements = Iterables.toList(actionMapping.getFailureNotificationElements());
 				if (!failureNotificationElements.isEmpty()) {
 
-					putData(entry, "failureNotificationElements", failureNotificationElements.stream().map(domNode -> domNode.getUuid()).collect(Collectors.toList()));
+					putData(entry, ActionMappingTraitDefinition.FAILURE_NOTIFICATION_ELEMENTS_PROPERTY, failureNotificationElements.stream().map(domNode -> domNode.getUuid()).collect(Collectors.toList()));
 				}
 
 				final List<ParameterMapping> parameterMappings = Iterables.toList(actionMapping.getParameterMappings());
 				if (!parameterMappings.isEmpty()) {
 
-					putData(entry, "parameterMappings", parameterMappings.stream().map(parameterMapping -> parameterMapping.getUuid() ).collect(Collectors.toList()));
+					putData(entry, ActionMappingTraitDefinition.PARAMETER_MAPPINGS_PROPERTY, parameterMappings.stream().map(parameterMapping -> parameterMapping.getUuid() ).collect(Collectors.toList()));
 				}
 
-				putData(entry, "event",        actionMapping.getEvent());
-				putData(entry, "action",       actionMapping.getAction());
-				putData(entry, "method",       actionMapping.getMethod());
-				putData(entry, "dataType",     actionMapping.getDataType());
-				putData(entry, "idExpression", actionMapping.getIdExpression());
+				putData(entry, ActionMappingTraitDefinition.EVENT_PROPERTY,         actionMapping.getEvent());
+				putData(entry, ActionMappingTraitDefinition.ACTION_PROPERTY,        actionMapping.getAction());
+				putData(entry, ActionMappingTraitDefinition.METHOD_PROPERTY,        actionMapping.getMethod());
+				putData(entry, ActionMappingTraitDefinition.DATA_TYPE_PROPERTY,     actionMapping.getDataType());
+				putData(entry, ActionMappingTraitDefinition.ID_EXPRESSION_PROPERTY, actionMapping.getIdExpression());
 
-				putData(entry, "dialogType",  actionMapping.getDialogType());
-				putData(entry, "dialogTitle", actionMapping.getDialogTitle());
-				putData(entry, "dialogText",  actionMapping.getDialogText());
+				putData(entry, ActionMappingTraitDefinition.DIALOG_TYPE_PROPERTY,  actionMapping.getDialogType());
+				putData(entry, ActionMappingTraitDefinition.DIALOG_TITLE_PROPERTY, actionMapping.getDialogTitle());
+				putData(entry, ActionMappingTraitDefinition.DIALOG_TEXT_PROPERTY,  actionMapping.getDialogText());
 
-				putData(entry, "successBehaviour",            actionMapping.getSuccessBehaviour());
-				putData(entry, "successEvent",                actionMapping.getSuccessEvent());
-				putData(entry, "successNotifications",        actionMapping.getSuccessNotifications());
-				putData(entry, "successNotificationsEvent",   actionMapping.getSuccessNotificationsEvent());
-				putData(entry, "successNotificationsPartial", actionMapping.getSuccessNotificationsPartial());
-				putData(entry, "successNotificationsDelay",   actionMapping.getSuccessNotificationsDelay());
-				putData(entry, "successPartial",              actionMapping.getSuccessPartial());
-				putData(entry, "successURL",                  actionMapping.getSuccessURL());
+				putData(entry, ActionMappingTraitDefinition.SUCCESS_BEHAVIOUR_PROPERTY,             actionMapping.getSuccessBehaviour());
+				putData(entry, ActionMappingTraitDefinition.SUCCESS_EVENT_PROPERTY,                 actionMapping.getSuccessEvent());
+				putData(entry, ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_PROPERTY,         actionMapping.getSuccessNotifications());
+				putData(entry, ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_EVENT_PROPERTY,   actionMapping.getSuccessNotificationsEvent());
+				putData(entry, ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_PARTIAL_PROPERTY, actionMapping.getSuccessNotificationsPartial());
+				putData(entry, ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_DELAY_PROPERTY,   actionMapping.getSuccessNotificationsDelay());
+				putData(entry, ActionMappingTraitDefinition.SUCCESS_PARTIAL_PROPERTY,               actionMapping.getSuccessPartial());
+				putData(entry, ActionMappingTraitDefinition.SUCCESS_URL_PROPERTY,                   actionMapping.getSuccessURL());
 
-				putData(entry, "failureBehaviour",            actionMapping.getFailureBehaviour());
-				putData(entry, "failureEvent",                actionMapping.getFailureEvent());
-				putData(entry, "failureNotifications",        actionMapping.getFailureNotifications());
-				putData(entry, "failureNotificationsEvent",   actionMapping.getFailureNotificationsEvent());
-				putData(entry, "failureNotificationsPartial", actionMapping.getFailureNotificationsPartial());
-				putData(entry, "failureNotificationsDelay",   actionMapping.getFailureNotificationsDelay());
-				putData(entry, "failurePartial",              actionMapping.getFailurePartial());
-				putData(entry, "failureURL",                  actionMapping.getFailureURL());
+				putData(entry, ActionMappingTraitDefinition.FAILURE_BEHAVIOUR_PROPERTY,             actionMapping.getFailureBehaviour());
+				putData(entry, ActionMappingTraitDefinition.FAILURE_EVENT_PROPERTY,                 actionMapping.getFailureEvent());
+				putData(entry, ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_PROPERTY,         actionMapping.getFailureNotifications());
+				putData(entry, ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_EVENT_PROPERTY,   actionMapping.getFailureNotificationsEvent());
+				putData(entry, ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_PARTIAL_PROPERTY, actionMapping.getFailureNotificationsPartial());
+				putData(entry, ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_DELAY_PROPERTY,   actionMapping.getFailureNotificationsDelay());
+				putData(entry, ActionMappingTraitDefinition.FAILURE_PARTIAL_PROPERTY,               actionMapping.getFailurePartial());
+				putData(entry, ActionMappingTraitDefinition.FAILURE_URL_PROPERTY,                   actionMapping.getFailureURL());
 			}
 
 			tx.success();
@@ -1832,15 +1851,15 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				putData(entry, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, parameterMapping.isVisibleToAuthenticatedUsers());
 				putData(entry, GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        parameterMapping.isVisibleToPublicUsers());
 
-				putData(entry, "parameterType",    parameterMapping.getParameterType());
-				putData(entry, "parameterName",    parameterMapping.getParameterName());
-				putData(entry, "constantValue",    parameterMapping.getConstantValue());
-				putData(entry, "scriptExpression", parameterMapping.getScriptExpression());
+				putData(entry, ParameterMappingTraitDefinition.PARAMETER_TYPE_PROPERTY,    parameterMapping.getParameterType());
+				putData(entry, ParameterMappingTraitDefinition.PARAMETER_NAME_PROPERTY,    parameterMapping.getParameterName());
+				putData(entry, ParameterMappingTraitDefinition.CONSTANT_VALUE_PROPERTY,    parameterMapping.getConstantValue());
+				putData(entry, ParameterMappingTraitDefinition.SCRIPT_EXPRESSION_PROPERTY, parameterMapping.getScriptExpression());
 
 				DOMElement inputElement = parameterMapping.getInputElement();
 				if (inputElement != null) {
 
-					putData(entry, "inputElement", inputElement.getUuid());
+					putData(entry, ParameterMappingTraitDefinition.INPUT_ELEMENT_PROPERTY, inputElement.getUuid());
 				}
 			}
 
@@ -2063,10 +2082,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 					isOldExport = true;
 
-					final long flags = ((Number)entry.get("flags")).longValue();
+					final long flags = ((Number)entry.get(ResourceAccessTraitDefinition.FLAGS_PROPERTY)).longValue();
 					if (flags != 0) {
 
-						final String signature = (String)entry.get("signature");
+						final String signature = (String)entry.get(ResourceAccessTraitDefinition.SIGNATURE_PROPERTY);
 
 						final boolean hasAnyNonAuthFlags = ((flags & UiAuthenticator.NON_AUTH_USER_GET) == UiAuthenticator.NON_AUTH_USER_GET) ||
 							((flags & UiAuthenticator.NON_AUTH_USER_PUT) == UiAuthenticator.NON_AUTH_USER_PUT) ||
@@ -2220,7 +2239,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			logger.info("Reading {}", applicationConfigurationDataMetadataFile);
 			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing application configuration data");
 
-			importListData("ApplicationConfigurationDataNode", readConfigList(applicationConfigurationDataMetadataFile));
+			importListData(StructrTraits.APPLICATION_CONFIGURATION_DATA_NODE, readConfigList(applicationConfigurationDataMetadataFile));
 		}
 	}
 
@@ -2324,9 +2343,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			}
 
 			// construct paths
-			final Path templates = source.resolve("templates");
+			final Path templates  = source.resolve("templates");
 			final Path components = source.resolve("components");
-			final Path pages = source.resolve("pages");
+			final Path pages      = source.resolve("pages");
 
 			// remove all DOMNodes from the database (clean webapp for import, but only
 			// if the actual import directories exist, don't delete web components if
@@ -2347,7 +2366,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 						logger.info("Removing sites");
 						publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Removing sites");
 
-						app.deleteAllNodesOfType("Site");
+						app.deleteAllNodesOfType(StructrTraits.SITE);
 					}
 
 					FlushCachesCommand.flushAll();
@@ -2497,7 +2516,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private void importSites(final List<Map<String, Object>> data) throws FrameworkException {
 
 		final SecurityContext context = SecurityContext.getSuperUserInstance();
-		final Traits traits           = Traits.of("Site");
+		final Traits traits           = Traits.of(StructrTraits.SITE);
 		final App app                 = StructrApp.getInstance(context);
 
 		context.setDoTransactionNotifications(false);
@@ -2510,19 +2529,19 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				final List<NodeInterface> pages = new LinkedList();
 
-				for (final String pageName : (List<String>)entry.get("pages")) {
+				for (final String pageName : (List<String>)entry.get(SiteTraitDefinition.PAGES_PROPERTY)) {
 					pages.add(app.nodeQuery(StructrTraits.PAGE).andName(pageName).getFirst());
 				}
 
-				entry.remove("pages");
+				entry.remove(SiteTraitDefinition.PAGES_PROPERTY);
 
 				checkOwnerAndSecurity(entry);
 
-				final PropertyMap map = PropertyMap.inputTypeToJavaType(context, "Site", entry);
+				final PropertyMap map = PropertyMap.inputTypeToJavaType(context, StructrTraits.SITE, entry);
 
-				map.put(traits.key("pages"), pages);
+				map.put(traits.key(SiteTraitDefinition.PAGES_PROPERTY), pages);
 
-				app.create("Site", map);
+				app.create(StructrTraits.SITE, map);
 			}
 
 			tx.success();
@@ -2546,9 +2565,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			deferredPageLinks.forEach((String linkableUUID, String pagePath) -> {
 
 				try {
-					final NodeInterface linkElementNode = StructrApp.getInstance().getNodeById(StructrTraits.DOM_NODE, linkableUUID);
-					final NodeInterface linkedPageNode  = StructrApp.getInstance().nodeQuery(StructrTraits.LINKABLE).and(traits.key("path"), pagePath).or(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), pagePath).getFirst();
 
+					final NodeInterface linkElementNode = StructrApp.getInstance().getNodeById(StructrTraits.DOM_NODE, linkableUUID);
+					final NodeInterface linkedPageNode  = StructrApp.getInstance().nodeQuery(StructrTraits.LINKABLE)
+							.and(traits.key(DOMElementTraitDefinition.PATH_PROPERTY), pagePath)
+							.or(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), pagePath)
+							.getFirst();
 
 					final LinkSource linkSource = linkElementNode.as(LinkSource.class);
 					final Linkable linkable     = linkedPageNode.as(Linkable.class);
@@ -2556,9 +2578,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					linkSource.setLinkable(linkable);
 
 				} catch (Throwable t) {
+
 					t.printStackTrace();
 				}
-
 			});
 
 			deferredPageLinks.clear();

@@ -834,14 +834,14 @@ let _Schema = {
 		},
 		loadNode: (entity, mainTabs, contentDiv, targetView = 'local', callbackCancel) => {
 
-			if (!Structr.isModuleActive(_Code) && (targetView === 'source-code' || targetView === 'working-sets')) {
+			if (!Structr.isModuleActive(_Code) && (targetView === 'working-sets')) {
 				targetView = 'basic';
 			}
 
 			let tabControls = {};
 
 			let basicTabContent        = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'basic', 'Basic', targetView === 'basic');
-			tabControls.basic          = _Schema.nodes.appendBasicNodeInfo(basicTabContent, entity, mainTabs);
+			tabControls.basic          = _Schema.nodes.appendBasicNodeInfo(basicTabContent, entity);
 
 			if (entity.isServiceClass === false) {
 
@@ -864,15 +864,13 @@ let _Schema = {
 
 			if (Structr.isModuleActive(_Code)) {
 
-				// only show the following tabs in the Code area where it is not opened in a popup
+				// only show the following tab in the Code area where it is not opened in a popup
 
 				if (entity.isServiceClass === false) {
 					let workingSetsTabContent = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'working-sets', 'Working Sets', targetView === 'working-sets');
 					workingSetsTabContent.classList.add('relative');
 					_Schema.nodes.appendWorkingSets(workingSetsTabContent, entity);
 				}
-
-				_Schema.nodes.appendGeneratedSourceCodeTab(entity, mainTabs, contentDiv, targetView);
 			}
 
 			_Schema.bulkDialogsGeneral.overrideDialogCancel(mainTabs, callbackCancel);
@@ -1002,7 +1000,7 @@ let _Schema = {
 				changeFn?.();
 			});
 		},
-		appendBasicNodeInfo: (tabContent, entity, mainTabs) => {
+		appendBasicNodeInfo: (tabContent, entity) => {
 
 			tabContent.appendChild(_Helpers.createSingleDOMElementFromHTML(_Schema.templates.typeBasicTab({ isServiceClass: entity?.isServiceClass, isCreate: !entity })));
 
@@ -1130,21 +1128,7 @@ let _Schema = {
 			});
 
 		},
-		appendGeneratedSourceCodeTab: (entity, mainTabs, contentDiv, targetView) => {
 
-			let generatedSourceTabShowCallback = (tabContent) => {
-				_Schema.showGeneratedSource(tabContent.querySelector('.generated-source')).then(() => {
-					_Editors.resizeVisibleEditors();
-				});
-			};
-			let tabContent = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'source-code', 'Source Code', targetView === 'source-code', generatedSourceTabShowCallback, false, true);
-
-			tabContent.insertAdjacentHTML('beforeend', `<div class="generated-source" data-type-name="${entity.type}" data-type-id="${entity.id}"></div>`);
-
-			if (targetView === 'source-code') {
-				generatedSourceTabShowCallback(tabContent);
-			}
-		},
 		getTypeDefinitionDataFromForm: (tabContent, entity) => {
 			return _Code.persistence.collectDataFromContainer(tabContent, entity);
 		},
@@ -1166,24 +1150,27 @@ let _Schema = {
 		},
 		getTypeDefinitionChanges: (entity, newData) => {
 
+			let hasArrayChanged = (key) => {
+
+				let prevValue = entity[key] ?? [];
+				let newValue  = newData[key];
+
+				if (prevValue.length === newValue.length) {
+
+					let difference = prevValue.filter(t => !newValue.includes(t));
+					return (difference.length > 0);
+				}
+
+				return true;
+			};
+
 			for (let key in newData) {
 
 				let shouldDelete = (entity[key] === newData[key]);
 
-				if (key === 'tags') {
+				if (key === 'tags' || key === 'inheritedTraits') {
 
-					let prevTags = entity[key] ?? [];
-					let newTags  = newData[key];
-					if (!prevTags && newTags.length === 0) {
-						shouldDelete = true
-					} else if (prevTags.length === newTags.length) {
-						let difference = prevTags.filter(t => !newTags.includes(t));
-						shouldDelete = (difference.length === 0);
-					}
-
-				} else if (key === 'inheritedTraits') {
-
-					shouldDelete = (entity.inheritedTraits === null && newData.inheritedTraits.length === 0);
+					shouldDelete = !hasArrayChanged(key);
 				}
 
 				if (shouldDelete) {
@@ -3843,6 +3830,7 @@ let _Schema = {
 				language: 'auto',
 				lint: true,
 				autocomplete: true,
+				isAutoscriptEnv: true,
 				changeFn: (editor, entity) => {
 
 					methodData.source = editor.getValue();
@@ -4180,43 +4168,6 @@ let _Schema = {
 					</div>
 				</div>
 			`,
-		}
-	},
-	showGeneratedSource: async (sourceContainer) => {
-
-		if (sourceContainer) {
-
-			let typeName = sourceContainer.dataset.typeName;
-			let typeId   = sourceContainer.dataset.typeId;
-
-			if (typeName && typeId) {
-
-				_Helpers.fastRemoveAllChildren(sourceContainer);
-
-				sourceContainer.classList.add('h-full');
-
-				let response = await fetch(Structr.rootUrl + typeName + '/' + typeId + '/getGeneratedSourceCode', { method: 'POST' });
-
-				if (response.ok) {
-
-					// remove id so we do not refresh the editor all the time
-					sourceContainer.dataset.typeId = '';
-
-					let result = await response.json();
-
-					let typeSourceConfig = {
-						value: result.result,
-						language: 'java',
-						lint: false,
-						autocomplete: false,
-						readOnly: true
-					};
-
-					_Editors.getMonacoEditor({}, 'source-code', sourceContainer, typeSourceConfig);
-
-					_Editors.resizeVisibleEditors();
-				}
-			}
 		}
 	},
 	resize: () => {
