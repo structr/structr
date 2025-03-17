@@ -92,14 +92,12 @@ public class FlowAggregateTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> dataSource           = new StartNode("dataSource", "FlowDataInput");
 		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes("dataTarget", "FlowDataInput");
 		final Property<NodeInterface> startValue           = new StartNode("startValue", "FlowAggregateStartValue");
 		final Property<NodeInterface> exceptionHandler     = new EndNode("exceptionHandler", "FlowExceptionHandlerNodes");
 		final Property<String> script                      = new StringProperty("script");
 
 		return newSet(
-			dataSource,
 			dataTarget,
 			startValue,
 			exceptionHandler,

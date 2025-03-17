@@ -93,12 +93,10 @@ public class FlowFilterTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> dataSource           = new StartNode("dataSource", "FlowDataInput");
 		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes("dataTarget", "FlowDataInput");
 		final Property<NodeInterface> condition           = new StartNode("condition", "FlowConditionBaseNode");
 
 		return newSet(
-			dataSource,
 			dataTarget,
 			condition
 		);
