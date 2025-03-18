@@ -32,6 +32,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.engine.Context;
@@ -46,10 +47,14 @@ import java.util.Set;
 
 public class FlowTypeQueryTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String DATA_TARGET_PROPERTY = "dataTarget";
+	public static final String DATA_TYPE_PROPERTY   = "dataType";
+
+
 	private static final Logger logger = LoggerFactory.getLogger(FlowTypeQueryTraitDefinition.class);
 
 	public FlowTypeQueryTraitDefinition() {
-		super("FlowTypeQuery");
+		super(StructrTraits.FLOW_TYPE_QUERY);
 	}
 
 	@Override
@@ -112,14 +117,12 @@ public class FlowTypeQueryTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes("dataTarget", "FlowDataInput");
-		final Property<String> dataType                    = new StringProperty("dataType");
-		final Property<String> query                       = new StringProperty("query");
+		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes(DATA_TARGET_PROPERTY, StructrTraits.FLOW_DATA_INPUT);
+		final Property<String> dataType                    = new StringProperty(DATA_TYPE_PROPERTY);
 
 		return newSet(
 			dataTarget,
-			dataType,
-			query
+			dataType
 		);
 	}
 
@@ -129,11 +132,12 @@ public class FlowTypeQueryTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"dataTarget", "dataType", "query"
+				DATA_TARGET_PROPERTY, DATA_TYPE_PROPERTY, FlowDataSourceTraitDefinition.QUERY_PROPERTY
 			),
+
 			PropertyView.Ui,
 			newSet(
-				"dataTarget", "dataType", "query"
+				DATA_TARGET_PROPERTY, DATA_TYPE_PROPERTY, FlowDataSourceTraitDefinition.QUERY_PROPERTY
 			)
 		);
 	}

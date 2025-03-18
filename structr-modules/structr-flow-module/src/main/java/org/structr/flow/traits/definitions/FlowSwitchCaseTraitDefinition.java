@@ -26,6 +26,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.api.FlowType;
@@ -38,8 +39,11 @@ import java.util.Set;
 
 public class FlowSwitchCaseTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String SWITCH_PROPERTY = "switch";
+	public static final String CASE_PROPERTY   = "case";
+
 	public FlowSwitchCaseTraitDefinition() {
-		super("FlowSwitchCase");
+		super(StructrTraits.FLOW_SWITCH_CASE);
 	}
 
 	@Override
@@ -68,8 +72,8 @@ public class FlowSwitchCaseTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> switchNode = new StartNode("switch", "FlowSwitchCases");
-		final Property<String> switchCase        = new StringProperty("case");
+		final Property<NodeInterface> switchNode = new StartNode(SWITCH_PROPERTY, StructrTraits.FLOW_SWITCH_CASES);
+		final Property<String> switchCase        = new StringProperty(CASE_PROPERTY);
 
 		return newSet(
 			switchNode,
@@ -83,11 +87,12 @@ public class FlowSwitchCaseTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"case", "next", "switchNode"
+				CASE_PROPERTY, FlowNodeTraitDefinition.NEXT_PROPERTY, SWITCH_PROPERTY
 			),
+
 			PropertyView.Ui,
 			newSet(
-				"case", "next", "switchNode"
+				CASE_PROPERTY, FlowNodeTraitDefinition.NEXT_PROPERTY, SWITCH_PROPERTY
 			)
 		);
 	}

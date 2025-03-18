@@ -29,6 +29,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
@@ -41,15 +42,16 @@ import org.structr.flow.traits.operations.DataSourceOperations;
 import java.util.Map;
 import java.util.Set;
 
-/**
- *
- */
 public class FlowGetPropertyTraitDefinition extends AbstractNodeTraitDefinition {
+
+	public static final String NODE_SOURCE_PROPERTY          = "nodeSource";
+	public static final String PROPERTY_NAME_SOURCE_PROPERTY = "propertyNameSource";
+	public static final String PROPERTY_NAME_PROPERTY        = "propertyName";
 
 	private static final Logger logger = LoggerFactory.getLogger(FlowGetPropertyTraitDefinition.class);
 
 	public FlowGetPropertyTraitDefinition() {
-		super("FlowGetProperty");
+		super(StructrTraits.FLOW_GET_PROPERTY);
 	}
 
 	@Override
@@ -162,9 +164,9 @@ public class FlowGetPropertyTraitDefinition extends AbstractNodeTraitDefinition 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> nodeSource         = new StartNode("nodeSource",         "FlowNodeDataSource");
-		final Property<NodeInterface> propertyNameSource = new StartNode("propertyNameSource", "FlowNameDataSource");
-		final Property<String> propertyName              = new StringProperty("propertyName");
+		final Property<NodeInterface> nodeSource         = new StartNode(NODE_SOURCE_PROPERTY, StructrTraits.FLOW_NODE_DATA_SOURCE);
+		final Property<NodeInterface> propertyNameSource = new StartNode(PROPERTY_NAME_SOURCE_PROPERTY, StructrTraits.FLOW_NAME_DATA_SOURCE);
+		final Property<String> propertyName              = new StringProperty(PROPERTY_NAME_PROPERTY);
 
 		return newSet(
 			nodeSource,
@@ -179,11 +181,12 @@ public class FlowGetPropertyTraitDefinition extends AbstractNodeTraitDefinition 
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"nodeSource", "propertyNameSource", "propertyName"
+				NODE_SOURCE_PROPERTY, PROPERTY_NAME_SOURCE_PROPERTY, PROPERTY_NAME_PROPERTY
 			),
+
 			PropertyView.Ui,
 			newSet(
-				"nodeSource", "propertyNameSource", "propertyName"
+				NODE_SOURCE_PROPERTY, PROPERTY_NAME_SOURCE_PROPERTY, PROPERTY_NAME_PROPERTY
 			)
 		);
 	}

@@ -31,7 +31,9 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.flow.impl.FlowBaseNode;
 import org.structr.flow.impl.FlowContainer;
 import org.structr.flow.impl.FlowContainerConfiguration;
@@ -40,6 +42,9 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import org.structr.flow.traits.definitions.FlowContainerTraitDefinition;
+import org.structr.flow.traits.definitions.FlowDataSourceTraitDefinition;
+import org.structr.flow.traits.definitions.FlowScriptConditionTraitDefinition;
 
 public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler implements FlowDeploymentInterface{
 
@@ -61,7 +66,7 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 
 	private static final String[] FLOW_BLACKLISTED_REL_TYPES                                = {"OWNS","SECURITY","CONTAINS_FLOW"};
 	private static final String[] FLOW_SCRIPT_ATTRIBUTES									= {"query", "script", "result"};
-	private static final String[] FLOW_IGNORE_WARNING_FOR_RELS								= {"FlowCallContainer"};
+	private static final String[] FLOW_IGNORE_WARNING_FOR_RELS								= {StructrTraits.FLOW_CALL_CONTAINER};
 
 
 	@Override
@@ -80,7 +85,7 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 
 			try (final Tx tx = app.tx()) {
 
-				final Iterable<NodeInterface> flows = app.nodeQuery("FlowContainer").getResultStream();
+				final Iterable<NodeInterface> flows = app.nodeQuery(StructrTraits.FLOW_CONTAINER).getResultStream();
 
 				for (final NodeInterface flow : flows) {
 
@@ -122,7 +127,7 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 			}
 
 
-			for (final RelationshipInterface toDelete : app.relationshipQuery("FlowContainerConfigurationFlow").getAsList()) {
+			for (final RelationshipInterface toDelete : app.relationshipQuery(StructrTraits.FLOW_CONTAINER_CONFIGURATION_FLOW).getAsList()) {
 
 				app.delete(toDelete);
 			}
@@ -182,11 +187,11 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 			// 1. Create flow packages
 			// 2. Create flow container
 			final Map<String, Object> flowContainerData = readData(flowRootDir.resolve(FLOW_DEPLOYMENT_CONTAINER_FILE));
-			final Traits flowContainerTraits            = Traits.of("FlowContainer");
-			final NodeInterface flowContainer           = app.create("FlowContainer", convertMapToPropertyMap("FlowContainer", flowContainerData));
+			final Traits flowContainerTraits            = Traits.of(StructrTraits.FLOW_CONTAINER);
+			final NodeInterface flowContainer           = app.create(StructrTraits.FLOW_CONTAINER, convertMapToPropertyMap(StructrTraits.FLOW_CONTAINER, flowContainerData));
 
 			// Set flow package implicitly
-			flowContainer.setProperty(flowContainerTraits.key("effectiveName"), packagePath);
+			flowContainer.setProperty(flowContainerTraits.key(FlowContainerTraitDefinition.EFFECTIVE_NAME_PROPERTY), packagePath);
 
 			// 3. Create flow nodes
 			final File nodesDir = new File(flowRootDir.resolve(FLOW_DEPLOYMENT_TREE_NODE_FOLDER).toAbsolutePath().toString());
@@ -197,7 +202,7 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 
 					// Import node with its base data
 					final Map<String, Object> nodePropsData = readData(nodeDir.toPath().resolve(FLOW_DEPLOYMENT_NODE_FILE));
-					final String type                       = nodePropsData.get("type").toString();
+					final String type                       = nodePropsData.get(GraphObjectTraitDefinition.TYPE_PROPERTY).toString();
 					final NodeInterface node                = app.create(type, convertMapToPropertyMap(type, nodePropsData));
 
 					// Import node scripts
@@ -232,7 +237,7 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 
 					final Map<String, Object> configPropsData = readData(configDir.toPath().resolve(FLOW_DEPLOYMENT_CONFIG_FILE));
 
-					app.create("FlowContainerConfiguration", convertMapToPropertyMap("FlowContainerConfiguration", configPropsData));
+					app.create(StructrTraits.FLOW_CONTAINER_CONFIGURATION, convertMapToPropertyMap(StructrTraits.FLOW_CONTAINER_CONFIGURATION, configPropsData));
 				}
 
 			} catch (NullPointerException npe) {

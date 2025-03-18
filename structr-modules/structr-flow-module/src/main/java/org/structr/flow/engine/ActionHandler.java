@@ -22,9 +22,6 @@ import org.structr.flow.api.FlowHandler;
 import org.structr.flow.impl.FlowAction;
 import org.structr.flow.impl.FlowNode;
 
-/**
- *
- */
 public class ActionHandler implements FlowHandler {
 
 	@Override

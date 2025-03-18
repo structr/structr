@@ -26,6 +26,7 @@ import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StartNode;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.api.FlowType;
@@ -42,8 +43,11 @@ import java.util.Set;
 
 public class FlowFilterTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String DATA_TARGET_PROPERTY = "dataTarget";
+	public static final String CONDITION_PROPERTY   = "condition";
+
 	public FlowFilterTraitDefinition() {
-		super("FlowFilter");
+		super(StructrTraits.FLOW_FILTER);
 	}
 
 	@Override
@@ -93,8 +97,8 @@ public class FlowFilterTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes("dataTarget", "FlowDataInput");
-		final Property<NodeInterface> condition           = new StartNode("condition", "FlowConditionBaseNode");
+		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes(DATA_TARGET_PROPERTY, StructrTraits.FLOW_DATA_INPUT);
+		final Property<NodeInterface> condition            = new StartNode(CONDITION_PROPERTY, StructrTraits.FLOW_CONDITION_BASE_NODE);
 
 		return newSet(
 			dataTarget,
@@ -108,11 +112,12 @@ public class FlowFilterTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"dataTarget", "dataSource", "condition"
+				DATA_TARGET_PROPERTY, FlowBaseNodeTraitDefinition.DATA_SOURCE_PROPERTY, CONDITION_PROPERTY
 			),
+
 			PropertyView.Ui,
 			newSet(
-				"dataTarget", "dataSource", "condition"
+				DATA_TARGET_PROPERTY, FlowBaseNodeTraitDefinition.DATA_SOURCE_PROPERTY, CONDITION_PROPERTY
 			)
 		);
 	}

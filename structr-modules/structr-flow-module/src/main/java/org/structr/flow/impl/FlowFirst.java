@@ -21,9 +21,6 @@ package org.structr.flow.impl;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 
-/**
- *
- */
 public class FlowFirst extends FlowDataSource {
 
 	public FlowFirst(final Traits traits, final NodeInterface wrappedObject) {

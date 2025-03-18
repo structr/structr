@@ -21,23 +21,24 @@ package org.structr.flow.impl.rels;
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
 import org.structr.core.entity.Relation;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
 public class FlowContainerPackageFlow extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public FlowContainerPackageFlow() {
-		super("FlowContainerPackageFlow");
+		super(StructrTraits.FLOW_CONTAINER_PACKAGE_FLOW);
 	}
 
 	@Override
 	public String getSourceType() {
-		return "FlowContainerPackage";
+		return StructrTraits.FLOW_CONTAINER_PACKAGE;
 	}
 
 	@Override
 	public String getTargetType() {
-		return "FlowContainer";
+		return StructrTraits.FLOW_CONTAINER;
 	}
 
 	@Override

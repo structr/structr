@@ -27,6 +27,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.api.FlowResult;
@@ -43,10 +44,15 @@ import java.util.Set;
 
 public class FlowCallTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String DATA_TARGET_PROPERTY = "dataTarget";
+	public static final String PARAMETERS_PROPERTY  = "parameters";
+	public static final String FLOW_PROPERTY        = "flow";
+
+
 	private static final Logger logger = LoggerFactory.getLogger(FlowCallTraitDefinition.class);
 
 	public FlowCallTraitDefinition() {
-		super("FlowCall");
+		super(StructrTraits.FLOW_CALL);
 	}
 
 	@Override
@@ -141,9 +147,9 @@ public class FlowCallTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes("dataTarget", "FlowDataInput");
-		final Property<Iterable<NodeInterface>> parameters = new StartNodes("parameters", "FlowCallParameter");
-		final Property<NodeInterface> flow                 = new EndNode("flow", "FlowCallContainer");
+		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes(DATA_TARGET_PROPERTY, StructrTraits.FLOW_DATA_INPUT);
+		final Property<Iterable<NodeInterface>> parameters = new StartNodes(PARAMETERS_PROPERTY, StructrTraits.FLOW_CALL_PARAMETER);
+		final Property<NodeInterface> flow                 = new EndNode(FLOW_PROPERTY, StructrTraits.FLOW_CALL_CONTAINER);
 
 		return newSet(
 			dataTarget,
@@ -158,11 +164,11 @@ public class FlowCallTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"flow", "dataTarget", "parameters", "isStartNodeOfContainer"
+				FLOW_PROPERTY, DATA_TARGET_PROPERTY, PARAMETERS_PROPERTY, FlowNodeTraitDefinition.IS_START_NODE_OF_CONTAINER_PROPERTY
 			),
 			PropertyView.Ui,
 			newSet(
-				"flow", "dataTarget", "parameters", "isStartNodeOfContainer", "flowContainer"
+				FLOW_PROPERTY, DATA_TARGET_PROPERTY, PARAMETERS_PROPERTY, FlowNodeTraitDefinition.IS_START_NODE_OF_CONTAINER_PROPERTY, FlowBaseNodeTraitDefinition.FLOW_CONTAINER_PROPERTY
 			)
 		);
 	}

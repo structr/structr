@@ -23,6 +23,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.api.FlowType;
@@ -39,8 +40,13 @@ import java.util.Set;
 
 public class FlowAggregateTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String DATA_TARGET_PROPERTY       = "dataTarget";
+	public static final String START_VALUE_PROPERTY       = "startValue";
+	public static final String EXCEPTION_HANDLER_PROPERTY = "exceptionHandler";
+	public static final String SCRIPT_PROPERTY            = "script";
+
 	public FlowAggregateTraitDefinition() {
-		super("FlowAggregate");
+		super(StructrTraits.FLOW_AGGREGATE);
 	}
 
 	@Override
@@ -92,10 +98,10 @@ public class FlowAggregateTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes("dataTarget", "FlowDataInput");
-		final Property<NodeInterface> startValue           = new StartNode("startValue", "FlowAggregateStartValue");
-		final Property<NodeInterface> exceptionHandler     = new EndNode("exceptionHandler", "FlowExceptionHandlerNodes");
-		final Property<String> script                      = new StringProperty("script");
+		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes(DATA_TARGET_PROPERTY, StructrTraits.FLOW_DATA_INPUT);
+		final Property<NodeInterface> startValue           = new StartNode(START_VALUE_PROPERTY, StructrTraits.FLOW_AGGREGATE_START_VALUE);
+		final Property<NodeInterface> exceptionHandler     = new EndNode(EXCEPTION_HANDLER_PROPERTY, StructrTraits.FLOW_EXCEPTION_HANDLER_NODES);
+		final Property<String> script                      = new StringProperty(SCRIPT_PROPERTY);
 
 		return newSet(
 			dataTarget,
@@ -111,11 +117,11 @@ public class FlowAggregateTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"script", "startValue", "dataSource", "dataTarget", "exceptionHandler", "isStartNodeOfContainer"
+				SCRIPT_PROPERTY, START_VALUE_PROPERTY, FlowBaseNodeTraitDefinition.DATA_SOURCE_PROPERTY, DATA_TARGET_PROPERTY, EXCEPTION_HANDLER_PROPERTY, FlowNodeTraitDefinition.IS_START_NODE_OF_CONTAINER_PROPERTY
 			),
 			PropertyView.Ui,
 			newSet(
-				"script", "startValue", "dataSource", "dataTarget", "exceptionHandler", "isStartNodeOfContainer"
+				SCRIPT_PROPERTY, START_VALUE_PROPERTY, FlowBaseNodeTraitDefinition.DATA_SOURCE_PROPERTY, DATA_TARGET_PROPERTY, EXCEPTION_HANDLER_PROPERTY, FlowNodeTraitDefinition.IS_START_NODE_OF_CONTAINER_PROPERTY
 			)
 		);
 	}

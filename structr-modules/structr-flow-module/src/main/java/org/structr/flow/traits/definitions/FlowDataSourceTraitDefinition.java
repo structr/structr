@@ -25,6 +25,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.engine.Context;
@@ -35,13 +36,15 @@ import org.structr.flow.traits.operations.DataSourceOperations;
 import java.util.Map;
 import java.util.Set;
 
-/**
- *
- */
 public class FlowDataSourceTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String DATA_TARGET_PROPERTY       = "dataTarget";
+	public static final String EXCEPTION_HANDLER_PROPERTY = "exceptionHandler";
+	public static final String QUERY_PROPERTY             = "query";
+
+
 	public FlowDataSourceTraitDefinition() {
-		super("FlowDataSource");
+		super(StructrTraits.FLOW_DATA_SOURCE);
 	}
 
 	@Override
@@ -105,9 +108,9 @@ public class FlowDataSourceTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes("dataTarget", "FlowDataInputs");
-		final Property<NodeInterface> exceptionHandler     = new EndNode("exceptionHandler", "FlowExceptionHandlerNodes");
-		final Property<String> query                       = new StringProperty("query");
+		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes(DATA_TARGET_PROPERTY, StructrTraits.FLOW_DATA_INPUTS);
+		final Property<NodeInterface> exceptionHandler     = new EndNode(EXCEPTION_HANDLER_PROPERTY, StructrTraits.FLOW_EXCEPTION_HANDLER_NODES);
+		final Property<String> query                       = new StringProperty(QUERY_PROPERTY);
 
 		return newSet(
 			dataTarget,
@@ -122,11 +125,11 @@ public class FlowDataSourceTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"query", "dataTarget", "exceptionHandler", "dataSource"
+				QUERY_PROPERTY, DATA_TARGET_PROPERTY, EXCEPTION_HANDLER_PROPERTY, FlowBaseNodeTraitDefinition.DATA_SOURCE_PROPERTY
 			),
 			PropertyView.Ui,
 			newSet(
-				"query", "dataTarget", "exceptionHandler", "dataSource"
+				QUERY_PROPERTY, DATA_TARGET_PROPERTY, EXCEPTION_HANDLER_PROPERTY, FlowBaseNodeTraitDefinition.DATA_SOURCE_PROPERTY
 			)
 		);
 	}

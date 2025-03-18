@@ -22,12 +22,9 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 import org.structr.flow.api.FlowType;
+import org.structr.flow.traits.definitions.FlowNodeTraitDefinition;
 import org.structr.flow.traits.operations.GetFlowType;
 
-
-/**
- *
- */
 public class FlowNode extends FlowBaseNode {
 
 	public FlowNode(final Traits traits, final NodeInterface wrappedObject) {
@@ -40,7 +37,7 @@ public class FlowNode extends FlowBaseNode {
 
 	public FlowNode next() {
 
-		final NodeInterface node = wrappedObject.getProperty(traits.key("next"));
+		final NodeInterface node = wrappedObject.getProperty(traits.key(FlowNodeTraitDefinition.NEXT_PROPERTY));
 		if (node != null) {
 
 			return node.as(FlowNode.class);
@@ -50,6 +47,6 @@ public class FlowNode extends FlowBaseNode {
 	}
 
 	public void setNext(final FlowNode next) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("next"), next);
+		wrappedObject.setProperty(traits.key(FlowNodeTraitDefinition.NEXT_PROPERTY), next);
 	}
 }

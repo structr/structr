@@ -23,10 +23,9 @@ import org.structr.core.traits.Traits;
 
 import java.util.Map;
 import java.util.TreeMap;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.flow.traits.definitions.FlowGetPropertyTraitDefinition;
 
-/**
- *
- */
 public class FlowGetProperty extends FlowDataSource {
 
 	public FlowGetProperty(final Traits traits, final NodeInterface wrappedObject) {
@@ -35,7 +34,7 @@ public class FlowGetProperty extends FlowDataSource {
 
 	public final FlowDataSource getNodeSource() {
 
-		final NodeInterface node = wrappedObject.getProperty(traits.key("nodeSource"));
+		final NodeInterface node = wrappedObject.getProperty(traits.key(FlowGetPropertyTraitDefinition.NODE_SOURCE_PROPERTY));
 		if (node != null) {
 
 			return node.as(FlowDataSource.class);
@@ -46,7 +45,7 @@ public class FlowGetProperty extends FlowDataSource {
 
 	public final FlowDataSource getPropertyNameSource() {
 
-		final NodeInterface node = wrappedObject.getProperty(traits.key("propertyNameSource"));
+		final NodeInterface node = wrappedObject.getProperty(traits.key(FlowGetPropertyTraitDefinition.PROPERTY_NAME_SOURCE_PROPERTY));
 		if (node != null) {
 
 			return node.as(FlowDataSource.class);
@@ -56,7 +55,7 @@ public class FlowGetProperty extends FlowDataSource {
 	}
 
 	public final String getPropertyName() {
-		return wrappedObject.getProperty(traits.key("propertyName"));
+		return wrappedObject.getProperty(traits.key(FlowGetPropertyTraitDefinition.PROPERTY_NAME_PROPERTY));
 	}
 
 	@Override
@@ -64,11 +63,11 @@ public class FlowGetProperty extends FlowDataSource {
 
 		final Map<String, Object> result = new TreeMap<>();
 
-		result.put("id",                          getUuid());
-		result.put("type",                        getType());
-		result.put("propertyName",                getPropertyName());
-		result.put("visibleToPublicUsers",        isVisibleToPublicUsers());
-		result.put("visibleToAuthenticatedUsers", isVisibleToAuthenticatedUsers());
+		result.put(GraphObjectTraitDefinition.ID_PROPERTY,                             getUuid());
+		result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,                           getType());
+		result.put(FlowGetPropertyTraitDefinition.PROPERTY_NAME_PROPERTY,              getPropertyName());
+		result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        isVisibleToPublicUsers());
+		result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, isVisibleToAuthenticatedUsers());
 
 		return result;
 	}
