@@ -28,6 +28,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.engine.Context;
@@ -41,10 +42,15 @@ import java.util.Set;
 
 public class FlowConstantTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String DATA_TARGET_PROPERTY   = "dataTarget";
+	public static final String VALUE_PROPERTY         = "value";
+	public static final String CONSTANT_TYPE_PROPERTY = "constantType";
+
+
 	private static final Logger logger = LoggerFactory.getLogger(FlowConstantTraitDefinition.class);
 
 	public FlowConstantTraitDefinition() {
-		super("FlowConstant");
+		super(StructrTraits.FLOW_CONSTANT);
 	}
 
 	@Override
@@ -117,9 +123,9 @@ public class FlowConstantTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes("dataTarget", "FlowDataInput");
-		final Property<String> value                       = new StringProperty("value");
-		final Property<String> constantType                = new EnumProperty("constantType", FlowConstant.ConstantType.class);
+		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes(DATA_TARGET_PROPERTY, StructrTraits.FLOW_DATA_INPUT);
+		final Property<String> value                       = new StringProperty(VALUE_PROPERTY);
+		final Property<String> constantType                = new EnumProperty(CONSTANT_TYPE_PROPERTY, FlowConstant.ConstantType.class);
 
 		return newSet(
 			dataTarget,
@@ -134,11 +140,11 @@ public class FlowConstantTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"value", "dataTarget", "constantType"
+				VALUE_PROPERTY, DATA_TARGET_PROPERTY, CONSTANT_TYPE_PROPERTY
 			),
 			PropertyView.Ui,
 			newSet(
-				"value", "dataTarget", "constantType"
+				VALUE_PROPERTY, DATA_TARGET_PROPERTY, CONSTANT_TYPE_PROPERTY
 			)
 		);
 	}

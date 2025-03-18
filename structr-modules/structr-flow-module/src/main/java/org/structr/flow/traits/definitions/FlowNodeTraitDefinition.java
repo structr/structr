@@ -23,20 +23,23 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.flow.impl.FlowNode;
 
 import java.util.Map;
 import java.util.Set;
 
-
-/**
- *
- */
 public class FlowNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String IS_START_NODE_OF_CONTAINER_PROPERTY       = "isStartNodeOfContainer";
+	public static final String PREV_PROPERTY                             = "prev";
+	public static final String NEXT_PROPERTY                             = "next";
+	public static final String PREV_FOR_EACH_PROPERTY                    = "prevForEach";		// FIXME: is this ever used?
+
+
 	public FlowNodeTraitDefinition() {
-		super("FlowNode");
+		super(StructrTraits.FLOW_NODE);
 	}
 
 	@Override
@@ -50,10 +53,10 @@ public class FlowNodeTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> isStartNodeOfContainer = new StartNode("isStartNodeOfContainer", "FlowContainerFlowNode");
-		final Property<Iterable<NodeInterface>> prev         = new StartNodes("prev", "FlowNodes");
-		final Property<NodeInterface> next                   = new EndNode("next", "FlowNodes");
-		final Property<NodeInterface> prevForEach            = new StartNode("prevForEach", "FlowForEachBody");
+		final Property<NodeInterface> isStartNodeOfContainer = new StartNode(IS_START_NODE_OF_CONTAINER_PROPERTY, StructrTraits.FLOW_CONTAINER_FLOW_NODE);
+		final Property<Iterable<NodeInterface>> prev         = new StartNodes(PREV_PROPERTY, StructrTraits.FLOW_NODES);
+		final Property<NodeInterface> next                   = new EndNode(NEXT_PROPERTY, StructrTraits.FLOW_NODES);
+		final Property<NodeInterface> prevForEach            = new StartNode(PREV_FOR_EACH_PROPERTY, StructrTraits.FLOW_FOR_EACH_BODY);
 
 		return newSet(
 			isStartNodeOfContainer,
@@ -69,11 +72,11 @@ public class FlowNodeTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"prev", "next", "isStartNodeOfContainer"
+				PREV_PROPERTY, NEXT_PROPERTY, IS_START_NODE_OF_CONTAINER_PROPERTY
 			),
 			PropertyView.Ui,
 			newSet(
-				"prev", "next", "isStartNodeOfContainer"
+				PREV_PROPERTY, NEXT_PROPERTY, IS_START_NODE_OF_CONTAINER_PROPERTY
 			)
 		);
 	}

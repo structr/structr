@@ -24,6 +24,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.engine.Context;
@@ -36,13 +37,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/**
- *
- */
 public class FlowComparisonTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String OPERATION_PROPERTY    = "operation";
+	public static final String DATA_SOURCES_PROPERTY = "dataSources";
+	public static final String CONDITION_PROPERTY    = "condition";
+	public static final String DECISION_PROPERTY     = "decision";
+
 	public FlowComparisonTraitDefinition() {
-		super("FlowComparison");
+		super(StructrTraits.FLOW_COMPARISON);
 	}
 
 	@Override
@@ -133,10 +136,10 @@ public class FlowComparisonTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<String> operation                    = new EnumProperty("operation", FlowComparison.Operation.class);
-		final Property<Iterable<NodeInterface>> dataSources = new StartNodes("dataSources", "FlowDataInputs");
-		final Property<NodeInterface> condition             = new EndNode("condition", "FlowConditionCondition");
-		final Property<Iterable<NodeInterface>> decision    = new EndNodes("decision", "FlowDecisionCondition");
+		final Property<String> operation                    = new EnumProperty(OPERATION_PROPERTY, FlowComparison.Operation.class);
+		final Property<Iterable<NodeInterface>> dataSources = new StartNodes(DATA_SOURCES_PROPERTY, StructrTraits.FLOW_DATA_INPUTS);
+		final Property<NodeInterface> condition             = new EndNode(CONDITION_PROPERTY, StructrTraits.FLOW_CONDITION_CONDITION);
+		final Property<Iterable<NodeInterface>> decision    = new EndNodes(DECISION_PROPERTY, StructrTraits.FLOW_DECISION_CONDITION);
 
 		return newSet(
 			operation,
@@ -152,11 +155,12 @@ public class FlowComparisonTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"dataSources", "dataSource", "condition", "decision", "operation"
+				DATA_SOURCES_PROPERTY, FlowBaseNodeTraitDefinition.DATA_SOURCE_PROPERTY, CONDITION_PROPERTY, DECISION_PROPERTY, OPERATION_PROPERTY
 			),
+
 			PropertyView.Ui,
 			newSet(
-				"dataSources", "dataSource", "condition", "decision", "operation"
+				DATA_SOURCES_PROPERTY, FlowBaseNodeTraitDefinition.DATA_SOURCE_PROPERTY, CONDITION_PROPERTY, DECISION_PROPERTY, OPERATION_PROPERTY
 			)
 		);
 	}

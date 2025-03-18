@@ -23,6 +23,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.api.FlowType;
@@ -33,13 +34,13 @@ import org.structr.flow.traits.operations.GetFlowType;
 import java.util.Map;
 import java.util.Set;
 
-/**
- *
- */
 public class FlowReturnTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String EXCEPTION_HANDLER_PROPERTY = "exceptionHandler";
+	public static final String RESULT_PROPERTY            = "result";
+
 	public FlowReturnTraitDefinition() {
-		super("FlowReturn");
+		super(StructrTraits.FLOW_RETURN);
 	}
 
 	@Override
@@ -68,8 +69,8 @@ public class FlowReturnTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> exceptionHandler = new EndNode("exceptionHandler", "FlowExceptionHandlerNodes");
-		final Property<String> result                  = new StringProperty("result");
+		final Property<NodeInterface> exceptionHandler = new EndNode(EXCEPTION_HANDLER_PROPERTY, StructrTraits.FLOW_EXCEPTION_HANDLER_NODES);
+		final Property<String> result                  = new StringProperty(RESULT_PROPERTY);
 
 		return newSet(
 			exceptionHandler,
@@ -83,11 +84,12 @@ public class FlowReturnTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"result", "dataSource", "exceptionHandler", "isStartNodeOfContainer"
+				RESULT_PROPERTY, FlowBaseNodeTraitDefinition.DATA_SOURCE_PROPERTY, EXCEPTION_HANDLER_PROPERTY, FlowNodeTraitDefinition.IS_START_NODE_OF_CONTAINER_PROPERTY
 			),
+
 			PropertyView.Ui,
 			newSet(
-				"result", "dataSource", "exceptionHandler", "isStartNodeOfContainer"
+				RESULT_PROPERTY, FlowBaseNodeTraitDefinition.DATA_SOURCE_PROPERTY, EXCEPTION_HANDLER_PROPERTY, FlowNodeTraitDefinition.IS_START_NODE_OF_CONTAINER_PROPERTY
 			)
 		);
 	}

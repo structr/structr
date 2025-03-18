@@ -21,26 +21,24 @@ package org.structr.flow.impl.rels;
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
 import org.structr.core.entity.Relation;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
-/**
- *
- */
 public class FlowForkBody extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public FlowForkBody() {
-		super("FlowForkBody");
+		super(StructrTraits.FLOW_FORK_BODY);
 	}
 
 	@Override
 	public String getSourceType() {
-		return "FlowFork";
+		return StructrTraits.FLOW_FORK;
 	}
 
 	@Override
 	public String getTargetType() {
-		return "FlowNode";
+		return StructrTraits.FLOW_NODE;
 	}
 
 	@Override

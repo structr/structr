@@ -30,6 +30,7 @@ import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
@@ -40,8 +41,13 @@ import java.util.Set;
 
 public class FlowContainerConfigurationTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String FLOW_PROPERTY             = "flow";
+	public static final String ACTIVE_FOR_FLOW_PROPERTY  = "activeForFlow";
+	public static final String VALID_FOR_EDITOR_PROPERTY = "validForEditor";
+	public static final String CONFIG_JSON_PROPERTY      = "configJson";
+
 	public FlowContainerConfigurationTraitDefinition() {
-		super("FlowContainerConfiguration");
+		super(StructrTraits.FLOW_CONTAINER_CONFIGURATION);
 	}
 
 	@Override
@@ -71,10 +77,10 @@ public class FlowContainerConfigurationTraitDefinition extends AbstractNodeTrait
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> flow          = new EndNode("flow", "FlowContainerConfigurationFlow");
-		final Property<NodeInterface> activeForFlow = new EndNode("activeForFlow", "FlowActiveContainerConfiguration");
-		final Property<String> validForEditor       = new StringProperty("validForEditor").indexed();
-		final Property<String> configJson           = new StringProperty("configJson");
+		final Property<NodeInterface> flow          = new EndNode(FLOW_PROPERTY, StructrTraits.FLOW_CONTAINER_CONFIGURATION_FLOW);
+		final Property<NodeInterface> activeForFlow = new EndNode(ACTIVE_FOR_FLOW_PROPERTY, StructrTraits.FLOW_ACTIVE_CONTAINER_CONFIGURATION);
+		final Property<String> validForEditor       = new StringProperty(VALID_FOR_EDITOR_PROPERTY).indexed();
+		final Property<String> configJson           = new StringProperty(CONFIG_JSON_PROPERTY);
 
 		return newSet(
 			flow,
@@ -90,11 +96,11 @@ public class FlowContainerConfigurationTraitDefinition extends AbstractNodeTrait
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"validForEditor", "configJson"
+				VALID_FOR_EDITOR_PROPERTY, CONFIG_JSON_PROPERTY
 			),
 			PropertyView.Ui,
 			newSet(
-				"flow", "activeForFlow", "validForEditor", "configJson"
+				FLOW_PROPERTY, ACTIVE_FOR_FLOW_PROPERTY, VALID_FOR_EDITOR_PROPERTY, CONFIG_JSON_PROPERTY
 			)
 		);
 	}

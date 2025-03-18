@@ -25,6 +25,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.api.KeyValue;
@@ -37,15 +38,15 @@ import org.structr.flow.traits.operations.DataSourceOperations;
 import java.util.Map;
 import java.util.Set;
 
-/**
- *
- */
 public class FlowKeyValueTraitDefinition extends AbstractNodeTraitDefinition {
+
+	public static final String KEY_PROPERTY         = "key";
+	public static final String DATA_TARGET_PROPERTY = "dataTarget";
 
 	private static final Logger logger = LoggerFactory.getLogger(FlowKeyValueTraitDefinition.class);
 
 	public FlowKeyValueTraitDefinition() {
-		super("FlowKeyValue");
+		super(StructrTraits.FLOW_KEY_VALUE);
 	}
 
 	@Override
@@ -98,8 +99,8 @@ public class FlowKeyValueTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<String> key                         = new StringProperty("key");
-		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes("dataTarget", "FlowDataInput");
+		final Property<String> key                         = new StringProperty(KEY_PROPERTY);
+		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes(DATA_TARGET_PROPERTY, StructrTraits.FLOW_DATA_INPUT);
 
 		return newSet(
 			key,
@@ -113,11 +114,12 @@ public class FlowKeyValueTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"key", "dataSource", "dataTarget"
+				KEY_PROPERTY, FlowBaseNodeTraitDefinition.DATA_SOURCE_PROPERTY, DATA_TARGET_PROPERTY
 			),
+
 			PropertyView.Ui,
 			newSet(
-				"key", "dataSource", "dataTarget"
+				KEY_PROPERTY, FlowBaseNodeTraitDefinition.DATA_SOURCE_PROPERTY, DATA_TARGET_PROPERTY
 			)
 		);
 	}

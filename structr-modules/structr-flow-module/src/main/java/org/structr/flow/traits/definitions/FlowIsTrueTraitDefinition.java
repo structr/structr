@@ -24,6 +24,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.engine.Context;
@@ -37,13 +38,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/**
- *
- */
 public class FlowIsTrueTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String DATA_SOURCES_PROPERTY = "dataSources";
+	public static final String CONDITION_PROPERTY    = "condition";
+	public static final String DECISION_PROPERTY     = "decision";
+
 	public FlowIsTrueTraitDefinition() {
-		super("FlowIsTrue");
+		super(StructrTraits.FLOW_IS_TRUE);
 	}
 
 	@Override
@@ -88,9 +90,9 @@ public class FlowIsTrueTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Iterable<NodeInterface>> dataSources = new StartNodes("dataSources", "FlowDataInputs");
-		final Property<NodeInterface> condition             = new EndNode("condition", "FlowConditionCondition");
-		final Property<Iterable<NodeInterface>> decision    = new EndNodes("decision", "FlowDecisionCondition");
+		final Property<Iterable<NodeInterface>> dataSources = new StartNodes(DATA_SOURCES_PROPERTY, StructrTraits.FLOW_DATA_INPUTS);
+		final Property<NodeInterface> condition             = new EndNode(CONDITION_PROPERTY, StructrTraits.FLOW_CONDITION_CONDITION);
+		final Property<Iterable<NodeInterface>> decision    = new EndNodes(DECISION_PROPERTY, StructrTraits.FLOW_DECISION_CONDITION);
 
 		return newSet(
 			dataSources,
@@ -105,11 +107,12 @@ public class FlowIsTrueTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"dataSources", "condition", "decision"
+				DATA_SOURCES_PROPERTY, CONDITION_PROPERTY, DECISION_PROPERTY
 			),
+
 			PropertyView.Ui,
 			newSet(
-				"dataSources", "condition", "decision"
+				DATA_SOURCES_PROPERTY, CONDITION_PROPERTY, DECISION_PROPERTY
 			)
 		);
 	}

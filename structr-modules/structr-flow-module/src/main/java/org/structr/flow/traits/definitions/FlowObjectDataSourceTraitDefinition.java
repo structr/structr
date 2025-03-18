@@ -27,6 +27,7 @@ import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StartNodes;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.api.KeyValue;
@@ -41,15 +42,14 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
-/**
- *
- */
 public class FlowObjectDataSourceTraitDefinition extends AbstractNodeTraitDefinition {
+
+	public static final String KEY_VALUE_SOURCES_PROPERTY = "keyValueSources";
 
 	private static final Logger logger = LoggerFactory.getLogger(FlowObjectDataSourceTraitDefinition.class);
 
 	public FlowObjectDataSourceTraitDefinition() {
-		super("FlowObjectDataSource");
+		super(StructrTraits.FLOW_OBJECT_DATA_SOURCE);
 	}
 
 	@Override
@@ -98,7 +98,7 @@ public class FlowObjectDataSourceTraitDefinition extends AbstractNodeTraitDefini
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Iterable<NodeInterface>> keyValueSources = new StartNodes("keyValueSources", "FlowKeyValueObjectInput");
+		final Property<Iterable<NodeInterface>> keyValueSources = new StartNodes(KEY_VALUE_SOURCES_PROPERTY, StructrTraits.FLOW_KEY_VALUE_OBJECT_INPUT);
 
 		return newSet(
 			keyValueSources
@@ -111,11 +111,12 @@ public class FlowObjectDataSourceTraitDefinition extends AbstractNodeTraitDefini
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"keyValueSources"
+				KEY_VALUE_SOURCES_PROPERTY
 			),
+
 			PropertyView.Ui,
 			newSet(
-				"keyValueSources"
+				KEY_VALUE_SOURCES_PROPERTY
 			)
 		);
 	}

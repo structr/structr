@@ -32,8 +32,10 @@ import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.core.traits.operations.graphobject.OnCreation;
@@ -45,13 +47,21 @@ import org.structr.schema.action.EvaluationHints;
 import java.util.Map;
 import java.util.Set;
 
-/**
- *
- */
 public class FlowContainerTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String FLOW_PACKAGE_PROPERTY           = "flowPackage";
+	public static final String FLOW_NODES_PROPERTY             = "flowNodes";
+	public static final String FLOW_CONFIGURATIONS_PROPERTY    = "flowConfigurations";
+	public static final String ACTIVE_CONFIGURATION_PROPERTY   = "activeConfiguration";
+	public static final String START_NODE_PROPERTY             = "startNode";
+	public static final String NAME_PROPERTY                   = "name";
+	public static final String EFFECTIVE_NAME_PROPERTY         = "effectiveName";
+	public static final String SCHEDULED_FOR_INDEXING_PROPERTY = "scheduledForIndexing";
+	public static final String REPEATER_NODES_PROPERTY         = "repeaterNodes";
+	public static final String API_SPECIFICATION_PROPERTY      = "apiSpecification";
+
 	public FlowContainerTraitDefinition() {
-		super("FlowContainer");
+		super(StructrTraits.FLOW_CONTAINER);
 	}
 
 	@Override
@@ -107,9 +117,9 @@ public class FlowContainerTraitDefinition extends AbstractNodeTraitDefinition {
 					final Traits traits = obj.getTraits();
 					boolean valid = true;
 
-					valid &= ValidationHelper.isValidStringNotBlank(obj, traits.key("name"), errorBuffer);
-					valid &= ValidationHelper.isValidPropertyNotNull(obj, traits.key("effectiveName"), errorBuffer);
-					valid &= ValidationHelper.isValidUniqueProperty(obj, traits.key("effectiveName"), errorBuffer);
+					valid &= ValidationHelper.isValidStringNotBlank(obj, traits.key(NAME_PROPERTY), errorBuffer);
+					valid &= ValidationHelper.isValidPropertyNotNull(obj, traits.key(EFFECTIVE_NAME_PROPERTY), errorBuffer);
+					valid &= ValidationHelper.isValidUniqueProperty(obj, traits.key(EFFECTIVE_NAME_PROPERTY), errorBuffer);
 
 					return valid;
 				}
@@ -147,16 +157,16 @@ public class FlowContainerTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> flowPackage                  = new StartNode("flowPackage", "FlowContainerPackageFlow");
-		final Property<Iterable<NodeInterface>> flowNodes          = new EndNodes("flowNodes", "FlowContainerBaseNode");
-		final Property<Iterable<NodeInterface>> flowConfigurations = new StartNodes("flowConfigurations", "FlowContainerConfigurationFlow");
-		final Property<NodeInterface> activeFlowConfiguration      = new StartNode("activeConfiguration", "FlowActiveContainerConfiguration");
-		final Property<NodeInterface> startNode                    = new EndNode("startNode", "FlowContainerFlowNode").indexed();
-		final Property<String> name                                = new StringProperty("name").notNull().indexed();
-		final Property<Object> effectiveName                       = new FunctionProperty<>("effectiveName").indexed().unique().notNull().readFunction("if(empty(this.flowPackage), this.name, concat(this.flowPackage.effectiveName, \".\", this.name))").writeFunction("{\r\n\tlet self = Structr.get(\'this\');\r\n\tlet path = Structr.get(\'value\');\r\n\r\n\tfunction getOrCreatePackage(name, path) {\r\n\t\tlet effectiveName = Structr.empty(path) ? name : Structr.concat(path,\".\",name);\r\n\r\n\t\tlet package = Structr.first(Structr.find(\"FlowContainerPackage\", \"effectiveName\", effectiveName));\r\n\r\n\t\tif (Structr.empty(path)) {\r\n\t\t\t\r\n\t\t\tif (Structr.empty(package)) {\r\n\t\t\t\tpackage = Structr.create(\"FlowContainerPackage\", \"name\", name);\r\n\t\t\t}\r\n\t\t} else {\r\n\t\t\tlet parent = Structr.first(Structr.find(\"FlowContainerPackage\", \"effectiveName\", path));\r\n\r\n\t\t\tif (Structr.empty(package)) {\r\n\t\t\t\tpackage = Structr.create(\"FlowContainerPackage\", \"name\", name, \"parent\", parent);\r\n\t\t\t}\r\n\t\t}\r\n\r\n\t\treturn package;\r\n\t}\r\n\r\n\tif (!Structr.empty(path)) {\r\n\r\n\t\tif (path.length > 0) {\r\n\r\n\t\t\tlet flowName = null;\r\n\r\n\t\t\tif (path.indexOf(\".\") !== -1) {\r\n\r\n\t\t\t\tlet elements = path.split(\".\");\r\n\r\n\t\t\t\tif (elements.length > 1) {\r\n\r\n\t\t\t\t\tflowName = elements.pop();\r\n\t\t\t\t\tlet currentPath = \"\";\r\n\t\t\t\t\tlet parentPackage = null;\r\n\r\n\t\t\t\t\tfor (let el of elements) {\r\n\t\t\t\t\t\tlet package = getOrCreatePackage(el, currentPath);\r\n\t\t\t\t\t\tparentPackage = package;\r\n\t\t\t\t\t\tcurrentPath = package.effectiveName;\r\n\t\t\t\t\t}\r\n\r\n\t\t\t\t\tself.flowPackage = parentPackage;\r\n\t\t\t\t} else {\r\n\r\n\t\t\t\t\tflowName = elements[0];\r\n\t\t\t\t}\r\n\r\n\t\t\t\tself.name = flowName;\r\n\t\t\t} else {\r\n\r\n\t\t\t\tself.name = path;\r\n\t\t\t}\r\n\r\n\t\t}\r\n\r\n\t}\r\n\r\n}").typeHint("String");
-		final Property<Boolean> scheduledForIndexing               = new BooleanProperty("scheduledForIndexing").defaultValue(false);
-		final Property<Iterable<NodeInterface>> repeaterNodes      = new StartNodes("repeaterNodes", "DOMNodeFLOWFlowContainer");
-		final Property<String> apiSpecification                    = new StringProperty("apiSpecification");
+		final Property<NodeInterface> flowPackage                  = new StartNode(FLOW_PACKAGE_PROPERTY, StructrTraits.FLOW_CONTAINER_PACKAGE_FLOW);
+		final Property<Iterable<NodeInterface>> flowNodes          = new EndNodes(FLOW_NODES_PROPERTY, StructrTraits.FLOW_CONTAINER_BASE_NODE);
+		final Property<Iterable<NodeInterface>> flowConfigurations = new StartNodes(FLOW_CONFIGURATIONS_PROPERTY, StructrTraits.FLOW_CONTAINER_CONFIGURATION_FLOW);
+		final Property<NodeInterface> activeFlowConfiguration      = new StartNode(ACTIVE_CONFIGURATION_PROPERTY, StructrTraits.FLOW_ACTIVE_CONTAINER_CONFIGURATION);
+		final Property<NodeInterface> startNode                    = new EndNode(START_NODE_PROPERTY, StructrTraits.FLOW_CONTAINER_FLOW_NODE).indexed();
+		final Property<String> name                                = new StringProperty(NAME_PROPERTY).notNull().indexed();
+		final Property<Object> effectiveName                       = new FunctionProperty<>(EFFECTIVE_NAME_PROPERTY).indexed().unique().notNull().readFunction("if(empty(this.flowPackage), this.name, concat(this.flowPackage.effectiveName, \".\", this.name))").writeFunction("{\r\n\tlet self = Structr.get(\'this\');\r\n\tlet path = Structr.get(\'value\');\r\n\r\n\tfunction getOrCreatePackage(name, path) {\r\n\t\tlet effectiveName = Structr.empty(path) ? name : Structr.concat(path,\".\",name);\r\n\r\n\t\tlet package = Structr.first(Structr.find(\"FlowContainerPackage\", \"effectiveName\", effectiveName));\r\n\r\n\t\tif (Structr.empty(path)) {\r\n\t\t\t\r\n\t\t\tif (Structr.empty(package)) {\r\n\t\t\t\tpackage = Structr.create(\"FlowContainerPackage\", \"name\", name);\r\n\t\t\t}\r\n\t\t} else {\r\n\t\t\tlet parent = Structr.first(Structr.find(\"FlowContainerPackage\", \"effectiveName\", path));\r\n\r\n\t\t\tif (Structr.empty(package)) {\r\n\t\t\t\tpackage = Structr.create(\"FlowContainerPackage\", \"name\", name, \"parent\", parent);\r\n\t\t\t}\r\n\t\t}\r\n\r\n\t\treturn package;\r\n\t}\r\n\r\n\tif (!Structr.empty(path)) {\r\n\r\n\t\tif (path.length > 0) {\r\n\r\n\t\t\tlet flowName = null;\r\n\r\n\t\t\tif (path.indexOf(\".\") !== -1) {\r\n\r\n\t\t\t\tlet elements = path.split(\".\");\r\n\r\n\t\t\t\tif (elements.length > 1) {\r\n\r\n\t\t\t\t\tflowName = elements.pop();\r\n\t\t\t\t\tlet currentPath = \"\";\r\n\t\t\t\t\tlet parentPackage = null;\r\n\r\n\t\t\t\t\tfor (let el of elements) {\r\n\t\t\t\t\t\tlet package = getOrCreatePackage(el, currentPath);\r\n\t\t\t\t\t\tparentPackage = package;\r\n\t\t\t\t\t\tcurrentPath = package.effectiveName;\r\n\t\t\t\t\t}\r\n\r\n\t\t\t\t\tself.flowPackage = parentPackage;\r\n\t\t\t\t} else {\r\n\r\n\t\t\t\t\tflowName = elements[0];\r\n\t\t\t\t}\r\n\r\n\t\t\t\tself.name = flowName;\r\n\t\t\t} else {\r\n\r\n\t\t\t\tself.name = path;\r\n\t\t\t}\r\n\r\n\t\t}\r\n\r\n\t}\r\n\r\n}").typeHint("String");
+		final Property<Boolean> scheduledForIndexing               = new BooleanProperty(SCHEDULED_FOR_INDEXING_PROPERTY).defaultValue(false);
+		final Property<Iterable<NodeInterface>> repeaterNodes      = new StartNodes(REPEATER_NODES_PROPERTY, StructrTraits.DOM_NODE_FLOW_FLOW_CONTAINER);
+		final Property<String> apiSpecification                    = new StringProperty(API_SPECIFICATION_PROPERTY);
 
 		return newSet(
 			flowPackage,
@@ -178,15 +188,17 @@ public class FlowContainerTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"name", "flowNodes", "startNode", "effectiveName", "scheduledForIndexing", "repeaterNodes", "activeFlowConfiguration"
+					NAME_PROPERTY, FLOW_NODES_PROPERTY, START_NODE_PROPERTY, EFFECTIVE_NAME_PROPERTY, SCHEDULED_FOR_INDEXING_PROPERTY, REPEATER_NODES_PROPERTY, ACTIVE_CONFIGURATION_PROPERTY
 			),
+
 			PropertyView.Ui,
 			newSet(
-				"name", "flowNodes", "startNode", "flowPackage", "effectiveName", "scheduledForIndexing", "repeaterNodes", "activeFlowConfiguration", "apiSpecification"
+					NAME_PROPERTY, FLOW_NODES_PROPERTY, START_NODE_PROPERTY, FLOW_PACKAGE_PROPERTY, EFFECTIVE_NAME_PROPERTY, SCHEDULED_FOR_INDEXING_PROPERTY, REPEATER_NODES_PROPERTY, ACTIVE_CONFIGURATION_PROPERTY, API_SPECIFICATION_PROPERTY
 			),
+
 			"effectiveNameView",
 			newSet(
-				"type", "id", "effectiveName"
+					GraphObjectTraitDefinition.TYPE_PROPERTY, GraphObjectTraitDefinition.ID_PROPERTY, EFFECTIVE_NAME_PROPERTY
 			)
 		);
 	}

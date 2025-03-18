@@ -21,6 +21,7 @@ package org.structr.flow.impl;
 import org.structr.api.util.Iterables;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
+import org.structr.flow.traits.definitions.FlowSwitchTraitDefinition;
 import org.structr.module.api.DeployableEntity;
 
 public class FlowSwitch extends FlowNode implements DeployableEntity {
@@ -31,7 +32,7 @@ public class FlowSwitch extends FlowNode implements DeployableEntity {
 
 	public Iterable<FlowSwitchCase> getCases() {
 
-		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key("cases"));
+		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key(FlowSwitchTraitDefinition.CASES_PROPERTY));
 
 		return Iterables.map(n -> n.as(FlowSwitchCase.class), nodes);
 	}
@@ -39,7 +40,7 @@ public class FlowSwitch extends FlowNode implements DeployableEntity {
 	@Override
 	public FlowNode next() {
 
-		final NodeInterface node = wrappedObject.getProperty(traits.key("default"));
+		final NodeInterface node = wrappedObject.getProperty(traits.key(FlowSwitchTraitDefinition.DEFAULT_PROPERTY));
 		if (node != null) {
 
 			return node.as(FlowNode.class);

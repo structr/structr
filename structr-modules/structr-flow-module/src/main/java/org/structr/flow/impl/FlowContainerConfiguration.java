@@ -20,7 +20,10 @@ package org.structr.flow.impl;
 
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
+import org.structr.flow.traits.definitions.FlowContainerConfigurationTraitDefinition;
 import org.structr.module.api.DeployableEntity;
 
 import java.util.Map;
@@ -33,11 +36,11 @@ public class FlowContainerConfiguration extends AbstractNodeTraitWrapper impleme
 	}
 
 	public boolean getValidForEditor() {
-		return wrappedObject.getProperty(traits.key("validForEditor"));
+		return wrappedObject.getProperty(traits.key(FlowContainerConfigurationTraitDefinition.VALID_FOR_EDITOR_PROPERTY));
 	}
 
 	public String getConfigJson() {
-		return wrappedObject.getProperty(traits.key("configJson"));
+		return wrappedObject.getProperty(traits.key(FlowContainerConfigurationTraitDefinition.CONFIG_JSON_PROPERTY));
 	}
 
 	@Override
@@ -45,13 +48,13 @@ public class FlowContainerConfiguration extends AbstractNodeTraitWrapper impleme
 
 		final Map<String, Object> result = new TreeMap<>();
 
-		result.put("id",                          getUuid());
-		result.put("type",                        getType());
-		result.put("name",                        getName());
-		result.put("validForEditor",              getValidForEditor());
-		result.put("configJson",                  getConfigJson());
-		result.put("visibleToPublicUsers",        true);
-		result.put("visibleToAuthenticatedUsers", true);
+		result.put(GraphObjectTraitDefinition.ID_PROPERTY,                              getUuid());
+		result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,                            getType());
+		result.put(NodeInterfaceTraitDefinition.NAME_PROPERTY,                          getName());
+		result.put(FlowContainerConfigurationTraitDefinition.VALID_FOR_EDITOR_PROPERTY, getValidForEditor());
+		result.put(FlowContainerConfigurationTraitDefinition.CONFIG_JSON_PROPERTY,      getConfigJson());
+		result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,         true);
+		result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY,  true);
 
 		return result;
 	}

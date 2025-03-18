@@ -23,9 +23,6 @@ import org.structr.flow.impl.FlowDataSource;
 import org.structr.flow.impl.FlowDecision;
 import org.structr.flow.impl.FlowNode;
 
-/**
- *
- */
 public class DecisionHandler implements FlowHandler {
 
 	@Override

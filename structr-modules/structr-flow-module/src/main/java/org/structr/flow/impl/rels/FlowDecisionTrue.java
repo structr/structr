@@ -21,26 +21,24 @@ package org.structr.flow.impl.rels;
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
 import org.structr.core.entity.Relation;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
-/**
- *
- */
 public class FlowDecisionTrue extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public FlowDecisionTrue() {
-		super("FlowDecisionTrue");
+		super(StructrTraits.FLOW_DECISION_TRUE);
 	}
 
 	@Override
 	public String getSourceType() {
-		return "FlowDecision";
+		return StructrTraits.FLOW_DECISION;
 	}
 
 	@Override
 	public String getTargetType() {
-		return "FlowNode";
+		return StructrTraits.FLOW_NODE;
 	}
 
 	@Override

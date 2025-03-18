@@ -21,12 +21,10 @@ package org.structr.flow.impl.rels;
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
 import org.structr.core.entity.Relation;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
-/**
- *
- */
 public class FlowKeyValueObjectInput extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public FlowKeyValueObjectInput() {
@@ -35,12 +33,12 @@ public class FlowKeyValueObjectInput extends AbstractRelationshipTraitDefinition
 
 	@Override
 	public String getSourceType() {
-		return "FlowKeyValue";
+		return StructrTraits.FLOW_KEY_VALUE;
 	}
 
 	@Override
 	public String getTargetType() {
-		return "FlowObjectDataSource";
+		return StructrTraits.FLOW_OBJECT_DATA_SOURCE;
 	}
 
 	@Override

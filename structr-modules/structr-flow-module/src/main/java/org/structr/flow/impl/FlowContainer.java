@@ -30,10 +30,13 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.flow.api.FlowResult;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowEngine;
+import org.structr.flow.traits.definitions.FlowContainerTraitDefinition;
 import org.structr.module.api.DeployableEntity;
 import org.structr.web.entity.dom.DOMNode;
 
@@ -44,9 +47,6 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-/**
- *
- */
 public class FlowContainer extends AbstractNodeTraitWrapper implements DeployableEntity {
 
 	private static final Logger logger = LoggerFactory.getLogger(FlowContainer.class);
@@ -57,7 +57,7 @@ public class FlowContainer extends AbstractNodeTraitWrapper implements Deployabl
 
 	public FlowNode getStartNode() {
 
-		final NodeInterface startNode = wrappedObject.getProperty(traits.key("startNode"));
+		final NodeInterface startNode = wrappedObject.getProperty(traits.key(FlowContainerTraitDefinition.START_NODE_PROPERTY));
 		if (startNode != null) {
 
 			return startNode.as(FlowNode.class);
@@ -68,36 +68,36 @@ public class FlowContainer extends AbstractNodeTraitWrapper implements Deployabl
 
 	public Iterable<FlowBaseNode> getFlowNodes() {
 
-		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key("flowNodes"));
+		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key(FlowContainerTraitDefinition.FLOW_NODES_PROPERTY));
 
 		return Iterables.map(n -> n.as(FlowBaseNode.class), nodes);
 	}
 
 	public Iterable<FlowContainerConfiguration> getFlowConfigurations() {
 
-		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key("flowConfigurations"));
+		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key(FlowContainerTraitDefinition.FLOW_CONFIGURATIONS_PROPERTY));
 
 		return Iterables.map(n -> n.as(FlowContainerConfiguration.class), nodes);
 	}
 
 	public String getEffectiveName() {
-		return wrappedObject.getProperty(traits.key("effectiveName"));
+		return wrappedObject.getProperty(traits.key(FlowContainerTraitDefinition.EFFECTIVE_NAME_PROPERTY));
 	}
 
 	public void setEffectiveName(final String effectiveName) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("effectiveName"), effectiveName);
+		wrappedObject.setProperty(traits.key(FlowContainerTraitDefinition.EFFECTIVE_NAME_PROPERTY), effectiveName);
 	}
 
 	public void setScheduledForIndexing(final boolean b) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("scheduledForIndexing"), false);
+		wrappedObject.setProperty(traits.key(FlowContainerTraitDefinition.SCHEDULED_FOR_INDEXING_PROPERTY), false);
 	}
 
 	public void setStartNode(final FlowNode next) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("startNode"), next);
+		wrappedObject.setProperty(traits.key(FlowContainerTraitDefinition.START_NODE_PROPERTY), next);
 	}
 
 	public void setRepeaterNodes(final Iterable<DOMNode> repeaterNodes) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("repeaterNodes"), repeaterNodes);
+		wrappedObject.setProperty(traits.key(FlowContainerTraitDefinition.REPEATER_NODES_PROPERTY), repeaterNodes);
 	}
 
 	public Iterable<Object> evaluate(final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException {
@@ -203,12 +203,11 @@ public class FlowContainer extends AbstractNodeTraitWrapper implements Deployabl
 
 		final Map<String, Object> result = new TreeMap<>();
 
-		result.put("id",   wrappedObject.getUuid());
-		result.put("type", wrappedObject.getType());
-		result.put("name", wrappedObject.getName());
-
-		result.put("visibleToPublicUsers",        wrappedObject.isVisibleToPublicUsers());
-		result.put("visibleToAuthenticatedUsers", wrappedObject.isVisibleToAuthenticatedUsers());
+		result.put(GraphObjectTraitDefinition.ID_PROPERTY,                             wrappedObject.getUuid());
+		result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,                           wrappedObject.getType());
+		result.put(NodeInterfaceTraitDefinition.NAME_PROPERTY,                         wrappedObject.getName());
+		result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        wrappedObject.isVisibleToPublicUsers());
+		result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, wrappedObject.isVisibleToAuthenticatedUsers());
 
 		return result;
 	}

@@ -21,23 +21,24 @@ package org.structr.flow.impl.rels;
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
 import org.structr.core.entity.Relation;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
 public class FlowConditionBaseNode extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public FlowConditionBaseNode() {
-		super("FlowConditionBaseNode");
+		super(StructrTraits.FLOW_CONDITION_BASE_NODE);
 	}
 
 	@Override
 	public String getSourceType() {
-		return "FlowCondition";
+		return StructrTraits.FLOW_CONDITION;
 	}
 
 	@Override
 	public String getTargetType() {
-		return "FlowBaseNode";
+		return StructrTraits.FLOW_BASE_NODE;
 	}
 
 	@Override

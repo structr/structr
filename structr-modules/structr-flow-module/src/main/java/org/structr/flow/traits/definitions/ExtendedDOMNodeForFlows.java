@@ -22,6 +22,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.EndNode;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 
 import java.util.Set;
@@ -29,13 +30,13 @@ import java.util.Set;
 public class ExtendedDOMNodeForFlows extends AbstractNodeTraitDefinition {
 
 	public ExtendedDOMNodeForFlows() {
-		super("DOMNode.extended", "DOMNode");
+		super("DOMNode.extended", StructrTraits.DOM_NODE);
 	}
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final PropertyKey<NodeInterface> flow = new EndNode("flow", "DOMNodeFLOWFlowContainer");
+		final PropertyKey<NodeInterface> flow = new EndNode("flow", StructrTraits.DOM_NODE_FLOW_FLOW_CONTAINER);
 
 		return newSet(
 			flow

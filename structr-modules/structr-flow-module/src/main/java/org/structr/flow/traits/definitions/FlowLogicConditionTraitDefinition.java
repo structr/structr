@@ -21,6 +21,7 @@ package org.structr.flow.traits.definitions;
 import org.structr.api.util.Iterables;
 import org.structr.core.entity.Relation;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.api.FlowType;
@@ -36,13 +37,10 @@ import org.structr.flow.traits.operations.GetFlowType;
 import java.util.List;
 import java.util.Map;
 
-/**
- *
- */
 public class FlowLogicConditionTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public FlowLogicConditionTraitDefinition() {
-		super("FlowLogicCondition");
+		super(StructrTraits.FLOW_LOGIC_CONDITION);
 	}
 
 	@Override

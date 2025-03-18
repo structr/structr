@@ -21,10 +21,8 @@ package org.structr.flow.impl;
 import org.structr.api.util.Iterables;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
+import org.structr.flow.traits.definitions.FlowObjectDataSourceTraitDefinition;
 
-/**
- *
- */
 public class FlowObjectDataSource extends FlowDataSource {
 
 	public FlowObjectDataSource(final Traits traits, final NodeInterface wrappedObject) {
@@ -33,7 +31,7 @@ public class FlowObjectDataSource extends FlowDataSource {
 
 	public final Iterable<FlowKeyValue> getKeyValueSources() {
 
-		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key("keyValueSources"));
+		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key(FlowObjectDataSourceTraitDefinition.KEY_VALUE_SOURCES_PROPERTY));
 
 		return Iterables.map(n -> n.as(FlowKeyValue.class), nodes);
 	}

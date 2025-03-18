@@ -31,6 +31,8 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.flow.impl.*;
+import org.structr.flow.traits.definitions.FlowDataSourceTraitDefinition;
+import org.structr.flow.traits.definitions.FlowTypeQueryTraitDefinition;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
@@ -53,21 +55,21 @@ public class FlowTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			FlowContainer container = app.create("FlowContainer", "testFlow").as(FlowContainer.class);
+			FlowContainer container = app.create(StructrTraits.FLOW_CONTAINER, "testFlow").as(FlowContainer.class);
 
 			result = container.evaluate(securityContext, flowParameters);
 
 			assertNotNull(result);
 
-			FlowAction action = app.create("FlowAction", "createAction").as(FlowAction.class);
+			FlowAction action = app.create(StructrTraits.FLOW_ACTION, "createAction").as(FlowAction.class);
 			action.setScript("{ ['a','b','c'].forEach( data => Structr.create('User','name',data)) }");
 			action.setFlowContainer(container);
 
-			FlowDataSource ds = app.create("FlowDataSource", "ds").as(FlowDataSource.class);
+			FlowDataSource ds = app.create(StructrTraits.FLOW_DATA_SOURCE, "ds").as(FlowDataSource.class);
 			ds.setQuery("find('User')");
 			ds.setFlowContainer(container);
 
-			FlowReturn ret = app.create("FlowReturn", "ds").as(FlowReturn.class);
+			FlowReturn ret = app.create(StructrTraits.FLOW_RETURN, "ds").as(FlowReturn.class);
 			ret.setDataSource(ds);
 			ret.setFlowContainer(container);
 
@@ -99,22 +101,22 @@ public class FlowTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			FlowContainer container = app.create("FlowContainer", "testFlowForEach").as(FlowContainer.class);
+			FlowContainer container = app.create(StructrTraits.FLOW_CONTAINER, "testFlowForEach").as(FlowContainer.class);
 
-			FlowForEach forEach = app.create("FlowForEach").as(FlowForEach.class);
+			FlowForEach forEach = app.create(StructrTraits.FLOW_FOR_EACH).as(FlowForEach.class);
 			forEach.setFlowContainer(container);
 			container.setStartNode(forEach);
 
-			FlowDataSource ds = app.create("FlowDataSource").as(FlowDataSource.class);
+			FlowDataSource ds = app.create(StructrTraits.FLOW_DATA_SOURCE).as(FlowDataSource.class);
 			ds.setQuery("{return [1,2,3,4,5];}");
 			ds.setFlowContainer(container);
 			forEach.setDataSource(ds);
 
-			FlowDataSource ds2 = app.create("FlowDataSource").as(FlowDataSource.class);
+			FlowDataSource ds2 = app.create(StructrTraits.FLOW_DATA_SOURCE).as(FlowDataSource.class);
 			ds2.setQuery("now");
 			ds2.setFlowContainer(container);
 
-			FlowAggregate agg = app.create("FlowAggregate").as(FlowAggregate.class);
+			FlowAggregate agg = app.create(StructrTraits.FLOW_AGGREGATE).as(FlowAggregate.class);
 			agg.setFlowContainer(container);
 			agg.setDataSource(ds2);
 			agg.setScript("{let data = $.get('data'); let currentData = $.get('currentData'); if (data === currentData || $.empty(currentData)) { throw 'ForEach scoping problem! Values should not be the same.' } }");
@@ -138,18 +140,18 @@ public class FlowTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			FlowContainer container = app.create("FlowContainer", "testFlowDecision").as(FlowContainer.class);
+			FlowContainer container = app.create(StructrTraits.FLOW_CONTAINER, "testFlowDecision").as(FlowContainer.class);
 
-			FlowDecision flowDecision = app.create("FlowDecision").as(FlowDecision.class);
+			FlowDecision flowDecision = app.create(StructrTraits.FLOW_DECISION).as(FlowDecision.class);
 			flowDecision.setFlowContainer(container);
 			container.setStartNode(flowDecision);
 
-			FlowReturn flowReturnTrue = app.create("FlowReturn").as(FlowReturn.class);
+			FlowReturn flowReturnTrue = app.create(StructrTraits.FLOW_RETURN).as(FlowReturn.class);
 			flowReturnTrue.setFlowContainer(container);
 			flowReturnTrue.setResult("'SUCCESS'");
 			flowDecision.setTrueElement(flowReturnTrue);
 
-			FlowReturn flowReturnFalse = app.create("FlowReturn").as(FlowReturn.class);
+			FlowReturn flowReturnFalse = app.create(StructrTraits.FLOW_RETURN).as(FlowReturn.class);
 			flowReturnFalse.setFlowContainer(container);
 			flowReturnFalse.setResult("'FAILURE'");
 			flowDecision.setFalseElement(flowReturnFalse);
@@ -157,7 +159,7 @@ public class FlowTest extends StructrUiTest {
 			List<Object> result = Iterables.toList(container.evaluate(securityContext, new HashMap<>()));
 			assertTrue("Result of decision element with two returns should be equal to the failure return element.", result != null && result.size() == 1 && "FAILURE".equals(result.get(0)));
 
-			FlowAnd flowAnd  = app.create("FlowAnd").as(FlowAnd.class);
+			FlowAnd flowAnd  = app.create(StructrTraits.FLOW_AND).as(FlowAnd.class);
 			flowAnd.setFlowContainer(container);
 			flowDecision.setCondition(flowAnd);
 
@@ -167,7 +169,7 @@ public class FlowTest extends StructrUiTest {
 			// Get conditions for flowAnd
 			List<FlowCondition> conditions = Iterables.toList(flowAnd.getConditions());
 
-			FlowScriptCondition flowScriptCondition = app.create("FlowScriptCondition").as(FlowScriptCondition.class);
+			FlowScriptCondition flowScriptCondition = app.create(StructrTraits.FLOW_SCRIPT_CONDITION).as(FlowScriptCondition.class);
 			flowScriptCondition.setFlowContainer(container);
 			flowScriptCondition.setScript("true");
 			conditions.add(flowScriptCondition);
@@ -185,12 +187,12 @@ public class FlowTest extends StructrUiTest {
 			assertTrue("Result should be false after ScriptCondition has had it's output flipped.", result != null && result.size() == 1 && "FAILURE".equals(result.get(0)));
 
 			// Add second condition to flowAnd
-			FlowNot flowNot = app.create("FlowNot").as(FlowNot.class);
+			FlowNot flowNot = app.create(StructrTraits.FLOW_NOT).as(FlowNot.class);
 			flowNot.setFlowContainer(container);
 			conditions.add(flowNot);
 			flowAnd.setConditions(conditions);
 
-			FlowNotNull flowNotNull = app.create("FlowNotNull").as(FlowNotNull.class);
+			FlowNotNull flowNotNull = app.create(StructrTraits.FLOW_NOT_NULL).as(FlowNotNull.class);
 			flowNotNull.setFlowContainer(container);
 			flowNot.setConditions(List.of(flowNotNull));
 
@@ -201,7 +203,7 @@ public class FlowTest extends StructrUiTest {
 			result = Iterables.toList(container.evaluate(securityContext, new HashMap<>()));
 			assertTrue("With flowNotNull(null)->flowNot && flowScriptCondition(\"true\") -> flowAnd, result should be SUCCESS", result != null && result.size() == 1 && "SUCCESS".equals(result.get(0)));
 
-			FlowDataSource flowNotNullDataSource = app.create("FlowDataSource").as(FlowDataSource.class);
+			FlowDataSource flowNotNullDataSource = app.create(StructrTraits.FLOW_DATA_SOURCE).as(FlowDataSource.class);
 			flowNotNullDataSource.setFlowContainer(container);
 			flowNotNullDataSource.setDataTarget(List.of(flowNotNull));
 			// Ensure datasource was properly linked
@@ -219,7 +221,7 @@ public class FlowTest extends StructrUiTest {
 			// Set data source back to null, so the expression becomes true
 			flowNotNullDataSource.setQuery(null);
 
-			FlowOr flowOr = app.create("FlowOr").as(FlowOr.class);
+			FlowOr flowOr = app.create(StructrTraits.FLOW_OR).as(FlowOr.class);
 			flowOr.setFlowContainer(container);
 			conditions.add(flowOr);
 			flowAnd.setConditions(conditions);
@@ -228,11 +230,11 @@ public class FlowTest extends StructrUiTest {
 			result = Iterables.toList(container.evaluate(securityContext, new HashMap<>()));
 			assertTrue("flowOr(null) && flowNotNullDataSource(null)->flowNotNull->flowNot && flowScriptCondition(\"true\") -> flowAnd, result should be FAILURE", result != null && result.size() == 1 && "FAILURE".equals(result.get(0)));
 
-			FlowNotEmpty flowNotEmpty = app.create("FlowNotEmpty").as(FlowNotEmpty.class);
+			FlowNotEmpty flowNotEmpty = app.create(StructrTraits.FLOW_NOT_EMPTY).as(FlowNotEmpty.class);
 			flowNotEmpty.setFlowContainer(container);
 			flowOr.setConditions(List.of(flowNotEmpty));
 
-			FlowCollectionDataSource flowCollectionDataSource = app.create("FlowCollectionDataSource").as(FlowCollectionDataSource.class);
+			FlowCollectionDataSource flowCollectionDataSource = app.create(StructrTraits.FLOW_COLLECTION_DATA_SOURCE).as(FlowCollectionDataSource.class);
 			flowCollectionDataSource.setFlowContainer(container);
 			flowNotEmpty.setDataSources(List.of(flowCollectionDataSource));
 
@@ -240,7 +242,7 @@ public class FlowTest extends StructrUiTest {
 			result = Iterables.toList(container.evaluate(securityContext, new HashMap<>()));
 			assertTrue("flowCollectionDataSource(null)->flowNotEmpty->flowOr && flowNotNullDataSource(null)->flowNotNull->flowNot && flowScriptCondition(\"true\") -> flowAnd, result should be FAILURE", result != null && result.size() == 1 && "FAILURE".equals(result.get(0)));
 
-			FlowDataSource flowCollectionDataSourceDS1 = app.create("FlowDataSource").as(FlowDataSource.class);
+			FlowDataSource flowCollectionDataSourceDS1 = app.create(StructrTraits.FLOW_DATA_SOURCE).as(FlowDataSource.class);
 			flowCollectionDataSourceDS1.setFlowContainer(container);
 			flowCollectionDataSource.setDataSources(List.of(flowCollectionDataSourceDS1));
 
@@ -248,7 +250,7 @@ public class FlowTest extends StructrUiTest {
 			result = Iterables.toList(container.evaluate(securityContext, new HashMap<>()));
 			assertTrue("flowCollectionDataSourceDS1->flowCollectionDataSource->flowNotEmpty->flowOr && flowNotNullDataSource(null)->flowNotNull->flowNot && flowScriptCondition(\"true\") -> flowAnd, result should be SUCCESS", result != null && result.size() == 1 && "SUCCESS".equals(result.get(0)));
 
-			FlowIsTrue flowIsTrue = app.create("FlowIsTrue").as(FlowIsTrue.class);
+			FlowIsTrue flowIsTrue = app.create(StructrTraits.FLOW_IS_TRUE).as(FlowIsTrue.class);
 			flowIsTrue.setFlowContainer(container);
 			conditions.add(flowIsTrue);
 			flowAnd.setConditions(conditions);
@@ -257,7 +259,7 @@ public class FlowTest extends StructrUiTest {
 			result = Iterables.toList(container.evaluate(securityContext, new HashMap<>()));
 			assertTrue("flowIsTrue(null) && flowCollectionDataSourceDS1->flowCollectionDataSource->flowNotEmpty->flowOr && flowNotNullDataSource(null)->flowNotNull->flowNot && flowScriptCondition(\"true\") -> flowAnd, result should be FAILURE", result != null && result.size() == 1 && "FAILURE".equals(result.get(0)));
 
-			FlowDataSource flowIsTrueDataSource = app.create("FlowDataSource").as(FlowDataSource.class);
+			FlowDataSource flowIsTrueDataSource = app.create(StructrTraits.FLOW_DATA_SOURCE).as(FlowDataSource.class);
 			flowIsTrueDataSource.setFlowContainer(container);
 			flowIsTrueDataSource.setQuery("true");
 			flowIsTrue.setDataSources(List.of(flowIsTrueDataSource));
@@ -301,12 +303,12 @@ public class FlowTest extends StructrUiTest {
 			createTestNode(StructrTraits.GROUP, new NodeAttribute<>(Traits.of("Group").key("name"), "group4"));
 
 			// create flow
-			final FlowContainer flowContainer = app.create("FlowContainer", "test").as(FlowContainer.class);
-			final FlowTypeQuery query         = app.create("FlowTypeQuery", "query").as(FlowTypeQuery.class);
-			final FlowReturn    ret           = app.create("FlowReturn", "return").as(FlowReturn.class);
+			final FlowContainer flowContainer = app.create(StructrTraits.FLOW_CONTAINER, "test").as(FlowContainer.class);
+			final FlowTypeQuery query         = app.create(StructrTraits.FLOW_TYPE_QUERY, FlowDataSourceTraitDefinition.QUERY_PROPERTY).as(FlowTypeQuery.class);
+			final FlowReturn    ret           = app.create(StructrTraits.FLOW_RETURN, "return").as(FlowReturn.class);
 
-			query.setProperty(Traits.of("FlowTypeQuery").key("dataType"), StructrTraits.GROUP);
-			query.setProperty(Traits.of("FlowTypeQuery").key("query"), "{\"type\":\"group\",\"op\":\"and\",\"operations\":[{\"type\":\"sort\",\"key\":\"name\",\"order\":\"desc\",\"queryType\":\"Group\"}],\"queryType\":\"Group\"}");
+			query.setProperty(Traits.of(StructrTraits.FLOW_TYPE_QUERY).key(FlowTypeQueryTraitDefinition.DATA_TYPE_PROPERTY), StructrTraits.GROUP);
+			query.setProperty(Traits.of(StructrTraits.FLOW_TYPE_QUERY).key(FlowDataSourceTraitDefinition.QUERY_PROPERTY), "{\"type\":\"group\",\"op\":\"and\",\"operations\":[{\"type\":\"sort\",\"key\":\"name\",\"order\":\"desc\",\"queryType\":\"Group\"}],\"queryType\":\"Group\"}");
 
 			query.setFlowContainer(flowContainer);
 

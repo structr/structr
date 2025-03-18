@@ -21,9 +21,11 @@ package org.structr.flow.impl;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.flow.api.ThrowingElement;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
+import org.structr.flow.traits.definitions.FlowActionTraitDefinition;
 import org.structr.flow.traits.operations.ActionOperations;
 import org.structr.module.api.DeployableEntity;
 
@@ -37,11 +39,11 @@ public class FlowAction extends FlowDataSource implements DeployableEntity, Thro
 	}
 
 	public final String getScript() {
-		return wrappedObject.getProperty(traits.key("script"));
+		return wrappedObject.getProperty(traits.key(FlowActionTraitDefinition.SCRIPT_PROPERTY));
 	}
 
 	public final void setScript(final String script) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("script"), script);
+		wrappedObject.setProperty(traits.key(FlowActionTraitDefinition.SCRIPT_PROPERTY), script);
 	}
 
 	public final void execute(final Context context) throws FlowException {
@@ -53,11 +55,11 @@ public class FlowAction extends FlowDataSource implements DeployableEntity, Thro
 		
 		final Map<String, Object> result = new TreeMap<>();
 
-		result.put("id",                          getUuid());
-		result.put("type",                        getType());
-		result.put("script",                      getScript());
-		result.put("visibleToPublicUsers",        isVisibleToPublicUsers());
-		result.put("visibleToAuthenticatedUsers", isVisibleToAuthenticatedUsers());
+		result.put(GraphObjectTraitDefinition.ID_PROPERTY,                             getUuid());
+		result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,                           getType());
+		result.put(FlowActionTraitDefinition.SCRIPT_PROPERTY,                          getScript());
+		result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        isVisibleToPublicUsers());
+		result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, isVisibleToAuthenticatedUsers());
 
 		return result;
 	}
