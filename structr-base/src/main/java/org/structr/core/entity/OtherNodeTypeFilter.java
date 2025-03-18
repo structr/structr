@@ -25,7 +25,6 @@ import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.traits.Traits;
 
 import java.util.Set;
 
@@ -35,21 +34,17 @@ import java.util.Set;
  */
 public class OtherNodeTypeFilter implements Predicate<Relationship> {
 
-	private Set<String> subtypes                 = null;
-	private Predicate<GraphObject> nodePredicate = null;
-	private NodeFactory nodeFactory              = null;
-	private Node thisNode                        = null;
-
-	public OtherNodeTypeFilter(final SecurityContext securityContext, final Node thisNode, final String desiredType) {
-		this(securityContext, thisNode, desiredType, null);
-	}
+	private final String desiredType;
+	private final Predicate<GraphObject> nodePredicate;
+	private final NodeFactory nodeFactory;
+	private final Node thisNode;
 
 	public OtherNodeTypeFilter(final SecurityContext securityContext, final Node thisNode, final String desiredType, final Predicate<GraphObject> nodePredicate) {
 
 		this.nodePredicate = nodePredicate;
 		this.nodeFactory   = new NodeFactory(securityContext);
 		this.thisNode      = thisNode;
-		this.subtypes      = Traits.of(desiredType).getLabels();
+		this.desiredType   = desiredType;
 	}
 
 	@Override
@@ -62,13 +57,11 @@ public class OtherNodeTypeFilter implements Predicate<Relationship> {
 
 			final Set<String> otherNodeLabels = otherNode.getTraits().getLabels();
 			
-			final boolean desiredTypeIsAssignableFromOtherNodeType = otherNodeLabels.containsAll(subtypes);
+			final boolean desiredTypeIsAssignableFromOtherNodeType = otherNodeLabels.contains(desiredType);
 
-			/*
 			if (!desiredTypeIsAssignableFromOtherNodeType) {
-				System.out.println("######## OtherNodeTypeFilter: REJECTING type " + otherNode.getType() + " with labels " + subtypes + " because " + otherNodeLabels + " doesn't match.");
+				System.out.println("######## OtherNodeTypeFilter: REJECTING type " + otherNode.getType() + " because it doesn't have the label " + desiredType + ".");
 			}
-			*/
 
 			return desiredTypeIsAssignableFromOtherNodeType;
 		}
