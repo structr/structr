@@ -26,7 +26,6 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.event.RuntimeEvent;
 import org.structr.common.event.RuntimeEventLog;
 import org.structr.common.helper.CaseHelper;
 import org.structr.core.GraphObject;
@@ -279,10 +278,10 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 									} else {
 
 										final Traits traits = currentDataNode.getTraits();
-										propertyKey = traits.key(subKey);
-										renderContext.setRelatedProperty(propertyKey);
+										if (traits.hasKey(subKey)) {
 
-										if (propertyKey != null) {
+											propertyKey = traits.key(subKey);
+											renderContext.setRelatedProperty(propertyKey);
 
 											final Object value = currentDataNode.getProperty(propertyKey);
 											if (value != null) {

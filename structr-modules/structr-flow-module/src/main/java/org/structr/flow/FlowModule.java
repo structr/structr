@@ -24,11 +24,11 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.datasources.DataSources;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.function.Functions;
+import org.structr.core.property.EndNode;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.flow.datasource.FlowContainerDataSource;
 import org.structr.flow.impl.FlowFunction;
-import org.structr.flow.impl.FlowLogicCondition;
 import org.structr.flow.impl.rels.*;
 import org.structr.flow.traits.definitions.*;
 import org.structr.module.StructrModule;
@@ -55,7 +55,7 @@ public class FlowModule implements StructrModule {
 			StructrTraits.registerRelationshipType("DOMNodeFLOWFlowContainer",            new DOMNodeFLOWFlowContainer());
 
 			// register DOMNode -> FlowContainer relationship
-			Traits.of("DOMNode").registerImplementation(new ExtendedDOMNodeForFlows(), false);
+			Traits.getTrait("DOMNode").registerPropertyKey(new EndNode("flow", "DOMNodeFLOWFlowContainer"));
 
 			StructrTraits.registerRelationshipType("FlowActiveContainerConfiguration",    new FlowActiveContainerConfiguration());
 			StructrTraits.registerRelationshipType("FlowAggregateStartValue",             new FlowAggregateStartValue());
