@@ -19,17 +19,13 @@
 package org.structr.process.entity;
 
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
-import org.structr.process.entity.relationship.ProcessDecisionPOSSIBLE_STATEProcessState;
-import org.structr.process.entity.relationship.ProcessStepLEADS_TOProcessDecision;
+import org.structr.process.traits.relationship.ProcessDecisionPOSSIBLE_STATEProcessState;
+import org.structr.process.traits.relationship.ProcessStepLEADS_TOProcessDecision;
 
-public class ProcessDecision extends AbstractNode {
-
-    public static final Property<String>                      condition = new StringProperty("condition").hint("Condition that has to evaluate to true/false to determine the next process state").partOfBuiltInSchema();
-    public static final Property<Iterable<ProcessState>> possibleStates = new EndNodes<>("possibleStates", ProcessDecisionPOSSIBLE_STATEProcessState.class).partOfBuiltInSchema();
-    public static final Property<ProcessStep>                      step = new StartNode<>("step", ProcessStepLEADS_TOProcessDecision.class).partOfBuiltInSchema();
-
+public interface ProcessDecision extends NodeInterface {
 }

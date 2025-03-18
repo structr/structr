@@ -24,6 +24,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.*;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.web.entity.File;
 
 import java.util.Map;
@@ -53,10 +54,10 @@ public class DumpDatabaseCommand extends NodeServiceCommand implements Maintenan
 
 			try (final Tx tx = app.tx()) {
 
-				final File file = FileHelper.createFile(securityContext, new byte[0], "application/zip", File.class, fileName, false);
+				final File file = FileHelper.createFile(securityContext, new byte[0], "application/zip", StructrTraits.FILE, fileName, false).as(File.class);
 
 				// make file visible for auth. users
-				file.setProperties(securityContext, new PropertyMap(File.visibleToAuthenticatedUsers, true));
+				file.setVisibleToAuthenticatedUsers(true);
 
 				// Don't include files
 				SyncCommand.exportToStream(

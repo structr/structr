@@ -31,6 +31,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.GraphObjectMap;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
 import org.structr.core.api.InstanceMethod;
@@ -55,6 +56,10 @@ import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnModification;
 import org.structr.core.traits.operations.propertycontainer.GetPropertyKeys;
+import org.structr.process.entity.*;
+import org.structr.process.entity.Process;
+import org.structr.process.traits.definitions.*;
+import org.structr.process.traits.operations.CreateInstance;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.servlet.AbstractDataServlet;
 import org.structr.schema.action.ActionContext;
@@ -871,17 +876,20 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 					final RenderContext renderContext = new RenderContext(securityContext);
 					final EventContext  eventContext  = new EventContext();
-					//final String        event         = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_HTMLEVENT);
+					final String        event         = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_HTMLEVENT);
 					final String        action;
 
-					//if (event == null) {
-					//	throw new FrameworkException(422, "Cannot execute action without event name (htmlEvent property).");
-					//}
+					if (event == null) {
+						throw new FrameworkException(422, "Cannot execute action without event name (htmlEvent property).");
+					}
 
-					action = getActionMapping().getProperty(ActionMapping.actionProperty);
+					final NodeInterface domElementNode         = StructrApp.getInstance().getNodeById(StructrTraits.DOM_ELEMENT, entity.getUuid());
+					final DOMElement domElement                = domElementNode.as(DOMElement.class);
+
+					action = getActionMapping(entity.as(DOMElement.class)).getAction();
 
 					// store event context in object
-					actionContext.setConstant("eventContext", eventContext);
+					renderContext.setConstant("eventContext", eventContext);
 
 					switch (action) {
 
@@ -935,11 +943,12 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 						case "flow":
 							//final String flow = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRFLOW);
-							return handleFlowAction(renderContext, parameters, eventContext, getActionMapping().getProperty(ActionMapping.flowProperty));
+							final String flow = getActionMapping(entity.as(DOMElement.class)).getFlow();
+							return handleFlowAction(renderContext, domElementNode, parameters, eventContext, flow);
 
 						case "process":
 							//final String process = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRPROCESS);
-							return handleProcessAction(renderContext, parameters, eventContext, getActionMapping().getProperty(ActionMapping.process));
+							return handleProcessAction(renderContext, domElementNode, parameters, eventContext, getActionMapping(entity.as(DOMElement.class)).getProcess());
 
 						case "method":
 						default:
@@ -960,10 +969,11 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 	 * @return The action mapping object
 	 * @throws FrameworkException
 	 */
-	private ActionMapping getActionMapping() throws FrameworkException {
+	private ActionMapping getActionMapping(final DOMElement domElementNode) throws FrameworkException {
+
 		ActionMapping triggeredAction;
 
-		final List<ActionMapping> triggeredActions = (List<ActionMapping>) Iterables.toList((Iterable<? extends ActionMapping>) StructrApp.getInstance().get(DOMElement.class, this.getUuid()).getProperty(triggeredActionsProperty));
+		final List<ActionMapping> triggeredActions = (List<ActionMapping>) Iterables.toList((Iterable<? extends ActionMapping>) StructrApp.getInstance().getNodeById(StructrTraits.DOM_ELEMENT, domElementNode.getUuid()).getTraits().key(DOMElementTraitDefinition.TRIGGERED_ACTIONS_PROPERTY));
 		if (triggeredActions != null && !triggeredActions.isEmpty()) {
 
 			triggeredAction = triggeredActions.get(0);
@@ -1199,8 +1209,8 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 					DOMElementTraitDefinition.EVENT_MAPPING_PROPERTY, TRIGGERED_ACTIONS_PROPERTY, DOMNodeTraitDefinition.RELOADING_ACTIONS_PROPERTY,
 					DOMNodeTraitDefinition.FAILURE_ACTIONS_PROPERTY, DOMNodeTraitDefinition.SUCCESS_NOTIFICATION_ACTIONS_PROPERTY,
 					DOMNodeTraitDefinition.FAILURE_NOTIFICATION_ACTIONS_PROPERTY, DOMElementTraitDefinition.DATA_STRUCTR_MANUAL_RELOAD_TARGET_PROPERTY,
-					DOMElementTraitDefinition.PROCESS_SUCCESS_SHOW_ACTIONS_PROPERTY, DOMElementTraitDefinition.PROCESS_SUCCESS_HIDE_ACTIONS_PROPERTY,
-					DOMElementTraitDefinition.PROCESS_FAILURE_SHOW_ACTIONS_PROPERTY, DOMElementTraitDefinition.PROCESS_FAILURE_HIDE_ACTIONS_PROPERTY
+					DOMNodeTraitDefinition.PROCESS_SUCCESS_SHOW_ACTIONS_PROPERTY, DOMNodeTraitDefinition.PROCESS_SUCCESS_HIDE_ACTIONS_PROPERTY,
+					DOMNodeTraitDefinition.PROCESS_FAILURE_SHOW_ACTIONS_PROPERTY, DOMNodeTraitDefinition.PROCESS_FAILURE_HIDE_ACTIONS_PROPERTY
 			),
 			PropertyView.Html,
 			newSet(
@@ -1488,10 +1498,102 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		return null;
 	}
 
+
+	private Object handleFlowAction(final RenderContext renderContext, final NodeInterface entity, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext, final String flowName) throws FrameworkException {
+
+		if (flowName != null) {
+
+			return Scripting.evaluate(renderContext,  entity, "${flow('" + flowName.trim() + "')}", "flow query");
+
+		} else {
+
+			throw new FrameworkException(422, "Cannot execute Flow because no or empty name was provided.");
+		}
+
+	}
+
+	private Object handleProcessAction(final RenderContext renderContext, final NodeInterface entity, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext, final Process process) throws FrameworkException {
+
+		final SecurityContext securityContext = renderContext.getSecurityContext();
+
+		final NodeInterface processInstance;
+
+		if (process != null) {
+
+			final String processInstanceId = (String) parameters.get("processInstance"); // renderContext.getRequestParameter("processInstance");
+
+			if (processInstanceId == null) {
+
+				// Start the process by creating a new ProcessInstance object
+				processInstance = process.getTraits().getMethod(CreateInstance.class).createInstance(entity, securityContext);
+
+			} else {
+
+				// Existing process instance => continue with next step
+				processInstance = StructrApp.getInstance(securityContext).getNodeById(StructrTraits.PROCESS_INSTANCE, processInstanceId);
+
+				// Update process parameter values
+				final NodeInterface nextState = processInstance
+						.getProperty(Traits.of(StructrTraits.PROCESS_INSTANCE).key(ProcessInstanceTraitDefinition.STATE_PROPERTY));
+
+				final NodeInterface nextStep = nextState
+						.getProperty(Traits.of(StructrTraits.PROCESS_STATE).key(ProcessStateTraitDefinition.NEXT_STEP_PROPERTY));
+
+				final List<NodeInterface> parameterValues = new LinkedList<>();
+
+				final Iterable<NodeInterface> processParameters = nextStep.getProperty(Traits.of(StructrTraits.PROCESS_STEP).key(ProcessStepTraitDefinition.PARAMETERS_PROPERTY));
+				for (final NodeInterface parameter : processParameters) {
+
+					final NodeInterface newValue = StructrApp.getInstance().create(StructrTraits.PROCESS_PARAMETER_VALUE);
+					final String parameterName = parameter.getName();
+
+					newValue.setProperty(Traits.of(StructrTraits.PROCESS_PARAMETER_VALUE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), parameterName);
+					newValue.setProperty(Traits.of(StructrTraits.PROCESS_PARAMETER_VALUE).key(ProcessParameterValueTraitDefinition.VALUE_PROPERTY), (String) parameters.get(parameter.getName()));
+
+					parameterValues.add(newValue);
+				}
+
+				processInstance.setProperty(Traits.of(StructrTraits.PROCESS_INSTANCE).key(ProcessInstanceTraitDefinition.PARAMETER_VALUES_PROPERTY), parameterValues);
+
+				// Evaluate decision that belongs to the next step
+				final ProcessDecision decision = nextStep.getProperty(Traits.of(StructrTraits.PROCESS_STEP).key(ProcessStepTraitDefinition.DECISION_PROPERTY));
+				final String         condition = decision.getProperty(Traits.of(StructrTraits.PROCESS_DECISION).key(ProcessDecisionTraitDefinition.CONDITION_PROPERTY));
+
+				//final Iterable<ProcessParameterValue> parameterValues = processInstance.getProperty(ProcessInstance.parameterValues);
+				final Map<String, Object> data = new HashMap();
+
+				for (final NodeInterface parameterValue : parameterValues) {
+					data.put(parameterValue.getName(), parameterValue.getProperty(Traits.of(StructrTraits.PROCESS_PARAMETER_VALUE).key(ProcessParameterValueTraitDefinition.VALUE_PROPERTY)));
+				}
+
+				final boolean resultOfDecisionEvaluation = (boolean) Scripting.evaluate(renderContext,  GraphObjectMap.fromMap(data), "${if(" + condition.trim() + ", true, false)}", "evaluateDecision");
+
+				final Iterable<NodeInterface> possibleStates = decision.getProperty(Traits.of(StructrTraits.PROCESS_DECISION).key(ProcessDecisionTraitDefinition.POSSIBLE_STATES_PROPERTY));
+
+				final Iterable<NodeInterface> successStates = Iterables.filter(((NodeInterface value) -> ((Integer) value.getProperty(Traits.of(StructrTraits.PROCESS_STATE).key(ProcessStateTraitDefinition.STATUS_PROPERTY))) < 300), possibleStates);
+				final Iterable<NodeInterface> failureStates = Iterables.filter(((NodeInterface value) -> ((Integer) value.getProperty(Traits.of(StructrTraits.PROCESS_STATE).key(ProcessStateTraitDefinition.STATUS_PROPERTY))) >= 300), possibleStates);
+
+
+				if (resultOfDecisionEvaluation) {
+					processInstance.setProperty(Traits.of(StructrTraits.PROCESS_INSTANCE).key(ProcessInstanceTraitDefinition.STATE_PROPERTY), Iterables.first(successStates));
+				} else {
+					processInstance.setProperty(Traits.of(StructrTraits.PROCESS_INSTANCE).key(ProcessInstanceTraitDefinition.STATE_PROPERTY), Iterables.last(failureStates));
+				}
+			}
+
+
+		} else {
+			throw new FrameworkException(422, "Cannot start process because process object is null.");
+		}
+
+		return processInstance;
+
+	}
+
 	private Object handleAppendChildAction(final RenderContext renderContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext) throws FrameworkException {
 
 		final SecurityContext securityContext = renderContext.getSecurityContext();
-		final String dataTarget               = (String)parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTARGET);
+		final String dataTarget               = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTARGET);
 
 		if (dataTarget == null) {
 
@@ -1499,7 +1601,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		}
 
 		// fetch child ID
-		final String childId = (String)parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_CHILDID);
+		final String childId = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_CHILDID);
 		if (childId == null) {
 
 			throw new FrameworkException(422, "Cannot execute append-child action without child UUID (data-child-id attribute).");
@@ -1534,7 +1636,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 	private Object handleRemoveChildAction(final RenderContext renderContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext) throws FrameworkException {
 
 		final SecurityContext securityContext = renderContext.getSecurityContext();
-		final String dataTarget               = (String)parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTARGET);
+		final String dataTarget               = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTARGET);
 
 		if (dataTarget == null) {
 
@@ -1542,7 +1644,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		}
 
 		// fetch child ID
-		final String childId = (String)parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_CHILDID);
+		final String childId = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_CHILDID);
 		if (childId == null) {
 
 			throw new FrameworkException(422, "Cannot execute remove-child action without child UUID (data-child-id attribute).");
@@ -1557,7 +1659,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 		removeInternalDataBindingKeys(parameters);
 
-		for (final GraphObject target : resolveDataTargets(actionContext, entity, dataTarget)) {
+		for (final GraphObject target : resolveDataTargets(renderContext, entity, dataTarget)) {
 
 			if (target.is(StructrTraits.DOM_ELEMENT)) {
 
@@ -1574,9 +1676,9 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		return null;
 	}
 
-	private Object handleInsertHtmlAction(final ActionContext actionContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext) throws FrameworkException {
+	private Object handleInsertHtmlAction(final RenderContext renderContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext) throws FrameworkException {
 
-		final SecurityContext securityContext = actionContext.getSecurityContext();
+		final SecurityContext securityContext = renderContext.getSecurityContext();
 		final String dataTarget               = (String)parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTARGET);
 		if (dataTarget == null) {
 
@@ -1685,7 +1787,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 		removeInternalDataBindingKeys(parameters);
 
-		for (final GraphObject target : resolveDataTargets(actionContext, entity, dataTarget)) {
+		for (final GraphObject target : resolveDataTargets(renderContext, entity, dataTarget)) {
 
 			if (target instanceof NodeInterface n && n.is(StructrTraits.DOM_ELEMENT)) {
 
@@ -1943,6 +2045,10 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		final String failureEvent     = triggeredAction.getFailureEvent();
 
 		String failureTargetString = null;
+		String processSuccessShowElements = null;
+		String processSuccessHideElements = null;
+		String processFailureShowElements = null;
+		String processFailureHideElements = null;
 
 		if (StringUtils.isNotBlank(failureBehaviour)) {
 
@@ -1954,10 +2060,10 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 					failureTargetString = generateDataAttributesForIdList(renderContext, triggeredAction, ActionMappingTraitDefinition.FAILURE_TARGETS_PROPERTY);
 					break;
 				case "show-hide-partial-linked":
-					processSuccessShowElements = generateDataAttributesForIdList(renderContext, triggeredAction, ActionMapping.processSuccessShowElements);
-					processSuccessHideElements = generateDataAttributesForIdList(renderContext, triggeredAction, ActionMapping.processSuccessHideElements);
-					processFailureShowElements = generateDataAttributesForIdList(renderContext, triggeredAction, ActionMapping.processFailureShowElements);
-					processFailureHideElements = generateDataAttributesForIdList(renderContext, triggeredAction, ActionMapping.processFailureHideElements);
+					processSuccessShowElements = generateDataAttributesForIdList(renderContext, triggeredAction, ActionMappingTraitDefinition.PROCESS_SUCCESS_SHOW_ELEMENTS_PROPERTY);
+					processSuccessHideElements = generateDataAttributesForIdList(renderContext, triggeredAction, ActionMappingTraitDefinition.PROCESS_SUCCESS_HIDE_ELEMENTS_PROPERTY);
+					processFailureShowElements = generateDataAttributesForIdList(renderContext, triggeredAction, ActionMappingTraitDefinition.PROCESS_FAILURE_SHOW_ELEMENTS_PROPERTY);
+					processFailureHideElements = generateDataAttributesForIdList(renderContext, triggeredAction, ActionMappingTraitDefinition.PROCESS_FAILURE_HIDE_ELEMENTS_PROPERTY);
 					break;
 				case "navigate-to-url":
 					failureTargetString = "url:" + failureURL;
@@ -1979,6 +2085,22 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 		if (StringUtils.isNotBlank(failureTargetString)) {
 			out.append(" data-structr-failure-target=\"").append(failureTargetString).append("\"");
+		}
+
+		if (StringUtils.isNotBlank(processSuccessShowElements)) {
+			out.append(" data-structr-process-success-show-elements=\"").append(processSuccessShowElements).append("\"");
+		}
+
+		if (StringUtils.isNotBlank(processSuccessHideElements)) {
+			out.append(" data-structr-process-success-hide-elements=\"").append(processSuccessHideElements).append("\"");
+		}
+
+		if (StringUtils.isNotBlank(processFailureShowElements)) {
+			out.append(" data-structr-process-failure-show-elements=\"").append(processFailureShowElements).append("\"");
+		}
+
+		if (StringUtils.isNotBlank(processFailureHideElements)) {
+			out.append(" data-structr-process-failure-hide-elements=\"").append(processFailureHideElements).append("\"");
 		}
 	}
 

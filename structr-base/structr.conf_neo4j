@@ -1,0 +1,9 @@
+database.available.connections = neo4j-localhost-7687
+neo4j-localhost-7687.database.connection.databasename = neo4j
+neo4j-localhost-7687.database.connection.name = neo4j-localhost-7687
+neo4j-localhost-7687.database.connection.password = adminneo4j
+neo4j-localhost-7687.database.connection.url = bolt://localhost:7687
+neo4j-localhost-7687.database.connection.username = neo4j
+neo4j-localhost-7687.database.driver = org.structr.bolt.BoltDatabaseService
+nodeservice.active = neo4j-localhost-7687
+setup.wizard.completed = true

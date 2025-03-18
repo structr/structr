@@ -30,10 +30,10 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.exception.*;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.auth.SessionHelper;
 import org.structr.schema.action.ActionContext;
@@ -67,14 +67,14 @@ public class LoginCommand extends AbstractCommand {
 		}
 
 		boolean sendSuccess = false;
-		PrincipalInterface user      = null;
+		Principal user      = null;
 		long userId         = -1L;
 
 		try (final Tx tx = app.tx(true, true, true)) {
 
 			String username             = webSocketData.getNodeDataStringValue("username");
-			final String password       = webSocketData.getNodeDataStringValue("password");
-			final String twoFactorToken = webSocketData.getNodeDataStringValue("twoFactorToken");
+			final String password       = webSocketData.getNodeDataStringValue(PrincipalTraitDefinition.PASSWORD_PROPERTY);
+			final String twoFactorToken = webSocketData.getNodeDataStringValue(PrincipalTraitDefinition.TWO_FACTOR_TOKEN_PROPERTY);
 			final String twoFactorCode  = webSocketData.getNodeDataStringValue("twoFactorCode");
 
 
@@ -138,7 +138,7 @@ public class LoginCommand extends AbstractCommand {
 								// store token in response data
 								webSocketData.getNodeData().clear();
 								webSocketData.setSessionId(sessionId);
-								webSocketData.getNodeData().put("username", user.getProperty(AbstractNode.name));
+								webSocketData.getNodeData().put("username", user.getName());
 
 								// authenticate socket
 								getWebSocket().setAuthenticated(sessionId, user);
@@ -151,6 +151,7 @@ public class LoginCommand extends AbstractCommand {
 						}
 					}
 
+					// fixme: really?
 					userId = user.getNode().getId().getId();
 
 				} else {
@@ -173,7 +174,7 @@ public class LoginCommand extends AbstractCommand {
 
 					try {
 
-						final PrincipalInterface principal       = ex.getUser();
+						final Principal principal       = ex.getUser();
 						final Map<String, Object> hints = new HashMap();
 						hints.put("MARGIN", 0);
 						hints.put("ERROR_CORRECTION", "M");

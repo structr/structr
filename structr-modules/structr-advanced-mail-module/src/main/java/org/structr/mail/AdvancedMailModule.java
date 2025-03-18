@@ -21,12 +21,18 @@ package org.structr.mail;
 import org.structr.api.service.LicenseManager;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.function.Functions;
+import org.structr.core.traits.StructrTraits;
+import org.structr.mail.entity.traits.definitions.EMailMessageTraitDefinition;
+import org.structr.mail.entity.traits.definitions.MailboxTraitDefinition;
+import org.structr.mail.entity.traits.definitions.relationship.EMailMessageHAS_ATTACHMENTFile;
+import org.structr.mail.entity.traits.definitions.relationship.MailboxCONTAINS_EMAILMESSAGESEMailMessage;
 import org.structr.mail.function.*;
 import org.structr.module.StructrModule;
 import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
 
 import java.util.Set;
+import org.yecht.Data;
 
 
 public class AdvancedMailModule implements StructrModule {
@@ -37,6 +43,12 @@ public class AdvancedMailModule implements StructrModule {
 
 	@Override
 	public void registerModuleFunctions(final LicenseManager licenseManager) {
+
+		StructrTraits.registerRelationshipType(StructrTraits.EMAIL_MESSAGE_HAS_ATTACHMENT_FILE,             new EMailMessageHAS_ATTACHMENTFile());
+		StructrTraits.registerRelationshipType(StructrTraits.MAILBOX_CONTAINS_EMAIL_MESSAGES_EMAIL_MESSAGE, new MailboxCONTAINS_EMAILMESSAGESEMailMessage());
+
+		StructrTraits.registerNodeType(StructrTraits.EMAIL_MESSAGE, new EMailMessageTraitDefinition());
+		StructrTraits.registerNodeType(StructrTraits.MAILBOX,       new MailboxTraitDefinition());
 
 		Functions.put(licenseManager, new MailBeginFunction(this));
 		Functions.put(licenseManager, new MailSetFromFunction(this));
@@ -81,7 +93,7 @@ public class AdvancedMailModule implements StructrModule {
 
 	@Override
 	public Set<String> getDependencies() {
-		return null;
+		return Set.of("ui");
 	}
 
 	@Override

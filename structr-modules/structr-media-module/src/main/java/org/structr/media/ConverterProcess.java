@@ -26,9 +26,14 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.media.traits.definitions.VideoFileTraitDefinition;
 import org.structr.util.AbstractProcess;
 import org.structr.web.common.FileHelper;
+import org.structr.web.entity.File;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -50,13 +55,13 @@ public class ConverterProcess extends AbstractProcess<VideoFile> {
 
 	private static final Logger logger = LoggerFactory.getLogger(ConverterProcess.class.getName());
 
-	private VideoFile newFile     = null;
-	private VideoFile inputFile   = null;
-	private String outputFileName = null;
-	private String scriptName     = null;
-	private String fileExtension  = null;
+	private NodeInterface newFile   = null;
+	private NodeInterface inputFile = null;
+	private String outputFileName   = null;
+	private String scriptName       = null;
+	private String fileExtension    = null;
 
-	public ConverterProcess(final SecurityContext securityContext, final VideoFile inputFile, final String outputFileName, final String scriptName) {
+	public ConverterProcess(final SecurityContext securityContext, final NodeInterface inputFile, final String outputFileName, final String scriptName) {
 
 		super(securityContext);
 
@@ -72,7 +77,7 @@ public class ConverterProcess extends AbstractProcess<VideoFile> {
 		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
 			// create an empty file to store the converted video
-			newFile = FileHelper.createFile(securityContext, new byte[0], null, VideoFile.class, outputFileName, false);
+			newFile = FileHelper.createFile(securityContext, new byte[0], null, StructrTraits.VIDEO_FILE, outputFileName, false);
 
 			// obtain destination path of new file
 			//outputFileName = newFile.getFileOnDisk().getAbsolutePath();
@@ -131,10 +136,10 @@ public class ConverterProcess extends AbstractProcess<VideoFile> {
 				if (diskFile.exists()) {
 
 					Files.move(diskFile.toPath(), dstFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-					FileHelper.updateMetadata(newFile);
+					FileHelper.updateMetadata(newFile.as(File.class));
 
 					// create link between the two videos
-					newFile.setProperty(StructrApp.key(VideoFile.class, "originalVideo"), inputFile);
+					newFile.setProperty(Traits.of(StructrTraits.VIDEO_FILE).key(VideoFileTraitDefinition.ORIGINAL_VIDEO_PROPERTY), inputFile);
 				}
 
 				tx.success();
@@ -157,6 +162,6 @@ public class ConverterProcess extends AbstractProcess<VideoFile> {
 
 		}
 
-		return newFile;
+		return newFile.as(VideoFile.class);
 	}
 }

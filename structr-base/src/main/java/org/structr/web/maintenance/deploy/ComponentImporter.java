@@ -23,20 +23,23 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.FlushCachesCommand;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.ShadowDocument;
-import org.structr.web.entity.dom.Template;
 import org.structr.web.importer.Importer;
 import org.structr.web.maintenance.DeployCommand;
+import org.structr.web.traits.definitions.dom.ContentTraitDefinition;
 import org.structr.websocket.command.CreateComponentCommand;
 
 import java.io.IOException;
@@ -86,16 +89,17 @@ public class ComponentImporter extends HtmlFileImporter {
 	}
 
 	// ----- private methods -----
-	private DOMNode getExistingComponent(final String name) {
+	private NodeInterface getExistingComponent(final String name) {
 
 		final App app  = StructrApp.getInstance();
-		DOMNode result = null;
+		NodeInterface result = null;
 
 		try (final Tx tx = app.tx()) {
 
 			if (DeployCommand.isUuid(name)) {
 
-				result = (DOMNode) StructrApp.getInstance().nodeQuery(DOMNode.class).and(GraphObject.id, name).getFirst();
+				result = StructrApp.getInstance().nodeQuery(StructrTraits.DOM_NODE).and(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), name).getFirst();
+
 			} else {
 
 				result = Importer.findSharedComponentByName(name);
@@ -140,7 +144,7 @@ public class ComponentImporter extends HtmlFileImporter {
 
 				DeployCommand.checkOwnerAndSecurity(dataMap);
 
-				return PropertyMap.inputTypeToJavaType(SecurityContext.getSuperUserInstance(), DOMNode.class, dataMap);
+				return PropertyMap.inputTypeToJavaType(SecurityContext.getSuperUserInstance(), StructrTraits.TEMPLATE, dataMap);
 
 			} catch (FrameworkException ex) {
 				logger.warn("Unable to resolve properties for shared component: {}", ex.getMessage());
@@ -176,18 +180,18 @@ public class ComponentImporter extends HtmlFileImporter {
 
 			tx.disableChangelog();
 
-			final DOMNode existingComponent;
+			final NodeInterface existingComponent;
 
 			if (DeployCommand.isUuid(componentName)) {
 
-				existingComponent = app.get(DOMNode.class, componentName);
+				existingComponent = app.getNodeById(StructrTraits.DOM_NODE, componentName);
 
 			} else {
 
 				final String uuidAtEnd = DeployCommand.getUuidOrNullFromEndOfString(componentName);
 				if (uuidAtEnd != null) {
 
-					existingComponent = app.get(DOMNode.class, uuidAtEnd);
+					existingComponent = app.getNodeById(StructrTraits.DOM_NODE, uuidAtEnd);
 
 				} else {
 
@@ -205,26 +209,28 @@ public class ComponentImporter extends HtmlFileImporter {
 
 				if (existingComponent != null && isHullMode()) {
 
-					final PropertyKey<String> contentKey = StructrApp.key(Template.class, "content");
+					final PropertyKey<String> contentKey = Traits.of(StructrTraits.TEMPLATE).key(ContentTraitDefinition.CONTENT_PROPERTY);
+					final DOMNode component              = existingComponent.as(DOMNode.class);
 
 					properties.put(contentKey, existingComponent.getProperty(contentKey));
 
-					existingComponent.setOwnerDocument(null);
+					component.setOwnerDocument(null);
 
-					if (existingComponent instanceof Template) {
+					if (component.is(StructrTraits.TEMPLATE)) {
 
 						properties.put(contentKey, existingComponent.getProperty(contentKey));
-						existingComponent.setOwnerDocument(null);
+						component.setOwnerDocument(null);
 
 					} else {
 
-						deleteRecursively(app, existingComponent);
+						deleteRecursively(app, component);
 					}
 				}
 
+				final Traits traits     = Traits.of(StructrTraits.NODE_INTERFACE);
 				final String src        = new String(Files.readAllBytes(file), Charset.forName("UTF-8"));
-				boolean visibleToPublic = get(properties, GraphObject.visibleToPublicUsers, false);
-				boolean visibleToAuth   = get(properties, GraphObject.visibleToAuthenticatedUsers, false);
+				boolean visibleToPublic = get(properties, traits.key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), false);
+				boolean visibleToAuth   = get(properties, traits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), false);
 				final Importer importer = new Importer(securityContext, src, null, componentName, visibleToPublic, visibleToAuth, false, relativeVisibility);
 
 				// enable literal import of href attributes
@@ -245,7 +251,7 @@ public class ComponentImporter extends HtmlFileImporter {
 
 					if (isHullMode()) {
 
-						logger.info("Importing outer component shell for {} from {}..", new Object[] { componentName, fileName } );
+						logger.info("Importing outer component shell for {} from {}..", componentName, fileName);
 
 						importer.retainHullOnly();
 
@@ -253,7 +259,7 @@ public class ComponentImporter extends HtmlFileImporter {
 
 					} else {
 
-						logger.info("Importing inner component contents for {} from {}..", new Object[] { componentName, fileName } );
+						logger.info("Importing inner component contents for {} from {}..", componentName, fileName);
 
 						rootElement = importer.createComponentHullChildNodes(existingComponent, shadowDocument);
 					}
@@ -266,7 +272,7 @@ public class ComponentImporter extends HtmlFileImporter {
 
 							// set UUID
 							rootElement.unlockSystemPropertiesOnce();
-							rootElement.setProperty(GraphObject.id, componentName);
+							rootElement.setProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), componentName);
 
 						} else if (byNameAndId) {
 
@@ -277,13 +283,13 @@ public class ComponentImporter extends HtmlFileImporter {
 							DeployCommand.updateDeferredPagelink(rootElement.getUuid(), uuid);
 
 							rootElement.unlockSystemPropertiesOnce();
-							rootElement.setProperty(GraphObject.id, uuid);
-							properties.put(AbstractNode.name, name);
+							rootElement.setProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), uuid);
+							properties.put(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name);
 
 						} else {
 
 							// set name
-							rootElement.setProperty(AbstractNode.name, componentName);
+							rootElement.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), componentName);
 						}
 
 						// store properties from components.json if present

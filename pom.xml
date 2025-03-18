@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
 	<parent>
 		<groupId>org.sonatype.oss</groupId>
@@ -70,6 +71,7 @@
 		<module>structr-rest</module>
 		<module>structr-ui</module>
 		<module>structr-modules</module>
+		<module>structr-full-tests</module>
 		<module>structr-binaries</module>
 		<module>structr-test-configuration</module>
 	</modules>
@@ -391,7 +393,7 @@
 					<encoding>${project.build.sourceEncoding}</encoding>
 					<debug>true</debug>
 					<useModulePath>true</useModulePath>
-				 	<showDeprecation>false</showDeprecation>
+					<showDeprecation>false</showDeprecation>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -624,11 +626,11 @@
 
 				structr is distributed in the hope that it will be useful,
 				but WITHOUT ANY WARRANTY; without even the implied warranty of
-				MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+				MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 				GNU General Public License for more details.
 
 				You should have received a copy of the GNU General Public License
-				along with structr.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+				along with structr. If not, see &lt;http://www.gnu.org/licenses/&gt;.
 			</comments>
 		</license>
 		<license>
@@ -646,11 +648,11 @@
 
 				structr is distributed in the hope that it will be useful,
 				but WITHOUT ANY WARRANTY; without even the implied warranty of
-				MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+				MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 				GNU Affero General Public License for more details.
 
 				You should have received a copy of the GNU Affero General Public License
-				along with structr.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+				along with structr. If not, see &lt;http://www.gnu.org/licenses/&gt;.
 			</comments>
 		</license>
 	</licenses>

@@ -100,6 +100,10 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String HAS_SHARED_COMPONENT_PROPERTY           = "hasSharedComponent";
 	public static final String DOM_SORT_POSITION_PROPERTY              = "domSortPosition";
 	public static final String FLOW_PROPERTY                           = "flow";
+	public static final String PROCESS_SUCCESS_SHOW_ACTIONS_PROPERTY   = "processSuccessShowActions";
+	public static final String PROCESS_SUCCESS_HIDE_ACTIONS_PROPERTY   = "processSuccessHideActions";
+	public static final String PROCESS_FAILURE_SHOW_ACTIONS_PROPERTY   = "processFailureShowActions";
+	public static final String PROCESS_FAILURE_HIDE_ACTIONS_PROPERTY   = "processFailureHideActions";
 
 	private static final String[] rawProps = new String[] {
 			DATA_KEY_PROPERTY, REST_QUERY_PROPERTY, CYPHER_QUERY_PROPERTY, FUNCTION_QUERY_PROPERTY, Option.SELECTEDVALUES_PROPERTY, FLOW_PROPERTY,

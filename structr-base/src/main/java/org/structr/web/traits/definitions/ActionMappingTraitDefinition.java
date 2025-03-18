@@ -48,7 +48,7 @@ public class ActionMappingTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String PROCESS_SUCCESS_SHOW_ELEMENTS_PROPERTY = "processSuccessShowElements";
 	public static final String PROCESS_SUCCESS_HIDE_ELEMENTS_PROPERTY = "processSuccessHideElements";
 	public static final String PROCESS_FAILURE_SHOW_ELEMENTS_PROPERTY = "processFailureShowElements";
-	public static final String PROCESS_FAILURE_HIDE_ELEMENTS_PROPERTY = "processFailureShowElements";
+	public static final String PROCESS_FAILURE_HIDE_ELEMENTS_PROPERTY = "processFailureHideElements";
 
 	public static final String EVENT_PROPERTY                         = "event";
 	public static final String ACTION_PROPERTY                        = "action";
@@ -119,10 +119,10 @@ public class ActionMappingTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Iterable<NodeInterface>> successNotificationElements  = new StartNodes(SUCCESS_NOTIFICATION_ELEMENTS_PROPERTY, StructrTraits.DOM_NODE_SUCCESS_NOTIFICATION_ELEMENT_ACTION_MAPPING);
 		final Property<Iterable<NodeInterface>> failureNotificationElements  = new StartNodes(FAILURE_NOTIFICATION_ELEMENTS_PROPERTY, StructrTraits.DOM_NODE_FAILURE_NOTIFICATION_ELEMENT_ACTION_MAPPING);
 
-		final Property<Iterable<DOMNode>> processSuccessShowElements         = new StartNodes(PROCESS_SUCCESS_SHOW_ELEMENTS_PROPERTY, StructrTraits.DOM_NODE_PROCESS_SHOW_ELEMENT_ON_SUCCESS_ACTION_MAPPING);
-		final Property<Iterable<DOMNode>> processSuccessHideElements         = new StartNodes(PROCESS_SUCCESS_HIDE_ELEMENTS_PROPERTY, StructrTraits.DOM_NODE_PROCESS_HIDE_ELEMENT_ON_SUCCESS_ACTION_MAPPING);
-		final Property<Iterable<DOMNode>> processFailureShowElements         = new StartNodes(PROCESS_FAILURE_SHOW_ELEMENTS_PROPERTY, StructrTraits.DOM_NODE_PROCESS_SHOW_ELEMENT_ON_FAILURE_ACTION_MAPPING);
-		final Property<Iterable<DOMNode>> processFailureHideElements         = new StartNodes(PROCESS_FAILURE_HIDE_ELEMENTS_PROPERTY, StructrTraits.DOM_NODE_PROCESS_HIDE_ELEMENT_ON_FAILURE_ACTION_MAPPING);
+		final Property<Iterable<NodeInterface>> processSuccessShowElements   = new StartNodes(PROCESS_SUCCESS_SHOW_ELEMENTS_PROPERTY, StructrTraits.DOM_NODE_PROCESS_SHOW_ELEMENT_ON_SUCCESS_ACTION_MAPPING);
+		final Property<Iterable<NodeInterface>> processSuccessHideElements   = new StartNodes(PROCESS_SUCCESS_HIDE_ELEMENTS_PROPERTY, StructrTraits.DOM_NODE_PROCESS_HIDE_ELEMENT_ON_SUCCESS_ACTION_MAPPING);
+		final Property<Iterable<NodeInterface>> processFailureShowElements   = new StartNodes(PROCESS_FAILURE_SHOW_ELEMENTS_PROPERTY, StructrTraits.DOM_NODE_PROCESS_SHOW_ELEMENT_ON_FAILURE_ACTION_MAPPING);
+		final Property<Iterable<NodeInterface>> processFailureHideElements   = new StartNodes(PROCESS_FAILURE_HIDE_ELEMENTS_PROPERTY, StructrTraits.DOM_NODE_PROCESS_HIDE_ELEMENT_ON_FAILURE_ACTION_MAPPING);
 
 		final Property<String> eventProperty                                 = new StringProperty(EVENT_PROPERTY).hint("DOM event which triggers the action");
 		final Property<String> actionProperty                                = new StringProperty(ACTION_PROPERTY).hint("Action which will be triggered");

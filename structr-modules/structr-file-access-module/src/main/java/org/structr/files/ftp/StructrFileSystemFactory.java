@@ -43,7 +43,7 @@ public class StructrFileSystemFactory implements FileSystemFactory {
 		
 			FileSystemView fileSystemView = new StructrFileSystemView(user);
 			
-			logger.debug("Created Structr File System View [user, homeDir, workingDir]: {}, {}, {}", new Object[]{user.getName(), fileSystemView.getHomeDirectory().getAbsolutePath(), fileSystemView.getWorkingDirectory().getAbsolutePath()});
+			logger.debug("Created Structr File System View [user, homeDir, workingDir]: {}, {}, {}", user.getName(), fileSystemView.getHomeDirectory().getAbsolutePath(), fileSystemView.getWorkingDirectory().getAbsolutePath());
 			
 			tx.success();
 			

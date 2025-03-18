@@ -20,6 +20,7 @@ package org.structr.web.entity.dom;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.graalvm.polyglot.HostAccess;
 import org.slf4j.Logger;
 import org.structr.api.Predicate;
 import org.structr.common.Filter;
@@ -177,7 +178,7 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 	Iterable<ActionMapping> getProcessSuccessShowActions();
 	Iterable<ActionMapping> getProcessSuccessHideActions();
 	Iterable<ActionMapping> getProcessFailureShowActions();
-	Iterable<ActionMapping>> processFailureHideActions();
+	Iterable<ActionMapping> processFailureHideActions();
 
 	DOMNode cloneNode(final boolean deep) throws FrameworkException;
 	DOMNode appendChild(final DOMNode domNode) throws FrameworkException;
@@ -185,12 +186,10 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 	DOMNode replaceChild(final DOMNode newNode, final DOMNode refNode) throws FrameworkException;
 	DOMNode insertBefore(final DOMNode newClonedTemplate, final DOMNode templateToBeReplaced) throws FrameworkException;
 
-	@Export
 	Page getOwnerDocument();
 	Page getOwnerDocumentAsSuperUser();
 	Page getClosestPage();
 
-	@Export
 	void setOwnerDocument(final Page page) throws FrameworkException;
 	void setSharedComponent(final DOMNode sharedComponent) throws FrameworkException;
 

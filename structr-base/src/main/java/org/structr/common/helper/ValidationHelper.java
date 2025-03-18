@@ -26,17 +26,22 @@ import org.structr.api.graph.Identity;
 import org.structr.common.error.*;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Trait;
+import org.structr.core.traits.Traits;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 
 /**
  * Defines helper methods for property validation.
@@ -136,6 +141,7 @@ public class ValidationHelper {
 			} else {
 
 				return true;
+
 			}
 		}
 
@@ -546,18 +552,25 @@ public class ValidationHelper {
 
 		if (key != null) {
 
+			// validation will only be executed for non-null values
 			final Object value = object.getProperty(key);
 			if (value != null) {
 
-				// validation will only be executed for non-null values
+				final Traits traits      = object.getTraits();
 				List<GraphObject> result = null;
+				final String type;
 
 				// use declaring class for inheritance-aware uniqueness
-				Class type = key.getDeclaringClass();
-				if (type == null || (AbstractNode.name.equals(key) && NodeInterface.class.equals(type))) {
+				final Trait trait = key.getDeclaringTrait();
+				if (trait == null || StructrTraits.NODE_INTERFACE.equals(trait.getLabel())) {
 
 					// fallback: object type
-					type = object.getClass();
+					type = object.getTraits().getName();
+
+				} else {
+
+					// use declaring trait for inheritance-aware queries
+					type = trait.getLabel();
 				}
 
 				try {
@@ -567,7 +580,7 @@ public class ValidationHelper {
 						result = StructrApp.getInstance()
 								.nodeQuery(type)
 								.and(key, value)
-								.sort(GraphObject.createdDate)
+								.sort(traits.key(GraphObjectTraitDefinition.CREATED_DATE_PROPERTY))
 								.getAsList();
 
 					} else {
@@ -575,7 +588,7 @@ public class ValidationHelper {
 						result = StructrApp.getInstance()
 								.relationshipQuery(type)
 								.and(key, value)
-								.sort(GraphObject.createdDate)
+								.sort(traits.key(GraphObjectTraitDefinition.CREATED_DATE_PROPERTY))
 								.getAsList();
 
 					}
@@ -621,29 +634,30 @@ public class ValidationHelper {
 		return true;
 	}
 
-	public static synchronized boolean areValidCompoundUniqueProperties(final GraphObject object, final ErrorBuffer errorBuffer, final PropertyKey... keys) {
+	public static synchronized boolean areValidCompoundUniqueProperties(final GraphObject object, final ErrorBuffer errorBuffer, final Set<PropertyKey> keys) {
 
-		if (keys != null && keys.length > 0) {
+		if (keys != null && !keys.isEmpty()) {
 
-			final PropertyMap properties = new PropertyMap();
-			List<GraphObject> result     = null;
-			Class type                   = null;
+			final Traits traits                = object.getTraits();
+			final PropertyMap properties       = new PropertyMap();
+			List<? extends GraphObject> result = null;
+			String type                        = null;
 
 			for (final PropertyKey key : keys) {
 
 				properties.put(key, object.getProperty(key));
 
-				if (type != null) {
+				if (type == null) {
 
 					// set type on first iteration
-					type = key.getDeclaringClass();
+					type = key.getDeclaringTrait().getLabel();
 				}
 			}
 
 			if (type == null) {
 
 				// fallback: object type
-				type = object.getClass();
+				type = traits.getName();
 			}
 
 			try {
@@ -653,7 +667,7 @@ public class ValidationHelper {
 					result = StructrApp.getInstance()
 							.nodeQuery(type)
 							.and(properties)
-							.sort(GraphObject.createdDate)
+							.sort(traits.key(GraphObjectTraitDefinition.CREATED_DATE_PROPERTY))
 							.getAsList();
 
 				} else {
@@ -661,7 +675,7 @@ public class ValidationHelper {
 					result = StructrApp.getInstance()
 							.relationshipQuery(type)
 							.and(properties)
-							.sort(GraphObject.createdDate)
+							.sort(traits.key(GraphObjectTraitDefinition.CREATED_DATE_PROPERTY))
 							.getAsList();
 
 				}
@@ -710,6 +724,7 @@ public class ValidationHelper {
 
 		if (key != null) {
 
+			final Traits traits                = object.getTraits();
 			final Object value                 = object.getProperty(key);
 			List<? extends GraphObject> result = null;
 
@@ -718,17 +733,17 @@ public class ValidationHelper {
 				if (object instanceof NodeInterface) {
 
 					result = StructrApp.getInstance()
-							.nodeQuery(NodeInterface.class)
+							.nodeQuery()
 							.and(key, value)
-							.sort(GraphObject.createdDate)
+							.sort(traits.key(GraphObjectTraitDefinition.CREATED_DATE_PROPERTY))
 							.getAsList();
 
 				} else if (object instanceof RelationshipInterface) {
 
 					result = StructrApp.getInstance()
-							.relationshipQuery(RelationshipInterface.class)
+							.relationshipQuery()
 							.and(key, value)
-							.sort(GraphObject.createdDate)
+							.sort(traits.key(GraphObjectTraitDefinition.CREATED_DATE_PROPERTY))
 							.getAsList();
 
 				} else {

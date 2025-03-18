@@ -127,7 +127,7 @@ let _Dragndrop = {
 					return false;
 				}
 
-				if (target.isContent && target.type !== 'Template' && _Helpers.isIn(tag, _Elements.voidAttrs)) {
+				if (target.isContent && target.type !== 'Template' && _Elements.voidAttrs.includes(tag)) {
 					return false;
 				}
 			},

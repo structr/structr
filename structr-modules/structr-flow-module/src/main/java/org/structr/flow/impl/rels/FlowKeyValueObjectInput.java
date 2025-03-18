@@ -20,35 +20,57 @@ package org.structr.flow.impl.rels;
 
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
-import org.structr.common.PermissionPropagation;
-import org.structr.core.entity.ManyToOne;
 import org.structr.core.entity.Relation;
-import org.structr.flow.impl.FlowKeyValue;
-import org.structr.flow.impl.FlowObjectDataSource;
+import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
+import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
 /**
  *
  */
-public class FlowKeyValueObjectInput extends ManyToOne<FlowKeyValue, FlowObjectDataSource> implements PermissionPropagation {
+public class FlowKeyValueObjectInput extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
-	@Override
-	public Class<FlowKeyValue> getSourceType() {
-		return FlowKeyValue.class;
+	public FlowKeyValueObjectInput() {
+		super("FlowNodeKeyValueObjectInput");
 	}
 
 	@Override
-	public Class<FlowObjectDataSource> getTargetType() {
-		return FlowObjectDataSource.class;
+	public String getSourceType() {
+		return "FlowKeyValue";
 	}
 
 	@Override
-	public String name() {
+	public String getTargetType() {
+		return "FlowObjectDataSource";
+	}
+
+	@Override
+	public String getRelationshipType() {
 		return "KEY_VALUE_SOURCE";
+	}
+
+	@Override
+	public Relation.Multiplicity getSourceMultiplicity() {
+		return Relation.Multiplicity.Many;
+	}
+
+	@Override
+	public Relation.Multiplicity getTargetMultiplicity() {
+		return Relation.Multiplicity.One;
+	}
+
+	@Override
+	public int getCascadingDeleteFlag() {
+		return 0;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
 		return Relation.ALWAYS;
+	}
+
+	@Override
+	public boolean isInternal() {
+		return false;
 	}
 
 	@Override

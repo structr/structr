@@ -22,9 +22,8 @@ import org.structr.api.search.SortOrder;
 import org.structr.api.search.SortSpec;
 import org.structr.api.search.SortType;
 import org.structr.core.GraphObject;
-import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
-import org.structr.schema.ConfigurationProvider;
+import org.structr.core.traits.Traits;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -36,19 +35,25 @@ public class DefaultSortOrder implements SortOrder {
 	public DefaultSortOrder() {
 	}
 
-	public DefaultSortOrder(final Class type, final String[] sortKeyNames, final String[] sortOrders) {
+	public DefaultSortOrder(final String type, final String[] sortKeyNames, final String[] sortOrders) {
 
 		if (sortKeyNames != null) {
 
-			final ConfigurationProvider config = StructrApp.getConfiguration();
-			final int length                   = sortKeyNames.length;
+			final int length = sortKeyNames.length;
 
 			for (int i=0; i<length; i++) {
 
-				final PropertyKey key = config.getPropertyKeyForJSONName(type, sortKeyNames[i]);
-				if (key != null) {
+				if (Traits.exists(type)) {
 
-					specs.add(new PropertySortSpec(key, sortOrders != null && sortOrders.length > i && "desc".equals(sortOrders[i])));
+					final Traits traits = Traits.of(type);
+					if (traits.hasKey(sortKeyNames[i])) {
+
+						final PropertyKey key = traits.key(sortKeyNames[i]);
+						if (key != null) {
+
+							specs.add(new PropertySortSpec(key, sortOrders != null && sortOrders.length > i && "desc".equals(sortOrders[i])));
+						}
+					}
 				}
 			}
 		}

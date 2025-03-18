@@ -28,10 +28,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
-import org.structr.common.PropertyView;
+import org.structr.common.AccessControllable;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.fulltext.Indexable;
+import org.structr.common.helper.VersionHelper;
+import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
@@ -42,9 +43,19 @@ import org.structr.core.property.FunctionProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.CorsSettingTraitDefinition;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.LocalizationTraitDefinition;
+import org.structr.core.traits.definitions.MailTemplateTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.ResourceAccessTraitDefinition;
+import org.structr.core.traits.definitions.SchemaGrantTraitDefinition;
+import org.structr.core.traits.relationships.SecurityRelationshipDefinition;
 import org.structr.module.StructrModule;
+import org.structr.rest.resource.MaintenanceResource;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.JavaScriptSource;
 import org.structr.schema.export.*;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.AbstractMapComparator;
@@ -56,6 +67,19 @@ import org.structr.web.entity.dom.*;
 import org.structr.web.entity.event.ActionMapping;
 import org.structr.web.entity.event.ParameterMapping;
 import org.structr.web.maintenance.deploy.*;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.ActionMappingTraitDefinition;
+import org.structr.web.traits.definitions.ApplicationConfigurationDataNodeTraitDefinition;
+import org.structr.web.traits.definitions.FileTraitDefinition;
+import org.structr.web.traits.definitions.ImageTraitDefinition;
+import org.structr.web.traits.definitions.LinkableTraitDefinition;
+import org.structr.web.traits.definitions.ParameterMappingTraitDefinition;
+import org.structr.web.traits.definitions.SiteTraitDefinition;
+import org.structr.web.traits.definitions.WidgetTraitDefinition;
+import org.structr.web.traits.definitions.dom.ContentTraitDefinition;
+import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
+import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
+import org.structr.web.traits.definitions.dom.PageTraitDefinition;
 import org.structr.websocket.command.CreateComponentCommand;
 
 import java.io.*;
@@ -69,8 +93,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import static java.nio.file.FileVisitResult.CONTINUE;
-import org.structr.common.helper.VersionHelper;
-import org.structr.rest.resource.MaintenanceResource;
 
 public class DeployCommand extends NodeServiceCommand implements MaintenanceCommand {
 
@@ -107,6 +129,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private final static String DEPLOYMENT_CONF_FILE_PATH                             = "deployment.conf";
 	private final static String PRE_DEPLOY_CONF_FILE_PATH                             = "pre-deploy.conf";
 	private final static String POST_DEPLOY_CONF_FILE_PATH                            = "post-deploy.conf";
+	private final static String SCHEMA_GRANTS_FILE_PATH                               = "security/schema-grants.json";
 	private final static String GRANTS_FILE_PATH                                      = "security/grants.json";
 	private final static String CORS_SETTINGS_FILE_PATH                               = "security/cors-settings.json";
 	private final static String MAIL_TEMPLATES_FILE_PATH                              = "mail-templates.json";
@@ -301,6 +324,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Path deploymentConfFile                       = source.resolve(DEPLOYMENT_CONF_FILE_PATH);
 			final Path preDeployConfFile                        = source.resolve(PRE_DEPLOY_CONF_FILE_PATH);
 			final Path postDeployConfFile                       = source.resolve(POST_DEPLOY_CONF_FILE_PATH);
+			final Path schemaGrantsMetadataFile                 = source.resolve(SCHEMA_GRANTS_FILE_PATH);
 			final Path grantsMetadataFile                       = source.resolve(GRANTS_FILE_PATH);
 			final Path corsSettingsMetadataFile                 = source.resolve(CORS_SETTINGS_FILE_PATH);
 			final Path mailTemplatesMetadataFile                = source.resolve(MAIL_TEMPLATES_FILE_PATH);
@@ -360,6 +384,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			// apply pre-deploy.conf
 			applyConfigurationFileIfExists(ctx, preDeployConfFile, DEPLOYMENT_IMPORT_STATUS);
 
+			importSchemaGrants(schemaGrantsMetadataFile);
 			importResourceAccessGrants(grantsMetadataFile);
 			importCorsSettings(corsSettingsMetadataFile);
 			importMailTemplates(mailTemplatesMetadataFile, source);
@@ -551,6 +576,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Path modules             = Files.createDirectories(target.resolve(MODULES_FOLDER_PATH));
 			final Path mailTemplatesFolder = Files.createDirectories(target.resolve(MAIL_TEMPLATES_FOLDER_PATH));
 
+			final Path schemaGrantsConf                    = target.resolve(SCHEMA_GRANTS_FILE_PATH);
 			final Path grantsConf                          = target.resolve(GRANTS_FILE_PATH);
 			final Path corsSettingsConf                    = target.resolve(CORS_SETTINGS_FILE_PATH);
 			final Path filesConf                           = target.resolve(FILES_FILE_PATH);
@@ -601,6 +627,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Templates");
 			exportTemplates(templates, templatesConf);
+
+			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Schema Grants");
+			exportSchemaGrants(schemaGrantsConf);
 
 			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Resource Access Grants");
 			exportResourceAccessGrants(grantsConf);
@@ -718,23 +747,24 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		logger.info("Exporting files (unchanged files will be skipped)");
 
-		final PropertyKey<Boolean> inclKey  = StructrApp.key(File.class, "includeInFrontendExport");
-		final PropertyKey<Boolean> jsKey    = StructrApp.key(File.class, "useAsJavascriptLibrary");
-		final PropertyKey<Folder> parentKey = StructrApp.key(File.class, "parent");
+		final Traits traits                 = Traits.of(StructrTraits.FILE);
+		final PropertyKey<Boolean> inclKey  = traits.key(AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY);
+		final PropertyKey<Boolean> jsKey    = traits.key(FileTraitDefinition.USE_AS_JAVASCRIPT_LIBRARY_PROPERTY);
+		final PropertyKey<Folder> parentKey = traits.key(AbstractFileTraitDefinition.PARENT_PROPERTY);
 		final Map<String, Object> config    = new TreeMap<>();
 		final App app                       = StructrApp.getInstance();
 
 		try (final Tx tx = app.tx()) {
 
 			// fetch toplevel folders and recurse
-			for (final Folder folder : app.nodeQuery(Folder.class).and(parentKey, null).sort(Folder.name).and(inclKey, true).getAsList()) {
+			for (final NodeInterface folder : app.nodeQuery(StructrTraits.FOLDER).and(parentKey, null).sort(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).and(inclKey, true).getAsList()) {
 				exportFilesAndFolders(target, folder, config);
 			}
 
 			// fetch toplevel files that are marked for export or for use as a javascript library
-			for (final File file : app.nodeQuery(File.class)
+			for (final NodeInterface file : app.nodeQuery(StructrTraits.FILE)
 				.and(parentKey, null)
-				.sort(File.name)
+				.sort(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY))
 				.and()
 					.or(inclKey, true)
 					.or(jsKey, true)
@@ -766,28 +796,34 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		writeJsonToFile(configTarget, config);
 	}
 
-	private void exportFilesAndFolders(final Path target, final Folder folder, final Map<String, Object> config) throws IOException {
+	private void exportFilesAndFolders(final Path target, final NodeInterface node, final Map<String, Object> config) throws IOException {
+
+		final Folder folder = node.as(Folder.class);
 
 		// ignore folders with mounted content
 		if (folder.isMounted()) {
 			return;
 		}
 
+		final Traits traits                  = Traits.of(StructrTraits.FOLDER);
 		final String name                    = folder.getName();
 		final Path path                      = target.resolve(name);
 		final Map<String, Object> properties = new TreeMap<>();
 
 		Files.createDirectories(path);
 
-		exportFileConfiguration(folder, properties);
+		exportFileConfiguration(node, properties);
 
 		if (!properties.isEmpty()) {
 			String folderPath = folder.getPath();
 			config.put(folderPath, properties);
 		}
 
-		final List<Folder> folders = Iterables.toList(folder.getFolders());
-		Collections.sort(folders, AbstractNode.name.sorted(false));
+		final List<Folder> folders    = Iterables.toList(folder.getFolders());
+		final PropertyKey<String> key = traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
+		final Comparator comp         = (Comparator) key.sorted(false);
+
+		Collections.sort(folders, comp);
 
 		for (final Folder child : folders) {
 
@@ -795,7 +831,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 
 		final List<File> files = Iterables.toList(folder.getFiles());
-		Collections.sort(files, AbstractNode.name.sorted(false));
+		Collections.sort(files, comp);
 
 		for (final File file : files) {
 
@@ -803,8 +839,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	protected void exportFile(final Path target, final File file, final Map<String, Object> config) throws IOException {
+	protected void exportFile(final Path target, final NodeInterface node, final Map<String, Object> config) throws IOException {
 
+		final File file                      = node.as(File.class);
 		final Map<String, Object> properties = new TreeMap<>();
 		final String name                    = file.getName();
 		Path targetPath                      = target.resolve(name);
@@ -831,7 +868,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			}
 		}
 
-		exportFileConfiguration(file, properties);
+		exportFileConfiguration(node, properties);
 
 		if (!properties.isEmpty()) {
 
@@ -849,25 +886,28 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try (final Tx tx = app.tx()) {
 
-			for (final Site site : app.nodeQuery(Site.class).sort(Site.name).getAsList()) {
+			for (final NodeInterface node : app.nodeQuery(StructrTraits.SITE).sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getAsList()) {
 
+				final Site site                 = node.as(Site.class);
 				final Map<String, Object> entry = new TreeMap<>();
 				sites.add(entry);
 
-				entry.put("id",       site.getProperty(Site.id));
-				entry.put("name",     site.getName());
-				entry.put("hostname", site.getHostname());
-				entry.put("port",     site.getPort());
-				entry.put("visibleToAuthenticatedUsers", site.getProperty(Site.visibleToAuthenticatedUsers));
-				entry.put("visibleToPublicUsers",        site.getProperty(Site.visibleToPublicUsers));
+				entry.put(GraphObjectTraitDefinition.ID_PROPERTY,                             site.getUuid());
+				entry.put(NodeInterfaceTraitDefinition.NAME_PROPERTY,                         site.getName());
+				entry.put(SiteTraitDefinition.HOSTNAME_PROPERTY,                              site.getHostname());
+				entry.put(SiteTraitDefinition.PORT_PROPERTY,                                  site.getPort());
+				entry.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, site.isVisibleToAuthenticatedUsers());
+				entry.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        site.isVisibleToPublicUsers());
 
 				final List<String> pageNames = new LinkedList<>();
-				for (final Page page : (Iterable<Page>)site.getProperty(StructrApp.key(Site.class, "pages"))) {
+
+				for (final NodeInterface page : site.getPages()) {
 					pageNames.add(page.getName());
 				}
-				entry.put("pages", pageNames);
 
-				exportOwnershipAndSecurity(site, entry);
+				entry.put(SiteTraitDefinition.PAGES_PROPERTY, pageNames);
+
+				exportOwnershipAndSecurity(node, entry);
 			}
 
 			tx.success();
@@ -891,11 +931,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try (final Tx tx = app.tx()) {
 
-			for (final Page page : app.nodeQuery(Page.class).sort(Page.name).getAsList()) {
+			for (final NodeInterface page : app.nodeQuery(StructrTraits.PAGE).sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getAsList()) {
 
-				if (!(page instanceof ShadowDocument)) {
+				if (!page.is(StructrTraits.SHADOW_DOCUMENT)) {
 
-					final String content = page.getContent(RenderContext.EditMode.DEPLOYMENT);
+					final String content = page.as(Page.class).getContent(RenderContext.EditMode.DEPLOYMENT);
 					if (content != null) {
 
 						final Map<String, Object> properties = new TreeMap<>();
@@ -932,10 +972,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try (final Tx tx = app.tx()) {
 
-			final ShadowDocument shadowDocument = app.nodeQuery(ShadowDocument.class).getFirst();
+			final NodeInterface shadowDocument = app.nodeQuery(StructrTraits.SHADOW_DOCUMENT).getFirst();
 			if (shadowDocument != null) {
 
-				for (final DOMNode node : shadowDocument.getElements()) {
+				for (final DOMNode node : shadowDocument.as(ShadowDocument.class).getElements()) {
 
 					final boolean hasParent = node.getParent() != null;
 					final boolean inTrash   = node.inTrash();
@@ -973,18 +1013,19 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		try (final Tx tx = app.tx()) {
 
 			// export template nodes anywhere in the pages tree which are not related to shared components
-			for (final Template template : app.nodeQuery(Template.class).getAsList()) {
+			for (final NodeInterface node : app.nodeQuery(StructrTraits.TEMPLATE).getAsList()) {
 
-				final boolean isShared    = template.getProperty(StructrApp.key(DOMNode.class, "sharedComponent")) != null;
-				final boolean inTrash     = template.inTrash();
+				final Template template = node.as(Template.class);
+				final boolean isShared  = template.hasSharedComponent();
+				final boolean inTrash   = template.inTrash();
 
 				if (inTrash || isShared) {
 					continue;
 				}
 
-				final String content = template.getProperty(StructrApp.key(Template.class, "content"));
+				final String content = template.getContent();
 
-				exportContentElementSource(targetFolder, template, configuration, content);
+				exportContentElementSource(targetFolder, node, configuration, content);
 			}
 
 			tx.success();
@@ -996,12 +1037,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	/**
 	 * Consolidated export method for Content and Template
 	 */
-	private void exportContentElementSource(final Path targetFolder, final DOMNode node, final Map<String, Object> configuration, final String content) throws FrameworkException {
+	private void exportContentElementSource(final Path targetFolder, final NodeInterface node, final Map<String, Object> configuration, final String content) throws FrameworkException {
 
 		if (content != null) {
 
 			// name with uuid or just uuid
-			String name = node.getProperty(AbstractNode.name);
+			String name = node.getProperty(node.getTraits().key(NodeInterfaceTraitDefinition.NAME_PROPERTY));
 			if (name != null) {
 
 				name += "-" + node.getUuid();
@@ -1021,34 +1062,75 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
+	private void exportSchemaGrants(final Path target) throws FrameworkException {
+
+		logger.info("Exporting schema grants");
+
+		final List<Map<String, Object>> grants = new LinkedList<>();
+		final Traits traits                    = Traits.of(StructrTraits.SCHEMA_GRANT);
+		final App app                          = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			for (final NodeInterface node : app.nodeQuery(StructrTraits.SCHEMA_GRANT).sort(traits.key(GraphObjectTraitDefinition.ID_PROPERTY)).getAsList()) {
+
+				final Map<String, Object> grant = new TreeMap<>();
+				final SchemaGrant schemaGrant   = node.as(SchemaGrant.class);
+				grants.add(grant);
+
+				grant.put(GraphObjectTraitDefinition.ID_PROPERTY,                          schemaGrant.getUuid());
+				grant.put("principal",                   Map.of("name", schemaGrant.getPrincipalName()));
+				grant.put(SchemaGrantTraitDefinition.STATIC_SCHEMA_NODE_NAME_PROPERTY,        schemaGrant.getStaticSchemaNodeName());
+				grant.put("allowRead",                   schemaGrant.allowRead());
+				grant.put("allowWrite",                  schemaGrant.allowWrite());
+				grant.put("allowDelete",                 schemaGrant.allowDelete());
+				grant.put("allowAccessControl",          schemaGrant.allowAccessControl());
+
+				// schema node can be null
+				final SchemaNode optionalSchemaNode = schemaGrant.getSchemaNode();
+				if (optionalSchemaNode != null) {
+
+					grant.put(SchemaGrantTraitDefinition.SCHEMA_NODE_PROPERTY, Map.of("id", optionalSchemaNode.getUuid()));
+				}
+			}
+
+			tx.success();
+		}
+
+		writeSortedCompactJsonToFile(target, grants, null);
+	}
+
 	private void exportResourceAccessGrants(final Path target) throws FrameworkException {
 
 		logger.info("Exporting resource access grants");
 
 		final List<Map<String, Object>> grants = new LinkedList<>();
+		final Traits traits                    = Traits.of(StructrTraits.RESOURCE_ACCESS);
+		final PropertyKey<String> signatureKey = traits.key(ResourceAccessTraitDefinition.SIGNATURE_PROPERTY);
+		final PropertyKey<Long> flagsKey       = traits.key(ResourceAccessTraitDefinition.FLAGS_PROPERTY);
 		final App app                          = StructrApp.getInstance();
 
 		final List<String> unreachableGrants = new LinkedList<>();
 
 		try (final Tx tx = app.tx()) {
 
-			for (final ResourceAccess res : app.nodeQuery(ResourceAccess.class).sort(ResourceAccess.signature).getAsList()) {
+			for (final NodeInterface res : app.nodeQuery(StructrTraits.RESOURCE_ACCESS).sort(traits.key(ResourceAccessTraitDefinition.SIGNATURE_PROPERTY)).getAsList()) {
 
 				final Map<String, Object> grant = new TreeMap<>();
 				grants.add(grant);
 
-				grant.put("id",        res.getProperty(ResourceAccess.id));
-				grant.put("signature", res.getProperty(ResourceAccess.signature));
-				grant.put("flags",     res.getProperty(ResourceAccess.flags));
-				grant.put("visibleToPublicUsers",        res.isVisibleToPublicUsers());
-				grant.put("visibleToAuthenticatedUsers", res.isVisibleToAuthenticatedUsers());
+				grant.put(GraphObjectTraitDefinition.ID_PROPERTY,                             res.getProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY)));
+				grant.put(ResourceAccessTraitDefinition.SIGNATURE_PROPERTY,                   res.getProperty(signatureKey));
+				grant.put(ResourceAccessTraitDefinition.FLAGS_PROPERTY,                       res.getProperty(flagsKey));
+				grant.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        res.isVisibleToPublicUsers());
+				grant.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, res.isVisibleToAuthenticatedUsers());
 
 				exportSecurity(res, grant);
 
-				final List grantees = (List)grant.get("grantees");
+				final List grantees = (List)grant.get(NodeInterfaceTraitDefinition.GRANTEES_PROPERTY);
 
-				if (res.getProperty(ResourceAccess.flags) > 0 && res.isVisibleToPublicUsers() == false && res.isVisibleToAuthenticatedUsers() == false && grantees.isEmpty()) {
-					unreachableGrants.add(res.getProperty(ResourceAccess.signature));
+				if (res.getProperty(flagsKey) > 0 && res.isVisibleToPublicUsers() == false && res.isVisibleToAuthenticatedUsers() == false && grantees.isEmpty()) {
+					unreachableGrants.add(res.getProperty(signatureKey));
 				}
 			}
 
@@ -1077,23 +1159,24 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		logger.info("Exporting CORS Settings");
 
 		final List<Map<String, Object>> corsSettings = new LinkedList<>();
-		final App app                           = StructrApp.getInstance();
+		final Traits traits                          = Traits.of(StructrTraits.CORS_SETTING);
+		final App app                                = StructrApp.getInstance();
 
 		try (final Tx tx = app.tx()) {
 
-			for (final CorsSetting corsSetting : app.nodeQuery(CorsSetting.class).sort(CorsSetting.requestUri).getAsList()) {
+			for (final NodeInterface corsSetting : app.nodeQuery(StructrTraits.CORS_SETTING).sort(traits.key(CorsSettingTraitDefinition.REQUEST_URI_PROPERTY)).getAsList()) {
 
 				final Map<String, Object> entry = new LinkedHashMap<>();
 				corsSettings.add(entry);
 
-				putData(entry, "id",               corsSetting.getProperty(CorsSetting.id));
-				putData(entry, "requestUri",       corsSetting.getProperty(StructrApp.key(CorsSetting.class, "requestUri")));
-				putData(entry, "acceptedOrigins",  corsSetting.getProperty(StructrApp.key(CorsSetting.class, "acceptedOrigins")));
-				putData(entry, "maxAge",           corsSetting.getProperty(StructrApp.key(CorsSetting.class, "maxAge")));
-				putData(entry, "allowMethods",     corsSetting.getProperty(StructrApp.key(CorsSetting.class, "allowMethods")));
-				putData(entry, "allowHeaders",     corsSetting.getProperty(StructrApp.key(CorsSetting.class, "allowHeaders")));
-				putData(entry, "allowCredentials", corsSetting.getProperty(StructrApp.key(CorsSetting.class, "allowCredentials")));
-				putData(entry, "exposeHeaders",    corsSetting.getProperty(StructrApp.key(CorsSetting.class, "exposeHeaders")));
+				putData(entry, GraphObjectTraitDefinition.ID_PROPERTY,                corsSetting.getProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY)));
+				putData(entry, CorsSettingTraitDefinition.REQUEST_URI_PROPERTY,       corsSetting.getProperty(traits.key(CorsSettingTraitDefinition.REQUEST_URI_PROPERTY)));
+				putData(entry, CorsSettingTraitDefinition.ACCEPTED_ORIGINS_PROPERTY,  corsSetting.getProperty(traits.key(CorsSettingTraitDefinition.ACCEPTED_ORIGINS_PROPERTY)));
+				putData(entry, CorsSettingTraitDefinition.MAX_AGE_PROPERTY,           corsSetting.getProperty(traits.key(CorsSettingTraitDefinition.MAX_AGE_PROPERTY)));
+				putData(entry, CorsSettingTraitDefinition.ALLOW_METHODS_PROPERTY,     corsSetting.getProperty(traits.key(CorsSettingTraitDefinition.ALLOW_METHODS_PROPERTY)));
+				putData(entry, CorsSettingTraitDefinition.ALLOW_HEADERS_PROPERTY,     corsSetting.getProperty(traits.key(CorsSettingTraitDefinition.ALLOW_HEADERS_PROPERTY)));
+				putData(entry, CorsSettingTraitDefinition.ALLOW_CREDENTIALS_PROPERTY, corsSetting.getProperty(traits.key(CorsSettingTraitDefinition.ALLOW_CREDENTIALS_PROPERTY)));
+				putData(entry, CorsSettingTraitDefinition.EXPOSE_HEADERS_PROPERTY,    corsSetting.getProperty(traits.key(CorsSettingTraitDefinition.EXPOSE_HEADERS_PROPERTY)));
 			}
 
 			tx.success();
@@ -1219,114 +1302,120 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	private void exportConfiguration(final DOMNode node, final Map<String, Object> config) throws FrameworkException {
+	private void exportConfiguration(final NodeInterface node, final Map<String, Object> config) throws FrameworkException {
 
-		putData(config, "id",                          node.getProperty(DOMNode.id));
-		putData(config, "visibleToPublicUsers",        node.isVisibleToPublicUsers());
-		putData(config, "visibleToAuthenticatedUsers", node.isVisibleToAuthenticatedUsers());
+		putData(config, GraphObjectTraitDefinition.ID_PROPERTY,                             node.getUuid());
+		putData(config, GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        node.isVisibleToPublicUsers());
+		putData(config, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, node.isVisibleToAuthenticatedUsers());
 
-		if (node instanceof Content) {
-			putData(config, "contentType", node.getProperty(StructrApp.key(Content.class, "contentType")));
+		if (node.is(StructrTraits.CONTENT)) {
+			putData(config, ContentTraitDefinition.CONTENT_TYPE_PROPERTY, node.as(Content.class).getContentType());
 		}
 
-		if (node instanceof Template) {
+		if (node.is(StructrTraits.TEMPLATE)) {
+
+			final Template template = node.as(Template.class);
 
 			// mark this template as being shared
-			putData(config, "shared", Boolean.toString(node.isSharedComponent() && node.getParent() == null));
+			putData(config, "shared", Boolean.toString(template.isSharedComponent() && template.getParent() == null));
 		}
 
-		if (node instanceof Page) {
+		if (node.is(StructrTraits.PAGE)) {
 
-			putData(config, "basicAuthRealm",          node.getProperty(StructrApp.key(Page.class, "basicAuthRealm")));
-			putData(config, "cacheForSeconds",         node.getProperty(StructrApp.key(Page.class, "cacheForSeconds")));
-			putData(config, "category",                node.getProperty(StructrApp.key(Page.class, "category")));
-			putData(config, "contentType",             node.getProperty(StructrApp.key(Page.class, "contentType")));
-			putData(config, "dontCache",               node.getProperty(StructrApp.key(Page.class, "dontCache")));
-			putData(config, "enableBasicAuth",         node.getProperty(StructrApp.key(Page.class, "enableBasicAuth")));
-			putData(config, "hidden",                  node.getProperty(StructrApp.key(Page.class, "hidden")));
-			putData(config, "hideConditions",          node.getProperty(StructrApp.key(Page.class, "hideConditions")));
-			putData(config, "pageCreatesRawData",      node.getProperty(StructrApp.key(Page.class, "pageCreatesRawData")));
-			putData(config, "path",                    node.getProperty(StructrApp.key(Page.class, "path")));
-			putData(config, "position",                node.getProperty(StructrApp.key(Page.class, "position")));
-			putData(config, "showConditions",          node.getProperty(StructrApp.key(Page.class, "showConditions")));
-			putData(config, "showOnErrorCodes",        node.getProperty(StructrApp.key(Page.class, "showOnErrorCodes")));
+			final Linkable linkable = node.as(Linkable.class);
+			final Page page         = node.as(Page.class);
 
+			putData(config, LinkableTraitDefinition.BASIC_AUTH_REALM_PROPERTY,  linkable.getBasicAuthRealm());
+			putData(config, PageTraitDefinition.CACHE_FOR_SECONDS_PROPERTY,     page.getCacheForSeconds());
+			putData(config, PageTraitDefinition.CATEGORY_PROPERTY,              page.getCategory());
+			putData(config, PageTraitDefinition.CONTENT_TYPE_PROPERTY,          page.getContentType());
+			putData(config, DOMNodeTraitDefinition.DONT_CACHE_PROPERTY,         page.dontCache());
+			putData(config, LinkableTraitDefinition.ENABLE_BASIC_AUTH_PROPERTY, linkable.getEnableBasicAuth());
+			putData(config, NodeInterfaceTraitDefinition.HIDDEN_PROPERTY,       page.isHidden());
+			putData(config, PageTraitDefinition.PAGE_CREATES_RAW_DATA_PROPERTY, page.pageCreatesRawData());
+			putData(config, DOMElementTraitDefinition.PATH_PROPERTY,            page.getPath());
+			putData(config, PageTraitDefinition.POSITION_PROPERTY,              page.getPosition());
+			putData(config, PageTraitDefinition.SHOW_ON_ERROR_CODES_PROPERTY,   page.getShowOnErrorCodes());
+
+			// FIXME? show conditions for a page?
+			putData(config, DOMNodeTraitDefinition.SHOW_CONDITIONS_PROPERTY,    page.getShowConditions());
+			putData(config, DOMNodeTraitDefinition.HIDE_CONDITIONS_PROPERTY,    page.getHideConditions());
 		}
+
+		final Traits traits = node.getTraits();
 
 		// export all dynamic properties
-		for (final PropertyKey key : StructrApp.getConfiguration().getPropertySet(node.getClass(), PropertyView.All)) {
+		for (final PropertyKey key : traits.getAllPropertyKeys()) {
 
 			// only export dynamic (=> additional) keys that are *not* remote properties
-			if (!key.isPartOfBuiltInSchema() && key.relatedType() == null && !(key instanceof FunctionProperty) && !(key instanceof CypherProperty)) {
+			if (key.isDynamic() && key.relatedType() == null && !(key instanceof FunctionProperty) && !(key instanceof CypherProperty)) {
 
 				putData(config, key.jsonName(), node.getProperty(key));
 			}
 		}
 	}
 
-	protected void exportFileConfiguration(final AbstractFile abstractFile, final Map<String, Object> config) {
+	protected void exportFileConfiguration(final NodeInterface node, final Map<String, Object> config) {
 
-		putData(config, "id",                          abstractFile.getProperty(AbstractFile.id));
-		putData(config, "visibleToPublicUsers",        abstractFile.isVisibleToPublicUsers());
-		putData(config, "visibleToAuthenticatedUsers", abstractFile.isVisibleToAuthenticatedUsers());
+		final AbstractFile abstractFile = node.as(AbstractFile.class);
+		final String fileType           = abstractFile.getType();
 
-		putData(config, "type",                        abstractFile.getProperty(File.type));
+		putData(config, GraphObjectTraitDefinition.ID_PROPERTY,                             abstractFile.getUuid());
+		putData(config, GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        abstractFile.isVisibleToPublicUsers());
+		putData(config, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, abstractFile.isVisibleToAuthenticatedUsers());
+		putData(config, GraphObjectTraitDefinition.TYPE_PROPERTY,                           fileType);
 
-		if (abstractFile instanceof File) {
+		if (abstractFile.is(StructrTraits.FILE)) {
 
-			final File file = (File)abstractFile;
+			final File file = abstractFile.as(File.class);
 
-			putData(config, "isTemplate", file.isTemplate());
-			putData(config, "dontCache", abstractFile.getProperty(StructrApp.key(File.class, "dontCache")));
+			putData(config, FileTraitDefinition.IS_TEMPLATE_PROPERTY,               file.isTemplate());
+			putData(config, FileTraitDefinition.DONT_CACHE_PROPERTY,                file.dontCache());
+			putData(config, FileTraitDefinition.CONTENT_TYPE_PROPERTY,              file.getContentType());
+			putData(config, FileTraitDefinition.CACHE_FOR_SECONDS_PROPERTY,         file.getCacheForSeconds());
+			putData(config, FileTraitDefinition.USE_AS_JAVASCRIPT_LIBRARY_PROPERTY, file.useAsJavascriptLibrary());
 		}
 
-		if (abstractFile instanceof Indexable) {
-			putData(config, "contentType",                 abstractFile.getProperty(StructrApp.key(File.class, "contentType")));
+		putData(config, AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY, abstractFile.includeInFrontendExport());
+
+		if (abstractFile.is(StructrTraits.LINKABLE)) {
+
+			final Linkable linkable = abstractFile.as(Linkable.class);
+
+			putData(config, LinkableTraitDefinition.BASIC_AUTH_REALM_PROPERTY,  linkable.getBasicAuthRealm());
+			putData(config, LinkableTraitDefinition.ENABLE_BASIC_AUTH_PROPERTY, linkable.getEnableBasicAuth());
 		}
 
-		if (abstractFile instanceof File) {
-			putData(config, "cacheForSeconds",             abstractFile.getProperty(StructrApp.key(File.class, "cacheForSeconds")));
+		if (abstractFile.is(StructrTraits.IMAGE)) {
+
+			final Image image = abstractFile.as(Image.class);
+
+			putData(config, ImageTraitDefinition.IS_THUMBNAIL_PROPERTY, image.isThumbnail());
+			putData(config, ImageTraitDefinition.IS_IMAGE_PROPERTY,     image.isImage());
+			putData(config, ImageTraitDefinition.WIDTH_PROPERTY,        image.getWidth());
+			putData(config, ImageTraitDefinition.HEIGHT_PROPERTY,       image.getHeight());
 		}
 
-		if (abstractFile instanceof JavaScriptSource) {
-			putData(config, "useAsJavascriptLibrary",      abstractFile.getProperty(StructrApp.key(File.class, "useAsJavascriptLibrary")));
-		}
-
-		putData(config, "includeInFrontendExport",     abstractFile.getProperty(StructrApp.key(File.class, "includeInFrontendExport")));
-
-		if (abstractFile instanceof Linkable) {
-			putData(config, "basicAuthRealm",              abstractFile.getProperty(StructrApp.key(File.class, "basicAuthRealm")));
-			putData(config, "enableBasicAuth",             abstractFile.getProperty(StructrApp.key(File.class, "enableBasicAuth")));
-		}
-
-		if (abstractFile instanceof Image) {
-
-			final Image image = (Image)abstractFile;
-
-			putData(config, "isThumbnail",             image.isThumbnail());
-			putData(config, "isImage",                 image.isImage());
-			putData(config, "width",                   image.getWidth());
-			putData(config, "height",                  image.getHeight());
-		}
+		final Traits traits = node.getTraits();
 
 		// export all dynamic properties
-		for (final PropertyKey key : StructrApp.getConfiguration().getPropertySet(abstractFile.getClass(), PropertyView.All)) {
+		for (final PropertyKey key : traits.getAllPropertyKeys()) {
 
 			// only export dynamic (=> additional) keys that are *not* remote properties
-			if (!key.isPartOfBuiltInSchema() && key.relatedType() == null && !(key instanceof FunctionProperty) && !(key instanceof CypherProperty)) {
+			if (key.isDynamic() && key.relatedType() == null && !(key instanceof FunctionProperty) && !(key instanceof CypherProperty)) {
 
 				putData(config, key.jsonName(), abstractFile.getProperty(key));
 			}
 		}
 
-		exportOwnershipAndSecurity(abstractFile, config);
+		exportOwnershipAndSecurity(node, config);
 	}
 
 	protected void exportOwnershipAndSecurity(final NodeInterface node, final Map<String, Object> config) {
 
 		// export owner
 		final Map<String, Object> map = new HashMap<>();
-		final PrincipalInterface owner         = node.getOwnerNode();
+		final Principal owner         = node.as(AccessControllable.class).getOwnerNode();
 
 		if (owner != null) {
 
@@ -1346,15 +1435,15 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		// export security grants
 		final List<Map<String, Object>> grantees = new LinkedList<>();
-		for (final Security security : node.getSecurityRelationships()) {
+		for (final Security security : node.as(AccessControllable.class).getSecurityRelationships()) {
 
 			if (security != null) {
 
+				final String allowedActions     = StringUtils.join(security.getPermissions(), ",");
 				final Map<String, Object> grant = new TreeMap<>();
 
-				grant.put("name", security.getSourceNode().getProperty(AbstractNode.name));
-				final String allowedActions = StringUtils.join(security.getPermissions(), ",");
-				grant.put("allowed", allowedActions);
+				grant.put(NodeInterfaceTraitDefinition.NAME_PROPERTY, security.getRelationship().getSourceNode().getName());
+				grant.put(SecurityRelationshipDefinition.ALLOWED_PROPERTY, allowedActions);
 
 				if (allowedActions.length() > 0) {
 					grantees.add(grant);
@@ -1376,8 +1465,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			final Map ownerData = ((Map)entry.get("owner"));
 			if (ownerData != null) {
-				final String ownerName           = (String) ((Map)entry.get("owner")).get("name");
-				final List<PrincipalInterface> principals = StructrApp.getInstance().nodeQuery(PrincipalInterface.class).andName(ownerName).getAsList();
+
+				final String ownerName               = (String) ownerData.get("name");
+				final List<NodeInterface> principals = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).andName(ownerName).getAsList();
 
 				if (principals.isEmpty()) {
 
@@ -1406,8 +1496,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			for (final Map<String, Object> grantee : grantees) {
 
-				final String granteeName         = (String) grantee.get("name");
-				final List<PrincipalInterface> principals = StructrApp.getInstance().nodeQuery(PrincipalInterface.class).andName(granteeName).getAsList();
+				final String granteeName             = (String) grantee.get("name");
+				final List<NodeInterface> principals = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).andName(granteeName).getAsList();
 
 				if (principals.isEmpty()) {
 
@@ -1427,15 +1517,44 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			entry.put("grantees", cleanedGrantees);
 		}
+
+		// new section for schema grants
+		if (entry.containsKey("principal")) {
+
+			final Map ownerData = ((Map)entry.get("principal"));
+			if (ownerData != null) {
+
+				final String ownerName               = (String) ((Map)entry.get("principal")).get("name");
+				final List<NodeInterface> principals = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).andName(ownerName).getAsList();
+
+				if (principals.isEmpty()) {
+
+					logger.warn("Unknown principal! Found no node of type Principal named '{}', ignoring.", ownerName);
+					DeployCommand.addMissingPrincipal(ownerName);
+
+					entry.remove("principal");
+
+				} else if (principals.size() > 1) {
+
+					logger.warn("Ambiguous principal! Found {} nodes of type Principal named '{}', ignoring.", principals.size(), ownerName);
+					DeployCommand.addAmbiguousPrincipal(ownerName);
+
+					entry.remove("principal");
+				}
+
+			} else if (removeNullOwner) {
+				entry.remove("principal");
+			}
+		}
+
 	}
 
 	private void exportMailTemplates(final Path targetConf, final Path targetFolder) throws FrameworkException {
 
 		logger.info("Exporting mail templates");
 
-		final PropertyKey<String> textKey             = StructrApp.key(MailTemplate.class, "text");
-		final PropertyKey<String> localeKey           = StructrApp.key(MailTemplate.class, "locale");
 		final List<Map<String, Object>> mailTemplates = new LinkedList<>();
+		final Traits traits                           = Traits.of(StructrTraits.MAIL_TEMPLATE);
 		final App app                                 = StructrApp.getInstance();
 
 		try {
@@ -1444,27 +1563,29 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			try (final Tx tx = app.tx()) {
 
-				for (final MailTemplate mailTemplate : app.nodeQuery(MailTemplate.class).sort(MailTemplate.name).getAsList()) {
+				for (final NodeInterface node : app.nodeQuery(StructrTraits.MAIL_TEMPLATE).sort(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getAsList()) {
+
+					final MailTemplate mailTemplate = node.as(MailTemplate.class);
 
 					// generate filename for output file
-					String filename = mailTemplate.getProperty(MailTemplate.name) + "_-_" + mailTemplate.getProperty(localeKey) + ".html";
+					String filename = mailTemplate.getName() + "_-_" + mailTemplate.getLocale() + ".html";
 
 					if (Files.exists(targetFolder.resolve(filename))) {
-						filename = mailTemplate.getProperty(MailTemplate.name) + "_-_" + mailTemplate.getProperty(localeKey) + "_-_" + mailTemplate.getProperty(MailTemplate.id) + ".html";
+						filename = mailTemplate.getName() + "_-_" + mailTemplate.getLocale() + "_-_" + mailTemplate.getUuid() + ".html";
 					}
 
 					final Map<String, Object> entry = new TreeMap<>();
 					mailTemplates.add(entry);
 
-					putData(entry, "id",                          mailTemplate.getProperty(MailTemplate.id));
-					putData(entry, "name",                        mailTemplate.getProperty(MailTemplate.name));
+					putData(entry, GraphObjectTraitDefinition.ID_PROPERTY,                            mailTemplate.getUuid());
+					putData(entry, NodeInterfaceTraitDefinition.NAME_PROPERTY,                        mailTemplate.getName());
 					putData(entry, "filename",                    filename);
-					putData(entry, "locale",                      mailTemplate.getProperty(localeKey));
-					putData(entry, "visibleToAuthenticatedUsers", mailTemplate.getProperty(MailTemplate.visibleToAuthenticatedUsers));
-					putData(entry, "visibleToPublicUsers",        mailTemplate.getProperty(MailTemplate.visibleToPublicUsers));
+					putData(entry, MailTemplateTraitDefinition.LOCALE_PROPERTY,                      mailTemplate.getLocale());
+					putData(entry, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, mailTemplate.isVisibleToAuthenticatedUsers());
+					putData(entry, GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        mailTemplate.isVisibleToPublicUsers());
 
 					final Path mailTemplateFile = targetFolder.resolve(filename);
-					writeStringToFile(mailTemplateFile, mailTemplate.getProperty(textKey));
+					writeStringToFile(mailTemplateFile, mailTemplate.getText());
 				}
 
 				tx.success();
@@ -1496,22 +1617,24 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try (final Tx tx = app.tx()) {
 
-			for (final Widget widget : app.nodeQuery(Widget.class).sort(Widget.name).getAsList()) {
+			for (final NodeInterface node : app.nodeQuery(StructrTraits.WIDGET).sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getAsList()) {
 
+				final Widget widget             = node.as(Widget.class);
 				final Map<String, Object> entry = new TreeMap<>();
+
 				widgets.add(entry);
 
-				putData(entry, "id",                          widget.getProperty(Widget.id));
-				putData(entry, "name",                        widget.getProperty(Widget.name));
-				putData(entry, "visibleToAuthenticatedUsers", widget.getProperty(Widget.visibleToAuthenticatedUsers));
-				putData(entry, "visibleToPublicUsers",        widget.getProperty(Widget.visibleToPublicUsers));
-				putData(entry, "source",                      widget.getProperty(StructrApp.key(Widget.class, "source")));
-				putData(entry, "description",                 widget.getProperty(StructrApp.key(Widget.class, "description")));
-				putData(entry, "isWidget",                    widget.getProperty(StructrApp.key(Widget.class, "isWidget")));
-				putData(entry, "treePath",                    widget.getProperty(StructrApp.key(Widget.class, "treePath")));
-				putData(entry, "configuration",               widget.getProperty(StructrApp.key(Widget.class, "configuration")));
-				putData(entry, "isPageTemplate",              widget.getProperty(StructrApp.key(Widget.class, "isPageTemplate")));
-				putData(entry, "selectors",                   widget.getProperty(StructrApp.key(Widget.class, "selectors")));
+				putData(entry, GraphObjectTraitDefinition.ID_PROPERTY,                             widget.getUuid());
+				putData(entry, NodeInterfaceTraitDefinition.NAME_PROPERTY,                         widget.getName());
+				putData(entry, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, widget.isVisibleToAuthenticatedUsers());
+				putData(entry, GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        widget.isVisibleToPublicUsers());
+				putData(entry, WidgetTraitDefinition.SOURCE_PROPERTY,                              widget.getSource());
+				putData(entry, WidgetTraitDefinition.DESCRIPTION_PROPERTY,                         widget.getDescription());
+				putData(entry, WidgetTraitDefinition.IS_WIDGET_PROPERTY,                           widget.isWidget());
+				putData(entry, WidgetTraitDefinition.TREE_PATH_PROPERTY,                           widget.getTreePath());
+				putData(entry, WidgetTraitDefinition.CONFIGURATION_PROPERTY,                       widget.getConfiguration());
+				putData(entry, WidgetTraitDefinition.IS_PAGE_TEMPLATE_PROPERTY,                    widget.isPageTemplate());
+				putData(entry, WidgetTraitDefinition.SELECTORS_PROPERTY,                           widget.getSelectors());
 			}
 
 			tx.success();
@@ -1525,24 +1648,26 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		logger.info("Exporting application configuration data");
 
 		final List<Map<String, Object>> applicationConfigurationDataNodes = new LinkedList<>();
+		final Traits traits                                               = Traits.of(StructrTraits.APPLICATION_CONFIGURATION_DATA_NODE);
 		final App app                                                     = StructrApp.getInstance();
 
-		final PropertyKey<String> configTypeKey = StructrApp.key(ApplicationConfigurationDataNode.class, "configType");
-		final PropertyKey<String> contentKey    = StructrApp.key(ApplicationConfigurationDataNode.class, "content");
+		final PropertyKey<String> configTypeKey = traits.key(ApplicationConfigurationDataNodeTraitDefinition.CONFIG_TYPE_PROPERTY);
 
 		try (final Tx tx = app.tx()) {
 
-			for (final ApplicationConfigurationDataNode acdn : app.nodeQuery(ApplicationConfigurationDataNode.class).sort(configTypeKey).getAsList()) {
+			for (final NodeInterface node : app.nodeQuery(StructrTraits.APPLICATION_CONFIGURATION_DATA_NODE).sort(configTypeKey).getAsList()) {
 
-				final Map<String, Object> entry = new TreeMap<>();
+				final ApplicationConfigurationDataNode acdn = node.as(ApplicationConfigurationDataNode.class);
+				final Map<String, Object> entry             = new TreeMap<>();
+
 				applicationConfigurationDataNodes.add(entry);
 
-				entry.put("id",         acdn.getProperty(ApplicationConfigurationDataNode.id));
-				entry.put("name",       acdn.getProperty(ApplicationConfigurationDataNode.name));
-				entry.put("configType", acdn.getProperty(configTypeKey));
-				entry.put("content",    acdn.getProperty(contentKey));
+				entry.put(GraphObjectTraitDefinition.ID_PROPERTY,                               acdn.getUuid());
+				entry.put(NodeInterfaceTraitDefinition.NAME_PROPERTY,                           acdn.getName());
+				entry.put(ApplicationConfigurationDataNodeTraitDefinition.CONFIG_TYPE_PROPERTY, acdn.getConfigType());
+				entry.put(ApplicationConfigurationDataNodeTraitDefinition.CONTENT_PROPERTY,     acdn.getContent());
 
-				exportOwnershipAndSecurity(acdn, entry);
+				exportOwnershipAndSecurity(node, entry);
 			}
 
 			tx.success();
@@ -1552,9 +1677,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			@Override
 			public String getKey (Map<String, Object> map) {
 
-				final Object configType = map.get("configType");
-				final Object name       = map.get("name");
-				final Object id         = map.get("id");
+				final Object configType = map.get(ApplicationConfigurationDataNodeTraitDefinition.CONFIG_TYPE_PROPERTY);
+				final Object name       = map.get(NodeInterfaceTraitDefinition.NAME_PROPERTY);
+				final Object id         = map.get(GraphObjectTraitDefinition.ID_PROPERTY);
 
 				return (configType != null ? configType.toString() : "00-configType").concat((name != null ? name.toString() : "00-name")).concat(id.toString());
 			}
@@ -1565,42 +1690,41 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		logger.info("Exporting localizations");
 
-		final PropertyKey<String> localizedNameKey    = StructrApp.key(Localization.class, "localizedName");
-		final PropertyKey<String> domainKey           = StructrApp.key(Localization.class, "domain");
-		final PropertyKey<String> localeKey           = StructrApp.key(Localization.class, "locale");
-		final PropertyKey<String> importedKey         = StructrApp.key(Localization.class, "imported");
+		final Traits traits                           = Traits.of(StructrTraits.LOCALIZATION);
 		final List<Map<String, Object>> localizations = new LinkedList<>();
 		final App app                                 = StructrApp.getInstance();
 
 		try (final Tx tx = app.tx()) {
 
-			for (final Localization localization : app.nodeQuery(Localization.class).sort(Localization.name).getAsList()) {
+			for (final NodeInterface node : app.nodeQuery(StructrTraits.LOCALIZATION).sort(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getAsList()) {
 
 				final Map<String, Object> entry = new TreeMap<>(new IdFirstComparator());
+				final Localization localization = node.as(Localization.class);
 
 				localizations.add(entry);
 
-				entry.put("id",                          localization.getProperty(Localization.id));
-				entry.put("name",                        localization.getProperty(Localization.name));
-				entry.put("localizedName",               localization.getProperty(localizedNameKey));
-				entry.put("domain",                      localization.getProperty(domainKey));
-				entry.put("locale",                      localization.getProperty(localeKey));
-				entry.put("imported",                    localization.getProperty(importedKey));
-				entry.put("visibleToAuthenticatedUsers", localization.getProperty(MailTemplate.visibleToAuthenticatedUsers));
-				entry.put("visibleToPublicUsers",        localization.getProperty(MailTemplate.visibleToPublicUsers));
+				entry.put(GraphObjectTraitDefinition.ID_PROPERTY,                             localization.getUuid());
+				entry.put(NodeInterfaceTraitDefinition.NAME_PROPERTY,                         localization.getName());
+				entry.put(LocalizationTraitDefinition.LOCALIZED_NAME_PROPERTY,                localization.getLocalizedName());
+				entry.put(LocalizationTraitDefinition.DOMAIN_PROPERTY,                        localization.getDomain());
+				entry.put(LocalizationTraitDefinition.LOCALE_PROPERTY,                        localization.getLocale());
+				entry.put(LocalizationTraitDefinition.IMPORTED_PROPERTY,                      localization.isImported());
+				entry.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, localization.isVisibleToAuthenticatedUsers());
+				entry.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        localization.isVisibleToPublicUsers());
 			}
 
 			tx.success();
 		}
 
 		writeSortedCompactJsonToFile(target, localizations, new AbstractMapComparator<Object>() {
+
 			@Override
 			public String getKey (Map<String, Object> map) {
 
-				final Object name   = map.get("name");
-				final Object domain = map.get("domain");
-				final Object locale = map.get("locale");
-				final Object id     = map.get("id");
+				final Object name   = map.get(NodeInterfaceTraitDefinition.NAME_PROPERTY);
+				final Object domain = map.get(LocalizationTraitDefinition.DOMAIN_PROPERTY);
+				final Object locale = map.get(LocalizationTraitDefinition.LOCALE_PROPERTY);
+				final Object id     = map.get(GraphObjectTraitDefinition.ID_PROPERTY);
 
 				// null domain is replaced by a string so that those localizations are shown first
 				return (name != null ? name.toString() : "null").concat((domain != null ? domain.toString() : "00-nulldomain")).concat((locale != null ? locale.toString() : "null")).concat(id.toString());
@@ -1618,84 +1742,81 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try (final Tx tx = app.tx()) {
 
-			for (final ActionMapping actionMapping : app.nodeQuery(ActionMapping.class).getAsList()) {
+			for (final NodeInterface node : app.nodeQuery(StructrTraits.ACTION_MAPPING).getAsList()) {
 
-				final Map<String, Object> entry = new TreeMap<>();
+				final Map<String, Object> entry   = new TreeMap<>();
+				final ActionMapping actionMapping = node.as(ActionMapping.class);
+
 				actionMappings.add(entry);
 
-				putData(entry, "id",                          actionMapping.getProperty(ActionMapping.id));
-				putData(entry, "name",                        actionMapping.getProperty(ActionMapping.name));
-				putData(entry, "visibleToAuthenticatedUsers", actionMapping.getProperty(ActionMapping.visibleToAuthenticatedUsers));
-				putData(entry, "visibleToPublicUsers",        actionMapping.getProperty(ActionMapping.visibleToPublicUsers));
+				putData(entry, GraphObjectTraitDefinition.ID_PROPERTY,                             actionMapping.getUuid());
+				putData(entry, NodeInterfaceTraitDefinition.NAME_PROPERTY ,                        actionMapping.getName());
+				putData(entry, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, actionMapping.isVisibleToAuthenticatedUsers());
+				putData(entry, GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        actionMapping.isVisibleToPublicUsers());
 
-				final PropertyKey<Iterable<DOMElement>> triggerElementsKey = StructrApp.key(ActionMapping.class, "triggerElements");
-				List<DOMElement> triggerElements = Iterables.toList(actionMapping.getProperty(triggerElementsKey));
-
+				final List<DOMElement> triggerElements = Iterables.toList(actionMapping.getTriggerElements());
 				if (!triggerElements.isEmpty()) {
-					putData(entry, "triggerElements", triggerElements.stream().map(domElement -> domElement.getUuid()).collect(Collectors.toList()));
+
+					putData(entry, ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY, triggerElements.stream().map(domElement -> domElement.getUuid()).collect(Collectors.toList()));
 				}
 
-				final PropertyKey<Iterable<DOMNode>> successTargetsKey = StructrApp.key(ActionMapping.class, "successTargets");
-				List<DOMNode> successTargets = Iterables.toList(actionMapping.getProperty(successTargetsKey));
-
+				final List<DOMNode> successTargets = Iterables.toList(actionMapping.getSuccessTargets());
 				if (!successTargets.isEmpty()) {
-					putData(entry, "successTargets", successTargets.stream().map(domNode -> domNode.getUuid()).collect(Collectors.toList()));
+
+					putData(entry, ActionMappingTraitDefinition.SUCCESS_TARGETS_PROPERTY, successTargets.stream().map(domNode -> domNode.getUuid()).collect(Collectors.toList()));
 				}
 
-				final PropertyKey<Iterable<DOMNode>> successNotificationElementsKey = StructrApp.key(ActionMapping.class, "successNotificationElements");
-				List<DOMNode> successNotificationElements = Iterables.toList(actionMapping.getProperty(successNotificationElementsKey));
-
+				List<DOMNode> successNotificationElements = Iterables.toList(actionMapping.getSuccessNotificationElements());
 				if (!successNotificationElements.isEmpty()) {
-					putData(entry, "successNotificationElements", successNotificationElements.stream().map(domNode -> domNode.getUuid()).collect(Collectors.toList()));
+
+					putData(entry, ActionMappingTraitDefinition.SUCCESS_NOTIFICATION_ELEMENTS_PROPERTY, successNotificationElements.stream().map(domNode -> domNode.getUuid()).collect(Collectors.toList()));
 				}
 
-				final PropertyKey<Iterable<DOMNode>> failureTargetsKey = StructrApp.key(ActionMapping.class, "failureTargets");
-				List<DOMNode> failureTargets = Iterables.toList(actionMapping.getProperty(failureTargetsKey));
-
+				final List<DOMNode> failureTargets = Iterables.toList(actionMapping.getFailureTargets());
 				if (!failureTargets.isEmpty()) {
-					putData(entry, "failureTargets", failureTargets.stream().map(domNode -> domNode.getUuid()).collect(Collectors.toList()));
+
+					putData(entry, ActionMappingTraitDefinition.FAILURE_TARGETS_PROPERTY, failureTargets.stream().map(domNode -> domNode.getUuid()).collect(Collectors.toList()));
 				}
 
-				final PropertyKey<Iterable<DOMNode>> failureNotificationElementsKey = StructrApp.key(ActionMapping.class, "failureNotificationElements");
-				List<DOMNode> failureNotificationElements = Iterables.toList(actionMapping.getProperty(failureNotificationElementsKey));
-
+				List<DOMNode> failureNotificationElements = Iterables.toList(actionMapping.getFailureNotificationElements());
 				if (!failureNotificationElements.isEmpty()) {
-					putData(entry, "failureNotificationElements", failureNotificationElements.stream().map(domNode -> domNode.getUuid()).collect(Collectors.toList()));
+
+					putData(entry, ActionMappingTraitDefinition.FAILURE_NOTIFICATION_ELEMENTS_PROPERTY, failureNotificationElements.stream().map(domNode -> domNode.getUuid()).collect(Collectors.toList()));
 				}
 
-				final PropertyKey<Iterable<ParameterMapping>> parameterMappingsKey = StructrApp.key(ActionMapping.class, "parameterMappings");
-				List<ParameterMapping> parameterMappings = Iterables.toList(actionMapping.getProperty(parameterMappingsKey));
-
+				final List<ParameterMapping> parameterMappings = Iterables.toList(actionMapping.getParameterMappings());
 				if (!parameterMappings.isEmpty()) {
-					putData(entry, "parameterMappings", parameterMappings.stream().map(parameterMapping -> parameterMapping.getUuid() ).collect(Collectors.toList()));
+
+					putData(entry, ActionMappingTraitDefinition.PARAMETER_MAPPINGS_PROPERTY, parameterMappings.stream().map(parameterMapping -> parameterMapping.getUuid() ).collect(Collectors.toList()));
 				}
-				putData(entry, "event",        				actionMapping.getProperty(StructrApp.key(ActionMapping.class, "event")));
-				putData(entry, "action",						actionMapping.getProperty(StructrApp.key(ActionMapping.class, "action")));
-				putData(entry, "method",						actionMapping.getProperty(StructrApp.key(ActionMapping.class, "method")));
-				putData(entry, "dataType",						actionMapping.getProperty(StructrApp.key(ActionMapping.class, "dataType")));
-				putData(entry, "idExpression",					actionMapping.getProperty(StructrApp.key(ActionMapping.class, "idExpression")));
 
-				putData(entry, "dialogType",					actionMapping.getProperty(StructrApp.key(ActionMapping.class, "dialogType")));
-				putData(entry, "dialogTitle",					actionMapping.getProperty(StructrApp.key(ActionMapping.class, "dialogTitle")));
-				putData(entry, "dialogText",					actionMapping.getProperty(StructrApp.key(ActionMapping.class, "dialogText")));
+				putData(entry, ActionMappingTraitDefinition.EVENT_PROPERTY,         actionMapping.getEvent());
+				putData(entry, ActionMappingTraitDefinition.ACTION_PROPERTY,        actionMapping.getAction());
+				putData(entry, ActionMappingTraitDefinition.METHOD_PROPERTY,        actionMapping.getMethod());
+				putData(entry, ActionMappingTraitDefinition.DATA_TYPE_PROPERTY,     actionMapping.getDataType());
+				putData(entry, ActionMappingTraitDefinition.ID_EXPRESSION_PROPERTY, actionMapping.getIdExpression());
 
-				putData(entry, "successBehaviour", 			actionMapping.getProperty(StructrApp.key(ActionMapping.class, "successBehaviour")));
-				putData(entry, "successEvent",     			actionMapping.getProperty(StructrApp.key(ActionMapping.class, "successEvent")));
-				putData(entry, "successNotifications",   		actionMapping.getProperty(StructrApp.key(ActionMapping.class, "successNotifications")));
-				putData(entry, "successNotificationsEvent",   	actionMapping.getProperty(StructrApp.key(ActionMapping.class, "successNotificationsEvent")));
-				putData(entry, "successNotificationsPartial",	actionMapping.getProperty(StructrApp.key(ActionMapping.class, "successNotificationsPartial")));
-				putData(entry, "successNotificationsDelay", 	actionMapping.getProperty(StructrApp.key(ActionMapping.class, "successNotificationsDelay")));
-				putData(entry, "successPartial",   			actionMapping.getProperty(StructrApp.key(ActionMapping.class, "successPartial")));
-				putData(entry, "successURL",       			actionMapping.getProperty(StructrApp.key(ActionMapping.class, "successURL")));
+				putData(entry, ActionMappingTraitDefinition.DIALOG_TYPE_PROPERTY,  actionMapping.getDialogType());
+				putData(entry, ActionMappingTraitDefinition.DIALOG_TITLE_PROPERTY, actionMapping.getDialogTitle());
+				putData(entry, ActionMappingTraitDefinition.DIALOG_TEXT_PROPERTY,  actionMapping.getDialogText());
 
-				putData(entry, "failureBehaviour", 			actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failureBehaviour")));
-				putData(entry, "failureEvent",     			actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failureEvent")));
-				putData(entry, "failureNotifications",     	actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failureNotifications")));
-				putData(entry, "failureNotificationsEvent",	actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failureNotificationsEvent")));
-				putData(entry, "failureNotificationsPartial",	actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failureNotificationsPartial")));
-				putData(entry, "failureNotificationsDelay",	actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failureNotificationsDelay")));
-				putData(entry, "failurePartial",				actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failurePartial")));
-				putData(entry, "failureURL",					actionMapping.getProperty(StructrApp.key(ActionMapping.class, "failureURL")));
+				putData(entry, ActionMappingTraitDefinition.SUCCESS_BEHAVIOUR_PROPERTY,             actionMapping.getSuccessBehaviour());
+				putData(entry, ActionMappingTraitDefinition.SUCCESS_EVENT_PROPERTY,                 actionMapping.getSuccessEvent());
+				putData(entry, ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_PROPERTY,         actionMapping.getSuccessNotifications());
+				putData(entry, ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_EVENT_PROPERTY,   actionMapping.getSuccessNotificationsEvent());
+				putData(entry, ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_PARTIAL_PROPERTY, actionMapping.getSuccessNotificationsPartial());
+				putData(entry, ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_DELAY_PROPERTY,   actionMapping.getSuccessNotificationsDelay());
+				putData(entry, ActionMappingTraitDefinition.SUCCESS_PARTIAL_PROPERTY,               actionMapping.getSuccessPartial());
+				putData(entry, ActionMappingTraitDefinition.SUCCESS_URL_PROPERTY,                   actionMapping.getSuccessURL());
+
+				putData(entry, ActionMappingTraitDefinition.FAILURE_BEHAVIOUR_PROPERTY,             actionMapping.getFailureBehaviour());
+				putData(entry, ActionMappingTraitDefinition.FAILURE_EVENT_PROPERTY,                 actionMapping.getFailureEvent());
+				putData(entry, ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_PROPERTY,         actionMapping.getFailureNotifications());
+				putData(entry, ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_EVENT_PROPERTY,   actionMapping.getFailureNotificationsEvent());
+				putData(entry, ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_PARTIAL_PROPERTY, actionMapping.getFailureNotificationsPartial());
+				putData(entry, ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_DELAY_PROPERTY,   actionMapping.getFailureNotificationsDelay());
+				putData(entry, ActionMappingTraitDefinition.FAILURE_PARTIAL_PROPERTY,               actionMapping.getFailurePartial());
+				putData(entry, ActionMappingTraitDefinition.FAILURE_URL_PROPERTY,                   actionMapping.getFailureURL());
 			}
 
 			tx.success();
@@ -1709,32 +1830,33 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		logger.info("Exporting parameter mapping");
 
 		final List<Map<String, Object>> parameterMappings = new LinkedList<>();
+		final Traits traits                               = Traits.of(StructrTraits.PARAMETER_MAPPING);
 		final App app                                     = StructrApp.getInstance();
 
 		try (final Tx tx = app.tx()) {
 
-			for (final ParameterMapping parameterMapping : app.nodeQuery(ParameterMapping.class).sort(ParameterMapping.name).getAsList()) {
+			for (final NodeInterface node : app.nodeQuery(StructrTraits.PARAMETER_MAPPING).sort(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getAsList()) {
 
+				final ParameterMapping parameterMapping = node.as(ParameterMapping.class);
 				final Map<String, Object> entry = new TreeMap<>();
 				parameterMappings.add(entry);
 
 
-				putData(entry, "id",                          parameterMapping.getProperty(ParameterMapping.id));
-				putData(entry, "name",                        parameterMapping.getProperty(ParameterMapping.name));
-				putData(entry, "visibleToAuthenticatedUsers", parameterMapping.getProperty(ParameterMapping.visibleToAuthenticatedUsers));
-				putData(entry, "visibleToPublicUsers",        parameterMapping.getProperty(ParameterMapping.visibleToPublicUsers));
+				putData(entry, GraphObjectTraitDefinition.ID_PROPERTY,                             parameterMapping.getUuid());
+				putData(entry, NodeInterfaceTraitDefinition.NAME_PROPERTY ,                        parameterMapping.getName());
+				putData(entry, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, parameterMapping.isVisibleToAuthenticatedUsers());
+				putData(entry, GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        parameterMapping.isVisibleToPublicUsers());
 
-				putData(entry, "parameterType",    parameterMapping.getProperty(StructrApp.key(ParameterMapping.class, "parameterType")));
-				putData(entry, "parameterName",    parameterMapping.getProperty(StructrApp.key(ParameterMapping.class, "parameterName")));
-				putData(entry, "constantValue",    parameterMapping.getProperty(StructrApp.key(ParameterMapping.class, "constantValue")));
-				putData(entry, "scriptExpression", parameterMapping.getProperty(StructrApp.key(ParameterMapping.class, "scriptExpression")));
+				putData(entry, ParameterMappingTraitDefinition.PARAMETER_TYPE_PROPERTY,    parameterMapping.getParameterType());
+				putData(entry, ParameterMappingTraitDefinition.PARAMETER_NAME_PROPERTY,    parameterMapping.getParameterName());
+				putData(entry, ParameterMappingTraitDefinition.CONSTANT_VALUE_PROPERTY,    parameterMapping.getConstantValue());
+				putData(entry, ParameterMappingTraitDefinition.SCRIPT_EXPRESSION_PROPERTY, parameterMapping.getScriptExpression());
 
-				DOMElement inputElement = ((DOMElement) parameterMapping.getProperty(StructrApp.key(ParameterMapping.class, "inputElement")));
+				DOMElement inputElement = parameterMapping.getInputElement();
 				if (inputElement != null) {
-					putData(entry, "inputElement", inputElement.getUuid());
+
+					putData(entry, ParameterMappingTraitDefinition.INPUT_ELEMENT_PROPERTY, inputElement.getUuid());
 				}
-
-
 			}
 
 			tx.success();
@@ -1816,7 +1938,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	private <T extends NodeInterface> void importListData(final Class<T> type, final List<Map<String, Object>> data, final PropertyMap... additionalData) throws FrameworkException {
+	private <T extends NodeInterface> void importListData(final String type, final List<Map<String, Object>> data, final PropertyMap... additionalData) throws FrameworkException {
 
 		final SecurityContext context = SecurityContext.getSuperUserInstance();
 		context.setDoTransactionNotifications(false);
@@ -1826,7 +1948,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			tx.disableChangelog();
 
-			for (final T toDelete : app.nodeQuery(type).getAsList()) {
+			for (final NodeInterface toDelete : app.nodeQuery(type).getAsList()) {
 				app.delete(toDelete);
 			}
 
@@ -1850,9 +1972,74 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		} catch (FrameworkException fex) {
 
-			logger.error("Unable to import {}, aborting with {}", type.getSimpleName(), fex.getMessage(), fex);
+			logger.error("Unable to import {}, aborting with {}", type, fex.getMessage(), fex);
 
 			throw fex;
+		}
+	}
+
+	private void importSchemaGrants(final Path schemaGrantsMetadataFile) throws FrameworkException {
+
+		if (Files.exists(schemaGrantsMetadataFile)) {
+
+			logger.info("Reading {}", schemaGrantsMetadataFile);
+			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing schema grants");
+
+			importSchemaGrants(readConfigList(schemaGrantsMetadataFile));
+		}
+	}
+
+	private void importSchemaGrants(final List<Map<String, Object>> data) throws FrameworkException {
+
+		boolean isOldExport = false;
+		final StringBuilder grantMessagesHtml = new StringBuilder();
+		final StringBuilder grantMessagesText = new StringBuilder();
+
+		final SecurityContext context = SecurityContext.getSuperUserInstance();
+		context.setDoTransactionNotifications(false);
+		final App app                 = StructrApp.getInstance(context);
+
+		try (final Tx tx = app.tx()) {
+
+			tx.disableChangelog();
+
+			for (final NodeInterface toDelete : app.nodeQuery(StructrTraits.SCHEMA_GRANT).getAsList()) {
+				app.delete(toDelete);
+			}
+
+			for (final Map<String, Object> entry : data) {
+
+				checkOwnerAndSecurity(entry);
+
+				app.create(StructrTraits.SCHEMA_GRANT, PropertyMap.inputTypeToJavaType(context, StructrTraits.SCHEMA_GRANT, entry));
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			logger.error("Unable to import resouce access grant, aborting with {}", fex.getMessage(), fex);
+
+			throw fex;
+
+		} finally {
+
+			if (isOldExport) {
+
+				final String text = "Found outdated version of grants.json file without visibility and grantees!\n\n"
+					+ "    Configuration was auto-updated using this simple heuristic:\n"
+					+ "     * Grants with public access were set to **visibleToPublicUsers: true**\n"
+					+ "     * Grants with authenticated access were set to **visibleToAuthenticatedUsers: true**\n\n"
+					+ "    Please make any necessary changes in the 'Security' area as this may not suffice for your use case. The ability to use group/user rights to grants has been added to improve flexibility.";
+
+				final String htmlText = "Configuration was auto-updated using this simple heuristic:<br>"
+					+ "&nbsp;- Grants with public access were set to <code>visibleToPublicUsers: true</code><br>"
+					+ "&nbsp;- Grants with authenticated access were set to <code>visibleToAuthenticatedUsers: true</code><br><br>"
+					+ "Please make any necessary changes in the <a href=\"#security\">Security</a> area as this may not suffice for your use case. The ability to use group/user rights to grants has been added to improve flexibility.";
+
+				deferredLogTexts.add(text + "\n\n" + grantMessagesText);
+				publishWarningMessage("Found grants.json file without visibility and grantees", htmlText + "<br><br>" + grantMessagesHtml);
+			}
 		}
 	}
 
@@ -1881,20 +2068,20 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			tx.disableChangelog();
 
-			for (final ResourceAccess toDelete : app.nodeQuery(ResourceAccess.class).getAsList()) {
+			for (final NodeInterface toDelete : app.nodeQuery(StructrTraits.RESOURCE_ACCESS).getAsList()) {
 				app.delete(toDelete);
 			}
 
 			for (final Map<String, Object> entry : data) {
 
-				if (!entry.containsKey("grantees") && !entry.containsKey("visibleToPublicUsers") && !entry.containsKey("visibleToAuthenticatedUsers")) {
+				if (!entry.containsKey("grantees") && !entry.containsKey(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY) && !entry.containsKey(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY)) {
 
 					isOldExport = true;
 
-					final long flags = ((Number)entry.get("flags")).longValue();
+					final long flags = ((Number)entry.get(ResourceAccessTraitDefinition.FLAGS_PROPERTY)).longValue();
 					if (flags != 0) {
 
-						final String signature = (String)entry.get("signature");
+						final String signature = (String)entry.get(ResourceAccessTraitDefinition.SIGNATURE_PROPERTY);
 
 						final boolean hasAnyNonAuthFlags = ((flags & UiAuthenticator.NON_AUTH_USER_GET) == UiAuthenticator.NON_AUTH_USER_GET) ||
 							((flags & UiAuthenticator.NON_AUTH_USER_PUT) == UiAuthenticator.NON_AUTH_USER_PUT) ||
@@ -1927,17 +2114,17 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 							grantMessagesText.append("    Signature '").append(signature).append("' is probably misconfigured and **should be split into two grants**.\n");
 						}
 
-						entry.put("visibleToAuthenticatedUsers", hasAnyAuthFlags);
-						entry.put("visibleToPublicUsers",        hasAnyNonAuthFlags);
+						entry.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, hasAnyAuthFlags);
+						entry.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        hasAnyNonAuthFlags);
 					}
 
 				} else {
 					checkOwnerAndSecurity(entry);
 				}
 
-				final PropertyMap map = PropertyMap.inputTypeToJavaType(context, ResourceAccess.class, entry);
+				final PropertyMap map = PropertyMap.inputTypeToJavaType(context, StructrTraits.RESOURCE_ACCESS, entry);
 
-				app.create(ResourceAccess.class, map);
+				app.create(StructrTraits.RESOURCE_ACCESS, map);
 			}
 
 			tx.success();
@@ -1976,7 +2163,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			logger.info("Reading {}", corsSettingsMetadataFile);
 			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing CORS Settings");
 
-			importListData(CorsSetting.class, readConfigList(corsSettingsMetadataFile));
+			importListData(StructrTraits.CORS_SETTING, readConfigList(corsSettingsMetadataFile));
 		}
 	}
 
@@ -2006,7 +2193,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				}
 			}
 
-			importListData(MailTemplate.class, mailTemplatesConf);
+			importListData(StructrTraits.MAIL_TEMPLATE, mailTemplatesConf);
 		}
 	}
 
@@ -2017,7 +2204,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			logger.info("Reading {}", widgetsMetadataFile);
 			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing widgets");
 
-			importListData(Widget.class, readConfigList(widgetsMetadataFile));
+			importListData(StructrTraits.WIDGET, readConfigList(widgetsMetadataFile));
 		}
 	}
 
@@ -2025,18 +2212,19 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		if (Files.exists(localizationsMetadataFile)) {
 
+			final Traits traits              = Traits.of(StructrTraits.LOCALIZATION);
 			final PropertyMap additionalData = new PropertyMap();
 
 			// Question: shouldn't this be true?
 			// No! 'imported' is a flag for legacy-localization which
 			// have been imported from a legacy-system which was replaced by structr.
 			// it is a way to differentiate between new and old localization strings
-			additionalData.put(StructrApp.key(Localization.class, "imported"), false);
+			additionalData.put(traits.key("imported"), false);
 
 			logger.info("Reading {}", localizationsMetadataFile);
 			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing localizations");
 
-			importListData(Localization.class, readConfigList(localizationsMetadataFile), additionalData);
+			importListData(StructrTraits.LOCALIZATION, readConfigList(localizationsMetadataFile), additionalData);
 		}
 	}
 
@@ -2047,7 +2235,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			logger.info("Reading {}", applicationConfigurationDataMetadataFile);
 			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing application configuration data");
 
-			importListData(ApplicationConfigurationDataNode.class, readConfigList(applicationConfigurationDataMetadataFile));
+			importListData(StructrTraits.APPLICATION_CONFIGURATION_DATA_NODE, readConfigList(applicationConfigurationDataMetadataFile));
 		}
 	}
 
@@ -2151,9 +2339,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			}
 
 			// construct paths
-			final Path templates = source.resolve("templates");
+			final Path templates  = source.resolve("templates");
 			final Path components = source.resolve("components");
-			final Path pages = source.resolve("pages");
+			final Path pages      = source.resolve("pages");
 
 			// remove all DOMNodes from the database (clean webapp for import, but only
 			// if the actual import directories exist, don't delete web components if
@@ -2167,14 +2355,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					logger.info("Removing pages, templates and components");
 					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Removing pages, templates and components");
 
-					app.deleteAllNodesOfType(DOMNode.class);
+					app.deleteAllNodesOfType(StructrTraits.DOM_NODE);
 
 					if (Files.exists(sitesConfFile)) {
 
 						logger.info("Removing sites");
 						publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Removing sites");
 
-						app.deleteAllNodesOfType(Site.class);
+						app.deleteAllNodesOfType(StructrTraits.SITE);
 					}
 
 					FlushCachesCommand.flushAll();
@@ -2267,7 +2455,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			logger.info("Reading {}", path);
 			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing action mapping");
 
-			importListData(StructrApp.getConfiguration().getNodeEntityClass("ActionMapping"), readConfigList(path));
+			importListData(StructrTraits.ACTION_MAPPING, readConfigList(path));
 		}
 	}
 
@@ -2279,7 +2467,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			logger.info("Reading {}", parameterMappingPath);
 			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing parameter mapping");
 
-			importListData(StructrApp.getConfiguration().getNodeEntityClass("ParameterMapping"), readConfigList(parameterMappingPath));
+			importListData(StructrTraits.PARAMETER_MAPPING, readConfigList(parameterMappingPath));
 		}
 	}
 
@@ -2287,8 +2475,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private void handleDeferredProperties() throws FrameworkException {
 
 		final SecurityContext context = SecurityContext.getSuperUserInstance();
-		context.setDoTransactionNotifications(false);
 		final App app                 = StructrApp.getInstance(context);
+
+		context.setDoTransactionNotifications(false);
 
 		try (final Tx tx = app.tx()) {
 
@@ -2323,8 +2512,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private void importSites(final List<Map<String, Object>> data) throws FrameworkException {
 
 		final SecurityContext context = SecurityContext.getSuperUserInstance();
-		context.setDoTransactionNotifications(false);
+		final Traits traits           = Traits.of(StructrTraits.SITE);
 		final App app                 = StructrApp.getInstance(context);
+
+		context.setDoTransactionNotifications(false);
 
 		try (final Tx tx = app.tx()) {
 
@@ -2332,21 +2523,21 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			for (Map<String, Object> entry : data) {
 
-				final List<Page> pages = new LinkedList();
+				final List<NodeInterface> pages = new LinkedList();
 
-				for (final String pageName : (List<String>)entry.get("pages")) {
-					pages.add(app.nodeQuery(Page.class).andName(pageName).getFirst());
+				for (final String pageName : (List<String>)entry.get(SiteTraitDefinition.PAGES_PROPERTY)) {
+					pages.add(app.nodeQuery(StructrTraits.PAGE).andName(pageName).getFirst());
 				}
 
-				entry.remove("pages");
+				entry.remove(SiteTraitDefinition.PAGES_PROPERTY);
 
 				checkOwnerAndSecurity(entry);
 
-				final PropertyMap map = PropertyMap.inputTypeToJavaType(context, Site.class, entry);
+				final PropertyMap map = PropertyMap.inputTypeToJavaType(context, StructrTraits.SITE, entry);
 
-				map.put(StructrApp.key(Site.class, "pages"), pages);
+				map.put(traits.key(SiteTraitDefinition.PAGES_PROPERTY), pages);
 
-				app.create(Site.class, map);
+				app.create(StructrTraits.SITE, map);
 			}
 
 			tx.success();
@@ -2361,6 +2552,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	private void linkDeferredPages(final App app) throws FrameworkException {
 
+		final Traits traits = Traits.of(StructrTraits.PAGE);
+
 		try (final Tx tx = app.tx()) {
 
 			tx.disableChangelog();
@@ -2368,14 +2561,22 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			deferredPageLinks.forEach((String linkableUUID, String pagePath) -> {
 
 				try {
-					final DOMNode linkElement = StructrApp.getInstance().get(DOMNode.class, linkableUUID);
-					final Linkable linkedPage = StructrApp.getInstance().nodeQuery(Linkable.class).and(StructrApp.key(Page.class, "path"), pagePath).or(Page.name, pagePath).getFirst();
 
-					((LinkSource)linkElement).setLinkable(linkedPage);
+					final NodeInterface linkElementNode = StructrApp.getInstance().getNodeById(StructrTraits.DOM_NODE, linkableUUID);
+					final NodeInterface linkedPageNode  = StructrApp.getInstance().nodeQuery(StructrTraits.LINKABLE)
+							.and(traits.key(DOMElementTraitDefinition.PATH_PROPERTY), pagePath)
+							.or(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), pagePath)
+							.getFirst();
+
+					final LinkSource linkSource = linkElementNode.as(LinkSource.class);
+					final Linkable linkable     = linkedPageNode.as(Linkable.class);
+
+					linkSource.setLinkable(linkable);
 
 				} catch (Throwable t) {
-				}
 
+					t.printStackTrace();
+				}
 			});
 
 			deferredPageLinks.clear();

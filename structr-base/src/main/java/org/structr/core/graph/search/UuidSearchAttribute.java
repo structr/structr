@@ -22,6 +22,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.api.search.Occurrence;
 import org.structr.api.search.UuidQuery;
 import org.structr.core.GraphObject;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 
 /**
  * Represents an attribute for textual search, used in {@link SearchNodeCommand}.
@@ -29,7 +32,7 @@ import org.structr.core.GraphObject;
 public class UuidSearchAttribute extends SearchAttribute<String> implements UuidQuery {
 
 	public UuidSearchAttribute(final String value, final Occurrence occur) {
-		super(occur, GraphObject.id, value);
+		super(occur, Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), value);
 	}
 
 	@Override

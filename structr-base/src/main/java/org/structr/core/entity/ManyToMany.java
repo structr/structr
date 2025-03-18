@@ -23,14 +23,12 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.DuplicateRelationshipToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.notion.Notion;
-import org.structr.core.notion.RelationshipNotion;
 
 /**
  *
  *
  */
-public abstract class ManyToMany<S extends NodeInterface, T extends NodeInterface> extends AbstractRelationship<S, T> implements Relation<S, T, ManyStartpoint<S>, ManyEndpoint<T>> {
+public abstract class ManyToMany extends AbstractRelation implements Relation<ManyStartpoint, ManyEndpoint> {
 
 	@Override
 	public Multiplicity getSourceMultiplicity() {
@@ -43,23 +41,13 @@ public abstract class ManyToMany<S extends NodeInterface, T extends NodeInterfac
 	}
 
 	@Override
-	public ManyStartpoint<S> getSource() {
-		return new ManyStartpoint<>(this);
+	public ManyStartpoint getSource() {
+		return new ManyStartpoint(this);
 	}
 
 	@Override
-	public ManyEndpoint<T> getTarget() {
-		return new ManyEndpoint<>(this);
-	}
-
-	@Override
-	public int getCascadingDeleteFlag() {
-		return Relation.NONE;
-	}
-
-	@Override
-	public int getAutocreationFlag() {
-		return Relation.NONE;
+	public ManyEndpoint getTarget() {
+		return new ManyEndpoint(this);
 	}
 
 	@Override
@@ -80,23 +68,7 @@ public abstract class ManyToMany<S extends NodeInterface, T extends NodeInterfac
 	}
 
 	@Override
-	public Notion getEndNodeNotion() {
-		return new RelationshipNotion(getTargetIdProperty());
-
-	}
-
-	@Override
-	public Notion getStartNodeNotion() {
-		return new RelationshipNotion(getSourceIdProperty());
-	}
-
-	@Override
-	public Direction getDirectionForType(final Class<? extends NodeInterface> type) {
-		return super.getDirectionForType(getSourceType(), getTargetType(), type);
-	}
-
-	@Override
-	public Class getOtherType(final Class type) {
+	public String getOtherType(final String type) {
 
 		switch (getDirectionForType(type)) {
 
@@ -109,12 +81,7 @@ public abstract class ManyToMany<S extends NodeInterface, T extends NodeInterfac
 	}
 
 	@Override
-	public boolean isHidden() {
-		return false;
-	}
-
-	@Override
-	public boolean isInternal() {
-		return false;
+	public Direction getDirectionForType(String type) {
+		return getDirectionForType(getSourceType(), getTargetType(), type);
 	}
 }

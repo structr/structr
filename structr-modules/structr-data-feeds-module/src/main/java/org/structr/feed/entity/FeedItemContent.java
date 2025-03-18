@@ -18,64 +18,18 @@
  */
 package org.structr.feed.entity;
 
-import org.apache.commons.io.IOUtils;
-import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
-import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNode;
-import org.structr.core.property.StringProperty;
-import org.structr.feed.entity.relationship.FeedItemFEED_ITEM_CONTENTSFeedItemContent;
 
 import java.io.InputStream;
-import java.nio.charset.Charset;
 
 /**
  * Represents a content element of a feed item
  */
-public class FeedItemContent extends AbstractFeedItem {
+public interface FeedItemContent extends AbstractFeedItem {
 
-	public static final Property<FeedItem> itemProperty   = new StartNode<>("item", FeedItemFEED_ITEM_CONTENTSFeedItemContent.class);
-	public static final Property<String> modeProperty     = new StringProperty("mode");
-	public static final Property<String> itemTypeProperty = new StringProperty("itemType");
-	public static final Property<String> valueProperty    = new StringProperty("value");
-
-	public static final View defaultView = new View(FeedItemContent.class, PropertyView.Public,
-		owner, modeProperty, itemTypeProperty, valueProperty
-	);
-
-	public static final View uiView      = new View(FeedItemContent.class, PropertyView.Ui,
-		modeProperty, itemTypeProperty, valueProperty, itemProperty
-	);
-
-	@Override
-	public void afterCreation(SecurityContext securityContext) throws FrameworkException {
-
-		super.afterCreation(securityContext);
-		updateIndex(securityContext);
-	}
-
-	@Override
-	public InputStream getInputStream() {
-		return IOUtils.toInputStream(getValue(), Charset.forName("utf-8"));
-	}
-
-	public String getValue() {
-		return getProperty(valueProperty);
-	}
-
-	public void setValue(final String value) throws FrameworkException {
-		setProperty(valueProperty, value);
-	}
-
-	@Override
-	public String getExtractedContent() {
-		return getProperty(extractedContentProperty);
-	}
-
-	@Override
-	public String getContentType() {
-		return getProperty(contentTypeProperty);
-	}
+	InputStream getInputStream();
+	String getValue();
+	void setValue(final String value) throws FrameworkException;
+	String getExtractedContent();
+	String getContentType();
 }

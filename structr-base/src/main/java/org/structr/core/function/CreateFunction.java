@@ -25,6 +25,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.Traits;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 
@@ -51,13 +52,12 @@ public class CreateFunction extends CoreFunction {
 		if (sources != null && sources.length > 0) {
 
 			final SecurityContext securityContext = ctx.getSecurityContext();
-			final ConfigurationProvider config = StructrApp.getConfiguration();
 			PropertyMap propertyMap;
-			Class type = null;
+			Traits type = null;
 
 			if (sources.length >= 1 && sources[0] != null) {
 
-				type = config.getNodeEntityClass(sources[0].toString());
+				type = Traits.of(sources[0].toString());
 			}
 
 			if (type == null) {
@@ -68,11 +68,11 @@ public class CreateFunction extends CoreFunction {
 			// extension for native javascript objects
 			if (sources.length == 2 && sources[1] instanceof Map) {
 
-				propertyMap = PropertyMap.inputTypeToJavaType(securityContext, type, (Map)sources[1]);
+				propertyMap = PropertyMap.inputTypeToJavaType(securityContext, type.getName(), (Map)sources[1]);
 
 			} else if (sources.length == 2 && sources[1] instanceof GraphObjectMap) {
 
-				propertyMap = PropertyMap.inputTypeToJavaType(securityContext, type, ((GraphObjectMap)sources[1]).toMap());
+				propertyMap = PropertyMap.inputTypeToJavaType(securityContext, type.getName(), ((GraphObjectMap)sources[1]).toMap());
 
 			} else {
 
@@ -86,7 +86,7 @@ public class CreateFunction extends CoreFunction {
 
 				for (int c = 1; c < parameter_count; c += 2) {
 
-					final PropertyKey key = StructrApp.key(type, sources[c].toString());
+					final PropertyKey key = type.key(sources[c].toString());
 
 					if (key != null) {
 
@@ -104,7 +104,7 @@ public class CreateFunction extends CoreFunction {
 				}
 			}
 
-			return StructrApp.getInstance(securityContext).create(type, propertyMap);
+			return StructrApp.getInstance(securityContext).create(type.getName(), propertyMap);
 
 		} else {
 

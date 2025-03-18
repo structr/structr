@@ -1,0 +1,10 @@
+database.available.connections = test
+nodeservice.active = test
+setup.wizard.completed = true
+superuser.password = structr1234
+test.database.connection.databasename = test
+test.database.connection.name = test
+test.database.connection.password = 
+test.database.connection.url = test
+test.database.connection.username = 
+test.database.driver = org.structr.graph.GraphDatabaseService

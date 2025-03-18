@@ -20,35 +20,57 @@ package org.structr.flow.impl.rels;
 
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
-import org.structr.common.PermissionPropagation;
-import org.structr.core.entity.ManyToOne;
 import org.structr.core.entity.Relation;
-import org.structr.flow.impl.FlowDecision;
-import org.structr.flow.impl.FlowNode;
+import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
+import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
 /**
  *
  */
-public class FlowDecisionFalse extends ManyToOne<FlowDecision, FlowNode> implements PermissionPropagation {
+public class FlowDecisionFalse extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
-	@Override
-	public Class<FlowDecision> getSourceType() {
-		return FlowDecision.class;
+	public FlowDecisionFalse() {
+		super("FlowDecisionFalse");
 	}
 
 	@Override
-	public Class<FlowNode> getTargetType() {
-		return FlowNode.class;
+	public String getSourceType() {
+		return "FlowDecision";
 	}
 
 	@Override
-	public String name() {
+	public String getTargetType() {
+		return "FlowNode";
+	}
+
+	@Override
+	public String getRelationshipType() {
 		return "FALSE_RESULT";
+	}
+
+	@Override
+	public Relation.Multiplicity getSourceMultiplicity() {
+		return Relation.Multiplicity.Many;
+	}
+
+	@Override
+	public Relation.Multiplicity getTargetMultiplicity() {
+		return Relation.Multiplicity.One;
+	}
+
+	@Override
+	public int getCascadingDeleteFlag() {
+		return 0;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
 		return Relation.ALWAYS;
+	}
+
+	@Override
+	public boolean isInternal() {
+		return false;
 	}
 
 	@Override

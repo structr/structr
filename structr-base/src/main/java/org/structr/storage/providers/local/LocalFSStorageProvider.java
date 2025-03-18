@@ -20,21 +20,20 @@ package org.structr.storage.providers.local;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.core.app.StructrApp;
+import org.structr.core.traits.StructrTraits;
 import org.structr.storage.AbstractStorageProvider;
 import org.structr.storage.StorageProvider;
 import org.structr.web.entity.AbstractFile;
+import org.structr.web.entity.StorageConfiguration;
 
 import java.io.*;
 import java.nio.channels.FileChannel;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.OpenOption;
-import java.nio.file.StandardOpenOption;
 import java.util.Set;
 
 import static java.nio.file.StandardOpenOption.*;
-import org.structr.web.entity.StorageConfiguration;
 
 public class LocalFSStorageProvider extends AbstractStorageProvider {
 
@@ -58,6 +57,7 @@ public class LocalFSStorageProvider extends AbstractStorageProvider {
 
 			ensureFileExists();
 			return new FileInputStream(fsHelper.getFileOnDisk(getAbstractFile()));
+
 		} catch (FileNotFoundException ex) {
 
 			logger.error("Could not find file", ex);
@@ -69,18 +69,18 @@ public class LocalFSStorageProvider extends AbstractStorageProvider {
 
 	@Override
 	public OutputStream getOutputStream() {
-
 		return this.getOutputStream(false);
 	}
 
 	@Override
 	public OutputStream getOutputStream(final boolean append) {
+
 		try {
 
 			ensureFileExists();
 			return new FileOutputStream(fsHelper.getFileOnDisk(getAbstractFile()), append);
-		} catch (FileNotFoundException ex) {
 
+		} catch (FileNotFoundException ex) {
 			logger.error("Could not find file", ex);
 		}
 
@@ -89,7 +89,15 @@ public class LocalFSStorageProvider extends AbstractStorageProvider {
 
 	@Override
 	public String getContentType() {
-		return getAbstractFile().getProperty(StructrApp.key(File.class, "contentType"));
+
+		final AbstractFile file = getAbstractFile();
+
+		if (file.is(StructrTraits.FILE)) {
+
+			return file.as(org.structr.web.entity.File.class).getContentType();
+		}
+
+		return null;
 	}
 
 	@Override
@@ -126,11 +134,21 @@ public class LocalFSStorageProvider extends AbstractStorageProvider {
 
 		// If provider class is local as well, check if file needs to be moved
 		// Ensure files exist and abstract files are actual files
-		if (getAbstractFile() != null && getAbstractFile() instanceof org.structr.web.entity.File && newFileStorageProvider.getAbstractFile() != null && newFileStorageProvider.getAbstractFile() instanceof org.structr.web.entity.File) {
-			// Check file paths and only move if they differ
-			if (!getAbstractFile().getPath().equals(newFileStorageProvider.getAbstractFile().getPath())) {
+		final AbstractFile file = getAbstractFile();
 
-				fsHelper.getFileOnDisk(getAbstractFile()).renameTo(fsHelper.getFileOnDisk(newFileStorageProvider.getAbstractFile()));
+		if (file != null && file.is(StructrTraits.FILE)) {
+
+			final AbstractFile otherFile = newFileStorageProvider.getAbstractFile();
+			if (otherFile != null && otherFile.is(StructrTraits.FILE)) {
+
+				final String path1 = file.getPath();
+				final String path2 = otherFile.getPath();
+
+				// Check file paths and only move if they differ
+				if (path1 != null && path2 != null && !path1.equals(path2)) {
+
+					fsHelper.getFileOnDisk(file).renameTo(fsHelper.getFileOnDisk(otherFile));
+				}
 			}
 		}
 	}

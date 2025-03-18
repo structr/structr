@@ -21,23 +21,14 @@ package org.structr.process.entity;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.EndNode;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
-import org.structr.process.entity.relationship.ProcessInstanceCURRENT_STATEProcessState;
-import org.structr.process.entity.relationship.ProcessInstanceHAS_PARAMETERProcessParameterValue;
-import org.structr.process.entity.relationship.ProcessInstanceINSTANCE_OFProcess;
+import org.structr.process.traits.relationship.ProcessInstanceCURRENT_STATEProcessState;
+import org.structr.process.traits.relationship.ProcessInstanceHAS_PARAMETERProcessParameterValue;
+import org.structr.process.traits.relationship.ProcessInstanceINSTANCE_OFProcess;
 import org.structr.web.entity.dom.DOMElement;
 
-public class ProcessInstance extends AbstractNode {
-
-    public static final Property<Process>                                 process = new EndNode<>("process",          ProcessInstanceINSTANCE_OFProcess.class).partOfBuiltInSchema();
-    public static final Property<ProcessState>                              state = new EndNode<>("state",            ProcessInstanceCURRENT_STATEProcessState.class).partOfBuiltInSchema();
-    public static final Property<Iterable<ProcessParameterValue>> parameterValues = new EndNodes<>("parameterValues", ProcessInstanceHAS_PARAMETERProcessParameterValue.class).partOfBuiltInSchema();
-
-    public static final View defaultView = new View(DOMElement.class, PropertyView.Public,
-            id, name, process, state, parameterValues
-    );
-
-
+public interface ProcessInstance extends NodeInterface {
 }

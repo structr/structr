@@ -33,8 +33,8 @@ public interface Payment {
 	String getToken();
 	void setToken(final String token) throws FrameworkException;
 
-	PaymentState getPaymentState();
-	void setPaymentState(final PaymentState state) throws FrameworkException;
+	String getPaymentState();
+	void setPaymentState(final String state) throws FrameworkException;
 
 	public String getDescription();
 	public void setDescription(final String description) throws FrameworkException;

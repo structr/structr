@@ -21,22 +21,14 @@ package org.structr.process.entity;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
-import org.structr.process.entity.relationship.*;
+import org.structr.process.traits.relationship.*;
 import org.structr.web.entity.dom.DOMElement;
 
-public class ProcessState extends AbstractNode {
+public interface ProcessState extends NodeInterface {
 
-    public static final Property<Iterable<ProcessParameter>>      parameters = new EndNodes<>("parameters", ProcessStateSTATE_PARAMETERProcessParameter.class).partOfBuiltInSchema();
-    public static final Property<Iterable<ProcessInstance>> processInstances = new StartNodes<>("processInstances", ProcessInstanceCURRENT_STATEProcessState.class).partOfBuiltInSchema();
-    public static final Property<ProcessStep>                       nextStep = new EndNode<>("nextStep", ProcessStateNEXT_STEPProcessStep.class).partOfBuiltInSchema();
-    public static final Property<Process>          processThisStateIsInitial = new StartNode<>("processThisStateIsInitial", ProcessINITIAL_STATEProcessState.class).partOfBuiltInSchema();
-    public static final Property<ProcessDecision>                   decision = new StartNode<>("decision", ProcessDecisionPOSSIBLE_STATEProcessState.class).partOfBuiltInSchema();
-    public static final Property<Integer>                             status = new IntProperty("status").partOfBuiltInSchema();
 
-    public static final View defaultView = new View(DOMElement.class, PropertyView.Public,
-            id, name, parameters, nextStep, processThisStateIsInitial, decision, status
-    );
 }
 
 

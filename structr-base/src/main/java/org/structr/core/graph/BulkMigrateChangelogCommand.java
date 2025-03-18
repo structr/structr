@@ -27,7 +27,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.function.ChangelogFunction;
 
@@ -46,10 +45,10 @@ public class BulkMigrateChangelogCommand extends NodeServiceCommand implements M
 	@Override
 	public void execute(final Map<String, Object> properties) throws FrameworkException {
 
-		final long nodeCount = bulkGraphOperation(securityContext, StructrApp.getInstance().nodeQuery(), 1000, "MigrateChangeLog", new BulkGraphOperation<AbstractNode>() {
+		final long nodeCount = bulkGraphOperation(securityContext, StructrApp.getInstance().nodeQuery(), 1000, "MigrateChangeLog", new BulkGraphOperation<NodeInterface>() {
 
 			@Override
-			public boolean handleGraphObject(SecurityContext securityContext, AbstractNode node) {
+			public boolean handleGraphObject(SecurityContext securityContext, NodeInterface node) {
 
 				handleObject(node);
 				return true;

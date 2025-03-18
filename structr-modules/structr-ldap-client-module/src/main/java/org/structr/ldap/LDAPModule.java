@@ -20,6 +20,12 @@ package org.structr.ldap;
 
 import org.structr.api.service.LicenseManager;
 import org.structr.core.entity.AbstractSchemaNode;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.definitions.GroupTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
+import org.structr.core.traits.definitions.UserTraitDefinition;
+import org.structr.ldap.traits.definitions.LDAPGroupTraitDefinition;
+import org.structr.ldap.traits.definitions.LDAPUserTraitDefinition;
 import org.structr.module.StructrModule;
 import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
@@ -33,6 +39,9 @@ public class LDAPModule implements StructrModule {
 
 	@Override
 	public void onLoad(final LicenseManager licenseManager) {
+
+		StructrTraits.registerNodeType(StructrTraits.LDAP_GROUP, new PrincipalTraitDefinition(), new GroupTraitDefinition(), new LDAPGroupTraitDefinition());
+		StructrTraits.registerNodeType(StructrTraits.LDAP_USER,  new PrincipalTraitDefinition(), new UserTraitDefinition(), new LDAPUserTraitDefinition());
 	}
 
 	@Override
@@ -46,7 +55,7 @@ public class LDAPModule implements StructrModule {
 
 	@Override
 	public Set<String> getDependencies() {
-		return null;
+		return Set.of("ui");
 	}
 
 	@Override

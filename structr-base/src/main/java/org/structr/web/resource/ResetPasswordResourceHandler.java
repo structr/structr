@@ -19,12 +19,9 @@
 package org.structr.web.resource;
 
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.Map;
-import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.rest.api.RESTCallHandler;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -32,17 +29,26 @@ import org.structr.common.helper.MailHelper;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.MailTemplate;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.MailTemplateTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
+import org.structr.core.traits.definitions.UserTraitDefinition;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.RESTCall;
+import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.servlet.AbstractDataServlet;
 import org.structr.schema.action.ActionContext;
-import org.structr.web.entity.User;
 import org.structr.web.servlet.HtmlServlet;
+
+import java.util.Map;
+import java.util.Set;
 
 /**
  */
@@ -72,9 +78,9 @@ public class ResetPasswordResourceHandler extends RESTCallHandler {
 	@Override
 	public RestMethodResult doPost(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
 
-		if (propertySet.containsKey("eMail")) {
+		if (propertySet.containsKey(PrincipalTraitDefinition.EMAIL_PROPERTY)) {
 
-			String emailString  = (String) propertySet.get("eMail");
+			String emailString  = (String) propertySet.get(PrincipalTraitDefinition.EMAIL_PROPERTY);
 
 			if (StringUtils.isEmpty(emailString)) {
 				throw new FrameworkException(422, "No e-mail address given.");
@@ -83,18 +89,19 @@ public class ResetPasswordResourceHandler extends RESTCallHandler {
 			// cleanup user input
 			emailString = emailString.trim().toLowerCase();
 
-			final PropertyKey<String> confirmationKey = StructrApp.key(User.class, "confirmationKey");
-			final PropertyKey<String> eMail           = StructrApp.key(User.class, "eMail");
+			final Traits traits                       = Traits.of(StructrTraits.USER);
+			final PropertyKey<String> confirmationKey = traits.key(UserTraitDefinition.CONFIRMATION_KEY_PROPERTY);
+			final PropertyKey<String> eMail           = traits.key(PrincipalTraitDefinition.EMAIL_PROPERTY);
 			final String localeString                 = (String) propertySet.get("locale");
 			final String confKey                      = AuthHelper.getConfirmationKey();
-			final PrincipalInterface user                      = StructrApp.getInstance().nodeQuery(User.class).and(eMail, emailString).getFirst();
+			final NodeInterface user                  = StructrApp.getInstance().nodeQuery(StructrTraits.USER).and(eMail, emailString).getFirst();
 
 			if (user != null) {
 
 				// update confirmation key
 				user.setProperties(SecurityContext.getSuperUserInstance(), new PropertyMap(confirmationKey, confKey));
 
-				if (!sendResetPasswordLink(securityContext, user, propertySet, localeString, confKey)) {
+				if (!sendResetPasswordLink(securityContext, user.as(Principal.class), propertySet, localeString, confKey)) {
 
 					throw new FrameworkException(503, "Unable to send confirmation e-mail.");
 				}
@@ -115,16 +122,16 @@ public class ResetPasswordResourceHandler extends RESTCallHandler {
 		}
 	}
 
-	private boolean sendResetPasswordLink(final SecurityContext securityContext, final PrincipalInterface user, final Map<String, Object> propertySetFromUserPOST, final String localeString, final String confKey) throws FrameworkException {
+	private boolean sendResetPasswordLink(final SecurityContext securityContext, final Principal user, final Map<String, Object> propertySetFromUserPOST, final String localeString, final String confKey) throws FrameworkException {
 
-		final String userEmail  = user.getProperty("eMail");
+		final String userEmail  = user.getEMail();
 		final ActionContext ctx = new ActionContext(SecurityContext.getInstance(user, AccessMode.Frontend));
 
 		// Populate the replacement map with all POSTed values
 		// WARNING! This is unchecked user input!!
 		propertySetFromUserPOST.entrySet().forEach(entry -> ctx.setConstant(entry.getKey(), entry.getValue().toString()));
 
-		ctx.setConstant("eMail", userEmail);
+		ctx.setConstant(PrincipalTraitDefinition.EMAIL_PROPERTY, userEmail);
 		ctx.setConstant("link",
 				getTemplateText(TemplateKey.RESET_PASSWORD_BASE_URL, ActionContext.getBaseUrl(securityContext.getRequest()), localeString)
 				+ getTemplateText(TemplateKey.RESET_PASSWORD_PAGE, HtmlServlet.RESET_PASSWORD_PAGE, localeString)
@@ -158,16 +165,16 @@ public class ResetPasswordResourceHandler extends RESTCallHandler {
 
 		try {
 
-			final Query<MailTemplate> query = StructrApp.getInstance().nodeQuery(MailTemplate.class).andName(key.name());
+			final Query<NodeInterface> query = StructrApp.getInstance().nodeQuery(StructrTraits.MAIL_TEMPLATE).andName(key.name());
 
 			if (localeString != null) {
-				query.and("locale", localeString);
+				query.and(Traits.of(StructrTraits.MAIL_TEMPLATE).key(MailTemplateTraitDefinition.LOCALE_PROPERTY), localeString);
 			}
 
-			MailTemplate template = query.getFirst();
+			NodeInterface template = query.getFirst();
 			if (template != null) {
 
-				final String text = template.getProperty("text");
+				final String text = template.as(MailTemplate.class).getText();
 				return text != null ? text : defaultValue;
 
 			} else {
@@ -200,7 +207,7 @@ public class ResetPasswordResourceHandler extends RESTCallHandler {
 	}
 
 	@Override
-	public Class getEntityClass(final SecurityContext securityContext) {
+	public String getTypeName(final SecurityContext securityContext) {
 		return null;
 	}
 

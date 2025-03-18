@@ -160,7 +160,7 @@ let _Pager = {
 							[prefix + 'order']:    _Pager.sortOrder[id],
 							[prefix + 'pageSize']: _Pager.pageSize[id],
 							[prefix + 'page']:     _Pager.page[id],
-							[prefix + 'loose']:    1
+							[prefix + 'inexact']:  1
 						}, filterAttrs);
 
 						let url = Structr.rootUrl + pager.getType() + '/' + view + '?' + new URLSearchParams(params).toString();

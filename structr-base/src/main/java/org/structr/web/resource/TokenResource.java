@@ -27,7 +27,7 @@ import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
@@ -61,9 +61,9 @@ public class TokenResource extends ExactMatchEndpoint {
 		}
 
 		@Override
-		protected PrincipalInterface getUserForCredentials(final SecurityContext securityContext, final String emailOrUsername, final String password, final String twoFactorToken, final String twoFactorCode, final Map<String, Object> propertySet) throws FrameworkException {
+		protected Principal getUserForCredentials(final SecurityContext securityContext, final String emailOrUsername, final String password, final String twoFactorToken, final String twoFactorCode, final Map<String, Object> propertySet) throws FrameworkException {
 
-			PrincipalInterface user = getUserForTwoFactorTokenOrEmailOrUsername(securityContext, twoFactorToken, emailOrUsername, password);
+			Principal user = getUserForTwoFactorTokenOrEmailOrUsername(securityContext, twoFactorToken, emailOrUsername, password);
 
 			boolean isFromRefreshToken = false;
 
@@ -99,7 +99,7 @@ public class TokenResource extends ExactMatchEndpoint {
 		}
 
 		@Override
-		protected RestMethodResult doLogin(final SecurityContext securityContext, final PrincipalInterface user) throws FrameworkException {
+		protected RestMethodResult doLogin(final SecurityContext securityContext, final Principal user) throws FrameworkException {
 
 			final Map<String, String> tokenMap = JWTHelper.createTokensForUser(user);
 

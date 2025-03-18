@@ -20,6 +20,8 @@ package org.structr.web.entity.event;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
+import org.structr.process.entity.Process;
+import org.structr.process.entity.ProcessStep;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 
@@ -49,12 +51,12 @@ public interface ActionMapping extends NodeInterface {
 	Iterable<DOMNode> getSuccessNotificationElements();
 	Iterable<DOMNode> getFailureNotificationElements();
 
-	Process     process     getProcess();
-	ProcessStep processStep getProcessStep();
-	Iterable<DOMNode> processSuccessShowElements getProcessSuccessShowElements();
-	Iterable<DOMNode> processSuccessHideElements getProcessSuccessHideElements();
-	Iterable<DOMNode> processFailureShowElements getProcessFailureShowElements();
-	Iterable<DOMNode> processFailureHideElements getProcessFailureHideElements();
+	Process getProcess();
+	ProcessStep getProcessStep();
+	Iterable<DOMNode> getProcessSuccessShowElements();
+	Iterable<DOMNode> getProcessSuccessHideElements();
+	Iterable<DOMNode> getProcessFailureShowElements();
+	Iterable<DOMNode> getProcessFailureHideElements();
 	
 	String getSuccessNotifications();
 	String getSuccessBehaviour();

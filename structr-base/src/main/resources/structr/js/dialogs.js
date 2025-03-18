@@ -124,8 +124,9 @@ let _Dialogs = {
 			}
 		],
 		getSSOUriForURIPart: (uripart) => `/oauth/${uripart}/login?isBackendOAuthLogin`,
+		getLoginDialogElement: () => document.querySelector('#login'),
 		isOpen: () => {
-			let loginElement = document.querySelector('#login');
+			let loginElement = _Dialogs.loginDialog.getLoginDialogElement();
 			return (loginElement != null && loginElement.offsetParent !== null);
 		},
 		show: () => {
@@ -182,7 +183,7 @@ let _Dialogs = {
 			}
 		},
 		hide: () => {
-			_Dialogs.basic.removeBlockerAround(document.querySelector('#login'));
+			_Dialogs.basic.removeBlockerAround(_Dialogs.loginDialog.getLoginDialogElement());
 		},
 		appendErrorMessage: (msg) => {
 
@@ -192,7 +193,7 @@ let _Dialogs = {
 
 				let element = _Helpers.createSingleDOMElementFromHTML(`<div class="login-error-message w-full box-border icon-red mt-2 pr-4 text-right">${msg}</div>`);
 
-				document.querySelector('#login').appendChild(element);
+				_Dialogs.loginDialog.getLoginDialogElement().appendChild(element);
 
 				window.setTimeout(() => {
 					element.remove();

@@ -23,12 +23,10 @@ import org.structr.api.graph.Direction;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
+import org.structr.api.util.Iterables;
 
 import java.util.*;
 import java.util.function.Supplier;
-import java.util.LinkedList;
-
-import org.structr.api.util.Iterables;
 
 /**
  *
@@ -118,15 +116,21 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 	}
 
 	@Override
-	public void addLabel(final String label) {
+	public void addLabels(final Set<String> input) {
+
+		// no-op
+		if (input.isEmpty()) {
+			return;
+		}
 
 		final SessionTransaction tx   = db.getCurrentTransaction();
 		final Map<String, Object> map = new HashMap<>();
 		final String tenantIdentifier = getTenantIdentifier(db);
+		final String labels           = StringUtils.join(input, ":");
 
 		map.put("id", id);
 
-		tx.getNode(new SimpleCypherQuery(concat("MATCH (n", tenantIdentifier, ") WHERE ID(n) = $id SET n :", label, " RETURN n"), map));
+		tx.getNode(new SimpleCypherQuery(concat("MATCH (n", tenantIdentifier, ") WHERE ID(n) = $id SET n :", labels, " RETURN n"), map));
 	}
 
 	@Override
@@ -219,8 +223,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 	@Override
 	public Iterable<Relationship> getRelationships(final Direction direction, final RelationshipType relationshipType) {
 
-		final Class clazz             = Direction.OUTGOING.equals(direction) ? relationshipType.getSourceType() : relationshipType.getTargetType();
-		final String type             = clazz != null ? clazz.getSimpleName() : null;
+		final String type             = Direction.OUTGOING.equals(direction) ? relationshipType.getSourceType() : relationshipType.getTargetType();
 		final String tenantIdentifier = getTenantIdentifier(db);
 		final String rel              = relationshipType.name();
 		final String key              = createKey(direction, relationshipType);
@@ -303,9 +306,8 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 		prefetched.clear();
 	}
 
-	// ----- protected methods -----
 	@Override
-	protected boolean isNode() {
+	public boolean isNode() {
 		return true;
 	}
 
@@ -321,7 +323,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 
 		if (relType != null) {
 
-			final Class type = Direction.OUTGOING.equals(direction) ? relType.getSourceType() : relType.getTargetType();
+			final String type = Direction.OUTGOING.equals(direction) ? relType.getSourceType() : relType.getTargetType();
 
 			// store relationship infos for statistics
 			query.storeRelationshipInfo(type, relType, direction);

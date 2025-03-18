@@ -49,15 +49,9 @@ public class NthFunction extends CoreFunction {
 
 			final int pos = Double.valueOf(sources[1].toString()).intValue();
 
-			if (sources[0] instanceof Iterable) {
+			if (sources[0] instanceof List l && !l.isEmpty()) {
 
-				return Iterables.nth((Iterable)sources[0], pos);
-			}
-
-			if (sources[0] instanceof List && !((List)sources[0]).isEmpty()) {
-
-				final List list = (List)sources[0];
-				final int size = list.size();
+				final int size = l.size();
 
 				if (pos >= size) {
 
@@ -65,7 +59,12 @@ public class NthFunction extends CoreFunction {
 
 				}
 
-				return list.get(Math.min(Math.max(0, pos), size - 1));
+				return l.get(Math.min(Math.max(0, pos), size - 1));
+			}
+
+			if (sources[0] instanceof Iterable i) {
+
+				return Iterables.nth(i, pos);
 			}
 
 			if (sources[0].getClass().isArray()) {

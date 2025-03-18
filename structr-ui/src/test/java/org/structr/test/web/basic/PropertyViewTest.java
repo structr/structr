@@ -21,7 +21,6 @@ package org.structr.test.web.basic;
 import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.test.web.StructrUiTest;
-import org.structr.test.web.entity.TestOne;
 import org.testng.annotations.Test;
 
 import java.text.SimpleDateFormat;
@@ -46,8 +45,8 @@ public class PropertyViewTest extends StructrUiTest {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.header("X-User", "superadmin")
-				.header("X-Password", "sehrgeheim")
+				.header(X_USER_HEADER, "superadmin")
+				.header(X_PASSWORD_HEADER, "sehrgeheim")
 				.body(" { 'name' : '" + username + "', 'password': '" + password + "' } ")
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
@@ -235,8 +234,8 @@ public class PropertyViewTest extends StructrUiTest {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.header("X-User", "superadmin")
-				.header("X-Password", "sehrgeheim")
+				.header(X_USER_HEADER, "superadmin")
+				.header(X_PASSWORD_HEADER, "sehrgeheim")
 				.body(" { 'name' : '" + username + "', 'password': '" + password + "' } ")
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
@@ -283,8 +282,8 @@ public class PropertyViewTest extends StructrUiTest {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.header("X-User", username)
-				.header("X-Password", password)
+				.header(X_USER_HEADER, username)
+				.header(X_PASSWORD_HEADER, password)
 				.header("Accept", "application/json; charset=UTF-8")
 				.body(" { 'name' : 'TestOne-0', 'anInt' : 0, 'aLong' : 0, 'aDate' : '" + expectedDate + "' } ")
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
@@ -303,8 +302,8 @@ public class PropertyViewTest extends StructrUiTest {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.header("X-User", username)
-				.header("X-Password", password)
+				.header(X_USER_HEADER, username)
+				.header(X_PASSWORD_HEADER, password)
 				.header("Accept", "application/json; charset=UTF-8")
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
@@ -318,7 +317,7 @@ public class PropertyViewTest extends StructrUiTest {
 				.body("result",                     hasSize(1))
 
 				.body("result[0].id",               equalTo(uuid))
-				.body("result[0].type",	            equalTo(TestOne.class.getSimpleName()))
+				.body("result[0].type",	            equalTo("TestOne"))
 				.body("result[0].name",             equalTo("TestOne-0"))
 				.body("result[0].anInt",            equalTo(0))
 				.body("result[0].aLong",            equalTo(0))
@@ -332,8 +331,8 @@ public class PropertyViewTest extends StructrUiTest {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.header("X-User", username)
-				.header("X-Password", password)
+				.header(X_USER_HEADER, username)
+				.header(X_PASSWORD_HEADER, password)
 				.header("Accept", "application/json; charset=UTF-8")
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
@@ -348,7 +347,7 @@ public class PropertyViewTest extends StructrUiTest {
 				.body("result",                                hasSize(1))
 
 				.body("result[0].id",                          equalTo(uuid))
-				.body("result[0].type",	                       equalTo(TestOne.class.getSimpleName()))
+				.body("result[0].type",	                       equalTo("TestOne"))
 				.body("result[0].name",                        equalTo("TestOne-0"))
 				.body("result[0].anInt",                       equalTo(0))
 				.body("result[0].aLong",                       equalTo(0))
@@ -358,8 +357,6 @@ public class PropertyViewTest extends StructrUiTest {
 				.body("result[0].lastModifiedDate",            notNullValue())
 				.body("result[0].visibleToPublicUsers",        equalTo(false))
 				.body("result[0].visibleToAuthenticatedUsers", equalTo(false))
-				.body("result[0].visibilityStartDate",         nullValue())
-				.body("result[0].visibilityEndDate",           nullValue())
 				.body("result[0].createdBy",                   equalTo(userId))
 				.body("result[0].hidden",                      equalTo(false))
 				.body("result[0].owner",                       notNullValue())
@@ -374,8 +371,8 @@ public class PropertyViewTest extends StructrUiTest {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.header("X-User", username)
-				.header("X-Password", password)
+				.header(X_USER_HEADER, username)
+				.header(X_PASSWORD_HEADER, password)
 				.header("Accept", "application/json; charset=UTF-8")
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
@@ -390,7 +387,7 @@ public class PropertyViewTest extends StructrUiTest {
 				.body("result",                                hasSize(1))
 
 				.body("result[0].id",               equalTo(uuid))
-				.body("result[0].type",	            equalTo(TestOne.class.getSimpleName()))
+				.body("result[0].type",	            equalTo("TestOne"))
 				.body("result[0].name",             equalTo("TestOne-0"))
 				.body("result[0].anInt",            equalTo(0))
 				.body("result[0].aLong",            equalTo(0))

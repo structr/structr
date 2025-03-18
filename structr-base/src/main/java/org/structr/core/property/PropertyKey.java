@@ -28,10 +28,10 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.Query;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.search.SearchAttribute;
+import org.structr.core.traits.Trait;
 
 import java.util.Comparator;
 import java.util.Map;
-import java.util.function.Function;
 
 /**
  * Base interface for typed property keys.
@@ -125,7 +125,7 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	 *
 	 * @return relatedType
 	 */
-	Class relatedType();
+	String relatedType();
 
 	/**
 	 * Returns the format value for this property.
@@ -185,15 +185,15 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	boolean requiresSynchronization();
 	String getSynchronizationKey();
 
-	void setDeclaringClass(final Class declaringClass);
-	Class getDeclaringClass();
+	void setDeclaringTrait(final Trait declaringTrait);
+	Trait getDeclaringTrait();
 	String getSourceUuid();
 
 	T getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter);
 	T getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate);
 	Object setProperty(final SecurityContext securityContext, final GraphObject obj, final T value) throws FrameworkException;
 
-	void registrationCallback(final Class<GraphObject> entityType);
+	void registrationCallback(final Trait entityType);
 
 	/**
 	 * Indicates whether this property is an unvalidated property or not.
@@ -308,12 +308,7 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	 */
 	boolean isDynamic();
 
-	/**
-	 * Indicates whether this property is a part of the internal Structr schema.
-	 *
-	 * @return whether this property is a part of the internal Structr schema
-	 */
-	boolean isPartOfBuiltInSchema();
+	boolean isArray();
 
 	/**
 	 * Returns the lucene sort type of this property.
@@ -359,7 +354,6 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	PropertyKey<T> unique(final boolean unique);
 	PropertyKey<T> format(final String format);
 	PropertyKey<T> typeHint(final String typeHint);
-	PropertyKey<T> partOfBuiltInSchema();
 	PropertyKey<T> dynamic();
 	PropertyKey<T> readFunction(final String readFunction);
 	PropertyKey<T> writeFunction(final String writeFunction);

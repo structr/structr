@@ -25,14 +25,14 @@ import org.structr.api.schema.JsonType;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.graph.attribute.Name;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.rest.common.StructrRestTestBase;
-import org.structr.test.rest.entity.TestTen;
 import org.testng.annotations.Test;
 
 import static org.hamcrest.Matchers.equalTo;
@@ -74,35 +74,37 @@ public class FunctionPropertyTest extends StructrRestTestBase {
 		App app = StructrApp.getInstance();
 
 		try (final Tx tx = app.tx()) {
-			TestTen testObj = app.create(TestTen.class, "testObject");
+
+			NodeInterface testObj = app.create("TestTen", "testObject");
+			final Traits traits   = testObj.getTraits();
 
 			// Test cache invalidation
-			String firstState = (String)testObj.getProperty(TestTen.getNameProperty);
-			String secondState = (String)testObj.getProperty(TestTen.getNameProperty);
+			String firstState =  testObj.getProperty(traits.key("getNameProperty"));
+			String secondState = testObj.getProperty(traits.key("getNameProperty"));
 
 			assertEquals(firstState, secondState);
 
-			testObj.setProperty(TestTen.name, "testObject2");
+			testObj.setProperty(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testObject2");
 
-			secondState = (String)testObj.getProperty(TestTen.getNameProperty);
+			secondState = (String)testObj.getProperty(traits.key("getNameProperty"));
 
 			assertNotSame(firstState, secondState);
 
-			firstState = (String)testObj.getProperty(TestTen.getNameProperty);
+			firstState = (String)testObj.getProperty(traits.key("getNameProperty"));
 
 			assertEquals(firstState, secondState);
 
 			// Test caching for random numbers
-			Object firstNum  = testObj.getProperty(TestTen.getRandomNumProp);
-			Object secondNum = testObj.getProperty(TestTen.getRandomNumProp);
+			Object firstNum  = testObj.getProperty(traits.key("getRandomNumProp"));
+			Object secondNum = testObj.getProperty(traits.key("getRandomNumProp"));
 
 			assertEquals(firstNum, secondNum);
 
 			// Invalidate cache to test random caching
-			testObj.setProperty(TestTen.name, "testObject3");
+			testObj.setProperty(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testObject3");
 
-			firstNum  = testObj.getProperty(TestTen.getRandomNumProp);
-			secondNum = testObj.getProperty(TestTen.getRandomNumProp);
+			firstNum  = testObj.getProperty(traits.key("getRandomNumProp"));
+			secondNum = testObj.getProperty(traits.key("getRandomNumProp"));
 
 			assertEquals(firstNum, secondNum);
 
@@ -141,14 +143,14 @@ public class FunctionPropertyTest extends StructrRestTestBase {
 			fail("Unexpected exception.");
 		}
 
-		final Class type      = StructrApp.getConfiguration().getNodeEntityClass("TestType");
-		final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, "test" + typeName);
+		final String type     = "TestType";
+		final PropertyKey key = Traits.of(type).key("test" + typeName);
 
 		// data setup
 		try (final Tx tx = app.tx()) {
 
-			app.create(type, new NodeAttribute<>(AbstractNode.name, "not test"));
-			app.create(type, new NodeAttribute<>(AbstractNode.name, "test"));
+			app.create(type, new Name("not test"));
+			app.create(type, new Name("test"));
 
 			tx.success();
 
@@ -206,12 +208,12 @@ public class FunctionPropertyTest extends StructrRestTestBase {
 			fail("Unexpected exception.");
 		}
 
-		final Class type = StructrApp.getConfiguration().getNodeEntityClass("TestType");
+		final String type = "TestType";
 
 		// data setup
 		try (final Tx tx = app.tx()) {
 
-			app.create(type, new NodeAttribute<>(AbstractNode.name, "test"));
+			app.create(type, new Name("test"));
 
 			tx.success();
 

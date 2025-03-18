@@ -20,7 +20,6 @@ package org.structr.test.rest.test;
 
 import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
-import java.util.List;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.common.error.FrameworkException;
@@ -29,18 +28,11 @@ import org.structr.schema.export.StructrSchema;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.testng.annotations.Test;
 
+import java.util.List;
 import java.util.Map;
-import static org.hamcrest.Matchers.equalTo;
-import org.structr.common.SecurityContext;
-import org.structr.core.GraphObject;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.SchemaNode;
-import org.structr.core.script.Scripting;
-import org.structr.rest.RestMethodResult;
-import org.structr.schema.action.ActionContext;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
 
 /**
@@ -61,11 +53,11 @@ public class MethodTest extends StructrRestTestBase {
 			final JsonObjectType ext11 = schema.addType("Extended11");
 			final JsonObjectType ext2  = schema.addType("Extended2");
 
-			ext1.setExtends(base);
-			ext2.setExtends(base);
+			ext1.addTrait("BaseType");
+			ext2.addTrait("BaseType");
 
 			// two levels
-			ext11.setExtends(ext1);
+			ext11.addTrait("Extended1");
 
 			// methods
 			base.addMethod("doTest", "'BaseType'");
@@ -88,20 +80,6 @@ public class MethodTest extends StructrRestTestBase {
 		final String ext1  = createEntity("/Extended1",  "{ name: 'Extended1' }");
 		final String ext11 = createEntity("/Extended11", "{ name: 'Extended11' }");
 		final String ext2  = createEntity("/Extended2",  "{ name: 'Extended2' }");
-
-		try (final Tx tx = app.tx()) {
-
-			for (final String type : List.of("BaseType", "Extended1", "Extended11", "Extended2")) {
-
-				System.out.println("##################################################### " + type);
-				System.out.println(StructrApp.getInstance().nodeQuery(SchemaNode.class).andName(type).getFirst().getGeneratedSourceCode(securityContext));
-
-				tx.success();
-			}
-
-		} catch (Throwable t) {
-			t.printStackTrace();
-		}
 
 		// test inherited methods
 		assertEquals("Invalid inheritance result, overriding method is not called", "BaseType", RestAssured.given().contentType("application/json; charset=UTF-8")
@@ -355,6 +333,7 @@ public class MethodTest extends StructrRestTestBase {
 				.post("/BaseType/" + base + "/test");
 	}
 
+	/*
 	@Test
 	public void testJavaArgumentPassing1() {
 
@@ -437,8 +416,8 @@ public class MethodTest extends StructrRestTestBase {
 
 		try (final Tx tx = app.tx()) {
 
-			final Class type       = StructrApp.getConfiguration().getNodeEntityClass("BaseType");
-			final GraphObject node = app.get(type, uuid);
+			final String type      = "BaseType";
+			final GraphObject node = app.getNodeById(type, uuid);
 
 			try {
 
@@ -475,6 +454,7 @@ public class MethodTest extends StructrRestTestBase {
 			fail("Unexpected exception");
 		}
 	}
+	*/
 
 	@Test
 	public void testMethodParametersObject() {

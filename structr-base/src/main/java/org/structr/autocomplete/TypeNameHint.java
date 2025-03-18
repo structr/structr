@@ -20,24 +20,24 @@ package org.structr.autocomplete;
 
 public class TypeNameHint extends AbstractHint {
 
-    public TypeNameHint(final String name, final String simpleTypeName) {
+	public TypeNameHint(final String name, final String simpleTypeName) {
 
-        this.name          = name;
-        this.documentation = simpleTypeName;
-    }
+		this.name = name;
+		this.documentation = simpleTypeName;
+	}
 
-    @Override
-    public String getName() {
-        return name;
-    }
+	@Override
+	public String getName() {
+		return name;
+	}
 
-    @Override
-    public String getDocumentation() {
-        return "Schema type **" + this.documentation + "**";
-    }
+	@Override
+	public String getDocumentation() {
+		return "Schema type **" + this.documentation + "**";
+	}
 
-    @Override
-    public String getType() {
-        return "Type name";
-    }
+	@Override
+	public String getType() {
+		return "Type name";
+	}
 }

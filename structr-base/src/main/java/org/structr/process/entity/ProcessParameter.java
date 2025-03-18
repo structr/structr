@@ -19,20 +19,14 @@
 package org.structr.process.entity;
 
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
-import org.structr.process.entity.relationship.ProcessStateSTATE_PARAMETERProcessParameter;
-import org.structr.process.entity.relationship.ProcessStepSTEP_PARAMETERProcessParameter;
+import org.structr.process.traits.relationship.ProcessStateSTATE_PARAMETERProcessParameter;
+import org.structr.process.traits.relationship.ProcessStepSTEP_PARAMETERProcessParameter;
 
-public class ProcessParameter extends AbstractNode {
-
-    public static final Property<String>   displayName = new StringProperty("displayName").hint("Display name or label for this parameter").partOfBuiltInSchema();
-    public static final Property<String> parameterType = new StringProperty("parameterType").hint("Name of the data type of this parameter, e.g. string, date, boolean etc.").partOfBuiltInSchema();
-    public static final Property<Boolean>     required = new BooleanProperty("required").hint("If true, this parameter is mandatory").partOfBuiltInSchema();
-
-    public static final Property<ProcessState>   state = new StartNode<>("state", ProcessStateSTATE_PARAMETERProcessParameter.class).partOfBuiltInSchema();
-    public static final Property<ProcessStep>     step = new StartNode<>("step",  ProcessStepSTEP_PARAMETERProcessParameter.class).partOfBuiltInSchema();
+public interface ProcessParameter extends NodeInterface {
 
 }

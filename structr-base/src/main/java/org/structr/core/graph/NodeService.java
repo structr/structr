@@ -35,8 +35,12 @@ import org.structr.api.util.CountResult;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 
 import java.io.File;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 
 /**
  * The graph/node service.
@@ -226,22 +230,24 @@ public class NodeService implements SingletonService {
 
 					logger.info("Creating initial user...");
 
-					final Class userType = StructrApp.getConfiguration().getNodeEntityClass("User");
-					if (userType != null) {
+					final Traits userTraits = Traits.of(StructrTraits.USER);
+					if (userTraits != null) {
 
 						final App app = StructrApp.getInstance();
 
 						try (final Tx tx = app.tx()) {
 
-							app.create(userType,
-									new NodeAttribute<>(StructrApp.key(userType, "name"),     Settings.InitialAdminUserName.getValue()),
-									new NodeAttribute<>(StructrApp.key(userType, "password"), Settings.InitialAdminUserPassword.getValue()),
-									new NodeAttribute<>(StructrApp.key(userType, "isAdmin"),  true)
+							app.create(StructrTraits.USER,
+									new NodeAttribute<>(userTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), Settings.InitialAdminUserName.getValue()),
+									new NodeAttribute<>(userTraits.key(PrincipalTraitDefinition.PASSWORD_PROPERTY), Settings.InitialAdminUserPassword.getValue()),
+									new NodeAttribute<>(userTraits.key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY), true)
 							);
 
 							tx.success();
 
 						} catch (Throwable t) {
+
+							t.printStackTrace();
 
 							logger.warn("Unable to create initial user: {}", t.getMessage());
 						}

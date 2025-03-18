@@ -24,23 +24,24 @@ import org.structr.core.property.PropertyKey;
 import org.structr.schema.Transformer;
 
 public class TrimTransformator implements Transformer<String> {
-    @Override
-    public String getProperty(GraphObject entity, PropertyKey<String> key, String value) {
 
-        if (value != null) {
-            return value.trim();
-        }
+	@Override
+	public String getProperty(final GraphObject entity, final PropertyKey<String> key, final String value) {
 
-        return null;
-    }
+		if (value != null) {
+			return value.trim();
+		}
 
-    @Override
-    public String setProperty(GraphObject entity, PropertyKey<String> key, String value) throws FrameworkException {
+		return null;
+	}
 
-        if (value != null) {
-            return value.trim();
-        }
+	@Override
+	public String setProperty(final GraphObject entity, final PropertyKey<String> key, final String value) throws FrameworkException {
 
-        return null;
-    }
+		if (value != null) {
+			return value.trim();
+		}
+
+		return null;
+	}
 }

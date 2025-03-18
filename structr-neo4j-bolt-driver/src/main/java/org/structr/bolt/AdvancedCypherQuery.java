@@ -52,7 +52,7 @@ public class AdvancedCypherQuery implements CypherQuery {
 	private String sourceTypeLabel                  = null;
 	private String targetTypeLabel                  = null;
 	private String relationshipType                 = null;
-	private Class type                              = null;
+	private String type                             = null;
 	private boolean outgoing                        = false;
 	private SortOrder sortOrder                     = null;
 	private int fetchPage                           = 0;
@@ -396,6 +396,32 @@ public class AdvancedCypherQuery implements CypherQuery {
 		}
 	}
 
+	public void addExactListParameter(final String key, final String operator, final Object value) {
+
+		if (value != null) {
+
+			final String paramKey = "param" + count++;
+
+			buffer.append("ALL(x IN n.`");
+			buffer.append(key);
+			buffer.append("` WHERE x ");
+			buffer.append(operator);
+			buffer.append(" $");
+			buffer.append(paramKey);
+			buffer.append(")");
+
+			parameters.put(paramKey, value);
+
+		} else {
+
+			buffer.append("ALL(x IN n.`");
+			buffer.append(key);
+			buffer.append("` WHERE x ");
+			buffer.append(operator);
+			buffer.append(" null)");
+		}
+	}
+
 	public void addParameters(final String key, final String operator1, final Object value1, final String operator2, final Object value2) {
 
 		final String paramKey1 = "param" + count++;
@@ -491,14 +517,14 @@ public class AdvancedCypherQuery implements CypherQuery {
 		return queryTimer;
 	}
 
-	public void storeRelationshipInfo(final Class type, final RelationshipType relationshipType, final Direction direction) {
+	public void storeRelationshipInfo(final String type, final RelationshipType relationshipType, final Direction direction) {
 
 		this.type             = type;
 		this.relationshipType = relationshipType.name();
 		this.outgoing         = Direction.OUTGOING.equals(direction);
 	}
 
-	public Class getType() {
+	public String getType() {
 		return type;
 	}
 

@@ -24,16 +24,15 @@ import org.structr.common.SecurityContext;
 import org.structr.core.graph.Factory;
 import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.traits.Traits;
 
 /**
  * Search for relationships by their attributes.
- *
- *
  */
-public class SearchRelationshipCommand<T extends RelationshipInterface> extends SearchCommand<Relationship, T> {
+public class SearchRelationshipCommand extends SearchCommand<Relationship, RelationshipInterface> {
 
 	@Override
-	public Factory<Relationship, T> getFactory(SecurityContext securityContext, boolean includeHidden, boolean publicOnly, int pageSize, int page) {
+	public Factory<Relationship, RelationshipInterface> getFactory(final SecurityContext securityContext, final boolean includeHidden, final boolean publicOnly, final int pageSize, final int page) {
 		return new RelationshipFactory(securityContext, includeHidden, publicOnly, pageSize, page);
 	}
 

@@ -18,6 +18,9 @@
  */
 package org.structr.test;
 
+import org.structr.core.traits.StructrTraits;
+import org.structr.feed.traits.definitions.DataFeedTraitDefinition;
+import org.structr.feed.traits.definitions.FeedItemTraitDefinition;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.TestHelper;
 import org.testng.annotations.Test;
@@ -36,8 +39,8 @@ public class FeedsViewTest extends StructrUiTest {
 
 		final Map<String, List<String>> requiredAttributes   = new LinkedHashMap<>();
 
-		requiredAttributes.put("DataFeed", Arrays.asList("url"));
-		requiredAttributes.put("FeedItem", Arrays.asList("url"));
+		requiredAttributes.put(StructrTraits.DATA_FEED, Arrays.asList(DataFeedTraitDefinition.URL_PROPERTY));
+		requiredAttributes.put(StructrTraits.FEED_ITEM, Arrays.asList(FeedItemTraitDefinition.URL_PROPERTY));
 
 		TestHelper.testViews(app, FeedsViewTest.class.getResourceAsStream("/views.properties"), requiredAttributes);
 	}

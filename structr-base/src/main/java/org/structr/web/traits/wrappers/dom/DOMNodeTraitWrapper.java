@@ -1208,6 +1208,38 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	}
 
 	@Override
+	public Iterable<ActionMapping> getProcessSuccessShowActions() {
+
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key(DOMNodeTraitDefinition.PROCESS_SUCCESS_SHOW_ACTIONS_PROPERTY);
+
+		return Iterables.map(n -> n.as(ActionMapping.class), wrappedObject.getProperty(key));
+	}
+
+	@Override
+	public Iterable<ActionMapping> getProcessSuccessHideActions() {
+
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key(DOMNodeTraitDefinition.PROCESS_SUCCESS_HIDE_ACTIONS_PROPERTY);
+
+		return Iterables.map(n -> n.as(ActionMapping.class), wrappedObject.getProperty(key));
+	}
+
+	@Override
+	public Iterable<ActionMapping> getProcessFailureShowActions() {
+
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key(DOMNodeTraitDefinition.PROCESS_FAILURE_SHOW_ACTIONS_PROPERTY);
+
+		return Iterables.map(n -> n.as(ActionMapping.class), wrappedObject.getProperty(key));
+	}
+
+	@Override
+	public Iterable<ActionMapping> processFailureHideActions() {
+
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key(DOMNodeTraitDefinition.PROCESS_FAILURE_HIDE_ACTIONS_PROPERTY);
+
+		return Iterables.map(n -> n.as(ActionMapping.class), wrappedObject.getProperty(key));
+	}
+
+	@Override
 	public final void setOwnerDocument(final Page page) throws FrameworkException {
 		wrappedObject.setProperty(traits.key(DOMNodeTraitDefinition.OWNER_DOCUMENT_PROPERTY), page);
 	}

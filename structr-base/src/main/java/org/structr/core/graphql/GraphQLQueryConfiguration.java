@@ -28,7 +28,7 @@ import java.util.Set;
 public interface GraphQLQueryConfiguration {
 
 	Set<PropertyKey> getPropertyKeys();
-	Predicate getPredicateForPropertyKey(final PropertyKey key);
+	Predicate getPredicateForPropertyKey(final String key);
 
 	int getPage();
 	int getPageSize();

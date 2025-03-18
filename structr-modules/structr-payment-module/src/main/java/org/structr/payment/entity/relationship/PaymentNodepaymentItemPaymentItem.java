@@ -18,24 +18,54 @@
  */
 package org.structr.payment.entity.relationship;
 
-import org.structr.core.entity.OneToMany;
-import org.structr.payment.entity.PaymentItemNode;
-import org.structr.payment.entity.PaymentNode;
+import org.structr.core.entity.Relation;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
+import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
-public class PaymentNodepaymentItemPaymentItem extends OneToMany<PaymentNode, PaymentItemNode> {
+public class PaymentNodepaymentItemPaymentItem extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
-	@Override
-	public Class<PaymentNode> getSourceType() {
-		return PaymentNode.class;
+	public PaymentNodepaymentItemPaymentItem() {
+		super(StructrTraits.PAYMENT_NODE_PAYMENT_ITEM_PAYMENT_ITEM);
 	}
 
 	@Override
-	public Class<PaymentItemNode> getTargetType() {
-		return PaymentItemNode.class;
+	public String getSourceType() {
+		return StructrTraits.PAYMENT_NODE;
 	}
 
 	@Override
-	public String name() {
+	public String getTargetType() {
+		return StructrTraits.PAYMENT_ITEM_NODE;
+	}
+
+	@Override
+	public String getRelationshipType() {
 		return "paymentItem";
+	}
+
+	@Override
+	public Relation.Multiplicity getSourceMultiplicity() {
+		return Relation.Multiplicity.One;
+	}
+
+	@Override
+	public Relation.Multiplicity getTargetMultiplicity() {
+		return Relation.Multiplicity.Many;
+	}
+
+	@Override
+	public int getCascadingDeleteFlag() {
+		return Relation.NONE;
+	}
+
+	@Override
+	public int getAutocreationFlag() {
+		return Relation.NONE;
+	}
+
+	@Override
+	public boolean isInternal() {
+		return false;
 	}
 }

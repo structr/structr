@@ -204,7 +204,7 @@ let _Code = {
 								data: {
 									svgIcon: _Icons.getSvgIcon(_Icons.iconFolderClosed, 16, 24),
 									key:     'SchemaNode',
-									query:   { isBuiltinType: false, isServiceClass: false },
+									query:   { isServiceClass: false },
 									content: 'custom',
 									path:    '/root/custom',
 								},
@@ -223,20 +223,21 @@ let _Code = {
 									path:    '/root/services',
 								},
 							},
-							{
-								id:       '/root/builtin',
-								text:     'Built-In',
-								children: true,
-								icon:     _Icons.nonExistentEmptyIcon,
-								li_attr:  { 'data-id': 'builtin' },
-								data: {
-									svgIcon: _Icons.getSvgIcon(_Icons.iconFolderClosed, 16, 24),
-									key:     'SchemaNode',
-									query:   { isBuiltinType: true },
-									content: 'builtin',
-									path:    '/root/builtin'
-								},
-							},
+							// maybe show something like "overrides"
+							// {
+							// 	id:       '/root/builtin',
+							// 	text:     'Built-In',
+							// 	children: true,
+							// 	icon:     _Icons.nonExistentEmptyIcon,
+							// 	li_attr:  { 'data-id': 'builtin' },
+							// 	data: {
+							// 		svgIcon: _Icons.getSvgIcon(_Icons.iconFolderClosed, 16, 24),
+							// 		key:     'SchemaNode',
+							// 		query:   { isBuiltinType: true },
+							// 		content: 'builtin',
+							// 		path:    '/root/builtin'
+							// 	},
+							// },
 							{
 								id:       '/root/workingsets',
 								text:     'Working Sets',
@@ -1593,6 +1594,7 @@ let _Code = {
 					language: 'auto',
 					lint: true,
 					autocomplete: true,
+					isAutoscriptEnv: true,
 					changeFn: (editor, entity) => {
 						_Code.persistence.updateDirtyFlag(entity);
 					}
@@ -2398,7 +2400,7 @@ let _Code = {
 
 			return pathToOpen;
 		},
-		navigateToSchemaObjectFromAnywhere: (obj) => {
+		navigateToSchemaObjectFromAnywhere: (obj, updateLocationStack = false) => {
 
 			let pathToOpen = _Code.helpers.getPathToOpenForSchemaObjectFromError(obj);
 			let timeout    = (window.location.hash === '#code') ? 100 : 1000;
@@ -2406,7 +2408,7 @@ let _Code = {
 			window.location.href = '#code';
 
 			window.setTimeout(() => {
-				_Code.tree.findAndOpenNode(pathToOpen, false);
+				_Code.tree.findAndOpenNode(pathToOpen, updateLocationStack);
 			}, timeout);
 		},
 		handleKeyDownEvent: (e) => {
@@ -2819,7 +2821,7 @@ let _Code = {
 			if (_Code.persistence.isDirty()) {
 				new WarningMessage().text('No save action is defined - but the editor has unsaved changes!').requiresConfirmation().show();
 			}
-		},		
+		},
 	},
 	search: {
 		searchThreshold: 3,

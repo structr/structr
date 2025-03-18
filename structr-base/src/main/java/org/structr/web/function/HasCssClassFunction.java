@@ -22,9 +22,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
 import org.structr.schema.action.ActionContext;
-import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 
 import java.util.Arrays;
@@ -51,13 +50,13 @@ public class HasCssClassFunction extends UiAdvancedFunction {
 
 		try {
 
-			assertArrayHasMinLengthAndTypes(sources, 2, DOMNode.class, String.class);
+			assertArrayHasMinLengthAndTypes(sources, 2, NodeInterface.class, String.class);
 
 			// we can safely cast here because of the assert.. above
 
-			final DOMNode element       = (DOMNode)sources[0];
+			final NodeInterface element = (NodeInterface)sources[0];
 			final String css            = (String)sources[1];
-			final String elementClasses = element.getProperty(StructrApp.key(DOMElement.class, "_html_class"));
+			final String elementClasses = element.as(DOMNode.class).getCssClass();
 
 			if (StringUtils.isNotBlank(css) && StringUtils.isNotBlank(elementClasses)) {
 

@@ -29,12 +29,14 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.TypeProperty;
 
 import java.util.*;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 
 /**
  *
@@ -43,7 +45,9 @@ import java.util.*;
 public class GraphObjectModificationState implements ModificationEvent {
 
 	private static final Logger LOGGER                          = LoggerFactory.getLogger(GraphObjectModificationState.class);
-	private static final Set<String> hiddenPropertiesInAuditLog = new HashSet<>(Arrays.asList(new String[] { "id", "sessionIds", "localStorage", "salt", "password", "twoFactorSecret" } ));
+	private static final Set<String> hiddenPropertiesInAuditLog = new HashSet<>(Arrays.asList(new String[] {
+			GraphObjectTraitDefinition.ID_PROPERTY, PrincipalTraitDefinition.SESSION_IDS_PROPERTY, "localStorage", PrincipalTraitDefinition.SALT_PROPERTY, PrincipalTraitDefinition.PASSWORD_PROPERTY, PrincipalTraitDefinition.TWO_FACTOR_SECRET_PROPERTY
+	}));
 
 	public static final int STATE_DELETED =                    1;
 	public static final int STATE_MODIFIED =                   2;
@@ -172,7 +176,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 		updateCache();
 	}
 
-	public void modify(final PrincipalInterface user, final PropertyKey key, final Object previousValue, final Object newValue) {
+	public <T> void modify(final Principal user, final PropertyKey<T> key, final T previousValue, final T newValue) {
 
 		int statusBefore = status;
 
@@ -430,7 +434,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 	}
 
 	// Update changelog for Verb.change
-	public void updateChangeLog(final PrincipalInterface user, final Verb verb, final PropertyKey key, final Object previousValue, final Object newValue) {
+	public void updateChangeLog(final Principal user, final Verb verb, final PropertyKey key, final Object previousValue, final Object newValue) {
 
 		if ((Settings.ChangelogEnabled.getValue() || Settings.UserChangelogEnabled.getValue()) && key != null) {
 
@@ -441,8 +445,8 @@ public class GraphObjectModificationState implements ModificationEvent {
 				final JsonObject obj = new JsonObject();
 
 				obj.add("time",     toElement(System.currentTimeMillis()));
-				obj.add("userId",   toElement((user == null) ? PrincipalInterface.ANONYMOUS : user.getUuid()));
-				obj.add("userName", toElement((user == null) ? PrincipalInterface.ANONYMOUS : user.getName()));
+				obj.add("userId",   toElement((user == null) ? Principal.ANONYMOUS : user.getUuid()));
+				obj.add("userName", toElement((user == null) ? Principal.ANONYMOUS : user.getName()));
 				obj.add("verb",     toElement(verb));
 				obj.add("key",      toElement(key.jsonName()));
 				obj.add("prev",     toElement(previousValue));
@@ -469,15 +473,15 @@ public class GraphObjectModificationState implements ModificationEvent {
 	}
 
 	// Update *node* changelog for Verb.link
-	public void updateChangeLog(final PrincipalInterface user, final Verb verb, final String linkType, final String linkId, final String object, final Direction direction) {
+	public void updateChangeLog(final Principal user, final Verb verb, final String linkType, final String linkId, final String object, final Direction direction) {
 
 		if (Settings.ChangelogEnabled.getValue()) {
 
 			final JsonObject obj = new JsonObject();
 
 			obj.add("time",     toElement(System.currentTimeMillis()));
-			obj.add("userId",   toElement((user == null) ? PrincipalInterface.ANONYMOUS : user.getUuid()));
-			obj.add("userName", toElement((user == null) ? PrincipalInterface.ANONYMOUS : user.getName()));
+			obj.add("userId",   toElement((user == null) ? Principal.ANONYMOUS : user.getUuid()));
+			obj.add("userName", toElement((user == null) ? Principal.ANONYMOUS : user.getName()));
 			obj.add("verb",     toElement(verb));
 			obj.add("rel",      toElement(linkType));
 			obj.add("relId",    toElement(linkId));
@@ -490,15 +494,15 @@ public class GraphObjectModificationState implements ModificationEvent {
 	}
 
 	// Update *relationship* changelog for Verb.create
-	public void updateChangeLog(final PrincipalInterface user, final Verb verb, final String linkType, final String linkId, final String sourceUuid, final String targetUuid) {
+	public void updateChangeLog(final Principal user, final Verb verb, final String linkType, final String linkId, final String sourceUuid, final String targetUuid) {
 
 		if ((Settings.ChangelogEnabled.getValue() || Settings.UserChangelogEnabled.getValue())) {
 
 			final JsonObject obj = new JsonObject();
 
 			obj.add("time",     toElement(System.currentTimeMillis()));
-			obj.add("userId",   toElement((user == null) ? PrincipalInterface.ANONYMOUS : user.getUuid()));
-			obj.add("userName", toElement((user == null) ? PrincipalInterface.ANONYMOUS : user.getName()));
+			obj.add("userId",   toElement((user == null) ? Principal.ANONYMOUS : user.getUuid()));
+			obj.add("userName", toElement((user == null) ? Principal.ANONYMOUS : user.getName()));
 			obj.add("verb",     toElement(verb));
 			obj.add("rel",      toElement(linkType));
 			obj.add("relId",    toElement(linkId));
@@ -522,15 +526,15 @@ public class GraphObjectModificationState implements ModificationEvent {
 	}
 
 	// Update changelog for Verb.create and Verb.delete
-	public void updateChangeLog(final PrincipalInterface user, final Verb verb, final NodeInterface node) {
+	public void updateChangeLog(final Principal user, final Verb verb, final NodeInterface node) {
 
 		if ((Settings.ChangelogEnabled.getValue() || Settings.UserChangelogEnabled.getValue())) {
 
 			final JsonObject obj = new JsonObject();
 
 			obj.add("time",     toElement(System.currentTimeMillis()));
-			obj.add("userId",   toElement((user == null) ? PrincipalInterface.ANONYMOUS : user.getUuid()));
-			obj.add("userName", toElement((user == null) ? PrincipalInterface.ANONYMOUS : user.getName()));
+			obj.add("userId",   toElement((user == null) ? Principal.ANONYMOUS : user.getUuid()));
+			obj.add("userName", toElement((user == null) ? Principal.ANONYMOUS : user.getName()));
 			obj.add("verb",     toElement(verb));
 			obj.add("target",   toElement(object));
 			obj.add("type",     toElement(node.getType()));
@@ -717,7 +721,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 
 	@Override
 	public Map<String, Object> getData(final SecurityContext securityContext) throws FrameworkException {
-		return PropertyMap.javaTypeToInputType(securityContext, object.getClass(), modifiedProperties);
+		return PropertyMap.javaTypeToInputType(securityContext, object.getType(), modifiedProperties);
 	}
 
 	@Override

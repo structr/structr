@@ -28,9 +28,8 @@ import org.structr.api.schema.JsonSchema;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.App;
-import org.structr.core.entity.*;
 import org.structr.core.graph.Tx;
-import org.structr.schema.SchemaService;
+import org.structr.core.traits.StructrTraits;
 
 import java.io.Reader;
 import java.io.StringReader;
@@ -153,13 +152,13 @@ public class StructrSchema {
 
 		try (final Tx tx = app.tx()) {
 
-			app.deleteAllNodesOfType(SchemaRelationshipNode.class);
-			app.deleteAllNodesOfType(SchemaNode.class);
-			app.deleteAllNodesOfType(SchemaMethod.class);
-			app.deleteAllNodesOfType(SchemaMethodParameter.class);
-			app.deleteAllNodesOfType(SchemaProperty.class);
-			app.deleteAllNodesOfType(SchemaView.class);
-			app.deleteAllNodesOfType(SchemaGrant.class);
+			app.deleteAllNodesOfType(StructrTraits.SCHEMA_RELATIONSHIP_NODE);
+			app.deleteAllNodesOfType(StructrTraits.SCHEMA_NODE);
+			app.deleteAllNodesOfType(StructrTraits.SCHEMA_METHOD);
+			app.deleteAllNodesOfType(StructrTraits.SCHEMA_METHOD_PARAMETER);
+			app.deleteAllNodesOfType(StructrTraits.SCHEMA_PROPERTY);
+			app.deleteAllNodesOfType(StructrTraits.SCHEMA_VIEW);
+			app.deleteAllNodesOfType(StructrTraits.SCHEMA_GRANT);
 
 			newSchema.createDatabaseSchema(JsonSchema.ImportMode.replace);
 
@@ -195,7 +194,7 @@ public class StructrSchema {
 
 		try (final Tx tx = app.tx()) {
 
-			SchemaService.prefetchSchemaNodes(tx);
+			//SchemaService.prefetchSchemaNodes(tx);
 
 			newSchema.createDatabaseSchema(JsonSchema.ImportMode.extend);
 

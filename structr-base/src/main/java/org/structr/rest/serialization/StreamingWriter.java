@@ -34,11 +34,11 @@ import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.Traits;
 import org.structr.schema.Schema;
 
 import java.io.IOException;
@@ -61,7 +61,6 @@ import java.util.concurrent.Future;
 public abstract class StreamingWriter {
 
 	private static final Logger logger                   = LoggerFactory.getLogger(StreamingWriter.class.getName());
-	private static final Set<PropertyKey> idTypeNameOnly = new LinkedHashSet<>(Arrays.asList(GraphObject.id, AbstractNode.type, AbstractNode.name));
 
 	private final ExecutorService threadPool              = Executors.newWorkStealingPool();
 	private final Map<String, Serializer> serializerCache = new LinkedHashMap<>();
@@ -448,21 +447,23 @@ public abstract class StreamingWriter {
 
 					// property keys (for nested objects check if view exists on type)
 					Set<PropertyKey> keys = source.getPropertyKeys(localPropertyView);
+					final Traits traits   = source.getTraits();
+					final boolean hasView = traits.getViewNames().contains(localPropertyView);
 
-					if ((keys == null || keys.isEmpty()) && depth > 0 && !StructrApp.getConfiguration().hasView(source.getClass(), localPropertyView)) {
-						keys = idTypeNameOnly;
+					if ((keys == null || keys.isEmpty()) && depth > 0 && !hasView) {
+						keys = Traits.getDefaultKeys();
 					}
 
 					if (keys != null) {
 
 						// speciality for all, custom and ui view: limit recursive rendering to (id, type, name)
 						if (reduceNestedObjectsForRestrictedViews && depth > reduceNestedObjectsInRestrictedViewsDepth && Schema.RestrictedViews.contains(localPropertyView)) {
-							keys = idTypeNameOnly;
+							keys = Traits.getDefaultKeys();
 						}
 
 						// speciality nested nodes which were already rendered: limit recursive rendering (id, type, name)
 						if (reduceRedundancy && !notVisitedBefore && depth > 0) {
-							keys = idTypeNameOnly;
+							keys = Traits.getDefaultKeys();
 						}
 
 						// prefetching hook

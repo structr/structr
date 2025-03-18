@@ -18,56 +18,18 @@
  */
 package org.structr.feed.entity;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.common.fulltext.FulltextIndexer;
-import org.structr.common.fulltext.Indexable;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
 
 /**
  * Represents a content element of a feed item
  *
  */
-public abstract class AbstractFeedItem extends AbstractNode implements Indexable {
+public interface AbstractFeedItem extends NodeInterface {
 
-	public void updateIndex(final SecurityContext securityContext) {
-
-		try {
-
-			if (indexingEnabled()) {
-
-				final FulltextIndexer indexer = StructrApp.getInstance(securityContext).getFulltextIndexer();
-				indexer.addToFulltextIndex(this);
-			}
-
-		} catch (FrameworkException fex) {
-
-			final Logger logger = LoggerFactory.getLogger(AbstractFeedItem.class);
-			logger.warn("Unable to index {}: {}", this, fex.getMessage());
-		}
-	}
-
-	@Override
-	public boolean indexingEnabled() {
-		return Settings.FeedItemContentIndexingEnabled.getValue();
-	}
-
-	@Override
-	public Integer maximumIndexedWords() {
-		return Settings.FeedItemContentIndexingLimit.getValue();
-	}
-
-	@Override
-	public Integer indexedWordMinLength() {
-		return Settings.FeedItemContentIndexingMinLength.getValue();
-	}
-
-	@Override
-	public Integer indexedWordMaxLength() {
-		return Settings.FeedItemContentIndexingMaxLength.getValue();
-	}
+	void updateIndex(final SecurityContext securityContext);
+	boolean indexingEnabled();
+	Integer maximumIndexedWords();
+	Integer indexedWordMinLength();
+	Integer indexedWordMaxLength();
 }

@@ -60,7 +60,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
 
 	@Override
 	public String getContentType() {
-		return getAbstractFile().getProperty(StructrApp.key(File.class, "contentType"));
+		return getAbstractFile().as(File.class).getContentType();
 	}
 
 	@Override

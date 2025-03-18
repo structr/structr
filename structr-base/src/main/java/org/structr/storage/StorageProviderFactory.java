@@ -20,19 +20,24 @@ package org.structr.storage;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.web.entity.AbstractFile;
-import org.structr.web.entity.Folder;
-
-import java.lang.reflect.InvocationTargetException;
-import java.util.Map;
-import java.util.Map.Entry;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.storage.providers.local.LocalFSStorageProvider;
+import org.structr.web.entity.AbstractFile;
+import org.structr.web.entity.Folder;
 import org.structr.web.entity.StorageConfiguration;
+
+import java.lang.reflect.InvocationTargetException;
+import java.util.Map;
+import java.util.Map.Entry;
+import org.structr.web.traits.definitions.StorageConfigurationTraitDefinition;
 
 public abstract class StorageProviderFactory {
 
@@ -49,16 +54,20 @@ public abstract class StorageProviderFactory {
 	 */
 	public static StorageConfiguration createConfig(final String name, final Class<? extends StorageProvider> impl, final Map<String, String> configuration) throws FrameworkException {
 
-		final App app = StructrApp.getInstance();
+		final Traits traits = Traits.of(StructrTraits.STORAGE_CONFIGURATION);
+		final App app       = StructrApp.getInstance();
 
 		try (final Tx tx = app.tx()) {
 
-			final StorageConfiguration sc = app.create(StorageConfiguration.class,
-				new NodeAttribute<>(StructrApp.key(StorageConfiguration.class, "name"),     name),
-				new NodeAttribute<>(StructrApp.key(StorageConfiguration.class, "provider"), impl.getName())
+			final NodeInterface node = app.create(StructrTraits.STORAGE_CONFIGURATION,
+				new NodeAttribute<>(traits.key(StorageConfigurationTraitDefinition.NAME_PROPERTY),     name),
+				new NodeAttribute<>(traits.key(StorageConfigurationTraitDefinition.PROVIDER_PROPERTY), impl.getName())
 			);
 
+			final StorageConfiguration sc = node.as(StorageConfiguration.class);
+
 			if (configuration != null) {
+
 
 				for (final Entry<String, String> c : configuration.entrySet()) {
 					sc.addEntry(c.getKey(), c.getValue());
@@ -82,12 +91,12 @@ public abstract class StorageProviderFactory {
 		return getDefaultStorageProvider(file);
 	}
 
-	public static StorageProvider getSpecificStorageProvider(final AbstractFile file, final StorageConfiguration config) {
+	public static StorageProvider getSpecificStorageProvider(final AbstractFile file, final NodeInterface config) {
 
 		if (config != null) {
 
 			// Get config by name and get provider class to instantiate via reflection
-			final Class<? extends StorageProvider> storageProviderClass = config.getStorageProviderImplementation();
+			final Class<? extends StorageProvider> storageProviderClass = config.as(StorageConfiguration.class).getStorageProviderImplementation();
 			if (storageProviderClass != null) {
 
 				try {

@@ -4067,7 +4067,9 @@ let _Pages = {
 		},
 		handleLinkableElement: (div, entityToLinkTo, linkableObject) => {
 
-			if (_Helpers.isIn(entityToLinkTo.id, linkableObject.linkingElementsIds)) {
+			let linkingElements = linkableObject.linkingElementsIds ?? [];
+
+			if (linkingElements.includes(entityToLinkTo.id)) {
 				div.classList.add('nodeActive');
 			}
 

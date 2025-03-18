@@ -21,87 +21,104 @@ package org.structr.flow.impl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.graph.RelationshipType;
-import org.structr.common.PropertyView;
+import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
-import org.structr.common.View;
-import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.helper.ValidationHelper;
-import org.structr.core.Export;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.graph.ModificationQueue;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.*;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.flow.api.FlowResult;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowEngine;
-import org.structr.flow.impl.rels.*;
 import org.structr.module.api.DeployableEntity;
 import org.structr.web.entity.dom.DOMNode;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 /**
  *
  */
-public class FlowContainer extends AbstractNode implements DeployableEntity {
-
-	public static final Property<FlowContainerPackage> flowPackage                        = new StartNode<>("flowPackage", FlowContainerPackageFlow.class);
-	public static final Property<Iterable<FlowBaseNode>> flowNodes                        = new EndNodes<>("flowNodes", FlowContainerBaseNode.class);
-	public static final Property<Iterable<FlowContainerConfiguration>> flowConfigurations = new StartNodes<>("flowConfigurations", FlowContainerConfigurationFlow.class);
-	public static final Property<FlowContainerConfiguration> activeFlowConfiguration      = new StartNode<>("activeConfiguration", FlowActiveContainerConfiguration.class);
-	public static final Property<FlowNode> startNode                                      = new EndNode<>("startNode", FlowContainerFlowNode.class).indexed();
-	public static final Property<String> name                                             = new StringProperty("name").notNull().indexed();
-	public static final Property<Object> effectiveName                                    = new FunctionProperty<>("effectiveName").indexed().unique().notNull().readFunction("if(empty(this.flowPackage), this.name, concat(this.flowPackage.effectiveName, \".\", this.name))").writeFunction("{\r\n\tlet self = Structr.get(\'this\');\r\n\tlet path = Structr.get(\'value\');\r\n\r\n\tfunction getOrCreatePackage(name, path) {\r\n\t\tlet effectiveName = Structr.empty(path) ? name : Structr.concat(path,\".\",name);\r\n\r\n\t\tlet package = Structr.first(Structr.find(\"FlowContainerPackage\", \"effectiveName\", effectiveName));\r\n\r\n\t\tif (Structr.empty(path)) {\r\n\t\t\t\r\n\t\t\tif (Structr.empty(package)) {\r\n\t\t\t\tpackage = Structr.create(\"FlowContainerPackage\", \"name\", name);\r\n\t\t\t}\r\n\t\t} else {\r\n\t\t\tlet parent = Structr.first(Structr.find(\"FlowContainerPackage\", \"effectiveName\", path));\r\n\r\n\t\t\tif (Structr.empty(package)) {\r\n\t\t\t\tpackage = Structr.create(\"FlowContainerPackage\", \"name\", name, \"parent\", parent);\r\n\t\t\t}\r\n\t\t}\r\n\r\n\t\treturn package;\r\n\t}\r\n\r\n\tif (!Structr.empty(path)) {\r\n\r\n\t\tif (path.length > 0) {\r\n\r\n\t\t\tlet flowName = null;\r\n\r\n\t\t\tif (path.indexOf(\".\") !== -1) {\r\n\r\n\t\t\t\tlet elements = path.split(\".\");\r\n\r\n\t\t\t\tif (elements.length > 1) {\r\n\r\n\t\t\t\t\tflowName = elements.pop();\r\n\t\t\t\t\tlet currentPath = \"\";\r\n\t\t\t\t\tlet parentPackage = null;\r\n\r\n\t\t\t\t\tfor (let el of elements) {\r\n\t\t\t\t\t\tlet package = getOrCreatePackage(el, currentPath);\r\n\t\t\t\t\t\tparentPackage = package;\r\n\t\t\t\t\t\tcurrentPath = package.effectiveName;\r\n\t\t\t\t\t}\r\n\r\n\t\t\t\t\tself.flowPackage = parentPackage;\r\n\t\t\t\t} else {\r\n\r\n\t\t\t\t\tflowName = elements[0];\r\n\t\t\t\t}\r\n\r\n\t\t\t\tself.name = flowName;\r\n\t\t\t} else {\r\n\r\n\t\t\t\tself.name = path;\r\n\t\t\t}\r\n\r\n\t\t}\r\n\r\n\t}\r\n\r\n}").typeHint("String");
-	public static final Property<Boolean> scheduledForIndexing                            = new BooleanProperty("scheduledForIndexing").defaultValue(false);
-	public static final Property<Iterable<DOMNode>> repeaterNodes                         = new StartNodes<>("repeaterNodes", DOMNodeFLOWFlowContainer.class);
-	public static final Property<String> apiSpecification                                 = new StringProperty("apiSpecification");
-
-
-	public static final View defaultView       = new View(FlowContainer.class, PropertyView.Public, name, flowNodes, startNode, effectiveName, scheduledForIndexing, repeaterNodes, activeFlowConfiguration);
-	public static final View uiView            = new View(FlowContainer.class, PropertyView.Ui,     name, flowNodes, startNode, flowPackage, effectiveName, scheduledForIndexing, repeaterNodes, activeFlowConfiguration, apiSpecification);
-	public static final View effectiveNameView = new View(FlowContainer.class, "effectiveNameView", type, id, effectiveName);
+public class FlowContainer extends AbstractNodeTraitWrapper implements DeployableEntity {
 
 	private static final Logger logger = LoggerFactory.getLogger(FlowContainer.class);
 
-	@Override
-	public boolean isValid(final ErrorBuffer errorBuffer) {
-
-		boolean valid = super.isValid(errorBuffer);
-
-		valid &= ValidationHelper.isValidStringNotBlank(this, FlowContainer.name, errorBuffer);
-		valid &= ValidationHelper.isValidPropertyNotNull(this, FlowContainer.effectiveName, errorBuffer);
-		valid &= ValidationHelper.isValidUniqueProperty(this, FlowContainer.effectiveName, errorBuffer);
-
-		return valid;
+	public FlowContainer(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
 	}
 
-	@Export
+	public FlowNode getStartNode() {
+
+		final NodeInterface startNode = wrappedObject.getProperty(traits.key("startNode"));
+		if (startNode != null) {
+
+			return startNode.as(FlowNode.class);
+		}
+
+		return null;
+	}
+
+	public Iterable<FlowBaseNode> getFlowNodes() {
+
+		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key("flowNodes"));
+
+		return Iterables.map(n -> n.as(FlowBaseNode.class), nodes);
+	}
+
+	public Iterable<FlowContainerConfiguration> getFlowConfigurations() {
+
+		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key("flowConfigurations"));
+
+		return Iterables.map(n -> n.as(FlowContainerConfiguration.class), nodes);
+	}
+
+	public String getEffectiveName() {
+		return wrappedObject.getProperty(traits.key("effectiveName"));
+	}
+
+	public void setEffectiveName(final String effectiveName) throws FrameworkException {
+		wrappedObject.setProperty(traits.key("effectiveName"), effectiveName);
+	}
+
+	public void setScheduledForIndexing(final boolean b) throws FrameworkException {
+		wrappedObject.setProperty(traits.key("scheduledForIndexing"), false);
+	}
+
+	public void setStartNode(final FlowNode next) throws FrameworkException {
+		wrappedObject.setProperty(traits.key("startNode"), next);
+	}
+
+	public void setRepeaterNodes(final Iterable<DOMNode> repeaterNodes) throws FrameworkException {
+		wrappedObject.setProperty(traits.key("repeaterNodes"), repeaterNodes);
+	}
+
 	public Iterable<Object> evaluate(final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException {
 
-		final FlowEngine engine       = new FlowEngine();
-		final Context context         = new Context();
+		final FlowEngine engine = new FlowEngine();
+		final Context context   = new Context();
+
 		context.setParameters(parameters);
-		final FlowNode entry          = getProperty(startNode);
-		final FlowResult flowResult       = engine.execute(context, entry);
+
+		final FlowNode entry        = getStartNode();
+		final FlowResult flowResult = engine.execute(context, entry);
 
 		if (flowResult.getError() != null) {
 
 			// Log in case of error
 			if (flowResult.getError().getCause() != null) {
 
-				logger.error("Unexpected exception in flow [" + getProperty(effectiveName) + "]:" , flowResult.getError().getCause());
+				logger.error("Unexpected exception in flow [" + getEffectiveName() + "]:" , flowResult.getError().getCause());
 			} else {
 
-				logger.error("Unexpected exception in flow [" + getProperty(effectiveName) + "]:" + flowResult.getError().getMessage());
+				logger.error("Unexpected exception in flow [" + getEffectiveName() + "]:" + flowResult.getError().getMessage());
 			}
 
 			final List<Object> result = new ArrayList<>();
@@ -112,6 +129,7 @@ public class FlowContainer extends AbstractNode implements DeployableEntity {
 		if (flowResult.getResult() instanceof Iterable) {
 
 			return (Iterable)flowResult.getResult();
+
 		} else {
 
 			final List<Object> result = new ArrayList<>();
@@ -121,15 +139,17 @@ public class FlowContainer extends AbstractNode implements DeployableEntity {
 
 	}
 
-	@Export
 	public Iterable<FlowBaseNode> getFlowNodes(final SecurityContext securityContext) {
 
 		App app = StructrApp.getInstance(securityContext);
 
 		try (Tx tx = app.tx()) {
 
-			return this.getProperty(FlowContainer.flowNodes);
+			final Iterable<FlowBaseNode> nodes = getFlowNodes();
 
+			tx.success();
+
+			return nodes;
 
 		} catch (FrameworkException ex) {
 
@@ -139,17 +159,16 @@ public class FlowContainer extends AbstractNode implements DeployableEntity {
 		return null;
 	}
 
-	@Export
-	public Iterable<AbstractRelationship> getFlowRelationships(final SecurityContext securityContext) {
+	public Iterable<RelationshipInterface> getFlowRelationships(final SecurityContext securityContext) {
 
 		App app = StructrApp.getInstance(securityContext);
 
-		List<AbstractRelationship> rels = null;
+		List<RelationshipInterface> rels = null;
 
 		try (Tx tx = app.tx()) {
 
 			rels = new ArrayList<>();
-			Iterable<FlowBaseNode> nodes = this.getProperty(FlowContainer.flowNodes);
+			Iterable<FlowBaseNode> nodes = this.getFlowNodes();
 
 			for (final FlowBaseNode node : nodes) {
 
@@ -181,57 +200,39 @@ public class FlowContainer extends AbstractNode implements DeployableEntity {
 
 	@Override
 	public Map<String, Object> exportData() {
-		Map<String, Object> result = new HashMap<>();
 
-		result.put("id", this.getUuid());
-		result.put("type", this.getClass().getSimpleName());
-		result.put("name", this.getName());
+		final Map<String, Object> result = new TreeMap<>();
 
-		result.put("visibleToPublicUsers", this.getProperty(visibleToPublicUsers));
-		result.put("visibleToAuthenticatedUsers", this.getProperty(visibleToAuthenticatedUsers));
+		result.put("id",   wrappedObject.getUuid());
+		result.put("type", wrappedObject.getType());
+		result.put("name", wrappedObject.getName());
+
+		result.put("visibleToPublicUsers",        wrappedObject.isVisibleToPublicUsers());
+		result.put("visibleToAuthenticatedUsers", wrappedObject.isVisibleToAuthenticatedUsers());
 
 		return result;
 	}
 
-	@Override
-	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
-		super.onCreation(securityContext, errorBuffer);
+	public void deleteChildren() {
 
-		this.setProperty(visibleToAuthenticatedUsers, true);
-		this.setProperty(visibleToPublicUsers, true);
-	}
-
-	@Override
-	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
-		super.onModification(securityContext, errorBuffer, modificationQueue);
-		setProperty(scheduledForIndexing, false);
-	}
-
-	@Override
-	public void onNodeDeletion(SecurityContext securityContext) throws FrameworkException {
-		deleteChildren();
-	}
-
-	private void deleteChildren() {
-
-		final Iterable<FlowBaseNode> nodes                 = getProperty(flowNodes);
-		final Iterable<FlowContainerConfiguration> configs = getProperty(flowConfigurations);
+		final Iterable<FlowContainerConfiguration> configs = getFlowConfigurations();
+		final Iterable<FlowBaseNode> nodes                 = getFlowNodes();
 		final App app                                      = StructrApp.getInstance();
 
 		try (Tx tx = app.tx()) {
-			for (FlowBaseNode node: nodes) {
+
+			for (final FlowBaseNode node: nodes) {
 				app.delete(node);
 			}
 
-			for (FlowContainerConfiguration conf: configs) {
+			for (final FlowContainerConfiguration conf: configs) {
 				app.delete(conf);
 			}
 
 			tx.success();
+
 		} catch (FrameworkException ex) {
 			logger.warn("Could not handle onDelete for FlowContainer: " + ex.getMessage());
 		}
-
 	}
-
 }

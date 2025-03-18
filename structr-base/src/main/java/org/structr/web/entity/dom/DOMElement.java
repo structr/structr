@@ -32,7 +32,7 @@ import org.structr.web.entity.event.ParameterMapping;
 import org.structr.process.entity.*;
 
 import java.util.Map;
-import org.structr.web.traits.definitions.dom.DOMElementTrviewaitDefinition;
+import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
 
 public interface DOMElement extends DOMNode  {
 

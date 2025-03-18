@@ -34,17 +34,17 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.StructrTraits;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 import org.structr.web.entity.LinkSource;
-import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.dom.Template;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -222,11 +222,11 @@ public class RenderContext extends ActionContext {
 	 * @param user
 	 * @return edit mode
 	 */
-	public EditMode getEditMode(final PrincipalInterface user) {
+	public EditMode getEditMode(final Principal user) {
 		return (user == null || Boolean.FALSE.equals(user.isAdmin())) ? EditMode.NONE : editMode;
 	}
 
-	public static EditMode getValidatedEditMode(final PrincipalInterface user, final String editModeString) {
+	public static EditMode getValidatedEditMode(final Principal user, final String editModeString) {
 		return (user == null || Boolean.FALSE.equals(user.isAdmin())) ? EditMode.NONE : editMode(editModeString);
 	}
 
@@ -336,22 +336,22 @@ public class RenderContext extends ActionContext {
 		return dataObjects;
 	}
 
-	public GraphObject getDataNode(String key) {
+	public GraphObject getDataNode(final String key) {
 		return dataObjects.get(key);
 	}
 
-	public void putDataObject(String key, GraphObject currentDataObject) {
+	public void putDataObject(final String key, final GraphObject currentDataObject) {
 		dataObjects.put(key, currentDataObject);
 		setDataObject(currentDataObject);
 
 	}
 
-	public void clearDataObject(String key) {
+	public void clearDataObject(final String key) {
 		dataObjects.remove(key);
 		setDataObject(null);
 	}
 
-	public boolean hasDataForKey(String key) {
+	public boolean hasDataForKey(final String key) {
 		return dataObjects.containsKey(key);
 	}
 
@@ -426,10 +426,11 @@ public class RenderContext extends ActionContext {
 					// link has two different meanings
 					case "link":
 
-						if (data instanceof LinkSource) {
+						if (data instanceof NodeInterface node && node.is(StructrTraits.LINK_SOURCE)) {
 
 							hints.reportExistingKey(key);
-							final LinkSource linkSource = (LinkSource)data;
+
+							final LinkSource linkSource = node.as(LinkSource.class);
 							return linkSource.getLinkable();
 						}
 						break;
@@ -460,34 +461,34 @@ public class RenderContext extends ActionContext {
 
 					case "template":
 
-						if (entity instanceof DOMNode) {
+						if (entity.is(StructrTraits.DOM_NODE)) {
 							hints.reportExistingKey(key);
-							return ((DOMNode) entity).getClosestTemplate(getPage());
+							return entity.as(DOMNode.class).getClosestTemplate(getPage());
 						}
 						break;
 
 					case "page":
 						hints.reportExistingKey(key);
 						Page page = getPage();
-						if (page == null && entity instanceof DOMNode) {
-							page = ((DOMNode) entity).getOwnerDocument();
+						if (page == null && entity.is(StructrTraits.DOM_NODE)) {
+							page = entity.as(DOMNode.class).getOwnerDocument();
 						}
 						return page;
 
 					case "parent":
 
-						if (entity instanceof DOMNode) {
+						if (entity.is(StructrTraits.DOM_NODE)) {
 							hints.reportExistingKey(key);
-							return ((DOMNode) entity).getParentNode();
+							return entity.as(DOMNode.class).getParent();
 						}
 						break;
 
 					case "children":
 
-						if (entity instanceof DOMNode) {
+						if (entity.is(StructrTraits.DOM_NODE)) {
 
 							hints.reportExistingKey(key);
-							return ((DOMNode) entity).getChildNodes();
+							return entity.as(DOMNode.class).getChildNodes();
 
 						}
 						break;
@@ -495,10 +496,12 @@ public class RenderContext extends ActionContext {
 					// link has two different meanings
 					case "link":
 
-						if (entity instanceof LinkSource) {
+						if (entity.is(StructrTraits.LINK_SOURCE)) {
 
 							hints.reportExistingKey(key);
-							final LinkSource linkSource = (LinkSource)entity;
+
+							final LinkSource linkSource = entity.as(LinkSource.class);
+
 							return linkSource.getLinkable();
 						}
 						break;
@@ -517,7 +520,7 @@ public class RenderContext extends ActionContext {
 	@Override
 	public void print(final Object[] objects, final Object caller) {
 
-		if ((caller instanceof Template) || (caller instanceof Content)) {
+		if (caller instanceof NodeInterface n && (n.is(StructrTraits.TEMPLATE) || n.is(StructrTraits.CONTENT))) {
 
 			for (final Object obj : objects) {
 

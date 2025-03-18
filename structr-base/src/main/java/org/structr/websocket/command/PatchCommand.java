@@ -23,11 +23,12 @@ import org.bitbucket.cowwoc.diffmatchpatch.DiffMatchPatch;
 import org.bitbucket.cowwoc.diffmatchpatch.DiffMatchPatch.Patch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyKey;
-import org.structr.web.entity.dom.Content;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.web.traits.definitions.dom.ContentTraitDefinition;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -51,8 +52,8 @@ public class PatchCommand extends AbstractCommand {
 
 		setDoTransactionNotifications(true);
 
-		final PropertyKey<String> contentKey = StructrApp.key(Content.class, "content");
-		final AbstractNode node              = getNode(webSocketData.getId());
+		final PropertyKey<String> contentKey = Traits.of(StructrTraits.CONTENT).key(ContentTraitDefinition.CONTENT_PROPERTY);
+		final NodeInterface node             = getNode(webSocketData.getId());
 		final String patch                   = webSocketData.getNodeDataStringValue("patch");
 
 		if (node != null) {

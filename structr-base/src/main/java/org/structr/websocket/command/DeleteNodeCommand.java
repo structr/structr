@@ -18,8 +18,6 @@
  */
 package org.structr.websocket.command;
 
-import java.util.LinkedList;
-import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.Permission;
@@ -27,16 +25,19 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 import org.w3c.dom.DOMException;
+
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Websocket command to delete a single node.
@@ -61,7 +62,7 @@ public class DeleteNodeCommand extends AbstractCommand {
 
 		if (obj != null) {
 
-			TransactionCommand.registerNodeCallback((NodeInterface) obj, callback);
+			TransactionCommand.registerNodeCallback(obj, callback);
 
 			deleteNode(getWebSocket(), obj, recursive);
 		}
@@ -95,17 +96,17 @@ public class DeleteNodeCommand extends AbstractCommand {
 			try {
 
 				final List<NodeInterface> filteredResults = new LinkedList<>();
-				if (obj instanceof DOMNode) {
+				if (obj.is(StructrTraits.DOM_NODE)) {
 
-					DOMNode node = (DOMNode) obj;
+					DOMNode node = obj.as(DOMNode.class);
 
-					filteredResults.addAll(DOMNode.getAllChildNodes(node));
+					filteredResults.addAll(node.getAllChildNodes());
 
-				} else if (obj instanceof Folder) {
+				} else if (obj.is(StructrTraits.FOLDER)) {
 
-					Folder node = (Folder) obj;
+					Folder node = obj.as(Folder.class);
 
-					filteredResults.addAll(Folder.getAllChildNodes(node));
+					filteredResults.addAll(node.getAllChildNodes());
 				}
 
 				for (NodeInterface node : filteredResults) {
@@ -134,7 +135,6 @@ public class DeleteNodeCommand extends AbstractCommand {
 		}
 	}
 
-	//~--- get methods ----------------------------------------------------
 	@Override
 	public String getCommand() {
 		return "DELETE";

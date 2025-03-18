@@ -21,6 +21,8 @@ package org.structr.web.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
@@ -48,9 +50,9 @@ public class GetSourceFunction extends UiAdvancedFunction {
 
 			assertArrayHasMinLengthAndAllElementsNotNull(sources, 2);
 
-			if (sources[0] instanceof DOMNode && sources[1] instanceof Number) {
+			if (sources[0] instanceof NodeInterface n && n.is(StructrTraits.DOM_NODE) && sources[1] instanceof Number) {
 
-				final DOMNode node    = (DOMNode)sources[0];
+				final DOMNode node    = n.as(DOMNode.class);
 				final Number editMode = (Number)sources[1];
 				final EditMode mode   = RenderContext.editMode(Integer.toString(editMode.intValue()));
 				final String content  = node.getContent(mode);

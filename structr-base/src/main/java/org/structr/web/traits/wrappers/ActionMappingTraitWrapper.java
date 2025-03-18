@@ -24,6 +24,8 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
+import org.structr.process.entity.Process;
+import org.structr.process.entity.ProcessStep;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.event.ActionMapping;
@@ -59,6 +61,11 @@ public class ActionMappingTraitWrapper extends AbstractNodeTraitWrapper implemen
 	@Override
 	public String getMethod() {
 		return wrappedObject.getProperty(traits.key(ActionMappingTraitDefinition.METHOD_PROPERTY));
+	}
+
+	@Override
+	public String getFlow() {
+		return wrappedObject.getProperty(traits.key(ActionMappingTraitDefinition.FLOW_PROPERTY));
 	}
 
 	@Override
@@ -145,6 +152,48 @@ public class ActionMappingTraitWrapper extends AbstractNodeTraitWrapper implemen
 	public Iterable<DOMNode> getFailureNotificationElements() {
 
 		final PropertyKey<Iterable<NodeInterface>> key = traits.key(ActionMappingTraitDefinition.FAILURE_NOTIFICATION_ELEMENTS_PROPERTY);
+
+		return Iterables.map(n -> n.as(DOMNode.class), wrappedObject.getProperty(key));
+	}
+
+	@Override
+	public Process getProcess() {
+		return wrappedObject.getProperty(traits.key(ActionMappingTraitDefinition.PROCESS_PROPERTY));
+	}
+
+	@Override
+	public ProcessStep getProcessStep() {
+		return wrappedObject.getProperty(traits.key(ActionMappingTraitDefinition.PROCESS_STEP_PROPERTY));
+	}
+
+	@Override
+	public Iterable<DOMNode> getProcessSuccessShowElements() {
+
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key(ActionMappingTraitDefinition.PROCESS_SUCCESS_SHOW_ELEMENTS_PROPERTY);
+
+		return Iterables.map(n -> n.as(DOMNode.class), wrappedObject.getProperty(key));
+	}
+
+	@Override
+	public Iterable<DOMNode> getProcessSuccessHideElements() {
+
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key(ActionMappingTraitDefinition.PROCESS_SUCCESS_HIDE_ELEMENTS_PROPERTY);
+
+		return Iterables.map(n -> n.as(DOMNode.class), wrappedObject.getProperty(key));
+	}
+
+	@Override
+	public Iterable<DOMNode> getProcessFailureShowElements() {
+
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key(ActionMappingTraitDefinition.PROCESS_FAILURE_SHOW_ELEMENTS_PROPERTY);
+
+		return Iterables.map(n -> n.as(DOMNode.class), wrappedObject.getProperty(key));
+	}
+
+	@Override
+	public Iterable<DOMNode> getProcessFailureHideElements() {
+
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key(ActionMappingTraitDefinition.PROCESS_FAILURE_HIDE_ELEMENTS_PROPERTY);
 
 		return Iterables.map(n -> n.as(DOMNode.class), wrappedObject.getProperty(key));
 	}

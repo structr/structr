@@ -23,10 +23,14 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.flow.api.*;
+import org.structr.flow.api.FlowHandler;
+import org.structr.flow.api.FlowResult;
+import org.structr.flow.api.FlowType;
+import org.structr.flow.api.ThrowingElement;
 import org.structr.flow.impl.FlowBaseNode;
 import org.structr.flow.impl.FlowContainer;
 import org.structr.flow.impl.FlowExceptionHandler;
+import org.structr.flow.impl.FlowNode;
 
 import java.util.EnumMap;
 import java.util.List;
@@ -54,20 +58,20 @@ public class FlowEngine {
 		this.context = context;
 	}
 
-	public FlowResult execute(final FlowElement step) throws FrameworkException {
+	public FlowResult execute(final FlowNode step) throws FrameworkException {
 		return this.execute(this.context,step);
 	}
 
-	public FlowResult execute(final Context context, final FlowElement step) throws FrameworkException{
+	public FlowResult execute(final Context context, final FlowNode step) throws FrameworkException{
 
-		FlowElement current = step;
+		FlowNode current = step;
 
 		while (current != null) {
 
 			final FlowHandler handler = handlers.get(current.getFlowType());
 			if (handler != null) {
 
-				FlowElement next = null;
+				FlowNode next = null;
 
 				try {
 
@@ -83,7 +87,7 @@ public class FlowEngine {
 
 					if (next.equals(current)) {
 
-						context.error(new FlowError("FlowElement is connected to itself. Cancelling execution to prevent unlimited recursion.", null));
+						context.error(new FlowError("FlowNode is connected to itself. Cancelling execution to prevent unlimited recursion.", null));
 
 					}
 
@@ -121,7 +125,8 @@ public class FlowEngine {
 		handlers.put(FlowType.Switch,       new SwitchHandler());
 	}
 
-	protected FlowResult handleException(final Context context, final FlowException exception, final FlowElement current) throws FrameworkException {
+	protected FlowResult handleException(final Context context, final FlowException exception, final FlowNode current) throws FrameworkException {
+
 		ThrowingElement throwingElement = exception.getThrowingElement();
 
 		// Check if throwing element has a linked FlowExceptionHandler or if there is a global one
@@ -143,29 +148,26 @@ public class FlowEngine {
 		try {
 			FlowContainer container = current.getFlowContainer();
 
-			Iterable<FlowBaseNode> flowNodes = container.getProperty(FlowContainer.flowNodes);
-
+			Iterable<FlowBaseNode> flowNodes = container.getFlowNodes();
 			if (flowNodes != null) {
 
-				for (FlowBaseNode node : flowNodes) {
+				for (final FlowBaseNode node : flowNodes) {
 
-					if (node instanceof FlowExceptionHandler) {
+					if (node.is("FlowExceptionHandler")) {
 
-						final FlowExceptionHandler exceptionHandler = (FlowExceptionHandler) node;
-						final List<FlowBaseNode> handledNodes = Iterables.toList(exceptionHandler.getProperty(FlowExceptionHandler.handledNodes));
+						final FlowExceptionHandler exceptionHandler = node.as(FlowExceptionHandler.class);
+						final List<FlowBaseNode> handledNodes       = Iterables.toList(exceptionHandler.getHandledNodes());
 
-						if (handledNodes == null || handledNodes.size() == 0) {
+						if (handledNodes == null || handledNodes.isEmpty()) {
 
 							context.setData(exceptionHandler.getUuid(), exception);
 							return this.execute(context, exceptionHandler);
 
 						}
-
 					}
-
 				}
-
 			}
+
 		} catch (NullPointerException ex) {
 
 			logger.error("Exception while processing FlowException.", ex);

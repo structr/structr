@@ -24,7 +24,6 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.graph.Relationship;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractRelationship;
 
 /**
  * Deletes the relationship supplied as a parameter.
@@ -54,7 +53,7 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
 
 		if (graphDb != null && rel != null && !rel.isDeleted()) {
 
-			if (rel.getProperty(AbstractRelationship.id) == null) {
+			if (rel.getUuid() == null) {
 
 				logger.warn("Will not delete relationship which has no UUID: {} --[:{}]-->{}", new Object[] { rel.getSourceNode(), rel.getType(), rel.getTargetNode() });
 

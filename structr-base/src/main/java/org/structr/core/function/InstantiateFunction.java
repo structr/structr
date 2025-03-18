@@ -50,7 +50,7 @@ public class InstantiateFunction extends AdvancedScriptingFunction {
 				throw new IllegalArgumentException();
 			}
 
-			return new NodeFactory<>(ctx.getSecurityContext()).instantiate((Node)sources[0]);
+			return new NodeFactory(ctx.getSecurityContext()).instantiate((Node)sources[0]);
 
 		} catch (ArgumentNullException pe) {
 

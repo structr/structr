@@ -20,34 +20,57 @@ package org.structr.flow.impl.rels;
 
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
-import org.structr.common.PermissionPropagation;
-import org.structr.core.entity.OneToMany;
 import org.structr.core.entity.Relation;
-import org.structr.flow.api.DataSource;
+import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
+import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
 /**
  *
  */
-public class FlowNameDataSource extends OneToMany<DataSource, DataSource> implements PermissionPropagation {
+public class FlowNameDataSource extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
-	@Override
-	public Class<DataSource> getSourceType() {
-		return DataSource.class;
+	public FlowNameDataSource() {
+		super("FlowNameDataSource");
 	}
 
 	@Override
-	public Class<DataSource> getTargetType() {
-		return DataSource.class;
+	public String getSourceType() {
+		return "FlowDataSource";
 	}
 
 	@Override
-	public String name() {
+	public String getTargetType() {
+		return "FlowDataSource";
+	}
+
+	@Override
+	public String getRelationshipType() {
 		return "NAME_DATA_SOURCE";
+	}
+
+	@Override
+	public Relation.Multiplicity getSourceMultiplicity() {
+		return Relation.Multiplicity.One;
+	}
+
+	@Override
+	public Relation.Multiplicity getTargetMultiplicity() {
+		return Relation.Multiplicity.Many;
+	}
+
+	@Override
+	public int getCascadingDeleteFlag() {
+		return Relation.NONE;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
 		return Relation.ALWAYS;
+	}
+
+	@Override
+	public boolean isInternal() {
+		return false;
 	}
 
 	@Override

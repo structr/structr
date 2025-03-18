@@ -173,20 +173,6 @@ document.addEventListener("DOMContentLoaded", () => {
 			let { dialogText } = _Dialogs.custom.openDialog('Bulk Editing Helper (Ctrl-Alt-E)');
 			new RefactoringHelper(dialogText).show();
 		}
-
-		// ctrl-u / cmd-u: show generated source in schema or code area
-		if ((code === 'KeyU' || keyCode === 85) && ((!_Helpers.isMac() && event.ctrlKey) || (_Helpers.isMac() && event.metaKey))) {
-
-			let sourceCodeTab = document.querySelector('li#tab-source-code');
-
-			if (sourceCodeTab) {
-
-				event.preventDefault();
-
-				sourceCodeTab.dispatchEvent(new Event('click'));
-				sourceCodeTab.style.display = null;
-			}
-		}
 	});
 
 	window.addEventListener('resize', Structr.resize);
@@ -277,7 +263,7 @@ let Structr = {
 		let dialogBox = _Dialogs.custom.getDialogBoxElement();
 		if (dialogBox && dialogBox.offsetParent) {
 
-			let reconnectDialogElement = dialogBox.querySelector('#reconnect-dialog')
+			let reconnectDialogElement = dialogBox.querySelector('#reconnect-dialog');
 			if (!reconnectDialogElement) {
 
 				let parent = dialogBox.parentNode;
@@ -1624,10 +1610,14 @@ let Structr = {
 									break;
 
 								case 'SchemaMethod':
+
 									if (obj.schemaNode) {
+
 										title    = `type "${obj.schemaNode.name}"`;
 										property = (obj.isStatic === true) ? 'Static Method' : 'Method';
+
 									} else {
+
 										title    = 'user-defined function';
 										property = 'Method';
 									}
@@ -1801,9 +1791,12 @@ let Structr = {
 
 		_Dialogs.basic.append(reconnectDialog, { padding: '1rem' });
 	},
+	getReconnectDialogElement: () => {
+		return document.getElementById('reconnect-dialog');
+	},
 	hideReconnectDialog: () => {
 		// remove reconnect dialog
-		let reconnectMessage = document.getElementById('reconnect-dialog');
+		let reconnectMessage = Structr.getReconnectDialogElement();
 		_Dialogs.basic.removeBlockerAround(reconnectMessage);
 	},
 	dropdownOpenEventName: 'dropdown-opened',
@@ -2132,18 +2125,16 @@ let _TreeHelper = {
 
 			} else {
 
-				// no anchor found (previous parts of the tree are not yet expanded, directly edit the svgIcon of the data node, keeping the width and height)
-				if (node.data.svgIcon) {
+				// no anchor found
+				if (node.data.svgIcon && newStateIsOpen) {
 
-					if (newStateIsOpen) {
-
-						node.data.svgIcon = node.data.svgIcon.replace(`"#${_Icons.iconFolderClosed}"`,        `"#${_Icons.iconFolderOpen}"`);
-						node.data.svgIcon = node.data.svgIcon.replace(`"#${_Icons.iconMountedFolderClosed}"`, `"#${_Icons.iconMountedFolderOpen}"`);
-
-					} else {
-
-						node.data.svgIcon = node.data.svgIcon.replace(`"#${_Icons.iconFolderOpen}"`,        `"#${_Icons.iconFolderClosed}"`);
-						node.data.svgIcon = node.data.svgIcon.replace(`"#${_Icons.iconMountedFolderOpen}"`, `"#${_Icons.iconMountedFolderClosed}"`);
+					if (
+						node.data.svgIcon.indexOf(`"#${_Icons.iconFolderOpen}"`) !== -1 ||
+						node.data.svgIcon.indexOf(`"#${_Icons.iconFolderClosed}"`) !== -1 ||
+						node.data.svgIcon.indexOf(`"#${_Icons.iconMountedFolderOpen}"`) !== -1 ||
+						node.data.svgIcon.indexOf(`"#${_Icons.iconMountedFolderClosed}"`) !== -1
+					) {
+						node.data.svgIcon = _Icons.getSvgIcon(_Icons.iconFolderOpen);
 					}
 				}
 			}
@@ -2151,7 +2142,7 @@ let _TreeHelper = {
 
 		tree.on('after_open.jstree', (event, data) => {
 
-			if (data.node.id !== '/root') {
+			if (data.node.id !== 'root') {
 
 				let svgIcon = getSvgIconFromNode(data.node);
 				if (svgIcon) {
@@ -2233,6 +2224,11 @@ let _TreeHelper = {
 	},
 	getNode: (tree, node) => {
 		return $(tree).jstree('get_node', node);
+	},
+	isNodeOpened: (tree, node) => {
+		let n = _TreeHelper.getNode(tree, node);
+
+		return n?.state.opened;
 	},
 	makeAllTreeElementsDroppable: (tree, dragndropFunction) => {
 

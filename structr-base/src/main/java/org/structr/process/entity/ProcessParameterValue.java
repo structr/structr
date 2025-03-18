@@ -19,17 +19,13 @@
 package org.structr.process.entity;
 
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.EndNode;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
-import org.structr.process.entity.relationship.ProcessInstanceHAS_PARAMETERProcessParameterValue;
-import org.structr.process.entity.relationship.ProcessParameterValueVALUE_OFProcessParameter;
+import org.structr.process.traits.relationship.ProcessInstanceHAS_PARAMETERProcessParameterValue;
+import org.structr.process.traits.relationship.ProcessParameterValueVALUE_OFProcessParameter;
 
-public class ProcessParameterValue extends AbstractNode {
-
-    public static final Property<String>                    value = new StringProperty("value").hint("String representation of this parameter value").partOfBuiltInSchema();
-    public static final Property<ProcessParameter>      parameter = new EndNode<>("parameter", ProcessParameterValueVALUE_OFProcessParameter.class).partOfBuiltInSchema();
-    public static final Property<ProcessInstance> processInstance = new StartNode<>("processInstance", ProcessInstanceHAS_PARAMETERProcessParameterValue.class).partOfBuiltInSchema();
-
+public interface ProcessParameterValue extends NodeInterface {
 }

@@ -20,23 +20,24 @@ package org.structr.test;
 
 import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
+import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Group;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.flow.impl.*;
 import org.structr.test.web.StructrUiTest;
-import org.structr.web.entity.User;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.html.*;
 import org.testng.annotations.Test;
-import org.w3c.dom.Node;
 
-import java.lang.Object;
-import java.util.Map;
 import java.util.*;
+import java.util.concurrent.Flow;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -53,32 +54,32 @@ public class FlowTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			FlowContainer container = app.create(FlowContainer.class, "testFlow");
+			FlowContainer container = app.create("FlowContainer", "testFlow").as(FlowContainer.class);
 
 			result = container.evaluate(securityContext, flowParameters);
 
 			assertNotNull(result);
 
-			FlowAction action = app.create(FlowAction.class, "createAction");
-			action.setProperty(FlowAction.script, "{ ['a','b','c'].forEach( data => Structr.create('User','name',data)) }");
-			action.setProperty(FlowAction.flowContainer, container);
+			FlowAction action = app.create("FlowAction", "createAction").as(FlowAction.class);
+			action.setScript("{ ['a','b','c'].forEach( data => Structr.create('User','name',data)) }");
+			action.setFlowContainer(container);
 
-			FlowDataSource ds = app.create(FlowDataSource.class, "ds");
-			ds.setProperty(FlowDataSource.query, "find('User')");
-			ds.setProperty(FlowAction.flowContainer, container);
+			FlowDataSource ds = app.create("FlowDataSource", "ds").as(FlowDataSource.class);
+			ds.setQuery("find('User')");
+			ds.setFlowContainer(container);
 
-			FlowReturn ret = app.create(FlowReturn.class, "ds");
-			ret.setProperty(FlowReturn.dataSource, ds);
-			ret.setProperty(FlowAction.flowContainer, container);
+			FlowReturn ret = app.create("FlowReturn", "ds").as(FlowReturn.class);
+			ret.setDataSource(ds);
+			ret.setFlowContainer(container);
 
-			action.setProperty(FlowAction.next, ret);
+			action.setNext(ret);
 
-			container.setProperty(FlowContainer.startNode, action);
+			container.setStartNode(action);
 
 			result = container.evaluate(securityContext, flowParameters);
 			assertNotNull(result);
 
-			ds.setProperty(FlowDataSource.query, "size(find('User'))");
+			ds.setQuery("size(find('User'))");
 
 			result = container.evaluate(securityContext, flowParameters);
 			assertNotNull(result);
@@ -99,28 +100,107 @@ public class FlowTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			FlowContainer container = app.create(FlowContainer.class, "testFlowForEach");
+			FlowContainer container = app.create("FlowContainer", "testFlowForEach").as(FlowContainer.class);
 
-			FlowForEach forEach = app.create(FlowForEach.class);
-			forEach.setProperty(FlowForEach.flowContainer, container);
-			container.setProperty(FlowContainer.startNode, forEach);
+			FlowForEach forEach = app.create("FlowForEach").as(FlowForEach.class);
+			forEach.setFlowContainer(container);
+			container.setStartNode(forEach);
 
-			FlowDataSource ds = app.create(FlowDataSource.class);
-			ds.setProperty(FlowDataSource.query, "{return [1,2,3,4,5];}");
-			ds.setProperty(FlowDataSource.flowContainer, container);
-			forEach.setProperty(FlowForEach.dataSource, ds);
+			FlowDataSource ds = app.create("FlowDataSource").as(FlowDataSource.class);
+			ds.setQuery("{return [1,2,3,4,5];}");
+			ds.setFlowContainer(container);
+			forEach.setDataSource(ds);
 
-			FlowDataSource ds2 = app.create(FlowDataSource.class);
-			ds2.setProperty(FlowDataSource.query, "now");
-			ds2.setProperty(FlowDataSource.flowContainer, container);
+			FlowDataSource ds2 = app.create("FlowDataSource").as(FlowDataSource.class);
+			ds2.setQuery("now");
+			ds2.setFlowContainer(container);
 
-			FlowAggregate agg = app.create(FlowAggregate.class);
-			agg.setProperty(FlowAggregate.flowContainer, container);
-			agg.setProperty(FlowAggregate.dataSource, ds2);
-			agg.setProperty(FlowAggregate.script, "{let data = $.get('data'); let currentData = $.get('currentData'); if (data === currentData || $.empty(currentData)) { throw 'ForEach scoping problem! Values should not be the same.' } }");
-			forEach.setProperty(FlowForEach.loopBody, agg);
+			FlowAggregate agg = app.create("FlowAggregate").as(FlowAggregate.class);
+			agg.setFlowContainer(container);
+			agg.setDataSource(ds2);
+			agg.setScript("{let data = $.get('data'); let currentData = $.get('currentData'); if (data === currentData || $.empty(currentData)) { throw 'ForEach scoping problem! Values should not be the same.' } }");
+			forEach.setLoopBody(agg);
 
 			container.evaluate(securityContext, new HashMap<>());
+
+			tx.success();
+
+		} catch (Throwable ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+
+	}
+
+	@Test
+	public void testFlowDecision() {
+
+		try (final Tx tx = app.tx()) {
+
+			FlowContainer container = app.create("FlowContainer", "testFlowDecision").as(FlowContainer.class);
+
+			FlowDecision flowDecision = app.create("FlowDecision").as(FlowDecision.class);
+			flowDecision.setFlowContainer(container);
+			container.setStartNode(flowDecision);
+
+			FlowReturn flowReturnTrue = app.create("FlowReturn").as(FlowReturn.class);
+			flowReturnTrue.setFlowContainer(container);
+			flowReturnTrue.setResult("'SUCCESS'");
+			flowDecision.setTrueElement(flowReturnTrue);
+
+			FlowReturn flowReturnFalse = app.create("FlowReturn").as(FlowReturn.class);
+			flowReturnFalse.setFlowContainer(container);
+			flowReturnFalse.setResult("'FAILURE'");
+			flowDecision.setFalseElement(flowReturnFalse);
+
+			List<Object> result = Iterables.toList(container.evaluate(securityContext, new HashMap<>()));
+			assertTrue("Result of decision element with two returns should be equal to the failure return element.", result != null && result.size() == 1 && "FAILURE".equals(result.get(0)));
+
+			FlowAnd flowAnd  = app.create("FlowAnd").as(FlowAnd.class);
+			flowAnd.setFlowContainer(container);
+			flowDecision.setCondition(flowAnd);
+
+			result = Iterables.toList(container.evaluate(securityContext, new HashMap<>()));
+			assertTrue("Empty AND element should yield failure result.", result != null && result.size() == 1 && "FAILURE".equals(result.get(0)));
+
+			// Get conditions for flowAnd
+			List<FlowCondition> conditions = Iterables.toList(flowAnd.getConditions());
+
+			FlowScriptCondition flowScriptCondition = app.create("FlowScriptCondition").as(FlowScriptCondition.class);
+			flowScriptCondition.setFlowContainer(container);
+			flowScriptCondition.setScript("true");
+			conditions.add(flowScriptCondition);
+
+			// Update flowAnd with it's new conditions
+			flowAnd.setConditions(conditions);
+
+			result = Iterables.toList(container.evaluate(securityContext, new HashMap<>()));
+			assertTrue("flowAnd should return true, since it only has one script condition returning true as well.", result != null && result.size() == 1 && "SUCCESS".equals(result.get(0)));
+
+			// Flip the output of the script condition
+			flowScriptCondition.setScriptSource("false");
+
+			result = Iterables.toList(container.evaluate(securityContext, new HashMap<>()));
+			assertTrue("Result should be false after ScriptCondition has had it's output flipped.", result != null && result.size() == 1 && "FAILURE".equals(result.get(0)));
+
+			// Add second condition to flowAnd
+			FlowNot flowNot = app.create("FlowNot").as(FlowNot.class);
+			flowNot.setFlowContainer(container);
+			conditions.add(flowNot);
+			flowAnd.setConditions(conditions);
+
+			FlowNotNull flowNotNull = app.create("FlowNotNull").as(FlowNotNull.class);
+			flowNotNull.setFlowContainer(container);
+			flowNot.setConditions(List.of(flowNotNull));
+
+			// Revert flowScriptCondition back to true
+			flowScriptCondition.setScriptSource("true");
+
+			// With flowNotNull(null)->flowNot && flowScriptCondition("true") -> flowAnd, we should get a success result
+			result = Iterables.toList(container.evaluate(securityContext, new HashMap<>()));
+			assertTrue("With flowNotNull(null)->flowNot && flowScriptCondition(\"true\") -> flowAnd, result should be SUCCESS", result != null && result.size() == 1 && "SUCCESS".equals(result.get(0)));
 
 			tx.success();
 
@@ -139,36 +219,36 @@ public class FlowTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// create admin user
-			createTestNode(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"),  true)
+			createTestNode(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of("User").key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "admin"),
+				new NodeAttribute<>(Traits.of("User").key(PrincipalTraitDefinition.PASSWORD_PROPERTY), "admin"),
+				new NodeAttribute<>(Traits.of("User").key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY),  true)
 			);
 
 			// create some test data
-			createTestNode(Group.class, new NodeAttribute<>(Group.name, "group1"));
-			createTestNode(Group.class, new NodeAttribute<>(Group.name, "group2"));
-			createTestNode(Group.class, new NodeAttribute<>(Group.name, "group3"));
-			createTestNode(Group.class, new NodeAttribute<>(Group.name, "group4"));
+			createTestNode(StructrTraits.GROUP, new NodeAttribute<>(Traits.of("Group").key("name"), "group1"));
+			createTestNode(StructrTraits.GROUP, new NodeAttribute<>(Traits.of("Group").key("name"), "group2"));
+			createTestNode(StructrTraits.GROUP, new NodeAttribute<>(Traits.of("Group").key("name"), "group3"));
+			createTestNode(StructrTraits.GROUP, new NodeAttribute<>(Traits.of("Group").key("name"), "group4"));
 
 			// create flow
-			final FlowContainer flowContainer = app.create(FlowContainer.class, "test");
-			final FlowTypeQuery query         = app.create(FlowTypeQuery.class, "query");
-			final FlowReturn    ret           = app.create(FlowReturn.class, "return");
+			final FlowContainer flowContainer = app.create("FlowContainer", "test").as(FlowContainer.class);
+			final FlowTypeQuery query         = app.create("FlowTypeQuery", "query").as(FlowTypeQuery.class);
+			final FlowReturn    ret           = app.create("FlowReturn", "return").as(FlowReturn.class);
 
-			query.setProperty(StructrApp.key(FlowTypeQuery.class, "dataType"), "Group");
-			query.setProperty(StructrApp.key(FlowTypeQuery.class, "query"), "{\"type\":\"group\",\"op\":\"and\",\"operations\":[{\"type\":\"sort\",\"key\":\"name\",\"order\":\"desc\",\"queryType\":\"Group\"}],\"queryType\":\"Group\"}");
+			query.setProperty(Traits.of("FlowTypeQuery").key("dataType"), StructrTraits.GROUP);
+			query.setProperty(Traits.of("FlowTypeQuery").key("query"), "{\"type\":\"group\",\"op\":\"and\",\"operations\":[{\"type\":\"sort\",\"key\":\"name\",\"order\":\"desc\",\"queryType\":\"Group\"}],\"queryType\":\"Group\"}");
 
-			query.setProperty(FlowAction.flowContainer, flowContainer);
+			query.setFlowContainer(flowContainer);
 
-			ret.setProperty(FlowReturn.dataSource, query);
-			ret.setProperty(FlowAction.flowContainer, flowContainer);
+			ret.setDataSource(query);
+			ret.setFlowContainer(flowContainer);
 
-			flowContainer.setProperty(FlowContainer.startNode, ret);
+			flowContainer.setStartNode(ret);
 
 			// evaluate flow
 			final Iterable<Object> result = flowContainer.evaluate(securityContext, new LinkedHashMap<>());
-			final List<Group> groups      = StreamSupport.stream(result.spliterator(), false).map((o) -> (Group)o).collect(Collectors.toList());
+			final List<Group> groups      = StreamSupport.stream(result.spliterator(), false).map((o) -> ((NodeInterface)o).as(Group.class)).collect(Collectors.toList());
 
 			assertEquals("Invalid number of groups in flow result", 4, groups.size());
 
@@ -177,14 +257,14 @@ public class FlowTest extends StructrUiTest {
 
 			newPage.setVisibility(true, true);
 
-			final Html html    = createElement(newPage, newPage, "html");
-			final Head head    = createElement(newPage, html, "head");
-			final Title title  = createElement(newPage, head, "title", "Test Page for flow-based repeater");
-			final Body body    = createElement(newPage, html, "body");
-			final Div div1     = createElement(newPage, body, "div", "${group.name}");
+			final DOMNode html  = createElement(newPage, newPage, "html");
+			final DOMNode head  = createElement(newPage, html, "head");
+			final DOMNode title = createElement(newPage, head, "title", "Test Page for flow-based repeater");
+			final DOMNode body  = createElement(newPage, html, "body");
+			final DOMNode div1  = createElement(newPage, body, "div", "${group.name}");
 
-			flowContainer.setProperty(FlowContainer.repeaterNodes, Arrays.asList(div1));
-			div1.setProperty(StructrApp.key(Div.class, "dataKey"), "group");
+			flowContainer.setRepeaterNodes(Arrays.asList(div1));
+			div1.setProperty(Traits.of("Div").key("dataKey"), "group");
 
 			tx.success();
 
@@ -216,16 +296,17 @@ public class FlowTest extends StructrUiTest {
 
 	}
 
-	private <T extends Node> T createElement(final Page page, final DOMNode parent, final String tag, final String... content) {
+	private DOMNode createElement(final Page page, final DOMNode parent, final String tag, final String... content) throws FrameworkException {
 
-		final T child = (T)page.createElement(tag);
-		parent.appendChild((DOMNode)child);
+		final DOMNode child = page.createElement(tag);
+
+		parent.appendChild(child);
 
 		if (content != null && content.length > 0) {
 
 			for (final String text : content) {
 
-				final Node node = page.createTextNode(text);
+				final DOMNode node = page.createTextNode(text);
 				child.appendChild(node);
 			}
 		}

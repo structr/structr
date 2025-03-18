@@ -19,13 +19,11 @@
 package org.structr.test.schema;
 
 import net.jcip.annotations.NotThreadSafe;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseFeature;
 import org.structr.api.DatabaseService;
 import org.structr.api.NativeQuery;
-import org.structr.api.config.Settings;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.*;
 import org.structr.api.util.Iterables;
@@ -52,7 +50,7 @@ public class IndexManagementTest extends StructrTest {
 
 	private static final Logger logger                               = LoggerFactory.getLogger(IndexManagementTest.class);
 	private static final Set<String> INDEXED_RELATIONSHIP_PROPERTIES = Set.of("test");
-	private static final long INDEX_UPDATE_TIMEOUT                   = TimeUnit.MINUTES.toMillis(10);
+	private static final long INDEX_UPDATE_TIMEOUT                   = TimeUnit.MINUTES.toMillis(5);
 	private static final long INDEX_UPDATE_WAIT_TIME                 = TimeUnit.SECONDS.toMillis(10);
 
 	@Test
@@ -550,7 +548,7 @@ public class IndexManagementTest extends StructrTest {
 				while (!indexCreatedSuccessfully(db, false, true, "HAS_PROJECT", INDEXED_RELATIONSHIP_PROPERTIES, 1)) {
 
 					if (System.currentTimeMillis() > start + INDEX_UPDATE_TIMEOUT) {
-						fail("Timeout waiting for index update!");
+						fail("Timeout waiting for index creation!");
 					}
 
 					// wait for index to be created
@@ -580,7 +578,7 @@ public class IndexManagementTest extends StructrTest {
 				while (!hasNumberOfIndexes(db, "HAS_PROJECT", 0)) {
 
 					if (System.currentTimeMillis() > start + INDEX_UPDATE_TIMEOUT) {
-						fail("Timeout waiting for index update!");
+						fail("Timeout waiting for index removal!");
 					}
 
 					// wait for index to be created

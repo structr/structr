@@ -34,19 +34,19 @@ import org.structr.core.property.PropertyMap;
  *
  *
  */
-public class OneStartpoint<S extends NodeInterface> extends AbstractEndpoint implements Source<Relationship, S> {
+public class OneStartpoint extends AbstractEndpoint implements Source<Relationship, NodeInterface> {
 
-	private Relation<S, ?, OneStartpoint<S>, ?> relation = null;
+	private Relation<OneStartpoint, ?> relation = null;
 
-	public OneStartpoint(final Relation<S, ?, OneStartpoint<S>, ?> relation) {
+	public OneStartpoint(final Relation<OneStartpoint, ?> relation) {
 		this.relation = relation;
 	}
 
 	@Override
-	public S get(final SecurityContext securityContext, final NodeInterface node, final Predicate<GraphObject> predicate) {
+	public NodeInterface get(final SecurityContext securityContext, final NodeInterface node, final Predicate<GraphObject> predicate) {
 
-		final NodeFactory<S> nodeFactory = new NodeFactory<>(securityContext);
-		final Relationship rel           = getRawSource(securityContext, node.getNode(), predicate);
+		final NodeFactory nodeFactory = new NodeFactory(securityContext);
+		final Relationship rel        = getRawSource(securityContext, node.getNode(), predicate);
 
 		if (rel != null) {
 			return nodeFactory.instantiate(rel.getStartNode(), rel.getId());
@@ -56,11 +56,11 @@ public class OneStartpoint<S extends NodeInterface> extends AbstractEndpoint imp
 	}
 
 	@Override
-	public Object set(final SecurityContext securityContext, final NodeInterface targetNode, final S sourceNode) throws FrameworkException {
+	public Object set(final SecurityContext securityContext, final NodeInterface targetNode, final NodeInterface sourceNode) throws FrameworkException {
 
 		final PropertyMap properties         = new PropertyMap();
-		final S actualSourceNode             = (S)unwrap(securityContext, relation.getClass(), sourceNode, properties);
-		final NodeInterface actualTargetNode = (NodeInterface)unwrap(securityContext, relation.getClass(), targetNode, properties);
+		final NodeInterface actualSourceNode = unwrap(securityContext, relation.getType(), sourceNode, properties);
+		final NodeInterface actualTargetNode = unwrap(securityContext, relation.getType(), targetNode, properties);
 
 		// let relation check multiplicity
 		relation.ensureCardinality(securityContext, actualSourceNode, actualTargetNode);
@@ -68,14 +68,14 @@ public class OneStartpoint<S extends NodeInterface> extends AbstractEndpoint imp
 		if (actualSourceNode != null && actualTargetNode != null) {
 
 			final String storageKey            = actualSourceNode.getName() + relation.name() + actualTargetNode.getName();
-			final PropertyMap notionProperties = getNotionProperties(securityContext, relation.getClass(), storageKey);
+			final PropertyMap notionProperties = getNotionProperties(securityContext, relation.getType(), storageKey);
 
 			if (notionProperties != null) {
 
 				properties.putAll(notionProperties);
 			}
 
-			return StructrApp.getInstance(securityContext).create(actualSourceNode, actualTargetNode, relation.getClass(), properties);
+			return StructrApp.getInstance(securityContext).create(actualSourceNode, actualTargetNode, relation.getType(), properties);
 		}
 
 		return null;

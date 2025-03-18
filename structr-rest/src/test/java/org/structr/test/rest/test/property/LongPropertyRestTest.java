@@ -238,7 +238,7 @@ public class LongPropertyRestTest extends StructrRestTestBase {
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : 'asdf' } ").expect().statusCode(422).when().post("/TestThree");
 
 		// test int property on dynamic node
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'name': 'Test', '_longProperty': 'Long' } ").expect().statusCode(201).when().post("/SchemaNode");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'name': 'Test', schemaProperties: [ { name: longProperty, propertyType: Long } ] } ").expect().statusCode(201).when().post("/SchemaNode");
 
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : asdf } ").expect().statusCode(422).when().post("/Test");
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : 'asdf' } ").expect().statusCode(422).when().post("/Test");

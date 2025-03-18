@@ -107,6 +107,7 @@ public abstract class AbstractReadOnlyProperty<T> extends Property<T> {
 		openApiTypeMap.put("double", "number");
 
 		if (valueType != null) {
+
 			String simpleName = valueType.getSimpleName().toLowerCase();
 
 			if (openApiTypeMap.containsKey(simpleName)) {

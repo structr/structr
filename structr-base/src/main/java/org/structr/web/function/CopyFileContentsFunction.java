@@ -20,18 +20,21 @@ package org.structr.web.function;
 
 import org.apache.commons.io.IOUtils;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
-import org.structr.storage.StorageProviderFactory;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import org.structr.web.traits.definitions.FileTraitDefinition;
 
 public class CopyFileContentsFunction extends UiAdvancedFunction {
 
@@ -58,23 +61,24 @@ public class CopyFileContentsFunction extends UiAdvancedFunction {
 			final Object toCopy       = sources[0];
 			final Object toBeReplaced = sources[1];
 
-			if (toCopy instanceof File && toBeReplaced instanceof File) {
+			if (toCopy instanceof NodeInterface source && toBeReplaced instanceof NodeInterface target && source.is(StructrTraits.FILE) && target.is(StructrTraits.FILE)) {
 
-				File nodeToCopy = (File) toCopy;
-				File nodeToBeReplaced = (File) toBeReplaced;
+				File nodeToCopy       = source.as(File.class);
+				File nodeToBeReplaced = target.as(File.class);
 
 				try (final InputStream is = StorageProviderFactory.getStorageProvider(nodeToCopy).getInputStream(); final OutputStream os = StorageProviderFactory.getStorageProvider(nodeToBeReplaced).getOutputStream()) {
 
 					IOUtils.copy(is, os);
 
-					final PropertyKey<Integer> versionKey = StructrApp.key(File.class, "version");
-					final PropertyKey<Long> checksumKey   = StructrApp.key(File.class, "checksum");
-					final PropertyKey<Long> sizeKey       = StructrApp.key(File.class, "size");
-					final PropertyMap changedProperties   = new PropertyMap();
+					final PropertyKey<Integer> versionKey  = Traits.of(StructrTraits.FILE).key(FileTraitDefinition.VERSION_PROPERTY);
+					final PropertyKey<Long> checksumKey    = Traits.of(StructrTraits.FILE).key(FileTraitDefinition.CHECKSUM_PROPERTY);
+					final PropertyKey<Long> sizeKey        = Traits.of(StructrTraits.FILE).key(FileTraitDefinition.SIZE_PROPERTY);
+					final PropertyKey<Long> contentTypeKey = Traits.of(StructrTraits.FILE).key(FileTraitDefinition.CONTENT_TYPE_PROPERTY);
+					final PropertyMap changedProperties    = new PropertyMap();
 
 					changedProperties.put(checksumKey, FileHelper.getChecksum(nodeToBeReplaced));
 					changedProperties.put(versionKey, 0);
-					changedProperties.put(new StringProperty("contentType"), nodeToCopy.getProperty(new StringProperty("contentType")));
+					changedProperties.put(contentTypeKey, nodeToCopy.getProperty(contentTypeKey));
 
 					long fileSize = FileHelper.getSize(nodeToBeReplaced);
 					if (fileSize > 0) {

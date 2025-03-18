@@ -46,7 +46,7 @@ public class CreateSimplePage extends AbstractCommand {
 
 		setDoTransactionNotifications(true);
 
-		final String pageName                 = webSocketData.getNodeDataStringValue(Page.name.jsonName());
+		final String pageName                 = webSocketData.getNodeDataStringValue("name");
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 
 		try {

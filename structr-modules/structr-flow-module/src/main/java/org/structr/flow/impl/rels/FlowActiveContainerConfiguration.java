@@ -20,27 +20,39 @@ package org.structr.flow.impl.rels;
 
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
-import org.structr.common.PermissionPropagation;
-import org.structr.core.entity.OneToOne;
 import org.structr.core.entity.Relation;
-import org.structr.flow.impl.FlowContainer;
-import org.structr.flow.impl.FlowContainerConfiguration;
+import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
+import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
-public class FlowActiveContainerConfiguration extends OneToOne<FlowContainerConfiguration, FlowContainer> implements PermissionPropagation {
+public class FlowActiveContainerConfiguration extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
-	@Override
-	public Class<FlowContainerConfiguration> getSourceType() {
-		return FlowContainerConfiguration.class;
+	public FlowActiveContainerConfiguration() {
+		super("FlowActiveContainerConfiguration");
 	}
 
 	@Override
-	public Class<FlowContainer> getTargetType() {
-		return FlowContainer.class;
+	public String getSourceType() {
+		return "FlowContainerConfiguration";
 	}
 
 	@Override
-	public String name() {
+	public String getTargetType() {
+		return "FlowContainer";
+	}
+
+	@Override
+	public String getRelationshipType() {
 		return "ACTIVE_CONFIGURATION_FOR";
+	}
+
+	@Override
+	public Relation.Multiplicity getSourceMultiplicity() {
+		return Relation.Multiplicity.One;
+	}
+
+	@Override
+	public Relation.Multiplicity getTargetMultiplicity() {
+		return Relation.Multiplicity.One;
 	}
 
 	@Override
@@ -51,6 +63,11 @@ public class FlowActiveContainerConfiguration extends OneToOne<FlowContainerConf
 	@Override
 	public int getAutocreationFlag() {
 		return Relation.ALWAYS;
+	}
+
+	@Override
+	public boolean isInternal() {
+		return false;
 	}
 
 	@Override

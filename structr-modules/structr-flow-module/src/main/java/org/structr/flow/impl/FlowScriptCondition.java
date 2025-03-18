@@ -18,80 +18,54 @@
  */
 package org.structr.flow.impl;
 
-import org.structr.common.PropertyView;
-import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.property.*;
-import org.structr.core.script.Scripting;
-import org.structr.flow.api.DataSource;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.Traits;
 import org.structr.flow.api.ThrowingElement;
-import org.structr.flow.engine.Context;
-import org.structr.flow.engine.FlowException;
-import org.structr.flow.impl.rels.FlowDataInput;
-import org.structr.flow.impl.rels.FlowExceptionHandlerNodes;
-import org.structr.flow.impl.rels.FlowScriptConditionSource;
 import org.structr.module.api.DeployableEntity;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
-public class FlowScriptCondition extends FlowCondition implements 	DeployableEntity, ThrowingElement {
+public class FlowScriptCondition extends FlowCondition implements DeployableEntity, ThrowingElement {
 
-	public static final Property<DataSource> scriptSource               = new StartNode<>("scriptSource", FlowScriptConditionSource.class);
-	public static final Property<DataSource> dataSource                 = new StartNode<>("dataSource", FlowDataInput.class);
-	public static final Property<Iterable<FlowBaseNode>> dataTarget     = new EndNodes<>("dataTarget", FlowDataInput.class);
-	public static final Property<FlowExceptionHandler> exceptionHandler = new EndNode<>("exceptionHandler", FlowExceptionHandlerNodes.class);
-	public static final Property<String> script                         = new StringProperty("script");
+	public FlowScriptCondition(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
+	}
 
-	public static final View defaultView    = new View(FlowScriptCondition.class, PropertyView.Public, script, scriptSource, dataSource, dataTarget, exceptionHandler);
-	public static final View uiView         = new View(FlowScriptCondition.class, PropertyView.Ui,     script, scriptSource, dataSource, dataTarget, exceptionHandler);
+	public final String getScript() {
+		return wrappedObject.getProperty(traits.key("script"));
+	}
 
-	@Override
-	public Object get(final Context context) throws FlowException {
+	public final void setScript(final String script) throws FrameworkException {
+		wrappedObject.setProperty(traits.key("script"), script);
+	}
 
-		try {
+	public final FlowDataSource getScriptSource() {
 
-			final DataSource _ds = getProperty(dataSource);
-			final DataSource _sc = getProperty(scriptSource);
-			final String _script = getProperty(script);
-			final String _dynamicScript = _sc != null ? (String)_sc.get(context) : null;
+		final NodeInterface scriptSource = wrappedObject.getProperty(traits.key("scriptSource"));
+		if (scriptSource != null) {
 
-
-			if (_script != null || _dynamicScript != null) {
-
-					if (_ds != null) {
-						context.setData(getUuid(), _ds.get(context));
-					}
-
-					final String finalScript = _dynamicScript != null ? _dynamicScript : _script;
-
-					Object result =  Scripting.evaluate(context.getActionContext(securityContext, this), context.getThisObject(), "${" + finalScript.trim() + "}", "FlowScriptCondition(" + getUuid() + ")");
-					context.setData(getUuid(), result);
-					return result;
-			}
-
-		} catch (FrameworkException fex) {
-
-			throw new FlowException(fex, this);
+			return scriptSource.as(FlowDataSource.class);
 		}
 
 		return null;
 	}
 
-	@Override
-	public FlowExceptionHandler getExceptionHandler(Context context) {
-		return getProperty(exceptionHandler);
+	public void setScriptSource(final String scriptSource) throws FrameworkException {
+		wrappedObject.setProperty(traits.key("scriptSource"), scriptSource);
 	}
 
 	@Override
 	public Map<String, Object> exportData() {
-		Map<String, Object> result = new HashMap<>();
 
-		result.put("id", this.getUuid());
-		result.put("type", this.getClass().getSimpleName());
-		result.put("script", this.getProperty(script));
-		result.put("visibleToPublicUsers", this.getProperty(visibleToPublicUsers));
-		result.put("visibleToAuthenticatedUsers", this.getProperty(visibleToAuthenticatedUsers));
+		final Map<String, Object> result = new TreeMap<>();
+
+		result.put("id",                          getUuid());
+		result.put("type",                        getType());
+		result.put("script",                      getScript());
+		result.put("visibleToPublicUsers",        isVisibleToPublicUsers());
+		result.put("visibleToAuthenticatedUsers", isVisibleToAuthenticatedUsers());
 
 		return result;
 	}

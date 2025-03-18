@@ -152,7 +152,7 @@ public class Iterables {
 	}
 
 	public static <S, T> Iterable<T> map(final Function<? super S, ? extends T> function, final Iterable<S> from) {
-		return new FilterIterable<>(new MapIterable<>(from, function), e -> { return e != null; });
+		return new FilterIterable<>(new MapIterable<>(from, function), e -> e != null);
 	}
 
 	public static <T> Iterable<T> flatten(final Iterable<Iterable<T>> source) {
