@@ -99,12 +99,10 @@ public class FlowKeyValueTraitDefinition extends AbstractNodeTraitDefinition {
 	public Set<PropertyKey> getPropertyKeys() {
 
 		final Property<String> key                         = new StringProperty("key");
-		final Property<NodeInterface> dataSource           = new StartNode("dataSource", "FlowDataInput");
 		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes("dataTarget", "FlowDataInput");
 
 		return newSet(
 			key,
-			dataSource,
 			dataTarget
 		);
 	}

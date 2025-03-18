@@ -47,12 +47,10 @@ public class FlowParameterInputTraitDefinition extends AbstractNodeTraitDefiniti
 	public Set<PropertyKey> getPropertyKeys() {
 
 		final Property<Iterable<NodeInterface>> call = new EndNodes("call", "FlowCallParameter");
-		final Property<NodeInterface> dataSource     = new StartNode("dataSource", "FlowDataInput");
 		final Property<String> key                   = new StringProperty("key");
 
 		return newSet(
 			call,
-			dataSource,
 			key
 		);
 	}

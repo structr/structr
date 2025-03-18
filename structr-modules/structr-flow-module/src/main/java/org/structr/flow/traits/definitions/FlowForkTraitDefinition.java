@@ -96,13 +96,11 @@ public class FlowForkTraitDefinition extends AbstractNodeTraitDefinition {
 	public Set<PropertyKey> getPropertyKeys() {
 
 
-		final Property<NodeInterface> dataSource           = new StartNode("dataSource", "FlowDataInput");
 		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes("dataTarget", "FlowDataInput");
 		final Property<NodeInterface> loopBody             = new EndNode("loopBody", "FlowForEachBody");
 		final Property<NodeInterface> exceptionHandler     = new EndNode("exceptionHandler", "FlowExceptionHandlerNodes");
 
 		return newSet(
-			dataSource,
 			dataTarget,
 			loopBody,
 			exceptionHandler

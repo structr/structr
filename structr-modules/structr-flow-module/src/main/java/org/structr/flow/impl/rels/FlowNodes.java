@@ -24,9 +24,6 @@ import org.structr.core.entity.Relation;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
-/**
- *
- */
 public class FlowNodes extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public FlowNodes() {

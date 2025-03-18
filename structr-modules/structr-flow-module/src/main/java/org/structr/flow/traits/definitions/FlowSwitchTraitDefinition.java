@@ -68,7 +68,6 @@ public class FlowSwitchTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Iterable<NodeInterface>> prev         = new StartNodes("prev", "FlowNodes");
 		final Property<NodeInterface> switchDefault          = new EndNode("default", "FlowNodes");
 		final Property<Iterable<NodeInterface>> cases        = new EndNodes("cases", "FlowSwitchCases");
-		final Property<NodeInterface> dataSource             = new StartNode("dataSource", "FlowDataInput");
 		final Property<NodeInterface> isStartNodeOfContainer = new StartNode("isStartNodeOfContainer", "FlowContainerFlowNode");
 
 
@@ -76,7 +75,6 @@ public class FlowSwitchTraitDefinition extends AbstractNodeTraitDefinition {
 			prev,
 			switchDefault,
 			cases,
-			dataSource,
 			isStartNodeOfContainer
 		);
 	}

@@ -103,14 +103,12 @@ public class FlowStoreTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> dataSource           = new StartNode("dataSource", "FlowDataInput");
 		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes("dataTarget", "FlowDataInput");
 		final Property<String> operation                   = new EnumProperty("operation", FlowStore.Operation.class);
 		final Property<String> key                         = new StringProperty("key");
 
 
 		return newSet(
-			dataSource,
 			dataTarget,
 			operation,
 			key

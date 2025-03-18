@@ -102,14 +102,12 @@ public class FlowScriptConditionTraitDefinition extends AbstractNodeTraitDefinit
 	public Set<PropertyKey> getPropertyKeys() {
 
 		final Property<NodeInterface> scriptSource         = new StartNode("scriptSource", "FlowScriptConditionSource");
-		final Property<NodeInterface> dataSource           = new StartNode("dataSource", "FlowDataInput");
 		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes("dataTarget", "FlowDataInput");
 		final Property<NodeInterface> exceptionHandler     = new EndNode("exceptionHandler", "FlowExceptionHandlerNodes");
 		final Property<String> script                      = new StringProperty("script");
 
 		return newSet(
 			scriptSource,
-			dataSource,
 			dataTarget,
 			exceptionHandler,
 			script

@@ -103,12 +103,10 @@ public class FlowLogTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> dataSource       = new StartNode("dataSource", "FlowDataInput");
 		final Property<NodeInterface> exceptionHandler = new EndNode("exceptionHandler", "FlowExceptionHandlerNodes");
 		final Property<String> script                  = new StringProperty("script");
 
 		return newSet(
-			dataSource,
 			exceptionHandler,
 			script
 		);

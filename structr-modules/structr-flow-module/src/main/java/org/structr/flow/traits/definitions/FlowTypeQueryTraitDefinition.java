@@ -112,13 +112,11 @@ public class FlowTypeQueryTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> dataSource           = new StartNode("dataSource", "FlowDataInput");
 		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes("dataTarget", "FlowDataInput");
 		final Property<String> dataType                    = new StringProperty("dataType");
 		final Property<String> query                       = new StringProperty("query");
 
 		return newSet(
-			dataSource,
 			dataTarget,
 			dataType,
 			query
