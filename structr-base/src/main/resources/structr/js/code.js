@@ -2275,17 +2275,18 @@ let _Code = {
 			},
 			runSchemaMethod: (schemaMethod) => {
 
-				let name = (schemaMethod.schemaNode === null) ? schemaMethod.name : schemaMethod.schemaNode.name + '/' + schemaMethod.name;
-				let url  = _Code.mainArea.helpers.getURLForSchemaMethod(schemaMethod);
+				let storagePrefix = 'schemaMethodParameters_';
+				let name          = (schemaMethod.schemaNode === null) ? schemaMethod.name : schemaMethod.schemaNode.name + '/' + schemaMethod.name;
+				let url           = _Code.mainArea.helpers.getURLForSchemaMethod(schemaMethod);
 
 				let { dialogText } = _Dialogs.custom.openDialog(`Run user-defined function ${name}`, null, ['run-global-schema-method-dialog']);
 
 				let runButton = _Dialogs.custom.prependCustomDialogButton(`
-			<button id="run-method" class="flex items-center action focus:border-gray-666 active:border-green">
-				${_Icons.getSvgIcon(_Icons.iconRunButton, 16, 18, 'mr-2')}
-				<span>Run</span>
-			</button>
-		`);
+					<button id="run-method" class="flex items-center action focus:border-gray-666 active:border-green">
+						${_Icons.getSvgIcon(_Icons.iconRunButton, 16, 18, 'mr-2')}
+						<span>Run</span>
+					</button>
+				`);
 
 				let clearButton = _Dialogs.custom.appendCustomDialogButton('<button id="clear-log" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Clear output</button>');
 
@@ -2294,17 +2295,17 @@ let _Code = {
 				}, 50);
 
 				let paramsOuterBox = _Helpers.createSingleDOMElementFromHTML(`
-			<div>
-				<div id="params">
-					<h3 class="heading-narrow">Parameters</h3>
 					<div>
-						${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-green', 'add-param-action']), 'Add parameter')}
+						<div id="params">
+							<h3 class="heading-narrow">Parameters</h3>
+							<div class="method-parameters">
+								${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-green', 'add-param-action']), 'Add parameter')}
+							</div>
+						</div>
+						<h3>Method output</h3>
+						<pre id="log-output"></pre>
 					</div>
-				</div>
-				<h3>Method output</h3>
-				<pre id="log-output"></pre>
-			</div>
-		`);
+				`);
 				dialogText.appendChild(paramsOuterBox);
 
 				_Helpers.appendInfoTextToElement({
@@ -2314,23 +2315,33 @@ let _Code = {
 					helpElementCss: { fontSize: "12px" }
 				});
 
-				let newParamTrigger = paramsOuterBox.querySelector('.add-param-action');
-				newParamTrigger.addEventListener('click', () => {
+				let appendParameter = (name = '', value = '') => {
 
 					let newParam = _Helpers.createSingleDOMElementFromHTML(`
-				<div class="param flex items-center mb-1">
-					<input class="param-name" placeholder="Parameter name">
-					<span class="px-2">=</span>
-					<input class="param-value" placeholder="Parameter value">
-					${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action', 'ml-2']), 'Remove parameter')}
-				</div>
-			`);
+						<div class="param flex items-center mb-1">
+							<input class="param-name" placeholder="Parameter name" value="${name}">
+							<span class="px-2">=</span>
+							<input class="param-value" placeholder="Parameter value" value="${value}">
+							${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action', 'ml-2']), 'Remove parameter')}
+						</div>
+					`);
 
 					newParam.querySelector('.remove-action').addEventListener('click', () => {
 						_Helpers.fastRemoveElement(newParam);
 					});
 
-					newParamTrigger.parentNode.appendChild(newParam);
+					paramsOuterBox.querySelector('.method-parameters').appendChild(newParam);
+				};
+
+				let lastParams = LSWrapper.getItem(storagePrefix + url, {});
+
+				for (let [k,v] of Object.entries(lastParams)) {
+					appendParameter(k, v);
+				}
+
+
+				paramsOuterBox.querySelector('.add-param-action').addEventListener('click', () => {
+					appendParameter();
 				});
 
 				let logOutput = paramsOuterBox.querySelector('#log-output');
@@ -2346,6 +2357,8 @@ let _Code = {
 							params[name] = paramRow.querySelector('.param-value').value;
 						}
 					}
+
+					LSWrapper.setItem(storagePrefix + url, params);
 
 					let methodCallUrl = url;
 					let fetchConfig = { method: schemaMethod.httpVerb };
@@ -2393,7 +2406,7 @@ let _Code = {
 	},
 	helpers: {
 		getAttributesToFetchForErrorObject: () => 'id,type,name,content,isStatic,ownerDocument,schemaNode',
-		getPathToOpenForSchemaObjectFromError: (obj) => {
+		getPathToOpenForSchemaObject: (obj) => {
 
 			if (obj.type === 'SchemaNode') {
 
@@ -2409,7 +2422,7 @@ let _Code = {
 		},
 		navigateToSchemaObjectFromAnywhere: (obj, updateLocationStack = false) => {
 
-			let pathToOpen = _Code.helpers.getPathToOpenForSchemaObjectFromError(obj);
+			let pathToOpen = _Code.helpers.getPathToOpenForSchemaObject(obj);
 			let timeout    = (window.location.hash === '#code') ? 100 : 1000;
 
 			window.location.href = '#code';
