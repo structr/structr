@@ -767,6 +767,9 @@ let _Flows = {
 				.jstree-rename-input {
 					height: 24px ! important;
 				}
+				.vakata-context {
+					margin-top: -24px;
+				}
 			</style>
 			<div class="tree-main" id="flows-main">
 				<div class="column-resizer"></div>
