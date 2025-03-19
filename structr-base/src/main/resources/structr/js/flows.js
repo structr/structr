@@ -130,9 +130,24 @@ let _Flows = {
 			}
 		}
 
+		function getNameParts(name) {
+
+			const tree = $(flowsTree).jstree();
+			let node   = tree.get_node(name);
+
+			let parts = node.parents.filter(p => (p !== 'root' && p !== '#')).map(parentName => {
+				let parentNode = tree.get_node(parentName);
+				return parentNode.data.name;
+			}).reverse();
+
+			parts.push(node.data.name);
+
+			return parts;
+		}
+
 		async function getPackageByEffectiveName(name) {
-			let nameComponents = name.split("/");
-			nameComponents = nameComponents.slice(1, nameComponents.length);
+
+			let nameComponents = getNameParts(name);
 			let packages = await rest.get(_Helpers.getPrefixedRootUrl('/structr/rest/FlowContainerPackage?effectiveName=' + encodeURIComponent(nameComponents.join("."))));
 			return packages.result.length > 0 ? packages.result[0] : null;
 		}
