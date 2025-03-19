@@ -237,9 +237,12 @@ let _Flows = {
 
 								let newFlow = await persistence.createNode({
 									type: "FlowContainer",
-									flowPackage: p !== null ? p.id : null
+									flowPackage: ((p !== null) ? p.id : null),
+									name: "NewFlow"
 								});
 								newFlow.name = 'NewFlow-' + newFlow.id;
+								// setting the name is implicitly async and can lead to showing the temporary name from creation
+								await persistence._persistObject(newFlow);
 
 								newFlow = (await persistence.getNodesById(newFlow.id, {type: "FlowContainer"}))[0];
 
@@ -268,9 +271,12 @@ let _Flows = {
 
 								let newFlowPackage = await persistence.createNode({
 									type: "FlowContainerPackage",
-									parent: p !== null ? p.id : null
+									parent: ((p !== null) ? p.id : null),
+									name: "NewFlowPackage"
 								});
 								newFlowPackage.name = 'NewFlowPackage-' + newFlowPackage.id;
+								// setting the name is implicitly async and can lead to showing the temporary name from creation
+								await persistence._persistObject(newFlowPackage);
 
 								newFlowPackage = await persistence.getNodesById(newFlowPackage.id, {type: "FlowContainerPackage"});
 								_Flows.refreshTree(() => {
@@ -306,7 +312,7 @@ let _Flows = {
 									if (ref._model.data[sel].data !== null && ref._model.data[sel].data.type === "FlowContainer") {
 										deleteMsg = "Delete flow?";
 									}  else {
-										deleteMsg = "Delete recurively?";
+										deleteMsg = "Delete recursively?";
 									}
 									if (confirm(deleteMsg)) {
 										ref.delete_node(sel);
@@ -757,6 +763,11 @@ let _Flows = {
 
 	templates: {
 		main: config => `
+			<style>
+				.jstree-rename-input {
+					height: 24px ! important;
+				}
+			</style>
 			<div class="tree-main" id="flows-main">
 				<div class="column-resizer"></div>
 
