@@ -34,12 +34,12 @@ public class FlowDecision extends FlowNode implements DeployableEntity {
 		super(traits, wrappedObject);
 	}
 
-	public FlowLogicCondition getCondition() {
+	public FlowCondition getCondition() {
 
 		final NodeInterface node = wrappedObject.getProperty(traits.key(FlowDecisionTraitDefinition.CONDITION_PROPERTY));
 		if (node != null) {
 
-			return node.as(FlowLogicCondition.class);
+			return node.as(FlowCondition.class);
 		}
 
 		return null;
