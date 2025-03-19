@@ -63,7 +63,7 @@ public class FlowContainerPackage extends AbstractNodeTraitWrapper implements De
 	}
 
 	public void setScheduledForIndexing(final boolean b) throws FrameworkException {
-		wrappedObject.setProperty(traits.key(FlowContainerPackageTraitDefinition.SCHEDULED_FOR_INDEXING_PROPERTY), false);
+		wrappedObject.setProperty(traits.key(FlowContainerPackageTraitDefinition.SCHEDULED_FOR_INDEXING_PROPERTY), b);
 	}
 
 	@Override
