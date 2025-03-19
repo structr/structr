@@ -639,10 +639,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Boolean> hasSharedComponent                                 = new BooleanProperty(HAS_SHARED_COMPONENT_PROPERTY).indexed();
 		final Property<Integer> domSortPositionProperty                            = new IntProperty(DOM_SORT_POSITION_PROPERTY).category(DOMNode.PAGE_CATEGORY);
 
-//		final Property<NodeInterface> flow                                         = new EndNode(FLOW_PROPERTY, StructrTraits.DOM_NODE_FLOW_FLOW_CONTAINER);
-
-
-		return Set.of(
+		return newSet(
 			parentProperty,
 			childrenProperty,
 			previousSiblingProperty,
@@ -676,7 +673,6 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 			isDOMNodeProperty,
 			hasSharedComponent,
 			domSortPositionProperty
-			//flow
 		);
 	}
 
