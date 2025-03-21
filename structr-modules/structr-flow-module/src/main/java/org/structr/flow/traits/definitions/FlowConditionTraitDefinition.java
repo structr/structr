@@ -21,14 +21,14 @@ package org.structr.flow.traits.definitions;
 import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.EndNode;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.property.StartNode;
-import org.structr.core.property.StartNodes;
+import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.impl.FlowCondition;
+import org.structr.flow.impl.FlowLogicCondition;
+import org.structr.flow.traits.operations.LogicConditionOperations;
 
 import java.util.Map;
 import java.util.Set;
@@ -36,7 +36,7 @@ import java.util.Set;
 public class FlowConditionTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public static final String CONDITIONS_PROPERTY = "conditions";
-	public static final String RESULT_PROPERTY     = "result";
+	public static final String LOGIC_TARGETS_PROPERTY = "logicTargets";
 
 
 	public FlowConditionTraitDefinition() {
@@ -54,12 +54,12 @@ public class FlowConditionTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final PropertyKey<Iterable<NodeInterface>> conditions = new StartNodes(CONDITIONS_PROPERTY, StructrTraits.FLOW_CONDITION_CONDITION);
-		final PropertyKey<NodeInterface> result               = new EndNode(RESULT_PROPERTY, StructrTraits.FLOW_CONDITION_CONDITION);
+		final PropertyKey<Iterable<NodeInterface>> conditions    = new StartNodes(CONDITIONS_PROPERTY, StructrTraits.FLOW_CONDITION_CONDITION);
+		final PropertyKey<Iterable<NodeInterface>> logicTargets  = new EndNodes(LOGIC_TARGETS_PROPERTY, StructrTraits.FLOW_CONDITION_BASE_NODE);
 
 		return newSet(
 			conditions,
-			result
+			logicTargets
 		);
 	}
 
@@ -69,12 +69,12 @@ public class FlowConditionTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				CONDITIONS_PROPERTY, RESULT_PROPERTY
+				CONDITIONS_PROPERTY, LOGIC_TARGETS_PROPERTY
 			),
 
 			PropertyView.Ui,
 			newSet(
-				CONDITIONS_PROPERTY, RESULT_PROPERTY
+				CONDITIONS_PROPERTY, LOGIC_TARGETS_PROPERTY
 			)
 		);
 	}

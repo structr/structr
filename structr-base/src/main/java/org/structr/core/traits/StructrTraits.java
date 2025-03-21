@@ -350,6 +350,7 @@ public class StructrTraits {
 	public static final String FLOW_NODES                                                     = "FlowNodes";
 	public static final String FLOW_SCRIPT_CONDITION_SOURCE                                   = "FlowScriptConditionSource";
 	public static final String FLOW_SWITCH_CASES                                              = "FlowSwitchCases";
+	public static final String FLOW_VALUE_INPUT                                               = "FlowValueInput";
 
 
 	public static void registerBaseType(final TraitDefinition definition) {

@@ -37,12 +37,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.structr.flow.traits.definitions.FlowBaseNodeTraitDefinition.DATA_SOURCE_PROPERTY;
+
 public class FlowComparisonTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public static final String OPERATION_PROPERTY    = "operation";
-	public static final String DATA_SOURCES_PROPERTY = "dataSources";
-	public static final String CONDITION_PROPERTY    = "condition";
-	public static final String DECISION_PROPERTY     = "decision";
+	public static final String VALUE_SOURCE_PROPERTY = "valueSource";
+	public static final String DECISIONS_PROPERTY     = "decisions";
 
 	public FlowComparisonTraitDefinition() {
 		super(StructrTraits.FLOW_COMPARISON);
@@ -60,63 +61,52 @@ public class FlowComparisonTraitDefinition extends AbstractNodeTraitDefinition {
 				public Object get(final Context context, final FlowDataSource node) throws FlowException {
 
 					final FlowComparison comparison         = node.as(FlowComparison.class);
-					final List<FlowDataSource> _dataSources = Iterables.toList(comparison.getDataSources());
-					if (_dataSources.isEmpty()) {
+					final String op                         = comparison.getOperation();
+					final FlowDataSource dataSource         = comparison.getDataSource();
+					final FlowDataSource valueSource        = comparison.getValueSource();
 
+					if (op == null || dataSource == null) {
 						return false;
 					}
-
-					final FlowDataSource _dataSource = comparison.getDataSource();
-					final String op                  = comparison.getOperation();
-
-					if (_dataSource == null || op == null) {
-						return false;
-					}
-
-					Object value = _dataSource.get(context);
 
 					Boolean result = true;
 
-					for (final FlowDataSource _ds : _dataSources) {
+					Object data = dataSource.get(context);
+					Object value = valueSource == null ? null : valueSource.get(context);
 
-						Object data = _ds.get(context);
+					if (data == null || data instanceof Comparable) {
 
-						if (data == null || data instanceof Comparable) {
+						if (data != null && data.getClass().isEnum()) {
 
-							if (data != null && data.getClass().isEnum()) {
+							data = ((Enum)data).name();
+						} else if (data instanceof Number && value instanceof Number) {
 
-								data = ((Enum)data).name();
-							} else if (data instanceof Number && value instanceof Number) {
-
-								data = ((Number)data).doubleValue();
-								value = ((Number)value).doubleValue();
-							}
-
-							Comparable c = (Comparable) data;
-
-							switch (op) {
-								case "equal":
-									result = result && ((c == null && value == null) || (c != null && value != null && c.compareTo(value) == 0));
-									break;
-								case "notEqual":
-									result = result && ((c == null && value != null) || (c != null && value == null) || (c != null && value != null && c.compareTo(value) != 0));
-									break;
-								case "greater":
-									result = result && ((c != null && value == null) || (c != null && value != null && c.compareTo(value) > 0));
-									break;
-								case "greaterOrEqual":
-									result = result && ((c == null && value == null) || (c != null && value != null && c.compareTo(value) >= 0));
-									break;
-								case "less":
-									result = result && ((c == null && value != null) || (c != null && value != null && c.compareTo(value) < 0));
-									break;
-								case "lessOrEqual":
-									result = result && ((c == null && value != null) || (c == null && value == null) || (c != null && value != null && c.compareTo(value) <= 0));
-									break;
-							}
-
+							data = ((Number)data).doubleValue();
+							value = ((Number)value).doubleValue();
 						}
 
+						Comparable c = (Comparable) data;
+
+						switch (op) {
+							case "equal":
+								result = result && ((c == null && value == null) || (c != null && value != null && c.compareTo(value) == 0));
+								break;
+							case "notEqual":
+								result = result && ((c == null && value != null) || (c != null && value != null && c.compareTo(value) != 0));
+								break;
+							case "greater":
+								result = result && ((c != null && value == null) || (c != null && value != null && c.compareTo(value) > 0));
+								break;
+							case "greaterOrEqual":
+								result = result && ((c == null && value == null) || (c != null && value != null && c.compareTo(value) >= 0));
+								break;
+							case "less":
+								result = result && ((c == null && value != null) || (c != null && value != null && c.compareTo(value) < 0));
+								break;
+							case "lessOrEqual":
+								result = result && ((c == null && value != null) || (c != null && value != null && c.compareTo(value) <= 0));
+								break;
+						}
 					}
 
 					return result;
@@ -137,15 +127,13 @@ public class FlowComparisonTraitDefinition extends AbstractNodeTraitDefinition {
 	public Set<PropertyKey> getPropertyKeys() {
 
 		final Property<String> operation                    = new EnumProperty(OPERATION_PROPERTY, FlowComparison.Operation.class);
-		final Property<Iterable<NodeInterface>> dataSources = new StartNodes(DATA_SOURCES_PROPERTY, StructrTraits.FLOW_DATA_INPUTS);
-		final Property<NodeInterface> condition             = new EndNode(CONDITION_PROPERTY, StructrTraits.FLOW_CONDITION_CONDITION);
-		final Property<Iterable<NodeInterface>> decision    = new EndNodes(DECISION_PROPERTY, StructrTraits.FLOW_DECISION_CONDITION);
+		final Property<NodeInterface> valueSource           = new StartNode(VALUE_SOURCE_PROPERTY, StructrTraits.FLOW_VALUE_INPUT);
+		final Property<Iterable<NodeInterface>> decisions   = new EndNodes(DECISIONS_PROPERTY, StructrTraits.FLOW_DECISION_CONDITION);
 
 		return newSet(
 			operation,
-			dataSources,
-			condition,
-			decision
+			valueSource,
+			decisions
 		);
 	}
 
@@ -155,12 +143,12 @@ public class FlowComparisonTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				DATA_SOURCES_PROPERTY, FlowBaseNodeTraitDefinition.DATA_SOURCE_PROPERTY, CONDITION_PROPERTY, DECISION_PROPERTY, OPERATION_PROPERTY
+				DATA_SOURCE_PROPERTY, VALUE_SOURCE_PROPERTY, DECISIONS_PROPERTY, OPERATION_PROPERTY
 			),
 
 			PropertyView.Ui,
 			newSet(
-				DATA_SOURCES_PROPERTY, FlowBaseNodeTraitDefinition.DATA_SOURCE_PROPERTY, CONDITION_PROPERTY, DECISION_PROPERTY, OPERATION_PROPERTY
+				DATA_SOURCE_PROPERTY, VALUE_SOURCE_PROPERTY, DECISIONS_PROPERTY, OPERATION_PROPERTY
 			)
 		);
 	}

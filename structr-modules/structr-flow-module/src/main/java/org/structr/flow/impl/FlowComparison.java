@@ -19,11 +19,14 @@
 package org.structr.flow.impl;
 
 import org.structr.api.util.Iterables;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.traits.definitions.FlowComparisonTraitDefinition;
 import org.structr.flow.traits.definitions.FlowIsTrueTraitDefinition;
+import org.structr.flow.traits.operations.LogicConditionOperations;
 import org.structr.module.api.DeployableEntity;
 
 import java.util.HashMap;
@@ -35,15 +38,35 @@ public class FlowComparison extends FlowCondition implements DeployableEntity {
 		super(traits, wrappedObject);
 	}
 
-	public final Iterable<FlowDataSource> getDataSources() {
+	public final FlowDataSource getValueSource() {
+		final NodeInterface node = wrappedObject.getProperty(traits.key(FlowComparisonTraitDefinition.VALUE_SOURCE_PROPERTY));
 
-		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key(FlowComparisonTraitDefinition.DATA_SOURCES_PROPERTY));
+		if (node != null) {
+			return node.as(FlowDataSource.class);
+		}
 
-		return Iterables.map(n -> n.as(FlowDataSource.class), nodes);
+		return null;
+	}
+
+	public final void setValueSource(final FlowDataSource valueSource) throws FrameworkException {
+		wrappedObject.setProperty(traits.key(FlowComparisonTraitDefinition.VALUE_SOURCE_PROPERTY), valueSource);
 	}
 
 	public final String getOperation() {
 		return wrappedObject.getProperty(traits.key(FlowComparisonTraitDefinition.OPERATION_PROPERTY));
+	}
+
+	public final void setOperation(final Operation operation) throws FrameworkException {
+		wrappedObject.setProperty(traits.key(FlowComparisonTraitDefinition.OPERATION_PROPERTY), operation.toString());
+	}
+
+	public final Iterable<FlowDecision> getDecisions() {
+		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key(FlowComparisonTraitDefinition.DECISIONS_PROPERTY));
+		return Iterables.map(n -> n.as(FlowDecision.class), nodes);
+	}
+
+	public final void setDecisions(final Iterable<FlowDecision> decisions) throws FrameworkException {
+		wrappedObject.setProperty(traits.key(FlowComparisonTraitDefinition.DECISIONS_PROPERTY), decisions);
 	}
 
 	@Override
