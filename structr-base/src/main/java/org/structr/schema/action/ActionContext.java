@@ -482,11 +482,11 @@ public class ActionContext {
 							// Do the (slow) class check only if key value starts with uppercase character or could have a package path
 							if (StringUtils.isNotEmpty(key) && (Character.isUpperCase(key.charAt(0)) || StringUtils.contains(key, "."))) {
 
-								final Traits type = Traits.of(key);
-								if (type != null) {
+								if (Traits.exists(key)) {
 
 									hints.reportExistingKey(key);
-									return type;
+
+									return Traits.of(key);
 								}
 							}
 

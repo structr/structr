@@ -40,4 +40,15 @@ public class FlowCondition extends FlowDataSource {
 	public void setConditions(final Iterable<FlowCondition> conditions) throws FrameworkException {
 		wrappedObject.setProperty(traits.key(FlowConditionTraitDefinition.CONDITIONS_PROPERTY), conditions);
 	}
+
+	public Iterable<FlowBaseNode> getLogicTargets() {
+
+		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key(FlowConditionTraitDefinition.LOGIC_TARGETS_PROPERTY));
+
+		return Iterables.map(n -> n.as(FlowBaseNode.class), nodes);
+	}
+
+	public void setLogicTargets(final Iterable<FlowBaseNode> logicTargets) throws FrameworkException {
+		wrappedObject.setProperty(traits.key(FlowConditionTraitDefinition.LOGIC_TARGETS_PROPERTY), logicTargets);
+	}
 }

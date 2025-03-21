@@ -507,7 +507,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 			final StructrTypeDefinition type = databaseTypes.get(key);
 			if (toMigrate.contains(key)) {
 
-				handleRemovedBuiltInType(type);
+				//handleRemovedBuiltInType(type);
 
 			} else {
 
@@ -537,27 +537,6 @@ public class StructrTypeDefinitions implements StructrDefinition {
 		}
 
 		return mapped;
-	}
-
-	private void handleRemovedBuiltInType(final StructrTypeDefinition type) throws FrameworkException {
-
-		/*
-		final AbstractSchemaNode schemaNode = type.getSchemaNode();
-		if (schemaNode != null) {
-
-			final Traits traits = Traits.of(type.getName());
-			if (traits != null) {
-
-				// move extends relationship to internal type
-				for (final SchemaNode subtype : schemaNode.getProperty(SchemaNode.extendedByClasses)) {
-
-					subtype.setProperty(SchemaNode.extendsClassInternal, traits.getName());
-				}
-			}
-
-			StructrApp.getInstance().delete(schemaNode);
-		}
-		*/
 	}
 
 	private Traits getNodeType(final String name) {

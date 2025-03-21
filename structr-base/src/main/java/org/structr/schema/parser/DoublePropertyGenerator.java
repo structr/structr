@@ -59,7 +59,7 @@ public class DoublePropertyGenerator extends NumericalPropertyGenerator<Double> 
 
 		} catch (Throwable t) {
 
-			reportError(new InvalidPropertySchemaToken(StructrTraits.SCHEMA_NODE, propertyName, source, "invalid_" + which +"_bound", StringUtils.capitalize(which) + " bound must be of type Double."));
+			reportError(new InvalidPropertySchemaToken(StructrTraits.SCHEMA_NODE, propertyName, source, "invalid_" + which + "_bound", StringUtils.capitalize(which) + " bound must be of type Double."));
 		}
 
 		return null;
@@ -76,7 +76,7 @@ public class DoublePropertyGenerator extends NumericalPropertyGenerator<Double> 
 		final List<IsValid> validators = super.getValidators(key);
 		final String format            = source.getFormat();
 
-		if (format != null && !error) {
+		if (StringUtils.isNotBlank(format) && !error) {
 
 			validators.add((obj, errorBuffer) -> ValidationHelper.isValidDoubleInRange(obj, obj.getTraits().key(key), format, errorBuffer));
 		}

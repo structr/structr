@@ -212,6 +212,7 @@ public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper imple
 		final String extendsClassInternal = (String) getNode().getProperty("extendsClassInternal");
 		final List<Relationship> rels     = Iterables.toList(getNode().getRelationships());
 		final Set<String> traits          = new LinkedHashSet<>(getInheritedTraits());
+		final String name                 = getName();
 
 		if (extendsClassInternal != null) {
 
@@ -228,12 +229,17 @@ public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper imple
 
 				if ("EXTENDS".equals(relType)) {
 
-					final String superType = (String) rel.getEndNode().getProperty("name");
+					final String startType = (String) rel.getStartNode().getProperty("name");
+					final String endType   = (String) rel.getEndNode().getProperty("name");
 
-					traits.add(superType);
+					// only process (and delete) relationship if we're actually looking at the start node of the relationship
+					if (startType.equals(name)) {
 
-					// delete
-					rel.delete(true);
+						traits.add(endType);
+
+						// delete
+						rel.delete(false);
+					}
 				}
 			}
 		}

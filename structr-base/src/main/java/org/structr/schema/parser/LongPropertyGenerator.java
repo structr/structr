@@ -76,7 +76,7 @@ public class LongPropertyGenerator extends NumericalPropertyGenerator<Long> {
 		final List<IsValid> validators = super.getValidators(key);
 		final String format            = source.getFormat();
 
-		if (format != null && !error) {
+		if (StringUtils.isNotBlank(format) && !error) {
 
 			validators.add((obj, errorBuffer) -> ValidationHelper.isValidLongInRange(obj, obj.getTraits().key(key), format, errorBuffer));
 		}

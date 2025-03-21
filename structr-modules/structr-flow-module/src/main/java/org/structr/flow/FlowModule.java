@@ -80,6 +80,7 @@ public class FlowModule implements StructrModule {
 			StructrTraits.registerRelationshipType(StructrTraits.FLOW_NODES,                             new FlowNodes());
 			StructrTraits.registerRelationshipType(StructrTraits.FLOW_SCRIPT_CONDITION_SOURCE,           new FlowScriptConditionSource());
 			StructrTraits.registerRelationshipType(StructrTraits.FLOW_SWITCH_CASES,                      new FlowSwitchCases());
+			StructrTraits.registerRelationshipType(StructrTraits.FLOW_VALUE_INPUT,                       new FlowValueInput());
 
 			StructrTraits.registerNodeType(StructrTraits.FLOW_ACTION,                  new FlowBaseNodeTraitDefinition(), new FlowNodeTraitDefinition(), new FlowDataSourceTraitDefinition(), new FlowActionTraitDefinition());
 			StructrTraits.registerNodeType(StructrTraits.FLOW_AGGREGATE,               new FlowBaseNodeTraitDefinition(), new FlowNodeTraitDefinition(), new FlowDataSourceTraitDefinition(), new FlowAggregateTraitDefinition());
@@ -87,7 +88,7 @@ public class FlowModule implements StructrModule {
 			StructrTraits.registerNodeType(StructrTraits.FLOW_BASE_NODE,               new FlowBaseNodeTraitDefinition());
 			StructrTraits.registerNodeType(StructrTraits.FLOW_CALL,                    new FlowBaseNodeTraitDefinition(), new FlowNodeTraitDefinition(), new FlowDataSourceTraitDefinition(), new FlowCallTraitDefinition());
 			StructrTraits.registerNodeType(StructrTraits.FLOW_COLLECTION_DATA_SOURCE,  new FlowBaseNodeTraitDefinition(), new FlowNodeTraitDefinition(), new FlowDataSourceTraitDefinition(), new FlowCollectionDataSourceTraitDefinition());
-			StructrTraits.registerNodeType(StructrTraits.FLOW_COMPARISON,              new FlowBaseNodeTraitDefinition(), new FlowNodeTraitDefinition(), new FlowComparisonTraitDefinition());
+			StructrTraits.registerNodeType(StructrTraits.FLOW_COMPARISON,              new FlowBaseNodeTraitDefinition(), new FlowNodeTraitDefinition(), new FlowConditionTraitDefinition(),  new FlowComparisonTraitDefinition());
 			StructrTraits.registerNodeType(StructrTraits.FLOW_CONDITION,               new FlowBaseNodeTraitDefinition(), new FlowNodeTraitDefinition(), new FlowDataSourceTraitDefinition(), new FlowConditionTraitDefinition());
 			StructrTraits.registerNodeType(StructrTraits.FLOW_CONSTANT,                new FlowBaseNodeTraitDefinition(), new FlowNodeTraitDefinition(), new FlowDataSourceTraitDefinition(), new FlowConstantTraitDefinition());
 			StructrTraits.registerNodeType(StructrTraits.FLOW_CONTAINER,               new FlowBaseNodeTraitDefinition(), new FlowNodeTraitDefinition(), new FlowContainerTraitDefinition());

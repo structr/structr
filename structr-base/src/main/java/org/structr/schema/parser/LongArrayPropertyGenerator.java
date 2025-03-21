@@ -71,7 +71,7 @@ public class LongArrayPropertyGenerator extends NumericalArrayPropertyGenerator<
 		final List<IsValid> validators = super.getValidators(key);
 		final String format            = source.getFormat();
 
-		if (format != null && !error) {
+		if (StringUtils.isNotBlank(format) && !error) {
 
 			validators.add((obj, errorBuffer) -> ValidationHelper.isValidLongArrayInRange(obj, obj.getTraits().key(key), format, errorBuffer));
 		}

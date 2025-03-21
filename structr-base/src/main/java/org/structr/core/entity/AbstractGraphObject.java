@@ -437,7 +437,7 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	@Override
 	public final String getPropertyWithVariableReplacement(final ActionContext renderContext, final PropertyKey<String> key) throws FrameworkException {
 
-		final String value = getProperty(key);
+		final Object value = getProperty(key);
 		String result      = null;
 
 		try {

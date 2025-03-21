@@ -280,6 +280,68 @@ public class FlowTest extends StructrUiTest {
 			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
+	}
+
+	@Test
+	public void testFlowComparison() {
+
+		try (final Tx tx = app.tx()) {
+
+			FlowContainer container = app.create(StructrTraits.FLOW_CONTAINER, "testFlowComparison").as(FlowContainer.class);
+
+			FlowDecision flowDecision = app.create(StructrTraits.FLOW_DECISION).as(FlowDecision.class);
+			flowDecision.setFlowContainer(container);
+			container.setStartNode(flowDecision);
+
+			FlowReturn flowReturnTrue = app.create(StructrTraits.FLOW_RETURN).as(FlowReturn.class);
+			flowReturnTrue.setFlowContainer(container);
+			flowReturnTrue.setResult("'SUCCESS'");
+			flowDecision.setTrueElement(flowReturnTrue);
+
+			FlowReturn flowReturnFalse = app.create(StructrTraits.FLOW_RETURN).as(FlowReturn.class);
+			flowReturnFalse.setFlowContainer(container);
+			flowReturnFalse.setResult("'FAILURE'");
+			flowDecision.setFalseElement(flowReturnFalse);
+
+			FlowDataSource dataSource = app.create(StructrTraits.FLOW_DATA_SOURCE).as(FlowDataSource.class);
+			dataSource.setFlowContainer(container);
+
+			FlowDataSource valueSource = app.create(StructrTraits.FLOW_DATA_SOURCE).as(FlowDataSource.class);
+			valueSource.setFlowContainer(container);
+
+			FlowComparison flowComparison = app.create(StructrTraits.FLOW_COMPARISON).as(FlowComparison.class);
+			flowComparison.setFlowContainer(container);
+			flowComparison.setDecisions(List.of(flowDecision));
+			flowComparison.setDataSource(dataSource);
+			flowComparison.setValueSource(valueSource);
+			flowComparison.setOperation(FlowComparison.Operation.equal);
+
+			List<Object> result = Iterables.toList(container.evaluate(securityContext, new HashMap<>()));
+			assertTrue("Initial result should be SUCCESS since both value and data source are null.", result != null && result.size() == 1 && "SUCCESS".equals(result.get(0)));
+
+			dataSource.setQuery("123");
+
+			result = Iterables.toList(container.evaluate(securityContext, new HashMap<>()));
+			assertTrue("Result should be FAILURE since 123 is not equal to value source of null.", result != null && result.size() == 1 && "FAILURE".equals(result.get(0)));
+
+			valueSource.setQuery("123");
+
+			result = Iterables.toList(container.evaluate(securityContext, new HashMap<>()));
+			assertTrue("Result should be SUCCESS since 123 is equal to value source of 123.", result != null && result.size() == 1 && "SUCCESS".equals(result.get(0)));
+
+			flowComparison.setOperation(FlowComparison.Operation.greater);
+			valueSource.setQuery("122");
+
+			result = Iterables.toList(container.evaluate(securityContext, new HashMap<>()));
+			assertTrue("Result should be SUCCESS since 123 is greater than value source of 122.", result != null && result.size() == 1 && "SUCCESS".equals(result.get(0)));
+
+			tx.success();
+
+		} catch (Throwable ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception.");
+		}
 
 
 	}

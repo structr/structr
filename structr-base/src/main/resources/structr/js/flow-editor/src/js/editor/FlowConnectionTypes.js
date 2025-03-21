@@ -111,7 +111,13 @@ export class FlowConnectionTypes {
                 sourceAttribute: "cases",
                 targetAttribute: "switch",
                 type: "FlowSwitchCases"
-            }
+            },
+            FlowValueInput: {
+                name: "VALUE_DATA",
+                sourceAttribute: "dataTarget",
+                targetAttribute: "valueSource",
+                type: "FlowValueInput"
+            },
         };
 
 
