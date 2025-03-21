@@ -49,7 +49,7 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
 
 	public Object execute(final RelationshipInterface rel, final boolean passiveDeletion) {
 
-		DatabaseService graphDb = (DatabaseService) arguments.get("graphDb");
+		final DatabaseService graphDb = (DatabaseService) arguments.get("graphDb");
 
 		if (graphDb != null && rel != null && !rel.isDeleted()) {
 
