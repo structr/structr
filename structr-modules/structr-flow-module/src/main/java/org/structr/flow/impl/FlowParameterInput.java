@@ -20,8 +20,10 @@ package org.structr.flow.impl;
 
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
+import org.structr.flow.traits.definitions.FlowParameterInputTraitDefinition;
 import org.structr.module.api.DeployableEntity;
 
 import java.util.Map;
@@ -34,7 +36,7 @@ public class FlowParameterInput extends FlowBaseNode implements DeployableEntity
 	}
 
 	public String getKey() {
-		return wrappedObject.getProperty(traits.key("key"));
+		return wrappedObject.getProperty(traits.key(FlowParameterInputTraitDefinition.KEY_PROPERTY));
 	}
 
 	public void process(final Context context, final Context functionContext) throws FlowException {
@@ -55,11 +57,11 @@ public class FlowParameterInput extends FlowBaseNode implements DeployableEntity
 
 		final Map<String, Object> result = new TreeMap<>();
 
-		result.put("id",                          getUuid());
-		result.put("type",                        getType());
-		result.put("key",                         getKey());
-		result.put("visibleToPublicUsers",        isVisibleToPublicUsers());
-		result.put("visibleToAuthenticatedUsers", isVisibleToAuthenticatedUsers());
+		result.put(GraphObjectTraitDefinition.ID_PROPERTY,                             getUuid());
+		result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,                           getType());
+		result.put(FlowParameterInputTraitDefinition.KEY_PROPERTY,                     getKey());
+		result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        isVisibleToPublicUsers());
+		result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, isVisibleToAuthenticatedUsers());
 
 		return result;
 	}

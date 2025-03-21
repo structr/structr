@@ -21,22 +21,26 @@ package org.structr.flow.traits.definitions;
 import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.EndNode;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.StartNode;
 import org.structr.core.property.StartNodes;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.flow.impl.FlowCondition;
 
 import java.util.Map;
 import java.util.Set;
 
-/**
- *
- */
 public class FlowConditionTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String CONDITIONS_PROPERTY = "conditions";
+	public static final String RESULT_PROPERTY     = "result";
+
+
 	public FlowConditionTraitDefinition() {
-		super("FlowCondition");
+		super(StructrTraits.FLOW_CONDITION);
 	}
 
 	@Override
@@ -50,10 +54,12 @@ public class FlowConditionTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final PropertyKey<Iterable<NodeInterface>> conditions = new StartNodes("conditions", "FlowConditionCondition");
+		final PropertyKey<Iterable<NodeInterface>> conditions = new StartNodes(CONDITIONS_PROPERTY, StructrTraits.FLOW_CONDITION_CONDITION);
+		final PropertyKey<NodeInterface> result               = new EndNode(RESULT_PROPERTY, StructrTraits.FLOW_CONDITION_CONDITION);
 
 		return newSet(
-			conditions
+			conditions,
+			result
 		);
 	}
 
@@ -63,11 +69,12 @@ public class FlowConditionTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"conditions"
+				CONDITIONS_PROPERTY, RESULT_PROPERTY
 			),
+
 			PropertyView.Ui,
 			newSet(
-				"conditions"
+				CONDITIONS_PROPERTY, RESULT_PROPERTY
 			)
 		);
 	}

@@ -18,10 +18,13 @@
  */
 package org.structr.core.traits.definitions;
 
+import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Set;
 import org.structr.core.traits.StructrTraits;
 
@@ -68,5 +71,20 @@ public final class RelationshipInterfaceTraitDefinition extends AbstractNodeTrai
 	@Override
 	public Relation getRelation() {
 		return null;
+	}
+
+	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+				PropertyView.Public,
+				newSet(
+						"id", "type", "relType", "sourceId", "targetId"
+				),
+				PropertyView.Ui,
+				newSet(
+						"id", "type", "relType", "sourceId", "targetId"
+				)
+		);
 	}
 }

@@ -430,7 +430,15 @@ let _Crud = {
 
 			let pagerNode = _Crud.objectList.pager.addPager(type, crudRight);
 
-			crudRight.insertAdjacentHTML('beforeend', '<table class="crud-table"><thead><tr></tr></thead><tbody></tbody></table><div id="query-info">Query: <span class="queryTime"></span> s &nbsp; Serialization: <span class="serTime"></span> s</div>');
+			crudRight.insertAdjacentHTML('beforeend', `
+				<table class="crud-table" data-type="${type}">
+					<thead>
+						<tr></tr>
+					</thead>
+					<tbody></tbody>
+					</table>
+				<div id="query-info">Query: <span class="queryTime"></span> s &nbsp; Serialization: <span class="serTime"></span> s</div>
+			`);
 
 			_Crud.objectList.updateCrudTableHeader(type);
 
@@ -703,6 +711,10 @@ let _Crud = {
 				}
 			});
 		},
+		isDisplayedTableForType: (type) => {
+
+			return (type === document.querySelector('#crud-type-detail table')?.dataset['type']);
+		},
 		refreshList: (type) => {
 			_Crud.objectList.clearList(type);
 			_Crud.objectList.activateList(type);
@@ -887,18 +899,20 @@ let _Crud = {
 		},
 		appendRow: (type, properties, item) => {
 
-			_Crud.helpers.ensurePropertiesForTypeAreLoaded(item.type, () => {
+			if (_Crud.objectList.isDisplayedTableForType(type)) {
 
-				let id    = item['id'];
-				let row   = _Crud.objectList.getRow(id);
+				_Crud.helpers.ensurePropertiesForTypeAreLoaded(item.type, () => {
 
-				if ( !(row && row.length) ) {
+					let id  = item['id'];
+					let row = _Crud.objectList.getRow(id);
 
-					document.querySelector('#crud-type-detail table tbody').insertAdjacentHTML('beforeend', `<tr id="id_${id}"></tr>`);
-				}
+					if (!row[0]) {
+						document.querySelector('#crud-type-detail table tbody').insertAdjacentHTML('beforeend', `<tr id="id_${id}"></tr>`);
+					}
 
-				_Crud.objectList.populateRow(id, item, type, properties);
-			});
+					_Crud.objectList.populateRow(id, item, type, properties);
+				});
+			}
 		},
 		populateRow: (id, item, type, properties) => {
 
@@ -2455,7 +2469,7 @@ let _Crud = {
 				}
 				if (_Helpers.isUUID(searchString)) {
 					attr = 'uuid';
-					types = ['AbstractNode'];
+					types = ['NodeInterface'];
 				}
 			}
 

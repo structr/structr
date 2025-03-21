@@ -20,6 +20,7 @@ package org.structr.flow.traits.definitions;
 
 import org.structr.core.entity.Relation;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.impl.FlowLogicCondition;
@@ -31,7 +32,7 @@ import java.util.Map;
 public class FlowOrTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public FlowOrTraitDefinition() {
-		super("FlowOr");
+		super(StructrTraits.FLOW_OR);
 	}
 
 	@Override

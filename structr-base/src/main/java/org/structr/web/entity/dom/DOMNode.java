@@ -178,7 +178,7 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 	Iterable<ActionMapping> getProcessSuccessShowActions();
 	Iterable<ActionMapping> getProcessSuccessHideActions();
 	Iterable<ActionMapping> getProcessFailureShowActions();
-	Iterable<ActionMapping> processFailureHideActions();
+	Iterable<ActionMapping> getProcessFailureHideActions();
 
 	DOMNode cloneNode(final boolean deep) throws FrameworkException;
 	DOMNode appendChild(final DOMNode domNode) throws FrameworkException;

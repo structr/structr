@@ -21,23 +21,24 @@ package org.structr.flow.impl.rels;
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
 import org.structr.core.entity.Relation;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
 public class FlowExceptionHandlerNodes extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public FlowExceptionHandlerNodes() {
-		super("FlowExceptionHandlerNodes");
+		super(StructrTraits.FLOW_EXCEPTION_HANDLER_NODES);
 	}
 
 	@Override
 	public String getSourceType() {
-		return "FlowBaseNode";
+		return StructrTraits.FLOW_BASE_NODE;
 	}
 
 	@Override
 	public String getTargetType() {
-		return "FlowExceptionHandler";
+		return StructrTraits.FLOW_EXCEPTION_HANDLER;
 	}
 
 	@Override

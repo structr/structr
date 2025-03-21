@@ -841,7 +841,7 @@ let _Schema = {
 			let tabControls = {};
 
 			let basicTabContent        = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'basic', 'Basic', targetView === 'basic');
-			tabControls.basic          = _Schema.nodes.appendBasicNodeInfo(basicTabContent, entity, mainTabs);
+			tabControls.basic          = _Schema.nodes.appendBasicNodeInfo(basicTabContent, entity);
 
 			if (entity.isServiceClass === false) {
 
@@ -1000,7 +1000,7 @@ let _Schema = {
 				changeFn?.();
 			});
 		},
-		appendBasicNodeInfo: (tabContent, entity, mainTabs) => {
+		appendBasicNodeInfo: (tabContent, entity) => {
 
 			tabContent.appendChild(_Helpers.createSingleDOMElementFromHTML(_Schema.templates.typeBasicTab({ isServiceClass: entity?.isServiceClass, isCreate: !entity })));
 
@@ -1150,24 +1150,27 @@ let _Schema = {
 		},
 		getTypeDefinitionChanges: (entity, newData) => {
 
+			let hasArrayChanged = (key) => {
+
+				let prevValue = entity[key] ?? [];
+				let newValue  = newData[key];
+
+				if (prevValue.length === newValue.length) {
+
+					let difference = prevValue.filter(t => !newValue.includes(t));
+					return (difference.length > 0);
+				}
+
+				return true;
+			};
+
 			for (let key in newData) {
 
 				let shouldDelete = (entity[key] === newData[key]);
 
-				if (key === 'tags') {
+				if (key === 'tags' || key === 'inheritedTraits') {
 
-					let prevTags = entity[key] ?? [];
-					let newTags  = newData[key];
-					if (!prevTags && newTags.length === 0) {
-						shouldDelete = true
-					} else if (prevTags.length === newTags.length) {
-						let difference = prevTags.filter(t => !newTags.includes(t));
-						shouldDelete = (difference.length === 0);
-					}
-
-				} else if (key === 'inheritedTraits') {
-
-					shouldDelete = (entity.inheritedTraits === null && newData.inheritedTraits.length === 0);
+					shouldDelete = !hasArrayChanged(key);
 				}
 
 				if (shouldDelete) {

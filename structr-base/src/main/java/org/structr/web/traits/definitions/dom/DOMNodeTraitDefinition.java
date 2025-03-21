@@ -26,7 +26,6 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.event.RuntimeEvent;
 import org.structr.common.event.RuntimeEventLog;
 import org.structr.common.helper.CaseHelper;
 import org.structr.core.GraphObject;
@@ -283,10 +282,10 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 									} else {
 
 										final Traits traits = currentDataNode.getTraits();
-										propertyKey = traits.key(subKey);
-										renderContext.setRelatedProperty(propertyKey);
+										if (traits.hasKey(subKey)) {
 
-										if (propertyKey != null) {
+											propertyKey = traits.key(subKey);
+											renderContext.setRelatedProperty(propertyKey);
 
 											final Object value = currentDataNode.getProperty(propertyKey);
 											if (value != null) {
@@ -617,10 +616,14 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<NodeInterface> sharedComponentProperty                      = new StartNode(SHARED_COMPONENT_PROPERTY, StructrTraits.DOM_NODE_SYNC_DOM_NODE).category(DOMNode.PAGE_CATEGORY);
 		final Property<Iterable<NodeInterface>> syncedNodesProperty                = new EndNodes(SYNCED_NODES_PROPERTY, StructrTraits.DOM_NODE_SYNC_DOM_NODE).category(DOMNode.PAGE_CATEGORY);
 		final Property<NodeInterface> ownerDocumentProperty                        = new EndNode(OWNER_DOCUMENT_PROPERTY, StructrTraits.DOM_NODE_PAGE_PAGE).category(DOMNode.PAGE_CATEGORY);
-		final Property<Iterable<NodeInterface>> reloadingActionsProperty           = new EndNodes(RELOADING_ACTIONS_PROPERTY, StructrTraits.DOM_NODE_SUCCESS_TARGET_ACTION_MAPPING);
-		final Property<Iterable<NodeInterface>> failureActionsProperty             = new EndNodes(FAILURE_ACTIONS_PROPERTY, StructrTraits.DOM_NODE_FAILURE_TARGET_ACTION_MAPPING);
-		final Property<Iterable<NodeInterface>> successNotificationActionsProperty = new EndNodes(SUCCESS_NOTIFICATION_ACTIONS_PROPERTY, StructrTraits.DOM_NODE_SUCCESS_NOTIFICATION_ELEMENT_ACTION_MAPPING);
-		final Property<Iterable<NodeInterface>> failureNotificationActionsProperty = new EndNodes(FAILURE_NOTIFICATION_ACTIONS_PROPERTY, StructrTraits.DOM_NODE_FAILURE_NOTIFICATION_ELEMENT_ACTION_MAPPING);
+		final Property<Iterable<NodeInterface>> reloadingActionsProperty           = new EndNodes(RELOADING_ACTIONS_PROPERTY, StructrTraits.DOM_NODE_SUCCESS_TARGET_ACTION_MAPPING).category(DOMNode.EVENT_ACTION_MAPPING_CATEGORY);
+		final Property<Iterable<NodeInterface>> failureActionsProperty             = new EndNodes(FAILURE_ACTIONS_PROPERTY, StructrTraits.DOM_NODE_FAILURE_TARGET_ACTION_MAPPING).category(DOMNode.EVENT_ACTION_MAPPING_CATEGORY);
+		final Property<Iterable<NodeInterface>> successNotificationActionsProperty = new EndNodes(SUCCESS_NOTIFICATION_ACTIONS_PROPERTY, StructrTraits.DOM_NODE_SUCCESS_NOTIFICATION_ELEMENT_ACTION_MAPPING).category(DOMNode.EVENT_ACTION_MAPPING_CATEGORY);
+		final Property<Iterable<NodeInterface>> failureNotificationActionsProperty = new EndNodes(FAILURE_NOTIFICATION_ACTIONS_PROPERTY, StructrTraits.DOM_NODE_FAILURE_NOTIFICATION_ELEMENT_ACTION_MAPPING).category(DOMNode.EVENT_ACTION_MAPPING_CATEGORY);
+		final Property<Iterable<NodeInterface>> processSuccessShowActions                           = new EndNodes(PROCESS_SUCCESS_SHOW_ACTIONS_PROPERTY, StructrTraits.DOM_NODE_PROCESS_SHOW_ELEMENT_ON_SUCCESS_ACTION_MAPPING).category(DOMNode.EVENT_ACTION_MAPPING_CATEGORY);
+		final Property<Iterable<NodeInterface>> processSuccessHideActions                           = new EndNodes(PROCESS_SUCCESS_HIDE_ACTIONS_PROPERTY, StructrTraits.DOM_NODE_PROCESS_HIDE_ELEMENT_ON_SUCCESS_ACTION_MAPPING).category(DOMNode.EVENT_ACTION_MAPPING_CATEGORY);
+		final Property<Iterable<NodeInterface>> processFailureShowActions                           = new EndNodes(PROCESS_FAILURE_SHOW_ACTIONS_PROPERTY, StructrTraits.DOM_NODE_PROCESS_SHOW_ELEMENT_ON_FAILURE_ACTION_MAPPING).category(DOMNode.EVENT_ACTION_MAPPING_CATEGORY);
+		final Property<Iterable<NodeInterface>> processFailureHideActions                           = new EndNodes(PROCESS_FAILURE_HIDE_ACTIONS_PROPERTY, StructrTraits.DOM_NODE_PROCESS_HIDE_ELEMENT_ON_FAILURE_ACTION_MAPPING).category(DOMNode.EVENT_ACTION_MAPPING_CATEGORY);
 		final Property<Iterable<DOMNode>> sortedChildrenProperty                   = new DOMNodeSortedChildrenProperty(SORTED_CHILDREN_PROPERTY).typeHint("DOMNode[]");
 		final Property<String> childrenIdsProperty                                 = new CollectionIdProperty(CHILDREN_IDS_PROPERTY, StructrTraits.DOM_NODE, DOMNodeTraitDefinition.CHILDREN_PROPERTY, StructrTraits.DOM_NODE).category("Page Structure");
 		final Property<String> nextSiblingIdProperty                               = new EntityIdProperty(NEXT_SIBLING_ID_PROPERTY, StructrTraits.DOM_NODE, NEXT_SIBLING_PROPERTY, StructrTraits.DOM_NODE).category("Page Structure");
@@ -643,10 +646,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Boolean> isDOMNodeProperty                                  = new ConstantBooleanProperty(IS_DOM_NODE_PROPERTY, true).category(DOMNode.PAGE_CATEGORY);
 		final Property<Boolean> hasSharedComponent                                 = new BooleanProperty(HAS_SHARED_COMPONENT_PROPERTY).indexed();
 		final Property<Integer> domSortPositionProperty                            = new IntProperty(DOM_SORT_POSITION_PROPERTY).category(DOMNode.PAGE_CATEGORY);
-
-
-		//final Property<NodeInterface> flow                                               = new EndNode(FLOW_PROPERTY, "DOMNodeFLOWFlowContainer");
-
+//		final Property<NodeInterface> flow                                         = new EndNode(FLOW_PROPERTY, StructrTraits.DOM_NODE_FLOW_FLOW_CONTAINER);
 
 		return Set.of(
 			parentProperty,
@@ -681,7 +681,11 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 			dontCacheProperty,
 			isDOMNodeProperty,
 			hasSharedComponent,
-			domSortPositionProperty
+			domSortPositionProperty,
+			processSuccessShowActions,
+			processSuccessHideActions,
+			processFailureShowActions,
+			processFailureHideActions
 			//flow
 		);
 	}

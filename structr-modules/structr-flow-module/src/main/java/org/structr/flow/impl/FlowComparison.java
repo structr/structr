@@ -21,14 +21,14 @@ package org.structr.flow.impl;
 import org.structr.api.util.Iterables;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.flow.traits.definitions.FlowComparisonTraitDefinition;
+import org.structr.flow.traits.definitions.FlowIsTrueTraitDefinition;
 import org.structr.module.api.DeployableEntity;
 
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- *
- */
 public class FlowComparison extends FlowCondition implements DeployableEntity {
 
 	public FlowComparison(final Traits traits, final NodeInterface wrappedObject) {
@@ -37,22 +37,22 @@ public class FlowComparison extends FlowCondition implements DeployableEntity {
 
 	public final Iterable<FlowDataSource> getDataSources() {
 
-		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key("dataSources"));
+		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key(FlowComparisonTraitDefinition.DATA_SOURCES_PROPERTY));
 
 		return Iterables.map(n -> n.as(FlowDataSource.class), nodes);
 	}
 
 	public final String getOperation() {
-		return wrappedObject.getProperty(traits.key("operation"));
+		return wrappedObject.getProperty(traits.key(FlowComparisonTraitDefinition.OPERATION_PROPERTY));
 	}
 
 	@Override
 	public Map<String, Object> exportData() {
 		Map<String, Object> result = new HashMap<>();
 
-		result.put("id",        getUuid());
-		result.put("type",      getType());
-		result.put("operation", getOperation());
+		result.put(GraphObjectTraitDefinition.ID_PROPERTY,           getUuid());
+		result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,         getType());
+		result.put(FlowComparisonTraitDefinition.OPERATION_PROPERTY, getOperation());
 
 		return result;
 	}

@@ -21,26 +21,24 @@ package org.structr.flow.impl.rels;
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
 import org.structr.core.entity.Relation;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
-/**
- *
- */
 public class FlowNodeDataSource extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public FlowNodeDataSource() {
-		super("FlowNodeDataSource");
+		super(StructrTraits.FLOW_NODE_DATA_SOURCE);
 	}
 
 	@Override
 	public String getSourceType() {
-		return "FlowDataSource";
+		return StructrTraits.FLOW_DATA_SOURCE;
 	}
 
 	@Override
 	public String getTargetType() {
-		return "FlowDataSource";
+		return StructrTraits.FLOW_DATA_SOURCE;
 	}
 
 	@Override

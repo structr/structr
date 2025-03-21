@@ -21,26 +21,24 @@ package org.structr.flow.impl.rels;
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
 import org.structr.core.entity.Relation;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
-/**
- *
- */
 public class DOMNodeFLOWFlowContainer extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public DOMNodeFLOWFlowContainer() {
-		super("DOMNodeFLOWFlowContainer");
+		super(StructrTraits.DOM_NODE_FLOW_FLOW_CONTAINER);
 	}
 
 	@Override
 	public String getSourceType() {
-		return "DOMNode";
+		return StructrTraits.DOM_NODE;
 	}
 
 	@Override
 	public String getTargetType() {
-		return "FlowContainer";
+		return StructrTraits.FLOW_CONTAINER;
 	}
 
 	@Override

@@ -123,7 +123,7 @@ public class FulltextIndexingAgent extends Agent<String> {
 	// ----- private methods -----
 	private boolean doIndexing(final App app, final File indexable) {
 
-		logger.info("Indexing is currently disabled!");
+		logger.debug("Indexing is currently disabled!");
 
 		return true;
 

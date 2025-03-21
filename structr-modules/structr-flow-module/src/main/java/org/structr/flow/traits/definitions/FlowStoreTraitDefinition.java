@@ -25,6 +25,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.api.FlowType;
@@ -41,10 +42,14 @@ import java.util.Set;
 
 public class FlowStoreTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String DATA_TARGET_PROPERTY = "dataTarget";
+	public static final String OPERATION_PROPERTY   = "operation";
+	public static final String KEY_PROPERTY         = "key";
+
 	private static final Logger logger = LoggerFactory.getLogger(FlowStoreTraitDefinition.class);
 
 	public FlowStoreTraitDefinition() {
-		super("FlowStore");
+		super(StructrTraits.FLOW_STORE);
 	}
 
 	public enum Operation {
@@ -77,7 +82,7 @@ public class FlowStoreTraitDefinition extends AbstractNodeTraitDefinition {
 
 					try {
 
-						if (op != null && op.equals("retrieve")) {
+						if (op != null && op.equals(Operation.retrieve)) {
 
 							store.handleStorage(context);
 						}
@@ -103,14 +108,12 @@ public class FlowStoreTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> dataSource           = new StartNode("dataSource", "FlowDataInput");
-		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes("dataTarget", "FlowDataInput");
-		final Property<String> operation                   = new EnumProperty("operation", FlowStore.Operation.class);
-		final Property<String> key                         = new StringProperty("key");
+		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes(DATA_TARGET_PROPERTY, StructrTraits.FLOW_DATA_INPUT);
+		final Property<String> operation                   = new EnumProperty(OPERATION_PROPERTY, FlowStore.Operation.class);
+		final Property<String> key                         = new StringProperty(KEY_PROPERTY);
 
 
 		return newSet(
-			dataSource,
 			dataTarget,
 			operation,
 			key
@@ -123,11 +126,12 @@ public class FlowStoreTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"key", "operation", "dataSource", "dataTarget", "isStartNodeOfContainer"
+				KEY_PROPERTY, OPERATION_PROPERTY, FlowBaseNodeTraitDefinition.DATA_SOURCE_PROPERTY, DATA_TARGET_PROPERTY, FlowNodeTraitDefinition.IS_START_NODE_OF_CONTAINER_PROPERTY
 			),
+
 			PropertyView.Ui,
 			newSet(
-				"key", "operation", "dataSource", "dataTarget", "isStartNodeOfContainer"
+				KEY_PROPERTY, OPERATION_PROPERTY, FlowBaseNodeTraitDefinition.DATA_SOURCE_PROPERTY, DATA_TARGET_PROPERTY, FlowNodeTraitDefinition.IS_START_NODE_OF_CONTAINER_PROPERTY
 			)
 		);
 	}

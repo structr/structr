@@ -56,8 +56,8 @@ import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnModification;
 import org.structr.core.traits.operations.propertycontainer.GetPropertyKeys;
-import org.structr.process.entity.*;
 import org.structr.process.entity.Process;
+import org.structr.process.entity.ProcessDecision;
 import org.structr.process.traits.definitions.*;
 import org.structr.process.traits.operations.CreateInstance;
 import org.structr.rest.api.RESTCall;
@@ -494,7 +494,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 						final List<PropertyKey> htmlAttributes = new ArrayList<>();
 
 						wrappedNode.getNode().getPropertyKeys().forEach((key) -> {
-							if (key.startsWith(PropertyView.Html)) {
+							if (key.startsWith(PropertyView.Html) && traits.hasKey(key)) {
 								htmlAttributes.add(traits.key(key));
 							}
 						});
@@ -651,7 +651,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 									final PropertyKey<String> scriptExpressionKey = parameterMappingTraits.key(ParameterMappingTraitDefinition.SCRIPT_EXPRESSION_PROPERTY);
 									final PropertyKey<String> parameterTypeKey    = parameterMappingTraits.key(ParameterMappingTraitDefinition.PARAMETER_TYPE_PROPERTY);
 									final PropertyKey<String> parameterNameKey    = parameterMappingTraits.key(ParameterMappingTraitDefinition.PARAMETER_NAME_PROPERTY);
-									final PropertyKey<String> htmlIdKey = traits.key(DOMElementTraitDefinition._HTML_ID_PROPERTY);
+									final PropertyKey<String> htmlIdKey           = traits.key(DOMElementTraitDefinition._HTML_ID_PROPERTY);
 
 
 									// **************************************************************************+
@@ -1355,39 +1355,28 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 	private GraphObject handleCreateAction(final RenderContext renderContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext) throws FrameworkException {
 
 		final SecurityContext securityContext = renderContext.getSecurityContext();
-
-		// create new object of type?
-		final String targetType = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTARGET);
-		if (targetType == null) {
-
-			throw new FrameworkException(422, "Cannot execute create action without target type (data-structr-target attribute).");
-		}
+		final String dataTarget               = getDataTargetFromParameters(parameters, "create", true);
 
 		// resolve target type
-		Traits traits = Traits.of(targetType);
+		Traits traits = Traits.of(dataTarget);
 		if (traits == null) {
 
-			throw new FrameworkException(422, "Cannot execute create action with target type " + targetType + ", type does not exist.");
+			throw new FrameworkException(422, "Cannot execute create action with target type " + dataTarget + ", type does not exist.");
 		}
 
 		removeInternalDataBindingKeys(parameters);
 
 		// convert input
-		final PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, targetType, parameters);
+		final PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, dataTarget, parameters);
 
 		// create entity
-		return StructrApp.getInstance(securityContext).create(targetType, properties);
+		return StructrApp.getInstance(securityContext).create(dataTarget, properties);
 	}
 
 	private void handleUpdateAction(final RenderContext renderContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext) throws FrameworkException {
 
 		final SecurityContext securityContext = renderContext.getSecurityContext();
-		final String dataTarget               = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTARGET);
-
-		if (dataTarget == null) {
-
-			throw new FrameworkException(422, "Cannot execute update action without target UUID (data-structr-target attribute).");
-		}
+		final String dataTarget               = getDataTargetFromParameters(parameters, "update", true);
 
 		removeInternalDataBindingKeys(parameters);
 
@@ -1406,12 +1395,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 		final SecurityContext securityContext = renderContext.getSecurityContext();
 		final App app                         = StructrApp.getInstance(securityContext);
-		final String dataTarget               = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTARGET);
-
-		if (dataTarget == null) {
-
-			throw new FrameworkException(422, "Cannot execute delete action without target UUID (data-structr-target attribute).");
-		}
+		final String dataTarget               = getDataTargetFromParameters(parameters, "delete", true);
 
 		for (final GraphObject target : resolveDataTargets(renderContext, entity, dataTarget)) {
 
@@ -1428,13 +1412,10 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 	private Object handleCustomAction(final RenderContext renderContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext, final String methodName) throws FrameworkException {
 
-		// Support old and new parameters
-		final String idExpression  = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRIDEXPRESSION);
-		final String structrTarget = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTARGET);
-		final String dataTarget    = structrTarget != null ? structrTarget : idExpression;
+		final String dataTarget = getDataTargetFromParameters(parameters, "custom", false);
 
 		// Empty dataTarget means no database object and no type, so it can only be a global (schema) method
-		if (StringUtils.isNotBlank(methodName) && dataTarget == null) {
+		if (StringUtils.isNotBlank(methodName) && StringUtils.isBlank(dataTarget)) {
 
 			removeInternalDataBindingKeys(parameters);
 
@@ -1593,12 +1574,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 	private Object handleAppendChildAction(final RenderContext renderContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext) throws FrameworkException {
 
 		final SecurityContext securityContext = renderContext.getSecurityContext();
-		final String dataTarget               = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTARGET);
-
-		if (dataTarget == null) {
-
-			throw new FrameworkException(422, "Cannot execute append-child action without target UUID (data-structr-target attribute).");
-		}
+		final String dataTarget               = getDataTargetFromParameters(parameters, "append-child", true);
 
 		// fetch child ID
 		final String childId = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_CHILDID);
@@ -1636,12 +1612,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 	private Object handleRemoveChildAction(final RenderContext renderContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext) throws FrameworkException {
 
 		final SecurityContext securityContext = renderContext.getSecurityContext();
-		final String dataTarget               = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTARGET);
-
-		if (dataTarget == null) {
-
-			throw new FrameworkException(422, "Cannot execute remove-child action without target UUID (data-structr-target attribute).");
-		}
+		final String dataTarget               = getDataTargetFromParameters(parameters, "remove-child", true);
 
 		// fetch child ID
 		final String childId = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_CHILDID);
@@ -1679,11 +1650,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 	private Object handleInsertHtmlAction(final RenderContext renderContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext) throws FrameworkException {
 
 		final SecurityContext securityContext = renderContext.getSecurityContext();
-		final String dataTarget               = (String)parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTARGET);
-		if (dataTarget == null) {
-
-			throw new FrameworkException(422, "Cannot execute insert-html action without target UUID (data-structr-target attribute).");
-		}
+		final String dataTarget               = getDataTargetFromParameters(parameters, "insert-html", true);
 
 		final String sourceObjectId = (String)parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_SOURCEOBJECT);
 		if (sourceObjectId == null) {
@@ -1735,11 +1702,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 	private Object handleReplaceHtmlAction(final RenderContext renderContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext) throws FrameworkException {
 
 		final SecurityContext securityContext = renderContext.getSecurityContext();
-		final String dataTarget               = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTARGET);
-		if (dataTarget == null) {
-
-			throw new FrameworkException(422, "Cannot execute replace-html action without target UUID (data-structr-target attribute).");
-		}
+		final String dataTarget               = getDataTargetFromParameters(parameters, "replace-html", true);
 
 		// fetch child ID
 		final String childId = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_CHILDID);
@@ -1816,6 +1779,21 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_SOURCEOBJECT);
 		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_SOURCEPROPERTY);
 		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_HTMLEVENT);
+	}
+
+	private String getDataTargetFromParameters(final Map<String, Object> parameters, final String action, final boolean throwExceptionIfEmpty) throws FrameworkException {
+
+		// Support old and new parameters
+		final String idExpression  = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRIDEXPRESSION);
+		final String structrTarget = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTARGET);
+		final String dataTarget    = idExpression != null ? idExpression : structrTarget;
+
+		if (StringUtils.isBlank(dataTarget) && throwExceptionIfEmpty) {
+
+			throw new FrameworkException(422, "Cannot execute " + action + " action without target UUID (data-structr-target attribute).");
+		}
+
+		return dataTarget;
 	}
 
 	public String getOffsetAttributeName(final NodeInterface entity, final String name, final int offset) {
@@ -2242,10 +2220,13 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		final List<ActionMapping> failureNotificationActions = Iterables.toList(thisElement.getFailureNotificationActions());
 		final List<ActionMapping> processSuccessShowActions  = Iterables.toList(thisElement.getProcessSuccessShowActions());
 		final List<ActionMapping> processSuccessHideActions  = Iterables.toList(thisElement.getProcessSuccessHideActions());
+		final List<ActionMapping> processFailureShowActions  = Iterables.toList(thisElement.getProcessFailureShowActions());
+		final List<ActionMapping> processFailureHideActions  = Iterables.toList(thisElement.getProcessSuccessHideActions());
 
 		return isManualReloadTarget || !reloadSources.isEmpty() || !reloadingActions.isEmpty()
 				|| !failureActions.isEmpty() || !successNotificationActions.isEmpty() || !failureNotificationActions.isEmpty()
-				|| !processSuccessShowActions.isEmpty() || !processSuccessHideActions.isEmpty();
+				|| !processSuccessShowActions.isEmpty() || !processSuccessHideActions.isEmpty() || !processFailureShowActions.isEmpty() || !processFailureHideActions.isEmpty()
+				;
 	}
 
 	// ----- private methods -----

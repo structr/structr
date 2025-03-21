@@ -23,6 +23,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.flow.impl.FlowParameterInput;
 
@@ -31,8 +32,11 @@ import java.util.Set;
 
 public class FlowParameterInputTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String CALL_PROPERTY = "call";
+	public static final String KEY_PROPERTY  = "key";
+
 	public FlowParameterInputTraitDefinition() {
-		super("FlowParameterInput");
+		super(StructrTraits.FLOW_PARAMETER_INPUT);
 	}
 
 	@Override
@@ -46,13 +50,11 @@ public class FlowParameterInputTraitDefinition extends AbstractNodeTraitDefiniti
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Iterable<NodeInterface>> call = new EndNodes("call", "FlowCallParameter");
-		final Property<NodeInterface> dataSource     = new StartNode("dataSource", "FlowDataInput");
-		final Property<String> key                   = new StringProperty("key");
+		final Property<Iterable<NodeInterface>> call = new EndNodes(CALL_PROPERTY, StructrTraits.FLOW_CALL_PARAMETER);
+		final Property<String> key                   = new StringProperty(KEY_PROPERTY);
 
 		return newSet(
 			call,
-			dataSource,
 			key
 		);
 	}
@@ -63,11 +65,12 @@ public class FlowParameterInputTraitDefinition extends AbstractNodeTraitDefiniti
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"key", "call", "dataSource"
+				KEY_PROPERTY, CALL_PROPERTY, FlowBaseNodeTraitDefinition.DATA_SOURCE_PROPERTY
 			),
+
 			PropertyView.Ui,
 			newSet(
-				"key", "call", "dataSource"
+				KEY_PROPERTY, CALL_PROPERTY, FlowBaseNodeTraitDefinition.DATA_SOURCE_PROPERTY
 			)
 		);
 	}

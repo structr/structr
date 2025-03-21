@@ -26,6 +26,7 @@ import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.engine.Context;
@@ -42,8 +43,11 @@ import java.util.stream.Collectors;
 
 public class FlowParameterDataSourceTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String DATA_TARGET_PROPERTY = "dataTarget";
+	public static final String KEY_PROPERTY         = "key";
+
 	public FlowParameterDataSourceTraitDefinition() {
-		super("FlowParameterDataSource");
+		super(StructrTraits.FLOW_PARAMETER_DATA_SOURCE);
 	}
 
 	@Override
@@ -97,8 +101,8 @@ public class FlowParameterDataSourceTraitDefinition extends AbstractNodeTraitDef
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes("dataTarget", "FlowDataInput");
-		final Property<String> key                         = new StringProperty("key");
+		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes(DATA_TARGET_PROPERTY, StructrTraits.FLOW_DATA_INPUT);
+		final Property<String> key                         = new StringProperty(KEY_PROPERTY);
 
 		return newSet(
 			dataTarget,
@@ -112,11 +116,12 @@ public class FlowParameterDataSourceTraitDefinition extends AbstractNodeTraitDef
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"key", "dataTarget"
+				KEY_PROPERTY, DATA_TARGET_PROPERTY
 			),
+
 			PropertyView.Ui,
 			newSet(
-				"key", "dataTarget"
+				KEY_PROPERTY, DATA_TARGET_PROPERTY
 			)
 		);
 	}

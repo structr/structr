@@ -87,8 +87,8 @@ public class DOMElementTraitWrapper extends DOMNodeTraitWrapper implements DOMEl
 		final LicenseManager licenseManager = Services.getInstance().getLicenseManager();
 		if (licenseManager == null || licenseManager.isModuleLicensed("api-builder")) {
 
-			type.addViewProperty(PropertyView.Public, "flow");
-			type.addViewProperty(PropertyView.Ui, "flow");
+			type.addViewProperty(PropertyView.Public, DOMNodeTraitDefinition.FLOW_PROPERTY);
+			type.addViewProperty(PropertyView.Ui, DOMNodeTraitDefinition.FLOW_PROPERTY);
 		}
 
 	}}

@@ -165,7 +165,7 @@ public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> mountTargetFolderTypeProperty              = new StringProperty(MOUNT_TARGET_FOLDER_TYPE_PROPERTY);
 		final Property<Long> mountLastScannedProperty                     = new LongProperty(MOUNT_LAST_SCANNED_PROPERTY);
 		final Property<Object> filesCountProperty                         = new FunctionProperty(FILES_COUNT_PROPERTY).readFunction("size(this.files)").typeHint("int");
-		final Property<Object> foldersCountProperty                       = new FunctionProperty(FOLDERS_COUNT_PROPERTY).readFunction("size(this.files)").typeHint("int");
+		final Property<Object> foldersCountProperty                       = new FunctionProperty(FOLDERS_COUNT_PROPERTY).readFunction("size(this.folders)").typeHint("int");
 
 		return Set.of(
 			childrenProperty,

@@ -27,6 +27,7 @@ import org.structr.core.datasources.GraphDataSource;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.flow.impl.FlowContainer;
 import org.structr.schema.action.ActionContext;
@@ -37,6 +38,7 @@ import org.structr.web.function.UiFunction;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 
 /**
  * Renders dynamic markup for the results of a {@link FlowContainer}.
@@ -49,11 +51,11 @@ public class FlowContainerDataSource implements GraphDataSource<Iterable<GraphOb
 	public Iterable<GraphObject> getData(final ActionContext actionContext, final NodeInterface referenceNode) throws FrameworkException {
 
 		final RenderContext renderContext = (RenderContext) actionContext;
-		final Traits traits               = Traits.of("DOMNode");
+		final Traits traits               = Traits.of(StructrTraits.DOM_NODE);
 
-		if (traits.hasKey("flow")) {
+		if (traits.hasKey(DOMNodeTraitDefinition.FLOW_PROPERTY)) {
 
-			final PropertyKey<NodeInterface> flowKey = Traits.of("DOMNode").key("flow");
+			final PropertyKey<NodeInterface> flowKey = Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.FLOW_PROPERTY);
 			final NodeInterface flowNode             = referenceNode.getProperty(flowKey);
 
 			if (flowNode != null) {

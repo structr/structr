@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.traits.StructrTraits;
 import org.structr.flow.api.FlowHandler;
 import org.structr.flow.api.FlowResult;
 import org.structr.flow.api.FlowType;
@@ -153,7 +154,7 @@ public class FlowEngine {
 
 				for (final FlowBaseNode node : flowNodes) {
 
-					if (node.is("FlowExceptionHandler")) {
+					if (node.is(StructrTraits.FLOW_EXCEPTION_HANDLER)) {
 
 						final FlowExceptionHandler exceptionHandler = node.as(FlowExceptionHandler.class);
 						final List<FlowBaseNode> handledNodes       = Iterables.toList(exceptionHandler.getHandledNodes());

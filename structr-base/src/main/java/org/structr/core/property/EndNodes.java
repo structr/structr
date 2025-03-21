@@ -300,7 +300,7 @@ public class EndNodes extends Property<Iterable<NodeInterface>> implements Relat
 				map.put("readOnly", true);
 			}
 
-			if (StructrTraits.NODE_INTERFACE.equals(destType) || "FlowContainer".equals(destType)) {
+			if (StructrTraits.NODE_INTERFACE.equals(destType) || StructrTraits.FLOW_CONTAINER.equals(destType)) {
 
 				final ConfigurationProvider configuration = StructrApp.getConfiguration();
 

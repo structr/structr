@@ -21,38 +21,37 @@ package org.structr.flow.impl;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.flow.traits.definitions.FlowDecisionTraitDefinition;
 import org.structr.module.api.DeployableEntity;
 
 import java.util.Map;
 import java.util.TreeMap;
 
-/**
- *
- */
 public class FlowDecision extends FlowNode implements DeployableEntity {
 
 	public FlowDecision(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);
 	}
 
-	public FlowCondition getCondition() {
+	public FlowLogicCondition getCondition() {
 
-		final NodeInterface node = wrappedObject.getProperty(traits.key("condition"));
+		final NodeInterface node = wrappedObject.getProperty(traits.key(FlowDecisionTraitDefinition.CONDITION_PROPERTY));
 		if (node != null) {
 
-			return node.as(FlowCondition.class);
+			return node.as(FlowLogicCondition.class);
 		}
 
 		return null;
 	}
 
 	public void setCondition(final FlowDataSource condition) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("condition"), condition);
+		wrappedObject.setProperty(traits.key(FlowDecisionTraitDefinition.CONDITION_PROPERTY), condition);
 	}
 
 	public FlowNode getTrueElement() {
 
-		final NodeInterface node = wrappedObject.getProperty(traits.key("trueElement"));
+		final NodeInterface node = wrappedObject.getProperty(traits.key(FlowDecisionTraitDefinition.TRUE_ELEMENT_PROPERTY));
 		if (node != null) {
 
 			return node.as(FlowNode.class);
@@ -63,7 +62,7 @@ public class FlowDecision extends FlowNode implements DeployableEntity {
 
 	public FlowNode getFalseElement() {
 
-		final NodeInterface node = wrappedObject.getProperty(traits.key("falseElement"));
+		final NodeInterface node = wrappedObject.getProperty(traits.key(FlowDecisionTraitDefinition.FALSE_ELEMENT_PROPERTY));
 		if (node != null) {
 
 			return node.as(FlowNode.class);
@@ -73,11 +72,11 @@ public class FlowDecision extends FlowNode implements DeployableEntity {
 	}
 
 	public void setTrueElement(final FlowNode trueElement) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("trueElement"), trueElement);
+		wrappedObject.setProperty(traits.key(FlowDecisionTraitDefinition.TRUE_ELEMENT_PROPERTY), trueElement);
 	}
 
 	public void setFalseElement(final FlowNode falseElement) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("falseElement"), falseElement);
+		wrappedObject.setProperty(traits.key(FlowDecisionTraitDefinition.FALSE_ELEMENT_PROPERTY), falseElement);
 	}
 
 	@Override
@@ -85,10 +84,10 @@ public class FlowDecision extends FlowNode implements DeployableEntity {
 
 		final Map<String, Object> result = new TreeMap<>();
 
-		result.put("id",                          getUuid());
-		result.put("type",                        getType());
-		result.put("visibleToPublicUsers",        isVisibleToPublicUsers());
-		result.put("visibleToAuthenticatedUsers", isVisibleToAuthenticatedUsers());
+		result.put(GraphObjectTraitDefinition.ID_PROPERTY,                             getUuid());
+		result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,                           getType());
+		result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        isVisibleToPublicUsers());
+		result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, isVisibleToAuthenticatedUsers());
 
 		return result;
 	}

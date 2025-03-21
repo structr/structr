@@ -1232,7 +1232,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	}
 
 	@Override
-	public Iterable<ActionMapping> processFailureHideActions() {
+	public Iterable<ActionMapping> getProcessFailureHideActions() {
 
 		final PropertyKey<Iterable<NodeInterface>> key = traits.key(DOMNodeTraitDefinition.PROCESS_FAILURE_HIDE_ACTIONS_PROPERTY);
 

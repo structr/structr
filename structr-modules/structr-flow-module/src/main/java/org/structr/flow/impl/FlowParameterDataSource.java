@@ -22,6 +22,8 @@ import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.flow.traits.definitions.FlowParameterDataSourceTraitDefinition;
 import org.structr.module.api.DeployableEntity;
 
 import java.util.List;
@@ -35,7 +37,7 @@ public class FlowParameterDataSource extends FlowDataSource implements Deployabl
 	}
 
 	public String getKey() {
-		return wrappedObject.getProperty(traits.key("key"));
+		return wrappedObject.getProperty(traits.key(FlowParameterDataSourceTraitDefinition.KEY_PROPERTY));
 	}
 
 	public Object resolveParts(Object obj, List<String> parts) {
@@ -85,11 +87,11 @@ public class FlowParameterDataSource extends FlowDataSource implements Deployabl
 
 		final Map<String, Object> result = new TreeMap<>();
 
-		result.put("id",                          getUuid());
-		result.put("type",                        getType());
-		result.put("key",                         getKey());
-		result.put("visibleToPublicUsers",        isVisibleToPublicUsers());
-		result.put("visibleToAuthenticatedUsers", isVisibleToAuthenticatedUsers());
+		result.put(GraphObjectTraitDefinition.ID_PROPERTY,                             getUuid());
+		result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,                           getType());
+		result.put(FlowParameterDataSourceTraitDefinition.KEY_PROPERTY,                getKey());
+		result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        isVisibleToPublicUsers());
+		result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, isVisibleToAuthenticatedUsers());
 
 		return result;
 	}

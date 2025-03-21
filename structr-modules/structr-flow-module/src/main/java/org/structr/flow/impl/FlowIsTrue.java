@@ -19,24 +19,28 @@
 package org.structr.flow.impl;
 
 import org.structr.api.util.Iterables;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 
 import java.util.Map;
 import java.util.TreeMap;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.flow.traits.definitions.FlowIsTrueTraitDefinition;
 
-/**
- *
- */
 public class FlowIsTrue extends FlowCondition {
 
 	public FlowIsTrue(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);
 	}
 
+	public final void setDataSources(final Iterable<FlowDataSource> dataSources) throws FrameworkException {
+		wrappedObject.setProperty(traits.key(FlowIsTrueTraitDefinition.DATA_SOURCES_PROPERTY), dataSources);
+	}
+
 	public final Iterable<FlowDataSource> getDataSources() {
 
-		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key("dataSources"));
+		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key(FlowIsTrueTraitDefinition.DATA_SOURCES_PROPERTY));
 
 		return Iterables.map(n -> n.as(FlowDataSource.class), nodes);
 	}
@@ -56,8 +60,8 @@ public class FlowIsTrue extends FlowCondition {
 
 		final Map<String, Object> result = new TreeMap<>();
 
-		result.put("id",   getUuid());
-		result.put("type", getType());
+		result.put(GraphObjectTraitDefinition.ID_PROPERTY,   getUuid());
+		result.put(GraphObjectTraitDefinition.TYPE_PROPERTY, getType());
 
 		return result;
 	}

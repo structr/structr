@@ -23,6 +23,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.api.FlowType;
@@ -39,8 +40,12 @@ import java.util.Set;
 
 public class FlowForkTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String DATA_TARGET_PROPERTY       = "dataTarget";
+	public static final String LOOP_BODY_PROPERTY         = "loopBody";
+	public static final String EXCEPTION_HANDLER_PROPERTY = "exceptionHandler";
+
 	public FlowForkTraitDefinition() {
-		super("FlowFork");
+		super(StructrTraits.FLOW_FORK);
 	}
 
 	@Override
@@ -95,14 +100,11 @@ public class FlowForkTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-
-		final Property<NodeInterface> dataSource           = new StartNode("dataSource", "FlowDataInput");
-		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes("dataTarget", "FlowDataInput");
-		final Property<NodeInterface> loopBody             = new EndNode("loopBody", "FlowForEachBody");
-		final Property<NodeInterface> exceptionHandler     = new EndNode("exceptionHandler", "FlowExceptionHandlerNodes");
+		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes(DATA_TARGET_PROPERTY, StructrTraits.FLOW_DATA_INPUT);
+		final Property<NodeInterface> loopBody             = new EndNode(LOOP_BODY_PROPERTY, StructrTraits.FLOW_FORK_BODY);
+		final Property<NodeInterface> exceptionHandler     = new EndNode(EXCEPTION_HANDLER_PROPERTY, StructrTraits.FLOW_EXCEPTION_HANDLER_NODES);
 
 		return newSet(
-			dataSource,
 			dataTarget,
 			loopBody,
 			exceptionHandler
@@ -115,11 +117,12 @@ public class FlowForkTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"exceptionHandler", "isStartNodeOfContainer", "loopBody", "dataSource", "dataTarget"
+				EXCEPTION_HANDLER_PROPERTY, FlowNodeTraitDefinition.IS_START_NODE_OF_CONTAINER_PROPERTY, LOOP_BODY_PROPERTY, FlowBaseNodeTraitDefinition.DATA_SOURCE_PROPERTY, DATA_TARGET_PROPERTY
 			),
+
 			PropertyView.Ui,
 			newSet(
-				"exceptionHandler", "isStartNodeOfContainer", "loopBody", "dataSource", "dataTarget"
+				EXCEPTION_HANDLER_PROPERTY, FlowNodeTraitDefinition.IS_START_NODE_OF_CONTAINER_PROPERTY, LOOP_BODY_PROPERTY, FlowBaseNodeTraitDefinition.DATA_SOURCE_PROPERTY, DATA_TARGET_PROPERTY
 			)
 		);
 	}

@@ -21,6 +21,8 @@ package org.structr.flow.impl;
 import org.structr.api.util.Iterables;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.flow.traits.definitions.FlowExceptionHandlerTraitDefinition;
 import org.structr.module.api.DeployableEntity;
 
 import java.util.Map;
@@ -34,7 +36,7 @@ public class FlowExceptionHandler extends FlowDataSource implements DeployableEn
 
 	public Iterable<FlowBaseNode> getHandledNodes() {
 
-		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key("handledNodes"));
+		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key(FlowExceptionHandlerTraitDefinition.HANDLED_NODES_PROPERTY));
 
 		return Iterables.map(n -> n.as(FlowBaseNode.class), nodes);
 	}
@@ -44,10 +46,10 @@ public class FlowExceptionHandler extends FlowDataSource implements DeployableEn
 
 		final Map<String, Object> result = new TreeMap<>();
 
-		result.put("id",                          getUuid());
-		result.put("type",                        getType());
-		result.put("visibleToPublicUsers",        isVisibleToPublicUsers());
-		result.put("visibleToAuthenticatedUsers", isVisibleToAuthenticatedUsers());
+		result.put(GraphObjectTraitDefinition.ID_PROPERTY,                          getUuid());
+		result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,                        getType());
+		result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        isVisibleToPublicUsers());
+		result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, isVisibleToAuthenticatedUsers());
 
 		return result;
 	}

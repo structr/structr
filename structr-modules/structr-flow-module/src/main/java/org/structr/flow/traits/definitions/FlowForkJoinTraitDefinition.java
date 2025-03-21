@@ -25,6 +25,7 @@ import org.structr.core.property.EndNode;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.api.FlowType;
@@ -44,8 +45,11 @@ import java.util.concurrent.Future;
 
 public class FlowForkJoinTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String EXCEPTION_HANDLER_PROPERTY = "exceptionHandler";
+
+
 	public FlowForkJoinTraitDefinition() {
-		super("FlowForkJoin");
+		super(StructrTraits.FLOW_FORK_JOIN);
 	}
 
 	@Override
@@ -102,7 +106,7 @@ public class FlowForkJoinTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> exceptionHandler = new EndNode("exceptionHandler", "FlowExceptionHandlerNodes");
+		final Property<NodeInterface> exceptionHandler = new EndNode(EXCEPTION_HANDLER_PROPERTY, StructrTraits.FLOW_EXCEPTION_HANDLER_NODES);
 
 		return newSet(
 			exceptionHandler
@@ -115,11 +119,11 @@ public class FlowForkJoinTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"exceptionHandler", "isStartNodeOfContainer"
+				EXCEPTION_HANDLER_PROPERTY, FlowNodeTraitDefinition.IS_START_NODE_OF_CONTAINER_PROPERTY
 			),
 			PropertyView.Ui,
 			newSet(
-				"exceptionHandler", "isStartNodeOfContainer"
+				EXCEPTION_HANDLER_PROPERTY, FlowNodeTraitDefinition.IS_START_NODE_OF_CONTAINER_PROPERTY
 			)
 		);
 	}

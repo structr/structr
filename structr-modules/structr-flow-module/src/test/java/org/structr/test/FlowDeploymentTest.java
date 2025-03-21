@@ -21,11 +21,13 @@ package org.structr.test;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.flow.impl.FlowAction;
 import org.structr.flow.impl.FlowContainer;
 import org.structr.flow.impl.FlowDataSource;
 import org.structr.flow.impl.FlowReturn;
+import org.structr.flow.traits.definitions.FlowContainerTraitDefinition;
 import org.structr.test.web.advanced.DeploymentTestBase;
 import org.testng.annotations.Test;
 
@@ -41,7 +43,7 @@ public class FlowDeploymentTest extends DeploymentTestBase {
 	public void testFlowDeploymentRoundtrip() {
 
 		final Map<String, Object> flowParameters = new HashMap<>();
-		final PropertyKey<String> nameKey        = Traits.of("FlowContainer").key("effectiveName");
+		final PropertyKey<String> nameKey        = Traits.of(StructrTraits.FLOW_CONTAINER).key(FlowContainerTraitDefinition.EFFECTIVE_NAME_PROPERTY);
 		Iterable<Object> result                  = null;
 		FlowContainer container                  = null;
 		String containerUuid                     = null;
@@ -50,19 +52,19 @@ public class FlowDeploymentTest extends DeploymentTestBase {
 
 			try (final Tx tx = app.tx()) {
 
-				container = app.create("FlowContainer", "testFlow").as(FlowContainer.class);
+				container = app.create(StructrTraits.FLOW_CONTAINER, "testFlow").as(FlowContainer.class);
 
 				container.setEffectiveName("flow.deployment.test");
 				containerUuid = container.getUuid();
 
-				FlowAction action = app.create("FlowAction", "createAction").as(FlowAction.class);
+				FlowAction action = app.create(StructrTraits.FLOW_ACTION, "createAction").as(FlowAction.class);
 				action.setScript("{ ['a','b','c'].forEach( data => Structr.create('User','name',data)) }");
 				action.setFlowContainer(container);
 
-				FlowDataSource ds = app.create("FlowDataSource", "ds").as(FlowDataSource.class);
+				FlowDataSource ds = app.create(StructrTraits.FLOW_DATA_SOURCE, "ds").as(FlowDataSource.class);
 				ds.setFlowContainer(container);
 
-				FlowReturn ret = app.create("FlowReturn", "ds").as(FlowReturn.class);
+				FlowReturn ret = app.create(StructrTraits.FLOW_RETURN, "ds").as(FlowReturn.class);
 				ret.setDataSource(ds);
 				ret.setFlowContainer(container);
 
@@ -79,7 +81,7 @@ public class FlowDeploymentTest extends DeploymentTestBase {
 
 			try (final Tx tx = app.tx()) {
 
-				app.nodeQuery("FlowContainer").uuid(containerUuid).getFirst();
+				app.nodeQuery(StructrTraits.FLOW_CONTAINER).uuid(containerUuid).getFirst();
 
 				doImportExportRoundtrip(true);
 
@@ -91,7 +93,7 @@ public class FlowDeploymentTest extends DeploymentTestBase {
 
 			try (final Tx tx = app.tx()) {
 
-				container = app.nodeQuery("FlowContainer").and(Traits.of("FlowContainer").key("effectiveName"), "flow.deployment.test").getFirst().as(FlowContainer.class);
+				container = app.nodeQuery(StructrTraits.FLOW_CONTAINER).and(Traits.of(StructrTraits.FLOW_CONTAINER).key(FlowContainerTraitDefinition.EFFECTIVE_NAME_PROPERTY), "flow.deployment.test").getFirst().as(FlowContainer.class);
 
 				assertNotNull(container);
 				result = container.evaluate(securityContext, flowParameters);

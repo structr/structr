@@ -23,6 +23,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.api.FlowType;
@@ -35,8 +36,11 @@ import java.util.Set;
 
 public class FlowSwitchTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String DEFAULT_PROPERTY = "default";
+	public static final String CASES_PROPERTY   = "cases";
+
 	public FlowSwitchTraitDefinition() {
-		super("FlowSwitch");
+		super(StructrTraits.FLOW_SWITCH);
 	}
 
 	@Override
@@ -65,19 +69,13 @@ public class FlowSwitchTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Iterable<NodeInterface>> prev         = new StartNodes("prev", "FlowNodes");
-		final Property<NodeInterface> switchDefault          = new EndNode("default", "FlowNodes");
-		final Property<Iterable<NodeInterface>> cases        = new EndNodes("cases", "FlowSwitchCases");
-		final Property<NodeInterface> dataSource             = new StartNode("dataSource", "FlowDataInput");
-		final Property<NodeInterface> isStartNodeOfContainer = new StartNode("isStartNodeOfContainer", "FlowContainerFlowNode");
+		final Property<NodeInterface> switchDefault          = new EndNode(DEFAULT_PROPERTY, StructrTraits.FLOW_NODES);
+		final Property<Iterable<NodeInterface>> cases        = new EndNodes(CASES_PROPERTY, StructrTraits.FLOW_SWITCH_CASES);
 
 
 		return newSet(
-			prev,
 			switchDefault,
-			cases,
-			dataSource,
-			isStartNodeOfContainer
+			cases
 		);
 	}
 
@@ -87,11 +85,12 @@ public class FlowSwitchTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"prev", "default", "cases", "dataSource"
+					FlowNodeTraitDefinition.PREV_PROPERTY, DEFAULT_PROPERTY, CASES_PROPERTY, FlowBaseNodeTraitDefinition.DATA_SOURCE_PROPERTY
 			),
+
 			PropertyView.Ui,
 			newSet(
-				"prev", "default", "cases", "dataSource"
+					FlowNodeTraitDefinition.PREV_PROPERTY, DEFAULT_PROPERTY, CASES_PROPERTY, FlowBaseNodeTraitDefinition.DATA_SOURCE_PROPERTY
 			)
 		);
 	}

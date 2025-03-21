@@ -40,14 +40,13 @@ export class FlowTypeQuery extends FlowNode {
 
                             let customTypes = document.createElement("optgroup");
                             customTypes.setAttribute("label", "Custom types");
-                            let builtinTypes = document.createElement("optgroup");
-                            builtinTypes.setAttribute("label", "Built-In Types");
 
                             const filteredResults = result.filter(el => {
-                                return el.category !== 'html';
+                                return el.category !== 'html' && el.isServiceClass !== true;
                             });
 
                             for (let schemaNode of filteredResults) {
+
                                 let option = document.createElement("option");
                                 option.text = schemaNode.name;
                                 option.value = schemaNode.name;
@@ -56,16 +55,10 @@ export class FlowTypeQuery extends FlowNode {
                                     option.selected = true;
                                 }
 
-                                if (schemaNode.isBuiltinType) {
-                                    builtinTypes.append(option);
-                                } else {
-                                    customTypes.append(option);
-                                }
-
+                                customTypes.append(option);
                             }
 
                             element.add(customTypes);
-                            element.add(builtinTypes);
 
                         } else {
 

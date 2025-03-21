@@ -240,12 +240,7 @@ public class Trait {
 		}
 	}
 
-	public void removeDynamicMethods() {
-
-	}
-
-	// ----- private methods -----
-	private void registerPropertyKey(final PropertyKey key) {
+	public void registerPropertyKey(final PropertyKey key) {
 
 		final String name = key.jsonName();
 

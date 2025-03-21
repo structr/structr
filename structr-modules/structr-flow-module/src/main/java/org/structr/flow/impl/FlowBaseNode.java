@@ -21,7 +21,10 @@ package org.structr.flow.impl;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
+import org.structr.flow.traits.definitions.FlowBaseNodeTraitDefinition;
 import org.structr.module.api.DeployableEntity;
 
 import java.util.Map;
@@ -37,7 +40,7 @@ public class FlowBaseNode extends AbstractNodeTraitWrapper implements Deployable
 
 	public final FlowDataSource getDataSource() {
 
-		final NodeInterface dataSource = wrappedObject.getProperty(traits.key("dataSource"));
+		final NodeInterface dataSource = wrappedObject.getProperty(traits.key(FlowBaseNodeTraitDefinition.DATA_SOURCE_PROPERTY));
 		if (dataSource != null) {
 
 			return dataSource.as(FlowDataSource.class);
@@ -48,7 +51,7 @@ public class FlowBaseNode extends AbstractNodeTraitWrapper implements Deployable
 
 	public final FlowContainer getFlowContainer() {
 
-		final NodeInterface node = wrappedObject.getProperty(traits.key("flowContainer"));
+		final NodeInterface node = wrappedObject.getProperty(traits.key(FlowBaseNodeTraitDefinition.FLOW_CONTAINER_PROPERTY));
 		if (node != null) {
 
 			return node.as(FlowContainer.class);
@@ -58,11 +61,11 @@ public class FlowBaseNode extends AbstractNodeTraitWrapper implements Deployable
 	}
 
 	public final void setDataSource(final FlowDataSource dataSource) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("dataSource"), dataSource);
+		wrappedObject.setProperty(traits.key(FlowBaseNodeTraitDefinition.DATA_SOURCE_PROPERTY), dataSource);
 	}
 
 	public final void setFlowContainer(final FlowContainer flowContainer) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("flowContainer"), flowContainer);
+		wrappedObject.setProperty(traits.key(FlowBaseNodeTraitDefinition.FLOW_CONTAINER_PROPERTY), flowContainer);
 	}
 
 	@Override
@@ -70,10 +73,10 @@ public class FlowBaseNode extends AbstractNodeTraitWrapper implements Deployable
 
 		final Map<String, Object> result = new TreeMap<>();
 
-		result.put("id",                          getUuid());
-		result.put("type",                        getType());
-		result.put("visibleToPublicUsers",        isVisibleToPublicUsers());
-		result.put("visibleToAuthenticatedUsers", isVisibleToAuthenticatedUsers());
+		result.put(GraphObjectTraitDefinition.ID_PROPERTY,                          getUuid());
+		result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,                        getType());
+		result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        isVisibleToPublicUsers());
+		result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, isVisibleToAuthenticatedUsers());
 
 		return result;
 	}
