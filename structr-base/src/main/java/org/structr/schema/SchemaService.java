@@ -25,7 +25,6 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
-import org.structr.api.config.Settings;
 import org.structr.api.index.IndexConfig;
 import org.structr.api.index.NodeIndexConfig;
 import org.structr.api.index.RelationshipIndexConfig;
@@ -129,8 +128,6 @@ public class SchemaService implements Service {
 					removedTypes.remove(name);
 				}
 
-				Settings.CypherDebugLogging.setValue(true);
-
 				// fetch schema nodes
 				for (final NodeInterface node : app.nodeQuery(StructrTraits.SCHEMA_NODE).getResultStream()) {
 
@@ -148,8 +145,6 @@ public class SchemaService implements Service {
 					// type still exists, was not removed, so we remove it from the map of removed types
 					removedTypes.remove(name);
 				}
-
-				Settings.CypherDebugLogging.setValue(false);
 
 				// fetch schema methods that extend the static schema (not attached to a schema node)
 				for (final NodeInterface node : app.nodeQuery(StructrTraits.SCHEMA_METHOD).and(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY), null).getResultStream()) {
