@@ -2315,16 +2315,33 @@ let _Code = {
 					helpElementCss: { fontSize: "12px" }
 				});
 
-				let appendParameter = (name = '', value = '') => {
+				let appendParameter = (name = '', value = '', paramDefinition = {}) => {
+
+					let infoSpan = '';
+
+					if (paramDefinition.parameterType || paramDefinition.description || paramDefinition.exampleValue) {
+
+						let infoText = `
+							Type: ${paramDefinition.parameterType ?? ''}<br>
+							Description: ${paramDefinition.description ?? ''}<br>
+							Example Value: ${paramDefinition.exampleValue ?? ''}<br>
+						`;
+
+						infoSpan = `<span data-comment="${_Helpers.escapeForHtmlAttributes(infoText)}"></span>`;
+					}
 
 					let newParam = _Helpers.createSingleDOMElementFromHTML(`
 						<div class="param flex items-center mb-1">
-							<input class="param-name" placeholder="Parameter name" value="${name}">
+							<input class="param-name" placeholder="Key">
+							${infoSpan}
 							<span class="px-2">=</span>
-							<input class="param-value" placeholder="Parameter value" value="${value}">
+							<input class="param-value" placeholder="Value" data-input-type="${(paramDefinition.parameterType ?? 'string').toLowerCase()}">
 							${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action', 'ml-2']), 'Remove parameter')}
 						</div>
 					`);
+
+					newParam.querySelector('.param-name').value  = name;
+					newParam.querySelector('.param-value').value = (typeof value === "string") ? value : JSON.stringify(value);
 
 					newParam.querySelector('.remove-action').addEventListener('click', () => {
 						_Helpers.fastRemoveElement(newParam);
@@ -2335,10 +2352,22 @@ let _Code = {
 
 				let lastParams = LSWrapper.getItem(storagePrefix + url, {});
 
-				for (let [k,v] of Object.entries(lastParams)) {
-					appendParameter(k, v);
+				if (Object.keys(lastParams).length > 0) {
+
+					let paramDefinitions = Object.fromEntries((schemaMethod.parameters ?? []).map(p => [p.name, p]));
+
+					for (let [k,v] of Object.entries(lastParams)) {
+						appendParameter(k, v, paramDefinitions[k]);
+					}
+
+				} else {
+
+					for (let paramDefinition of (schemaMethod.parameters ?? [])) {
+						appendParameter(paramDefinition.name, '', paramDefinition);
+					}
 				}
 
+				_Helpers.activateCommentsInElement(paramsOuterBox);
 
 				paramsOuterBox.querySelector('.add-param-action').addEventListener('click', () => {
 					appendParameter();
@@ -2352,16 +2381,32 @@ let _Code = {
 
 					let params = {};
 					for (let paramRow of paramsOuterBox.querySelectorAll('#params .param')) {
+
 						let name = paramRow.querySelector('.param-name').value;
 						if (name) {
-							params[name] = paramRow.querySelector('.param-value').value;
+
+							let valueInput = paramRow.querySelector('.param-value');
+							let value = valueInput.value;
+
+							// if the value type is not a basic string, try to parse it as JSON (but fail gracefully)
+							// if this ever creates problems, we should rather add a dropdown "Parameter Type" and
+							// populate it with "String" by default and also take the OpenAPI parameter definition into account
+							if (valueInput.dataset['inputType'] !== 'string') {
+								try {
+									value = JSON.parse(value);
+								} catch(e) {}
+							}
+
+							params[name] = value;
 						}
 					}
 
 					LSWrapper.setItem(storagePrefix + url, params);
 
 					let methodCallUrl = url;
-					let fetchConfig = { method: schemaMethod.httpVerb };
+					let fetchConfig = {
+						method: schemaMethod.httpVerb
+					};
 
 					if (schemaMethod.httpVerb === 'GET') {
 
