@@ -1163,19 +1163,23 @@ let _Dashboard = {
 				`
 			}
 		},
-		'user-defined-methods': {
+		methods: {
 			init: () => {
-				_Dashboard.tabs['user-defined-methods'].appendUserDefinedMethods();
+				_Dashboard.tabs.methods.appendMethods();
 			},
 			getMarkupForMethod: (method) => `
 				<tr>
-					<td><span class="method-name">${method.schemaNode ? `<span class="font-semibold">${method.schemaNode.name}</span>.` : ''}${method.name}</span></td>
-					<td><button class="run action button flex items-center gap-2">${_Icons.getSvgIcon(_Icons.iconRunButton)} Open run dialog</button></td>
+					<td>
+						<span class="method-name">${method.schemaNode ? `<span class="font-semibold">${method.schemaNode.name}</span>.` : ''}${method.name}</span>
+					</td>
+					<td>
+						<button class="run action button flex items-center gap-2">${_Icons.getSvgIcon(_Icons.iconRunButton)} Open run dialog</button>
+					</td>
 				</tr>
 			`,
-			appendUserDefinedMethods: async () => {
+			appendMethods: async () => {
 
-				let container = document.querySelector('#dashboard-user-defined-methods');
+				let container = document.querySelector('#dashboard-methods');
 				_Helpers.fastRemoveAllChildren(container);
 
 				let userDefinedFunctions = [];
@@ -1183,17 +1187,17 @@ let _Dashboard = {
 
 				let requestConfig = {
 					headers: {
-						Accept: 'properties=id,type,name,httpVerb,isStatic,schemaNode'
+						Accept: 'properties=id,type,name,isStatic,httpVerb,schemaNode,summary,description,parameters,index,exampleValue,parameterType'
 					}
 				};
 
-				let response = await fetch(`${Structr.rootUrl}SchemaMethod/custom?schemaNode=&isPrivate=false&${Structr.getRequestParameterName('sort')}=name`, requestConfig);
+				let response = await fetch(`${Structr.rootUrl}SchemaMethod/schema?schemaNode=&isPrivate=false&${Structr.getRequestParameterName('sort')}=name`, requestConfig);
 				if (response.ok) {
 					let data = await response.json();
 					userDefinedFunctions = data.result;
 				}
 
-				let response2 = await fetch(`${Structr.rootUrl}SchemaMethod/custom?isStatic=true&isPrivate=false`, requestConfig);
+				let response2 = await fetch(`${Structr.rootUrl}SchemaMethod/schema?isStatic=true&isPrivate=false`, requestConfig);
 				if (response2.ok) {
 					let data = await response2.json();
 
@@ -1215,8 +1219,7 @@ let _Dashboard = {
 					let callableMethodsList = _Helpers.createSingleDOMElementFromHTML(`<table class="props"></table>`);
 
 					for (let method of userDefinedFunctions) {
-
-						_Dashboard.tabs['user-defined-methods'].appendUserDefinedMethod(method, callableMethodsList);
+						_Dashboard.tabs.methods.appendMethod(method, callableMethodsList);
 					}
 
 					for (let typeName of Object.keys(staticFunctions).sort()) {
@@ -1225,16 +1228,16 @@ let _Dashboard = {
 
 							let method = staticFunctions[typeName][methodName];
 
-							_Dashboard.tabs['user-defined-methods'].appendUserDefinedMethod(method, callableMethodsList);
+							_Dashboard.tabs.methods.appendMethod(method, callableMethodsList);
 						}
 					}
 
 					container.appendChild(callableMethodsList);
 				}
 			},
-			appendUserDefinedMethod: (method, container) => {
+			appendMethod: (method, container) => {
 
-				let methodEntry = _Helpers.createSingleDOMElementFromHTML(_Dashboard.tabs['user-defined-methods'].getMarkupForMethod(method));
+				let methodEntry = _Helpers.createSingleDOMElementFromHTML(_Dashboard.tabs.methods.getMarkupForMethod(method));
 
 				methodEntry.querySelector('button.run').addEventListener('click', () => {
 					_Code.mainArea.helpers.runSchemaMethod(method);
@@ -1700,7 +1703,7 @@ let _Dashboard = {
 					<a href="#dashboard:deployment">Deployment</a>
 				</li>
 				<li>
-					<a href="#dashboard:user-defined-methods">User-defined functions</a>
+					<a href="#dashboard:methods">User-defined functions</a>
 				</li>
 				<li>
 					<a href="#dashboard:server-log">Server Log</a>
@@ -1813,7 +1816,7 @@ let _Dashboard = {
 			</div>
 		`,
 		tabContentUserDefinedMethods: config => `
-			<div class="tab-content" id="dashboard-user-defined-methods">
+			<div class="tab-content" id="dashboard-methods">
 
 			</div>
 		`,
