@@ -28,6 +28,7 @@ public class StructrTraits {
 	public static final String NODE_INTERFACE                      = "NodeInterface";
 	public static final String RELATIONSHIP_INTERFACE              = "RelationshipInterface";
 	public static final String ACCESS_CONTROLLABLE                 = "AccessControllable";
+	public static final String GENERIC_NODE                        = "GenericNode";
 	public static final String PRINCIPAL                           = "Principal";
 	public static final String USER                                = "User";
 	public static final String GROUP                               = "Group";

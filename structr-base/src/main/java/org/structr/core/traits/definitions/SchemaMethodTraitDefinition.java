@@ -24,10 +24,10 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.SemanticErrorToken;
-import org.structr.common.event.RuntimeEvent;
 import org.structr.common.event.RuntimeEventLog;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
+import org.structr.core.api.Methods;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.Relation;
@@ -196,18 +196,8 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 					// acknowledge all events for this node when it is modified
 					RuntimeEventLog.acknowledgeAllEventsForId(schemaMethod.getUuid());
 
-					// FIXME: need to clear schema method cache if this method was deleted (see Actions.methodCache)
-//					// Ensure AbstractSchemaNode methodCache is invalidated when a schema method changes
-//					if (!TransactionCommand.isDeleted(getNode())) {
-//
-//						final AbstractSchemaNode schemaNode = getProperty(SchemaMethod.schemaNode);
-//						if (schemaNode != null) {
-//
-//							schemaNode.clearCachedSchemaMethodsForInstance();
-//
-//							this.clearMethodCacheOfExtendingNodes();
-//						}
-//					}
+					// clear methods cache
+					Methods.clearMethodCache();
 				}
 			},
 
@@ -216,10 +206,7 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 
 				@Override
 				public void onDeletion(GraphObject graphObject, SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
-
-					// FIXME: need to clear schema method cache (see Actions.methodCache)
-//					super.onNodeDeletion(securityContext);
-//					AbstractSchemaNode.clearCachedSchemaMethods();
+					Methods.clearMethodCache();
 				}
 			}
 		);

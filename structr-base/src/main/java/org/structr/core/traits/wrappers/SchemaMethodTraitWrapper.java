@@ -19,6 +19,7 @@
 package org.structr.core.traits.wrappers;
 
 import org.structr.api.util.Iterables;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaMethodParameter;
@@ -121,6 +122,11 @@ public class SchemaMethodTraitWrapper extends AbstractNodeTraitWrapper implement
 	@Override
 	public String[] getTags() {
 		return wrappedObject.getProperty(traits.key(SchemaMethodTraitDefinition.TAGS_PROPERTY));
+	}
+
+	@Override
+	public void setSource(final String source) throws FrameworkException {
+		wrappedObject.setProperty(traits.key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), source);
 	}
 
 	@Override

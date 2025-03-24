@@ -57,6 +57,7 @@ public class CoreModule implements StructrModule {
 		StructrTraits.registerNodeInterface();
 
 		// node types
+		StructrTraits.registerNodeType(StructrTraits.GENERIC_NODE);
 		StructrTraits.registerNodeType(StructrTraits.PRINCIPAL,                new PrincipalTraitDefinition());
 		StructrTraits.registerNodeType(StructrTraits.GROUP,                    new PrincipalTraitDefinition(), new GroupTraitDefinition());
 		StructrTraits.registerNodeType(StructrTraits.LOCALIZATION,             new LocalizationTraitDefinition());
