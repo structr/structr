@@ -170,7 +170,18 @@ public class TraitsImplementation implements Traits {
 
 		final Set<PropertyKey> set = new LinkedHashSet<>();
 
-		getTraits().forEach(trait -> set.addAll(trait.getPropertyKeys().values()));
+		for (final Trait trait : getTraits()) {
+
+			for (final PropertyKey key : trait.getPropertyKeys().values()) {
+
+				// make sure that dynamic properties (which appear later in this loop) overwrite existing properties
+				if (set.contains(key)) {
+					set.remove(key);
+				}
+
+				set.add(key);
+			}
+		}
 
 		return set;
 	}
