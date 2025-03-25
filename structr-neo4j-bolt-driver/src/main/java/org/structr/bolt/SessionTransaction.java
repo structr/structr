@@ -54,7 +54,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 	protected static final Map<String, Set<PrefetchInfo>> prefetchInfos = new ConcurrentHashMap<>();
 	protected static final Map<String, Boolean> prefetchBlacklist       = new ConcurrentHashMap<>();
 
-	protected final Map<String, PrefetchInfo> histogram = new LinkedHashMap<>();
+	protected final Map<String, PrefetchInfo> histogram = new ConcurrentHashMap<>();
 	protected final Map<Long, RelationshipWrapper> rels = new LinkedHashMap<>();
 	protected final Map<Long, NodeWrapper> nodes        = new LinkedHashMap<>();
 	protected final Set<Long> deletedNodes              = new LinkedHashSet<>();
@@ -543,7 +543,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 		prefetchedIncoming.addAll(incomingKeys);
 		prefetchedQueries.add(query + id);
 
-		final Map<String, Object> data = new LinkedHashMap<>();
+		final Map<String, Object> data = new ConcurrentHashMap<>();
 		final long t0                  = System.currentTimeMillis();
 		long count                     = 0L;
 
@@ -796,8 +796,8 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 			final Set<PrefetchInfo> infos = prefetchInfos.get(prefetchHint);
 			if (infos != null) {
 
-				final Map<String, Set<PrefetchInfo>> typesOutgoing = new LinkedHashMap<>();
-				final Map<String, Set<PrefetchInfo>> typesIncoming = new LinkedHashMap<>();
+				final Map<String, Set<PrefetchInfo>> typesOutgoing = new ConcurrentHashMap<>();
+				final Map<String, Set<PrefetchInfo>> typesIncoming = new ConcurrentHashMap<>();
 
 				for (final PrefetchInfo info : infos) {
 
