@@ -22,7 +22,6 @@ import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
 import org.structr.common.error.AssertException;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.UnlicensedTypeException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;

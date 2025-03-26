@@ -20,14 +20,9 @@ package org.structr.rest.api;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
-import org.structr.rest.resource.*;
-import org.structr.web.resource.*;
-
-import org.structr.common.error.FrameworkException;
-import org.structr.rest.resource.*;
-import org.structr.web.resource.*;
 import org.structr.core.traits.Traits;
+import org.structr.rest.resource.*;
+import org.structr.web.resource.*;
 
 import java.util.Collections;
 import java.util.LinkedList;

@@ -42,7 +42,6 @@ import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.api.parameter.RESTParameter;
 import org.structr.rest.exception.IllegalMethodException;
-import org.structr.schema.SchemaHelper;
 
 import java.util.*;
 

@@ -18,14 +18,6 @@
  */
 package org.structr.transform;
 
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.api.Predicate;
-import org.structr.api.util.Iterables;
-import org.structr.api.util.PagingIterable;
-import org.structr.api.util.ResultStream;
-import org.structr.common.PropertyView;
 import org.structr.common.ResultTransformer;
 import org.structr.core.graph.NodeInterface;
 

@@ -44,8 +44,8 @@ import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.api.parameter.RESTParameter;
-import org.structr.rest.logging.entity.LogEvent;
 import org.structr.rest.entity.LogEvent;
+import org.structr.rest.traits.definitions.LogEventTraitDefinition;
 
 import java.io.File;
 import java.io.IOException;
@@ -61,12 +61,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.structr.common.SecurityContext;
-import org.structr.rest.api.ExactMatchEndpoint;
-import org.structr.rest.api.RESTCall;
-import org.structr.rest.api.RESTCallHandler;
-import org.structr.rest.api.parameter.RESTParameter;
-import org.structr.rest.traits.definitions.LogEventTraitDefinition;
 
 /**
  *

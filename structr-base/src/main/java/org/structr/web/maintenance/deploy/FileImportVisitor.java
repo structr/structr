@@ -24,8 +24,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
@@ -39,6 +37,8 @@ import org.structr.web.common.ImageHelper;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Image;
 import org.structr.web.maintenance.DeployCommand;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.ImageTraitDefinition;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -46,9 +46,6 @@ import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.*;
-import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
-import org.structr.web.traits.definitions.ImageTraitDefinition;
 import java.util.*;
 
 public class FileImportVisitor implements FileVisitor<Path> {

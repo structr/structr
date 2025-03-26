@@ -18,11 +18,6 @@
  */
 package org.structr.web.traits.operations;
 
-import org.apache.commons.lang3.ArrayUtils;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
-import org.structr.core.property.Property;
-import org.structr.schema.SchemaService;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.web.entity.dom.DOMElement;

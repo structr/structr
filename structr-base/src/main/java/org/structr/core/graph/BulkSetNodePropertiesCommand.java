@@ -30,10 +30,10 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 
 import java.util.Map;
 import java.util.Map.Entry;
-import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 
 /**
  * Sets the properties found in the property set on all nodes matching the type.

@@ -40,8 +40,6 @@ import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.PathHelper;
-import org.structr.core.GraphObject;
-import org.structr.common.helper.PathHelper;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
@@ -58,6 +56,9 @@ import org.structr.storage.StorageProviderFactory;
 import org.structr.util.Base64;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.FileTraitDefinition;
+import org.structr.web.traits.definitions.ImageTraitDefinition;
 
 import javax.activation.MimetypesFileTypeMap;
 import javax.imageio.ImageIO;
@@ -70,12 +71,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.zip.CRC32;
-import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
-import org.structr.web.traits.definitions.FileTraitDefinition;
-import org.structr.web.traits.definitions.ImageTraitDefinition;
-
-import javax.activation.MimetypesFileTypeMap;
-import javax.imageio.ImageIO;
 
 /**
  * File utility class.

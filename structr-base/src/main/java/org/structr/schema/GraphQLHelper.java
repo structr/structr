@@ -29,10 +29,10 @@ import org.structr.core.graphql.GraphQLListType;
 import org.structr.core.property.*;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
-
-import java.util.*;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+
+import java.util.*;
 
 import static graphql.schema.GraphQLTypeReference.typeRef;
 

@@ -42,6 +42,8 @@ import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -56,8 +58,6 @@ import java.security.cert.CertificateException;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.*;
-import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
-import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 
 public class JWTHelper {
 

@@ -26,22 +26,11 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.*;
-import org.structr.files.external.DirectoryWatchService;
-import org.structr.schema.SchemaService;
-import org.structr.storage.StorageProvider;
-import org.structr.storage.StorageProviderFactory;
-import org.structr.web.common.FileHelper;
-import org.structr.web.entity.relationship.AbstractFileCONFIGURED_BYStorageConfiguration;
-import org.structr.web.entity.relationship.FolderCONTAINSAbstractFile;
-import org.structr.web.property.MethodProperty;
-import org.structr.web.property.PathProperty;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
 
 /**
  * Base class for filesystem objects in structr.

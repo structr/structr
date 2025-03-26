@@ -19,16 +19,16 @@
 package org.structr.bolt;
 
 import org.apache.commons.lang3.StringUtils;
-import org.neo4j.driver.Record;
 import org.neo4j.driver.*;
+import org.neo4j.driver.Record;
 import org.neo4j.driver.exceptions.AuthenticationException;
 import org.neo4j.driver.exceptions.ClientException;
 import org.neo4j.driver.exceptions.DatabaseException;
 import org.neo4j.driver.exceptions.ServiceUnavailableException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.Transaction;
 import org.structr.api.*;
+import org.structr.api.Transaction;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;

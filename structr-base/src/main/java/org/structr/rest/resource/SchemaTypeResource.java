@@ -24,11 +24,8 @@ import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.traits.Traits;
-import org.structr.schema.SchemaHelper;
-
-import java.util.*;
 import org.structr.core.entity.SchemaNode;
+import org.structr.core.traits.Traits;
 import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;

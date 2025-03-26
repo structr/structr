@@ -43,12 +43,12 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.SchemaHelper;
 import org.structr.web.entity.File;
+import org.structr.web.traits.definitions.FileTraitDefinition;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.structr.web.traits.definitions.FileTraitDefinition;
 
 /**
  * Encapsulates the current user and access path and provides methods to query

@@ -23,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.NativeQuery;
-import org.structr.api.SyntaxErrorException;
 import org.structr.api.Transaction;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Path;

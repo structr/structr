@@ -31,9 +31,9 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Trait;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 
 import java.util.Date;
-import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 
 /**
  * A {@link StringProperty} that converts its value to a hexadecimal SHA512 hash upon storage.

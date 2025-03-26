@@ -37,6 +37,7 @@ import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -46,7 +47,6 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileAttributeView;
 import java.util.*;
-import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 /**
  *

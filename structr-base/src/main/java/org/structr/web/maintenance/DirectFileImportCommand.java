@@ -31,9 +31,6 @@ import org.structr.common.helper.PathHelper;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.*;
-import org.structr.rest.resource.MaintenanceResource;
-import org.structr.schema.SchemaHelper;
-import org.structr.storage.StorageProviderFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
@@ -43,6 +40,7 @@ import org.structr.storage.StorageProviderFactory;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -54,7 +52,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 /**
  *

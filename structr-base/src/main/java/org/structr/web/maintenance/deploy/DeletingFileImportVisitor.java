@@ -24,7 +24,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
-import org.structr.web.entity.Folder;
 
 import java.io.IOException;
 import java.nio.file.Path;

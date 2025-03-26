@@ -18,9 +18,10 @@
  */
 package org.structr.schema.openapi.schema;
 
-import java.util.Map;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+
+import java.util.Map;
 
 public class OpenAPIBaseSchemaWrite extends OpenAPIObjectSchema {
 

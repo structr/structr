@@ -27,7 +27,6 @@ import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
 import org.structr.core.api.Methods;
 import org.structr.core.entity.SchemaNode;
-import org.structr.rest.RestMethodResult;
 import org.structr.core.traits.Traits;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.RESTCall;
@@ -36,12 +35,6 @@ import org.structr.rest.api.RESTMethodCallHandler;
 import org.structr.rest.api.WildcardMatchEndpoint;
 import org.structr.rest.api.parameter.RESTParameter;
 import org.structr.rest.exception.IllegalMethodException;
-import org.structr.schema.SchemaHelper;
-import org.structr.rest.exception.IllegalMethodException;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import java.util.List;
 import java.util.Map;

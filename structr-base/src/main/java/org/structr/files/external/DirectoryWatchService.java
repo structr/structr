@@ -36,11 +36,10 @@ import org.structr.core.traits.Traits;
 import org.structr.schema.SchemaService;
 import org.structr.storage.StorageProvider;
 import org.structr.storage.StorageProviderFactory;
-import org.structr.web.entity.AbstractFile;
-import org.structr.storage.StorageProvider;
-import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.StorageConfiguration;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.FolderTraitDefinition;
 
 import java.io.File;
 import java.io.IOException;
@@ -48,8 +47,6 @@ import java.nio.file.*;
 import java.nio.file.WatchEvent.Kind;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
-import org.structr.web.traits.definitions.FolderTraitDefinition;
 
 import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
 

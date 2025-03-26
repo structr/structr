@@ -27,7 +27,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.Query;
-import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.OneStartpoint;
 import org.structr.core.entity.Relation;
@@ -41,7 +40,6 @@ import org.structr.core.notion.ObjectNotion;
 import org.structr.core.traits.Traits;
 import org.structr.schema.openapi.common.OpenAPIAnyOf;
 import org.structr.schema.openapi.schema.OpenAPIObjectSchema;
-import org.structr.schema.openapi.schema.OpenAPIStructrTypeSchemaOutput;
 
 import java.util.Collections;
 import java.util.Map;

@@ -37,6 +37,7 @@ import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.importer.Importer;
 import org.structr.web.maintenance.DeployCommand;
+import org.structr.web.traits.definitions.dom.PageTraitDefinition;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -44,7 +45,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
-import org.structr.web.traits.definitions.dom.PageTraitDefinition;
 
 public class PageImporter extends HtmlFileImporter {
 

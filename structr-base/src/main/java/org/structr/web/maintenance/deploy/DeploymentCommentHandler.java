@@ -37,11 +37,11 @@ import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.importer.CommentHandler;
 import org.structr.web.maintenance.DeployCommand;
-
-import java.util.*;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 import org.structr.web.traits.definitions.dom.ContentTraitDefinition;
 import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
+
+import java.util.*;
 
 /**
  *

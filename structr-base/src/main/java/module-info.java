@@ -22,7 +22,6 @@ module structr.base {
     requires jdk.httpserver;
     requires jdk.xml.dom;
     requires transitive java.compiler;
-    requires transitive java.xml;
 
     requires transitive structr.db.driver.api;
     requires asciidoctor.java.integration;
@@ -57,7 +56,6 @@ module structr.base {
     requires org.antlr.antlr4.runtime;
     requires org.apache.commons.compress;
     requires org.apache.commons.io;
-    requires org.apache.commons.lang3;
     requires org.apache.httpcomponents.httpclient;
     requires org.apache.httpcomponents.httpcore;
     requires org.apache.httpcomponents.httpmime;
@@ -95,9 +93,17 @@ module structr.base {
     requires zero.allocation.hashing;
     requires zip4j;
     requires ch.qos.logback.core;
-    requires jakarta.activation;
+    requires org.apache.commons.configuration2;
+    requires commons.lang;
+    requires java.sql;
+    requires org.apache.commons.collections4;
+    requires org.apache.commons.codec;
+    requires org.json;
+    requires org.apache.commons.text;
+    requires org.apache.commons.lang3;
+    requires java.desktop;
 
-	exports org.structr;
+    exports org.structr;
     exports org.structr.agent;
     exports org.structr.autocomplete;
     exports org.structr.common;

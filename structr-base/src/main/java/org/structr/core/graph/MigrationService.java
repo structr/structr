@@ -29,9 +29,6 @@ import org.structr.common.helper.CaseHelper;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Principal;
-import org.structr.core.entity.PrincipalInterface;
-import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaNode;
@@ -41,24 +38,17 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
 import org.structr.web.entity.Folder;
-import org.structr.web.entity.StorageConfigurationEntry;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.event.ActionMapping;
-
-import java.util.*;
-import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
-import org.structr.web.traits.definitions.ActionMappingTraitDefinition;
-import org.structr.web.traits.definitions.FolderTraitDefinition;
-import org.structr.web.traits.definitions.ParameterMappingTraitDefinition;
-import org.structr.web.traits.definitions.StorageConfigurationEntryTraitDefinition;
-import org.structr.web.traits.definitions.StorageConfigurationTraitDefinition;
+import org.structr.web.traits.definitions.*;
 import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
 import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
+
+import java.util.*;
 
 public class MigrationService {
 

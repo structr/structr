@@ -23,14 +23,14 @@ import org.structr.core.entity.*;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.AbstractSchemaNodeTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.SchemaNodeTraitDefinition;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
-import org.structr.core.traits.definitions.AbstractSchemaNodeTraitDefinition;
-import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import java.util.Set;
-import org.structr.core.traits.definitions.SchemaNodeTraitDefinition;
 
 /**
  *

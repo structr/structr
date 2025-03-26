@@ -19,8 +19,6 @@
 package org.structr.feed.entity;
 
 import java.io.InputStream;
-import java.util.Date;
-import java.util.Map;
 /**
  * Represents a single item of a data feed.
  *

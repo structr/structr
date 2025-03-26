@@ -28,20 +28,15 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.storage.providers.local.LocalFSStorageProvider;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.StorageConfiguration;
-
-import java.lang.reflect.InvocationTargetException;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import java.lang.reflect.InvocationTargetException;
-import java.util.Map;
-import java.util.Map.Entry;
 import org.structr.web.traits.definitions.StorageConfigurationTraitDefinition;
+
+import java.lang.reflect.InvocationTargetException;
+import java.util.Map;
+import java.util.Map.Entry;
 
 public abstract class StorageProviderFactory {
 

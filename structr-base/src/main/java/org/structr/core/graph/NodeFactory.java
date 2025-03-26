@@ -19,14 +19,10 @@
 package org.structr.core.graph;
 
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
 import org.structr.common.SecurityContext;
 import org.structr.core.entity.AbstractNode;
-
-import java.lang.reflect.InvocationTargetException;
 
 /**
  * A factory for Structr nodes.

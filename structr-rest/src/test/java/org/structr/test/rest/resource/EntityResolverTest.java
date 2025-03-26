@@ -21,8 +21,6 @@ package org.structr.test.rest.resource;
 import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.Person;
-import org.structr.core.graph.Tx;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;

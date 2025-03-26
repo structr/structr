@@ -30,10 +30,10 @@ import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.web.entity.Site;
 import org.structr.web.entity.path.PagePath;
-
-import java.util.List;
 import org.structr.web.traits.definitions.LinkableTraitDefinition;
 import org.structr.web.traits.definitions.dom.PageTraitDefinition;
+
+import java.util.List;
 
 public interface Page extends DOMNode {
 

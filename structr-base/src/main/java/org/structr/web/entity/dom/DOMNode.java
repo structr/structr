@@ -36,14 +36,14 @@ import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.event.ActionMapping;
+import org.structr.web.traits.definitions.LinkSourceTraitDefinition;
+import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
+import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import org.structr.web.traits.definitions.LinkSourceTraitDefinition;
-import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
-import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 
 //public interface DOMNode extends NodeTrait, LinkedTreeNode, Node, Renderable, DOMAdoptable, DOMImportable, ContextAwareEntity {
 public interface DOMNode extends NodeInterface, LinkedTreeNode {

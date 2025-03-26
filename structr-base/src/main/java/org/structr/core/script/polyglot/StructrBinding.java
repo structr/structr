@@ -29,9 +29,6 @@ import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Methods;
-import org.structr.core.app.StructrApp;
-import org.structr.core.api.AbstractMethod;
-import org.structr.core.api.Methods;
 import org.structr.core.function.Functions;
 import org.structr.core.script.polyglot.function.*;
 import org.structr.core.script.polyglot.wrappers.*;
@@ -42,7 +39,6 @@ import org.structr.schema.action.Function;
 
 import java.time.ZonedDateTime;
 import java.util.Arrays;
-import java.util.Map;
 import java.util.Set;
 
 import static org.structr.core.script.polyglot.PolyglotWrapper.wrap;

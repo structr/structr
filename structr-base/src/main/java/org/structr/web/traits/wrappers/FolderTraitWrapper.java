@@ -30,10 +30,10 @@ import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
+import org.structr.web.traits.definitions.FolderTraitDefinition;
 
 import java.util.LinkedList;
 import java.util.List;
-import org.structr.web.traits.definitions.FolderTraitDefinition;
 
 public class FolderTraitWrapper extends AbstractFileTraitWrapper implements Folder {
 

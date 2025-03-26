@@ -43,7 +43,6 @@ import org.structr.storage.StorageProviderFactory;
 import org.structr.storage.providers.local.LocalFSStorageProvider;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.FileHelper;
-import org.structr.web.entity.*;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Image;
 import org.structr.web.entity.StorageConfiguration;

@@ -20,7 +20,6 @@ package org.structr.test;
 
 import org.structr.core.traits.StructrTraits;
 import org.structr.payment.traits.definitions.PaymentItemNodeTraitDefinition;
-import org.structr.payment.traits.definitions.PaymentNodeTraitDefinition;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.TestHelper;
 import org.testng.annotations.Test;

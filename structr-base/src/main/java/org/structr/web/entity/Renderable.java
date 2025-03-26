@@ -18,9 +18,6 @@
  */
 package org.structr.web.entity;
 
-import org.structr.common.error.FrameworkException;
-import org.structr.web.common.RenderContext;
-
 /**
  *
  *

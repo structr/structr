@@ -22,8 +22,6 @@ import org.apache.commons.mail.EmailAttachment;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.AdvancedMailContainer;
 import org.structr.common.helper.DynamicMailAttachment;
-import org.structr.common.helper.AdvancedMailContainer;
-import org.structr.common.helper.DynamicMailAttachment;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
 import org.structr.mail.AdvancedMailModule;

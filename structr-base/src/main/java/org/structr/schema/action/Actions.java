@@ -42,9 +42,6 @@ import org.structr.core.traits.StructrTraits;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-
 /**
  *
  *

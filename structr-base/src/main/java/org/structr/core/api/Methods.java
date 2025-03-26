@@ -18,24 +18,18 @@
  */
 package org.structr.core.api;
 
-import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Export;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
-
-import java.lang.reflect.Method;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 
 /**
  *

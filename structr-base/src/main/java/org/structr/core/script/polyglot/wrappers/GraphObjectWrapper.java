@@ -28,16 +28,12 @@ import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Methods;
-import org.structr.core.app.StructrApp;
-import org.structr.core.api.AbstractMethod;
-import org.structr.core.api.Methods;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.core.script.polyglot.function.GrantFunction;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.schema.action.ActionContext;
 
 import java.util.ArrayList;

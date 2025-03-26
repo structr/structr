@@ -60,6 +60,8 @@ import org.structr.web.entity.User;
 import org.structr.web.importer.CSVFileImportJob;
 import org.structr.web.importer.MixedCSVFileImportJob;
 import org.structr.web.importer.XMLFileImportJob;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.FileTraitDefinition;
 
 import javax.xml.stream.XMLStreamException;
 import java.io.*;
@@ -68,8 +70,6 @@ import java.nio.charset.IllegalCharsetNameException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
-import org.structr.web.traits.definitions.FileTraitDefinition;
 
 /**
  *

@@ -26,16 +26,15 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.storage.StorageProvider;
 import org.structr.web.entity.StorageConfiguration;
 import org.structr.web.entity.StorageConfigurationEntry;
+import org.structr.web.traits.definitions.StorageConfigurationEntryTraitDefinition;
+import org.structr.web.traits.definitions.StorageConfigurationTraitDefinition;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import org.structr.web.traits.definitions.StorageConfigurationEntryTraitDefinition;
-import org.structr.web.traits.definitions.StorageConfigurationTraitDefinition;
 
 /**
  * Storage container for mount configuration entries.

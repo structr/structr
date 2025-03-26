@@ -67,7 +67,6 @@ import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.rest.servlet.AbstractServletBase;
-import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.storage.StorageProviderFactory;
@@ -84,6 +83,9 @@ import org.structr.web.entity.Site;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.LinkableTraitDefinition;
+import org.structr.web.traits.definitions.dom.PageTraitDefinition;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -98,9 +100,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
-import org.structr.web.traits.definitions.LinkableTraitDefinition;
-import org.structr.web.traits.definitions.dom.PageTraitDefinition;
 
 /**
  * Main servlet for content rendering.

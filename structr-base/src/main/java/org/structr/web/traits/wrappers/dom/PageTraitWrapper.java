@@ -39,13 +39,13 @@ import org.structr.web.entity.dom.*;
 import org.structr.web.entity.path.PagePath;
 import org.structr.web.importer.Importer;
 import org.structr.web.maintenance.deploy.DeploymentCommentHandler;
+import org.structr.web.traits.definitions.dom.ContentTraitDefinition;
+import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
+import org.structr.web.traits.definitions.dom.PageTraitDefinition;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import org.structr.web.traits.definitions.dom.ContentTraitDefinition;
-import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
-import org.structr.web.traits.definitions.dom.PageTraitDefinition;
 
 /**
  * Represents a page resource.

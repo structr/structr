@@ -26,7 +26,6 @@ import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.flow.api.ThrowingElement;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
-import org.structr.flow.traits.definitions.FlowDataSourceTraitDefinition;
 import org.structr.flow.traits.definitions.FlowReturnTraitDefinition;
 import org.structr.module.api.DeployableEntity;
 

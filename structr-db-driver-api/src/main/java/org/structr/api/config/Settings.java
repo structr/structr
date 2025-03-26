@@ -28,7 +28,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -837,7 +838,11 @@ public class Settings {
 
 			FileHandler fileHandler = builder.getFileHandler();
 
-			if(config.getFile().getFreeSpace() < 1024 * 1024){
+			final boolean isFileCreation = !fileHandler.getFile().exists();
+
+			final long freeSpace = (!isFileCreation ? fileHandler.getFile().getFreeSpace() : new File(new File("").getAbsolutePath()).getFreeSpace());
+
+			if(freeSpace < 1024 * 1024){
 				logger.error("Refusing to start with less than 1 MB of disk space.");
 				System.exit(1);
 			}

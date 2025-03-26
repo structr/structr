@@ -25,9 +25,9 @@ import org.structr.core.GraphObject;
 import org.structr.core.property.AbstractReadOnlyProperty;
 import org.structr.core.traits.StructrTraits;
 import org.structr.web.entity.AbstractFile;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 import java.util.Map;
-import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 public class AbstractFileIsMountedProperty extends AbstractReadOnlyProperty<Boolean> {
 

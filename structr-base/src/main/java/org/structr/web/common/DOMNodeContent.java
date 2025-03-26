@@ -27,9 +27,9 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.property.CustomHtmlAttributeProperty;
+import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 
 import java.util.*;
-import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 
 /**
  */

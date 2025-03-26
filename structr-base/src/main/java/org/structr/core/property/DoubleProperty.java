@@ -27,9 +27,9 @@ import org.structr.common.error.NumberFormatToken;
 import org.structr.common.error.PropertyInputParsingException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.traits.definitions.LocationTraitDefinition;
 
 import java.util.Map;
-import org.structr.core.traits.definitions.LocationTraitDefinition;
 
 /**
  * A property that stores and retrieves a simple Double value.

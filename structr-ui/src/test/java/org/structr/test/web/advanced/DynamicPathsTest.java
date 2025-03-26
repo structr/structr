@@ -31,12 +31,6 @@ import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.test.web.basic.FrontendTest;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.Template;
-import org.structr.web.entity.path.PagePath;
-import org.structr.web.entity.path.PagePathParameter;
-import org.testng.annotations.Test;
-
-import java.util.Random;
-
 import org.structr.web.traits.definitions.PagePathParameterTraitDefinition;
 import org.structr.web.traits.definitions.PagePathTraitDefinition;
 import org.structr.web.traits.definitions.dom.ContentTraitDefinition;

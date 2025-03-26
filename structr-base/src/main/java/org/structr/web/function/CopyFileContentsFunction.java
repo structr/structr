@@ -23,18 +23,17 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.property.StringProperty;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
+import org.structr.web.traits.definitions.FileTraitDefinition;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import org.structr.web.traits.definitions.FileTraitDefinition;
 
 public class CopyFileContentsFunction extends UiAdvancedFunction {
 

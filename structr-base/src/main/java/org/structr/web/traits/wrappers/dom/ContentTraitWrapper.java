@@ -30,10 +30,10 @@ import org.structr.web.ContentHandler;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.traits.definitions.dom.ContentTraitDefinition;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
-import org.structr.web.traits.definitions.dom.ContentTraitDefinition;
 
 /**
  * Represents a content node. This class implements the org.w3c.dom.Text interface.

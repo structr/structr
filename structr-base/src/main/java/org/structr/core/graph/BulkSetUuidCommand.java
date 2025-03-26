@@ -26,9 +26,9 @@ import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 
 import java.util.Map;
-import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 
 /**
  * Sets a new UUID on each graph object of the given type. For nodes, set type,
