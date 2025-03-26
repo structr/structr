@@ -127,12 +127,10 @@ public class ActionContext {
 
 	public Object getReferencedProperty(final GraphObject entity, final String initialRefKey, final Object initialData, final int depth, final EvaluationHints hints, final int row, final int column) throws FrameworkException {
 
-		final String DEFAULT_VALUE_SEP = "!";
-
 		// split
-		final String[] refs  = StringUtils.split(initialRefKey, DEFAULT_VALUE_SEP);
+		final String[] refs  = StringUtils.split(initialRefKey, "!");
 		final String refKey  = refs[0];
-		final String[] parts = refKey.split("[\\.]+");
+		final String[] parts = StringUtils.split(refKey, ".");
 		Object _data         = initialData;
 		String defaultValue  = null;
 

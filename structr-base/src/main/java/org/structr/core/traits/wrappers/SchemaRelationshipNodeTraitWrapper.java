@@ -377,115 +377,6 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 		return wrappedObject.getProperty(traits.key(SchemaRelationshipNodeTraitDefinition.TARGET_TYPE_PROPERTY));
 	}
 
-	/*
-	public void getSource(final SourceFile src, final Map<String, SchemaNode> schemaNodes, final ErrorBuffer errorBuffer) throws FrameworkException {
-
-		final Map<String, List<ActionEntry>> actions        = new LinkedHashMap<>();
-		final Map<String, CodeSourceViewSet> viewProperties = new LinkedHashMap<>();
-		final Class baseType                                = AbstractRelationship.class;
-		final String _className                             = getClassName();
-		final String _sourceNodeType                        = getSchemaNodeSourceType();
-		final String _targetNodeType                        = getSchemaNodeTargetType();
-		final List<String> propertyValidators               = new LinkedList<>();
-		final Set<String> compoundIndexKeys                 = new LinkedHashSet<>();
-		final Set<String> propertyNames                     = new LinkedHashSet<>();
-		final Set<Validator> validators                     = new LinkedHashSet<>();
-		final Set<String> enums                             = new LinkedHashSet<>();
-		final Set<String> interfaces                        = new LinkedHashSet<>();
-
-		src.line(this, "package org.structr.dynamic;");
-
-		SchemaHelper.formatImportStatements(src, this, baseType);
-
-		final SourceLine classDefinition = src.begin(this, "public class ").append(_className).append(" extends ").append(getBaseType());
-
-		if ("OWNS".equals(getRelationshipType())) {
-			interfaces.add(Ownership.class.getName());
-		}
-
-		if (!PropagationDirection.None.equals(wrappedObject.getProperty(permissionPropagation))) {
-			interfaces.add(PermissionPropagation.class.getName());
-		}
-
-		// append interfaces if present
-		if (!interfaces.isEmpty()) {
-
-			classDefinition.append(" implements ");
-			classDefinition.append(StringUtils.join(interfaces, ", "));
-		}
-
-		classDefinition.append(" {");
-
-		if (!PropagationDirection.None.equals(getPermissionPropagation())) {
-
-			src.begin(this, "static {");
-			src.line(this, "Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("registerPropagatingRelationshipType")(").append(_className).append(".class, true);");
-			src.end();
-		}
-
-		SchemaHelper.extractProperties(src, schemaNodes, this, propertyNames, validators, compoundIndexKeys, enums, viewProperties, propertyValidators, errorBuffer);
-		SchemaHelper.extractViews(schemaNodes, this, viewProperties, Collections.EMPTY_SET, errorBuffer);
-		SchemaHelper.extractMethods(schemaNodes, this, actions);
-
-		// source and target id properties
-		src.line(this, "public static final Property<java.lang.String> sourceIdProperty = new SourceId(\"sourceId\");");
-		src.line(this, "public static final Property<java.lang.String> targetIdProperty = new TargetId(\"targetId\");");
-
-		SchemaHelper.addPropertyToView(PropertyView.Ui, "sourceId", viewProperties);
-		SchemaHelper.addPropertyToView(PropertyView.Ui, "targetId", viewProperties);
-
-		// output possible enum definitions
-		for (final String enumDefition : enums) {
-			src.line(this, enumDefition);
-		}
-
-		for (Map.Entry<String, CodeSourceViewSet> entry : viewProperties.entrySet()) {
-
-			final CodeSourceViewSet view = entry.getValue();
-			final String viewName        = entry.getKey();
-
-			if (!view.isEmpty()) {
-				dynamicViews.add(viewName);
-				SchemaHelper.formatView(src, view.getSource(), _className, viewName, viewName, view);
-			}
-		}
-
-		// abstract method implementations
-		src.line(this, "@Override");
-		src.begin(this, "public Class<").append(_sourceNodeType).append("> getSourceType() {");
-		src.line(this, "return ").append(_sourceNodeType).append(".class;");
-		src.end();
-
-		src.line(this, "@Override");
-		src.begin(this, "public Class<").append(_targetNodeType).append("> getTargetType() {");
-		src.line(this, "return ").append(_targetNodeType).append(".class;");
-		src.end();
-
-		src.line(this, "@Override");
-		src.begin(this, "public Property<java.lang.String> getSourceIdProperty() {");
-		src.line(this, "return sourceId;");
-		src.end();
-
-		src.line(this, "@Override");
-		src.begin(this, "public Property<java.lang.String> getTargetIdProperty() {");
-		src.line(this, "return targetId;");
-		src.end();
-
-		src.line(this, "@Override");
-		src.begin(this, "public java.lang.String name() {");
-		src.line(this, "return \"").append(getRelationshipType()).append("\";");
-		src.end();
-
-		SchemaHelper.formatValidators(src, this, validators, compoundIndexKeys, false, propertyValidators);
-		SchemaHelper.formatMethods(src, this, actions, Collections.emptySet());
-
-		formatRelationshipFlags(src);
-		formatPermissionPropagation(src);
-
-		src.end();
-	}
-	*/
-
 	// ----- public methods -----
 	@Override public String getSchemaNodeSourceType() {
 
@@ -547,8 +438,6 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 	}
 
 	private Notion getNotion(final String _className, final String notionSource) {
-
-		final StringBuilder buf = new StringBuilder();
 
 		if (StringUtils.isNotBlank(notionSource)) {
 

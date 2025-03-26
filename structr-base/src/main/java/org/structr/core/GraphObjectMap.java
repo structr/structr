@@ -98,11 +98,6 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 			}
 
 			@Override
-			public boolean hasDynamicMethod(final String name) {
-				return false;
-			}
-
-			@Override
 			public String getName() {
 				return "GraphObjectMap";
 			}

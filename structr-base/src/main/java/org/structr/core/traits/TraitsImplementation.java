@@ -37,15 +37,17 @@ import java.util.*;
  */
 public class TraitsImplementation implements Traits {
 
-	private static final Map<String, Traits> globalTypeMap = new LinkedHashMap<>();
-	private static final Map<String, Trait> globalTraitMap = new LinkedHashMap<>();
+	private static final Map<String, Traits> globalTypeMap = new HashMap<>();
+	private static final Map<String, Trait> globalTraitMap = new HashMap<>();
 
 	private final Map<String, TraitDefinition> traits                   = new LinkedHashMap<>();
-	private final Map<String, PropertyKey> keyCache                     = new LinkedHashMap<>();
-	private final Map<Class, FrameworkMethod> frameworkMethodCache      = new LinkedHashMap<>();
-	private final Map<Class, Set<LifecycleMethod>> lifecycleMethodCache = new LinkedHashMap<>();
 	private final Set<Trait> localTraitsCache                           = new LinkedHashSet<>();
+	private final Map<String, Wrapper<PropertyKey>> keyCache            = new HashMap<>();
+	private final Map<Class, FrameworkMethod> frameworkMethodCache      = new HashMap<>();
+	private final Map<Class, Set<LifecycleMethod>> lifecycleMethodCache = new HashMap<>();
+	private final Map<Class, NodeTraitFactory> nodeTraitFactoryCache    = new HashMap<>();
 	private Map<String, AbstractMethod> dynamicMethodCache              = null;
+	private Set<String> cachedLabels                                    = null;
 
 	private final boolean isNodeType;
 	private final boolean isRelationshipType;
@@ -77,14 +79,17 @@ public class TraitsImplementation implements Traits {
 	@Override
 	public Set<String> getLabels() {
 
-		final Set<String> labels = new LinkedHashSet<>();
+		if (cachedLabels == null) {
 
-		for (final Trait trait : getTraits()) {
+			cachedLabels = new LinkedHashSet<>();
 
-			labels.add(trait.getLabel());
+			for (final Trait trait : getTraits()) {
+
+				cachedLabels.add(trait.getLabel());
+			}
 		}
 
-		return labels;
+		return cachedLabels;
 	}
 
 	@Override
@@ -99,11 +104,14 @@ public class TraitsImplementation implements Traits {
 
 	private <T> PropertyKey<T> key(final String name, final boolean throwException) {
 
-		PropertyKey<T> key = keyCache.get(name);
-		if (key != null) {
+		// use wrapper to cache null values as well
+		Wrapper<PropertyKey> wrapper = keyCache.get(name);
+		if (wrapper != null) {
 
-			return key;
+			return wrapper.value;
 		}
+
+		PropertyKey<T> key = null;
 
 		for (final Trait trait : getTraits()) {
 
@@ -117,7 +125,7 @@ public class TraitsImplementation implements Traits {
 		// return last key, not first
 		if (key != null) {
 
-			keyCache.put(name, key);
+			keyCache.put(name, new Wrapper(key));
 
 			return key;
 		}
@@ -132,11 +140,6 @@ public class TraitsImplementation implements Traits {
 	@Override
 	public boolean hasKey(final String name) {
 		return key(name, false) != null;
-	}
-
-	@Override
-	public boolean hasDynamicMethod(final String name) {
-		return false;
 	}
 
 	@Override
@@ -297,12 +300,20 @@ public class TraitsImplementation implements Traits {
 
 		if (obj.isNode()) {
 
+			final NodeTraitFactory cachedFactory = nodeTraitFactoryCache.get(type);
+			if (cachedFactory != null) {
+
+				return (T) cachedFactory.newInstance(this, (NodeInterface) obj);
+			}
+
 			for (final Trait trait : getTraits()) {
 
 				final Map<Class, NodeTraitFactory> factories = trait.getNodeTraitFactories();
 				final NodeTraitFactory factory               = factories.get(type);
 
 				if (factory != null) {
+
+					nodeTraitFactoryCache.put(type, factory);
 
 					return (T) factory.newInstance(this, (NodeInterface) obj);
 				}
@@ -342,7 +353,7 @@ public class TraitsImplementation implements Traits {
 
 	@Override
 	public Set<TraitDefinition> getTraitDefinitions() {
-		return Collections.unmodifiableSet(new LinkedHashSet<>(traits.values()));
+		return new LinkedHashSet<>(traits.values());
 	}
 
 	@Override
@@ -411,7 +422,9 @@ public class TraitsImplementation implements Traits {
 		frameworkMethodCache.clear();
 		lifecycleMethodCache.clear();
 		localTraitsCache.clear();
+		nodeTraitFactoryCache.clear();
 		dynamicMethodCache = null;
+		cachedLabels = null;
 
 		final Map<String, Map<String, PropertyKey>> removedProperties = new LinkedHashMap<>();
 		final Set<String> traitsToRemove                              = new LinkedHashSet<>();
@@ -623,5 +636,14 @@ public class TraitsImplementation implements Traits {
 		}
 
 		return removedClasses;
+	}
+
+	class Wrapper<T> {
+
+		T value;
+
+		public Wrapper(final T value) {
+			this.value = value;
+		}
 	}
 }

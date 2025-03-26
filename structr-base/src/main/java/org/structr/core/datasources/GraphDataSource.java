@@ -37,5 +37,5 @@ public interface GraphDataSource<T> {
 	 * @return
 	 * @throws FrameworkException
 	 */
-	public T getData(final ActionContext actionContext, final NodeInterface referenceNode) throws FrameworkException;
+	T getData(final ActionContext actionContext, final NodeInterface referenceNode) throws FrameworkException;
 }

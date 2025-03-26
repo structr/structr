@@ -748,7 +748,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 									}
 								}
 
-								if (isTargetElement(thisElementWithSuperuserContext)) {
+								if (thisElementWithSuperuserContext.isTargetElement()) {
 
 									outputStructrId = true;
 
@@ -2032,18 +2032,6 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 			t.printStackTrace();
 		}
-	}
-
-	public boolean isTargetElement(final DOMElement thisElement) {
-
-		final boolean isManualReloadTarget                   = thisElement.isManualReloadTarget();
-		final List<DOMElement> reloadSources                 = Iterables.toList(thisElement.getReloadSources());
-		final List<ActionMapping> reloadingActions           = Iterables.toList(thisElement.getReloadingActions());
-		final List<ActionMapping> failureActions             = Iterables.toList(thisElement.getFailureActions());
-		final List<ActionMapping> successNotificationActions = Iterables.toList(thisElement.getSuccessNotificationActions());
-		final List<ActionMapping> failureNotificationActions = Iterables.toList(thisElement.getFailureNotificationActions());
-
-		return isManualReloadTarget || !reloadSources.isEmpty() || !reloadingActions.isEmpty() || !failureActions.isEmpty() || !successNotificationActions.isEmpty() || !failureNotificationActions.isEmpty();
 	}
 
 	// ----- private methods -----

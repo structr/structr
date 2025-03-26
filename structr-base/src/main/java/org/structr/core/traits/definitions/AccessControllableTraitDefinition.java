@@ -765,7 +765,7 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 	// ----- nested classes -----
 	private static class AlreadyTraversed {
 
-		private Map<String, Set<String>> sets = new LinkedHashMap<>();
+		private Map<String, Set<String>> sets = new HashMap<>();
 
 		public boolean contains(final String key, final String uuid) {
 
@@ -777,17 +777,6 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 			}
 
 			return !set.add(uuid);
-		}
-
-		public int size(final String key) {
-
-			final Set<String> set = sets.get(key);
-			if (set != null) {
-
-				return set.size();
-			}
-
-			return 0;
 		}
 	}
 

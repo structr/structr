@@ -413,8 +413,8 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 				public void renderCustomAttributes(final DOMNode node, final AsyncBuffer out, final SecurityContext securityContext, final RenderContext renderContext) throws FrameworkException {
 
 					final RenderContext.EditMode editMode = renderContext.getEditMode(securityContext.getUser(false));
-					final Traits traits = node.getTraits();
-					final NodeInterface wrappedNode = node;
+					final Traits traits                   = node.getTraits();
+					final NodeInterface wrappedNode       = node;
 
 					Set<PropertyKey> dataAttributes = node.getDataPropertyKeys();
 

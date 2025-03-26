@@ -25,8 +25,9 @@ import org.structr.api.search.SortOrder;
 import org.structr.api.util.QueryHistogram;
 import org.structr.api.util.QueryTimer;
 
-import java.util.LinkedHashMap;
+import java.util.Arrays;
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
  *
@@ -42,7 +43,7 @@ class SimpleCypherQuery implements CypherQuery {
 	private boolean outgoing                = false;
 
 	public SimpleCypherQuery(final StringBuilder buf) {
-		this(buf.toString(), new LinkedHashMap<>());
+		this(buf.toString(), new TreeMap<>());
 	}
 
 	public SimpleCypherQuery(final StringBuilder buf, final Map<String, Object> parameters) {
@@ -50,13 +51,42 @@ class SimpleCypherQuery implements CypherQuery {
 	}
 
 	public SimpleCypherQuery(final String statement) {
-		this(statement, new LinkedHashMap<>());
+		this(statement, new TreeMap<>());
 	}
 
 	public SimpleCypherQuery(final String statement, final Map<String, Object> parameters) {
 
 		this.statement = statement;
 		this.params    = parameters;
+	}
+
+	@Override
+	public boolean equals(final Object other) {
+		return hashCode() == other.hashCode();
+	}
+
+	@Override
+	public int hashCode() {
+
+		int hashCode = 31 + getStatement().hashCode();
+
+		for (final Map.Entry<String, Object> p : getParameters().entrySet()) {
+
+			final Object value = p.getValue();
+			if (value != null) {
+
+				if (value.getClass().isArray()) {
+
+					hashCode = 31 * hashCode + Arrays.deepHashCode((Object[]) value);
+
+				} else {
+
+					hashCode = 31 * hashCode + value.hashCode();
+				}
+			}
+		}
+
+		return hashCode;
 	}
 
 	@Override

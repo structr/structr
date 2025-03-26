@@ -63,10 +63,10 @@ public abstract class StreamingWriter {
 	private static final Logger logger                   = LoggerFactory.getLogger(StreamingWriter.class.getName());
 
 	private final ExecutorService threadPool              = Executors.newWorkStealingPool();
-	private final Map<String, Serializer> serializerCache = new LinkedHashMap<>();
-	private final Map<String, Serializer> serializers     = new LinkedHashMap<>();
+	private final Map<String, Serializer> serializerCache = new HashMap<>();
+	private final Map<String, Serializer> serializers     = new HashMap<>();
 	private final Serializer<GraphObject> root            = new RootSerializer();
-	private final Set<String> nonSerializerClasses        = new LinkedHashSet<>();
+	private final Set<String> nonSerializerClasses        = new HashSet<>();
 	private final DecimalFormat decimalFormat             = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 	private String resultKeyName                          = "result";
 	private boolean serializeNulls                        = true;
@@ -114,7 +114,7 @@ public abstract class StreamingWriter {
 
 	public void streamSingle(final SecurityContext securityContext, final Writer output, final GraphObject obj) throws IOException {
 
-		final Set<Integer> visitedObjects = new LinkedHashSet<>();
+		final Set<Integer> visitedObjects = new HashSet<>();
 		final RestWriter writer           = getRestWriter(securityContext, output);
 
 		configureWriter(writer);
@@ -141,7 +141,7 @@ public abstract class StreamingWriter {
 		setReduceNestedObjectsInRestrictedViewsDepth(securityContext);
 
 		// result fields in alphabetical order
-		final Set<Integer> visitedObjects = new LinkedHashSet<>();
+		final Set<Integer> visitedObjects = new HashSet<>();
 		final String queryTime            = result.getQueryTime();
 		final Integer page                = result.getPage();
 		final Integer pageSize            = result.getPageSize();
@@ -654,7 +654,7 @@ public abstract class StreamingWriter {
 				try (final Tx tx = StructrApp.getInstance(securityContext).tx(false, false, false)) {
 
 					final RestWriter bufferingRestWriter = getRestWriter(securityContext, buffer);
-					final Set<Integer> nestedObjects     = new LinkedHashSet<>(visitedObjects);
+					final Set<Integer> nestedObjects     = new HashSet<>(visitedObjects);
 					configureWriter(bufferingRestWriter);
 
 					bufferingRestWriter.beginArray();

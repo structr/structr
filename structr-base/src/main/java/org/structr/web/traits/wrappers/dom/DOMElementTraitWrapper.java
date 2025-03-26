@@ -46,63 +46,6 @@ public class DOMElementTraitWrapper extends DOMNodeTraitWrapper implements DOMEl
 
 	private static final Gson gson = new GsonBuilder().create();
 
-	/*
-
-		// view configuration
-		type.addViewProperty(PropertyView.Public, "isDOMNode");
-		type.addViewProperty(PropertyView.Public, "pageId");
-		type.addViewProperty(PropertyView.Public, "parent");
-		type.addViewProperty(PropertyView.Public, "sharedComponentId");
-		type.addViewProperty(PropertyView.Public, "syncedNodesIds");
-		type.addViewProperty(PropertyView.Public, "name");
-		type.addViewProperty(PropertyView.Public, "children");
-		type.addViewProperty(PropertyView.Public, "dataKey");
-		type.addViewProperty(PropertyView.Public, "cypherQuery");
-		type.addViewProperty(PropertyView.Public, "xpathQuery");
-		type.addViewProperty(PropertyView.Public, "restQuery");
-		type.addViewProperty(PropertyView.Public, "functionQuery");
-
-		type.addViewProperty(PropertyView.Ui, "hideOnDetail");
-		type.addViewProperty(PropertyView.Ui, "hideOnIndex");
-		type.addViewProperty(PropertyView.Ui, "sharedComponentConfiguration");
-		type.addViewProperty(PropertyView.Ui, "isDOMNode");
-		type.addViewProperty(PropertyView.Ui, "pageId");
-		type.addViewProperty(PropertyView.Ui, "parent");
-		type.addViewProperty(PropertyView.Ui, "sharedComponentId");
-		type.addViewProperty(PropertyView.Ui, "syncedNodesIds");
-		type.addViewProperty(PropertyView.Ui, "data-structr-id");
-		type.addViewProperty(PropertyView.Ui, "renderDetails");
-		type.addViewProperty(PropertyView.Ui, "children");
-		type.addViewProperty(PropertyView.Ui, "childrenIds");
-		type.addViewProperty(PropertyView.Ui, "showForLocales");
-		type.addViewProperty(PropertyView.Ui, "hideForLocales");
-		type.addViewProperty(PropertyView.Ui, "showConditions");
-		type.addViewProperty(PropertyView.Ui, "hideConditions");
-		type.addViewProperty(PropertyView.Ui, "dataKey");
-		type.addViewProperty(PropertyView.Ui, "cypherQuery");
-		type.addViewProperty(PropertyView.Ui, "xpathQuery");
-		type.addViewProperty(PropertyView.Ui, "restQuery");
-		type.addViewProperty(PropertyView.Ui, "functionQuery");
-
-		final LicenseManager licenseManager = Services.getInstance().getLicenseManager();
-		if (licenseManager == null || licenseManager.isModuleLicensed("api-builder")) {
-
-			type.addViewProperty(PropertyView.Public, DOMNodeTraitDefinition.FLOW_PROPERTY);
-			type.addViewProperty(PropertyView.Ui, DOMNodeTraitDefinition.FLOW_PROPERTY);
-		}
-
-	}}
-
-	String getTag();
-	String getOffsetAttributeName(final String name, final int offset);
-
-	void openingTag(final AsyncBuffer out, final String tag, final EditMode editMode, final RenderContext renderContext, final int depth) throws FrameworkException;
-
-	Property[] getHtmlAttributes();
-	List<String> getHtmlAttributeNames();
-	String getEventMapping();
-	 */
-
 	public DOMElementTraitWrapper(final Traits traits, final NodeInterface node) {
 		super(traits, node);
 	}
@@ -207,6 +150,29 @@ public class DOMElementTraitWrapper extends DOMNodeTraitWrapper implements DOMEl
 		}
 
 		return null;
+	}
+
+	@Override
+	public boolean isTargetElement() {
+
+		final String key = "cachedIsTargetElement";
+
+		Boolean cachedIsTargetElement = (Boolean) wrappedObject.getNode().getCache().get(key);
+		if (cachedIsTargetElement == null) {
+
+			final boolean isManualReloadTarget = isManualReloadTarget();
+			final List<DOMElement> reloadSources = Iterables.toList(getReloadSources());
+			final List<ActionMapping> reloadingActions = Iterables.toList(getReloadingActions());
+			final List<ActionMapping> failureActions = Iterables.toList(getFailureActions());
+			final List<ActionMapping> successNotificationActions = Iterables.toList(getSuccessNotificationActions());
+			final List<ActionMapping> failureNotificationActions = Iterables.toList(getFailureNotificationActions());
+
+			cachedIsTargetElement = (isManualReloadTarget || !reloadSources.isEmpty() || !reloadingActions.isEmpty() || !failureActions.isEmpty() || !successNotificationActions.isEmpty() || !failureNotificationActions.isEmpty());
+
+			wrappedObject.getNode().getCache().put(key, cachedIsTargetElement);
+		}
+
+		return cachedIsTargetElement;
 	}
 
 	// ----- private static methods -----

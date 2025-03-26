@@ -42,4 +42,5 @@ public interface Node extends PropertyContainer {
 	Iterable<Relationship> getRelationships(final Direction direction, final RelationshipType relationshipType);
 
 	Map<String, Long> getDegree();
+	Map<String, Object> getCache();
 }

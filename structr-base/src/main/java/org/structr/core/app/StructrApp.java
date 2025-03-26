@@ -61,11 +61,11 @@ public class StructrApp implements App {
 	private static final Logger logger      = LoggerFactory.getLogger(StructrApp.class);
 
 	private static final URI schemaBaseURI                      = URI.create("https://structr.org/v1.1/#");
-	private static final Map<URI, String> schemaIdMap           = new LinkedHashMap<>();
-	private static final Map<String, URI> typeIdMap             = new LinkedHashMap<>();
+	private static final Map<URI, String> schemaIdMap           = new HashMap<>();
+	private static final Map<String, URI> typeIdMap             = new HashMap<>();
 	private static FixedSizeCache<String, Identity> nodeUuidMap = null;
 	private static FixedSizeCache<String, Identity> relUuidMap  = null;
-	private final Map<String, Object> appContextStore           = new LinkedHashMap<>();
+	private final Map<String, Object> appContextStore           = new HashMap<>();
 	private RelationshipFactory relFactory                      = null;
 	private NodeFactory nodeFactory                             = null;
 	private DatabaseService graphDb                             = null;

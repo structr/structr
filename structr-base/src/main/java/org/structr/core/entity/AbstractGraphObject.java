@@ -56,14 +56,15 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractGraphObject.class);
 
+	protected final long sourceTransactionId;
+	protected final Traits typeHandler;
+	protected final Identity id;
+
 	protected Map<String, Object> tmpStorageContainer         = null;
 	protected boolean readOnlyPropertiesUnlocked              = false;
 	protected boolean internalSystemPropertiesUnlocked        = false;
-	protected long sourceTransactionId                        = -1;
-	protected String cachedUuid                               = null;
 	protected SecurityContext securityContext                 = null;
-	protected Traits typeHandler                              = null;
-	protected Identity id                                     = null;
+	protected String cachedUuid                               = null;
 
 	public AbstractGraphObject(final SecurityContext securityContext, final PropertyContainer propertyContainer, final long sourceTransactionId) {
 
@@ -112,7 +113,13 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 
 	@Override
 	public String getUuid() {
-		return getProperty(typeHandler.key(GraphObjectTraitDefinition.ID_PROPERTY));
+
+		if (cachedUuid == null) {
+
+			cachedUuid = getProperty(typeHandler.key(GraphObjectTraitDefinition.ID_PROPERTY));
+		}
+
+		return cachedUuid;
 	}
 
 	@Override
@@ -406,6 +413,7 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 
 	@Override
 	public final <T> Object setProperty(final PropertyKey<T> key, final T value, final boolean isCreation) throws FrameworkException {
+		cachedUuid = null;
 		return typeHandler.getMethod(SetProperty.class).setProperty(this, key, value, isCreation);
 	}
 
@@ -416,6 +424,7 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 
 	@Override
 	public final void setProperties(final SecurityContext securityContext, final PropertyMap properties, final boolean isCreation) throws FrameworkException {
+		cachedUuid = null;
 		typeHandler.getMethod(SetProperties.class).setProperties(this, securityContext, properties, isCreation);
 	}
 

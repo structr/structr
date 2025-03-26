@@ -50,7 +50,6 @@ import org.structr.schema.parser.DatePropertyGenerator;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 public class Scripting {
 
@@ -394,6 +393,7 @@ public class Scripting {
 			final String transpiledSource;
 			// Regex that matches import statements
 
+			/*
 			if (importPattern.matcher(snippet.getSource()).find()) {
 
 				final Map<Boolean, List<String>> partitionedScript = snippet.getSource().lines().collect(Collectors.partitioningBy(x -> importPattern.matcher(x).find()));
@@ -411,9 +411,10 @@ public class Scripting {
 				snippet.setMimeType("application/javascript+module");
 
 			} else {
+			*/
 
 				transpiledSource = "function main() {" + snippet.getSource() + "\n}\n\nmain();";
-			}
+			//}
 
 			snippet.setTranscribedSource(transpiledSource);
 		}
