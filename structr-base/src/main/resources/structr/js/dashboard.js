@@ -1279,8 +1279,7 @@ let _Dashboard = {
 			setFeedback: (message) => {
 				let el = document.querySelector('#dashboard-server-log-feedback');
 				if (el) {
-					// textContent creates a new node, not 100% efficient if there already is a node... but gc should sort that out
-					el.textContent = message;
+					el.innerHTML = message;
 				}
 			},
 			init: () => {
@@ -1373,11 +1372,13 @@ let _Dashboard = {
 
 				if (false === _Dashboard.tabs['server-log'].textAreaHasFocus) {
 
-					_Dashboard.tabs['server-log'].setFeedback('Refreshing server log...');
-
 					let noOfLines     = _Dashboard.tabs['server-log'].getNumberOfLines();
 					let truncateAfter = _Dashboard.tabs['server-log'].getTruncateLinesAfter();
 					let logFile       = _Dashboard.tabs['server-log'].getSelectedLogFile();
+
+					let logFileForFeedback = logFile ? `(${logFile})` : '';
+
+					_Dashboard.tabs['server-log'].setFeedback(`<span class="flex items-center">${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 18, 18, 'mr-2')}<span> Refreshing log file ${logFileForFeedback}...</span></span>`);
 
 					Command.getServerLogSnapshot(noOfLines, truncateAfter, logFile).then(log => {
 
@@ -1825,7 +1826,7 @@ let _Dashboard = {
 
 				<div class="flex flex-col h-full">
 
-					<div id="dashboard-server-log-controls" class="pb-4">
+					<div id="dashboard-server-log-controls" class="flex items-center pb-4">
 
 						<div class="editor-settings-popup dropdown-menu darker-shadow-dropdown dropdown-menu-large">
 							<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" data-preferred-position-y="bottom" data-wants-fixed="true">
