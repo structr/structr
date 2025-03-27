@@ -1548,19 +1548,9 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 		for (final String key : props) {
 
-			final PropertyKey propertyKey;
-
-			if (traits.hasKey(key)) {
-
-				propertyKey = traits.key(key);
-
-			} else {
-
-				// support arbitrary data-* attributes
-				propertyKey = new StringProperty(key);
-			}
-
 			if (key.startsWith("data-")) {
+
+				final PropertyKey propertyKey = traits.hasKey(key) ? traits.key(key) : new StringProperty(key);
 
 				if (propertyKey instanceof BooleanProperty && dbNode.hasProperty(key)) {
 
@@ -1577,6 +1567,8 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 				customProperties.add(propertyKey);
 
 			} else if (key.startsWith(CustomHtmlAttributeProperty.CUSTOM_HTML_ATTRIBUTE_PREFIX)) {
+
+				final PropertyKey propertyKey = traits.hasKey(key) ? traits.key(key) : new StringProperty(key);
 
 				final CustomHtmlAttributeProperty customProp = new CustomHtmlAttributeProperty(propertyKey);
 

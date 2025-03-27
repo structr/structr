@@ -102,7 +102,6 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 	private static final String[] rawProps = new String[] {
 			DATA_KEY_PROPERTY, REST_QUERY_PROPERTY, CYPHER_QUERY_PROPERTY, FUNCTION_QUERY_PROPERTY, Option.SELECTEDVALUES_PROPERTY, FLOW_PROPERTY,
-			"hideOnIndex", "hideOnDetail", // FIXME: these dont exist anymore!?
 			SHOW_FOR_LOCALES_PROPERTY, HIDE_FOR_LOCALES_PROPERTY, SHOW_CONDITIONS_PROPERTY, HIDE_CONDITIONS_PROPERTY
 	};
 
@@ -419,6 +418,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					Set<PropertyKey> dataAttributes = node.getDataPropertyKeys();
 
 					if (RenderContext.EditMode.DEPLOYMENT.equals(editMode)) {
+
 						List sortedAttributes = new LinkedList(dataAttributes);
 						Collections.sort(sortedAttributes);
 						dataAttributes = new LinkedHashSet<>(sortedAttributes);
@@ -427,7 +427,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					for (final PropertyKey key : dataAttributes) {
 
 						// do not render attributes that are on the blacklist
-						if (DataAttributeOutputBlacklist.contains(key.jsonName()) && !RenderContext.EditMode.DEPLOYMENT.equals(editMode)) {
+						if (!RenderContext.EditMode.DEPLOYMENT.equals(editMode) && DataAttributeOutputBlacklist.contains(key.jsonName())) {
 							continue;
 						}
 
@@ -457,9 +457,12 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 						if (StringUtils.isNotBlank(value)) {
 
-							if (key instanceof CustomHtmlAttributeProperty) {
-								out.append(" ").append(((CustomHtmlAttributeProperty) key).cleanName()).append("=\"").append(value).append("\"");
+							if (key instanceof CustomHtmlAttributeProperty chap) {
+
+								out.append(" ").append(chap.cleanName()).append("=\"").append(value).append("\"");
+
 							} else {
+
 								out.append(" ").append(key.dbName()).append("=\"").append(value).append("\"");
 							}
 						}

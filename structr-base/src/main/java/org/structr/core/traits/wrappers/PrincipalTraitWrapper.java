@@ -47,6 +47,8 @@ import java.util.*;
 
 public class PrincipalTraitWrapper extends AbstractNodeTraitWrapper implements Principal {
 
+	private Boolean cachedIsAdminFlag = null;
+
 	public PrincipalTraitWrapper(final Traits traits, final NodeInterface nodeInterface) {
 		super(traits, nodeInterface);
 	}
@@ -86,7 +88,12 @@ public class PrincipalTraitWrapper extends AbstractNodeTraitWrapper implements P
 
 	@Override
 	public boolean isAdmin() {
-		return wrappedObject.getProperty(traits.key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY));
+
+		if (cachedIsAdminFlag == null) {
+			cachedIsAdminFlag = wrappedObject.getProperty(traits.key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY));
+		}
+
+		return cachedIsAdminFlag;
 	}
 
 	public boolean isBlocked() {
@@ -95,6 +102,9 @@ public class PrincipalTraitWrapper extends AbstractNodeTraitWrapper implements P
 
 	@Override
 	public void setIsAdmin(final boolean isAdmin) throws FrameworkException {
+
+		cachedIsAdminFlag = isAdmin;
+
 		wrappedObject.setProperty(traits.key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY), isAdmin);
 	}
 

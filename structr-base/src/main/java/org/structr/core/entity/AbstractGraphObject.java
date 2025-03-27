@@ -65,6 +65,7 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	protected boolean internalSystemPropertiesUnlocked        = false;
 	protected SecurityContext securityContext                 = null;
 	protected String cachedUuid                               = null;
+	protected Boolean cachedHiddenFlag                        = null;
 
 	public AbstractGraphObject(final SecurityContext securityContext, final PropertyContainer propertyContainer, final long sourceTransactionId) {
 
@@ -347,11 +348,20 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	 */
 	@Override
 	public boolean isHidden() {
-		return getProperty(typeHandler.key(NodeInterfaceTraitDefinition.HIDDEN_PROPERTY));
+
+		if (cachedHiddenFlag == null) {
+
+			cachedHiddenFlag = getProperty(typeHandler.key(NodeInterfaceTraitDefinition.HIDDEN_PROPERTY));
+		}
+
+		return cachedHiddenFlag;
 	}
 
 	@Override
 	public void setHidden(final boolean hidden) throws FrameworkException {
+
+		cachedHiddenFlag = hidden;
+
 		setProperty(typeHandler.key(NodeInterfaceTraitDefinition.HIDDEN_PROPERTY), hidden);
 	}
 

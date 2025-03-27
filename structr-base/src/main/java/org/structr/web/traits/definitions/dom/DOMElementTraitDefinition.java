@@ -498,7 +498,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 							Collections.sort(htmlAttributes);
 						}
 
-						for (PropertyKey attribute : htmlAttributes) {
+						for (final PropertyKey attribute : htmlAttributes) {
 
 							String value = null;
 

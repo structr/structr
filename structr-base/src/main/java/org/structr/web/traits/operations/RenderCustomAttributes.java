@@ -20,7 +20,6 @@ package org.structr.web.traits.operations;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
