@@ -48,6 +48,7 @@ public class TraitsImplementation implements Traits {
 	private final Map<Class, NodeTraitFactory> nodeTraitFactoryCache    = new HashMap<>();
 	private Map<String, AbstractMethod> dynamicMethodCache              = null;
 	private Set<String> cachedLabels                                    = null;
+	private Wrapper<Relation> cachedRelation                            = null;
 
 	private final boolean isNodeType;
 	private final boolean isRelationshipType;
@@ -122,7 +123,6 @@ public class TraitsImplementation implements Traits {
 			}
 		}
 
-		//System.out.println(typeName + ": caching key " + name + " with value " + key);
 		keyCache.put(name, new Wrapper(key));
 
 		// return last key, not first
@@ -340,14 +340,24 @@ public class TraitsImplementation implements Traits {
 	@Override
 	public Relation getRelation() {
 
+		if (cachedRelation != null) {
+
+			return cachedRelation.value;
+		}
+
 		for (final Trait trait : getTraits()) {
 
 			final Relation rel = trait.getRelation();
 			if (rel != null) {
 
+				cachedRelation = new Wrapper(rel);
+
 				return rel;
 			}
 		}
+
+		// cache null as well
+		cachedRelation = new Wrapper(null);
 
 		return null;
 	}

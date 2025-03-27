@@ -1834,8 +1834,10 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			if (realm == null) {
 
 				realm = possiblePage.getName();
+
 			} else {
-				realm = (String)Scripting.replaceVariables(new ActionContext(outerSecurityContext), possiblePage, realm, false, "realm");
+
+				realm = Scripting.replaceVariables(new ActionContext(outerSecurityContext), possiblePage, realm, false, "realm");
 			}
 
 			// check Http Basic Authentication headers
@@ -1995,28 +1997,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 		public Linkable getRootElement() {
 			return rootElement;
-		}
-	}
-
-	private static class UuidCacheEntry {
-
-		String fileUuid = null;
-		String domUuid  = null;
-		String dataUuid = null;
-
-		public UuidCacheEntry(final DOMNode domNode, final File fileNode, final NodeInterface dataNode) {
-
-			if (domNode != null) {
-				this.domUuid = domNode.getUuid();
-			}
-
-			if (fileNode != null) {
-				this.fileUuid = fileNode.getUuid();
-			}
-
-			if (dataNode != null) {
-				this.dataUuid = dataNode.getUuid();
-			}
 		}
 	}
 }

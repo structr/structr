@@ -89,8 +89,7 @@ public final class AbstractNode extends AbstractGraphObject<Node> implements Nod
 			return false;
 		}
 
-		return (Integer.valueOf(this.hashCode()).equals(o.hashCode()));
-
+		return hashCode() == o.hashCode();
 	}
 
 	@Override

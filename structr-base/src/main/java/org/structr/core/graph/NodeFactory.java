@@ -56,10 +56,12 @@ public class NodeFactory extends Factory<Node, NodeInterface> {
 		final AbstractNode newNode = new AbstractNode(securityContext, node, TransactionCommand.getCurrentTransactionId());
 
 		newNode.setRawPathSegmentId(pathSegmentId);
-		newNode.onNodeInstantiation(isCreation);
+
+		// FIXME: do we need this still?
+		//newNode.onNodeInstantiation(isCreation);
 
 		// check access
-		if (isCreation || securityContext.isReadable(newNode, includeHidden, publicOnly)) {
+		if (isCreation || securityContext.isSuperUser() || securityContext.isReadable(newNode, includeHidden, publicOnly)) {
 
 			return newNode;
 		}

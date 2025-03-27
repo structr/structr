@@ -25,12 +25,10 @@ import org.structr.api.graph.Identity;
 public class BoltIdentity implements Identity {
 
 	private final long id;
-	private final String str;
 
 	public BoltIdentity(final long id) {
 
 		this.id  = id;
-		this.str = Long.toString(id);
 	}
 
 	@Override
@@ -40,7 +38,7 @@ public class BoltIdentity implements Identity {
 
 	@Override
 	public String toString() {
-		return str;
+		return Long.toString(id);
 	}
 
 	@Override

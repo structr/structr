@@ -380,9 +380,13 @@ public class StructrApp implements App {
 	 * @return superuser app instance
 	 */
 	public static App getInstance() {
+
+		/*
 		if (Thread.currentThread().isInterrupted()) {
 			logger.info("Thread {} was interrupted, we could do something here...", Thread.currentThread().getName());
 		}
+		*/
+
 		return new StructrApp(SecurityContext.getSuperUserInstance());
 	}
 
@@ -394,16 +398,23 @@ public class StructrApp implements App {
 	 * @return app instance
 	 */
 	public static App getInstance(final SecurityContext securityContext) {
+
+		/*
 		if (Thread.currentThread().isInterrupted()) {
 			logger.info("Thread {} was interrupted, we could do something here...", Thread.currentThread().getName());
 		}
+		*/
+
 		return new StructrApp(securityContext);
 	}
 
 	public static ConfigurationProvider getConfiguration() {
+		/*
 		if (Thread.currentThread().isInterrupted()) {
 			logger.info("Thread {} was interrupted, we could do something here...", Thread.currentThread().getName());
 		}
+		*/
+
 		return Services.getInstance().getConfigurationProvider();
 	}
 
