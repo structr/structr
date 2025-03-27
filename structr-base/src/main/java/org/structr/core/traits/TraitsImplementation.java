@@ -122,10 +122,11 @@ public class TraitsImplementation implements Traits {
 			}
 		}
 
+		//System.out.println(typeName + ": caching key " + name + " with value " + key);
+		keyCache.put(name, new Wrapper(key));
+
 		// return last key, not first
 		if (key != null) {
-
-			keyCache.put(name, new Wrapper(key));
 
 			return key;
 		}
@@ -412,6 +413,9 @@ public class TraitsImplementation implements Traits {
 		}
 
 		traits.put(name, traitDefinition);
+
+		// clear cache
+		keyCache.clear();
 	}
 
 	@Override

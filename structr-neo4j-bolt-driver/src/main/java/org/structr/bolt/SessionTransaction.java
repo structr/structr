@@ -767,7 +767,6 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 		final String type                = query.getType();
 		final String relType             = query.getRelationshipType();
 		final boolean isOutgoing         = query.isOutgoing();
-		final StringBuilder buf          = new StringBuilder();
 
 		if (type != null && relType != null) {
 
