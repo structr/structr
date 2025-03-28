@@ -24,7 +24,7 @@ import org.structr.schema.action.ActionContext;
 
 public class FindLtFunction extends AdvancedScriptingFunction {
 
-	public static final String ERROR_MESSAGE_LT = "Usage: ${lt(start, end)}. Example: ${find(\"User\", \"age\", lt(\"42\"))}";
+	public static final String ERROR_MESSAGE_LT = "Usage: ${lt(other)}. Example: ${find(\"User\", \"age\", lt(\"42\"))}";
 
 	@Override
 	public String getName() {
