@@ -24,40 +24,39 @@ import com.google.gson.JsonSyntaxException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jetty.io.QuietException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.RetryException;
+import org.structr.api.util.ResultStream;
+import org.structr.common.PropertyView;
+import org.structr.common.RequestKeywords;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.AssertException;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
+import org.structr.core.IJsonInput;
+import org.structr.core.JsonInput;
+import org.structr.core.JsonSingleInput;
+import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
+import org.structr.core.entity.Principal;
+import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.Tx;
+import org.structr.core.graph.search.DefaultSortOrder;
+import org.structr.core.traits.StructrTraits;
 import org.structr.rest.RestMethodResult;
+import org.structr.rest.api.RESTCallHandler;
+import org.structr.rest.api.RESTEndpoints;
 
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.*;
-import org.apache.commons.io.IOUtils;
-import org.eclipse.jetty.io.QuietException;
-import org.structr.api.util.ResultStream;
-import org.structr.common.PropertyView;
-import org.structr.common.RequestKeywords;
-import org.structr.core.GraphObject;
-import org.structr.core.IJsonInput;
-import org.structr.core.JsonInput;
-import org.structr.core.JsonSingleInput;
-import org.structr.core.Services;
-import org.structr.core.entity.PrincipalInterface;
-import org.structr.core.graph.NodeFactory;
-import org.structr.core.graph.search.DefaultSortOrder;
-import org.structr.rest.api.RESTCallHandler;
-import org.structr.rest.api.RESTEndpoints;
-import org.structr.web.entity.User;
 
 /**
  * Implements the structr REST API.
@@ -120,9 +119,9 @@ public class JsonRestServlet extends AbstractDataServlet {
 			// isolate resource authentication
 			try (final Tx tx = app.tx()) {
 
-				final PrincipalInterface currentUser = securityContext.getUser(false);
+				final Principal currentUser = securityContext.getUser(false);
 
-				handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), getTypeOrDefault(currentUser, User.class));
+				handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), getTypeOrDefault(currentUser, StructrTraits.USER));
 				authenticator.checkResourceAccess(securityContext, request, handler.getResourceSignature(), handler.getRequestedView());
 
 				RuntimeEventLog.rest("Delete", handler.getResourceSignature(), currentUser);
@@ -245,7 +244,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 			// results, especially in the /me resource where the result might depend on the actual user type that makes the call
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 
-				final RESTCallHandler handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), User.class);
+				final RESTCallHandler handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), StructrTraits.USER);
 				if (handler != null) {
 
 					RuntimeEventLog.rest("Options", handler.getResourceSignature(), null);
@@ -339,9 +338,9 @@ public class JsonRestServlet extends AbstractDataServlet {
 				// isolate resource authentication
 				try (final Tx tx = app.tx()) {
 
-					final PrincipalInterface currentUser = securityContext.getUser(false);
+					final Principal currentUser = securityContext.getUser(false);
 
-					handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), getTypeOrDefault(currentUser, User.class));
+					handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), getTypeOrDefault(currentUser, StructrTraits.USER));
 					authenticator.checkResourceAccess(securityContext, request, handler.getResourceSignature(), handler.getRequestedView());
 
 					RuntimeEventLog.rest("Post", handler.getResourceSignature(), currentUser);
@@ -356,6 +355,8 @@ public class JsonRestServlet extends AbstractDataServlet {
 					if (handler.createPostTransaction()) {
 
 						try (final Tx tx = app.tx()) {
+
+							tx.prefetchHint("REST POST " + handler.getURL());
 
 							for (JsonInput propertySet : jsonInput.getJsonInputs()) {
 
@@ -391,6 +392,8 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 					if (!results.isEmpty()) {
 
+						tx.prefetchHint("REST POST RESULTS " + handler.getURL());
+
 						final RestMethodResult result = results.get(0);
 						final int resultCount         = results.size();
 
@@ -421,7 +424,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 								// remove Location header if more than one object was
 								// written because it may only contain a single URL
-								result.addHeader("Location", null);
+								result.addHeader(StructrTraits.LOCATION, null);
 							}
 						}
 
@@ -525,10 +528,10 @@ public class JsonRestServlet extends AbstractDataServlet {
 				// isolate resource authentication
 				try (final Tx tx = app.tx()) {
 
-					final PrincipalInterface currentUser = securityContext.getUser(false);
+					final Principal currentUser = securityContext.getUser(false);
 
 					// evaluate constraint chain
-					handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), getTypeOrDefault(currentUser, User.class));
+					handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), getTypeOrDefault(currentUser, StructrTraits.USER));
 					authenticator.checkResourceAccess(securityContext, request, handler.getResourceSignature(), handler.getRequestedView());
 
 					RuntimeEventLog.rest("Put", handler.getResourceSignature(), currentUser);
@@ -542,6 +545,8 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 					try (final Tx tx = app.tx()) {
 
+						tx.prefetchHint("REST PUT " + handler.getURL());
+
 						result = handler.doPut(securityContext, convertPropertySetToMap(jsonInput.getJsonInputs().get(0)));
 						tx.success();
 						retry = false;
@@ -553,6 +558,8 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 				// isolate write output
 				try (final Tx tx = app.tx()) {
+
+					tx.prefetchHint("REST PUT RESULTS " + handler.getURL());
 
 					commitResponse(securityContext, request, response, result, handler.getRequestedView(), handler.isCollection());
 					tx.success();
@@ -659,9 +666,9 @@ public class JsonRestServlet extends AbstractDataServlet {
 				// isolate resource authentication
 				try (final Tx tx = app.tx()) {
 
-					final PrincipalInterface currentUser = securityContext.getUser(false);
+					final Principal currentUser = securityContext.getUser(false);
 
-					handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), getTypeOrDefault(currentUser, User.class));
+					handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), getTypeOrDefault(currentUser, StructrTraits.USER));
 					authenticator.checkResourceAccess(securityContext, request, handler.getResourceSignature(), handler.getRequestedView());
 
 					RuntimeEventLog.rest("Patch", handler.getResourceSignature(), currentUser);
@@ -682,6 +689,8 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 					try (final Tx tx = app.tx()) {
 
+						tx.prefetchHint("REST PATCH " + handler.getURL());
+
 						result = handler.doPatch(securityContext, inputs);
 						tx.success();
 						retry = false;
@@ -695,6 +704,8 @@ public class JsonRestServlet extends AbstractDataServlet {
 				try (final Tx tx = app.tx()) {
 
 					if (result != null) {
+
+						tx.prefetchHint("REST PATCH RESULTS " + handler.getURL());
 
 						commitResponse(securityContext, request, response, result, handler.getRequestedView(), handler.isCollection());
 					}
@@ -778,12 +789,14 @@ public class JsonRestServlet extends AbstractDataServlet {
 			authenticator = config.getAuthenticator();
 			securityContext = authenticator.initializeAndExamineRequest(request, response);
 
-			final PrincipalInterface currentUser = securityContext.getUser(false);
+			final Principal currentUser = securityContext.getUser(false);
 
-			handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), getTypeOrDefault(currentUser, User.class));
+			handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), getTypeOrDefault(currentUser, StructrTraits.USER));
 			authenticator.checkResourceAccess(securityContext, request, handler.getResourceSignature(), handler.getRequestedView());
 
 			RuntimeEventLog.rest(returnContent ? "Get" : "Head", handler.getResourceSignature(), currentUser);
+
+			tx.prefetchHint("REST GET " + handler.getURL());
 
 			// add sorting && pagination
 			final String pageSizeParameter          = request.getParameter(RequestKeywords.PageSize.keyword());
@@ -794,7 +807,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 			final int depth                         = Services.parseInt(outputDepth, config.getOutputNestingDepth());
 			final String[] sortKeyNames             = request.getParameterValues(RequestKeywords.SortKey.keyword());
 			final String[] sortOrders               = request.getParameterValues(RequestKeywords.SortOrder.keyword());
-			final Class<? extends GraphObject> type = handler.getEntityClassOrDefault(securityContext);
+			final String type                       = handler.getEntityClassOrDefault(securityContext);
 
 			// evaluate constraints and measure query time
 			final double queryTimeStart = System.nanoTime();

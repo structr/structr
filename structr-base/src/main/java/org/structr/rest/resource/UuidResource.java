@@ -19,10 +19,12 @@
 package org.structr.rest.resource;
 
 import jakarta.servlet.http.HttpServletResponse;
+import org.structr.api.config.Settings;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
 import org.structr.common.Permission;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
@@ -30,20 +32,14 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
-import org.structr.rest.exception.NotFoundException;
-
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import org.structr.api.config.Settings;
-import org.structr.common.SecurityContext;
 import org.structr.rest.RestMethodResult;
+import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
-import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.parameter.RESTParameter;
+import org.structr.rest.exception.NotFoundException;
+
+import java.util.*;
 
 /**
  * Represents an exact UUID match.
@@ -180,7 +176,7 @@ public class UuidResource extends ExactMatchEndpoint {
 		}
 
 		@Override
-		public Class getEntityClass(final SecurityContext securityContext) {
+		public String getTypeName(final SecurityContext securityContext) {
 			return null;
 		}
 

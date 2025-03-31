@@ -39,20 +39,26 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
+import org.structr.common.helper.PathHelper;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.storage.StorageProvider;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.util.Base64;
-import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
-import org.structr.web.entity.Image;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.FileTraitDefinition;
+import org.structr.web.traits.definitions.ImageTraitDefinition;
 
 import javax.activation.MimetypesFileTypeMap;
 import javax.imageio.ImageIO;
@@ -62,9 +68,9 @@ import java.nio.ByteOrder;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.zip.CRC32;
-import org.structr.common.helper.PathHelper;
 
 /**
  * File utility class.
@@ -78,7 +84,6 @@ public class FileHelper {
 	/**
 	 * Transform an existing file into the target class.
 	 *
-	 * @param <T>
 	 * @param securityContext
 	 * @param uuid
 	 * @param fileType
@@ -86,18 +91,16 @@ public class FileHelper {
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	public static <T extends File> T transformFile(final SecurityContext securityContext, final String uuid, final Class<T> fileType) throws FrameworkException, IOException {
+	public static NodeInterface transformFile(final SecurityContext securityContext, final String uuid, final String fileType) throws FrameworkException {
 
-		AbstractFile existingFile = getFileByUuid(securityContext, uuid);
+		NodeInterface existingFile = getFileByUuid(securityContext, uuid);
 
 		if (existingFile != null) {
 
 			existingFile.unlockSystemPropertiesOnce();
-			existingFile.setProperties(securityContext, new PropertyMap(AbstractNode.type, fileType == null ? File.class.getSimpleName() : fileType.getSimpleName()));
+			existingFile.setProperties(securityContext, new PropertyMap(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY), fileType == null ? StructrTraits.FILE : fileType));
 
-			existingFile = getFileByUuid(securityContext, uuid);
-
-			return (T)(fileType != null ? fileType.cast(existingFile) : (File) existingFile);
+			return getFileByUuid(securityContext, uuid);
 		}
 
 		return null;
@@ -109,26 +112,24 @@ public class FileHelper {
 	 * If the given string is an uuid of an existing file, transform it into
 	 * the target class.
 	 *
-	 * @param <T>
 	 * @param securityContext
 	 * @param rawData
-	 * @param t defaults to File.class if null
+	 * @param type defaults to File.class if null
 	 * @return file
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	public static <T extends File> T createFileBase64(final SecurityContext securityContext, final String rawData, final Class<T> t) throws FrameworkException, IOException {
+	public static NodeInterface createFileBase64(final SecurityContext securityContext, final String rawData, final String type) throws FrameworkException, IOException {
 
-		Base64URIData uriData = new Base64URIData(rawData);
+		final Base64URIData uriData = new Base64URIData(rawData);
 
-		return createFile(securityContext, uriData.getBinaryData(), uriData.getContentType(), t);
+		return createFile(securityContext, uriData.getBinaryData(), uriData.getContentType(), type);
 
 	}
 
 	/**
 	 * Create a new file node from the given input stream
 	 *
-	 * @param <T>
 	 * @param securityContext
 	 * @param fileStream
 	 * @param contentType
@@ -138,8 +139,7 @@ public class FileHelper {
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	public static <T extends File> T createFile(final SecurityContext securityContext, final InputStream fileStream, final String contentType, final Class<T> fileType, final String name)
-			throws FrameworkException, IOException {
+	public static NodeInterface createFile(final SecurityContext securityContext, final InputStream fileStream, final String contentType, final String fileType, final String name) throws FrameworkException, IOException {
 
 		return createFile(securityContext, fileStream, contentType, fileType, name, null);
 
@@ -148,7 +148,6 @@ public class FileHelper {
 	/**
 	 * Create a new file node from a given file on disk by moving existing file to referenced file location
 	 *
-	 * @param <T>
 	 * @param securityContext
 	 * @param existingFileOnDisk
 	 * @param contentType
@@ -157,15 +156,15 @@ public class FileHelper {
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	public static <T extends File> T createFile(final SecurityContext securityContext, final java.io.File existingFileOnDisk, final String contentType, final String name)
-		throws FrameworkException, IOException {
+	public static File createFile(final SecurityContext securityContext, final java.io.File existingFileOnDisk, final String contentType, final String name) throws FrameworkException, IOException {
 
 		final PropertyMap props = new PropertyMap();
+		final Traits traits     = Traits.of(StructrTraits.FILE);
 
-		props.put(StructrApp.key(AbstractFile.class, "name"), name);
-		props.put(StructrApp.key(File.class, "contentType"), contentType);
+		props.put(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),        name);
+		props.put(traits.key(FileTraitDefinition.CONTENT_TYPE_PROPERTY), contentType);
 
-		final T newFile = (T) StructrApp.getInstance(securityContext).create(File.class, props);
+		final File newFile = StructrApp.getInstance(securityContext).create(StructrTraits.FILE, props).as(File.class);
 
 		try (FileInputStream fis = new FileInputStream(existingFileOnDisk); OutputStream os = StorageProviderFactory.getStorageProvider(newFile).getOutputStream()) {
 
@@ -178,7 +177,6 @@ public class FileHelper {
 	/**
 	 * Create a new file node from the given input stream and sets the parentFolder
 	 *
-	 * @param <T>
 	 * @param securityContext
 	 * @param fileStream
 	 * @param contentType
@@ -189,18 +187,18 @@ public class FileHelper {
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	public static <T extends File> T createFile(final SecurityContext securityContext, final InputStream fileStream, final String contentType, final Class<T> fileType, final String name, final Folder parentFolder)
-		throws FrameworkException, IOException {
+	public static NodeInterface createFile(final SecurityContext securityContext, final InputStream fileStream, final String contentType, final String fileType, final String name, final Folder parentFolder) throws FrameworkException, IOException {
 
 		final PropertyMap props = new PropertyMap();
+		final Traits traits     = Traits.of(StructrTraits.FILE);
 
-		props.put(StructrApp.key(AbstractFile.class, "name"), name);
-		props.put(StructrApp.key(File.class, "contentType"), contentType);
+		props.put(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name);
+		props.put(traits.key(FileTraitDefinition.CONTENT_TYPE_PROPERTY), contentType);
 
 		if (parentFolder != null) {
 
-			props.put(StructrApp.key(File.class, "hasParent"), true);
-			props.put(StructrApp.key(File.class, "parent"), parentFolder);
+			props.put(traits.key(AbstractFileTraitDefinition.HAS_PARENT_PROPERTY), true);
+			props.put(traits.key(AbstractFileTraitDefinition.PARENT_PROPERTY),    parentFolder);
 
 		}
 
@@ -210,7 +208,6 @@ public class FileHelper {
 	/**
 	 * Create a new file node from the given input stream and sets the parentFolder
 	 *
-	 * @param <T>
 	 * @param securityContext
 	 * @param fileStream
 	 * @param fileType defaults to File.class if null
@@ -219,12 +216,11 @@ public class FileHelper {
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	public static <T extends File> T createFile(final SecurityContext securityContext, final InputStream fileStream, final Class<T> fileType, final PropertyMap props)
-		throws FrameworkException, IOException {
+	public static NodeInterface createFile(final SecurityContext securityContext, final InputStream fileStream, final String fileType, final PropertyMap props) throws FrameworkException, IOException {
 
-		T newFile = (T) StructrApp.getInstance(securityContext).create(fileType, props);
+		final File newFile = StructrApp.getInstance(securityContext).create(fileType, props).as(File.class);
 
-		setFileData(newFile, fileStream, props.get(StructrApp.key(File.class, "contentType")));
+		setFileData(newFile, fileStream, props.get(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.CONTENT_TYPE_PROPERTY)));
 
 		// schedule indexing
 		newFile.notifyUploadCompletion();
@@ -235,25 +231,23 @@ public class FileHelper {
 	/**
 	 * Create a new file node from the given byte array
 	 *
-	 * @param <T>
 	 * @param securityContext
 	 * @param fileData
 	 * @param contentType if null, try to auto-detect content type
-	 * @param t
+	 * @param type
 	 * @param name
 	 * @param updateMetadata
 	 * @return file
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	public static <T extends File> T createFile(final SecurityContext securityContext, final byte[] fileData, final String contentType, final Class<T> t, final String name, final boolean updateMetadata)
-		throws FrameworkException, IOException {
+	public static NodeInterface createFile(final SecurityContext securityContext, final byte[] fileData, final String contentType, String type, final String name, final boolean updateMetadata) throws FrameworkException, IOException {
 
 		final PropertyMap props = new PropertyMap();
 
-		props.put(AbstractNode.name, name);
+		props.put(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name);
 
-		T newFile = (T) StructrApp.getInstance(securityContext).create(t, props);
+		final File newFile = StructrApp.getInstance(securityContext).create(type, props).as(File.class);
 
 		setFileData(newFile, fileData, contentType, updateMetadata);
 
@@ -267,19 +261,17 @@ public class FileHelper {
 	/**
 	 * Create a new file node from the given byte array
 	 *
-	 * @param <T>
 	 * @param securityContext
 	 * @param fileData
 	 * @param contentType
-	 * @param t defaults to File.class if null
+	 * @param type defaults to File.class if null
 	 * @return file
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	public static <T extends File> T createFile(final SecurityContext securityContext, final byte[] fileData, final String contentType, final Class<T> t)
-		throws FrameworkException, IOException {
+	public static NodeInterface createFile(final SecurityContext securityContext, final byte[] fileData, final String contentType, final String type) throws FrameworkException, IOException {
 
-		return createFile(securityContext, fileData, contentType, t, null, true);
+		return createFile(securityContext, fileData, contentType, type, null, true);
 
 	}
 
@@ -354,24 +346,26 @@ public class FileHelper {
 	 */
 	private static void setFilePropertiesOnCreation(final File file, final String contentType) throws IOException, FrameworkException {
 
-		final PropertyMap map         = new PropertyMap();
+		final PropertyMap map = new PropertyMap();
+		final Traits traits   = Traits.of(StructrTraits.FILE);
 
-		map.put(StructrApp.key(File.class, "contentType"), contentType != null ? contentType : FileHelper.getContentMimeType(file, file.getProperty(File.name)));
-		map.put(StructrApp.key(File.class, "size"),        FileHelper.getSize(file));
-		map.put(StructrApp.key(File.class, "version"),     1);
+		map.put(traits.key(FileTraitDefinition.CONTENT_TYPE_PROPERTY), contentType != null ? contentType : FileHelper.getContentMimeType(file, file.getName()));
+		map.put(traits.key(FileTraitDefinition.SIZE_PROPERTY),         FileHelper.getSize(file));
+		map.put(traits.key(FileTraitDefinition.VERSION_PROPERTY),      1);
 
 		map.putAll(getChecksums(file));
 
-		if (file instanceof Image) {
+		if (file.is(StructrTraits.IMAGE)) {
 
 			try {
 
-				BufferedImage bufferedImage = ImageIO.read(file.getInputStream());
+				final BufferedImage bufferedImage = ImageIO.read(file.getInputStream());
+				final Traits imageTraits          = Traits.of(StructrTraits.IMAGE);
 
 				if (bufferedImage != null) {
 
-					map.put(StructrApp.key(Image.class, "width"), bufferedImage.getWidth());
-					map.put(StructrApp.key(Image.class, "height"), bufferedImage.getHeight());
+					map.put(imageTraits.key(ImageTraitDefinition.WIDTH_PROPERTY),  bufferedImage.getWidth());
+					map.put(imageTraits.key(ImageTraitDefinition.HEIGHT_PROPERTY), bufferedImage.getHeight());
 				}
 
 			} catch (IOException ioe) {
@@ -389,18 +383,18 @@ public class FileHelper {
 	 * @param fileNode
 	 * @throws FrameworkException
 	 */
-	private static void setFilePropertiesOnCreation(File fileNode) throws FrameworkException {
+	private static void setFilePropertiesOnCreation(final NodeInterface fileNode) throws FrameworkException {
 
 		final PropertyMap properties = new PropertyMap();
 
-		String id = fileNode.getProperty(GraphObject.id);
+		String id = fileNode.getUuid();
 		if (id == null) {
 
 			final String newUuid = UUID.randomUUID().toString().replaceAll("[\\-]+", "");
 			id = newUuid;
 
 			fileNode.unlockSystemPropertiesOnce();
-			properties.put(GraphObject.id, newUuid);
+			properties.put(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), newUuid);
 		}
 
 		fileNode.unlockSystemPropertiesOnce();
@@ -418,6 +412,7 @@ public class FileHelper {
 	private static PropertyMap getChecksums(final File file) throws IOException {
 
 		final PropertyMap propertiesWithChecksums = new PropertyMap();
+		final Traits traits                       = Traits.of(StructrTraits.FILE);
 
 		Folder parentFolder = file.getParent();
 		String checksums = null;
@@ -433,22 +428,22 @@ public class FileHelper {
 		}
 
 		// New, very fast xxHash default checksum, will always be calculated
-		propertiesWithChecksums.put(StructrApp.key(File.class, "checksum"), FileHelper.getChecksum(file));
+		propertiesWithChecksums.put(traits.key(FileTraitDefinition.CHECKSUM_PROPERTY), FileHelper.getChecksum(file));
 
 		if (StringUtils.contains(checksums, "crc32"))	{
-			propertiesWithChecksums.put(StructrApp.key(File.class, "crc32"), FileHelper.getCRC32Checksum(file));
+			propertiesWithChecksums.put(traits.key(FileTraitDefinition.CRC32_PROPERTY), FileHelper.getCRC32Checksum(file));
 		}
 
 		if (StringUtils.contains(checksums, "md5"))	{
-			propertiesWithChecksums.put(StructrApp.key(File.class, "md5"), FileHelper.getMD5Checksum(file));
+			propertiesWithChecksums.put(traits.key(FileTraitDefinition.MD5_PROPERTY), FileHelper.getMD5Checksum(file));
 		}
 
 		if (StringUtils.contains(checksums, "sha1"))	{
-			propertiesWithChecksums.put(StructrApp.key(File.class, "sha1"), FileHelper.getSHA1Checksum(file));
+			propertiesWithChecksums.put(traits.key(FileTraitDefinition.SHA1_PROPERTY), FileHelper.getSHA1Checksum(file));
 		}
 
 		if (StringUtils.contains(checksums, "sha512"))	{
-			propertiesWithChecksums.put(StructrApp.key(File.class, "sha512"), FileHelper.getSHA512Checksum(file));
+			propertiesWithChecksums.put(traits.key(FileTraitDefinition.SHA512_PROPERTY), FileHelper.getSHA512Checksum(file));
 		}
 
 		return propertiesWithChecksums;
@@ -460,7 +455,7 @@ public class FileHelper {
 	 * @param map  additional properties
 	 * @throws FrameworkException
 	 */
-	public static void updateMetadata(final File file, final PropertyMap map) throws FrameworkException {
+	public static void updateMetadata(final File file, final PropertyMap map) throws FrameworkException, IOException {
 		updateMetadata(file, map, false);
 	}
 
@@ -478,9 +473,10 @@ public class FileHelper {
 
 			try {
 
-				final PropertyKey<Long> fileModificationDateKey = StructrApp.key(File.class, "fileModificationDate");
-				final PropertyKey<String> contentTypeKey        = StructrApp.key(File.class, "contentType");
-				final PropertyKey<Long> sizeKey                 = StructrApp.key(File.class, "size");
+				final Traits traits                             = file.getTraits();
+				final PropertyKey<Long> fileModificationDateKey = traits.key(FileTraitDefinition.FILE_MODIFICATION_DATE_PROPERTY);
+				final PropertyKey<String> contentTypeKey        = traits.key(FileTraitDefinition.CONTENT_TYPE_PROPERTY);
+				final PropertyKey<Long> sizeKey                 = traits.key(FileTraitDefinition.SIZE_PROPERTY);
 
 				String contentType = file.getContentType();
 
@@ -505,9 +501,9 @@ public class FileHelper {
 
 				if (contentType != null) {
 
-					// modify type when image type is detected AND the type is "File"
-					if (contentType.startsWith("image/") && Boolean.FALSE.equals(Image.class.isAssignableFrom(file.getClass())) && File.class.getSimpleName().equals(file.getClass().getSimpleName())) {
-						map.put(AbstractNode.type, Image.class.getSimpleName());
+					// modify type when image type is detected AND the type is StructrTraits.FILE
+					if (contentType.startsWith("image/") && !file.getTraits().contains(StructrTraits.IMAGE) && StructrTraits.FILE.equals(file.getType())) {
+						map.put(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY), StructrTraits.IMAGE);
 					}
 				}
 
@@ -532,7 +528,7 @@ public class FileHelper {
 	 * @param file the file
 	 * @throws FrameworkException
 	 */
-	public static void updateMetadata(final File file) throws FrameworkException {
+	public static void updateMetadata(final File file) throws FrameworkException, IOException {
 		updateMetadata(file, new PropertyMap(), false);
 	}
 
@@ -644,7 +640,7 @@ public class FileHelper {
 	 * @throws java.io.IOException
 	 */
 	public static String getContentMimeType(final File file) throws IOException {
-		return getContentMimeType(file, file.getProperty(AbstractNode.name));
+		return getContentMimeType(file, file.getName());
 	}
 
 	/**
@@ -736,11 +732,13 @@ public class FileHelper {
 	 * @param absolutePath
 	 * @return file
 	 */
-	public static AbstractFile getFileByAbsolutePath(final SecurityContext securityContext, final String absolutePath) {
+	public static NodeInterface getFileByAbsolutePath(final SecurityContext securityContext, final String absolutePath) {
 
 		try {
 
-			return StructrApp.getInstance(securityContext).nodeQuery(AbstractFile.class).and(StructrApp.key(AbstractFile.class, "path"), absolutePath).getFirst();
+			final Traits traits = Traits.of(StructrTraits.ABSTRACT_FILE);
+
+			return StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.ABSTRACT_FILE).and(traits.key(AbstractFileTraitDefinition.PATH_PROPERTY), absolutePath).getFirst();
 
 		} catch (FrameworkException ex) {
 			logger.warn("File not found: {}", absolutePath);
@@ -749,12 +747,12 @@ public class FileHelper {
 		return null;
 	}
 
-	public static AbstractFile getFileByUuid(final SecurityContext securityContext, final String uuid) {
+	public static NodeInterface getFileByUuid(final SecurityContext securityContext, final String uuid) {
 
 		logger.debug("Search for file with uuid: {}", uuid);
 
 		try {
-			return StructrApp.getInstance(securityContext).get(AbstractFile.class, uuid);
+			return StructrApp.getInstance(securityContext).getNodeById(StructrTraits.ABSTRACT_FILE, uuid);
 
 		} catch (FrameworkException fex) {
 
@@ -764,12 +762,12 @@ public class FileHelper {
 		return null;
 	}
 
-	public static AbstractFile getFirstFileByName(final SecurityContext securityContext, final String name) {
+	public static NodeInterface getFirstFileByName(final SecurityContext securityContext, final String name) {
 
 		logger.debug("Search for file with name: {}", name);
 
 		try {
-			return StructrApp.getInstance(securityContext).nodeQuery(AbstractFile.class).andName(name).getFirst();
+			return StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.ABSTRACT_FILE).andName(name).getFirst();
 
 		} catch (FrameworkException fex) {
 
@@ -786,16 +784,16 @@ public class FileHelper {
 	 * @param name
 	 * @return file
 	 */
-	public static AbstractFile getFirstRootFileByName(final SecurityContext securityContext, final String name) {
+	public static NodeInterface getFirstRootFileByName(final SecurityContext securityContext, final String name) {
 
 		logger.debug("Search for file with name: {}", name);
 
 		try {
-			final List<AbstractFile> files = StructrApp.getInstance(securityContext).nodeQuery(AbstractFile.class).andName(name).getAsList();
+			final List<NodeInterface> files = StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.ABSTRACT_FILE).andName(name).getAsList();
 
-			for (final AbstractFile file : files) {
+			for (final NodeInterface file : files) {
 
-				if (file.getParent() == null) {
+				if (file.as(File.class).getParent() == null) {
 					return file;
 				}
 
@@ -820,7 +818,7 @@ public class FileHelper {
 	 * @return folder
 	 * @throws FrameworkException
 	 */
-	public static Folder createFolderPath(final SecurityContext securityContext, final String path) throws FrameworkException {
+	public static NodeInterface createFolderPath(final SecurityContext securityContext, final String path) throws FrameworkException {
 
 		final App app = StructrApp.getInstance(securityContext);
 
@@ -829,9 +827,10 @@ public class FileHelper {
 			return null;
 		}
 
-		Folder folder = (Folder) FileHelper.getFileByAbsolutePath(securityContext, path);
+		NodeInterface folder = FileHelper.getFileByAbsolutePath(securityContext, path);
 
 		if (folder != null) {
+
 			return folder;
 		}
 
@@ -845,21 +844,23 @@ public class FileHelper {
 				continue;
 			}
 
-			Folder parent = folder;
+			NodeInterface parent = folder;
 
 			partialPath += PathHelper.PATH_SEP + part;
-			AbstractFile potentialFolder = FileHelper.getFileByAbsolutePath(securityContext, partialPath);
-			folder = potentialFolder != null ? (Folder)potentialFolder : null;
+
+			NodeInterface potentialFolder = FileHelper.getFileByAbsolutePath(securityContext, partialPath);
+
+			folder = potentialFolder != null ? potentialFolder : null;
 
 			if (folder == null) {
 
-				folder = app.create(Folder.class, part);
+				folder = app.create(StructrTraits.FOLDER, part);
 
 			}
 
 			if (parent != null) {
 
-				folder.setParent(parent);
+				folder.as(Folder.class).setParent(parent.as(Folder.class));
 
 			}
 		}
@@ -894,11 +895,13 @@ public class FileHelper {
 			try (final Tx tx = app.tx(true, true, true)) {
 
 				// search for existing parent folder
-				existingParentFolder = app.get(Folder.class, parentFolderId);
+				final NodeInterface node = app.getNodeById(StructrTraits.FOLDER, parentFolderId);
 				String parentFolderName = null;
 
 				String msgString = "Unarchiving file {}";
-				if (existingParentFolder != null) {
+				if (node != null) {
+
+					existingParentFolder = node.as(Folder.class);
 
 					parentFolderName = existingParentFolder.getName();
 					msgString += " into existing folder {}.";
@@ -1054,16 +1057,17 @@ public class FileHelper {
 
 	private static void handleFile(final SecurityContext securityContext, final InputStream in, final Folder existingParentFolder, final String entryPath) throws FrameworkException, IOException {
 
-		final PropertyKey<Folder> parentKey     = StructrApp.key(AbstractFile.class, "parent");
-		final PropertyKey<Boolean> hasParentKey = StructrApp.key(AbstractFile.class, "hasParent");
-		final String filePath                   = (existingParentFolder != null ? existingParentFolder.getPath() : "") + PathHelper.PATH_SEP + PathHelper.clean(entryPath);
-		final String name                       = PathHelper.getName(entryPath);
-		final AbstractFile newFile              = ImageHelper.isImageType(name)
-				? ImageHelper.createImage(securityContext, in, null, Image.class, name, false)
-				: FileHelper.createFile(securityContext, in, null, File.class, name);
+		final Traits traits                        = Traits.of(StructrTraits.ABSTRACT_FILE);
+		final PropertyKey<NodeInterface> parentKey = traits.key(AbstractFileTraitDefinition.PARENT_PROPERTY);
+		final PropertyKey<Boolean> hasParentKey    = traits.key(AbstractFileTraitDefinition.HAS_PARENT_PROPERTY);
+		final String filePath                      = (existingParentFolder != null ? existingParentFolder.getPath() : "") + PathHelper.PATH_SEP + PathHelper.clean(entryPath);
+		final String name                          = PathHelper.getName(entryPath);
+		final NodeInterface newFile                = ImageHelper.isImageType(name)
+				? ImageHelper.createImage(securityContext, in, null, StructrTraits.IMAGE, name, false)
+				: FileHelper.createFile(securityContext, in, null, StructrTraits.FILE, name);
 
 		final String folderPath = StringUtils.substringBeforeLast(filePath, PathHelper.PATH_SEP);
-		final Folder parentFolder = FileHelper.createFolderPath(securityContext, folderPath);
+		final NodeInterface parentFolder = FileHelper.createFolderPath(securityContext, folderPath);
 
 		if (parentFolder != null) {
 
@@ -1276,5 +1280,35 @@ public class FileHelper {
 
 		return -1;
 
+	}
+
+	public static void prefetchFileData(final String uuid) {
+
+		TransactionCommand.getCurrentTransaction().prefetch2(
+
+			"MATCH (n:NodeInterface:AbstractFile { id: $id })<-[r:CONTAINS*]-(x) WITH collect(DISTINCT x) AS nodes, collect(DISTINCT last(r)) AS rels RETURN nodes, rels",
+
+			Set.of(
+				"all/OUTGOING/CONTAINS",
+				"all/INCOMING/CONTAINS"
+			),
+
+			Set.of(
+				"all/OUTGOING/CONTAINS",
+				"all/INCOMING/CONTAINS"
+			),
+
+			uuid
+		);
+
+		TransactionCommand.getCurrentTransaction().prefetch(
+
+			"(n:NodeInterface:AbstractFile)-[r:CONFIGURED_BY]->(m:StorageConfiguration)",
+
+			Set.of(
+				"AbstractFile/all/OUTGOING/CONFIGURED_BY",
+				"AbstractFile/all/INCOMING/CONFIGURED_BY"
+			)
+		);
 	}
 }

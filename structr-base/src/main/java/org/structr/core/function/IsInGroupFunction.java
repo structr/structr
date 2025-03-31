@@ -24,8 +24,10 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Group;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
 import org.structr.schema.action.ActionContext;
 
 import java.util.HashSet;
@@ -53,11 +55,11 @@ public class IsInGroupFunction extends AdvancedScriptingFunction {
 
 			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 2, 3);
 
-			if (!(sources[0] instanceof Group)) {
+			if (!(sources[0] instanceof NodeInterface g && g.is(StructrTraits.GROUP))) {
 
 				logParameterError(caller, sources, "Expected node of type Group as first argument!", ctx.isJavaScriptContext());
 
-			} else if (!(sources[1] instanceof PrincipalInterface)) {
+			} else if (!(sources[1] instanceof NodeInterface p && p.is(StructrTraits.PRINCIPAL))) {
 
 				logParameterError(caller, sources, "Expected node of type Principal as second argument!", ctx.isJavaScriptContext());
 
@@ -70,8 +72,8 @@ public class IsInGroupFunction extends AdvancedScriptingFunction {
 				boolean checkHierarchy = (sources.length > 2 && sources[2] instanceof Boolean) ? (boolean) sources[2] : false;
 
 				final RelationshipType type = StructrApp.getInstance().getDatabaseService().forName(RelationshipType.class, "CONTAINS");
-				final Group group           = (Group)sources[0];
-				final PrincipalInterface principal   = (PrincipalInterface)sources[1];
+				final Group group           = ((NodeInterface)sources[0]).as(Group.class);
+				final Principal principal   = ((NodeInterface)sources[1]).as(Principal.class);
 
 				return principalInGroup(new HashSet<>(), group, principal, type, checkHierarchy);
 			}
@@ -88,7 +90,7 @@ public class IsInGroupFunction extends AdvancedScriptingFunction {
 		return false;
 	}
 
-	private boolean principalInGroup (final Set<String> seenGroups, final Group group, final PrincipalInterface principal, final RelationshipType relType, final boolean checkHierarchy) {
+	private boolean principalInGroup (final Set<String> seenGroups, final Group group, final Principal principal, final RelationshipType relType, final boolean checkHierarchy) {
 
 		boolean isInGroup = group.hasRelationshipTo(relType, principal);
 

@@ -22,8 +22,8 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.WordUtils;
 import org.jsoup.Jsoup;
-import org.jsoup.nodes.Comment;
 import org.jsoup.nodes.*;
+import org.jsoup.nodes.Comment;
 import org.jsoup.parser.Parser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,32 +31,40 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
-import org.structr.core.GraphObject;
+import org.structr.common.helper.CaseHelper;
+import org.structr.common.helper.PathHelper;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
-import org.structr.storage.StorageProviderFactory;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.rest.common.HttpHelper;
 import org.structr.schema.action.Actions;
 import org.structr.schema.importer.SchemaJsonImporter;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
-import org.structr.web.diff.*;
 import org.structr.web.entity.File;
-import org.structr.web.entity.*;
+import org.structr.web.entity.Image;
+import org.structr.web.entity.LinkSource;
+import org.structr.web.entity.Linkable;
 import org.structr.web.entity.dom.*;
-import org.structr.web.entity.html.Body;
-import org.structr.web.entity.html.Head;
-import org.structr.web.entity.html.Input;
 import org.structr.web.maintenance.DeployCommand;
 import org.structr.web.property.CustomHtmlAttributeProperty;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.FileTraitDefinition;
+import org.structr.web.traits.definitions.dom.ContentTraitDefinition;
+import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
+import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
+import org.structr.web.traits.definitions.html.Input;
 import org.structr.websocket.command.CreateComponentCommand;
 
 import java.io.*;
@@ -67,8 +75,6 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.structr.common.helper.CaseHelper;
-import org.structr.common.helper.PathHelper;
 
 /**
  * The importer creates a new page by downloading and parsing markup from a URL.
@@ -282,9 +288,15 @@ public class Importer {
 				logger.info("##### Start fetching {} for page {} #####", new Object[]{address, name});
 			}
 
-			code = HttpHelper.get(address);
-			parsedDocument = Jsoup.parse(code);
+			final Map<String, Object> responseData = HttpHelper.get(address);
+			code = responseData.get(HttpHelper.FIELD_BODY) != null ? (String) responseData.get(HttpHelper.FIELD_BODY) : null;
+			if (code != null) {
 
+				parsedDocument = Jsoup.parse(code);
+			} else {
+
+				throw new FrameworkException(422, "Could not parse requested url for import. Response body is empty.");
+			}
 		}
 
 		return true;
@@ -300,10 +312,7 @@ public class Importer {
 		Page page = Page.createNewPage(securityContext, uuid, name);
 		if (page != null) {
 
-			final PropertyMap changedProperties = new PropertyMap();
-			changedProperties.put(AbstractNode.visibleToAuthenticatedUsers, authVisible);
-			changedProperties.put(AbstractNode.visibleToPublicUsers, publicVisible);
-			page.setProperties(securityContext, changedProperties);
+			page.setVisibility(publicVisible, authVisible);
 
 			createChildNodes(parsedDocument, page, page);
 
@@ -358,9 +367,10 @@ public class Importer {
 		if (head != null && !head.html().isEmpty()) {
 
 			// create Head element and append nodes to it
-			final Head headElement = (Head)page.createElement("head");
-			headElement.setProperty(AbstractNode.visibleToPublicUsers,        publicVisible);
-			headElement.setProperty(AbstractNode.visibleToAuthenticatedUsers, authVisible);
+			final DOMElement headElement = page.createElement("head");
+
+			headElement.setVisibility(publicVisible, authVisible);
+
 			createChildNodes(head, headElement, page);
 
 			// head is a special case
@@ -370,9 +380,10 @@ public class Importer {
 		if (body != null && !body.html().isEmpty()) {
 
 			// create Head element and append nodes to it
-			final Body bodyElement = (Body)page.createElement("body");
-			bodyElement.setProperty(AbstractNode.visibleToPublicUsers,        publicVisible);
-			bodyElement.setProperty(AbstractNode.visibleToAuthenticatedUsers, authVisible);
+			final DOMElement bodyElement = page.createElement("body");
+
+			bodyElement.setVisibility(publicVisible, authVisible);
+
 			createChildNodes(body, bodyElement, page);
 
 			// body is another special case
@@ -430,11 +441,11 @@ public class Importer {
 		}
 	}
 
-	public DOMNode createComponentHullChildNodes (final DOMNode parent, final Page page) throws FrameworkException {
+	public DOMNode createComponentHullChildNodes (final NodeInterface parent, final Page page) throws FrameworkException {
 
 		for (final Node node : parsedDocument.childNodes()) {
 
-			String tag = node.nodeName();
+			final String tag  = node.nodeName();
 			final String type = CaseHelper.toUpperCamelCase(tag);
 
 			if (ignoreElementNames.contains(type)) {
@@ -462,173 +473,28 @@ public class Importer {
 
 		final Importer importer = new Importer(securityContext, source, null, "source", false, false, false, false);
 		final App localAppCtx = StructrApp.getInstance(securityContext);
-		Page page = null;
+		NodeInterface node = null;
 
 		try (final Tx tx = localAppCtx.tx(true, false, false)) {
 
-			page = localAppCtx.create(Page.class, new NodeAttribute<>(Page.name, name));
+			node = localAppCtx.create(StructrTraits.PAGE, new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name));
 
 			if (importer.parse()) {
+
+				final Page page = node.as(Page.class);
 
 				importer.createChildNodesWithHtml(page, page, removeHashAttribute);
 			}
 
 			tx.success();
 
-			return page;
+			return node.as(Page.class);
 
 		} catch (Throwable t) {
 			logger.warn("Unable to parse source:\n\n" + source);
 			return null;
 		}
 
-	}
-
-	public static List<InvertibleModificationOperation> diffNodes(final DOMNode sourceNode, final DOMNode modifiedNode) {
-
-		if (sourceNode == null) {
-
-			logger.warn("Source node was null, returning empty change set.");
-			return Collections.EMPTY_LIST;
-		}
-
-		if (modifiedNode == null) {
-
-			logger.warn("Modified node was null, returning empty change set.");
-			return Collections.EMPTY_LIST;
-		}
-
-		final List<InvertibleModificationOperation> changeSet = new LinkedList<>();
-		final Map<String, DOMNode>                  indexMappedExistingNodes = new LinkedHashMap<>();
-		final Map<String, DOMNode>                  hashMappedExistingNodes  = new LinkedHashMap<>();
-		final Map<DOMNode, Integer>                 depthMappedExistingNodes = new LinkedHashMap<>();
-		final Map<String, DOMNode>                  indexMappedNewNodes      = new LinkedHashMap<>();
-		final Map<String, DOMNode>                  hashMappedNewNodes       = new LinkedHashMap<>();
-		final Map<DOMNode, Integer>                 depthMappedNewNodes      = new LinkedHashMap<>();
-
-		InvertibleModificationOperation.collectNodes(sourceNode, indexMappedExistingNodes, hashMappedExistingNodes, depthMappedExistingNodes);
-		InvertibleModificationOperation.collectNodes(modifiedNode, indexMappedNewNodes, hashMappedNewNodes, depthMappedNewNodes);
-
-		// iterate over existing nodes and try to find deleted ones
-		for (final Iterator<Map.Entry<String, DOMNode>> it = hashMappedExistingNodes.entrySet().iterator(); it.hasNext();) {
-
-			final Map.Entry<String, DOMNode> existingNodeEntry = it.next();
-			final DOMNode existingNode = existingNodeEntry.getValue();
-			final String existingHash = existingNode.getIdHash();
-
-			// check for deleted nodes ignoring Page nodes
-			if (!hashMappedNewNodes.containsKey(existingHash) && !(existingNode instanceof Page)) {
-
-				changeSet.add(new DeleteOperation(hashMappedExistingNodes, existingNode));
-			}
-		}
-
-		// iterate over new nodes and try to find new ones
-		for (final Iterator<Map.Entry<String, DOMNode>> it = indexMappedNewNodes.entrySet().iterator(); it.hasNext();) {
-
-			final Map.Entry<String, DOMNode> newNodeEntry = it.next();
-			final DOMNode newNode = newNodeEntry.getValue();
-
-			// if newNode is a content element, do not rely on local hash property
-			String newHash = newNode.getDataHash();
-			if (newHash == null) {
-
-				newHash = newNode.getIdHash();
-			}
-
-			// check for deleted nodes ignoring Page nodes
-			if (!hashMappedExistingNodes.containsKey(newHash) && !(newNode instanceof Page)) {
-
-				final DOMNode newParent = newNode.getParent();
-
-				changeSet.add(new CreateOperation(hashMappedExistingNodes, getHashOrNull(newParent), getSiblingHashes(newNode), newNode, depthMappedNewNodes.get(newNode)));
-			}
-		}
-
-		// compare all new nodes with all existing nodes
-		for (final Map.Entry<String, DOMNode> newNodeEntry : indexMappedNewNodes.entrySet()) {
-
-			final String newTreeIndex = newNodeEntry.getKey();
-			final DOMNode newNode = newNodeEntry.getValue();
-
-			for (final Map.Entry<String, DOMNode> existingNodeEntry : indexMappedExistingNodes.entrySet()) {
-
-				final String existingTreeIndex = existingNodeEntry.getKey();
-				final DOMNode existingNode = existingNodeEntry.getValue();
-				DOMNode newParent = null;
-				int equalityBitmask = 0;
-
-				if (newTreeIndex.equals(existingTreeIndex)) {
-					equalityBitmask |= 1;
-				}
-
-				if (newNode.getIdHashOrProperty().equals(existingNode.getIdHash())) {
-					equalityBitmask |= 2;
-				}
-
-				if (newNode.contentEquals(existingNode)) {
-					equalityBitmask |= 4;
-				}
-
-				switch (equalityBitmask) {
-
-					case 7: // same tree index (1), same node (2), same content (4) => node is completely unmodified
-						break;
-
-					case 6: // same content (2), same node (4), NOT same tree index => node has moved
-						newParent = newNode.getParent();
-						changeSet.add(new MoveOperation(hashMappedExistingNodes, getHashOrNull(newParent), getSiblingHashes(newNode), newNode, existingNode));
-						break;
-
-					case 5: // same tree index (1), NOT same node, same content (5) => node was deleted and restored, maybe the identification information was lost
-						break;
-
-					case 4: // NOT same tree index, NOT same node, same content (4) => different node, content is equal by chance?
-						break;
-
-					case 3: // same tree index, same node, NOT same content => node was modified but not moved
-						changeSet.add(new UpdateOperation(hashMappedExistingNodes, existingNode, newNode));
-						break;
-
-					case 2: // NOT same tree index, same node (2), NOT same content => node was moved and changed
-						newParent = newNode.getParent();
-						changeSet.add(new UpdateOperation(hashMappedExistingNodes, existingNode, newNode));
-						changeSet.add(new MoveOperation(hashMappedExistingNodes, getHashOrNull(newParent), getSiblingHashes(newNode), newNode, existingNode));
-						break;
-
-					case 1: // same tree index (1), NOT same node, NOT same content => ignore
-						break;
-
-					case 0: // NOT same tree index, NOT same node, NOT same content => ignore
-						break;
-				}
-			}
-		}
-
-		return changeSet;
-	}
-
-	private static List<String> getSiblingHashes(final DOMNode node) {
-
-		final List<String> siblingHashes = new LinkedList<>();
-		DOMNode nextSibling = node.getNextSibling();
-
-		while (nextSibling != null) {
-
-			siblingHashes.add(nextSibling.getIdHashOrProperty());
-			nextSibling = nextSibling.getNextSibling();
-		}
-
-		return siblingHashes;
-	}
-
-	private static String getHashOrNull(final DOMNode node) {
-
-		if (node != null) {
-			return node.getIdHashOrProperty();
-		}
-
-		return null;
 	}
 
 	// ----- private methods -----
@@ -640,11 +506,11 @@ public class Importer {
 		return createChildNodes(startNode, parent, page, false, 0, null);
 	}
 
-	private DOMNode createChildNodes(final Node startNode, final DOMNode parent, final Page page, final boolean removeHashAttribute, final int depth, final DOMNode suppliedRoot) throws FrameworkException {
+	private DOMNode createChildNodes(final Node startNode, final NodeInterface parent, final Page page, final boolean removeHashAttribute, final int depth, final NodeInterface suppliedRoot) throws FrameworkException {
 
-		DOMNode rootElement     = suppliedRoot;
-		Linkable linkable       = null;
-		String instructions     = null;
+		NodeInterface rootElement = suppliedRoot;
+		Linkable linkable         = null;
+		String instructions       = null;
 
 		final List<Node> children = startNode.childNodes();
 		for (Node node : children) {
@@ -700,7 +566,7 @@ public class Importer {
 				if (removeHashAttribute) {
 
 					// Remove data-structr-hash attribute
-					node.removeAttr("data-structr-hash");
+					node.removeAttr(DOMNodeTraitDefinition.DATA_STRUCTR_HASH_PROPERTY);
 				}
 			}
 
@@ -768,26 +634,26 @@ public class Importer {
 				}
 			}
 
-			org.structr.web.entity.dom.DOMNode newNode = null;
+			DOMNode newNode = null;
 
 			// create node
 			if (StringUtils.isBlank(tag)) {
 
 				if (page != null) {
 
-					final PropertyKey<String> contentTypeKey = StructrApp.key(Content.class, "contentType");
+					final PropertyKey<String> contentTypeKey = Traits.of(StructrTraits.CONTENT).key(ContentTraitDefinition.CONTENT_TYPE_PROPERTY);
 
 					// create comment or content node
 					if (!StringUtils.isBlank(comment)) {
 
-						newNode = (DOMNode) page.createComment(DOMNode.unescapeForHtml(comment));
+						newNode = page.createComment(DOMNode.unescapeForHtml(comment));
 						newNode.setProperty(contentTypeKey, "text/html");
 
 					} else {
 
-						newNode = (Content) page.createTextNode(content);
+						newNode = page.createTextNode(content);
 
-						final PropertyKey<String> typeKey = StructrApp.key(Input.class, "_html_type");
+						final PropertyKey<String> typeKey = Traits.of(StructrTraits.INPUT).key(Input.TYPE_PROPERTY);
 
 						if (parent != null && "text/css".equals(parent.getProperty(typeKey))) {
 							newNode.setProperty(contentTypeKey, "text/css");
@@ -797,9 +663,9 @@ public class Importer {
 			} else if ("svg".equals(tag)) { // don't create elements for SVG
 
 				final String source = node.toString();
-				newNode = (Content) page.createTextNode(source);
+				newNode = page.createTextNode(source);
 
-				final PropertyKey<String> contentTypeKey = StructrApp.key(Content.class, "contentType");
+				final PropertyKey<String> contentTypeKey = Traits.of(StructrTraits.CONTENT).key(ContentTraitDefinition.CONTENT_TYPE_PROPERTY);
 				newNode.setProperty(contentTypeKey, "text/xml");
 
 			} else if ("structr:template".equals(tag)) {
@@ -807,11 +673,11 @@ public class Importer {
 				final String src = node.attr("src");
 				if (src != null) {
 
-					DOMNode template = null;
+					NodeInterface template = null;
 
 					if (DeployCommand.isUuid(src)) {
 
-						template = (DOMNode)StructrApp.getInstance().nodeQuery(NodeInterface.class).and(GraphObject.id, src).getFirst();
+						template = StructrApp.getInstance().nodeQuery(StructrTraits.NODE_INTERFACE).and(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), src).getFirst();
 
 						if (template == null) {
 
@@ -823,7 +689,7 @@ public class Importer {
 						final String uuidAtEnd = DeployCommand.getUuidOrNullFromEndOfString(src);
 						if (uuidAtEnd != null) {
 
-							template = (DOMNode)StructrApp.getInstance().nodeQuery(NodeInterface.class).and(GraphObject.id, uuidAtEnd).getFirst();
+							template = StructrApp.getInstance().nodeQuery(StructrTraits.NODE_INTERFACE).and(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), uuidAtEnd).getFirst();
 
 							if (template == null) {
 
@@ -848,13 +714,16 @@ public class Importer {
 
 					if (template != null) {
 
-						newNode = template;
+						newNode = template.as(DOMNode.class);
 
-						if (template.isSharedComponent()) {
+						if (newNode.isSharedComponent()) {
 
-							newNode = (DOMNode) template.cloneNode(false);
+							// save previous reference
+							final DOMNode prevNode = newNode;
 
-							newNode.setSharedComponent(template);
+							newNode = newNode.cloneNode(false);
+
+							newNode.setSharedComponent(prevNode);
 							newNode.setOwnerDocument(page);
 
 						} else if (page != null) {
@@ -877,17 +746,17 @@ public class Importer {
 				final String name = node.attr("name");
 				if (StringUtils.isNotBlank(name)) {
 
-					DOMNode template = Importer.findSharedComponentByName(name);
+					NodeInterface template = Importer.findSharedComponentByName(name);
 					if (template == null) {
 
-						newNode = createNewTemplateNode(null, node.childNodes());
+						newNode = createNewTemplateNode(null, node.childNodes()).as(DOMNode.class);
 
 						isNewTemplateOrComponent = true;
 						dontSetParent            = true;
 
 						// create shared component (and nothing else) from this template
 						newNode.setOwnerDocument(CreateComponentCommand.getOrCreateHiddenDocument());
-						newNode.setProperty(AbstractNode.name, name);
+						newNode.setName(name);
 					}
 
 				} else {
@@ -903,7 +772,11 @@ public class Importer {
 					DOMNode component = null;
 					if (DeployCommand.isUuid(src)) {
 
-						component = app.nodeQuery(DOMNode.class).and(GraphObject.id, src).getFirst();
+						final NodeInterface n = app.nodeQuery(StructrTraits.DOM_NODE).and(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), src).getFirst();
+						if (n != null) {
+
+							component = n.as(DOMNode.class);
+						}
 
 					} else {
 
@@ -911,11 +784,19 @@ public class Importer {
 
 						if (uuidAtEnd != null) {
 
-							component = app.nodeQuery(DOMNode.class).and(GraphObject.id, uuidAtEnd).getFirst();
+							final NodeInterface n = app.nodeQuery(StructrTraits.DOM_NODE).and(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), uuidAtEnd).getFirst();
+							if (n != null) {
+
+								component = n.as(DOMNode.class);
+							}
 
 						} else {
 
-							component = Importer.findSharedComponentByName(src);
+							final NodeInterface n = Importer.findSharedComponentByName(src);
+							if (n != null) {
+
+								component = n.as(DOMNode.class);
+							}
 						}
 					}
 
@@ -928,7 +809,7 @@ public class Importer {
 
 					if (component != null) {
 
-						newNode = (DOMNode) component.cloneNode(false);
+						newNode = component.as(DOMNode.class).cloneNode(false);
 
 						final String _html_src = newNode.getProperty(new StringProperty("_html_src"));
 						if (!StringUtils.isEmpty(_html_src)) {
@@ -937,7 +818,7 @@ public class Importer {
 							node.removeAttr("src");
 						}
 
-						newNode.setSharedComponent(component);
+						newNode.setSharedComponent(component.as(DOMNode.class));
 						newNode.setOwnerDocument(page);
 
 					} else {
@@ -954,7 +835,7 @@ public class Importer {
 
 				if (page != null) {
 
-					newNode = (org.structr.web.entity.dom.DOMElement) page.createElement(tag, true);
+					newNode = page.createElement(tag, true);
 				}
 
 			}
@@ -962,37 +843,42 @@ public class Importer {
 			if (newNode != null) {
 
 				// save root element for later use
-				if (rootElement == null && !(newNode instanceof org.structr.web.entity.dom.Comment)) {
+				if (rootElement == null && !(newNode.is(StructrTraits.COMMENT))) {
 					rootElement = newNode;
 				}
 
 				// set linkable
-				if (linkable != null && newNode instanceof LinkSource) {
-					((LinkSource)newNode).setLinkable(linkable);
+				if (linkable != null && newNode.is(StructrTraits.LINK_SOURCE)) {
+					newNode.as(LinkSource.class).setLinkable(linkable);
 				}
 
 				// container for bulk setProperties()
 				final PropertyMap newNodeProperties      = new PropertyMap();
 				final PropertyMap deferredNodeProperties = new PropertyMap();
-				final Class newNodeType                  = newNode.getClass();
+				final Traits newNodeType                 = newNode.getTraits();
+				final PropertyKey<Boolean> vtpuKey       = newNodeType.key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY);
+				final PropertyKey<Boolean> vtauKey       = newNodeType.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY);
 
 				if (isDeployment && !relativeVisibility) {
-					newNodeProperties.put(AbstractNode.visibleToPublicUsers,        publicVisible);
-					newNodeProperties.put(AbstractNode.visibleToAuthenticatedUsers, authVisible);
+
+					newNodeProperties.put(vtpuKey, publicVisible);
+					newNodeProperties.put(vtauKey, authVisible);
+
 				} else {
-					newNodeProperties.put(AbstractNode.visibleToPublicUsers,        parent != null ? parent.getProperty(AbstractNode.visibleToPublicUsers) : publicVisible);
-					newNodeProperties.put(AbstractNode.visibleToAuthenticatedUsers, parent != null ? parent.getProperty(AbstractNode.visibleToAuthenticatedUsers) : authVisible);
+
+					newNodeProperties.put(vtpuKey, parent != null ? parent.getProperty(vtpuKey) : publicVisible);
+					newNodeProperties.put(vtauKey, parent != null ? parent.getProperty(vtauKey) : authVisible);
 				}
 
 				// "id" attribute: Put it into the "_html_id" field
 				if (StringUtils.isNotBlank(id)) {
 
-					newNodeProperties.put(StructrApp.key(DOMElement.class, "_html_id"), id);
+					newNodeProperties.put(Traits.of(StructrTraits.DOM_ELEMENT).key(DOMElementTraitDefinition._HTML_ID_PROPERTY), id);
 				}
 
 				if (StringUtils.isNotBlank(classString.toString())) {
 
-					newNodeProperties.put(StructrApp.key(DOMElement.class, "_html_class"), StringUtils.trim(classString.toString()));
+					newNodeProperties.put(Traits.of(StructrTraits.DOM_ELEMENT).key(DOMElementTraitDefinition._HTML_CLASS_PROPERTY), StringUtils.trim(classString.toString()));
 				}
 
 				for (Attribute nodeAttr : node.attributes()) {
@@ -1015,10 +901,11 @@ public class Importer {
 								if (value != null) {
 
 									// store value using actual input converter
-									final PropertyKey actualKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(newNodeType, camelCaseKey, false);
-									if (actualKey != null) {
+									if (newNodeType.hasKey(camelCaseKey)) {
 
+										final PropertyKey actualKey       = newNodeType.key(camelCaseKey);
 										final PropertyConverter converter = actualKey.inputConverter(securityContext);
+
 										if (converter != null) {
 
 											final Object convertedValue = converter.convert(value);
@@ -1046,10 +933,11 @@ public class Importer {
 
 							} else if (key.startsWith(DATA_STRUCTR_PREFIX)) { // don't convert data-structr-* attributes as they are internal
 
-								final PropertyKey propertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(newNodeType, key);
-								if (propertyKey != null) {
+								if (newNodeType.hasKey(key)) {
 
+									final PropertyKey propertyKey = newNodeType.key(key);
 									final PropertyConverter inputConverter = propertyKey.inputConverter(securityContext);
+
 									if (value != null && inputConverter != null) {
 
 										newNodeProperties.put(propertyKey, propertyKey.inputConverter(securityContext).convert(value));
@@ -1108,7 +996,7 @@ public class Importer {
 
 				if ("script".equals(tag)) {
 
-					final PropertyKey<String> typeKey = StructrApp.key(Input.class, "_html_type");
+					final PropertyKey<String> typeKey = Traits.of(StructrTraits.INPUT).key(Input.TYPE_PROPERTY);
 					final String contentType          = newNode.getProperty(typeKey);
 
 					if (contentType == null) {
@@ -1164,7 +1052,7 @@ public class Importer {
 
 				} else if ("style".equals(tag)) {
 
-					final PropertyKey<String> typeKey = StructrApp.key(Input.class, "_html_type");
+					final PropertyKey<String> typeKey = Traits.of(StructrTraits.INPUT).key(Input.TYPE_PROPERTY);
 					final String contentType          = newNode.getProperty(typeKey);
 
 					if (contentType == null) {
@@ -1195,7 +1083,7 @@ public class Importer {
 
 				if (instructions != null) {
 
-					if (instructions.contains("@structr:content") && !(newNode instanceof Content)) {
+					if (instructions.contains("@structr:content") && !(newNode.is(StructrTraits.CONTENT))) {
 
 						// unhandled instructions from previous iteration => empty content element
 						createEmptyContentNode(page, parent, commentHandler, instructions);
@@ -1207,10 +1095,10 @@ public class Importer {
 
 							commentHandler.handleComment(page, newNode, instructions, true);
 
-							if (newNodeProperties.containsKey(AbstractNode.id)) {
+							if (newNodeProperties.containsKey(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY))) {
 
 								// id of the newNode was changed => if a pagelink instruction was present, we need to update it because the node itself was not yet updated
-								DeployCommand.updateDeferredPagelink(newNode.getUuid(), newNodeProperties.get(AbstractNode.id));
+								DeployCommand.updateDeferredPagelink(newNode.getUuid(), newNodeProperties.get(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY)));
 							}
 						}
 					}
@@ -1221,11 +1109,13 @@ public class Importer {
 				// allow parent to be null to prevent direct child relationship
 				if (parent != null) {
 
-					// special handling for <head> elements
-					if (newNode instanceof Head && parent instanceof Body) {
+					final DOMNode parentDOMNode = parent.as(DOMNode.class);
 
-						final org.w3c.dom.Node html = parent.getParentNode();
-						html.insertBefore(newNode, parent);
+					// special handling for <head> elements
+					if (newNode.is("Head") && parent.is("Body")) {
+
+						final DOMNode html = parentDOMNode.getParent();
+						html.insertBefore(newNode, parentDOMNode);
 
 					} else {
 
@@ -1234,7 +1124,7 @@ public class Importer {
 
 						if (!dontSetParent) {
 
-							parent.appendChild(newNode);
+							parentDOMNode.appendChild(newNode);
 						}
 					}
 				}
@@ -1253,11 +1143,13 @@ public class Importer {
 		if (instructions != null) {
 
 			createEmptyContentNode(page, parent, commentHandler, instructions);
-
-			instructions = null;
 		}
 
-		return rootElement;
+		if (rootElement != null) {
+			return rootElement.as(DOMNode.class);
+		}
+
+		return null;
 	}
 
 	/**
@@ -1265,10 +1157,16 @@ public class Importer {
 	 */
 	private File fileExists(final String path, final long checksum) throws FrameworkException {
 
-		final PropertyKey<Long> checksumKey = StructrApp.key(File.class, "checksum");
-		final PropertyKey<String> pathKey   = StructrApp.key(File.class, "path");
+		final PropertyKey<Long> checksumKey = Traits.of(StructrTraits.FILE).key(FileTraitDefinition.CHECKSUM_PROPERTY);
+		final PropertyKey<String> pathKey   = Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY);
 
-		return app.nodeQuery(File.class).and(pathKey, path).and(checksumKey, checksum).getFirst();
+		final NodeInterface node = app.nodeQuery(StructrTraits.FILE).and(pathKey, path).and(checksumKey, checksum).getFirst();
+		if (node != null) {
+
+			return node.as(File.class);
+		}
+
+		return null;
 	}
 
 	private Linkable downloadFile(final String downloadAddress, final URL base) {
@@ -1446,7 +1344,7 @@ public class Importer {
 					}
 
 					// set export flag according to user preference
-					fileNode.setProperty(StructrApp.key(File.class, "includeInFrontendExport"), includeInExport);
+					fileNode.setProperty(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY), includeInExport);
 				}
 
 			} else {
@@ -1454,8 +1352,11 @@ public class Importer {
 				tmpFile.delete();
 			}
 
-			alreadyDownloaded.put(alreadyDownloadedKey, fileNode);
-			return fileNode;
+			final Linkable linkable = fileNode.as(Linkable.class);
+
+			alreadyDownloaded.put(alreadyDownloadedKey, linkable);
+
+			return linkable;
 
 		} catch (final FrameworkException | IOException ex) {
 
@@ -1471,34 +1372,37 @@ public class Importer {
 		return createFileNode(path, contentType, size, checksum, null);
 	}
 
-	private File createFileNode(final String path, final String contentType, final long size, final long checksum, final Class fileClass) throws FrameworkException {
+	private File createFileNode(final String path, final String contentType, final long size, final long checksum, final String fileClass) throws FrameworkException {
 
-		final PropertyKey<Integer> versionKey    = StructrApp.key(File.class, "version");
-		final PropertyKey<Folder> parentKey      = StructrApp.key(File.class, "parent");
-		final PropertyKey<String> contentTypeKey = StructrApp.key(File.class, "contentType");
-		final PropertyKey<Long> checksumKey      = StructrApp.key(File.class, "checksum");
-		final PropertyKey<Long> sizeKey          = StructrApp.key(File.class, "size");
-		final Folder parentFolder                = FileHelper.createFolderPath(securityContext, PathHelper.getFolderPath(path));
+		final PropertyKey<Integer> versionKey      = Traits.of(StructrTraits.FILE).key(FileTraitDefinition.VERSION_PROPERTY);
+		final PropertyKey<NodeInterface> parentKey = Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY);
+		final PropertyKey<String> contentTypeKey   = Traits.of(StructrTraits.FILE).key(FileTraitDefinition.CONTENT_TYPE_PROPERTY);
+		final PropertyKey<Long> checksumKey        = Traits.of(StructrTraits.FILE).key(FileTraitDefinition.CHECKSUM_PROPERTY);
+		final PropertyKey<Long> sizeKey            = Traits.of(StructrTraits.FILE).key(FileTraitDefinition.SIZE_PROPERTY);
+		final NodeInterface parentFolder           = FileHelper.createFolderPath(securityContext, PathHelper.getFolderPath(path));
+		final Traits traits                        = Traits.of(fileClass != null ? fileClass : StructrTraits.FILE);
 
 		if (parentFolder != null) {
 
 			// set export flag according to user preference
-			parentFolder.setProperty(StructrApp.key(File.class, "includeInFrontendExport"), includeInExport);
+			parentFolder.setProperty(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY), includeInExport);
 		}
 
-		return app.create(fileClass != null ? fileClass : File.class,
-			new NodeAttribute(AbstractNode.name, PathHelper.getName(path)),
-			new NodeAttribute(parentKey,      parentFolder),
-			new NodeAttribute(contentTypeKey, contentType),
-			new NodeAttribute(sizeKey,        size),
-			new NodeAttribute(checksumKey,    checksum),
-			new NodeAttribute(versionKey,     1),
-			new NodeAttribute(AbstractNode.visibleToPublicUsers, publicVisible),
-			new NodeAttribute(AbstractNode.visibleToAuthenticatedUsers, authVisible));
+		return app.create(traits.getName(),
+			new NodeAttribute(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),                         PathHelper.getName(path)),
+			new NodeAttribute(traits.key(AbstractFileTraitDefinition.PARENT_PROPERTY),                        parentFolder),
+			new NodeAttribute(traits.key(FileTraitDefinition.CONTENT_TYPE_PROPERTY),                          contentType),
+			new NodeAttribute(traits.key(FileTraitDefinition.SIZE_PROPERTY),                                  size),
+			new NodeAttribute(traits.key(FileTraitDefinition.CHECKSUM_PROPERTY),                              checksum),
+			new NodeAttribute(traits.key(FileTraitDefinition.VERSION_PROPERTY),                               1),
+			new NodeAttribute(traits.key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY),        publicVisible),
+			new NodeAttribute(traits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), authVisible)
+
+		).as(File.class);
 	}
 
 	private Image createImageNode(final String path, final String contentType, final long size, final long checksum) throws FrameworkException {
-		return (Image) createFileNode(path, contentType, size, checksum, Image.class);
+		return createFileNode(path, contentType, size, checksum, StructrTraits.IMAGE).as(Image.class);
 	}
 
 	private void processCssFileNode(final File fileNode, final URL base) throws IOException {
@@ -1555,16 +1459,17 @@ public class Importer {
 
 	}
 
-	public static DOMNode findSharedComponentByName(final String name) throws FrameworkException {
+	public static NodeInterface findSharedComponentByName(final String name) throws FrameworkException {
 
 		if (StringUtils.isEmpty(name)) {
 			return null;
 		}
 
-		final PropertyKey<Page> ownerDocumentKey = StructrApp.key(DOMNode.class, "ownerDocument");
-		final PropertyKey<DOMNode> parentKey     = StructrApp.key(DOMNode.class, "parent");
+		final PropertyKey<NodeInterface> ownerDocumentKey = Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.OWNER_DOCUMENT_PROPERTY);
+		final PropertyKey<NodeInterface> parentKey        = Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.PARENT_PROPERTY);
+		final ShadowDocument shadowDocument               = CreateComponentCommand.getOrCreateHiddenDocument();
 
-		for (final DOMNode n : StructrApp.getInstance().nodeQuery(DOMNode.class).andName(name).and(ownerDocumentKey, CreateComponentCommand.getOrCreateHiddenDocument()).getAsList()) {
+		for (final NodeInterface n : StructrApp.getInstance().nodeQuery(StructrTraits.DOM_NODE).andName(name).and(ownerDocumentKey, shadowDocument).getAsList()) {
 
 			// only return toplevel nodes in shared components
 			if (n.getProperty(parentKey) == null) {
@@ -1575,15 +1480,17 @@ public class Importer {
 		return null;
 	}
 
-	public static DOMNode findTemplateByName(final String name) throws FrameworkException {
+	public static NodeInterface findTemplateByName(final String name) throws FrameworkException {
 
 		if (StringUtils.isEmpty(name)) {
 			return null;
 		}
 
-		final PropertyKey<DOMNode> sharedComponentKey = StructrApp.key(DOMNode.class, "sharedComponent");
+		final Traits traits                                 = Traits.of(StructrTraits.DOM_NODE);
+		final PropertyKey<NodeInterface> sharedComponentKey = traits.key(DOMNodeTraitDefinition.SHARED_COMPONENT_PROPERTY);
+		final PropertyKey<String> nameKey                   = traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 
-		for (final DOMNode n : StructrApp.getInstance().nodeQuery(Template.class).andName(name).and().notBlank(AbstractNode.name).getAsList()) {
+		for (final NodeInterface n : StructrApp.getInstance().nodeQuery(StructrTraits.TEMPLATE).andName(name).and().notBlank(nameKey).getAsList()) {
 
 			// IGNORE everything that REFERENCES a shared component!
 			if (n.getProperty(sharedComponentKey) == null) {
@@ -1611,25 +1518,28 @@ public class Importer {
 		return workString;
 	}
 
-	private Content createEmptyContentNode(final Page page, final DOMNode parent, final CommentHandler commentHandler, final String instructions) throws FrameworkException {
+	private Content createEmptyContentNode(final Page page, final NodeInterface parent, final CommentHandler commentHandler, final String instructions) throws FrameworkException {
 
-		final Content contentNode = (Content)page.createTextNode("");
-
+		final Content contentNode                = page.createTextNode("");
+		final Traits traits                      = contentNode.getTraits();
 		final PropertyMap emptyContentProperties = new PropertyMap();
 
 		if (isDeployment && !relativeVisibility) {
-			emptyContentProperties.put(AbstractNode.visibleToPublicUsers,        publicVisible);
-			emptyContentProperties.put(AbstractNode.visibleToAuthenticatedUsers, authVisible);
+
+			emptyContentProperties.put(traits.key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY),        publicVisible);
+			emptyContentProperties.put(traits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), authVisible);
+
 		} else {
-			emptyContentProperties.put(AbstractNode.visibleToPublicUsers,        parent != null ? parent.getProperty(AbstractNode.visibleToPublicUsers) : publicVisible);
-			emptyContentProperties.put(AbstractNode.visibleToAuthenticatedUsers, parent != null ? parent.getProperty(AbstractNode.visibleToAuthenticatedUsers) : authVisible);
+
+			emptyContentProperties.put(traits.key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY),        parent != null ? parent.getProperty(traits.key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY)) :        publicVisible);
+			emptyContentProperties.put(traits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), parent != null ? parent.getProperty(traits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY)) : authVisible);
 		}
 
 		contentNode.setProperties(securityContext, emptyContentProperties);
 
 		if (parent != null) {
 
-			parent.appendChild(contentNode);
+			parent.as(DOMNode.class).appendChild(contentNode);
 		}
 
 		if (commentHandler != null) {
@@ -1640,7 +1550,7 @@ public class Importer {
 		return contentNode;
 	}
 
-	private Template createNewTemplateNode(final DOMNode parent, final List<Node> children) throws FrameworkException {
+	private NodeInterface createNewTemplateNode(final NodeInterface parent, final List<Node> children) throws FrameworkException {
 
 		final StringBuilder sb = new StringBuilder();
 
@@ -1651,21 +1561,24 @@ public class Importer {
 		return createNewTemplateNode(parent, sb.toString(), null);
 	}
 
-	private Template createNewTemplateNode(final DOMNode parent, final String content, final String contentType) throws FrameworkException {
+	private NodeInterface createNewTemplateNode(final NodeInterface parent, final String content, final String contentType) throws FrameworkException {
 
-		final PropertyKey<String> contentTypeKey = StructrApp.key(Content.class, "contentType");
-		final PropertyKey<String> contentKey     = StructrApp.key(Content.class, "content");
+		final Traits traits                      = Traits.of(StructrTraits.TEMPLATE);
+		final PropertyKey<String> contentTypeKey = traits.key(ContentTraitDefinition.CONTENT_TYPE_PROPERTY);
+		final PropertyKey<String> contentKey     = traits.key(ContentTraitDefinition.CONTENT_PROPERTY);
+		final PropertyKey<Boolean> vtpuKey       = traits.key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY);
+		final PropertyKey<Boolean> vtauKey       = traits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY);
 		final PropertyMap map                    = new PropertyMap();
 
-		map.put(AbstractNode.visibleToPublicUsers, publicVisible);
-		map.put(AbstractNode.visibleToAuthenticatedUsers, authVisible);
+		map.put(vtpuKey,        publicVisible);
+		map.put(vtauKey,        authVisible);
 		map.put(contentTypeKey, contentType);
 		map.put(contentKey,     content);
 
-		final Template newTemplate = StructrApp.getInstance(securityContext).create(Template.class, map);
+		final NodeInterface newTemplate = StructrApp.getInstance(securityContext).create(StructrTraits.TEMPLATE, map);
 
 		if (parent != null) {
-			parent.appendChild(newTemplate);
+			parent.as(DOMNode.class).appendChild(newTemplate.as(Template.class));
 		}
 
 		return newTemplate;

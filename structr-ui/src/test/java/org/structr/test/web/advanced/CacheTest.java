@@ -26,16 +26,16 @@ import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.SchemaNode;
-import org.structr.core.entity.SchemaProperty;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
-import org.structr.test.web.entity.TestFive;
-import org.structr.test.web.entity.TestTwo;
-import org.structr.web.entity.User;
 import org.structr.web.entity.dom.Page;
 import org.testng.annotations.Test;
 
@@ -59,9 +59,9 @@ public class CacheTest extends StructrUiTest {
 
 		try { Thread.sleep(2000); } catch (Throwable t) {}
 
-		final ExecutorService service = Executors.newCachedThreadPool();
-		final Queue<TestTwo> queue    = new ConcurrentLinkedQueue<>();
-		final AtomicBoolean doRun     = new AtomicBoolean(true);
+		final ExecutorService service    = Executors.newCachedThreadPool();
+		final Queue<NodeInterface> queue = new ConcurrentLinkedQueue<>();
+		final AtomicBoolean doRun        = new AtomicBoolean(true);
 
 		service.submit(() -> {
 
@@ -71,12 +71,12 @@ public class CacheTest extends StructrUiTest {
 			// caching layer.
 			while (doRun.get()) {
 
-				final TestTwo obj = queue.poll();
+				final NodeInterface obj = queue.poll();
 				if (obj != null) {
 
 					try (final Tx tx = app.tx()) {
 
-						obj.getProperty(TestTwo.testFives);
+						obj.getProperty(Traits.of("TestTwo").key("testFives"));
 						tx.success();
 
 					} catch (Throwable t) {
@@ -97,17 +97,17 @@ public class CacheTest extends StructrUiTest {
 
 		for (int i=0; i<num; i++) {
 
-			TestTwo obj = null;
+			NodeInterface obj = null;
 
 			try (final Tx tx = app.tx()) {
 
 				// create test object
-				obj = app.create(TestTwo.class, "testTwo"+ i);
+				obj = app.create("TestTwo", "testTwo"+ i);
 
 				// add related nodes
 				for (int j=0; j<count; j++) {
 
-					final TestFive tmp = app.create(TestFive.class, new NodeAttribute<>(TestFive.testTwo, obj));
+					app.create("TestFive", new NodeAttribute<>(Traits.of("TestFive").key("testTwo"), obj));
 				}
 
 				queue.add(obj);
@@ -120,8 +120,9 @@ public class CacheTest extends StructrUiTest {
 
 			try (final Tx tx = app.tx()) {
 
-				final List<TestFive> testFives = Iterables.toList(obj.getProperty(TestTwo.testFives));
-				final int size                 = testFives.size();
+				final PropertyKey<Iterable<NodeInterface>> key = Traits.of("TestTwo").key("testFives");
+				final List<NodeInterface> testFives            = Iterables.toList(obj.getProperty(key));
+				final int size                                 = testFives.size();
 
 				if (size != count) {
 
@@ -151,10 +152,10 @@ public class CacheTest extends StructrUiTest {
 
 			try (final Tx tx = app.tx()) {
 
-				app.create(SchemaProperty.class,
-					new NodeAttribute<>(SchemaProperty.schemaNode, app.nodeQuery(SchemaNode.class).andName("Person").getFirst()),
-					new NodeAttribute<>(SchemaProperty.propertyType, "String"),
-					new NodeAttribute<>(SchemaProperty.name, "name")
+				app.create(StructrTraits.SCHEMA_PROPERTY,
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), app.nodeQuery(StructrTraits.SCHEMA_NODE).andName(StructrTraits.PERSON).getFirst()),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "String"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "name")
 				);
 
 				tx.success();
@@ -177,7 +178,7 @@ public class CacheTest extends StructrUiTest {
 			try (final Tx tx = app.tx()) {
 
 				final JsonSchema schema = StructrSchema.createFromDatabase(app);
-				final JsonType type     = schema.getType("Person");
+				final JsonType type     = schema.getType(StructrTraits.PERSON);
 
 				final Iterator<JsonProperty> iterator = type.getProperties().iterator();
 				while (iterator.hasNext()) {
@@ -219,13 +220,9 @@ public class CacheTest extends StructrUiTest {
 
 			Page.createSimplePage(securityContext, "test");
 
-			final User user1 = app.create(User.class, "user1");
+			final NodeInterface user1 = app.create(StructrTraits.USER, "user1");
 
-			app.create(User.class,
-				new NodeAttribute<>(User.name,                              "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"),     true)
-			);
+			createAdminUser();
 
 			uuid = user1.getUuid();
 
@@ -240,8 +237,8 @@ public class CacheTest extends StructrUiTest {
 		// test success
 		RestAssured
 			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
+			.header(X_USER_HEADER,     ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.filter(RequestLoggingFilter.logRequestTo(System.out))
 			.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.expect()
@@ -267,8 +264,8 @@ public class CacheTest extends StructrUiTest {
 		// test success
 		RestAssured
 			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
+			.header(X_USER_HEADER,     ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.filter(RequestLoggingFilter.logRequestTo(System.out))
 			.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.expect()

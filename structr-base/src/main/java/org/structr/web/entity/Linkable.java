@@ -18,33 +18,14 @@
  */
 package org.structr.web.entity;
 
-import org.structr.common.PropertyView;
-import org.structr.common.View;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.*;
-import org.structr.web.entity.html.relationship.LinkSourceLINKLinkable;
 
 /**
  *
  */
 public interface Linkable extends NodeInterface {
 
-	Property<Iterable<LinkSource>> linkingElementsProperty = new StartNodes<>("linkingElements", LinkSourceLINKLinkable.class).partOfBuiltInSchema().partOfBuiltInSchema();
-	Property<Iterable<String>> linkinkElementsIdsProperty  = new CollectionIdProperty<>("linkingElementsIds", linkingElementsProperty).partOfBuiltInSchema().partOfBuiltInSchema();
-	Property<Boolean> enableBasicAuthProperty              = new BooleanProperty("enableBasicAuth").defaultValue(false).indexed().partOfBuiltInSchema();
-	Property<String> basicAuthRealmProperty                = new StringProperty("basicAuthRealm").partOfBuiltInSchema();
-
-	View uiView = new View(Linkable.class, PropertyView.Ui,
-		linkingElementsProperty, linkinkElementsIdsProperty, enableBasicAuthProperty, basicAuthRealmProperty
-	);
-
-	default boolean getEnableBasicAuth() {
-		return getProperty(enableBasicAuthProperty);
-	}
-
-	default String getBasicAuthRealm() {
-		return getProperty(basicAuthRealmProperty);
-	}
-
+	boolean getEnableBasicAuth();
+	String getBasicAuthRealm();
 	String getPath();
 }

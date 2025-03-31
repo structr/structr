@@ -18,20 +18,25 @@
  */
 package org.structr.api.config;
 
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.attribute.PosixFilePermission;
-import java.nio.file.attribute.PosixFilePermissions;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.commons.configuration2.PropertiesConfiguration;
+import org.apache.commons.configuration2.builder.FileBasedConfigurationBuilder;
+import org.apache.commons.configuration2.builder.fluent.Parameters;
+import org.apache.commons.configuration2.convert.DefaultListDelimiterHandler;
+import org.apache.commons.configuration2.ex.ConfigurationException;
+import org.apache.commons.configuration2.io.FileHandler;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.*;
 import java.util.regex.Pattern;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * The Structr configuration settings.
@@ -114,16 +119,18 @@ public class Settings {
 	public static final Setting<String> DataExchangePath               = new StringSetting(generalGroup,             "Paths",       "data.exchange.path",                    "exchange" + File.separator, "IMPORTANT: Path is relative to base.path");
 	public static final Setting<String> SnapshotsPath                  = new StringSetting(generalGroup,             "Paths",       "snapshot.path",                         "snapshots" + File.separator, "IMPORTANT: Path is relative to base.path");
 	public static final Setting<String> WebDataPath                    = new StringSetting(generalGroup,             "Paths",       "data.webapp.path",                      "webapp-data" + File.separator, "IMPORTANT: Path is relative to base.path");
+
 	public static final Setting<Boolean> LogSchemaOutput               = new BooleanSetting(generalGroup,            "Logging",     "NodeExtender.log",                      false, "Whether to write dynamically created Java code to the logfile, for debugging purposes.");
 	public static final Setting<Boolean> LogSchemaErrors               = new BooleanSetting(generalGroup,            "Logging",     "NodeExtender.log.errors",               true);
 	public static final Setting<Integer> QueryTimeLoggingThreshold     = new IntegerSetting(generalGroup,            "Logging",     "log.querytime.threshold",               3000, "Milliseconds after which a long-running query will be logged.");
 	public static final Setting<Integer> CallbackLoggingThreshold      = new IntegerSetting(generalGroup,            "Logging",     "log.callback.threshold",                50000, "Number of callbacks after which a transaction will be logged.");
 	public static final Setting<Boolean> RequestLogging                = new BooleanSetting(generalGroup,            "Logging",     "log.requests",                          false);
-	public static final Setting<Boolean> DebugLogging                  = new BooleanSetting(generalGroup,            "Logging",     "log.debug",                             false, "Controls the behaviour of the debug() function. If disabled, the debug() function behaves like a NOP. If enabled, it behaves exactly like the log() function.");
 	public static final Setting<Boolean> LogFunctionsStackTrace        = new BooleanSetting(generalGroup,            "Logging",     "log.functions.stacktrace",              false, "If true, the full stacktrace is logged for exceptions in system functions.");
+	public static final Setting<Integer> LogScriptProcessCommandLine   = new IntegerChoiceSetting(generalGroup,        "Logging",     "log.scriptprocess.commandline",         2, Settings.getScriptProcessLogCommandLineOptions(), "Configures the default logging behaviour for the command line generated for script processes. This applies to the exec()- and exec_binary() functions, as well as some processes handling media conversion or processing. For the exec() and exec_binary() function, this can be overridden for each call of the function.");
 	public static final Setting<String> LogPrefix                      = new StringSetting(generalGroup,             "Logging",     "log.prefix",                            "structr");
 	public static final Setting<Boolean> LogJSExcpetionRequest         = new BooleanSetting(generalGroup,            "Logging",     "log.javascript.exception.request",      false, "Adds path, queryString and parameterMap to JavaScript exceptions (if available)");
 	public static final Setting<Boolean> LogDirectoryWatchServiceQuiet = new BooleanSetting(generalGroup,            "Logging",     "log.directorywatchservice.scanquietly", false, "Prevents logging of each scan process for every folder processed by the directory watch service");
+
 	public static final Setting<Boolean> SetupWizardCompleted          = new BooleanSetting(generalGroup,            "hidden",      "setup.wizard.completed",                false);
 	public static final Setting<String> Configuration                  = new StringSetting(generalGroup,             "hidden",      "configuration.provider",                "org.structr.module.JarConfigurationProvider", "Fully-qualified class name of a Java class in the current class path that implements the <code>org.structr.schema.ConfigurationProvider</code> interface.");
 	public static final StringMultiChoiceSetting Services              = new StringMultiChoiceSetting(generalGroup,  "Services",    "configured.services",                   "NodeService SchemaService AgentService CronService HttpService MigrationService", "Services that are listed in this configuration key will be started when Structr starts.");
@@ -234,6 +241,9 @@ public class Settings {
 	public static final Setting<Boolean> CypherDebugLoggingPing      = new BooleanSetting(databaseGroup, "Debugging",               "log.cypher.debug.ping",            false, "Turns on debug logging for the generated Cypher queries of the websocket PING command. Can only be used in conjunction with log.cypher.debug");
 	public static final Setting<Integer> ResultCountSoftLimit        = new IntegerSetting(databaseGroup, "Soft result count limit", "database.result.softlimit",        10_000, "Soft result count limit for a single query (can be overridden by setting the <code>_pageSize</code> request parameter or by adding the request parameter <code>_disableSoftLimit</code> to a non-null value)");
 	public static final Setting<Integer> FetchSize                   = new IntegerSetting(databaseGroup, "Result fetch size",       "database.result.fetchsize",        100_000, "Number of database records to fetch per batch when fetching large results");
+	public static final Setting<Integer> PrefetchingThreshold        = new IntegerSetting(databaseGroup, "Prefetching",             "database.prefetching.threshold",   100, "How many identical queries must run in a transaction to activate prefetching for that query.");
+	public static final Setting<Integer> PrefetchingMaxDuration      = new IntegerSetting(databaseGroup, "Prefetching",             "database.prefetching.maxduration", 1000, "How long a prefetching query may take before prefetching will be deactivated for that query.");
+	public static final Setting<Integer> PrefetchingMaxCount         = new IntegerSetting(databaseGroup, "Prefetching",             "database.prefetching.maxcount",    50_000, "How many results a prefetching query may return before prefetching will be deactivated for that query.");
 
 	// Neo4j specific settings
 	public static final Setting<String> Neo4jDefaultUsername         = new StringSetting(databaseGroup,  "hidden",                  "database.neo4j.default.username",   "neo4j");
@@ -358,7 +368,7 @@ public class Settings {
 	public static final Setting<String> HtmlDefaultView           = new StringSetting(servletsGroup,  "HtmlServlet", "htmlservlet.defaultview",           "public", "Not used for HtmlServlet");
 	public static final Setting<Integer> HtmlOutputDepth          = new IntegerSetting(servletsGroup, "HtmlServlet", "htmlservlet.outputdepth",           3, "Not used for HtmlServlet");
 	public static final Setting<String> HtmlResourceProvider      = new StringSetting(servletsGroup,  "hidden", "htmlservlet.resourceprovider",      "org.structr.web.common.UiResourceProvider", "FQCN of resource provider class to use in the HTTP server. Do not change unless you know what you are doing.");
-	public static final Setting<String> HtmlResolveProperties     = new StringSetting(servletsGroup,  "HtmlServlet", "htmlservlet.resolveproperties",     "AbstractNode.name", "Specifies the list of properties that are be used to resolve entities from URL paths.");
+	public static final Setting<String> HtmlResolveProperties     = new StringSetting(servletsGroup,  "HtmlServlet", "htmlservlet.resolveproperties",     "NodeInterface.name", "Specifies the list of properties that are be used to resolve entities from URL paths.");
 	public static final Setting<String> HtmlCustomResponseHeaders = new TextSetting(servletsGroup,    "HtmlServlet", "htmlservlet.customresponseheaders", "Strict-Transport-Security:max-age=60,X-Content-Type-Options:nosniff,X-Frame-Options:SAMEORIGIN,X-XSS-Protection:1;mode=block", "List of custom response headers that will be added to every HTTP response");
 
 	public static final Setting<String> PdfServletPath           = new StringSetting(servletsGroup,  "hidden", "pdfservlet.path",                  "/structr/pdf/*", "The URI under which requests are accepted by the servlet. Needs to include a wildcard at the end.");
@@ -367,7 +377,7 @@ public class Settings {
 	public static final Setting<String> PdfDefaultView           = new StringSetting(servletsGroup,  "PdfServlet", "pdfservlet.defaultview",           "public", "Default view to use when no view is given in the URL.");
 	public static final Setting<Integer> PdfOutputDepth          = new IntegerSetting(servletsGroup, "PdfServlet", "pdfservlet.outputdepth",           3, "Maximum nesting depth of JSON output.");
 	public static final Setting<String> PdfResourceProvider      = new StringSetting(servletsGroup,  "hidden", "pdfservlet.resourceprovider",      "org.structr.web.common.UiResourceProvider");
-	public static final Setting<String> PdfResolveProperties     = new StringSetting(servletsGroup,  "PdfServlet", "pdfservlet.resolveproperties",     "AbstractNode.name", "Specifies the list of properties that are be used to resolve entities from URL paths.");
+	public static final Setting<String> PdfResolveProperties     = new StringSetting(servletsGroup,  "PdfServlet", "pdfservlet.resolveproperties",     "NodeInterface.name", "Specifies the list of properties that are be used to resolve entities from URL paths.");
 	public static final Setting<String> PdfCustomResponseHeaders = new TextSetting(servletsGroup,    "PdfServlet", "pdfservlet.customresponseheaders", "Strict-Transport-Security:max-age=60,X-Content-Type-Options:nosniff,X-Frame-Options:SAMEORIGIN,X-XSS-Protection:1;mode=block", "List of custom response headers that will be added to every HTTP response");
 
 	public static final Setting<String> WebsocketServletPath       = new StringSetting(servletsGroup,  "hidden", "websocketservlet.path",              "/structr/ws/*", "URL pattern for WebSockets. Do not change unless you know what you are doing.");
@@ -804,10 +814,17 @@ public class Settings {
 
 		try {
 
-			PropertiesConfiguration.setDefaultListDelimiter('\0');
+			FileBasedConfigurationBuilder<PropertiesConfiguration> builder = new FileBasedConfigurationBuilder<>(PropertiesConfiguration.class)
+					.configure(new Parameters().fileBased()
+							.setFileName(fileName)
+							.setThrowExceptionOnMissing(true)
+							.setListDelimiterHandler(new DefaultListDelimiterHandler('\0'))
+					);
 
-			final PropertiesConfiguration config = new PropertiesConfiguration();
-			config.setFileName(fileName);
+			// Touch file, if it doesn't exist
+			Path.of(fileName).toFile().createNewFile();
+
+			final PropertiesConfiguration config = builder.getConfiguration();
 
 			for (final Setting setting : settings.values()) {
 
@@ -818,15 +835,25 @@ public class Settings {
 				}
 			}
 
-			final boolean isFileCreation = !config.getFile().exists();
 
-			config.save();
+			FileHandler fileHandler = builder.getFileHandler();
+
+			final boolean isFileCreation = !fileHandler.getFile().exists();
+
+			final long freeSpace = (!isFileCreation ? fileHandler.getFile().getFreeSpace() : new File(new File("").getAbsolutePath()).getFreeSpace());
+
+			if(freeSpace < 1024 * 1024){
+				logger.error("Refusing to start with less than 1 MB of disk space.");
+				System.exit(1);
+			}
+
+			fileHandler.save();
 
 			if (isFileCreation) {
 
 				try {
 
-					Files.setPosixFilePermissions(Paths.get(config.getFile().toURI()), Settings.expectedConfigFilePermissions);
+					Files.setPosixFilePermissions(Paths.get(fileHandler.getFile().toURI()), Settings.expectedConfigFilePermissions);
 
 				} catch (UnsupportedOperationException | IOException e) {
 					// happens on non-POSIX filesystems, ignore
@@ -834,21 +861,23 @@ public class Settings {
 
 			} else {
 
-				checkConfigurationFilePermissions(config, warnForNotRecommendedPermissions);
+				checkConfigurationFilePermissions(builder, warnForNotRecommendedPermissions);
 			}
 
 		} catch (ConfigurationException ex) {
 
-			logger.error("Unable to store configuration: " + ex.getMessage());
+            logger.error("Unable to store configuration: {}", ex.getMessage());
 		}
 	}
 
-	public static PropertiesConfiguration getDefaultPropertiesConfiguration() {
+	public static FileBasedConfigurationBuilder<PropertiesConfiguration> getDefaultPropertiesConfigurationBuilder() {
 
-		final PropertiesConfiguration config = new PropertiesConfiguration();
-		config.setFileName(Settings.ConfigFileName);
-
-		return config;
+        return new FileBasedConfigurationBuilder<>(PropertiesConfiguration.class)
+                .configure(new Parameters().fileBased()
+                        .setFileName(Settings.ConfigFileName)
+                        .setThrowExceptionOnMissing(true)
+                        .setListDelimiterHandler(new DefaultListDelimiterHandler('\0'))
+                );
 	}
 
 	public static String getExpectedConfigurationFilePermissionsAsString () {
@@ -856,11 +885,11 @@ public class Settings {
 		return PosixFilePermissions.toString(expectedConfigFilePermissions);
 	}
 
-	public static String getActualConfigurationFilePermissionsAsString (final PropertiesConfiguration config) {
+	public static String getActualConfigurationFilePermissionsAsString (final FileBasedConfigurationBuilder<?> builder) {
 
 		try {
 
-			final Set<PosixFilePermission> actualPermissions = getActualConfigurationFilePermissions(config);
+			final Set<PosixFilePermission> actualPermissions = getActualConfigurationFilePermissions(builder);
 
 			return PosixFilePermissions.toString(actualPermissions);
 
@@ -871,25 +900,34 @@ public class Settings {
 		return "";
 	}
 
-	private static Set<PosixFilePermission> getActualConfigurationFilePermissions (final PropertiesConfiguration config) throws UnsupportedOperationException, IOException{
+	private static Set<PosixFilePermission> getActualConfigurationFilePermissions (final FileBasedConfigurationBuilder<?> builder) throws UnsupportedOperationException, IOException{
 
-		return Files.getPosixFilePermissions(Paths.get(config.getFile().toURI()));
+		if (builder != null) {
+
+			final FileHandler fileHandler = builder.getFileHandler();
+			final String pathString = fileHandler.getURL().getPath();
+			if (pathString != null) {
+				return Files.getPosixFilePermissions(Path.of(pathString));
+			}
+		}
+
+		return null;
 	}
 
-	public static boolean checkConfigurationFilePermissions(final PropertiesConfiguration config, final boolean warn) {
+	public static boolean checkConfigurationFilePermissions(final FileBasedConfigurationBuilder<?> builder, final boolean warn) {
 
 		// default to true for non-POSIX filesystems
 		boolean isOk = true;
 
 		try {
 
-			final Set<PosixFilePermission> actualPermissions = getActualConfigurationFilePermissions(config);
+			final Set<PosixFilePermission> actualPermissions = getActualConfigurationFilePermissions(builder);
 
-			isOk = actualPermissions.equals(Settings.expectedConfigFilePermissions);
+			isOk = actualPermissions != null && actualPermissions.equals(Settings.expectedConfigFilePermissions);
 
 			if (!isOk && warn) {
 
-				logger.warn("Permissions for configuration file '{}' do not match the expected permissions (Actual: {}, Expected: {}). Please check if this should be the case and otherwise fix the permissions", config.getFileName(), PosixFilePermissions.toString(actualPermissions), PosixFilePermissions.toString(expectedConfigFilePermissions));
+				logger.warn("Permissions for configuration file '{}' do not match the expected permissions (Actual: {}, Expected: {}). Please check if this should be the case and otherwise fix the permissions", builder.getFileHandler().getFileName(), PosixFilePermissions.toString(actualPermissions), PosixFilePermissions.toString(expectedConfigFilePermissions));
 			}
 
 		} catch (UnsupportedOperationException | IOException e) {
@@ -903,12 +941,19 @@ public class Settings {
 
 		try {
 
-			PropertiesConfiguration.setDefaultListDelimiter('\0');
+			final File configFile = new File(fileName);
 
-			final PropertiesConfiguration config = new PropertiesConfiguration(fileName);
-			final Iterator<String> keys          = config.getKeys();
+			FileBasedConfigurationBuilder<PropertiesConfiguration> builder = new FileBasedConfigurationBuilder<>(PropertiesConfiguration.class)
+					.configure(new Parameters().fileBased()
+							.setFile(configFile)
+							.setThrowExceptionOnMissing(true)
+							.setListDelimiterHandler(new DefaultListDelimiterHandler('\0'))
+					);
 
-			Settings.checkConfigurationFilePermissions(config, true);
+			final PropertiesConfiguration config = builder.getConfiguration();
+            final Iterator<String> keys          = config.getKeys();
+
+			Settings.checkConfigurationFilePermissions(builder, true);
 
 			while (keys.hasNext()) {
 
@@ -1045,6 +1090,29 @@ public class Settings {
 			POSSIBLE_UUID_V4_FORMATS.with_dashes.toString(), "With Dashes",
 			POSSIBLE_UUID_V4_FORMATS.both.toString(), "Both (Read warning!)"
 		);
+	}
+
+	public enum SCRIPT_PROCESS_LOG_STYLE {
+		NOTHING(0), SCRIPT_PATH(1), CUSTOM(2);
+
+		SCRIPT_PROCESS_LOG_STYLE(int l) {}
+
+		public static SCRIPT_PROCESS_LOG_STYLE get(int i) {
+
+			switch (i) {
+				case 0: return NOTHING;
+				case 1: return SCRIPT_PATH;
+				default: return CUSTOM;
+			}
+		}
+	}
+
+	public static Map<Integer, String> getScriptProcessLogCommandLineOptions() {
+		final Map<Integer, String> options = new LinkedHashMap();
+		options.put(0, "0 - Do not log command line");
+		options.put(1, "1 - Log full path to script without parameters");
+		options.put(2, "2 - Log full path to script and parameters as configured");
+		return options;
 	}
 
 	public static boolean isNumeric(final String source) {

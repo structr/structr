@@ -124,8 +124,9 @@ let _Dialogs = {
 			}
 		],
 		getSSOUriForURIPart: (uripart) => `/oauth/${uripart}/login?isBackendOAuthLogin`,
+		getLoginDialogElement: () => document.querySelector('#login'),
 		isOpen: () => {
-			let loginElement = document.querySelector('#login');
+			let loginElement = _Dialogs.loginDialog.getLoginDialogElement();
 			return (loginElement != null && loginElement.offsetParent !== null);
 		},
 		show: () => {
@@ -182,7 +183,7 @@ let _Dialogs = {
 			}
 		},
 		hide: () => {
-			_Dialogs.basic.removeBlockerAround(document.querySelector('#login'));
+			_Dialogs.basic.removeBlockerAround(_Dialogs.loginDialog.getLoginDialogElement());
 		},
 		appendErrorMessage: (msg) => {
 
@@ -192,7 +193,7 @@ let _Dialogs = {
 
 				let element = _Helpers.createSingleDOMElementFromHTML(`<div class="login-error-message w-full box-border icon-red mt-2 pr-4 text-right">${msg}</div>`);
 
-				document.querySelector('#login').appendChild(element);
+				_Dialogs.loginDialog.getLoginDialogElement().appendChild(element);
 
 				window.setTimeout(() => {
 					element.remove();
@@ -302,54 +303,84 @@ let _Dialogs = {
 	confirmation: {
 		showPromise: (text, defaultOption = true) => {
 
+			let choices = [{
+					buttonText: `${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, ['icon-green', 'mr-2'])} Yes`,
+					result: true
+				}, {
+					buttonText: `${_Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, ['icon-red', 'mr-2'])} No`,
+					result: false
+			}];
+
+			return _Dialogs.multipleChoiceQuestion.askPromise(text, choices, defaultOption, !defaultOption);
+		},
+	},
+	multipleChoiceQuestion: {
+		askPromise: (text, choices = [], defaultOption, cancelOption = null, allowSaveDecision = false) => {
+
 			return new Promise((resolve, reject) => {
 
-				let confirmationMessage = `
-					<div class="text-center">
-						<div class="confirmationText mb-4">
+				let multipleChoiceMessage = `
+					<div class="confirmationText text-center">
+						<div class="mb-4">
 							${text}
 						</div>
-						<button class="yesButton inline-flex items-center hover:bg-gray-100 hover:bg-gray-100 focus:border-gray-666 active:border-green">
-							${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, ['icon-green', 'mr-2'])} Yes
-						</button>
-						<button class="noButton inline-flex items-center hover:bg-gray-100 hover:bg-gray-100 focus:border-gray-666 active:border-green">
-							${_Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, ['icon-red', 'mr-2'])} No
-						</button>
 					</div>
 				`;
 
-				let messageDiv = _Dialogs.basic.append(confirmationMessage, { padding: '1rem' });
-
-				let yesButton = messageDiv.querySelector('.yesButton');
-				let noButton  = messageDiv.querySelector('.noButton');
+				let messageDiv            = _Dialogs.basic.append(multipleChoiceMessage, { padding: '1rem' });
+				let confirmationContainer = messageDiv.querySelector('.confirmationText');
 
 				let answerFunction = (e, response) => {
 					e.stopPropagation();
 
+					let result = (allowSaveDecision !== true) ? response : {
+						answer: response,
+						save: confirmationContainer.querySelector('#save-decision').checked
+					};
+
 					_Dialogs.basic.removeBlockerAround(messageDiv);
 
-					resolve(response);
+					resolve(result);
 				};
 
-				yesButton.addEventListener('click', (e) => {
-					answerFunction(e, true);
-				});
+				if (allowSaveDecision === true) {
 
-				noButton.addEventListener('click', (e) => {
-					answerFunction(e, false);
-				});
+					let button = _Helpers.createSingleDOMElementFromHTML(`
+						<div class="pb-4">
+							<label class="flex items-center justify-center">
+								<input type="checkbox" id="save-decision">
+								<span data-comment="This can be changed at a later time in the UI settings">Save answer and do not ask again</span>
+							</label>
+						</div>
+					`);
+
+					confirmationContainer.appendChild(button);
+				}
+
+				for (let choice of choices) {
+
+					let button = _Helpers.createSingleDOMElementFromHTML(`
+						<button class="inline-flex items-center hover:bg-gray-100 hover:bg-gray-100 focus:border-gray-666 active:border-green">
+							${choice.buttonText}
+						</button>
+					`);
+
+					confirmationContainer.appendChild(button);
+
+					if (defaultOption === choice.result) {
+						button.focus();
+					}
+
+					button.addEventListener('click', (e) => answerFunction(e, choice.result));
+				}
+
+				_Helpers.activateCommentsInElement(messageDiv);
 
 				messageDiv.addEventListener('keyup', (e) => {
 					if (e.key === 'Escape' || e.code === 'Escape' || e.keyCode === 27) {
-						answerFunction(e, false);
+						answerFunction(e, cancelOption);
 					}
 				});
-
-				if (defaultOption === true) {
-					yesButton.focus();
-				} else {
-					noButton.focus();
-				}
 			});
 		},
 	},
@@ -407,6 +438,8 @@ let _Dialogs = {
 		isMaximized:        false,
 		dialogMaximizedKey: `structrDialogMaximized_${location.port}`,
 		dialogDataKey:      `structrDialogData_${location.port}`,
+		noConfirmOnEscapeClass: 'no-confirm-on-escape',
+		hasCustomCloseHandlerClass: 'has-custom-close-handler',
 		elements: {
 			dialogMsg: null,
 			dialogCancelButton: null,
@@ -448,15 +481,30 @@ let _Dialogs = {
 		getDialogTitleElement: () => _Dialogs.custom.elements.dialogTitle,
 		getDialogTextElement:  () => _Dialogs.custom.elements.dialogText,
 		getDialogMetaElement:  () => _Dialogs.custom.elements.dialogMeta,
+		getDialogTextWrapperElement: () => _Dialogs.custom.elements.dialogBox.querySelector('.dialogTextWrapper'),
 		getDialogBoxElement:   () => _Dialogs.custom.elements.dialogBox,
+		getDialogBtnContainer: () => _Dialogs.custom.elements.dialogBtn,
+		getDialogScrollPosition:  () => {
+
+			let dialogTextWrapperElement = _Dialogs.custom.getDialogTextWrapperElement();
+
+			return (dialogTextWrapperElement?.scrollTop ?? 0);
+		},
+		setDialogScrollPosition: (pos) => {
+
+			let dialogTextWrapperElement = _Dialogs.custom.getDialogTextWrapperElement();
+			if (dialogTextWrapperElement) {
+				dialogTextWrapperElement.scrollTop = pos;
+			}
+		},
 		isDialogOpen: () => {
-			return (_Dialogs.custom.elements.dialogBox && _Dialogs.custom.elements.dialogBox.offsetParent);
+			return (!!_Dialogs.custom.elements.dialogBox && !!_Dialogs.custom.elements.dialogBox.offsetParent);
 		},
 		setDialogSize: (windowWidth, windowHeight, dialogWidth, dialogHeight) => {
 
 			let horizontalOffset = 130;
 
-			let dialogTextWrapperElement = _Dialogs.custom.elements.dialogBox.querySelector('.dialogTextWrapper');
+			let dialogTextWrapperElement = _Dialogs.custom.getDialogTextWrapperElement();
 			if (dialogTextWrapperElement) {
 
 				dialogTextWrapperElement.style.width  = `calc(${dialogWidth}px - 2rem)`;
@@ -573,25 +621,7 @@ let _Dialogs = {
 
 			} else {
 
-				let dialogHTML = `
-					<div id="dialogBox" class="dialog">
-						<i title="Fullscreen Mode" id="maximizeDialog" class="window-icon minmax">${_Icons.getSvgIcon(_Icons.iconMaximizeDialog, 18, 18)}</i>
-						<i title="Window Mode" id="minimizeDialog" class="window-icon minmax">${_Icons.getSvgIcon(_Icons.iconMinimizeDialog, 18, 18)}</i>
-						<i title="Close" id="closeDialog" class="window-icon close">${_Icons.getSvgIcon(_Icons.iconCrossIcon, 18, 18)}</i>
-
-						<h2 class="dialogTitle"></h2>
-
-						<div class="dialogTextWrapper">
-							<div class="dialogText"></div>
-						</div>
-
-						<div class="dialogMsg"></div>
-
-						<div class="dialogMeta"></div>
-
-						<div class="dialogBtn flex"></div>
-					</div>
-				`;
+				let dialogHTML = _Dialogs.custom.templates.defaultDialog();
 				return _Dialogs.basic.append(dialogHTML, { width: '' });
 			}
 		},
@@ -641,17 +671,47 @@ let _Dialogs = {
 				_Dialogs.custom.elements.dialogSaveButton.click();
 			}
 		},
+		enableSaveButton: () => {
+			if (_Dialogs.custom.elements.dialogSaveButton) {
+				_Helpers.enableElement(_Dialogs.custom.elements.dialogSaveButton);
+			}
+		},
+		disableSaveButton: () => {
+			if (_Dialogs.custom.elements.dialogSaveButton) {
+				_Helpers.disableElement(_Dialogs.custom.elements.dialogSaveButton);
+			}
+		},
 		clickSaveAndCloseButton: () => {
 
 			if (_Dialogs.custom.elements.dialogSaveButton && _Dialogs.custom.elements.dialogSaveButton.offsetParent && !_Dialogs.custom.elements.dialogSaveButton.disabled) {
 				_Dialogs.custom.elements.dialogSaveButton.click();
 			}
 		},
-		checkSaveOrCloseOnEscape: () => {
+		hideAllButtons: () => {
+			for (let btn of _Dialogs.custom.getDialogBtnContainer()?.querySelectorAll('button') ?? []) {
+				btn.classList.add('hidden');
+			}
+		},
+		showAllButtons: () => {
+			for (let btn of _Dialogs.custom.getDialogBtnContainer()?.querySelectorAll('button') ?? []) {
+				btn.classList.remove('hidden');
+			}
+		},
+		noConfirmOnEscape: () => {
+			_Dialogs.custom.getDialogTextElement()?.classList.add(_Dialogs.custom.noConfirmOnEscapeClass);
+		},
+		setHasCustomCloseHandler: () => {
+			_Dialogs.custom.getDialogTextElement()?.classList.add(_Dialogs.custom.hasCustomCloseHandlerClass);
+		},
+		isNoConfirmOnEscape: () => _Dialogs.custom.getDialogTextElement()?.classList.contains(_Dialogs.custom.noConfirmOnEscapeClass) ?? false,
+		hasCustomCloseHandler: () => _Dialogs.custom.getDialogTextElement()?.classList.contains(_Dialogs.custom.hasCustomCloseHandlerClass) ?? false,
+		checkSaveOrCloseOnEscapeKeyPressed: () => {
 
-			if (_Dialogs.custom.isDialogOpen() && _Dialogs.custom.elements.dialogSaveButton && _Dialogs.custom.elements.dialogSaveButton.offsetParent && !_Dialogs.custom.elements.dialogSaveButton.disabled) {
+			let hasAttachedAndEnabledSaveButton = _Dialogs.custom.elements.dialogSaveButton && _Dialogs.custom.elements.dialogSaveButton.offsetParent && !_Dialogs.custom.elements.dialogSaveButton.disabled;
 
-				let saveBeforeExit = confirm('Save changes?');
+			if (_Dialogs.custom.isDialogOpen() && hasAttachedAndEnabledSaveButton && !_Dialogs.custom.isNoConfirmOnEscape() && !_Dialogs.custom.hasCustomCloseHandler()) {
+
+				let saveBeforeExit = confirm('Save changes before closing?');
 				if (saveBeforeExit) {
 					_Dialogs.custom.clickSaveButton();
 
@@ -701,12 +761,12 @@ let _Dialogs = {
 
 			_Dialogs.custom.elements.dialogCancelButton = button;
 		},
-		updateOrCreateDialogSaveButton: (defaultClasses = ['hover:bg-gray-100', 'focus:border-gray-666', 'active:border-green']) => {
+		updateOrCreateDialogSaveButton: (defaultText = 'Save', defaultClasses = ['hover:bg-gray-100', 'focus:border-gray-666', 'active:border-green']) => {
 
 			if (_Dialogs.custom.elements.dialogSaveButton) {
 				_Dialogs.custom.elements.dialogSaveButton.replaceWith(_Dialogs.custom.elements.dialogSaveButton.cloneNode(true));
 			} else {
-				_Dialogs.custom.elements.dialogBtn.insertAdjacentHTML('beforeend', `<button id="dialogSaveButton" disabled="disabled" class="disabled ${defaultClasses.join(' ')}">Save</button>`);
+				_Dialogs.custom.elements.dialogBtn.insertAdjacentHTML('beforeend', `<button id="dialogSaveButton" disabled="disabled" class="disabled ${defaultClasses.join(' ')}">${defaultText}</button>`);
 			}
 
 			_Dialogs.custom.elements.dialogSaveButton = _Dialogs.custom.elements.dialogBtn.querySelector('#dialogSaveButton');
@@ -763,6 +823,34 @@ let _Dialogs = {
 					$(newDiv).fadeOut(fadeoutTime, () => { newDiv.remove(); });
 				}, stayTime);
 			}
+		},
+		templates: {
+			defaultDialog: config => `
+				<div id="dialogBox" class="dialog">
+					<i title="Fullscreen Mode" id="maximizeDialog" class="window-icon minmax">${_Icons.getSvgIcon(_Icons.iconMaximizeDialog, 18, 18)}</i>
+					<i title="Window Mode" id="minimizeDialog" class="window-icon minmax">${_Icons.getSvgIcon(_Icons.iconMinimizeDialog, 18, 18)}</i>
+					<i title="Close" id="closeDialog" class="window-icon close">${_Icons.getSvgIcon(_Icons.iconCrossIcon, 18, 18)}</i>
+
+					<h2 class="dialogTitle"></h2>
+
+					<div class="dialogTextWrapper">
+						<div class="dialogText"></div>
+					</div>
+
+					<div class="dialogMsg"></div>
+
+					<div class="dialogMeta"></div>
+
+					<div class="dialogBtn flex"></div>
+				</div>
+			`,
+			deleteButton: config => `
+				<button class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
+					<div class="flex items-center">
+						${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, ['mr-2', 'icon-red'])} <span>Delete object</span>
+					</div>
+				</button>
+			`
 		}
 	}
 };

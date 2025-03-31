@@ -160,7 +160,7 @@ let _Pager = {
 							[prefix + 'order']:    _Pager.sortOrder[id],
 							[prefix + 'pageSize']: _Pager.pageSize[id],
 							[prefix + 'page']:     _Pager.page[id],
-							[prefix + 'loose']:    1
+							[prefix + 'inexact']:  1
 						}, filterAttrs);
 
 						let url = Structr.rootUrl + pager.getType() + '/' + view + '?' + new URLSearchParams(params).toString();
@@ -178,8 +178,8 @@ let _Pager = {
 
 							// handle new soft-limited REST result without counts
 							if (data.result_count === undefined && data.page_count === undefined) {
-								resultCount = _Crud.getSoftLimitedResultCount();
-								_Crud.showSoftLimitAlert($('input.pageCount'));
+								resultCount = _Helpers.softlimit.getSoftLimitedResultCount();
+								_Helpers.softlimit.showSoftLimitAlert($('input.pageCount'));
 							}
 
 							pager.internalCallback(data.result, resultCount);

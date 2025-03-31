@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.RetryException;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.ResultStream;
+import org.structr.common.PropertyView;
 import org.structr.common.RequestKeywords;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -40,16 +41,20 @@ import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.DefaultSortOrder;
 import org.structr.core.property.DateProperty;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.rest.RestMethodResult;
+import org.structr.rest.api.RESTCallHandler;
+import org.structr.rest.api.RESTEndpoints;
 import org.structr.rest.common.CsvHelper;
 import org.structr.rest.service.HttpServiceServlet;
-import org.structr.schema.parser.DatePropertyParser;
+import org.structr.schema.parser.DatePropertyGenerator;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -58,11 +63,6 @@ import java.io.Writer;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.*;
-import org.structr.common.PropertyView;
-import org.structr.core.entity.PrincipalInterface;
-import org.structr.rest.api.RESTCallHandler;
-import org.structr.rest.api.RESTEndpoints;
-import org.structr.web.entity.User;
 
 /**
  * This servlet produces CSV (comma separated value) lists out of a search
@@ -120,12 +120,12 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 			response.setCharacterEncoding("UTF-8");
 			response.setContentType("text/csv; charset=utf-8");
 
-			final PrincipalInterface currentUser = securityContext.getUser(false);
+			final Principal currentUser = securityContext.getUser(false);
 
 			// isolate resource authentication
 			try (final Tx tx = app.tx()) {
 
-				handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), getTypeOrDefault(currentUser, User.class));
+				handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), getTypeOrDefault(currentUser, StructrTraits.USER));
 				authenticator.checkResourceAccess(securityContext, request, handler.getResourceSignature(), handler.getRequestedView());
 
 				tx.success();
@@ -147,7 +147,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 				final String[] sortKeyNames             = request.getParameterValues(RequestKeywords.SortKey.keyword());
 				final int pageSize                      = Services.parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
 				final int page                          = Services.parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
-				final Class<? extends GraphObject> type = handler.getEntityClassOrDefault(securityContext);
+				final String type                       = handler.getEntityClassOrDefault(securityContext);
 				final SortOrder sortOrder               = new DefaultSortOrder(type, sortKeyNames, sortOrders);
 
 				// Should line breaks be removed?
@@ -263,12 +263,12 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 
 			if (securityContext != null) {
 
-				final PrincipalInterface currentUser = securityContext.getUser(false);
+				final Principal currentUser = securityContext.getUser(false);
 
 				// isolate resource authentication
 				try (final Tx tx = app.tx()) {
 
-					handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), getTypeOrDefault(currentUser, User.class));
+					handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), getTypeOrDefault(currentUser, StructrTraits.USER));
 					authenticator.checkResourceAccess(securityContext, request, handler.getResourceSignature(), handler.getRequestedView());
 					tx.success();
 				}
@@ -295,7 +295,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 
 					retry = false;
 
-					final Iterable<JsonInput> csv = CsvHelper.cleanAndParseCSV(securityContext, input, handler.getEntityClass(securityContext), fieldSeparator, quoteCharacter, rangeHeader);
+					final Iterable<JsonInput> csv = CsvHelper.cleanAndParseCSV(securityContext, input, handler.getTypeName(securityContext), fieldSeparator, quoteCharacter, rangeHeader);
 
 					if (handler.createPostTransaction()) {
 
@@ -410,7 +410,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 
 								// remove Location header if more than one object was
 								// written because it may only contain a single URL
-								result.addHeader("Location", null);
+								result.addHeader(StructrTraits.LOCATION, null);
 							}
 
 							commitResponse(securityContext, request, response, result, handler.getRequestedView(), handler.isCollection());
@@ -538,7 +538,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 
 			final ArrayList<String> dateStrings = new ArrayList();
 			for (final Date d : Arrays.asList((Date[])value)) {
-				dateStrings.add("\\" + quoteChar + DatePropertyParser.format(d, DateProperty.getDefaultFormat()) + "\\" + quoteChar);
+				dateStrings.add("\\" + quoteChar + DatePropertyGenerator.format(d, DateProperty.getDefaultFormat()) + "\\" + quoteChar);
 			}
 
 			result = dateStrings.toString();
@@ -565,7 +565,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 
 		} else if (value instanceof Date) {
 
-			result = DatePropertyParser.format((Date) value, DateProperty.getDefaultFormat());
+			result = DatePropertyGenerator.format((Date) value, DateProperty.getDefaultFormat());
 
 		} else {
 

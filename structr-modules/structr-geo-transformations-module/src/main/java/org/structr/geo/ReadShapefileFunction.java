@@ -208,7 +208,7 @@ public class ReadShapefileFunction extends GeoFunction {
 			} catch (FactoryException ex) {
 				logger.error("", ex);
 			}
-		}
+        }
 
 		return null;
 	}

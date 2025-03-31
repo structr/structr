@@ -20,14 +20,19 @@ package org.structr.files.ssh;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 import java.io.IOException;
 import java.net.URI;
@@ -177,25 +182,29 @@ public class StructrSSHFile implements Path {
 
 	protected Iterable<Folder> getFolders() throws FrameworkException {
 
-		if (actualFile != null && parent != null && actualFile instanceof Folder) {
+		if (actualFile != null && parent != null && actualFile.is(StructrTraits.FOLDER)) {
 
-			return ((Folder)actualFile).getFolders();
+			return actualFile.as(Folder.class).getFolders();
 
 		} else {
 
-			return StructrApp.getInstance(getSecurityContext()).nodeQuery(Folder.class).and(StructrApp.key(AbstractFile.class, "parent"), null).getAsList();
+			final Iterable<NodeInterface> folders = StructrApp.getInstance(getSecurityContext()).nodeQuery(StructrTraits.FOLDER).and(Traits.of(StructrTraits.ABSTRACT_FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY), null).getResultStream();
+
+			return Iterables.map(n -> n.as(Folder.class), folders);
 		}
 	}
 
 	protected Iterable<File> getFiles() throws FrameworkException {
 
-		if (actualFile != null && parent != null && actualFile instanceof Folder) {
+		if (actualFile != null && parent != null && actualFile.is(StructrTraits.FOLDER)) {
 
-			return ((Folder)actualFile).getFiles();
+			return actualFile.as(Folder.class).getFiles();
 
 		} else {
 
-			return StructrApp.getInstance(getSecurityContext()).nodeQuery(File.class).and(StructrApp.key(AbstractFile.class, "parent"), null).getAsList();
+			final Iterable<NodeInterface> files = StructrApp.getInstance(getSecurityContext()).nodeQuery(StructrTraits.FILE).and(Traits.of(StructrTraits.ABSTRACT_FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY), null).getResultStream();
+
+			return Iterables.map(n -> n.as(File.class), files);
 		}
 	}
 

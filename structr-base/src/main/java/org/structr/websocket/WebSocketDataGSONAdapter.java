@@ -24,6 +24,7 @@ import graphql.parser.Parser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
+import org.structr.api.util.ResultStream;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -64,10 +65,11 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 	@Override
 	public JsonElement serialize(WebSocketMessage src, Type typeOfSrc, JsonSerializationContext context) {
 
-		JsonObject root             = new JsonObject();
-		JsonObject jsonNodeData     = new JsonObject();
-		JsonObject jsonRelData      = new JsonObject();
-		JsonArray removedProperties = new JsonArray();
+		JsonObject root              = new JsonObject();
+		JsonObject jsonNodeData      = new JsonObject();
+		JsonObject jsonRelData       = new JsonObject();
+		JsonObject jsonCommandConfig = new JsonObject();
+		JsonArray removedProperties  = new JsonArray();
 		JsonArray modifiedProperties = new JsonArray();
 
 		if (src.getCommand() != null) {
@@ -222,15 +224,35 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 			root.add("relData", jsonRelData);
 		}
 
-		// serialize result list
-		if (src.getResult() != null) {
+		// serialize node data
+		if (src.getCommandConfig() != null) {
 
-			final List<? extends GraphObject> list = Iterables.toList(src.getResult());
+			for (Entry<String, Object> entry : src.getCommandConfig().entrySet()) {
+
+				Object value = entry.getValue();
+				String key   = entry.getKey();
+
+				if (value != null) {
+
+					jsonCommandConfig.add(key, serialize(value));
+				}
+
+			}
+
+			root.add("commandConfig", jsonCommandConfig);
+		}
+
+		// serialize result list
+		final Iterable<? extends GraphObject> srcResult = src.getResult();
+		if (srcResult != null) {
+
+			int count = 0;
 
 			if ("GRAPHQL".equals(src.getCommand())) {
 
 				try {
 
+					final List<? extends GraphObject> list = Iterables.toList(srcResult);
 					if (!list.isEmpty()) {
 
 						final GraphObject firstResultObject   = list.get(0);
@@ -281,50 +303,61 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 				}
 
-				JsonArray result = new JsonArray();
+				final JsonArray result = new JsonArray();
 
-				for (GraphObject obj : list) {
+				for (GraphObject obj : srcResult) {
 
 					result.add(graphObjectSerializer.serialize(obj, System.currentTimeMillis()));
+					count++;
 				}
 
 				root.add("result", result);
 
 			}
-			root.add("rawResultCount", toJsonPrimitive(src.getRawResultCount()));
+
+			// set / calculate result count after iteration (faster!)
+			if (srcResult instanceof ResultStream s) {
+
+				final SecurityContext securityContext = src.getSecurityContext();
+
+				root.add("rawResultCount", toJsonPrimitive(s.calculateTotalResultCount(null, securityContext.getSoftLimit(s.getPageSize()))));
+
+			} else {
+
+				root.add("rawResultCount", toJsonPrimitive(count));
+			}
 
 		}
 
 		return root;
-
 	}
 
 	private JsonElement serialize(final Object value) {
 
-			final JsonArray resultArray = new JsonArray();
+		final JsonArray resultArray = new JsonArray();
 
-			if (value.getClass().isArray()) {
+		if (value.getClass().isArray()) {
 
-					final Object[] array = (Object[]) value;
+			final Object[] array = (Object[]) value;
 
-					for (final Object val : array) {
-						resultArray.add(toJsonPrimitive(val));
-					}
-
-					return resultArray;
-
-			} else if (value instanceof Iterable) {
-
-					for (final Object val : (Iterable) value) {
-						resultArray.add(toJsonPrimitive(val));
-					}
-
-					return resultArray;
-
-			} else {
-					return toJsonPrimitive(value);
+			for (final Object val : array) {
+				resultArray.add(toJsonPrimitive(val));
 			}
 
+			return resultArray;
+
+		} else if (value instanceof Iterable) {
+
+			for (final Object val : (Iterable) value) {
+				resultArray.add(toJsonPrimitive(val));
+			}
+
+			return resultArray;
+
+		} else {
+
+			return toJsonPrimitive(value);
+		}
 	}
 
 	private JsonPrimitive toJsonPrimitive(final Object value) {
@@ -357,7 +390,6 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 		}
 
 		return jp;
-
 	}
 
 	@Override
@@ -367,9 +399,10 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 		if (json instanceof JsonObject) {
 
-			JsonObject root     = json.getAsJsonObject();
-			JsonObject nodeData = root.getAsJsonObject("data");
-			JsonObject relData  = root.getAsJsonObject("relData");
+			JsonObject root          = json.getAsJsonObject();
+			JsonObject nodeData      = root.getAsJsonObject("data");
+			JsonObject relData       = root.getAsJsonObject("relData");
+			JsonObject commandConfig = root.getAsJsonObject("config");
 
 			if (root.has("command")) {
 
@@ -437,7 +470,6 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 				JsonInputGSONAdapter adapter = new JsonInputGSONAdapter();
 
-
 				for (Entry<String, JsonElement> entry : nodeData.entrySet()) {
 
 					final JsonElement obj = entry.getValue();
@@ -482,7 +514,6 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 					webSocketData.setNodeData(entry.getKey(), value);
 				}
-
 			}
 
 			if (relData != null) {
@@ -505,10 +536,58 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 					}
 				}
 			}
+
+			if (commandConfig != null) {
+
+				JsonInputGSONAdapter adapter = new JsonInputGSONAdapter();
+
+				for (Entry<String, JsonElement> entry : commandConfig.entrySet()) {
+
+					final JsonElement obj = entry.getValue();
+					Object value          = null;
+
+					if (obj instanceof JsonPrimitive) {
+
+						value = adapter.fromPrimitive(obj.getAsJsonPrimitive());
+
+					} else if (obj instanceof JsonObject) {
+
+						value = adapter.deserialize(obj, typeOfT, context);
+
+					} else if (obj instanceof JsonArray) {
+
+						final JsonArray array = obj.getAsJsonArray();
+						final List list       = new LinkedList();
+
+						for (JsonElement element : array) {
+
+							if (element.isJsonPrimitive()) {
+
+								list.add(fromPrimitive((element.getAsJsonPrimitive())));
+
+							} else if (element.isJsonObject()) {
+
+								// create map of values
+								list.add(JsonInputGSONAdapter.deserialize(element, context));
+							}
+						}
+
+						value = list;
+
+					} else if (obj instanceof JsonNull) {
+
+						value = null;
+
+					} else if (obj != null) {
+
+						value = obj.getAsString();
+					}
+
+					webSocketData.setCommandConfig(entry.getKey(), value);
+				}
+			}
 		}
 
 		return webSocketData;
-
 	}
-
 }

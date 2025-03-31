@@ -18,10 +18,37 @@
  */
 package org.structr.flow.impl;
 
-import org.structr.flow.api.DataSource;
+import org.structr.api.util.Iterables;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.Traits;
+import org.structr.flow.traits.definitions.FlowConditionTraitDefinition;
 
-/**
- *
- */
-public abstract class FlowCondition extends FlowBaseNode implements DataSource {
+public class FlowCondition extends FlowDataSource {
+
+	public FlowCondition(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
+	}
+
+	public Iterable<FlowCondition> getConditions() {
+
+		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key(FlowConditionTraitDefinition.CONDITIONS_PROPERTY));
+
+		return Iterables.map(n -> n.as(FlowCondition.class), nodes);
+	}
+
+	public void setConditions(final Iterable<FlowCondition> conditions) throws FrameworkException {
+		wrappedObject.setProperty(traits.key(FlowConditionTraitDefinition.CONDITIONS_PROPERTY), conditions);
+	}
+
+	public Iterable<FlowBaseNode> getLogicTargets() {
+
+		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key(FlowConditionTraitDefinition.LOGIC_TARGETS_PROPERTY));
+
+		return Iterables.map(n -> n.as(FlowBaseNode.class), nodes);
+	}
+
+	public void setLogicTargets(final Iterable<FlowBaseNode> logicTargets) throws FrameworkException {
+		wrappedObject.setProperty(traits.key(FlowConditionTraitDefinition.LOGIC_TARGETS_PROPERTY), logicTargets);
+	}
 }

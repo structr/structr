@@ -14,4 +14,4 @@ nodes.sort((a,b) => {
     }
 });
 
-return nodes;
+nodes;

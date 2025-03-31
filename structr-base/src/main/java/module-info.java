@@ -18,18 +18,12 @@
  */
 module structr.base {
 
-    requires java.desktop;
-    requires java.logging;
     requires java.management;
-    requires java.sql;
     requires jdk.httpserver;
     requires jdk.xml.dom;
-
     requires transitive java.compiler;
-    requires transitive java.xml;
 
     requires transitive structr.db.driver.api;
-
     requires asciidoctor.java.integration;
     requires com.google.common;
     requires com.google.gson;
@@ -37,11 +31,7 @@ module structr.base {
     requires com.google.zxing;
     requires com.twelvemonkeys.common.image;
     requires commons.collections;
-    requires commons.configuration;
     requires commons.email;
-    requires commons.jxpath;
-    requires commons.lang3;
-    requires commons.lang;
     requires cssparser;
     requires diff.match.patch;
     requires dom4j;
@@ -60,12 +50,10 @@ module structr.base {
     requires jgroups;
     requires jmimemagic;
     requires json.path;
-    requires json;
     requires jwks.rsa;
     requires metadata.extractor;
     requires opencsv;
     requires org.antlr.antlr4.runtime;
-    requires org.apache.commons.codec;
     requires org.apache.commons.compress;
     requires org.apache.commons.io;
     requires org.apache.httpcomponents.httpclient;
@@ -104,9 +92,16 @@ module structr.base {
     requires xml.apis.ext;
     requires zero.allocation.hashing;
     requires zip4j;
-    requires commons.collections4;
     requires ch.qos.logback.core;
-    requires jakarta.activation;
+    requires org.apache.commons.configuration2;
+    requires commons.lang;
+    requires java.sql;
+    requires org.apache.commons.collections4;
+    requires org.apache.commons.codec;
+    requires org.json;
+    requires org.apache.commons.text;
+    requires org.apache.commons.lang3;
+    requires java.desktop;
 
     exports org.structr;
     exports org.structr.agent;
@@ -130,7 +125,6 @@ module structr.base {
     exports org.structr.core.cypher;
     exports org.structr.core.datasources;
     exports org.structr.core.entity;
-    exports org.structr.core.entity.relationship;
     exports org.structr.core.function;
     exports org.structr.core.function.search;
     exports org.structr.core.graph;
@@ -161,8 +155,7 @@ module structr.base {
     exports org.structr.rest.auth;
     exports org.structr.rest.common;
     exports org.structr.rest.exception;
-    exports org.structr.rest.logging.entity;
-    exports org.structr.rest.logging.entity.relationship;
+    exports org.structr.rest.entity;
     exports org.structr.rest.maintenance;
     exports org.structr.rest.resource;
     exports org.structr.rest.serialization;
@@ -195,13 +188,10 @@ module structr.base {
     exports org.structr.web.common.microformat;
     exports org.structr.web.converter;
     exports org.structr.web.datasource;
-    exports org.structr.web.diff;
     exports org.structr.web.entity;
     exports org.structr.web.entity.css;
     exports org.structr.web.entity.dom;
     exports org.structr.web.entity.event;
-    exports org.structr.web.entity.html;
-    exports org.structr.web.entity.mail;
     exports org.structr.web.error;
     exports org.structr.web.function;
     exports org.structr.web.importer;
@@ -216,5 +206,15 @@ module structr.base {
     exports org.structr.websocket.command.dom;
     exports org.structr.websocket.message;
     exports org.structr.websocket.servlet;
-
+    exports org.structr.core.traits;
+    exports org.structr.core.traits.operations;
+    exports org.structr.core.traits.operations.graphobject;
+    exports org.structr.core.traits.relationships;
+    exports org.structr.core.traits.wrappers;
+    exports org.structr.core.traits.definitions;
+    exports org.structr.rest.traits.relationships;
+    exports org.structr.web.traits.definitions;
+    exports org.structr.web.traits.wrappers;
+    exports org.structr.web.traits.definitions.dom;
+    exports org.structr.web.traits.wrappers.dom;
 }

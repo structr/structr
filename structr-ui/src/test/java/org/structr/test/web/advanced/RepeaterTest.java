@@ -27,22 +27,23 @@ import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.EnumProperty;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
-import org.structr.web.entity.User;
 import org.structr.web.entity.dom.Content;
+import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.html.Option;
+import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
+import org.structr.web.traits.definitions.html.Option;
+import org.structr.web.traits.definitions.html.Select;
 import org.testng.annotations.Test;
-import org.w3c.dom.Node;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -73,12 +74,7 @@ public class RepeaterTest extends StructrUiTest {
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
-			// create test user
-			createTestNode(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"), true)
-			);
+			createAdminUser();
 
 			tx.success();
 
@@ -92,32 +88,32 @@ public class RepeaterTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final Class project   = StructrApp.getConfiguration().getNodeEntityClass("Project");
-			final Class task      = StructrApp.getConfiguration().getNodeEntityClass("Task");
-			final PropertyKey key = StructrApp.key(task, "project");
+			final String project  = "Project";
+			final String task     = "Task";
+			final PropertyKey key = Traits.of(task).key("project");
 
 			final NodeInterface project1 = app.create(project, "Project 1");
 
-			taskIDs.add(app.create(task, new NodeAttribute<>(AbstractNode.name, "Task 1"), new NodeAttribute<>(key, project1)).getUuid());
-			taskIDs.add(app.create(task, new NodeAttribute<>(AbstractNode.name, "Task 2")).getUuid());
-			taskIDs.add(app.create(task, new NodeAttribute<>(AbstractNode.name, "Task 3")).getUuid());
-			taskIDs.add(app.create(task, new NodeAttribute<>(AbstractNode.name, "Task 4"), new NodeAttribute<>(key, project1)).getUuid());
-			taskIDs.add(app.create(task, new NodeAttribute<>(AbstractNode.name, "Task 5"), new NodeAttribute<>(key, project1)).getUuid());
+			taskIDs.add(app.create(task, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Task 1"), new NodeAttribute<>(key, project1)).getUuid());
+			taskIDs.add(app.create(task, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Task 2")).getUuid());
+			taskIDs.add(app.create(task, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Task 3")).getUuid());
+			taskIDs.add(app.create(task, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Task 4"), new NodeAttribute<>(key, project1)).getUuid());
+			taskIDs.add(app.create(task, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Task 5"), new NodeAttribute<>(key, project1)).getUuid());
 
 			// create page
 			final Page page1     = Page.createSimplePage(securityContext, "page1");
-			final DOMNode div    = (DOMNode)page1.getElementsByTagName("div").item(0);
+			final DOMNode div    = page1.getElementsByTagName("div").get(0);
 			final DOMNode select = createElement(page1, div,    "select");
 			final DOMNode option = createElement(page1, select, "option", "${task.name}");
 
 
-			select.setProperty(StructrApp.key(DOMNode.class, "functionQuery"),  "find('Project')");
-			select.setProperty(StructrApp.key(DOMNode.class, "dataKey"),        "project");
-			select.setProperty(StructrApp.key(DOMNode.class, "_html_multiple"), "multiple");
+			select.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY), "find('Project')");
+			select.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.DATA_KEY_PROPERTY),       "project");
+			select.setProperty(Traits.of(StructrTraits.SELECT).key(Select.MULTIPLE_PROPERTY),                         "multiple");
 
-			option.setProperty(StructrApp.key(DOMNode.class, "functionQuery"),  "find('Task', sort('name'))");
-			option.setProperty(StructrApp.key(DOMNode.class, "dataKey"),        "task");
-			option.setProperty(StructrApp.key(Option.class, "_html_value"),     "${task.id}");
+			option.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY), "find('Task', sort('name'))");
+			option.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.DATA_KEY_PROPERTY),       "task");
+			option.setProperty(Traits.of(StructrTraits.OPTION).key(Option.VALUE_PROPERTY),                            "${task.id}");
 
 			tx.success();
 
@@ -132,8 +128,8 @@ public class RepeaterTest extends StructrUiTest {
 		// test 1: assert selected attributes are NOT set (because we didn't set selectedValues)
 		RestAssured
 			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
+			.header(X_USER_HEADER,     ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.expect()
 			.statusCode(200)
@@ -161,10 +157,10 @@ public class RepeaterTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final Page page1     = app.nodeQuery(Page.class).getFirst();
-			final DOMNode option = (DOMNode)page1.getElementsByTagName("option").item(0);
+			final NodeInterface page1 = app.nodeQuery(StructrTraits.PAGE).getFirst();
+			final DOMNode option      = page1.as(Page.class).getElementsByTagName("option").get(0);
 
-			option.setProperty(StructrApp.key(Option.class,  "selectedValues"), "project.tasks");
+			option.setProperty(Traits.of("Option").key( "selectedValues"), "project.tasks");
 
 			tx.success();
 
@@ -177,8 +173,8 @@ public class RepeaterTest extends StructrUiTest {
 		// test 2: assert selected attributes are set now
 		RestAssured
 			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
+			.header(X_USER_HEADER,     ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.expect()
 			.statusCode(200)
@@ -215,16 +211,11 @@ public class RepeaterTest extends StructrUiTest {
 			final JsonSchema schema      = StructrSchema.createFromDatabase(app);
 			final JsonObjectType project = schema.addType("Project");
 
-			project.addEnumProperty("test").setEnums("one", "two", "three");
+			project.addEnumProperty("test").setFormat("one,two,three");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
-			// create test user
-			createTestNode(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"), true)
-			);
+			createAdminUser();
 
 			tx.success();
 
@@ -236,27 +227,26 @@ public class RepeaterTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final Class project   = StructrApp.getConfiguration().getNodeEntityClass("Project");
+			final String project   = "Project";
 
-			final NodeInterface project1 = app.create(project, "Project 1");
-			final EnumProperty key       = (EnumProperty)StructrApp.key(project, "test");
-			final Class enumType         = key.getEnumType();
+			final NodeInterface project1  = app.create(project, "Project 1");
+			final PropertyKey<String> key = Traits.of(project).key("test");
 
 			// set enum type,
-			project1.setProperty(key, Enum.valueOf(enumType, "two"));
+			project1.setProperty(key, "two");
 
 			// create page
 			final Page page1     = Page.createSimplePage(securityContext, "page1");
-			final DOMNode div    = (DOMNode)page1.getElementsByTagName("div").item(0);
+			final DOMNode div    = page1.getElementsByTagName("div").get(0);
 			final DOMNode select = createElement(page1, div,    "select");
 			final DOMNode option = createElement(page1, select, "option", "${test.value}");
 
 
-			select.setProperty(StructrApp.key(DOMNode.class, "functionQuery"), "find('Project')");
-			select.setProperty(StructrApp.key(DOMNode.class, "dataKey"),       "project");
+			select.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY), "find('Project')");
+			select.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.DATA_KEY_PROPERTY),       "project");
 
-			option.setProperty(StructrApp.key(DOMNode.class, "functionQuery"),  "enum_info('Project', 'test')");
-			option.setProperty(StructrApp.key(DOMNode.class, "dataKey"),        "test");
+			option.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY),  "enum_info('Project', 'test')");
+			option.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.DATA_KEY_PROPERTY),        "test");
 
 			tx.success();
 
@@ -271,8 +261,8 @@ public class RepeaterTest extends StructrUiTest {
 		// test 1: assert selected attributes are NOT set (because we didn't set selectedValues)
 		RestAssured
 			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
+			.header(X_USER_HEADER,     ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.expect()
 			.statusCode(200)
@@ -291,10 +281,10 @@ public class RepeaterTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final Page page1     = app.nodeQuery(Page.class).getFirst();
-			final DOMNode option = (DOMNode)page1.getElementsByTagName("option").item(0);
+			final Page page1     = app.nodeQuery(StructrTraits.PAGE).getFirst().as(Page.class);
+			final DOMNode option = (DOMNode)page1.getElementsByTagName("option").get(0);
 
-			option.setProperty(StructrApp.key(Option.class,  "selectedValues"), "project.test");
+			option.setProperty(Traits.of("Option").key( "selectedValues"), "project.test");
 
 			tx.success();
 
@@ -307,8 +297,8 @@ public class RepeaterTest extends StructrUiTest {
 		// test 2: assert selected attributes are set now
 		RestAssured
 			.given()
-			.header("X-User",     "admin")
-			.header("X-Password", "admin")
+			.header(X_USER_HEADER,     ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.expect()
 			.statusCode(200)
@@ -324,16 +314,17 @@ public class RepeaterTest extends StructrUiTest {
 			.get("/html/page1");
 	}
 
-	protected <T extends Node> T createElement(final Page page, final DOMNode parent, final String tag, final String... content) {
+	protected DOMElement createElement(final Page page, final DOMNode parent, final String tag, final String... content) throws FrameworkException {
 
-		final T child = (T)page.createElement(tag);
+		final DOMElement child = page.createElement(tag);
+
 		parent.appendChild((DOMNode)child);
 
 		if (content != null && content.length > 0) {
 
 			for (final String text : content) {
 
-				final Node node = page.createTextNode(text);
+				final DOMNode node = page.createTextNode(text);
 				child.appendChild(node);
 			}
 		}

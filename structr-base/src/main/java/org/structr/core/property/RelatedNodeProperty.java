@@ -21,7 +21,6 @@ package org.structr.core.property;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
-import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.converter.RelatedNodePropertyMapper;
 
@@ -42,13 +41,11 @@ public class RelatedNodeProperty<T> extends AbstractPrimitiveProperty<T> {
 	private PropertyKey<T> targetKey = null;
 
 	public RelatedNodeProperty(String name, PropertyKey sourceKey, PropertyKey<T> targetKey) {
+
 		super(name);
 
 		this.sourceKey  = sourceKey;
 		this.targetKey  = targetKey;
-
-		// make us known to the entity context
-		StructrApp.getConfiguration().registerConvertedProperty(this);
 	}
 
 	@Override
@@ -88,6 +85,11 @@ public class RelatedNodeProperty<T> extends AbstractPrimitiveProperty<T> {
 	@Override
 	public Object fixDatabaseProperty(Object value) {
 		return null;
+	}
+
+	@Override
+	public boolean isArray() {
+		return false;
 	}
 
 	@Override

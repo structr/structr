@@ -10,9 +10,9 @@
 	<artifactId>structr-geo-transformations-module</artifactId>
 	<packaging>jar</packaging>
 
-	<properties>
-		<geotools.version>19.4</geotools.version>
-	</properties>
+    <properties>
+        <geotools.version>19.4</geotools.version>
+    </properties>
 
 	<repositories>
 		<repository>

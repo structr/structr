@@ -20,25 +20,25 @@ package org.structr.core.property;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.entity.Relation;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.Notion;
 
 /**
  *
  */
-public interface RelationProperty<T> {
+public interface RelationProperty {
 
-	public Notion getNotion();
+	Notion getNotion();
 
-	public Class<? extends T> getTargetType();
+	String getTargetType();
 
-	public Relation getRelation();
+	Relation getRelation();
 
-	public boolean doAutocreate();
-	public String getAutocreateFlagName();
+	boolean doAutocreate();
+	String getAutocreateFlagName();
 
-	public void addSingleElement(final SecurityContext securityContext, final GraphObject obj, final T t) throws FrameworkException;
+	void addSingleElement(final SecurityContext securityContext, final NodeInterface obj, final NodeInterface t) throws FrameworkException;
 
-	public String getDirectionKey();
+	String getDirectionKey();
 }

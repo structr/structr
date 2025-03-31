@@ -21,17 +21,16 @@ package org.structr.common;
 import org.structr.api.Predicate;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
-import org.structr.api.graph.PropertyContainer;
 import org.structr.api.graph.RelationshipType;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.entity.*;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 
@@ -48,14 +47,14 @@ import java.util.Set;
 public class EntityAndPropertiesContainer implements NodeInterface {
 
 	private Map<String, Object> properties = null;
-	private GraphObject entity             = null;
+	private NodeInterface entity           = null;
 
-	public EntityAndPropertiesContainer(final GraphObject entity, final Map<String, Object> properties) {
+	public EntityAndPropertiesContainer(final NodeInterface entity, final Map<String, Object> properties) {
 		this.properties = properties;
 		this.entity     = entity;
 	}
 
-	public GraphObject getEntity() {
+	public NodeInterface getEntity() {
 		return entity;
 	}
 
@@ -74,10 +73,9 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 		return other.hashCode() == hashCode();
 	}
 
-	// dummy implementation of NodeInterface
 	@Override
-	public void init(SecurityContext securityContext, Node dbNode, Class type, final long transactionId) {
-		throw new UnsupportedOperationException("Not supported by this container.");
+	public boolean is(final String type) {
+		return false;
 	}
 
 	@Override
@@ -111,58 +109,103 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
+	public void setName(final String name) throws FrameworkException {
+		throw new UnsupportedOperationException("Not supported by this container.");
+	}
+
+	@Override
+	public Object getPath(final SecurityContext securityContext) {
+		throw new UnsupportedOperationException("Not supported by this container.");
+	}
+
+	@Override
 	public boolean hasRelationshipTo(final RelationshipType relType, final NodeInterface targetNode) {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 
 	@Override
-	public <R extends AbstractRelationship> R getRelationshipTo(final RelationshipType relType, final NodeInterface targetNode) {
-		throw new UnsupportedOperationException("Not supported.");
+	public RelationshipInterface getRelationshipTo(RelationshipType type, NodeInterface targetNode) {
+		return null;
 	}
 
 	@Override
-	public <R extends AbstractRelationship> Iterable<R> getRelationships() {
-		throw new UnsupportedOperationException("Not supported by this container.");
+	public Iterable<RelationshipInterface> getRelationships() {
+		return null;
 	}
 
 	@Override
-	public <R extends AbstractRelationship> Iterable<R> getRelationshipsAsSuperUser() {
-		throw new UnsupportedOperationException("Not supported by this container.");
+	public Iterable<RelationshipInterface> getRelationshipsAsSuperUser() {
+		return null;
 	}
 
 	@Override
-	public <R extends AbstractRelationship> Iterable<R> getIncomingRelationships() {
-		throw new UnsupportedOperationException("Not supported by this container.");
+	public Iterable<RelationshipInterface> getRelationshipsAsSuperUser(String type) {
+		return null;
 	}
 
 	@Override
-	public <R extends AbstractRelationship> Iterable<R> getOutgoingRelationships() {
-		throw new UnsupportedOperationException("Not supported by this container.");
+	public Iterable<RelationshipInterface> getIncomingRelationships() {
+		return null;
 	}
 
 	@Override
-	public <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> Iterable<R> getRelationships(Class<R> type) {
-		throw new UnsupportedOperationException("Not supported by this container.");
+	public Iterable<RelationshipInterface> getOutgoingRelationships() {
+		return null;
 	}
 
 	@Override
-	public <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, OneStartpoint<A>, T>> R getIncomingRelationship(Class<R> type) {
-		throw new UnsupportedOperationException("Not supported by this container.");
+	public boolean hasRelationship(String type) {
+		return false;
 	}
 
 	@Override
-	public <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, ManyStartpoint<A>, T>> Iterable<R> getIncomingRelationships(Class<R> type) {
-		throw new UnsupportedOperationException("Not supported by this container.");
+	public boolean hasIncomingRelationships(String type) {
+		return false;
 	}
 
 	@Override
-	public <A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, OneEndpoint<B>>> R getOutgoingRelationship(Class<R> type) {
-		throw new UnsupportedOperationException("Not supported by this container.");
+	public boolean hasOutgoingRelationships(String type) {
+		return false;
 	}
 
 	@Override
-	public <A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, ManyEndpoint<B>>> Iterable<R> getOutgoingRelationships(Class<R> type) {
-		throw new UnsupportedOperationException("Not supported by this container.");
+	public Iterable<RelationshipInterface> getRelationships(String type) {
+		return null;
+	}
+
+	@Override
+	public RelationshipInterface getIncomingRelationship(String type) {
+		return null;
+	}
+
+	@Override
+	public RelationshipInterface getIncomingRelationshipAsSuperUser(String type) {
+		return null;
+	}
+
+	@Override
+	public Iterable<RelationshipInterface> getIncomingRelationships(String type) {
+		return null;
+	}
+
+	@Override
+	public Iterable<RelationshipInterface> getIncomingRelationshipsAsSuperUser(String type, Predicate<GraphObject> predicate) {
+		return null;
+	}
+
+	@Override
+	public RelationshipInterface getOutgoingRelationship(String type) {
+		return null;
+	}
+
+	@Override
+	public RelationshipInterface getOutgoingRelationshipAsSuperUser(String type) {
+		return null;
+	}
+
+	@Override
+	public Iterable<RelationshipInterface> getOutgoingRelationships(String type) {
+		return null;
 	}
 
 	@Override
@@ -173,6 +216,21 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	@Override
 	public String getUuid() {
 		return entity.getUuid();
+	}
+
+	@Override
+	public void clearCaches() {
+
+	}
+
+	@Override
+	public Traits getTraits() {
+		return null;
+	}
+
+	@Override
+	public <T> T as(final Class<T> type) {
+		return null;
 	}
 
 	@Override
@@ -191,32 +249,37 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
-	public PropertyContainer getPropertyContainer() {
+	public Node getPropertyContainer() {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys(String propertyView) {
+	public Set<PropertyKey> getFullPropertySet() {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 
 	@Override
-	public <T> Object setProperty(PropertyKey<T> key, T value) throws FrameworkException {
+	public Set<PropertyKey> getPropertyKeys(final String propertyView) {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 
 	@Override
-	public <T> Object setProperty(PropertyKey<T> key, T value, final boolean isCreation) throws FrameworkException {
+	public <T> Object setProperty(final PropertyKey<T> key, final T value) throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 
 	@Override
-	public <T> T getProperty(PropertyKey<T> propertyKey) {
+	public <T> Object setProperty(final PropertyKey<T> key, T value, final boolean isCreation) throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 
 	@Override
-	public <T> T getProperty(PropertyKey<T> propertyKey, Predicate<GraphObject> filter) {
+	public <T> T getProperty(final PropertyKey<T> propertyKey) {
+		throw new UnsupportedOperationException("Not supported by this container.");
+	}
+
+	@Override
+	public <T> T getProperty(final PropertyKey<T> propertyKey, final Predicate<GraphObject> filter) {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 
@@ -231,13 +294,28 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
-	public <T> Comparable getComparableProperty(PropertyKey<T> key) {
+	public boolean isValid(ErrorBuffer errorBuffer) {
+		return false;
+	}
+
+	@Override
+	public boolean isNode() {
+		return false;
+	}
+
+	@Override
+	public boolean isRelationship() {
+		return false;
+	}
+
+	@Override
+	public void removeProperty(final PropertyKey key) throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 
 	@Override
-	public void removeProperty(PropertyKey key) throws FrameworkException {
-		throw new UnsupportedOperationException("Not supported by this container.");
+	public boolean systemPropertiesUnlocked() {
+		return false;
 	}
 
 	@Override
@@ -246,62 +324,37 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
+	public void lockSystemProperties() {
+
+	}
+
+	@Override
+	public boolean readOnlyPropertiesUnlocked() {
+		return false;
+	}
+
+	@Override
 	public void unlockReadOnlyPropertiesOnce() {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 
 	@Override
-	public boolean isValid(ErrorBuffer errorBuffer) {
-		throw new UnsupportedOperationException("Not supported by this container.");
+	public void lockReadOnlyProperties() {
+
 	}
 
 	@Override
-	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
-		throw new UnsupportedOperationException("Not supported by this container.");
+	public boolean isGranted(Permission permission, SecurityContext securityContext) {
+		return false;
 	}
 
 	@Override
-	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, ModificationQueue modificationQueue) throws FrameworkException {
-		throw new UnsupportedOperationException("Not supported by this container.");
+	public boolean isGranted(Permission permission, SecurityContext securityContext, boolean isCreation) {
+		return false;
 	}
 
 	@Override
-	public void onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
-	public void afterCreation(SecurityContext securityContext) {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
-	public void afterModification(SecurityContext securityContext) throws FrameworkException {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
-	public void afterDeletion(SecurityContext securityContext, PropertyMap properties) {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
-	public void ownerModified(SecurityContext securityContext) {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
-	public void securityModified(SecurityContext securityContext) {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
-	public void locationModified(SecurityContext securityContext) {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
-	public void propagatedModification(SecurityContext securityContext) {
+	public void indexPassiveProperties() {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 
@@ -311,8 +364,43 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
-	public void indexPassiveProperties() {
-		throw new UnsupportedOperationException("Not supported by this container.");
+	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+	}
+
+	@Override
+	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, ModificationQueue modificationQueue) throws FrameworkException {
+	}
+
+	@Override
+	public void onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
+	}
+
+	@Override
+	public void afterCreation(SecurityContext securityContext) throws FrameworkException {
+	}
+
+	@Override
+	public void afterModification(SecurityContext securityContext) throws FrameworkException {
+	}
+
+	@Override
+	public void afterDeletion(SecurityContext securityContext, PropertyMap properties) {
+	}
+
+	@Override
+	public void ownerModified(SecurityContext securityContext) {
+	}
+
+	@Override
+	public void securityModified(SecurityContext securityContext) {
+	}
+
+	@Override
+	public void locationModified(SecurityContext securityContext) {
+	}
+
+	@Override
+	public void propagatedModification(SecurityContext securityContext) {
 	}
 
 	@Override
@@ -331,82 +419,12 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
-	public boolean isNode() {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
-	public boolean isRelationship() {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
 	public NodeInterface getSyncNode() {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 
 	@Override
 	public RelationshipInterface getSyncRelationship() {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
-	public int compareTo(Object o) {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
-	public PrincipalInterface getOwnerNode() {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
-	public boolean isGranted(Permission permission, SecurityContext securityContext) {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
-	public void grant(Permission permission, PrincipalInterface principal) throws FrameworkException {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
-	public void grant(Set<Permission> permissions, PrincipalInterface principal) throws FrameworkException {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
-	public void grant(Set<Permission> permissions, PrincipalInterface principal, SecurityContext ctx) throws FrameworkException {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
-	public void revoke(Permission permission, PrincipalInterface principal) throws FrameworkException {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
-	public void revoke(Set<Permission> permissions, PrincipalInterface principal) throws FrameworkException {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
-	public void revoke(Set<Permission> permissions, PrincipalInterface principal, SecurityContext ctx) throws FrameworkException {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
-	public void setAllowed(final Set<Permission> permissions, final PrincipalInterface principal) throws FrameworkException {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
-	public void setAllowed(final Set<Permission> permissions, final PrincipalInterface principal, final SecurityContext ctx) {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
-	public Security getSecurityRelationship(PrincipalInterface principal) {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 
@@ -421,12 +439,12 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
-	public boolean isNotHidden() {
+	public boolean isHidden() {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 
 	@Override
-	public boolean isHidden() {
+	public void setHidden(boolean hidden) throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 
@@ -441,43 +459,18 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
-	public Class getEntityType() {
+	public void setLastModifiedDate(Date date) throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
-	public List<Security> getSecurityRelationships() {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
-	public <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target> boolean hasRelationship(Class<? extends Relation<A, B, S, T>> type) {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
-	public <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> boolean hasIncomingRelationships(Class<R> type) {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
-	public <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> boolean hasOutgoingRelationships(Class<R> type) {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
-	public <A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, OneEndpoint<B>>> R getOutgoingRelationshipAsSuperUser(Class<R> type) {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
-	public <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, OneStartpoint<A>, T>> R getIncomingRelationshipAsSuperUser(Class<R> type) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public Map<String, Object> getTemporaryStorage() {
 		throw new UnsupportedOperationException("Not supported by this container.");
+	}
+
+	@Override
+	public void visitForUsage(Map<String, Object> data) {
+
 	}
 
 	@Override
@@ -488,5 +481,10 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	@Override
 	public boolean changelogEnabled() {
 		return entity.changelogEnabled();
+	}
+
+	@Override
+	public int compareTo(final NodeInterface o) {
+		return 0;
 	}
 }

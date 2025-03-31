@@ -27,33 +27,33 @@ import org.structr.api.DatabaseService;
 import org.structr.api.config.Settings;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Arguments;
+import org.structr.core.api.Methods;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.GenericNode;
-import org.structr.core.entity.PrincipalInterface;
-import org.structr.core.entity.Relation;
-import org.structr.core.graph.FlushCachesCommand;
-import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.Tx;
+import org.structr.core.entity.Principal;
+import org.structr.core.graph.*;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.SchemaService;
-import org.testng.annotations.Optional;
+import org.structr.schema.action.EvaluationHints;
+import org.structr.test.core.traits.definitions.*;
+import org.structr.test.core.traits.definitions.relationships.*;
 import org.testng.annotations.*;
+import org.testng.annotations.Optional;
 
 import java.io.File;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.function.Supplier;
-import org.structr.core.api.AbstractMethod;
-import org.structr.core.api.Arguments;
-import org.structr.core.api.Methods;
-import org.structr.schema.action.EvaluationHints;
-import java.util.LinkedList;
 
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
@@ -109,19 +109,8 @@ public class StructrTest {
 				logger.error("Exception while trying to clean database: {}", t.getMessage());
 			}
 
-
-			try {
-
-				FlushCachesCommand.flushAll();
-
-				SchemaService.ensureBuiltinTypesExist(app);
-
-			} catch (Throwable t) {
-
-				t.printStackTrace();
-				logger.error("Exception while trying to create built-in schema for tenant identifier {}: {}", randomTenantId, t.getMessage());
-
-			}
+			SchemaService.reloadSchema(new ErrorBuffer(), null, false, false);
+			FlushCachesCommand.flushAll();
 		}
 
 		first = false;
@@ -129,7 +118,7 @@ public class StructrTest {
 
 	@Parameters("testDatabaseConnection")
 	@BeforeClass(alwaysRun = true)
-	public void startSystem(@Optional String testDatabaseConnection) {
+	public void startSystem(@Optional final String testDatabaseConnection) {
 
 		final Date now          = new Date();
 		final long timestamp    = now.getTime();
@@ -161,6 +150,41 @@ public class StructrTest {
 		app = StructrApp.getInstance(securityContext);
 	}
 
+	@BeforeMethod(firstTimeOnly = true)
+	public void createSchema() {
+
+		StructrTraits.registerRelationshipType("OneOneOneToOne",                    new OneOneOneToOneTraitDefinition());
+		StructrTraits.registerRelationshipType("OneTwoOneToOne",                    new OneTwoOneToOneTraitDefinition());
+		StructrTraits.registerRelationshipType("OneThreeOneToOne",                  new OneThreeOneToOneTraitDefinition());
+		StructrTraits.registerRelationshipType("OneFourOneToOne",                   new OneFourOneToOneTraitDefinition());
+		StructrTraits.registerRelationshipType("SixOneOneToOne",                    new SixOneOneToOneTraitDefinition());
+		StructrTraits.registerRelationshipType("SixOneOneToMany",                   new SixOneOneToManyTraitDefinition());
+		StructrTraits.registerRelationshipType("SixOneManyToMany",                  new SixOneManyToManyTraitDefinition());
+		StructrTraits.registerRelationshipType("SixThreeOneToMany",                 new SixThreeOneToManyTraitDefinition());
+		StructrTraits.registerRelationshipType("SixThreeOneToOne",                  new SixThreeOneToOneTraitDefinition());
+		StructrTraits.registerRelationshipType("SixThreeOneToManyCascadeBoth",      new SixThreeOneToManyCascadeBothTraitDefinition());
+		StructrTraits.registerRelationshipType("SixThreeOneToManyCascadeIncoming",  new SixThreeOneToManyCascadeIncomingTraitDefinition());
+		StructrTraits.registerRelationshipType("SixThreeOneToManyCascadeOutgoing",  new SixThreeOneToManyCascadeOutgoingTraitDefinition());
+		StructrTraits.registerRelationshipType("SixNineOneToManyCascadeConstraint", new SixNineOneToManyCascadeConstraintTraitDefinition());
+		StructrTraits.registerRelationshipType("TenTenOneToMany",                   new TenTenOneToManyTraitDefinition());
+		StructrTraits.registerRelationshipType("TenTenOneToOne",                    new TenTenOneToOneTraitDefinition());
+		StructrTraits.registerRelationshipType("TwoOneOneToOne",                    new TwoOneOneToOneTraitDefinition());
+
+		StructrTraits.registerNodeType("TestOne",      new TestOneTraitDefinition());
+		StructrTraits.registerNodeType("TestTwo",      new TestTwoTraitDefinition());
+		StructrTraits.registerNodeType("TestThree",    new TestThreeTraitDefinition());
+		StructrTraits.registerNodeType("TestFour",     new TestFourTraitDefinition());
+		StructrTraits.registerNodeType("TestFive",     new TestFiveTraitDefinition());
+		StructrTraits.registerNodeType("TestSix",      new TestSixTraitDefinition());
+		StructrTraits.registerNodeType("TestSeven",    new TestSevenTraitDefinition());
+		StructrTraits.registerNodeType("TestEight",    new TestEightTraitDefinition());
+		StructrTraits.registerNodeType("TestNine",     new TestNineTraitDefinition());
+		StructrTraits.registerNodeType("TestTen",      new TestTenTraitDefinition());
+		StructrTraits.registerNodeType("TestEleven",   new TestOneTraitDefinition(), new TestElevenTraitDefinition());
+		StructrTraits.registerNodeType("TestTwelve",   new TestOneTraitDefinition(), new TestTwelveTraitDefinition());
+		StructrTraits.registerNodeType("TestThirteen", new TestThirteenTraitDefinition());
+	}
+
 	@AfterClass(alwaysRun = true)
 	public void stopSystem() {
 
@@ -182,16 +206,17 @@ public class StructrTest {
 		}
 	}
 
-	protected <T extends NodeInterface> List<T> createTestNodes(final Class<T> type, final int number, final long delay) throws FrameworkException {
+	protected List<NodeInterface> createTestNodes(final String type, final int number, final long delay) throws FrameworkException {
 
 		try (final Tx tx = app.tx()) {
 
-			final PropertyMap properties = new PropertyMap();
-			final List<T> nodes          = new LinkedList<>();
+			final PropertyMap properties    = new PropertyMap();
+			final List<NodeInterface> nodes = new LinkedList<>();
+			final Traits traits             = Traits.of(type);
 
-			properties.put(NodeInterface.visibleToAuthenticatedUsers, false);
-			properties.put(NodeInterface.visibleToPublicUsers, false);
-			properties.put(NodeInterface.hidden, false);
+			properties.put(traits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), false);
+			properties.put(traits.key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), false);
+			properties.put(traits.key(NodeInterfaceTraitDefinition.HIDDEN_PROPERTY), false);
 
 			for (int i = 0; i < number; i++) {
 
@@ -209,38 +234,40 @@ public class StructrTest {
 
 		} catch (Throwable t) {
 
+			t.printStackTrace();
+
 			logger.warn("Unable to create test nodes of type {}: {}", type, t.getMessage());
 		}
 
 		return null;
 	}
 
-	protected <T extends NodeInterface> List<T> createTestNodes(final Class<T> type, final int number) throws FrameworkException {
+	protected List<NodeInterface> createTestNodes(final String type, final int number) throws FrameworkException {
 
 		return createTestNodes(type, number, 0);
 
 	}
 
-	protected <T extends NodeInterface> T createTestNode(final Class<T> type) throws FrameworkException {
-		return (T) createTestNode(type, new PropertyMap());
+	protected NodeInterface createTestNode(final String type) throws FrameworkException {
+		return createTestNode(type, new PropertyMap());
 	}
 
-	protected <T extends NodeInterface> T createTestNode(final Class<T> type, final String name) throws FrameworkException {
+	protected NodeInterface createTestNode(final String type, final String name) throws FrameworkException {
 
 		final PropertyMap map = new PropertyMap();
 
-		map.put(AbstractNode.name, name);
+		map.put(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name);
 
-		return (T) createTestNode(type, map);
+		return createTestNode(type, map);
 	}
 
-	protected <T extends NodeInterface> T createTestNode(final Class<T> type, final PropertyMap props) throws FrameworkException {
+	protected NodeInterface createTestNode(final String type, final PropertyMap props) throws FrameworkException {
 
-		props.put(AbstractNode.type, type.getSimpleName());
+		props.put(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY), type);
 
 		try (final Tx tx = app.tx()) {
 
-			final T newNode = app.create(type, props);
+			final NodeInterface newNode = app.create(type, props);
 
 			tx.success();
 
@@ -249,11 +276,11 @@ public class StructrTest {
 
 	}
 
-	protected <T extends NodeInterface> T createTestNode(final Class<T> type, final NodeAttribute... attributes) throws FrameworkException {
+	protected NodeInterface createTestNode(final String type, final NodeAttribute... attributes) throws FrameworkException {
 
 		try (final Tx tx = app.tx()) {
 
-			final T newNode = app.create(type, attributes);
+			final NodeInterface newNode = app.create(type, attributes);
 
 			tx.success();
 
@@ -262,33 +289,34 @@ public class StructrTest {
 
 	}
 
-	protected <T extends Relation> List<T> createTestRelationships(final Class<T> relType, final int number) throws FrameworkException {
+	protected List<RelationshipInterface> createTestRelationships(final String type1, final String type2, final String relType, final int number) {
 
-		List<GenericNode> nodes = createTestNodes(GenericNode.class, 2);
-		final NodeInterface startNode = nodes.get(0);
-		final NodeInterface endNode = nodes.get(1);
+		List<RelationshipInterface> rels = new LinkedList<>();
 
 		try (final Tx tx = app.tx()) {
 
-			List<T> rels = new LinkedList<>();
+			final NodeInterface startNode    = createTestNode(type1);
+			final NodeInterface endNode      = createTestNode(type2);
 
 			for (int i = 0; i < number; i++) {
 
-				rels.add((T) app.create(startNode, endNode, relType));
+				rels.add(app.create(startNode, endNode, relType));
 			}
 
 			tx.success();
 
-			return rels;
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
 		}
 
+		return rels;
 	}
 
-	protected <T extends Relation> T createTestRelationship(final NodeInterface startNode, final NodeInterface endNode, final Class<T> relType) throws FrameworkException {
+	protected RelationshipInterface createTestRelationship(final NodeInterface startNode, final NodeInterface endNode, final String relType) throws FrameworkException {
 
 		try (final Tx tx = app.tx()) {
 
-			final T rel = (T) app.create(startNode, endNode, relType);
+			final RelationshipInterface rel = app.create(startNode, endNode, relType);
 
 			tx.success();
 
@@ -296,17 +324,17 @@ public class StructrTest {
 		}
 	}
 
-	protected <T extends AbstractNode> T createTestNode(final Class<T> type, final PrincipalInterface owner) throws FrameworkException {
-		return (T)createTestNode(type, new PropertyMap(), owner);
+	protected NodeInterface createTestNode(final String type, final Principal owner) throws FrameworkException {
+		return createTestNode(type, new PropertyMap(), owner);
 	}
 
-	protected <T extends AbstractNode> T createTestNode(final Class<T> type, final PropertyMap props, final PrincipalInterface owner) throws FrameworkException {
+	protected NodeInterface createTestNode(final String type, final PropertyMap props, final Principal owner) throws FrameworkException {
 
 		final App backendApp = StructrApp.getInstance(SecurityContext.getInstance(owner, AccessMode.Backend));
 
 		try (final Tx tx = backendApp.tx()) {
 
-			final T result = backendApp.create(type, props);
+			final NodeInterface result = backendApp.create(type, props);
 			tx.success();
 
 			return result;
@@ -353,20 +381,16 @@ public class StructrTest {
 		return map;
 	}
 
-	protected Class getType(final String typeName) {
-		return StructrApp.getConfiguration().getNodeEntityClass(typeName);
-	}
-
 	protected PropertyKey<String> getKey(final String typeName, final String keyName) {
 		return getKey(typeName, keyName, String.class);
 	}
 
-	protected <T> PropertyKey<T> getKey(final String typeName, final String keyName, final Class<T> desiredType) {
+	protected <T> PropertyKey<T> getKey(final String typeName, final String keyName, final Class<T> desiredTyp) {
 
-		final Class type = getType(typeName);
+		final Traits type = Traits.of(typeName);
 		if (type != null) {
 
-			return StructrApp.key(type, keyName);
+			return type.key(keyName);
 		}
 
 		return null;
@@ -427,9 +451,9 @@ public class StructrTest {
 		}
 	}
 
-	protected Object invokeMethod(final SecurityContext securityContext, final AbstractNode node, final String methodName, final Map<String, Object> parameters, final boolean throwIfNotExists, final EvaluationHints hints) throws FrameworkException {
+	protected Object invokeMethod(final SecurityContext securityContext, final NodeInterface node, final String methodName, final Map<String, Object> parameters, final boolean throwIfNotExists, final EvaluationHints hints) throws FrameworkException {
 
-		final AbstractMethod method = Methods.resolveMethod(node.getClass(), methodName);
+		final AbstractMethod method = Methods.resolveMethod(node.getTraits(), methodName);
 		if (method != null) {
 
 			hints.reportExistingKey(methodName);

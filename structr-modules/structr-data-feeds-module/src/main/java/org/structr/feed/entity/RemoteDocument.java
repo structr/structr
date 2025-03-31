@@ -18,17 +18,7 @@
  */
 package org.structr.feed.entity;
 
-import org.apache.commons.lang3.StringUtils;
-import org.structr.api.config.Settings;
-import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.common.fulltext.Indexable;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.IntProperty;
-import org.structr.core.property.LongProperty;
-import org.structr.core.property.Property;
-import org.structr.core.property.StringProperty;
-import org.structr.rest.common.HttpHelper;
+import org.structr.core.graph.NodeInterface;
 
 import java.io.InputStream;
 
@@ -36,64 +26,14 @@ import java.io.InputStream;
  *
  *
  */
-public class RemoteDocument extends AbstractNode implements Indexable {
+public interface RemoteDocument extends NodeInterface {
 
-	public static final Property<String> urlProperty              = new StringProperty("url");
-	public static final Property<Long> checksumProperty           = new LongProperty("checksum").readOnly();
-	public static final Property<Integer> cacheForSecondsProperty = new IntProperty("cacheForSeconds");
-	public static final Property<Integer> versionProperty         = new IntProperty("version").readOnly();
-
-	public static final View defaultView = new View(RemoteDocument.class, PropertyView.Public,
-		name, owner, urlProperty
-	);
-
-	public static final View uiView = new View(RemoteDocument.class, PropertyView.Ui,
-		urlProperty, checksumProperty, cacheForSecondsProperty, versionProperty
-	);
-
-	public String getUrl() {
-		return getProperty(urlProperty);
-	}
-
-	@Override
-	public InputStream getInputStream() {
-
-		final String remoteUrl = getUrl();
-		if (StringUtils.isNotBlank(remoteUrl)) {
-
-			return HttpHelper.getAsStream(remoteUrl);
-		}
-
-		return null;
-	}
-
-	@Override
-	public boolean indexingEnabled() {
-		return Settings.RemoteDocumentIndexingEnabled.getValue();
-	}
-
-	@Override
-	public Integer maximumIndexedWords() {
-		return Settings.RemoteDocumentIndexingLimit.getValue();
-	}
-
-	@Override
-	public Integer indexedWordMinLength() {
-		return Settings.RemoteDocumentIndexingMinLength.getValue();
-	}
-
-	@Override
-	public Integer indexedWordMaxLength() {
-		return Settings.RemoteDocumentIndexingMaxLength.getValue();
-	}
-
-	@Override
-	public String getExtractedContent() {
-		return getProperty(extractedContentProperty);
-	}
-
-	@Override
-	public String getContentType() {
-		return getProperty(contentTypeProperty);
-	}
+	String getUrl();
+	InputStream getInputStream();
+	boolean indexingEnabled();
+	Integer maximumIndexedWords();
+	Integer indexedWordMinLength();
+	Integer indexedWordMaxLength();
+	String getExtractedContent();
+	String getContentType();
 }

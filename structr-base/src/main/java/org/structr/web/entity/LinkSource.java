@@ -18,32 +18,14 @@
  */
 package org.structr.web.entity;
 
-import org.structr.common.PropertyView;
-import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.EndNode;
-import org.structr.core.property.EntityIdProperty;
-import org.structr.core.property.Property;
-import org.structr.web.entity.html.relationship.LinkSourceLINKLinkable;
 
 /**
  * This class represents elements which can have an outgoing link to a resource.
  */
 public interface LinkSource extends NodeInterface {
 
-	Property<Linkable> linkableProperty = new EndNode<>("linkable", LinkSourceLINKLinkable.class).partOfBuiltInSchema();
-	Property<String> linkableIdProperty = new EntityIdProperty<>("linkableId", linkableProperty).partOfBuiltInSchema();
-
-	View uiView = new View(LinkSource.class, PropertyView.Ui,
-		linkableProperty, linkableIdProperty
-	);
-
-	default Linkable getLinkable() {
-		return getProperty(linkableProperty);
-	}
-
-	default Object setLinkable(final Linkable linkable) throws FrameworkException {
-		return setProperty(linkableProperty, linkable);
-	}
+	Linkable getLinkable();
+	Object setLinkable(final Linkable linkable) throws FrameworkException;
 }

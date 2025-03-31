@@ -21,10 +21,13 @@ package org.structr.test.web.advanced;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.SchemaNode;
-import org.structr.core.entity.SchemaProperty;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
 import org.structr.test.web.StructrUiTest;
 import org.testng.annotations.Test;
 
@@ -48,15 +51,15 @@ public class PropertyTest extends StructrUiTest {
 		// schema setup
 		try (final Tx tx = app.tx()) {
 
-			final SchemaNode test  = app.create(SchemaNode.class,
-				new NodeAttribute<>(SchemaNode.name, "Test")
+			final NodeInterface test  = app.create(StructrTraits.SCHEMA_NODE,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Test")
 			);
 
-			app.create(SchemaProperty.class,
-					new NodeAttribute<>(SchemaProperty.name, "ownerPrincipalEmail"),
-					new NodeAttribute<>(SchemaProperty.propertyType, "Notion"),
-					new NodeAttribute<>(SchemaProperty.format, "owner, User.eMail"),
-					new NodeAttribute<>(SchemaProperty.schemaNode, test)
+			app.create(StructrTraits.SCHEMA_PROPERTY,
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "ownerPrincipalEmail"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "Notion"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.FORMAT_PROPERTY), "owner, User.eMail"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), test)
 			);
 
 			tx.success();

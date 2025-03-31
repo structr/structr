@@ -27,6 +27,9 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 
 import java.util.Map;
 import java.util.Map.Entry;
@@ -42,9 +45,10 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
 	@Override
 	public void execute(final Map<String, Object> properties) throws FrameworkException {
 
-		final DatabaseService graphDb = (DatabaseService) arguments.get("graphDb");
-		final App app                 = StructrApp.getInstance();
-		Class relationshipTypeClass   = AbstractRelationship.class;
+		final DatabaseService graphDb        = (DatabaseService) arguments.get("graphDb");
+		final App app                        = StructrApp.getInstance();
+		final PropertyKey<String> idProperty = Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY);
+		String relationshipTypeClass         = StructrTraits.RELATIONSHIP_INTERFACE;
 
 		if (graphDb != null) {
 
@@ -54,7 +58,7 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
 
 				properties.remove(typeName);
 
-				relationshipTypeClass = StructrApp.getConfiguration().getRelationshipEntityClass(typeName);
+				relationshipTypeClass = typeName;
 			}
 
 			final long count = bulkGraphOperation(securityContext, app.relationshipQuery(relationshipTypeClass), 1000, "SetRelationshipProperties", new BulkGraphOperation<AbstractRelationship>() {
@@ -63,14 +67,14 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
 				public boolean handleGraphObject(SecurityContext securityContext, AbstractRelationship rel) {
 
 					// Treat only "our" nodes
-					if (rel.getProperty(AbstractRelationship.id) != null) {
+					if (rel.getProperty(idProperty) != null) {
 
 						for (Entry entry : properties.entrySet()) {
 
 							String key = (String) entry.getKey();
 							Object val = entry.getValue();
 
-							PropertyKey propertyKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(rel.getClass(), key);
+							PropertyKey propertyKey = rel.getTraits().key(key);
 							if (propertyKey != null) {
 
 								try {

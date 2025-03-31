@@ -19,6 +19,7 @@
 package org.structr.common.error;
 
 import com.google.gson.*;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
 

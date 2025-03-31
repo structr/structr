@@ -77,6 +77,11 @@ public class LowercaseStringProperty extends AbstractPrimitiveProperty<String> {
 	}
 
 	@Override
+	public boolean isArray() {
+		return false;
+	}
+
+	@Override
 	public String typeName() {
 		return "String";
 	}

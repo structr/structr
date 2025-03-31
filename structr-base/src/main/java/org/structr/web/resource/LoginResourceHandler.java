@@ -18,15 +18,9 @@
  */
 package org.structr.web.resource;
 
-import java.io.UnsupportedEncodingException;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.rest.api.RESTCallHandler;
 import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -34,19 +28,23 @@ import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.auth.exception.AuthenticationException;
-import org.structr.core.auth.exception.PasswordChangeRequiredException;
-import org.structr.core.auth.exception.TooManyFailedLoginAttemptsException;
-import org.structr.core.auth.exception.TwoFactorAuthenticationFailedException;
-import org.structr.core.auth.exception.TwoFactorAuthenticationRequiredException;
-import org.structr.core.auth.exception.TwoFactorAuthenticationTokenInvalidException;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.auth.exception.*;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.RESTCall;
+import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.function.BarcodeFunction;
+
+import java.io.UnsupportedEncodingException;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  */
@@ -70,75 +68,84 @@ public class LoginResourceHandler extends RESTCallHandler {
 	@Override
 	public RestMethodResult doPost(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
 
-		final String username       = (String) propertySet.get("name");
-		final String email          = (String) propertySet.get("eMail");
-		final String password       = (String) propertySet.get("password");
-		final String twoFactorToken = (String) propertySet.get("twoFactorToken");
-		final String twoFactorCode  = (String) propertySet.get("twoFactorCode");
-
-		String emailOrUsername = StringUtils.isNotEmpty(email) ? email : username;
-
-		if (StringUtils.contains(emailOrUsername, "@")) {
-			emailOrUsername = emailOrUsername.trim().toLowerCase();
-		}
-
 		RestMethodResult returnedMethodResult = null;
-		final SecurityContext ctx             = SecurityContext.getSuperUserInstance();
-		final App app                         = StructrApp.getInstance(ctx);
-		PrincipalInterface user                        = null;
-		long userId                           = -1;
+		long userId = -1;
 
-		if (Settings.CallbacksOnLogin.getValue() == false) {
-			ctx.disableInnerCallbacks();
-		}
+		try {
 
-		try (final Tx tx = app.tx(true, true, true)) {
+			final String username       = (String) propertySet.get(NodeInterfaceTraitDefinition.NAME_PROPERTY);
+			final String email          = (String) propertySet.get(PrincipalTraitDefinition.EMAIL_PROPERTY);
+			final String password       = (String) propertySet.get(PrincipalTraitDefinition.PASSWORD_PROPERTY);
+			final String twoFactorToken = (String) propertySet.get(PrincipalTraitDefinition.TWO_FACTOR_TOKEN_PROPERTY);
+			final String twoFactorCode  = (String) propertySet.get("twoFactorCode");
 
-			try {
+			String emailOrUsername = StringUtils.isNotEmpty(email) ? email : username;
 
-				user = getUserForCredentials(securityContext, emailOrUsername, password, twoFactorToken, twoFactorCode, propertySet);
-				returnedMethodResult = doLogin(securityContext, user);
-
-				userId = user.getNode().getId().getId();
-
-			} catch (PasswordChangeRequiredException | TooManyFailedLoginAttemptsException | TwoFactorAuthenticationFailedException | TwoFactorAuthenticationTokenInvalidException ex) {
-
-				logger.info("Unable to login {}: {}", emailOrUsername, ex.getMessage());
-				returnedMethodResult = new RestMethodResult(401, ex.getMessage());
-				returnedMethodResult.addHeader("reason", ex.getReason());
-
-			} catch (TwoFactorAuthenticationRequiredException ex) {
-
-				returnedMethodResult = new RestMethodResult(202);
-				returnedMethodResult.addHeader("token", ex.getNextStepToken());
-				returnedMethodResult.addHeader("twoFactorLoginPage", Settings.TwoFactorLoginPage.getValue());
-
-				if (ex.showQrCode()) {
-
-					try {
-
-						user            = ex.getUser();
-						final Map<String, Object> hints = new HashMap();
-
-						hints.put("MARGIN", 0);
-						hints.put("ERROR_CORRECTION", "M");
-
-						returnedMethodResult.addHeader("qrdata", Base64.getUrlEncoder().encodeToString(BarcodeFunction.getQRCode(user.getTwoFactorUrl(), "QR_CODE", 200, 200, hints).getBytes("ISO-8859-1")));
-
-					} catch (UnsupportedEncodingException uee) {
-						logger.warn("Charset ISO-8859-1 not supported!?", uee);
-					}
-				}
-
-				securityContext.getAuthenticator().doLogout(securityContext.getRequest());
-
-			} catch (AuthenticationException ae) {
-
-				logger.info("Invalid credentials for {}", emailOrUsername);
-				returnedMethodResult = new RestMethodResult(401, ae.getMessage());
+			if (StringUtils.contains(emailOrUsername, "@")) {
+				emailOrUsername = emailOrUsername.trim().toLowerCase();
 			}
 
-			tx.success();
+			final SecurityContext ctx = SecurityContext.getSuperUserInstance();
+			final App app = StructrApp.getInstance(ctx);
+			Principal user = null;
+
+			if (Settings.CallbacksOnLogin.getValue() == false) {
+				ctx.disableInnerCallbacks();
+			}
+
+			try (final Tx tx = app.tx(true, true, true)) {
+
+				try {
+
+					user = getUserForCredentials(securityContext, emailOrUsername, password, twoFactorToken, twoFactorCode, propertySet);
+					returnedMethodResult = doLogin(securityContext, user);
+
+					userId = user.getNode().getId().getId();
+
+				} catch (PasswordChangeRequiredException | TooManyFailedLoginAttemptsException | TwoFactorAuthenticationFailedException | TwoFactorAuthenticationTokenInvalidException ex) {
+
+					logger.info("Unable to login {}: {}", emailOrUsername, ex.getMessage());
+					returnedMethodResult = new RestMethodResult(401, ex.getMessage());
+					returnedMethodResult.addHeader("reason", ex.getReason());
+
+				} catch (TwoFactorAuthenticationRequiredException ex) {
+
+					returnedMethodResult = new RestMethodResult(202);
+					returnedMethodResult.addHeader("token", ex.getNextStepToken());
+					returnedMethodResult.addHeader("twoFactorLoginPage", Settings.TwoFactorLoginPage.getValue());
+
+					if (ex.showQrCode()) {
+
+						try {
+
+							user = ex.getUser();
+							final Map<String, Object> hints = new HashMap();
+
+							hints.put("MARGIN", 0);
+							hints.put("ERROR_CORRECTION", "M");
+
+							returnedMethodResult.addHeader("qrdata", Base64.getUrlEncoder().encodeToString(BarcodeFunction.getQRCode(user.getTwoFactorUrl(), "QR_CODE", 200, 200, hints).getBytes("ISO-8859-1")));
+
+						} catch (UnsupportedEncodingException uee) {
+							logger.warn("Charset ISO-8859-1 not supported!?", uee);
+						}
+					}
+
+					securityContext.getAuthenticator().doLogout(securityContext.getRequest());
+
+				} catch (AuthenticationException ae) {
+
+					logger.info("Invalid credentials for {}", emailOrUsername);
+					returnedMethodResult = new RestMethodResult(401, ae.getMessage());
+				}
+
+				tx.success();
+			}
+
+		} catch (ClassCastException cce) {
+
+			logger.info("Unable to process login data. All attributes must be or type String.");
+			returnedMethodResult = new RestMethodResult(401, "Unable to process login data. All attributes must be of type String.");
 		}
 
 		if (returnedMethodResult == null) {
@@ -146,14 +153,16 @@ public class LoginResourceHandler extends RESTCallHandler {
 			throw new AuthenticationException(getErrorMessage());
 		}
 
-		// broadcast login to cluster for the user
-		Services.getInstance().broadcastLogin(userId);
+		if (userId != -1) {
+			// broadcast login to cluster for the user
+			Services.getInstance().broadcastLogin(userId);
+		}
 
 		return returnedMethodResult;
 	}
 
 	@Override
-	public Class getEntityClass(final SecurityContext securityContext) {
+	public String getTypeName(final SecurityContext securityContext) {
 		return null;
 	}
 
@@ -168,14 +177,14 @@ public class LoginResourceHandler extends RESTCallHandler {
 	}
 
 	// ----- protected methods -----
-	protected PrincipalInterface getUserForCredentials(final SecurityContext securityContext, final String emailOrUsername, final String password, final String twoFactorToken, final String twoFactorCode, final Map<String, Object> propertySet) throws FrameworkException {
+	protected Principal getUserForCredentials(final SecurityContext securityContext, final String emailOrUsername, final String password, final String twoFactorToken, final String twoFactorCode, final Map<String, Object> propertySet) throws FrameworkException {
 
 		final String superUserName = Settings.SuperUserName.getValue();
 		if (StringUtils.equals(superUserName, emailOrUsername)) {
 			throw new AuthenticationException("login with superuser not supported.");
 		}
 
-		PrincipalInterface user = null;
+		Principal user = null;
 
 		user = getUserForTwoFactorTokenOrEmailOrUsername(securityContext, twoFactorToken, emailOrUsername, password);
 
@@ -191,15 +200,15 @@ public class LoginResourceHandler extends RESTCallHandler {
 		return null;
 	}
 
-	protected PrincipalInterface getUserForTwoFactorTokenOrEmailOrUsername(final SecurityContext securityContext, final String twoFactorToken, final String emailOrUsername, final String password) throws FrameworkException {
+	protected Principal getUserForTwoFactorTokenOrEmailOrUsername(final SecurityContext securityContext, final String twoFactorToken, final String emailOrUsername, final String password) throws FrameworkException {
 
-		PrincipalInterface user = null;
+		Principal user = null;
 
 		if (StringUtils.isNotEmpty(twoFactorToken)) {
 
 			user = AuthHelper.getUserForTwoFactorToken(twoFactorToken);
 
-		} else if (StringUtils.isNotEmpty(emailOrUsername) && StringUtils.isNotEmpty(password)) {
+		} else {
 
 			user = securityContext.getAuthenticator().doLogin(securityContext.getRequest(), emailOrUsername, password);
 		}
@@ -207,7 +216,7 @@ public class LoginResourceHandler extends RESTCallHandler {
 		return user;
 	}
 
-	protected RestMethodResult doLogin(final SecurityContext securityContext, final PrincipalInterface user) throws FrameworkException {
+	protected RestMethodResult doLogin(final SecurityContext securityContext, final Principal user) throws FrameworkException {
 
 		AuthHelper.doLogin(securityContext.getRequest(), user);
 
@@ -223,7 +232,7 @@ public class LoginResourceHandler extends RESTCallHandler {
 		return createRestMethodResult(user);
 	}
 
-	protected RestMethodResult createRestMethodResult(final PrincipalInterface user) {
+	protected RestMethodResult createRestMethodResult(final Principal user) {
 
 		RestMethodResult  returnedMethodResult = new RestMethodResult(200);
 		returnedMethodResult.addContent(user);

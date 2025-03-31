@@ -18,67 +18,13 @@
  */
 package org.structr.core.entity;
 
-import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
-import org.structr.common.View;
-import org.structr.common.error.ErrorBuffer;
-import org.structr.common.error.FrameworkException;
-import org.structr.common.helper.ValidationHelper;
-import org.structr.core.function.LocalizeFunction;
-import org.structr.core.graph.ModificationQueue;
-import org.structr.core.property.BooleanProperty;
-import org.structr.core.property.Property;
-import org.structr.core.property.PropertyMap;
-import org.structr.core.property.StringProperty;
+import org.structr.core.graph.NodeInterface;
 
-public class Localization extends AbstractNode {
+public interface Localization extends NodeInterface {
 
-	public static final Property<String> localizedNameProperty = new StringProperty("localizedName").indexed().partOfBuiltInSchema();
-	public static final Property<String> domainProperty        = new StringProperty("domain").indexed().partOfBuiltInSchema();
-	public static final Property<String> localeProperty        = new StringProperty("locale").notNull().indexed().partOfBuiltInSchema();
-	public static final Property<Boolean> importedProperty     = new BooleanProperty("imported").partOfBuiltInSchema();
+	String getLocalizedName();
+	String getLocale();
+	String getDomain();
 
-	public static final View defaultView = new View(Localization.class, PropertyView.Public,
-		localizedNameProperty, domainProperty, localeProperty, importedProperty
-	);
-
-	public static final View uiView = new View(Localization.class, PropertyView.Ui,
-		localizedNameProperty, domainProperty, localeProperty, importedProperty
-	);
-
-	@Override
-
-	public boolean isValid(final ErrorBuffer errorBuffer) {
-
-		boolean valid = super.isValid(errorBuffer);
-
-		valid &= ValidationHelper.isValidPropertyNotNull(this, Localization.localeProperty, errorBuffer);
-
-		return valid;
-	}
-
-	@Override
-	public void onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
-
-		super.onCreation(securityContext, errorBuffer);
-
-		setProperty(visibleToPublicUsers, true);
-		setProperty(visibleToAuthenticatedUsers, true);
-
-		LocalizeFunction.invalidateCache();
-	}
-
-	@Override
-	public void onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
-
-		super.onModification(securityContext, errorBuffer, modificationQueue);
-		LocalizeFunction.invalidateCache();
-	}
-
-	@Override
-	public void onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
-
-		super.onDeletion(securityContext, errorBuffer, properties);
-		LocalizeFunction.invalidateCache();
-	}
+	boolean isImported();
 }

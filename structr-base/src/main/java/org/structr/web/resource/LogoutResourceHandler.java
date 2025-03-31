@@ -18,9 +18,6 @@
  */
 package org.structr.web.resource;
 
-import java.util.Map;
-import java.util.Set;
-import org.structr.rest.api.RESTCallHandler;
 import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -29,6 +26,10 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.RESTCall;
+import org.structr.rest.api.RESTCallHandler;
+
+import java.util.Map;
+import java.util.Set;
 
 public class LogoutResourceHandler extends RESTCallHandler {
 
@@ -56,7 +57,7 @@ public class LogoutResourceHandler extends RESTCallHandler {
 	}
 
 	@Override
-	public Class getEntityClass(final SecurityContext securityContext) {
+	public String getTypeName(final SecurityContext securityContext) {
 		return null;
 	}
 

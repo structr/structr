@@ -20,14 +20,15 @@ package org.structr.bolt;
 
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.driver.*;
+import org.neo4j.driver.Record;
 import org.neo4j.driver.exceptions.AuthenticationException;
 import org.neo4j.driver.exceptions.ClientException;
 import org.neo4j.driver.exceptions.DatabaseException;
 import org.neo4j.driver.exceptions.ServiceUnavailableException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.Transaction;
 import org.structr.api.*;
+import org.structr.api.Transaction;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
@@ -40,7 +41,6 @@ import org.structr.api.util.NodeWithOwnerResult;
 
 import java.time.Duration;
 import java.util.*;
-import org.neo4j.driver.Record;
 
 /**
  *
@@ -159,6 +159,35 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 	}
 
 	@Override
+	public Transaction beginTx(boolean forceNew) {
+
+		if (!forceNew) {
+			return beginTx();
+		} else {
+			try {
+				if (neo4jMajorVersion >= 4) {
+
+					return new ReactiveSessionTransaction(this, driver.rxSession(sessionConfig));
+
+				} else {
+
+					return new AsyncSessionTransaction(this, driver.asyncSession());
+				}
+
+
+			} catch (ServiceUnavailableException ex) {
+
+				logger.warn("ServiceUnavailableException in BoltDataBaseService.beginTx(). Retrying with timeout.");
+				return beginTx(1);
+			} catch (ClientException cex) {
+				logger.warn("Cannot connect to Neo4j database server at {}: {}", databaseUrl, cex.getMessage());
+			}
+		}
+
+		return null;
+	}
+
+	@Override
 	public Transaction beginTx() {
 
 		SessionTransaction session = sessions.get();
@@ -247,7 +276,7 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 		properties.put("type", type);
 
 		final SessionTransaction tx            = getCurrentTransaction();
-		final org.neo4j.driver.types.Node node = tx.getNode(buf.toString(), map);
+		final org.neo4j.driver.types.Node node = tx.getNode(new SimpleCypherQuery(buf, map));
 
 		return tx.getNodeWrapper(node);
 	}
@@ -471,9 +500,20 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 	@Override
 	public <T> T execute(final NativeQuery<T> nativeQuery) {
 
+		return execute(nativeQuery, getCurrentTransaction());
+	}
+
+	@Override
+	public <T> T execute(final NativeQuery<T> nativeQuery, final Transaction tx) {
+
+		if (!(tx instanceof SessionTransaction)) {
+
+			throw new IllegalArgumentException("Unsupported transaction type " + tx.toString());
+		}
+
 		if (nativeQuery instanceof AbstractNativeQuery) {
 
-			return (T)((AbstractNativeQuery)nativeQuery).execute(getCurrentTransaction());
+			return (T)((AbstractNativeQuery)nativeQuery).execute((SessionTransaction) tx);
 		}
 
 		throw new IllegalArgumentException("Unsupported query type " + nativeQuery.getClass().getName() + ".");
@@ -557,7 +597,7 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 	}
 
 	Iterable<Map<String, Object>> execute(final String nativeQuery, final Map<String, Object> parameters) {
-		return getCurrentTransaction().run(nativeQuery, parameters);
+		return getCurrentTransaction().run(new SimpleCypherQuery(nativeQuery, parameters));
 	}
 
 	TransactionConfig getTransactionConfig(final long id) {
@@ -606,9 +646,13 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 
 		final String tenantId = getTenantIdentifier();
 		final String part     = tenantId != null ? ":" + tenantId : "";
-		final long nodeCount  = getCount("MATCH (n" + part + ":NodeInterface) RETURN COUNT(n) AS count", "count");
-		final long relCount   = getCount("MATCH (n" + part + ":NodeInterface)-[r]->() RETURN COUNT(r) AS count", "count");
-		final long userCount  = getCount("MATCH (n" + part + ":User) RETURN COUNT(n) AS count", "count");
+		final Long nodeCount  = getCount("MATCH (n" + part + ":NodeInterface) RETURN COUNT(n) AS count", "count");
+		final Long relCount   = getCount("MATCH (n" + part + ":NodeInterface)-[r]->() RETURN COUNT(r) AS count", "count");
+		final Long userCount  = getCount("MATCH (n" + part + ":User) RETURN COUNT(n) AS count", "count");
+
+		if (nodeCount == null || relCount == null || userCount == null) {
+			throw new RuntimeException("Unable to fetch database counts.");
+		}
 
 		return new CountResult(nodeCount, relCount, userCount);
 	}
@@ -663,32 +707,31 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 		return Map.of();
 	}
 
+	@Override
+	public void flushCaches() {
+		SessionTransaction.flushCaches();
+	}
+
 	// ----- private methods -----
 	private String getNeo4jVersion() {
 
-		try {
+		try (final Session session = driver.session()) {
 
-			try (final Session session = driver.session()) {
+			try (final org.neo4j.driver.Transaction tx = session.beginTransaction()) {
 
-				try (final org.neo4j.driver.Transaction tx = session.beginTransaction()) {
+				final Result result     = tx.run("CALL dbms.components() YIELD versions UNWIND versions AS version RETURN version");
+				final List<Record> list = result.list();
 
-					final Result result     = tx.run("CALL dbms.components() YIELD versions UNWIND versions AS version RETURN version");
-					final List<Record> list = result.list();
+				for (final Record record : list) {
 
-					for (final Record record : list) {
+					final Value version = record.get("version");
+					if (!version.isNull() && !version.isEmpty()) {
 
-						final Value version = record.get("version");
-						if (!version.isNull() && !version.isEmpty()) {
-
-							return version.asString();
-						}
+						return version.asString();
 					}
-
 				}
-			}
 
-		} catch (Throwable t) {
-			t.printStackTrace();
+			}
 		}
 
 		return "0.0.0";
@@ -744,12 +787,12 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 		}
 
 		@Override
-		public Class getSourceType() {
+		public String getSourceType() {
 			return null;
 		}
 
 		@Override
-		public Class getTargetType() {
+		public String getTargetType() {
 			return null;
 		}
 

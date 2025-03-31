@@ -25,6 +25,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.traits.Traits;
 
 import java.util.Collection;
 import java.util.Map;
@@ -36,31 +37,29 @@ import java.util.Map;
  */
 public class ElementCounter extends AbstractReadOnlyProperty<Integer> {
 
-	private Property<? extends Iterable> collectionProperty = null;
+	private final String collectionPropertyBaseType;
+	private final String collectionPropertyName;
 
-	public ElementCounter(String name) {
-		this(name, null);
-	}
-
-	public ElementCounter(String name, Property<? extends Iterable> collectionProperty) {
+	public ElementCounter(final String name, final String baseType, final String propertyName) {
 		super(name);
 
-		this.collectionProperty = collectionProperty;
+		this.collectionPropertyBaseType = baseType;
+		this.collectionPropertyName     = propertyName;
 	}
 
 	@Override
-	public Integer getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+	public Integer getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter) {
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
 	@Override
-	public Integer getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
+	public Integer getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		int count = 0;
 
 		if(obj != null) {
 
-			Object toCount = obj.getProperty(collectionProperty);
+			Object toCount = obj.getProperty(Traits.of(collectionPropertyBaseType).key(collectionPropertyName));
 			if(toCount != null) {
 
 				if (toCount instanceof Collection) {
@@ -85,7 +84,7 @@ public class ElementCounter extends AbstractReadOnlyProperty<Integer> {
 	}
 
 	@Override
-	public Class relatedType() {
+	public String relatedType() {
 		return null;
 	}
 
@@ -96,6 +95,11 @@ public class ElementCounter extends AbstractReadOnlyProperty<Integer> {
 
 	@Override
 	public boolean isCollection() {
+		return false;
+	}
+
+	@Override
+	public boolean isArray() {
 		return false;
 	}
 

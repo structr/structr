@@ -82,6 +82,11 @@ public class MappedProperty<T> extends AbstractPrimitiveProperty<T> {
 		return null;
 	}
 
+	@Override
+	public boolean isArray() {
+		return mappedKey.isArray();
+	}
+
 	// ----- OpenAPI -----
 	@Override
 	public Object getExampleValue(final String type, final String viewName) {

@@ -43,12 +43,13 @@ public class MergeUniqueFunction extends CoreFunction {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		final Set result = new LinkedHashSet<>();
+
 		for (final Object source : sources) {
 
-			if (source instanceof Iterable) {
+			if (source instanceof Iterable iterable) {
 
 				// filter null objects
-				for (Object obj : (Iterable)source) {
+				for (Object obj : iterable) {
 
 					if (obj != null) {
 

@@ -18,7 +18,7 @@
  */
 package org.structr.api;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.RelationshipType;
 
@@ -91,6 +91,16 @@ public abstract class AbstractDatabaseService implements DatabaseService {
 		@Override
 		public String name() {
 			return name;
+		}
+
+		@Override
+		public String getSourceType() {
+			return null;
+		}
+
+		@Override
+		public String getTargetType() {
+			return null;
 		}
 
 		@Override

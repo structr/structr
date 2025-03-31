@@ -19,12 +19,12 @@
 package org.structr.websocket.command.dom;
 
 import org.apache.commons.lang3.StringUtils;
+import org.structr.common.error.FrameworkException;
 import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.entity.dom.Page;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
-import org.w3c.dom.DOMException;
-import org.w3c.dom.Document;
 
 import java.util.Map;
 
@@ -90,16 +90,14 @@ public class CreateAndInsertRelativeToDOMNodeCommand extends CreateAndAppendDOMN
 			return;
 		}
 
-		final Document document = getPage(pageId);
-
+		final Page document = getPage(pageId);
 		if (document == null) {
 
 			getWebSocket().send(MessageBuilder.status().code(404).message("Page not found").build(), true);
 			return;
 		}
 
-		final DOMNode parentNode = (DOMNode) refNode.getParentNode();
-
+		final DOMNode parentNode = refNode.getParent();
 		if (parentNode == null) {
 			getWebSocket().send(MessageBuilder.status().code(404).message("Node has no parent node").build(), true);
 			return;
@@ -147,7 +145,7 @@ public class CreateAndInsertRelativeToDOMNodeCommand extends CreateAndAppendDOMN
 				// create a child text node if content is given
 				if (StringUtils.isNotBlank(childContent)) {
 
-					final DOMNode childNode = (DOMNode)document.createTextNode(childContent);
+					final DOMNode childNode = document.createTextNode(childContent);
 
 					newNode.appendChild(childNode);
 
@@ -163,10 +161,10 @@ public class CreateAndInsertRelativeToDOMNodeCommand extends CreateAndAppendDOMN
 				}
 			}
 
-		} catch (DOMException dex) {
+		} catch (FrameworkException fex) {
 
 			// send DOM exception
-			getWebSocket().send(MessageBuilder.status().code(422).message(dex.getMessage()).build(), true);
+			getWebSocket().send(MessageBuilder.status().code(422).message(fex.getMessage()).build(), true);
 		}
 	}
 

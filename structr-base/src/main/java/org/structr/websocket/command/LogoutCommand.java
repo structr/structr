@@ -22,7 +22,7 @@ import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.auth.SessionHelper;
@@ -53,7 +53,7 @@ public class LogoutCommand extends AbstractCommand {
 
 		try (final Tx tx = app.tx(true, true, true)) {
 
-			final PrincipalInterface user = getWebSocket().getCurrentUser();
+			final Principal user = getWebSocket().getCurrentUser();
 
 			if (user != null) {
 

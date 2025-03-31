@@ -47,13 +47,12 @@ public class FirstFunction extends CoreFunction {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
-			if (sources[0] instanceof Iterable) {
-
-				return Iterables.first((Iterable)sources[0]);
+			if (sources[0] instanceof List list && !list.isEmpty()) {
+				return list.get(0);
 			}
 
-			if (sources[0] instanceof List && !((List)sources[0]).isEmpty()) {
-				return ((List)sources[0]).get(0);
+			if (sources[0] instanceof Iterable it) {
+				return Iterables.first(it);
 			}
 
 			if (sources[0].getClass().isArray()) {

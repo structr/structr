@@ -18,8 +18,6 @@
  */
 package org.structr.core.notion;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -47,15 +45,13 @@ import java.util.List;
  */
 public abstract class Notion<S extends NodeInterface, T> {
 
-	private static final Logger logger = LoggerFactory.getLogger(Notion.class.getName());
-
 	protected DeserializationStrategy<T, S> deserializationStrategy = null;
 	protected SerializationStrategy<S, T> serializationStrategy     = null;
 	protected SecurityContext securityContext                       = null;
 	protected String idProperty                                     = null;
-	protected Class<S> type                                         = null;
+	protected String type                                           = null;
 
-	public Notion(SerializationStrategy serializationStrategy, DeserializationStrategy deserializationStrategy) {
+	public Notion(final SerializationStrategy serializationStrategy, final DeserializationStrategy deserializationStrategy) {
 
 		this.serializationStrategy   = serializationStrategy;
 		this.deserializationStrategy = deserializationStrategy;
@@ -70,7 +66,7 @@ public abstract class Notion<S extends NodeInterface, T> {
 	 */
 	public abstract PropertyKey<T> getPrimaryPropertyKey();
 
-	public void setRelationProperty(final RelationProperty<T> propertyKey) {
+	public void setRelationProperty(final RelationProperty propertyKey) {
 		this.serializationStrategy.setRelationProperty(propertyKey);
 		this.deserializationStrategy.setRelationProperty(propertyKey);
 	}
@@ -79,7 +75,7 @@ public abstract class Notion<S extends NodeInterface, T> {
 
 		this.securityContext = securityContext;
 
-		return new NotionAdapter<S, T>() {
+		return new NotionAdapter<>() {
 
 			@Override
 			public T adapt(S s) throws FrameworkException {
@@ -90,7 +86,7 @@ public abstract class Notion<S extends NodeInterface, T> {
 
 	public Adapter<T, S> getAdapterForSetter(final SecurityContext securityContext) {
 
-		return new NotionAdapter<T, S>() {
+		return new NotionAdapter<>() {
 
 			@Override
 			public S adapt(T s) throws FrameworkException {
@@ -106,7 +102,7 @@ public abstract class Notion<S extends NodeInterface, T> {
 
 	public Adapter<Iterable<S>, Iterable<T>> getCollectionAdapterForGetter(final SecurityContext securityContext) {
 
-		return new NotionAdapter<Iterable<S>, Iterable<T>>() {
+		return new NotionAdapter<>() {
 
 			@Override
 			public Iterable<T> adapt(Iterable<S> s) throws FrameworkException {
@@ -127,7 +123,7 @@ public abstract class Notion<S extends NodeInterface, T> {
 
 	public Adapter<Iterable<T>, Iterable<S>> getCollectionAdapterForSetter(final SecurityContext securityContext) {
 
-		return new NotionAdapter<Iterable<T>, Iterable<S>>() {
+		return new NotionAdapter<>() {
 
 			@Override
 			public Iterable<S> adapt(Iterable<T> s) throws FrameworkException {
@@ -151,7 +147,7 @@ public abstract class Notion<S extends NodeInterface, T> {
 
 	public PropertyConverter<T, S> getEntityConverter(SecurityContext securityContext) {
 
-		return new PropertyConverter<T, S>(securityContext, null) {
+		return new PropertyConverter<>(securityContext, null) {
 
 			@Override
 			public T revert(S source) throws FrameworkException {
@@ -175,7 +171,7 @@ public abstract class Notion<S extends NodeInterface, T> {
 
 	public PropertyConverter<Iterable<T>, Iterable<S>> getCollectionConverter(SecurityContext securityContext) {
 
-		return new PropertyConverter<Iterable<T>, Iterable<S>>(securityContext, null) {
+		return new PropertyConverter<>(securityContext, null) {
 
 			@Override
 			public Iterable<T> revert(Iterable<S> source) throws FrameworkException {
@@ -198,7 +194,7 @@ public abstract class Notion<S extends NodeInterface, T> {
 
 	}
 
-	public void setType(Class<S> type) {
+	public void setType(final String type) {
 		this.type = type;
 	}
 

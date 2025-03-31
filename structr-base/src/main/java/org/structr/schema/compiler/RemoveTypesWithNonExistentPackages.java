@@ -24,8 +24,9 @@ import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.SchemaReloadingNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -56,7 +57,7 @@ public class RemoveTypesWithNonExistentPackages implements MigrationHandler {
 
 					try (final Tx tx = app.tx()) {
 
-						final SchemaReloadingNode schemaNode = app.nodeQuery(SchemaReloadingNode.class).andName(type).getFirst();
+						final NodeInterface schemaNode = app.nodeQuery(StructrTraits.SCHEMA_RELOADING_NODE).andName(type).getFirst();
 						if (schemaNode != null) {
 
 							app.delete(schemaNode);

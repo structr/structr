@@ -28,6 +28,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.traits.StructrTraits;
 
 import java.util.Collections;
 import java.util.Map;
@@ -46,7 +47,7 @@ public class SourceNodeProperty extends Property<NodeInterface> {
 	}
 
 	@Override
-	public Class relatedType() {
+	public String relatedType() {
 		return null;
 	}
 
@@ -89,6 +90,11 @@ public class SourceNodeProperty extends Property<NodeInterface> {
 	}
 
 	@Override
+	public boolean isArray() {
+		return false;
+	}
+
+	@Override
 	public SortType getSortType() {
 		return SortType.Default;
 	}
@@ -100,12 +106,12 @@ public class SourceNodeProperty extends Property<NodeInterface> {
 
 	@Override
 	public String typeName() {
-		return null;
+		return StructrTraits.NODE_INTERFACE;
 	}
 
 	@Override
 	public Class valueType() {
-		return String.class;
+		return NodeInterface.class;
 	}
 
 	@Override

@@ -19,14 +19,9 @@
 package org.structr.text;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.tika.detect.DefaultDetector;
 import org.apache.tika.detect.Detector;
-import org.apache.tika.metadata.Metadata;
 import org.apache.tika.mime.MimeTypes;
-import org.apache.tika.parser.AutoDetectParser;
-import org.apache.tika.parser.EmptyParser;
-import org.apache.tika.sax.BodyContentHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.agent.Agent;
@@ -35,20 +30,18 @@ import org.structr.agent.Task;
 import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.fulltext.Indexable;
-import org.structr.common.fulltext.IndexedWord;
-import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
-import org.structr.core.graph.search.SearchCommand;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.File;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.zip.ZipEntry;
@@ -74,6 +67,7 @@ public class FulltextIndexingAgent extends Agent<String> {
 		detector = new DefaultDetector(MimeTypes.getDefaultMimeTypes());
 	}
 
+
 	@Override
 	public ReturnValue processTask(final Task<String> task) throws Throwable {
 
@@ -90,12 +84,12 @@ public class FulltextIndexingAgent extends Agent<String> {
 
 					try (final Tx tx = app.tx(true, false, false)) {
 
-						SearchCommand.prefetch(Indexable.class, indexableId);
+						//SearchCommand.prefetch(Indexable.class, indexableId);
 
-						final Indexable indexable = app.nodeQuery(Indexable.class).and(GraphObject.id, indexableId).getFirst();
+						final NodeInterface indexable = app.nodeQuery(StructrTraits.FILE).and(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.ID_PROPERTY), indexableId).getFirst();
 						if (indexable != null) {
 
-							if (doIndexing(app, indexable)) {
+							if (doIndexing(app, indexable.as(File.class))) {
 
 								return ReturnValue.Success;
 							}
@@ -127,7 +121,13 @@ public class FulltextIndexingAgent extends Agent<String> {
 	}
 
 	// ----- private methods -----
-	private boolean doIndexing(final App app, final Indexable indexable) {
+	private boolean doIndexing(final App app, final File indexable) {
+
+		logger.info("Indexing is currently disabled!");
+
+		return true;
+
+		/*
 
 		boolean parsingSuccessful         = false;
 		InputStream inputStream           = null;
@@ -138,7 +138,7 @@ public class FulltextIndexingAgent extends Agent<String> {
 			// load file by UUID to make sure that the transaction that created
 			// the file is commited, do not use the actual file object because
 			// each thread needs a separate AbstractNode object
-			if (indexable != null && !(indexable instanceof File && ((File)indexable).isTemplate())) {
+			if (indexable != null && !indexable.isTemplate()) {
 
 				// skip files that are larger than the indexing file size limit
 				if (getFileSize(indexable) > Settings.IndexingMaxFileSize.getValue() * 1024 * 1024) {
@@ -175,7 +175,7 @@ public class FulltextIndexingAgent extends Agent<String> {
 							tokenizer.write(getName());
 
 							// tokenize owner name
-							final PrincipalInterface _owner = indexable.getOwnerNode();
+							final Principal _owner = indexable.getOwnerNode();
 							if (_owner != null) {
 
 								final String ownerName = _owner.getName();
@@ -206,7 +206,7 @@ public class FulltextIndexingAgent extends Agent<String> {
 								}
 							}
 
-							final List<String> topWords       = getFrequencySortedTopWords(indexedWords, indexable.maximumIndexedWords());
+							final List<String> topWords       = getFrequencySortedTopWords(indexedWords, maximumIndexedWords());
 							final List<IndexedWord> wordNodes = new LinkedList<>();
 
 							try {
@@ -214,10 +214,10 @@ public class FulltextIndexingAgent extends Agent<String> {
 								// create words first
 								for (final String word : topWords) {
 
-									IndexedWord wordNode = app.nodeQuery(IndexedWord.class).andName(word).getFirst();
+									IndexedWord wordNode = app.nodeQuery("IndexedWord").andName(word).getFirst();
 									if (wordNode == null) {
 
-										wordNode = app.create(IndexedWord.class, word);
+										wordNode = app.create("IndexedWord", word);
 									}
 
 									wordNodes.add(wordNode);
@@ -251,6 +251,7 @@ public class FulltextIndexingAgent extends Agent<String> {
 		}
 
 		return true;
+		*/
 	}
 
 	private void add(final Map<String, Integer> frequencyMap, final String word) {
@@ -305,21 +306,24 @@ public class FulltextIndexingAgent extends Agent<String> {
 		return resultList;
 	}
 
-	private long getFileSize(final Indexable indexable) {
+	private long getFileSize(final File file) {
+		return StorageProviderFactory.getStorageProvider(file).size();
+	}
 
-		if (indexable instanceof File) {
+	private boolean indexingEnabled() {
+		return Settings.IndexingEnabled.getValue();
+	}
 
-			final File file     = (File)indexable;
-			final Long fileSize = StorageProviderFactory.getStorageProvider(file).size();
+	private Integer maximumIndexedWords() {
+		return Settings.IndexingLimit.getValue();
+	}
 
-			if (fileSize != null) {
+	private Integer indexedWordMinLength() {
+		return Settings.IndexingMinLength.getValue();
+	}
 
-				return fileSize;
-			}
-
-		}
-
-		return -1L;
+	private Integer indexedWordMaxLength() {
+		return Settings.IndexingMaxLength.getValue();
 	}
 
 	static {

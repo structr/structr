@@ -27,11 +27,13 @@ import org.structr.common.error.TypeToken;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationProperty;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -47,50 +49,51 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> ext
 
 	private static final Logger logger = LoggerFactory.getLogger(TypeAndValueDeserializationStrategy.class.getName());
 
-	protected RelationProperty<S> relationProperty = null;
-	protected boolean createIfNotExisting          = false;
-	protected PropertyKey propertyKey              = null;
+	protected RelationProperty relationProperty = null;
+	protected boolean createIfNotExisting       = false;
+	protected String propertyKeyName            = null;
 
-	public TypeAndValueDeserializationStrategy(PropertyKey propertyKey, boolean createIfNotExisting) {
+	public TypeAndValueDeserializationStrategy(final String propertyKeyName, final boolean createIfNotExisting) {
 
 		this.createIfNotExisting = createIfNotExisting;
-		this.propertyKey         = propertyKey;
+		this.propertyKeyName     = propertyKeyName;
 
-		if (propertyKey == null) {
+		if (propertyKeyName == null) {
 			throw new IllegalStateException("TypeAndValueDeserializationStrategy must contain at least one property.");
 		}
 	}
 
 	@Override
-	public void setRelationProperty(RelationProperty<S> relationProperty) {
+	public void setRelationProperty(final RelationProperty relationProperty) {
 		this.relationProperty = relationProperty;
 	}
 
 	@Override
-	public T deserialize(final SecurityContext securityContext, Class<T> type, S source, final Object context) throws FrameworkException {
+	public T deserialize(final SecurityContext securityContext, final String type, final S source, final Object context) throws FrameworkException {
 
 		final App app        = StructrApp.getInstance(securityContext);
 		final List<T> result = new LinkedList<>();
 
 		// default to UUID
-		if (propertyKey == null) {
-			propertyKey = GraphObject.id;
+		if (propertyKeyName == null) {
+			propertyKeyName = "id";
 		}
 
 		// create and fill input map with source object
 		Map<String, Object> sourceMap = new LinkedHashMap<>();
-		sourceMap.put(propertyKey.jsonName(), source);
+		sourceMap.put(propertyKeyName, source);
 
 		// try to convert input type to java type in order to create object correctly
-		PropertyMap convertedSourceMap = PropertyMap.inputTypeToJavaType(securityContext, type, sourceMap);
-		Object convertedSource = convertedSourceMap.get(propertyKey);
+		final PropertyMap convertedSourceMap = PropertyMap.inputTypeToJavaType(securityContext, type, sourceMap);
+		final PropertyKey propertyKey        = Traits.of(type).key(propertyKeyName);
+		Object convertedSource         = convertedSourceMap.get(propertyKey);
 
 		if (convertedSource != null) {
 
 			// FIXME: use uuid only here?
 			if (convertedSource instanceof Map) {
 
-				Object value = ((Map<String, Object>)convertedSource).get(propertyKey.jsonName());
+				Object value = ((Map<String, Object>)convertedSource).get(propertyKeyName);
 				if (value != null) {
 
 					result.addAll(app.nodeQuery(type).and(propertyKey, value.toString()).getAsList());
@@ -117,16 +120,16 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> ext
 				if ((convertedSource != null) && createIfNotExisting) {
 
 					// create node and return it
-					T newNode = app.create(type);
+					NodeInterface newNode = app.create(type);
 
 					if (newNode != null) {
 						newNode.setProperty(propertyKey, convertedSource);
-						return newNode;
+						return (T)newNode;
 					}
 
 				} else {
 
-					logger.debug("Unable to create node of type {} for property {}", new Object[] { type.getSimpleName(), propertyKey.jsonName() });
+					logger.debug("Unable to create node of type {} for property {}", type, propertyKeyName);
 				}
 
 				break;
@@ -135,9 +138,8 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> ext
 
 				T obj = result.get(0);
 
-				//if(!type.getSimpleName().equals(node.getType())) {
-				if (!type.isAssignableFrom(obj.getClass())) {
-					throw new FrameworkException(422, "Node type mismatch", new TypeToken(obj.getClass().getSimpleName(), propertyKey.jsonName(), type.getSimpleName()));
+				if (!obj.getTraits().contains(type)) {
+					throw new FrameworkException(422, "Node type mismatch", new TypeToken(obj.getClass().getSimpleName(), propertyKeyName, type));
 				}
 
 				if (!convertedSourceMap.isEmpty()) {
@@ -153,10 +155,10 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> ext
 
 			PropertyMap attributes = new PropertyMap();
 
-			attributes.put(propertyKey,       convertedSource);
-			attributes.put(AbstractNode.type, type.getSimpleName());
+			attributes.put(propertyKey,           convertedSource);
+			attributes.put(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY), type);
 
-			throw new FrameworkException(404, "No node found for given properties", new PropertiesNotFoundToken(type.getSimpleName(), null, attributes));
+			throw new FrameworkException(404, "No node found for given properties", new PropertiesNotFoundToken(type, null, attributes));
 		}
 
 		return null;

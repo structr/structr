@@ -20,24 +20,24 @@ package org.structr.test.schema;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseFeature;
-import org.structr.api.config.Settings;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.*;
 import org.structr.api.schema.JsonSchema.Cascade;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.UnlicensedTypeException;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.*;
+import org.structr.core.entity.SchemaMethod;
 import org.structr.core.graph.*;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.*;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
 import org.structr.schema.export.StructrSchema;
@@ -47,7 +47,6 @@ import org.testng.annotations.Test;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
-import java.util.logging.Level;
 
 import static org.testng.AssertJUnit.*;
 
@@ -73,9 +72,9 @@ public class SchemaTest extends StructrTest {
 			customer.addStringProperty("street", "public", "ui");
 			customer.addStringProperty("city", "public", "ui");
 			customer.addDateProperty("birthday", "public", "ui");
-			customer.addEnumProperty("status", "public", "ui").setEnums("active", "retired", "none").setDefaultValue("active");
+			customer.addEnumProperty("status", "public", "ui").setFormat("active,retired,none").setDefaultValue("active");
 			customer.addIntegerProperty("count", "public", "ui").setMinimum(1).setMaximum(10, true).setDefaultValue("5");
-			customer.addNumberProperty("number", "public", "ui").setMinimum(2.0, true).setMaximum(5.0, true).setDefaultValue("3.0");
+			customer.addDoubleProperty("number", "public", "ui").setMinimum(2.0, true).setMaximum(5.0, true).setDefaultValue("3.0");
 			customer.addLongProperty("loong", "public", "ui").setMinimum(20, true).setMaximum(50);
 			customer.addBooleanProperty("isCustomer", "public", "ui");
 			customer.addFunctionProperty("displayName", "public", "ui").setReadFunction("concat(this.name, '.', this.id)");
@@ -193,18 +192,18 @@ public class SchemaTest extends StructrTest {
 
 			final JsonSchema sourceSchema = StructrSchema.createFromDatabase(app);
 
-			final JsonType contact  = sourceSchema.addType("Contact").setExtends(sourceSchema.getType("Principal"));
-			final JsonType customer = sourceSchema.addType("Customer").setExtends(contact);
+			sourceSchema.addType("Contact").addTrait(StructrTraits.PRINCIPAL);
+			sourceSchema.addType("Customer").addTrait("Contact");
 
 			final String schema = sourceSchema.toString();
 
 			final Map<String, Object> map = new GsonBuilder().create().fromJson(schema, Map.class);
 
 			mapPathValue(map, "definitions.Contact.type",        "object");
-			mapPathValue(map, "definitions.Contact.$extends.0",  "#/definitions/Principal");
+			mapPathValue(map, "definitions.Contact.traits.0",  StructrTraits.PRINCIPAL);
 
 			mapPathValue(map, "definitions.Customer.type",       "object");
-			mapPathValue(map, "definitions.Customer.$extends.0", "#/definitions/Contact");
+			mapPathValue(map, "definitions.Customer.traits.0", "Contact");
 
 
 			// advanced: test schema roundtrip
@@ -293,10 +292,8 @@ public class SchemaTest extends StructrTest {
 			project.getViewPropertyNames("public").add("tasks");
 			task.getViewPropertyNames("public").add("project");
 
-
 			// test enums
-			project.addEnumProperty("status", "ui").setEnums("active", "planned", "finished");
-
+			project.addEnumProperty("status", "ui").setFormat("active,planned,finished");
 
 			// a worker
 			final JsonObjectType worker = sourceSchema.addType("Worker");
@@ -351,15 +348,15 @@ public class SchemaTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				final SchemaNode source = app.create(SchemaNode.class, "Source");
-				final SchemaNode target = app.create(SchemaNode.class, "Target");
+				final NodeInterface source = app.create(StructrTraits.SCHEMA_NODE, "Source");
+				final NodeInterface target = app.create(StructrTraits.SCHEMA_NODE, "Target");
 
-				app.create(SchemaRelationshipNode.class,
-					new NodeAttribute(SchemaRelationshipNode.relationshipType, "link"),
-					new NodeAttribute(SchemaRelationshipNode.sourceNode, source),
-					new NodeAttribute(SchemaRelationshipNode.targetNode, target),
-					new NodeAttribute(SchemaRelationshipNode.sourceMultiplicity, "1"),
-					new NodeAttribute(SchemaRelationshipNode.targetMultiplicity, "*")
+				app.create(StructrTraits.SCHEMA_RELATIONSHIP_NODE,
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.RELATIONSHIP_TYPE_PROPERTY), "link"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.SOURCE_NODE_PROPERTY), source),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.TARGET_NODE_PROPERTY), target),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.SOURCE_MULTIPLICITY_PROPERTY), "1"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.TARGET_MULTIPLICITY_PROPERTY), "*")
 				);
 
 				tx.success();
@@ -416,26 +413,26 @@ public class SchemaTest extends StructrTest {
 	@Test
 	public void test00DeleteSchemaRelationshipInView() {
 
-		SchemaRelationshipNode rel = null;
+		NodeInterface rel = null;
 
 		try (final Tx tx = app.tx()) {
 
 			// create source and target node
-			final SchemaNode fooNode = app.create(SchemaNode.class, "Foo");
-			final SchemaNode barNode = app.create(SchemaNode.class, "Bar");
+			final NodeInterface fooNode = app.create(StructrTraits.SCHEMA_NODE, "Foo");
+			final NodeInterface barNode = app.create(StructrTraits.SCHEMA_NODE, "Bar");
 
 			// create relationship
-			rel = app.create(SchemaRelationshipNode.class,
-				new NodeAttribute<>(SchemaRelationshipNode.sourceNode, fooNode),
-				new NodeAttribute<>(SchemaRelationshipNode.targetNode, barNode),
-				new NodeAttribute<>(SchemaRelationshipNode.relationshipType, "narf")
+			rel = app.create(StructrTraits.SCHEMA_RELATIONSHIP_NODE,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.SOURCE_NODE_PROPERTY), fooNode),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.TARGET_NODE_PROPERTY), barNode),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.RELATIONSHIP_TYPE_PROPERTY), "narf")
 			);
 
 			// create "public" view that contains the related property
-			app.create(SchemaView.class,
-				new NodeAttribute<>(SchemaView.name, "public"),
-				new NodeAttribute<>(SchemaView.schemaNode, fooNode),
-				new NodeAttribute<>(SchemaView.nonGraphProperties, "type, id, narfBars")
+			app.create(StructrTraits.SCHEMA_VIEW,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "public"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key(SchemaViewTraitDefinition.SCHEMA_NODE_PROPERTY), fooNode),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key(SchemaViewTraitDefinition.NON_GRAPH_PROPERTIES_PROPERTY), "type, id, narfBars")
 			);
 
 			tx.success();
@@ -461,11 +458,11 @@ public class SchemaTest extends StructrTest {
 	//@Test
 	public void testJavaSchemaMethod() {
 
-		final Class groupType = StructrApp.getConfiguration().getNodeEntityClass("Group");
+		final String groupType = StructrTraits.GROUP;
 
 		try (final Tx tx = app.tx()) {
 
-			final SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName("Group").getFirst();
+			final NodeInterface schemaNode = app.nodeQuery(StructrTraits.SCHEMA_NODE).andName(StructrTraits.GROUP).getFirst();
 
 			assertNotNull("Schema node Group should exist", schemaNode);
 
@@ -477,11 +474,11 @@ public class SchemaTest extends StructrTest {
 			source.append("\t\ttest.add(\"three\");\n");
 			source.append("\t\treturn test;\n\n");
 
-			app.create(SchemaMethod.class,
-				new NodeAttribute<>(SchemaMethod.schemaNode, schemaNode),
-				new NodeAttribute<>(SchemaMethod.name,       "testJavaMethod"),
-				new NodeAttribute<>(SchemaMethod.source,     source.toString()),
-				new NodeAttribute<>(SchemaMethod.codeType,   "java")
+			app.create(StructrTraits.SCHEMA_METHOD,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY), schemaNode),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),       "testJavaMethod"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY),      source.toString()),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.CODE_TYPE_PROPERTY),   "java")
 			);
 
 			app.create(groupType, "test");
@@ -519,103 +516,18 @@ public class SchemaTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final SchemaNode group = app.nodeQuery(SchemaNode.class).andName("Group").getFirst();
-
-			assertNotNull("Schema node Group should exist", group);
-
 			final String source = "";
 
-			app.create(SchemaMethod.class,
-				new NodeAttribute<>(SchemaMethod.schemaNode, group),
-				new NodeAttribute<>(SchemaMethod.name,       "testJavaMethod"),
-				new NodeAttribute<>(SchemaMethod.source,     source),
-				new NodeAttribute<>(SchemaMethod.codeType,   "java")
+			app.create(StructrTraits.SCHEMA_METHOD,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.STATIC_SCHEMA_NODE_NAME_PROPERTY), StructrTraits.GROUP),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),                 "testJavaMethod"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY),               source),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.CODE_TYPE_PROPERTY),             "java")
 			);
 
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
-			fail("Unexpected exception");
-		}
-	}
-
-	@Test
-	public void testViewInheritedFromInterface() {
-
-		try (final Tx tx = app.tx()) {
-
-			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
-			final JsonObjectType type = schema.addType("Test");
-
-			// make test type inherit from Favoritable (should add views)
-			type.setImplements(StructrApp.getSchemaBaseURI().resolve("static/org.structr.core.entity.Favoritable"));
-
-			// ----- interface Favoritable -----
-			type.overrideMethod("setFavoriteContent",         false, "");
-			type.overrideMethod("getFavoriteContent",         false, "return \"getFavoriteContent();\";");
-			type.overrideMethod("getFavoriteContentType",     false, "return \"getContentType();\";");
-			type.overrideMethod("getContext",                 false, "return \"getContext();\";");
-
-			Settings.LogSchemaOutput.setValue(true);
-
-			// add new type
-			StructrSchema.extendDatabaseSchema(app, schema);
-
-			tx.success();
-
-		} catch (Throwable fex) {
-			fex.printStackTrace();
-			fail("Unexpected exception");
-		}
-
-		final Class testType        = StructrApp.getConfiguration().getNodeEntityClass("Test");
-		final Set<String> views     = StructrApp.getConfiguration().getPropertyViewsForType(testType);
-
-		assertTrue("Property view is not inherited correctly", views.contains("fav"));
-	}
-
-	@Test
-	public void testBuiltinTypeFlag() {
-
-		try (final Tx tx = app.tx()) {
-
-			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
-			final JsonObjectType type = schema.addType("Test");
-
-			// add new type
-			StructrSchema.extendDatabaseSchema(app, schema);
-
-			tx.success();
-
-		} catch (Throwable fex) {
-			fex.printStackTrace();
-			fail("Unexpected exception");
-		}
-
-
-		try (final Tx tx = app.tx()) {
-
-			// verify that all schema nodes have isBuiltinType set to true
-			// except "Test"
-			for (final SchemaNode schemaNode : app.nodeQuery(SchemaNode.class).getAsList()) {
-
-				final String name  = schemaNode.getName();
-				final boolean flag = schemaNode.getProperty(SchemaNode.isBuiltinType);
-
-				if (name.equals("Test")) {
-
-					assertFalse("Non-builtin type Test has isBuiltinType flag set", flag);
-
-				} else {
-
-					assertTrue("Builtin type " + name + " is missing isBuiltinType flag", flag);
-				}
-			}
-
-			tx.success();
-
-		} catch (Throwable fex) {
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -629,7 +541,7 @@ public class SchemaTest extends StructrTest {
 			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
 			final JsonObjectType type = schema.addType("Test");
 
-			type.addViewProperty(PropertyView.Public, "createdBy");
+			type.addViewProperty(PropertyView.Public, GraphObjectTraitDefinition.CREATED_BY_PROPERTY);
 
 			// add new type
 			StructrSchema.extendDatabaseSchema(app, schema);
@@ -645,10 +557,10 @@ public class SchemaTest extends StructrTest {
 
 			// check that createdBy is registered in the public view of type Test
 
-			final Class test                   = StructrApp.getConfiguration().getNodeEntityClass("Test");
-			final Set<PropertyKey> propertySet = StructrApp.getConfiguration().getPropertySet(test, PropertyView.Public);
+			final String test                  = "Test";
+			final Set<PropertyKey> propertySet = Traits.of(test).getPropertyKeysForView(PropertyView.Public);
 
-			assertTrue("Non-graph property not registered correctly", propertySet.contains(GraphObject.createdBy));
+			assertTrue("Non-graph property not registered correctly", propertySet.contains(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.CREATED_BY_PROPERTY)));
 
 			tx.success();
 
@@ -667,7 +579,7 @@ public class SchemaTest extends StructrTest {
 			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
 			final JsonObjectType type = schema.addType("Test");
 
-			type.setExtends(schema.getType("File"));
+			type.addTrait(StructrTraits.FILE);
 
 			type.addViewProperty(PropertyView.Public, "children");
 
@@ -720,7 +632,7 @@ public class SchemaTest extends StructrTest {
 
 		String uuid = null;
 
-		final Class type = StructrApp.getConfiguration().getNodeEntityClass("Test");
+		final String type = "Test";
 
 		// create test object
 		try (final Tx tx = app.tx()) {
@@ -741,13 +653,13 @@ public class SchemaTest extends StructrTest {
 		// test state before modification
 		try (final Tx tx = app.tx()) {
 
-			final GraphObject test = app.get(type, uuid);
+			final GraphObject test = app.getNodeById(type, uuid);
 			assertNotNull(test);
 
-			assertNull("Invalid value before modification", test.getProperty("nameBefore"));
-			assertNull("Invalid value before modification", test.getProperty("nameAfter"));
-			assertNull("Invalid value before modification", test.getProperty("descBefore"));
-			assertNull("Invalid value before modification", test.getProperty("descAfter"));
+			assertNull("Invalid value before modification", test.getProperty(Traits.of(type).key("nameBefore")));
+			assertNull("Invalid value before modification", test.getProperty(Traits.of(type).key("nameAfter")));
+			assertNull("Invalid value before modification", test.getProperty(Traits.of(type).key("descBefore")));
+			assertNull("Invalid value before modification", test.getProperty(Traits.of(type).key("descAfter")));
 
 			tx.success();
 
@@ -759,11 +671,11 @@ public class SchemaTest extends StructrTest {
 		// modify object
 		try (final Tx tx = app.tx()) {
 
-			final GraphObject test = app.get(type, uuid);
+			final GraphObject test = app.getNodeById(type, uuid);
 			assertNotNull(test);
 
-			test.setProperty(StructrApp.key(type, "name"), "new test");
-			test.setProperty(StructrApp.key(type, "desc"), "description");
+			test.setProperty(Traits.of(type).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "new test");
+			test.setProperty(Traits.of(type).key("desc"), "description");
 
 			tx.success();
 
@@ -775,13 +687,13 @@ public class SchemaTest extends StructrTest {
 		// test state after modification
 		try (final Tx tx = app.tx()) {
 
-			final GraphObject test = app.get(type, uuid);
+			final GraphObject test = app.getNodeById(type, uuid);
 			assertNotNull(test);
 
-			assertEquals("Invalid value after modification", "test",        test.getProperty("nameBefore"));
-			assertEquals("Invalid value after modification", "new test",    test.getProperty("nameAfter"));
-			assertNull("Invalid value after modification",                  test.getProperty("descBefore"));
-			assertEquals("Invalid value after modification", "description", test.getProperty("descAfter"));
+			assertEquals("Invalid value after modification", "test",        test.getProperty(Traits.of(type).key("nameBefore")));
+			assertEquals("Invalid value after modification", "new test",    test.getProperty(Traits.of(type).key("nameAfter")));
+			assertNull("Invalid value after modification",                          test.getProperty(Traits.of(type).key("descBefore")));
+			assertEquals("Invalid value after modification", "description", test.getProperty(Traits.of(type).key("descAfter")));
 
 			tx.success();
 
@@ -815,7 +727,7 @@ public class SchemaTest extends StructrTest {
 				fail("Unexpected exception.");
 			}
 
-			final Class type = StructrApp.getConfiguration().getNodeEntityClass("PERSON");
+			final String type = "PERSON";
 
 			try (final Tx tx = app.tx()) {
 
@@ -889,7 +801,7 @@ public class SchemaTest extends StructrTest {
 				fail("Unexpected exception.");
 			}
 
-			final Class type = StructrApp.getConfiguration().getNodeEntityClass("PERSON");
+			final String type = Traits.of("PERSON");
 
 			try (final Tx tx = app.tx()) {
 
@@ -974,7 +886,7 @@ public class SchemaTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final JsonSchema schema    = StructrSchema.createFromDatabase(app);
-			final JsonObjectType base  = schema.addType("Location");
+			final JsonObjectType base  = schema.addType(StructrTraits.LOCATION);
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -1000,11 +912,11 @@ public class SchemaTest extends StructrTest {
 			final JsonObjectType ext11 = schema.addType("Extended11");
 			final JsonObjectType ext2  = schema.addType("Extended2");
 
-			ext1.setExtends(base);
-			ext2.setExtends(base);
+			ext1.addTrait("BaseType");
+			ext2.addTrait("BaseType");
 
 			// two levels
-			ext11.setExtends(ext1);
+			ext11.addTrait("Extended1");
 
 			// relationship
 			base.relate(rel);
@@ -1024,11 +936,11 @@ public class SchemaTest extends StructrTest {
 
 			logger.info("Renaming base type..");
 
-			final SchemaNode base = app.nodeQuery(SchemaNode.class).andName("BaseType").getFirst();
+			final NodeInterface base = app.nodeQuery(StructrTraits.SCHEMA_NODE).andName("BaseType").getFirst();
 
 			assertNotNull("Base type schema node not found", base);
 
-			base.setProperty(AbstractNode.name, "ModifiedBaseType");
+			base.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "ModifiedBaseType");
 
 			app.delete(base);
 
@@ -1063,9 +975,9 @@ public class SchemaTest extends StructrTest {
 
 			logger.info("Creating node instances..");
 
-			final Class ext1  = StructrApp.getConfiguration().getNodeEntityClass("Extended1");
-			final Class ext11 = StructrApp.getConfiguration().getNodeEntityClass("Extended11");
-			final Class ext2  = StructrApp.getConfiguration().getNodeEntityClass("Extended2");
+			final String ext1  = "Extended1";
+			final String ext11 = "Extended11";
+			final String ext2  = "Extended2";
 
 			app.create(ext1,  "ext1");
 			app.create(ext11, "ext11");
@@ -1094,11 +1006,11 @@ public class SchemaTest extends StructrTest {
 			final JsonObjectType ext11 = schema.addType("Extended11");
 			final JsonObjectType ext2  = schema.addType("Extended2");
 
-			ext1.setExtends(base);
-			ext2.setExtends(base);
+			ext1.addTrait("BaseType");
+			ext2.addTrait("BaseType");
 
 			// two levels
-			ext11.setExtends(ext1);
+			ext11.addTrait("Extended1");
 
 			// relationship
 			base.relate(rel);
@@ -1120,16 +1032,18 @@ public class SchemaTest extends StructrTest {
 
 			logger.info("Deleting base type..");
 
-			final SchemaNode base = app.nodeQuery(SchemaNode.class).andName("BaseType").getFirst();
+			final NodeInterface base = app.nodeQuery(StructrTraits.SCHEMA_NODE).andName("BaseType").getFirst();
 
+			/* getGeneratedSourceCode does not exist any more
 			try {
 
-				//System.out.println(app.nodeQuery(SchemaNode.class).andName("BaseType").getFirst().getGeneratedSourceCode(securityContext));
-				System.out.println(app.nodeQuery(SchemaNode.class).andName("Extended1").getFirst().getGeneratedSourceCode(securityContext));
+				//System.out.println(app.nodeQuery(StructrTraits.SCHEMA_NODE).andName("BaseType").getFirst().getGeneratedSourceCode(securityContext));
+				System.out.println(app.nodeQuery(StructrTraits.SCHEMA_NODE).andName("Extended1").getFirst().getGeneratedSourceCode(securityContext));
 
 			} catch (UnlicensedTypeException ex) {
 				logger.error("Caught UnlicensedTypeException: ", ex);
 			}
+			*/
 
 			assertNotNull("Base type schema node not found", base);
 
@@ -1166,9 +1080,9 @@ public class SchemaTest extends StructrTest {
 
 			logger.info("Creating node instances..");
 
-			final Class ext1  = StructrApp.getConfiguration().getNodeEntityClass("Extended1");
-			final Class ext11 = StructrApp.getConfiguration().getNodeEntityClass("Extended11");
-			final Class ext2  = StructrApp.getConfiguration().getNodeEntityClass("Extended2");
+			final String ext1  = "Extended1";
+			final String ext11 = "Extended11";
+			final String ext2  = "Extended2";
 
 			app.create(ext1,  "ext1");
 			app.create(ext11, "ext11");
@@ -1195,11 +1109,11 @@ public class SchemaTest extends StructrTest {
 			final JsonObjectType ext11 = schema.addType("Extended11");
 			final JsonObjectType ext2  = schema.addType("Extended2");
 
-			ext1.setExtends(base);
-			ext2.setExtends(base);
+			ext1.addTrait("BaseType");
+			ext2.addTrait("BaseType");
 
 			// two levels
-			ext11.setExtends(ext1);
+			ext11.addTrait("Extended1");
 
 			// methods
 			base.addMethod("doTest", "'BaseType'");
@@ -1222,10 +1136,10 @@ public class SchemaTest extends StructrTest {
 
 			logger.info("Creating node instances..");
 
-			final Class baseType  = StructrApp.getConfiguration().getNodeEntityClass("BaseType");
-			final Class ext1Type  = StructrApp.getConfiguration().getNodeEntityClass("Extended1");
-			final Class ext11Type = StructrApp.getConfiguration().getNodeEntityClass("Extended11");
-			final Class ext2Type  = StructrApp.getConfiguration().getNodeEntityClass("Extended2");
+			final String baseType  = "BaseType";
+			final String ext1Type  = "Extended1";
+			final String ext11Type = "Extended11";
+			final String ext2Type  = "Extended2";
 
 			final GraphObject base  = app.create(baseType,  "base");
 			final GraphObject ext1  = app.create(ext1Type,  "ext1");
@@ -1234,10 +1148,10 @@ public class SchemaTest extends StructrTest {
 
 			final ActionContext ctx = new ActionContext(securityContext);
 
-			assertEquals("Invalid inheritance result, overriding method is not called", "BaseType",   (Scripting.evaluate(ctx, base,  "${{ return $.this.doTest(); }}", "test1")));
-			assertEquals("Invalid inheritance result, overriding method is not called", "Extended1",  (Scripting.evaluate(ctx, ext1,  "${{ return $.this.doTest(); }}", "test2")));
-			assertEquals("Invalid inheritance result, overriding method is not called", "Extended11", (Scripting.evaluate(ctx, ext11, "${{ return $.this.doTest(); }}", "test3")));
-			assertEquals("Invalid inheritance result, overriding method is not called", "Extended2",  (Scripting.evaluate(ctx, ext2,  "${{ return $.this.doTest(); }}", "test4")));
+			assertEquals("Invalid inheritance result, overriding method is not called", "BaseType",   (Scripting.evaluate(ctx, base,  "${{ $.this.doTest(); }}", "test1")));
+			assertEquals("Invalid inheritance result, overriding method is not called", "Extended1",  (Scripting.evaluate(ctx, ext1,  "${{ $.this.doTest(); }}", "test2")));
+			assertEquals("Invalid inheritance result, overriding method is not called", "Extended11", (Scripting.evaluate(ctx, ext11, "${{ $.this.doTest(); }}", "test3")));
+			assertEquals("Invalid inheritance result, overriding method is not called", "Extended2",  (Scripting.evaluate(ctx, ext2,  "${{ $.this.doTest(); }}", "test4")));
 
 			tx.success();
 
@@ -1271,7 +1185,7 @@ public class SchemaTest extends StructrTest {
 		// test: check that no uniqueness is configured
 		try (final Tx tx = app.tx()) {
 
-			final Class type = StructrApp.getConfiguration().getNodeEntityClass("Customer");
+			final String type = "Customer";
 
 			app.create(type, "test");
 			app.create(type, "test");
@@ -1287,7 +1201,7 @@ public class SchemaTest extends StructrTest {
 		// setup: remove all nodes
 		try (final Tx tx = app.tx()) {
 
-			final Class type = StructrApp.getConfiguration().getNodeEntityClass("Customer");
+			final String type = "Customer";
 
 			app.deleteAllNodesOfType(type);
 
@@ -1322,7 +1236,7 @@ public class SchemaTest extends StructrTest {
 		// test 1: check that uniqueness is correctly configured
 		try (final Tx tx = app.tx()) {
 
-			final Class type = StructrApp.getConfiguration().getNodeEntityClass("Customer");
+			final String type = "Customer";
 
 			app.create(type, "test");
 
@@ -1366,7 +1280,7 @@ public class SchemaTest extends StructrTest {
 		// test: check that no uniqueness is configured
 		try (final Tx tx = app.tx()) {
 
-			final Class type = StructrApp.getConfiguration().getNodeEntityClass("Customer");
+			final String type = "Customer";
 
 			app.create(type, "test");
 			app.create(type, "test");
@@ -1385,7 +1299,7 @@ public class SchemaTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final JsonSchema sourceSchema = StructrSchema.createFromDatabase(app);
-			final JsonType page           = sourceSchema.getType("Page");
+			final JsonType page           = sourceSchema.getType(StructrTraits.PAGE);
 
 			page.addStringProperty("test");
 
@@ -1399,6 +1313,106 @@ public class SchemaTest extends StructrTest {
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
+	}
+
+	@Test
+	public void testMethodCacheInvalidation() {
+
+		// create a method and a user-defined function and verify that the cache is invalidated correctly)
+		try (final Tx tx = app.tx()) {
+
+			final Traits methodTraits = Traits.of(StructrTraits.SCHEMA_METHOD);
+
+			final NodeInterface testType = app.create(StructrTraits.SCHEMA_NODE, "Test");
+
+			// create instance method
+			app.create(StructrTraits.SCHEMA_METHOD,
+				new NodeAttribute<>(methodTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test01"),
+				new NodeAttribute<>(methodTraits.key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY), testType),
+				new NodeAttribute<>(methodTraits.key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "{ return 'first version'; }")
+			);
+
+			// create static method
+			app.create(StructrTraits.SCHEMA_METHOD,
+				new NodeAttribute<>(methodTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test02"),
+				new NodeAttribute<>(methodTraits.key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY), testType),
+				new NodeAttribute<>(methodTraits.key(SchemaMethodTraitDefinition.IS_STATIC_PROPERTY), true),
+				new NodeAttribute<>(methodTraits.key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "{ return 'first version'; }")
+			);
+
+			// create user-defined function (schema method with no connection to a type)
+			app.create(StructrTraits.SCHEMA_METHOD,
+				new NodeAttribute<>(methodTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test03"),
+				new NodeAttribute<>(methodTraits.key(SchemaMethodTraitDefinition.IS_STATIC_PROPERTY), true),
+				new NodeAttribute<>(methodTraits.key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "{ return 'first version'; }")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// verify preconditions (all methods return "first version")
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface instance = app.create("Test", "MyTestInstance");
+			final ActionContext actionContext = new ActionContext(securityContext);
+
+			assertEquals("Invalid precondition", "first version", Scripting.evaluate(actionContext, instance, "{ return $.this.test01(); }", "test01"));
+			assertEquals("Invalid precondition", "first version", Scripting.evaluate(actionContext, instance, "{ return $.Test.test02(); }", "test02"));
+			assertEquals("Invalid precondition", "first version", Scripting.evaluate(actionContext, instance, "{ return $.test03(); }", "test03"));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// change methods
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface method1 = app.nodeQuery(StructrTraits.SCHEMA_METHOD).andName("test01").getFirst();
+			final NodeInterface method2 = app.nodeQuery(StructrTraits.SCHEMA_METHOD).andName("test02").getFirst();
+			final NodeInterface method3 = app.nodeQuery(StructrTraits.SCHEMA_METHOD).andName("test03").getFirst();
+
+			method1.as(SchemaMethod.class).setSource("{ return 'second version'; }");
+			method2.as(SchemaMethod.class).setSource("{ return 'second version'; }");
+			method3.as(SchemaMethod.class).setSource("{ return 'second version'; }");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// verify that the changes are applied (all methods return "second version")
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface instance = app.create("Test", "MyTestInstance");
+			final ActionContext actionContext = new ActionContext(securityContext);
+
+			assertEquals("Schema method cache for instance methods is not invalidated correctly.", "second version", Scripting.evaluate(actionContext, instance, "{ return $.this.test01(); }", "test01"));
+			assertEquals("Schema method cache for static methods is not invalidated correctly.", "second version", Scripting.evaluate(actionContext, instance, "{ return $.Test.test02(); }", "test02"));
+			assertEquals("Schema method cache for user-defined functions is not invalidated correctly.", "second version", Scripting.evaluate(actionContext, instance, "{ return $.test03(); }", "test03"));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+
+
+
 	}
 
 

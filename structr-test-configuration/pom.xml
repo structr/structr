@@ -44,7 +44,7 @@
 							<includes>
 								<include>**/*Test.java</include>
 							</includes>
-							<argLine>-Xms12g -Xmx12g -Duser.timezone=UTC -Djava.system.class.loader=org.structr.StructrClassLoader</argLine>
+							<argLine>-Xms12g -Xmx12g -Duser.timezone=UTC</argLine>
 							<reuseForks>false</reuseForks>
 							<forkCount>${test.forkCount}</forkCount>
 							<skipTests>${skipTests}</skipTests>
@@ -133,7 +133,7 @@
 							<includes>
 								<include>**/*Test.java</include>
 							</includes>
-							<argLine>-Xms8g -Xmx8g -Duser.timezone=UTC -Djava.system.class.loader=org.structr.StructrClassLoader</argLine>
+							<argLine>-Xms8g -Xmx8g -Duser.timezone=UTC</argLine>
 							<reuseForks>false</reuseForks>
 							<forkCount>${test.forkCount}</forkCount>
 							<skipTests>${skipTests}</skipTests>

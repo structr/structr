@@ -22,9 +22,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 
 import java.util.Map;
 
@@ -44,6 +46,7 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 	public long executeWithCount(final Map<String, Object> attributes) throws FrameworkException {
 
+		final PropertyKey<String> idProperty = Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY);
 		final String nodeType  = (String) attributes.get("type");
 		final String relType   = (String) attributes.get("relType");
 		final Boolean allNodes = (Boolean) attributes.get("allNodes");
@@ -60,17 +63,17 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 				info("Start setting UUID on nodes of type {}", nodeType);
 			}
 
-			final long count = bulkGraphOperation(securityContext, getNodeQuery(nodeType, Boolean.TRUE.equals(allNodes)), 1000, "SetNodeUuid", new BulkGraphOperation<AbstractNode>() {
+			final long count = bulkGraphOperation(securityContext, getNodeQuery(nodeType, Boolean.TRUE.equals(allNodes)), 1000, "SetNodeUuid", new BulkGraphOperation<NodeInterface>() {
 
 				@Override
-				public boolean handleGraphObject(final SecurityContext securityContext, final AbstractNode node) {
+				public boolean handleGraphObject(final SecurityContext securityContext, final NodeInterface node) {
 
 					try {
 
-						if (node.getProperty(GraphObject.id) == null) {
+						if (node.getProperty(idProperty) == null) {
 
 							node.unlockSystemPropertiesOnce();
-							node.setProperty(GraphObject.id, NodeServiceCommand.getNextUuid());
+							node.setProperty(idProperty, NodeServiceCommand.getNextUuid());
 						}
 
 					} catch (FrameworkException fex) {
@@ -82,7 +85,7 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 				}
 
 				@Override
-				public void handleThrowable(SecurityContext securityContext, Throwable t, AbstractNode node) {
+				public void handleThrowable(SecurityContext securityContext, Throwable t, NodeInterface node) {
 					logger.warn("Unable to set UUID of node {}", node, t);
 				}
 
@@ -120,10 +123,10 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 					try {
 
-						if (rel.getProperty(GraphObject.id) == null) {
+						if (rel.getProperty(idProperty) == null) {
 
 							rel.unlockSystemPropertiesOnce();
-							rel.setProperty(GraphObject.id, NodeServiceCommand.getNextUuid());
+							rel.setProperty(idProperty, NodeServiceCommand.getNextUuid());
 						}
 
 					} catch (FrameworkException fex) {

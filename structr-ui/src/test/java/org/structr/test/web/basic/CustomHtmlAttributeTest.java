@@ -26,11 +26,10 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.GenericProperty;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.RenderContext;
+import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.html.*;
 import org.testng.annotations.Test;
-import org.w3c.dom.Node;
 
 import static org.testng.AssertJUnit.assertEquals;
 
@@ -47,18 +46,18 @@ public class CustomHtmlAttributeTest extends StructrUiTest {
 			// create a page
 			final Page newPage = Page.createNewPage(securityContext, "customAttributeTestPage");
 
-			final Html html    = createElement(newPage, newPage, "html");
-			final Head head    = createElement(newPage, html, "head");
-			final Title title  = createElement(newPage, head, "title", "Test Page for custom html attributes");
-			final Body body    = createElement(newPage, html, "body");
+			final DOMElement html    = createElement(newPage, newPage, "html");
+			final DOMElement head    = createElement(newPage, html, "head");
+			final DOMElement title  = createElement(newPage, head, "title", "Test Page for custom html attributes");
+			final DOMElement body    = createElement(newPage, html, "body");
 
-			final Div div1     = createElement(newPage, body, "div", "DIV with old-style data attribute");
+			final DOMElement div1     = createElement(newPage, body, "div", "DIV with old-style data attribute");
 			div1.setProperty(new GenericProperty<String>("data-test-attribute-old-style"), "old-style data attribute");
 
-			final Div div2     = createElement(newPage, body, "div", "DIV with new-style custom html attribute");
+			final DOMElement div2     = createElement(newPage, body, "div", "DIV with new-style custom html attribute");
 			div2.setProperty(new GenericProperty<String>("_custom_html_test-attribute-new-style"), "new-style custom attribute");
 
-			final Div div3     = createElement(newPage, body, "div", "DIV with data-attribute as new-style custom html attribute");
+			final DOMElement div3     = createElement(newPage, body, "div", "DIV with data-attribute as new-style custom html attribute");
 			div3.setProperty(new GenericProperty<String>("_custom_html_data-test-attribute-new-style"), "new-style custom data-attribute");
 
 
@@ -90,16 +89,16 @@ public class CustomHtmlAttributeTest extends StructrUiTest {
 
 	}
 
-	private <T extends Node> T createElement(final Page page, final DOMNode parent, final String tag, final String... content) {
+	private DOMElement createElement(final Page page, final DOMNode parent, final String tag, final String... content) throws FrameworkException {
 
-		final T child = (T)page.createElement(tag);
-		parent.appendChild((DOMNode)child);
+		final DOMElement child = page.createElement(tag);
+		parent.appendChild(child);
 
 		if (content != null && content.length > 0) {
 
 			for (final String text : content) {
 
-				final Node node = page.createTextNode(text);
+				final DOMNode node = page.createTextNode(text);
 				child.appendChild(node);
 			}
 		}

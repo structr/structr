@@ -18,7 +18,6 @@
  */
 package org.structr.rest.serialization;
 
-import java.util.ArrayList;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,11 +29,14 @@ import org.structr.common.PropertyView;
 import org.structr.common.RequestKeywords;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
-import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -105,17 +107,19 @@ public class StructrJsonHtmlWriter implements RestWriter {
 		final Tag body = doc.block("body");
 		final Tag left = body.block("div").id("left");
 
-		left.inline("button").attr(new Css("collapse right")).text("-");
-		left.inline("button").attr(new Css("expand right")).text("+");
-
 		// baseUrl ist not really a baseUrl, it is the full path. it also does not (necessarily) contain the ApplicationRootPath
 		// to be safe, try to remove both (restPath already contains ApplicationRootPath)
 		// currentType is also a misnomer - it can also be "<type>/<uuid>"
-		String currentType = baseUrl.replace(restPath + "/", "")												// remove longest REST path (including applicationRootPah)
+		final String currentType = baseUrl.replace(restPath + "/", "")										// remove longest REST path (including applicationRootPah)
 				.replace(StringUtils.removeEnd(Settings.RestServletPath.getValue(), "/*") + "/", "")	// remove REST path (without applicationRootPah)
 				.replace("/" + propertyView, "");																// remove current view
 
-		for (String view : StructrApp.getConfiguration().getPropertyViews()) {
+		// try to isolate type (could still have trailing bits like UUID or even a method)
+		final String isolatedType = (currentType.contains("/")) ? currentType.substring(0, currentType.indexOf("/")) : currentType;
+
+		final Set<String> views = (Traits.exists(isolatedType)) ? Traits.of(isolatedType).getViewNames() : Traits.getAllViews();
+
+		for (String view : views.stream().sorted().toList()) {
 
 			if (!hiddenViews.contains(view)) {
 
@@ -250,7 +254,7 @@ public class StructrJsonHtmlWriter implements RestWriter {
 
 			} else if (currentObject instanceof AbstractRelationship) {
 
-				currentElement.inline("a").css("id").attr(new Href(restPath + "/" + currentObject.getProperty(AbstractRelationship.type) + "/" + value + propertyView + pagingParameterString)).text("\"", value, "\"");
+				currentElement.inline("a").css("id").attr(new Href(restPath + "/" + currentObject.getProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY)) + "/" + value + propertyView + pagingParameterString)).text("\"", value, "\"");
 
 			} else {
 

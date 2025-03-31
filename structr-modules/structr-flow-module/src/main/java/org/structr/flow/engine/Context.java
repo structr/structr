@@ -27,9 +27,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 
-/**
- *
- */
 public class Context {
 
 	private Map<String,Object> data  			= new HashMap<>();

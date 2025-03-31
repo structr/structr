@@ -28,9 +28,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.Query;
-import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.OneEndpoint;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.Source;
@@ -40,10 +38,9 @@ import org.structr.core.graph.search.GraphSearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.ObjectNotion;
-import org.structr.schema.ConfigurationProvider;
+import org.structr.core.traits.Traits;
 import org.structr.schema.openapi.common.OpenAPIAnyOf;
 import org.structr.schema.openapi.schema.OpenAPIObjectSchema;
-import org.structr.schema.openapi.schema.OpenAPIStructrTypeSchemaOutput;
 
 import java.util.Collections;
 import java.util.Map;
@@ -53,23 +50,14 @@ import java.util.Map;
  *
  *
  */
-public class EndNode<S extends NodeInterface, T extends NodeInterface> extends Property<T> implements RelationProperty<T> {
+public class EndNode extends Property<NodeInterface> implements RelationProperty {
 
 	private static final Logger logger = LoggerFactory.getLogger(EndNode.class.getName());
 
-	private Relation<S, T, ? extends Source, OneEndpoint<T>> relation = null;
-	private Notion notion                                             = null;
-	private Class<T> destType                                         = null;
-
-	/**
-	 * Constructs an entity property with the given name.
-	 *
-	 * @param name
-	 * @param fqcn
-	 */
-	public EndNode(final String name, final String fqcn) {
-		this(name, getClass(fqcn), new ObjectNotion());
-	}
+	private final Relation<? extends Source, OneEndpoint> relation;
+	private final Traits traits;
+	private final Notion notion;
+	private final String destType;
 
 	/**
 	 * Constructs an entity property with the given name, the given destination type,
@@ -77,10 +65,10 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 	 * flag.
 	 *
 	 * @param name
-	 * @param relationClass
+	 * @param type
 	 */
-	public EndNode(String name, Class<? extends Relation<S, T, ? extends Source, OneEndpoint<T>>> relationClass) {
-		this(name, relationClass, new ObjectNotion());
+	public EndNode(final String name, final String type) {
+		this(name, type, new ObjectNotion());
 	}
 
 	/**
@@ -88,22 +76,21 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 	 * the given relationship type, the given direction and the given notion.
 	 *
 	 * @param name
-	 * @param relationClass
+	 * @param type
 	 * @param notion
 	 */
-	public EndNode(String name, Class<? extends Relation<S, T, ? extends Source, OneEndpoint<T>>> relationClass, Notion notion) {
+	public EndNode(final String name, final String type, final Notion notion) {
 
 		super(name);
 
-		this.relation  = Relation.getInstance(relationClass);
+		this.traits    = Traits.of(type);
+		this.relation  = traits.getRelation();
 		this.notion    = notion;
 		this.destType  = relation.getTargetType();
 
 		this.notion.setType(destType);
 		this.notion.setRelationProperty(this);
 		this.relation.setTargetProperty(this);
-
-		StructrApp.getConfiguration().registerConvertedProperty(this);
 	}
 
 	@Override
@@ -117,39 +104,43 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 	}
 
 	@Override
-	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext) {
+	public PropertyConverter<NodeInterface, ?> databaseConverter(SecurityContext securityContext) {
 		return null;
 	}
 
 	@Override
-	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+	public PropertyConverter<NodeInterface, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
 		return null;
 	}
 
 	@Override
-	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, NodeInterface> inputConverter(SecurityContext securityContext) {
 		return notion.getEntityConverter(securityContext);
 	}
 
 	@Override
-	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+	public NodeInterface getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
 	@Override
-	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
+	public NodeInterface getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
 
-		OneEndpoint<T> endpoint  = relation.getTarget();
+		OneEndpoint endpoint  = relation.getTarget();
 
 		return endpoint.get(securityContext, (NodeInterface)obj, predicate);
 	}
 
 	@Override
-	public Object setProperty(SecurityContext securityContext, GraphObject obj, T value) throws FrameworkException {
+	public Object setProperty(SecurityContext securityContext, GraphObject obj, NodeInterface value) throws FrameworkException {
 
-		final OneEndpoint<T> endpoint = relation.getTarget();
+		final OneEndpoint endpoint = relation.getTarget();
 
 		try {
+
+			if (updateCallback != null) {
+				updateCallback.notifyUpdated(obj, value);
+			}
 
 			return endpoint.set(securityContext, (NodeInterface)obj, value);
 
@@ -166,13 +157,13 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 	}
 
 	@Override
-	public Class relatedType() {
+	public String relatedType() {
 		return destType;
 	}
 
 	@Override
 	public Class valueType() {
-		return relatedType();
+		return NodeInterface.class;
 	}
 
 	@Override
@@ -181,12 +172,17 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 	}
 
 	@Override
-	public Property<T> indexed() {
+	public boolean isArray() {
+		return false;
+	}
+
+	@Override
+	public Property<NodeInterface> indexed() {
 		return this;
 	}
 
 	@Override
-	public Property<T> passivelyIndexed() {
+	public Property<NodeInterface> passivelyIndexed() {
 		return this;
 	}
 
@@ -212,17 +208,17 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 	}
 
 	@Override
-	public void addSingleElement(final SecurityContext securityContext, final GraphObject obj, final T t) throws FrameworkException {
+	public void addSingleElement(final SecurityContext securityContext, final NodeInterface obj, final NodeInterface t) throws FrameworkException {
 		setProperty(securityContext, obj, t);
 	}
 
 	@Override
-	public Class<T> getTargetType() {
+	public String getTargetType() {
 		return destType;
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occurrence occur, T searchValue, boolean exactMatch, final Query query) {
+	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occurrence occur, NodeInterface searchValue, boolean exactMatch, final Query query) {
 		return new GraphSearchAttribute<>(this, searchValue, occur, exactMatch);
 	}
 
@@ -291,21 +287,25 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 	@Override
 	public Map<String, Object> describeOpenAPIOutputType(final String type, final String viewName, final int level) {
 
-		final String destTypeName = destType.getName();
+		final String destTypeName = destType;
 
+		/*
 		if ("org.structr.core.graph.NodeInterface".equals(destTypeName) || "org.structr.flow.impl.FlowContainer".equals(destTypeName) ) {
 
 			final ConfigurationProvider configuration = StructrApp.getConfiguration();
 
-			destType = configuration.getNodeEntityClass(AbstractNode.class.getSimpleName());
+			destType = configuration.getNodeEntityClass(NodeInterface.class.getSimpleName());
 			if (destType == null) {
 
 				final Map<String, Class> interfaces = configuration.getInterfaces();
-				destType = interfaces.get(AbstractNode.class.getSimpleName());
+				destType = interfaces.get(NodeInterface.class.getSimpleName());
 			}
 		}
 
 		return new OpenAPIStructrTypeSchemaOutput(destType, viewName, level + 1);
+		*/
+
+		return Map.of();
 	}
 
 	@Override

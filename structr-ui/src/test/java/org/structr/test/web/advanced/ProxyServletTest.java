@@ -24,11 +24,9 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
-import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.rest.service.HttpService;
 import org.structr.test.web.StructrUiTest;
-import org.structr.web.entity.User;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Optional;
 import org.testng.annotations.Parameters;
@@ -133,11 +131,8 @@ public class ProxyServletTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestNode(User.class,
-					new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
-					new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-					new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"), true)
-			);
+			createAdminUser();
+
 			tx.success();
 
 		} catch (FrameworkException fex) {
@@ -150,8 +145,8 @@ public class ProxyServletTest extends StructrUiTest {
 		final String response = RestAssured
 
 			.given()
-				.header("X-User",     "admin")
-				.header("X-Password", "admin")
+				.header(X_USER_HEADER,     ADMIN_USERNAME)
+				.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 
 			.expect()
 				.statusCode(200)

@@ -21,19 +21,19 @@ package org.structr.core.function.search;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.Query;
-import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.Traits;
 
 /**
  */
 public class AndPredicate extends AbstractPredicate {
 
 	@Override
-	public void configureQuery(final SecurityContext securityContext, final Class type, final PropertyKey propertyKey, final Query query, final boolean exact) throws FrameworkException {
+	public void configureQuery(final SecurityContext securityContext, final Traits type, final PropertyKey propertyKey, final Query query, final boolean exact) throws FrameworkException {
 
 		for (final SearchParameter p : parameters) {
 
-			final PropertyKey key = StructrApp.key(type, p.getKey(), true);
+			final PropertyKey key = type.key(p.getKey());
 			if (key != null) {
 
 				final Object value = p.getValue();

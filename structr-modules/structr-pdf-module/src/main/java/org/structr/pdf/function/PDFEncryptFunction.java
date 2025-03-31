@@ -26,8 +26,10 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.function.AdvancedScriptingFunction;
-import org.structr.storage.StorageProviderFactory;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
 import org.structr.schema.action.ActionContext;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.File;
 
 import java.io.IOException;
@@ -57,7 +59,7 @@ public class PDFEncryptFunction extends AdvancedScriptingFunction {
 
 			try {
 
-				if (!(sources[0] instanceof File)) {
+				if (!(sources[0] instanceof NodeInterface n && n.is(StructrTraits.FILE))) {
 
 					logParameterError(caller, sources, "First parameter is not a file object.", ctx.isJavaScriptContext());
 					return usage(ctx.isJavaScriptContext());
@@ -69,7 +71,7 @@ public class PDFEncryptFunction extends AdvancedScriptingFunction {
 					return usage(ctx.isJavaScriptContext());
 				}
 
-				final File pdfFileObject  = (File) sources[0];
+				final File pdfFileObject  = ((NodeInterface) sources[0]).as(File.class);
 				final String userPassword = (String) sources[1];
 
 				final PDDocument pdDocument = PDDocument.load(StorageProviderFactory.getStorageProvider(pdfFileObject).getInputStream());

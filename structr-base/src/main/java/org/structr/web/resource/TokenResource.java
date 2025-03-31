@@ -21,21 +21,22 @@ package org.structr.web.resource;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.rest.RestMethodResult;
+import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
+import org.structr.rest.api.parameter.RESTParameter;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.auth.JWTHelper;
 import org.structr.schema.action.ActionContext;
-import org.structr.rest.api.ExactMatchEndpoint;
-import org.structr.rest.api.parameter.RESTParameter;
+
+import java.util.Map;
 
 
 public class TokenResource extends ExactMatchEndpoint {
@@ -61,9 +62,9 @@ public class TokenResource extends ExactMatchEndpoint {
 		}
 
 		@Override
-		protected PrincipalInterface getUserForCredentials(final SecurityContext securityContext, final String emailOrUsername, final String password, final String twoFactorToken, final String twoFactorCode, final Map<String, Object> propertySet) throws FrameworkException {
+		protected Principal getUserForCredentials(final SecurityContext securityContext, final String emailOrUsername, final String password, final String twoFactorToken, final String twoFactorCode, final Map<String, Object> propertySet) throws FrameworkException {
 
-			PrincipalInterface user = getUserForTwoFactorTokenOrEmailOrUsername(securityContext, twoFactorToken, emailOrUsername, password);
+			Principal user = getUserForTwoFactorTokenOrEmailOrUsername(securityContext, twoFactorToken, emailOrUsername, password);
 
 			boolean isFromRefreshToken = false;
 
@@ -99,7 +100,7 @@ public class TokenResource extends ExactMatchEndpoint {
 		}
 
 		@Override
-		protected RestMethodResult doLogin(final SecurityContext securityContext, final PrincipalInterface user) throws FrameworkException {
+		protected RestMethodResult doLogin(final SecurityContext securityContext, final Principal user) throws FrameworkException {
 
 			final Map<String, String> tokenMap = JWTHelper.createTokensForUser(user);
 

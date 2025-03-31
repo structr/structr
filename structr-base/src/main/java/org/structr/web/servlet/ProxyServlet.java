@@ -24,8 +24,8 @@ import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -34,19 +34,22 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.rest.common.HttpHelper;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.rest.servlet.AbstractServletBase;
 import org.structr.web.auth.UiAuthenticator;
-import org.structr.web.entity.User;
 
 import java.io.IOException;
 import java.net.URI;
 import java.util.Collections;
+import java.util.Map;
 
 /**
  * Servlet for proxy requests.
@@ -100,9 +103,10 @@ public class ProxyServlet extends AbstractServletBase implements HttpServiceServ
 
 		setCustomResponseHeaders(response);
 
-		final PropertyKey<String> proxyUrlKey      = StructrApp.key(User.class, "proxyUrl");
-		final PropertyKey<String> proxyUsernameKey = StructrApp.key(User.class, "proxyUsername");
-		final PropertyKey<String> proxyPasswordKey = StructrApp.key(User.class, "proxyPassword");
+		final Traits traits                        = Traits.of(StructrTraits.USER);
+		final PropertyKey<String> proxyUrlKey      = traits.key(PrincipalTraitDefinition.PROXY_URL_PROPERTY);
+		final PropertyKey<String> proxyUsernameKey = traits.key(PrincipalTraitDefinition.PROXY_USERNAME_PROPERTY);
+		final PropertyKey<String> proxyPasswordKey = traits.key(PrincipalTraitDefinition.PROXY_PASSWORD_PROPERTY);
 
 		final Authenticator auth = getConfig().getAuthenticator();
 
@@ -172,21 +176,21 @@ public class ProxyServlet extends AbstractServletBase implements HttpServiceServ
 			if (StringUtils.isNotBlank(contentType)) {
 				final String[] contentTypeParts = contentType.split(";");
 				if (contentTypeParts.length == 2) {
-					charset = org.apache.commons.lang.StringUtils.trim(contentTypeParts[1]);
+					charset = org.apache.commons.lang3.StringUtils.trim(contentTypeParts[1]);
 				}
 			}
 
 
 			if (StringUtils.isBlank(proxyUrl)) {
 
-				final PrincipalInterface user = securityContext.getCachedUser();
+				final Principal user = securityContext.getCachedUser();
 				if (user != null) {
 
 					try (final Tx tx = StructrApp.getInstance().tx()) {
 
-						proxyUrl = user.getProperty(proxyUrlKey);
-						proxyUsername = user.getProperty(proxyUsernameKey);
-						proxyPassword = user.getProperty(proxyPasswordKey);
+						proxyUrl =      user.getProxyUrl();
+						proxyUsername = user.getProxyUsername();
+						proxyPassword = user.getProxyPassword();
 
 						tx.success();
 
@@ -195,8 +199,14 @@ public class ProxyServlet extends AbstractServletBase implements HttpServiceServ
 				}
 			}
 
-			content = HttpHelper.get(address, charset, authUsername, authPassword, proxyUrl, proxyUsername, proxyPassword, cookie, Collections.EMPTY_MAP, true).replace("<head>", "<head>\n  <base href=\"" + url + "\">");
+			final Map<String, Object> responseData = HttpHelper.get(address, charset, authUsername, authPassword, proxyUrl, proxyUsername, proxyPassword, cookie, Collections.EMPTY_MAP, true);
+			final String body = responseData.get(HttpHelper.FIELD_BODY) != null ? (String) responseData.get(HttpHelper.FIELD_BODY) : null;
 
+			if (body == null) {
+				throw new FrameworkException(422, "Request returned empty body");
+			}
+
+			content =  body.replace("<head>", "<head>\n  <base href=\"" + url + "\">");
 
 		} catch (Throwable t) {
 

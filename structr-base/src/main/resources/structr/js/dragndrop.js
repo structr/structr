@@ -127,7 +127,7 @@ let _Dragndrop = {
 					return false;
 				}
 
-				if (target.isContent && target.type !== 'Template' && _Helpers.isIn(tag, _Elements.voidAttrs)) {
+				if (target.isContent && target.type !== 'Template' && _Elements.voidAttrs.includes(tag)) {
 					return false;
 				}
 			},
@@ -662,10 +662,7 @@ let _Dragndrop = {
 			newComponentDropzone?.addEventListener('drop', (e) => {
 				e.stopPropagation();
 
-				// Create shadow page if not existing
-				Structr.ensureShadowPageExists().then(() => {
-					_Pages.sharedComponents.createNew(_Dragndrop.dragEntity.id);
-				});
+				_Pages.sharedComponents.createNew(_Dragndrop.dragEntity.id);
 
 				return false;
 			});

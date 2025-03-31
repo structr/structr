@@ -23,15 +23,17 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.SchemaProperty;
-import org.structr.core.entity.SchemaRelationshipNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
-import org.structr.schema.ConfigurationProvider;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -59,9 +61,10 @@ public class ListSchemaPropertiesCommand extends AbstractCommand {
 
 		setDoTransactionNotifications(false);
 
-		final String view              = webSocketData.getNodeDataStringValue("view");
-		final String id                = webSocketData.getId();
-		final List<GraphObject> result = new LinkedList();
+		final Traits schemaPropertyTraits = Traits.of(StructrTraits.SCHEMA_PROPERTY);
+		final String view                 = webSocketData.getNodeDataStringValue("view");
+		final String id                   = webSocketData.getId();
+		final List<GraphObject> result    = new LinkedList();
 
 		try {
 
@@ -69,62 +72,55 @@ public class ListSchemaPropertiesCommand extends AbstractCommand {
 
 				if (id != null) {
 
-					AbstractNode schemaObject = getNode(id);
+					NodeInterface schemaObject = getNode(id);
 					if (schemaObject != null) {
 
-						final ConfigurationProvider config = StructrApp.getConfiguration();
-						String typeName = schemaObject.getProperty(AbstractNode.name);
+						String typeName = schemaObject.getName();
 
-						if (typeName == null && schemaObject instanceof SchemaRelationshipNode) {
-							typeName = ((SchemaRelationshipNode) schemaObject).getClassName();
+						if (typeName == null && schemaObject.is(StructrTraits.SCHEMA_RELATIONSHIP_NODE)) {
+							typeName = schemaObject.getType();
 						}
 
-						Class type = config.getNodeEntityClass(typeName);
-						if (type == null || GenericNode.class.equals(type)) {
-
-							type = config.getRelationshipEntityClass(typeName);
-						}
+						Traits type = Traits.of(typeName);
 
 						if (type != null) {
 
-							final Set<PropertyKey> allProperties = config.getPropertySet(type, PropertyView.All);
-							final Set<PropertyKey> viewProperties = config.getPropertySet(type, view);
-							final Set<PropertyKey> parentProperties = config.getPropertySet(type.getSuperclass(), view);
+							final Set<PropertyKey> allProperties  = type.getAllPropertyKeys();
+							final Set<PropertyKey> viewProperties = type.getPropertyKeysForView(view);
 
 							for (final PropertyKey key : allProperties) {
 
-								final String declaringClass = key.getDeclaringClass() != null ? key.getDeclaringClass().getSimpleName() : "GraphObject";
-								final String declaringUuid = key.getSourceUuid();
-								final String propertyName = key.jsonName();
+								final String declaringClass   = key.getDeclaringTrait() != null ? key.getDeclaringTrait().getLabel() : StructrTraits.GRAPH_OBJECT;
+								final String declaringUuid    = key.getSourceUuid();
+								final String propertyName     = key.jsonName();
 								final GraphObjectMap property = new GraphObjectMap();
-								final Class valueType = key.valueType();
-								String valueTypeName = "Unknown";
-								boolean _isDisabled = false;
+								final Class valueType         = key.valueType();
+								String valueTypeName          = "Unknown";
+								boolean _isDisabled           = false;
 
 								if (valueType != null) {
 									valueTypeName = valueType.getSimpleName();
 								}
 
-								property.put(AbstractNode.id, key.getSourceUuid());
-								property.put(AbstractNode.name, propertyName);
-								property.put(isSelected, viewProperties.contains(key));
-								property.put(isDisabled, _isDisabled);
-								property.put(SchemaProperty.propertyType, valueTypeName);
-								property.put(SchemaProperty.notNull, key.isNotNull());
-								property.put(SchemaProperty.unique, key.isUnique());
-								property.put(SchemaProperty.isPartOfBuiltInSchema, key.isPartOfBuiltInSchema());
-								property.put(SchemaProperty.isDynamic, key.isDynamic());
-								property.put(SchemaProperty.declaringClass, declaringClass);
-								property.put(SchemaProperty.declaringUuid, declaringUuid);
+								property.put(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY),       key.getSourceUuid());
+								property.put(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), propertyName);
+								property.put(isSelected,                                                                              viewProperties.contains(key));
+								property.put(isDisabled,                                                                              _isDisabled);
+								property.put(schemaPropertyTraits.key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY),          valueTypeName);
+								property.put(schemaPropertyTraits.key(SchemaPropertyTraitDefinition.NOT_NULL_PROPERTY),               key.isNotNull());
+								property.put(schemaPropertyTraits.key(SchemaPropertyTraitDefinition.UNIQUE_PROPERTY),                 key.isUnique());
+								property.put(schemaPropertyTraits.key(SchemaPropertyTraitDefinition.IS_DYNAMIC_PROPERTY),             key.isDynamic());
+								property.put(schemaPropertyTraits.key(SchemaPropertyTraitDefinition.DECLARING_CLASS_PROPERTY),        declaringClass);
+								property.put(schemaPropertyTraits.key(SchemaPropertyTraitDefinition.DECLARING_UUID_PROPERTY),         declaringUuid);
 
 								if (declaringUuid != null) {
 
 									try {
 
-										final GraphObject declaringEntity = StructrApp.getInstance().get(AbstractNode.class, declaringUuid);
+										final GraphObject declaringEntity = StructrApp.getInstance().getNodeById(StructrTraits.NODE_INTERFACE, declaringUuid);
 										if (declaringEntity != null) {
 
-											if (declaringEntity instanceof SchemaProperty) {
+											if (declaringEntity.is(StructrTraits.SCHEMA_PROPERTY)) {
 
 												final SchemaProperty schemaProperty = (SchemaProperty) declaringEntity;
 												property.put(new GenericProperty("declaringPropertyType"), schemaProperty.getPropertyType().name());

@@ -23,19 +23,24 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.PropertyMap;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.RenderContext;
+import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.Template;
+import org.structr.web.traits.wrappers.dom.DOMNodeTraitWrapper;
 import org.testng.annotations.Test;
 import org.w3c.dom.DOMException;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+
+import java.util.List;
+import java.util.Set;
 
 import static org.testng.AssertJUnit.*;
 
@@ -57,19 +62,19 @@ public class PageTest extends StructrUiTest {
 				Page page = Page.createNewPage(securityContext, pageName);
 
 				assertTrue(page != null);
-				assertTrue(page instanceof Page);
+				assertTrue(page.is(StructrTraits.PAGE));
 
-				DOMNode html = (DOMNode) page.createElement("html");
-				DOMNode head = (DOMNode) page.createElement("head");
-				DOMNode body = (DOMNode) page.createElement("body");
-				DOMNode title = (DOMNode) page.createElement("title");
-				DOMNode h1 = (DOMNode) page.createElement("h1");
-				DOMNode div1 = (DOMNode) page.createElement("div");
-				DOMNode p1 = (DOMNode) page.createElement("p");
-				DOMNode div2 = (DOMNode) page.createElement("div");
-				DOMNode p2 = (DOMNode) page.createElement("p");
-				DOMNode div3 = (DOMNode) page.createElement("div");
-				DOMNode p3 = (DOMNode) page.createElement("p");
+				DOMNode html  = page.createElement("html");
+				DOMNode head  = page.createElement("head");
+				DOMNode body  = page.createElement("body");
+				DOMNode title = page.createElement("title");
+				DOMNode h1    = page.createElement("h1");
+				DOMNode div1  = page.createElement("div");
+				DOMNode p1    = page.createElement("p");
+				DOMNode div2  = page.createElement("div");
+				DOMNode p2    = page.createElement("p");
+				DOMNode div3  = page.createElement("div");
+				DOMNode p3    = page.createElement("p");
 
 				// add HTML element to page
 				page.appendChild(html);
@@ -96,10 +101,10 @@ public class PageTest extends StructrUiTest {
 				div2.appendChild(div3);
 				div3.appendChild(p3);
 
-				NodeList divs = page.getElementsByTagName("p");
-				assertEquals(p1, divs.item(0));
-				assertEquals(p2, divs.item(1));
-				assertEquals(p3, divs.item(2));
+				final List<DOMNode> divs = page.getElementsByTagName("p");
+				assertEquals(p1, divs.get(0));
+				assertEquals(p2, divs.get(1));
+				assertEquals(p3, divs.get(2));
 
 				tx.success();
 
@@ -128,13 +133,13 @@ public class PageTest extends StructrUiTest {
 				assertTrue(srcPage != null);
 				assertTrue(srcPage instanceof Page);
 
-				Node html = srcPage.createElement("html");
-				Node head = srcPage.createElement("head");
-				Node body = srcPage.createElement("body");
-				Node title = srcPage.createElement("title");
-				Node h1 = srcPage.createElement("h1");
-				Node div = srcPage.createElement("div");
-				Node p = srcPage.createElement("p");
+				DOMElement html = srcPage.createElement("html");
+				DOMElement head = srcPage.createElement("head");
+				DOMElement body = srcPage.createElement("body");
+				DOMElement title = srcPage.createElement("title");
+				DOMElement h1 = srcPage.createElement("h1");
+				DOMElement div = srcPage.createElement("div");
+				DOMElement p = srcPage.createElement("p");
 
 				// add HTML element to page
 				srcPage.appendChild(html);
@@ -163,7 +168,7 @@ public class PageTest extends StructrUiTest {
 				dstPage.adoptNode(html);
 
 				// has parent been removed for the source element?
-				assertNull(html.getParentNode());
+				assertNull(html.getParent());
 
 				// has owner changed for all elements?
 				assertEquals(dstPage, html.getOwnerDocument());
@@ -175,18 +180,21 @@ public class PageTest extends StructrUiTest {
 				assertEquals(dstPage, p.getOwnerDocument());
 
 				// have parents been kept for all other elements?
-				assertEquals(html, head.getParentNode());
-				assertEquals(html, body.getParentNode());
-				assertEquals(head, title.getParentNode());
-				assertEquals(body, h1.getParentNode());
-				assertEquals(body, div.getParentNode());
-				assertEquals(div, p.getParentNode());
+				assertEquals(html, head.getParent());
+				assertEquals(html, body.getParent());
+				assertEquals(head, title.getParent());
+				assertEquals(body, h1.getParent());
+				assertEquals(body, div.getParent());
+				assertEquals(div, p.getParent());
 
 				// srcPage should not have a document element any more
-				assertNull(srcPage.getDocumentElement());
+				//assertNull(srcPage.getDocumentElement());
 
-				// srcPage should have exactly one child element
-				assertEquals(1, srcPage.getChildNodes().getLength());
+				final List<DOMNode> srcChildren = srcPage.getChildNodes();
+				final List<DOMNode> dstChildren = dstPage.getChildNodes();
+
+				// srcPage should have no children any more
+				assertEquals(0, srcChildren.size());
 
 				tx.success();
 
@@ -211,13 +219,13 @@ public class PageTest extends StructrUiTest {
 			assertTrue(srcPage != null);
 			assertTrue(srcPage instanceof Page);
 
-			Node html = srcPage.createElement("html");
-			Node head = srcPage.createElement("head");
-			Node body = srcPage.createElement("body");
-			Node title = srcPage.createElement("title");
-			Node h1 = srcPage.createElement("h1");
-			Node div = srcPage.createElement("div");
-			Node p = srcPage.createElement("p");
+			DOMElement html = srcPage.createElement("html");
+			DOMElement head = srcPage.createElement("head");
+			DOMElement body = srcPage.createElement("body");
+			DOMElement title = srcPage.createElement("title");
+			DOMElement h1 = srcPage.createElement("h1");
+			DOMElement div = srcPage.createElement("div");
+			DOMElement p = srcPage.createElement("p");
 
 			// add HTML element to page
 			srcPage.appendChild(html);
@@ -251,7 +259,7 @@ public class PageTest extends StructrUiTest {
 			dstPage.importNode(html, true);
 
 			// has parent been removed for the source element?
-			assertNull(html.getParentNode());
+			assertNull(html.getParent());
 
 			// same owner for all elements?
 			assertEquals(srcPage, html.getOwnerDocument());
@@ -263,12 +271,12 @@ public class PageTest extends StructrUiTest {
 			assertEquals(srcPage, p.getOwnerDocument());
 
 			// have parents been kept for all other elements?
-			assertEquals(html, head.getParentNode());
-			assertEquals(html, body.getParentNode());
-			assertEquals(head, title.getParentNode());
-			assertEquals(body, h1.getParentNode());
-			assertEquals(body, div.getParentNode());
-			assertEquals(div, p.getParentNode());
+			assertEquals(html, head.getParent());
+			assertEquals(html, body.getParent());
+			assertEquals(head, title.getParent());
+			assertEquals(body, h1.getParent());
+			assertEquals(body, div.getParent());
+			assertEquals(div, p.getParent());
 
 			tx.success();
 
@@ -302,14 +310,14 @@ public class PageTest extends StructrUiTest {
 				Page page = Page.createNewPage(securityContext, "srcPage");
 
 				assertTrue(page != null);
-				assertTrue(page instanceof Page);
-				Node html = page.createElement("html");
-				Node head = page.createElement("head");
-				Node body = page.createElement("body");
-				Node title = page.createElement("title");
-				Node h1 = page.createElement("h1");
-				Node div = page.createElement("div");
-				Node p = page.createElement("p");
+				assertTrue(page.is(StructrTraits.PAGE));
+				DOMElement html = page.createElement("html");
+				DOMElement head = page.createElement("head");
+				DOMElement body = page.createElement("body");
+				DOMElement title = page.createElement("title");
+				DOMElement h1 = page.createElement("h1");
+				DOMElement div = page.createElement("div");
+				DOMElement p = page.createElement("p");
 
 				// add HTML element to page
 				page.appendChild(html);
@@ -331,16 +339,16 @@ public class PageTest extends StructrUiTest {
 				// add text element to P
 				p.appendChild(page.createTextNode("First Paragraph"));
 
-				Node clone = body.cloneNode(false);
+				DOMNode clone = body.cloneNode(false);
 
 				assertTrue(isClone(clone, body));
 
 				tx.success();
 			}
 
-		} catch (Throwable t) {
+		} catch (FrameworkException fex) {
 
-			t.printStackTrace();
+			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
 	}
@@ -354,15 +362,17 @@ public class PageTest extends StructrUiTest {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			pageToClone = app.create(Page.class, "test");
+			pageToClone = app.create(StructrTraits.PAGE, "test").as(Page.class);
 
-			final Template templ = app.create(Template.class, "#template");
+			final Template templ = app.create(StructrTraits.TEMPLATE, "#template").as(Template.class);
 
 			templ.setContent("Template: ${render(children)}");
 			templ.setContentType("text/html");
 
 			pageToClone.adoptNode(templ);
 			pageToClone.appendChild(templ);
+
+			System.out.println(pageToClone.getContent(RenderContext.EditMode.NONE));
 
 			tx.success();
 
@@ -375,20 +385,20 @@ public class PageTest extends StructrUiTest {
 		// clone page
 		try (final Tx tx = app.tx()) {
 
-			newPage = (Page) pageToClone.cloneNode(false);
-			newPage.setProperties(securityContext, new PropertyMap(Page.name, pageToClone.getProperty(Page.name) + "-" + newPage.getPropertyContainer().getId().toString()));
+			newPage = pageToClone.cloneNode(false).as(Page.class);
 
-			DOMNode firstChild = (DOMNode) pageToClone.getFirstChild().getNextSibling();
+			newPage.setName(pageToClone.getName() + "-" + newPage.getNode().getId().toString());
 
-			if (firstChild == null) {
-				firstChild = (DOMNode) pageToClone.treeGetFirstChild();
-			}
-
+			DOMNode firstChild = pageToClone.getFirstChild();
 			if (firstChild != null) {
-				final DOMNode newHtmlNode = DOMNode.cloneAndAppendChildren(securityContext, firstChild);
+
+				final DOMNode newHtmlNode = DOMNodeTraitWrapper.cloneAndAppendChildren(securityContext, firstChild);
+
 				newPage.adoptNode(newHtmlNode);
 				newPage.appendChild(newHtmlNode);
 			}
+
+			System.out.println(newPage.getContent(RenderContext.EditMode.NONE));
 
 			tx.success();
 
@@ -402,13 +412,14 @@ public class PageTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// change all templates
-			for (final Template template : app.nodeQuery(Template.class).getAsList()) {
+			for (final NodeInterface node : app.nodeQuery(StructrTraits.TEMPLATE).getAsList()) {
 
-				final Page page = template.getOwnerDocument();
+				final Template template = node.as(Template.class);
+				final Page page         = template.getOwnerDocument();
 
 				assertNotNull("Page must have pageId set", page);
 
-				final Node div1 = page.createElement("div");
+				final DOMElement div1 = page.createElement("div");
 				div1.appendChild(page.createTextNode("div1"));
 
 				template.appendChild(div1);
@@ -440,25 +451,41 @@ public class PageTest extends StructrUiTest {
 
 	}
 
-	private boolean isClone(final Node n1, final Node n2) {
+	private boolean isClone(final DOMNode n1, final DOMNode n2) throws FrameworkException {
 
-		boolean isClone = true;
+		final String content1 = n1.getNodeValue();
+		final String content2 = n2.getNodeValue();
+		boolean isClone       = true;
 
-		isClone &= StringUtils.equals(n1.getNodeName(), n2.getNodeName());
-		isClone &= n1.getNodeType() == n2.getNodeType();
-		isClone &= StringUtils.equals(n1.getNodeValue(), n2.getNodeValue());
+		isClone &= StringUtils.equals(n1.getType(), n2.getType());
+		isClone &= StringUtils.equals(content1, content2);
 
-		NamedNodeMap attrs1 = n1.getAttributes();
-		NamedNodeMap attrs2 = n2.getAttributes();
+		final Set<PropertyKey> compareKeys = n1.getTraits().getPropertyKeysForView(PropertyView.Html);
+		for (final PropertyKey key : compareKeys) {
 
-		for (int i = 0; i < attrs1.getLength(); i++) {
+			final Object value1 = n1.getProperty(key);
+			final Object value2 = n2.getProperty(key);
 
-			Node a1 = attrs1.item(i);
-			isClone &= isClone(a1, attrs2.item(i));
-
+			isClone &= isEqualOrNull(value1, value2);
 		}
 
 		return isClone;
 	}
 
+	private boolean isEqualOrNull(final Object o1, final Object o2) {
+
+		if (o1 == null && o2 != null) {
+			return false;
+		}
+
+		if (o1 != null && o2 == null) {
+			return false;
+		}
+
+		if (o1 == null && o2 == null) {
+			return true;
+		}
+
+		return o1.equals(o2);
+	}
 }

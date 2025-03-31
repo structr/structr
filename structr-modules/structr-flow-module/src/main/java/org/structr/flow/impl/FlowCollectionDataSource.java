@@ -19,55 +19,42 @@
 package org.structr.flow.impl;
 
 import org.structr.api.util.Iterables;
-import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNodes;
-import org.structr.flow.api.DataSource;
-import org.structr.flow.engine.Context;
-import org.structr.flow.engine.FlowException;
-import org.structr.flow.impl.rels.FlowDataInputs;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.flow.traits.definitions.FlowCollectionDataSourceTraitDefinition;
 import org.structr.module.api.DeployableEntity;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 public class FlowCollectionDataSource extends FlowDataSource implements DeployableEntity {
 
-	public static final Property<Iterable<DataSource>> dataSources = new StartNodes<>("dataSources", FlowDataInputs.class);
+	public FlowCollectionDataSource(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
+	}
 
-	public static final View defaultView = new View(FlowObjectDataSource.class, PropertyView.Public, dataSources);
-	public static final View uiView      = new View(FlowObjectDataSource.class, PropertyView.Ui, dataSources);
+	public final void setDataSources(final Iterable<FlowDataSource> dataSources) throws FrameworkException {
+		wrappedObject.setProperty(traits.key(FlowCollectionDataSourceTraitDefinition.DATA_SOURCES_PROPERTY), dataSources);
+	}
 
-	@Override
-	public Object get(final Context context) throws FlowException {
+	public final Iterable<FlowDataSource> getDataSources() {
 
-		List<DataSource> sources = Iterables.toList(getProperty(dataSources));
-		List<Object> result      = new ArrayList<>();
+		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key(FlowCollectionDataSourceTraitDefinition.DATA_SOURCES_PROPERTY));
 
-		if (sources != null && sources.size() > 0) {
-
-			for (DataSource source : sources) {
-
-				result.add(source.get(context));
-
-			}
-
-		}
-
-		return result;
+		return Iterables.map(n -> n.as(FlowDataSource.class), nodes);
 	}
 
 	@Override
 	public Map<String, Object> exportData() {
-		Map<String, Object> result = new HashMap<>();
 
-		result.put("id", this.getUuid());
-		result.put("type", this.getClass().getSimpleName());
-		result.put("visibleToPublicUsers", this.getProperty(visibleToPublicUsers));
-		result.put("visibleToAuthenticatedUsers", this.getProperty(visibleToAuthenticatedUsers));
+		final Map<String, Object> result = new TreeMap<>();
+
+		result.put(GraphObjectTraitDefinition.ID_PROPERTY,                          getUuid());
+		result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,                        getType());
+		result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        isVisibleToPublicUsers());
+		result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, isVisibleToAuthenticatedUsers());
 
 		return result;
 	}

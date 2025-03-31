@@ -34,6 +34,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.DefaultSortOrder;
 import org.structr.core.graph.search.PropertySearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
+import org.structr.core.traits.Trait;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -47,35 +48,36 @@ public abstract class Property<T> implements PropertyKey<T> {
 	private static final Logger logger               = LoggerFactory.getLogger(Property.class.getName());
 	private static final Pattern RANGE_QUERY_PATTERN = Pattern.compile("\\[(.*) TO (.*)\\]");
 
-	protected List<String> transformators                  = new LinkedList<>();
-	protected Class<? extends GraphObject> declaringClass  = null;
-	protected T defaultValue                               = null;
-	protected boolean readOnly                             = false;
-	protected boolean systemInternal                       = false;
-	protected boolean writeOnce                            = false;
-	protected boolean unvalidated                          = false;
-	protected boolean indexed                              = false;
-	protected boolean indexedPassively                     = false;
-	protected boolean indexedWhenEmpty                     = false;
-	protected boolean compound                             = false;
-	protected boolean unique                               = false;
-	protected boolean notNull                              = false;
-	protected boolean dynamic                              = false;
-	protected boolean isPartOfBuiltInSchema                = false;
-	protected boolean cachingEnabled                       = false;
-	protected boolean nodeOnly                             = false;
-	protected String dbName                                = null;
-	protected String jsonName                              = null;
-	protected String format                                = null;
-	protected String typeHint                              = null;
-	protected String readFunction                          = null;
-	protected String writeFunction                         = null;
-	protected String openAPIReturnType                     = null;
-	protected String hint                                  = null;
-	protected String category                              = null;
-	protected String sourceUuid                            = null;
+	protected final List<String> transformators = new LinkedList<>();
+	protected UpdateCallback<T> updateCallback  = null;
+	protected Trait declaringTrait              = null;
+	protected T defaultValue                    = null;
+	protected boolean readOnly                  = false;
+	protected boolean systemInternal            = false;
+	protected boolean writeOnce                 = false;
+	protected boolean unvalidated               = false;
+	protected boolean indexed                   = false;
+	protected boolean indexedPassively          = false;
+	protected boolean indexedWhenEmpty          = false;
+	protected boolean compound                  = false;
+	protected boolean unique                    = false;
+	protected boolean notNull                   = false;
+	protected boolean dynamic                   = false;
+	protected boolean isPartOfBuiltInSchema     = false;
+	protected boolean cachingEnabled            = false;
+	protected boolean nodeOnly                  = false;
+	protected String dbName                     = null;
+	protected String jsonName                   = null;
+	protected String format                     = null;
+	protected String typeHint                   = null;
+	protected String readFunction               = null;
+	protected String writeFunction              = null;
+	protected String openAPIReturnType          = null;
+	protected String hint                       = null;
+	protected String category                   = null;
+	protected String sourceUuid                 = null;
 
-	private boolean requiresSynchronization                = false;
+	private boolean requiresSynchronization     = false;
 
 	protected Property(final String name) {
 		this(name, name);
@@ -236,17 +238,6 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public Property<T> partOfBuiltInSchema() {
-		this.isPartOfBuiltInSchema = true;
-		return this;
-	}
-
-	@Override
-	public boolean isPartOfBuiltInSchema() {
-		return this.isPartOfBuiltInSchema;
-	}
-
-	@Override
 	public boolean requiresSynchronization() {
 		return requiresSynchronization;
 	}
@@ -254,26 +245,27 @@ public abstract class Property<T> implements PropertyKey<T> {
 	@Override
 	public String getSynchronizationKey() {
 
-		if (declaringClass != null) {
+		if (declaringTrait != null) {
 
-			return declaringClass.getSimpleName() + "." + dbName;
+			return declaringTrait.getLabel() + "." + dbName;
 		}
 
 		return "GraphObject." + dbName;
 	}
 
 	@Override
-	public void setDeclaringClass(final Class declaringClass) {
-		this.declaringClass = declaringClass;
+	public void setDeclaringTrait(final Trait declaringTrait) {
+		this.declaringTrait = declaringTrait;
 	}
 
 	@Override
-	public void registrationCallback(final Class type) {
+	public void registrationCallback(final Trait trait) {
+		this.declaringTrait = trait;
 	}
 
 	@Override
-	public Class getDeclaringClass() {
-		return declaringClass;
+	public Trait getDeclaringTrait() {
+		return declaringTrait;
 	}
 
 	@Override
@@ -330,7 +322,13 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 	@Override
 	public Property<T> unique(final boolean unique) {
+
 		this.unique = unique;
+
+		if (unique) {
+			this.requiresSynchronization = true;
+		}
+
 		return this;
 	}
 
@@ -402,10 +400,23 @@ public abstract class Property<T> implements PropertyKey<T> {
 		return this;
 	}
 
+	/**
+	 * Register a callback that gets notified when this property is set.
+	 * Note that this is currently only implemented in the StartNode,
+	 * EndNode, StartNodes and EndNodes properties!
+	 *
+	 * @param callback
+	 * @return
+	 */
+	public Property<T> updateCallback(final UpdateCallback<T> callback) {
+		this.updateCallback = callback;
+		return this;
+	}
+
 	@Override
 	public int hashCode() {
 
-		// make hashCode funtion work for subtypes that override jsonName() etc. as well
+		// make hashCode function work for subtypes that override jsonName() etc. as well
 		if (dbName() != null && jsonName() != null) {
 			return (dbName().hashCode() * 31) + jsonName().hashCode();
 		}

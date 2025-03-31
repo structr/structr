@@ -26,7 +26,6 @@ import org.structr.schema.action.ActionContext;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.temporal.Temporal;
 import java.util.Date;
 
 public class DateFormatFunction extends CoreFunction {

@@ -18,29 +18,54 @@
  */
 package org.structr.media.relationship;
 
-import org.structr.core.entity.OneToMany;
 import org.structr.core.entity.Relation;
-import org.structr.media.VideoFile;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
+import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
-public class VideoFileHAS_CONVERTED_VIDEOVideoFile extends OneToMany<VideoFile, VideoFile> {
+public class VideoFileHAS_CONVERTED_VIDEOVideoFile extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
-	@Override
-	public Class<VideoFile> getSourceType() {
-		return VideoFile.class;
+	public VideoFileHAS_CONVERTED_VIDEOVideoFile() {
+		super(StructrTraits.VIDEO_FILE_HAS_CONVERTED_VIDEO_VIDEO_FILE);
 	}
 
 	@Override
-	public Class<VideoFile> getTargetType() {
-		return VideoFile.class;
+	public String getSourceType() {
+		return StructrTraits.VIDEO_FILE;
 	}
 
 	@Override
-	public String name() {
+	public String getTargetType() {
+		return StructrTraits.VIDEO_FILE;
+	}
+
+	@Override
+	public String getRelationshipType() {
 		return "HAS_CONVERTED_VIDEO";
+	}
+
+	@Override
+	public Relation.Multiplicity getSourceMultiplicity() {
+		return Relation.Multiplicity.One;
+	}
+
+	@Override
+	public Relation.Multiplicity getTargetMultiplicity() {
+		return Relation.Multiplicity.Many;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
 		return Relation.SOURCE_TO_TARGET;
+	}
+
+	@Override
+	public int getAutocreationFlag() {
+		return Relation.NONE;
+	}
+
+	@Override
+	public boolean isInternal() {
+		return false;
 	}
 }

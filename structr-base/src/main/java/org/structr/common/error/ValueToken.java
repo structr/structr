@@ -18,6 +18,10 @@
  */
 package org.structr.common.error;
 
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Set;
+
 /**
  * Indicates that a property value was not in the expected set of values.
  *
@@ -25,29 +29,14 @@ package org.structr.common.error;
  */
 public class ValueToken extends SemanticErrorToken {
 
-	public ValueToken(final String type, final String propertyKey, final Object[] values) {
+	public ValueToken(final String type, final String propertyKey, final Set values) {
 
 		super(type, propertyKey, "must_be_one_of");
 
 		withDetail(ValueToken.getContent(values));
 	}
 
-	private static String getContent(final Object[] values) {
-
-		final StringBuilder buf = new StringBuilder();
-		final int len           = values.length;
-
-		for (int i=0; i<len; i++) {
-
-			if (values[i] != null) {
-				buf.append(values[i].toString());
-			}
-
-			if (i < len-1) {
-				buf.append(", ");
-			}
-		}
-
-		return buf.toString();
+	private static String getContent(final Set values) {
+		return StringUtils.join(values, ", ");
 	}
 }

@@ -20,15 +20,14 @@ package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
-import org.structr.core.app.StructrApp;
 import org.structr.core.property.EnumProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
-import org.structr.schema.SchemaHelper;
+import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Set;
 
 public class EnumInfoFunction extends AdvancedScriptingFunction {
 
@@ -55,33 +54,27 @@ public class EnumInfoFunction extends AdvancedScriptingFunction {
 			final String typeName         = sources[0].toString();
 			final String enumPropertyName = sources[1].toString();
 			final boolean rawList         = (sources.length == 3) ? Boolean.parseBoolean(sources[2].toString()) : false;
-			final Class type              = SchemaHelper.getEntityClassForRawType(typeName);
+			final Traits type             = Traits.of(typeName);
 
 			if (type != null) {
 
-				final PropertyKey key = StructrApp.key(type, enumPropertyName);
+				final PropertyKey key = type.key(enumPropertyName);
 				if (key != null) {
 
 					if (key instanceof EnumProperty) {
 
 						final EnumProperty enumProperty = (EnumProperty)key;
-						final Class enumType            = enumProperty.getEnumType();
-						final Object[] enumConstants    = enumType.getEnumConstants();
-						final List<String> valueList    = new ArrayList<>();
-
-						for (final Object constant : enumConstants) {
-							valueList.add(constant.toString());
-						}
+						final Set<String> enumConstants = enumProperty.getEnumConstants();
 
 						if (rawList) {
 
-							return valueList;
+							return enumConstants;
 
 						} else {
 
 							final ArrayList<GraphObjectMap> resultList = new ArrayList();
 
-							for (final String value : valueList) {
+							for (final String value : enumConstants) {
 
 								final GraphObjectMap valueMap = new GraphObjectMap();
 								resultList.add(valueMap);

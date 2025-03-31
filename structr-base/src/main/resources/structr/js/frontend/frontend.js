@@ -227,7 +227,7 @@ export class Frontend {
 		}
 	}
 
-	handleResult(element, json, status, options) {
+	handleResult(element, json, status, options, headers = {}) {
 
 		switch (status) {
 
@@ -236,6 +236,17 @@ export class Frontend {
 				this.fireEvent('success', { target: element, data: json, status: status });
 				this.handleNotifications(element, json, status, options);
 				this.processFollowUpActions(element, json.result, status, options);
+				break;
+
+			case 202:
+				this.fireEvent('success', { target: element, data: json, status: status });
+
+				let params = new URLSearchParams({
+					token: headers.token,
+					qrdata: headers.qrdata ?? ''
+				});
+
+				window.location.href = headers.twofactorloginpage + '?' + params.toString();
 				break;
 
 			case 400:
@@ -805,9 +816,9 @@ export class Frontend {
 				credentials: 'same-origin'
 			})
 			.then(response => {
-				return response.json().then(json => ({ json: json, status: response.status, statusText: response.statusText }))
+				return response.json().then(json => ({ json: json, status: response.status, statusText: response.statusText, headers: Object.fromEntries(response.headers.entries()) }))
 			})
-			.then(response => this.handleResult(target, response.json, response.status, options))
+			.then(response => this.handleResult(target, response.json, response.status, options, response.headers))
 			.catch(error   => this.handleNetworkError(target, error, {}));
 		}
 	}

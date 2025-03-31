@@ -19,27 +19,28 @@
 package org.structr.rest.resource;
 
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import org.structr.api.util.PagingIterable;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.SchemaMethod;
-import org.structr.rest.api.RESTCall;
-import org.structr.rest.api.RESTCallHandler;
 import org.structr.api.search.SortOrder;
+import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
 import org.structr.core.api.Methods;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.SchemaMethod;
 import org.structr.core.graph.Tx;
 import org.structr.rest.RestMethodResult;
+import org.structr.rest.api.RESTCall;
+import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.api.RESTMethodCallHandler;
 import org.structr.rest.api.WildcardMatchEndpoint;
 import org.structr.rest.api.parameter.RESTParameter;
 import org.structr.rest.exception.IllegalMethodException;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  *
@@ -82,7 +83,7 @@ public class UserDefinedFunctionsResource extends WildcardMatchEndpoint {
 		@Override
 		public ResultStream doGet(final SecurityContext securityContext, final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
 
-			if (SchemaMethod.HttpVerb.GET.equals(method.getHttpVerb())) {
+			if ("GET".equals(method.getHttpVerb())) {
 
 				final RestMethodResult result = executeMethod(securityContext, null, Arguments.fromPath(call.getPathParameters()));
 
@@ -97,7 +98,7 @@ public class UserDefinedFunctionsResource extends WildcardMatchEndpoint {
 		@Override
 		public RestMethodResult doPost(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
 
-			if (SchemaMethod.HttpVerb.POST.equals(method.getHttpVerb())) {
+			if ("POST".equals(method.getHttpVerb())) {
 
 				return executeMethod(securityContext, null, Arguments.fromMap(propertySet));
 
@@ -110,7 +111,7 @@ public class UserDefinedFunctionsResource extends WildcardMatchEndpoint {
 		@Override
 		public RestMethodResult doPut(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
 
-			if (SchemaMethod.HttpVerb.PUT.equals(method.getHttpVerb())) {
+			if ("PUT".equals(method.getHttpVerb())) {
 
 				return executeMethod(securityContext, null, Arguments.fromMap(propertySet));
 
@@ -123,7 +124,7 @@ public class UserDefinedFunctionsResource extends WildcardMatchEndpoint {
 		@Override
 		public RestMethodResult doPatch(final SecurityContext securityContext, final List<Map<String, Object>> propertySet) throws FrameworkException {
 
-			if (SchemaMethod.HttpVerb.PATCH.equals(method.getHttpVerb())) {
+			if ("PATCH".equals(method.getHttpVerb())) {
 
 				// FIXME, only the first property set is used, we need to test this
 				return executeMethod(securityContext, null, Arguments.fromMap(propertySet.get(0)));
@@ -139,28 +140,28 @@ public class UserDefinedFunctionsResource extends WildcardMatchEndpoint {
 
 			try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-				if (!SchemaMethod.HttpVerb.DELETE.equals(method.getHttpVerb())) {
-
-					throw new IllegalMethodException("DELETE not allowed on " + getURL(), getAllowedHttpMethodsForOptionsCall());
-
-				} else {
+				if ("DELETE".equals(method.getHttpVerb())) {
 
 					final RestMethodResult result = executeMethod(securityContext, null, Arguments.fromPath(call.getPathParameters()));
 
 					tx.success();
 
 					return result;
+
+				} else {
+
+					throw new IllegalMethodException("DELETE not allowed on " + getURL(), getAllowedHttpMethodsForOptionsCall());
 				}
 			}
 		}
 
 		@Override
 		public Set<String> getAllowedHttpMethodsForOptionsCall() {
-			return Set.of(method.getHttpVerb().name());
+			return Set.of(method.getHttpVerb());
 		}
 
 		@Override
-		public Class getEntityClass(final SecurityContext securityContext) {
+		public String getTypeName(final SecurityContext securityContext) {
 			return null;
 		}
 

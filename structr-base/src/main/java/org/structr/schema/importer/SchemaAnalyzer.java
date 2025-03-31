@@ -28,24 +28,26 @@ import org.structr.api.graph.Relationship;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
+import org.structr.common.helper.ValidationHelper;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SchemaNode;
-import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.graph.*;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.RelationshipInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.SchemaRelationshipNodeTraitDefinition;
 import org.structr.schema.ConfigurationProvider;
 
 import java.io.File;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.*;
-import org.structr.common.helper.ValidationHelper;
 
 import static org.structr.core.entity.SchemaNode.schemaNodeNamePattern;
 
@@ -252,8 +254,8 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 
 					final Node node = graphDb.getNodeById(nodeId);
 
-					node.setProperty(GraphObject.id.dbName(), NodeServiceCommand.getNextUuid());
-					node.setProperty(GraphObject.type.dbName(), type);
+					node.setProperty("id", NodeServiceCommand.getNextUuid());
+					node.setProperty("type", type);
 
 					return true;
 				}
@@ -298,11 +300,11 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 
 						logger.debug("Combined relationship type {} found for rel type {}, start node type {}, end node type {}", new Object[]{combinedType, relationshipType, startNodeType, endNodeType});
 
-						rel.setProperty(GraphObject.type.dbName(), combinedType);
+						rel.setProperty("type", combinedType);
 					}
 
 					// create ID on imported relationship
-					rel.setProperty(GraphObject.id.dbName(), NodeServiceCommand.getNextUuid());
+					rel.setProperty("id", NodeServiceCommand.getNextUuid());
 				}
 
 				return true;
@@ -385,26 +387,26 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 					}
 
 					// set node type which is in "name" property
-					propertyMap.put(AbstractNode.name, type);
+					propertyMap.put(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), type);
 
 					// check if there is an existing Structr entity with the same type and make the dynamic class extend the existing class if yes.
-					final Class existingType = configuration.getNodeEntityClass(type);
+					final Traits existingType = Traits.of(type);
 					if (existingType != null && !existingType.getName().equals("org.structr.dynamic." + type)) {
 
-						final SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName(type).getFirst();
+						final NodeInterface schemaNode = app.nodeQuery(StructrTraits.SCHEMA_NODE).andName(type).getFirst();
 						if (schemaNode != null) {
 
-							propertyMap.put(SchemaNode.extendsClass, schemaNode);
+							propertyMap.put(Traits.of(StructrTraits.SCHEMA_NODE).key("extendsClass"), schemaNode);
 						}
 
 					} else if (!typeInfo.getOtherTypes().isEmpty()) {
 
 						final String superclassName = typeInfo.getSuperclass(reducedTypeInfoMap);
-						final SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName(superclassName).getFirst();
+						final NodeInterface schemaNode = app.nodeQuery(StructrTraits.SCHEMA_NODE).andName(superclassName).getFirst();
 
 						if (schemaNode != null) {
 
-							propertyMap.put(SchemaNode.extendsClass, schemaNode);
+							propertyMap.put(Traits.of(StructrTraits.SCHEMA_NODE).key("extendsClass"), schemaNode);
 						}
 
 						/*
@@ -413,7 +415,7 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 						*/
 					}
 
-					final SchemaNode existingNode = app.nodeQuery(SchemaNode.class).andName(type).getFirst();
+					final NodeInterface existingNode = app.nodeQuery(StructrTraits.SCHEMA_NODE).andName(type).getFirst();
 					if (existingNode != null) {
 
 						for (final Map.Entry<PropertyKey, Object> entry : propertyMap.entrySet()) {
@@ -421,12 +423,12 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 							existingNode.setProperty(entry.getKey(), entry.getValue());
 						}
 
-						schemaNodes.put(type, existingNode);
+						schemaNodes.put(type, existingNode.as(SchemaNode.class));
 
 					} else {
 
 						// create schema node
-						schemaNodes.put(type, app.create(SchemaNode.class, propertyMap));
+						schemaNodes.put(type, app.create(StructrTraits.SCHEMA_NODE, propertyMap).as(SchemaNode.class));
 					}
 				}
 
@@ -455,12 +457,13 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 
 						final String relationshipType = template.getRelType();
 						final PropertyMap propertyMap = new PropertyMap();
+						final Traits traits           = Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE);
 
-						propertyMap.put(SchemaRelationshipNode.sourceId, startNode.getUuid());
-						propertyMap.put(SchemaRelationshipNode.targetId, endNode.getUuid());
-						propertyMap.put(SchemaRelationshipNode.relationshipType, relationshipType);
+						propertyMap.put(traits.key(RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY),         startNode.getUuid());
+						propertyMap.put(traits.key(RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY),         endNode.getUuid());
+						propertyMap.put(traits.key(SchemaRelationshipNodeTraitDefinition.RELATIONSHIP_TYPE_PROPERTY), relationshipType);
 
-						app.create(SchemaRelationshipNode.class, propertyMap);
+						app.create(StructrTraits.SCHEMA_RELATIONSHIP_NODE, propertyMap);
 
 					} else {
 

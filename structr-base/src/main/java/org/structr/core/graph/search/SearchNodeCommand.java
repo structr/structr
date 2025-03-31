@@ -22,7 +22,6 @@ package org.structr.core.graph.search;
 import org.structr.api.graph.Node;
 import org.structr.api.index.Index;
 import org.structr.common.SecurityContext;
-import org.structr.core.graph.Factory;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 
@@ -40,14 +39,11 @@ import org.structr.core.graph.NodeInterface;
  *    <p>if no TextualSearchAttribute is given, return any node matching the other
  *       search criteria
  * </ol>
- *
- *
- * @param <T>
  */
-public class SearchNodeCommand<T extends NodeInterface> extends SearchCommand<Node, T> {
+public class SearchNodeCommand extends SearchCommand<Node, NodeInterface> {
 
 	@Override
-	public Factory<Node, T> getFactory(SecurityContext securityContext, boolean includeHidden, boolean publicOnly, int pageSize, int page) {
+	public NodeFactory getFactory(SecurityContext securityContext, boolean includeHidden, boolean publicOnly, int pageSize, int page) {
 		return new NodeFactory(securityContext, includeHidden, publicOnly, pageSize, page);
 	}
 
@@ -57,7 +53,7 @@ public class SearchNodeCommand<T extends NodeInterface> extends SearchCommand<No
 	}
 
 	@Override
-	public boolean isRelationshipSearch() {
+	public boolean isRelationshipSearch(){
 		return false;
 	}
 }

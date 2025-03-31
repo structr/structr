@@ -18,15 +18,14 @@
  */
 package org.structr.api.util;
 
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
-import org.structr.api.SyntaxErrorException;
 
+import java.io.Closeable;
 import java.util.*;
 import java.util.function.Function;
-import java.util.LinkedList;
+import java.util.function.UnaryOperator;
 
 public class Iterables {
 
@@ -153,7 +152,7 @@ public class Iterables {
 	}
 
 	public static <S, T> Iterable<T> map(final Function<? super S, ? extends T> function, final Iterable<S> from) {
-		return new FilterIterable<>(new MapIterable<>(from, function), e -> { return e != null; });
+		return new FilterIterable<>(new MapIterable<>(from, function), e -> e != null);
 	}
 
 	public static <T> Iterable<T> flatten(final Iterable<Iterable<T>> source) {
@@ -186,6 +185,10 @@ public class Iterables {
 
 	public static <T> Set<T> toSet(final Iterable<T> iterable) {
 		return addAll(new LinkedHashSet<>(), iterable);
+	}
+
+	public static <T> Iterable<T> wrap(final Iterable<T> iterable, final UnaryOperator<T> callback) {
+		return new ClosingCallbackIterable<>(iterable, callback);
 	}
 
 	private static class MapIterable<S, T> implements Iterable<T> {
@@ -409,6 +412,24 @@ public class Iterables {
 		}
 	}
 
-	private static interface CloseableIterator<T> extends Iterator<T>, AutoCloseable {
+	private static class ClosingCallbackIterable<T> implements Iterable<T>, Closeable {
+
+		private Iterable<T> iterable     = null;
+		private UnaryOperator<?> callback = null;
+
+		public ClosingCallbackIterable(final Iterable<T> iterable, UnaryOperator<?> callback) {
+
+			this.iterable = iterable;
+			this.callback = callback;
+		}
+
+		@Override
+		public Iterator<T> iterator() {
+			return iterable.iterator();
+		}
+
+		public void close() {
+			callback.apply(null);
+		}
 	}
 }

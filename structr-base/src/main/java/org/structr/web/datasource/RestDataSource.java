@@ -28,26 +28,26 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Value;
-import org.structr.core.app.StructrApp;
 import org.structr.core.datasources.GraphDataSource;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.DefaultSortOrder;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.rest.api.RESTCallHandler;
+import org.structr.rest.api.RESTEndpoints;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
+import org.structr.rest.servlet.AbstractDataServlet;
 import org.structr.rest.servlet.JsonRestServlet;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.HttpServletRequestWrapper;
 import org.structr.web.common.RenderContext;
-import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 
 import java.util.Collections;
-import org.structr.core.entity.PrincipalInterface;
-import org.structr.rest.api.RESTCallHandler;
-import org.structr.rest.api.RESTEndpoints;
-import org.structr.rest.servlet.AbstractDataServlet;
-import org.structr.web.entity.User;
 
 /**
  * List data source equivalent to a rest resource.
@@ -65,8 +65,8 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 
 		final RenderContext renderContext = (RenderContext) actionContext;
 
-		final PropertyKey<String> restQueryKey = StructrApp.key(DOMNode.class, "restQuery");
-		String restQuery                       = ((DOMNode) referenceNode).getPropertyWithVariableReplacement(renderContext, restQueryKey);
+		final PropertyKey<String> restQueryKey = Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.REST_QUERY_PROPERTY);
+		String restQuery                       = referenceNode.getPropertyWithVariableReplacement(renderContext, restQueryKey);
 
 		if (restQuery == null || restQuery.isEmpty()) {
 			return Collections.EMPTY_LIST;
@@ -84,7 +84,7 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 
 		final SecurityContext securityContext = renderContext.getSecurityContext();
 		final Value<String> propertyView      = new ThreadLocalPropertyView();
-		final PrincipalInterface currentUser           = securityContext.getUser(false);
+		final Principal currentUser           = securityContext.getUser(false);
 
 		propertyView.set(securityContext, PropertyView.Ui);
 
@@ -105,7 +105,7 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 		RESTCallHandler handler = null;
 		try {
 
-			handler = RESTEndpoints.resolveRESTCallHandler(wrappedRequest, PropertyView.Public, AbstractDataServlet.getTypeOrDefault(currentUser, User.class));
+			handler = RESTEndpoints.resolveRESTCallHandler(wrappedRequest, PropertyView.Public, AbstractDataServlet.getTypeOrDefault(currentUser, StructrTraits.USER));
 
 		} catch (IllegalPathException | NotFoundException e) {
 
@@ -123,7 +123,7 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 		final String pageParameter     = wrappedRequest.getParameter(RequestKeywords.PageNumber.keyword());
 		final String[] sortKeyNames    = wrappedRequest.getParameterValues(RequestKeywords.SortKey.keyword());
 		final String[] sortOrders      = wrappedRequest.getParameterValues(RequestKeywords.SortOrder.keyword());
-		final Class type               = handler.getEntityClass(securityContext);
+		final String type              = handler.getTypeName(securityContext);
 		final DefaultSortOrder order   = new DefaultSortOrder(type, sortKeyNames, sortOrders);
 		final int pageSize             = parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
 		final int page                 = parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);

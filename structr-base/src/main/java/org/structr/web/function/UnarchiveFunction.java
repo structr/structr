@@ -21,12 +21,16 @@ package org.structr.web.function;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
-import org.structr.schema.ConfigurationProvider;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 public class UnarchiveFunction extends UiAdvancedFunction {
 
@@ -48,35 +52,34 @@ public class UnarchiveFunction extends UiAdvancedFunction {
 
 
 		if (sources == null || sources.length < 1 || sources.length > 2
-				|| (sources[0] != null && !(sources[0] instanceof File)
-				|| (sources.length == 2 && sources[1] != null && !(sources[1] instanceof Folder)))) {
+				|| (sources[0] != null && !(sources[0] instanceof NodeInterface n && n.is(StructrTraits.FILE))
+				|| (sources.length == 2 && sources[1] != null && !(sources[1] instanceof NodeInterface n && n.is(StructrTraits.FOLDER))))) {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
 			return usage(ctx.isJavaScriptContext());
 		}
 
-		final ConfigurationProvider config = StructrApp.getConfiguration();
-
 		try {
-			final File archiveFile    = (File) sources[0];
+
+			final File archiveFile = ((NodeInterface)sources[0]).as(File.class);
 			Folder parentFolder;
 
 			if (sources.length == 2 && sources[1] != null) {
 
-				parentFolder = (Folder) sources[2];
+				parentFolder = ((NodeInterface) sources[2]).as(Folder.class);
 
 			} else {
 
 				final PropertyMap props = new PropertyMap();
-				props.put(StructrApp.key(Folder.class, "name"), StringUtils.substringBeforeLast(archiveFile.getName(), "."));
-				props.put(StructrApp.key(Folder.class, "parent"), archiveFile.getParent());
+				props.put(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), StringUtils.substringBeforeLast(archiveFile.getName(), "."));
+				props.put(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.PARENT_PROPERTY), archiveFile.getParent());
 
 				// Create folder with same name (without extension) and in same folder as file
-				parentFolder = StructrApp.getInstance(ctx.getSecurityContext()).create(Folder.class, props);
+				parentFolder = StructrApp.getInstance(ctx.getSecurityContext()).create(StructrTraits.FOLDER, props).as(Folder.class);
 			}
 
-			FileHelper.unarchive(ctx.getSecurityContext(), (File) sources[0], parentFolder == null ? null : parentFolder.getUuid());
+			FileHelper.unarchive(ctx.getSecurityContext(), archiveFile, parentFolder == null ? null : parentFolder.getUuid());
 
 		} catch (final Exception e) {
 

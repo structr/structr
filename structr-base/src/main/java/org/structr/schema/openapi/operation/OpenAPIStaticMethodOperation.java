@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.schema.export.StructrMethodDefinition;
 import org.structr.schema.export.StructrTypeDefinition;
 import org.structr.schema.openapi.common.OpenAPISchemaReference;
+
 import java.util.Map;
 import java.util.Set;
 
@@ -69,7 +70,7 @@ public class OpenAPIStaticMethodOperation extends OpenAPIOperation {
 				// tags
 				Set.of(method.getParent().getName()),
 
-				method.getOpenAPIRequestParameters(viewNames),
+				method.getOpenAPIRequestParameters(method, viewNames),
 
 				// request body
 				method.getOpenAPIRequestBody(),

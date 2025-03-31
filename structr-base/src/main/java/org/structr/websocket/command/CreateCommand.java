@@ -25,12 +25,12 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.PasswordPolicyViolationException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyMap;
-import org.structr.schema.SchemaHelper;
-import org.structr.web.entity.AbstractFile;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.web.entity.File;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
@@ -60,16 +60,15 @@ public class CreateCommand extends AbstractCommand {
 		try {
 
 			final PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, webSocketData.getNodeData());
-			Class type                   = SchemaHelper.getEntityClassForRawType(properties.get(AbstractNode.type));
-			final NodeInterface newNode  = app.create(type, properties);
+			final String rawType         = properties.get(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY));
+			final NodeInterface newNode  = app.create(rawType, properties);
 
 			TransactionCommand.registerNodeCallback(newNode, callback);
 
 			// check for File node and store in WebSocket to receive chunks
-			if (newNode instanceof File) {
+			if (newNode.is(StructrTraits.FILE)) {
 
-				getWebSocket().createFileUploadHandler((File) newNode);
-
+				getWebSocket().createFileUploadHandler(newNode.as(File.class));
 			}
 
 		} catch (PasswordPolicyViolationException ppve) {
@@ -81,7 +80,6 @@ public class CreateCommand extends AbstractCommand {
 
 			logger.warn("Could not create node.", fex);
 			getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
-
 		}
 	}
 

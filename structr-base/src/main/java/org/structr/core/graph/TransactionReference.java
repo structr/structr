@@ -47,6 +47,16 @@ public class TransactionReference implements Transaction {
 	}
 
 	@Override
+	public void setNodeIsCreated(final long id) {
+		tx.setNodeIsCreated(id);
+	}
+
+	@Override
+	public boolean isNodeCreated(final long id) {
+		return tx.isNodeCreated(id);
+	}
+
+	@Override
 	public boolean isNodeDeleted(final long id) {
 		return tx.isNodeDeleted(id);
 	}
@@ -62,6 +72,10 @@ public class TransactionReference implements Transaction {
 
 	public void end() {
 		referenceCount--;
+	}
+
+	public int level() {
+		return referenceCount;
 	}
 
 	// ----- interface Transaction -----
@@ -97,6 +111,11 @@ public class TransactionReference implements Transaction {
 	@Override
 	public Relationship getRelationship(final Identity id) {
 		return tx.getRelationship(id);
+	}
+
+	@Override
+	public void prefetchHint(final String hint) {
+		tx.prefetchHint(hint);
 	}
 
 	@Override

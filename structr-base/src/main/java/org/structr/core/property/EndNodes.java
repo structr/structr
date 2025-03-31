@@ -18,8 +18,6 @@
  */
 package org.structr.core.property;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.search.Occurrence;
 import org.structr.api.search.SortType;
@@ -30,9 +28,7 @@ import org.structr.common.TruePredicate;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.Query;
-import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.ManyEndpoint;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.Source;
@@ -42,10 +38,9 @@ import org.structr.core.graph.search.GraphSearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.ObjectNotion;
-import org.structr.schema.ConfigurationProvider;
+import org.structr.core.traits.Traits;
 import org.structr.schema.openapi.common.OpenAPIAnyOf;
 import org.structr.schema.openapi.schema.OpenAPIObjectSchema;
-import org.structr.schema.openapi.schema.OpenAPIStructrTypeSchemaOutput;
 
 import java.util.*;
 
@@ -54,65 +49,42 @@ import java.util.*;
  *
  *
  */
-public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends Property<Iterable<T>> implements RelationProperty<T> {
+public class EndNodes extends Property<Iterable<NodeInterface>> implements RelationProperty {
 
-	private static final Logger logger = LoggerFactory.getLogger(EndNodes.class.getName());
-
-	private Relation<S, T, ? extends Source, ManyEndpoint<T>> relation = null;
-	private Notion notion                                              = null;
-	private Class<T> destType                                          = null;
+	private final Relation<? extends Source, ManyEndpoint> relation;
+	private final Traits traits;
+	private final Notion notion;
+	private final String destType;
 
 	/**
 	 * Constructs a collection property with the given name, the given destination type and the given relationship type.
 	 *
 	 * @param name
-	 * @param relationClass
+	 * @param type
 	 */
-	public EndNodes(final String name, final Class<? extends Relation<S, T, ? extends Source, ManyEndpoint<T>>> relationClass) {
-		this(name, relationClass, new ObjectNotion());
+	public EndNodes(final String name, final String type) {
+		this(name, type, new ObjectNotion());
 	}
 
 	/**
 	 * Constructs a collection property with the given name, the given destination type and the given relationship type.
 	 *
 	 * @param name
-	 * @param relationClass
+	 * @param type
 	 * @param notion
 	 */
-	public EndNodes(final String name, final Class<? extends Relation<S, T, ? extends Source, ManyEndpoint<T>>> relationClass, final Notion notion) {
+	public EndNodes(final String name, final String type, final Notion notion) {
 
 		super(name);
 
-		this.relation = Relation.getInstance(relationClass);
+		this.traits   = Traits.of(type);
+		this.relation = traits.getRelation();
 		this.notion   = notion;
-		this.destType = relation.getTargetType();
+		this.destType = this.relation.getTargetType();
 
 		this.notion.setType(destType);
 		this.notion.setRelationProperty(this);
 		this.relation.setTargetProperty(this);
-
-		StructrApp.getConfiguration().registerConvertedProperty(this);
-	}
-
-	/**
-	 * Constructs a collection property with the given name, the given destination type and the given relationship type.
-	 *
-	 * @param name
-	 * @param relation
-	 * @param notion
-	 */
-	public EndNodes(final String name, final Relation<S, T, ? extends Source, ManyEndpoint<T>> relation, final Notion notion) {
-
-		super(name);
-
-		this.relation = relation;
-		this.notion   = notion;
-		this.destType = relation.getTargetType();
-
-		this.notion.setType(destType);
-		this.notion.setRelationProperty(this);
-
-		StructrApp.getConfiguration().registerConvertedProperty(this);
 	}
 
 	@Override
@@ -126,29 +98,29 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 	}
 
 	@Override
-	public PropertyConverter<Iterable<T>, ?> databaseConverter(SecurityContext securityContext) {
+	public PropertyConverter<Iterable<NodeInterface>, ?> databaseConverter(SecurityContext securityContext) {
 		return null;
 	}
 
 	@Override
-	public PropertyConverter<Iterable<T>, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+	public PropertyConverter<Iterable<NodeInterface>, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
 		return null;
 	}
 
 	@Override
-	public PropertyConverter<?, Iterable<T>> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, Iterable<NodeInterface>> inputConverter(SecurityContext securityContext) {
 		return getNotion().getCollectionConverter(securityContext);
 	}
 
 	@Override
-	public Iterable<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+	public Iterable<NodeInterface> getProperty(final SecurityContext securityContext, final GraphObject obj, boolean applyConverter) {
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
 	@Override
-	public Iterable<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
+	public Iterable<NodeInterface> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
 
-		ManyEndpoint<T> endpoint = relation.getTarget();
+		ManyEndpoint endpoint = relation.getTarget();
 
 		if (predicate != null) {
 
@@ -161,21 +133,25 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 	}
 
 	@Override
-	public Object setProperty(SecurityContext securityContext, GraphObject obj, Iterable<T> collection) throws FrameworkException {
+	public Object setProperty(SecurityContext securityContext, GraphObject obj, Iterable<NodeInterface> collection) throws FrameworkException {
 
-		final ManyEndpoint<T> endpoint = relation.getTarget();
+		final ManyEndpoint endpoint = relation.getTarget();
+
+		if (updateCallback != null) {
+			updateCallback.notifyUpdated(obj, collection);
+		}
 
 		return endpoint.set(securityContext, (NodeInterface)obj, collection);
 	}
 
 	@Override
-	public Class relatedType() {
+	public String relatedType() {
 		return destType;
 	}
 
 	@Override
 	public Class valueType() {
-		return relatedType();
+		return NodeInterface.class;
 	}
 
 	@Override
@@ -184,12 +160,17 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 	}
 
 	@Override
-	public Property<Iterable<T>> indexed() {
+	public boolean isArray() {
+		return false;
+	}
+
+	@Override
+	public Property<Iterable<NodeInterface>> indexed() {
 		return this;
 	}
 
 	@Override
-	public Property<Iterable<T>> passivelyIndexed() {
+	public Property<Iterable<NodeInterface>> passivelyIndexed() {
 		return this;
 	}
 
@@ -215,9 +196,9 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 	}
 
 	@Override
-	public void addSingleElement(final SecurityContext securityContext, final GraphObject obj, final T t) throws FrameworkException {
+	public void addSingleElement(final SecurityContext securityContext, final NodeInterface obj, final NodeInterface t) throws FrameworkException {
 
-		final List<T> list = Iterables.toList(getProperty(securityContext, obj, false));
+		final List<NodeInterface> list = Iterables.toList(getProperty(securityContext, obj, false));
 
 		list.add(t);
 
@@ -225,12 +206,12 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 	}
 
 	@Override
-	public Class<T> getTargetType() {
+	public String getTargetType() {
 		return destType;
 	}
 
 	@Override
-	public Iterable<T> convertSearchValue(SecurityContext securityContext, String requestParameter) throws FrameworkException {
+	public Iterable<NodeInterface> convertSearchValue(final SecurityContext securityContext, final String requestParameter) throws FrameworkException {
 
 		final PropertyConverter inputConverter = inputConverter(securityContext);
 		if (inputConverter != null) {
@@ -243,14 +224,14 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 				}
 			}
 
-			return (Iterable<T>)inputConverter.convert(sources);
+			return (Iterable<NodeInterface>)inputConverter.convert(sources);
 		}
 
 		return null;
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occurrence occur, Iterable<T> searchValue, boolean exactMatch, final Query query) {
+	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final Occurrence occur, final Iterable<NodeInterface> searchValue, final boolean exactMatch, final Query query) {
 
 		return new GraphSearchAttribute<>(this, searchValue, occur, exactMatch);
 	}
@@ -309,6 +290,7 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 		final Map<String, Object> items = new TreeMap<>();
 		final Map<String, Object> map   = new TreeMap<>();
 
+		/*
 		if (destType != null) {
 
 			map.put("type", "array");
@@ -318,22 +300,21 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 				map.put("readOnly", true);
 			}
 
-			final String destTypeName = destType.getName();
-
-			if ("org.structr.core.graph.NodeInterface".equals(destTypeName) || "org.structr.flow.impl.FlowContainer".equals(destTypeName)) {
+			if (StructrTraits.NODE_INTERFACE.equals(destType) || StructrTraits.FLOW_CONTAINER.equals(destType)) {
 
 				final ConfigurationProvider configuration = StructrApp.getConfiguration();
 
-				destType = configuration.getNodeEntityClass(AbstractNode.class.getSimpleName());
+				destType = configuration.getNodeEntityClass(NodeInterface.class.getSimpleName());
 				if (destType == null) {
 
 					final Map<String, Class> interfaces = configuration.getInterfaces();
-					destType = interfaces.get(AbstractNode.class.getSimpleName());
+					destType = interfaces.get(NodeInterface.class.getSimpleName());
 				}
 			}
 
 			items.putAll(new OpenAPIStructrTypeSchemaOutput(destType, viewName, level + 1));
 		}
+		*/
 
 		return map;
 	}

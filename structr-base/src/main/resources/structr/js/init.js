@@ -86,7 +86,7 @@ document.addEventListener("DOMContentLoaded", () => {
 				return false;
 			}
 
-			_Dialogs.custom.checkSaveOrCloseOnEscape();
+			_Dialogs.custom.checkSaveOrCloseOnEscapeKeyPressed();
 		}
 		return false;
 	});
@@ -97,7 +97,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		let code    = event.code;
 
 		// ctrl-s / cmd-s
-		if ((code === 'KeyS' || keyCode === 83) && ((navigator.platform !== 'MacIntel' && event.ctrlKey) || (navigator.platform === 'MacIntel' && event.metaKey))) {
+		if ((code === 'KeyS' || keyCode === 83) && ((!_Helpers.isMac() && event.ctrlKey) || (_Helpers.isMac() && event.metaKey))) {
 			event.preventDefault();
 			_Dialogs.custom.clickSaveButton();
 		}
@@ -122,7 +122,7 @@ document.addEventListener("DOMContentLoaded", () => {
 				// ESC or Cancel
 			} else if (_Helpers.isUUID(uuid)) {
 				Command.get(uuid, null, (obj) => {
-					_Entities.showProperties(obj);
+					_Entities.showProperties(obj, null, true);
 				});
 			} else {
 				new WarningMessage().text('Given string does not validate as a UUID').show();
@@ -173,20 +173,6 @@ document.addEventListener("DOMContentLoaded", () => {
 			let { dialogText } = _Dialogs.custom.openDialog('Bulk Editing Helper (Ctrl-Alt-E)');
 			new RefactoringHelper(dialogText).show();
 		}
-
-		// ctrl-u / cmd-u: show generated source in schema or code area
-		if ((code === 'KeyU' || keyCode === 85) && ((navigator.platform !== 'MacIntel' && event.ctrlKey) || (navigator.platform === 'MacIntel' && event.metaKey))) {
-
-			let sourceCodeTab = document.querySelector('li#tab-source-code');
-
-			if (sourceCodeTab) {
-
-				event.preventDefault();
-
-				sourceCodeTab.dispatchEvent(new Event('click'));
-				sourceCodeTab.style.display = null;
-			}
-		}
 	});
 
 	window.addEventListener('resize', Structr.resize);
@@ -219,6 +205,8 @@ let Structr = {
 	viewRootUrl    : _Helpers.getPrefixedRootUrl('/'),
 	wsRoot         : _Helpers.getPrefixedRootUrl('/structr/ws'),
 	deployRoot     : _Helpers.getPrefixedRootUrl('/structr/deploy'),
+	dynamicClassPrefix: 'org.structr.dynamic.',
+	getFQCNForDynamicTypeName: name => Structr.dynamicClassPrefix + name,
 	ignoreKeyUp: undefined,
 	isInMemoryDatabase: undefined,
 	modules: {},
@@ -275,7 +263,7 @@ let Structr = {
 		let dialogBox = _Dialogs.custom.getDialogBoxElement();
 		if (dialogBox && dialogBox.offsetParent) {
 
-			let reconnectDialogElement = dialogBox.querySelector('#reconnect-dialog')
+			let reconnectDialogElement = dialogBox.querySelector('#reconnect-dialog');
 			if (!reconnectDialogElement) {
 
 				let parent = dialogBox.parentNode;
@@ -498,7 +486,9 @@ let Structr = {
 
 			let errorLines = [response.message];
 
-			for (let error of response.errors) {
+			let uniqueErrors = Object.values(Object.fromEntries(response.errors.map(e => [JSON.stringify(e), e])));
+
+			for (let error of uniqueErrors) {
 
 				let errorMsg = (error.type ? error.type : '');
 				if (error.property) {
@@ -510,11 +500,11 @@ let Structr = {
 				if (error.token) {
 					errorMsg += ` ${error.token}`;
 				}
-				if (error.detail) {
+				if (error.detail || error.existingNodeUuid) {
 					if (errorMsg.trim().length > 0) {
 						errorMsg += ': ';
 					}
-					errorMsg += error.detail;
+					errorMsg += error.existingNodeUuid ?? error.detail;
 				}
 
 				errorLines.push(errorMsg);
@@ -572,6 +562,10 @@ let Structr = {
 
 			if (additionalParameters.overrideText) {
 				messageBuilder.text(additionalParameters.overrideText);
+			}
+
+			if (additionalParameters.delayDuration) {
+				messageBuilder.delayDuration(additionalParameters.delayDuration);
 			}
 		}
 
@@ -912,9 +906,7 @@ let Structr = {
 
 			Structr.mainMenu.update(userConfigMenu);
 
-			if (envInfo.resultCountSoftLimit !== undefined) {
-				_Crud.resultCountSoftLimit = envInfo.resultCountSoftLimit;
-			}
+			_Helpers.softlimit.resultCountSoftLimit = envInfo.resultCountSoftLimit ?? _Helpers.softlimit.resultCountSoftLimit;
 
 			// run previously registered callbacks
 			let registeredCallbacks = Structr.envInfoAvailableCallbacks;
@@ -1604,7 +1596,7 @@ let Structr = {
 
 					if (data.nodeId && data.nodeType) {
 
-						Command.get(data.nodeId, 'id,type,name,content,ownerDocument,schemaNode', function (obj) {
+						Command.get(data.nodeId, _Code.helpers.getAttributesToFetchForErrorObject(), (obj) => {
 
 							let name     = data.name.slice(data.name.indexOf('_html_') === 0 ? 6 : 0);
 							let property = 'Property';
@@ -1612,15 +1604,21 @@ let Structr = {
 
 							switch (obj.type) {
 
+								case 'SchemaProperty':
+									property = 'Property';
+									title    = 'Schema Property';
+									break;
+
 								case 'SchemaMethod':
-									if (obj.schemaNode && data.isStaticMethod) {
-										title = `type "${data.staticType}"`;
-										property ='StaticMethod';
-									} else if (obj.schemaNode) {
-										title = `type "${obj.schemaNode.name}"`;
-										property = 'Method';
+
+									if (obj.schemaNode) {
+
+										title    = `type "${obj.schemaNode.name}"`;
+										property = (obj.isStatic === true) ? 'Static Method' : 'Method';
+
 									} else {
-										title = 'global schema method';
+
+										title    = 'user-defined function';
 										property = 'Method';
 									}
 									break;
@@ -1663,15 +1661,9 @@ let Structr = {
 
 							if (data.nodeType === 'SchemaMethod' || data.nodeType === 'SchemaProperty') {
 
-								let pathToOpen = (obj.schemaNode) ? `/root/custom/${obj.schemaNode.id}/methods/${obj.id}` : `/globals/${obj.id}`;
+								builder.specialInteractionButton(`Go to code`, () => {
 
-								builder.specialInteractionButton(`Go to ${data.nodeType === 'SchemaMethod' ? 'method' : 'property'}`, () => {
-
-									window.location.href = '#code';
-
-									window.setTimeout(() => {
-										_Code.findAndOpenNode(pathToOpen, false);
-									}, 1000);
+									_Code.helpers.navigateToSchemaObjectFromAnywhere(obj);
 
 								}, 'Dismiss');
 
@@ -1799,33 +1791,13 @@ let Structr = {
 
 		_Dialogs.basic.append(reconnectDialog, { padding: '1rem' });
 	},
+	getReconnectDialogElement: () => {
+		return document.getElementById('reconnect-dialog');
+	},
 	hideReconnectDialog: () => {
 		// remove reconnect dialog
-		let reconnectMessage = document.getElementById('reconnect-dialog');
+		let reconnectMessage = Structr.getReconnectDialogElement();
 		_Dialogs.basic.removeBlockerAround(reconnectMessage);
-	},
-	ensureShadowPageExists: () => {
-
-		return new Promise((resolve, reject) => {
-
-			if (_Pages.shadowPage) {
-
-				resolve(_Pages.shadowPage);
-
-			} else {
-
-				// wrap getter for shadow document in listComponents so we're sure that shadow document has been created
-				Command.listComponents(1, 1, 'name', 'asc', (result) => {
-
-					Command.getByType('ShadowDocument', 1, 1, null, null, null, true, (entities) => {
-
-						_Pages.shadowPage = entities[0];
-
-						resolve(_Pages.shadowPage);
-					});
-				});
-			}
-		});
 	},
 	dropdownOpenEventName: 'dropdown-opened',
 	handleDropdownClick: (e) => {
@@ -1915,6 +1887,18 @@ let Structr = {
 		container.style.top          = null;
 	},
 
+	/* basically only exists to get rid of repeating strings. is also used to filter out internal keys from dialogs */
+	internalKeys: {
+		name: 'name',
+		visibleToPublicUsers: 'visibleToPublicUsers',
+		visibleToAuthenticatedUsers: 'visibleToAuthenticatedUsers',
+
+		sourceId: 'sourceId',
+		targetId: 'targetId',
+		sourceNode: 'sourceNode',
+		targetNode: 'targetNode',
+		internalTimestamp: 'internalTimestamp',
+	},
 
 	templates: {
 		mainBody: config => `
@@ -2055,9 +2039,9 @@ let Structr = {
 			</div>
 		`,
 		autoScriptTextArea: config => `
-			<div class="flex ${config.wrapperClassString ?? ''}" title="Auto-script environment">
+			<div id="${config.wrapperId ?? ''}" class="flex ${config.wrapperClassString ?? ''}" title="Auto-script environment">
 				<span class="inline-flex items-center bg-gray px-2 w-4 justify-center select-none border border-solid border-gray-input rounded-l">\${</span>
-				<textarea type="text" class="block flex-grow rounded-none px-1.5 py-2 border-0 border-y border-solid border-gray-input ${config.textareaClassString ?? ''}" placeholder="${config.placeholder ?? ''}" ${config.textareaAttributeString ?? ''}></textarea>
+				<textarea id="${config.textareaId ?? ''}" type="text" class="block flex-grow rounded-none px-1.5 py-2 border-0 border-y border-solid border-gray-input ${config.textareaClassString ?? ''}" placeholder="${config.placeholder ?? ''}" ${config.textareaAttributeString ?? ''}></textarea>
 				<span class="inline-flex items-center bg-gray px-2 w-4 justify-center select-none border border-solid border-gray-input rounded-r">}</span>
 			</div>
 		`
@@ -2267,7 +2251,7 @@ let _TreeHelper = {
 
 class LifecycleMethods {
 
-	static onlyAvailableInSchemaNodeContext(schemaNode)      { return (schemaNode ?? null) !== null; }
+	static onlyAvailableInSchemaNodeContext(schemaNode)      { return ((schemaNode ?? null) !== null && schemaNode?.isServiceClass === false); }
 	static onlyAvailableWithoutSchemaNodeContext(schemaNode) { return (schemaNode ?? null) === null; }
 
 	// TODO: these functions must be able to detect schemaNodes that inherit from User/File (or any other possible way these lifecycle methods should be available there)
@@ -2367,7 +2351,8 @@ class LifecycleMethods {
 			available: LifecycleMethods.onlyAvailableWithFileNodeContext,
 			comment: `Is called after a file has been uploaded. This method is being called without parameters.`,
 			isPrefix: false
-		}, {
+		},
+		{
 			name: 'onDownload',
 			available: LifecycleMethods.onlyAvailableWithFileNodeContext,
 			comment: `Is called after a file has been requested for download. This function can not prevent the download of a file. This method is being called without parameters.`,
@@ -2720,15 +2705,46 @@ class ErrorMessage extends MessageBuilder {
 
 let UISettings = {
 	getValueForSetting: (setting) => {
+
 		return LSWrapper.getItem(setting.storageKey, setting.defaultValue);
 	},
-	setValueForSetting: (setting, value, container) => {
-		LSWrapper.setItem(setting.storageKey, value);
+	setValueForSetting: (setting, input, value, container) => {
 
-		if (container) {
-			_Helpers.blinkGreen(container);
-			setting.onUpdate?.();
+		let changed = (UISettings.getValueForSetting(setting) !== value);
+
+		if (changed) {
+
+			let isValid = UISettings.validateValueForSetting(setting, value);
+
+			if (!isValid) {
+				// attempt to fix once
+				value = setting.fixValue?.(input, value);
+
+				isValid = UISettings.validateValueForSetting(setting, value);
+			}
+
+			if (isValid) {
+
+				LSWrapper.setItem(setting.storageKey, value);
+
+				if (container) {
+
+					_Helpers.blinkGreen(container);
+				}
+
+				setting.onUpdate?.();
+
+			} else {
+
+				_Helpers.blinkRed(container);
+			}
 		}
+	},
+	validateValueForSetting: (setting, value) => {
+
+		let allow = setting.isValid?.(value) ?? true;
+
+		return allow;
 	},
 	getSettings: (section) => {
 
@@ -2757,12 +2773,18 @@ let UISettings = {
 
 		settingsGroupsToShow.push(...additionalSettingsGroups);
 
-		let dropdown = _Helpers.createSingleDOMElementFromHTML(`<div id="ui-settings-popup" class="dropdown-menu darker-shadow-dropdown dropdown-menu-large">
-			<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" data-preferred-position-x="left">
-				${_Icons.getSvgIcon(_Icons.iconUIConfigSettings, 16, 16, ['mr-2'])}
-			</button>
-			<div class="dropdown-menu-container" style="display: none;"></div>
-		</div>`);
+		let settingsContainerId = 'ui-settings-popup';
+
+		_Helpers.fastRemoveElement(Structr.functionBar.querySelector('#' + settingsContainerId));
+
+		let dropdown = _Helpers.createSingleDOMElementFromHTML(`
+			<div id="${settingsContainerId}" class="dropdown-menu darker-shadow-dropdown dropdown-menu-large">
+				<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" data-preferred-position-x="left">
+					${_Icons.getSvgIcon(_Icons.iconUIConfigSettings, 16, 16, ['mr-2'])}
+				</button>
+				<div class="dropdown-menu-container" style="display: none;"></div>
+			</div>
+		`);
 
 		let container = dropdown.querySelector('.dropdown-menu-container');
 
@@ -2790,13 +2812,70 @@ let UISettings = {
 
 			case 'checkbox': {
 
-				let settingDOM = _Helpers.createSingleDOMElementFromHTML(`<label class="flex items-center p-1"><input type="checkbox"> ${setting.text}</label>`);
+				let settingDOM = _Helpers.createSingleDOMElementFromHTML(`
+					<div class="flex items-center">
+						<label class="flex items-center p-1"><input type="checkbox"> ${setting.text}</label>
+					</div>
+				`);
 
 				let input = settingDOM.querySelector('input');
 				input.checked = UISettings.getValueForSetting(setting);
 
 				input.addEventListener('change', () => {
-					UISettings.setValueForSetting(setting, input.checked, input.parentElement);
+					UISettings.setValueForSetting(setting, input, input.checked, input.parentElement);
+				});
+
+				if (setting.infoText) {
+					settingDOM.dataset['comment'] = setting.infoText;
+				}
+
+				container.appendChild(settingDOM);
+
+				break;
+			}
+
+			case 'input': {
+
+				let settingDOM = _Helpers.createSingleDOMElementFromHTML(`
+					<div class="flex items-center">
+						<label class="flex items-center p-1"><input type="${setting.inputType ?? 'text'}" class="mr-2 px-2 py-1 ${setting.inputCssClass ?? ''}" size="${setting.size ?? 5}">${setting.text}</label>
+					</div>
+				`);
+
+				let input = settingDOM.querySelector('input');
+				input.value = UISettings.getValueForSetting(setting);
+
+				input.addEventListener('blur', () => {
+					UISettings.setValueForSetting(setting, input, input.value, input.parentElement);
+				});
+
+				if (setting.infoText) {
+					settingDOM.dataset['comment'] = setting.infoText;
+				}
+
+				container.appendChild(settingDOM);
+
+				break;
+			}
+
+			case 'select': {
+
+				let settingDOM = _Helpers.createSingleDOMElementFromHTML(`
+					<div class="flex items-center">
+						<label class="flex items-center p-1">
+							${setting.text}
+							<select class="mr-2 ${setting.inputCssClass ?? ''}">
+								${Object.values(setting.possibleValues).map(option => `<option value="${option.value}">${option.text}</option>`)}
+							</select>
+						</label>
+					</div>
+				`);
+
+				let select   = settingDOM.querySelector('select');
+				select.value = UISettings.getValueForSetting(setting);
+
+				select.addEventListener('change', () => {
+					UISettings.setValueForSetting(setting, select, select.value, select.parentElement);
 				});
 
 				if (setting.infoText) {
@@ -2879,6 +2958,19 @@ let UISettings = {
 					storageKey: 'favorHTMLForDOMNodes' + location.port,
 					defaultValue: true,
 					type: 'checkbox'
+				},
+				sharedComponentSyncModeKey: {
+					text: 'Sync strategy when updating a shared component',
+					storageKey: 'sharedComponentSyncMode' + location.port,
+					defaultValue: 'ASK',
+					type: 'select',
+					inputCssClass: 'w-40 truncate',
+					possibleValues: {
+						ASK:      { value: 'ASK',      text: 'Always ask' },
+						ALL:      { value: 'ALL',      text: 'All' },
+						BY_VALUE: { value: 'BY_VALUE', text: 'All with same previous value' },
+						NONE:     { value: 'NONE',     text: 'Do not sync' }
+					}
 				}
 			}
 		},
@@ -2970,6 +3062,37 @@ let UISettings = {
 						if (Structr.isModuleActive(_Code)) {
 							_Code.recentElements.updateVisibility();
 						}
+					}
+				}
+			}
+		},
+		crud: {
+			title: 'Data',
+			settings: {
+				hideLargeArrayElements: {
+					text: 'Only show array attributes contents if less than this',
+					infoText: 'The contents of array attributes with more elements will be hidden. The user can click to reveal the contents. This can be disabled by setting this to -1.',
+					storageKey: 'hideLargeArrayElementsInData_' + location.port,
+					defaultValue: 10,
+					type: 'input',
+					inputType: 'number',
+					inputCssClass: 'w-12',
+					onUpdate: () => {
+						if (Structr.isModuleActive(_Crud)) {
+						}
+					},
+					isValid: (value) => (parseInt(value) == value),
+					fixValue: (input, value) => {
+
+						let fixedValue = parseInt(value);
+
+						if (isNaN(fixedValue)) {
+							fixedValue = 0;
+						}
+
+						input.value = fixedValue;
+
+						return fixedValue;
 					}
 				}
 			}

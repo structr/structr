@@ -21,12 +21,16 @@ package org.structr.test.web.advanced;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.entity.Image;
+import org.structr.web.traits.definitions.ImageTraitDefinition;
 import org.testng.annotations.Test;
 
 import java.util.List;
@@ -47,9 +51,9 @@ public class ImageUploadTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(Image.class,
-				new NodeAttribute<>(StructrApp.key(Image.class, "name"),      "test01.png"),
-				new NodeAttribute<>(StructrApp.key(Image.class, "imageData"), Base64ImageData)
+			app.create(StructrTraits.IMAGE,
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),      "test01.png"),
+				new NodeAttribute<>(Traits.of(StructrTraits.IMAGE).key(ImageTraitDefinition.IMAGE_DATA_PROPERTY), Base64ImageData)
 			);
 
 			tx.success();
@@ -60,11 +64,11 @@ public class ImageUploadTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<Image> images = app.nodeQuery(Image.class).getAsList();
+			final List<NodeInterface> images = app.nodeQuery(StructrTraits.IMAGE).getAsList();
 
 			assertEquals("There should be exactly one image", 1, images.size());
 
-			final Image image = images.get(0);
+			final Image image = images.get(0).as(Image.class);
 
 			assertEquals("File size of the image does not match", Optional.of(Long.valueOf(1707)), Optional.of(StorageProviderFactory.getStorageProvider(image).size()));
 			assertEquals("Width of the image does not match",        Integer.valueOf(100), image.getWidth());
@@ -84,9 +88,9 @@ public class ImageUploadTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(Image.class,
-				new NodeAttribute<>(StructrApp.key(Image.class, "name"),      "test01.png"),
-				new NodeAttribute<>(StructrApp.key(Image.class, "imageData"), "data:image/jpeg;base64," + Base64ImageData)
+			app.create(StructrTraits.IMAGE,
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),      "test01.png"),
+				new NodeAttribute<>(Traits.of(StructrTraits.IMAGE).key(ImageTraitDefinition.IMAGE_DATA_PROPERTY), "data:image/jpeg;base64," + Base64ImageData)
 			);
 
 			tx.success();
@@ -97,16 +101,16 @@ public class ImageUploadTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<Image> images = app.nodeQuery(Image.class).getAsList();
+			final List<NodeInterface> images = app.nodeQuery(StructrTraits.IMAGE).getAsList();
 
 			assertEquals("There should be exactly one image", 1, images.size());
 
-			final Image image = images.get(0);
+			final Image image = images.get(0).as(Image.class);
 
-			assertEquals("File size of the image does not match", java.util.Optional.ofNullable(Long.valueOf(1707)),   java.util.Optional.of(StorageProviderFactory.getStorageProvider(image).size()));
+			assertEquals("File size of the image does not match",    java.util.Optional.ofNullable(Long.valueOf(1707)),   java.util.Optional.of(StorageProviderFactory.getStorageProvider(image).size()));
 			assertEquals("Width of the image does not match",        Integer.valueOf(100), image.getWidth());
 			assertEquals("Height of the image does not match",       Integer.valueOf(59),  image.getHeight());
-			assertEquals("Content type of the image does not match", "image/jpeg",         image.getContentType());
+			assertEquals("Content type of the image does not match", "image/jpeg",   image.getContentType());
 
 			tx.success();
 

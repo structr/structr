@@ -23,8 +23,6 @@ import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
 
-import java.util.Map;
-
 
 /**
  *
@@ -136,9 +134,8 @@ class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.types.Relations
 		return Direction.INCOMING;
 	}
 
-	// ----- protected methods -----
 	@Override
-	protected boolean isNode() {
+	public boolean isNode() {
 		return false;
 	}
 }

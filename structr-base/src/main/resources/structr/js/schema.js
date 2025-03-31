@@ -39,8 +39,7 @@ let _Schema = {
 	hiddenSchemaNodesKey: 'structrHiddenSchemaNodes_' + location.port,
 	schemaPositionsKey: 'structrSchemaPositions_' + location.port,
 	showSchemaOverlaysKey: 'structrShowSchemaOverlays_' + location.port,
-	showSchemaInheritanceKey: 'structrShowSchemaInheritance_' + location.port,
-	showBuiltinTypesInInheritanceTreeKey: 'showBuiltinTypesInInheritanceTreeKey_' + location.port,
+	showSchemaInheritanceArrowsKey: 'structrShowSchemaInheritance_' + location.port,
 	schemaMethodsHeightsKey: 'structrSchemaMethodsHeights_' + location.port,
 	schemaActiveTabLeftKey: 'structrSchemaActiveTabLeft_' + location.port,
 	activeSchemaToolsSelectedTabLevel1Key: 'structrSchemaToolsSelectedTabLevel1_' + location.port,
@@ -49,17 +48,13 @@ let _Schema = {
 	schemaConnectorStyleKey: '_schema_' + location.port + 'connectorStyle',
 	schemaNodePositionKeySuffix: '_schema_' + location.port + 'node-position',
 	currentNodeDialogId: null,
-	inheritanceTree: undefined,
-	inheritanceSlideout: undefined,
 	onload: () => {
 
-		_Code.preloadAvailableTagsForEntities().then(() => {
+		_Code.helpers.preloadAvailableTagsForEntities().then(() => {
 
 			Structr.setMainContainerHTML(_Schema.templates.main());
 			_Helpers.activateCommentsInElement(Structr.mainContainer);
 
-			_Schema.inheritanceSlideout     = $('#inheritance-tree');
-			_Schema.inheritanceTree         = $('#inheritance-tree-container');
 			_Schema.ui.canvas               = $('#schema-graph');
 
 			_Schema.ui.canvas[0].addEventListener('mousedown', (e) => {
@@ -78,23 +73,6 @@ let _Schema = {
 			_Schema.ui.canvas[0].addEventListener('mouseup', (e) => {
 				_Schema.ui.selectionStop();
 			});
-
-			let inheritanceTab = document.querySelector('#inheritanceTab');
-			inheritanceTab.addEventListener('click', () => {
-				Structr.slideouts.leftSlideoutTrigger(inheritanceTab, _Schema.inheritanceSlideout, [], () => {
-					LSWrapper.setItem(_Schema.schemaActiveTabLeftKey, inheritanceTab.id);
-					_Schema.inheritanceTree.show();
-				}, () => {
-					LSWrapper.removeItem(_Schema.schemaActiveTabLeftKey);
-					_Schema.inheritanceTree.hide();
-				});
-			});
-
-			if (LSWrapper.getItem(_Schema.schemaActiveTabLeftKey)) {
-				_Helpers.requestAnimationFrameWrapper('schema_resize_slideout_correctly', () => {
-					$('#' + LSWrapper.getItem(_Schema.schemaActiveTabLeftKey)).click();
-				});
-			}
 
 			_Schema.init(null,() => {
 				Structr.resize();
@@ -138,10 +116,10 @@ let _Schema = {
 	},
 	init: (scrollPosition, callback) => {
 
-		_Schema.schemaLoading      = false;
-		_Schema.ui.connectorStyle  = LSWrapper.getItem(_Schema.schemaConnectorStyleKey) || 'Flowchart';
-		_Schema.ui.zoomLevel       = parseFloat(LSWrapper.getItem(_Schema.schemaZoomLevelKey)) || 1.0;
-		_Schema.ui.showInheritance = LSWrapper.getItem(_Schema.showSchemaInheritanceKey, true) || true;
+		_Schema.schemaLoading            = false;
+		_Schema.ui.connectorStyle        = LSWrapper.getItem(_Schema.schemaConnectorStyleKey) || 'Flowchart';
+		_Schema.ui.zoomLevel             = parseFloat(LSWrapper.getItem(_Schema.schemaZoomLevelKey)) || 1.0;
+		_Schema.ui.showInheritanceArrows = LSWrapper.getItem(_Schema.showSchemaInheritanceArrowsKey, true) ?? true;
 
 		Structr.setFunctionBarHTML(_Schema.templates.functions());
 
@@ -234,8 +212,8 @@ let _Schema = {
 			let showSchemaOverlays = LSWrapper.getItem(_Schema.showSchemaOverlaysKey, true);
 			_Schema.ui.updateOverlayVisibility(showSchemaOverlays);
 
-			let showSchemaInheritance = LSWrapper.getItem(_Schema.showSchemaInheritanceKey, true);
-			_Schema.ui.updateInheritanceVisibility(showSchemaInheritance);
+			let showSchemaInheritance = LSWrapper.getItem(_Schema.showSchemaInheritanceArrowsKey, true);
+			_Schema.ui.updateInheritanceArrowsVisibility(showSchemaInheritance);
 
 			if (scrollPosition) {
 				window.scrollTo(scrollPosition.x, scrollPosition.y);
@@ -536,8 +514,8 @@ let _Schema = {
 
 					if (Structr.isModuleActive(_Schema)) {
 
-						// Reload is only necessary for changes in the "basic" tab for types (name and extendsClass) and relationships (relType and cardinality)
-						let typeChangeRequiresReload = (bulkInfo?.basic?.changes?.name || bulkInfo?.basic?.changes?.extendsClass)
+						// Schema reload is only necessary for changes in the "basic" tab for types (name and inheritedTraits) and relationships (relType and cardinality)
+						let typeChangeRequiresReload = (bulkInfo?.basic?.changes?.name || bulkInfo?.basic?.changes?.inheritedTraits)
 						let relChangeRequiresReload  = (bulkInfo?.basic?.changes?.relationshipType || bulkInfo?.basic?.changes?.sourceMultiplicity || bulkInfo?.basic?.changes?.targetMultiplicity)
 
 						if (typeChangeRequiresReload || relChangeRequiresReload) {
@@ -549,7 +527,7 @@ let _Schema = {
 
 					if (response.ok) {
 
-						_Code.addAvailableTagsForEntities([data]);
+						_Code.helpers.addAvailableTagsForEntities([data]);
 
 						_Schema.bulkDialogsGeneral.resetInputsViaTabControls(tabControls);
 
@@ -559,7 +537,7 @@ let _Schema = {
 
 						let data = await response.json();
 
-						let errors = new Set(data.errors.map(e => e.detail.replaceAll('\n', '<br>').replaceAll('org.structr.dynamic.', '')));
+						let errors = new Set(data.errors.map(e => e.detail.replaceAll('\n', '<br>').replaceAll(Structr.dynamicClassPrefix, '')));
 
 						if (errors.size > 0) {
 
@@ -582,6 +560,16 @@ let _Schema = {
 	},
 	prevAnimFrameReqId_dragNode: undefined,
 	nodes: {
+		populateInheritancePairMap: (list) => {
+
+			let nameKeyedList = Object.fromEntries(list.map(entity => {
+				return [entity.name, entity];
+			}));
+
+			return Object.fromEntries(list.map(entity => {
+				return [entity.id, (entity.inheritedTraits ?? []).map(traitName => nameKeyedList[traitName]?.id).filter(parent => !!parent)]
+			}));
+		},
 		loadNodes: async () => {
 
 			_Schema.hiddenSchemaNodes = JSON.parse(LSWrapper.getItem(_Schema.hiddenSchemaNodesKey));
@@ -593,50 +581,21 @@ let _Schema = {
 				_Schema.applySavedLayoutConfiguration(schemaLayout, true);
 			}
 
-			let response = await fetch(`${Structr.rootUrl}SchemaNode/ui?${Structr.getRequestParameterName('sort')}=hierarchyLevel&${Structr.getRequestParameterName('order')}=asc`);
+			let response = await fetch(`${Structr.rootUrl}SchemaNode/ui?${Structr.getRequestParameterName('sort')}=hierarchyLevel&${Structr.getRequestParameterName('order')}=asc&isServiceClass=false`);
 			if (response.ok) {
 
 				let data             = await response.json();
 				let entities         = {};
-				let inheritancePairs = {};
+				let inheritanceObject = _Schema.nodes.populateInheritancePairMap(data.result);
 				let hierarchy        = {};
 				let x = 0, y = 0;
 
 				if (_Schema.hiddenSchemaNodes === null) {
-					_Schema.hiddenSchemaNodes = data.result.filter((entity) => entity.isBuiltinType).map((entity) => entity.name);
+					_Schema.hiddenSchemaNodes = data.result.filter(entity => entity.isBuiltinType).map(entity => entity.name);
 					LSWrapper.setItem(_Schema.hiddenSchemaNodesKey, JSON.stringify(_Schema.hiddenSchemaNodes));
 				}
 
 				_Schema.nodePositions = LSWrapper.getItem(_Schema.schemaPositionsKey);
-				if (!_Schema.nodePositions) {
-
-					let nodePositions = {};
-
-					// positions are stored the 'old' way => convert to the 'new' way
-					let typeNames = data.result.map(entity => entity.name);
-					for (let typeName of typeNames) {
-
-						let nodePos = JSON.parse(LSWrapper.getItem(typeName + _Schema.schemaNodePositionKeySuffix));
-						if (nodePos) {
-							nodePositions[typeName] = nodePos.position;
-
-							LSWrapper.removeItem(typeName + _Schema.schemaNodePositionKeySuffix);
-						}
-					}
-
-					_Schema.nodePositions = nodePositions;
-					LSWrapper.setItem(_Schema.schemaPositionsKey, _Schema.nodePositions);
-
-					// After we have converted all types we try to find *all* outdated type positions and delete them
-					for (let key in JSON.parse(LSWrapper.getAsJSON())) {
-
-						if (key.endsWith('node-position')) {
-							LSWrapper.removeItem(key);
-						}
-					}
-				}
-
-				_Schema.loadClassTree(data.result);
 
 				_Schema.availableTypeNames = [];
 
@@ -667,17 +626,10 @@ let _Schema = {
 						level += 10;
 					}
 
-					if (!hierarchy[level]) { hierarchy[level] = []; }
+					hierarchy[level] ??= [];
 					hierarchy[level].push(entity);
 
 					entities[entity.id] = entity.id;
-				}
-
-				for (let entity of data.result) {
-
-					if (entity.extendsClass && entity.extendsClass.id && entities[entity.extendsClass.id]) {
-						inheritancePairs[entity.id] = entities[entity.extendsClass.id];
-					}
 				}
 
 				for (let entitiesAtHierarchyLevel of Object.values(hierarchy)) {
@@ -844,70 +796,81 @@ let _Schema = {
 					x = 0;
 				}
 
-				for (let [source, target] of Object.entries(inheritancePairs)) {
+				for (let [sourceId, targetIds] of Object.entries(inheritanceObject)) {
 
-					let sourceEntity = _Schema.nodeData[source];
-					let targetEntity = _Schema.nodeData[target];
+					let sourceEntity = _Schema.nodeData[sourceId];
+					let sourceHidden = _Schema.hiddenSchemaNodes.includes(sourceEntity?.name);
 
-					let i1 = _Schema.hiddenSchemaNodes.indexOf(sourceEntity.name);
-					let i2 = _Schema.hiddenSchemaNodes.indexOf(targetEntity.name);
+					if (sourceEntity && !sourceHidden) {
 
-					if (_Schema.hiddenSchemaNodes.length > 0 && (i1 > -1 || i2 > -1)) {
-						continue;
+						for (let targetId of targetIds) {
+
+							let targetEntity = _Schema.nodeData[targetId];
+							let targetHidden = _Schema.hiddenSchemaNodes.includes(targetEntity?.name);
+
+							if (targetEntity && !targetHidden) {
+
+								_Schema.ui.jsPlumbInstance.connect({
+									source: 'id_' + sourceId,
+									target: 'id_' + targetId,
+									endpoint: 'Blank',
+									anchors: [
+										[ 'Perimeter', { shape: 'Rectangle' } ],
+										[ 'Perimeter', { shape: 'Rectangle' } ]
+									],
+									connector: [ 'Straight', { curviness: 200, cornerRadius: 25, gap: 0 }],
+									paintStyle: { lineWidth: 4, strokeStyle: "#dddddd", dashstyle: '2 2' },
+									cssClass: "dashed-inheritance-relationship"
+								});
+							}
+						}
 					}
-
-					_Schema.ui.jsPlumbInstance.connect({
-						source: 'id_' + source,
-						target: 'id_' + target,
-						endpoint: 'Blank',
-						anchors: [
-							[ 'Perimeter', { shape: 'Rectangle' } ],
-							[ 'Perimeter', { shape: 'Rectangle' } ]
-						],
-						connector: [ 'Straight', { curviness: 200, cornerRadius: 25, gap: 0 }],
-						paintStyle: { lineWidth: 4, strokeStyle: "#dddddd", dashstyle: '2 2' },
-						cssClass: "dashed-inheritance-relationship"
-					});
 				}
 
 			} else {
+
 				throw new Error("Loading of Schema nodes failed");
 			}
 		},
 		loadNode: (entity, mainTabs, contentDiv, targetView = 'local', callbackCancel) => {
 
-			if (!Structr.isModuleActive(_Code) && (targetView === 'source-code' || targetView === 'working-sets')) {
+			if (!Structr.isModuleActive(_Code) && (targetView === 'working-sets')) {
 				targetView = 'basic';
 			}
 
+			let tabControls = {};
+
 			let basicTabContent        = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'basic', 'Basic', targetView === 'basic');
-			let localPropsTabContent   = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'local', 'Direct properties', targetView === 'local');
-			let remotePropsTabContent  = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'remote', 'Linked properties', targetView === 'remote');
-			let builtinPropsTabContent = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'builtin', 'Inherited properties', targetView === 'builtin');
-			let viewsTabContent        = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'views', 'Views', targetView === 'views');
-			let methodsTabContent      = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'methods', 'Methods', targetView === 'methods', _Editors.resizeVisibleEditors);
-			let schemaGrantsTabContent = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'schema-grants', 'Schema Grants', targetView === 'schema-grants');
+			tabControls.basic          = _Schema.nodes.appendBasicNodeInfo(basicTabContent, entity);
 
-			_Schema.properties.appendBuiltinProperties(builtinPropsTabContent, entity);
+			if (entity.isServiceClass === false) {
 
-			let tabControls = {
-				basic            : _Schema.nodes.appendBasicNodeInfo(basicTabContent, entity, mainTabs),
-				schemaProperties : _Schema.properties.appendLocalProperties(localPropsTabContent, entity),
-				remoteProperties : _Schema.remoteProperties.appendRemote(remotePropsTabContent, entity, async (el) => { await _Schema.remoteProperties.asyncEditSchemaObjectLinkHandler(el, mainTabs, entity.id); }),
-				schemaViews      : _Schema.views.appendViews(viewsTabContent, entity),
-				schemaMethods    : _Schema.methods.appendMethods(methodsTabContent, entity, entity.schemaMethods),
-				schemaGrants     : _Schema.schemaGrants.appendSchemaGrants(schemaGrantsTabContent, entity)
-			};
+				let localPropsTabContent   = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'local', 'Direct properties', targetView === 'local');
+				let remotePropsTabContent  = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'remote', 'Linked properties', targetView === 'remote');
+				let builtinPropsTabContent = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'builtin', 'Inherited properties', targetView === 'builtin');
+				let viewsTabContent        = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'views', 'Views', targetView === 'views');
+				let schemaGrantsTabContent = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'schema-grants', 'Schema Grants', targetView === 'schema-grants');
+
+				tabControls.schemaProperties = _Schema.properties.appendLocalProperties(localPropsTabContent, entity);
+				tabControls.remoteProperties = _Schema.remoteProperties.appendRemote(remotePropsTabContent, entity, async (el) => { await _Schema.remoteProperties.asyncEditSchemaObjectLinkHandler(el, mainTabs, entity.id); });
+				tabControls.schemaViews      = _Schema.views.appendViews(viewsTabContent, entity);
+				tabControls.schemaGrants     = _Schema.schemaGrants.appendSchemaGrants(schemaGrantsTabContent, entity);
+
+				_Schema.properties.appendBuiltinProperties(builtinPropsTabContent, entity);
+			}
+
+			let methodsTabContent     = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'methods', 'Methods', targetView === 'methods', _Editors.resizeVisibleEditors);
+			tabControls.schemaMethods = _Schema.methods.appendMethods(methodsTabContent, entity, entity.schemaMethods);
 
 			if (Structr.isModuleActive(_Code)) {
 
-				// only show the following tabs in the Code area where it is not opened in a popup
+				// only show the following tab in the Code area where it is not opened in a popup
 
-				let workingSetsTabContent = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'working-sets', 'Working Sets', targetView === 'working-sets');
-				workingSetsTabContent.classList.add('relative');
-				_Schema.nodes.appendWorkingSets(workingSetsTabContent, entity);
-
-				_Schema.nodes.appendGeneratedSourceCodeTab(entity, mainTabs, contentDiv, targetView);
+				if (entity.isServiceClass === false) {
+					let workingSetsTabContent = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'working-sets', 'Working Sets', targetView === 'working-sets');
+					workingSetsTabContent.classList.add('relative');
+					_Schema.nodes.appendWorkingSets(workingSetsTabContent, entity);
+				}
 			}
 
 			_Schema.bulkDialogsGeneral.overrideDialogCancel(mainTabs, callbackCancel);
@@ -936,7 +899,7 @@ let _Schema = {
 
 			updateChangeStatus();
 
-			_Schema.nodes.showCreateNewTypeDialog(dialogText, updateChangeStatus);
+			_Schema.nodes.showCreateNewTypeDialog(dialogText, updateChangeStatus, { isServiceClass: false });
 
 			initialData = _Schema.nodes.getTypeDefinitionDataFromForm(dialogText, {});
 
@@ -982,52 +945,38 @@ let _Schema = {
 				delete nameInput.dataset['property'];
 				nameInput.disabled = true;
 				nameInput.classList.add('disabled');
-			} else {
 			}
 
-			if (entity.extendsClass || entity.isBuiltinType === false) {
+			let select = container.querySelector('[data-property="inheritedTraits"]');
+			select?.insertAdjacentHTML('beforeend', (entity.inheritedTraits ?? []).map(trait => `<option>${trait}</option>`).join(''));
 
-				let select = container.querySelector('[data-property="extendsClass"]');
-				if (entity.isBuiltinType === true) {
-					select.insertAdjacentHTML('beforeend', `<option>${entity.extendsClass.name}</option>`);
-					delete select.dataset['property'];
-					select.disabled = true;
-					select.classList.add('disabled');
-				}
+			let schemaNodeFlags = ['isServiceClass', 'changelogDisabled', 'defaultVisibleToPublic', 'defaultVisibleToAuth'];
 
-				if (!entity.extendsClass || !Structr.isModuleActive(_Schema)) {
-					_Helpers.fastRemoveElement(container.querySelector('.edit-parent-type'));
-				}
+			for (let flag of schemaNodeFlags) {
 
-			} else {
-				_Helpers.fastRemoveElement(container.querySelector('.extends-type'));
+				let checkbox = container.querySelector(`[data-property="${flag}"]`);
+				if (checkbox) checkbox.checked = (true === entity[flag]);
 			}
 
-			container.querySelector('[data-property="changelogDisabled"]').checked      = (true === entity.changelogDisabled);
-			container.querySelector('[data-property="defaultVisibleToPublic"]').checked = (true === entity.defaultVisibleToPublic);
-			container.querySelector('[data-property="defaultVisibleToAuth"]').checked   = (true === entity.defaultVisibleToAuth);
-
-			_Code.populateOpenAPIBaseConfig(container, entity, _Code.availableTags);
+			_Code.mainArea.populateOpenAPIBaseConfig(container, entity, _Code.availableTags);
 		},
 		appendTypeHierarchy: (container, entity = {}, changeFn) => {
 
-			fetch(`${Structr.rootUrl}SchemaNode/ui?${Structr.getRequestParameterName('sort')}=name`).then(async (response) => {
+			fetch(`${Structr.rootUrl}_schema`).then(response => response.json()).then(schemaData => {
 
-				let data         = await response.json();
-				let customTypes  = data.result.filter(cls => ((!cls.category || cls.category !== 'html') && !cls.isAbstract && !cls.isInterface && !cls.isBuiltinType) && (cls.id !== entity.id));
-				let builtinTypes = data.result.filter(cls => ((!cls.category || cls.category !== 'html') && !cls.isAbstract && !cls.isInterface && cls.isBuiltinType) && (cls.id !== entity.id));
+				let isHtmlType = (type) => type.traits.includes('DOMNode');
 
-				let getOptionsForList = (list) => {
-					return list.map(cls => `<option ${((entity.extendsClass && entity.extendsClass.name && entity.extendsClass.id === cls.id) ? 'selected' : '')} value="${cls.id}">${cls.name}</option>`).join('');
+				let customTypes  = schemaData.result.filter(type => !isHtmlType(type) && !type.isAbstract && !type.isRel && !type.isInterface && !type.isServiceClass && !type.isBuiltin && type.name !== entity.name);
+				let builtinTypes = schemaData.result.filter(type => !isHtmlType(type) && !type.isAbstract && !type.isRel && !type.isInterface && !type.isServiceClass && type.isBuiltin && type.name !== entity.name);
+
+				let getOptionsForListOfTypes = (typeList) => {
+					return typeList.map(type => type.name).sort().map(name => `<option ${(entity.inheritedTraits ?? []).includes(name) ? 'selected' : ''} value="${name}">${name}</option>`).join('');
 				};
 
-				let classSelect = container.querySelector('.extends-class-select');
+				let classSelect = container.querySelector('[data-property="inheritedTraits"]');
 				classSelect.insertAdjacentHTML('beforeend', `
-					<optgroup label="Default Type">
-						<option value="">AbstractNode - Structr default base type</option>
-					</optgroup>
-					${(customTypes.length > 0) ? `<optgroup id="for-custom-types" label="Custom Types">${getOptionsForList(customTypes)}</optgroup>` : ''}
-					${(builtinTypes.length > 0) ? `<optgroup id="for-builtin-types" label="System Types">${getOptionsForList(builtinTypes)}</optgroup>` : ''}
+					${(customTypes.length > 0) ? `<optgroup label="Custom Traits">${getOptionsForListOfTypes(customTypes)}</optgroup>` : ''}
+					${(builtinTypes.length > 0) ? `<optgroup label="System Traits">${getOptionsForListOfTypes(builtinTypes)}</optgroup>` : ''}
 				`);
 
 				$(classSelect).select2({
@@ -1051,9 +1000,9 @@ let _Schema = {
 				changeFn?.();
 			});
 		},
-		appendBasicNodeInfo: (tabContent, entity, mainTabs) => {
+		appendBasicNodeInfo: (tabContent, entity) => {
 
-			tabContent.appendChild(_Helpers.createSingleDOMElementFromHTML(_Schema.templates.typeBasicTab()));
+			tabContent.appendChild(_Helpers.createSingleDOMElementFromHTML(_Schema.templates.typeBasicTab({ isServiceClass: entity?.isServiceClass, isCreate: !entity })));
 
 			_Helpers.activateCommentsInElement(tabContent);
 
@@ -1072,25 +1021,9 @@ let _Schema = {
 				property.addEventListener('input', updateChangeStatus);
 			}
 
-			if (false === entity.isBuiltinType) {
+			if (entity.isServiceClass === false) {
 
 				_Schema.nodes.appendTypeHierarchy(tabContent, entity, updateChangeStatus);
-			}
-
-			if (entity?.extendsClass?.id) {
-
-				tabContent.querySelector('.edit-parent-type')?.addEventListener('click', async () => {
-
-					let okToNavigate = !_Schema.bulkDialogsGeneral.hasUnsavedChangesInTabs(mainTabs) || (await _Dialogs.confirmation.showPromise("There are unsaved changes - really navigate to parent type?"));
-					if (okToNavigate) {
-						_Schema.openEditDialog(entity.extendsClass.id, undefined, () => {
-
-							window.setTimeout(() => {
-								_Schema.openEditDialog(entity.id);
-							}, 250);
-						});
-					}
-				});
 			}
 
 			_Schema.nodes.activateTagsSelect(tabContent.querySelector('#openapi-options'), updateChangeStatus);
@@ -1195,23 +1128,9 @@ let _Schema = {
 			});
 
 		},
-		appendGeneratedSourceCodeTab: (entity, mainTabs, contentDiv, targetView) => {
 
-			let generatedSourceTabShowCallback = (tabContent) => {
-				_Schema.showGeneratedSource(tabContent.querySelector('.generated-source')).then(() => {
-					_Editors.resizeVisibleEditors();
-				});
-			};
-			let tabContent = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'source-code', 'Source Code', targetView === 'source-code', generatedSourceTabShowCallback, false, true);
-
-			tabContent.insertAdjacentHTML('beforeend', `<div class="generated-source" data-type-name="${entity.type}" data-type-id="${entity.id}"></div>`);
-
-			if (targetView === 'source-code') {
-				generatedSourceTabShowCallback(tabContent);
-			}
-		},
 		getTypeDefinitionDataFromForm: (tabContent, entity) => {
-			return _Code.collectDataFromContainer(tabContent, entity);
+			return _Code.persistence.collectDataFromContainer(tabContent, entity);
 		},
 		validateBasicTypeInfo: (typeInfo, container, entity) => {
 
@@ -1231,21 +1150,27 @@ let _Schema = {
 		},
 		getTypeDefinitionChanges: (entity, newData) => {
 
+			let hasArrayChanged = (key) => {
+
+				let prevValue = entity[key] ?? [];
+				let newValue  = newData[key];
+
+				if (prevValue.length === newValue.length) {
+
+					let difference = prevValue.filter(t => !newValue.includes(t));
+					return (difference.length > 0);
+				}
+
+				return true;
+			};
+
 			for (let key in newData) {
 
 				let shouldDelete = (entity[key] === newData[key]);
 
-				if (key === 'tags') {
-					let prevTags = entity[key] ?? [];
-					let newTags  = newData[key];
-					if (!prevTags && newTags.length === 0) {
-						shouldDelete = true
-					} else if (prevTags.length === newTags.length) {
-						let difference = prevTags.filter(t => !newTags.includes(t));
-						shouldDelete = (difference.length === 0);
-					}
-				} else if (key === 'extendsClass') {
-					shouldDelete = (entity.extendsClass && entity.extendsClass.id === newData.extendsClass) || (!entity.extendsClass && newData.extendsClass === '');
+				if (key === 'tags' || key === 'inheritedTraits') {
+
+					shouldDelete = !hasArrayChanged(key);
 				}
 
 				if (shouldDelete) {
@@ -1256,17 +1181,18 @@ let _Schema = {
 			return newData;
 		},
 		resetTypeDefinition: (container, entity) => {
-			_Code.revertFormDataInContainer(container, entity);
+			_Code.persistence.revertFormDataInContainer(container, entity);
 		},
-		showCreateNewTypeDialog: (container, updateFunction) => {
+		showCreateNewTypeDialog: (container, updateFunction, config = {}) => {
 
-			container.insertAdjacentHTML('beforeend', _Schema.templates.typeBasicTab());
+			container.insertAdjacentHTML('beforeend', _Schema.templates.typeBasicTab({ isCreate: true, ...config }));
 
-			_Helpers.fastRemoveElement(container.querySelector('.edit-parent-type'));
+			if (config.isServiceClass === false) {
+				_Schema.nodes.appendTypeHierarchy(container, {}, updateFunction);
+			}
 
-			_Schema.nodes.appendTypeHierarchy(container, {}, updateFunction);
 			_Schema.nodes.activateTagsSelect(container);
-			_Code.populateOpenAPIBaseConfig(container, {}, _Code.availableTags);
+			_Code.mainArea.populateOpenAPIBaseConfig(container, {}, _Code.availableTags);
 
 			_Helpers.activateCommentsInElement(container);
 		},
@@ -3408,18 +3334,14 @@ let _Schema = {
 
 			let methodsGridConfig = {
 				class: 'actions schema-props grid',
-				style: 'grid-template-columns: [ name ] minmax(0, 1fr) ' +  ((entity) ? '[ isstatic ] 2rem ' : '') + '[ actions ] 6rem',
+				style: 'grid-template-columns: [ name ] minmax(0, 1fr) [ more ] 2rem [ actions ] 6rem',
 				cols: [
 					{ class: 'text-center font-bold pb-2', title: 'Name' },
-					{ class: 'isstatic-col flex justify-center font-bold', title: 'isStatic' },
+					{ class: 'more-settings-col flex justify-center font-bold', title: 'More' },
 					{ class: 'actions-col text-center font-bold', title: 'Action' }
 				],
-				buttons: _Schema.methods.templates.addMethodsDropdown({entity, availableLifecycleMethods}) + '<div class="flex-grow flex"></div>'
+				buttons: _Schema.methods.templates.addMethodsDropdown({ entity, availableLifecycleMethods }) + '<div class="flex-grow flex"></div>'
 			};
-
-			if (!entity) {
-				methodsGridConfig.cols.splice(1,1);
-			}
 
 			methods = _Schema.filterJavaMethods(methods, entity);
 			_Helpers.sort(methods);
@@ -3447,14 +3369,13 @@ let _Schema = {
 
 			for (let method of methods) {
 
-				let gridRow = _Helpers.createSingleDOMElementFromHTML(_Schema.methods.templates.methodRow({ method: method }));
+				let gridRow = _Helpers.createSingleDOMElementFromHTML(_Schema.methods.templates.methodRow({ method }));
 				gridBody.appendChild(gridRow);
+
+				_Helpers.activateCommentsInElement(gridRow);
 
 				gridRow.dataset['typeName']   = (entity ? entity.name : 'global_schema_method');
 				gridRow.dataset['methodName'] = method.name;
-
-				gridRow.querySelector('.property-name').value       = method.name;
-				gridRow.querySelector('.property-isStatic').checked = method.isStatic;
 
 				_Schema.methods.methodsData[method.id] = {
 					isNew:           false,
@@ -3462,17 +3383,23 @@ let _Schema = {
 					type:            method.type,
 					name:            method.name,
 					isStatic:        method.isStatic,
-					source:          method.source || '',
-					initialName:     method.name,
-					initialisStatic: method.isStatic,
-					initialSource:   method.source || '',
-					codeType:        method.codeType || '',
+					source:          method.source ?? '',
+					codeType:        method.codeType ?? '',
 					isPrivate:       method.isPrivate,
 					returnRawResult: method.returnRawResult,
-					httpVerb:        method.httpVerb
+					httpVerb:        method.httpVerb,
+					schemaNode:      entity,
+					initialData: {
+						name:            method.name,
+						isStatic:        method.isStatic,
+						source:          method.source ?? '',
+						isPrivate:       method.isPrivate,
+						returnRawResult: method.returnRawResult,
+						httpVerb:        method.httpVerb,
+					}
 				};
 
-				_Schema.methods.bindRowEvents(gridRow, entity);
+				_Schema.methods.bindRowEvents(gridBody, gridRow, entity);
 
 				// auto-edit first method (or last used)
 				if ((rowToActivate === undefined) || (lastEditedMethod && ((lastEditedMethod.isNew === false && lastEditedMethod.id === method.id) || (lastEditedMethod.isNew === true && lastEditedMethod.name === method.name)))) {
@@ -3480,9 +3407,7 @@ let _Schema = {
 				}
 			}
 
-			if (rowToActivate) {
-				rowToActivate.querySelector('.edit-action').dispatchEvent(new Event('click'));
-			}
+			rowToActivate?.querySelector('.edit-action').dispatchEvent(new Event('click'));
 
 			let resetFunction = () => {
 				for (let discardIcon of methodsGrid.querySelectorAll('.discard-changes')) {
@@ -3531,6 +3456,15 @@ let _Schema = {
 				let methodId   = gridRow.dataset['methodId'];
 				let methodData = _Schema.methods.methodsData[methodId];
 
+				let baseMethodData = {
+					name:            methodData.name,
+					isStatic:        methodData.isStatic,
+					isPrivate:       methodData.isPrivate,
+					returnRawResult: methodData.returnRawResult,
+					httpVerb:        methodData.httpVerb,
+					source:          methodData.source,
+				};
+
 				if (methodData.isNew === false) {
 
 					if (gridRow.classList.contains('to-delete')) {
@@ -3548,12 +3482,7 @@ let _Schema = {
 							allow = _Schema.methods.validateMethodRow(gridRow) && allow;
 						}
 
-						data.schemaMethods.push({
-							id:       methodId,
-							name:     methodData.name,
-							isStatic: methodData.isStatic,
-							source:   methodData.source,
-						});
+						data.schemaMethods.push(Object.assign({ id: methodId }, baseMethodData));
 
 					} else {
 
@@ -3572,12 +3501,7 @@ let _Schema = {
 						allow = _Schema.methods.validateMethodRow(gridRow) && allow;
 					}
 
-					data.schemaMethods.push({
-						type:     'SchemaMethod',
-						name:     methodData.name,
-						isStatic: methodData.isStatic,
-						source:   methodData.source,
-					});
+					data.schemaMethods.push(Object.assign({ type: 'SchemaMethod' }, baseMethodData));
 				}
 			}
 
@@ -3658,8 +3582,10 @@ let _Schema = {
 					let name             = addMethodButton.dataset['name'] ?? ''
 					let isPrefix         = addMethodButton.dataset['isPrefix'] === 'true';
 					let baseMethodConfig = {
-						name: isPrefix ? _Schema.methods.getFirstFreeMethodName(name) : name,
-						id: 'new' + (addedMethodsCounter++)
+						name:       (isPrefix ? _Schema.methods.getFirstFreeMethodName(name) : name),
+						id:         'new' + (addedMethodsCounter++),
+						schemaNode: entity,
+						httpVerb:   'POST'
 					};
 
 					_Schema.methods.appendNewMethod(gridBody, baseMethodConfig, entity);
@@ -3676,54 +3602,19 @@ let _Schema = {
 			gridBody.scrollTop = gridRow.offsetTop;
 
 			_Schema.methods.methodsData[method.id] = {
-				id:              method.id,
 				isNew:           true,
+				id:              method.id,
 				name:            method.name,
+				codeType:        method.codeType ?? '',
 				isStatic:        method.isStatic ?? false,
 				source:          method.source ?? '',
 				isPrivate:       method.isPrivate ?? false,
 				returnRawResult: method.returnRawResult ?? false,
+				httpVerb:        method.httpVerb ?? 'POST',
+				schemaNode:      entity
 			};
 
-			let propertyNameInput = gridRow.querySelector('.property-name');
-			propertyNameInput.addEventListener('input', () => {
-				_Schema.methods.methodsData[method.id].name = propertyNameInput.value;
-			});
-
-			let isStaticCheckbox = gridRow.querySelector('.property-isStatic');
-			isStaticCheckbox.addEventListener('change', () => {
-				_Schema.methods.methodsData[method.id].isStatic = isStaticCheckbox.checked;
-			});
-
-			gridRow.querySelector('.edit-action').addEventListener('click', () => {
-				_Schema.methods.editMethod(gridRow, entity);
-			});
-
-			gridRow.querySelector('.clone-action').addEventListener('click', () => {
-
-				let clonedData = Object.assign({}, _Schema.methods.methodsData[method.id], {
-					id:       method.id + '_clone_' + (new Date().getTime()),
-					name:     _Schema.methods.getFirstFreeMethodName(_Schema.methods.methodsData[method.id].name + '_copy')
-				});
-
-				_Schema.methods.appendNewMethod(gridBody, clonedData, entity);
-			});
-
-			gridRow.querySelector('.discard-changes').addEventListener('click', () => {
-
-				if (gridRow.classList.contains('editing')) {
-					document.querySelector('#methods-container-right').style.display = 'none';
-				}
-				_Helpers.fastRemoveElement(gridRow);
-
-				_Schema.methods.rowChanged(gridBody.closest('.schema-grid'), false);
-
-				_Editors.nukeEditorsById(method.id);
-			});
-
-			_Schema.bulkDialogsGeneral.gridChanged(gridBody.closest('.schema-grid'));
-
-			_Schema.methods.editMethod(gridRow, entity);
+			_Schema.methods.bindRowEvents(gridBody, gridRow, entity);
 		},
 		getFirstFreeMethodName: (prefix) => {
 
@@ -3752,21 +3643,73 @@ let _Schema = {
 
 			return prefix + (nextSuffix === 0 ? '' : (nextSuffix < 10 ? '0' + nextSuffix : nextSuffix));
 		},
-		bindRowEvents: (gridRow, entity) => {
+		removeAllMoreMethodSettingsContainers: (e) => {
 
-			let methodId   = gridRow.dataset['methodId'];
-			let methodData = _Schema.methods.methodsData[methodId];
+			let isInSettingsContainer = (e.target.closest('.more-method-settings-container') !== null);
+
+			if (!isInSettingsContainer) {
+
+				document.removeEventListener('mouseup', _Schema.methods.removeAllMoreMethodSettingsContainers);
+
+				for (let container of document.querySelectorAll('.more-method-settings-container')) {
+					container.classList.add('hidden');
+				}
+			}
+		},
+		bindRowEvents: (gridBody, gridRow, entity) => {
+
+			let methodId       = gridRow.dataset['methodId'];
+			let methodData     = _Schema.methods.methodsData[methodId];
+			let isDatabaseNode = (methodData.isNew === false);
+
+			_Schema.methods.updateUIForAllAttributes(gridRow, methodData);
 
 			let propertyNameInput = gridRow.querySelector('.property-name');
 			propertyNameInput.addEventListener('input', () => {
 				methodData.name = propertyNameInput.value;
-				_Schema.methods.rowChanged(gridRow, (methodData.name !== methodData.initialName));
+
+				if (isDatabaseNode) {
+					_Schema.methods.rowChanged(gridRow, (methodData.name !== methodData.initialData.name));
+				}
+
+				_Schema.methods.updateUIForAllAttributes(gridRow, methodData);
 			});
 
-			let isStaticCheckbox = gridRow.querySelector('.property-isStatic');
-			isStaticCheckbox.addEventListener('change', () => {
-				methodData.isStatic = isStaticCheckbox.checked;
-				_Schema.methods.rowChanged(gridRow, (methodData.isStatic !== methodData.initialisStatic));
+			for (let checkbox of gridRow.querySelectorAll('input[type="checkbox"][data-property]')) {
+
+				checkbox.addEventListener('change', (e) => {
+					let key = checkbox.dataset['property'];
+					methodData[key] = checkbox.checked;
+
+					if (isDatabaseNode) {
+						_Schema.methods.rowChanged(gridRow, (methodData[key] !== methodData.initialData[key]));
+					}
+
+					_Schema.methods.updateUIForAllAttributes(gridRow, methodData);
+				});
+			}
+
+			gridRow.querySelector('select[data-property="httpVerb"]').addEventListener('change', (e) => {
+				methodData.httpVerb = e.target.value;
+
+				if (isDatabaseNode) {
+					_Schema.methods.rowChanged(gridRow, (methodData.httpVerb !== methodData.initialData.httpVerb));
+				}
+			});
+
+			gridRow.querySelector('.toggle-more-method-settings').addEventListener('click', (e) => {
+
+				e.stopPropagation();
+
+				let settingsContainer = gridRow.querySelector('.more-method-settings-container');
+				let wasHidden         = settingsContainer.classList.contains('hidden');
+
+				if (wasHidden) {
+					_Schema.methods.removeAllMoreMethodSettingsContainers(e);
+					document.addEventListener('click', _Schema.methods.removeAllMoreMethodSettingsContainers);
+				}
+
+				settingsContainer.classList.toggle('hidden');
 			});
 
 			gridRow.querySelector('.edit-action').addEventListener('click', () => {
@@ -3776,40 +3719,85 @@ let _Schema = {
 			gridRow.querySelector('.clone-action').addEventListener('click', () => {
 
 				let clonedData = Object.assign({}, methodData, {
-					id:       methodId + '_clone_' + (new Date().getTime()),
-					name:     _Schema.methods.getFirstFreeMethodName(methodData.name + '_copy')
+					id:   methodId + '_clone_' + (new Date().getTime()),
+					name: _Schema.methods.getFirstFreeMethodName(methodData.name + '_copy')
 				});
 
-				_Schema.methods.appendNewMethod(gridRow.closest('.schema-grid-body'), clonedData, entity);
+				_Schema.methods.appendNewMethod(gridBody, clonedData, entity);
 			});
 
-			gridRow.querySelector('.remove-action').addEventListener('click', () => {
+			gridRow.querySelector('.remove-action')?.addEventListener('click', () => {
 				gridRow.classList.add('to-delete');
 				_Schema.methods.rowChanged(gridRow, true);
 			});
 
 			gridRow.querySelector('.discard-changes').addEventListener('click', () => {
 
-				if (gridRow.classList.contains('to-delete') || gridRow.classList.contains('has-changes')) {
+				if (isDatabaseNode) {
 
-					gridRow.classList.remove('to-delete');
-					gridRow.classList.remove('has-changes');
+					if (gridRow.classList.contains('to-delete') || gridRow.classList.contains('has-changes')) {
 
-					methodData.name     = methodData.initialName;
-					methodData.isStatic = methodData.initialisStatic;
-					methodData.source   = methodData.initialSource;
+						gridRow.classList.remove('to-delete');
+						gridRow.classList.remove('has-changes');
 
-					gridRow.querySelector('.property-name').value       = methodData.name;
-					gridRow.querySelector('.property-isStatic').checked = methodData.isStatic;
+						methodData = Object.assign(methodData, methodData.initialData);
 
-					if (gridRow.classList.contains('editing')) {
-						_Editors.disposeEditorModel(methodData.id, 'source');
-						_Schema.methods.editMethod(gridRow);
+						gridRow.querySelector('.property-name').value                      = methodData.name;
+						gridRow.querySelector('[data-property="isStatic"]').checked        = methodData.isStatic;
+						gridRow.querySelector('[data-property="isPrivate"]').checked       = methodData.isPrivate;
+						gridRow.querySelector('[data-property="returnRawResult"]').checked = methodData.returnRawResult;
+						gridRow.querySelector('[data-property="httpVerb"]').checked        = methodData.httpVerb;
+
+						if (gridRow.classList.contains('editing')) {
+							_Editors.disposeEditorModel(methodData.id, 'source');
+							_Schema.methods.editMethod(gridRow);
+						}
+
+						_Schema.methods.rowChanged(gridRow, false);
+
+						_Schema.methods.updateUIForAllAttributes(gridRow, methodData);
 					}
 
-					_Schema.methods.rowChanged(gridRow, false);
+				} else {
+
+					if (gridRow.classList.contains('editing')) {
+						document.querySelector('#methods-container-right').style.display = 'none';
+					}
+					_Helpers.fastRemoveElement(gridRow);
+
+					_Schema.methods.rowChanged(gridBody.closest('.schema-grid'), false);
+
+					_Editors.nukeEditorsById(methodData.id);
 				}
 			});
+
+			if (!isDatabaseNode) {
+
+				_Schema.bulkDialogsGeneral.gridChanged(gridBody.closest('.schema-grid'));
+
+				_Schema.methods.editMethod(gridRow, entity);
+			}
+		},
+		updateUIForAllAttributes: (container, methodData) => {
+
+			let updateVisibilityForAttribute = (attributeName, canSeeAttr) => {
+
+				let element = container.querySelector(`[data-property="${attributeName}"]`);
+				element?.closest('.method-config-element')?.classList.toggle('hidden', (canSeeAttr === false));
+			};
+
+			let isTypeMethod         = (!!methodData.schemaNode);
+			let isServiceClassMethod = (isTypeMethod && methodData.schemaNode.isServiceClass === true);
+			let isLifecycleMethod    = LifecycleMethods.isLifecycleMethod(methodData);
+			let isCallableViaREST    = (methodData.isPrivate !== true);
+
+			updateVisibilityForAttribute('isStatic',        (!isLifecycleMethod && isTypeMethod && !isServiceClassMethod));
+			updateVisibilityForAttribute('isPrivate',       (!isLifecycleMethod));
+			updateVisibilityForAttribute('returnRawResult', (!isLifecycleMethod && isCallableViaREST));
+			updateVisibilityForAttribute('httpVerb',        (!isLifecycleMethod && isCallableViaREST));
+
+			// completely hide 'more' button for lifecycle methods
+			container.querySelector('.toggle-more-method-settings')?.classList.toggle('hidden', isLifecycleMethod);
 		},
 		saveAndDisposePreviousEditor: (tr) => {
 
@@ -3842,10 +3830,19 @@ let _Schema = {
 				language: 'auto',
 				lint: true,
 				autocomplete: true,
+				isAutoscriptEnv: true,
 				changeFn: (editor, entity) => {
+
 					methodData.source = editor.getValue();
-					let hasChanges = (methodData.source !== methodData.initialSource) || (methodData.name !== methodData.initialName) || (methodData.isStatic !== methodData.initialisStatic);
-					_Schema.methods.rowChanged(tr, hasChanges);
+
+					if (methodData.isNew === false) {
+
+						let changesInInitialData = Object.keys(methodData.initialData).reduce((acc, key) => {
+							return acc || (methodData[key] !== methodData.initialData[key]);
+						}, false);
+
+						_Schema.methods.rowChanged(tr, changesInInitialData);
+					}
 				}
 			};
 
@@ -3912,14 +3909,58 @@ let _Schema = {
 					<div class="name-col px-1 py-2">
 						<input size="15" type="text" class="action property-name" placeholder="Enter method name" value="${config.method.name}">
 					</div>
-					<div class="isstatic-col flex items-center justify-center">
-						<input type="checkbox" class="action property-isStatic" style="margin-right: 0;" ${config.method.isStatic === true ? 'checked' : ''}>
+					<div class="more-settings-col flex items-center justify-center relative">
+
+						${_Icons.getSvgIcon(_Icons.iconKebabMenu, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['toggle-more-method-settings']), 'More settings')}
+
+						<div class="more-method-settings-container hidden absolute" style="z-index: 1; top: calc(100% - 1rem); right: 0; ">
+							<div class="bg-white border border-gray-ddd flex flex-shrink flex-wrap px-4 py-2 rounded-sm">
+								${_Schema.methods.templates.methodFlags(Object.assign({ cols: 1 }, config))}
+							</div>
+						</div>
+
 					</div>
 					<div class="flex items-center justify-center gap-1">
 						${_Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['edit-action']), 'Edit')}
 						${_Icons.getSvgIcon(_Icons.iconClone, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['clone-action']), 'Clone')}
 						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16,  _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']), 'Discard changes')}
 						${config.isNew ? '' : _Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action']), 'Discard')}
+					</div>
+				</div>
+			`,
+			methodFlags: config => `
+				<div class="grid grid grid-cols-${config.cols ?? 2} gap-x-2">
+
+					<div>
+						<div class="method-config-element entity-method py-1">
+							<label class="block whitespace-nowrap" data-comment="Only needs to be set if the method should be callable statically (without an object context). Only possible for non-lifecycle type methods.">
+								<input type="checkbox" data-property="isStatic" ${config.method.isStatic ? 'checked' : ''}> Method is static
+							</label>
+						</div>
+
+						<div class="method-config-element entity-method py-1">
+							<label class="block whitespace-nowrap" data-comment="If this flag is set, this method can <strong>not be called via HTTP</strong>.<br>Lifecycle methods can never be called via HTTP.">
+								<input type="checkbox" data-property="isPrivate" ${config.method.isPrivate ? 'checked' : ''}> Not callable via HTTP
+							</label>
+						</div>
+					</div>
+
+					<div>
+						<div class="method-config-element entity-method py-1">
+							<label class="block whitespace-nowrap" data-comment="If this flag is set, the request response value returned by this method will NOT be wrapped in a result object. Only applies to HTTP calls to this method.">
+								<input type="checkbox" data-property="returnRawResult" ${config.method.returnRawResult ? 'checked' : ''}> Return result object only
+							</label>
+						</div>
+
+						<div class="method-config-element entity-method py-1">
+							<select data-property="httpVerb">
+								<option value="GET" ${config.method.httpVerb === 'GET' ? 'selected' : ''}>Call method via GET</option>
+								<option value="PUT" ${config.method.httpVerb === 'PUT' ? 'selected' : ''}>Call method via PUT</option>
+								<option value="POST" ${config.method.httpVerb === 'POST' ? 'selected' : ''}>Call method via POST</option>
+								<option value="PATCH" ${config.method.httpVerb === 'PATCH' ? 'selected' : ''}>Call method via PATCH</option>
+								<option value="DELETE" ${config.method.httpVerb === 'DELETE' ? 'selected' : ''}>Call method via DELETE</option>
+							</select>
+						</div>
 					</div>
 				</div>
 			`,
@@ -4127,43 +4168,6 @@ let _Schema = {
 					</div>
 				</div>
 			`,
-		}
-	},
-	showGeneratedSource: async (sourceContainer) => {
-
-		if (sourceContainer) {
-
-			let typeName = sourceContainer.dataset.typeName;
-			let typeId   = sourceContainer.dataset.typeId;
-
-			if (typeName && typeId) {
-
-				_Helpers.fastRemoveAllChildren(sourceContainer);
-
-				sourceContainer.classList.add('h-full');
-
-				let response = await fetch(Structr.rootUrl + typeName + '/' + typeId + '/getGeneratedSourceCode', { method: 'POST' });
-
-				if (response.ok) {
-
-					// remove id so we do not refresh the editor all the time
-					sourceContainer.dataset.typeId = '';
-
-					let result = await response.json();
-
-					let typeSourceConfig = {
-						value: result.result,
-						language: 'java',
-						lint: false,
-						autocomplete: false,
-						readOnly: true
-					};
-
-					_Editors.getMonacoEditor({}, 'source-code', sourceContainer, typeSourceConfig);
-
-					_Editors.resizeVisibleEditors();
-				}
-			}
 		}
 	},
 	resize: () => {
@@ -4424,8 +4428,8 @@ let _Schema = {
 		});
 
 		let nodeTypeSelector = $('#node-type-selector');
-		Command.list('SchemaNode', true, 1000, 1, 'name', 'asc', 'id,name', (nodes) => {
-			nodeTypeSelector.append(nodes.map(node => `<option>${node.name}</option>`).join(''));
+		Command.list('SchemaNode', true, 1000, 1, 'name', 'asc', 'id,name,isServiceClass', (nodes) => {
+			nodeTypeSelector.append(nodes.filter(n => !n.isServiceClass).map(node => `<option>${node.name}</option>`).join(''));
 		});
 
 		registerSchemaToolButtonAction($('#reindex-nodes'), 'rebuildIndex', nodeTypeSelector, (type) => {
@@ -4464,7 +4468,7 @@ let _Schema = {
 		});
 
 		document.getElementById('schema-show-inheritance').addEventListener('change', (e) => {
-			_Schema.ui.updateInheritanceVisibility(e.target.checked);
+			_Schema.ui.updateInheritanceArrowsVisibility(e.target.checked);
 		});
 
 		for (let edgeStyleOption of document.querySelectorAll('.edge-style')) {
@@ -4487,43 +4491,43 @@ let _Schema = {
 
 		let activateLayoutFunctions = async () => {
 
-			let layoutSelector        = $('#saved-layout-selector');
-			let layoutNameInput       = $('#layout-name');
-			let createNewLayoutButton = $('#create-new-layout');
-			let saveLayoutButton      = $('#save-layout');
-			let loadLayoutButton      = $('#load-layout');
-			let deleteLayoutButton    = $('#delete-layout');
+			let layoutSelector        = document.querySelector('#saved-layout-selector');
+			let layoutNameInput       = document.querySelector('#layout-name');
+			let createNewLayoutButton = document.querySelector('#create-new-layout');
+			let saveLayoutButton      = document.querySelector('#save-layout');
+			let loadLayoutButton      = document.querySelector('#load-layout');
+			let deleteLayoutButton    = document.querySelector('#delete-layout');
 
 			let layoutSelectorChangeHandler = () => {
 
-				let selectedOption = $(':selected:not(:disabled)', layoutSelector);
+				let selectedOption = layoutSelector.querySelector(':checked:not(:disabled)');
 
-				if (selectedOption.length === 0) {
+				if (!selectedOption) {
 
-					_Helpers.disableElements(true, saveLayoutButton[0], loadLayoutButton[0], deleteLayoutButton[0]);
+					_Helpers.disableElements(true, saveLayoutButton, loadLayoutButton, deleteLayoutButton);
 
 				} else {
 
-					_Helpers.enableElement(loadLayoutButton[0]);
+					_Helpers.enableElement(loadLayoutButton);
 
 					let optGroup    = selectedOption.closest('optgroup');
-					let username    = optGroup.prop('label');
-					let isOwnerless = optGroup.data('ownerless') === true;
+					let username    = optGroup.label;
+					let isOwnerless = (optGroup.dataset['ownerless'] === 'true');
 
-					_Helpers.disableElements(!(isOwnerless || username === StructrWS.me.username), saveLayoutButton[0], deleteLayoutButton[0]);
+					_Helpers.disableElements(!(isOwnerless || username === StructrWS.me.username), saveLayoutButton, deleteLayoutButton);
 				}
 			};
 			layoutSelectorChangeHandler();
 
-			layoutSelector[0].addEventListener('change', layoutSelectorChangeHandler);
+			layoutSelector.addEventListener('change', layoutSelectorChangeHandler);
 
-			saveLayoutButton.click(async () => {
+			saveLayoutButton.addEventListener('click', async () => {
 
-				let selectedLayout = layoutSelector.val();
-				let selectedOption = $(':selected:not(:disabled)', layoutSelector);
+				let selectedLayout = layoutSelector.value;
+				let selectedOption = layoutSelector.querySelector(':checked:not(:disabled)');
 
 				let confirm = await _Dialogs.confirmation.showPromise(`
-					<h3>Overwrite stored schema layout "${selectedOption.text()}"?</h3>
+					<h3>Overwrite stored schema layout "${selectedOption.text}"?</h3>
 				`);
 
 				if (confirm === true) {
@@ -4544,24 +4548,32 @@ let _Schema = {
 				}
 			});
 
-			loadLayoutButton.click(() => {
-				_Schema.restoreLayout(layoutSelector);
+			loadLayoutButton.addEventListener('click', () => {
+				_Schema.restoreLayout(layoutSelector.value);
 			});
 
-			deleteLayoutButton.click(() => {
+			deleteLayoutButton.addEventListener('click', async () => {
 
-				let selectedLayout = layoutSelector.val();
+				let selectedLayout = layoutSelector.value;
+				let selectedOption = layoutSelector.querySelector(':checked:not(:disabled)');
 
-				Command.deleteNode(selectedLayout, false, async () => {
-					await _Schema.updateGroupedLayoutSelector(layoutSelector);
-					layoutSelectorChangeHandler();
-					_Helpers.blinkGreen(layoutSelector);
-				});
+				let confirm = await _Dialogs.confirmation.showPromise(`
+					<h3>Delete stored schema layout "${selectedOption.text}"?</h3>
+				`);
+
+				if (confirm === true) {
+
+					Command.deleteNode(selectedLayout, false, async () => {
+						await _Schema.updateGroupedLayoutSelector(layoutSelector);
+						layoutSelectorChangeHandler();
+						_Helpers.blinkGreen(layoutSelector);
+					});
+				}
 			});
 
-			createNewLayoutButton.on('click', () => {
+			createNewLayoutButton.addEventListener('click', () => {
 
-				let layoutName = layoutNameInput.val();
+				let layoutName = layoutNameInput.value;
 
 				if (layoutName && layoutName.length) {
 
@@ -4573,7 +4585,7 @@ let _Schema = {
 
 							await _Schema.updateGroupedLayoutSelector(layoutSelector);
 							layoutSelectorChangeHandler();
-							layoutNameInput.val('');
+							layoutNameInput.value = '';
 
 							_Helpers.blinkGreen(layoutSelector);
 
@@ -4620,15 +4632,13 @@ let _Schema = {
 					`).join('');
 				}
 
-				layoutSelector.html(html);
+				layoutSelector.innerHTML = html;
 
 				resolve();
 			});
 		});
 	},
-	restoreLayout: (layoutSelector) => {
-
-		let selectedLayout = layoutSelector.val();
+	restoreLayout: (selectedLayout) => {
 
 		if (selectedLayout) {
 
@@ -4716,7 +4726,6 @@ let _Schema = {
 
 			Structr.error('Unreadable JSON - please make sure you are using JSON exported from this dialog!', true);
 		}
-
 	},
 	applyNodePositions: (positions) => {
 
@@ -4790,7 +4799,9 @@ let _Schema = {
 			LSWrapper.setItem(_Schema.activeSchemaToolsSelectedVisibilityTab, tabName);
 		};
 
-		Command.query('SchemaNode', 2000, 1, 'name', 'asc', {}, (schemaNodes) => {
+		Command.query('SchemaNode', 2000, 1, 'name', 'asc', { isServiceClass: false }, (schemaNodes) => {
+
+			schemaNodes = schemaNodes.filter(s => !s.isServiceClass);
 
 			let tabsHtml = visibilityTables.map(visType => `<li id="tab" data-name="${visType.caption}">${visType.caption}</li>`).join('');
 			ul.insertAdjacentHTML('beforeend', tabsHtml);
@@ -4904,247 +4915,6 @@ let _Schema = {
 			_Schema.reload();
 		}
 	},
-	loadClassTree: (schemaNodes) => {
-
-		let classTree       = {};
-		let tmpHierarchy    = {};
-		let classnameToId   = {};
-		let schemaNodesById = {};
-
-		let searchInheritanceTypesInput = document.querySelector('#search-types');
-		let showBuiltinTypesCheckbox    = document.querySelector('#show-builtin-types');
-		let showBuiltinTypes            = showBuiltinTypesCheckbox.checked;
-
-		let insertClassInClassTree = (classObj, tree) => {
-			let classes = Object.keys(tree);
-
-			let position = classes.indexOf(classObj.parent);
-			if (position !== -1) {
-
-				if (classTree[classObj.name]) {
-					tree[classes[position]][classObj.name] = classTree[classObj.name];
-					delete(classTree[classObj.name]);
-				} else {
-					tree[classes[position]][classObj.name] = {};
-				}
-
-				return true;
-
-			} else {
-				let done = false;
-				for (let className of classes) {
-					if (!done) {
-						done = insertClassInClassTree(classObj, tree[className]);
-					}
-				}
-				return done;
-			}
-		};
-
-		let printClassTree = ($elem, classTree) => {
-
-			let requiredTypes = 0;
-			let classes       = Object.keys(classTree).sort();
-
-			if (classes.length > 0) {
-
-				let $newUl = $('<ul></ul>').appendTo($elem);
-
-				for (let classname of classes) {
-
-					let idForClassname = classnameToId[classname];
-					let isCustomType   = !schemaNodesById?.[idForClassname]?.isBuiltinType;
-
-					let icons = `
-						<div class="flex items-center icons-container absolute right-0 top-1">
-							${(idForClassname ? _Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['mr-1', 'node-action-icon', 'edit-type-icon']), 'Edit') : '')}
-							${(idForClassname && isCustomType ? _Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'mr-1', 'node-action-icon', 'delete-type-icon']), 'Delete') : '')}
-						</div>
-					`;
-
-					let $newLi               = $(`<li data-id="${classnameToId[classname]}">${classname}${icons}</li>`).appendTo($newUl);
-					let requiredSubTypeCount = printClassTree($newLi, classTree[classname]);
-					let iconId               = (Object.keys(classTree[classname]).length > 0) ? _Icons.iconFolderOpen : _Icons.iconFolderClosed;
-
-					let data = {
-						opened: true,
-						hidden: (showBuiltinTypes === false && isCustomType === false && requiredSubTypeCount === 0),
-						icon: _Icons.nonExistentEmptyIcon,
-						svgIcon: _Icons.getSvgIcon(iconId, 16, 24),
-						requiredIfBuiltinTypesHidden: (isCustomType || requiredSubTypeCount > 0),
-						subs: requiredSubTypeCount
-					};
-
-					if (isCustomType || requiredSubTypeCount > 0) {
-						requiredTypes++;
-					}
-
-					$newLi[0].dataset['jstree'] = JSON.stringify(data);
-				}
-			}
-
-			return requiredTypes;
-		};
-
-		let getParentClassName = (str) => {
-			if (str.slice(-1) === '>') {
-				let res = str.match("([^<]*)<([^>]*)>");
-				return getParentClassName(res[1]) + "&lt;" + getParentClassName(res[2]) + "&gt;";
-
-			} else {
-				return str.slice(str.lastIndexOf('.') + 1);
-			}
-		};
-
-		for (let schemaNode of schemaNodes) {
-
-			schemaNodesById[schemaNode.id] = schemaNode;
-
-			let classObj = {
-				name: schemaNode.name,
-				parent: schemaNode.extendsClass ? schemaNode.extendsClass.name : 'AbstractNode'
-			};
-
-			classnameToId[classObj.name] = schemaNode.id;
-
-			let inserted = insertClassInClassTree(classObj, tmpHierarchy);
-
-			if (!inserted) {
-				let insertedTmp = insertClassInClassTree(classObj, classTree);
-
-				if (!insertedTmp) {
-					if (classTree[classObj.name]) {
-						classTree[classObj.parent] = {};
-						classTree[classObj.parent][classObj.name] = classTree[classObj.name];
-						delete(classTree[classObj.name]);
-					} else {
-						classTree[classObj.parent] = {};
-						classTree[classObj.parent][classObj.name] = {};
-					}
-				}
-			}
-		}
-
-		let eventsInitialized = false;
-		let initEvents = (force = false) => {
-
-			if (eventsInitialized === false || force === true) {
-
-				eventsInitialized = true;
-
-				for (let editIcon of document.querySelectorAll('#inheritance-tree .edit-type-icon')) {
-
-					editIcon.addEventListener('click', () => {
-						let nodeId = editIcon.closest('li').dataset['id'];
-						if (nodeId) {
-							_Schema.openEditDialog(nodeId);
-						}
-					});
-				}
-
-				for (let delIcon of document.querySelectorAll('#inheritance-tree .delete-type-icon')) {
-
-					delIcon.addEventListener('click', async (e) => {
-
-						// otherwise the node on the canvas is focused and ESC does not work
-						e.stopPropagation();
-
-						let nodeId = delIcon.closest('li').dataset['id'];
-						if (nodeId) {
-
-							let confirm = await _Dialogs.confirmation.showPromise(`
-								<h3>Delete schema node '${delIcon.closest('a').textContent.trim()}'?</h3>
-								<p>This will delete all incoming and outgoing schema relationships as well,<br> but no data will be removed.</p>
-							`);
-
-							if (confirm === true) {
-
-								await _Schema.deleteNode(nodeId);
-							}
-						}
-					});
-				}
-			}
-		};
-
-		let initJsTree = () => {
-
-			eventsInitialized = false;
-
-			$.jstree.destroy();
-			printClassTree(_Schema.inheritanceTree, classTree);
-			_Schema.inheritanceTree.jstree({
-				core: {
-					animation: 0,
-					multiple: false,
-					themes: {
-						dots: false
-					}
-				},
-				plugins: ["search"]
-			}).on('ready.jstree', (e, data) => {
-
-				initEvents();
-
-				// in case we are switching builtin type visibility, react to search input
-				if (searchInheritanceTypesInput.value) {
-					searchInheritanceTypesInput.dispatchEvent(new Event('keyup'));
-				}
-
-			}).on('search.jstree', (e, data) => {
-
-				initEvents(true);
-
-			}).on('clear_search.jstree', (e, data) => {
-
-				initEvents(true);
-
-			}).on('changed.jstree', function(e, data) {
-
-				if (data.node) {
-					let $node = $('#id_' + data.node.data.id);
-					if ($node.length > 0) {
-						$('.selected').removeClass('selected');
-						$node.addClass('selected');
-						_Schema.ui.selectedNodes = [$node];
-					}
-				}
-			});
-
-			_TreeHelper.addSvgIconReplacementBehaviorToTree(_Schema.inheritanceTree);
-
-			_Schema.inheritanceTree.jstree(true).refresh();
-		};
-		initJsTree();
-
-		let searchTimeout;
-		searchInheritanceTypesInput?.addEventListener('keyup', (e) => {
-			if (e.which === 27) {
-
-				searchInheritanceTypesInput.value = '';
-				_Schema.inheritanceTree.jstree(true).clear_search();
-
-			} else {
-
-				if (searchTimeout) {
-					clearTimeout(searchTimeout);
-				}
-
-				searchTimeout = window.setTimeout(() => {
-					let query = searchInheritanceTypesInput.value;
-					_Schema.inheritanceTree.jstree(true).search(query, true, true);
-				}, 250);
-			}
-		});
-
-		showBuiltinTypesCheckbox.addEventListener('change', (e) => {
-			showBuiltinTypes = showBuiltinTypesCheckbox.checked;
-
-			LSWrapper.setItem(_Schema.showBuiltinTypesInInheritanceTreeKey, showBuiltinTypes);
-
-			initJsTree();
-		});
-	},
 	overlapsExistingNodes: (position) => {
 		if (!position) {
 			return false;
@@ -5160,12 +4930,12 @@ let _Schema = {
 	clearTypeInfoCache: () => {
 		_Schema.typeInfoCache = {};
 	},
-	invalidateTypeInfoCache: (type) => {
+	invalidateTypeInfoCache: (typeName) => {
 
-		delete _Schema.typeInfoCache[type];
+		delete _Schema.typeInfoCache[typeName];
 
 		// clear type cache for this type and derived types
-		_Schema.getDerivedTypes(type, [], false).then(derivedTypes => {
+		_Schema.getDerivedTypeNames(typeName, []).then(derivedTypes => {
 
 			for (let derivedType of derivedTypes) {
 				delete _Schema.typeInfoCache[derivedType];
@@ -5193,52 +4963,37 @@ let _Schema = {
 			});
 		}
 	},
-	getDerivedTypes: async (baseType, blacklist = [], baseTypeIsFQCN = true) => {
+	getDerivedTypeNames: async (searchTrait, blacklist = []) => {
 
 		let response = await fetch(`${Structr.rootUrl}_schema`);
 
 		if (response.ok) {
 
-			let data      = await response.json();
-			let result    = data.result;
-			let fileTypes = [];
-			let maxDepth  = 5;
-			let types     = {};
+			let data                 = await response.json();
+			let result               = data.result;
+			let typesWithSearchTrait = new Set();
 
-			if (baseTypeIsFQCN === false) {
+			let repeat = false;
+			do {
 
-				// first get FQCN for type name (if exists)
-				let exactTypeNameMatches = result.filter(typeInfo => typeInfo.name === baseType);
-				baseType = exactTypeNameMatches[0]?.className ?? baseType;
-			}
+				let countBefore = typesWithSearchTrait.size;
 
-			let collect = (list, type) => {
+				for (let type of result) {
 
-				for (let n of list) {
+					let isSameType         = (type.name === searchTrait);
+					let isBlacklisted      = blacklist.includes(type.name);
+					let typeHasSearchTrait = (type.traits ?? []).includes(searchTrait);
 
-					if (n.extendsClass === type) {
-
-						fileTypes.push(`org.structr.dynamic.${n.name}`);
-
-						if (!n.isAbstract && !blacklist.includes(n.name)) {
-							types[n.name] = 1;
-						}
-					} else {
-						// console.log({ ext: n.extendsClass, type: type });
+					if (!isSameType && !isBlacklisted && typeHasSearchTrait) {
+						typesWithSearchTrait.add(type.name);
 					}
 				}
-			};
 
-			collect(result, baseType);
+				repeat = (countBefore !== typesWithSearchTrait.size);
 
-			for (let i = 0; i < maxDepth; i++) {
+			} while (repeat);
 
-				for (let type of fileTypes) {
-					collect(result, type);
-				}
-			}
-
-			return Object.keys(types);
+			return [...typesWithSearchTrait];
 
 		} else {
 			return [];
@@ -5247,7 +5002,7 @@ let _Schema = {
 	ui: {
 		canvas: undefined,
 		jsPlumbInstance: undefined,
-		showInheritance: true,
+		showInheritanceArrows: true,
 		showSchemaOverlays: true,
 		connectorStyle: undefined,
 		zoomLevel: undefined,
@@ -5414,16 +5169,13 @@ let _Schema = {
 				_Schema.ui.canvas.addClass('hide-relationship-labels');
 			}
 		},
-		updateInheritanceVisibility: (show) => {
-			_Schema.ui.showInheritance = show;
-			LSWrapper.setItem(_Schema.showSchemaInheritanceKey, show);
+		updateInheritanceArrowsVisibility: (showArrows) => {
 
-			$('#schema-show-inheritance').prop('checked', show);
-			if (show) {
-				_Schema.ui.canvas.removeClass('hide-inheritance-arrows');
-			} else {
-				_Schema.ui.canvas.addClass('hide-inheritance-arrows');
-			}
+			_Schema.ui.showInheritanceArrows = showArrows;
+			LSWrapper.setItem(_Schema.showSchemaInheritanceArrowsKey, showArrows);
+
+			$('#schema-show-inheritance').prop('checked', showArrows);
+			_Schema.ui.canvas[0]?.classList.toggle('hide-inheritance-arrows', !showArrows)
 		},
 		getNodeXPosition: (x, y) => {
 			return (x * 300) + ((y % 2) * 150) + 140;
@@ -5482,24 +5234,6 @@ let _Schema = {
 		main: config => `
 			<link rel="stylesheet" type="text/css" media="screen" href="css/schema.css">
 
-			<div class="slideout-activator left" id="inheritanceTab">
-				<svg viewBox="0 0 28 28" height="28" width="28" xmlns="http://www.w3.org/2000/svg">
-					<g transform="matrix(1.1666666666666667,0,0,1.1666666666666667,0,0)"><path d="M22.5,11.25A5.24,5.24,0,0,0,19.45,6.5,2.954,2.954,0,0,0,16.5,3c-.063,0-.122.015-.185.019a5.237,5.237,0,0,0-8.63,0C7.622,3.015,7.563,3,7.5,3A2.954,2.954,0,0,0,4.55,6.5a5.239,5.239,0,0,0,1.106,9.885A4.082,4.082,0,0,0,12,17.782a4.082,4.082,0,0,0,6.344-1.4A5.248,5.248,0,0,0,22.5,11.25Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M12 8.25L12 23.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M12,15q4.5,0,4.5-4.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M12,12A3.543,3.543,0,0,1,8.25,8.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g>
-				</svg>
-				Inheri&shy;tance
-			</div>
-
-			<div id="inheritance-tree" class="slideOut slideOutLeft">
-				<div class="flex items-center justify-between my-2">
-					<label class="ml-4">Search: <input type="text" id="search-types" autocomplete="off"></label>
-					<label class="mr-4 flex" data-comment="Built-in types will still be shown if they are ancestors of custom types.">
-						<input type="checkbox" id="show-builtin-types" ${(LSWrapper.getItem(_Schema.showBuiltinTypesInInheritanceTreeKey, false) ? 'checked' : '')}>
-						<span class="whitespace-nowrap">Show built-in types</span>
-					</label>
-				</div>
-				<div id="inheritance-tree-container" class="ver-scrollable h-full hidden"></div>
-			</div>
-
 			<div id="schema-container">
 				<div class="canvas noselect" id="schema-graph"></div>
 			</div>
@@ -5509,7 +5243,7 @@ let _Schema = {
 				<div class="inline-flex">
 
 					<button id="create-type" class="action inline-flex items-center">
-						${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} New Type
+						${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} Create Data Type
 					</button>
 
 					<div class="dropdown-menu dropdown-menu-large">
@@ -5539,7 +5273,7 @@ let _Schema = {
 								<label class="block"><input ${_Schema.ui.showSchemaOverlays ? 'checked' : ''} type="checkbox" id="schema-show-overlays" name="schema-show-overlays"> Relationship labels</label>
 							</div>
 							<div class="row">
-								<label class="block"><input ${_Schema.ui.showInheritance    ? 'checked' : ''} type="checkbox" id="schema-show-inheritance" name="schema-show-inheritance"> Inheritance arrows</label>
+								<label class="block"><input ${_Schema.ui.showInheritanceArrows ? 'checked' : ''} type="checkbox" id="schema-show-inheritance" name="schema-show-inheritance"> Trait Inheritance arrows</label>
 							</div>
 
 							<div class="separator"></div>
@@ -5637,8 +5371,8 @@ let _Schema = {
 									<option disabled>──────────</option>
 								</select>
 								<button id="reindex-nodes" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Rebuild node index</button>
-								<button id="add-node-uuids" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Add UUIDs</button>
-								<button id="create-labels" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Create Labels</button>
+								<button id="add-node-uuids" class="mt-1 inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Add UUIDs</button>
+								<button id="create-labels" class="mt-1 inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Create Labels</button>
 							</div>
 							<div class="row">
 								<select id="rel-type-selector" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
@@ -5647,8 +5381,8 @@ let _Schema = {
 									<option value="allRels">All Relationship Types</option>
 									<option disabled>──────────</option>
 								</select>
-								<button id="reindex-rels" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Rebuild relationship index</button>
-								<button id="add-rel-uuids" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Add UUIDs</button>
+								<button id="reindex-rels" class="mt-1 inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Rebuild relationship index</button>
+								<button id="add-rel-uuids" class="mt-1 inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Add UUIDs</button>
 							</div>
 							<div class="row flex items-center">
 								<button id="rebuild-index" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
@@ -5698,25 +5432,33 @@ let _Schema = {
 
 					<input data-property="name" class="flex-grow" placeholder="Type Name...">
 
-					<div class="extends-type flex items-center gap-2">
-						extends
-						<select class="extends-class-select" data-property="extendsClass"></select>
-						${_Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['edit-parent-type']), 'Edit parent type')}
-					</div>
+					${!config.isServiceClass ? `
+						<div class="flex items-center gap-2">
+							has traits
+							<select multiple data-property="inheritedTraits"></select>
+						</div>
+					` : ''}
 				</div>
 
 				<h3>Options</h3>
 				<div class="property-options-group">
-					<div>
-						<label data-comment="Only takes effect if the changelog is active">
-							<input id="changelog-checkbox" type="checkbox" data-property="changelogDisabled"> Disable changelog
-						</label>
-						<label class="ml-8" data-comment="Makes all nodes of this type visible to public users if checked">
-							<input id="public-checkbox" type="checkbox" data-property="defaultVisibleToPublic"> Visible for public users
-						</label>
-						<label class="ml-8" data-comment="Makes all nodes of this type visible to authenticated users if checked">
-							<input id="authenticated-checkbox" type="checkbox" data-property="defaultVisibleToAuth"> Visible for authenticated users
-						</label>
+					<div class="flex">
+						${config.isServiceClass ? `
+							<label class="flex items-center mr-8" data-comment="Service-classes are containers for grouped functionality and can not be instantiated">
+								<input id="serviceclass-checkbox" type="checkbox" data-property="isServiceClass" disabled checked> Is Service Class
+							</label>
+						` : ''}
+						${!config.isServiceClass ? `
+							<label class="flex items-center mr-8" data-comment="Only takes effect if the changelog is active">
+								<input id="changelog-checkbox" type="checkbox" data-property="changelogDisabled"> Disable changelog
+							</label>
+							<label class="flex items-center mr-8" data-comment="Makes all nodes of this type visible to public users if checked">
+								<input id="public-checkbox" type="checkbox" data-property="defaultVisibleToPublic"> Visible for public users
+							</label>
+							<label class="flex items-center" data-comment="Makes all nodes of this type visible to authenticated users if checked">
+								<input id="authenticated-checkbox" type="checkbox" data-property="defaultVisibleToAuth"> Visible for authenticated users
+							</label>
+						` : ''}
 					</div>
 				</div>
 

@@ -26,14 +26,16 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.graph.attribute.Name;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.test.rest.common.StructrRestTestBase;
-import org.structr.test.rest.entity.TestOne;
 import org.testng.annotations.Test;
 
 import java.text.SimpleDateFormat;
@@ -90,7 +92,7 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 				.body("result_count",       equalTo(1))
 				.body("query_time",         lessThan("0.5"))
 				.body("serialization_time", lessThan("0.1"))
-				.body("result[0]",          isEntity(TestOne.class))
+				.body("result[0]",          isEntity("TestOne"))
 			.when()
 				.get("/TestOne");
 
@@ -132,19 +134,19 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 				.statusCode(200)
 				.body("result_count",       equalTo(4))
 
-				.body("result[0]",          isEntity(TestOne.class))
+				.body("result[0]",          isEntity("TestOne"))
 				.body("result[0].aLong",    equalTo(10))
 				.body("result[0].aDate",    equalTo(aDate2))
 
-				.body("result[1]",          isEntity(TestOne.class))
+				.body("result[1]",          isEntity("TestOne"))
 				.body("result[1].aLong",    equalTo(20))
 				.body("result[1].aDate",    equalTo(aDate1))
 
-				.body("result[2]",          isEntity(TestOne.class))
+				.body("result[2]",          isEntity("TestOne"))
 				.body("result[2].aLong",    equalTo(30))
 				.body("result[2].aDate",    equalTo(aDate3))
 
-				.body("result[3]",          isEntity(TestOne.class))
+				.body("result[3]",          isEntity("TestOne"))
 				.body("result[3].aLong",    equalTo(40))
 				.body("result[3].aDate",    equalTo(aDate4))
 
@@ -161,19 +163,19 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 				.statusCode(200)
 				.body("result_count",       equalTo(4))
 
-				.body("result[0]",          isEntity(TestOne.class))
+				.body("result[0]",          isEntity("TestOne"))
 				.body("result[0].aLong",    equalTo(40))
 				.body("result[0].aDate",    equalTo(aDate4))
 
-				.body("result[1]",          isEntity(TestOne.class))
+				.body("result[1]",          isEntity("TestOne"))
 				.body("result[1].aLong",    equalTo(30))
 				.body("result[1].aDate",    equalTo(aDate3))
 
-				.body("result[2]",          isEntity(TestOne.class))
+				.body("result[2]",          isEntity("TestOne"))
 				.body("result[2].aLong",    equalTo(20))
 				.body("result[2].aDate",    equalTo(aDate1))
 
-				.body("result[3]",          isEntity(TestOne.class))
+				.body("result[3]",          isEntity("TestOne"))
 				.body("result[3].aLong",    equalTo(10))
 				.body("result[3].aDate",    equalTo(aDate2))
 
@@ -189,16 +191,16 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 				.statusCode(200)
 				.body("result_count",       equalTo(4))
 
-				.body("result[0]",          isEntity(TestOne.class))
+				.body("result[0]",          isEntity("TestOne"))
 				.body("result[0].aLong",    equalTo(20))
 
-				.body("result[1]",          isEntity(TestOne.class))
+				.body("result[1]",          isEntity("TestOne"))
 				.body("result[1].aLong",    equalTo(10))
 
-				.body("result[2]",          isEntity(TestOne.class))
+				.body("result[2]",          isEntity("TestOne"))
 				.body("result[2].aLong",    equalTo(30))
 
-				.body("result[3]",          isEntity(TestOne.class))
+				.body("result[3]",          isEntity("TestOne"))
 				.body("result[3].aLong",    equalTo(40))
 
 			.when()
@@ -209,13 +211,13 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 	@Test
 	public void testRelationshipResourcePagingOnCollectionResource() {
 
-		final Class testUserType              = createTestUserType();
-		final PropertyKey<String> passwordKey = StructrApp.key(testUserType, "password");
-		PrincipalInterface tester                      = null;
+		final String testUserType             = createTestUserType();
+		final PropertyKey<String> passwordKey = Traits.of(testUserType).key(PrincipalTraitDefinition.PASSWORD_PROPERTY);
+		Principal tester                      = null;
 
 		try (final Tx tx = app.tx()) {
 
-			tester = (PrincipalInterface)app.create(testUserType, new Name("tester"), new NodeAttribute<>(passwordKey, "test"));
+			tester = app.create(testUserType, new Name("tester"), new NodeAttribute<>(passwordKey, "test")).as(Principal.class);
 			tx.success();
 
 		} catch (FrameworkException fex) {
@@ -226,8 +228,8 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(TestOne.class, "TestOne1");
-			app.create(TestOne.class, "TestOne2");
+			app.create("TestOne", "TestOne1");
+			app.create("TestOne", "TestOne2");
 
 			tx.success();
 
@@ -247,8 +249,8 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 				.body("page_size",          equalTo(2))
 				.body("page_count",         equalTo(2))
 				.body("result",             hasSize(2))
-				.body("result[0].type",     equalTo("PrincipalOwnsNode"))
-				.body("result[1].type",     equalTo("Security"))
+				.body("result[0].type",     equalTo(StructrTraits.PRINCIPAL_OWNS_NODE))
+				.body("result[1].type",     equalTo(StructrTraits.SECURITY))
 			.when()
 				.get("/TestOne/in?_pageSize=2");
 
@@ -258,14 +260,14 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 	@Test
 	public void testRelationshipResourcePagingOnEntityResource() {
 
-		final Class testUserType              = createTestUserType();
-		final PropertyKey<String> passwordKey = StructrApp.key(testUserType, "password");
-		PrincipalInterface tester                      = null;
+		final String testUserType             = createTestUserType();
+		final PropertyKey<String> passwordKey = Traits.of(testUserType).key(PrincipalTraitDefinition.PASSWORD_PROPERTY);
+		NodeInterface tester                  = null;
 		String uuid                           = null;
 
 		try (final Tx tx = app.tx()) {
 
-			tester = (PrincipalInterface)app.create(testUserType, new Name("tester"), new NodeAttribute<>(passwordKey, "test"));
+			tester = app.create(testUserType, new Name("tester"), new NodeAttribute<>(passwordKey, "test"));
 
 			uuid = tester.getUuid();
 
@@ -275,12 +277,12 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 			fex.printStackTrace();
 		}
 
-		final App app = StructrApp.getInstance(SecurityContext.getInstance(tester, AccessMode.Backend));
+		final App app = StructrApp.getInstance(SecurityContext.getInstance(tester.as(Principal.class), AccessMode.Backend));
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(TestOne.class, "TestOne1");
-			app.create(TestOne.class, "TestOne2");
+			app.create("TestOne", "TestOne1");
+			app.create("TestOne", "TestOne2");
 
 			tx.success();
 
@@ -300,8 +302,8 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 				.body("page_size",          equalTo(2))
 				.body("page_count",         equalTo(2))
 				.body("result",             hasSize(2))
-				.body("result[0].type",     equalTo("PrincipalOwnsNode"))
-				.body("result[1].type",     equalTo("Security"))
+				.body("result[0].type",     equalTo(StructrTraits.PRINCIPAL_OWNS_NODE))
+				.body("result[1].type",     equalTo(StructrTraits.SECURITY))
 			.when()
 				.get("/TestUser/" + uuid + "/out?_pageSize=2");
 
@@ -313,15 +315,15 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name7"), new NodeAttribute<>(TestOne.anInt, 3), new NodeAttribute<>(TestOne.aLong, 20L));
-			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name5"), new NodeAttribute<>(TestOne.anInt, 2), new NodeAttribute<>(TestOne.aLong, 20L));
-			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name2"), new NodeAttribute<>(TestOne.anInt, 1), new NodeAttribute<>(TestOne.aLong, 20L));
-			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name1"), new NodeAttribute<>(TestOne.anInt, 3), new NodeAttribute<>(TestOne.aLong, 20L));
-			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name3"), new NodeAttribute<>(TestOne.anInt, 2), new NodeAttribute<>(TestOne.aLong, 20L));
-			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name4"), new NodeAttribute<>(TestOne.anInt, 1), new NodeAttribute<>(TestOne.aLong, 10L));
-			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name9"), new NodeAttribute<>(TestOne.anInt, 3), new NodeAttribute<>(TestOne.aLong, 10L));
-			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name8"), new NodeAttribute<>(TestOne.anInt, 2), new NodeAttribute<>(TestOne.aLong, 10L));
-			app.create(TestOne.class, new NodeAttribute<>(AbstractNode.name, "name6"), new NodeAttribute<>(TestOne.anInt, 1), new NodeAttribute<>(TestOne.aLong, 10L));
+			app.create("TestOne", new Name("name7"), new NodeAttribute<>(Traits.of("TestOne").key("anInt"), 3), new NodeAttribute<>(Traits.of("TestOne").key("aLong"), 20L));
+			app.create("TestOne", new Name("name5"), new NodeAttribute<>(Traits.of("TestOne").key("anInt"), 2), new NodeAttribute<>(Traits.of("TestOne").key("aLong"), 20L));
+			app.create("TestOne", new Name("name2"), new NodeAttribute<>(Traits.of("TestOne").key("anInt"), 1), new NodeAttribute<>(Traits.of("TestOne").key("aLong"), 20L));
+			app.create("TestOne", new Name("name1"), new NodeAttribute<>(Traits.of("TestOne").key("anInt"), 3), new NodeAttribute<>(Traits.of("TestOne").key("aLong"), 20L));
+			app.create("TestOne", new Name("name3"), new NodeAttribute<>(Traits.of("TestOne").key("anInt"), 2), new NodeAttribute<>(Traits.of("TestOne").key("aLong"), 20L));
+			app.create("TestOne", new Name("name4"), new NodeAttribute<>(Traits.of("TestOne").key("anInt"), 1), new NodeAttribute<>(Traits.of("TestOne").key("aLong"), 10L));
+			app.create("TestOne", new Name("name9"), new NodeAttribute<>(Traits.of("TestOne").key("anInt"), 3), new NodeAttribute<>(Traits.of("TestOne").key("aLong"), 10L));
+			app.create("TestOne", new Name("name8"), new NodeAttribute<>(Traits.of("TestOne").key("anInt"), 2), new NodeAttribute<>(Traits.of("TestOne").key("aLong"), 10L));
+			app.create("TestOne", new Name("name6"), new NodeAttribute<>(Traits.of("TestOne").key("anInt"), 1), new NodeAttribute<>(Traits.of("TestOne").key("aLong"), 10L));
 
 			tx.success();
 
@@ -433,19 +435,19 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 					.statusCode(200)
 					.body("result_count",       equalTo(4))
 
-					.body("result[0]",          isEntity(TestOne.class))
+					.body("result[0]",          isEntity("TestOne"))
 					.body("result[0].aLong",    equalTo(10))
 					.body("result[0].aDate",    equalTo(aDate2))
 
-					.body("result[1]",          isEntity(TestOne.class))
+					.body("result[1]",          isEntity("TestOne"))
 					.body("result[1].aLong",    equalTo(20))
 					.body("result[1].aDate",    equalTo(aDate1))
 
-					.body("result[2]",          isEntity(TestOne.class))
+					.body("result[2]",          isEntity("TestOne"))
 					.body("result[2].aLong",    equalTo(30))
 					.body("result[2].aDate",    equalTo(aDate3))
 
-					.body("result[3]",          isEntity(TestOne.class))
+					.body("result[3]",          isEntity("TestOne"))
 					.body("result[3].aLong",    equalTo(40))
 					.body("result[3].aDate",    equalTo(aDate4))
 
@@ -462,19 +464,19 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 					.statusCode(200)
 					.body("result_count",       equalTo(4))
 
-					.body("result[0]",          isEntity(TestOne.class))
+					.body("result[0]",          isEntity("TestOne"))
 					.body("result[0].aLong",    equalTo(40))
 					.body("result[0].aDate",    equalTo(aDate4))
 
-					.body("result[1]",          isEntity(TestOne.class))
+					.body("result[1]",          isEntity("TestOne"))
 					.body("result[1].aLong",    equalTo(30))
 					.body("result[1].aDate",    equalTo(aDate3))
 
-					.body("result[2]",          isEntity(TestOne.class))
+					.body("result[2]",          isEntity("TestOne"))
 					.body("result[2].aLong",    equalTo(20))
 					.body("result[2].aDate",    equalTo(aDate1))
 
-					.body("result[3]",          isEntity(TestOne.class))
+					.body("result[3]",          isEntity("TestOne"))
 					.body("result[3].aLong",    equalTo(10))
 					.body("result[3].aDate",    equalTo(aDate2))
 
@@ -490,16 +492,16 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 					.statusCode(200)
 					.body("result_count",       equalTo(4))
 
-					.body("result[0]",          isEntity(TestOne.class))
+					.body("result[0]",          isEntity("TestOne"))
 					.body("result[0].aLong",    equalTo(20))
 
-					.body("result[1]",          isEntity(TestOne.class))
+					.body("result[1]",          isEntity("TestOne"))
 					.body("result[1].aLong",    equalTo(10))
 
-					.body("result[2]",          isEntity(TestOne.class))
+					.body("result[2]",          isEntity("TestOne"))
 					.body("result[2].aLong",    equalTo(30))
 
-					.body("result[3]",          isEntity(TestOne.class))
+					.body("result[3]",          isEntity("TestOne"))
 					.body("result[3].aLong",    equalTo(40))
 
 				.when()

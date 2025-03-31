@@ -34,8 +34,8 @@ public class TypeQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery> 
 	public boolean createQuery(final QueryPredicate predicate, final AdvancedCypherQuery query, final boolean isFirst) {
 
 		final TypeQuery typeQuery = (TypeQuery)predicate;
-		final Class sourceType    = typeQuery.getSourceType();
-		final Class targetType    = typeQuery.getTargetType();
+		final String sourceType   = typeQuery.getSourceType();
+		final String targetType   = typeQuery.getTargetType();
 		final Object mainType     = typeQuery.getValue();
 
 		if (mainType != null && mainType instanceof String) {
@@ -47,8 +47,8 @@ public class TypeQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery> 
 
 			// relationship type, include source
 			// and target type labels
-			query.setSourceType(sourceType.getSimpleName());
-			query.setTargetType(targetType.getSimpleName());
+			query.setSourceType(sourceType);
+			query.setTargetType(targetType);
 		}
 
 		// setting the label does not result in a modified WHERE clause

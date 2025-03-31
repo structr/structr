@@ -18,7 +18,7 @@
  */
 package org.structr.bolt;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,6 +59,8 @@ public class Neo3IndexUpdater {
 			executor.submit(() -> {
 
 				try (final Transaction tx = db.beginTx(timeoutSeconds)) {
+
+					tx.prefetchHint("Neo3IndexUpdater query");
 
 					for (final Map<String, Object> row : db.execute("CALL db.indexes() YIELD description, state, type WHERE type = 'node_label_property' RETURN {description: description, state: state} ORDER BY description")) {
 
@@ -119,6 +121,8 @@ public class Neo3IndexUpdater {
 
 								try (final Transaction tx = db.beginTx(timeoutSeconds)) {
 
+									tx.prefetchHint("Neo4IndexUpdater drop");
+
 									db.execute("DROP " + indexDescription);
 
 									tx.success();
@@ -154,6 +158,8 @@ public class Neo3IndexUpdater {
 						executor.submit(() -> {
 
 							try (final Transaction tx = db.beginTx(timeoutSeconds)) {
+
+								tx.prefetchHint("Neo3IndexUpdater update");
 
 								if (indexConfig.createOrDropIndex()) {
 
@@ -238,7 +244,7 @@ public class Neo3IndexUpdater {
 
 					if (indexExists && indexConfig.createOrDropIndex()) {
 
-						final AtomicBoolean retry = new AtomicBoolean(true);
+						final AtomicBoolean retry      = new AtomicBoolean(true);
 						final AtomicInteger retryCount = new AtomicInteger(0);
 
 						while (retry.get()) {
@@ -250,6 +256,8 @@ public class Neo3IndexUpdater {
 								executor.submit(() -> {
 
 									try (final Transaction tx = db.beginTx(timeoutSeconds)) {
+
+										tx.prefetchHint("Neo3IndexUpdater update");
 
 										// drop index
 										db.execute("DROP " + indexDescription);

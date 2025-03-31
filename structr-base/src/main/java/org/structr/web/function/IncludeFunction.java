@@ -29,12 +29,15 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
-import org.structr.storage.StorageProviderFactory;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.web.common.RenderContext;
 import org.structr.web.datasource.FunctionDataSource;
 import org.structr.web.entity.File;
 import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -72,10 +75,10 @@ public class IncludeFunction extends UiCommunityFunction {
 				return null;
 			}
 
-			final PropertyKey<DOMNode> sharedCompKey = StructrApp.key(DOMNode.class, "sharedComponent");
+			final PropertyKey<DOMNode> sharedCompKey = Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.SHARED_COMPONENT_PROPERTY);
 			final SecurityContext securityContext    = ctx.getSecurityContext();
 			final App app                            = StructrApp.getInstance(securityContext);
-			final List<DOMNode> nodeList             = app.nodeQuery(DOMNode.class).andName((String)sources[0]).getAsList();
+			final List<NodeInterface> nodeList       = app.nodeQuery(StructrTraits.DOM_NODE).andName((String)sources[0]).getAsList();
 
 
 			RenderContext innerCtx = null;
@@ -105,15 +108,17 @@ public class IncludeFunction extends UiCommunityFunction {
 			 * - If a DOMNode has "syncedNodes" it MUST BE a shared component - If a DOMNodes "sharedComponent" is set it MUST BE AN INSTANCE of a shared component => Can
 			 * we safely ignore these? I THINK SO!
 			 */
-			for (final DOMNode n : nodeList) {
+			for (final NodeInterface n : nodeList) {
+
+				final DOMNode domNode = n.as(DOMNode.class);
 
 				// IGNORE everything that REFERENCES a shared component!
-				if (n.getProperty(sharedCompKey) == null && !n.inTrash()) {
+				if (n.getProperty(sharedCompKey) == null && !domNode.inTrash()) {
 
 					// the DOMNode is either a shared component OR a named node in the pages tree
 					if (node == null) {
 
-						node = n;
+						node = domNode;
 
 					} else {
 
@@ -173,11 +178,11 @@ public class IncludeFunction extends UiCommunityFunction {
 
 		} else {
 
-			final File file = app.nodeQuery(File.class).andName((String)sources[0]).getFirst();
+			final NodeInterface fileNode = app.nodeQuery(StructrTraits.FILE).andName((String)sources[0]).getFirst();
+			if (fileNode != null) {
 
-			if (file != null) {
-
-				final String name        = file.getProperty(NodeInterface.name);
+				final File file          = fileNode.as(File.class);
+				final String name        = file.getName();
 				final String contentType = file.getContentType();
 				final String charset     = StringUtils.substringAfterLast(contentType, "charset=");
 				final String extension   = StringUtils.substringAfterLast(name, ".");

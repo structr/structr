@@ -18,7 +18,7 @@
  */
 package org.structr.schema.compiler;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
@@ -26,8 +26,7 @@ import org.structr.api.config.Settings;
 import org.structr.common.error.DiagnosticErrorToken;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.core.Services;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.module.JarConfigurationProvider;
 import org.structr.schema.SourceFile;
@@ -158,7 +157,7 @@ public class NodeExtender {
 				}
 
 				for (final Class oldType : classes.values()) {
-					StructrApp.getConfiguration().unregisterEntityType(oldType);
+					//StructrApp.getConfiguration().unregisterEntityType(oldType);
 				}
 
 				// clear classes map
@@ -233,8 +232,8 @@ public class NodeExtender {
 					}
 				}
 
-				final AbstractNode source   = (AbstractNode)line.getCodeSource();
-				final int size              = code.size();
+				final NodeInterface source = (NodeInterface)line.getCodeSource();
+				final int size             = code.size();
 
 				if (source != null) {
 					errorBuffer.add(new DiagnosticErrorToken(name, diagnostic, source.getClass().getSimpleName(), source.getUuid(), source.getName()));

@@ -25,10 +25,11 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
+import org.structr.web.entity.Folder;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
@@ -61,7 +62,7 @@ public class DeleteNodeCommand extends AbstractCommand {
 
 		if (obj != null) {
 
-			TransactionCommand.registerNodeCallback((NodeInterface) obj, callback);
+			TransactionCommand.registerNodeCallback(obj, callback);
 
 			deleteNode(getWebSocket(), obj, recursive);
 		}
@@ -82,10 +83,10 @@ public class DeleteNodeCommand extends AbstractCommand {
 				tx.success();
 
 				return;
-
 			}
 
 		} catch (FrameworkException ex) {
+
 			logger.warn("", ex);
 		}
 
@@ -95,15 +96,15 @@ public class DeleteNodeCommand extends AbstractCommand {
 			try {
 
 				final List<NodeInterface> filteredResults = new LinkedList<>();
-				if (obj instanceof DOMNode) {
+				if (obj.is(StructrTraits.DOM_NODE)) {
 
-					DOMNode node = (DOMNode) obj;
+					DOMNode node = obj.as(DOMNode.class);
 
-					filteredResults.addAll(DOMNode.getAllChildNodes(node));
+					filteredResults.addAll(node.getAllChildNodes());
 
-				} else if (obj instanceof LinkedTreeNode) {
+				} else if (obj.is(StructrTraits.FOLDER)) {
 
-					LinkedTreeNode node = (LinkedTreeNode) obj;
+					Folder node = obj.as(Folder.class);
 
 					filteredResults.addAll(node.getAllChildNodes());
 				}
@@ -121,20 +122,19 @@ public class DeleteNodeCommand extends AbstractCommand {
 
 				logger.warn("DOMException occured.", dex);
 				ws.send(MessageBuilder.status().code(422).message(dex.getMessage()).build(), true);
-
 			}
-
 		}
 
 		try {
+
 			app.delete(obj);
 
 		} catch (FrameworkException fex) {
+
 			logger.warn("Unable to delete node(s)", fex);
 		}
 	}
 
-	//~--- get methods ----------------------------------------------------
 	@Override
 	public String getCommand() {
 		return "DELETE";

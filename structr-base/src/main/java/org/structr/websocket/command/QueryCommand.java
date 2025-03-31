@@ -18,35 +18,25 @@
  */
 package org.structr.websocket.command;
 
-import com.drew.lang.Iterables;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.SchemaMethod;
-import org.structr.core.entity.SchemaNode;
-import org.structr.core.entity.SchemaProperty;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.schema.SchemaHelper;
-import org.structr.schema.SchemaService;
+import org.structr.core.traits.Traits;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 /**
  * Websocket command to retrieve nodes of a given type which are on root level,
@@ -76,7 +66,7 @@ public class QueryCommand extends AbstractCommand {
 		final String notProperties            = webSocketData.getNodeDataStringValue("notProperties");
 		final Boolean exact                   = webSocketData.getNodeDataBooleanValue("exact");
 		final String customView               = webSocketData.getNodeDataStringValue("customView");
-		final Class type                      = SchemaHelper.getEntityClassForRawType(rawType);
+		final Traits type                     = Traits.of(rawType);
 
 		if (type == null) {
 			getWebSocket().send(MessageBuilder.status().code(404).message("Type " + rawType + " not found").build(), true);
@@ -92,12 +82,13 @@ public class QueryCommand extends AbstractCommand {
 		final int page                 = webSocketData.getPage();
 
 		final Query query = StructrApp.getInstance(securityContext)
-			.nodeQuery(type)
+			.nodeQuery(rawType)
 			.page(page)
 			.pageSize(pageSize);
 
 		if (sortKey != null) {
-			final PropertyKey sortProperty = StructrApp.key(type, sortKey);
+
+			final PropertyKey sortProperty = type.key(sortKey);
 			final String sortOrder         = webSocketData.getSortOrder();
 
 			query.sort(sortProperty, "desc".equals(sortOrder));
@@ -109,10 +100,10 @@ public class QueryCommand extends AbstractCommand {
 				final Gson gson                          = new GsonBuilder().create();
 
 				final Map<String, Object> andQuerySource = gson.fromJson(andProperties, new TypeToken<Map<String, Object>>() {}.getType());
-				final PropertyMap andQueryMap            = PropertyMap.inputTypeToJavaType(securityContext, type, andQuerySource);
+				final PropertyMap andQueryMap            = PropertyMap.inputTypeToJavaType(securityContext, rawType, andQuerySource);
 
 				final Map<String, Object> notQuerySource = gson.fromJson(notProperties, new TypeToken<Map<String, Object>>() {}.getType());
-				final PropertyMap notQueryMap            = PropertyMap.inputTypeToJavaType(securityContext, type, notQuerySource);
+				final PropertyMap notQueryMap            = PropertyMap.inputTypeToJavaType(securityContext, rawType, notQuerySource);
 
 				final boolean inexactQuery               = exact != null && exact == false;
 
@@ -137,13 +128,8 @@ public class QueryCommand extends AbstractCommand {
 
 		try {
 
-			// do search
-			final ResultStream<AbstractNode> result = query.getResultStream();
-			final List<AbstractNode> list           = Iterables.toList(result);
-
 			// set full result list
-			webSocketData.setResult(list);
-			webSocketData.setRawResultCount(result.calculateTotalResultCount(null, securityContext.getSoftLimit(pageSize)));
+			webSocketData.setResult(query.getResultStream());
 
 			// send only over local connection
 			getWebSocket().send(webSocketData, true);

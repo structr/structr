@@ -34,9 +34,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.SchemaReloadingNode;
+import org.structr.core.traits.StructrTraits;
 import org.structr.schema.SchemaHelper;
 
 import java.io.*;
@@ -166,9 +164,9 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 			final NodeFactory nodeFactory         = new NodeFactory(SecurityContext.getSuperUserInstance());
 			final RelationshipFactory relFactory  = new RelationshipFactory(SecurityContext.getSuperUserInstance());
-			final Set<AbstractNode> nodes         = new HashSet<>();
-			final Set<AbstractRelationship> rels  = new HashSet<>();
-			boolean conditionalIncludeFiles = includeFiles;
+			final Set<NodeInterface> nodes        = new HashSet<>();
+			final Set<RelationshipInterface> rels = new HashSet<>();
+			boolean conditionalIncludeFiles       = includeFiles;
 
 			if (query != null) {
 
@@ -179,9 +177,9 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 				for (final GraphObject obj : StructrApp.getInstance().query(query, null)) {
 
 					if (obj.isNode()) {
-						nodes.add((AbstractNode)obj.getSyncNode());
+						nodes.add(obj.getSyncNode());
 					} else {
-						rels.add((AbstractRelationship)obj.getSyncRelationship());
+						rels.add(obj.getSyncRelationship());
 					}
 				}
 
@@ -338,7 +336,6 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 	 * string value of the given object and a space character for human readability.
 	 *
 	 * @param outputStream
-	 * @param obj
 	 */
 	public static void serializeData(DataOutputStream outputStream, byte[] data) throws IOException {
 
@@ -494,12 +491,12 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 	}
 
-	private static void exportDatabase(final ZipOutputStream zos, final OutputStream outputStream,  final Iterable<? extends NodeInterface> nodes, final Iterable<? extends RelationshipInterface> relationships) throws IOException, FrameworkException {
+	private static void exportDatabase(final ZipOutputStream zos, final OutputStream outputStream, final Iterable<? extends NodeInterface> nodes, final Iterable<? extends RelationshipInterface> relationships) throws IOException, FrameworkException {
 
 		// start database zip entry
 		final ZipEntry dbEntry        = new ZipEntry(STRUCTR_ZIP_DB_NAME);
 		final DataOutputStream dos    = new DataOutputStream(outputStream);
-		final String uuidPropertyName = GraphObject.id.dbName();
+		final String uuidPropertyName = "id";
 		int nodeCount                 = 0;
 		int relCount                  = 0;
 
@@ -508,14 +505,14 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		for (NodeInterface nodeObject : nodes) {
 
 			// skip schema
-			if (nodeObject instanceof SchemaReloadingNode) {
+			if (nodeObject.is(StructrTraits.SCHEMA_RELOADING_NODE)) {
 				continue;
 			}
 
 			final Node node = nodeObject.getNode();
 
 			// ignore non-structr nodes
-			if (node.hasProperty(GraphObject.id.dbName())) {
+			if (node.hasProperty(uuidPropertyName)) {
 
 				outputStream.write('N');
 
@@ -539,7 +536,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 			final Relationship rel = relObject.getRelationship();
 
 			// ignore non-structr nodes
-			if (rel.hasProperty(GraphObject.id.dbName())) {
+			if (rel.hasProperty(uuidPropertyName)) {
 
 				final Node startNode = rel.getStartNode();
 				final Node endNode   = rel.getEndNode();
@@ -622,7 +619,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		final Set<String> labels                  = new LinkedHashSet<>();
 		final DataInputStream dis                 = new DataInputStream(new BufferedInputStream(zis));
 		final long internalBatchSize              = batchSize != null ? batchSize : 200;
-		final String uuidPropertyName             = GraphObject.id.dbName();
+		final String uuidPropertyName             = "id";
 		double t0                                 = System.nanoTime();
 		EntityCreation currentObject              = null;
 		String currentKey                         = null;
@@ -630,7 +627,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		long totalNodeCount                       = 0;
 		long totalRelCount                        = 0;
 
-		labels.add(NodeInterface.class.getSimpleName());
+		labels.add(org.structr.core.graph.NodeInterface.class.getSimpleName());
 
 		// add tenant identifier to all nodes
 		if (graphDb.getTenantIdentifier() != null) {
@@ -731,7 +728,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 											currentObject.put(currentKey, obj);
 
 											// set type label
-											if (currentObject instanceof NodeCreation && NodeInterface.type.dbName().equals(currentKey)) {
+											if (currentObject instanceof NodeCreation && "type".equals(currentKey)) {
 
 												((NodeCreation)currentObject).addLabel((String) obj);
 											}

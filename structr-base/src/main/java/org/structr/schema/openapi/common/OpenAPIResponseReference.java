@@ -18,8 +18,7 @@
  */
 package org.structr.schema.openapi.common;
 
-import org.structr.core.app.StructrApp;
-import org.structr.schema.ConfigurationProvider;
+import org.structr.core.traits.Traits;
 import org.structr.schema.export.StructrTypeDefinition;
 
 import java.util.Set;
@@ -31,14 +30,14 @@ public class OpenAPIResponseReference extends TreeMap<String, Object> {
 		this(reference, null);
 	}
 
-	public OpenAPIResponseReference(final Class type, final String viewName,  final Boolean isMultipleResponse) {
+	public OpenAPIResponseReference(final Traits type, final String viewName, final Boolean isMultipleResponse) {
 
-		final String base = "#/components/responses/";
-		ConfigurationProvider configuration = StructrApp.getConfiguration();
-		Set<String> viewNames = configuration.getPropertyViewsForType(type);
+		final String base           = "#/components/responses/";
+		final Set<String> viewNames = type.getViewNames();
+		final String simpleName     = type.getName();
 
-		final String simpleName = type.getSimpleName();
 		String reference;
+
 		if (viewName == null || "public".equals(viewName) || !viewNames.contains(viewName)) {
 
 			reference = base + simpleName;

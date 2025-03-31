@@ -22,6 +22,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.mail.EmailException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.mail.MailServiceInterface;
 import org.structr.core.Services;
@@ -30,7 +31,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import org.structr.common.SecurityContext;
 
 public class AdvancedMailContainer {
 

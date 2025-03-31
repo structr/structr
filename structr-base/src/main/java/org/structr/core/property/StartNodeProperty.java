@@ -23,6 +23,8 @@ import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.converter.RelationshipStartNodeConverter;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
 
 import java.util.Map;
 
@@ -56,13 +58,18 @@ public class StartNodeProperty<T> extends AbstractPrimitiveProperty<T> {
 	}
 
 	@Override
+	public boolean isArray() {
+		return false;
+	}
+
+	@Override
 	public String typeName() {
-		return null;
+		return StructrTraits.NODE_INTERFACE;
 	}
 
 	@Override
 	public Class valueType() {
-		return null;
+		return NodeInterface.class;
 	}
 
 	@Override

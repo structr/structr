@@ -33,7 +33,6 @@ import java.io.ObjectOutputStream;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -61,10 +60,9 @@ public class MemoryNodeRepository extends EntityRepository {
 
 		if (filter != null) {
 
-			if (filter instanceof MemoryLabelFilter) {
+			if (filter instanceof MemoryLabelFilter<MemoryNode> mt) {
 
-				final MemoryLabelFilter<MemoryNode> mt = (MemoryLabelFilter<MemoryNode>)filter;
-				final Set<MemoryIdentity> cache        = new LinkedHashSet<>();
+				final Set<MemoryIdentity> cache = new LinkedHashSet<>();
 
 				// multiple labels result in OR not AND query
 				for (final String label : mt.getLabels()) {
@@ -75,10 +73,9 @@ public class MemoryNodeRepository extends EntityRepository {
 				return Iterables.filter(n -> n != null, Iterables.map(i -> masterData.get(i), cache));
 			}
 
-			if (filter instanceof MemoryTypeFilter) {
+			if (filter instanceof MemoryTypeFilter<MemoryNode> mt) {
 
-				final MemoryTypeFilter<MemoryNode> mt = (MemoryTypeFilter<MemoryNode>)filter;
-				final String type                     = mt.getType();
+				final String type = mt.getType();
 
 				return Iterables.filter(n -> n != null, Iterables.map(i -> masterData.get(i), new LinkedHashSet<>(getCacheForType(type))));
 			}
@@ -145,8 +142,12 @@ public class MemoryNodeRepository extends EntityRepository {
 			cache.remove(id);
 		}
 
+		// add identity to all label caches
+		for (final String label : node.getLabels()) {
+			getCacheForLabel(label).add(id);
+		}
+
 		// add identity to type cache again
-		getCacheForLabel(type).add(id);
 		getCacheForType(type).add(id);
 	}
 

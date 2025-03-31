@@ -171,7 +171,7 @@ public class EnumPropertyRestTest extends StructrRestTestBase {
 			.body("errors[0].type",     equalTo("TestThree"))
 			.body("errors[0].property", equalTo("enumProperty"))
 			.body("errors[0].token",    equalTo("must_be_one_of"))
-			.body("errors[0].detail",   equalTo("Status1, Status2, Status3, Status4"))
+			.body("errors[0].detail",   equalTo("Status1, Status2, Status3, Status4, Status5"))
 		.when()
 			.post("/TestThree")
 			.getHeader("Location");

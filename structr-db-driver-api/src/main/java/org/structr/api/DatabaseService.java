@@ -53,6 +53,7 @@ public interface DatabaseService {
 	<X> X forName(final Class<X> type, final String name);
 
 	Transaction beginTx();
+	Transaction beginTx(boolean forceNew);
 	Transaction beginTx(final int timeoutInSeconds);
 
 	Node createNode(final String type, final Set<String> labels, final Map<String, Object> properties);
@@ -95,6 +96,9 @@ public interface DatabaseService {
 
 	// native
 	<T> T execute(final NativeQuery<T> nativeQuery);
+	<T> T execute(final NativeQuery<T> nativeQuery, final Transaction tx);
 	<T> NativeQuery<T> query(final Object query, final Class<T> resultType);
 	boolean supportsFeature(final DatabaseFeature feature, final Object...  parameters);
+
+	void flushCaches();
 }

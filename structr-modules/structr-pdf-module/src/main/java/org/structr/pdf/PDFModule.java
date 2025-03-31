@@ -48,7 +48,7 @@ public class PDFModule implements StructrModule {
 
 	@Override
 	public Set<String> getDependencies() {
-		return null;
+		return Set.of("ui");
 	}
 
 	@Override

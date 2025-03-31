@@ -40,6 +40,129 @@ require(['vs/editor/editor.main'], () => {
 			[/[^}]+/, ""]
 		]
 	});
+
+	// add custom definition provider, so we can hook into "Go to definition"
+	monaco.languages.registerDefinitionProvider('javascript', {
+		provideDefinition: (model, position, cancellationToken) => {
+
+			if (Structr.isModuleActive(_Code)) {
+
+				return new Promise((resolve) => {
+
+					let wordAtPos = model.getWordAtPosition(position);
+					// console.log(`Looking up definition for word (${wordAtPos.word}) at position ${position}`, wordAtPos);
+
+					let queryURL = `/structr/rest/NodeInterface?type=SchemaMethod;SchemaNode;SchemaProperty&name=${wordAtPos.word}`;
+
+					fetch(queryURL).then(response => {
+						if (response.ok) {
+							return response.json();
+						}
+					}).then(data => {
+
+						let getPropertyNameForEntity = (entity) => {
+							switch (entity.type) {
+								case 'SchemaMethod':
+									return 'source';
+								case 'SchemaNode':
+								case 'SchemaProperty':
+									return entity.name;
+							}
+
+							return 'source';
+						};
+
+						let getSourcePreviewForEntity = (entity) => {
+							switch (entity.type) {
+								case 'SchemaMethod':
+									return entity.source;
+								case 'SchemaNode':
+									return 'Schema Type';
+								case 'SchemaProperty':
+									return 'Schema Attribute on type: ' + entity.schemaNode?.name;
+							}
+
+							return 'unable to show preview';
+						};
+
+						// transform results to definitions
+						let foundDefinitions = data.result.map(entity => {
+
+							let propertyName = getPropertyNameForEntity(entity);
+							let modelUri     = _Editors.getModelURI(entity, propertyName);
+
+							if (!monaco.editor.getModel(modelUri)) {
+
+								// model must exist for preview
+								monaco.editor.createModel(getSourcePreviewForEntity(entity), 'javascript', _Editors.getModelURI(entity, propertyName));
+							}
+
+							return {
+								uri: modelUri,
+								range: new monaco.Range(1, 1, 1, 1)		// fake range, but must be >= 1 to not break monaco code
+							};
+						});
+
+						// console.log(`found ${foundDefinitions.length} definitions`);
+
+						resolve(foundDefinitions);
+					});
+				});
+			}
+
+			return undefined;
+		}
+	});
+
+	monaco.editor.registerEditorOpener({
+		openCodeEditor(sourceEditor, resourceUri, selectionOrPosition) {
+
+			if (Structr.isModuleActive(_Code)) {
+
+				let targetModel    = monaco.editor.getModel(resourceUri);
+				let structr_entity = targetModel.uri.structr_entity;
+				let isSameBulkEdit = (structr_entity.type === 'SchemaMethod' && document.querySelector(`.schema-grid-row.contents[data-method-id="${structr_entity.id}"]`));
+
+				if (isSameBulkEdit) {
+
+					document.querySelector(`.schema-grid-row.contents[data-method-id="${structr_entity.id}"] .edit-action`).dispatchEvent(new Event('click'));
+
+				} else if (_Code.persistence.isDirty()) {
+
+					_Dialogs.confirmation.showPromise("You have unsaved changes, jump without saving?", false).then(result => {
+
+						if (result === true) {
+
+							_Code.persistence.forceNotDirty();
+
+							_Code.helpers.navigateToSchemaObjectFromAnywhere(structr_entity, true);
+							return true;
+						}
+					});
+
+				} else {
+
+					_Code.helpers.navigateToSchemaObjectFromAnywhere(structr_entity, true);
+					return true;
+				}
+			}
+
+			return false;
+		}
+	});
+
+	monaco.editor.onDidCreateEditor(newEditor => {
+
+		newEditor.onDidChangeModel(e => {
+
+			// we currently never change models, this only serves as a helper for definition peek window to keep display-only models from being written to
+			let allowWrite = (e.oldModelUrl === null);
+
+			newEditor.updateOptions({
+				readOnly: !allowWrite
+			});
+		});
+	});
 });
 
 let _Editors = {
@@ -238,6 +361,26 @@ let _Editors = {
 				storageContainer.decorationsCollection = storageContainer.instance.createDecorationsCollection(newErrorEvents);
 			}
 		}
+	},
+	getErrorPropertyNameForLinting: (entity, propertyName) => {
+
+		let errorPropertyNameForLinting = propertyName;
+
+		if (entity.type === 'SchemaMethod') {
+			errorPropertyNameForLinting = entity.name;
+		} else if (entity.type === 'SchemaProperty') {
+			if (propertyName === 'readFunction') {
+				errorPropertyNameForLinting = `getProperty(${entity.name})`;
+			} else if (propertyName === 'writeFunction') {
+				errorPropertyNameForLinting = `setProperty(${entity.name})`;
+			}
+		} else if (entity.type === 'Content' || entity.type === 'Template') {
+			errorPropertyNameForLinting = 'content';
+		} else if (entity.type === 'File') {
+			errorPropertyNameForLinting = 'getInputStream';
+		}
+
+		return errorPropertyNameForLinting;
 	},
 	getScriptErrors: async (entity, errorAttributeName) => {
 
@@ -445,15 +588,35 @@ let _Editors = {
 
 		return monaco.languages.CompletionItemKind.Function;
 	},
-	getModelURI: (id, propertyName, extraInfo) => {
+	getPathForEntityAndPropertyName: (entity, propertyName) => {
+
+		let path = `${entity.id}/${propertyName}`;
+
+		switch (entity.type) {
+			case 'SchemaMethod':
+				path = `${entity.schemaNode?.isServiceClass ? 'Service' : 'Custom'}/${entity.schemaNode?.name}/${entity.name}/${propertyName}`	// must include propertyName because for methods "source" and "openAPIConfig" are created
+				break;
+			case 'SchemaNode':
+				path = `${entity.isServiceClass ? 'Service' : 'Custom'}/${propertyName}`	// entity.name should be equal to propertyName
+				break;
+			case 'SchemaProperty':
+				path = `${entity.schemaNode?.isServiceClass ? 'Service' : 'Custom'}/${entity.schemaNode?.name}/Property/${propertyName}`	// entity.name should be equal to propertyName
+				break;
+		}
+
+		return path;
+
+	},
+	getModelURI: (entity, propertyName, extraInfo) => {
 
 		let uri = monaco.Uri.from({
 			scheme: 'file', // keeps history even after switching editors in code
-			path:   `/${id}/${propertyName}`,
+			path:   _Editors.getPathForEntityAndPropertyName(entity, propertyName)
 		});
 
-		uri.structr_uuid     = id;
+		uri.structr_uuid     = entity.id;
 		uri.structr_property = propertyName;
+		uri.structr_entity   = entity;
 
 		for (let key in extraInfo) {
 			uri[key]  = extraInfo[key];
@@ -483,11 +646,16 @@ let _Editors = {
 
 			// A bit hacky to transport additional configuration to deeper layers...
 			let extraModelConfig = {
-				isAutoscriptEnv: customConfig.isAutoscriptEnv,
+				isAutoscriptEnv:        customConfig.isAutoscriptEnv,
 				forceAllowAutoComplete: customConfig.forceAllowAutoComplete
 			}
 
-			storageContainer.model = monaco.editor.createModel(editorText, language, _Editors.getModelURI(entity.id, propertyName, extraModelConfig));
+			// find and dispose previously created models for same element (possibly done from definitionProvider)
+			let modelUri = _Editors.getModelURI(entity, propertyName, extraModelConfig);
+			let prevModel = monaco.editor.getModel(modelUri);
+			prevModel?.dispose();
+
+			storageContainer.model = monaco.editor.createModel(editorText, language, modelUri);
 		}
 
 		let monacoConfig = Object.assign(_Editors.getOurSavedEditorOptionsForEditor(), {
@@ -528,7 +696,7 @@ let _Editors = {
 			monacoInstance.restoreViewState(viewState);
 		}
 
-		let errorPropertyNameForLinting = _Code.getErrorPropertyNameForLinting(entity, propertyName);
+		let errorPropertyNameForLinting = _Editors.getErrorPropertyNameForLinting(entity, propertyName);
 		if (customConfig.lint === true) {
 
 			_Editors.updateMonacoLintingDecorations(entity, propertyName, errorPropertyNameForLinting, true);
@@ -663,7 +831,7 @@ let _Editors = {
 		}
 		monaco.editor.setModelLanguage(editor.getModel(), newLanguage);
 	},
-	addEscapeKeyHandlersToPreventPopupClose: (editor) => {
+	addEscapeKeyHandlersToPreventPopupClose: (id, propertyName, editor) => {
 
 		let contextActions = {
 			suggestWidgetVisible:           () => { editor.trigger('keyboard', 'hideSuggestWidget'); },
@@ -671,18 +839,25 @@ let _Editors = {
 			referenceSearchVisible:         () => { editor.trigger('keyboard', 'closeReferenceSearch'); },
 			markersNavigationVisible:       () => { editor.trigger('keyboard', 'closeMarkersNavigation'); },
 			renameInputVisible:             () => { editor.trigger('keyboard', 'cancelRenameInput'); },
-			accessibilityHelpWidgetVisible: () => { editor.trigger('keyboard', 'closeAccessibilityHelp'); },
 			// command palette should also be here... if I could only find out the correct "context" name for this thing
 		};
 
+		let container = _Editors.getContainerForIdAndProperty(id, propertyName);
+
 		for (let [context, action] of Object.entries(contextActions)) {
 
-			editor.addCommand(monaco.KeyCode.Escape, () => {
+			let commandDisposable = editor.addAction({
+				label: '',
+				id: context,
+				keybindings: [monaco.KeyCode.Escape],
+				keybindingContext: context,
+				run: (editor) => {
+					Structr.ignoreKeyUp = true;
+					action();
+				}
+			});
 
-				Structr.ignoreKeyUp = true;
-				action();
-
-			}, context);
+			container.instanceDisposables.push(commandDisposable);
 		}
 	},
 	getDefaultEditorOptionsForStorage: () => {

@@ -27,8 +27,11 @@ import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
 import org.structr.schema.SchemaHelper.Type;
-import org.structr.schema.parser.LongArrayPropertyParser;
+import org.structr.schema.parser.LongPropertyGenerator;
 
 import java.util.Map;
 import java.util.TreeMap;
@@ -175,7 +178,7 @@ public class StructrLongArrayProperty extends StructrPropertyDefinition implemen
 
 		super.deserialize(schemaNodes, property);
 
-		final LongArrayPropertyParser longPropertyParser = property.getLongArrayPropertyParser(schemaNodes);
+		final LongPropertyGenerator longPropertyParser = property.getLongPropertyParser();
 		if (longPropertyParser != null) {
 
 			this.exclusiveMinimum = longPropertyParser.isLowerExclusive();
@@ -197,9 +200,10 @@ public class StructrLongArrayProperty extends StructrPropertyDefinition implemen
 	SchemaProperty createDatabaseSchema(final App app, final AbstractSchemaNode schemaNode) throws FrameworkException {
 
 		final SchemaProperty property = super.createDatabaseSchema(app, schemaNode);
+		final Traits traits           = Traits.of(StructrTraits.SCHEMA_PROPERTY);
 		final PropertyMap properties  = new PropertyMap();
 
-		properties.put(SchemaProperty.propertyType, Type.LongArray.name());
+		properties.put(traits.key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), Type.LongArray.name());
 
 		if (minimum != null && maximum != null) {
 
@@ -221,7 +225,7 @@ public class StructrLongArrayProperty extends StructrPropertyDefinition implemen
 				range.append("]");
 			}
 
-			properties.put(SchemaProperty.format, range.toString());
+			properties.put(traits.key(SchemaPropertyTraitDefinition.FORMAT_PROPERTY), range.toString());
 		}
 
 		property.setProperties(SecurityContext.getSuperUserInstance(), properties);

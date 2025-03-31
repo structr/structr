@@ -39,7 +39,7 @@ public class PagingHelper {
 	 * @param page
 	 * @return subList
 	 */
-	public static <T> List<T> subList(final List<T> list, int pageSize, int page) {
+	public static <T> List<T> subList(final List<T> list, final int pageSize, final int page) {
 
 		if (pageSize <= 0 || page == 0) {
 

@@ -25,13 +25,17 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -227,17 +231,18 @@ public class StructrSSHFileSystem extends FileSystem {
 
 				final StructrSSHFile parent = (StructrSSHFile) dir.getParent();
 
-				final App app = StructrApp.getInstance(securityContext);
-				final String name = dir.getFileName().toString();
+				final App app       = StructrApp.getInstance(securityContext);
+				final String name   = dir.getFileName().toString();
+				final Traits traits = Traits.of(StructrTraits.FOLDER);
 
 				try (final Tx tx = app.tx()) {
 
-					final Folder folder = app.create(Folder.class,
-						new NodeAttribute(AbstractNode.name, name),
-						new NodeAttribute(StructrApp.key(AbstractFile.class, "parent"), parent != null ? parent.getActualFile() : null)
+					final NodeInterface folder = app.create(StructrTraits.FOLDER,
+						new NodeAttribute(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name),
+						new NodeAttribute(traits.key(AbstractFileTraitDefinition.PARENT_PROPERTY), parent != null ? parent.getActualFile() : null)
 					);
 
-					((StructrSSHFile) dir).setActualFile(folder);
+					((StructrSSHFile) dir).setActualFile(folder.as(AbstractFile.class));
 
 					tx.success();
 
@@ -367,24 +372,22 @@ public class StructrSSHFileSystem extends FileSystem {
 				logger.info("Method not implemented yet");;
 			}
 
-			private AbstractFile create(final Path path) throws IOException {
-
-				
+			private NodeInterface create(final Path path) throws IOException {
 
 				final StructrSSHFile parent = (StructrSSHFile) path.getParent();
 
-				AbstractFile newFile = null;
+				NodeInterface newFile = null;
 
 				final App app = StructrApp.getInstance(securityContext);
 				try (final Tx tx = app.tx()) {
 
-					final String fileName = path.getFileName().toString();
+					final String fileName            = path.getFileName().toString();
+					final NodeInterface parentFolder = parent.getActualFile();
+					final Traits traits              = Traits.of(StructrTraits.FILE);
 
-					final Folder parentFolder = (Folder) parent.getActualFile();
-
-					newFile = app.create(File.class,
-						new NodeAttribute(AbstractNode.name, fileName),
-						new NodeAttribute(StructrApp.key(AbstractFile.class, "parent"), parentFolder)
+					newFile = app.create(StructrTraits.FILE,
+						new NodeAttribute(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), fileName),
+						new NodeAttribute(traits.key(AbstractFileTraitDefinition.PARENT_PROPERTY), parentFolder)
 					);
 
 					tx.success();

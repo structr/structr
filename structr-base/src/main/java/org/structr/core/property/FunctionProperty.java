@@ -28,10 +28,12 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.entity.SchemaMethod;
-import org.structr.core.entity.SchemaProperty;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.openapi.common.OpenAPISchemaReference;
 
@@ -79,7 +81,7 @@ public class FunctionProperty<T> extends Property<T> {
 	}
 
 	@Override
-	public Class relatedType() {
+	public String relatedType() {
 		return null;
 	}
 
@@ -180,6 +182,11 @@ public class FunctionProperty<T> extends Property<T> {
 
 	@Override
 	public boolean isCollection() {
+		return false;
+	}
+
+	@Override
+	public boolean isArray() {
 		return false;
 	}
 
@@ -327,15 +334,15 @@ public class FunctionProperty<T> extends Property<T> {
 
 	// ----- private methods -----
 	private String getReadFunction() throws FrameworkException {
-		return getCachedSourceCode(SchemaProperty.readFunction, this.readFunction);
+		return getCachedSourceCode(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.READ_FUNCTION_PROPERTY), this.readFunction);
 	}
 
 	private String getWriteFunction() throws FrameworkException {
-		return getCachedSourceCode(SchemaProperty.writeFunction, this.writeFunction);
+		return getCachedSourceCode(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.WRITE_FUNCTION_PROPERTY), this.writeFunction);
 	}
 
 	private String getOpenAPIReturnType() throws FrameworkException {
-		return getCachedSourceCode(SchemaProperty.openAPIReturnType, this.openAPIReturnType);
+		return getCachedSourceCode(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.OPEN_API_RETURN_TYPE_PROPERTY), this.openAPIReturnType);
 	}
 
 	public String getCachedSourceCode(final PropertyKey<String> key, final String defaultValue) throws FrameworkException {
@@ -345,7 +352,7 @@ public class FunctionProperty<T> extends Property<T> {
 
 		if (src == null) {
 
-			final SchemaProperty property = getCodeSource();
+			final NodeInterface property = getCodeSource();
 			if (property != null) {
 
 				final String value = property.getProperty(key);
@@ -369,8 +376,8 @@ public class FunctionProperty<T> extends Property<T> {
 		cache.clear();
 	}
 
-	public SchemaProperty getCodeSource() throws FrameworkException {
-		return StructrApp.getInstance().get(SchemaProperty.class, sourceUuid);
+	public NodeInterface getCodeSource() throws FrameworkException {
+		return StructrApp.getInstance().getNodeById(StructrTraits.SCHEMA_PROPERTY, sourceUuid);
 	}
 
 	// ----- OpenAPI -----

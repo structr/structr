@@ -39,7 +39,7 @@ public abstract class AbstractDirectoryStream implements DirectoryStream<Path> {
 	@Override
 	public Iterator<Path> iterator() {
 
-		return new Iterator<Path>() {
+		return new Iterator<>() {
 
 			final List<Path> copy = new ArrayList<>(paths);
 			int index             = 0;

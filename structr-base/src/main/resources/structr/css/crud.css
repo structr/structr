@@ -48,11 +48,17 @@
 	overflow-y: scroll;
 }
 
+#crud-types-list:not(:has(:not(.hidden))):before {
+	content: 'No types matching filters. Adjust the filters above.';
+	padding-left: .75rem;
+	padding-right: .75rem;
+}
+
 #crud-left .crud-type {
 	border-bottom: 1px solid var(--light-gray-bg-f7);
 	border-top: 1px solid var(--light-gray-bg-f7);
 	margin-top: -1px;
-	padding: 6px 5px 6px 10px;
+	padding: 6px 8px 6px 10px;
 	cursor: pointer;
 	height: 18px;
 }
@@ -160,21 +166,17 @@
 	min-height: 10rem;
 }
 
-.crud-table tr td .array-attr {
-	position: relative;
-}
-
-.crud-table tr td .array-attr input,
-.crud-table tr td .array-attr textarea {
-	width: calc(100% - 3rem);
-}
-
-.crud-table tr td .array-attr svg.remove {
-	vertical-align: middle;
-    margin: 7px 0 6px 2px;
+.icon-crud-datetime {
 	position: absolute;
-	top: .25rem;
-	right: .3rem;
+	left: .75rem;
+}
+
+.crud-table tr td .array-attr {
+	justify-content: center;
+}
+
+.crud-table tr td.boolean-attr {
+	text-align: center;
 }
 
 .resourceBox th i {
@@ -249,6 +251,7 @@ input.readonly {
 	opacity: .6;
 	position: absolute;
 	right: .5rem;
+	top: .5rem;
 }
 
 .crud-clear-value:hover {

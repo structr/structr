@@ -24,7 +24,12 @@ import org.structr.api.schema.JsonMethod;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.testng.annotations.Test;
@@ -47,14 +52,14 @@ public class RestScriptingTest extends StructrRestTestBase {
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 			final JsonType type     = schema.addType("Test");
 
-			type.addMethod("getDate",             "{ return new Date(); }").setIsStatic(true);
-			type.addMethod("getNowJavascript",    "{ return $.now; }").setIsStatic(true);
+			type.addMethod("getDate",             "{ new Date(); }").setIsStatic(true);
+			type.addMethod("getNowJavascript",    "{ $.now; }").setIsStatic(true);
 			type.addMethod("getNowStructrscript", "now").setIsStatic(true);
 
-			type.addMethod("test1", "{ return { test1: new Date(), test2: $.now, test3: $.Test.getDate(), test4: $.Test.getNowJavascript(), test5: $.Test.getNowStructrscript() }; }").setIsStatic(true);
-			type.addMethod("test2", "{ return $.Test.test1(); }").setIsStatic(true);
-			type.addMethod("test3", "{ return $.Test.test2(); }").setIsStatic(true);
-			type.addMethod("test4", "{ return { test1: typeof new Date(), test2: typeof $.now, test3: typeof $.Test.getDate(), test4: typeof $.Test.getNowJavascript(), test5: typeof $.Test.getNowStructrscript() }; }").setIsStatic(true);
+			type.addMethod("test1", "{ ({ test1: new Date(), test2: $.now, test3: $.Test.getDate(), test4: $.Test.getNowJavascript(), test5: $.Test.getNowStructrscript() }); }").setIsStatic(true);
+			type.addMethod("test2", "{ $.Test.test1(); }").setIsStatic(true);
+			type.addMethod("test3", "{ $.Test.test2(); }").setIsStatic(true);
+			type.addMethod("test4", "{ ({ test1: typeof new Date(), test2: typeof $.now, test3: typeof $.Test.getDate(), test4: typeof $.Test.getNowJavascript(), test5: typeof $.Test.getNowStructrscript() }); }").setIsStatic(true);
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -135,7 +140,7 @@ public class RestScriptingTest extends StructrRestTestBase {
 			// create test group
 			JsonSchema schema       = StructrSchema.createFromDatabase(app);
 			final JsonType type     = schema.addType("API");
-			final JsonMethod method = type.addMethod("doTest", "{ $.create('Group', { name: 'Test' }); $.rollbackTransaction(); return { errorCode: 42, obj1: { key1: 'value1', key2: 22, list: [ 1, 2, 3 ] } } }");
+			final JsonMethod method = type.addMethod("doTest", "{ $.create('Group', { name: 'Test' }); $.rollbackTransaction(); ({ errorCode: 42, obj1: { key1: 'value1', key2: 22, list: [ 1, 2, 3 ] } }) }");
 
 			method.setIsStatic(true);
 			method.setReturnRawResult(true);
@@ -177,5 +182,102 @@ public class RestScriptingTest extends StructrRestTestBase {
 			.statusCode(200)
 			.when()
 			.post("/API/doTest");
+	}
+
+	@Test
+	public void testReturnRawResultDoesNotLeakWhenCallingMethodsFromGlobalMethod() {
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			final JsonType type = schema.addType("API");
+			type.addMethod("test1", "'static structr script method'"        ).setIsStatic(true).setReturnRawResult(true);
+			type.addMethod("test2", "{ 'static javascript method'; }").setIsStatic(true).setReturnRawResult(true);
+
+			StructrSchema.replaceDatabaseSchema(app, schema);
+
+			app.create(StructrTraits.SCHEMA_METHOD,
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "calledTestMethod"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "{ $.test1(); $.test2(); $.API.test1(); $.API.test2(); return 'test'; }")
+			);
+
+			app.create(StructrTraits.SCHEMA_METHOD,
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test1"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "'global structr script method'"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.RETURN_RAW_RESULT_PROPERTY), true)
+			);
+
+			app.create(StructrTraits.SCHEMA_METHOD,
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test2"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "{ return 'global javascript method'; }"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.RETURN_RAW_RESULT_PROPERTY), true)
+			);
+
+			tx.success();
+
+		} catch (Throwable fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// ensure that called methods do not change returnRawResult behavior
+		RestAssured
+				.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseTo(System.out))
+				.expect()
+				.body("result", equalTo("test"))
+				.statusCode(200)
+				.when()
+				.post("/calledTestMethod");
+	}
+
+	@Test
+	public void testReturnRawResultDoesNotLeakWhenCallingMethodsFromStaticMethod() {
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			final JsonType type = schema.addType("API");
+			type.addMethod("calledTestMethod", "{ $.test1(); $.test2(); $.API.test1(); $.API.test2(); 'test'; }").setIsStatic(true);
+
+			type.addMethod("test1", "'static structr script method'"        ).setIsStatic(true).setReturnRawResult(true);
+			type.addMethod("test2", "{ 'static javascript method'; }").setIsStatic(true).setReturnRawResult(true);
+
+			StructrSchema.replaceDatabaseSchema(app, schema);
+
+			app.create(StructrTraits.SCHEMA_METHOD,
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test1"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "'global structr script method'"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.RETURN_RAW_RESULT_PROPERTY), true)
+			);
+
+			app.create(StructrTraits.SCHEMA_METHOD,
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test2"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "{ return 'global javascript method'; }"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.RETURN_RAW_RESULT_PROPERTY), true)
+			);
+
+			tx.success();
+
+		} catch (Throwable fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// ensure that called methods do not change returnRawResult behavior
+		RestAssured
+				.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseTo(System.out))
+				.expect()
+				.body("result", equalTo("test"))
+				.statusCode(200)
+				.when()
+				.post("/API/calledTestMethod");
 	}
 }

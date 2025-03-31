@@ -37,18 +37,19 @@ public class WebSocketMessage {
 	private int chunkSize                          = 512;
 	private int code                               = 0;
 	private String command                         = null;
-	private GraphObject graphObject                = null;
+	private GraphObject graphObject                 = null;
 	private String id                              = null;
 	private String pageId                          = null;
 	private String message                         = null;
 	private Map<String, Object> nodeData           = new LinkedHashMap();
-	private int page                               = 0;
-	private int pageSize                           = 0;
+	private Map<String, Object> commandConfig      = new LinkedHashMap();
+	private int page                               = 1;
+	private int pageSize                           = Integer.MAX_VALUE;
 	private String parent                          = null;
 	private Map<String, Object> relData            = new LinkedHashMap();
 	private Set<PropertyKey> modifiedProperties    = new LinkedHashSet();
 	private Set<PropertyKey> removedProperties     = new LinkedHashSet();
-	private Iterable<? extends GraphObject> result = null;
+	private Iterable<? extends GraphObject> result  = null;
 	private int rawResultCount                     = 0;
 	private String sessionId                       = null;
 	private boolean sessionValid                   = false;
@@ -69,6 +70,7 @@ public class WebSocketMessage {
 		newCopy.command            = this.command;
 		newCopy.pageId             = this.pageId;
 		newCopy.nodeData           = this.nodeData;
+		newCopy.commandConfig      = this.commandConfig;
 		newCopy.relData            = this.relData;
 		newCopy.graphObject        = this.graphObject;
 		newCopy.id                 = this.id;
@@ -93,10 +95,11 @@ public class WebSocketMessage {
 	}
 
 	public void clear() {
-		this.nodeData = new LinkedHashMap();
+		this.nodeData           = new LinkedHashMap();
+		this.commandConfig      = new LinkedHashMap();
 		this.modifiedProperties = new LinkedHashSet();
-		this.removedProperties = new LinkedHashSet();
-		this.result = null;
+		this.removedProperties  = new LinkedHashSet();
+		this.result             = null;
 	}
 
 	public String getCommand() {
@@ -113,6 +116,10 @@ public class WebSocketMessage {
 
 	public Map<String, Object> getNodeData() {
 		return nodeData;
+	}
+
+	public Map<String, Object> getCommandConfig() {
+		return commandConfig;
 	}
 
 	public Map<String, Object> getRelData() {
@@ -211,13 +218,30 @@ public class WebSocketMessage {
 		return getNodeData().get(key);
 	}
 
+	public boolean hasCommandConfigValue(final String key) {
+		return getCommandConfig().containsKey(key);
+	}
+
+	public Object getCommandConfigValue(final String key) {
+		return getCommandConfig().get(key);
+	}
+
 	public boolean getNodeDataBooleanValue(final String key) {
 		final Object value = getNodeDataValue(key);
 		return BooleanUtils.isTrue((Boolean) value);
 	}
 
+	public boolean getCommandConfigBooleanValue(final String key) {
+		final Object value = getCommandConfigValue(key);
+		return BooleanUtils.isTrue((Boolean) value);
+	}
+
 	public String getNodeDataStringValue(final String key) {
 		return (String) getNodeDataValue(key);
+	}
+
+	public String getCommandConfigStringValue(final String key) {
+		return (String) getCommandConfigValue(key);
 	}
 
 	public String getNodeDataStringValueTrimmedOrDefault(final String key, final String defaultValue) {
@@ -287,6 +311,10 @@ public class WebSocketMessage {
 
 	public void setNodeData(final String key, Object value) {
 		nodeData.put(key, value);
+	}
+
+	public void setCommandConfig(final String key, Object value) {
+		commandConfig.put(key, value);
 	}
 
 	public void setNodeData(final Map<String, Object> data) {

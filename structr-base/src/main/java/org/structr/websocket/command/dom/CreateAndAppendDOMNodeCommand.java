@@ -26,21 +26,22 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.dom.Template;
+import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.command.AbstractCommand;
 import org.structr.websocket.command.CreateComponentCommand;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 import org.w3c.dom.DOMException;
-import org.w3c.dom.Document;
 
 import java.util.Map;
 import java.util.Map.Entry;
@@ -60,7 +61,7 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 	}
 
 	@Override
-	public void processMessage(final WebSocketMessage webSocketData) {
+	public void processMessage(final WebSocketMessage webSocketData) throws FrameworkException {
 
 		setDoTransactionNotifications(true);
 
@@ -96,13 +97,15 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 				return;
 			}
 
-			final Document document = getPage(pageId);
+			final Page document = getPage(pageId);
 			if (document != null) {
 
 				try (final Tx tx = StructrApp.getInstance(getWebSocket().getSecurityContext()).tx(true, true, true)) {
 
+					tx.prefetchHint("Websocket CreateAndAppendOMNodeCommand");
+
 					final boolean isShadowPage = document.equals(CreateComponentCommand.getOrCreateHiddenDocument());
-					final boolean isTemplate   = (parentNode instanceof Template);
+					final boolean isTemplate   = (parentNode.is(StructrTraits.TEMPLATE));
 
 					if (isShadowPage && isTemplate && parentNode.getParent() == null) {
 						getWebSocket().send(MessageBuilder.status().code(422).message("Appending children to root-level shared component Templates is not allowed").build(), true);
@@ -191,14 +194,14 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 		return false;
 	}
 
-	public void copyNodeData(final Map<String, Object> nodeData, final NodeInterface targetNode) {
+	public void copyNodeData(final Map<String, Object> nodeData, final DOMNode targetNode) {
 
 		for (Entry entry : nodeData.entrySet()) {
 
 			final String key = (String) entry.getKey();
 			final Object val = entry.getValue();
 
-			PropertyKey propertyKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(targetNode.getClass(), key);
+			PropertyKey propertyKey = targetNode.getTraits().key(key);
 			if (propertyKey != null) {
 
 				try {
@@ -221,11 +224,13 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 		}
 	}
 
-	public void copyVisibilityFlags(final NodeInterface sourceNode, final NodeInterface targetNode) {
+	public void copyVisibilityFlags(final DOMNode sourceNode, final DOMNode targetNode) {
 
-		PropertyMap visibilityFlags = new PropertyMap();
-		visibilityFlags.put(DOMNode.visibleToAuthenticatedUsers, sourceNode.getProperty(DOMNode.visibleToAuthenticatedUsers));
-		visibilityFlags.put(DOMNode.visibleToPublicUsers,        sourceNode.getProperty(DOMNode.visibleToPublicUsers));
+		final PropertyMap visibilityFlags = new PropertyMap();
+		final Traits traits               = Traits.of(StructrTraits.DOM_NODE);
+
+		visibilityFlags.put(traits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), sourceNode.isVisibleToAuthenticatedUsers());
+		visibilityFlags.put(traits.key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY),        sourceNode.isVisibleToPublicUsers());
 
 		try {
 
@@ -237,7 +242,7 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 		}
 	}
 
-	public void copyGrantees(final NodeInterface sourceNode, final NodeInterface targetNode) {
+	public void copyGrantees(final DOMNode sourceNode, final DOMNode targetNode) {
 
 		try {
 
@@ -250,7 +255,7 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 	}
 
 	// ----- public static methods -----
-	public static DOMNode createNewNode(final StructrWebSocket webSocket, final String tagName, final Document document) {
+	public static DOMNode createNewNode(final StructrWebSocket webSocket, final String tagName, final Page document) throws FrameworkException {
 
 		DOMNode newNode;
 
@@ -259,20 +264,20 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 			switch (tagName) {
 
 				case "#comment":
-					newNode = (DOMNode) document.createComment("#comment");
+					newNode = document.createComment("#comment");
 					break;
 
 				case "#content":
 					// maybe this is unneccessary..
-					newNode = (DOMNode) document.createTextNode("#text");
+					newNode = document.createTextNode("#text");
 					break;
 
 				case "#template":
-					newNode = (DOMNode) document.createTextNode("#template");
+					newNode = document.createTextNode("#template");
 					try {
 
 						newNode.unlockSystemPropertiesOnce();
-						newNode.setProperties(newNode.getSecurityContext(), new PropertyMap(NodeInterface.type, Template.class.getSimpleName()));
+						newNode.setProperties(newNode.getSecurityContext(), new PropertyMap(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY), StructrTraits.TEMPLATE));
 
 					} catch (FrameworkException fex) {
 						logger.warn("Unable to set type of node {} to Template: {}", new Object[] { newNode.getUuid(), fex.getMessage() } );
@@ -282,15 +287,13 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 				case "custom":
 					try {
 
-						final Class entityClass = StructrApp.getConfiguration().getNodeEntityClass("DOMElement");
-
 						// experimental: create DOM element with literal tag
-						newNode = (DOMElement) StructrApp.getInstance(webSocket.getSecurityContext()).create(entityClass,
-							new NodeAttribute(StructrApp.key(DOMElement.class, "tag"), "custom")
-						);
+						newNode = StructrApp.getInstance(webSocket.getSecurityContext()).create(StructrTraits.DOM_ELEMENT,
+							new NodeAttribute(Traits.of(StructrTraits.DOM_ELEMENT).key(DOMElementTraitDefinition.TAG_PROPERTY), "custom")
+						).as(DOMElement.class);
 
 						if (newNode != null && document != null) {
-							newNode.doAdopt((Page)document);
+							newNode.doAdopt(document);
 						}
 
 					} catch (FrameworkException fex) {
@@ -302,14 +305,14 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 					break;
 
 				default:
-					newNode = (DOMNode) document.createElement(tagName);
+					newNode = document.createElement(tagName);
 					break;
 
 			}
 
 		} else {
 
-			newNode = (DOMNode) document.createTextNode("#text");
+			newNode = document.createTextNode("#text");
 		}
 
 		return newNode;

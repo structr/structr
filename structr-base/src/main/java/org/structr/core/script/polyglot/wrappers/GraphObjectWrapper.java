@@ -22,19 +22,19 @@ import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.AccessControllable;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
-import org.structr.core.app.StructrApp;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Methods;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.core.script.polyglot.function.GrantFunction;
+import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
-
-import org.structr.core.api.AbstractMethod;
-import org.structr.core.api.Methods;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,35 +59,33 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 	}
 
 	@Override
-	public Object getMember(String key) {
+	public Object getMember(final String key) {
 
-		if (node instanceof AbstractNode) {
+		if (node instanceof NodeInterface nodeInterface) {
 
 			switch (key) {
 
 				case "id":
 					return this.node.getUuid();
 
-				case "name":
-					return ((AbstractNode)this.node).getName();
-
 				case "owner":
-					return PolyglotWrapper.wrap(actionContext, ((AbstractNode) node).getOwnerNode());
+					final AccessControllable ac = nodeInterface.as(AccessControllable.class);
+					return PolyglotWrapper.wrap(actionContext, ac.getOwnerNode());
 
 				case "_path":
-					return PolyglotWrapper.wrap(actionContext, ((AbstractNode) node).getPath(actionContext.getSecurityContext()));
+					return PolyglotWrapper.wrap(actionContext, nodeInterface.getPath(actionContext.getSecurityContext()));
 
 				case "createdDate":
-					return ((AbstractNode)this.node).getCreatedDate();
+					return this.node.getCreatedDate();
 
 				case "lastModifiedDate":
-					return ((AbstractNode)this.node).getLastModifiedDate();
+					return this.node.getLastModifiedDate();
 
 				case "visibleToPublicUsers":
-					return ((AbstractNode)this.node).getVisibleToPublicUsers();
+					return this.node.isVisibleToPublicUsers();
 
 				case "visibleToAuthenticatedUsers":
-					return ((AbstractNode)this.node).getVisibleToAuthenticatedUsers();
+					return this.node.isVisibleToAuthenticatedUsers();
 			}
 		}
 
@@ -98,7 +96,7 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 		} else {
 
 			// Lookup method, if it's not in cache
-			final AbstractMethod method = Methods.resolveMethod(node.getClass(), key);
+			final AbstractMethod method = Methods.resolveMethod(node.getTraits(), key);
 			if (method != null) {
 
 				// dont call static methods here, but warn instead
@@ -117,10 +115,10 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 				return new GrantFunction(actionContext, node);
 			}
 
-			final PropertyKey propKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key);
+			final PropertyKey propKey = node.getTraits().key(key);
 			if (propKey != null) {
 
-				if (propKey instanceof EndNodes || propKey instanceof StartNodes || propKey instanceof ArrayProperty || (propKey instanceof AbstractPrimitiveProperty && propKey.valueType().isArray())) {
+				if (propKey instanceof EndNodes || propKey instanceof StartNodes || propKey instanceof ArrayProperty || (propKey instanceof AbstractPrimitiveProperty && propKey.isArray())) {
 
 					// RelationshipProperty needs special binding
 					// ArrayProperty values need synchronized ProxyArrays as well
@@ -151,7 +149,8 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 				return PolyglotWrapper.wrap(actionContext, node.getProperty(propKey));
 			}
 
-			return PolyglotWrapper.wrap(actionContext, node.getProperty(key));
+			//return PolyglotWrapper.wrap(actionContext, node.getProperty(key));
+			return null;
 		}
 	}
 
@@ -172,7 +171,7 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 				members.addAll(keys.stream().map(k -> k.jsonName()).collect(Collectors.toList()));
 			}
 
-			for (final Map.Entry<String, AbstractMethod> entry : Methods.getAllMethods(node.getClass()).entrySet()) {
+			for (final Map.Entry<String, AbstractMethod> entry : Methods.getAllMethods(node.getTraits()).entrySet()) {
 
 				final AbstractMethod method = entry.getValue();
 				if (method != null && !method.isPrivate()) {
@@ -203,10 +202,10 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 					return true;
 				}
 
-				final Class type          = node.getClass();
-				final PropertyKey propKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, key);
+				final Traits traits       = node.getTraits();
+				final boolean hasProperty = traits.hasKey(key);
 
-				return Methods.resolveMethod(type, key) != null || (propKey != null && !(propKey instanceof GenericProperty<?>));
+				return hasProperty || Methods.resolveMethod(traits, key) != null;
 
 			} else {
 
@@ -228,9 +227,10 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 			try {
 
-				final PropertyKey propKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key);
+				final PropertyKey propKey = node.getTraits().key(key);
 
-				if (propKey != null && unwrappedValue != null && !propKey.valueType().isAssignableFrom(unwrappedValue.getClass())) {
+				// fixme: how to compare types here?
+				if (propKey != null && unwrappedValue != null && !propKey.valueType().equals(unwrappedValue.getClass().getSimpleName())) {
 
 					final PropertyConverter inputConverter = propKey.inputConverter(actionContext.getSecurityContext());
 
@@ -258,7 +258,8 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 	@Override
 	public boolean removeMember(String key) {
-		final PropertyKey propKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key);
+
+		final PropertyKey propKey = node.getTraits().key(key);
 
 		if (node instanceof GraphObjectMap) {
 

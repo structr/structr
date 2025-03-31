@@ -21,51 +21,45 @@ package org.structr.flow.impl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
-import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.core.property.EndNodes;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNode;
-import org.structr.flow.api.DataSource;
-import org.structr.flow.api.Filter;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
-import org.structr.flow.impl.rels.FlowConditionBaseNode;
-import org.structr.flow.impl.rels.FlowDataInput;
+import org.structr.flow.traits.definitions.FlowFilterTraitDefinition;
 import org.structr.module.api.DeployableEntity;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class FlowFilter extends FlowNode implements DataSource, Filter, DeployableEntity {
+public class FlowFilter extends FlowDataSource implements DeployableEntity {
 
-	private static final Logger logger                              = LoggerFactory.getLogger(FlowFilter.class);
-	public static final Property<DataSource> dataSource             = new StartNode<>("dataSource", FlowDataInput.class);
-	public static final Property<Iterable<FlowBaseNode>> dataTarget = new EndNodes<>("dataTarget", FlowDataInput.class);
-	public static final Property<FlowCondition> condition           = new StartNode<>("condition", FlowConditionBaseNode.class);
+	private static final Logger logger = LoggerFactory.getLogger(FlowFilter.class);
 
-	public static final View defaultView = new View(FlowDataSource.class, PropertyView.Public, dataTarget, dataSource, condition);
-	public static final View uiView      = new View(FlowDataSource.class, PropertyView.Ui, dataTarget, dataSource, condition);
-
-	@Override
-	public Object get(Context context) throws FlowException {
-		Object data = context.getData(getUuid());
-		if (data == null) {
-			filter(context);
-			data = context.getData(getUuid());
-		}
-		return data;
+	public FlowFilter(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
 	}
 
-	@Override
-	public void filter(Context context) throws FlowException {
+	public final FlowCondition getCondition() {
 
-		DataSource ds = getProperty(dataSource);
-		FlowCondition condition = getProperty(FlowFilter.condition);
+		final NodeInterface node = wrappedObject.getProperty(traits.key(FlowFilterTraitDefinition.CONDITION_PROPERTY));
+		if (node != null) {
+
+			return node.as(FlowCondition.class);
+		}
+
+		return null;
+	}
+
+	public void filter(final Context context) throws FlowException {
+
+		final FlowDataSource ds       = getDataSource();
+		final FlowCondition condition = getCondition();
 
 		if (ds != null) {
+
 			Object data = ds.get(context);
 
 			if (data instanceof Iterable) {
@@ -88,26 +82,24 @@ public class FlowFilter extends FlowNode implements DataSource, Filter, Deployab
 					data = ((Stream) data).collect(Collectors.toList());
 
 					context.setData(getUuid(), data);
+
 				} else {
 
 					context.setData(getUuid(), data);
 				}
-
 			}
-
 		}
-
 	}
 
 	@Override
 	public Map<String, Object> exportData() {
-		Map<String, Object> result = new HashMap<>();
 
-		result.put("id", this.getUuid());
-		result.put("type", this.getClass().getSimpleName());
+		final Map<String, Object> result = new TreeMap<>();
 
-		result.put("visibleToPublicUsers", this.getProperty(visibleToPublicUsers));
-		result.put("visibleToAuthenticatedUsers", this.getProperty(visibleToAuthenticatedUsers));
+		result.put(GraphObjectTraitDefinition.ID_PROPERTY,                          getUuid());
+		result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,                        getType());
+		result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        isVisibleToPublicUsers());
+		result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, isVisibleToAuthenticatedUsers());
 
 		return result;
 	}

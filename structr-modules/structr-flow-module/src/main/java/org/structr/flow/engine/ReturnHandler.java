@@ -18,19 +18,16 @@
  */
 package org.structr.flow.engine;
 
-import org.structr.flow.api.FlowElement;
 import org.structr.flow.api.FlowHandler;
-import org.structr.flow.api.Return;
+import org.structr.flow.impl.FlowNode;
+import org.structr.flow.impl.FlowReturn;
 
-/**
- *
- */
-public class ReturnHandler implements FlowHandler<Return> {
+public class ReturnHandler implements FlowHandler {
 
 	@Override
-	public FlowElement handle(final Context context, final Return flowElement) throws FlowException {
+	public FlowNode handle(final Context context, final FlowNode flowElement) throws FlowException {
 
-		context.setResult(flowElement.getResult(context));
+		context.setResult(flowElement.as(FlowReturn.class).getResult(context));
 
 		return null;
 	}

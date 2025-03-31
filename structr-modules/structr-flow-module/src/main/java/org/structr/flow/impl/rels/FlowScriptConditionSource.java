@@ -20,32 +20,55 @@ package org.structr.flow.impl.rels;
 
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
-import org.structr.common.PermissionPropagation;
-import org.structr.core.entity.OneToMany;
 import org.structr.core.entity.Relation;
-import org.structr.flow.api.DataSource;
-import org.structr.flow.impl.FlowScriptCondition;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
+import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
-public class FlowScriptConditionSource extends OneToMany<DataSource, FlowScriptCondition> implements PermissionPropagation {
+public class FlowScriptConditionSource extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
-	@Override
-	public Class<DataSource> getSourceType() {
-		return DataSource.class;
+	public FlowScriptConditionSource() {
+		super(StructrTraits.FLOW_SCRIPT_CONDITION_SOURCE);
 	}
 
 	@Override
-	public Class<FlowScriptCondition> getTargetType() {
-		return FlowScriptCondition.class;
+	public String getSourceType() {
+		return StructrTraits.FLOW_DATA_SOURCE;
 	}
 
 	@Override
-	public String name() {
+	public String getTargetType() {
+		return StructrTraits.FLOW_SCRIPT_CONDITION;
+	}
+
+	@Override
+	public String getRelationshipType() {
 		return "SCRIPT_SOURCE";
+	}
+
+	@Override
+	public Relation.Multiplicity getSourceMultiplicity() {
+		return Relation.Multiplicity.One;
+	}
+
+	@Override
+	public Relation.Multiplicity getTargetMultiplicity() {
+		return Relation.Multiplicity.Many;
+	}
+
+	@Override
+	public int getCascadingDeleteFlag() {
+		return 0;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
 		return Relation.ALWAYS;
+	}
+
+	@Override
+	public boolean isInternal() {
+		return false;
 	}
 
 	@Override

@@ -18,13 +18,14 @@
  */
 package org.structr.websocket.command.dom;
 
+import org.structr.common.error.FrameworkException;
 import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.entity.dom.Page;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.command.AbstractCommand;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 import org.w3c.dom.DOMException;
-import org.w3c.dom.Document;
 
 import java.util.Map;
 
@@ -40,7 +41,7 @@ public class CreateAndReplaceDOMNodeCommand extends AbstractCommand {
 	}
 
 	@Override
-	public void processMessage(final WebSocketMessage webSocketData) {
+	public void processMessage(final WebSocketMessage webSocketData) throws FrameworkException {
 
 		setDoTransactionNotifications(true);
 
@@ -81,7 +82,7 @@ public class CreateAndReplaceDOMNodeCommand extends AbstractCommand {
 				return;
 			}
 
-			final Document document = getPage(pageId);
+			final Page document = getPage(pageId);
 			if (document != null) {
 
 				String tagName  = (String) nodeData.get("tagName");
@@ -91,7 +92,7 @@ public class CreateAndReplaceDOMNodeCommand extends AbstractCommand {
 
 					if (tagName != null && !tagName.isEmpty()) {
 
-						newNode = (DOMNode)document.createElement(tagName);
+						newNode = document.createElement(tagName);
 
 					} else {
 

@@ -35,18 +35,15 @@ public class TypeQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 	public boolean createQuery(final QueryPredicate predicate, final MemoryQuery query, final boolean isFirst) {
 
 		final TypeQuery typeQuery = (TypeQuery)predicate;
-		final Class sourceType    = typeQuery.getSourceType();
-		final Class targetType    = typeQuery.getTargetType();
+		final String sourceType   = typeQuery.getSourceType();
+		final String targetType   = typeQuery.getTargetType();
 		final Object mainType     = typeQuery.getValue();
 		final String label        = mainType.toString();
 
 		if (sourceType != null && targetType != null) {
 
-			final String sourceLabel   = sourceType.getSimpleName();
-			final String targetLabel   = targetType.getSimpleName();
-
 			// relationship type, include source and target type labels
-			query.addPredicate(new LabelPredicate(label, sourceLabel, targetLabel));
+			query.addPredicate(new LabelPredicate(label, sourceType, targetType));
 
 		} else {
 

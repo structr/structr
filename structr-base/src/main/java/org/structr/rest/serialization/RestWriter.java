@@ -29,38 +29,38 @@ import java.io.IOException;
  */
 public interface RestWriter {
 
-	public void setIndent(final String indent);
-	public SecurityContext getSecurityContext();
-	public int getPageSize();
-	public void setPageSize(final int pageSize);
-	public int getPage();
-	public void setPage(final int page);
+	void setIndent(final String indent);
+	SecurityContext getSecurityContext();
+	int getPageSize();
+	void setPageSize(final int pageSize);
+	int getPage();
+	void setPage(final int page);
 
-	public RestWriter beginDocument(final String baseUrl, final String propertyView) throws IOException;
-	public RestWriter endDocument() throws IOException;
-	public RestWriter beginArray() throws IOException;
-	public RestWriter endArray() throws IOException;
-	public RestWriter beginObject() throws IOException;
-	public RestWriter beginObject(final GraphObject graphObject) throws IOException;
-	public RestWriter endObject() throws IOException;
-	public RestWriter endObject(final GraphObject graphObject) throws IOException;
-	public RestWriter name(final String name) throws IOException;
-	public RestWriter value(final String value) throws IOException;
-	public RestWriter nullValue() throws IOException;
-	public RestWriter value(final boolean value) throws IOException;
-	public RestWriter value(final double value) throws IOException;
-	public RestWriter value(final long value) throws IOException;
-	public RestWriter value(final Number value) throws IOException;
+	RestWriter beginDocument(final String baseUrl, final String propertyView) throws IOException;
+	RestWriter endDocument() throws IOException;
+	RestWriter beginArray() throws IOException;
+	RestWriter endArray() throws IOException;
+	RestWriter beginObject() throws IOException;
+	RestWriter beginObject(final GraphObject graphObject) throws IOException;
+	RestWriter endObject() throws IOException;
+	RestWriter endObject(final GraphObject graphObject) throws IOException;
+	RestWriter name(final String name) throws IOException;
+	RestWriter value(final String value) throws IOException;
+	RestWriter nullValue() throws IOException;
+	RestWriter value(final boolean value) throws IOException;
+	RestWriter value(final double value) throws IOException;
+	RestWriter value(final long value) throws IOException;
+	RestWriter value(final Number value) throws IOException;
 
-	public void raw(final String data) throws IOException;
-	public void flush() throws IOException;
+	void raw(final String data) throws IOException;
+	void flush() throws IOException;
 
-	default public void increaseSerializationDepth() {
+	default void increaseSerializationDepth() {
 
 		getSecurityContext().increaseSerializationDepth();
 	}
 
-	default public void decreaseSerializationDepth() {
+	default void decreaseSerializationDepth() {
 
 		getSecurityContext().decreaseSerializationDepth();
 	}

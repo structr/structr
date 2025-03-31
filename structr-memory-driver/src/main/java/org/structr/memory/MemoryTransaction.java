@@ -18,7 +18,6 @@
  */
 package org.structr.memory;
 
-import org.structr.api.NotFoundException;
 import org.structr.api.Transaction;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
@@ -43,6 +42,7 @@ public class MemoryTransaction implements Transaction {
 	//private final Map<MemoryIdentity, MemoryNode> createdNodes                 = new LinkedHashMap<>();
 	private final Set<MemoryEntity> modifiedEntities                           = new LinkedHashSet<>();
 	private final Set<MemoryIdentity> deletedNodes                             = new LinkedHashSet<>();
+	private final Set<Long> nodesCreated                                       = new LinkedHashSet<>();
 	private final long transactionId                                           = idCounter.incrementAndGet();
 	private MemoryDatabaseService db                                           = null;
 	private boolean failureOverride                                            = false;
@@ -118,12 +118,24 @@ public class MemoryTransaction implements Transaction {
 	}
 
 	@Override
+	public void setNodeIsCreated(final long id) {
+		nodesCreated.add(id);
+	}
+
+	@Override
+	public boolean isNodeCreated(final long id) {
+		return nodesCreated.contains(id);
+	}
+
+	@Override
 	public boolean isNodeDeleted(final long id) {
 		return deletedNodes.contains(id);
 	}
 
 	public void create(final MemoryNode newNode) {
 		createdNodes.add(newNode);
+
+		setNodeIsCreated(newNode.getIdentity().getId());
 	}
 
 	public void create(final MemoryRelationship newRelationship) {
@@ -216,22 +228,27 @@ public class MemoryTransaction implements Transaction {
 	}
 
 	@Override
-	public void prefetch(String type1, String type2, Set<String> keys) {
+	public int level() {
+		return 0;
+	}
 
+	@Override
+	public void prefetchHint(final String hint) {
+	}
+
+	@Override
+	public void prefetch(String type1, String type2, Set<String> keys) {
 	}
 
 	@Override
 	public void prefetch(String query, Set<String> keys) {
-
 	}
 
 	@Override
 	public void prefetch(String query, Set<String> outgoingKeys, Set<String> incomingKeys) {
-
 	}
 
 	@Override
 	public void prefetch2(String query, Set<String> outgoingKeys, Set<String> incomingKeys, final String id) {
-
 	}
 }

@@ -29,7 +29,7 @@ public class OpenAPIGetMultipleOperation extends OpenAPIOperation {
 	public OpenAPIGetMultipleOperation(final StructrTypeDefinition type, final String view) {
 
 		/*responses.put("ok", new OpenAPIRequestResponse("The request was executed successfully.",
-				new OpenAPIResultSchema(new OpenAPIStructrTypeSchemaOutput(AbstractNode.class, "public", 0), true),
+				new OpenAPIResultSchema(new OpenAPIStructrTypeSchemaOutput(NodeInterface.class, "public", 0), true),
 				new OpenAPIExampleAnyResult(List.of(), false)
 		));*/
 		super(	// summary

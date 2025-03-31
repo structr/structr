@@ -16,11 +16,11 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Persistence }         from "./lib/structr/persistence/Persistence.js";
-import { FlowContainer }       from "./flow-editor/src/js/editor/entities/FlowContainer.js";
-import { FlowEditor }          from "./flow-editor/src/js/editor/FlowEditor.js";
-import { LayoutModal }         from "./flow-editor/src/js/editor/utility/LayoutModal.js";
-import { Rest }                from "./lib/structr/rest/Rest.js";
+import {Persistence} from "./lib/structr/persistence/Persistence.js";
+import {FlowContainer} from "./flow-editor/src/js/editor/entities/FlowContainer.js";
+import {FlowEditor} from "./flow-editor/src/js/editor/FlowEditor.js";
+import {LayoutModal} from "./flow-editor/src/js/editor/utility/LayoutModal.js";
+import {Rest} from "./lib/structr/rest/Rest.js";
 
 let flowsMain, flowsTree, flowsCanvas, nodeEditor;
 let flowEditor, flowId;
@@ -130,9 +130,24 @@ let _Flows = {
 			}
 		}
 
+		function getNameParts(name) {
+
+			const tree = $(flowsTree).jstree();
+			let node   = tree.get_node(name);
+
+			let parts = node.parents.filter(p => (p !== 'root' && p !== '#')).map(parentName => {
+				let parentNode = tree.get_node(parentName);
+				return parentNode.data.name;
+			}).reverse();
+
+			parts.push(node.data.name);
+
+			return parts;
+		}
+
 		async function getPackageByEffectiveName(name) {
-			let nameComponents = name.split("/");
-			nameComponents = nameComponents.slice(1, nameComponents.length);
+
+			let nameComponents = getNameParts(name);
 			let packages = await rest.get(_Helpers.getPrefixedRootUrl('/structr/rest/FlowContainerPackage?effectiveName=' + encodeURIComponent(nameComponents.join("."))));
 			return packages.result.length > 0 ? packages.result[0] : null;
 		}
@@ -224,7 +239,7 @@ let _Flows = {
 					if (node.data === null || node.id === "root") {
 
 						menuItems.addFlow = {
-							label: "Add Flow",
+							label: "Create Flow",
 							action: async function (node) {
 								let ref = $.jstree.reference(node.reference);
 								let sel = ref.get_selected();
@@ -237,9 +252,12 @@ let _Flows = {
 
 								let newFlow = await persistence.createNode({
 									type: "FlowContainer",
-									flowPackage: p !== null ? p.id : null
+									flowPackage: ((p !== null) ? p.id : null),
+									name: "NewFlow"
 								});
 								newFlow.name = 'NewFlow-' + newFlow.id;
+								// setting the name is implicitly async and can lead to showing the temporary name from creation
+								await persistence._persistObject(newFlow);
 
 								newFlow = (await persistence.getNodesById(newFlow.id, {type: "FlowContainer"}))[0];
 
@@ -255,7 +273,7 @@ let _Flows = {
 							}
 						};
 						menuItems.addPackage = {
-							label: "Add Package",
+							label: "Create Package",
 							action: async function (node) {
 								let ref = $.jstree.reference(node.reference);
 								let sel = ref.get_selected();
@@ -268,9 +286,12 @@ let _Flows = {
 
 								let newFlowPackage = await persistence.createNode({
 									type: "FlowContainerPackage",
-									parent: p !== null ? p.id : null
+									parent: ((p !== null) ? p.id : null),
+									name: "NewFlowPackage"
 								});
 								newFlowPackage.name = 'NewFlowPackage-' + newFlowPackage.id;
+								// setting the name is implicitly async and can lead to showing the temporary name from creation
+								await persistence._persistObject(newFlowPackage);
 
 								newFlowPackage = await persistence.getNodesById(newFlowPackage.id, {type: "FlowContainerPackage"});
 								_Flows.refreshTree(() => {
@@ -306,7 +327,7 @@ let _Flows = {
 									if (ref._model.data[sel].data !== null && ref._model.data[sel].data.type === "FlowContainer") {
 										deleteMsg = "Delete flow?";
 									}  else {
-										deleteMsg = "Delete recurively?";
+										deleteMsg = "Delete recursively?";
 									}
 									if (confirm(deleteMsg)) {
 										ref.delete_node(sel);
@@ -757,6 +778,14 @@ let _Flows = {
 
 	templates: {
 		main: config => `
+			<style>
+				.jstree-rename-input {
+					height: 24px ! important;
+				}
+				.vakata-context {
+					margin-top: -24px;
+				}
+			</style>
 			<div class="tree-main" id="flows-main">
 				<div class="column-resizer"></div>
 
@@ -774,10 +803,10 @@ let _Flows = {
 
 			<div class="inline-flex">
 
-				<input class="mr-2" id="name-input" type="text" placeholder="Enter flow name" autocomplete="off">
+				<input class="combined-input-create" id="name-input" type="text" placeholder="Enter flow name" autocomplete="off">
 
-				<button id="create-new-flow" class="action inline-flex items-center">
-					${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} Add
+				<button id="create-new-flow" class="action inline-flex items-center combined-input-create">
+					${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} Create
 				</button>
 			</div>
 

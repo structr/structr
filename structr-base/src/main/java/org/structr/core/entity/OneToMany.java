@@ -24,15 +24,14 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.search.SearchCommand;
-import org.structr.core.notion.Notion;
-import org.structr.core.notion.RelationshipNotion;
+import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.traits.Traits;
 
 /**
  *
  *
  */
-public abstract class OneToMany<S extends NodeInterface, T extends NodeInterface> extends AbstractRelationship<S, T> implements Relation<S, T, OneStartpoint<S>, ManyEndpoint<T>> {
+public abstract class OneToMany extends AbstractRelation implements Relation<OneStartpoint, ManyEndpoint> {
 
 	@Override
 	public Multiplicity getSourceMultiplicity() {
@@ -45,61 +44,46 @@ public abstract class OneToMany<S extends NodeInterface, T extends NodeInterface
 	}
 
 	@Override
-	public OneStartpoint<S> getSource() {
-		return new OneStartpoint<>(this);
+	public OneStartpoint getSource() {
+		return new OneStartpoint(this);
 	}
 
 	@Override
-	public ManyEndpoint<T> getTarget() {
-		return new ManyEndpoint<>(this);
-	}
-
-	@Override
-	public int getCascadingDeleteFlag() {
-		return Relation.NONE;
-	}
-
-	@Override
-	public int getAutocreationFlag() {
-		return Relation.NONE;
+	public ManyEndpoint getTarget() {
+		return new ManyEndpoint(this);
 	}
 
 	@Override
 	public void ensureCardinality(final SecurityContext securityContext, final NodeInterface sourceNode, final NodeInterface targetNode) throws FrameworkException {
 
-		final App app                          = StructrApp.getInstance();
-		final Class<? extends OneToMany> clazz = this.getClass();
-		final Class<S> sourceType              = getSourceType();
+		final App app           = StructrApp.getInstance();
+		final String type       = this.getType();
+		final String sourceType = getSourceType();
 
 		if (targetNode != null) {
 
 			// check existing relationships
-			final Relation<?, T, ?, ?> incomingRel = targetNode.getIncomingRelationshipAsSuperUser(clazz);
-			if (incomingRel != null && SearchCommand.isTypeAssignableFromOtherType(sourceType, incomingRel.getSourceType())) {
+			final RelationshipInterface incomingRel = targetNode.getIncomingRelationshipAsSuperUser(type);
+			if (incomingRel != null) {
 
-				app.delete(incomingRel);
+				final Relation relation = incomingRel.getRelation();
+				final Traits sourceTraits = Traits.of(relation.getSourceType());
+
+				if (sourceTraits.contains(sourceType)) {
+
+					app.delete(incomingRel);
+				}
 			}
 		}
 	}
 
 	@Override
-	public Notion getEndNodeNotion() {
-		return new RelationshipNotion(getTargetIdProperty());
-
+	public Direction getDirectionForType(final String type) {
+		return getDirectionForType(getSourceType(), getTargetType(), type);
 	}
 
 	@Override
-	public Notion getStartNodeNotion() {
-		return new RelationshipNotion(getSourceIdProperty());
-	}
-
-	@Override
-	public Direction getDirectionForType(final Class<? extends NodeInterface> type) {
-		return super.getDirectionForType(getSourceType(), getTargetType(), type);
-	}
-
-	@Override
-	public Class getOtherType(final Class type) {
+	public String getOtherType(final String type) {
 
 		switch (getDirectionForType(type)) {
 
@@ -109,15 +93,5 @@ public abstract class OneToMany<S extends NodeInterface, T extends NodeInterface
 		}
 
 		return null;
-	}
-
-	@Override
-	public boolean isHidden() {
-		return false;
-	}
-
-	@Override
-	public boolean isInternal() {
-		return false;
 	}
 }

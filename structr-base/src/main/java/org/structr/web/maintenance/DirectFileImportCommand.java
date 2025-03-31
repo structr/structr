@@ -27,17 +27,20 @@ import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.fulltext.FulltextIndexer;
+import org.structr.common.helper.PathHelper;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.*;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.rest.resource.MaintenanceResource;
 import org.structr.storage.StorageProviderFactory;
-import org.structr.schema.SchemaHelper;
 import org.structr.web.common.FileHelper;
-import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
-import org.structr.web.entity.Image;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -49,8 +52,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.structr.common.helper.PathHelper;
-import org.structr.rest.resource.MaintenanceResource;
 
 /**
  *
@@ -149,10 +150,10 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 		}
 
-		final SecurityContext ctx = SecurityContext.getSuperUserInstance();
-		final App app             = StructrApp.getInstance(ctx);
-		String targetPath         = getParameterValueAsString(attributes, "target", "/");
-		Folder targetFolder       = null;
+		final SecurityContext ctx  = SecurityContext.getSuperUserInstance();
+		final App app              = StructrApp.getInstance(ctx);
+		String targetPath          = getParameterValueAsString(attributes, "target", "/");
+		NodeInterface targetFolder = null;
 
 		ctx.setDoTransactionNotifications(false);
 
@@ -160,7 +161,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 			try (final Tx tx = app.tx()) {
 
-				targetFolder = app.nodeQuery(Folder.class).and(StructrApp.key(Folder.class, "path"), targetPath).getFirst();
+				targetFolder = app.nodeQuery(StructrTraits.FOLDER).and(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.PATH_PROPERTY), targetPath).getFirst();
 				if (targetFolder == null) {
 
 					throw new FrameworkException(422, "Target path " + targetPath + " does not exist.");
@@ -250,18 +251,18 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 			if (attrs.isDirectory()) {
 
-				final Folder newFolder = app.create(Folder.class,
-						new NodeAttribute(Folder.name, name),
-						new NodeAttribute(StructrApp.key(File.class, "parent"), FileHelper.createFolderPath(securityContext, parentPath))
+				final NodeInterface newFolder = app.create(StructrTraits.FOLDER,
+						new NodeAttribute(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name),
+						new NodeAttribute(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY), FileHelper.createFolderPath(securityContext, parentPath))
 				);
 
 				folderCount++;
 
-				logger.info("Created folder " + newFolder.getPath());
+				logger.info("Created folder " + newFolder.as(Folder.class).getPath());
 
 			} else if (attrs.isRegularFile()) {
 
-				final File existingFile = app.nodeQuery(File.class).and(StructrApp.key(AbstractFile.class, "path"), parentPath + name).getFirst();
+				final NodeInterface existingFile = app.nodeQuery(StructrTraits.FILE).and(Traits.of(StructrTraits.ABSTRACT_FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY), parentPath + name).getFirst();
 				if (existingFile != null) {
 
 					switch (existing) {
@@ -277,7 +278,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 						case RENAME:
 							logger.info("Renaming existing file {}, file exists and mode is RENAME.", parentPath + name);
-							existingFile.setProperty(AbstractFile.name, existingFile.getProperty(AbstractFile.name).concat("_").concat(FileHelper.getDateString()));
+							existingFile.setProperty(Traits.of(StructrTraits.ABSTRACT_FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), existingFile.getName().concat("_").concat(FileHelper.getDateString()));
 							break;
 					}
 
@@ -288,32 +289,32 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 				boolean isImage = (contentType != null && contentType.startsWith("image"));
 				boolean isVideo = (contentType != null && contentType.startsWith("video"));
 
-				Class cls = null;
+				Traits traits = null;
 
 				if (isImage) {
 
-					cls = Image.class;
+					traits = Traits.of(StructrTraits.IMAGE);
 
 				} else if (isVideo) {
 
-					cls = SchemaHelper.getEntityClassForRawType("VideoFile");
-					if (cls == null) {
+					traits = Traits.of(StructrTraits.VIDEO_FILE);
+					if (traits == null) {
 
 						logger.warn("Unable to create entity of type VideoFile, class is not defined.");
 					}
 
 				} else {
 
-					cls = File.class;
+					traits = Traits.of(StructrTraits.FILE);
 				}
 
-				final File newFile = (File) app.create(cls,
-						new NodeAttribute(File.name, name),
-						new NodeAttribute(StructrApp.key(File.class, "parent"), FileHelper.createFolderPath(securityContext, parentPath)),
-						new NodeAttribute(AbstractNode.type, cls.getSimpleName())
+				final NodeInterface newFile = app.create(traits.getName(),
+						new NodeAttribute(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name),
+						new NodeAttribute(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY), FileHelper.createFolderPath(securityContext, parentPath)),
+						new NodeAttribute(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY), traits.getName())
 				);
 
-				try (final InputStream is = new FileInputStream(file.toFile()); final OutputStream os = StorageProviderFactory.getStorageProvider(newFile).getOutputStream()) {
+				try (final InputStream is = new FileInputStream(file.toFile()); final OutputStream os = StorageProviderFactory.getStorageProvider(newFile.as(File.class)).getOutputStream()) {
 					IOUtils.copy(is, os);
 				}
 
@@ -322,7 +323,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 					Files.delete(file);
 				}
 
-				FileHelper.updateMetadata(newFile);
+				FileHelper.updateMetadata(newFile.as(File.class));
 
 				if (doIndex) {
 					indexer.addToFulltextIndex(newFile);

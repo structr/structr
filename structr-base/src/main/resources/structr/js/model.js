@@ -272,8 +272,13 @@ let StructrModel = {
 
 		return obj;
 	},
-	updateKey: function(id, key, value) {
-		var obj = StructrModel.obj(id);
+	updateModelWithData: (id, data) => {
+		for (let [k,v] of Object.entries(data)) {
+			StructrModel.updateKey(id, k, v);
+		}
+	},
+	updateKey: (id, key, value) => {
+		let obj = StructrModel.obj(id);
 
 		if (obj) {
 			obj[key] = value;
@@ -320,6 +325,12 @@ let StructrModel = {
 
 					if (key === 'name') {
 						attrElement.attr('title', newValue).html(newValue);
+
+						// find elements, where this node is displayed as a related node
+						let otherDisplayedNodes = document.querySelectorAll('.related-node._' + id);
+						for (let other of otherDisplayedNodes) {
+							_Entities.updateRelatedNodeName(other, newValue ?? id);
+						}
 					}
 				}
 
@@ -371,7 +382,8 @@ let StructrModel = {
 			}
 
 			// update HTML 'class' and 'id' attributes
-			if (_Helpers.isIn('_html_id', Object.keys(obj)) || _Helpers.isIn('_html_class', Object.keys(obj))) {
+			let keys = Object.keys(obj);
+			if (keys.includes('_html_id') || keys.includes('_html_class')) {
 
 				let classIdAttrsEl = element.children('.node-container').find('.class-id-attrs');
 				if (classIdAttrsEl.length) {
@@ -422,7 +434,7 @@ let StructrModel = {
 
 			_Entities.updateNewAccessControlIconInElement(obj, element);
 
-			let displayName = _Helpers.getElementDisplayName(obj);
+			let displayName = _Helpers.getHTMLTreeElementDisplayName(obj);
 
 			if (obj.hasOwnProperty('name')) {
 

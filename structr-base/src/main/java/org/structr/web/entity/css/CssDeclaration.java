@@ -18,18 +18,7 @@
  */
 package org.structr.web.entity.css;
 
-import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNode;
-import org.structr.web.entity.css.relationship.CssRuleHAS_DECLARATIONCssDeclaration;
+import org.structr.core.graph.NodeInterface;
 
-public class CssDeclaration extends AbstractNode {
-
-	public static final Property<CssRule> ruleProperty = new StartNode<>("rule", CssRuleHAS_DECLARATIONCssDeclaration.class).partOfBuiltInSchema();
-
-	public static final View uiView = new View(CssRule.class, PropertyView.Ui,
-		ruleProperty
-	);
+public interface CssDeclaration extends NodeInterface {
 }

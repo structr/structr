@@ -20,32 +20,55 @@ package org.structr.flow.impl.rels;
 
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
-import org.structr.common.PermissionPropagation;
-import org.structr.core.entity.ManyToMany;
 import org.structr.core.entity.Relation;
-import org.structr.flow.impl.FlowCall;
-import org.structr.flow.impl.FlowParameterInput;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
+import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
-public class FlowCallParameter extends ManyToMany<FlowParameterInput, FlowCall> implements PermissionPropagation {
+public class FlowCallParameter extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
-	@Override
-	public Class<FlowParameterInput> getSourceType() {
-		return FlowParameterInput.class;
+	public FlowCallParameter() {
+		super(StructrTraits.FLOW_CALL_PARAMETER);
 	}
 
 	@Override
-	public Class<FlowCall> getTargetType() {
-		return FlowCall.class;
+	public String getSourceType() {
+		return StructrTraits.FLOW_PARAMETER_INPUT;
 	}
 
 	@Override
-	public String name() {
+	public String getTargetType() {
+		return StructrTraits.FLOW_CALL;
+	}
+
+	@Override
+	public String getRelationshipType() {
 		return "INPUT_FOR";
+	}
+
+	@Override
+	public Relation.Multiplicity getSourceMultiplicity() {
+		return Relation.Multiplicity.Many;
+	}
+
+	@Override
+	public Relation.Multiplicity getTargetMultiplicity() {
+		return Relation.Multiplicity.Many;
+	}
+
+	@Override
+	public int getCascadingDeleteFlag() {
+		return 0;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
 		return Relation.ALWAYS;
+	}
+
+	@Override
+	public boolean isInternal() {
+		return false;
 	}
 
 	@Override

@@ -19,66 +19,40 @@
 package org.structr.flow.impl;
 
 import org.structr.api.util.Iterables;
-import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.core.property.EndNode;
-import org.structr.core.property.EndNodes;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNodes;
-import org.structr.flow.api.DataSource;
-import org.structr.flow.engine.Context;
-import org.structr.flow.engine.FlowException;
-import org.structr.flow.impl.rels.FlowConditionCondition;
-import org.structr.flow.impl.rels.FlowDataInputs;
-import org.structr.flow.impl.rels.FlowDecisionCondition;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.flow.traits.definitions.FlowNotEmptyTraitDefinition;
 import org.structr.module.api.DeployableEntity;
 
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
-/**
- *
- */
-public class FlowNotEmpty extends FlowCondition implements DataSource, DeployableEntity {
+public class FlowNotEmpty extends FlowCondition implements DeployableEntity {
 
-	public static final Property<Iterable<DataSource>> dataSources = new StartNodes<>("dataSources", FlowDataInputs.class);
-	public static final Property<FlowCondition> condition          = new EndNode<>("condition", FlowConditionCondition.class);
-	public static final Property<Iterable<FlowDecision>> decision  = new EndNodes<>("decision", FlowDecisionCondition.class);
+	public FlowNotEmpty(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
+	}
 
-	public static final View defaultView = new View(FlowNotNull.class, PropertyView.Public, dataSources, condition, decision);
-	public static final View uiView      = new View(FlowNotNull.class, PropertyView.Ui,     dataSources, condition, decision);
+	public final Iterable<FlowDataSource> getDataSources() {
 
-	@Override
-	public Object get(final Context context) throws FlowException {
+		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key(FlowNotEmptyTraitDefinition.DATA_SOURCES_PROPERTY));
 
-		final List<DataSource> _dataSources = Iterables.toList(getProperty(dataSources));
-		if (_dataSources.isEmpty()) {
+		return Iterables.map(n -> n.as(FlowDataSource.class), nodes);
+	}
 
-			return false;
-		}
-
-		for (final DataSource _dataSource : getProperty(dataSources)) {
-
-			Object currentData = _dataSource.get(context);
-			if (currentData == null) {
-				return false;
-			} else if (currentData instanceof String && ((String) currentData).length() == 0) {
-				return false;
-			} else if (currentData instanceof Iterable && Iterables.toList((Iterable) currentData).size() == 0) {
-				return false;
-			}
-		}
-
-		return true;
+	public void setDataSources(final Iterable<FlowDataSource> dataSources) throws FrameworkException {
+		wrappedObject.setProperty(traits.key(FlowNotEmptyTraitDefinition.DATA_SOURCES_PROPERTY), dataSources);
 	}
 
 	@Override
 	public Map<String, Object> exportData() {
-		Map<String, Object> result = new HashMap<>();
 
-		result.put("id", this.getUuid());
-		result.put("type", this.getClass().getSimpleName());
+		final Map<String, Object> result = new TreeMap<>();
+
+		result.put(GraphObjectTraitDefinition.ID_PROPERTY,   getUuid());
+		result.put(GraphObjectTraitDefinition.TYPE_PROPERTY, getType());
 
 		return result;
 	}

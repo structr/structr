@@ -19,7 +19,9 @@
 package org.structr.websocket.command.dom;
 
 import org.structr.common.PropertyView;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.command.AbstractCommand;
@@ -28,8 +30,6 @@ import org.structr.websocket.message.WebSocketMessage;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-
-import org.structr.core.graph.TransactionCommand;
 
 /**
  * Websocket command to return the children of the given DOM node
@@ -43,7 +43,7 @@ public class DOMNodeChildrenCommand extends AbstractCommand {
 	}
 
 	@Override
-	public void processMessage(final WebSocketMessage webSocketData) {
+	public void processMessage(final WebSocketMessage webSocketData) throws FrameworkException {
 
 		setDoTransactionNotifications(false);
 
@@ -55,15 +55,14 @@ public class DOMNodeChildrenCommand extends AbstractCommand {
 			return;
 		}
 
-		TransactionCommand.getCurrentTransaction().prefetch("(n:NodeInterface { id: \"" + webSocketData.getId() + "\" })-[:CONTAINS]->(m)",
-			Set.of("all/OUTGOING/CONTAINS"),
-			Set.of("all/INCOMING/CONTAINS")
-		);
+		prefetch(webSocketData.getId());
 
 		final List<GraphObject> result = new LinkedList<>();
-		DOMNode currentNode      = (DOMNode) node.getFirstChild();
+		DOMNode currentNode            = node.getFirstChild();
 
 		while (currentNode != null) {
+
+			prefetch(currentNode.getUuid());
 
 			result.add(currentNode);
 
@@ -82,5 +81,48 @@ public class DOMNodeChildrenCommand extends AbstractCommand {
 	@Override
 	public String getCommand() {
 		return "DOM_NODE_CHILDREN";
+	}
+
+	private void prefetch(final String uuid) {
+
+		TransactionCommand.getCurrentTransaction().prefetch("(n:NodeInterface:DOMNode { id: \"" + uuid + "\" })-[r]-(m)",
+
+			Set.of(
+				"all/OUTGOING/CONTAINS",
+				"all/OUTGOING/CONTAINS_NEXT_SIBLING",
+				"all/OUTGOING/SUCCESS_TARGET",
+				"all/OUTGOING/FAILURE_TARGET",
+				"all/OUTGOING/SUCCESS_NOTIFICATION_ELEMENT",
+				"all/OUTGOING/FAILURE_NOTIFICATION_ELEMENT",
+				"all/OUTGOING/RELOADS",
+				"all/OUTGOING/FLOW",
+				"all/OUTGOING/INPUT_ELEMENT",
+				"all/OUTGOING/OWNS",
+				"all/OUTGOING/PARAMETER",
+				"all/OUTGOING/SECURITY",
+				"all/OUTGOING/SYNC",
+				"all/OUTGOING/PAGE",
+				"all/OUTGOING/TRIGGERED_BY"
+			),
+
+			Set.of(
+
+				"all/INCOMING/CONTAINS",
+				"all/INCOMING/CONTAINS_NEXT_SIBLING",
+				"all/INCOMING/SUCCESS_TARGET",
+				"all/INCOMING/FAILURE_TARGET",
+				"all/INCOMING/SUCCESS_NOTIFICATION_ELEMENT",
+				"all/INCOMING/FAILURE_NOTIFICATION_ELEMENT",
+				"all/INCOMING/RELOADS",
+				"all/INCOMING/FLOW",
+				"all/INCOMING/INPUT_ELEMENT",
+				"all/INCOMING/OWNS",
+				"all/INCOMING/PARAMETER",
+				"all/INCOMING/SECURITY",
+				"all/INCOMING/SYNC",
+				"all/INCOMING/PAGE",
+				"all/INCOMING/TRIGGERED_BY"
+			)
+		);
 	}
 }

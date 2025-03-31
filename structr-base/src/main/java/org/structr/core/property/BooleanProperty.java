@@ -33,8 +33,6 @@ import java.util.Set;
 
 /**
 * A property that stores and retrieves a simple Boolean value.
- *
- *
  */
 public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 
@@ -115,6 +113,11 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 			}
 		}
 
+		return false;
+	}
+
+	@Override
+	public boolean isArray() {
 		return false;
 	}
 

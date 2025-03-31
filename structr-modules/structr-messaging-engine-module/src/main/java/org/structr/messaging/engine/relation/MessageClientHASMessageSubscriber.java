@@ -18,31 +18,55 @@
  */
 package org.structr.messaging.engine.relation;
 
-import org.structr.core.entity.ManyToMany;
 import org.structr.core.entity.Relation;
-import org.structr.messaging.engine.entities.MessageClient;
-import org.structr.messaging.engine.entities.MessageSubscriber;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
+import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
-public class MessageClientHASMessageSubscriber extends ManyToMany<MessageClient, MessageSubscriber> {
+public class MessageClientHASMessageSubscriber extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
-	@Override
-	public Class<MessageClient> getSourceType() {
-		return MessageClient.class;
+	public MessageClientHASMessageSubscriber() {
+		super(StructrTraits.MESSAGE_CLIENT_HAS_MESSAGE_SUBSCRIBER);
 	}
 
 	@Override
-	public Class<MessageSubscriber> getTargetType() {
-		return MessageSubscriber.class;
+	public String getSourceType() {
+		return StructrTraits.MESSAGE_CLIENT;
 	}
 
 	@Override
-	public String name() {
+	public String getTargetType() {
+		return StructrTraits.MESSAGE_SUBSCRIBER;
+	}
+
+	@Override
+	public String getRelationshipType() {
 		return "HAS_SUBSCRIBER";
+	}
+
+	@Override
+	public Relation.Multiplicity getSourceMultiplicity() {
+		return Relation.Multiplicity.Many;
+	}
+
+	@Override
+	public Relation.Multiplicity getTargetMultiplicity() {
+		return Relation.Multiplicity.Many;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
 		return Relation.NONE;
+	}
+
+	@Override
+	public int getAutocreationFlag() {
+		return Relation.NONE;
+	}
+
+	@Override
+	public boolean isInternal() {
+		return false;
 	}
 
 }

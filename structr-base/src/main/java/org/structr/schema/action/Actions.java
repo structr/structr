@@ -19,12 +19,6 @@
 package org.structr.schema.action;
 
 import jakarta.servlet.http.HttpServletRequest;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,9 +33,14 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.graph.ModificationQueue;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.FunctionProperty;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.StructrTraits;
+
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  *
@@ -160,7 +159,7 @@ public class Actions {
 			// we might want to introduce caching here at some point in the future..
 			// Cache can be invalidated when the schema is rebuilt for example..
 
-			final List<SchemaMethod> methods = StructrApp.getInstance().nodeQuery(SchemaMethod.class).andName(key).getAsList();
+			final List<NodeInterface> methods = StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_METHOD).andName(key).getAsList();
 			if (methods.isEmpty()) {
 
 				if (!NOTIFICATION_LOGIN.equals(key) && !NOTIFICATION_LOGOUT.equals(key)) {
@@ -169,13 +168,15 @@ public class Actions {
 
 			} else {
 
-				for (final SchemaMethod method : methods) {
+				for (final NodeInterface node : methods) {
+
+					final SchemaMethod method = node.as(SchemaMethod.class);
 
 					// only call methods that are NOT part of a schema node
-					final AbstractSchemaNode entity = method.getProperty(SchemaMethod.schemaNode);
+					final AbstractSchemaNode entity = method.getSchemaNode();
 					if (entity == null) {
 
-						final String source = method.getProperty(SchemaMethod.source);
+						final String source = method.getSource();
 						if (source != null) {
 
 							cachedSource = new CachedMethod(source, method.getName(), method.getUuid());

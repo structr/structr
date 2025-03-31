@@ -83,7 +83,7 @@ public class StructrDateProperty extends StructrStringProperty implements JsonDa
 
 		super.deserialize(schemaNodes, property);
 
-		this.datePattern = property.getProperty(SchemaProperty.format);
+		this.datePattern = property.getFormat();
 	}
 
 	@Override

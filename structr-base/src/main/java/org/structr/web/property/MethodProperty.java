@@ -49,7 +49,7 @@ public class MethodProperty extends AbstractReadOnlyProperty<Object> {
 	}
 
 	@Override
-	public Class relatedType() {
+	public String relatedType() {
 		return null;
 	}
 
@@ -82,6 +82,11 @@ public class MethodProperty extends AbstractReadOnlyProperty<Object> {
 
 	@Override
 	public boolean isCollection() {
+		return false;
+	}
+
+	@Override
+	public boolean isArray() {
 		return false;
 	}
 

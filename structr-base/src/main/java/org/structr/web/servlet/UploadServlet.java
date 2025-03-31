@@ -29,7 +29,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.io.QuietException;
 import org.eclipse.jetty.server.MultiPartFormInputStream;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -41,6 +41,7 @@ import org.structr.common.AccessMode;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.helper.PathHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.IJsonInput;
 import org.structr.core.JsonInput;
@@ -49,17 +50,19 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.exception.AuthenticationException;
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.rest.JsonInputGSONAdapter;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.rest.servlet.AbstractServletBase;
 import org.structr.schema.SchemaHelper;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.FileHelper;
-import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 
@@ -69,7 +72,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import org.structr.common.helper.PathHelper;
 
 /**
  * Simple upload servlet.
@@ -272,21 +274,21 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 					boolean isImage = (contentType != null && contentType.startsWith("image"));
 					boolean isVideo = (contentType != null && contentType.startsWith("video"));
 
-					Class cls = null;
+					Traits cls = null;
 					if (type != null) {
 
-						cls = SchemaHelper.getEntityClassForRawType(type);
+						cls = Traits.of(type);
 					}
 
 					if (cls == null) {
 
 						if (isImage) {
 
-							cls = SchemaHelper.getEntityClassForRawType("Image");
+							cls = Traits.of(StructrTraits.IMAGE);
 
 						} else if (isVideo) {
 
-							cls = SchemaHelper.getEntityClassForRawType("VideoFile");
+							cls = Traits.of(StructrTraits.VIDEO_FILE);
 							if (cls == null) {
 
 								logger.warn("Unable to create entity of type VideoFile, class is not defined.");
@@ -294,13 +296,13 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 						} else {
 
-							cls = SchemaHelper.getEntityClassForRawType("File");
+							cls = Traits.of(StructrTraits.FILE);
 						}
 					}
 
 					if (cls != null) {
 
-						type = cls.getSimpleName();
+						type = cls.getName();
 					}
 
 					final String name = (p.getSubmittedFileName() != null ? p.getSubmittedFileName() : p.getName()).replaceAll("\\\\", "/");
@@ -328,20 +330,20 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 							try (final InputStream is = p.getInputStream()) {
 
-								newFile = FileHelper.createFile(securityContext, is, contentType, cls, name, uploadFolder);
+								newFile = FileHelper.createFile(securityContext, is, contentType, type, name, uploadFolder).as(File.class);
 
 								final PropertyMap changedProperties = new PropertyMap();
 
-								changedProperties.putAll(PropertyMap.inputTypeToJavaType(securityContext, cls, params));
+								changedProperties.putAll(PropertyMap.inputTypeToJavaType(securityContext, type, params));
 
 								// Update type as it could have changed
-								changedProperties.put(AbstractNode.type, type);
+								changedProperties.put(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY), type);
 
 								newFile.unlockSystemPropertiesOnce();
 								newFile.setProperties(securityContext, changedProperties, true);
 
 								// validate and rename file after setting all properties (as the folder might have changed)
-								AbstractFile.validateAndRenameFileOnce(newFile, securityContext, null);
+								newFile.validateAndRenameFileOnce(securityContext, null);
 
 								uuid = newFile.getUuid();
 
@@ -505,10 +507,10 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 						response.getOutputStream().write("ERROR (404): File not found.\n".getBytes("UTF-8"));
 					}
 
-					if (node instanceof org.structr.web.entity.File) {
+					if (node instanceof NodeInterface n && n.is(StructrTraits.FILE)) {
 
-						final File file = (File) node;
-						if (file.isGranted(Permission.write, securityContext)) {
+						final File file = n.as(File.class);
+						if (n.isGranted(Permission.write, securityContext)) {
 
 							try (final InputStream is = p.getInputStream()) {
 
@@ -661,7 +663,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
-			Folder folder = FileHelper.createFolderPath(securityContext, path);
+			Folder folder = FileHelper.createFolderPath(securityContext, path).as(Folder.class);
 			tx.success();
 
 			return folder;

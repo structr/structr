@@ -20,9 +20,9 @@ package org.structr.web.servlet;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.traits.StructrTraits;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.api.RESTEndpoints;
-import org.structr.web.entity.User;
 
 public class TokenServlet extends LoginServlet {
 
@@ -33,6 +33,6 @@ public class TokenServlet extends LoginServlet {
 
 	@Override
 	protected RESTCallHandler getLoginResource(final HttpServletRequest request) throws FrameworkException {
-		return RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), User.class);
+		return RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), StructrTraits.USER);
 	}
 }

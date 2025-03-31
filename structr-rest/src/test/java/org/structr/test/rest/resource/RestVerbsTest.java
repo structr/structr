@@ -24,11 +24,11 @@ import io.restassured.specification.ResponseSpecification;
 import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.Matchers;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.test.rest.common.StructrRestTestBase;
-import org.structr.test.rest.entity.TestOne;
 import org.testng.annotations.Test;
 
 import java.util.Collection;
@@ -466,27 +466,27 @@ public class RestVerbsTest extends StructrRestTestBase {
 				.statusCode(statusCode);
 	}
 
-	private List<TestOne> createNodes(final int count) {
+	private List<NodeInterface> createNodes(final int count) {
 		return createNodes(count, null);
 	}
 
-	private <T> List<T> createNodes(final int count, final Function<TestOne, T> mapper) {
+	private <T> List<T> createNodes(final int count, final Function<NodeInterface, T> mapper) {
 
 		// create 100 test nodes and set names
 		try (final Tx tx = app.tx()) {
 
-			final List<TestOne> nodes = createTestNodes(TestOne.class, count);
+			final List<NodeInterface> nodes = createTestNodes("TestOne", count);
 			int i                     = 0;
 
-			for (final TestOne node : nodes) {
+			for (final NodeInterface node : nodes) {
 
-				node.setProperty(AbstractNode.name, "node" + StringUtils.leftPad(Integer.toString(i++), 3, "0"));
+				node.setProperty(node.getTraits().key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "node" + StringUtils.leftPad(Integer.toString(i++), 3, "0"));
 			}
 
 			if (mapper != null) {
 
 				final List mapped = new LinkedList<>();
-				for (final TestOne node : nodes) {
+				for (final NodeInterface node : nodes) {
 
 					mapped.add(mapper.apply(node));
 				}

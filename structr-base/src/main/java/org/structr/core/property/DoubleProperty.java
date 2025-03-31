@@ -24,11 +24,12 @@ import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.NumberFormatToken;
+import org.structr.common.error.PropertyInputParsingException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.traits.definitions.LocationTraitDefinition;
 
 import java.util.Map;
-import org.structr.common.error.PropertyInputParsingException;
 
 /**
  * A property that stores and retrieves a simple Double value.
@@ -53,7 +54,7 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> implements
 
 		super(jsonName, dbName, defaultValue);
 
-		if (jsonName.equals("latitude") || jsonName.equals("longitude")) {
+		if (jsonName.equals(LocationTraitDefinition.LATITUDE_PROPERTY) || jsonName.equals(LocationTraitDefinition.LONGITUDE_PROPERTY)) {
 
 			// add layer node index and make
 			// this property be indexed at the
@@ -149,7 +150,7 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> implements
 
 					throw new PropertyInputParsingException(
 						jsonName(),
-						new NumberFormatToken(declaringClass.getSimpleName(), jsonName(), source)
+						new NumberFormatToken(declaringTrait.getLabel(), jsonName(), source)
 					);
 				}
 			}
@@ -182,6 +183,11 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> implements
 		}
 
 		return null;
+	}
+
+	@Override
+	public boolean isArray() {
+		return false;
 	}
 
 	@Override

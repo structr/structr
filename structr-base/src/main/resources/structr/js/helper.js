@@ -125,9 +125,6 @@ let _Helpers = {
 
 		return escapeWhitespace ? escapedStr.replace(/ /g, '&nbsp;') : escapedStr;
 	},
-	utf8_to_b64: (str) => {
-		return window.btoa(unescape(encodeURIComponent(str)));
-	},
 	expandNewline: (text) => {
 		// Expand literal '\n' to newline, which is encoded as '\\n' in HTML attribute values.
 		return text.replace(/\\\\n/g, '<br>');
@@ -137,20 +134,11 @@ let _Helpers = {
 	},
 	uuidRegexp: new RegExp('^[a-fA-F0-9]{32}$|^[0-9a-fA-F]{8}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{12}$'),
 	isUUID: (str) => _Helpers.uuidRegexp.test(str),
-	nvl: (value, defaultValue) => {
-		let returnValue;
-		if (value === false) {
-			returnValue = 'false';
-		} else if (value === 0) {
-			returnValue = '0';
-		} else if (!value) {
-			returnValue = defaultValue;
-		} else {
-			returnValue = value;
-		}
-		return returnValue;
-	},
-	formatValueInputField: (key, obj, isPassword, isReadOnly, isMultiline) => {
+	formatValueInputField: (key, obj, propertyInfo) => {
+
+		let isPassword  = (propertyInfo?.className === 'org.structr.core.property.PasswordProperty');
+		let isReadOnly  = _Entities.readOnlyAttrs.includes(key) || (propertyInfo?.readOnly ?? false);
+		let isMultiline = (propertyInfo?.format === 'multi-line');
 
 		if (obj === undefined || obj === null) {
 
@@ -158,44 +146,78 @@ let _Helpers = {
 
 		} else if (obj.constructor === Object) {
 
-			let displayName = _Crud.displayName(obj);
-			return `<div title="${_Helpers.escapeForHtmlAttributes(displayName)}" id="_${obj.id}" class="node ${obj.type ? obj.type.toLowerCase() : (obj.tag ? obj.tag : 'element')} ${obj.id}_"><span class="abbr-ellipsis abbr-80">${displayName}</span>${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16, ['remove'])}</div>`;
+			return _Entities.getRelatedNodeHTML(obj);
 
 		} else if (obj.constructor === Array) {
 
-			return _Helpers.formatArrayValueField(key, obj, isMultiline, isReadOnly, isPassword);
+			return _Helpers.formatArrayValueField(key, obj, propertyInfo);
 
 		} else {
 
 			return _Helpers.formatRegularValueField(key, _Helpers.escapeForHtmlAttributes(obj), isMultiline, isReadOnly, isPassword);
 		}
 	},
-	formatArrayValueField: (key, values, isMultiline, isReadOnly, isPassword) => {
+	formatArrayValueField: (key, values, propertyInfo) => {
+
+		let isPassword  = (propertyInfo.className === 'org.structr.core.property.PasswordProperty');
+		let isReadOnly  = _Entities.readOnlyAttrs.includes(key) || (propertyInfo.readOnly);
+		let isMultiline = (propertyInfo.format === 'multi-line');
+		let isBoolean   = (propertyInfo.type === 'Boolean[]');
+		let isDate      = (propertyInfo.type === 'Date[]');
 
 		let html           = '';
-		let readonlyHTML   = (isReadOnly ? ' readonly class="readonly"' : '');
-		let inputTypeHTML  = (isPassword ? 'password' : 'text');
+		let readonlyHTML   = (isReadOnly ? 'readonly' : '');
+		let inputTypeHTML  = (isPassword ? 'password' : (isBoolean ? 'checkbox' : 'text'));
 		let removeIconHTML = _Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['remove', 'icon-lightgrey']), 'Remove single value');
+
+		let classes = [];
+
+		if (isReadOnly) {
+			classes.push('readonly');
+		}
+		if (isDate) {
+			classes.push('input-datetime', 'pl-9');
+		}
 
 		for (let value of values) {
 
 			if (isMultiline) {
 
-				html += `<div class="array-attr relative"><textarea rows="4" name="${key}"${readonlyHTML} autocomplete="new-password">${value}</textarea>${removeIconHTML}</div>`;
+				html += `<div class="array-attr"><textarea class="${classes.join(' ')}" rows="4" name="${key}" ${readonlyHTML} autocomplete="one-time-code">${value}</textarea>${removeIconHTML}</div>`;
 
 			} else {
 
-				html += `<div class="array-attr relative"><input name="${key}" type="${inputTypeHTML}" value="${value}"${readonlyHTML} autocomplete="new-password">${removeIconHTML}</div>`;
+				if (isDate) {
+
+					html += `<div class="array-attr relative"><input name="${key}" class="${classes.join(' ')}" type="text" size="26" value="${value}" autocomplete="one-time-code">${_Crud.helpers.getDateTimeIconHTML()}${removeIconHTML}</div>`;
+
+				} else {
+
+					let valueHTML = (isBoolean) ? ((value === true || value === 'true') ? ' checked' : '') : `value="${value}"`;
+
+					html += `<div class="array-attr"><input type="${inputTypeHTML}" name="${key}" ${valueHTML} ${readonlyHTML} autocomplete="one-time-code">${removeIconHTML}</div>`;
+				}
 			}
 		}
 
+		let spacerHTML = '<div style="width:10px;"></div>';
+
 		if (isMultiline) {
 
-			html += `<div class="array-attr"><textarea rows="4" name="${key}"${readonlyHTML} autocomplete="new-password"></textarea></div>`;
+			html += `<div class="array-attr"><textarea rows="4" name="${key}" ${readonlyHTML} autocomplete="one-time-code" data-is-new="true"></textarea>${spacerHTML}</div>`;
 
 		} else {
 
-			html += `<div class="array-attr"><input name="${key}" type="${inputTypeHTML}" value=""${readonlyHTML} autocomplete="new-password"></div>`;
+			if (isDate) {
+
+				html += `<div class="array-attr relative"><input name="${key}" class="${classes.join(' ')}" type="text" size="26" autocomplete="one-time-code" data-is-new="true">${_Crud.helpers.getDateTimeIconHTML()}${spacerHTML}</div>`;
+
+			} else {
+
+				let valueHTML = (isBoolean) ? '' : 'value=""';
+
+				html += `<div class="array-attr"><input name="${key}" type="${inputTypeHTML}" ${valueHTML} ${readonlyHTML} autocomplete="one-time-code" data-is-new="true">${spacerHTML}</div>`;
+			}
 		}
 
 		return html;
@@ -204,24 +226,26 @@ let _Helpers = {
 
 		if (isMultiline) {
 
-			return `<textarea rows="4" name="${key}"${isReadOnly ? ' readonly class="readonly"' : ''} autocomplete="new-password">${value}</textarea>`;
+			return `<textarea rows="4" name="${key}"${isReadOnly ? ' readonly class="readonly"' : ''} autocomplete="one-time-code">${value}</textarea>`;
 
 		} else {
 
-			return `<input name="${key}" type="${isPassword ? 'password' : 'text'}" value="${value}"${isReadOnly ? 'readonly class="readonly"' : ''} autocomplete="new-password">`;
+			return `<input name="${key}" type="${isPassword ? 'password' : 'text'}" value="${value}"${isReadOnly ? 'readonly class="readonly"' : ''} autocomplete="one-time-code">`;
 		}
 	},
-	getElementDisplayName: (entity) => {
-		if (!entity.name) {
-			if (entity.tag === 'option' && entity._html_value) {
-				return `${entity.tag}[value="${_Helpers.escapeForHtmlAttributes(entity._html_value)}"]`;
+	getHTMLTreeElementDisplayName: (entity) => {
+		if (entity) {
+			if (!entity.name) {
+				if (entity.tag === 'option' && entity._html_value) {
+					return `${entity.tag}[value="${_Helpers.escapeForHtmlAttributes(entity._html_value)}"]`;
+				}
+				return (entity?.tag ?? `[${entity.type}]`);
 			}
-			return (entity?.tag ?? `[${entity.type}]`);
+			if ((entity?.name ?? '').trim() === '') {
+				return '(blank name)';
+			}
+			return entity.name;
 		}
-		if ((entity?.name ?? '').trim() === '') {
-			return '(blank name)';
-		}
-		return entity.name;
 	},
 	getDateTimePickerFormat: (rawFormat) => {
 
@@ -309,10 +333,7 @@ let _Helpers = {
 			});
 		}
 	},
-	isIn: (s, array) => {
-		return (s && array && array.indexOf(s) !== -1);
-	},
-	urlParam: (name) => {
+	getURLParameter: (name) => {
 		return new URLSearchParams(location.search).get(name) ?? '';
 	},
 	formatKey: (text) => {
@@ -643,6 +664,39 @@ let _Helpers = {
 			e.stopPropagation();
 			e.preventDefault();
 		});
+	},
+	createRandomName: (type = 'object') => `New ${type} ${Math.floor(Math.random() * (999999 - 1))}`,
+	softlimit: {
+		resultCountSoftLimit: 10000,
+		getSoftLimitedPageCount: (pageSize) => Math.ceil(_Helpers.softlimit.getSoftLimitedResultCount() / pageSize),
+		getSoftLimitedResultCount: () => _Helpers.softlimit.resultCountSoftLimit,
+		getSoftLimitMessage: () => 'Result count exceeds soft limit (' + _Helpers.softlimit.resultCountSoftLimit + '). Page count may be higher than displayed.',
+		showSoftLimitAlert: (el) => {
+			el.attr('style', 'background-color: #fc0 !important;');
+			el.attr('title', _Helpers.softlimit.getSoftLimitMessage());
+		},
+		showActualResultCount: (el, pageSize) => {
+			el.attr('title', 'Result count = ' + pageSize);
+		},
+	},
+	isMac: () => (navigator.platform === 'MacIntel'),
+	getHeadersForCustomView: (desiredProperties = []) => {
+
+		let propertiesString = ((desiredProperties.length > 0) ? ` properties=${desiredProperties.join(',')}` : '');
+
+		return {
+			Accept: 'application/json; charset=utf-8;' + propertiesString
+		}
+	},
+	getDataCommentAttributeForPropertyFromSchemaInfoHint: (key, typeInfo) => {
+
+		let hint = typeInfo?.[key]?.hint;
+
+		if (hint) {
+			return `data-comment="${_Helpers.escapeForHtmlAttributes(hint)}"`;
+		}
+
+		return '';
 	}
 };
 
@@ -837,13 +891,14 @@ let _Console = new (function() {
 
 	// private variables
 	let _terminal;
-	let _initialized = false;
+	let _consoleModeKey = 'structrConsoleModeKey_' + location.port;
+	let _initialized    = false;
 	let _consoleVisible = false;
-
-	let consoleModeKey = 'structrConsoleModeKey_' + location.port;
+	let _modes          = ['JavaScript', 'StructrScript', 'Cypher', 'AdminShell', 'REST'];
+	let _curMode        = 0;
 
 	// public methods
-	this.logoutAction = function() {
+	this.logoutAction = () => {
 		_terminal?.reset();
 		_initialized = false;
 		_hideConsole();
@@ -855,84 +910,108 @@ let _Console = new (function() {
 			return;
 		}
 
-		let storedMode = LSWrapper.getItem(consoleModeKey, 'JavaScript');
+		let storedMode = LSWrapper.getItem(_consoleModeKey, _modes[0]);
 
 		// Get initial mode and prompt from backend
 		// If backend sends no mode, use value from local storage
-		Command.console(`Console.setMode('${storedMode}')`, storedMode, function(data) {
+		Command.console(`Console.setMode('${storedMode}')`, storedMode, (data) => {
 
-			let message = data.message;
-			let mode = storedMode || data.data.mode;
-			let prompt = data.data.prompt;
+			let message     = data.message;
+			let prompt      = data.data.prompt;
 			let versionInfo = data.data.versionInfo;
-			//console.log(message, mode, prompt, versionInfo);
+
+			_curMode = _modes.indexOf(storedMode ?? data.data.mode) ?? 0;
 
 			let consoleEl = $('#structr-console');
-			_terminal = consoleEl.terminal(function(command, term) {
+			_terminal = consoleEl.terminal((command, term) => {
+
 				if (command !== '') {
+
 					try {
-						_runCommand(command, mode, term);
+						_runCommand(command, term);
 					} catch (e) {
 						term.error(new String(e));
 					}
+
 				} else {
+
 					term.echo('');
 				}
+
 			}, {
-				greetings: _getBanner() + 'Welcome to Structr (' + versionInfo + '). Use <Shift>+<Tab> to switch modes.',
+				greetings: `${_getBanner()}\nWelcome to Structr (${versionInfo}). Use <Shift>+<Tab> to switch modes.`,
 				name: 'structr-console',
 				height: 470,
 				prompt: prompt + '> ',
-				keydown: function(e) {
+				keydown: (e) => {
 
 					let event = e.originalEvent;
 
-					if (event.key === 'Tab' || event.keyCode === 9) {
+					if (event.shiftKey === true && (event.key === 'Tab' || event.keyCode === 9)) {
 
-						let term = _terminal;
+						_nextMode();
 
-						if (event.shiftKey === true) {
+						return false;
 
-							switch (term.consoleMode) {
+					} else if (_Helpers.isMac() && event.altKey && (event.key === 'ArrowLeft' || event.key === 'ArrowRight')) {
 
-								case 'REST':
-									mode = 'JavaScript';
-									break;
+						// allow cursor to jump words via Alt+Left/Right (on Mac)
+						let curCmd     = _terminal.get_command();
+						let curPos     = _terminal.get_position();
+						let jmpIndexes = _getSplitIndexesInCommandForJumps(curCmd);
+						let targetPos;
 
-								case 'JavaScript':
-									mode = 'StructrScript';
-									break;
+						if (event.key === 'ArrowLeft') {
 
-								case 'StructrScript':
-									mode = 'Cypher';
-									break;
+							jmpIndexes = jmpIndexes.filter(i => i < curPos);
+							targetPos  = jmpIndexes.pop() ?? 0;
 
-								case 'Cypher':
-									mode = 'AdminShell';
-									break;
+						} else if (event.key === 'ArrowRight') {
 
-								case 'AdminShell':
-									mode = 'REST';
-									break;
-							}
-
-							let line = `Console.setMode("${mode}")`;
-							term.consoleMode = mode;
-							LSWrapper.setItem(consoleModeKey, mode);
-
-							_runCommand(line, mode, term);
-
-							return false;
+							jmpIndexes = jmpIndexes.filter(i => i > curPos);
+							targetPos  = jmpIndexes[0] ?? curCmd.length;
 						}
+
+						_terminal.set_position(targetPos);
+
+						return false;
+
+					} else if (_Helpers.isMac() && event.altKey && (event.key === 'Backspace' || event.key === 'Delete')) {
+
+						// allow deletion of words via Alt+Backspace (on Mac)
+						let curCmd     = _terminal.get_command();
+						let curPos     = _terminal.get_position();
+						let jmpIndexes = _getSplitIndexesInCommandForJumps(curCmd);
+						let targetPos;
+						let newCmd;
+
+						if (event.key === 'Backspace') {
+
+							jmpIndexes = jmpIndexes.filter(i => i < curPos);
+							targetPos  = jmpIndexes.pop() ?? 0;
+							newCmd     = curCmd.slice(0, targetPos) + curCmd.slice(curPos, curCmd.length);
+
+						} else if (event.key === 'Delete') {
+
+							jmpIndexes = jmpIndexes.filter(i => i > curPos);
+							targetPos  = jmpIndexes[0] ?? curCmd.length;
+							newCmd     = curCmd.slice(0, curPos) + curCmd.slice(targetPos, curCmd.length);
+							targetPos  = curPos;
+						}
+
+						_terminal.set_command(newCmd)
+						_terminal.set_position(targetPos);
+
+						return false;
 					}
 				},
-				completion: function(lineToBeCompleted, callback) {
-					Command.console(lineToBeCompleted, mode, (data) => {
+				completion: (lineToBeCompleted, callback) => {
+					Command.console(lineToBeCompleted, _getCurMode(), (data) => {
 						callback(data.data.commands);
 					}, true);
 				}
 			});
-			_terminal.consoleMode = mode;
+			_terminal.consoleMode = _getCurMode();
 			_terminal.set_prompt(prompt + '> ');
 			_terminal.echo(message);
 
@@ -940,27 +1019,38 @@ let _Console = new (function() {
 		});
 	};
 
-	this.toggleConsole = function() {
-
-		if (_consoleVisible === true) {
-			_hideConsole();
-		} else {
-			_showConsole();
-		}
-	};
+	this.toggleConsole = () => (_consoleVisible === true) ? _hideConsole() : _showConsole();
 
 	// private methods
-	let _getBanner = function() {
+	let _getBanner = () => {
 		return ''
-		+ '        _                          _         \n'
-		+ ' ____  | |_   ___   _   _   ____  | |_   ___ \n'
-		+ '(  __| | __| |  _| | | | | |  __| | __| |  _|\n'
-		+ ' \\ \\   | |   | |   | | | | | |    | |   | |\n'
-		+ ' _\\ \\  | |_  | |   | |_| | | |__  | |_  | |\n'
-		+ '|____) |___| |_|   |_____| |____| |___| |_|  \n\n';
+			+ '        _                          _         \n'
+			+ ' ____  | |_   ___   _   _   ____  | |_   ___ \n'
+			+ '(  __| | __| |  _| | | | | |  __| | __| |  _|\n'
+			+ ' \\ \\   | |   | |   | | | | | |    | |   | |\n'
+			+ ' _\\ \\  | |_  | |   | |_| | | |__  | |_  | |\n'
+			+ '|____) |___| |_|   |_____| |____| |___| |_|  \n';
 	};
 
-	let _showConsole = function() {
+	let _getCurMode = () => _modes[_curMode];
+
+	let _nextMode = () => {
+
+		_curMode = (_curMode + 1) % _modes.length;
+
+		let mode = _getCurMode();
+
+		LSWrapper.setItem(_consoleModeKey, _getCurMode());
+
+		_terminal.consoleMode = mode;
+
+		_runCommand(`Console.setMode("${mode}")`, _terminal);
+	};
+
+	// splits command by non-alphanumeric characters and returns all indexes to use in jump commands via keyboard navigation
+	let _getSplitIndexesInCommandForJumps = (cmd) => [...cmd.matchAll(/[^a-zA-z0-9]/g)].map(match => match.index);
+
+	let _showConsole = () => {
 		if (StructrWS.user !== null) {
 			_consoleVisible = true;
 			_terminal.enable();
@@ -968,19 +1058,19 @@ let _Console = new (function() {
 		}
 	};
 
-	let _hideConsole = function() {
+	let _hideConsole = () => {
 		_consoleVisible = false;
 		_terminal?.disable();
 		$('#structr-console').slideUp('fast');
 	};
 
-	let _runCommand = function(command, mode, term) {
+	let _runCommand = (command, term) => {
 
 		if (!term) {
 			term = _terminal;
 		}
 
-		Command.console(command, mode, function(data) {
+		Command.console(command, _getCurMode(), (data) => {
 			let prompt = data.data.prompt;
 			if (prompt) {
 				term.set_prompt(prompt + '> ');

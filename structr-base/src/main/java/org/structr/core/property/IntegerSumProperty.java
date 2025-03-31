@@ -44,7 +44,7 @@ public class IntegerSumProperty extends AbstractReadOnlyProperty<Integer> {
 	}
 
 	@Override
-	public Class relatedType() {
+	public String relatedType() {
 		return null;
 	}
 
@@ -64,7 +64,7 @@ public class IntegerSumProperty extends AbstractReadOnlyProperty<Integer> {
 	}
 
 	@Override
-	public Integer getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
+	public Integer getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		int sum = 0;
 
@@ -83,6 +83,11 @@ public class IntegerSumProperty extends AbstractReadOnlyProperty<Integer> {
 
 	@Override
 	public boolean isCollection() {
+		return false;
+	}
+
+	@Override
+	public boolean isArray() {
 		return false;
 	}
 

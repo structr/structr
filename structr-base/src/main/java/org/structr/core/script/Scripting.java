@@ -33,18 +33,21 @@ import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.function.Functions;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.DateProperty;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.core.script.polyglot.context.ContextFactory;
 import org.structr.core.script.polyglot.util.JSFunctionTranspiler;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
-import org.structr.schema.parser.DatePropertyParser;
+import org.structr.schema.parser.DatePropertyGenerator;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -147,6 +150,7 @@ public class Scripting {
 	}
 
 	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String input, final String methodName, final int startRow, final String codeSource) throws FrameworkException, UnlicensedScriptException {
+
 		final String expression = StringUtils.strip(input);
 
 		if (expression.isEmpty()) {
@@ -193,6 +197,7 @@ public class Scripting {
 		} else if (isJavascript) {
 
 			snippet.setMimeType("application/javascript+module");
+			snippet.setEngineName("js");
 			final Object result = evaluateScript(actionContext, entity, "js", snippet);
 
 			if (enableTransactionNotifications && securityContext != null) {
@@ -240,6 +245,7 @@ public class Scripting {
 	}
 
 	public static Object evaluateScript(final ActionContext actionContext, final GraphObject entity, final String engineName, final Snippet snippet) throws FrameworkException {
+
 		// Clear output buffer
 		actionContext.clear();
 
@@ -259,12 +265,15 @@ public class Scripting {
 
 			final Value value = evaluatePolyglot(actionContext, engineName, context, entity, snippet);
 			result = PolyglotWrapper.unwrap(actionContext, value);
+
 		} finally {
 
 			context.leave();
+			context.close();
+			actionContext.putScriptingContext(engineName, null);
 		}
 
-		// Prefer explicitly printed output over actual result
+		// Legacy print() support: Prefer explicitly printed output over actual result
 		final String outputBuffer = actionContext.getOutput();
 		if (outputBuffer != null && !outputBuffer.isEmpty()) {
 
@@ -291,16 +300,25 @@ public class Scripting {
 
 			try {
 				if (source != null) {
-					return context.eval(source);
+
+					final Value result = context.eval(source);
+
+					// Legacy print() support: Prefer explicitly printed output over actual result
+					final String outputBuffer = actionContext.getOutput();
+					if (outputBuffer != null && !outputBuffer.isEmpty()) {
+
+						return Value.asValue(outputBuffer);
+					}
+
+					return result;
 				} else {
+
 					return null;
 				}
 
 			} catch (PolyglotException ex) {
 
 				if (ex.isHostException() && ex.asHostException() instanceof RuntimeException) {
-
-					reportError(actionContext.getSecurityContext(), entity, ex, snippet);
 
 					// Only report error, if exception is not an already logged AssertException
 					if (ex.isHostException() && !(ex.asHostException() instanceof AlreadyLoggedAssertException)) {
@@ -318,10 +336,11 @@ public class Scripting {
 					} else {
 						throw ex.asHostException();
 					}
-				}
+				} else {
 
-				reportError(actionContext.getSecurityContext(), entity, ex, snippet);
-				throw new FrameworkException(422, "Server-side scripting error", ex);
+					reportError(actionContext.getSecurityContext(), entity, ex, snippet);
+					throw new FrameworkException(422, "Server-side scripting error", ex);
+				}
 			}
 
 		} catch (RuntimeException ex) {
@@ -348,8 +367,9 @@ public class Scripting {
 	}
 
 	public static String[] splitSnippetIntoEngineAndScript(final String snippet) {
+
 		final boolean isAutoScriptingEnv = !(snippet.startsWith("${") && snippet.endsWith("}"));
-		final boolean isJavascript = (snippet.startsWith("${{") && snippet.endsWith("}}")) || (isAutoScriptingEnv && (snippet.startsWith("{") && snippet.endsWith("}")));
+		final boolean isJavascript       = (snippet.startsWith("${{") && snippet.endsWith("}}")) || (isAutoScriptingEnv && (snippet.startsWith("{") && snippet.endsWith("}")));
 
 		String engine = "";
 		String script = "";
@@ -358,6 +378,7 @@ public class Scripting {
 
 			engine = "js";
 			script = snippet.substring(isAutoScriptingEnv ? 1 : 3, snippet.length() - (isAutoScriptingEnv ? 1 : 2));
+
 		} else {
 
 			final Matcher matcher = ScriptEngineExpression.matcher(isAutoScriptingEnv ? String.format("${%s}", snippet) : snippet);
@@ -499,7 +520,7 @@ public class Scripting {
 
 		} else if (value instanceof Date) {
 
-			return DatePropertyParser.format((Date) value, DateProperty.getDefaultFormat());
+			return DatePropertyGenerator.format((Date) value, DateProperty.getDefaultFormat());
 
 		} else if (value instanceof Iterable) {
 
@@ -520,7 +541,7 @@ public class Scripting {
 
 		} else if (value instanceof Date) {
 
-			return DatePropertyParser.format((Date) value, DateProperty.getDefaultFormat());
+			return DatePropertyGenerator.format((Date) value, DateProperty.getDefaultFormat());
 
 		} else if (value instanceof Iterable) {
 
@@ -546,7 +567,7 @@ public class Scripting {
 
 			final StringBuilder buf = new StringBuilder();
 			final GraphObject obj   = (GraphObject)value;
-			final String name       = obj.getProperty(AbstractNode.name);
+			final String name       = obj.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY));
 
 			buf.append(obj.getType());
 			buf.append("(");
@@ -648,22 +669,24 @@ public class Scripting {
 
 			}
 
-			final GraphObject codeSource = StructrApp.getInstance().getNodeById(codeSourceId);
+			final NodeInterface codeSource = StructrApp.getInstance().getNodeById(codeSourceId);
 			if (codeSource != null) {
 
-				nodeType = codeSource.getClass().getSimpleName();
+				nodeType = codeSource.getTraits().getName();
 				nodeId = codeSource.getUuid();
 
-				if (codeSource instanceof SchemaMethod && ((SchemaMethod)codeSource).isStaticMethod()) {
+				if (codeSource.is(StructrTraits.SCHEMA_METHOD) && codeSource.as(SchemaMethod.class).isStaticMethod()) {
 
-					final AbstractSchemaNode node = codeSource.getProperty(SchemaMethod.schemaNode);
-					final String staticTypeName = node.getName();
-					messageData.put("staticType", staticTypeName);
+					final AbstractSchemaNode node = codeSource.as(SchemaMethod.class).getSchemaNode();
+					final String staticTypeName   = codeSource.getName();
+
+					messageData.put("staticType",     staticTypeName);
 					messageData.put("isStaticMethod", true);
-					eventData.put("staticType", staticTypeName);
-					eventData.put("isStaticMethod", true);
+					eventData.put("staticType",       staticTypeName);
+					eventData.put("isStaticMethod",   true);
 
 					exceptionPrefix.append(staticTypeName).append("[static]:");
+
 				} else {
 
 					if (entity == null) {

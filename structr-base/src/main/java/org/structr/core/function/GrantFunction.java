@@ -18,14 +18,16 @@
  */
 package org.structr.core.function;
 
+import org.structr.common.AccessControllable;
 import org.structr.common.Permission;
 import org.structr.common.Permissions;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
 import org.structr.schema.action.ActionContext;
 
 import java.util.HashSet;
@@ -53,7 +55,7 @@ public class GrantFunction extends AdvancedScriptingFunction {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 3);
 
-			if (!(sources[0] instanceof PrincipalInterface)) {
+			if (sources[0] instanceof NodeInterface n && !n.is(StructrTraits.PRINCIPAL)) {
 
 				logParameterError(caller, sources, "Expected node of type Principal as first argument!", ctx.isJavaScriptContext());
 
@@ -61,7 +63,7 @@ public class GrantFunction extends AdvancedScriptingFunction {
 
 				logParameterError(caller, sources, "Expected node of type Principal as first argument - unable to grant rights for the SuperUser!", ctx.isJavaScriptContext());
 
-			} else if (!(sources[1] instanceof AbstractNode)) {
+			} else if (!(sources[1] instanceof NodeInterface)) {
 
 				logParameterError(caller, sources, "Expected node as second argument!", ctx.isJavaScriptContext());
 
@@ -71,8 +73,8 @@ public class GrantFunction extends AdvancedScriptingFunction {
 
 			} else {
 
-				final PrincipalInterface principal         = (PrincipalInterface)sources[0];
-				final AbstractNode node           = (AbstractNode)sources[1];
+				final Principal principal         = ((NodeInterface)sources[0]).as(Principal.class);
+				final NodeInterface node          = (NodeInterface) sources[1];
 				final Set<Permission> permissions = new HashSet();
 				final String[] parts              = ((String)sources[2]).split("[,]+");
 
@@ -95,7 +97,7 @@ public class GrantFunction extends AdvancedScriptingFunction {
 				}
 
 				if (permissions.size() > 0) {
-					node.grant(permissions, principal, ctx.getSecurityContext());
+					node.as(AccessControllable.class).grant(permissions, principal, ctx.getSecurityContext());
 				}
 			}
 

@@ -23,7 +23,7 @@ import com.google.gson.GsonBuilder;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -90,7 +90,7 @@ public class HealthCheckServlet extends AbstractDataServlet {
 
 			if ("/ready".equals(request.getPathInfo())) {
 
-				if (error || DeployCommand.isDeploymentActive() || SchemaService.isCompiling() || !Services.getInstance().isInitialized()) {
+				if (error || DeployCommand.isDeploymentActive() || SchemaService.getSchemaIsBeingReplaced() || !Services.getInstance().isInitialized()) {
 
 					response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
 

@@ -45,7 +45,7 @@ public class TargetId extends Property<String> {
 	}
 
 	@Override
-	public Class relatedType() {
+	public String relatedType() {
 		return null;
 	}
 
@@ -55,7 +55,7 @@ public class TargetId extends Property<String> {
 	}
 
 	@Override
-	public String getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
+	public String getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		if (obj instanceof RelationshipInterface) {
 
@@ -63,16 +63,6 @@ public class TargetId extends Property<String> {
 		}
 
 		return null;
-	}
-
-	@Override
-	public boolean isCollection() {
-		return false;
-	}
-
-	@Override
-	public SortType getSortType() {
-		return SortType.Default;
 	}
 
 	@Override
@@ -101,13 +91,28 @@ public class TargetId extends Property<String> {
 	}
 
 	@Override
+	public boolean isCollection() {
+		return false;
+	}
+
+	@Override
+	public boolean isArray() {
+		return false;
+	}
+
+	@Override
+	public SortType getSortType() {
+		return SortType.Default;
+	}
+
+	@Override
 	public Object fixDatabaseProperty(Object value) {
 		return null;
 	}
 
 	@Override
 	public String typeName() {
-		return null;
+		return "String";
 	}
 
 	@Override

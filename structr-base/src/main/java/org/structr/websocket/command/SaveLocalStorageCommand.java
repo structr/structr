@@ -18,7 +18,7 @@
  */
 package org.structr.websocket.command;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
@@ -49,7 +49,7 @@ public class SaveLocalStorageCommand extends AbstractCommand {
 
 			try {
 
-				final User me = (User) securityContext.getUser(false);
+				final User me = securityContext.getUser(false).as(User.class);
 				me.setLocalStorage(localStorageString);
 
 				getWebSocket().send(MessageBuilder.forName(getCommand()).callback(webSocketData.getCallback()).build(), true);

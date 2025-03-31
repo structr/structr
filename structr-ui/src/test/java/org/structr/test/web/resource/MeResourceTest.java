@@ -19,19 +19,19 @@
 package org.structr.test.web.resource;
 
 import io.restassured.RestAssured;
-import static org.hamcrest.Matchers.equalTo;
+import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.PrincipalInterface;
-import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
-import org.structr.web.entity.User;
-import static org.testng.AssertJUnit.fail;
 import org.testng.annotations.Test;
+
+import static org.hamcrest.Matchers.equalTo;
+import static org.testng.AssertJUnit.fail;
 
 
 /**
@@ -48,11 +48,7 @@ public class MeResourceTest extends StructrUiTest {
 		// create 100 test nodes and set names
 		try (final Tx tx = app.tx()) {
 
-			final User user = app.create(User.class,
-				new NodeAttribute<>(StructrApp.key(PrincipalInterface.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(PrincipalInterface.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(PrincipalInterface.class, "isAdmin"),  true)
-			);
+			final NodeInterface user = createAdminUser();
 
 			uuid = user.getUuid();
 
@@ -67,12 +63,13 @@ public class MeResourceTest extends StructrUiTest {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.headers("x-user", "admin", "x-password", "admin")
+				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
+				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 
 			.expect()
 				.statusCode(200)
 				.body("result.id",                          equalTo(uuid))
-				.body("result.name",                        equalTo("admin"))
+				.body("result.name",                        equalTo(ADMIN_USERNAME))
 				.body("result.isUser",                      equalTo(true))
 				.body("result.isAdmin",                     equalTo(null))
 				.body("result.visibleToPublicUsers",        equalTo((Object)null))
@@ -88,12 +85,12 @@ public class MeResourceTest extends StructrUiTest {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.headers("x-user", "admin", "x-password", "admin")
+				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
 
 			.expect()
 				.statusCode(200)
 				.body("result.id",                          equalTo(uuid))
-				.body("result.name",                        equalTo("admin"))
+				.body("result.name",                        equalTo(ADMIN_USERNAME))
 				.body("result.isUser",                      equalTo(true))
 				.body("result.isAdmin",                     equalTo(true))
 				.body("result.visibleToPublicUsers",        equalTo(false))
@@ -113,11 +110,7 @@ public class MeResourceTest extends StructrUiTest {
 		// create 100 test nodes and set names
 		try (final Tx tx = app.tx()) {
 
-			final User user = app.create(User.class,
-				new NodeAttribute<>(StructrApp.key(PrincipalInterface.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(PrincipalInterface.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(PrincipalInterface.class, "isAdmin"),  true)
-			);
+			final NodeInterface user = createAdminUser();
 
 			uuid = user.getUuid();
 
@@ -131,12 +124,12 @@ public class MeResourceTest extends StructrUiTest {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.headers("x-user", "admin", "x-password", "admin")
+				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
 
 			.expect()
 				.statusCode(200)
 				.body("result.id",      equalTo(uuid))
-				.body("result.name",    equalTo("admin"))
+				.body("result.name",    equalTo(ADMIN_USERNAME))
 				.body("result.isUser",  equalTo(true))
 				.body("result.isAdmin", equalTo(true))
 				.body("result.eMail",   equalTo(null))
@@ -150,7 +143,7 @@ public class MeResourceTest extends StructrUiTest {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.headers("x-user", "admin", "x-password", "admin")
+				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
 				.body("{ eMail: 'tester@test.com' }")
 
 			.expect()
@@ -164,12 +157,12 @@ public class MeResourceTest extends StructrUiTest {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.headers("x-user", "admin", "x-password", "admin")
+				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
 
 			.expect()
 				.statusCode(200)
 				.body("result.id",      equalTo(uuid))
-				.body("result.name",    equalTo("admin"))
+				.body("result.name",    equalTo(ADMIN_USERNAME))
 				.body("result.isUser",  equalTo(true))
 				.body("result.isAdmin", equalTo(true))
 				.body("result.eMail",   equalTo("tester@test.com"))
@@ -183,7 +176,7 @@ public class MeResourceTest extends StructrUiTest {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.headers("x-user", "admin", "x-password", "admin")
+				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
 				.body("{ eMail: 'tester2@test.com' }")
 
 			.expect()
@@ -197,12 +190,12 @@ public class MeResourceTest extends StructrUiTest {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.headers("x-user", "admin", "x-password", "admin")
+				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
 
 			.expect()
 				.statusCode(200)
 				.body("result.id",      equalTo(uuid))
-				.body("result.name",    equalTo("admin"))
+				.body("result.name",    equalTo(ADMIN_USERNAME))
 				.body("result.isUser",  equalTo(true))
 				.body("result.isAdmin", equalTo(true))
 				.body("result.eMail",   equalTo("tester2@test.com"))
@@ -215,26 +208,18 @@ public class MeResourceTest extends StructrUiTest {
 	@Test
 	public void test03POST() {
 
-		String uuid = null;
-
 		// create 100 test nodes and set names
 		try (final Tx tx = app.tx()) {
 
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
-			final JsonType type     = schema.getType("User");
+			final JsonType type     = schema.getType(StructrTraits.USER);
 
 			// method must be exported
-			type.addMethod("doTest", "{ return { message: 'success', parameters: $.args }; }").setDoExport(true);
+			type.addMethod("doTest", "{ ({ message: 'success', parameters: $.args }); }").setDoExport(true);
 
 			StructrSchema.replaceDatabaseSchema(app, schema);
 
-			final User user = app.create(User.class,
-				new NodeAttribute<>(StructrApp.key(PrincipalInterface.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(PrincipalInterface.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(PrincipalInterface.class, "isAdmin"),  true)
-			);
-
-			uuid = user.getUuid();
+			createAdminUser();
 
 			tx.success();
 
@@ -247,7 +232,7 @@ public class MeResourceTest extends StructrUiTest {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.headers("x-user", "admin", "x-password", "admin")
+				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
 				.body("{ value1: test, value2: 32 }")
 
 			.expect()
@@ -266,7 +251,7 @@ public class MeResourceTest extends StructrUiTest {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.headers("x-user", "admin", "x-password", "admin")
+				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
 				.body("{ value1: test, value2: 32 }")
 
 			.expect()
@@ -286,11 +271,7 @@ public class MeResourceTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(User.class,
-				new NodeAttribute<>(StructrApp.key(PrincipalInterface.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(PrincipalInterface.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(PrincipalInterface.class, "isAdmin"),  true)
-			);
+			createAdminUser();
 
 			tx.success();
 
@@ -303,13 +284,12 @@ public class MeResourceTest extends StructrUiTest {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.headers("x-user", "admin", "x-password", "admin")
+				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
 
 			.expect()
 				.statusCode(200)
 
 			.when()
-
 				.delete("/me");
 
 		// we actually allow users to delete themselves via /me (if a grant exists)
@@ -317,13 +297,12 @@ public class MeResourceTest extends StructrUiTest {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.headers("x-user", "admin", "x-password", "admin")
+				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
 
 			.expect()
 				.statusCode(401)
 
 			.when()
-
 				.get("/me");
 	}
 }

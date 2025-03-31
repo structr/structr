@@ -18,8 +18,7 @@
  */
 package org.structr.bolt;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.RetryException;
@@ -60,7 +59,9 @@ public class Neo5IndexUpdater {
 
 				try (final Transaction tx = db.beginTx(timeoutSeconds)) {
 
-					for (final Map<String, Object> row : db.execute("SHOW INDEXES YIELD name, type, state, labelsOrTypes, properties RETURN {name: name, type: type, labels: labelsOrTypes, properties: properties, state: state}")) {
+					tx.prefetchHint("Neo5IndexUpdater query");
+
+					for (final Map<String, Object> row : db.execute("SHOW INDEXES YIELD name, type, state, labelsOrTypes, properties WHERE type = 'RANGE' RETURN {name: name, type: type, labels: labelsOrTypes, properties: properties, state: state}")) {
 
 						for (final Object value : row.values()) {
 
@@ -137,6 +138,8 @@ public class Neo5IndexUpdater {
 
 								try (final Transaction tx = db.beginTx(timeoutSeconds)) {
 
+									tx.prefetchHint("Neo5IndexUpdater drop");
+
 									db.consume("DROP INDEX " + finalIndexName + " IF EXISTS");
 
 									tx.success();
@@ -173,6 +176,8 @@ public class Neo5IndexUpdater {
 						executor.submit(() -> {
 
 							try (final Transaction tx = db.beginTx(timeoutSeconds)) {
+
+								tx.prefetchHint("Neo5IndexUpdater update");
 
 								if (indexConfig.createOrDropIndex()) {
 
@@ -277,6 +282,8 @@ public class Neo5IndexUpdater {
 									executor.submit(() -> {
 
 										try (final Transaction tx = db.beginTx(timeoutSeconds)) {
+
+											tx.prefetchHint("Neo5IndexUpdater update");
 
 											// drop index
 											db.consume("DROP INDEX " + indexName + " IF EXISTS");

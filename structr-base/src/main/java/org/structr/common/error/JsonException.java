@@ -19,6 +19,7 @@
 package org.structr.common.error;
 
 import com.google.gson.JsonElement;
+
 import java.util.Map;
 
 /**

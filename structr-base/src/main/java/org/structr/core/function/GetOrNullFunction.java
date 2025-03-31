@@ -23,7 +23,6 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.action.ActionContext;
@@ -72,7 +71,7 @@ public class GetOrNullFunction extends CoreFunction {
 			if (dataObject != null) {
 
 				final String keyName = sources[1].toString();
-				final PropertyKey key = StructrApp.key(dataObject.getClass(), keyName);
+				final PropertyKey key = dataObject.getTraits().key(keyName);
 
 				if (key != null) {
 

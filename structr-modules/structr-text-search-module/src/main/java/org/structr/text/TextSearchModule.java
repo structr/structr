@@ -19,45 +19,27 @@
 package org.structr.text;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.apache.tika.metadata.Metadata;
-import org.apache.tika.parser.AutoDetectParser;
-import org.apache.tika.parser.ParseContext;
-import org.apache.tika.parser.ocr.TesseractOCRConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.fulltext.ContentAnalyzer;
 import org.structr.common.fulltext.FulltextIndexer;
-import org.structr.common.fulltext.Indexable;
 import org.structr.core.GraphObjectMap;
-import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
-import org.structr.core.function.Functions;
-import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.GenericProperty;
 import org.structr.module.StructrModule;
 import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
-import org.structr.text.model.MetadataNode;
-import org.structr.text.model.StructuredDocument;
-import org.structr.text.model.StructuredTextNode;
 
-import java.io.InputStream;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 /**
  *
  */
-public class TextSearchModule implements FulltextIndexer, ContentAnalyzer, StructrModule {
+public class TextSearchModule implements FulltextIndexer, StructrModule {
 
 	private static final Logger logger              = LoggerFactory.getLogger(TextSearchModule.class);
 	private static final GenericProperty contextKey = new GenericProperty("context");
@@ -68,11 +50,10 @@ public class TextSearchModule implements FulltextIndexer, ContentAnalyzer, Struc
 
 	@Override
 	public void registerModuleFunctions(final LicenseManager licenseManager) {
-		Functions.put(licenseManager, new StopWordsFunction());
 	}
 
 	@Override
-	public void addToFulltextIndex(final Indexable node) throws FrameworkException {
+	public void addToFulltextIndex(final NodeInterface node) throws FrameworkException {
 		StructrApp.getInstance(node.getSecurityContext()).processTasks(new FulltextIndexingTask(node.getUuid()));
 	}
 
@@ -213,95 +194,6 @@ public class TextSearchModule implements FulltextIndexer, ContentAnalyzer, Struc
 		return contextObject;
 	}
 
-	// ----- interface ContentAnalyzer -----
-	@Override
-	public Map<String, Object> analyzeContent(final Indexable indexable) throws FrameworkException {
-
-		final Map<String, Object> data = new LinkedHashMap<>();
-
-		try (final InputStream is = indexable.getInputStream()) {
-
-			final App app                      = StructrApp.getInstance(indexable.getSecurityContext());
-			final AutoDetectParser parser      = new AutoDetectParser();
-			final Metadata metadata            = new Metadata();
-			final ParseContext context         = new ParseContext();
-			final TesseractOCRConfig ocrConfig = new TesseractOCRConfig();
-			final TextContentHandler handler   = new TextContentHandler();
-
-			ocrConfig.setLanguage("eng+deu");
-
-			context.set(TesseractOCRConfig.class, ocrConfig);
-
-			parser.parse(is, handler, metadata, context);
-
-			data.put("parsed", true);
-
-			// try to obtain structure information
-			handler.analyze();
-
-			data.put("analyzed", true);
-
-			final StructuredDocument document = app.create(StructuredDocument.class, indexable.getName());
-			final List<String> metadataNodes  = new LinkedList<>();
-			final List<String> pageNodes      = new LinkedList<>();
-
-			data.put("documentNode",  document.getUuid());
-			data.put("metadataNodes", metadataNodes);
-			data.put("pageNodes",     pageNodes);
-
-			// store document metadata separately
-			for (final Entry<String, String> meta : handler.getMetadata().entrySet()) {
-
-				final MetadataNode m = app.create(MetadataNode.class,
-					new NodeAttribute<>(StructrApp.key(MetadataNode.class, "name"),     meta.getKey()),
-					new NodeAttribute<>(StructrApp.key(MetadataNode.class, "content"),  meta.getValue()),
-					new NodeAttribute<>(StructrApp.key(MetadataNode.class, "document"), document)
-				);
-
-				metadataNodes.add(m.getUuid());
-			}
-
-			int pageNumber = 1;
-
-			for (final AnnotatedPage sourcePage : handler.getPages()) {
-
-				final StructuredTextNode page = app.create(StructuredTextNode.class,
-					new NodeAttribute<>(StructrApp.key(StructuredTextNode.class, "name"),     "Page " + pageNumber++),
-					new NodeAttribute<>(StructrApp.key(StructuredTextNode.class, "kind"),     "page")
-				);
-
-				pageNodes.add(page.getUuid());
-
-				document.treeAppendChild(page);
-
-				for (final AnnotatedLine sourceLine : sourcePage.getLines()) {
-
-					final String content = sourceLine.getContent();
-
-					final StructuredTextNode paragraph = app.create(StructuredTextNode.class,
-						new NodeAttribute<>(StructrApp.key(StructuredTextNode.class, "name"),     StringUtils.abbreviate(content, 80)),
-						new NodeAttribute<>(StructrApp.key(StructuredTextNode.class, "kind"),     sourceLine.getType()),
-						new NodeAttribute<>(StructrApp.key(StructuredTextNode.class, "content"),  content)
-					);
-
-					page.treeAppendChild(paragraph);
-				}
-			}
-
-			data.put("success", true);
-
-		} catch (Throwable t) {
-
-			data.put("success", false);
-			data.put("errorMessage", t.getMessage());
-
-			logger.error(ExceptionUtils.getStackTrace(t));
-		}
-
-		return data;
-	}
-
-	@Override
 	public Set<String> getStopWords(final String language) {
 		return FulltextIndexingAgent.languageStopwordMap.get(language);
 	}
@@ -314,7 +206,7 @@ public class TextSearchModule implements FulltextIndexer, ContentAnalyzer, Struc
 
 	@Override
 	public Set<String> getDependencies() {
-		return null;
+		return Set.of("ui");
 	}
 
 	@Override

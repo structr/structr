@@ -31,10 +31,10 @@ import java.util.Map;
  */
 public class LongSumProperty extends AbstractReadOnlyProperty<Long> {
 
-	private EndNodes<?, ?> collectionProperty = null;
-	private Property<Long> valueProperty                = null;
+	private EndNodes collectionProperty  = null;
+	private Property<Long> valueProperty = null;
 
-	public LongSumProperty(String name, EndNodes<?, ?> collectionProperty, Property<Long> valueProperty, Long defaultValue) {
+	public LongSumProperty(String name, EndNodes collectionProperty, Property<Long> valueProperty, Long defaultValue) {
 
 		super(name, defaultValue);
 
@@ -44,7 +44,7 @@ public class LongSumProperty extends AbstractReadOnlyProperty<Long> {
 	}
 
 	@Override
-	public Class relatedType() {
+	public String relatedType() {
 		return null;
 	}
 
@@ -59,7 +59,7 @@ public class LongSumProperty extends AbstractReadOnlyProperty<Long> {
 	}
 
 	@Override
-	public Long getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
+	public Long getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		final Iterable<? extends GraphObject> collection = obj.getProperty(collectionProperty);
 		if (collection != null) {
@@ -84,6 +84,11 @@ public class LongSumProperty extends AbstractReadOnlyProperty<Long> {
 
 	@Override
 	public boolean isCollection() {
+		return false;
+	}
+
+	@Override
+	public boolean isArray() {
 		return false;
 	}
 

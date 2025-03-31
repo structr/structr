@@ -35,7 +35,8 @@ public enum RequestKeywords {
 	SortOrder("order"),
 
 	// search
-	Inexact("loose"),
+	Inexact_Deprecated("loose"),
+	Inexact("inexact"),
 
 	// distance search
 	LatLon("latlon"),

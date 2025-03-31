@@ -18,32 +18,12 @@
  */
 package org.structr.web.entity;
 
-import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.*;
-import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.dom.relationship.SiteCONTAINSPage;
+import org.structr.core.graph.NodeInterface;
 
-public class Site extends AbstractNode {
+public interface Site extends NodeInterface {
 
-	public static final Property<Iterable<Page>> pagesProperty = new EndNodes<>("pages", SiteCONTAINSPage.class).partOfBuiltInSchema();
-	public static final Property<String> hostnameProperty      = new StringProperty("hostname").indexed().partOfBuiltInSchema();
-	public static final Property<Integer> portProperty         = new IntProperty("port").indexed().partOfBuiltInSchema();
+	String getHostname();
+	Integer getPort();
 
-	public static final View defaultView = new View(Site.class, PropertyView.Public,
-		pagesProperty, hostnameProperty, portProperty
-	);
-
-	public static final View uiView = new View(Site.class, PropertyView.Ui,
-		pagesProperty, hostnameProperty, portProperty
-	);
-
-	public String getHostname() {
-		return getProperty(hostnameProperty);
-	}
-
-	public Integer getPort() {
-		return getProperty(portProperty);
-	}
+	Iterable<NodeInterface> getPages();
 }

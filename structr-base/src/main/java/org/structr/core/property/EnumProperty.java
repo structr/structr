@@ -18,9 +18,7 @@
  */
 package org.structr.core.property;
 
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -28,8 +26,9 @@ import org.structr.common.error.ValueToken;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 
-import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 /**
@@ -37,29 +36,49 @@ import java.util.TreeMap;
  *
  *
  */
-public class EnumProperty<T extends Enum> extends AbstractPrimitiveProperty<T> {
+public class EnumProperty extends AbstractPrimitiveProperty<String> {
 
-	private static final Logger logger = LoggerFactory.getLogger(EnumProperty.class.getName());
-	private Class<T> enumType          = null;
+	private final Set<String> enumConstants = new LinkedHashSet<>();
 
-	public EnumProperty(final String name, final Class<T> enumType) {
-		this(name, enumType, null);
+	public EnumProperty(final String name, final Class<? extends Enum> enumType) {
+		this(name, EnumProperty.trimAndFilterEmptyStrings(EnumProperty.extractConstants(enumType)), null);
 	}
 
-	public EnumProperty(final String jsonName, final String dbName, final Class<T> enumType) {
-		this(jsonName, dbName, enumType, null);
+	public EnumProperty(final String name, final Set<String> constants) {
+		this(name, constants, null);
 	}
 
-	public EnumProperty(final String name, final Class<T> enumType, final T defaultValue) {
-		this(name, name, enumType, defaultValue);
+	public EnumProperty(final String jsonName, final String dbName, final Set<String> constants) {
+		this(jsonName, dbName, constants, null);
 	}
 
-	public EnumProperty(final String jsonName, final String dbName, final Class<T> enumType, final T defaultValue) {
+	public EnumProperty(final String name, final Set<String> constants, final String defaultValue) {
+		this(name, name, constants, defaultValue);
+	}
+
+	public EnumProperty(final String jsonName, final String dbName, final Set<String> constants, final String defaultValue) {
 
 		super(jsonName, dbName, defaultValue);
 
-		this.enumType = enumType;
-		addEnumValuesToFormat();
+		this.enumConstants.addAll(constants);
+	}
+
+	@Override
+	public Object setProperty(SecurityContext securityContext, GraphObject obj, String value) throws FrameworkException {
+
+		if (StringUtils.isNotBlank(value)) {
+
+			if (!enumConstants.contains(value)) {
+
+				throw new FrameworkException(422, "Cannot parse input for property ‛" + jsonName() + "‛", new ValueToken(declaringTrait.getLabel(), jsonName(), enumConstants));
+			}
+		}
+
+		return super.setProperty(securityContext, obj, value);
+	}
+
+	public Set<String> getEnumConstants() {
+		return enumConstants;
 	}
 
 	@Override
@@ -69,27 +88,27 @@ public class EnumProperty<T extends Enum> extends AbstractPrimitiveProperty<T> {
 
 	@Override
 	public Class valueType() {
-		return enumType;
+		return String.class;
+	}
+
+	@Override
+	public PropertyConverter<String, ?> databaseConverter(SecurityContext securityContext) {
+		return null;
+	}
+
+	@Override
+	public PropertyConverter<String, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+		return null;
+	}
+
+	@Override
+	public PropertyConverter<?, String> inputConverter(SecurityContext securityContext) {
+		return null;
 	}
 
 	@Override
 	public SortType getSortType() {
 		return SortType.Default;
-	}
-
-	@Override
-	public PropertyConverter<T, String> databaseConverter(SecurityContext securityContext) {
-		return databaseConverter(securityContext, null);
-	}
-
-	@Override
-	public PropertyConverter<T, String> databaseConverter(SecurityContext securityContext, GraphObject entity) {
-		return new DatabaseConverter(securityContext, entity);
-	}
-
-	@Override
-	public PropertyConverter<String, T> inputConverter(SecurityContext securityContext) {
-		return new InputConverter(securityContext);
 	}
 
 	@Override
@@ -105,8 +124,9 @@ public class EnumProperty<T extends Enum> extends AbstractPrimitiveProperty<T> {
 		return null;
 	}
 
-	public Class<T> getEnumType() {
-		return enumType;
+	@Override
+	public boolean isArray() {
+		return false;
 	}
 
 	// ----- OpenAPI -----
@@ -135,7 +155,7 @@ public class EnumProperty<T extends Enum> extends AbstractPrimitiveProperty<T> {
 		}
 
 		items.put("type", "string");
-		items.put("enum", Arrays.asList(enumType.getEnumConstants()));
+		items.put("enum", enumConstants);
 
 		return map;
 	}
@@ -154,93 +174,44 @@ public class EnumProperty<T extends Enum> extends AbstractPrimitiveProperty<T> {
 		}
 
 		items.put("type", "string");
-		items.put("enum", Arrays.asList(enumType.getEnumConstants()));
+		items.put("enum", enumConstants);
 
 		return map;
 	}
 
-	protected class DatabaseConverter extends PropertyConverter<T, String> {
+	public static String[] extractConstants(final Class<? extends Enum> enumType) {
 
-		public DatabaseConverter(SecurityContext securityContext, GraphObject entity) {
-			super(securityContext, entity);
+		final Enum[] sourceConstants = enumType.getEnumConstants();
+		final String[] constants     = new String[sourceConstants.length];
+		int index                    = 0;
+
+		for (final Enum constant : enumType.getEnumConstants()) {
+			constants[index++] = constant.name();
 		}
 
-		@Override
-		public T revert(String source) throws FrameworkException {
-
-			if (StringUtils.isNotBlank(source)) {
-
-				try {
-					return (T) Enum.valueOf(enumType, source);
-
-				} catch (Throwable t) {
-
-					logger.warn("Cannot convert database value '{}' on object {} to enum of type '{}', ignoring.", new Object[] { source, this.currentObject.getUuid(), enumType.getSimpleName() } );
-				}
-			}
-
-			return null;
-
-		}
-
-		@Override
-		public String convert(T source) throws FrameworkException {
-
-			if (source != null) {
-
-				return source.toString();
-			}
-
-			return null;
-		}
-
+		return constants;
 	}
 
-	protected class InputConverter extends PropertyConverter<String, T> {
+	/**
+	 * Takes an array of string values and transforms it into a Set of strings,
+	 * trimming the strings and removing empty values.
+	 * @param input
+	 * @return
+	 */
+	public static Set<String> trimAndFilterEmptyStrings(final String[] input) {
 
-		public InputConverter(SecurityContext securityContext) {
-			super(securityContext, null);
-		}
+		final Set<String> normalized = new LinkedHashSet<>();
 
-		@Override
-		public String revert(T source) throws FrameworkException {
+		for (final String s : input) {
 
-			if (source != null) {
+			final String trimmed = s.trim();
 
-				return source.toString();
+			if (StringUtils.isNotBlank(trimmed)) {
+
+				normalized.add(trimmed);
 			}
-
-			return null;
 		}
 
-		@Override
-		public T convert(String source) throws FrameworkException {
-
-			if (StringUtils.isNotBlank(source)) {
-
-				try {
-					return (T) Enum.valueOf(enumType, source);
-
-				} catch (Throwable t) {
-
-					throw new FrameworkException(422, "Cannot parse input for property ‛" + jsonName() + "‛", new ValueToken(declaringClass.getSimpleName(), jsonName(), enumType.getEnumConstants()));
-				}
-			}
-
-			return null;
-
-		}
-
-	}
-
-	private void addEnumValuesToFormat() {
-
-		this.format = "";
-
-		for (T enumConst : enumType.getEnumConstants()) {
-			this.format += (enumConst.toString()) + ",";
-		}
-
-		this.format = this.format.substring(0, this.format.length() - 1);
+		return normalized;
 	}
 }

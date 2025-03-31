@@ -23,17 +23,18 @@ import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
-import org.structr.core.app.StructrApp;
 import org.structr.core.datasources.GraphDataSource;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.flow.impl.FlowContainer;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.web.common.RenderContext;
-import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.function.UiFunction;
+import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,33 +51,41 @@ public class FlowContainerDataSource implements GraphDataSource<Iterable<GraphOb
 	public Iterable<GraphObject> getData(final ActionContext actionContext, final NodeInterface referenceNode) throws FrameworkException {
 
 		final RenderContext renderContext = (RenderContext) actionContext;
-		
-		final AbstractNode flow = referenceNode.getProperty(StructrApp.key(DOMNode.class, "flow"));
-		if (flow == null) {
+		final Traits traits               = Traits.of(StructrTraits.DOM_NODE);
 
-			return null;
-		}
+		if (traits.hasKey(DOMNodeTraitDefinition.FLOW_PROPERTY)) {
 
-		try {
+			final PropertyKey<NodeInterface> flowKey = Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.FLOW_PROPERTY);
+			final NodeInterface flowNode             = referenceNode.getProperty(flowKey);
 
-			final Object result = Scripting.evaluate(renderContext, referenceNode, "${flow('" + (flow.getProperty(FlowContainer.effectiveName)) + "')}", "flow query");
-			if (result instanceof Iterable) {
+			if (flowNode != null) {
 
-				return FlowContainerDataSource.map((Iterable)result);
+				try {
 
-			} else if (result instanceof Object[]) {
+					final FlowContainer flow = flowNode.as(FlowContainer.class);
+					final Object result = Scripting.evaluate(renderContext, referenceNode, "${flow('" + flow.getEffectiveName() + "')}", "flow query");
 
-				return (List<GraphObject>) UiFunction.toGraphObject(result, 1);
-			} else if (result != null) {
+					if (result instanceof Iterable) {
 
-				// Handle single result.
-				List<GraphObject> results = new ArrayList<>();
-				results.add((GraphObject)UiFunction.toGraphObject(result, 1));
-				return results ;
+						return FlowContainerDataSource.map((Iterable) result);
+
+					} else if (result instanceof Object[]) {
+
+						return (List<GraphObject>) UiFunction.toGraphObject(result, 1);
+
+					} else if (result != null) {
+
+						// Handle single result.
+						List<GraphObject> results = new ArrayList<>();
+						results.add((GraphObject) UiFunction.toGraphObject(result, 1));
+
+						return results;
+					}
+
+				} catch (UnlicensedScriptException ex) {
+					ex.log(LoggerFactory.getLogger(FlowContainerDataSource.class));
+				}
 			}
-
-		} catch (UnlicensedScriptException ex) {
-			ex.log(LoggerFactory.getLogger(FlowContainerDataSource.class));
 		}
 
 		return null;

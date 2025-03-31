@@ -21,35 +21,30 @@ package org.structr.core.property;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.search.Occurrence;
-import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
-import org.structr.core.app.Query;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.graph.search.ArraySearchAttribute;
-import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchAttributeGroup;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * A property that stores and retrieves an array of Booleans.
  *
  *
  */
-public class BooleanArrayProperty extends AbstractPrimitiveProperty<Boolean[]> {
+public class BooleanArrayProperty extends ArrayProperty<Boolean> {
 
 	private static final Logger logger = LoggerFactory.getLogger(BooleanArrayProperty.class.getName());
 
 	public BooleanArrayProperty(final String name) {
 
-		super(name);
+		super(name, Boolean.class);
 	}
 
 	@Override
-	public Object fixDatabaseProperty(Object value) {
+	public Object fixDatabaseProperty(final Object value) {
 
 		// We can only try to fix a String and convert it into a String[]
 		if (value != null && value instanceof String) {
@@ -84,46 +79,13 @@ public class BooleanArrayProperty extends AbstractPrimitiveProperty<Boolean[]> {
 	}
 
 	@Override
-	public String typeName() {
-		return "Boolean[]";
-	}
-
-	@Override
-	public Class valueType() {
-		// This trick results in returning the proper array class for array properties.
-		// Neccessary because of and since commit 1db80071543018a0766efa2dc895b7bc3e9a0e34
-		try {
-			return Class.forName("[L" + Boolean.class.getName() + ";");
-		} catch (ClassNotFoundException ex) {}
-
-		return Boolean.class;
-	}
-
-	@Override
-	public SortType getSortType() {
-		return SortType.Default;
-	}
-
-	@Override
-	public PropertyConverter<Boolean[], ?> databaseConverter(SecurityContext securityContext) {
-		return null;
-	}
-
-	@Override
-	public PropertyConverter<Boolean[], ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
-		this.securityContext = securityContext;
-		this.entity = entity;
-		return null;
-	}
-
-	@Override
-	public PropertyConverter<?, Boolean[]> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, Boolean[]> inputConverter(final SecurityContext securityContext) {
 		return new ArrayInputConverter(securityContext);
 	}
 
 	private class ArrayInputConverter extends PropertyConverter<Object, Boolean[]> {
 
-		public ArrayInputConverter(SecurityContext securityContext) {
+		public ArrayInputConverter(final SecurityContext securityContext) {
 			super(securityContext, null);
 		}
 
@@ -162,78 +124,8 @@ public class BooleanArrayProperty extends AbstractPrimitiveProperty<Boolean[]> {
 
 			}
 
-			return (Boolean[])new Boolean[] { Boolean.valueOf(source.toString()) };
+			return new Boolean[] { Boolean.valueOf(source.toString()) };
 		}
-	}
-
-	@Override
-	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occurrence occur, Boolean[] searchValue, boolean exactMatch, Query query) {
-
-		// early exit, return empty search attribute
-		if (searchValue == null) {
-			return new ArraySearchAttribute(this, "", exactMatch ? occur : Occurrence.OPTIONAL, exactMatch);
-		}
-
-		final SearchAttributeGroup group = new SearchAttributeGroup(occur);
-
-		for (Boolean value : searchValue) {
-
-			group.add(new ArraySearchAttribute(this, value, exactMatch ? occur : Occurrence.OPTIONAL, exactMatch));
-		}
-
-		return group;
-	}
-
-	@Override
-	public boolean isCollection() {
-		return true;
-	}
-
-	// ----- OpenAPI -----
-	@Override
-	public Object getExampleValue(final String type, final String viewName) {
-		return List.of(true);
-	}
-
-	@Override
-	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
-		return null;
-	}
-
-	@Override
-	public Map<String, Object> describeOpenAPIOutputType(final String type, final String viewName, final int level) {
-
-		final Map<String, Object> items = new TreeMap<>();
-		final Map<String, Object> map   = new TreeMap<>();
-
-		items.put("type", typeName().toLowerCase());
-
-		map.put("type", "array");
-		map.put("items", items);
-
-		if (this.isReadOnly()) {
-			map.put("readOnly", true);
-		}
-
-		return map;
-	}
-
-	@Override
-	public Map<String, Object> describeOpenAPIInputType(final String type, final String viewName, final int level) {
-
-		final Map<String, Object> items = new TreeMap<>();
-		final Map<String, Object> map   = new TreeMap<>();
-
-		items.put("type", typeName().toLowerCase());
-
-		map.put("type", "array");
-		map.put("items", items);
-
-		if (this.isReadOnly()) {
-			map.put("readOnly", true);
-		}
-
-		return map;
 	}
 
 	// ----- private methods -----

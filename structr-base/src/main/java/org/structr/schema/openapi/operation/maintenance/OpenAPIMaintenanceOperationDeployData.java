@@ -38,11 +38,11 @@ public class OpenAPIMaintenanceOperationDeployData extends LinkedHashMap<String,
 
         operations.put("post", new OpenAPIOperation(
 
-                // summary
-                "Exports or imports the user data",
+				// summary
+				"Exports or imports the user data",
 
-                // description
-		"This command reads or writes a text-based export of the application data (**not the application**).",
+				// description
+				"This command reads or writes a text-based export of the application data (**not the application**).",
 
                 // operation ID
                 "deployData",
@@ -55,14 +55,14 @@ public class OpenAPIMaintenanceOperationDeployData extends LinkedHashMap<String,
 
                 // request body
                 new OpenAPIRequestResponse(
-                        "Request body",
-			new OpenAPIObjectSchema(
-                        	new OpenAPIPrimitiveSchema("Deployment mode",                              "mode",   "string", null, "export", Map.of(0, "import", 1, "export"), false),
-                        	new OpenAPIPrimitiveSchema("Source folder when **importing**",             "source", "string"),
-                        	new OpenAPIPrimitiveSchema("Target folder when **exporting**",             "target", "string", null, "/home/user/structr-app/webapp/data", false),
-                        	new OpenAPIPrimitiveSchema("Comma-separated list of data types to export", "types",  "string", null, "Project, Task, Customer", false)
-                        )
-                ),
+						"Request body",
+						new OpenAPIObjectSchema(
+								new OpenAPIPrimitiveSchema("Deployment mode",                              "mode",   "string", null, "export", Map.of(0, "import", 1, "export"), false),
+								new OpenAPIPrimitiveSchema("Source folder when **importing**",             "source", "string"),
+								new OpenAPIPrimitiveSchema("Target folder when **exporting**",             "target", "string", null, "/home/user/structr-app/webapp/data", false),
+								new OpenAPIPrimitiveSchema("Comma-separated list of data types to export", "types",  "string", null, "Project, Task, Customer", false)
+						)
+				),
 
                 // responses
                 Map.of(
@@ -70,6 +70,5 @@ public class OpenAPIMaintenanceOperationDeployData extends LinkedHashMap<String,
                         "401", new OpenAPISchemaReference("#/components/responses/unauthorized")
                 )
         ));
-
     }
 }

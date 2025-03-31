@@ -63,6 +63,9 @@ public interface JsonType extends Comparable<JsonType> {
 	JsonMethod addPropertyGetter(final String propertyName, final Class type);
 	JsonMethod addPropertySetter(final String propertyName, final Class type);
 
+	JsonType addTrait(final String name);
+
+	/*
 	JsonType setExtends(final JsonType superType);
 	JsonType setExtends(final URI externalReference);
 	JsonType setExtends(final Class staticType);
@@ -71,6 +74,7 @@ public interface JsonType extends Comparable<JsonType> {
 	JsonType setImplements(final URI externalReference);
 	JsonType setImplements(final Class staticReference);
 	Set<URI> getImplements();
+	 */
 
 	Set<JsonProperty> getProperties();
 	Set<String> getRequiredProperties();
@@ -82,14 +86,14 @@ public interface JsonType extends Comparable<JsonType> {
 	Set<String> getTags();
 	void addTags(final String... tags);
 
-	public String getSummary();
-	public JsonType setSummary(final String summary);
+	String getSummary();
+	JsonType setSummary(final String summary);
 
-	public String getDescription();
-	public JsonType setDescription(final String description);
+	String getDescription();
+	JsonType setDescription(final String description);
 
-	public boolean includeInOpenAPI();
-	public JsonType setIncludeInOpenAPI(final boolean includeInOpenAPI);
+	boolean includeInOpenAPI();
+	JsonType setIncludeInOpenAPI(final boolean includeInOpenAPI);
 
 	JsonType addViewProperty(final String viewName, final String propertyName);
 
@@ -99,17 +103,18 @@ public interface JsonType extends Comparable<JsonType> {
 	JsonDateProperty addDateProperty(final String name, final String... views);
 	JsonIntegerProperty addIntegerProperty(final String name, final String... views);
 	JsonLongProperty addLongProperty(final String name, final String... views);
-	JsonNumberProperty addNumberProperty(final String name, final String... views);
+	JsonDoubleProperty addDoubleProperty(final String name, final String... views);
 	JsonBooleanProperty addBooleanProperty(final String name, final String... views);
 	JsonScriptProperty addScriptProperty(final String name, final String...views);
 	JsonFunctionProperty addFunctionProperty(final String name, final String...views);
+	JsonLongProperty addCountProperty(final String name, final String... views);
 	JsonEnumProperty addEnumProperty(final String name, final String...views);
 	JsonDynamicProperty addCustomProperty(final String name, final String fqcn, final String... views);
 	JsonStringArrayProperty addStringArrayProperty(final String name, final String... views);
 	JsonDateArrayProperty addDateArrayProperty(final String name, final String... views);
 	JsonIntegerArrayProperty addIntegerArrayProperty(final String name, final String... views);
 	JsonLongArrayProperty addLongArrayProperty(final String name, final String... views);
-	JsonNumberArrayProperty addDoubleArrayProperty(final String name, final String... views);
+	JsonDoubleArrayProperty addDoubleArrayProperty(final String name, final String... views);
 	JsonBooleanArrayProperty addBooleanArrayProperty(final String name, final String... views);
 	JsonByteArrayProperty addByteArrayProperty(final String name, final String... views);
 

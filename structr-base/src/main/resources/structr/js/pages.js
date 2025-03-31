@@ -65,8 +65,6 @@ let _Pages = {
 		_Pager.initPager('files',   'File', 1, 25, 'name', 'asc');
 		_Pager.initPager('folders', 'Folder', 1, 25, 'name', 'asc');
 		_Pager.initPager('images',  'Image', 1, 25, 'name', 'asc');
-
-		Structr.ensureShadowPageExists();
 	},
 	handleNodeRefresh: (node) => {
 
@@ -108,9 +106,9 @@ let _Pages = {
 			window.location.hash       = urlHash;
 		}
 
-		Structr.setMainContainerHTML(_Pages.templates.main());
-
 		_Pages.init();
+
+		Structr.setMainContainerHTML(_Pages.templates.main());
 
 		Structr.updateMainHelpLink(_Helpers.getDocumentationURLForTopic('pages'));
 
@@ -126,133 +124,142 @@ let _Pages = {
 		_Pages.unusedElementsTree      = $('#elementsArea', _Pages.unusedElementsSlideout);
 		_Pages.previewSlideout         = $('#previewSlideout');
 
-		let pagesTab = document.getElementById('pagesTab');
-		let pagesTabSlideoutAction = (e) => {
-			Structr.slideouts.leftSlideoutTrigger(pagesTab, _Pages.pagesSlideout, [_Pages.localizationsSlideout], () => {
-				LSWrapper.setItem(_Pages.activeTabLeftKey, pagesTab.id);
-				Structr.resize();
-				_Entities.highlightSelectedElementOnSlideoutOpen();
-			}, _Pages.leftSlideoutClosedCallback);
-		};
+		_Pages.ensureShadowPageExists().then(() => {
 
-		pagesTab.addEventListener('click', pagesTabSlideoutAction);
+			let pagesTab = document.getElementById('pagesTab');
+			let pagesTabSlideoutAction = (e) => {
+				Structr.slideouts.leftSlideoutTrigger(pagesTab, _Pages.pagesSlideout, [_Pages.localizationsSlideout], () => {
+					LSWrapper.setItem(_Pages.activeTabLeftKey, pagesTab.id);
+					Structr.resize();
+					_Entities.highlightSelectedElementOnSlideoutOpen();
+				}, _Pages.leftSlideoutClosedCallback);
+			};
 
-		$(pagesTab).droppable({
-			tolerance: 'touch',
-			//over: pagesTabSlideoutAction
-		});
+			pagesTab.addEventListener('click', pagesTabSlideoutAction);
 
-		let localizationsTab = document.getElementById('localizationsTab');
-		localizationsTab.addEventListener('click', () => {
-			Structr.slideouts.leftSlideoutTrigger(localizationsTab, _Pages.localizationsSlideout, [_Pages.pagesSlideout], () => {
-				LSWrapper.setItem(_Pages.activeTabLeftKey, localizationsTab.id);
-				_Pages.localizations.refreshPagesForLocalizationPreview();
-				Structr.resize();
-				_Entities.highlightSelectedElementOnSlideoutOpen();
-			}, _Pages.leftSlideoutClosedCallback);
-		});
-
-		document.querySelector('#localizations input.locale').addEventListener('keydown', (e) => {
-			if (e.which === 13) {
-				_Pages.localizations.refreshLocalizations();
-			}
-		});
-
-		let refreshLocalizationsButton = document.querySelector('#localizations button.refresh');
-		refreshLocalizationsButton.addEventListener('click', _Pages.localizations.refreshLocalizations);
-
-		_Helpers.appendInfoTextToElement({
-			element: refreshLocalizationsButton,
-			text: "On this tab you can load the localizations requested for the given locale on the currently previewed page (including the UUID of the details object and the query parameters which are also used for the preview).<br><br>The retrieval process works just as rendering the page. If you request the locale \"en_US\" you might get Localizations for \"en\" as a fallback if no exact match is found.<br><br>If no Localization could be found, an empty input field is rendered where you can quickly create the missing Localization.",
-			insertAfter: true,
-			helpElementCss: { width: "300px" },
-			offsetX: -20,
-			offsetY: 10
-		});
-
-		let widgetsTab = document.getElementById('widgetsTab');
-		widgetsTab.addEventListener('click', () => {
-			Structr.slideouts.rightSlideoutClickTrigger(widgetsTab, _Pages.widgetsSlideout, [_Pages.paletteSlideout, _Pages.componentsSlideout, _Pages.unusedElementsSlideout, _Pages.previewSlideout], (params) => {
-				LSWrapper.setItem(_Pages.activeTabRightKey, widgetsTab.id);
-				_Widgets.reloadWidgets();
-				Structr.resize();
-			}, _Pages.rightSlideoutClosedCallback);
-		});
-
-		let paletteTab = document.getElementById('paletteTab');
-		paletteTab.addEventListener('click', () => {
-			Structr.slideouts.rightSlideoutClickTrigger(paletteTab, _Pages.paletteSlideout, [_Pages.widgetsSlideout, _Pages.componentsSlideout, _Pages.unusedElementsSlideout, _Pages.previewSlideout], (params) => {
-				LSWrapper.setItem(_Pages.activeTabRightKey, paletteTab.id);
-				_Pages.designTools.reload();
-				Structr.resize();
-			}, _Pages.rightSlideoutClosedCallback);
-		});
-
-		let componentsTab = document.getElementById('componentsTab');
-		let componentsTabSlideoutAction = (isDragOpen = false) => {
-			Structr.slideouts.rightSlideoutClickTrigger(componentsTab, _Pages.componentsSlideout, [_Pages.widgetsSlideout, _Pages.paletteSlideout, _Pages.unusedElementsSlideout, _Pages.previewSlideout], (params) => {
-				LSWrapper.setItem(_Pages.activeTabRightKey, componentsTab.id);
-				_Pages.sharedComponents.reload(isDragOpen);
-				Structr.resize();
-			}, () => {
-				_Helpers.fastRemoveAllChildren(_Pages.componentsSlideout[0]);
-				_Pages.rightSlideoutClosedCallback();
+			$(pagesTab).droppable({
+				tolerance: 'touch',
+				//over: pagesTabSlideoutAction
 			});
-		};
-		componentsTab.addEventListener('click', componentsTabSlideoutAction);
 
-		$(componentsTab).droppable({
-			tolerance: 'touch',
-			over: (e, ui) => {
+			let localizationsTab = document.getElementById('localizationsTab');
+			localizationsTab.addEventListener('click', () => {
+				Structr.slideouts.leftSlideoutTrigger(localizationsTab, _Pages.localizationsSlideout, [_Pages.pagesSlideout], () => {
+					LSWrapper.setItem(_Pages.activeTabLeftKey, localizationsTab.id);
+					_Pages.localizations.refreshPagesForLocalizationPreview();
+					Structr.resize();
+					_Entities.highlightSelectedElementOnSlideoutOpen();
+				}, _Pages.leftSlideoutClosedCallback);
+			});
 
-				let isComponentsSlideoutOpen = _Pages.componentsSlideout.hasClass('open');
-				let isColumnResizer          = $(ui.draggable).hasClass('column-resizer');
-
-				if (!isComponentsSlideoutOpen && !isColumnResizer) {
-					componentsTabSlideoutAction(true);
+			document.querySelector('#localizations input.locale').addEventListener('keydown', (e) => {
+				if (e.which === 13) {
+					_Pages.localizations.refreshLocalizations();
 				}
-			}
-		});
-
-		let elementsTab = document.getElementById('elementsTab');
-		elementsTab.addEventListener('click', () => {
-			Structr.slideouts.rightSlideoutClickTrigger(elementsTab, _Pages.unusedElementsSlideout, [_Pages.widgetsSlideout, _Pages.paletteSlideout, _Pages.componentsSlideout, _Pages.previewSlideout], (params) => {
-				LSWrapper.setItem(_Pages.activeTabRightKey, elementsTab.id);
-				_Pages.unattachedNodes.reload();
-				Structr.resize();
-			}, () => {
-				_Pages.unattachedNodes.removeElementsFromUI();
-				_Pages.rightSlideoutClosedCallback();
 			});
-		});
 
-		let previewTab = document.getElementById('previewTab');
-		previewTab.addEventListener('click', () => {
-			Structr.slideouts.rightSlideoutClickTrigger(previewTab, _Pages.previewSlideout, [_Pages.widgetsSlideout, _Pages.paletteSlideout, _Pages.componentsSlideout, _Pages.unusedElementsSlideout], (params) => {
-				LSWrapper.setItem(_Pages.activeTabRightKey, previewTab.id);
-				_Pages.previews.updatePreviewSlideout();
-				Structr.resize();
-			}, () => {
-				_Pages.rightSlideoutClosedCallback();
+			let refreshLocalizationsButton = document.querySelector('#localizations button.refresh');
+			refreshLocalizationsButton.addEventListener('click', _Pages.localizations.refreshLocalizations);
+
+			_Helpers.appendInfoTextToElement({
+				element: refreshLocalizationsButton,
+				text: "On this tab you can load the localizations requested for the given locale on the currently previewed page (including the UUID of the details object and the query parameters which are also used for the preview).<br><br>The retrieval process works just as rendering the page. If you request the locale \"en_US\" you might get Localizations for \"en\" as a fallback if no exact match is found.<br><br>If no Localization could be found, an empty input field is rendered where you can quickly create the missing Localization.",
+				insertAfter: true,
+				helpElementCss: { width: "300px" },
+				offsetX: -20,
+				offsetY: 10
 			});
-		});
 
-		_Pages.refresh();
+			let widgetsTab = document.getElementById('widgetsTab');
+			widgetsTab.addEventListener('click', () => {
+				Structr.slideouts.rightSlideoutClickTrigger(widgetsTab, _Pages.widgetsSlideout, [_Pages.paletteSlideout, _Pages.componentsSlideout, _Pages.unusedElementsSlideout, _Pages.previewSlideout], (params) => {
+					LSWrapper.setItem(_Pages.activeTabRightKey, widgetsTab.id);
+					_Widgets.reloadWidgets();
+					Structr.resize();
+				}, _Pages.rightSlideoutClosedCallback);
+			});
+
+			let paletteTab = document.getElementById('paletteTab');
+			paletteTab.addEventListener('click', () => {
+				Structr.slideouts.rightSlideoutClickTrigger(paletteTab, _Pages.paletteSlideout, [_Pages.widgetsSlideout, _Pages.componentsSlideout, _Pages.unusedElementsSlideout, _Pages.previewSlideout], (params) => {
+					LSWrapper.setItem(_Pages.activeTabRightKey, paletteTab.id);
+					_Pages.designTools.reload();
+					Structr.resize();
+				}, _Pages.rightSlideoutClosedCallback);
+			});
+
+			let componentsTab = document.getElementById('componentsTab');
+			let componentsTabSlideoutAction = (isDragOpen = false) => {
+				Structr.slideouts.rightSlideoutClickTrigger(componentsTab, _Pages.componentsSlideout, [_Pages.widgetsSlideout, _Pages.paletteSlideout, _Pages.unusedElementsSlideout, _Pages.previewSlideout], (params) => {
+					LSWrapper.setItem(_Pages.activeTabRightKey, componentsTab.id);
+					_Pages.sharedComponents.reload(isDragOpen);
+					Structr.resize();
+				}, () => {
+					_Helpers.fastRemoveAllChildren(_Pages.componentsSlideout[0]);
+					_Pages.rightSlideoutClosedCallback();
+				});
+			};
+			componentsTab.addEventListener('click', componentsTabSlideoutAction);
+
+			$(componentsTab).droppable({
+				tolerance: 'touch',
+				over: (e, ui) => {
+
+					let isComponentsSlideoutOpen = _Pages.componentsSlideout.hasClass('open');
+					let isColumnResizer          = $(ui.draggable).hasClass('column-resizer');
+
+					if (!isComponentsSlideoutOpen && !isColumnResizer) {
+						componentsTabSlideoutAction(true);
+					}
+				}
+			});
+
+			let elementsTab = document.getElementById('elementsTab');
+			elementsTab.addEventListener('click', () => {
+				Structr.slideouts.rightSlideoutClickTrigger(elementsTab, _Pages.unusedElementsSlideout, [_Pages.widgetsSlideout, _Pages.paletteSlideout, _Pages.componentsSlideout, _Pages.previewSlideout], (params) => {
+					LSWrapper.setItem(_Pages.activeTabRightKey, elementsTab.id);
+					_Pages.unattachedNodes.reload();
+					Structr.resize();
+				}, () => {
+					_Pages.unattachedNodes.removeElementsFromUI();
+					_Pages.rightSlideoutClosedCallback();
+				});
+			});
+
+			let previewTab = document.getElementById('previewTab');
+			previewTab.addEventListener('click', () => {
+				Structr.slideouts.rightSlideoutClickTrigger(previewTab, _Pages.previewSlideout, [_Pages.widgetsSlideout, _Pages.paletteSlideout, _Pages.componentsSlideout, _Pages.unusedElementsSlideout], (params) => {
+					LSWrapper.setItem(_Pages.activeTabRightKey, previewTab.id);
+					_Pages.previews.updatePreviewSlideout();
+					Structr.resize();
+				}, () => {
+					_Pages.rightSlideoutClosedCallback();
+				});
+			});
+
+			_Pages.refresh();
+		});
 	},
 	getContextMenuElements: (div, entity) => {
 
-		let elements      = [];
-		const isPage      = (entity.type === 'Page');
-		const isContent   = (entity.type === 'Content');
-		const hasChildren = (entity.children && entity.children.length > 0);
+		let elements                      = [];
+		const isPage                      = (entity.isPage === true    || entity.type === 'Page');
+		const isActualContentElement      = (entity.isContent === true && entity.type === 'Content');
+		const hasChildren                 = (entity.children && entity.children.length > 0);
+		const parentId                    = entity.parent?.id ?? null;
+		const hasParent                   = (parentId !== null);
+		const hasParentAndParentIsNotPage = (hasParent && !isPage);
+		const parentIsShadowPage          = (!hasParent && entity.pageId === _Pages.shadowPage.id);
+		const entityTypeisDivType         = (entity.type === 'Div');  // does not work for subclasses of Div... but who would do that?
+		const anyElementIsSelected        = !!_Elements.selectedEntity;
+		const currentElementIsSelected    = (_Elements.selectedEntity?.id === entity.id);
 
-		let handleInsertHTMLAction = (itemText) => {
+		let handleInsertHTMLAction   = (itemText) => {
 			let pageId  = isPage ? entity.id : entity.pageId;
 			let tagName = (itemText === 'comment') ? '#comment' : itemText;
 
 			Command.createAndAppendDOMNode(pageId, entity.id, tagName, _Dragndrop.getAdditionalDataForElementCreation(tagName, entity.tag), _Elements.isInheritVisibilityFlagsChecked(), _Elements.isInheritGranteesChecked());
 		};
-
 		let handleInsertBeforeAction = (itemText) => {
 			let tagName = (itemText === 'comment') ? '#comment' : itemText;
 			Command.createAndInsertRelativeToDOMNode(entity.pageId, entity.id, tagName, _Dragndrop.getAdditionalDataForElementCreation(tagName, entity.tag), 'Before', _Elements.isInheritVisibilityFlagsChecked(), _Elements.isInheritGranteesChecked());
@@ -261,7 +268,9 @@ let _Pages = {
 			let tagName = (itemText === 'comment') ? '#comment' : itemText;
 			Command.createAndInsertRelativeToDOMNode(entity.pageId, entity.id, tagName, _Dragndrop.getAdditionalDataForElementCreation(tagName, entity.tag), 'After', _Elements.isInheritVisibilityFlagsChecked(), _Elements.isInheritGranteesChecked());
 		};
-		let handleReplaceWithAction  = (itemText) => { Command.replaceWith(entity.pageId, entity.id, itemText, {}, _Elements.isInheritVisibilityFlagsChecked(), _Elements.isInheritGranteesChecked(), c => _Entities.toggleElement(c.id)); };
+		let handleReplaceWithAction  = (itemText) => {
+			Command.replaceWith(entity.pageId, entity.id, itemText, {}, _Elements.isInheritVisibilityFlagsChecked(), _Elements.isInheritGranteesChecked(), c => _Entities.toggleElement(c.id));
+		};
 		let handleWrapInHTMLAction   = (itemText) => {
 
 			_Dragndrop.storeTemporarilyRemovedElementUUID(entity.id);
@@ -271,21 +280,22 @@ let _Pages = {
 			_Dragndrop.clearTemporarilyRemovedElementUUID();
 		};
 
-		if (!isContent) {
+		if (!isActualContentElement) {
 
 			elements.push({
 				name: 'Insert HTML element',
-				elements: !isPage ? _Elements.sortedElementGroups : ['html'],
+				elements: isPage ? ['html'] : _Elements.sortedElementGroups,
 				forcedClickHandler: handleInsertHTMLAction
 			});
 
 			elements.push({
 				name: 'Insert content element',
-				elements: !isPage ? ['#content', '#template'] : ['#template'],
+				elements: isPage ? ['#template'] : ['#content', '#template'],
 				forcedClickHandler: handleInsertHTMLAction
 			});
 
 			if (_Elements.suggestedElements[entity.tag]) {
+
 				elements.push({
 					name: 'Suggested HTML element',
 					elements: _Elements.suggestedElements[entity.tag],
@@ -294,7 +304,8 @@ let _Pages = {
 			}
 		}
 
-		if (!isPage && !isContent) {
+		if (!isPage && !isActualContentElement) {
+
 			elements.push({
 				name: 'Insert div element',
 				clickHandler: () => {
@@ -305,7 +316,7 @@ let _Pages = {
 
 		_Elements.contextMenu.appendContextMenuSeparator(elements);
 
-		if (!isPage && entity.parent !== null && (entity.parent && entity.parent.type !== 'Page')) {
+		if (!isPage && hasParentAndParentIsNotPage) {
 
 			elements.push({
 				name: 'Insert before...',
@@ -354,7 +365,7 @@ let _Pages = {
 			_Elements.contextMenu.appendContextMenuSeparator(elements);
 		}
 
-		if (entity.type === 'Div' && !hasChildren) {
+		if (entityTypeisDivType && !hasChildren) {
 
 			elements.push({
 				icon: _Icons.getMenuSvgIcon(_Icons.iconPencilEdit),
@@ -365,16 +376,13 @@ let _Pages = {
 			});
 		}
 
-		let hasParentAndParentIsNotPage = (entity.parent && entity.parent.type !== 'Page');
-		let parentIsShadowPage          = (entity.parent === null && entity.pageId === _Pages.shadowPage.id);
-
 		if (!isPage && hasParentAndParentIsNotPage || parentIsShadowPage) {
 
 			elements.push({
 				icon: _Icons.getMenuSvgIcon(_Icons.iconClone),
 				name: 'Clone',
 				clickHandler: () => {
-					Command.cloneNode(entity.id, (entity.parent ? entity.parent.id : null), true);
+					Command.cloneNode(entity.id, parentId, true);
 				}
 			});
 
@@ -446,14 +454,17 @@ let _Pages = {
 
 			_Elements.contextMenu.appendContextMenuSeparator(elements);
 
-			if (_Elements.selectedEntity && _Elements.selectedEntity.id === entity.id) {
+			if (currentElementIsSelected) {
+
 				elements.push({
 					name: 'Deselect element',
 					clickHandler: () => {
 						_Elements.unselectEntity();
 					}
 				});
+
 			} else {
+
 				elements.push({
 					name: 'Select element',
 					clickHandler: () => {
@@ -462,8 +473,9 @@ let _Pages = {
 				});
 			}
 
-			let canConvertToSharedComponent = !entity.sharedComponentId && !entity.isPage && (entity.pageId !== _Pages.shadowPage.id || entity.parent !== null );
+			let canConvertToSharedComponent = !entity.sharedComponentId && !entity.isPage && !parentIsShadowPage;
 			if (canConvertToSharedComponent) {
+
 				_Elements.contextMenu.appendContextMenuSeparator(elements);
 
 				elements.push({
@@ -475,14 +487,14 @@ let _Pages = {
 			}
 		}
 
-		if (!isContent && _Elements.selectedEntity && _Elements.selectedEntity.id !== entity.id) {
+		if (!isActualContentElement && anyElementIsSelected && !currentElementIsSelected) {
 
-			let isSamePage = _Elements.selectedEntity.pageId === entity.pageId;
+			let isSamePage                               = _Elements.selectedEntity.pageId === entity.pageId;
 			let isThisEntityDirectParentOfSelectedEntity = (_Elements.selectedEntity.parent && _Elements.selectedEntity.parent.id === entity.id);
-			let isSelectedEntityInShadowPage = _Elements.selectedEntity.pageId === _Pages.shadowPage.id;
-			let isSelectedEntitySharedComponent = isSelectedEntityInShadowPage && !_Elements.selectedEntity.parent;
+			let isSelectedEntityInShadowPage             = _Elements.selectedEntity.pageId === _Pages.shadowPage.id;
+			let isSelectedEntitySharedComponent          = isSelectedEntityInShadowPage && !_Elements.selectedEntity.parent;
 
-			let isDescendantOfSelectedEntity = function (possibleDescendant) {
+			let isDescendantOfSelectedEntity = (possibleDescendant) => {
 				if (possibleDescendant.parent) {
 					if (possibleDescendant.parent.id === _Elements.selectedEntity.id) {
 						return true;
@@ -525,46 +537,39 @@ let _Pages = {
 
 		_Elements.contextMenu.appendContextMenuSeparator(elements);
 
-		if (!isContent && hasChildren) {
+		if (!isActualContentElement && hasChildren) {
+
+			let toggleChildrenExpandedState = (isCurrentlyExpanded) => {
+
+				// we reverse, because we want collapse to work from the deepest level backwards (for expand it does not make a difference)
+				let nodeDescendants = [...div.closest('.node').querySelectorAll('.node')].toReversed();
+
+				for (let childNode of nodeDescendants) {
+					if (_Entities.isExpanded(childNode) === isCurrentlyExpanded) {
+						let id = Structr.getId(childNode);
+						_Entities.toggleElement(id, childNode);
+					}
+				}
+
+				if (_Entities.isExpanded(div) === isCurrentlyExpanded) {
+					_Entities.toggleElement(entity.id, div);
+				}
+			};
 
 			elements.push({
 				name: 'Expand / Collapse',
 				elements: [
 					{
 						name: 'Expand subtree',
-						clickHandler: () => {
-
-							$(div).find('.node').each(function(i, el) {
-								if (!_Entities.isExpanded(el)) {
-									_Entities.toggleElement(entity.id, el);
-								}
-							});
-
-							if (!_Entities.isExpanded(div)) {
-								_Entities.toggleElement(entity.id, div);
-							}
-						}
+						clickHandler: () => toggleChildrenExpandedState(false)
 					},
 					{
 						name: 'Expand subtree recursively',
-						clickHandler: () => {
-							_Entities.expandRecursively([entity.id]);
-						}
+						clickHandler: () => _Entities.expandRecursively([entity.id])
 					},
 					{
 						name: 'Collapse subtree',
-						clickHandler: () => {
-
-							$(div).find('.node').each(function(i, el) {
-								if (_Entities.isExpanded(el)) {
-									_Entities.toggleElement(entity.id, el);
-								}
-							});
-
-							if (_Entities.isExpanded(div)) {
-								_Entities.toggleElement(entity.id, div);
-							}
-						}
+						clickHandler: () => toggleChildrenExpandedState(true)
 					}
 				]
 			});
@@ -574,7 +579,7 @@ let _Pages = {
 
 		// DELETE AREA - ALWAYS AT THE BOTTOM
 		// allow "Remove Node" on first level children of page
-		if (!isPage && entity.parent !== null) {
+		if (!isPage && hasParent) {
 
 			elements.push({
 				icon: _Icons.getMenuSvgIcon(_Icons.iconTrashcan),
@@ -589,15 +594,15 @@ let _Pages = {
 			});
 		}
 
-		// should only be visible for type===Page
-		if (isPage || !entity.parent) {
+		if (isPage || !hasParent) {
 
 			elements.push({
 				icon: _Icons.getMenuSvgIcon(_Icons.iconTrashcan),
 				classes: ['menu-bolder', 'danger'],
 				name: `Delete ${entity.type}`,
 				clickHandler: () => {
-					_Entities.deleteNode(entity, (isContent === false));
+					let recursive = (isActualContentElement === false);
+					_Entities.deleteNode(entity, recursive);
 				}
 			});
 		}
@@ -652,7 +657,7 @@ let _Pages = {
 
 				_Pages.centerPane.style.marginLeft = `calc(${leftPos}px + 3rem)`;
 
-				if (tabsMenu) tabsMenu.style.marginLeft = `calc(${leftPos}px + 2rem)`;
+				if (tabsMenu) tabsMenu.style.marginLeft = `calc(${leftPos}px - 7rem)`;
 
 			} else {
 
@@ -666,7 +671,7 @@ let _Pages = {
 
 				} else {
 
-					if (tabsMenu) tabsMenu.style.marginLeft = `calc(${leftPos}px + 0rem)`;
+					if (tabsMenu) tabsMenu.style.marginLeft = `calc(${leftPos}px - 8rem)`;
 
 					leftResizer.style.left = `calc(${leftPos}px - 1rem)`;
 					_Pages.centerPane.style.marginLeft = `calc(${leftPos}px + 2rem)`;
@@ -706,7 +711,7 @@ let _Pages = {
 
 		_Helpers.fastRemoveAllChildren(_Pages.pagesTree[0]);
 
-		Structr.setFunctionBarHTML(_Pages.templates.functions());
+		Structr.setFunctionBarHTML(_Pages.templates.pagesActions() + _Pages.templates.functions());
 
 		UISettings.showSettingsForCurrentModule();
 
@@ -744,25 +749,21 @@ let _Pages = {
 		pPager.setIsPaused(false);
 		pPager.refresh();
 
-		fetch(`${Structr.rootUrl}Page/category`).then((response) => {
+		fetch(`${Structr.rootUrl}Page`, {
+			headers: _Helpers.getHeadersForCustomView(['category'])
+		}).then(response => {
 			if (response.ok) {
 				return response.json();
 			}
-		}).then((data) => {
+		}).then(data => {
 
-			let categories = [];
-			for (let page of data.result) {
-				if (page.category !== null && categories.indexOf(page.category) === -1) {
-					categories.push(page.category);
-				}
-			}
-			categories.sort();
+			let categories = new Set(data.result.map(p => p.category).filter(c => c).sort());
 
 			let helpText = 'Filter pages by page category.';
-			if (categories.length > 0) {
-				helpText += 'Available categories: \n\n' + categories.join('\n');
+			if (categories.size > 0) {
+				helpText += 'Available categories: \n\n' + [...categories].join('\n');
 			} else {
-				helpText += '\nNo categories available - these can be set in the advanced attributes of a page.';
+				helpText += '\nNo categories available - these can be set in the "Basic" tab of a page.';
 			}
 
 			filerEl.querySelector('input.category-filter').title = helpText;
@@ -824,6 +825,7 @@ let _Pages = {
 		});
 
 		// Display 'Create Page' dialog
+		let smallTransparentGIF = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
 		let createPageButton = document.querySelector('#create_page');
 		createPageButton.addEventListener('click', async (e) => {
 
@@ -845,7 +847,7 @@ let _Pages = {
 				for (let widget of pageTemplates) {
 
 					let id = 'create-from-' + widget.id;
-					let tile = _Helpers.createSingleDOMElementFromHTML(`<div id="${id}" class="app-tile"><div class="app-thumbnail-frame"><img src="${widget.newThumbnailPath}"/><h4>${widget.name}</h4><p>${(widget.description || '')}</p></div></div>`);
+					let tile = _Helpers.createSingleDOMElementFromHTML(`<div id="${id}" class="app-tile"><div class="app-thumbnail-frame"><img src="${widget.newThumbnailPath ?? widget.thumbnailPath ?? smallTransparentGIF}"/><h4>${widget.name}</h4><p>${(widget.description || '')}</p></div></div>`);
 					container.append(tile);
 
 					tile.addEventListener('click', () => {
@@ -946,16 +948,14 @@ let _Pages = {
 				document.querySelector('a[href="#pages:link"]').closest('li').classList.add('hidden');
 			}
 
-			// Create shadow page if not existing
-			Structr.ensureShadowPageExists().then(() => {
-				let isEntityInSharedComponents = (entity.pageId === _Pages.shadowPage.id);
-				let isEntityInTrash = (!entity.isPage && !entity.pageId);
-				if (isEntityInSharedComponents || isEntityInTrash) {
-					document.querySelector('a[href="#pages:preview"]').closest('li').classList.add('hidden');
-				}
-			});
+			let isEntityInSharedComponents = (entity.pageId === _Pages.shadowPage.id);
+			let isEntityInTrash = (!entity.isPage && !entity.pageId);
+			if (isEntityInSharedComponents || isEntityInTrash) {
+				document.querySelector('a[href="#pages:preview"]').closest('li').classList.add('hidden');
+			}
 
 		} else {
+
 			_Pages.hideAllFunctionBarTabs();
 		}
 	},
@@ -1091,11 +1091,14 @@ let _Pages = {
 				_Pages.centerPane.insertAdjacentHTML('beforeend', _Pages.templates.basic());
 				let basicContainer = document.querySelector('#center-pane .basic-container');
 
-				if (dialogConfig) {
-					dialogConfig.appendDialogForEntityToContainer($(basicContainer), obj).then(() => {
-						_Helpers.activateCommentsInElement(basicContainer);
-					});
-				}
+				_Schema.getTypeInfo(obj.type, (typeInfo) => {
+
+					if (dialogConfig) {
+						dialogConfig.appendDialogForEntityToContainer($(basicContainer), obj, typeInfo).then(() => {
+							_Helpers.activateCommentsInElement(basicContainer);
+						});
+					}
+				});
 
 				break;
 
@@ -1104,9 +1107,9 @@ let _Pages = {
 				_Pages.centerPane.insertAdjacentHTML('beforeend', _Pages.templates.properties());
 				let propertiesContainer = document.querySelector('#center-pane .properties-container');
 
-				_Schema.getTypeInfo(obj.type, function(typeInfo) {
+				_Schema.getTypeInfo(obj.type, (typeInfo) => {
 
-					_Entities.listProperties(obj, '_html_', $(propertiesContainer), typeInfo, function(properties) {
+					_Entities.listProperties(obj, '_html_', $(propertiesContainer), typeInfo, (properties) => {
 
 						// make container visible when custom properties exist
 						if (Object.keys(properties).length > 0) {
@@ -1226,7 +1229,7 @@ let _Pages = {
 					<span class="abbr-ellipsis abbr-pages-tree-page">
 						<b title="${_Helpers.escapeForHtmlAttributes(entity.name)}" class="name_">${pageName}</b>
 						<span class="path_ font-semibold italic text-sm">${entity.path ?? ''}</span>
-						<span class="position_">${(entity.position ? entity.position : '')}</span>
+						<span class="position_">${((entity.position !== undefined && entity.position !== null) ? entity.position : '')}</span>
 					</span>
 					<div class="icons-container flex items-center"></div>
 				</div>
@@ -1391,6 +1394,34 @@ let _Pages = {
 	},
 	isDropAllowed: (dropzone) => {
 		return (dropzone?.classList.contains(_Pages.dropzoneDropAllowedClass) ?? false);
+	},
+	getEventActionMappingAvailableEvents: () => {
+
+		// add more events here
+		return [
+			"none",
+			"click",
+			"change",
+			"copy",
+			"cut",
+			"drop",
+			"focusout",
+			"input",
+			"keydown",
+			"keyup",
+			"keypress",
+			"load",
+			"mousemove",
+			"mouseover",
+			"mouseenter",
+			"mouseout",
+			"mouseleave",
+			"offline",
+			"online",
+			"paste",
+			"submit",
+		];
+
 	},
 	eventActionMappingDialog: (entity, container, typeInfo) => {
 
@@ -1750,7 +1781,7 @@ let _Pages = {
 
 					// show dialog
 					{
-						if(dialogTypeSelect.value !== 'none') {
+						if (dialogTypeSelect.value !== 'none') {
 							for (let dialogInput of document.querySelectorAll('.dialog-input-field-group')) {
 								dialogInput.classList.remove('hidden');
 							}
@@ -1962,7 +1993,7 @@ let _Pages = {
 					});
 				});
 
-			}, 'afterbegin', _Helpers.getElementDisplayName(StructrModel.obj(obj.id)));
+			}, 'afterbegin', _Helpers.getHTMLTreeElementDisplayName(StructrModel.obj(obj.id)));
 		};
 
 		const getAndAppendParameterMapping = (id) => {
@@ -2038,7 +2069,7 @@ let _Pages = {
 					hiddenUserInputInput.value = '';
 					saveParameterMappings(dropzoneElement);
 				})
-			}, 'beforeend', _Helpers.getElementDisplayName(StructrModel.obj(obj.id)));
+			}, 'beforeend', _Helpers.getHTMLTreeElementDisplayName(StructrModel.obj(obj.id)));
 
 			dropzoneElement.classList.add('hidden');
 			saveParameterMappings(dropzoneElement);
@@ -2218,7 +2249,7 @@ let _Pages = {
 
 						window.location.href = '#code';
 						window.setTimeout(() => {
-							_Code.findAndOpenNode(pathToOpen, false);
+							_Code.tree.findAndOpenNode(pathToOpen, false);
 						}, 1000);
 					}
 				});
@@ -2386,7 +2417,7 @@ let _Pages = {
 				return existing.querySelector('tbody');
 			}
 
-			let displayName = _Helpers.getElementDisplayName(entity);
+			let displayName = _Helpers.getHTMLTreeElementDisplayName(entity);
 			let iconClasses = ['mr-2', 'flex-shrink-0'];
 			let iconHTML    = (entity.isDOMNode) ? (entity.isContent ?_Icons.getSvgIconForContentNode(entity, iconClasses) : _Icons.getSvgIconForElementNode(entity, iconClasses)) : _Icons.getSvgIcon(_Icons.iconSchemaNodeDefault, 16, 16, iconClasses);
 			let detailHtml  = '';
@@ -2668,8 +2699,8 @@ let _Pages = {
 								let idString    = el.id ? ('#' + el.id) : '';
 								let classString = Array.from(el.classList).filter(c => c !== 'design-tools-locked').map(t => t.length > 1 ? '.' + t : null).join(' ');
 								childTemplateNameInput.value = tagString + ((el.id || classString) ? ' (' : '')
-										+ idString + ((el.id && classString) ? ' ' : '')
-										+ classString
+									+ idString + ((el.id && classString) ? ' ' : '')
+									+ classString
 									+ ((el.id || classString) ? ')' : '');
 
 							});
@@ -3467,6 +3498,68 @@ let _Pages = {
 		},
 		isDropAllowed: () => {
 			return _Pages.isDropAllowed(_Pages.sharedComponents.getNewSharedComponentDropzone());
+		},
+		getSavedDecisionForSharedComponentAttributeSync: () => {
+			return UISettings.getValueForSetting(UISettings.settingGroups.pages.settings.sharedComponentSyncModeKey);
+		},
+		shouldAskUserSyncSharedComponentAttributes: (id, key, newValue) => {
+
+			let modelObj = StructrModel.obj(id);
+			if (!modelObj) {
+				return false;
+			}
+			let previousValue  = modelObj[key];
+			if (newValue == previousValue) {
+				return false;
+			}
+			let doNotAskForKeys = ['id', 'name', 'syncedNodeIds', 'syncedNodes', 'sharedComponent', 'sharedComponentId'];
+			if (doNotAskForKeys.includes(key) || ((modelObj instanceof StructrContent) && (key === 'content' || key === 'contentType'))) {
+				return false;
+			}
+
+			let isDOMNode      = (modelObj.isDOMNode === true);
+			let hasSyncedNodes = (modelObj.syncedNodesIds?.length ?? 0) > 0;
+			let savedDecision  = _Pages.sharedComponents.getSavedDecisionForSharedComponentAttributeSync();
+			let shouldAsk      = isDOMNode && hasSyncedNodes && (savedDecision === UISettings.settingGroups.pages.settings.sharedComponentSyncModeKey.possibleValues.ASK.value);
+
+			return shouldAsk;
+		},
+		askSyncSharedComponentAttributesPromise: () => {
+
+			let infoText = 'The update can be applied to <b>all</b> elements or only to elements with <b>the same previous value</b>.';
+
+			let questionText = `
+				<div class="mt-2" data-comment="${_Helpers.escapeForHtmlAttributes(infoText)}">Apply the same change to the synced elements of this shared component?</div>
+			`;
+
+			let options = [{
+					buttonText: `${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, ['icon-green', 'mr-2'])} ${UISettings.settingGroups.pages.settings.sharedComponentSyncModeKey.possibleValues.ALL.text}`,
+					result: UISettings.settingGroups.pages.settings.sharedComponentSyncModeKey.possibleValues.ALL.value
+				}, {
+					buttonText: `${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, ['icon-green', 'mr-2'])}  ${UISettings.settingGroups.pages.settings.sharedComponentSyncModeKey.possibleValues.BY_VALUE.text}`,
+					result: UISettings.settingGroups.pages.settings.sharedComponentSyncModeKey.possibleValues.BY_VALUE.value
+				}, {
+					buttonText: `${_Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, ['icon-red', 'mr-2'])}  ${UISettings.settingGroups.pages.settings.sharedComponentSyncModeKey.possibleValues.NONE.text}`,
+					result: UISettings.settingGroups.pages.settings.sharedComponentSyncModeKey.possibleValues.NONE.value
+			}];
+
+			let defaultValue = UISettings.settingGroups.pages.settings.sharedComponentSyncModeKey.possibleValues.BY_VALUE.value;
+			let cancelValue  = UISettings.settingGroups.pages.settings.sharedComponentSyncModeKey.possibleValues.NONE.value;
+
+			return _Dialogs.multipleChoiceQuestion.askPromise(questionText, options, defaultValue, cancelValue, true).then((result) => {
+
+				let syncMode = result.answer;
+				let save     = result.save;
+
+				if (save) {
+
+					UISettings.setValueForSetting(UISettings.settingGroups.pages.settings.sharedComponentSyncModeKey, null, syncMode, null);
+
+					UISettings.showSettingsForCurrentModule();
+				}
+
+				return syncMode;
+			});
 		}
 	},
 
@@ -3551,7 +3644,7 @@ let _Pages = {
 							let div = _Helpers.createSingleDOMElementFromHTML(`
 								<div class="node page ${_Pages.linkableDialog.nodeClasses}">
 									<div class="node-container flex items-center gap-x-2 p-2">
-										${_Icons.getSvgIcon(_Icons.iconDomTreePageIcon, 16, 16, ['icon-grey'])}<b title="${_Helpers.escapeForHtmlAttributes(page.name)}" class="name_ abbr-ellipsis abbr-120">${page.name}</b>
+										${_Icons.getSvgIcon(_Icons.iconDOMTreePage, 16, 16, ['icon-grey'])}<b title="${_Helpers.escapeForHtmlAttributes(page.name)}" class="name_ abbr-ellipsis abbr-120">${page.name}</b>
 									</div>
 								</div>
 							`);
@@ -3716,7 +3809,9 @@ let _Pages = {
 		},
 		handleLinkableElement: (div, entityToLinkTo, linkableObject) => {
 
-			if (_Helpers.isIn(entityToLinkTo.id, linkableObject.linkingElementsIds)) {
+			let linkingElements = linkableObject.linkingElementsIds ?? [];
+
+			if (linkingElements.includes(entityToLinkTo.id)) {
 				div.classList.add('nodeActive');
 			}
 
@@ -3875,8 +3970,49 @@ let _Pages = {
 
 		_Helpers.activateCommentsInElement(container);
 	},
+	ensureShadowPageExists: () => {
 
+		return new Promise((resolve, reject) => {
+
+			if (_Pages.shadowPage) {
+
+				resolve(_Pages.shadowPage);
+
+			} else {
+
+				Command.getOrCreateShadowPage().then(shadowPage => {
+
+					_Pages.shadowPage = shadowPage;
+
+					resolve(_Pages.shadowPage);
+				});
+			}
+		});
+	},
 	templates: {
+		pagesActions: config => `
+					<div id="pages-actions" class="dropdown-menu darker-shadow-dropdown dropdown-menu-large">
+						<button class="action button btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
+							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} Create Page
+						</button>
+						<div class="dropdown-menu-container">
+
+							<div class="flex flex-col divide-x-0 divide-y">
+								<a id="create_page" title="Create Page" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
+									${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'mr-2')} Create Page
+								</a>
+
+								<a id="import_page" title="Import Template" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
+									${_Icons.getSvgIcon(_Icons.iconCreateFile, 16, 16, 'mr-2')} Import Page
+								</a>
+
+								<!--a id="add_template" title="Add Template" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
+									${_Icons.getSvgIcon(_Icons.iconMagicWand)} Add Template
+								</a-->
+							</div>
+						</div>
+					</div>
+		`,
 		main: config => `
 			<link rel="stylesheet" type="text/css" media="screen" href="css/pages.css">
 
@@ -3897,28 +4033,6 @@ let _Pages = {
 			<div id="pages" class="slideOut slideOutLeft">
 				<div id="pages-controls">
 					<div id="pagesPager"></div>
-
-					<div id="pages-actions" class="dropdown-menu darker-shadow-dropdown dropdown-menu-large">
-						<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
-							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])}
-						</button>
-						<div class="dropdown-menu-container">
-
-							<div class="flex flex-col divide-x-0 divide-y">
-								<a id="create_page" title="Create Page" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
-									${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'mr-2')} Create Page
-								</a>
-
-								<a id="import_page" title="Import Template" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
-									${_Icons.getSvgIcon(_Icons.iconCreateFile, 16, 16, 'mr-2')} Import Page
-								</a>
-
-								<!--a id="add_template" title="Add Template" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
-									${_Icons.getSvgIcon(_Icons.iconMagicWand)} Add Template
-								</a-->
-							</div>
-						</div>
-					</div>
 				</div>
 				<div id="pagesTree"></div>
 			</div>
@@ -4151,50 +4265,10 @@ let _Pages = {
 								<input type="text" class="combined-input-select-field" id="data-event-input" placeholder="Browser event (click, keydown, focusout etc.)">
 								<select class="required combined-input-select-field" id="data-event-select">
 									<option value="">Select event from list</option>
-									<option value="none">None</option>
-									<option value="click">Click</option>
-									<option value="change">Change</option>
-									<option value="focusout">Focus out</option>
-									<option value="keydown">Key down</option>
-									<option value="keyup">Key up</option>
-									<option value="keypress">Key press</option>
-									<option value="mousemove">Mouse move</option>
-									<option value="mouseover">Mouse over</option>
-									<option value="mouseenter">Mouse enter</option>
-									<option value="mouseout">Mouse out</option>
-									<option value="mouseleave">Mouse leave</option>
-									<option value="input">Input</option>
-									<option value="load">Page load</option>
-									<option value="drop">Drop</option>
-									<option value="copy">Copy</option>
-									<option value="cut">Cut</option>
-									<option value="paste">Paste</option>
-									<option value="offline">Offline</option>
-									<option value="online">Online</option>
-									<!-- add more events here? -->
+									${_Pages.getEventActionMappingAvailableEvents().map(event => `<option value="${event}">${event}</option>`).join('')}
 								</select>
 								<ul class="combined-input-select-field hidden">
-									<li data-value="none">None</li>
-									<li data-value="click">Click</li>
-									<li data-value="change">Change</li>
-									<li data-value="focusout">Focus out</li>
-									<li data-value="keydown">Key down</li>
-									<li data-value="keyup">Key up</li>
-									<li data-value="keypress">Key press</li>
-									<li data-value="mousemove">Mouse move</li>
-									<li data-value="mouseover">Mouse over</li>
-									<li data-value="mouseenter">Mouse enter</li>
-									<li data-value="mouseout">Mouse out</li>
-									<li data-value="mouseleave">Mouse leave</li>
-									<li data-value="input">Input</li>
-									<li data-value="load">Page load</li>
-									<li data-value="drop">Drop</li>
-									<li data-value="copy">Copy</li>
-									<li data-value="cut">Cut</li>
-									<li data-value="paste">Paste</li>
-									<li data-value="offline">Offline</li>
-									<li data-value="online">Online</li>
-									<!-- add more events here? -->
+									${_Pages.getEventActionMappingAvailableEvents().map(event => `<li data-value="${event}">${event}</li>`).join('')}
 								</ul>
 							</div>
 						</div>
@@ -4257,7 +4331,7 @@ let _Pages = {
 
 						</div>
 
-						<!--div class="hidden options-prev-page options-next-page				em-action-element em-action-next-page em-action-prev-page">
+						<!--div class="hidden options-prev-page options-next-page em-action-element em-action-next-page em-action-prev-page">
 							<div>
 								<label class="block mb-2" for="pagination-name-input" data-comment="Define the name of the pagination request parameter (usually &quot;page&quot;).">Pagination request parameter</label>
 								<input type="text" id="pagination-name-input">
@@ -4277,7 +4351,7 @@ let _Pages = {
 
 						<div class="hidden options-method em-action-element em-action-method">
 							<div>
-								<label class="block mb-2" for="method-name-input" data-comment="Enter name of an User-defined function or object method.<br><br>The return value of the method is available as <b>{result}</b> for a single value and with the pattern <b>{result.key}</b> for a map/object.<br><br>Example: Use {result.id} to retrieve the 'id' value from the return value object.">Name of method to execute</label>
+								<label class="block mb-2" for="method-name-input" data-comment="Enter name of a user-defined function or object method.<br><br>The return value of the method is available as <b>{result}</b> for a single value and with the pattern <b>{result.key}</b> for a map/object.<br><br>Example: Use {result.id} to retrieve the 'id' value from the return value object.">Name of method to execute</label>
 								<input type="text" id="method-name-input">
 							</div>
 						</div>
@@ -4530,7 +4604,7 @@ let _Pages = {
 							<option value="page-param">Request parameter for page</option>
 							<option value="pagesize-param">Request parameter for page size</option>
 							<option value="constant-value">Constant value</option>
-							<option value="script-expression">Script expression</option>
+							<option value="script-expression">Eval. expression</option>
 							<option value="method-result">Result of method call</option>
 							<option value="flow-result">Result of flow</option>
 						</select>
@@ -4542,8 +4616,8 @@ let _Pages = {
 					</div>
 
 					<div class="hidden em-parameter-value parameter-script-expression">
-						<label class="block mb-2" data-comment="The script expression will be evaluated and the result passed as parameter value">Value expression</label>
-						<input type="text" class="parameter-script-expression-input" placeholder="Script expression" value="${config.value || ''}">
+						<label class="block mb-2" data-comment="This is mixed-mode content. Plain text and scripting expressions can be mixed. The content will be evaluated and scripts will be processed. The result is passed as parameter value.<br><br>Examples:<br>- <code class='bg-white border border-gray-ddd border-solid p-1 rounded'>\${me.isAdmin}</code> <br>- <code class='bg-white border border-gray-ddd border-solid p-1 rounded'>Hello \${me.name}!</code>">Value expression</label>
+						<input type="text" class="parameter-script-expression-input" placeholder="Eval. expression (Ex.: 'Hello \${me.name}!')" value="${config.value || ''}">
 					</div>
 
 					<div class="hidden em-parameter-value parameter-user-input">
@@ -4663,14 +4737,14 @@ let _Pages = {
 	}
 };
 
-function findDiff(str1, str2){
-	let diff= "";
-	str2.split('').forEach(function(val, i){
-		if (val != str1.charAt(i))
-			diff += val ;
-	});
-	return diff;
-}
+// function findDiff(str1, str2){
+// 	let diff= "";
+// 	str2.split('').forEach(function(val, i){
+// 		if (val != str1.charAt(i))
+// 			diff += val ;
+// 	});
+// 	return diff;
+// }
 
 // polyfill for RegExp.escape
 if (!RegExp.escape) {
@@ -4814,39 +4888,39 @@ TopLevelObject.DOMPresentationUtils._cssPathStep = function(node, optimized, isT
 	var elementIndex = -1;
 	var siblings = parent.children;
 	for (var i = 0; (ownIndex === -1 || !needsNthChild) && i < siblings.length; ++i) {
-	var sibling = siblings[i];
-	if (sibling.nodeType !== Node.ELEMENT_NODE)
-		continue;
-	elementIndex += 1;
-	if (sibling === node) {
-		ownIndex = elementIndex;
-		continue;
-	}
-	if (needsNthChild)
-		continue;
-	if (sibling.tagName.toLowerCase() !== nodeName)
-		continue;
-	needsClassNames = true;
-	var ownClassNames = prefixedOwnClassNamesArray.values();
-	var ownClassNameCount = 0;
-	for (var name in ownClassNames)
-		++ownClassNameCount;
-	if (ownClassNameCount === 0) {
-		needsNthChild = true;
-		continue;
-	}
-	var siblingClassNamesArray = prefixedElementClassNames(sibling);
-	for (var j = 0; j < siblingClassNamesArray.length; ++j) {
-		var siblingClass = siblingClassNamesArray[j];
-		if (!ownClassNames.hasOwnProperty(siblingClass))
+		var sibling = siblings[i];
+		if (sibling.nodeType !== Node.ELEMENT_NODE)
 			continue;
-		delete ownClassNames[siblingClass];
-		if (!-ownClassNameCount) {
+		elementIndex += 1;
+		if (sibling === node) {
+			ownIndex = elementIndex;
+			continue;
+		}
+		if (needsNthChild)
+			continue;
+		if (sibling.tagName.toLowerCase() !== nodeName)
+			continue;
+		needsClassNames = true;
+		var ownClassNames = prefixedOwnClassNamesArray.values();
+		var ownClassNameCount = 0;
+		for (var name in ownClassNames)
+			++ownClassNameCount;
+		if (ownClassNameCount === 0) {
 			needsNthChild = true;
-			break;
+			continue;
+		}
+		var siblingClassNamesArray = prefixedElementClassNames(sibling);
+		for (var j = 0; j < siblingClassNamesArray.length; ++j) {
+			var siblingClass = siblingClassNamesArray[j];
+			if (!ownClassNames.hasOwnProperty(siblingClass))
+				continue;
+			delete ownClassNames[siblingClass];
+			if (!-ownClassNameCount) {
+				needsNthChild = true;
+				break;
+			}
 		}
 	}
-}
 	var result = nodeName;
 	if (isTargetNode && nodeName.toLowerCase() === "input" && node.getAttribute("type") && !node.getAttribute("id") && !node.getAttribute("class"))
 		result += "[type=\"" + node.getAttribute("type") + "\"]";

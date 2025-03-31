@@ -19,8 +19,6 @@
 package org.structr.flow.engine;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.flow.api.DataSource;
-import org.structr.flow.api.FlowElement;
 import org.structr.flow.api.FlowHandler;
 import org.structr.flow.api.FlowResult;
 import org.structr.flow.impl.*;
@@ -29,15 +27,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
-/**
- *
- */
-public class ForEachHandler implements FlowHandler<FlowForEach> {
+public class ForEachHandler implements FlowHandler {
 
 	@Override
-	public FlowElement handle(final Context context, final FlowForEach flowElement) throws FlowException {
+	public FlowNode handle(final Context context, final FlowNode flowNode) throws FlowException {
 
-		final DataSource dataSource   = flowElement.getDataSource();
+		final FlowForEach flowElement   = flowNode.as(FlowForEach.class);
+		final FlowDataSource dataSource = flowElement.getDataSource();
 
 		if (dataSource != null) {
 
@@ -49,10 +45,11 @@ public class ForEachHandler implements FlowHandler<FlowForEach> {
 				final Object data = dataSource.get(context);
 
 				// Special handling for FlowAggregate to ensure it's properly reset for nested loops.
-				FlowElement element = loopBody;
+				FlowNode element = loopBody;
 
 				final Context cleanedLoopContext = new Context(context);
 				traverseAndEvaluate(element, (el) -> {
+
 					if (el instanceof FlowAggregate) {
 						cleanedLoopContext.setData(((FlowAggregate) el).getUuid(), null);
 					}
@@ -150,10 +147,10 @@ public class ForEachHandler implements FlowHandler<FlowForEach> {
 		return flowElement.next();
 	}
 
-	private Map<String,Object> getAggregationData(final Context context, final FlowElement flowElement) {
+	private Map<String,Object> getAggregationData(final Context context, final FlowNode flowElement) {
 		Map<String,Object> aggregateData = new HashMap<>();
 
-		FlowElement currentElement = ((FlowForEach)flowElement).getLoopBody();
+		FlowNode currentElement = ((FlowForEach)flowElement).getLoopBody();
 
 		traverseAndEvaluate(currentElement, (el) -> {
 			if (el instanceof FlowAggregate) {
@@ -165,7 +162,7 @@ public class ForEachHandler implements FlowHandler<FlowForEach> {
 		return aggregateData;
 	}
 
-	private Context openNewContext(final Context context, Context loopContext, final FlowElement flowElement) {
+	private Context openNewContext(final Context context, Context loopContext, final FlowNode flowElement) {
 		final Context newContext = new Context(context);
 
 		for (Map.Entry<String,Object> entry : getAggregationData(loopContext, flowElement).entrySet()) {
@@ -176,7 +173,7 @@ public class ForEachHandler implements FlowHandler<FlowForEach> {
 		return newContext;
 	}
 
-	private void traverseAndEvaluate(final FlowElement element, final Consumer<FlowElement> consumer) {
+	private void traverseAndEvaluate(final FlowNode element, final Consumer<FlowNode> consumer) {
 
 		if (element != null) {
 
@@ -186,13 +183,13 @@ public class ForEachHandler implements FlowHandler<FlowForEach> {
 
 				final FlowDecision decision = (FlowDecision)element;
 
-				FlowElement decisionElement = decision.getProperty(FlowDecision.trueElement);
+				FlowNode decisionElement = decision.getTrueElement();
 				if (decisionElement != null) {
 
 					traverseAndEvaluate(decisionElement, consumer);
 				}
 
-				decisionElement = decision.getProperty(FlowDecision.falseElement);
+				decisionElement = decision.getFalseElement();
 				if (decisionElement != null) {
 
 					traverseAndEvaluate(decisionElement, consumer);
