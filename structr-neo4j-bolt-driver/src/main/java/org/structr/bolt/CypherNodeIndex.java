@@ -21,7 +21,6 @@ package org.structr.bolt;
 import org.structr.api.graph.Node;
 import org.structr.api.search.SortOrder;
 import org.structr.api.search.SortSpec;
-import org.structr.api.util.Iterables;
 
 /**
  *
@@ -101,6 +100,6 @@ class CypherNodeIndex extends AbstractCypherIndex<Node> {
 
 	@Override
 	public Iterable<Node> getResult(final CypherQuery query) {
-		return Iterables.map(new PrefetchNodeMapper(db), new LazyRecordIterable(db, query));
+		return db.getCurrentTransaction().getCachedResult(query);
 	}
 }

@@ -36,7 +36,7 @@ import org.structr.core.script.polyglot.function.GrantFunction;
 import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -163,7 +163,7 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 		} else if (node != null) {
 
-			final List<String> members = new ArrayList<>();
+			final List<String> members = new LinkedList<>();
 
 			final Set<PropertyKey> keys = node.getPropertyKeys("all");
 			if (keys != null) {

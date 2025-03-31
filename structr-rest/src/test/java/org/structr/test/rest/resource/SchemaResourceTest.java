@@ -1291,8 +1291,8 @@ public class SchemaResourceTest extends StructrRestTestBase {
 	@Test
 	public void testInheritedSchemaMethodExecution() {
 
-		final String uuid1 = createEntity("/SchemaNode", "{ name: TestBase1, schemaMethods: [ { name: test, source: \"find('Test1')\" } ] }");
-		final String uuid2 = createEntity("/SchemaNode", "{ name: TestBase2, schemaMethods: [ { name: test, source: \"find('Test2')\" } ] }");
+		final String uuid1 = createEntity("/SchemaNode", "{ name: TestBase1, schemaMethods: [ { name: test, source: \"find('Test1', sort('name'))\" } ] }");
+		final String uuid2 = createEntity("/SchemaNode", "{ name: TestBase2, schemaMethods: [ { name: test, source: \"find('Test2', sort('name'))\" } ] }");
 
 		createEntity("/SchemaNode", "{ name: Test1, schemaViews: [ { name: public, nonGraphProperties: \"name, type\" } ], inheritedTraits: [ TestBase1 ] }");
 

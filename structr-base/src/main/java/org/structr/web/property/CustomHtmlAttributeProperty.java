@@ -26,26 +26,18 @@ public class CustomHtmlAttributeProperty<T> extends GenericProperty<T> {
 	public static final String CUSTOM_HTML_ATTRIBUTE_PREFIX = "_custom_html_";
 
 	public CustomHtmlAttributeProperty(String name) {
-
 		this(name, name);
-
 	}
 
 	public CustomHtmlAttributeProperty(String jsonName, String dbName) {
-
 		super(jsonName, jsonName);
-
 	}
 
 	public CustomHtmlAttributeProperty(PropertyKey src) {
-
 		this(src.jsonName(), src.dbName());
-
 	}
 
 	public String cleanName () {
-
 		return jsonName().substring(CUSTOM_HTML_ATTRIBUTE_PREFIX.length());
-
 	}
 }

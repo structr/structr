@@ -2279,7 +2279,7 @@ let _Code = {
 				let name          = (schemaMethod.schemaNode === null) ? schemaMethod.name : schemaMethod.schemaNode.name + '/' + schemaMethod.name;
 				let url           = _Code.mainArea.helpers.getURLForSchemaMethod(schemaMethod);
 
-				let { dialogText } = _Dialogs.custom.openDialog(`Run user-defined function ${name}`, null, ['run-global-schema-method-dialog']);
+				let { dialogText } = _Dialogs.custom.openDialog(`Run user-defined function ${name}`);
 
 				let runButton = _Dialogs.custom.prependCustomDialogButton(`
 					<button id="run-method" class="flex items-center action focus:border-gray-666 active:border-green">
@@ -2302,7 +2302,7 @@ let _Code = {
 								${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-green', 'add-param-action']), 'Add parameter')}
 							</div>
 						</div>
-						<h3>Method output</h3>
+						<h3 class="mt-4">Result</h3>
 						<pre id="log-output"></pre>
 					</div>
 				`);
@@ -2377,7 +2377,7 @@ let _Code = {
 
 				runButton.addEventListener('click', async () => {
 
-					logOutput.textContent = 'Running method..\n';
+					logOutput.textContent = 'Running method...';
 
 					let params = {};
 					for (let paramRow of paramsOuterBox.querySelectorAll('#params .param')) {
@@ -2418,9 +2418,7 @@ let _Code = {
 					}
 
 					let response = await fetch(methodCallUrl, fetchConfig);
-					let text     = await response.text();
-
-					logOutput.textContent = text + 'Done.';
+					logOutput.textContent = await response.text();
 				});
 
 				clearButton.addEventListener('click', () => {

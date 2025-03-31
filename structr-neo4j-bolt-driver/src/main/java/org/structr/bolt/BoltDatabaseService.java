@@ -19,6 +19,7 @@
 package org.structr.bolt;
 
 import org.apache.commons.lang3.StringUtils;
+import org.neo4j.driver.Record;
 import org.neo4j.driver.*;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.exceptions.AuthenticationException;
@@ -250,6 +251,8 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 	@Override
 	public Node createNode(final String type, final Set<String> labels, final Map<String, Object> input) {
 
+		getCurrentTransaction().queryResultCache.clear();
+
 		final Map<String, Object> properties = new LinkedHashMap<>(input);
 		final StringBuilder buf              = new StringBuilder("CREATE (n");
 		final Map<String, Object> map        = new HashMap<>();
@@ -283,6 +286,8 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 
 	@Override
 	public NodeWithOwnerResult createNodeWithOwner(final Identity userId, final String type, final Set<String> labels, final Map<String, Object> input, final Map<String, Object> ownsProperties, final Map<String, Object> securityProperties) {
+
+		getCurrentTransaction().queryResultCache.clear();
 
 		final Map<String, Object> nodeProperties = new LinkedHashMap<>(input);
 		final Map<String, Object> parameters     = new HashMap<>();

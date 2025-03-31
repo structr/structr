@@ -18,7 +18,7 @@
  */
 package org.structr.common;
 
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -27,7 +27,7 @@ import java.util.Map;
  */
 public class Permissions {
 
-	private static final Map<String, Permission> permissionMap = new LinkedHashMap<>();
+	private static final Map<String, Permission> permissionMap = new HashMap<>();
 
 	static {
 

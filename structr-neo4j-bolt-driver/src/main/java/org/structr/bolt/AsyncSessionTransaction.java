@@ -55,7 +55,6 @@ class AsyncSessionTransaction extends SessionTransaction {
 
 		this.session       = session;
 		this.tx            = resolveImmediately(session.beginTransactionAsync(db.getTransactionConfig(transactionId)));
-		this.db            = db;
 	}
 
 	public AsyncSessionTransaction(final BoltDatabaseService db, final AsyncSession session, final int timeoutInSeconds) {
@@ -64,10 +63,8 @@ class AsyncSessionTransaction extends SessionTransaction {
 
 		final TransactionConfig config = db.getTransactionConfigForTimeout(timeoutInSeconds, transactionId);
 
-		this.transactionId = ID_SOURCE.getAndIncrement();
 		this.session       = session;
 		this.tx            = resolveImmediately(session.beginTransactionAsync(config));
-		this.db            = db;
 	}
 
 	@Override

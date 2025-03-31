@@ -50,7 +50,7 @@ import java.util.*;
 public class SchemaHelper {
 
 	private static final Logger logger                                 = LoggerFactory.getLogger(SchemaHelper.class.getName());
-	private static final Map<String, String> normalizedEntityNameCache = new LinkedHashMap<>();
+	private static final Map<String, String> normalizedEntityNameCache = new HashMap<>();
 	private static final String WORD_SEPARATOR                         = "_";
 
 	public static final Map<Type, PropertyGeneratorFactory> generatorMap = new TreeMap<>(new ReverseTypeComparator());

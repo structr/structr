@@ -23,5 +23,6 @@ import org.structr.core.traits.operations.LifecycleMethod;
 
 public interface OnNodeInstantiation extends LifecycleMethod {
 
+	// not used anywhere
 	void onNodeInstantiation(final NodeInterface nodeInterface, final boolean isCreation);
 }

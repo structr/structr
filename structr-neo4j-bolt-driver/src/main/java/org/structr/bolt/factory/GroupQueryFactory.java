@@ -47,8 +47,8 @@ public class GroupQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery>
 
 			// Filter type predicates since they require special handling
 			final List<QueryPredicate> predicateList               = group.getQueryPredicates();
-			final List<QueryPredicate> typePredicates              = predicateList.stream().filter((p) -> { return p instanceof TypeQuery; }).collect(Collectors.toList());
-			final List<QueryPredicate> attributeAndGroupPredicates = predicateList.stream().filter((p) -> { return !(p instanceof TypeQuery); }).collect(Collectors.toList());
+			final List<QueryPredicate> typePredicates              = predicateList.stream().filter((p) -> p instanceof TypeQuery).collect(Collectors.toList());
+			final List<QueryPredicate> attributeAndGroupPredicates = predicateList.stream().filter((p) -> !(p instanceof TypeQuery)).collect(Collectors.toList());
 
 			// Apply all type queries first as they affect as different part of the query expression
 			for (final QueryPredicate p : typePredicates) {

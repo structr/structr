@@ -30,6 +30,7 @@ import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
@@ -262,6 +263,63 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 	}
 
 	static void prefetchDOMNodes(final String uuid) {
+
+		TransactionCommand.getCurrentTransaction().prefetch2(
+
+			"MATCH (n:NodeInterface { id: $id })-[r:RELOADS|CONTAINS|SUCCESS_TARGET|FAILURE_TARGET|SUCCESS_NOTIFICATION_ELEMENT|FAILURE_NOTIFICATION_ELEMENT|FLOW|INPUT_ELEMENT|PARAMETER|SYNC|TRIGGERED_BY*]->(x) WITH collect(DISTINCT x) AS nodes, collect(DISTINCT last(r)) AS rels RETURN nodes, rels",
+
+			Set.of(
+				"all/OUTGOING/CONTAINS",
+				"all/OUTGOING/SUCCESS_TARGET",
+				"all/OUTGOING/FAILURE_TARGET",
+				"all/OUTGOING/SUCCESS_NOTIFICATION_ELEMENT",
+				"all/OUTGOING/FAILURE_NOTIFICATION_ELEMENT",
+				"all/OUTGOING/RELOADS",
+				"all/OUTGOING/FLOW",
+				"all/OUTGOING/INPUT_ELEMENT",
+				"all/OUTGOING/PARAMETER",
+				"all/OUTGOING/SYNC",
+				"all/OUTGOING/TRIGGERED_BY",
+
+				"all/INCOMING/CONTAINS",
+				"all/INCOMING/SUCCESS_TARGET",
+				"all/INCOMING/FAILURE_TARGET",
+				"all/INCOMING/SUCCESS_NOTIFICATION_ELEMENT",
+				"all/INCOMING/FAILURE_NOTIFICATION_ELEMENT",
+				"all/INCOMING/RELOADS",
+				"all/INCOMING/FLOW",
+				"all/INCOMING/INPUT_ELEMENT",
+				"all/INCOMING/PARAMETER",
+				"all/INCOMING/TRIGGERED_BY"
+			),
+
+			Set.of(
+				"all/OUTGOING/CONTAINS",
+				"all/OUTGOING/SUCCESS_TARGET",
+				"all/OUTGOING/FAILURE_TARGET",
+				"all/OUTGOING/SUCCESS_NOTIFICATION_ELEMENT",
+				"all/OUTGOING/FAILURE_NOTIFICATION_ELEMENT",
+				"all/OUTGOING/RELOADS",
+				"all/OUTGOING/FLOW",
+				"all/OUTGOING/INPUT_ELEMENT",
+				"all/OUTGOING/PARAMETER",
+				"all/OUTGOING/SYNC",
+				"all/OUTGOING/TRIGGERED_BY",
+
+				"all/INCOMING/CONTAINS",
+				"all/INCOMING/SUCCESS_TARGET",
+				"all/INCOMING/FAILURE_TARGET",
+				"all/INCOMING/SUCCESS_NOTIFICATION_ELEMENT",
+				"all/INCOMING/FAILURE_NOTIFICATION_ELEMENT",
+				"all/INCOMING/RELOADS",
+				"all/INCOMING/FLOW",
+				"all/INCOMING/INPUT_ELEMENT",
+				"all/INCOMING/PARAMETER",
+				"all/INCOMING/TRIGGERED_BY"
+			),
+
+			uuid
+		);
 	}
 
 	static void logScriptingError (final Logger logger, final Throwable t, String message, Object... arguments) {

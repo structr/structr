@@ -22,13 +22,17 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 
+import java.util.*;
+
 /**
  * A tree-based hierarchical cache implementation.
  * @param <T>
  */
 public class TreeCache<T extends Comparable> {
 
-	private final TreeCacheNode root = new TreeCacheNode("root");
+	private final TreeCacheNode root               = new TreeCacheNode("root");
+	private final Map<String, String[]> splitCache = new HashMap<>();
+
 	private final String keyPartSeparator;
 	private final long nodeId;
 
@@ -69,7 +73,15 @@ public class TreeCache<T extends Comparable> {
 
 	// ----- private methods -----
 	private String[] split(final String key) {
-		return StringUtils.split(key, keyPartSeparator);
+
+		String[] cached = splitCache.get(key);
+		if (cached == null) {
+
+			cached = StringUtils.split(key, keyPartSeparator);
+			splitCache.put(key, cached);
+		}
+
+		return cached;
 	}
 
 	private String serialize() {
@@ -103,7 +115,7 @@ public class TreeCache<T extends Comparable> {
 	// ----- nested classes -----
 	private class TreeCacheNode<T extends Comparable> {
 
-		private final Map<String, TreeCacheNode> children = new LinkedHashMap<>();
+		private final Map<String, TreeCacheNode> children = new HashMap<>();
 		private final Set<T> data                         = new TreeSet<>();
 		private final String key;
 

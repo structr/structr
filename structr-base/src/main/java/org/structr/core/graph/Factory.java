@@ -26,22 +26,20 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Adapter;
 import org.structr.core.GraphObject;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.function.Function;
 
 public abstract class Factory<S extends PropertyContainer, T extends GraphObject> implements Adapter<S, T>, Function<S, T> {
 
-	public static final ExecutorService service = Executors.newCachedThreadPool();
 	public static final int DEFAULT_PAGE_SIZE   = Integer.MAX_VALUE;
 	public static final int DEFAULT_PAGE        = 1;
 
-	protected SecurityContext securityContext = null;
-	protected boolean disablePaging           = false;
-	protected boolean includeHidden           = true;
-	protected boolean publicOnly              = false;
-	protected int pageSize                    = DEFAULT_PAGE_SIZE;
-	protected int page                        = DEFAULT_PAGE;
+	protected boolean disablePaging = false;
+	protected boolean includeHidden;
+	protected boolean publicOnly;
+
+	protected final SecurityContext securityContext;
+	protected final int pageSize;
+	protected final int page;
 
 	public Factory(final SecurityContext securityContext) {
 		this(securityContext, true, false, DEFAULT_PAGE_SIZE, DEFAULT_PAGE);

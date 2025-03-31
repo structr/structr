@@ -25,7 +25,7 @@ import org.structr.api.util.ChangeAwareMap;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -36,7 +36,8 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public abstract class MemoryEntity implements PropertyContainer {
 
-	private final Map<Long, ChangeAwareMap> txData = new LinkedHashMap<>();
+	private final Map<String, Object> dataCache    = new HashMap<>();
+	private final Map<Long, ChangeAwareMap> txData = new HashMap<>();
 	private final ChangeAwareMap data              = new ChangeAwareMap();
 	private final Set<String> labels               = new LinkedHashSet<>();
 	private ReentrantLock lock                     = new ReentrantLock();
@@ -114,6 +115,10 @@ public abstract class MemoryEntity implements PropertyContainer {
 	@Override
 	public boolean isDeleted() {
 		return false;
+	}
+
+	public Map<String, Object> getCache() {
+		return dataCache;
 	}
 
 	public void addLabels(final Set<String> labels) {

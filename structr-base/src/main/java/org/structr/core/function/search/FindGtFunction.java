@@ -24,7 +24,7 @@ import org.structr.schema.action.ActionContext;
 
 public class FindGtFunction extends AdvancedScriptingFunction {
 
-	public static final String ERROR_MESSAGE_GT = "Usage: ${gt(start, end)}. Example: ${find(\"User\", \"age\", gt(\"42\"))}";
+	public static final String ERROR_MESSAGE_GT = "Usage: ${gt(other)}. Example: ${find(\"User\", \"age\", gt(\"42\"))}";
 
 	@Override
 	public String getName() {
