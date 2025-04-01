@@ -196,7 +196,7 @@ public class Scripting {
 
 		} else if (isJavascript) {
 
-			snippet.setMimeType("application/javascript+module");
+			snippet.setMimeType("application/javascript");
 			snippet.setEngineName("js");
 			final Object result = evaluateScript(actionContext, entity, "js", snippet);
 
