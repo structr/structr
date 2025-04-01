@@ -96,6 +96,7 @@ public abstract class AbstractMethod {
 						final StructrBinding binding = bindings.asProxyObject();
 						final GraphObject previousEntity = binding.getEntity();
 						final ActionContext previousContext = binding.getActionContext();
+						final Value previousMethodParameters = binding.getMethodParameters();
 						final Map<String, Object> tmp = securityContext.getContextStore().getTemporaryParameters();
 
 						try {
@@ -126,7 +127,7 @@ public abstract class AbstractMethod {
 							// restore state before this method call
 							binding.setEntity(previousEntity);
 							binding.setActionContext(previousContext);
-							binding.setMethodParameters(null);
+							binding.setMethodParameters(previousMethodParameters);
 							securityContext.getContextStore().setTemporaryParameters(tmp);
 
 						}
@@ -141,6 +142,11 @@ public abstract class AbstractMethod {
 				throw new RuntimeException(ex);
 			}
 		};
+	}
+
+	public boolean shouldReturnRawResult() {
+
+		return false;
 	}
 
 	// ----- protected methods -----

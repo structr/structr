@@ -53,7 +53,7 @@ let _Schema = {
 	inheritanceSlideout: undefined,
 	onload: () => {
 
-		_Code.preloadAvailableTagsForEntities().then(() => {
+		_Code.helpers.preloadAvailableTagsForEntities().then(() => {
 
 			Structr.setMainContainerHTML(_Schema.templates.main());
 			_Helpers.activateCommentsInElement(Structr.mainContainer);
@@ -549,7 +549,7 @@ let _Schema = {
 
 					if (response.ok) {
 
-						_Code.addAvailableTagsForEntities([data]);
+						_Code.helpers.addAvailableTagsForEntities([data]);
 
 						_Schema.bulkDialogsGeneral.resetInputsViaTabControls(tabControls);
 
@@ -593,7 +593,7 @@ let _Schema = {
 				_Schema.applySavedLayoutConfiguration(schemaLayout, true);
 			}
 
-			let response = await fetch(`${Structr.rootUrl}SchemaNode/ui?${Structr.getRequestParameterName('sort')}=hierarchyLevel&${Structr.getRequestParameterName('order')}=asc`);
+			let response = await fetch(`${Structr.rootUrl}SchemaNode/ui?${Structr.getRequestParameterName('sort')}=hierarchyLevel&${Structr.getRequestParameterName('order')}=asc&isServiceClass=false`);
 			if (response.ok) {
 
 				let data             = await response.json();
@@ -880,32 +880,39 @@ let _Schema = {
 				targetView = 'basic';
 			}
 
+			let tabControls = {};
+
 			let basicTabContent        = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'basic', 'Basic', targetView === 'basic');
-			let localPropsTabContent   = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'local', 'Direct properties', targetView === 'local');
-			let remotePropsTabContent  = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'remote', 'Linked properties', targetView === 'remote');
-			let builtinPropsTabContent = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'builtin', 'Inherited properties', targetView === 'builtin');
-			let viewsTabContent        = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'views', 'Views', targetView === 'views');
-			let methodsTabContent      = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'methods', 'Methods', targetView === 'methods', _Editors.resizeVisibleEditors);
-			let schemaGrantsTabContent = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'schema-grants', 'Schema Grants', targetView === 'schema-grants');
+			tabControls.basic          = _Schema.nodes.appendBasicNodeInfo(basicTabContent, entity, mainTabs);
 
-			_Schema.properties.appendBuiltinProperties(builtinPropsTabContent, entity);
+			if (entity.isServiceClass === false) {
 
-			let tabControls = {
-				basic            : _Schema.nodes.appendBasicNodeInfo(basicTabContent, entity, mainTabs),
-				schemaProperties : _Schema.properties.appendLocalProperties(localPropsTabContent, entity),
-				remoteProperties : _Schema.remoteProperties.appendRemote(remotePropsTabContent, entity, async (el) => { await _Schema.remoteProperties.asyncEditSchemaObjectLinkHandler(el, mainTabs, entity.id); }),
-				schemaViews      : _Schema.views.appendViews(viewsTabContent, entity),
-				schemaMethods    : _Schema.methods.appendMethods(methodsTabContent, entity, entity.schemaMethods),
-				schemaGrants     : _Schema.schemaGrants.appendSchemaGrants(schemaGrantsTabContent, entity)
-			};
+				let localPropsTabContent   = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'local', 'Direct properties', targetView === 'local');
+				let remotePropsTabContent  = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'remote', 'Linked properties', targetView === 'remote');
+				let builtinPropsTabContent = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'builtin', 'Inherited properties', targetView === 'builtin');
+				let viewsTabContent        = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'views', 'Views', targetView === 'views');
+				let schemaGrantsTabContent = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'schema-grants', 'Schema Grants', targetView === 'schema-grants');
+
+				tabControls.schemaProperties = _Schema.properties.appendLocalProperties(localPropsTabContent, entity);
+				tabControls.remoteProperties = _Schema.remoteProperties.appendRemote(remotePropsTabContent, entity, async (el) => { await _Schema.remoteProperties.asyncEditSchemaObjectLinkHandler(el, mainTabs, entity.id); });
+				tabControls.schemaViews      = _Schema.views.appendViews(viewsTabContent, entity);
+				tabControls.schemaGrants     = _Schema.schemaGrants.appendSchemaGrants(schemaGrantsTabContent, entity);
+
+				_Schema.properties.appendBuiltinProperties(builtinPropsTabContent, entity);
+			}
+
+			let methodsTabContent     = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'methods', 'Methods', targetView === 'methods', _Editors.resizeVisibleEditors);
+			tabControls.schemaMethods = _Schema.methods.appendMethods(methodsTabContent, entity, entity.schemaMethods);
 
 			if (Structr.isModuleActive(_Code)) {
 
 				// only show the following tabs in the Code area where it is not opened in a popup
 
-				let workingSetsTabContent = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'working-sets', 'Working Sets', targetView === 'working-sets');
-				workingSetsTabContent.classList.add('relative');
-				_Schema.nodes.appendWorkingSets(workingSetsTabContent, entity);
+				if (entity.isServiceClass === false) {
+					let workingSetsTabContent = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'working-sets', 'Working Sets', targetView === 'working-sets');
+					workingSetsTabContent.classList.add('relative');
+					_Schema.nodes.appendWorkingSets(workingSetsTabContent, entity);
+				}
 
 				_Schema.nodes.appendGeneratedSourceCodeTab(entity, mainTabs, contentDiv, targetView);
 			}
@@ -936,7 +943,7 @@ let _Schema = {
 
 			updateChangeStatus();
 
-			_Schema.nodes.showCreateNewTypeDialog(dialogText, updateChangeStatus);
+			_Schema.nodes.showCreateNewTypeDialog(dialogText, updateChangeStatus, { isServiceClass: false });
 
 			initialData = _Schema.nodes.getTypeDefinitionDataFromForm(dialogText, {});
 
@@ -982,7 +989,6 @@ let _Schema = {
 				delete nameInput.dataset['property'];
 				nameInput.disabled = true;
 				nameInput.classList.add('disabled');
-			} else {
 			}
 
 			if (entity.extendsClass || entity.extendsClassInternal || entity.isBuiltinType === false) {
@@ -1004,18 +1010,22 @@ let _Schema = {
 				_Helpers.fastRemoveElement(container.querySelector('.extends-type'));
 			}
 
-			container.querySelector('[data-property="changelogDisabled"]').checked      = (true === entity.changelogDisabled);
-			container.querySelector('[data-property="defaultVisibleToPublic"]').checked = (true === entity.defaultVisibleToPublic);
-			container.querySelector('[data-property="defaultVisibleToAuth"]').checked   = (true === entity.defaultVisibleToAuth);
+			let schemaNodeFlags = ['isServiceClass', 'changelogDisabled', 'defaultVisibleToPublic', 'defaultVisibleToAuth'];
 
-			_Code.populateOpenAPIBaseConfig(container, entity, _Code.availableTags);
+			for (let flag of schemaNodeFlags) {
+
+				let checkbox = container.querySelector(`[data-property="${flag}"]`);
+				if (checkbox) checkbox.checked = (true === entity[flag]);
+			}
+
+			_Code.mainArea.populateOpenAPIBaseConfig(container, entity, _Code.availableTags);
 		},
 		appendTypeHierarchy: (container, entity = {}, changeFn) => {
 
 			fetch(`${Structr.rootUrl}SchemaNode/ui?${Structr.getRequestParameterName('sort')}=name`).then(response => response.json()).then(schemaNodeData => {
 
-				let customTypes  = schemaNodeData.result.filter(cls => ((!cls.category || cls.category !== 'html') && !cls.isAbstract && !cls.isInterface && !cls.isBuiltinType) && (cls.id !== entity.id));
-				let builtinTypes = schemaNodeData.result.filter(cls => ((!cls.category || cls.category !== 'html') && !cls.isAbstract && !cls.isInterface && cls.isBuiltinType) && (cls.id !== entity.id));
+				let customTypes  = schemaNodeData.result.filter(cls => ((!cls.category || cls.category !== 'html') && !cls.isAbstract && !cls.isInterface && !cls.isServiceClass && !cls.isBuiltinType) && (cls.id !== entity.id));
+				let builtinTypes = schemaNodeData.result.filter(cls => ((!cls.category || cls.category !== 'html') && !cls.isAbstract && !cls.isInterface && !cls.isServiceClass && cls.isBuiltinType) && (cls.id !== entity.id));
 
 				let getOptionsForListOfSchemaNodes = (list) => list.map(cls => `<option ${((entity.extendsClass?.id === cls.id) ? 'selected' : '')} value="${cls.id}">${cls.name}</option>`).join('');
 
@@ -1051,7 +1061,7 @@ let _Schema = {
 		},
 		appendBasicNodeInfo: (tabContent, entity, mainTabs) => {
 
-			tabContent.appendChild(_Helpers.createSingleDOMElementFromHTML(_Schema.templates.typeBasicTab()));
+			tabContent.appendChild(_Helpers.createSingleDOMElementFromHTML(_Schema.templates.typeBasicTab({ isServiceClass: entity?.isServiceClass, isCreate: !entity })));
 
 			_Helpers.activateCommentsInElement(tabContent);
 
@@ -1059,6 +1069,7 @@ let _Schema = {
 
 				let typeInfo    = _Schema.nodes.getTypeDefinitionDataFromForm(tabContent, entity);
 				let changedData = _Schema.nodes.getTypeDefinitionChanges(entity, typeInfo);
+
 				let hasChanges  = Object.keys(changedData).length > 0;
 
 				_Schema.bulkDialogsGeneral.dataChangedInTab(tabContent, hasChanges);
@@ -1070,7 +1081,7 @@ let _Schema = {
 				property.addEventListener('input', updateChangeStatus);
 			}
 
-			if (false === entity.isBuiltinType) {
+			if (entity.isBuiltinType === false && entity.isServiceClass === false) {
 
 				_Schema.nodes.appendTypeHierarchy(tabContent, entity, updateChangeStatus);
 			}
@@ -1209,7 +1220,7 @@ let _Schema = {
 			}
 		},
 		getTypeDefinitionDataFromForm: (tabContent, entity) => {
-			return _Code.collectDataFromContainer(tabContent, entity);
+			return _Code.persistence.collectDataFromContainer(tabContent, entity);
 		},
 		validateBasicTypeInfo: (typeInfo, container, entity) => {
 
@@ -1257,17 +1268,17 @@ let _Schema = {
 			return newData;
 		},
 		resetTypeDefinition: (container, entity) => {
-			_Code.revertFormDataInContainer(container, entity);
+			_Code.persistence.revertFormDataInContainer(container, entity);
 		},
-		showCreateNewTypeDialog: (container, updateFunction) => {
+		showCreateNewTypeDialog: (container, updateFunction, config = {}) => {
 
-			container.insertAdjacentHTML('beforeend', _Schema.templates.typeBasicTab());
+			container.insertAdjacentHTML('beforeend', _Schema.templates.typeBasicTab({ isCreate: true, ...config }));
 
 			_Helpers.fastRemoveElement(container.querySelector('.edit-parent-type'));
 
 			_Schema.nodes.appendTypeHierarchy(container, {}, updateFunction);
 			_Schema.nodes.activateTagsSelect(container);
-			_Code.populateOpenAPIBaseConfig(container, {}, _Code.availableTags);
+			_Code.mainArea.populateOpenAPIBaseConfig(container, {}, _Code.availableTags);
 
 			_Helpers.activateCommentsInElement(container);
 		},
@@ -3409,18 +3420,14 @@ let _Schema = {
 
 			let methodsGridConfig = {
 				class: 'actions schema-props grid',
-				style: 'grid-template-columns: [ name ] minmax(0, 1fr) ' +  ((entity) ? '[ isstatic ] 2rem ' : '') + '[ actions ] 6rem',
+				style: 'grid-template-columns: [ name ] minmax(0, 1fr) [ more ] 2rem [ actions ] 6rem',
 				cols: [
 					{ class: 'text-center font-bold pb-2', title: 'Name' },
-					{ class: 'isstatic-col flex justify-center font-bold', title: 'isStatic' },
+					{ class: 'more-settings-col flex justify-center font-bold', title: 'More' },
 					{ class: 'actions-col text-center font-bold', title: 'Action' }
 				],
-				buttons: _Schema.methods.templates.addMethodsDropdown({entity, availableLifecycleMethods}) + '<div class="flex-grow flex"></div>'
+				buttons: _Schema.methods.templates.addMethodsDropdown({ entity, availableLifecycleMethods }) + '<div class="flex-grow flex"></div>'
 			};
-
-			if (!entity) {
-				methodsGridConfig.cols.splice(1,1);
-			}
 
 			methods = _Schema.filterJavaMethods(methods, entity);
 			_Helpers.sort(methods);
@@ -3448,14 +3455,13 @@ let _Schema = {
 
 			for (let method of methods) {
 
-				let gridRow = _Helpers.createSingleDOMElementFromHTML(_Schema.methods.templates.methodRow({ method: method }));
+				let gridRow = _Helpers.createSingleDOMElementFromHTML(_Schema.methods.templates.methodRow({ method }));
 				gridBody.appendChild(gridRow);
+
+				_Helpers.activateCommentsInElement(gridRow);
 
 				gridRow.dataset['typeName']   = (entity ? entity.name : 'global_schema_method');
 				gridRow.dataset['methodName'] = method.name;
-
-				gridRow.querySelector('.property-name').value       = method.name;
-				gridRow.querySelector('.property-isStatic').checked = method.isStatic;
 
 				_Schema.methods.methodsData[method.id] = {
 					isNew:           false,
@@ -3463,17 +3469,23 @@ let _Schema = {
 					type:            method.type,
 					name:            method.name,
 					isStatic:        method.isStatic,
-					source:          method.source || '',
-					initialName:     method.name,
-					initialisStatic: method.isStatic,
-					initialSource:   method.source || '',
-					codeType:        method.codeType || '',
+					source:          method.source ?? '',
+					codeType:        method.codeType ?? '',
 					isPrivate:       method.isPrivate,
 					returnRawResult: method.returnRawResult,
-					httpVerb:        method.httpVerb
+					httpVerb:        method.httpVerb,
+					schemaNode:      entity,
+					initialData: {
+						name:            method.name,
+						isStatic:        method.isStatic,
+						source:          method.source ?? '',
+						isPrivate:       method.isPrivate,
+						returnRawResult: method.returnRawResult,
+						httpVerb:        method.httpVerb,
+					}
 				};
 
-				_Schema.methods.bindRowEvents(gridRow, entity);
+				_Schema.methods.bindRowEvents(gridBody, gridRow, entity);
 
 				// auto-edit first method (or last used)
 				if ((rowToActivate === undefined) || (lastEditedMethod && ((lastEditedMethod.isNew === false && lastEditedMethod.id === method.id) || (lastEditedMethod.isNew === true && lastEditedMethod.name === method.name)))) {
@@ -3481,9 +3493,7 @@ let _Schema = {
 				}
 			}
 
-			if (rowToActivate) {
-				rowToActivate.querySelector('.edit-action').dispatchEvent(new Event('click'));
-			}
+			rowToActivate?.querySelector('.edit-action').dispatchEvent(new Event('click'));
 
 			let resetFunction = () => {
 				for (let discardIcon of methodsGrid.querySelectorAll('.discard-changes')) {
@@ -3532,6 +3542,15 @@ let _Schema = {
 				let methodId   = gridRow.dataset['methodId'];
 				let methodData = _Schema.methods.methodsData[methodId];
 
+				let baseMethodData = {
+					name:            methodData.name,
+					isStatic:        methodData.isStatic,
+					isPrivate:       methodData.isPrivate,
+					returnRawResult: methodData.returnRawResult,
+					httpVerb:        methodData.httpVerb,
+					source:          methodData.source,
+				};
+
 				if (methodData.isNew === false) {
 
 					if (gridRow.classList.contains('to-delete')) {
@@ -3549,12 +3568,7 @@ let _Schema = {
 							allow = _Schema.methods.validateMethodRow(gridRow) && allow;
 						}
 
-						data.schemaMethods.push({
-							id:       methodId,
-							name:     methodData.name,
-							isStatic: methodData.isStatic,
-							source:   methodData.source,
-						});
+						data.schemaMethods.push(Object.assign({ id: methodId }, baseMethodData));
 
 					} else {
 
@@ -3573,12 +3587,7 @@ let _Schema = {
 						allow = _Schema.methods.validateMethodRow(gridRow) && allow;
 					}
 
-					data.schemaMethods.push({
-						type:     'SchemaMethod',
-						name:     methodData.name,
-						isStatic: methodData.isStatic,
-						source:   methodData.source,
-					});
+					data.schemaMethods.push(Object.assign({ type: 'SchemaMethod' }, baseMethodData));
 				}
 			}
 
@@ -3659,8 +3668,10 @@ let _Schema = {
 					let name             = addMethodButton.dataset['name'] ?? ''
 					let isPrefix         = addMethodButton.dataset['isPrefix'] === 'true';
 					let baseMethodConfig = {
-						name: isPrefix ? _Schema.methods.getFirstFreeMethodName(name) : name,
-						id: 'new' + (addedMethodsCounter++)
+						name:       (isPrefix ? _Schema.methods.getFirstFreeMethodName(name) : name),
+						id:         'new' + (addedMethodsCounter++),
+						schemaNode: entity,
+						httpVerb: 'POST'
 					};
 
 					_Schema.methods.appendNewMethod(gridBody, baseMethodConfig, entity);
@@ -3677,54 +3688,19 @@ let _Schema = {
 			gridBody.scrollTop = gridRow.offsetTop;
 
 			_Schema.methods.methodsData[method.id] = {
-				id:              method.id,
 				isNew:           true,
+				id:              method.id,
 				name:            method.name,
+				codeType:        method.codeType ?? '',
 				isStatic:        method.isStatic ?? false,
 				source:          method.source ?? '',
 				isPrivate:       method.isPrivate ?? false,
 				returnRawResult: method.returnRawResult ?? false,
+				httpVerb:        method.httpVerb ?? 'POST',
+				schemaNode:      entity
 			};
 
-			let propertyNameInput = gridRow.querySelector('.property-name');
-			propertyNameInput.addEventListener('input', () => {
-				_Schema.methods.methodsData[method.id].name = propertyNameInput.value;
-			});
-
-			let isStaticCheckbox = gridRow.querySelector('.property-isStatic');
-			isStaticCheckbox.addEventListener('change', () => {
-				_Schema.methods.methodsData[method.id].isStatic = isStaticCheckbox.checked;
-			});
-
-			gridRow.querySelector('.edit-action').addEventListener('click', () => {
-				_Schema.methods.editMethod(gridRow, entity);
-			});
-
-			gridRow.querySelector('.clone-action').addEventListener('click', () => {
-
-				let clonedData = Object.assign({}, _Schema.methods.methodsData[method.id], {
-					id:       method.id + '_clone_' + (new Date().getTime()),
-					name:     _Schema.methods.getFirstFreeMethodName(_Schema.methods.methodsData[method.id].name + '_copy')
-				});
-
-				_Schema.methods.appendNewMethod(gridBody, clonedData, entity);
-			});
-
-			gridRow.querySelector('.discard-changes').addEventListener('click', () => {
-
-				if (gridRow.classList.contains('editing')) {
-					document.querySelector('#methods-container-right').style.display = 'none';
-				}
-				_Helpers.fastRemoveElement(gridRow);
-
-				_Schema.methods.rowChanged(gridBody.closest('.schema-grid'), false);
-
-				_Editors.nukeEditorsById(method.id);
-			});
-
-			_Schema.bulkDialogsGeneral.gridChanged(gridBody.closest('.schema-grid'));
-
-			_Schema.methods.editMethod(gridRow, entity);
+			_Schema.methods.bindRowEvents(gridBody, gridRow, entity);
 		},
 		getFirstFreeMethodName: (prefix) => {
 
@@ -3753,21 +3729,73 @@ let _Schema = {
 
 			return prefix + (nextSuffix === 0 ? '' : (nextSuffix < 10 ? '0' + nextSuffix : nextSuffix));
 		},
-		bindRowEvents: (gridRow, entity) => {
+		removeAllMoreMethodSettingsContainers: (e) => {
 
-			let methodId   = gridRow.dataset['methodId'];
-			let methodData = _Schema.methods.methodsData[methodId];
+			let isInSettingsContainer = (e.target.closest('.more-method-settings-container') !== null);
+
+			if (!isInSettingsContainer) {
+
+				document.removeEventListener('mouseup', _Schema.methods.removeAllMoreMethodSettingsContainers);
+
+				for (let container of document.querySelectorAll('.more-method-settings-container')) {
+					container.classList.add('hidden');
+				}
+			}
+		},
+		bindRowEvents: (gridBody, gridRow, entity) => {
+
+			let methodId       = gridRow.dataset['methodId'];
+			let methodData     = _Schema.methods.methodsData[methodId];
+			let isDatabaseNode = (methodData.isNew === false);
+
+			_Schema.methods.updateUIForAllAttributes(gridRow, methodData);
 
 			let propertyNameInput = gridRow.querySelector('.property-name');
 			propertyNameInput.addEventListener('input', () => {
 				methodData.name = propertyNameInput.value;
-				_Schema.methods.rowChanged(gridRow, (methodData.name !== methodData.initialName));
+
+				if (isDatabaseNode) {
+					_Schema.methods.rowChanged(gridRow, (methodData.name !== methodData.initialData.name));
+				}
+
+				_Schema.methods.updateUIForAllAttributes(gridRow, methodData);
 			});
 
-			let isStaticCheckbox = gridRow.querySelector('.property-isStatic');
-			isStaticCheckbox.addEventListener('change', () => {
-				methodData.isStatic = isStaticCheckbox.checked;
-				_Schema.methods.rowChanged(gridRow, (methodData.isStatic !== methodData.initialisStatic));
+			for (let checkbox of gridRow.querySelectorAll('input[type="checkbox"][data-property]')) {
+
+				checkbox.addEventListener('change', (e) => {
+					let key = checkbox.dataset['property'];
+					methodData[key] = checkbox.checked;
+
+					if (isDatabaseNode) {
+						_Schema.methods.rowChanged(gridRow, (methodData[key] !== methodData.initialData[key]));
+					}
+
+					_Schema.methods.updateUIForAllAttributes(gridRow, methodData);
+				});
+			}
+
+			gridRow.querySelector('select[data-property="httpVerb"]').addEventListener('change', (e) => {
+				methodData.httpVerb = e.target.value;
+
+				if (isDatabaseNode) {
+					_Schema.methods.rowChanged(gridRow, (methodData.httpVerb !== methodData.initialData.httpVerb));
+				}
+			});
+
+			gridRow.querySelector('.toggle-more-method-settings').addEventListener('click', (e) => {
+
+				e.stopPropagation();
+
+				let settingsContainer = gridRow.querySelector('.more-method-settings-container');
+				let wasHidden         = settingsContainer.classList.contains('hidden');
+
+				if (wasHidden) {
+					_Schema.methods.removeAllMoreMethodSettingsContainers(e);
+					document.addEventListener('click', _Schema.methods.removeAllMoreMethodSettingsContainers);
+				}
+
+				settingsContainer.classList.toggle('hidden');
 			});
 
 			gridRow.querySelector('.edit-action').addEventListener('click', () => {
@@ -3777,40 +3805,85 @@ let _Schema = {
 			gridRow.querySelector('.clone-action').addEventListener('click', () => {
 
 				let clonedData = Object.assign({}, methodData, {
-					id:       methodId + '_clone_' + (new Date().getTime()),
-					name:     _Schema.methods.getFirstFreeMethodName(methodData.name + '_copy')
+					id:   methodId + '_clone_' + (new Date().getTime()),
+					name: _Schema.methods.getFirstFreeMethodName(methodData.name + '_copy')
 				});
 
-				_Schema.methods.appendNewMethod(gridRow.closest('.schema-grid-body'), clonedData, entity);
+				_Schema.methods.appendNewMethod(gridBody, clonedData, entity);
 			});
 
-			gridRow.querySelector('.remove-action').addEventListener('click', () => {
+			gridRow.querySelector('.remove-action')?.addEventListener('click', () => {
 				gridRow.classList.add('to-delete');
 				_Schema.methods.rowChanged(gridRow, true);
 			});
 
 			gridRow.querySelector('.discard-changes').addEventListener('click', () => {
 
-				if (gridRow.classList.contains('to-delete') || gridRow.classList.contains('has-changes')) {
+				if (isDatabaseNode) {
 
-					gridRow.classList.remove('to-delete');
-					gridRow.classList.remove('has-changes');
+					if (gridRow.classList.contains('to-delete') || gridRow.classList.contains('has-changes')) {
 
-					methodData.name     = methodData.initialName;
-					methodData.isStatic = methodData.initialisStatic;
-					methodData.source   = methodData.initialSource;
+						gridRow.classList.remove('to-delete');
+						gridRow.classList.remove('has-changes');
 
-					gridRow.querySelector('.property-name').value       = methodData.name;
-					gridRow.querySelector('.property-isStatic').checked = methodData.isStatic;
+						methodData = Object.assign(methodData, methodData.initialData);
 
-					if (gridRow.classList.contains('editing')) {
-						_Editors.disposeEditorModel(methodData.id, 'source');
-						_Schema.methods.editMethod(gridRow);
+						gridRow.querySelector('.property-name').value                      = methodData.name;
+						gridRow.querySelector('[data-property="isStatic"]').checked        = methodData.isStatic;
+						gridRow.querySelector('[data-property="isPrivate"]').checked       = methodData.isPrivate;
+						gridRow.querySelector('[data-property="returnRawResult"]').checked = methodData.returnRawResult;
+						gridRow.querySelector('[data-property="httpVerb"]').checked        = methodData.httpVerb;
+
+						if (gridRow.classList.contains('editing')) {
+							_Editors.disposeEditorModel(methodData.id, 'source');
+							_Schema.methods.editMethod(gridRow);
+						}
+
+						_Schema.methods.rowChanged(gridRow, false);
+
+						_Schema.methods.updateUIForAllAttributes(gridRow, methodData);
 					}
 
-					_Schema.methods.rowChanged(gridRow, false);
+				} else {
+
+					if (gridRow.classList.contains('editing')) {
+						document.querySelector('#methods-container-right').style.display = 'none';
+					}
+					_Helpers.fastRemoveElement(gridRow);
+
+					_Schema.methods.rowChanged(gridBody.closest('.schema-grid'), false);
+
+					_Editors.nukeEditorsById(methodData.id);
 				}
 			});
+
+			if (!isDatabaseNode) {
+
+				_Schema.bulkDialogsGeneral.gridChanged(gridBody.closest('.schema-grid'));
+
+				_Schema.methods.editMethod(gridRow, entity);
+			}
+		},
+		updateUIForAllAttributes: (container, methodData) => {
+
+			let updateVisibilityForAttribute = (attributeName, canSeeAttr) => {
+
+				let element = container.querySelector(`[data-property="${attributeName}"]`);
+				element?.closest('.method-config-element')?.classList.toggle('hidden', (canSeeAttr === false));
+			};
+
+			let isTypeMethod         = (!!methodData.schemaNode);
+			let isServiceClassMethod = (isTypeMethod && methodData.schemaNode.isServiceClass === true);
+			let isLifecycleMethod    = LifecycleMethods.isLifecycleMethod(methodData);
+			let isCallableViaREST    = (methodData.isPrivate !== true);
+
+			updateVisibilityForAttribute('isStatic',        (!isLifecycleMethod && isTypeMethod && !isServiceClassMethod));
+			updateVisibilityForAttribute('isPrivate',       (!isLifecycleMethod));
+			updateVisibilityForAttribute('returnRawResult', (!isLifecycleMethod && isCallableViaREST));
+			updateVisibilityForAttribute('httpVerb',        (!isLifecycleMethod && isCallableViaREST));
+
+			// completely hide 'more' button for lifecycle methods
+			container.querySelector('.toggle-more-method-settings')?.classList.toggle('hidden', isLifecycleMethod);
 		},
 		saveAndDisposePreviousEditor: (tr) => {
 
@@ -3844,9 +3917,17 @@ let _Schema = {
 				lint: true,
 				autocomplete: true,
 				changeFn: (editor, entity) => {
+
 					methodData.source = editor.getValue();
-					let hasChanges = (methodData.source !== methodData.initialSource) || (methodData.name !== methodData.initialName) || (methodData.isStatic !== methodData.initialisStatic);
-					_Schema.methods.rowChanged(tr, hasChanges);
+
+					if (methodData.isNew === false) {
+
+						let changesInInitialData = Object.keys(methodData.initialData).reduce((acc, key) => {
+							return acc || (methodData[key] !== methodData.initialData[key]);
+						}, false);
+
+						_Schema.methods.rowChanged(tr, changesInInitialData);
+					}
 				}
 			};
 
@@ -3913,14 +3994,58 @@ let _Schema = {
 					<div class="name-col px-1 py-2">
 						<input size="15" type="text" class="action property-name" placeholder="Enter method name" value="${config.method.name}">
 					</div>
-					<div class="isstatic-col flex items-center justify-center">
-						<input type="checkbox" class="action property-isStatic" style="margin-right: 0;" ${config.method.isStatic === true ? 'checked' : ''}>
+					<div class="more-settings-col flex items-center justify-center relative">
+
+						${_Icons.getSvgIcon(_Icons.iconKebabMenu, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['toggle-more-method-settings']), 'More settings')}
+
+						<div class="more-method-settings-container hidden absolute" style="z-index: 1; top: calc(100% - 1rem); right: 0; ">
+							<div class="bg-white border border-gray-ddd flex flex-shrink flex-wrap px-4 py-2 rounded-sm">
+								${_Schema.methods.templates.methodFlags(Object.assign({ cols: 1 }, config))}
+							</div>
+						</div>
+
 					</div>
 					<div class="flex items-center justify-center gap-1">
 						${_Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['edit-action']), 'Edit')}
 						${_Icons.getSvgIcon(_Icons.iconClone, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['clone-action']), 'Clone')}
 						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16,  _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']), 'Discard changes')}
 						${config.isNew ? '' : _Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action']), 'Discard')}
+					</div>
+				</div>
+			`,
+			methodFlags: config => `
+				<div class="grid grid grid-cols-${config.cols ?? 2} gap-x-2">
+
+					<div>
+						<div class="method-config-element entity-method py-1">
+							<label class="block whitespace-nowrap" data-comment="Only needs to be set if the method should be callable statically (without an object context). Only possible for non-lifecycle type methods.">
+								<input type="checkbox" data-property="isStatic" ${config.method.isStatic ? 'checked' : ''}> Method is static
+							</label>
+						</div>
+
+						<div class="method-config-element entity-method py-1">
+							<label class="block whitespace-nowrap" data-comment="If this flag is set, this method can <strong>not be called via HTTP</strong>.<br>Lifecycle methods can never be called via HTTP.">
+								<input type="checkbox" data-property="isPrivate" ${config.method.isPrivate ? 'checked' : ''}> Not callable via HTTP
+							</label>
+						</div>
+					</div>
+
+					<div>
+						<div class="method-config-element entity-method py-1">
+							<label class="block whitespace-nowrap" data-comment="If this flag is set, the request response value returned by this method will NOT be wrapped in a result object. Only applies to HTTP calls to this method.">
+								<input type="checkbox" data-property="returnRawResult" ${config.method.returnRawResult ? 'checked' : ''}> Return result object only
+							</label>
+						</div>
+
+						<div class="method-config-element entity-method py-1">
+							<select data-property="httpVerb">
+								<option value="GET" ${config.method.httpVerb === 'GET' ? 'selected' : ''}>Call method via GET</option>
+								<option value="PUT" ${config.method.httpVerb === 'PUT' ? 'selected' : ''}>Call method via PUT</option>
+								<option value="POST" ${config.method.httpVerb === 'POST' ? 'selected' : ''}>Call method via POST</option>
+								<option value="PATCH" ${config.method.httpVerb === 'PATCH' ? 'selected' : ''}>Call method via PATCH</option>
+								<option value="DELETE" ${config.method.httpVerb === 'DELETE' ? 'selected' : ''}>Call method via DELETE</option>
+							</select>
+						</div>
 					</div>
 				</div>
 			`,
@@ -4425,8 +4550,8 @@ let _Schema = {
 		});
 
 		let nodeTypeSelector = $('#node-type-selector');
-		Command.list('SchemaNode', true, 1000, 1, 'name', 'asc', 'id,name', (nodes) => {
-			nodeTypeSelector.append(nodes.map(node => `<option>${node.name}</option>`).join(''));
+		Command.list('SchemaNode', true, 1000, 1, 'name', 'asc', 'id,name,isServiceClass', (nodes) => {
+			nodeTypeSelector.append(nodes.filter(n => !n.isServiceClass).map(node => `<option>${node.name}</option>`).join(''));
 		});
 
 		registerSchemaToolButtonAction($('#reindex-nodes'), 'rebuildIndex', nodeTypeSelector, (type) => {
@@ -4717,7 +4842,6 @@ let _Schema = {
 
 			Structr.error('Unreadable JSON - please make sure you are using JSON exported from this dialog!', true);
 		}
-
 	},
 	applyNodePositions: (positions) => {
 
@@ -4791,7 +4915,10 @@ let _Schema = {
 			LSWrapper.setItem(_Schema.activeSchemaToolsSelectedVisibilityTab, tabName);
 		};
 
-		Command.query('SchemaNode', 2000, 1, 'name', 'asc', {}, (schemaNodes) => {
+		Command.query('SchemaNode', 2000, 1, 'name', 'asc', { isServiceClass: false }, (schemaNodes) => {
+
+			console.log(schemaNodes);
+			schemaNodes = schemaNodes.filter(s => !s.isServiceClass);
 
 			let tabsHtml = visibilityTables.map(visType => `<li id="tab" data-name="${visType.caption}">${visType.caption}</li>`).join('');
 			ul.insertAdjacentHTML('beforeend', tabsHtml);
@@ -4875,7 +5002,6 @@ let _Schema = {
 			let activeTab = LSWrapper.getItem(_Schema.activeSchemaToolsSelectedVisibilityTab) || visibilityTables[0].caption;
 			activateTab(activeTab);
 		}, false, null, 'id,name,isBuiltinType,category');
-
 	},
 	updateHiddenSchemaTypes: () => {
 
@@ -5491,9 +5617,12 @@ let _Schema = {
 			</div>
 
 			<div id="inheritance-tree" class="slideOut slideOutLeft">
-				<div class="flex items-center justify-between my-2">
-					<label class="ml-4">Search: <input type="text" id="search-types" autocomplete="off"></label>
-					<label class="mr-4 flex" data-comment="Built-in types will still be shown if they are ancestors of custom types.">
+				<div class="flex items-center justify-between m-4 gap-2">
+					<label>
+						Search:
+						<input type="text" id="search-types" autocomplete="one-time-code">
+					</label>
+					<label class="flex" data-comment="Built-in types will still be shown if they are ancestors of custom types.">
 						<input type="checkbox" id="show-builtin-types" ${(LSWrapper.getItem(_Schema.showBuiltinTypesInInheritanceTreeKey, false) ? 'checked' : '')}>
 						<span class="whitespace-nowrap">Show built-in types</span>
 					</label>
@@ -5510,7 +5639,7 @@ let _Schema = {
 				<div class="inline-flex">
 
 					<button id="create-type" class="action inline-flex items-center">
-						${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} New Type
+						${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} Create Data Type
 					</button>
 
 					<div class="dropdown-menu dropdown-menu-large">
@@ -5638,8 +5767,8 @@ let _Schema = {
 									<option disabled>──────────</option>
 								</select>
 								<button id="reindex-nodes" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Rebuild node index</button>
-								<button id="add-node-uuids" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Add UUIDs</button>
-								<button id="create-labels" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Create Labels</button>
+								<button id="add-node-uuids" class="mt-1 inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Add UUIDs</button>
+								<button id="create-labels" class="mt-1 inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Create Labels</button>
 							</div>
 							<div class="row">
 								<select id="rel-type-selector" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
@@ -5648,8 +5777,8 @@ let _Schema = {
 									<option value="allRels">All Relationship Types</option>
 									<option disabled>──────────</option>
 								</select>
-								<button id="reindex-rels" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Rebuild relationship index</button>
-								<button id="add-rel-uuids" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Add UUIDs</button>
+								<button id="reindex-rels" class="mt-1 inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Rebuild relationship index</button>
+								<button id="add-rel-uuids" class="mt-1 inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Add UUIDs</button>
 							</div>
 							<div class="row flex items-center">
 								<button id="rebuild-index" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
@@ -5699,25 +5828,34 @@ let _Schema = {
 
 					<input data-property="name" class="flex-grow" placeholder="Type Name...">
 
-					<div class="extends-type flex items-center gap-2">
-						extends
-						<select class="extends-class-select" data-property="extendsClass"></select>
-						${_Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['edit-parent-type']), 'Edit parent type')}
-					</div>
+					${!config.isServiceClass ? `
+						<div class="extends-type flex items-center gap-2">
+							extends
+							<select class="extends-class-select" data-property="extendsClass"></select>
+							${_Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['edit-parent-type']), 'Edit parent type')}
+						</div>
+					` : ''}
 				</div>
 
 				<h3>Options</h3>
 				<div class="property-options-group">
-					<div>
-						<label data-comment="Only takes effect if the changelog is active">
-							<input id="changelog-checkbox" type="checkbox" data-property="changelogDisabled"> Disable changelog
-						</label>
-						<label class="ml-8" data-comment="Makes all nodes of this type visible to public users if checked">
-							<input id="public-checkbox" type="checkbox" data-property="defaultVisibleToPublic"> Visible for public users
-						</label>
-						<label class="ml-8" data-comment="Makes all nodes of this type visible to authenticated users if checked">
-							<input id="authenticated-checkbox" type="checkbox" data-property="defaultVisibleToAuth"> Visible for authenticated users
-						</label>
+					<div class="flex">
+						${config.isServiceClass ? `
+							<label class="flex items-center mr-8" data-comment="Service-classes are containers for grouped functionality and can not be instantiated">
+								<input id="serviceclass-checkbox" type="checkbox" data-property="isServiceClass" disabled checked> Is Service Class
+							</label>
+						` : ''}
+						${!config.isServiceClass ? `
+							<label class="flex items-center mr-8" data-comment="Only takes effect if the changelog is active">
+								<input id="changelog-checkbox" type="checkbox" data-property="changelogDisabled"> Disable changelog
+							</label>
+							<label class="flex items-center mr-8" data-comment="Makes all nodes of this type visible to public users if checked">
+								<input id="public-checkbox" type="checkbox" data-property="defaultVisibleToPublic"> Visible for public users
+							</label>
+							<label class="flex items-center" data-comment="Makes all nodes of this type visible to authenticated users if checked">
+								<input id="authenticated-checkbox" type="checkbox" data-property="defaultVisibleToAuth"> Visible for authenticated users
+							</label>
+						` : ''}
 					</div>
 				</div>
 

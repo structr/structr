@@ -136,7 +136,6 @@ public class CoreModule implements StructrModule {
 		Functions.put(licenseManager, new PrintFunction());
 		Functions.put(licenseManager, new LogFunction());
 		Functions.put(licenseManager, new StackDumpFunction());
-		Functions.put(licenseManager, new DebugFunction());
 		Functions.put(licenseManager, new FindFunction());
 		Functions.put(licenseManager, new GetOrCreateFunction());
 		Functions.put(licenseManager, new CreateOrUpdateFunction());

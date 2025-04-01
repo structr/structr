@@ -230,29 +230,32 @@ let _Files = {
 
 		} else {
 
-			let size                  = node.isFolder ? (node.foldersCount + node.filesCount) : node.size;
-			let modifiedDate          = _Files.getFormattedDate(node.lastModifiedDate);
-			let name                  = node.name || '[unnamed]';
-			let listModeActive        = _Files.isViewModeActive('list');
-			let tilesModeActive       = _Files.isViewModeActive('tiles');
-			let imageModeActive       = _Files.isViewModeActive('img');
-			let iconSize              = (tilesModeActive || imageModeActive) ? 40 : 16;
-			let fileIcon              = (node.isFolder ? _Icons.getFolderIconSVG(node) : _Icons.getFileIconSVG(node));
-			let fileIconHTML          = _Icons.getSvgIcon(fileIcon, iconSize, iconSize);
-			let ownerString           = (node.owner ? (node.owner.name ? node.owner.name : '[unnamed]') : '');
+			let listModeActive  = _Files.isViewModeActive('list');
+			let tilesModeActive = _Files.isViewModeActive('tiles');
+			let imageModeActive = _Files.isViewModeActive('img');
+			let container       = document.querySelector('#' + (listModeActive ? 'row' : 'tile') + node.id);
 
-			let container             = document.querySelector('#' + (listModeActive ? 'row' : 'tile') + node.id);
+			if (container) {
 
-			container.querySelector('[data-key=name]')?.replaceChildren(name);
-			container.querySelector('[data-key=name]')?.setAttribute('title', name);
-			container.querySelector('[data-key=lastModifiedDate]')?.replaceChildren(modifiedDate);
-			container.querySelector('[data-key=size]')?.replaceChildren(size);
-			container.querySelector('[data-key=contentType]')?.replaceChildren(node.contentType);
-			container.querySelector('[data-key=owner]')?.replaceChildren(ownerString);
+				let size         = node.isFolder ? (node.foldersCount + node.filesCount) : node.size;
+				let modifiedDate = _Files.getFormattedDate(node.lastModifiedDate);
+				let name         = node.name ?? '[unnamed]';
+				let iconSize     = (tilesModeActive || imageModeActive) ? 40 : 16;
+				let fileIcon     = (node.isFolder ? _Icons.getFolderIconSVG(node) : _Icons.getFileIconSVG(node));
+				let fileIconHTML = _Icons.getSvgIcon(fileIcon, iconSize, iconSize);
+				let ownerString  = (node.owner ? (node.owner.name ? node.owner.name : '[unnamed]') : '');
 
-			let svgIcon = container.querySelector('.file-icon a svg');
-			if (svgIcon) {
-				_Icons.replaceSvgElementWithRawSvg(svgIcon, fileIconHTML);
+				container.querySelector('[data-key=name]')?.replaceChildren(name);
+				container.querySelector('[data-key=name]')?.setAttribute('title', name);
+				container.querySelector('[data-key=lastModifiedDate]')?.replaceChildren(modifiedDate);
+				container.querySelector('[data-key=size]')?.replaceChildren(size);
+				container.querySelector('[data-key=contentType]')?.replaceChildren(node.contentType);
+				container.querySelector('[data-key=owner]')?.replaceChildren(ownerString);
+
+				let svgIcon = container.querySelector('.file-icon a svg');
+				if (svgIcon) {
+					_Icons.replaceSvgElementWithRawSvg(svgIcon, fileIconHTML);
+				}
 			}
 		}
 	},
@@ -605,6 +608,7 @@ let _Files = {
 			let node          = Structr.node(file.id);
 			node.find('.size').text(fileSize);
 
+			// keep this code identical to "updateTextFile" code to ensure functionality
 			let chunks = Math.ceil(fileSize / _Files.chunkSize);
 
 			for (let c = 0; c < chunks; c++) {
@@ -618,6 +622,28 @@ let _Files = {
 		for (let fileObj of _Files.fileUploadList) {
 			if (file.id === fileObj.id) {
 				worker.postMessage(fileObj);
+			}
+		}
+	},
+	updateTextFile: (file, text, finishCallback) => {
+
+		if (text === "") {
+
+			Command.chunk(file.id, 0, _Files.chunkSize, "", 1, finishCallback);
+
+		} else {
+
+			let binaryContent = new TextEncoder().encode(text);
+			let byteLength    = binaryContent.length;
+
+			// keep this code identical to "uploadFile" code to ensure functionality
+			let chunks = Math.ceil(byteLength / _Files.chunkSize);
+
+			for (let c = 0; c < chunks; c++) {
+				let start = c * _Files.chunkSize;
+				let end   = (c + 1) * _Files.chunkSize;
+				let chunk = window.btoa(String.fromCharCode.apply(null, new Uint8Array(binaryContent.slice(start, end))));
+				Command.chunk(file.id, c, _Files.chunkSize, chunk, chunks, ((c+1 === chunks) ? finishCallback : undefined));
 			}
 		}
 	},
@@ -762,10 +788,8 @@ let _Files = {
 				${listModeActive ? _Files.templates.folderContentsTableSkeleton() : _Files.templates.folderContentsTileContainerSkeleton()}
 			`);
 
-			fetch(Structr.rootUrl + 'me/favorites', {
-				headers: {
-					Accept: 'application/json; charset=utf-8; properties=' + _Files.defaultFileAttributes
-				}
+			fetch(`${Structr.rootUrl}me/favorites`, {
+				headers: _Helpers.getHeadersForCustomView(_Files.defaultFileAttributes)
 			}).then(async response => {
 				if (response.ok) {
 					let data = await response.json();
@@ -1492,7 +1516,7 @@ let _Files = {
 
 		let monacoEditor = _Editors.getMonacoEditor(file, 'content', editorContainer.querySelector('.editor'), fileMonacoConfig);
 
-		_Editors.addEscapeKeyHandlersToPreventPopupClose(monacoEditor);
+		_Editors.addEscapeKeyHandlersToPreventPopupClose(file.id, 'content', monacoEditor);
 
 		let editorInfo = dialogMeta.querySelector('.editor-info');
 		_Editors.appendEditorOptionsElement(editorInfo);
@@ -1746,19 +1770,6 @@ let _Files = {
 			}
 		}
 	},
-	updateTextFile: function(file, text, callback) {
-		if (text === "") {
-			Command.chunk(file.id, 0, _Files.chunkSize, "", 1, callback);
-		} else {
-			var chunks = Math.ceil(text.length / _Files.chunkSize);
-			for (var c = 0; c < chunks; c++) {
-				var start = c * _Files.chunkSize;
-				var end = (c + 1) * _Files.chunkSize;
-				var chunk = _Helpers.utf8_to_b64(text.substring(start, end));
-				Command.chunk(file.id, c, _Files.chunkSize, chunk, chunks, ((c+1 === chunks) ? callback : undefined));
-			}
-		}
-	},
 	updateTemplatePreview: async (element, url) => {
 
 		let contentBox = element.querySelector('.editor');
@@ -1901,24 +1912,24 @@ let _Files = {
 
 				<div class="inline-flex">
 
-					<select class="select-create-type mr-2" id="folder-type">
+					<select class="select-create-type combined-select-create" id="folder-type">
 						<option value="Folder">Folder</option>
 						${config.folderTypes.map(type => '<option value="' + type + '">' + type + '</option>').join('')}
 					</select>
 
-					<button class="action button inline-flex items-center" id="add-folder-button">
+					<button class="action button inline-flex items-center combined-select-create" id="add-folder-button">
 						${_Icons.getSvgIcon(_Icons.iconCreateFolder, 16, 16, ['mr-2'])}
-						<span>Add</span>
+						<span>Create</span>
 					</button>
 
-					<select class="select-create-type mr-2" id="file-type">
+					<select class="select-create-type combined-select-create" id="file-type">
 						<option value="File">File</option>
 						${config.fileTypes.map(type => '<option value="' + type + '">' + type + '</option>').join('')}
 					</select>
 
-					<button class="action button inline-flex items-center" id="add-file-button">
+					<button class="action button inline-flex items-center combined-select-create" id="add-file-button">
 						${_Icons.getSvgIcon(_Icons.iconCreateFile, 16, 16, ['mr-2'])}
-						<span>Add</span>
+						<span>Create</span>
 					</button>
 
 					<button class="mount_folder button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green" id="mount-folder-dialog-button">

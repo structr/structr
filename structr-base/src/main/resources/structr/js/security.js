@@ -202,44 +202,44 @@ let _Security = {
 		functions: config => `
 			<ul id="securityTabsMenu" class="tabs-menu flex-grow">
 			  <li><a href="#security:users-and-groups" id="usersAndGroups_"><span>Users and Groups</span></a></li>
-			  <li><a href="#security:resource-access" id="resourceAccess_"><span>Resource Access</span></a></li>
+			  <li><a href="#security:resource-access" id="resourceAccess_"><span>Resource Permissions</span></a></li>
 			  <li><a href="#security:cors-settings" id="corsSettings_"><span>CORS Settings</span></a></li>
 			</ul>
 		`,
 		newGroupButton: config => `
 			<div class="flex items-center mb-8">
 
-				<select class="select-create-type mr-2 hover:bg-gray-100 focus:border-gray-666 active:border-green" id="group-type">
+				<select class="select-create-type hover:bg-gray-100 focus:border-gray-666 active:border-green combined-select-create" id="group-type">
 					<option value="Group">Group</option>
 					${config.types.map(type => `<option value="${type}">${type}</option>`).join('')}
 				</select>
 
-				<button class="action add_group_icon inline-flex items-center" id="add-group-button">
+				<button class="action add_group_icon inline-flex items-center combined-select-create" id="add-group-button">
 					${_Icons.getSvgIcon(_Icons.iconGroupAdd, 16, 16, 'mr-2')}
-					<span>Add Group</span>
+					<span>Create</span>
 				</button>
 			</div>
 		`,
 		newUserButton: config => `
 			<div class="flex items-center mb-8">
 
-				<select class="select-create-type mr-2 hover:bg-gray-100 focus:border-gray-666 active:border-green" id="user-type">
+				<select class="select-create-type hover:bg-gray-100 focus:border-gray-666 active:border-green combined-select-create" id="user-type">
 					<option value="User">User</option>
 					${config.types.map(type => `<option value="${type}">${type}</option>`).join('')}
 				</select>
 
-				<button class="action add_user_icon inline-flex items-center" id="add-user-button">
+				<button class="action add_user_icon inline-flex items-center combined-select-create" id="add-user-button">
 					${_Icons.getSvgIcon(_Icons.iconUserAdd, 16, 16, 'mr-2')}
-					<span>Add User</span>
+					<span>Create</span>
 				</button>
 			</div>
 		`,
 		resourceAccess: config => `
 			<div class="flex items-center">
 				<div id="add-resource-access-permission" class="flex items-center">
-					<input type="text" size="20" id="resource-signature" placeholder="Signature" class="mr-2">
-					<button class="action add_permission_icon button inline-flex items-center">
-						${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} Add Permisson
+					<input type="text" size="20" id="resource-signature" placeholder="Signature" class="combined-input-create">
+					<button class="action add_permission_icon button inline-flex items-center combined-input-create">
+						${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} Create Permisson
 					</button>
 				</div>
 
@@ -286,9 +286,9 @@ let _Security = {
 		corsSettings: config => `
 			<div class="flex items-center">
 				<div id="add-cors-setting" class="flex items-center">
-					<input type="text" size="20" id="cors-setting-request-uri" placeholder="Request URI Path" class="mr-2">
-					<button class="action add_cors_setting_button button inline-flex items-center">
-						${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} Add CORS Setting
+					<input type="text" size="20" id="cors-setting-request-uri" placeholder="Request URI Path" class="combined-input-create">
+					<button class="action add_cors_setting_button button inline-flex items-center combined-input-create">
+						${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} Create CORS Setting
 					</button>
 				</div>
 
@@ -352,13 +352,13 @@ let _UsersAndGroups = {
 				name: _Helpers.createRandomName(userTypeSelect.value)
 			};
 
-			_Crud.createDialogWithErrorHandling.create(nodeData.type, nodeData, (type, newNodeId) => {
+			_Crud.creationDialogWithErrorHandling.initializeForEvent(e, nodeData.type, nodeData, (type, newNodeId) => {
 
 				Command.get(newNodeId, null, userData => {
 					let userModelObj = StructrModel.create(userData);
 					_UsersAndGroups.appendUserToElement(_UsersAndGroups.getUsersListElement(), userModelObj);
 				});
-			})
+			});
 		});
 
 		userTypeSelect.addEventListener('change', () => {
@@ -542,9 +542,18 @@ let _UsersAndGroups = {
 		let addGroupButton  = document.getElementById('add-group-button');
 
 		addGroupButton.addEventListener('click', (e) => {
-			Command.create({ type: groupTypeSelect.value }, (group) => {
-				let groupModelObj = StructrModel.create(group);
-				_UsersAndGroups.appendGroupToElement($(_UsersAndGroups.getGroupsListElement()), groupModelObj);
+
+			let nodeData = {
+				type: groupTypeSelect.value,
+				name: _Helpers.createRandomName(groupTypeSelect.value)
+			};
+
+			_Crud.creationDialogWithErrorHandling.initializeForEvent(e, nodeData.type, nodeData, (type, newNodeId) => {
+
+				Command.get(newNodeId, null, groupData => {
+					let groupModelObj = StructrModel.create(groupData);
+					_UsersAndGroups.appendGroupToElement($(_UsersAndGroups.getGroupsListElement()), groupModelObj);
+				});
 			});
 		});
 

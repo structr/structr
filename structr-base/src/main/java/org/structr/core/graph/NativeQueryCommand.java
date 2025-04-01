@@ -23,6 +23,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.NativeQuery;
+import org.structr.api.SyntaxErrorException;
+import org.structr.api.Transaction;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Path;
 import org.structr.api.graph.PropertyContainer;
@@ -50,9 +52,10 @@ public class NativeQueryCommand extends NodeServiceCommand {
 	private static final Logger logger = LoggerFactory.getLogger(NativeQueryCommand.class.getName());
 
 	private boolean dontFlushCachesIfKeywordsInQuery = false;
+	private boolean runInNewTransaction = false;
 
 	public Iterable execute(String query) throws FrameworkException {
-		return execute(query, null);
+		return execute(query, null, false);
 	}
 
 	public Iterable execute(String query, Map<String, Object> parameters) throws FrameworkException {
@@ -68,14 +71,28 @@ public class NativeQueryCommand extends NodeServiceCommand {
 		final DatabaseService graphDb = (DatabaseService) arguments.get("graphDb");
 		if (graphDb != null) {
 
+			final Iterable extracted, result;
+
 			final NativeQuery<Iterable> nativeQuery = graphDb.query(query, Iterable.class);
 
 			if (parameters != null) {
 				nativeQuery.configure(parameters);
 			}
 
-			final Iterable result    = graphDb.execute(nativeQuery);
-			final Iterable extracted = extractRows(result, includeHiddenAndDeleted, publicOnly);
+			if (runInNewTransaction) {
+				// Run query in isolated tx
+				final Transaction tx = graphDb.beginTx(true);
+
+				result = graphDb.execute(nativeQuery, tx);
+				tx.success();
+				tx.close();
+			} else {
+
+				// Run query in current tx
+				result = graphDb.execute(nativeQuery);
+			}
+
+			extracted = extractRows(result, includeHiddenAndDeleted, publicOnly);
 
 			if (!dontFlushCachesIfKeywordsInQuery && query.matches("(?i)(?s)(?m).*\\s+(delete|set|remove)\\s+.*")) {
 				logger.info("Clearing all caches due to DELETE, SET or REMOVE found in native query: " + query);
@@ -86,6 +103,10 @@ public class NativeQueryCommand extends NodeServiceCommand {
 		}
 
 		return Collections.emptyList();
+	}
+
+	public void setRunInNewTransaction(final boolean runInNewTransaction) {
+		this.runInNewTransaction = runInNewTransaction;
 	}
 
 	public void setDontFlushCachesIfKeywordsInQuery(final boolean dontFlushCachesIfKeywordsInQuery) {

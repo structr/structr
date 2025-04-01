@@ -50,6 +50,9 @@ import org.structr.rest.resource.SchemaResource;
 import org.structr.rest.resource.SchemaTypeResource;
 import org.structr.schema.action.ActionEntry;
 import org.structr.schema.action.Actions;
+import org.structr.schema.export.StructrSchema;
+import org.structr.schema.export.StructrSchemaDefinition;
+import org.structr.schema.export.StructrTypeDefinition;
 import org.structr.schema.parser.Validator;
 import org.structr.schema.parser.*;
 
@@ -463,6 +466,16 @@ public class SchemaHelper {
 		}
 
 		SchemaHelper.formatValidators(sourceFile, schemaNode, validators, compoundIndexKeys, extendsAbstractNode, propertyValidators);
+
+		// prevent service classes from being instantiated
+		if (schemaNode.getProperty(SchemaNode.isServiceClass)) {
+
+			sourceFile.line(schemaNode, "@Override");
+			sourceFile.begin(schemaNode, "public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {");
+			sourceFile.line(schemaNode, "throw new FrameworkException(422, \"Cannot instantiate service class\");");
+			sourceFile.end();
+		}
+
 		SchemaHelper.formatMethods(sourceFile, schemaNode, methods, implementedInterfaces);
 		SchemaHelper.formatSchemaGrants(sourceFile, schemaNode);
 		SchemaHelper.formatDefaultVisibilityFlags(sourceFile, schemaNode);
@@ -963,49 +976,57 @@ public class SchemaHelper {
 
 	public static void formatMethods(final SourceFile src, final AbstractSchemaNode schemaNode, final Map<String, List<ActionEntry>> saveActions, final Set<String> implementedInterfaces) {
 
-	        /*
-		Methods are collected and grouped by name. There can be multiple methods with the same
-		name, which must be combined into a single method.
+		/*
+			For non-Service classes, methods are collected and grouped by name. There can be multiple methods with the same
+			name, which must be combined into a single method.
 		*/
+		final boolean isServiceClass = Boolean.TRUE.equals(schemaNode.getProperty(SchemaNode.isServiceClass));
 
 		for (final Map.Entry<String, List<ActionEntry>> entry : saveActions.entrySet()) {
 
 			final List<ActionEntry> actionList = entry.getValue();
 			final String name                  = entry.getKey();
 
-			switch (name) {
+			if (isServiceClass) {
 
-				case "onNodeCreation":
-					formatNodeCreationCallback(src, schemaNode, name, actionList);
-					break;
+				formatCustomMethods(src, schemaNode, actionList);
 
-				case "onCreation":
-					formatCreationCallback(src, schemaNode, name, actionList);
-					break;
+			} else {
 
-				case "afterCreation":
-					formatAfterCreationCallback(src, schemaNode, name, actionList);
-					break;
+				switch (name) {
 
-				case "onModification":
-					formatModificationCallback(src, schemaNode, name, actionList);
-					break;
+					case "onNodeCreation":
+						formatNodeCreationCallback(src, schemaNode, name, actionList);
+						break;
 
-				case "afterModification":
-					formatAfterModificationCallback(src, schemaNode, name, actionList);
-					break;
+					case "onCreation":
+						formatCreationCallback(src, schemaNode, name, actionList);
+						break;
 
-				case "onNodeDeletion":
-					formatDeletionCallback(src, schemaNode, name, actionList);
-					break;
+					case "afterCreation":
+						formatAfterCreationCallback(src, schemaNode, name, actionList);
+						break;
 
-				case "afterDeletion":
-					formatAfterDeletionCallback(src, schemaNode, name, actionList);
-					break;
+					case "onModification":
+						formatModificationCallback(src, schemaNode, name, actionList);
+						break;
 
-				default:
-					formatCustomMethods(src, schemaNode, actionList);
-					break;
+					case "afterModification":
+						formatAfterModificationCallback(src, schemaNode, name, actionList);
+						break;
+
+					case "onNodeDeletion":
+						formatDeletionCallback(src, schemaNode, name, actionList);
+						break;
+
+					case "afterDeletion":
+						formatAfterDeletionCallback(src, schemaNode, name, actionList);
+						break;
+
+					default:
+						formatCustomMethods(src, schemaNode, actionList);
+						break;
+				}
 			}
 		}
 	}
@@ -1378,20 +1399,28 @@ public class SchemaHelper {
 		final ConfigurationProvider config = StructrApp.getConfiguration();
 		List<GraphObjectMap> resultList    = new LinkedList<>();
 
+		final StructrSchemaDefinition schemaDef            = (StructrSchemaDefinition) StructrSchema.createFromDatabase(StructrApp.getInstance());
+		final List<StructrTypeDefinition> matchingTypeDefs = schemaDef.getTypeDefinitions().stream().filter(typeDef -> typeDef.getName().equals(rawType)).collect(Collectors.toList());
+
+		final boolean isServiceClass = (matchingTypeDefs.size() > 0) ? matchingTypeDefs.get(0).isServiceClass() : false;
+
 		if (type != null) {
 
 			if (propertyView != null) {
 
-				for (final Map.Entry<String, Object> entry : getPropertiesForView(securityContext, type, propertyView).entrySet()) {
+				if (!isServiceClass) {
 
-					final GraphObjectMap property = new GraphObjectMap();
+					for (final Map.Entry<String, Object> entry : getPropertiesForView(securityContext, type, propertyView).entrySet()) {
 
-					for (final Map.Entry<String, Object> prop : ((Map<String, Object>) entry.getValue()).entrySet()) {
+						final GraphObjectMap property = new GraphObjectMap();
 
-						property.setProperty(new GenericProperty(prop.getKey()), prop.getValue());
+						for (final Map.Entry<String, Object> prop : ((Map<String, Object>) entry.getValue()).entrySet()) {
+
+							property.setProperty(new GenericProperty(prop.getKey()), prop.getValue());
+						}
+
+						resultList.add(property);
 					}
-
-					resultList.add(property);
 				}
 
 			} else {
@@ -1414,20 +1443,26 @@ public class SchemaHelper {
 				schema.setProperty(SchemaResource.isInterfaceProperty, Modifier.isInterface(modifiers));
 				schema.setProperty(SchemaResource.flagsProperty, SecurityContext.getResourceFlags(rawType));
 
-				final Set<String> propertyViews = new LinkedHashSet<>(config.getPropertyViewsForType(type));
+				if (!isServiceClass) {
 
-				// list property sets for all views
-				Map<String, Map<String, Object>> views = new TreeMap();
-				schema.setProperty(SchemaResource.viewsProperty, views);
+					// list property sets for all views
+					Map<String, Map<String, Object>> views = new TreeMap();
+					schema.setProperty(SchemaResource.viewsProperty, views);
 
-				for (final String view : propertyViews) {
+					final Set<String> propertyViews = new LinkedHashSet<>(config.getPropertyViewsForType(type));
+					for (final String view : propertyViews) {
 
-					views.put(view, getPropertiesForView(securityContext, type, view));
+						views.put(view, getPropertiesForView(securityContext, type, view));
+					}
 				}
 
 				if (isRel) {
 
 					schema.setProperty(new GenericProperty("relInfo"), SchemaResource.relationToMap(config, Relation.getInstance(type)));
+
+				} else {
+
+					schema.setProperty(SchemaResource.isServiceClassProperty, isServiceClass);
 				}
 			}
 		}
@@ -1464,6 +1499,7 @@ public class SchemaHelper {
 		map.put("unique", property.isUnique());
 		map.put("notNull", property.isNotNull());
 		map.put("dynamic", property.isDynamic());
+		map.put("hint", property.hint());
 		map.put("category", property.category());
 		map.put("builtin", property.isPartOfBuiltInSchema());
 
@@ -1472,12 +1508,10 @@ public class SchemaHelper {
 
 			map.put("relatedType", relatedType.getName());
 			map.put("type", relatedType.getSimpleName());
-			map.put("uiType", relatedType.getSimpleName() + (property.isCollection() ? "[]" : ""));
 
 		} else {
 
 			map.put("type", property.typeName());
-			map.put("uiType", property.typeName() + (property.isCollection() ? "[]" : ""));
 		}
 
 		map.put("isCollection", property.isCollection());

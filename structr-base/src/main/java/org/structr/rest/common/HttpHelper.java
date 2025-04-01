@@ -64,8 +64,8 @@ import java.util.stream.Collectors;
  * Helper class for outbound HTTP requests
  */
 public class HttpHelper {
-	public static final String FIELD_STATUS = "status";
-	public static final String FIELD_BODY = "body";
+	public static final String FIELD_STATUS  = "status";
+	public static final String FIELD_BODY    = "body";
 	public static final String FIELD_HEADERS = "headers";
 
 	private static final Logger logger = LoggerFactory.getLogger(HttpHelper.class.getName());
@@ -240,7 +240,7 @@ public class HttpHelper {
 			final String content = skipBOMIfPresent(IOUtils.toString(resp.getEntity().getContent(), charset(resp)));
 			responseData.put(HttpHelper.FIELD_BODY, content);
 			responseData.put(HttpHelper.FIELD_STATUS, Integer.toString(resp.getStatusLine().getStatusCode()));
-			responseData.put(HttpHelper.FIELD_HEADERS, Arrays.stream(resp.getAllHeaders()).collect(Collectors.toMap(NameValuePair::getName, NameValuePair::getValue)));
+			responseData.put(HttpHelper.FIELD_HEADERS, getHeadersAsMap(resp));
 
 		} catch (final Throwable t) {
 			throw new FrameworkException(422, "Unable to fetch content from address " + address + ": " + t.getMessage(), t);
@@ -348,7 +348,7 @@ public class HttpHelper {
 
 			responseData.put(HttpHelper.FIELD_BODY, content);
 			responseData.put(HttpHelper.FIELD_STATUS, Integer.toString(response.getStatusLine().getStatusCode()));
-			responseData.put(HttpHelper.FIELD_HEADERS, Arrays.stream(response.getAllHeaders()).collect(Collectors.toMap(NameValuePair::getName, NameValuePair::getValue)));
+			responseData.put(HttpHelper.FIELD_HEADERS, getHeadersAsMap(response));
 
 		} catch (final Throwable t) {
 
@@ -428,7 +428,7 @@ public class HttpHelper {
 
 			responseData.put(HttpHelper.FIELD_BODY, content);
 			responseData.put(HttpHelper.FIELD_STATUS, Integer.toString(response.getStatusLine().getStatusCode()));
-			responseData.put(HttpHelper.FIELD_HEADERS, Arrays.stream(response.getAllHeaders()).collect(Collectors.toMap(NameValuePair::getName, NameValuePair::getValue)));
+			responseData.put(HttpHelper.FIELD_HEADERS, getHeadersAsMap(response));
 
 		} catch (final Throwable t) {
 
@@ -484,7 +484,7 @@ public class HttpHelper {
 
 			responseData.put(HttpHelper.FIELD_BODY, content);
 			responseData.put(HttpHelper.FIELD_STATUS, Integer.toString(response.getStatusLine().getStatusCode()));
-			responseData.put(HttpHelper.FIELD_HEADERS, Arrays.stream(response.getAllHeaders()).collect(Collectors.toMap(NameValuePair::getName, NameValuePair::getValue)));
+			responseData.put(HttpHelper.FIELD_HEADERS, getHeadersAsMap(response));
 
 		} catch (final Throwable t) {
 
@@ -533,7 +533,7 @@ public class HttpHelper {
 
 			responseData.put(HttpHelper.FIELD_BODY, content);
 			responseData.put(HttpHelper.FIELD_STATUS, Integer.toString(response.getStatusLine().getStatusCode()));
-			responseData.put(HttpHelper.FIELD_HEADERS, Arrays.stream(response.getAllHeaders()).collect(Collectors.toMap(NameValuePair::getName, NameValuePair::getValue)));
+			responseData.put(HttpHelper.FIELD_HEADERS, getHeadersAsMap(response));
 
 		} catch (final Throwable t) {
 
@@ -571,7 +571,7 @@ public class HttpHelper {
 
 			responseData.put(HttpHelper.FIELD_BODY, stream);
 			responseData.put(HttpHelper.FIELD_STATUS, Integer.toString(resp.getStatusLine().getStatusCode()));
-			responseData.put(HttpHelper.FIELD_HEADERS, Arrays.stream(resp.getAllHeaders()).collect(Collectors.toMap(NameValuePair::getName, NameValuePair::getValue)));
+			responseData.put(HttpHelper.FIELD_HEADERS, getHeadersAsMap(resp));
 
 			return responseData;
 
@@ -652,6 +652,23 @@ public class HttpHelper {
 		} catch (final Throwable t) {
 			throw new FrameworkException(422, "Unable to fetch file content from address " + address + ": " + t.getMessage());
 		}
+	}
+
+	public static Map<String, String> getHeadersAsMap(final HttpResponse response) {
+
+		final Map<String, String> map = new HashMap<>();
+
+		for (final Header header : response.getAllHeaders()) {
+
+			final String key = header.getName();
+			if (map.containsKey(key)) {
+				map.put(key, String.join(System.lineSeparator(), map.get(key), header.getValue()));
+			} else {
+				map.put(header.getName(), header.getValue());
+			}
+		}
+
+		return map;
 	}
 
 	// ----- nested classes -----

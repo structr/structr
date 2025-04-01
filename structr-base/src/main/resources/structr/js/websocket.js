@@ -445,10 +445,6 @@ let StructrWS = {
 
 			StructrModel.callCallback(data.callback, result);
 
-		} else if (command.startsWith('LIST_ACTIVE_ELEMENTS')) {
-
-			StructrModel.callCallback(data.callback, result);
-
 		} else if (command.startsWith('LIST_LOCALIZATIONS')) {
 
 			StructrModel.callCallback(data.callback, result);

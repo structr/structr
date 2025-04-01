@@ -354,9 +354,9 @@ let _Dashboard = {
 				_Dashboard.tabs.deployment.wizard.init();
 
 				// App Import
-				let deploymentFileInput          = document.getElementById('deployment-file-input');
-				let deploymentUrlInput           = document.getElementById('deployment-url-input');
-				let deploymentZipConentPathInput = document.getElementById('deployment-zip-content');
+				let deploymentFileInput           = document.getElementById('deployment-file-input');
+				let deploymentUrlInput            = document.getElementById('deployment-url-input');
+				let deploymentZipContentPathInput = document.getElementById('deployment-zip-content');
 
 				deploymentFileInput.addEventListener('input', () => {
 					deploymentUrlInput.value = '';
@@ -374,7 +374,7 @@ let _Dashboard = {
 
 				document.getElementById('do-app-import-from-zip').addEventListener('click', () => {
 
-				    let zipContentPath = deploymentZipConentPathInput?.value ?? null;
+				    let zipContentPath = deploymentZipContentPathInput?.value ?? null;
 
 					if (deploymentFileInput && deploymentFileInput.files.length > 0) {
 
@@ -402,8 +402,9 @@ let _Dashboard = {
 				});
 
 				// Data Import
-				let dataDeploymentFileInput            = document.getElementById('data-deployment-file-input');
-				let dataDeploymentUrlInput             = document.getElementById('data-deployment-url-input');
+				let dataDeploymentFileInput             = document.getElementById('data-deployment-file-input');
+				let dataDeploymentUrlInput              = document.getElementById('data-deployment-url-input');
+				let dataDeploymentZipContentPathInput   = document.getElementById('data-deployment-zip-content');
 
 				dataDeploymentFileInput.addEventListener('input', () => {
 					dataDeploymentUrlInput.value = '';
@@ -419,9 +420,11 @@ let _Dashboard = {
 
 				document.getElementById('do-data-import-from-zip').addEventListener('click', () => {
 
+					let zipContentPath = dataDeploymentZipContentPathInput?.value ?? null;
+
 					if (dataDeploymentFileInput && dataDeploymentFileInput.files.length > 0) {
 
-						_Dashboard.tabs.deployment.actions.importFromZIPFileUpload('data', dataDeploymentFileInput);
+						_Dashboard.tabs.deployment.actions.importFromZIPFileUpload('data', dataDeploymentFileInput, zipContentPath);
 
 					} else {
 
@@ -433,7 +436,7 @@ let _Dashboard = {
 
 						} else {
 
-							_Dashboard.tabs.deployment.actions.importFromZIPURL('data', downloadUrl);
+							_Dashboard.tabs.deployment.actions.importFromZIPURL('data', downloadUrl, zipContentPath);
 						}
 					}
 				});
@@ -706,9 +709,10 @@ let _Dashboard = {
 					},
 					deployDataFromZIPURL: {
 						containerId: '#dropdown-deployment-import-data-url',
-						rowTpl: entry => _Dashboard.tabs.deployment.history.templates.rowData({ 'URL': entry.downloadUrl }),
+						rowTpl: entry => _Dashboard.tabs.deployment.history.templates.rowData({ 'URL': entry.downloadUrl, 'Path': entry.zipContentPath }),
 						apply: entry => {
-							document.querySelector('#data-deployment-url-input').value = entry.downloadUrl;
+							document.querySelector('#data-deployment-url-input').value   = entry.downloadUrl;
+							document.querySelector('#data-deployment-zip-content').value = entry.zipContentPath;
 						}
 					},
 					export: {
@@ -1061,8 +1065,8 @@ let _Dashboard = {
 								${_Dashboard.tabs.deployment.helpers.getMessageMarkupIfDeploymentServletInactive(config, 'Deployment via URL is not possible because <code>DeploymentServlet</code> is not active.')}
 								<div>
 									<div class="flex flex-col">
-										<input class="mb-4 flex-grow" type="text" id="deployment-url-input" placeholder="Download URL of ZIP file for app import" name="downloadUrl" ${(config.deploymentServletAvailable ? '' : 'disabled')}>
-										<input class="mt-1 mb-4 flex-grow" type="text" id="deployment-zip-content" placeholder="Path to the webapp folder inside the ZIP file, leave blank for default" name="downloadUrl" ${(config.deploymentServletAvailable ? '' : 'disabled')}>
+										<input class="mb-4 flex-grow" type="text" id="deployment-url-input" placeholder="Download URL of ZIP file for app import" ${(config.deploymentServletAvailable ? '' : 'disabled')}>
+										<input class="mt-1 mb-4 flex-grow" type="text" id="deployment-zip-content" placeholder="Path to the webapp folder inside the ZIP file, leave blank for default" ${(config.deploymentServletAvailable ? '' : 'disabled')}>
 										<input class="mt-1 mb-4 flex-grow" type="file" id="deployment-file-input" placeholder="Upload ZIP file" ${(config.deploymentServletAvailable ? '' : 'disabled')}>
 									</div>
 									<button class="action ${(config.deploymentServletAvailable ? '' : 'disabled')}" ${(config.deploymentServletAvailable ? '' : 'disabled')} id="do-app-import-from-zip">Import app from ZIP file</button>
@@ -1124,7 +1128,8 @@ let _Dashboard = {
 								${_Dashboard.tabs.deployment.helpers.getMessageMarkupIfDeploymentServletInactive(config, 'Deployment via URL is not possible because <code>DeploymentServlet</code> is not active.')}
 								<div>
 									<div class="flex flex-col">
-										<input class="mt-1 mb-4 flex-grow" type="text" id="data-deployment-url-input" placeholder="Download URL of ZIP file for data import" name="downloadUrl" ${(config.deploymentServletAvailable ? '' : 'disabled')}>
+										<input class="mt-1 mb-4 flex-grow" type="text" id="data-deployment-url-input" placeholder="Download URL of ZIP file for data import" ${(config.deploymentServletAvailable ? '' : 'disabled')}>
+										<input class="mt-1 mb-4 flex-grow" type="text" id="data-deployment-zip-content" placeholder="Path to the data folder inside the ZIP file, leave blank for default" ${(config.deploymentServletAvailable ? '' : 'disabled')}>
 										<input class="mt-1 mb-4 flex-grow" type="file" id="data-deployment-file-input" placeholder="Upload ZIP file" ${(config.deploymentServletAvailable ? '' : 'disabled')}>
 									</div>
 									<button id="do-data-import-from-zip" class="action ${(config.deploymentServletAvailable ? '' : 'disabled')}" ${(config.deploymentServletAvailable ? '' : 'disabled')}>Import data from ZIP file</button>
@@ -1162,42 +1167,80 @@ let _Dashboard = {
 			init: () => {
 				_Dashboard.tabs['user-defined-methods'].appendUserDefinedMethods();
 			},
+			getMarkupForMethod: (method) => `
+				<tr>
+					<td><span class="method-name">${method.schemaNode ? `<span class="font-semibold">${method.schemaNode.name}</span>.` : ''}${method.name}</span></td>
+					<td><button class="run action button flex items-center gap-2">${_Icons.getSvgIcon(_Icons.iconRunButton)} Open run dialog</button></td>
+				</tr>
+			`,
 			appendUserDefinedMethods: async () => {
 
 				let container = document.querySelector('#dashboard-user-defined-methods');
 				_Helpers.fastRemoveAllChildren(container);
-				let response  = await fetch(`${Structr.rootUrl}SchemaMethod?schemaNode=&isPrivate=false&${Structr.getRequestParameterName('sort')}=name`);
 
+				let userDefinedFunctions = [];
+				let staticFunctions      = {};
+
+				let requestConfig = {
+					headers: {
+						Accept: 'properties=id,type,name,httpVerb,isStatic,schemaNode'
+					}
+				};
+
+				let response = await fetch(`${Structr.rootUrl}SchemaMethod/custom?schemaNode=&isPrivate=false&${Structr.getRequestParameterName('sort')}=name`, requestConfig);
 				if (response.ok) {
-
 					let data = await response.json();
+					userDefinedFunctions = data.result;
+				}
 
-					if (data.result.length === 0) {
+				let response2 = await fetch(`${Structr.rootUrl}SchemaMethod/custom?isStatic=true&isPrivate=false`, requestConfig);
+				if (response2.ok) {
+					let data = await response2.json();
 
-						container.textContent = 'No user-defined functions.';
+					let groupedStaticFunctions = data.result.reduce((acc, curr) => {
+						acc[curr.schemaNode.name] ??= {};
+						acc[curr.schemaNode.name][curr.name] = curr;
+						return acc;
+					}, {});
 
-					} else {
+					staticFunctions = groupedStaticFunctions;
+				}
 
-						let maintenanceList = _Helpers.createSingleDOMElementFromHTML(`
-							<table class="props">
-								${data.result.map(method => `
-									<tr class="user-defined-method">
-										<td><span class="method-name">${method.name}</span></td>
-										<td><button id="run-${method.id}" class="action button">Open run dialog</button></td>
-									</tr>
-								`).join('')}
-							</table>
-						`);
-						container.appendChild(maintenanceList);
+				if (userDefinedFunctions.length === 0 && staticFunctions.length === 0) {
 
-						for (let method of data.result) {
+					container.textContent = 'No functions available.';
 
-							maintenanceList.querySelector('button#run-' + method.id).addEventListener('click', () => {
-								_Code.runSchemaMethod(method);
-							});
+				} else {
+
+					let callableMethodsList = _Helpers.createSingleDOMElementFromHTML(`<table class="props"></table>`);
+
+					for (let method of userDefinedFunctions) {
+
+						_Dashboard.tabs['user-defined-methods'].appendUserDefinedMethod(method, callableMethodsList);
+					}
+
+					for (let typeName of Object.keys(staticFunctions).sort()) {
+
+						for (let methodName of Object.keys(staticFunctions[typeName]).sort()) {
+
+							let method = staticFunctions[typeName][methodName];
+
+							_Dashboard.tabs['user-defined-methods'].appendUserDefinedMethod(method, callableMethodsList);
 						}
 					}
+
+					container.appendChild(callableMethodsList);
 				}
+			},
+			appendUserDefinedMethod: (method, container) => {
+
+				let methodEntry = _Helpers.createSingleDOMElementFromHTML(_Dashboard.tabs['user-defined-methods'].getMarkupForMethod(method));
+
+				methodEntry.querySelector('button.run').addEventListener('click', () => {
+					_Code.mainArea.helpers.runSchemaMethod(method);
+				});
+
+				container.appendChild(methodEntry);
 			},
 			onShow: async () => {},
 			onHide: async () => {}
@@ -1447,14 +1490,9 @@ let _Dashboard = {
 
 								button.addEventListener('click', () => {
 
-									Command.get(data.id, null, (obj) => {
+									Command.get(data.id, _Code.helpers.getAttributesToFetchForErrorObject(), (obj) => {
 
-										let pathToOpen = (obj.schemaNode) ? `/root/custom/${obj.schemaNode.id}/methods/${obj.id}` : `/globals/${obj.id}`;
-
-										window.location.href = '#code';
-										window.setTimeout(() => {
-											_Code.findAndOpenNode(pathToOpen, false);
-										}, 1000);
+										_Code.helpers.navigateToSchemaObjectFromAnywhere(obj);
 									});
 								});
 
@@ -1604,6 +1642,8 @@ let _Dashboard = {
 				}
 
 				settingsContainer.appendChild(offCanvasDummy);
+
+				_Helpers.activateCommentsInElement(settingsContainer);
 			},
 
 			handleResetConfiguration: (userId) => {

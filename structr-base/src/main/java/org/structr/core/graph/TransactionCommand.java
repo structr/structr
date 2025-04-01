@@ -283,6 +283,8 @@ public class TransactionCommand {
 
 			assertSameTransaction(node, command.getTransactionId());
 
+			TransactionCommand.getCurrentTransaction().setNodeIsCreated(node.getNode().getId().getId());
+
 			ModificationQueue modificationQueue = command.getModificationQueue();
 			if (modificationQueue != null) {
 

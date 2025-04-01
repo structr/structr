@@ -657,7 +657,7 @@ let _Pages = {
 
 				_Pages.centerPane.style.marginLeft = `calc(${leftPos}px + 3rem)`;
 
-				if (tabsMenu) tabsMenu.style.marginLeft = `calc(${leftPos}px + 2rem)`;
+				if (tabsMenu) tabsMenu.style.marginLeft = `calc(${leftPos}px - 7rem)`;
 
 			} else {
 
@@ -671,7 +671,7 @@ let _Pages = {
 
 				} else {
 
-					if (tabsMenu) tabsMenu.style.marginLeft = `calc(${leftPos}px + 0rem)`;
+					if (tabsMenu) tabsMenu.style.marginLeft = `calc(${leftPos}px - 8rem)`;
 
 					leftResizer.style.left = `calc(${leftPos}px - 1rem)`;
 					_Pages.centerPane.style.marginLeft = `calc(${leftPos}px + 2rem)`;
@@ -711,7 +711,7 @@ let _Pages = {
 
 		_Helpers.fastRemoveAllChildren(_Pages.pagesTree[0]);
 
-		Structr.setFunctionBarHTML(_Pages.templates.functions());
+		Structr.setFunctionBarHTML(_Pages.templates.pagesActions() + _Pages.templates.functions());
 
 		UISettings.showSettingsForCurrentModule();
 
@@ -749,25 +749,21 @@ let _Pages = {
 		pPager.setIsPaused(false);
 		pPager.refresh();
 
-		fetch(`${Structr.rootUrl}Page/category`).then((response) => {
+		fetch(`${Structr.rootUrl}Page`, {
+			headers: _Helpers.getHeadersForCustomView(['category'])
+		}).then(response => {
 			if (response.ok) {
 				return response.json();
 			}
-		}).then((data) => {
+		}).then(data => {
 
-			let categories = [];
-			for (let page of data.result) {
-				if (page.category !== null && categories.indexOf(page.category) === -1) {
-					categories.push(page.category);
-				}
-			}
-			categories.sort();
+			let categories = new Set(data.result.map(p => p.category).filter(c => c).sort());
 
 			let helpText = 'Filter pages by page category.';
-			if (categories.length > 0) {
-				helpText += 'Available categories: \n\n' + categories.join('\n');
+			if (categories.size > 0) {
+				helpText += 'Available categories: \n\n' + [...categories].join('\n');
 			} else {
-				helpText += '\nNo categories available - these can be set in the advanced attributes of a page.';
+				helpText += '\nNo categories available - these can be set in the "Basic" tab of a page.';
 			}
 
 			filerEl.querySelector('input.category-filter').title = helpText;
@@ -829,6 +825,7 @@ let _Pages = {
 		});
 
 		// Display 'Create Page' dialog
+		let smallTransparentGIF = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
 		let createPageButton = document.querySelector('#create_page');
 		createPageButton.addEventListener('click', async (e) => {
 
@@ -850,7 +847,7 @@ let _Pages = {
 				for (let widget of pageTemplates) {
 
 					let id = 'create-from-' + widget.id;
-					let tile = _Helpers.createSingleDOMElementFromHTML(`<div id="${id}" class="app-tile"><div class="app-thumbnail-frame"><img src="${widget.newThumbnailPath}"/><h4>${widget.name}</h4><p>${(widget.description || '')}</p></div></div>`);
+					let tile = _Helpers.createSingleDOMElementFromHTML(`<div id="${id}" class="app-tile"><div class="app-thumbnail-frame"><img src="${widget.newThumbnailPath ?? widget.thumbnailPath ?? smallTransparentGIF}"/><h4>${widget.name}</h4><p>${(widget.description || '')}</p></div></div>`);
 					container.append(tile);
 
 					tile.addEventListener('click', () => {
@@ -1094,11 +1091,14 @@ let _Pages = {
 				_Pages.centerPane.insertAdjacentHTML('beforeend', _Pages.templates.basic());
 				let basicContainer = document.querySelector('#center-pane .basic-container');
 
-				if (dialogConfig) {
-					dialogConfig.appendDialogForEntityToContainer($(basicContainer), obj).then(() => {
-						_Helpers.activateCommentsInElement(basicContainer);
-					});
-				}
+				_Schema.getTypeInfo(obj.type, (typeInfo) => {
+
+					if (dialogConfig) {
+						dialogConfig.appendDialogForEntityToContainer($(basicContainer), obj, typeInfo).then(() => {
+							_Helpers.activateCommentsInElement(basicContainer);
+						});
+					}
+				});
 
 				break;
 
@@ -1107,9 +1107,9 @@ let _Pages = {
 				_Pages.centerPane.insertAdjacentHTML('beforeend', _Pages.templates.properties());
 				let propertiesContainer = document.querySelector('#center-pane .properties-container');
 
-				_Schema.getTypeInfo(obj.type, function(typeInfo) {
+				_Schema.getTypeInfo(obj.type, (typeInfo) => {
 
-					_Entities.listProperties(obj, '_html_', $(propertiesContainer), typeInfo, function(properties) {
+					_Entities.listProperties(obj, '_html_', $(propertiesContainer), typeInfo, (properties) => {
 
 						// make container visible when custom properties exist
 						if (Object.keys(properties).length > 0) {
@@ -1229,7 +1229,7 @@ let _Pages = {
 					<span class="abbr-ellipsis abbr-pages-tree-page">
 						<b title="${_Helpers.escapeForHtmlAttributes(entity.name)}" class="name_">${pageName}</b>
 						<span class="path_ font-semibold italic text-sm">${entity.path ?? ''}</span>
-						<span class="position_">${(entity.position ? entity.position : '')}</span>
+						<span class="position_">${((entity.position !== undefined && entity.position !== null) ? entity.position : '')}</span>
 					</span>
 					<div class="icons-container flex items-center"></div>
 				</div>
@@ -1394,6 +1394,34 @@ let _Pages = {
 	},
 	isDropAllowed: (dropzone) => {
 		return (dropzone?.classList.contains(_Pages.dropzoneDropAllowedClass) ?? false);
+	},
+	getEventActionMappingAvailableEvents: () => {
+
+		// add more events here
+		return [
+			"none",
+			"click",
+			"change",
+			"copy",
+			"cut",
+			"drop",
+			"focusout",
+			"input",
+			"keydown",
+			"keyup",
+			"keypress",
+			"load",
+			"mousemove",
+			"mouseover",
+			"mouseenter",
+			"mouseout",
+			"mouseleave",
+			"offline",
+			"online",
+			"paste",
+			"submit",
+		];
+
 	},
 	eventActionMappingDialog: (entity, container, typeInfo) => {
 
@@ -1753,7 +1781,7 @@ let _Pages = {
 
 					// show dialog
 					{
-						if(dialogTypeSelect.value !== 'none') {
+						if (dialogTypeSelect.value !== 'none') {
 							for (let dialogInput of document.querySelectorAll('.dialog-input-field-group')) {
 								dialogInput.classList.remove('hidden');
 							}
@@ -2221,7 +2249,7 @@ let _Pages = {
 
 						window.location.href = '#code';
 						window.setTimeout(() => {
-							_Code.findAndOpenNode(pathToOpen, false);
+							_Code.tree.findAndOpenNode(pathToOpen, false);
 						}, 1000);
 					}
 				});
@@ -2671,8 +2699,8 @@ let _Pages = {
 								let idString    = el.id ? ('#' + el.id) : '';
 								let classString = Array.from(el.classList).filter(c => c !== 'design-tools-locked').map(t => t.length > 1 ? '.' + t : null).join(' ');
 								childTemplateNameInput.value = tagString + ((el.id || classString) ? ' (' : '')
-										+ idString + ((el.id && classString) ? ' ' : '')
-										+ classString
+									+ idString + ((el.id && classString) ? ' ' : '')
+									+ classString
 									+ ((el.id || classString) ? ')' : '');
 
 							});
@@ -3470,6 +3498,68 @@ let _Pages = {
 		},
 		isDropAllowed: () => {
 			return _Pages.isDropAllowed(_Pages.sharedComponents.getNewSharedComponentDropzone());
+		},
+		getSavedDecisionForSharedComponentAttributeSync: () => {
+			return UISettings.getValueForSetting(UISettings.settingGroups.pages.settings.sharedComponentSyncModeKey);
+		},
+		shouldAskUserSyncSharedComponentAttributes: (id, key, newValue) => {
+
+			let modelObj = StructrModel.obj(id);
+			if (!modelObj) {
+				return false;
+			}
+			let previousValue  = modelObj[key];
+			if (newValue == previousValue) {
+				return false;
+			}
+			let doNotAskForKeys = ['id', 'name', 'syncedNodeIds', 'syncedNodes', 'sharedComponent', 'sharedComponentId'];
+			if (doNotAskForKeys.includes(key) || ((modelObj instanceof StructrContent) && (key === 'content' || key === 'contentType'))) {
+				return false;
+			}
+
+			let isDOMNode      = (modelObj.isDOMNode === true);
+			let hasSyncedNodes = (modelObj.syncedNodesIds?.length ?? 0) > 0;
+			let savedDecision  = _Pages.sharedComponents.getSavedDecisionForSharedComponentAttributeSync();
+			let shouldAsk      = isDOMNode && hasSyncedNodes && (savedDecision === UISettings.settingGroups.pages.settings.sharedComponentSyncModeKey.possibleValues.ASK.value);
+
+			return shouldAsk;
+		},
+		askSyncSharedComponentAttributesPromise: () => {
+
+			let infoText = 'The update can be applied to <b>all</b> elements or only to elements with <b>the same previous value</b>.';
+
+			let questionText = `
+				<div class="mt-2" data-comment="${_Helpers.escapeForHtmlAttributes(infoText)}">Apply the same change to the synced elements of this shared component?</div>
+			`;
+
+			let options = [{
+					buttonText: `${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, ['icon-green', 'mr-2'])} ${UISettings.settingGroups.pages.settings.sharedComponentSyncModeKey.possibleValues.ALL.text}`,
+					result: UISettings.settingGroups.pages.settings.sharedComponentSyncModeKey.possibleValues.ALL.value
+				}, {
+					buttonText: `${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, ['icon-green', 'mr-2'])}  ${UISettings.settingGroups.pages.settings.sharedComponentSyncModeKey.possibleValues.BY_VALUE.text}`,
+					result: UISettings.settingGroups.pages.settings.sharedComponentSyncModeKey.possibleValues.BY_VALUE.value
+				}, {
+					buttonText: `${_Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, ['icon-red', 'mr-2'])}  ${UISettings.settingGroups.pages.settings.sharedComponentSyncModeKey.possibleValues.NONE.text}`,
+					result: UISettings.settingGroups.pages.settings.sharedComponentSyncModeKey.possibleValues.NONE.value
+			}];
+
+			let defaultValue = UISettings.settingGroups.pages.settings.sharedComponentSyncModeKey.possibleValues.BY_VALUE.value;
+			let cancelValue  = UISettings.settingGroups.pages.settings.sharedComponentSyncModeKey.possibleValues.NONE.value;
+
+			return _Dialogs.multipleChoiceQuestion.askPromise(questionText, options, defaultValue, cancelValue, true).then((result) => {
+
+				let syncMode = result.answer;
+				let save     = result.save;
+
+				if (save) {
+
+					UISettings.setValueForSetting(UISettings.settingGroups.pages.settings.sharedComponentSyncModeKey, null, syncMode, null);
+
+					UISettings.showSettingsForCurrentModule();
+				}
+
+				return syncMode;
+			});
 		}
 	},
 
@@ -3898,6 +3988,29 @@ let _Pages = {
 		});
 	},
 	templates: {
+		pagesActions: config => `
+					<div id="pages-actions" class="dropdown-menu darker-shadow-dropdown dropdown-menu-large">
+						<button class="action button btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
+							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} Create Page
+						</button>
+						<div class="dropdown-menu-container">
+
+							<div class="flex flex-col divide-x-0 divide-y">
+								<a id="create_page" title="Create Page" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
+									${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'mr-2')} Create Page
+								</a>
+
+								<a id="import_page" title="Import Template" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
+									${_Icons.getSvgIcon(_Icons.iconCreateFile, 16, 16, 'mr-2')} Import Page
+								</a>
+
+								<!--a id="add_template" title="Add Template" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
+									${_Icons.getSvgIcon(_Icons.iconMagicWand)} Add Template
+								</a-->
+							</div>
+						</div>
+					</div>
+		`,
 		main: config => `
 			<link rel="stylesheet" type="text/css" media="screen" href="css/pages.css">
 
@@ -3918,28 +4031,6 @@ let _Pages = {
 			<div id="pages" class="slideOut slideOutLeft">
 				<div id="pages-controls">
 					<div id="pagesPager"></div>
-
-					<div id="pages-actions" class="dropdown-menu darker-shadow-dropdown dropdown-menu-large">
-						<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
-							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])}
-						</button>
-						<div class="dropdown-menu-container">
-
-							<div class="flex flex-col divide-x-0 divide-y">
-								<a id="create_page" title="Create Page" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
-									${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'mr-2')} Create Page
-								</a>
-
-								<a id="import_page" title="Import Template" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
-									${_Icons.getSvgIcon(_Icons.iconCreateFile, 16, 16, 'mr-2')} Import Page
-								</a>
-
-								<!--a id="add_template" title="Add Template" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
-									${_Icons.getSvgIcon(_Icons.iconMagicWand)} Add Template
-								</a-->
-							</div>
-						</div>
-					</div>
 				</div>
 				<div id="pagesTree"></div>
 			</div>
@@ -4172,50 +4263,10 @@ let _Pages = {
 								<input type="text" class="combined-input-select-field" id="data-event-input" placeholder="Browser event (click, keydown, focusout etc.)">
 								<select class="required combined-input-select-field" id="data-event-select">
 									<option value="">Select event from list</option>
-									<option value="none">None</option>
-									<option value="click">Click</option>
-									<option value="change">Change</option>
-									<option value="focusout">Focus out</option>
-									<option value="keydown">Key down</option>
-									<option value="keyup">Key up</option>
-									<option value="keypress">Key press</option>
-									<option value="mousemove">Mouse move</option>
-									<option value="mouseover">Mouse over</option>
-									<option value="mouseenter">Mouse enter</option>
-									<option value="mouseout">Mouse out</option>
-									<option value="mouseleave">Mouse leave</option>
-									<option value="input">Input</option>
-									<option value="load">Page load</option>
-									<option value="drop">Drop</option>
-									<option value="copy">Copy</option>
-									<option value="cut">Cut</option>
-									<option value="paste">Paste</option>
-									<option value="offline">Offline</option>
-									<option value="online">Online</option>
-									<!-- add more events here? -->
+									${_Pages.getEventActionMappingAvailableEvents().map(event => `<option value="${event}">${event}</option>`).join('')}
 								</select>
 								<ul class="combined-input-select-field hidden">
-									<li data-value="none">None</li>
-									<li data-value="click">Click</li>
-									<li data-value="change">Change</li>
-									<li data-value="focusout">Focus out</li>
-									<li data-value="keydown">Key down</li>
-									<li data-value="keyup">Key up</li>
-									<li data-value="keypress">Key press</li>
-									<li data-value="mousemove">Mouse move</li>
-									<li data-value="mouseover">Mouse over</li>
-									<li data-value="mouseenter">Mouse enter</li>
-									<li data-value="mouseout">Mouse out</li>
-									<li data-value="mouseleave">Mouse leave</li>
-									<li data-value="input">Input</li>
-									<li data-value="load">Page load</li>
-									<li data-value="drop">Drop</li>
-									<li data-value="copy">Copy</li>
-									<li data-value="cut">Cut</li>
-									<li data-value="paste">Paste</li>
-									<li data-value="offline">Offline</li>
-									<li data-value="online">Online</li>
-									<!-- add more events here? -->
+									${_Pages.getEventActionMappingAvailableEvents().map(event => `<li data-value="${event}">${event}</li>`).join('')}
 								</ul>
 							</div>
 						</div>
@@ -4278,7 +4329,7 @@ let _Pages = {
 
 						</div>
 
-						<!--div class="hidden options-prev-page options-next-page				em-action-element em-action-next-page em-action-prev-page">
+						<!--div class="hidden options-prev-page options-next-page em-action-element em-action-next-page em-action-prev-page">
 							<div>
 								<label class="block mb-2" for="pagination-name-input" data-comment="Define the name of the pagination request parameter (usually &quot;page&quot;).">Pagination request parameter</label>
 								<input type="text" id="pagination-name-input">
@@ -4298,7 +4349,7 @@ let _Pages = {
 
 						<div class="hidden options-method em-action-element em-action-method">
 							<div>
-								<label class="block mb-2" for="method-name-input" data-comment="Enter name of an User-defined function or object method.<br><br>The return value of the method is available as <b>{result}</b> for a single value and with the pattern <b>{result.key}</b> for a map/object.<br><br>Example: Use {result.id} to retrieve the 'id' value from the return value object.">Name of method to execute</label>
+								<label class="block mb-2" for="method-name-input" data-comment="Enter name of a user-defined function or object method.<br><br>The return value of the method is available as <b>{result}</b> for a single value and with the pattern <b>{result.key}</b> for a map/object.<br><br>Example: Use {result.id} to retrieve the 'id' value from the return value object.">Name of method to execute</label>
 								<input type="text" id="method-name-input">
 							</div>
 						</div>
@@ -4684,14 +4735,14 @@ let _Pages = {
 	}
 };
 
-function findDiff(str1, str2){
-	let diff= "";
-	str2.split('').forEach(function(val, i){
-		if (val != str1.charAt(i))
-			diff += val ;
-	});
-	return diff;
-}
+// function findDiff(str1, str2){
+// 	let diff= "";
+// 	str2.split('').forEach(function(val, i){
+// 		if (val != str1.charAt(i))
+// 			diff += val ;
+// 	});
+// 	return diff;
+// }
 
 // polyfill for RegExp.escape
 if (!RegExp.escape) {
@@ -4835,39 +4886,39 @@ TopLevelObject.DOMPresentationUtils._cssPathStep = function(node, optimized, isT
 	var elementIndex = -1;
 	var siblings = parent.children;
 	for (var i = 0; (ownIndex === -1 || !needsNthChild) && i < siblings.length; ++i) {
-	var sibling = siblings[i];
-	if (sibling.nodeType !== Node.ELEMENT_NODE)
-		continue;
-	elementIndex += 1;
-	if (sibling === node) {
-		ownIndex = elementIndex;
-		continue;
-	}
-	if (needsNthChild)
-		continue;
-	if (sibling.tagName.toLowerCase() !== nodeName)
-		continue;
-	needsClassNames = true;
-	var ownClassNames = prefixedOwnClassNamesArray.values();
-	var ownClassNameCount = 0;
-	for (var name in ownClassNames)
-		++ownClassNameCount;
-	if (ownClassNameCount === 0) {
-		needsNthChild = true;
-		continue;
-	}
-	var siblingClassNamesArray = prefixedElementClassNames(sibling);
-	for (var j = 0; j < siblingClassNamesArray.length; ++j) {
-		var siblingClass = siblingClassNamesArray[j];
-		if (!ownClassNames.hasOwnProperty(siblingClass))
+		var sibling = siblings[i];
+		if (sibling.nodeType !== Node.ELEMENT_NODE)
 			continue;
-		delete ownClassNames[siblingClass];
-		if (!-ownClassNameCount) {
+		elementIndex += 1;
+		if (sibling === node) {
+			ownIndex = elementIndex;
+			continue;
+		}
+		if (needsNthChild)
+			continue;
+		if (sibling.tagName.toLowerCase() !== nodeName)
+			continue;
+		needsClassNames = true;
+		var ownClassNames = prefixedOwnClassNamesArray.values();
+		var ownClassNameCount = 0;
+		for (var name in ownClassNames)
+			++ownClassNameCount;
+		if (ownClassNameCount === 0) {
 			needsNthChild = true;
-			break;
+			continue;
+		}
+		var siblingClassNamesArray = prefixedElementClassNames(sibling);
+		for (var j = 0; j < siblingClassNamesArray.length; ++j) {
+			var siblingClass = siblingClassNamesArray[j];
+			if (!ownClassNames.hasOwnProperty(siblingClass))
+				continue;
+			delete ownClassNames[siblingClass];
+			if (!-ownClassNameCount) {
+				needsNthChild = true;
+				break;
+			}
 		}
 	}
-}
 	var result = nodeName;
 	if (isTargetNode && nodeName.toLowerCase() === "input" && node.getAttribute("type") && !node.getAttribute("id") && !node.getAttribute("class"))
 		result += "[type=\"" + node.getAttribute("type") + "\"]";

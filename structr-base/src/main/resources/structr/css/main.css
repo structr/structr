@@ -781,7 +781,8 @@ img.disabled {
 	right: 2px;
 }
 
-.props tr td.value input, .props tr td.value textarea {
+.props tr td.value input,
+.props tr td.value textarea {
 	width: calc(100% - 1rem);
 }
 
@@ -792,14 +793,32 @@ img.disabled {
 	color: var(--input-disabled);
 }
 
-.props tr td.value .array-attr input,
-.props tr td.value .array-attr textarea {
-	width: calc(100% - 24px);
+.crud-table tr td .array-attr,
+.props .array-attr,
+#entityForm .array-attr {
+	display: flex;
+	align-items: center;
+	gap: .25rem;
+	margin-bottom: .25rem;
+	width: 100%;
+	text-align: center;
 }
 
-.props tr td.value .array-attr i.remove {
-	vertical-align: middle;
-	margin: 7px 0 6px 2px;
+.props tr td.value .array-attr input[type="text"]:not(.input-datetime),
+.props tr td.value .array-attr textarea,
+.crud-table tr td .array-attr input[type="text"]:not(.input-datetime),
+.crud-table tr td .array-attr textarea {
+	width: calc(100% - 2rem);
+}
+
+.props tr td.value .array-attr input[type="checkbox"] {
+	width: initial;
+}
+
+.crud-table tr td .array-attr svg.remove,
+.props .array-attr svg.remove,
+#entityForm .array-attr svg.remove {
+	position: initial;
 }
 
 .props tr td.value .tick {
@@ -1461,7 +1480,7 @@ button.action.disabled:hover {
 	margin-right: 0.5rem;
 }
 
-#confirmationText, #infoText, #dialogBox .dialogText {
+#infoText, #dialogBox .dialogText {
 	vertical-align: top;
 }
 
@@ -2084,6 +2103,10 @@ th.center {
 	background-image: url('https://apps.structr.com/assets/images/frame.svg');
 }
 
+.app-thumbnail-frame img {
+	max-height: 69px;
+}
+
 .app-tile h4 {
 	margin: 1rem;
 	font-weight: 600;
@@ -2552,11 +2575,6 @@ input.tree-search-input {
 	height: 100%;
 }
 /* END: styles to maximize methods editors in bulk save dialog for SCHEMA area */
-
-#methods-container.global .isstatic-col,
-#dialogBox.dialog.schema-edit-dialog .global .isstatic-col {
-	display: none;
-}
 
 /* BEGIN: Show title of dialog box in schema edit dialogs AND allowing showing the dialog title by adding a classname */
 .show-dialog-title .dialogTitle,
@@ -3357,8 +3375,9 @@ div#custom-properties-parent {
 }
 
 div#custom-properties-container table td:nth-child(3) {
-	text-align: right;
-	width: 30px;
+	text-align: center;
+	width: 2rem;
+	padding: 0;
 }
 
 button.icon-button {
@@ -3378,8 +3397,6 @@ button.icon-button i {
 .routing-container textarea {
 	width: 100%;
 	box-sizing: border-box;
-	/*margin-top: .25rem;*/
-	/*height: 2.5rem;*/
 }
 
 
@@ -3518,7 +3535,7 @@ table.props td.__value {
 
 #ui-settings-popup .dropdown-menu-container {
 	width: 30rem;
-	padding: .25rem 0 1rem 1rem;
+	padding: .25rem .5rem 1rem .75rem
 }
 
 .editor-settings-popup .dropdown-menu-container {
@@ -3627,7 +3644,22 @@ table.props td.__value {
 }
 
 /**
- * combined input and select field
+ * Combined input/select and create button
+ */
+input.combined-input-create, select.combined-select-create {
+	border-bottom-right-radius: 0;
+	border-top-right-radius: 0;
+	border-right: none;
+}
+
+button.combined-input-create, button.combined-select-create {
+	border-bottom-left-radius: 0;
+	border-top-left-radius: 0;
+	border-left: none;
+}
+
+/**
+ * Combined input and select field
  */
 input.combined-input-select-field, select.combined-input-select-field {
 	position: absolute;
@@ -3746,7 +3778,90 @@ ul.combined-input-select-field li:hover {
 .right-8 {
 	right: 2rem;
 }
-
+.left-0 {
+	left: 0;
+}
+.left-1 {
+	left: .25rem;
+}
+.left-2 {
+	left: .5rem;
+}
+.left-3 {
+	left: .75rem;
+}
+.left-4 {
+	left: 1rem;
+}
+.left-5 {
+	left: 1.25rem;
+}
+.left-6 {
+	left: 1.5rem;
+}
+.left-7 {
+	left: 1.75rem;
+}
+.left-8 {
+	left: 2rem;
+}
+.left-10 {
+	left: 2.5rem;
+}
+.left-12 {
+	left: 3rem;
+}
+.left-14 {
+	left: 3.5rem;
+}
+.left-16 {
+	left: 4rem;
+}
+.left-20 {
+	left: 5rem;
+}
+.left-24 {
+	left: 6rem;
+}
+.left-28 {
+	left: 7rem;
+}
+.left-32 {
+	left: 8rem;
+}
+.left-36 {
+	left: 9rem;
+}
+.left-40 {
+	left: 10rem;
+}
+.left-44 {
+	left: 11rem;
+}
+.left-48 {
+	left: 12rem;
+}
+.left-52 {
+	left: 13rem;
+}
+.left-54 {
+	left: 14rem;
+}
+.left-60 {
+	left: 15rem;
+}
+.left-80 {
+	left: 20rem;
+}
+.left-120 {
+	left: 30rem;
+}
+.left-160 {
+	left: 40rem;
+}
+.left-200 {
+	left: 50rem;
+}
 .top-0 {
 	top: 0;
 }
@@ -3761,6 +3876,33 @@ ul.combined-input-select-field li:hover {
 }
 .top-4 {
 	top: 1rem;
+}
+.top-5 {
+	top: 1.25rem;
+}
+.top-6 {
+	top: 1.5rem;
+}
+.top-7 {
+	top: 1.75rem;
+}
+.top-8 {
+	top: 2rem;
+}
+.top-9 {
+	top: 2.25rem;
+}
+.top-10 {
+	top: 2.5rem;
+}
+.top-12 {
+	top: 3rem;
+}
+.top-14 {
+	top: 3.5rem;
+}
+.top-16 {
+	top: 4rem;
 }
 .flex-none {
 	flex: none;
@@ -3822,6 +3964,21 @@ ul.combined-input-select-field li:hover {
 .h-16 {
 	height: 4rem;
 }
+.h-20 {
+	height: 5rem;
+}
+.h-24 {
+	height: 6rem;
+}
+.h-28 {
+	height: 7rem;
+}
+.h-32 {
+	height: 8rem;
+}
+.h-36 {
+	height: 9rem;
+}
 .h-40 {
 	height: 10rem;
 }
@@ -3840,6 +3997,9 @@ ul.combined-input-select-field li:hover {
 .m-2 {
 	margin: .5rem;
 }
+.m-4 {
+	margin: 1rem;
+}
 .-mr-2 {
 	margin-right: -.5rem;
 }
@@ -3857,6 +4017,9 @@ ul.combined-input-select-field li:hover {
 }
 .mr-4 {
 	margin-right: 1rem;
+}
+.mr-6 {
+	margin-right: 1.5rem;
 }
 .mr-8 {
 	margin-right: 2rem;
@@ -3981,6 +4144,9 @@ ul.combined-input-select-field li:hover {
 .w-32 {
 	width: 8rem;
 }
+.w-36 {
+	width: 9rem;
+}
 .w-40 {
 	width: 10rem;
 }
@@ -4088,6 +4254,9 @@ ul.combined-input-select-field li:hover {
 .pl-5 {
 	padding-left: 1.25rem;
 }
+.pl-9 {
+	padding-left: 2.25rem;
+}
 .pr-2 {
 	padding-right: .5rem;
 }
@@ -4170,6 +4339,9 @@ ul.combined-input-select-field li:hover {
 }
 .leading-8 {
 	line-height: 2rem;
+}
+.leading-16 {
+	line-height: 4rem;
 }
 .whitespace-nowrap {
 	white-space: nowrap;
@@ -4366,6 +4538,9 @@ ul.combined-input-select-field li:hover {
 .border-solid {
 	border-style: solid;
 }
+.border-gray-666 {
+	border-color: var(--gray-666);
+}
 .border-gray-ddd {
 	border-color: var(--gray-ddd);
 }
@@ -4373,6 +4548,7 @@ ul.combined-input-select-field li:hover {
 	border-color: var(--input-field-border);
 }
 .border {
+	border-style: solid;
 	border-width: 1px;
 }
 .border-0 {
@@ -4422,6 +4598,9 @@ ul.combined-input-select-field li:hover {
 .rounded-2xl {
 	border-radius: 1rem;
 }
+.rounded-full {
+	border-radius: 9999px;
+}
 .rounded-l {
 	border-top-left-radius: .25rem;
 	border-bottom-left-radius: .25rem;
@@ -4467,4 +4646,55 @@ ul.combined-input-select-field li:hover {
 }
 .font-mono {
 	font-family: var(--font-monospace);
+}
+.rotate-0 {
+	transform: rotate(0deg);
+}
+.rotate-1 {
+	transform: rotate(1deg);
+}
+.rotate-2 {
+	transform: rotate(2deg);
+}
+.rotate-3 {
+	transform: rotate(3deg);
+}
+.rotate-6 {
+	transform: rotate(6deg);
+}
+.rotate-12 {
+	transform: rotate(12deg);
+}
+.rotate-45 {
+	transform: rotate(45deg);
+}
+.rotate-90 {
+	transform: rotate(90deg);
+}
+.rotate-180 {
+	transform: rotate(180deg);
+}
+.-rotate-1 {
+	transform: rotate(-1deg);
+}
+.-rotate-2 {
+	transform: rotate(-2deg);
+}
+.-rotate-3 {
+	transform: rotate(-3deg);
+}
+.-rotate-6 {
+	transform: rotate(-6deg);
+}
+.-rotate-12 {
+	transform: rotate(-12deg);
+}
+.-rotate-45 {
+	transform: rotate(-45deg);
+}
+.-rotate-90 {
+	transform: rotate(-90deg);
+}
+.-rotate-180 {
+	transform: rotate(-180deg);
 }

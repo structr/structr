@@ -47,6 +47,16 @@ public class TransactionReference implements Transaction {
 	}
 
 	@Override
+	public void setNodeIsCreated(final long id) {
+		tx.setNodeIsCreated(id);
+	}
+
+	@Override
+	public boolean isNodeCreated(final long id) {
+		return tx.isNodeCreated(id);
+	}
+
+	@Override
 	public boolean isNodeDeleted(final long id) {
 		return tx.isNodeDeleted(id);
 	}

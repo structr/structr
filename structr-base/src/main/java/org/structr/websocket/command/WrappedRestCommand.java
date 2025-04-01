@@ -44,7 +44,7 @@ import org.structr.web.entity.User;
 
 public class WrappedRestCommand extends AbstractCommand {
 
-	private static final Logger logger = LoggerFactory.getLogger(WrapContentCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(WrappedRestCommand.class.getName());
 
 	static {
 
