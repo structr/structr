@@ -1361,9 +1361,9 @@ public class SchemaTest extends StructrTest {
 			final NodeInterface instance = app.create("Test", "MyTestInstance");
 			final ActionContext actionContext = new ActionContext(securityContext);
 
-			assertEquals("Invalid precondition", "first version", Scripting.evaluate(actionContext, instance, "{ return $.this.test01(); }", "test01"));
-			assertEquals("Invalid precondition", "first version", Scripting.evaluate(actionContext, instance, "{ return $.Test.test02(); }", "test02"));
-			assertEquals("Invalid precondition", "first version", Scripting.evaluate(actionContext, instance, "{ return $.test03(); }", "test03"));
+			assertEquals("Invalid precondition", "first version", Scripting.evaluate(actionContext, instance, "{ $.this.test01(); }", "test01"));
+			assertEquals("Invalid precondition", "first version", Scripting.evaluate(actionContext, instance, "{ $.Test.test02(); }", "test02"));
+			assertEquals("Invalid precondition", "first version", Scripting.evaluate(actionContext, instance, "{ $.test03(); }", "test03"));
 
 			tx.success();
 
@@ -1398,9 +1398,9 @@ public class SchemaTest extends StructrTest {
 			final NodeInterface instance = app.create("Test", "MyTestInstance");
 			final ActionContext actionContext = new ActionContext(securityContext);
 
-			assertEquals("Schema method cache for instance methods is not invalidated correctly.", "second version", Scripting.evaluate(actionContext, instance, "{ return $.this.test01(); }", "test01"));
-			assertEquals("Schema method cache for static methods is not invalidated correctly.", "second version", Scripting.evaluate(actionContext, instance, "{ return $.Test.test02(); }", "test02"));
-			assertEquals("Schema method cache for user-defined functions is not invalidated correctly.", "second version", Scripting.evaluate(actionContext, instance, "{ return $.test03(); }", "test03"));
+			assertEquals("Schema method cache for instance methods is not invalidated correctly.", "second version", Scripting.evaluate(actionContext, instance, "{ $.this.test01(); }", "test01"));
+			assertEquals("Schema method cache for static methods is not invalidated correctly.", "second version", Scripting.evaluate(actionContext, instance, "{ $.Test.test02(); }", "test02"));
+			assertEquals("Schema method cache for user-defined functions is not invalidated correctly.", "second version", Scripting.evaluate(actionContext, instance, "{ $.test03(); }", "test03"));
 
 			tx.success();
 
