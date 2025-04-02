@@ -4518,6 +4518,81 @@ public class ScriptingTest extends StructrTest {
 	}
 
 	@Test
+	public void testAdvancedFindWithNotPredicateAndRemoteProperty() {
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema      = StructrSchema.createFromDatabase(app);
+			final JsonObjectType project = schema.addType("Project");
+			final JsonObjectType task    = schema.addType("Task");
+
+			// create relation
+			final JsonReferenceType rel = project.relate(task, "has", Cardinality.OneToMany, "project", "tasks");
+			rel.setName("ProjectTasks");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final ActionContext ctx = new ActionContext(securityContext);
+		final Class projectType = StructrApp.getConfiguration().getNodeEntityClass("Project");
+		final Class taskType    = StructrApp.getConfiguration().getNodeEntityClass("Task");
+
+		final PropertyKey projectName  = StructrApp.key(projectType, "name");
+		final PropertyKey projectTasks = StructrApp.key(projectType, "tasks");
+
+		final PropertyKey taskName     = StructrApp.key(taskType, "name");
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface task1 = app.create(taskType, new NodeAttribute<>(taskName, "t1") );
+			final NodeInterface task2 = app.create(taskType, new NodeAttribute<>(taskName, "t2") );
+			final NodeInterface task3 = app.create(taskType, new NodeAttribute<>(taskName, "t3") );
+			final NodeInterface task4 = app.create(taskType, new NodeAttribute<>(taskName, "t4") );
+			final NodeInterface task5 = app.create(taskType, new NodeAttribute<>(taskName, "t5") );
+
+			app.create(projectType, new NodeAttribute<>(projectName, "Project 1"), new NodeAttribute<>(projectTasks, Arrays.asList(task1, task2, task3, task4, task5)) );
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			assertEquals("Task t1 should be in project with 5 tasks", 5, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Task', 'name', 't1')[0].project.tasks }}", "testFindNewSyntax")).size());
+
+			final String script = "${{" +
+					"let t1 = $.find('Task', 'name', 't1')[0];" +
+					"" +
+					"return $.find('Task', $.predicate.and(" +
+					"	$.predicate.equals('project', t1.project)," +
+					"	$.predicate.not($.predicate.equals('id', t1.id))" +
+					")" +
+					");" +
+					"}}";
+
+			// ($.not and $.equals)
+			assertEquals("Using advanced find() to find all **other** tasks in a project using not and equals predicate should work", 4, ((List)Scripting.evaluate(ctx, null, script, "testFindNewSyntax")).size());
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+	}
+
+	@Test
 	public void testJavascriptArrayWrapping() {
 
 		// setup
