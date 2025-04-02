@@ -53,12 +53,18 @@ public class HttpPostFunction extends UiAdvancedFunction {
 
 			assertArrayHasMinLengthAndAllElementsNotNull(sources, 2);
 
-			final String uri         = sources[0].toString();
-			final String body        = sources[1].toString();
-			final String contentType = (sources.length >= 3 && sources[2] != null) ? sources[2].toString() : DEFAULT_CONTENT_TYPE;
-			final String charset     = (sources.length >= 4 && sources[3] != null) ? sources[3].toString() : DEFAULT_CHARSET;
+			final String uri           = sources[0].toString();
+			final String body          = sources[1].toString();
+			final String contentType   = (sources.length >= 3 && sources[2] != null) ? sources[2].toString() : DEFAULT_CONTENT_TYPE;
+			final String charset       = (sources.length >= 4 && sources[3] != null) ? sources[3].toString() : DEFAULT_CHARSET;
+			Map<String, Object> config = null;
 
-			final Map<String, Object> responseData = HttpHelper.post(uri, body, null, null, ctx.getHeaders(), charset, ctx.isValidateCertificates());
+			if (sources.length >= 5 && sources[4] != null && sources[4] instanceof Map) {
+				config = (Map) sources[4];
+			}
+
+			//, config, ctx.getSecurityContext()
+			final Map<String, Object> responseData = HttpHelper.post(uri, body, null, null, ctx.getHeaders(), charset, ctx.isValidateCertificates(), config);
 
 			final GraphObjectMap response = processResponseData(ctx, caller, responseData, contentType);
 
