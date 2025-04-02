@@ -409,8 +409,8 @@ public class ResourceAccessTest extends StructrUiTest {
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 			final JsonType type     = schema.addType("Test");
 
-			type.addMethod("getName", "{ $.this.name; }");
-			type.addMethod("getName2", "{ $.this.name + $.methodParameters.param1; }").setHttpVerb("GET").addParameter("param1", "string");
+			type.addMethod("getName", "{ return $.this.name; }");
+			type.addMethod("getName2", "{ return $.this.name + $.methodParameters.param1; }").setHttpVerb("GET").addParameter("param1", "string");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
