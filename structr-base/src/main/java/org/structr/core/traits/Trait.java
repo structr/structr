@@ -30,6 +30,7 @@ import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.accesscontrollable.AllowedBySchema;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Trait {
 
@@ -256,6 +257,39 @@ public class Trait {
 		// add dynamic keys to "custom" view
 		if (key.isDynamic() || DEFAULT_PROPERTY_KEYS.contains(name)) {
 			this.views.computeIfAbsent("custom", k -> new LinkedHashSet<>()).add(name);
+		}
+	}
+
+	public void checkCompatibilityWith(final Trait otherTrait) throws FrameworkException {
+
+		if (!label.equals(otherTrait.label)) {
+
+			final Set<PropertyKey> propertyKeyIntersection = new HashSet<>();
+			propertyKeyIntersection.addAll(propertyKeys.values());
+			propertyKeyIntersection.retainAll(otherTrait.propertyKeys.values());
+
+			if (!propertyKeyIntersection.isEmpty()){
+
+				throw new FrameworkException(422, "Incompatible traits: trait " + name + " clashes with trait " + otherTrait.name + " because both define the same properties " + propertyKeyIntersection);
+			}
+
+			final Set<FrameworkMethod> frameworkMethodIntersection = new HashSet<>();
+			frameworkMethodIntersection.addAll(frameworkMethods.values());
+			frameworkMethodIntersection.retainAll(otherTrait.frameworkMethods.values());
+
+			if (!frameworkMethodIntersection.isEmpty()){
+
+				throw new FrameworkException(422, "Incompatible traits: trait " + name + " clashes with trait " + otherTrait.name + " because both define the same methods " + frameworkMethodIntersection.stream().map(m -> m.getClass().getSuperclass().getName()).collect(Collectors.toList()));
+			}
+
+			final Set<AbstractMethod> dynamicMethodIntersection = new HashSet<>();
+			dynamicMethodIntersection.addAll(dynamicMethods.values());
+			dynamicMethodIntersection.retainAll(otherTrait.dynamicMethods.values());
+
+			if (!dynamicMethodIntersection.isEmpty()){
+
+				throw new FrameworkException(422, "Incompatible traits: trait " + name + " clashes with trait " + otherTrait.name + " because both define the same methods " + dynamicMethodIntersection.stream().map(m -> m.getFullMethodName()).collect(Collectors.toList()));
+			}
 		}
 	}
 }

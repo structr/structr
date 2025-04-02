@@ -28,12 +28,12 @@ import org.structr.core.Services;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.ModificationQueue;
-import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Trait;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
@@ -47,6 +47,7 @@ import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -90,7 +91,9 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					boolean valid = true;
 
 					valid &= ValidationHelper.isValidUniqueProperty(obj, Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), errorBuffer);
-					valid &= ValidationHelper.isValidStringMatchingRegex(obj, Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), SchemaNode.schemaNodeNamePattern, errorBuffer);
+					valid &= ValidationHelper.isValidStringMatchingRegex(obj, Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), SchemaNode.schemaNodeNamePattern,
+						"Type name must match the following pattern: '" + SchemaNode.schemaNodeNamePattern + "', which means it must begin with an uppercase letter and may only contain letters, numbers and underscores.",
+						errorBuffer);
 
 					return valid;
 				}
@@ -102,6 +105,7 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
+					checkInheritanceConstraints(graphObject.as(SchemaNode.class));
 					throwExceptionIfTypeAlreadyExists(graphObject);
 
 					TransactionCommand.postProcess("reloadSchema", new ReloadSchema(true));
@@ -113,6 +117,8 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 				@Override
 				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
+					checkInheritanceConstraints(graphObject.as(SchemaNode.class));
 
 					if (modificationQueue.isPropertyModified(graphObject, Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY))) {
 						throwExceptionIfTypeAlreadyExists(graphObject);
@@ -420,5 +426,21 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 			}
 			*/
 		}
+	}
+
+	private void checkInheritanceConstraints(final SchemaNode schemaNode) throws FrameworkException {
+
+		final Set<String> traitNames = schemaNode.getInheritedTraits();
+		final Set<Trait> traits      = traitNames.stream().map(name -> Traits.getTrait(name)).filter(t -> t != null).collect(Collectors.toSet());
+
+		for (final Trait trait1 : traits) {
+
+			for (final Trait trait2 : traits) {
+
+				trait1.checkCompatibilityWith(trait2);
+
+			}
+		}
+
 	}
 }

@@ -3893,7 +3893,7 @@ let _Pages = {
 
 			let pathInput = rowContainer.querySelector(`#routing-path-${path.id}`);
 			if (pathInput) {
-				let func = _Helpers.debounce(event => updateParameters(event, path, paramsContainer), 300);
+				let func = _Helpers.debounce(event => updateParameters(event, path, paramsContainer), 500);
 				pathInput.addEventListener('input', func);
 			}
 
@@ -3957,6 +3957,8 @@ let _Pages = {
 				}
 
 				enableUpdateEvents(paramsContainer);
+
+				_Helpers.blinkGreen(event.target);
 			}
 		};
 

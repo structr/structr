@@ -57,7 +57,7 @@ import java.util.*;
 public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 	private static final Logger logger                           = LoggerFactory.getLogger(SchemaRelationshipNodeTraitDefinition.class);
-	private static final String SchemaRemoteAttributeNamePattern = "[a-zA-Z_][a-zA-Z0-9_]*";
+	private static final String SchemaRemoteAttributeNamePattern = "[a-z][a-zA-Z0-9_]*";
 
 	public static final String SOURCE_TYPE_PROPERTY                = "sourceType";
 	public static final String TARGET_TYPE_PROPERTY                = "targetType";
@@ -105,8 +105,12 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 					final PropertyKey<String> relationshipType  = traits.key(RELATIONSHIP_TYPE_PROPERTY);
 					boolean valid                               = true;
 
-					valid &= (obj.getProperty(sourceJsonName) == null || ValidationHelper.isValidStringMatchingRegex(obj, sourceJsonName, SchemaRemoteAttributeNamePattern, errorBuffer));
-					valid &= (obj.getProperty(targetJsonName) == null || ValidationHelper.isValidStringMatchingRegex(obj, targetJsonName, SchemaRemoteAttributeNamePattern, errorBuffer));
+					valid &= (obj.getProperty(sourceJsonName) == null || ValidationHelper.isValidStringMatchingRegex(obj, sourceJsonName, SchemaRemoteAttributeNamePattern,
+						"Source attribute name must match the following pattern: '" + SchemaRemoteAttributeNamePattern + "', which means it must start with a lowercase letter and may only contain letters, numbers and underscores.",
+						errorBuffer));
+					valid &= (obj.getProperty(targetJsonName) == null || ValidationHelper.isValidStringMatchingRegex(obj, targetJsonName, SchemaRemoteAttributeNamePattern,
+						"Target attribute name must match the following pattern: '" + SchemaRemoteAttributeNamePattern + "', which means it must start with a lowercase letter and may only contain letters, numbers and underscores.",
+						errorBuffer));
 					valid &= ValidationHelper.isValidStringNotBlank(obj, relationshipType, errorBuffer);
 
 					// source and target node can be type names

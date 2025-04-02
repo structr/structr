@@ -18,13 +18,12 @@
  */
 package org.structr.test;
 
-import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.TestHelper;
 import org.testng.annotations.Test;
 
 /**
  */
-public class ViewTest extends StructrUiTest {
+public class ViewTest extends CsvTestBase {
 
 	@Test
 	public void testViews() {

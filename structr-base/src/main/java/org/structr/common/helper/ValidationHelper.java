@@ -28,20 +28,19 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
-import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Trait;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
-import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 
 /**
  * Defines helper methods for property validation.
@@ -167,7 +166,7 @@ public class ValidationHelper {
 	 * @param errorBuffer
 	 * @return true if string matches expression
 	 */
-	public static boolean isValidStringMatchingRegex(final GraphObject node, final PropertyKey<String> key, final String expression, final ErrorBuffer errorBuffer) {
+	public static boolean isValidStringMatchingRegex(final GraphObject node, final PropertyKey<String> key, final String expression, final String description, final ErrorBuffer errorBuffer) {
 
 		final String value = node.getProperty(key);
 
@@ -176,7 +175,7 @@ public class ValidationHelper {
 		}
 
 		// no match
-		errorBuffer.add(new MatchToken(node.getType(), key.jsonName(), expression, value));
+		errorBuffer.add(new MatchToken(node.getType(), key.jsonName(), description, value));
 		return false;
 	}
 
