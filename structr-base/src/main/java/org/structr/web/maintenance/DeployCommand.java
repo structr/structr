@@ -396,13 +396,17 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			importLocalizations(localizationsMetadataFile);
 			importApplicationConfigurationNodes(applicationConfigurationDataMetadataFile);
 			importSchema(schemaFolder, extendExistingApp);
+
 			final FileImportVisitor.FileImportProblems fileImportProblems = importFiles(filesMetadataFile, source, ctx);
-			importModuleData(source);
+
 			importHTMLContent(app, source, pagesMetadataFile, componentsMetadataFile, templatesMetadataFile, sitesConfFile, extendExistingApp, relativeVisibility, deferredNodesAndTheirProperties);
 			linkDeferredPages(app);
 			importParameterMapping(parameterMappingMetadataFile);
 			importActionMapping(actionMappingMetadataFile);
 			importEmbeddedApplicationData(source);
+
+			// import modules (including flow) after everything else so the DOMNode -> Flow-Relationship can be imported
+			importModuleData(source);
 
 			// apply post-deploy.conf
 			applyConfigurationFileIfExists(ctx, postDeployConfFile, DEPLOYMENT_IMPORT_STATUS);

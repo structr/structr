@@ -22,8 +22,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
+import org.structr.flow.traits.definitions.FlowStoreTraitDefinition;
 import org.structr.module.api.DeployableEntity;
 
 import java.util.Map;
@@ -43,15 +45,16 @@ public class FlowStore extends FlowDataSource implements DeployableEntity {
 	}
 
 	public final String getOperation() {
-		return wrappedObject.getProperty(traits.key("operation"));
+		return wrappedObject.getProperty(traits.key(FlowStoreTraitDefinition.OPERATION_PROPERTY));
 	}
 
 	public final String getKey() {
-		return wrappedObject.getProperty(traits.key("key"));
+		return wrappedObject.getProperty(traits.key(FlowStoreTraitDefinition.KEY_PROPERTY));
 	}
 
 	public final void handleStorage(final Context context) throws FlowException {
 
+		// FIXME: Operation is EnumProperty - update code accordingly
 		final String op         = getOperation();
 		final String _key       = getKey();
 		final FlowDataSource ds = getDataSource();
@@ -80,12 +83,12 @@ public class FlowStore extends FlowDataSource implements DeployableEntity {
 
 		final Map<String, Object> result = new TreeMap<>();
 
-		result.put("id",                          getUuid());
-		result.put("type",                        getType());
-		result.put("key",                         getKey());
-		result.put("operation",                   getOperation());
-		result.put("visibleToPublicUsers",        isVisibleToPublicUsers());
-		result.put("visibleToAuthenticatedUsers", isVisibleToAuthenticatedUsers());
+		result.put(GraphObjectTraitDefinition.ID_PROPERTY,                             getUuid());
+		result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,                           getType());
+		result.put(FlowStoreTraitDefinition.KEY_PROPERTY,                              getKey());
+		result.put(FlowStoreTraitDefinition.OPERATION_PROPERTY,                        getOperation());
+		result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        isVisibleToPublicUsers());
+		result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, isVisibleToAuthenticatedUsers());
 
 		return result;
 	}

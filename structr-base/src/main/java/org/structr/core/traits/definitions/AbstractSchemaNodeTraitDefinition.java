@@ -48,31 +48,6 @@ import java.util.stream.Collectors;
  */
 public final class AbstractSchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
-	/*
-	public static final View defaultView = new View(AbstractSchemaNode.class, PropertyView.Public,
-		name, icon, changelogDisabled
-	);
-
-	public static final View uiView = new View(AbstractSchemaNode.class, PropertyView.Ui,
-		name, schemaProperties, schemaViews, schemaMethods, icon, description, changelogDisabled
-	);
-
-	public static final View schemaView = new View(AbstractSchemaNode.class, "schema",
-		id, typeHandler, name, schemaProperties, schemaViews, schemaMethods, icon, description, changelogDisabled
-	);
-
-	public static final View exportView = new View(AbstractSchemaNode.class, "export",
-		id, typeHandler, name, icon, description, changelogDisabled
-	);
-
-	static {
-
-		hiddenPropertyNames.add(GraphObjectTraitDefinition.CREATED_BY_PROPERTY);
-		hiddenPropertyNames.add("hidden");
-		hiddenPropertyNames.add("deleted");
-	}
-	*/
-
 	public static final String SCHEMA_PROPERTIES_PROPERTY   = "schemaProperties";
 	public static final String SCHEMA_METHODS_PROPERTY      = "schemaMethods";
 	public static final String SCHEMA_VIEWS_PROPERTY        = "schemaViews";

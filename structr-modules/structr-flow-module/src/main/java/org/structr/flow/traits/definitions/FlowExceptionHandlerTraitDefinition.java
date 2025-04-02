@@ -26,6 +26,7 @@ import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StartNodes;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.api.FlowType;
@@ -42,8 +43,11 @@ import java.util.Set;
 
 public class FlowExceptionHandlerTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String HANDLED_NODES_PROPERTY = "handledNodes";
+	public static final String DATA_TARGET_PROPERTY   = "dataTarget";
+
 	public FlowExceptionHandlerTraitDefinition() {
-		super("FlowExceptionHandler");
+		super(StructrTraits.FLOW_EXCEPTION_HANDLER);
 	}
 
 	@Override
@@ -81,8 +85,8 @@ public class FlowExceptionHandlerTraitDefinition extends AbstractNodeTraitDefini
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Iterable<NodeInterface>> handledNodes = new StartNodes("handledNodes", "FlowExceptionHandlerNodes");
-		final Property<Iterable<NodeInterface>> dataTarget   = new EndNodes("dataTarget", "FlowDataInput");
+		final Property<Iterable<NodeInterface>> handledNodes = new StartNodes(HANDLED_NODES_PROPERTY, StructrTraits.FLOW_EXCEPTION_HANDLER_NODES);
+		final Property<Iterable<NodeInterface>> dataTarget   = new EndNodes(DATA_TARGET_PROPERTY, StructrTraits.FLOW_DATA_INPUT);
 
 		return newSet(
 			handledNodes,
@@ -96,11 +100,12 @@ public class FlowExceptionHandlerTraitDefinition extends AbstractNodeTraitDefini
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"next", "handledNodes", "dataTarget"
+					FlowNodeTraitDefinition.NEXT_PROPERTY, HANDLED_NODES_PROPERTY, DATA_TARGET_PROPERTY
 			),
+
 			PropertyView.Ui,
 			newSet(
-				"next", "handledNodes", "dataTarget"
+					FlowNodeTraitDefinition.NEXT_PROPERTY, HANDLED_NODES_PROPERTY, DATA_TARGET_PROPERTY
 			)
 		);
 	}

@@ -81,11 +81,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 		final PropertyContainer propertyContainer = obj.getPropertyContainer();
 		if (propertyContainer != null) {
 
-			// this may throw a java.lang.IllegalStateException: Relationship[<id>] has been deleted in this tx
-			if (propertyContainer.hasProperty(dbName())) {
-
-				value = propertyContainer.getProperty(dbName());
-			}
+			value = propertyContainer.getProperty(dbName());
 		}
 
 		if (applyConverter) {
@@ -99,13 +95,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 
 				} catch (Throwable t) {
 
-					logger.warn("Unable to convert property {} of type {}: {}", new Object[] {
-						dbName(),
-						getClass().getSimpleName(),
-						t
-					});
-					logger.warn("", t);
-
+					logger.warn("Unable to convert property {} of type {}: {}", dbName(), getClass().getSimpleName(), t);
 				}
 			}
 		}
@@ -127,7 +117,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 			value = defaultValue();
 		}
 
-		return (T)value;
+		return (T) value;
 	}
 
 	@Override

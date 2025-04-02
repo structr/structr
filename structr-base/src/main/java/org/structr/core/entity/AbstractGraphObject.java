@@ -56,24 +56,26 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractGraphObject.class);
 
+	protected final long sourceTransactionId;
+	protected final Traits typeHandler;
+	protected final Identity id;
+
 	protected Map<String, Object> tmpStorageContainer         = null;
 	protected boolean readOnlyPropertiesUnlocked              = false;
 	protected boolean internalSystemPropertiesUnlocked        = false;
-	protected long sourceTransactionId                        = -1;
-	protected String cachedUuid                               = null;
 	protected SecurityContext securityContext                 = null;
-	protected Traits typeHandler                              = null;
-	protected Identity id                                     = null;
+	protected String cachedUuid                               = null;
+	protected Boolean cachedHiddenFlag                        = null;
 
 	public AbstractGraphObject(final SecurityContext securityContext, final PropertyContainer propertyContainer, final long sourceTransactionId) {
 
 		String type = (String)propertyContainer.getProperty("type");
-		if (type == null) {
+		if (type == null || !Traits.exists(type)) {
 
-			type = StructrTraits.NODE_INTERFACE;
+			type = StructrTraits.GENERIC_NODE;
 		}
 
-		this.typeHandler         = Traits.exists(type) ? Traits.of(type) : Traits.of(StructrTraits.NODE_INTERFACE);
+		this.typeHandler         = Traits.of(type);
 		this.sourceTransactionId = sourceTransactionId;
 		this.securityContext     = securityContext;
 		this.id                  = propertyContainer.getId();
@@ -112,7 +114,13 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 
 	@Override
 	public String getUuid() {
-		return getProperty(typeHandler.key(GraphObjectTraitDefinition.ID_PROPERTY));
+
+		if (cachedUuid == null) {
+
+			cachedUuid = getProperty(typeHandler.key(GraphObjectTraitDefinition.ID_PROPERTY));
+		}
+
+		return cachedUuid;
 	}
 
 	@Override
@@ -340,11 +348,20 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	 */
 	@Override
 	public boolean isHidden() {
-		return getProperty(typeHandler.key(NodeInterfaceTraitDefinition.HIDDEN_PROPERTY));
+
+		if (cachedHiddenFlag == null) {
+
+			cachedHiddenFlag = getProperty(typeHandler.key(NodeInterfaceTraitDefinition.HIDDEN_PROPERTY));
+		}
+
+		return cachedHiddenFlag;
 	}
 
 	@Override
 	public void setHidden(final boolean hidden) throws FrameworkException {
+
+		cachedHiddenFlag = hidden;
+
 		setProperty(typeHandler.key(NodeInterfaceTraitDefinition.HIDDEN_PROPERTY), hidden);
 	}
 
@@ -406,6 +423,7 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 
 	@Override
 	public final <T> Object setProperty(final PropertyKey<T> key, final T value, final boolean isCreation) throws FrameworkException {
+		cachedUuid = null;
 		return typeHandler.getMethod(SetProperty.class).setProperty(this, key, value, isCreation);
 	}
 
@@ -416,6 +434,7 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 
 	@Override
 	public final void setProperties(final SecurityContext securityContext, final PropertyMap properties, final boolean isCreation) throws FrameworkException {
+		cachedUuid = null;
 		typeHandler.getMethod(SetProperties.class).setProperties(this, securityContext, properties, isCreation);
 	}
 
@@ -437,7 +456,7 @@ public abstract class AbstractGraphObject<T extends PropertyContainer> implement
 	@Override
 	public final String getPropertyWithVariableReplacement(final ActionContext renderContext, final PropertyKey<String> key) throws FrameworkException {
 
-		final String value = getProperty(key);
+		final Object value = getProperty(key);
 		String result      = null;
 
 		try {

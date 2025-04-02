@@ -18,8 +18,8 @@
  */
 package org.structr.api.util;
 
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -30,8 +30,8 @@ import java.util.Set;
  */
 public class ChangeAwareMap {
 
-        private final Map<String, Object> data = new LinkedHashMap<>();
-        private final Set<String> modifiedKeys = new LinkedHashSet<>();
+        private final Map<String, Object> data = new HashMap<>();
+        private final Set<String> modifiedKeys = new HashSet<>();
 
         public ChangeAwareMap() {
         }

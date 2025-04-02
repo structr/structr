@@ -30,10 +30,13 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.flow.impl.FlowContainer;
 import org.structr.flow.impl.FlowContainerConfiguration;
 import org.structr.flow.impl.rels.FlowContainerConfigurationFlow;
+import org.structr.flow.traits.definitions.FlowConditionTraitDefinition;
+import org.structr.flow.traits.definitions.FlowContainerConfigurationTraitDefinition;
 import org.structr.module.api.DeployableEntity;
 import org.structr.web.common.AbstractMapComparator;
 
@@ -56,7 +59,7 @@ public class FlowLegacyDeploymentHandler extends FlowAbstractDeploymentHandler i
 		final List<Map<String, String>> flowRelationships  = new LinkedList<>();
 		final PropertyKey<Date> lastModifiedProperty       = Traits.of("NodeInterface").key("lastModifiedDate");
 		final PropertyKey<String> idProperty               = Traits.of("NodeInterface").key("id");
-		final PropertyKey<NodeInterface> flowKey           = Traits.of("FlowContainerConfiguration").key("flow");
+		final PropertyKey<NodeInterface> flowKey           = Traits.of(StructrTraits.FLOW_CONTAINER_CONFIGURATION).key(FlowContainerConfigurationTraitDefinition.FLOW_PROPERTY);
 
 		try (final Tx tx = app.tx()) {
 
@@ -74,10 +77,10 @@ public class FlowLegacyDeploymentHandler extends FlowAbstractDeploymentHandler i
 
 			// Special handling for FlowContainerConfiguration: Only export last modified layout
 
-			for (final NodeInterface containerNode : app.nodeQuery("FlowContainer").sort(idProperty).getAsList()) {
+			for (final NodeInterface containerNode : app.nodeQuery(StructrTraits.FLOW_CONTAINER).sort(idProperty).getAsList()) {
 
 				final FlowContainer flowContainer     = containerNode.as(FlowContainer.class);
-				final NodeInterface configNode        = app.nodeQuery("FlowContainerConfiguration").and(flowKey, flowContainer).sort(lastModifiedProperty).getFirst();
+				final NodeInterface configNode        = app.nodeQuery(StructrTraits.FLOW_CONTAINER_CONFIGURATION).and(flowKey, flowContainer).sort(lastModifiedProperty).getFirst();
 				final FlowContainerConfiguration conf = configNode.as(FlowContainerConfiguration.class);
 
 				if (conf != null) {
@@ -160,7 +163,7 @@ public class FlowLegacyDeploymentHandler extends FlowAbstractDeploymentHandler i
 					}
 
 					// Special handling for FlowContainerConfiguration
-					for (final NodeInterface toDelete : app.nodeQuery("FlowContainerConfiguration").getAsList()) {
+					for (final NodeInterface toDelete : app.nodeQuery(StructrTraits.FLOW_CONTAINER_CONFIGURATION).getAsList()) {
 
 						app.delete(toDelete);
 					}
@@ -175,7 +178,7 @@ public class FlowLegacyDeploymentHandler extends FlowAbstractDeploymentHandler i
 					}
 
 					// Special handling for FlowContainerConfigurationFlow
-					for (final RelationshipInterface toDelete : app.relationshipQuery("FlowContainerConfigurationFlow").getAsList()) {
+					for (final RelationshipInterface toDelete : app.relationshipQuery(StructrTraits.FLOW_CONTAINER_CONFIGURATION_FLOW).getAsList()) {
 
 						app.delete(toDelete);
 					}

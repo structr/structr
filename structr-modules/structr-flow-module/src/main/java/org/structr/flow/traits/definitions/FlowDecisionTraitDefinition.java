@@ -26,6 +26,7 @@ import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StartNode;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.api.FlowType;
@@ -36,13 +37,14 @@ import org.structr.flow.traits.operations.GetFlowType;
 import java.util.Map;
 import java.util.Set;
 
-/**
- *
- */
 public class FlowDecisionTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String CONDITION_PROPERTY     = "condition";
+	public static final String TRUE_ELEMENT_PROPERTY  = "trueElement";
+	public static final String FALSE_ELEMENT_PROPERTY = "falseElement";
+
 	public FlowDecisionTraitDefinition() {
-		super("FlowDecision");
+		super(StructrTraits.FLOW_DECISION);
 	}
 
 	@Override
@@ -71,9 +73,9 @@ public class FlowDecisionTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> condition    = new StartNode("condition", "FlowDecisionCondition");
-		final Property<NodeInterface> trueElement  = new EndNode("trueElement", "FlowDecisionTrue");
-		final Property<NodeInterface> falseElement = new EndNode("falseElement", "FlowDecisionFalse");
+		final Property<NodeInterface> condition    = new StartNode(CONDITION_PROPERTY, StructrTraits.FLOW_DECISION_CONDITION);
+		final Property<NodeInterface> trueElement  = new EndNode(TRUE_ELEMENT_PROPERTY, StructrTraits.FLOW_DECISION_TRUE);
+		final Property<NodeInterface> falseElement = new EndNode(FALSE_ELEMENT_PROPERTY, StructrTraits.FLOW_DECISION_FALSE);
 
 		return newSet(
 			condition,
@@ -88,11 +90,12 @@ public class FlowDecisionTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"condition", "trueElement", "falseElement", "isStartNodeOfContainer"
+				CONDITION_PROPERTY, TRUE_ELEMENT_PROPERTY, FALSE_ELEMENT_PROPERTY, FlowNodeTraitDefinition.IS_START_NODE_OF_CONTAINER_PROPERTY
 			),
+
 			PropertyView.Ui,
 			newSet(
-				"condition", "trueElement", "falseElement", "isStartNodeOfContainer"
+				CONDITION_PROPERTY, TRUE_ELEMENT_PROPERTY, FALSE_ELEMENT_PROPERTY, FlowNodeTraitDefinition.IS_START_NODE_OF_CONTAINER_PROPERTY
 			)
 		);
 	}

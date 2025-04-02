@@ -221,7 +221,7 @@ public class UiModule implements StructrModule {
 		StructrTraits.registerNodeType(StructrTraits.TABLE,           new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new GenericHtmlElementTraitDefinition(StructrTraits.TABLE));
 		StructrTraits.registerNodeType(StructrTraits.TBODY,           new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new GenericHtmlElementTraitDefinition(StructrTraits.TBODY));
 		StructrTraits.registerNodeType(StructrTraits.TD,              new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new Td());
-		StructrTraits.registerNodeType(StructrTraits.TEMPLATEELEMENT, new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new TemplateElement());
+		StructrTraits.registerNodeType(StructrTraits.TEMPLATE_ELEMENT, new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new TemplateElement());
 		StructrTraits.registerNodeType(StructrTraits.TEXTAREA,        new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new Textarea());
 		StructrTraits.registerNodeType(StructrTraits.TFOOT,           new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new GenericHtmlElementTraitDefinition(StructrTraits.TFOOT));
 		StructrTraits.registerNodeType(StructrTraits.THEAD,           new DOMNodeTraitDefinition(), new DOMElementTraitDefinition(), new GenericHtmlElementTraitDefinition(StructrTraits.THEAD));

@@ -27,15 +27,15 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
+import org.structr.flow.traits.definitions.FlowContainerPackageTraitDefinition;
 import org.structr.module.api.DeployableEntity;
 
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- *
- */
 public class FlowContainerPackage extends AbstractNodeTraitWrapper implements DeployableEntity {
 
 	private static final Logger logger = LoggerFactory.getLogger(FlowContainerPackage.class);
@@ -46,35 +46,35 @@ public class FlowContainerPackage extends AbstractNodeTraitWrapper implements De
 
 	public Iterable<FlowContainer> getFlows() {
 
-		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key("flows"));
+		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key(FlowContainerPackageTraitDefinition.FLOWS_PROPERTY));
 
 		return Iterables.map(n -> n.as(FlowContainer.class), nodes);
 	}
 
 	public Iterable<FlowContainerPackage> getPackages() {
 
-		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key("packages"));
+		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key(FlowContainerPackageTraitDefinition.PACKAGES_PROPERTY));
 
 		return Iterables.map(n -> n.as(FlowContainerPackage.class), nodes);
 	}
 
 	public String getEffectiveName() {
-		return getProperty(traits.key("effectiveName"));
+		return getProperty(traits.key(FlowContainerPackageTraitDefinition.EFFECTIVE_NAME_PROPERTY));
 	}
 
 	public void setScheduledForIndexing(final boolean b) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("scheduledForIndexing"), false);
+		wrappedObject.setProperty(traits.key(FlowContainerPackageTraitDefinition.SCHEDULED_FOR_INDEXING_PROPERTY), b);
 	}
 
 	@Override
 	public Map<String, Object> exportData() {
 		Map<String, Object> result = new HashMap<>();
 
-		result.put("id",                          getUuid());
-		result.put("type",                        getType());
-		result.put("name",                        getName());
-		result.put("visibleToPublicUsers",        isVisibleToPublicUsers());
-		result.put("visibleToAuthenticatedUsers", isVisibleToAuthenticatedUsers());
+		result.put(GraphObjectTraitDefinition.ID_PROPERTY,                             getUuid());
+		result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,                           getType());
+		result.put(NodeInterfaceTraitDefinition.NAME_PROPERTY,                         getName());
+		result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        isVisibleToPublicUsers());
+		result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, isVisibleToAuthenticatedUsers());
 
 		return result;
 	}
@@ -98,9 +98,9 @@ public class FlowContainerPackage extends AbstractNodeTraitWrapper implements De
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			logger.warn("Could not handle onDelete for FlowContainerPackage: " + ex.getMessage());
 		}
-
 	}
 
 	public void deleteChildren() {
@@ -122,9 +122,8 @@ public class FlowContainerPackage extends AbstractNodeTraitWrapper implements De
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			logger.warn("Could not handle onDelete for FlowContainerPackage: " + ex.getMessage());
 		}
-
 	}
-
 }

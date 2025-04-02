@@ -333,25 +333,21 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	public final List<RelationshipInterface> treeGetChildRelationships() {
 
 		// fetch all relationships
-		List<RelationshipInterface> childRels = Iterables.toList(this.getOutgoingRelationships(getChildLinkType()));
+		final List<RelationshipInterface> childRels = Iterables.toList(this.getOutgoingRelationships(getChildLinkType()));
+		final PropertyKey<Integer> positionProperty = getPositionProperty();
 
 		// sort relationships by position
-		Collections.sort(childRels, new Comparator<RelationshipInterface>() {
+		Collections.sort(childRels, (o1, o2) -> {
 
-			@Override
-			public int compare(RelationshipInterface o1, RelationshipInterface o2) {
+			Integer pos1 = o1.getProperty(positionProperty);
+			Integer pos2 = o2.getProperty(positionProperty);
 
-				Integer pos1 = o1.getProperty(getPositionProperty());
-				Integer pos2 = o2.getProperty(getPositionProperty());
+			if (pos1 != null && pos2 != null) {
 
-				if (pos1 != null && pos2 != null) {
-
-					return pos1.compareTo(pos2);
-				}
-
-				return 0;
+				return pos1.compareTo(pos2);
 			}
 
+			return 0;
 		});
 
 		return childRels;
@@ -1442,7 +1438,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 				final String linkableInstruction = (linkable.is(StructrTraits.PAGE)) ? "pagelink" : "link";
 
-				String path                = linkable.getPath();
+				String path = linkable.getPath();
 
 				if (linkable.is(StructrTraits.PAGE) && path == null) {
 					path = linkable.getName();
@@ -1552,19 +1548,9 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 		for (final String key : props) {
 
-			final PropertyKey propertyKey;
-
-			if (traits.hasKey(key)) {
-
-				propertyKey = traits.key(key);
-
-			} else {
-
-				// support arbitrary data-* attributes
-				propertyKey = new StringProperty(key);
-			}
-
 			if (key.startsWith("data-")) {
+
+				final PropertyKey propertyKey = traits.hasKey(key) ? traits.key(key) : new StringProperty(key);
 
 				if (propertyKey instanceof BooleanProperty && dbNode.hasProperty(key)) {
 
@@ -1581,6 +1567,8 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 				customProperties.add(propertyKey);
 
 			} else if (key.startsWith(CustomHtmlAttributeProperty.CUSTOM_HTML_ATTRIBUTE_PREFIX)) {
+
+				final PropertyKey propertyKey = traits.hasKey(key) ? traits.key(key) : new StringProperty(key);
 
 				final CustomHtmlAttributeProperty customProp = new CustomHtmlAttributeProperty(propertyKey);
 

@@ -2469,7 +2469,7 @@ let _Crud = {
 				}
 				if (_Helpers.isUUID(searchString)) {
 					attr = 'uuid';
-					types = ['AbstractNode'];
+					types = ['NodeInterface'];
 				}
 			}
 

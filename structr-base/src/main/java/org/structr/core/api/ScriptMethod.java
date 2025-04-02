@@ -99,8 +99,8 @@ public class ScriptMethod extends AbstractMethod {
 				snippet = new Snippet(name, splitSource[1], false);
 			}
 
-            snippet.setEngineName(splitSource[0]);
-        }
+                        snippet.setEngineName(splitSource[0]);
+	        }
 
 		return snippet;
 	}

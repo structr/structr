@@ -38,7 +38,7 @@ import java.util.*;
  */
 public class AdvancedCypherQuery implements CypherQuery {
 
-	private final Map<String, Object> parameters    = new HashMap<>();
+	private final Map<String, Object> parameters    = new TreeMap<>();
 	private final Set<String> indexLabels           = new LinkedHashSet<>();
 	private final Set<String> typeLabels            = new LinkedHashSet<>();
 	private final Map<String, GraphQueryPart> parts = new LinkedHashMap<>();
@@ -87,6 +87,35 @@ public class AdvancedCypherQuery implements CypherQuery {
 	@Override
 	public String toString() {
 		return getStatement();
+	}
+
+	@Override
+	public boolean equals(final Object other) {
+		return hashCode() == other.hashCode();
+	}
+
+	@Override
+	public int hashCode() {
+
+		int hashCode = 31 + getStatement().hashCode();
+
+		for (final Map.Entry<String, Object> p : getParameters().entrySet()) {
+
+			final Object value = p.getValue();
+			if (value != null) {
+
+				if (value.getClass().isArray()) {
+
+					hashCode = 31 * hashCode + Arrays.deepHashCode((Object[]) value);
+
+				} else {
+
+					hashCode = 31 * hashCode + value.hashCode();
+				}
+			}
+		}
+
+		return hashCode;
 	}
 
 	@Override

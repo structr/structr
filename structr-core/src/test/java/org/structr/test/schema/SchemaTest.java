@@ -31,17 +31,13 @@ import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
+import org.structr.core.entity.SchemaMethod;
 import org.structr.core.graph.*;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
-import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
-import org.structr.core.traits.definitions.RelationshipInterfaceTraitDefinition;
-import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
-import org.structr.core.traits.definitions.SchemaRelationshipNodeTraitDefinition;
-import org.structr.core.traits.definitions.SchemaViewTraitDefinition;
+import org.structr.core.traits.definitions.*;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
 import org.structr.schema.export.StructrSchema;
@@ -1317,6 +1313,106 @@ public class SchemaTest extends StructrTest {
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
+	}
+
+	@Test
+	public void testMethodCacheInvalidation() {
+
+		// create a method and a user-defined function and verify that the cache is invalidated correctly)
+		try (final Tx tx = app.tx()) {
+
+			final Traits methodTraits = Traits.of(StructrTraits.SCHEMA_METHOD);
+
+			final NodeInterface testType = app.create(StructrTraits.SCHEMA_NODE, "Test");
+
+			// create instance method
+			app.create(StructrTraits.SCHEMA_METHOD,
+				new NodeAttribute<>(methodTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test01"),
+				new NodeAttribute<>(methodTraits.key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY), testType),
+				new NodeAttribute<>(methodTraits.key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "{ return 'first version'; }")
+			);
+
+			// create static method
+			app.create(StructrTraits.SCHEMA_METHOD,
+				new NodeAttribute<>(methodTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test02"),
+				new NodeAttribute<>(methodTraits.key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY), testType),
+				new NodeAttribute<>(methodTraits.key(SchemaMethodTraitDefinition.IS_STATIC_PROPERTY), true),
+				new NodeAttribute<>(methodTraits.key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "{ return 'first version'; }")
+			);
+
+			// create user-defined function (schema method with no connection to a type)
+			app.create(StructrTraits.SCHEMA_METHOD,
+				new NodeAttribute<>(methodTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test03"),
+				new NodeAttribute<>(methodTraits.key(SchemaMethodTraitDefinition.IS_STATIC_PROPERTY), true),
+				new NodeAttribute<>(methodTraits.key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "{ return 'first version'; }")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// verify preconditions (all methods return "first version")
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface instance = app.create("Test", "MyTestInstance");
+			final ActionContext actionContext = new ActionContext(securityContext);
+
+			assertEquals("Invalid precondition", "first version", Scripting.evaluate(actionContext, instance, "{ return $.this.test01(); }", "test01"));
+			assertEquals("Invalid precondition", "first version", Scripting.evaluate(actionContext, instance, "{ return $.Test.test02(); }", "test02"));
+			assertEquals("Invalid precondition", "first version", Scripting.evaluate(actionContext, instance, "{ return $.test03(); }", "test03"));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// change methods
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface method1 = app.nodeQuery(StructrTraits.SCHEMA_METHOD).andName("test01").getFirst();
+			final NodeInterface method2 = app.nodeQuery(StructrTraits.SCHEMA_METHOD).andName("test02").getFirst();
+			final NodeInterface method3 = app.nodeQuery(StructrTraits.SCHEMA_METHOD).andName("test03").getFirst();
+
+			method1.as(SchemaMethod.class).setSource("{ return 'second version'; }");
+			method2.as(SchemaMethod.class).setSource("{ return 'second version'; }");
+			method3.as(SchemaMethod.class).setSource("{ return 'second version'; }");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// verify that the changes are applied (all methods return "second version")
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface instance = app.create("Test", "MyTestInstance");
+			final ActionContext actionContext = new ActionContext(securityContext);
+
+			assertEquals("Schema method cache for instance methods is not invalidated correctly.", "second version", Scripting.evaluate(actionContext, instance, "{ return $.this.test01(); }", "test01"));
+			assertEquals("Schema method cache for static methods is not invalidated correctly.", "second version", Scripting.evaluate(actionContext, instance, "{ return $.Test.test02(); }", "test02"));
+			assertEquals("Schema method cache for user-defined functions is not invalidated correctly.", "second version", Scripting.evaluate(actionContext, instance, "{ return $.test03(); }", "test03"));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+
+
+
 	}
 
 

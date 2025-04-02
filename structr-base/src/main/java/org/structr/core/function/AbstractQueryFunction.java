@@ -32,12 +32,12 @@ import org.structr.core.function.search.SearchFunctionPredicate;
 import org.structr.core.function.search.SearchParameter;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 
 /**
  * Abstract implementation of the basic functions of the Interface QueryFunction.
@@ -189,9 +189,10 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 
 				if (!isAdvancedSearch(securityContext, traits, null, sources[c], query, exact)) {
 
-					final PropertyKey key = traits.key(sources[c].toString());
-					if (key != null) {
+					final String keyName = sources[c].toString();
+					if (traits.hasKey(keyName)) {
 
+						final PropertyKey key = traits.key(keyName);
 						final PropertyConverter inputConverter = key.inputConverter(securityContext);
 
 						// check number of parameters dynamically
@@ -212,6 +213,10 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 							// basic search is always AND
 							query.and(key, value, exact);
 						}
+
+					} else {
+
+						throw new FrameworkException(422, "Unknown key '" + keyName + "', returning null");
 					}
 				}
 			}

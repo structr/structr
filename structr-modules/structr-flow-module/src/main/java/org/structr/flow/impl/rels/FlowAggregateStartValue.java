@@ -21,23 +21,24 @@ package org.structr.flow.impl.rels;
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
 import org.structr.core.entity.Relation;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
 public class FlowAggregateStartValue extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public FlowAggregateStartValue() {
-		super("FlowAggregateStartValue");
+		super(StructrTraits.FLOW_AGGREGATE_START_VALUE);
 	}
 
 	@Override
 	public String getSourceType() {
-		return "FlowDataSource";
+		return StructrTraits.FLOW_DATA_SOURCE;
 	}
 
 	@Override
 	public String getTargetType() {
-		return "FlowAggregate";
+		return StructrTraits.FLOW_AGGREGATE;
 	}
 
 	@Override

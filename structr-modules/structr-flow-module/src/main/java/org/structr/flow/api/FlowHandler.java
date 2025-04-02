@@ -22,9 +22,6 @@ import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
 import org.structr.flow.impl.FlowNode;
 
-/**
- *
- */
 public interface FlowHandler {
 
 	/**

@@ -22,17 +22,16 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.flow.api.ThrowingElement;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
+import org.structr.flow.traits.definitions.FlowReturnTraitDefinition;
 import org.structr.module.api.DeployableEntity;
 
 import java.util.Map;
 import java.util.TreeMap;
 
-/**
- *
- */
 public class FlowReturn extends FlowNode implements DeployableEntity, ThrowingElement {
 
 	public FlowReturn(final Traits traits, final NodeInterface wrappedObject) {
@@ -40,16 +39,16 @@ public class FlowReturn extends FlowNode implements DeployableEntity, ThrowingEl
 	}
 
 	public String getResult() {
-		return wrappedObject.getProperty(traits.key("result"));
+		return wrappedObject.getProperty(traits.key(FlowReturnTraitDefinition.RESULT_PROPERTY));
 	}
 
 	public void setResult(final String result) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("result"), result);
+		wrappedObject.setProperty(traits.key(FlowReturnTraitDefinition.RESULT_PROPERTY), result);
 	}
 
 	public FlowExceptionHandler getExceptionHandler() {
 
-		final NodeInterface exceptionHandler = wrappedObject.getProperty(traits.key("exceptionHandler"));
+		final NodeInterface exceptionHandler = wrappedObject.getProperty(traits.key(FlowReturnTraitDefinition.EXCEPTION_HANDLER_PROPERTY));
 		if (exceptionHandler != null) {
 
 			return exceptionHandler.as(FlowExceptionHandler.class);
@@ -92,11 +91,11 @@ public class FlowReturn extends FlowNode implements DeployableEntity, ThrowingEl
 
 		final Map<String, Object> result = new TreeMap<>();
 
-		result.put("id",                          getUuid());
-		result.put("type",                        getType());
-		result.put("result",                      getResult());
-		result.put("visibleToPublicUsers",        isVisibleToPublicUsers());
-		result.put("visibleToAuthenticatedUsers", isVisibleToAuthenticatedUsers());
+		result.put(GraphObjectTraitDefinition.ID_PROPERTY,                             getUuid());
+		result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,                           getType());
+		result.put(FlowReturnTraitDefinition.RESULT_PROPERTY,                          getResult());
+		result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        isVisibleToPublicUsers());
+		result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, isVisibleToAuthenticatedUsers());
 
 		return result;
 	}

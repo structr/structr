@@ -253,11 +253,13 @@ public abstract class AbstractDynamicTraitDefinition<T extends AbstractSchemaNod
 
 	protected void initializePropertyKeys(final T schemaNode) {
 
+		final String className = schemaNode.getClassName();
+
 		for (final SchemaProperty property : schemaNode.getSchemaProperties()) {
 
 			try {
 
-				final PropertyKey key = property.createKey(schemaNode.getClassName());
+				final PropertyKey key = property.createKey(className);
 				if (key != null) {
 
 					propertyKeys.add(key);

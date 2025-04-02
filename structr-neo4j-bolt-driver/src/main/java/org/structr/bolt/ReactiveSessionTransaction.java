@@ -51,7 +51,6 @@ class ReactiveSessionTransaction extends SessionTransaction {
 
 		super(db);
 
-		this.transactionId = ID_SOURCE.getAndIncrement();
 		this.session       = session;
 		this.tx            = Flux.from(session.beginTransaction(db.getTransactionConfig(transactionId))).blockFirst();
 		this.db            = db;
@@ -63,7 +62,6 @@ class ReactiveSessionTransaction extends SessionTransaction {
 
 		final TransactionConfig config = db.getTransactionConfigForTimeout(timeoutInSeconds, transactionId);
 
-		this.transactionId = ID_SOURCE.getAndIncrement();
 		this.session       = session;
 		this.tx            = Flux.from(session.beginTransaction(config)).blockFirst();
 		this.db            = db;

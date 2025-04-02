@@ -29,9 +29,9 @@ import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.event.ActionMapping;
 import org.structr.web.entity.event.ParameterMapping;
+import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
 
 import java.util.Map;
-import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
 
 public interface DOMElement extends DOMNode  {
 
@@ -61,6 +61,7 @@ public interface DOMElement extends DOMNode  {
 	void setAttribute(final String key, final String value) throws FrameworkException;
 
 	boolean isManualReloadTarget();
+	boolean isTargetElement();
 	Iterable<DOMElement> getReloadSources();
 
 	Iterable<PropertyKey> getHtmlAttributes();

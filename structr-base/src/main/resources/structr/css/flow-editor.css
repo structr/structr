@@ -157,6 +157,12 @@
 	background-color: var(--medium-blue); }
 .node-editor .node .socket.input.dataSources:hover {
 	background-color: var(--color-flow-datasource-blue); }
+.node-editor .node .socket.input.valueSource.used {
+	background-color: var(--color-flow-datasource-blue); }
+.node-editor .node .socket.input.valueSource:not(.used) {
+	background-color: var(--medium-blue); }
+.node-editor .node .socket.input.valueSource:hover {
+	background-color: var(--color-flow-datasource-blue); }
 .node-editor .node .socket.input.prev.used {
 	background-color: var(--color-flow-next-light-green); }
 .node-editor .node .socket.input.prev:not(.used) {
@@ -463,6 +469,8 @@
 .node-editor .connections .connection.output-datatarget.input-datasource {
 	stroke: var(--color-flow-datasource-blue); }
 .node-editor .connections .connection.output-datatarget.input-datasources {
+	stroke: var(--color-flow-datasource-blue); }
+.node-editor .connections .connection.output-datatarget.input-valuesource {
 	stroke: var(--color-flow-datasource-blue); }
 .node-editor .connections .connection.output-objectdatatarget.input-keyvaluesources {
 	stroke: var(--color-flow-datasource-blue); }

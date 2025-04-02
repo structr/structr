@@ -29,6 +29,7 @@ import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.flow.api.FlowHandler;
 import org.structr.flow.impl.FlowFork;
 import org.structr.flow.impl.FlowNode;
@@ -38,9 +39,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-/**
- *
- */
 public class ForkHandler implements FlowHandler {
 
 	private static final Logger logger = LoggerFactory.getLogger(ForkHandler.class);
@@ -111,8 +109,8 @@ public class ForkHandler implements FlowHandler {
 
 				try (final Tx tx = app.tx()) {
 
-					this.startNode = app.nodeQuery("FlowNode").uuid(startNodeUuid).getFirst();
-					this.fork = app.nodeQuery("FlowFork").uuid(forkUuid).getFirst();
+					this.startNode = app.nodeQuery(StructrTraits.FLOW_NODE).uuid(startNodeUuid).getFirst();
+					this.fork = app.nodeQuery(StructrTraits.FLOW_FORK).uuid(forkUuid).getFirst();
 
 					tx.success();
 

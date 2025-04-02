@@ -35,10 +35,10 @@ public class Trait {
 
 	private static final Set<String> DEFAULT_PROPERTY_KEYS = new LinkedHashSet<>(Arrays.asList("id", "type", "name"));
 
+	private final Map<Class, NodeTraitFactory> nodeTraitFactories                 = new HashMap<>();
+	private final Map<Class, RelationshipTraitFactory> relationshipTraitFactories = new HashMap<>();
 	private final Map<String, AbstractMethod> dynamicMethods                      = new LinkedHashMap<>();
 	private final Map<Class, FrameworkMethod> frameworkMethods                    = new LinkedHashMap<>();
-	private final Map<Class, NodeTraitFactory> nodeTraitFactories                 = new LinkedHashMap<>();
-	private final Map<Class, RelationshipTraitFactory> relationshipTraitFactories = new LinkedHashMap<>();
 	private final Map<Class, LifecycleMethod> lifecycleMethods                    = new LinkedHashMap<>();
 	private final Map<String, PropertyKey> propertyKeys                           = new LinkedHashMap<>();
 	private final Map<String, Set<String>> views                                  = new LinkedHashMap<>();
@@ -240,12 +240,7 @@ public class Trait {
 		}
 	}
 
-	public void removeDynamicMethods() {
-
-	}
-
-	// ----- private methods -----
-	private void registerPropertyKey(final PropertyKey key) {
+	public void registerPropertyKey(final PropertyKey key) {
 
 		final String name = key.jsonName();
 

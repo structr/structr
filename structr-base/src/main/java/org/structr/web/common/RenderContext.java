@@ -51,7 +51,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Stack;
@@ -64,7 +64,7 @@ import java.util.Stack;
  */
 public class RenderContext extends ActionContext {
 
-	private final Map<String, GraphObject> dataObjects = new LinkedHashMap<>();
+	private final Map<String, GraphObject> dataObjects = new HashMap<>();
 	private final Stack<SecurityContext> scStack       = new Stack<>();
 	private EditMode editMode                          = EditMode.NONE;
 	private AsyncBuffer buffer                         = null;
@@ -538,7 +538,7 @@ public class RenderContext extends ActionContext {
 
 	public String getEncodedRenderState() {
 
-		final Map<String, Object> renderState = new LinkedHashMap<>();
+		final Map<String, Object> renderState = new HashMap<>();
 
 		for (final String dataKey : dataObjects.keySet()) {
 

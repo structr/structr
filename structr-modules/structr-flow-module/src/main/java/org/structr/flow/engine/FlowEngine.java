@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.traits.StructrTraits;
 import org.structr.flow.api.FlowHandler;
 import org.structr.flow.api.FlowResult;
 import org.structr.flow.api.FlowType;
@@ -113,15 +114,15 @@ public class FlowEngine {
 	// ----- private methods -----
 	private void init() {
 
-		handlers.put(FlowType.Action,   	new ActionHandler());
-		handlers.put(FlowType.Decision, 	new DecisionHandler());
-		handlers.put(FlowType.Return,   	new ReturnHandler());
-		handlers.put(FlowType.ForEach,  	new ForEachHandler());
-		handlers.put(FlowType.Store, 		new StoreHandler());
+		handlers.put(FlowType.Action,       new ActionHandler());
+		handlers.put(FlowType.Decision,     new DecisionHandler());
+		handlers.put(FlowType.Return,       new ReturnHandler());
+		handlers.put(FlowType.ForEach,      new ForEachHandler());
+		handlers.put(FlowType.Store,        new StoreHandler());
 		handlers.put(FlowType.Aggregation,  new AggregationHandler());
-		handlers.put(FlowType.Exception, 	new ExceptionHandler());
-		handlers.put(FlowType.Filter,		new FilterHandler());
-		handlers.put(FlowType.Fork,			new ForkHandler());
+		handlers.put(FlowType.Exception,    new ExceptionHandler());
+		handlers.put(FlowType.Filter,       new FilterHandler());
+		handlers.put(FlowType.Fork,         new ForkHandler());
 		handlers.put(FlowType.Switch,       new SwitchHandler());
 	}
 
@@ -153,7 +154,7 @@ public class FlowEngine {
 
 				for (final FlowBaseNode node : flowNodes) {
 
-					if (node.is("FlowExceptionHandler")) {
+					if (node.is(StructrTraits.FLOW_EXCEPTION_HANDLER)) {
 
 						final FlowExceptionHandler exceptionHandler = node.as(FlowExceptionHandler.class);
 						final List<FlowBaseNode> handledNodes       = Iterables.toList(exceptionHandler.getHandledNodes());

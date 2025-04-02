@@ -167,10 +167,8 @@ public class Services implements StructrServices, BroadcastReceiver {
 				Service service = getService(serviceClass, serviceName);
 				if (service == null) {
 
-					final String activeServiceName = getNameOfActiveService(serviceClass);
-
 					// start service
-					startService(serviceClass, activeServiceName, false);
+					startService(serviceClass, serviceName, false);
 
 					// reload service
 					service = getService(serviceClass, serviceName);

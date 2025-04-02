@@ -12,11 +12,14 @@ export class FlowSockets {
         this._sockets['next'] = nextSocket;
 
         let dataSource = new D3NE.Socket('dataSource', 'Data Source Node', 'The connected node will provide data for this node.');
+        let valueSource = new D3NE.Socket('valueSource', 'Value Data Source Node', 'The connected node will provide value data for this node.');
         let dataSources = new D3NE.Socket('dataSources', 'Data Source Nodes', 'The connected nodes will provide data for this node.');
         let dataTarget = new D3NE.Socket('dataTarget', 'Data Target Node', 'Connect to a node\'s DataSource port.');
         dataTarget.combineWith(dataSource);
         dataTarget.combineWith(dataSources);
+        dataTarget.combineWith(valueSource);
         this._sockets['dataSource'] = dataSource;
+        this._sockets['valueSource'] = valueSource;
         this._sockets['dataSources'] = dataSources;
         this._sockets['dataTarget'] = dataTarget;
 
@@ -29,6 +32,10 @@ export class FlowSockets {
         let condition_dataSources = new D3NE.Socket('dataSources', 'Data Source Nodes', 'The connected nodes will provide data for this node.');
         this._sockets['dataTarget'].combineWith(condition_dataSources);
         this._sockets['condition_dataSources'] = condition_dataSources;
+
+        let condition_dataSource = new D3NE.Socket('dataSource', 'Data Source Node', 'The connected node will provide data for this node.');
+        this._sockets['dataTarget'].combineWith(condition_dataSource);
+        this._sockets['condition_dataSource'] = condition_dataSource;
 
         let condition_Result = new D3NE.Socket('result', 'Decision Node or Logic Node', 'Connects to FlowDecision or FlowLogicNode and provides it with arguments.');
         let condition_Condition = new D3NE.Socket('condition', 'Condition Node', 'Connected node provides arguments for this node.');

@@ -414,13 +414,13 @@ public class Functions {
 
 	private static class StructrScriptTokenizer {
 
-		private List<Tokenizer> candidates = new LinkedList<>();
+		private static final List<Tokenizer> candidates = new LinkedList<>();
 		private List<Token> tokens         = new LinkedList<>();
 		private Tokenizer currentToken     = null;
 		private int column                 = 1;
 		private int row                    = 1;
 
-		public StructrScriptTokenizer() {
+		static {
 
 			candidates.add(new Identifier());
 			candidates.add(new SingleCharacter((char)9));  // tab
@@ -445,6 +445,7 @@ public class Functions {
 			int count          = 0;
 			int i              = 0;
 
+			// FIXME: does this mean StructrScript expressions can only be 1000 characters long?!
 			while (i < length && count++ < 1000) {
 
 				while (i < length && currentToken != null && currentToken.accept(chars[i])) {

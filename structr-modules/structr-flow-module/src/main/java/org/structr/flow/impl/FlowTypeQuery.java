@@ -31,8 +31,12 @@ import org.structr.core.graph.search.ComparisonSearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.flow.engine.Context;
+import org.structr.flow.traits.definitions.FlowDataSourceTraitDefinition;
+import org.structr.flow.traits.definitions.FlowTypeQueryTraitDefinition;
 import org.structr.module.api.DeployableEntity;
 
 import java.util.ArrayList;
@@ -49,11 +53,11 @@ public class FlowTypeQuery extends FlowDataSource implements DeployableEntity {
 	}
 
 	public String getDataType() {
-		return wrappedObject.getProperty(traits.key("dataType"));
+		return wrappedObject.getProperty(traits.key(FlowTypeQueryTraitDefinition.DATA_TYPE_PROPERTY));
 	}
 
 	public String getQuery() {
-		return wrappedObject.getProperty(traits.key("query"));
+		return wrappedObject.getProperty(traits.key(FlowDataSourceTraitDefinition.QUERY_PROPERTY));
 	}
 
 	@Override
@@ -61,12 +65,12 @@ public class FlowTypeQuery extends FlowDataSource implements DeployableEntity {
 
 		final Map<String, Object> result = new TreeMap<>();
 
-		result.put("id",                          getUuid());
-		result.put("type",                        getType());
-		result.put("dataType",                    getDataType());
-		result.put("query",                       getQuery());
-		result.put("visibleToPublicUsers",        isVisibleToPublicUsers());
-		result.put("visibleToAuthenticatedUsers", isVisibleToAuthenticatedUsers());
+		result.put(GraphObjectTraitDefinition.ID_PROPERTY,                             getUuid());
+		result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,                           getType());
+		result.put(FlowTypeQueryTraitDefinition.DATA_TYPE_PROPERTY,                    getDataType());
+		result.put(FlowDataSourceTraitDefinition.QUERY_PROPERTY,                       getQuery());
+		result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        isVisibleToPublicUsers());
+		result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, isVisibleToAuthenticatedUsers());
 
 		return result;
 	}
@@ -154,7 +158,7 @@ public class FlowTypeQuery extends FlowDataSource implements DeployableEntity {
 					context.setData(getUuid(), data);
 				}
 
-				value = Scripting.replaceVariables(context.getActionContext(getSecurityContext(), this), null, value.toString(), "FlowTypeQuery");
+				value = Scripting.replaceVariables(context.getActionContext(getSecurityContext(), this), null, value.toString(), StructrTraits.FLOW_TYPE_QUERY);
 
 			} catch (FrameworkException ex) {
 				logger.warn("FlowTypeQuery: Could not evaluate given operation.", ex);

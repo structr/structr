@@ -265,6 +265,7 @@ public class Scripting {
 
 			final Value value = evaluatePolyglot(actionContext, engineName, context, entity, snippet);
 			result = PolyglotWrapper.unwrap(actionContext, value);
+
 		} finally {
 
 			context.leave();
@@ -311,6 +312,7 @@ public class Scripting {
 
 					return result;
 				} else {
+
 					return null;
 				}
 
@@ -365,8 +367,9 @@ public class Scripting {
 	}
 
 	public static String[] splitSnippetIntoEngineAndScript(final String snippet) {
+
 		final boolean isAutoScriptingEnv = !(snippet.startsWith("${") && snippet.endsWith("}"));
-		final boolean isJavascript = (snippet.startsWith("${{") && snippet.endsWith("}}")) || (isAutoScriptingEnv && (snippet.startsWith("{") && snippet.endsWith("}")));
+		final boolean isJavascript       = (snippet.startsWith("${{") && snippet.endsWith("}}")) || (isAutoScriptingEnv && (snippet.startsWith("{") && snippet.endsWith("}")));
 
 		String engine = "";
 		String script = "";
@@ -375,6 +378,7 @@ public class Scripting {
 
 			engine = "js";
 			script = snippet.substring(isAutoScriptingEnv ? 1 : 3, snippet.length() - (isAutoScriptingEnv ? 1 : 2));
+
 		} else {
 
 			final Matcher matcher = ScriptEngineExpression.matcher(isAutoScriptingEnv ? String.format("${%s}", snippet) : snippet);

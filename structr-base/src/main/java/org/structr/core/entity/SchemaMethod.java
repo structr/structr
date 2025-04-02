@@ -47,6 +47,8 @@ public interface SchemaMethod extends NodeInterface {
 	String[] getExceptions();
 	String[] getTags();
 
+	void setSource(final String source) throws FrameworkException;
+
 	boolean callSuper();
 	boolean overridesExisting();
 	boolean doExport();

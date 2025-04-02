@@ -129,6 +129,7 @@ export class FlowEditor {
 			if (event.target === this._rootElement) {
 				this._editor.view.assignContextMenuHandler();
 				this._editor.view.contextMenu.show(event.clientX-20, event.clientY);
+				this._editor.view.contextMenu.mousePos = this._editor.view.mouse;
 			}
 			return false;
 		};
@@ -485,7 +486,7 @@ export class FlowEditor {
 				}
 				let fNode = self.renderNode(node);
 				node.flowContainer = self._flowContainer.id;
-				fNode.editorNode.position = self._editor.view.mouse;
+				fNode.editorNode.position = self._editor.view.contextMenu.mousePos ?? self._editor.view.mouse;;
 				self._editor.view.update();
 				self.setupContextMenu();
 				return node;

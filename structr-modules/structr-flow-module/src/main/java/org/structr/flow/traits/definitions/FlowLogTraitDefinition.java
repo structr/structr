@@ -27,6 +27,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.engine.Context;
@@ -42,10 +43,14 @@ import java.util.Set;
 
 public class FlowLogTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String EXCEPTION_HANDLER_PROPERTY = "exceptionHandler";
+	public static final String SCRIPT_PROPERTY            = "script";
+
+
 	private static final Logger logger = LoggerFactory.getLogger(FlowLogTraitDefinition.class);
 
 	public FlowLogTraitDefinition() {
-		super("FlowLog");
+		super(StructrTraits.FLOW_LOG);
 	}
 
 	@Override
@@ -103,12 +108,10 @@ public class FlowLogTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface> dataSource       = new StartNode("dataSource", "FlowDataInput");
-		final Property<NodeInterface> exceptionHandler = new EndNode("exceptionHandler", "FlowExceptionHandlerNodes");
-		final Property<String> script                  = new StringProperty("script");
+		final Property<NodeInterface> exceptionHandler = new EndNode(EXCEPTION_HANDLER_PROPERTY, StructrTraits.FLOW_EXCEPTION_HANDLER_NODES);
+		final Property<String> script                  = new StringProperty(SCRIPT_PROPERTY);
 
 		return newSet(
-			dataSource,
 			exceptionHandler,
 			script
 		);
@@ -120,11 +123,12 @@ public class FlowLogTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"script", "dataSource", "exceptionHandler", "isStartNodeOfContainer"
+				SCRIPT_PROPERTY, FlowBaseNodeTraitDefinition.DATA_SOURCE_PROPERTY, EXCEPTION_HANDLER_PROPERTY, FlowNodeTraitDefinition.IS_START_NODE_OF_CONTAINER_PROPERTY
 			),
+
 			PropertyView.Ui,
 			newSet(
-				"script", "dataSource", "exceptionHandler", "isStartNodeOfContainer"
+				SCRIPT_PROPERTY, FlowBaseNodeTraitDefinition.DATA_SOURCE_PROPERTY, EXCEPTION_HANDLER_PROPERTY, FlowNodeTraitDefinition.IS_START_NODE_OF_CONTAINER_PROPERTY
 			)
 		);
 	}

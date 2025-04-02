@@ -42,7 +42,7 @@ import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -89,8 +89,7 @@ public final class AbstractNode extends AbstractGraphObject<Node> implements Nod
 			return false;
 		}
 
-		return (Integer.valueOf(this.hashCode()).equals(o.hashCode()));
-
+		return hashCode() == o.hashCode();
 	}
 
 	@Override
@@ -372,7 +371,7 @@ public final class AbstractNode extends AbstractGraphObject<Node> implements Nod
 	public synchronized Map<String, Object> getTemporaryStorage() {
 
 		if (tmpStorageContainer == null) {
-			tmpStorageContainer = new LinkedHashMap<>();
+			tmpStorageContainer = new HashMap<>();
 		}
 
 		return tmpStorageContainer;

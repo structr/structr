@@ -82,7 +82,7 @@ public class DoubleArrayPropertyGenerator extends NumericalArrayPropertyGenerato
 		final List<IsValid> validators = super.getValidators(key);
 		final String format            = source.getFormat();
 
-		if (format != null && !error) {
+		if (StringUtils.isNotBlank(format) && !error) {
 
 			validators.add((obj, errorBuffer) -> ValidationHelper.isValidDoubleArrayInRange(obj, obj.getTraits().key(key), format, errorBuffer));
 		}

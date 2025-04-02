@@ -2373,9 +2373,9 @@ public class SearchAndSortingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable t) {
+		} catch (FrameworkException fex) {
 
-			t.printStackTrace();
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 	}

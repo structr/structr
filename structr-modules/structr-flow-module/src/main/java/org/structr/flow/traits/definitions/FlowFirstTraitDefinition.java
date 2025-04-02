@@ -20,6 +20,7 @@ package org.structr.flow.traits.definitions;
 
 import org.structr.core.entity.Relation;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.engine.Context;
@@ -34,7 +35,7 @@ import java.util.Map;
 public class FlowFirstTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public FlowFirstTraitDefinition() {
-		super("FlowFirst");
+		super(StructrTraits.FLOW_FIRST);
 	}
 
 	@Override

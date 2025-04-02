@@ -21,23 +21,24 @@ package org.structr.flow.impl.rels;
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
 import org.structr.core.entity.Relation;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
 public class FlowCallParameter extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public FlowCallParameter() {
-		super("FlowCallParameter");
+		super(StructrTraits.FLOW_CALL_PARAMETER);
 	}
 
 	@Override
 	public String getSourceType() {
-		return "FlowParameterInput";
+		return StructrTraits.FLOW_PARAMETER_INPUT;
 	}
 
 	@Override
 	public String getTargetType() {
-		return "FlowCall";
+		return StructrTraits.FLOW_CALL;
 	}
 
 	@Override

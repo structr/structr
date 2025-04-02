@@ -67,7 +67,6 @@ import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.rest.servlet.AbstractServletBase;
-import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.storage.StorageProviderFactory;
@@ -84,6 +83,9 @@ import org.structr.web.entity.Site;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.LinkableTraitDefinition;
+import org.structr.web.traits.definitions.dom.PageTraitDefinition;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -98,9 +100,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
-import org.structr.web.traits.definitions.LinkableTraitDefinition;
-import org.structr.web.traits.definitions.dom.PageTraitDefinition;
 
 /**
  * Main servlet for content rendering.
@@ -123,7 +122,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	private static final ExecutorService threadPool                   = Executors.newCachedThreadPool();
 	private final Pattern FilenameCleanerPattern                      = Pattern.compile("[\n\r]", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL);
 	private final StructrHttpServiceConfig config                     = new StructrHttpServiceConfig();
-	private final Set<String> possiblePropertyNamesForEntityResolving = new LinkedHashSet<>();
+	private final Set<String> possiblePropertyNamesForEntityResolving = new HashSet<>();
 
 	private boolean isAsync = false;
 
@@ -1411,7 +1410,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 		if (!uuid.isEmpty()) {
 
-			final NodeInterface node = StructrApp.getInstance(securityContext).getNodeById(StructrTraits.NODE_INTERFACE, uuid);
+			final NodeInterface node = StructrApp.getInstance(securityContext).getNodeById(StructrTraits.LINKABLE, uuid);
 			if (node != null) {
 
 				return List.of(node.as(Linkable.class));
@@ -1544,7 +1543,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 		final ServletOutputStream out         = response.getOutputStream();
 		final String downloadAsFilename       = request.getParameter(DOWNLOAD_AS_FILENAME_KEY);
-		final Map<String, Object> callbackMap = new LinkedHashMap<>();
+		final Map<String, Object> callbackMap = new HashMap<>();
 
 		// make edit mode available in callback method
 		callbackMap.put("editMode", edit);
@@ -1835,8 +1834,10 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			if (realm == null) {
 
 				realm = possiblePage.getName();
+
 			} else {
-				realm = (String)Scripting.replaceVariables(new ActionContext(outerSecurityContext), possiblePage, realm, false, "realm");
+
+				realm = Scripting.replaceVariables(new ActionContext(outerSecurityContext), possiblePage, realm, false, "realm");
 			}
 
 			// check Http Basic Authentication headers
@@ -1996,28 +1997,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 		public Linkable getRootElement() {
 			return rootElement;
-		}
-	}
-
-	private static class UuidCacheEntry {
-
-		String fileUuid = null;
-		String domUuid  = null;
-		String dataUuid = null;
-
-		public UuidCacheEntry(final DOMNode domNode, final File fileNode, final NodeInterface dataNode) {
-
-			if (domNode != null) {
-				this.domUuid = domNode.getUuid();
-			}
-
-			if (fileNode != null) {
-				this.fileUuid = fileNode.getUuid();
-			}
-
-			if (dataNode != null) {
-				this.dataUuid = dataNode.getUuid();
-			}
 		}
 	}
 }

@@ -25,6 +25,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.api.FlowType;
@@ -42,8 +43,12 @@ import java.util.Set;
 
 public class FlowActionTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String DATA_TARGET_PROPERTY       = "dataTarget";
+	public static final String EXCEPTION_HANDLER_PROPERTY = "exceptionHandler";
+	public static final String SCRIPT_PROPERTY            = "script";
+
 	public FlowActionTraitDefinition() {
-		super("FlowAction");
+		super(StructrTraits.FLOW_ACTION);
 	}
 
 	@Override
@@ -106,8 +111,6 @@ public class FlowActionTraitDefinition extends AbstractNodeTraitDefinition {
 							throw new FlowException(fex, action);
 						}
 					}
-
-
 				}
 			}
 		);
@@ -124,9 +127,9 @@ public class FlowActionTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes("dataTarget", "FlowDataInput");
-		final Property<NodeInterface> exceptionHandler     = new EndNode("exceptionHandler", "FlowExceptionHandlerNodes");
-		final Property<String> script                      = new StringProperty("script");
+		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes(DATA_TARGET_PROPERTY, StructrTraits.FLOW_DATA_INPUT);
+		final Property<NodeInterface> exceptionHandler     = new EndNode(EXCEPTION_HANDLER_PROPERTY, StructrTraits.FLOW_EXCEPTION_HANDLER_NODES);
+		final Property<String> script                      = new StringProperty(SCRIPT_PROPERTY);
 
 		return newSet(
 			dataTarget,
@@ -141,7 +144,7 @@ public class FlowActionTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"script", "dataTarget", "exceptionHandler", "isStartNodeOfContainer"
+				SCRIPT_PROPERTY, DATA_TARGET_PROPERTY, EXCEPTION_HANDLER_PROPERTY, FlowNodeTraitDefinition.IS_START_NODE_OF_CONTAINER_PROPERTY
 			)
 		);
 	}

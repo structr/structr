@@ -21,23 +21,24 @@ package org.structr.flow.impl.rels;
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
 import org.structr.core.entity.Relation;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
 public class FlowScriptConditionSource extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public FlowScriptConditionSource() {
-		super("FlowScriptConditionSource");
+		super(StructrTraits.FLOW_SCRIPT_CONDITION_SOURCE);
 	}
 
 	@Override
 	public String getSourceType() {
-		return "FlowDataSource";
+		return StructrTraits.FLOW_DATA_SOURCE;
 	}
 
 	@Override
 	public String getTargetType() {
-		return "FlowScriptCondition";
+		return StructrTraits.FLOW_SCRIPT_CONDITION;
 	}
 
 	@Override

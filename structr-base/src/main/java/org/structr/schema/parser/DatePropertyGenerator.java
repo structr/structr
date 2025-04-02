@@ -37,6 +37,13 @@ import java.util.Date;
  */
 public class DatePropertyGenerator extends PropertyGenerator<Date> {
 
+	private static final SimpleDateFormat[] SupportedISOFormats = new SimpleDateFormat[] {
+		new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX"),
+		new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX"),
+		new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ"),
+		new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
+	};
+
 	private String pattern = null;
 
 	public DatePropertyGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
@@ -69,17 +76,19 @@ public class DatePropertyGenerator extends PropertyGenerator<Date> {
 	/**
 	 * Static method to catch parse exception
 	 *
-	 * @param source
+	 * @param input
 	 * @param pattern optional SimpleDateFormat pattern
 	 * @return
 	 */
-	public static Date parse(String source, final String pattern) {
+	public static Date parse(final String input, final String pattern) {
 
 		if (StringUtils.isBlank(pattern)) {
 
-			return parseISO8601DateString(source);
+			return parseISO8601DateString(input);
 
 		} else {
+
+			String source = input;
 
 			try {
 				// SimpleDateFormat is not fully ISO8601 compatible, so we replace 'Z' by +0000
@@ -102,12 +111,12 @@ public class DatePropertyGenerator extends PropertyGenerator<Date> {
 	/**
 	 * Try to parse source string as a ISO8601 date.
 	 *
-	 * @param source
+	 * @param input
 	 * @return null if unable to parse
 	 */
-	public static Date parseISO8601DateString(String source) {
+	public static Date parseISO8601DateString(final String input) {
 
-		final String[] supportedFormats = new String[] { "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", "yyyy-MM-dd'T'HH:mm:ssXXX", "yyyy-MM-dd'T'HH:mm:ssZ", "yyyy-MM-dd'T'HH:mm:ss.SSSZ" };
+		String source = input;
 
 		// SimpleDateFormat is not fully ISO8601 compatible, so we replace 'Z' by +0000
 		if (StringUtils.contains(source, "Z")) {
@@ -117,14 +126,15 @@ public class DatePropertyGenerator extends PropertyGenerator<Date> {
 
 		Date parsedDate = null;
 
-		for (final String format : supportedFormats) {
+		for (final SimpleDateFormat format : SupportedISOFormats) {
 
 			try {
 
-				parsedDate = new SimpleDateFormat(format).parse(source);
+				synchronized (format) {
+					parsedDate = format.parse(source);
+				}
 
-			} catch (ParseException pe) {
-			}
+			} catch (ParseException pe) {}
 
 			if (parsedDate != null) {
 				return parsedDate;

@@ -40,8 +40,10 @@ import org.structr.core.auth.Authenticator;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.flow.impl.FlowContainer;
+import org.structr.flow.traits.definitions.FlowContainerTraitDefinition;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.servlet.JsonRestServlet;
 
@@ -89,9 +91,9 @@ public class FlowServlet extends JsonRestServlet {
 
 			try (final Tx tx = app.tx()) {
 
-				final PropertyKey<String> nameKey = Traits.of("FlowContainer").key("effectiveName");
+				final PropertyKey<String> nameKey = Traits.of(StructrTraits.FLOW_CONTAINER).key(FlowContainerTraitDefinition.EFFECTIVE_NAME_PROPERTY);
 				final String flowName             = request.getPathInfo().substring(1);
-				final NodeInterface flowNode      = flowName.length() > 0 ? StructrApp.getInstance(securityContext).nodeQuery("FlowContainer").and(nameKey, flowName).getFirst() : null;
+				final NodeInterface flowNode      = flowName.length() > 0 ? StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.FLOW_CONTAINER).and(nameKey, flowName).getFirst() : null;
 
 				tx.prefetchHint("Flow " + flowName);
 
@@ -218,9 +220,9 @@ public class FlowServlet extends JsonRestServlet {
 
 			try (final Tx tx = app.tx()) {
 
-				final PropertyKey<String> nameKey = Traits.of("FlowContainer").key("effectiveName");
+				final PropertyKey<String> nameKey = Traits.of(StructrTraits.FLOW_CONTAINER).key(FlowContainerTraitDefinition.EFFECTIVE_NAME_PROPERTY);
 				final String flowName             = request.getPathInfo().substring(1);
-				final NodeInterface flowNode      = flowName.length() > 0 ? StructrApp.getInstance(securityContext).nodeQuery("FlowContainer").and(nameKey, flowName).getFirst() : null;
+				final NodeInterface flowNode      = flowName.length() > 0 ? StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.FLOW_CONTAINER).and(nameKey, flowName).getFirst() : null;
 
 				if (flowNode != null) {
 

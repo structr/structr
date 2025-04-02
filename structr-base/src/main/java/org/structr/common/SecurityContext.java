@@ -43,12 +43,12 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.SchemaHelper;
 import org.structr.web.entity.File;
+import org.structr.web.traits.definitions.FileTraitDefinition;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.structr.web.traits.definitions.FileTraitDefinition;
 
 /**
  * Encapsulates the current user and access path and provides methods to query
@@ -185,7 +185,7 @@ public class SecurityContext {
 					customView = new LinkedHashSet<>();
 
 					final String properties = matcher.group(1);
-					final String[] parts    = properties.split("[,]+");
+					final String[] parts    = StringUtils.split(properties, ",");
 
 					for (final String part : parts) {
 
@@ -209,12 +209,12 @@ public class SecurityContext {
 			final String rangeSource = request.getHeader("Range");
 			if (rangeSource != null) {
 
-				final String[] rangeParts = rangeSource.split("[;]+");
+				final String[] rangeParts = StringUtils.split(rangeSource, ";");
 				final int rangeCount      = rangeParts.length;
 
 				for (int i = 0; i < rangeCount; i++) {
 
-					final String[] parts = rangeParts[i].split("[=]+");
+					final String[] parts = StringUtils.split(rangeParts[i], "=");
 					if (parts.length == 2) {
 
 						final String identifier = parts[0].trim();
@@ -228,7 +228,7 @@ public class SecurityContext {
 
 							} else {
 
-								final String[] valueParts = valueRange.split("[-]+");
+								final String[] valueParts = StringUtils.split(valueRange, "-");
 								if (valueParts.length == 2) {
 
 									String startString = valueParts[0].trim();
@@ -467,7 +467,7 @@ public class SecurityContext {
 
 		Principal user = getUser(false);
 
-		return ((user != null) && (user instanceof SuperUser || user.isAdmin()));
+		return user != null && user.isAdmin();
 	}
 
 	public boolean isSuperUserSecurityContext () {

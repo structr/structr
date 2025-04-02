@@ -22,18 +22,17 @@ import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.flow.api.ThrowingElement;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
+import org.structr.flow.traits.definitions.FlowDataSourceTraitDefinition;
 import org.structr.flow.traits.operations.DataSourceOperations;
 import org.structr.module.api.DeployableEntity;
 
 import java.util.Map;
 import java.util.TreeMap;
 
-/**
- *
- */
 public class FlowDataSource extends FlowNode implements DeployableEntity, ThrowingElement {
 
 	public FlowDataSource(final Traits traits, final NodeInterface wrappedObject) {
@@ -41,16 +40,16 @@ public class FlowDataSource extends FlowNode implements DeployableEntity, Throwi
 	}
 
 	public String getQuery() {
-		return wrappedObject.getProperty(traits.key("query"));
+		return wrappedObject.getProperty(traits.key(FlowDataSourceTraitDefinition.QUERY_PROPERTY));
 	}
 
 	public void setQuery(final String query) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("query"), query);
+		wrappedObject.setProperty(traits.key(FlowDataSourceTraitDefinition.QUERY_PROPERTY), query);
 	}
 
 	public final FlowExceptionHandler getExceptionHandler() {
 
-		final NodeInterface exceptionHandler = wrappedObject.getProperty(traits.key("exceptionHandler"));
+		final NodeInterface exceptionHandler = wrappedObject.getProperty(traits.key(FlowDataSourceTraitDefinition.EXCEPTION_HANDLER_PROPERTY));
 		if (exceptionHandler != null) {
 
 			return exceptionHandler.as(FlowExceptionHandler.class);
@@ -60,11 +59,11 @@ public class FlowDataSource extends FlowNode implements DeployableEntity, Throwi
 	}
 
 	public void setDataTarget(final Iterable<FlowBaseNode> nodes) throws FrameworkException {
-		wrappedObject.setProperty(traits.key("dataTarget"), nodes);
+		wrappedObject.setProperty(traits.key(FlowDataSourceTraitDefinition.DATA_TARGET_PROPERTY), nodes);
 	}
 
 	public final Iterable<FlowBaseNode> getDataTarget() {
-		final Iterable<NodeInterface> dataTargets = wrappedObject.getProperty(traits.key("dataTarget"));
+		final Iterable<NodeInterface> dataTargets = wrappedObject.getProperty(traits.key(FlowDataSourceTraitDefinition.DATA_TARGET_PROPERTY));
 		return Iterables.map(n -> n.as(FlowBaseNode.class), dataTargets);
 	}
 
@@ -82,11 +81,11 @@ public class FlowDataSource extends FlowNode implements DeployableEntity, Throwi
 
 		final Map<String, Object> result = new TreeMap<>();
 
-		result.put("id",                          getUuid());
-		result.put("type",                        getType());
-		result.put("query",                       getQuery());
-		result.put("visibleToPublicUsers",        isVisibleToPublicUsers());
-		result.put("visibleToAuthenticatedUsers", isVisibleToAuthenticatedUsers());
+		result.put(GraphObjectTraitDefinition.ID_PROPERTY,                             getUuid());
+		result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,                           getType());
+		result.put(FlowDataSourceTraitDefinition.QUERY_PROPERTY,                       getQuery());
+		result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        isVisibleToPublicUsers());
+		result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, isVisibleToAuthenticatedUsers());
 
 		return result;
 	}

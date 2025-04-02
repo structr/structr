@@ -22,9 +22,6 @@ import org.structr.flow.api.FlowHandler;
 import org.structr.flow.impl.FlowNode;
 import org.structr.flow.impl.FlowReturn;
 
-/**
- *
- */
 public class ReturnHandler implements FlowHandler {
 
 	@Override

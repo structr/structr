@@ -43,7 +43,6 @@ let _Schema = {
 	schemaMethodsHeightsKey: 'structrSchemaMethodsHeights_' + location.port,
 	schemaActiveTabLeftKey: 'structrSchemaActiveTabLeft_' + location.port,
 	activeSchemaToolsSelectedTabLevel1Key: 'structrSchemaToolsSelectedTabLevel1_' + location.port,
-	activeSchemaToolsSelectedVisibilityTab: 'activeSchemaToolsSelectedVisibilityTab_' + location.port,
 	schemaZoomLevelKey: '_schema_' + location.port + 'zoomLevel',
 	schemaConnectorStyleKey: '_schema_' + location.port + 'connectorStyle',
 	schemaNodePositionKeySuffix: '_schema_' + location.port + 'node-position',
@@ -4753,61 +4752,14 @@ let _Schema = {
 
 		let { dialogText } = _Dialogs.custom.openDialog('Schema Type Visibility', null, ['full-height-dialog-text']);
 
-		let visibilityTables = [
-			{
-				caption: "Custom Types",
-				filterFn: node => (node.isBuiltinType === false),
-				exact: true
-			},
-			{
-				caption: "Core Types",
-				filterFn: node => (node.isBuiltinType === true && node.category === 'core'),
-				exact: false
-			},
-			{
-				caption: "UI Types",
-				filterFn: node => (node.isBuiltinType === true && node.category === 'ui'),
-				exact: false
-			},
-			{
-				caption: "HTML Types",
-				filterFn: node => (node.isBuiltinType === true && node.category === 'html'),
-				exact: false
-			},
-			{
-				caption: "Uncategorized Types",
-				filterFn: node => (node.isBuiltinType === true && node.category === null),
-				exact: true
-			}
-		];
+		let contentEl = _Helpers.createSingleDOMElementFromHTML('<div class="code-tabs flex flex-col h-full overflow-hidden"></div>');
+		dialogText.appendChild(contentEl);
 
-		let id = "schema-tools-visibility";
-		dialogText.insertAdjacentHTML('beforeend', `
-			<div id="${id}_content" class="code-tabs flex flex-col h-full overflow-hidden">
-				<ul id="${id}-tabs" class="flex-shrink-0"></ul>
-			</div>
-		`);
-
-		let ul        = dialogText.querySelector(`#${id}-tabs`);
-		let contentEl = dialogText.querySelector(`#${id}_content`);
-
-		let activateTab = (tabName) => {
-			[...contentEl.querySelectorAll('.tab')].forEach(tab => tab.style.display = 'none');
-			[...ul.querySelectorAll('li')].forEach(li => li.classList.remove('active'));
-			contentEl.querySelector(`div[data-name="${tabName}"]`).style.display = 'block';
-			ul.querySelector(`li[data-name="${tabName}"]`).classList.add('active');
-			LSWrapper.setItem(_Schema.activeSchemaToolsSelectedVisibilityTab, tabName);
-		};
-
+		let customView = 'id,name,isBuiltinType,category';
 		Command.query('SchemaNode', 2000, 1, 'name', 'asc', { isServiceClass: false }, (schemaNodes) => {
 
-			schemaNodes = schemaNodes.filter(s => !s.isServiceClass);
-
-			let tabsHtml = visibilityTables.map(visType => `<li id="tab" data-name="${visType.caption}">${visType.caption}</li>`).join('');
-			ul.insertAdjacentHTML('beforeend', tabsHtml);
-
-			let tabContentsHtml = visibilityTables.map(visType => `
-				<div class="tab overflow-y-auto" data-name="${visType.caption}">
+			contentEl.insertAdjacentHTML('beforeend', `
+				<div class="tab overflow-y-auto">
 					<table class="props schema-visibility-table">
 						<tr>
 							<th class="toggle-column-header">
@@ -4821,14 +4773,13 @@ let _Schema = {
 							</th>
 							<th>Type</th>
 						</tr>
-						${schemaNodes.filter(schemaNode => visType.filterFn(schemaNode)).map(schemaNode => {
+						${schemaNodes.map(schemaNode => {
 							let isHidden = (_Schema.hiddenSchemaNodes.indexOf(schemaNode.name) > -1);
 							return `<tr><td><input class="toggle-type" data-structr-type="${schemaNode.name}" type="checkbox" ${(isHidden ? '' : 'checked')}></td><td>${schemaNode.name}</td></tr>`;
 						}).join('')}
 					</table>
 				</div>
-			`).join('');
-			contentEl.insertAdjacentHTML('beforeend', tabContentsHtml);
+			`);
 
 			for (let toggleAllCb of contentEl.querySelectorAll('input.toggle-all-types')) {
 
@@ -4875,16 +4826,7 @@ let _Schema = {
 				el.addEventListener('click', handleToggleVisibility);
 			}
 
-			for (let tab of ul.querySelectorAll('li')) {
-				tab.addEventListener('click', (e) => {
-					e.stopPropagation();
-					activateTab(tab.dataset['name']);
-				});
-			}
-
-			let activeTab = LSWrapper.getItem(_Schema.activeSchemaToolsSelectedVisibilityTab) || visibilityTables[0].caption;
-			activateTab(activeTab);
-		}, false, null, 'id,name,isBuiltinType,category');
+		}, false, null, customView);
 
 	},
 	updateHiddenSchemaTypes: () => {
