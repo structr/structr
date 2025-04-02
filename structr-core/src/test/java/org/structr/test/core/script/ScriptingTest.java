@@ -4538,7 +4538,7 @@ public class ScriptingTest extends StructrTest {
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 			final JsonType test  = schema.addType("Test");
 
-			test.addMethod("doTest", "{ let arr = []; arr.push({ name: 'test1' }); arr.push({ name: 'test2' }); arr.push({ name: 'test2' }); arr; }");
+			test.addMethod("doTest", "{ let arr = []; arr.push({ name: 'test1' }); arr.push({ name: 'test2' }); arr.push({ name: 'test2' }); return arr; }");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -4558,7 +4558,7 @@ public class ScriptingTest extends StructrTest {
 
 			app.create(testType, "test");
 
-			final Object result = Scripting.evaluate(ctx, null, "${{ var test = $.find('Test')[0]; var arr = test.doTest(); for (e of arr) { Structr.log(e); }; arr; }}", "test");
+			final Object result = Scripting.evaluate(ctx, null, "${{ var test = $.find('Test')[0]; var arr = test.doTest(); for (let e of arr) { Structr.log(e); }; arr; }}", "test");
 
 			assertTrue("Invalid wrapping of native Javascript array", result instanceof List);
 			assertEquals("Invalid wrapping of native Javascript array", 3, ((List)result).size());
@@ -6905,7 +6905,7 @@ public class ScriptingTest extends StructrTest {
 		buf.append(parseMethod);
 		buf.append("('");
 		buf.append(end);
-		buf.append("'); return $.find('Project', { ");
+		buf.append("'); $.find('Project', { ");
 		buf.append(fieldName);
 		buf.append(": $.predicate.range(startDate, endDate) }, $.predicate.sort('name')); }}");
 

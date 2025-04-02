@@ -95,7 +95,7 @@ public class Scripting {
 
 					try {
 
-						final Object extractedValue = evaluate(actionContext, entity, expression, methodName, 0, entity != null ? entity.getUuid() : null);
+						final Object extractedValue = evaluate(actionContext, entity, expression, methodName, 0, entity != null ? entity.getUuid() : null, false);
 						String partValue            = extractedValue != null ? formatToDefaultDateOrString(extractedValue) : "";
 
 						// non-null value?
@@ -142,14 +142,18 @@ public class Scripting {
 	}
 
 	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String input, final String methodName) throws FrameworkException, UnlicensedScriptException {
-		return evaluate(actionContext, entity, input, methodName, null);
+		return evaluate(actionContext, entity, input, methodName, null, false);
 	}
 
 	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String input, final String methodName, final String codeSource) throws FrameworkException, UnlicensedScriptException {
-		return evaluate(actionContext, entity, input, methodName, 0, codeSource);
+		return evaluate(actionContext, entity, input, methodName, 0, codeSource, false);
 	}
 
-	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String input, final String methodName, final int startRow, final String codeSource) throws FrameworkException, UnlicensedScriptException {
+	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String input, final String methodName, final String codeSource, final boolean wrapInJSFunction) throws FrameworkException, UnlicensedScriptException {
+		return evaluate(actionContext, entity, input, methodName, 0, codeSource, wrapInJSFunction);
+	}
+
+	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String input, final String methodName, final int startRow, final String codeSource, final boolean wrapInJSFunction) throws FrameworkException, UnlicensedScriptException {
 
 		final String expression = StringUtils.strip(input);
 
@@ -186,7 +190,7 @@ public class Scripting {
 			securityContext.setDoTransactionNotifications(false);
 		}
 
-		final Snippet snippet = new Snippet(methodName, source, !isScriptEngine);
+		final Snippet snippet = new Snippet(methodName, source, wrapInJSFunction);
 		snippet.setCodeSource(codeSource);
 		snippet.setStartRow(startRow);
 
@@ -290,7 +294,7 @@ public class Scripting {
 			Source source = null;
 			String code;
 
-			if (Settings.WrapJSInMainFunction.getValue(false)) {
+			if (Settings.WrapJSInMainFunction.getValue(false) || snippet.embed()) {
 				code = JSFunctionTranspiler.transpileSource(snippet);
 			} else {
 				code = snippet.getSource();

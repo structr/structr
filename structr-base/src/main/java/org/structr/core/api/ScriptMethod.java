@@ -93,8 +93,7 @@ public class ScriptMethod extends AbstractMethod {
 
 			if ("js".equals(splitSource[0])) {
 
-				snippet = new Snippet(name, splitSource[1]);
-				snippet.setMimeType("application/javascript+module");
+				snippet = new Snippet(name, splitSource[1], true);
 			} else {
 
 				snippet = new Snippet(name, splitSource[1], false);
@@ -133,7 +132,7 @@ public class ScriptMethod extends AbstractMethod {
 
 		try {
 
-			return Actions.execute(securityContext, entity, "${" + source.trim() + "}", converted.toMap(), name, uuid);
+			return Actions.execute(securityContext, entity, "${" + source.trim() + "}", converted.toMap(), name, uuid, true);
 
 		} catch (AssertException e)   {
 			throw new FrameworkException(e.getStatus(), e.getMessage());

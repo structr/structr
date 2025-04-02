@@ -26,40 +26,16 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public abstract class JSFunctionTranspiler {
-    private static final Pattern importPattern = Pattern.compile("import([ \\n\\t]*(?:[^ \\n\\t\\{\\}]+[ \\n\\t]*,?)?(?:[ \\n\\t]*\\{(?:[ \\n\\t]*[^ \\n\\t\"'\\{\\}]+[ \\n\\t]*,?)+\\})?[ \\n\\t]*)from[ \\n\\t]*(['\"])([^'\"\\n]+)(?:['\"])");
 
     public static String transpileSource(final Snippet snippet) {
 
-        snippet.setMimeType("application/javascript+module");
-
         if (snippet.embed()) {
 
-            final String transpiledSource;
-            // Regex that matches import statements
-
-            if (importPattern.matcher(snippet.getSource()).find()) {
-
-                final Map<Boolean, List<String>> partitionedScript = snippet.getSource().lines().collect(Collectors.partitioningBy(x -> importPattern.matcher(x).find()));
-                final String importStatements = String.join("\n", partitionedScript.get(true));
-                final String code = String.join("\n", partitionedScript.get(false));
-
-                transpiledSource = importStatements + "\n" +
-                        "async function main() {\n" +
-                        code +
-                        "\n}\n\nawait main();";
-            } else {
-
-                transpiledSource = "async function main() {" + snippet.getSource() + "\n}\n\nawait main();";
-            }
-
+            final String transpiledSource = "function main() {" + snippet.getSource() + "\n}\n\nmain();";
             snippet.setTranscribedSource(transpiledSource);
+            return snippet.getTranscribedSource();
         }
 
-        if (snippet.getTranscribedSource() == null) {
-
-            return snippet.getSource();
-        }
-
-        return snippet.getTranscribedSource();
+        return snippet.getSource();
     }
 }

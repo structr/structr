@@ -209,7 +209,7 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 						final String _sharedComponentConfiguration = node.getSharedComponentConfiguration();
 						if (StringUtils.isNotBlank(_sharedComponentConfiguration)) {
 
-							Scripting.evaluate(renderContext, node, "${" + _sharedComponentConfiguration.trim() + "}", "sharedComponentConfiguration", 0, node.getUuid());
+							Scripting.evaluate(renderContext, node, "${" + _sharedComponentConfiguration.trim() + "}", "sharedComponentConfiguration", 0, node.getUuid(), false);
 						}
 
 						// determine some postprocessing flags
@@ -616,7 +616,7 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 
 				} else {
 
-					final Object value = Scripting.evaluate(renderContext, node, script, "content", row, node.getUuid());
+					final Object value = Scripting.evaluate(renderContext, node, script, "content", row, node.getUuid(), false);
 					if (value != null) {
 
 						String content = null;
