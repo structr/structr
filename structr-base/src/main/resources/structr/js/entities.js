@@ -1469,6 +1469,7 @@ let _Entities = {
 				if (_Crud.types?.[type]?.views?.all?.[key]?.type === 'Date[]') {
 
 					_Entities.addDatePicker(input, key, type, () => {
+						input.dataset['changed'] = 'true';
 						input.dispatchEvent(new Event('input-finished'));
 					});
 				}
