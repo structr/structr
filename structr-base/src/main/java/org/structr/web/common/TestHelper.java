@@ -60,6 +60,7 @@ public class TestHelper {
 		requiredAttributes.put(StructrTraits.DYNAMIC_RESOURCE_ACCESS, Arrays.asList(ResourceAccessTraitDefinition.SIGNATURE_PROPERTY, "i:" + ResourceAccessTraitDefinition.FLAGS_PROPERTY));
 		requiredAttributes.put(StructrTraits.LOCALIZATION,            Arrays.asList(LocalizationTraitDefinition.LOCALE_PROPERTY));
 		requiredAttributes.put(StructrTraits.RESOURCE_ACCESS,         Arrays.asList(ResourceAccessTraitDefinition.SIGNATURE_PROPERTY, "i:" + ResourceAccessTraitDefinition.FLAGS_PROPERTY));
+		requiredAttributes.put(StructrTraits.SCHEMA_RELATIONSHIP_NODE, Arrays.asList(SchemaRelationshipNodeTraitDefinition.RELATIONSHIP_TYPE_PROPERTY, SchemaRelationshipNodeTraitDefinition.SOURCE_TYPE_PROPERTY, SchemaRelationshipNodeTraitDefinition.TARGET_TYPE_PROPERTY));
 
 		// insert required attributes specified by test class
 		if (additionalRequiredAttributes != null) {
