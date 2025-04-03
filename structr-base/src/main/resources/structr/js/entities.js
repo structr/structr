@@ -1433,7 +1433,7 @@ let _Entities = {
 					input.parentNode.remove();
 					input.dataset['changed'] = 'true';
 
-					_Entities.saveValue(cell, input, objId, key, oldValue, id, type, typeInfo);
+					_Entities.saveValue(cell, input, objId, key, oldValue, id, type, typeInfo, onUpdateCallback);
 				});
 
 				input.addEventListener('focus', function() {
@@ -1587,7 +1587,7 @@ let _Entities = {
 			if (!isCreateDialog) {
 
 				_Entities.setProperty(objId, key, val, false, newVal => {
-					updateInput(newVal ?? (isArrayType ? [] : undefined))
+					updateInput(newVal ?? (isArrayType ? [] : undefined));
 				});
 
 			} else {
