@@ -29,7 +29,6 @@ import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.event.ActionMapping;
 import org.structr.web.entity.event.ParameterMapping;
-import org.structr.process.entity.*;
 
 import java.util.Map;
 import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
