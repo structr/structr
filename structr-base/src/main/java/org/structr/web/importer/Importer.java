@@ -110,7 +110,6 @@ public class Importer {
 	private final boolean authVisible;
 	private CommentHandler commentHandler;
 	private boolean relativeVisibility = false;
-	private boolean withTemplate       = false;
 	private boolean isDeployment       = false;
 	private Document parsedDocument    = null;
 	private final String name;
@@ -138,25 +137,6 @@ public class Importer {
 	 * @param relativeVisibility
 	 */
 	public Importer(final SecurityContext securityContext, final String code, final String address, final String name, final boolean publicVisible, final boolean authVisible, final boolean includeInExport, final boolean relativeVisibility) {
-		this(securityContext, code, address, name, publicVisible, authVisible, includeInExport, relativeVisibility, false);
-	}
-
-	/**
-	 * Construct an instance of the importer to either read the given code, or download code from the given address.
-	 *
-	 * The importer will create a page with the given name. Visibility can be controlled by publicVisible and authVisible.
-	 *
-	 * @param securityContext
-	 * @param code
-	 * @param address
-	 * @param name
-	 * @param publicVisible
-	 * @param authVisible
-	 * @param includeInExport
-	 * @param relativeVisibility
-	 * @param withTemplate
-	 */
-	public Importer(final SecurityContext securityContext, final String code, final String address, final String name, final boolean publicVisible, final boolean authVisible, final boolean includeInExport, final boolean relativeVisibility, final boolean withTemplate) {
 
 		this.code               = code;
 		this.address            = address;
@@ -166,7 +146,6 @@ public class Importer {
 		this.authVisible        = authVisible;
 		this.includeInExport    = includeInExport;
 		this.relativeVisibility = relativeVisibility;
-		this.withTemplate       = withTemplate;
 
 		if (address != null && !address.endsWith("/") && !address.endsWith(".html")) {
 			this.address = this.address.concat("/");
