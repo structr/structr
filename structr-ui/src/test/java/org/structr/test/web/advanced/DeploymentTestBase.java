@@ -30,12 +30,10 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
-import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
@@ -60,14 +58,13 @@ import static org.testng.AssertJUnit.fail;
 
 public abstract class DeploymentTestBase extends StructrUiTest {
 
-	// ----- private methods -----
 	protected void compare(final String sourceHash, final boolean deleteTestDirectory) {
 		compare(sourceHash, deleteTestDirectory, true);
 	}
 
 	protected void compare(final String sourceHash, final boolean deleteTestDirectory, final boolean cleanDatabase) {
 
-		doImportExportRoundtrip(deleteTestDirectory, cleanDatabase, null);
+		doImportExportRoundtrip(deleteTestDirectory, null, cleanDatabase);
 
 		final String roundtripHash = calculateHash();
 
@@ -87,10 +84,14 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 	}
 
 	protected void doImportExportRoundtrip(final boolean deleteTestDirectory) {
-		doImportExportRoundtrip(deleteTestDirectory, true, null);
+		doImportExportRoundtrip(deleteTestDirectory, null, true);
 	}
 
-	protected void doImportExportRoundtrip(final boolean deleteTestDirectory, final boolean cleanDatabase, final Function callback) {
+	protected void doImportExportRoundtrip(final boolean deleteTestDirectory, final Function callback) {
+		doImportExportRoundtrip(deleteTestDirectory, callback, true);
+	}
+
+	protected void doImportExportRoundtrip(final boolean deleteTestDirectory, final Function callback, final boolean cleanDatabase) {
 
 		final DeployCommand cmd = app.command(DeployCommand.class);
 		final Path tmp          = Paths.get("/tmp/structr-deployment-test" + System.currentTimeMillis() + System.nanoTime());

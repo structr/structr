@@ -25,8 +25,6 @@ import org.structr.common.AccessMode;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Group;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
@@ -35,7 +33,6 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
-import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.core.traits.definitions.SchemaGrantTraitDefinition;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
@@ -121,7 +118,7 @@ public class Deployment5Test extends DeploymentTestBase {
 		}
 
 		// deployment export, clean database, create new group with same name but different ID, deployment import
-		doImportExportRoundtrip(true, true, new Function() {
+		doImportExportRoundtrip(true, new Function() {
 
 			@Override
 			public Object apply(final Object o) {
@@ -517,7 +514,7 @@ public class Deployment5Test extends DeploymentTestBase {
 		}
 
 		// test, don't clean the database but change folder+file name back to v1
-		doImportExportRoundtrip(true, false, t -> {
+		doImportExportRoundtrip(true, t -> {
 
 			try (final Tx tx = app.tx()) {
 
@@ -552,7 +549,7 @@ public class Deployment5Test extends DeploymentTestBase {
 			}
 
 			return null;
-		});
+		}, false);
 
 		// check that the correct file/folder name is set
 		try (final Tx tx = app.tx()) {
@@ -598,7 +595,7 @@ public class Deployment5Test extends DeploymentTestBase {
 		}
 
 		final String hash1 = calculateHash();
-		doImportExportRoundtrip(true, false, null);
+		doImportExportRoundtrip(true, null, false);
 		final String hash2 = calculateHash();
 
 		assertEquals("Invalid deployment roundtrip result for dynamic file", hash1, hash2);

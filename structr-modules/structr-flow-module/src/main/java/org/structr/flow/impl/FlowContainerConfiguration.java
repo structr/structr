@@ -35,7 +35,7 @@ public class FlowContainerConfiguration extends AbstractNodeTraitWrapper impleme
 		super(traits, wrappedObject);
 	}
 
-	public boolean getValidForEditor() {
+	public String getValidForEditor() {
 		return wrappedObject.getProperty(traits.key(FlowContainerConfigurationTraitDefinition.VALID_FOR_EDITOR_PROPERTY));
 	}
 

@@ -59,6 +59,7 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String RELATED_FROM_PROPERTY              = "relatedFrom";
 	public static final String SCHEMA_GRANTS_PROPERTY             = "schemaGrants";
 	public static final String INHERITED_TRAITS_PROPERTY          = "inheritedTraits";
+	public static final String NAME_PROPERTY                      = "name";
 	public static final String DEFAULT_SORT_KEY_PROPERTY          = "defaultSortKey";
 	public static final String DEFAULT_SORT_ORDER_PROPERTY        = "defaultSortOrder";
 	public static final String DEFAULT_VISIBLE_TO_PUBLIC_PROPERTY = "defaultVisibleToPublic";
@@ -155,6 +156,7 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Iterable<NodeInterface>>          relatedFrom            = new StartNodes(RELATED_FROM_PROPERTY, StructrTraits.SCHEMA_RELATIONSHIP_TARGET_NODE);
 		final Property<Iterable<NodeInterface>>          schemaGrants           = new StartNodes(SCHEMA_GRANTS_PROPERTY, StructrTraits.SCHEMA_GRANT_SCHEMA_NODE_RELATIONSHIP);
 		final Property<String[]>                         inheritedTraits        = new ArrayProperty(INHERITED_TRAITS_PROPERTY, String.class);
+		final Property<String>                           uniqueNameKey          = new StringProperty(NAME_PROPERTY).unique().indexed();
 		final Property<String>                           defaultSortKey         = new StringProperty(DEFAULT_SORT_KEY_PROPERTY);
 		final Property<String>                           defaultSortOrder       = new StringProperty(DEFAULT_SORT_ORDER_PROPERTY);
 		final Property<Boolean>                          defaultVisibleToPublic = new BooleanProperty(DEFAULT_VISIBLE_TO_PUBLIC_PROPERTY).readOnly().indexed();
@@ -178,7 +180,8 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 			relCount,
 			isInterface,
 			isAbstract,
-			category
+			category,
+			uniqueNameKey
 		);
 	}
 
@@ -189,7 +192,7 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 			PropertyView.Public,
 			newSet(
-					GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY,
+					GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NAME_PROPERTY,
 					INHERITED_TRAITS_PROPERTY, RELATED_TO_PROPERTY, RELATED_FROM_PROPERTY, DEFAULT_SORT_KEY_PROPERTY,
 					DEFAULT_SORT_ORDER_PROPERTY, HIERARCHY_LEVEL_PROPERTY, REL_COUNT_PROPERTY, IS_INTERFACE_PROPERTY, IS_ABSTRACT_PROPERTY,
 					DEFAULT_VISIBLE_TO_PUBLIC_PROPERTY, DEFAULT_VISIBLE_TO_AUTH_PROPERTY
@@ -197,7 +200,7 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 			PropertyView.Ui,
 			newSet(
-					GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY,
+					GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NAME_PROPERTY,
 					NodeInterfaceTraitDefinition.OWNER_PROPERTY, GraphObjectTraitDefinition.CREATED_BY_PROPERTY, NodeInterfaceTraitDefinition.HIDDEN_PROPERTY,
 					GraphObjectTraitDefinition.CREATED_DATE_PROPERTY, GraphObjectTraitDefinition.LAST_MODIFIED_DATE_PROPERTY,
 					GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY,
@@ -210,7 +213,7 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 			"schema",
 			newSet(
-					GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY,
+					GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NAME_PROPERTY,
 					AbstractSchemaNodeTraitDefinition.SCHEMA_PROPERTIES_PROPERTY, AbstractSchemaNodeTraitDefinition.SCHEMA_VIEWS_PROPERTY,
 					AbstractSchemaNodeTraitDefinition.SCHEMA_METHODS_PROPERTY, AbstractSchemaNodeTraitDefinition.ICON_PROPERTY,
 					AbstractSchemaNodeTraitDefinition.CHANGELOG_DISABLED_PROPERTY, RELATED_TO_PROPERTY, RELATED_FROM_PROPERTY, DEFAULT_SORT_KEY_PROPERTY, DEFAULT_SORT_ORDER_PROPERTY,
@@ -220,7 +223,7 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 			"export",
 			newSet(
-					GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY,
+					GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NAME_PROPERTY,
 					DEFAULT_SORT_KEY_PROPERTY, DEFAULT_SORT_ORDER_PROPERTY, HIERARCHY_LEVEL_PROPERTY, REL_COUNT_PROPERTY, IS_INTERFACE_PROPERTY, IS_ABSTRACT_PROPERTY,
 					DEFAULT_VISIBLE_TO_PUBLIC_PROPERTY, DEFAULT_VISIBLE_TO_AUTH_PROPERTY, INHERITED_TRAITS_PROPERTY
 			)

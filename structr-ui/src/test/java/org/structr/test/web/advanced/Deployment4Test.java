@@ -37,11 +37,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.AbstractSchemaNodeTraitDefinition;
-import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
-import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
-import org.structr.core.traits.definitions.PrincipalTraitDefinition;
-import org.structr.core.traits.definitions.SchemaGrantTraitDefinition;
+import org.structr.core.traits.definitions.*;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
 import org.structr.web.auth.UiAuthenticator;
@@ -561,10 +557,49 @@ public class Deployment4Test extends DeploymentTestBase {
 		final String hash1 = calculateHash();
 
 		// roundtrip
-		doImportExportRoundtrip(true, false, null);
+		doImportExportRoundtrip(true, (x) -> {
+
+			// create group for schema grant to refer to
+			try (final Tx tx = app.tx()) {
+
+				final Group testGroup1       = app.create(StructrTraits.GROUP, "Group1").as(Group.class);
+				final Group testGroup2       = app.create(StructrTraits.GROUP, "Group2").as(Group.class);
+				final Group testGroup3       = app.create(StructrTraits.GROUP, "Group3").as(Group.class);
+
+				// create group hierarchy
+				testGroup1.addMember(securityContext, testGroup2);
+				testGroup2.addMember(securityContext, testGroup3);
+
+				app.create(StructrTraits.USER,
+					new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "user"),
+					new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.PASSWORD_PROPERTY), "password"),
+					new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.GROUPS_PROPERTY), List.of(testGroup3))
+				);
+
+				tx.success();
+			} catch (Throwable t) {
+				t.printStackTrace();
+			}
+
+			return null;
+		});
 
 		// test
 		final String hash2 = calculateHash();
+
+		// create projects as well (database was cleared)
+		final String projectType = "Project";
+
+		try (final Tx tx = app.tx()) {
+
+			app.create(projectType, "Project1");
+			app.create(projectType, "Project2");
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
 
 		// test after roundtrip
 		RestAssured
@@ -626,7 +661,32 @@ public class Deployment4Test extends DeploymentTestBase {
 		final String hash3 = calculateHash();
 
 		// roundtrip
-		doImportExportRoundtrip(true, false, null);
+		doImportExportRoundtrip(true, (x) -> {
+
+			// create group for schema grant to refer to
+			try (final Tx tx = app.tx()) {
+
+				final Group testGroup1       = app.create(StructrTraits.GROUP, "Group1").as(Group.class);
+				final Group testGroup2       = app.create(StructrTraits.GROUP, "Group2").as(Group.class);
+				final Group testGroup3       = app.create(StructrTraits.GROUP, "Group3").as(Group.class);
+
+				// create group hierarchy
+				testGroup1.addMember(securityContext, testGroup2);
+				testGroup2.addMember(securityContext, testGroup3);
+
+				app.create(StructrTraits.USER,
+					new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "user"),
+					new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.PASSWORD_PROPERTY), "password"),
+					new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.GROUPS_PROPERTY), List.of(testGroup3))
+				);
+
+				tx.success();
+			} catch (Throwable t) {
+				t.printStackTrace();
+			}
+
+			return null;
+		});
 
 		// test after roundtrip
 		RestAssured
@@ -784,7 +844,7 @@ public class Deployment4Test extends DeploymentTestBase {
 
 		// roundtrip and compare
 		final String hash1 = calculateHash();
-		doImportExportRoundtrip(true, false, null);
+		doImportExportRoundtrip(true, null, false);
 		final String hash2 = calculateHash();
 
 		// test after roundtrip

@@ -33,11 +33,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
-import org.structr.core.traits.definitions.LocalizationTraitDefinition;
-import org.structr.core.traits.definitions.MailTemplateTraitDefinition;
-import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
-import org.structr.core.traits.definitions.SchemaNodeTraitDefinition;
+import org.structr.core.traits.definitions.*;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
@@ -172,7 +168,7 @@ public class Deployment2Test extends DeploymentTestBase {
 		}
 
 		// test
-		doImportExportRoundtrip(true, true, new Function() {
+		doImportExportRoundtrip(true, new Function() {
 
 			@Override
 			public Object apply(Object t) {
@@ -248,7 +244,7 @@ public class Deployment2Test extends DeploymentTestBase {
 		}
 
 		// test
-		doImportExportRoundtrip(true, true, new Function() {
+		doImportExportRoundtrip(true, new Function() {
 
 			@Override
 			public Object apply(Object t) {
@@ -359,7 +355,7 @@ public class Deployment2Test extends DeploymentTestBase {
 		}
 
 		// test
-		compare(calculateHash(), true, true);
+		compare(calculateHash(), true);
 	}
 
 	@Test

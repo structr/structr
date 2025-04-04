@@ -32,7 +32,6 @@ import org.structr.common.AccessControllable;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.VersionHelper;
-import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
@@ -45,13 +44,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.CorsSettingTraitDefinition;
-import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
-import org.structr.core.traits.definitions.LocalizationTraitDefinition;
-import org.structr.core.traits.definitions.MailTemplateTraitDefinition;
-import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
-import org.structr.core.traits.definitions.ResourceAccessTraitDefinition;
-import org.structr.core.traits.definitions.SchemaGrantTraitDefinition;
+import org.structr.core.traits.definitions.*;
 import org.structr.core.traits.relationships.SecurityRelationshipDefinition;
 import org.structr.module.StructrModule;
 import org.structr.rest.resource.MaintenanceResource;
@@ -67,15 +60,7 @@ import org.structr.web.entity.dom.*;
 import org.structr.web.entity.event.ActionMapping;
 import org.structr.web.entity.event.ParameterMapping;
 import org.structr.web.maintenance.deploy.*;
-import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
-import org.structr.web.traits.definitions.ActionMappingTraitDefinition;
-import org.structr.web.traits.definitions.ApplicationConfigurationDataNodeTraitDefinition;
-import org.structr.web.traits.definitions.FileTraitDefinition;
-import org.structr.web.traits.definitions.ImageTraitDefinition;
-import org.structr.web.traits.definitions.LinkableTraitDefinition;
-import org.structr.web.traits.definitions.ParameterMappingTraitDefinition;
-import org.structr.web.traits.definitions.SiteTraitDefinition;
-import org.structr.web.traits.definitions.WidgetTraitDefinition;
+import org.structr.web.traits.definitions.*;
 import org.structr.web.traits.definitions.dom.ContentTraitDefinition;
 import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
 import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
@@ -384,7 +369,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			// apply pre-deploy.conf
 			applyConfigurationFileIfExists(ctx, preDeployConfFile, DEPLOYMENT_IMPORT_STATUS);
 
-			importSchemaGrants(schemaGrantsMetadataFile);
 			importResourceAccessGrants(grantsMetadataFile);
 			importCorsSettings(corsSettingsMetadataFile);
 			importMailTemplates(mailTemplatesMetadataFile, source);
@@ -392,6 +376,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			importLocalizations(localizationsMetadataFile);
 			importApplicationConfigurationNodes(applicationConfigurationDataMetadataFile);
 			importSchema(schemaFolder, extendExistingApp);
+			importSchemaGrants(schemaGrantsMetadataFile);
 
 			final FileImportVisitor.FileImportProblems fileImportProblems = importFiles(filesMetadataFile, source, ctx);
 
@@ -1094,7 +1079,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final SchemaNode optionalSchemaNode = schemaGrant.getSchemaNode();
 				if (optionalSchemaNode != null) {
 
-					grant.put(SchemaGrantTraitDefinition.SCHEMA_NODE_PROPERTY, Map.of("id", optionalSchemaNode.getUuid()));
+					grant.put(SchemaGrantTraitDefinition.SCHEMA_NODE_PROPERTY, Map.of("name", optionalSchemaNode.getName()));
 				}
 			}
 
