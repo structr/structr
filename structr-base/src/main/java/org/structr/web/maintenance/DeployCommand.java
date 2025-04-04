@@ -1460,20 +1460,19 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				if (principals.isEmpty()) {
 
-					logger.warn("Unknown owner! Found no node of type Principal named '{}', ignoring.", ownerName);
-					DeployCommand.addMissingPrincipal(ownerName);
+					DeployCommand.encounteredMissingPrincipal("Unknown owner", ownerName);
 
 					entry.remove("owner");
 
 				} else if (principals.size() > 1) {
 
-					logger.warn("Ambiguous owner! Found {} nodes of type Principal named '{}', ignoring.", principals.size(), ownerName);
-					DeployCommand.addAmbiguousPrincipal(ownerName);
+					DeployCommand.encounteredAmbiguousPrincipal("Ambiguous owner", ownerName, principals.size());
 
 					entry.remove("owner");
 				}
 
 			} else if (removeNullOwner) {
+
 				entry.remove("owner");
 			}
 		}
@@ -1490,13 +1489,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				if (principals.isEmpty()) {
 
-					logger.warn("Unknown owner! Found no node of type Principal named '{}', ignoring.", granteeName);
-					DeployCommand.addMissingPrincipal(granteeName);
+					DeployCommand.encounteredMissingPrincipal("Unknown grantee", granteeName);
 
 				} else if (principals.size() > 1) {
 
-					logger.warn("Ambiguous grantee! Found {} nodes of type Principal named '{}', ignoring.", principals.size(), granteeName);
-					DeployCommand.addAmbiguousPrincipal(granteeName);
+					DeployCommand.encounteredAmbiguousPrincipal("Ambiguous grantee", granteeName, principals.size());
 
 				} else {
 
@@ -1510,32 +1507,30 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		// new section for schema grants
 		if (entry.containsKey("principal")) {
 
-			final Map ownerData = ((Map)entry.get("principal"));
-			if (ownerData != null) {
+			final Map principalData = ((Map)entry.get("principal"));
+			if (principalData != null) {
 
-				final String ownerName               = (String) ((Map)entry.get("principal")).get("name");
-				final List<NodeInterface> principals = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).andName(ownerName).getAsList();
+				final String principalName           = (String) principalData.get("name");
+				final List<NodeInterface> principals = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).andName(principalName).getAsList();
 
 				if (principals.isEmpty()) {
 
-					logger.warn("Unknown principal! Found no node of type Principal named '{}', ignoring.", ownerName);
-					DeployCommand.addMissingPrincipal(ownerName);
+					DeployCommand.encounteredMissingPrincipal("Unknown principal", principalName);
 
 					entry.remove("principal");
 
 				} else if (principals.size() > 1) {
 
-					logger.warn("Ambiguous principal! Found {} nodes of type Principal named '{}', ignoring.", principals.size(), ownerName);
-					DeployCommand.addAmbiguousPrincipal(ownerName);
+					DeployCommand.encounteredAmbiguousPrincipal("Ambiguous principal", principalName, principals.size());
 
 					entry.remove("principal");
 				}
 
 			} else if (removeNullOwner) {
+
 				entry.remove("principal");
 			}
 		}
-
 	}
 
 	private void exportMailTemplates(final Path targetConf, final Path targetFolder) throws FrameworkException {
@@ -3011,12 +3006,22 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	public static void addMissingPrincipal (final String principalName) {
-		missingPrincipals.add(principalName);
+	public static void encounteredMissingPrincipal(final String errorPrefix, final String principalName) {
+
+		if (!missingPrincipals.contains(principalName)) {
+
+			logger.warn("{}! No node of type Principal with name '{}' found, ignoring.", errorPrefix, principalName);
+			missingPrincipals.add(principalName);
+		}
 	}
 
-	public static void addAmbiguousPrincipal (final String principalName) {
-		ambiguousPrincipals.add(principalName);
+	public static void encounteredAmbiguousPrincipal(final String errorPrefix, final String principalName, final int numberOfHits) {
+
+		if (!ambiguousPrincipals.contains(principalName)) {
+
+			logger.warn("{}! Found {} nodes of type Principal named '{}', ignoring.\"", errorPrefix, numberOfHits, principalName);
+			ambiguousPrincipals.add(principalName);
+		}
 	}
 
 	public static void addMissingSchemaFile (final String fileName) {
