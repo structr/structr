@@ -864,7 +864,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			try {
 
-				IOUtils.copy(file.getInputStream(), new FileOutputStream(targetPath.toFile()));
+				IOUtils.copy(file.getRawInputStream(), new FileOutputStream(targetPath.toFile()));
 
 			} catch (IOException ioex) {
 
