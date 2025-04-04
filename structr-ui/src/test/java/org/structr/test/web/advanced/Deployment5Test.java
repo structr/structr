@@ -25,12 +25,15 @@ import org.structr.common.AccessMode;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Group;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.core.traits.definitions.SchemaGrantTraitDefinition;
@@ -42,6 +45,7 @@ import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.FileTraitDefinition;
 import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
 import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 import org.structr.web.traits.definitions.html.Option;
@@ -569,5 +573,34 @@ public class Deployment5Test extends DeploymentTestBase {
 			fail("Unexpected exception.");
 		}
 
+	}
+
+	@Test
+	public void test57DynamicFileExecution() {
+
+		final String dynamicFileCode = "${{ $.log('!!!!!!!!!!!!!!!!!!!!!!!!!! This should no be run during deployment !!!!!!!!!!!!!!!!!!!!!!!!!!! '); }}";
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface test1 = FileHelper.createFile(securityContext, dynamicFileCode.getBytes(), "text/plain", StructrTraits.FILE, "test1.txt", true);
+
+			test1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY),                     true);
+			test1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY),              true);
+			test1.setProperty(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY), true);
+			test1.setProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.IS_TEMPLATE_PROPERTY),              true);
+			test1.setProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.DONT_CACHE_PROPERTY),               false);
+
+			tx.success();
+
+		} catch (FrameworkException|IOException fex) {
+			fail("Unexpected exception.");
+		}
+
+		final String hash1 = calculateHash();
+		doImportExportRoundtrip(true, false, null);
+		final String hash2 = calculateHash();
+
+		assertEquals("Invalid deployment roundtrip result for dynamic file", hash1, hash2);
 	}
 }

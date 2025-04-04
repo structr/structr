@@ -41,6 +41,7 @@ import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.dom.*;
 import org.structr.web.maintenance.DeployCommand;
+import org.structr.web.traits.definitions.FileTraitDefinition;
 import org.structr.web.traits.definitions.dom.ContentTraitDefinition;
 import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 import org.structr.web.traits.definitions.dom.PageTraitDefinition;
@@ -288,6 +289,9 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.PAGE_CREATES_RAW_DATA_PROPERTY)));
 		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.POSITION_PROPERTY)));
 		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.SHOW_ON_ERROR_CODES_PROPERTY)));
+
+		// File
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.FILE).key(FileTraitDefinition.SIZE_PROPERTY)));
 
 		// HTML attributes
 		if (node.is(StructrTraits.DOM_ELEMENT)) {
