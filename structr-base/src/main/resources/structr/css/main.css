@@ -4677,3 +4677,34 @@ ul.combined-input-select-field li:hover {
 .-rotate-180 {
 	transform: rotate(-180deg);
 }
+
+/**
+	statistics tab
+ */
+.http-statistics-GET {
+	fill: #61affe;
+}
+
+.http-statistics-PUT {
+	fill: #fca130;
+}
+
+.http-statistics-PATCH {
+	fill: #fca130;
+}
+
+.http-statistics-POST {
+	fill: #49cc40;
+}
+
+.http-statistics-DELETE {
+	fill: #f93e3e;
+}
+
+.http-statistics-OPTIONS {
+	fill: #999999;
+}
+
+.http-statistics-HEAD {
+	fill: #94c9fe;
+}

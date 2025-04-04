@@ -115,6 +115,85 @@ let _Dashboard = {
 				securityWarningsCell.textContent = 'No warnings';
 			}
 
+			// display HTTP stats
+			let httpStatisticsCell = document.querySelector('#http-access-statistics');
+			if (httpStatisticsCell) {
+
+				let drawStatistics = (interval) => {
+
+					fetch(`${Structr.rootUrl}stats?interval=${interval}&max=3600`).then(response => response.json()).then(json => {
+
+						httpStatisticsCell.innerHTML = '<label>Resolution: </label><select id="statistics-resolution-selector"><option value="1000">Seconds</option><option value="60000">Minutes</option><option value="3600000">Hours</option></option></select></select> <button id="statistics-refresh-button">Refresh</button><div id="statistics-diagram-container"></div>';
+
+						let data = json.result;
+						let items = [];
+						let groups = {};
+						let id = 0;
+						let min = 999999999999999;
+						let max = 0;
+
+						for (let key of Object.keys(data)) {
+
+							let local = data[key];
+							let group = id++;
+
+							if (!groups[key]) {
+								groups[key] = {
+									id: group,
+									content: key,
+									className: 'http-statistics-' + key
+								};
+							}
+
+							for (let date of Object.keys(local)) {
+								let dateNumber = new Number(date);
+								min = dateNumber < min ? dateNumber : min;
+								max = dateNumber > max ? dateNumber : max;
+								items.push({
+									x: new Date(dateNumber).toISOString(),
+									x2: new Date(dateNumber + interval).toISOString(),
+									y: local[date], group: group
+								});
+							}
+						}
+
+						console.log(items);
+
+						let groupList = Object.keys(groups).map(k => groups[k]);
+
+						if (items.length > 0) {
+
+							var options = {
+								start: new Date(min - interval).toISOString(),
+								end: new Date(max + interval).toISOString(),
+								legend: true,
+								drawPoints: true,
+								barChart: {align: 'right'},
+								style: 'bar',
+								stack: true
+							};
+						}
+
+						new vis.Graph2d(httpStatisticsCell.querySelector("#statistics-diagram-container"), new vis.DataSet(items), new vis.DataSet(groupList), options);
+
+						let selector = document.querySelector('#statistics-resolution-selector');
+
+						selector.addEventListener('change', (e) => {
+							drawStatistics(new Number(e.target.value));
+						});
+
+						selector.value = interval;
+
+						// refresh button
+						httpStatisticsCell.querySelector("#statistics-refresh-button").addEventListener('click', () => {
+							drawStatistics(interval);
+						});
+					});
+				}
+
+				drawStatistics(60000);
+			}
+
 			// UISettings.showSettingsForCurrentModule();
 
 			if (dashboardUiConfig.envInfo.databaseService === 'MemoryDatabaseService') {
@@ -122,9 +201,9 @@ let _Dashboard = {
 			}
 
 			let formats = {
-				with_dashes:    'UUIDv4 with dashes',
+				with_dashes: 'UUIDv4 with dashes',
 				without_dashes: 'UUIDv4 without dashes',
-				both:           'UUIDv4 with or without dashes'
+				both: 'UUIDv4 with or without dashes'
 			};
 
 			let allowedUUIDFormatElement = document.querySelector('.allowed-uuid-format');
@@ -1812,6 +1891,10 @@ let _Dashboard = {
 					<tr>
 						<td class="key">Security Warnings</td>
 						<td id="security-warnings"></td>
+					</tr>
+					<tr>
+						<td class="key">HTTP Access Statistics</td>
+						<td id="http-access-statistics"></td>
 					</tr>
 				</table>
 			</div>

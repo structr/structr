@@ -26,6 +26,7 @@ import org.structr.api.config.Settings;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -39,7 +40,12 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.rest.RestMethodResult;
+import org.structr.rest.api.ExactMatchEndpoint;
+import org.structr.rest.api.RESTCall;
+import org.structr.rest.api.RESTCallHandler;
+import org.structr.rest.api.parameter.RESTParameter;
 import org.structr.rest.entity.LogEvent;
+import org.structr.rest.traits.definitions.LogEventTraitDefinition;
 
 import java.io.File;
 import java.io.IOException;
@@ -55,12 +61,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.structr.common.SecurityContext;
-import org.structr.rest.api.ExactMatchEndpoint;
-import org.structr.rest.api.RESTCall;
-import org.structr.rest.api.RESTCallHandler;
-import org.structr.rest.api.parameter.RESTParameter;
-import org.structr.rest.traits.definitions.LogEventTraitDefinition;
 
 /**
  *
@@ -86,9 +86,7 @@ public class LogResource extends ExactMatchEndpoint {
 	private static final ISO8601DateProperty firstEntryProperty = new ISO8601DateProperty("firstEntry");
 	private static final ISO8601DateProperty lastEntryProperty  = new ISO8601DateProperty("lastEntry");
 
-	private static final Set<String> ReservedRequestParameters  = new LinkedHashSet<>(Arrays.asList(new String[]{"subject", "object", "action", "message", "timestamp", "aggregate", "histogram", "correlate"}));
-
-	public static final String LOG_RESOURCE_URI                 = "log";
+	private static final Set<String> ReservedRequestParameters  = Set.of("subject", "object", "action", "message", "timestamp", "aggregate", "histogram", "correlate");
 
 	public LogResource() {
 		super(RESTParameter.forStaticString("log", true));

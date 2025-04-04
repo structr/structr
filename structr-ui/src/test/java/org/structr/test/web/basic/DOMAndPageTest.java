@@ -1218,6 +1218,46 @@ public class DOMAndPageTest extends StructrUiTest {
 			.get("/html/test/" + uuid);
 	}
 
+	@Test
+	public void testUnregisteredHtmlElements() {
+
+		createAdminUser();
+
+		try (final Tx tx = app.tx()) {
+
+			final Page page = Page.createNewPage(securityContext, "testUnregisteredHtmlElements");
+			final DOMElement html = createElement(page, page, "html");
+			final DOMElement body = createElement(page, html, "body");
+			final DOMElement div1 = createElement(page, body, "div");
+
+			final DOMElement center = createElement(page, div1, "center", "This text is centered");
+			final DOMElement nobr = createElement(page, div1, "nobr");
+
+			makePublic(page, html, body, div1, center, nobr);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		RestAssured.basePath = "/";
+
+		// make sure that the second request (which comes from the cache) also contains the details object!
+		RestAssured
+			.given()
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.header(X_USER_HEADER, ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
+			.expect()
+			.statusCode(200)
+			.body("html.body.div.center",   Matchers.equalTo("This text is centered"))
+			.when()
+			.get("/testUnregisteredHtmlElements");
+	}
+
 	// ----- private methods -----
 	private void check() {
 

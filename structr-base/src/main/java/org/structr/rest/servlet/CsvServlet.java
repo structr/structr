@@ -98,6 +98,8 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws UnsupportedEncodingException {
 
+		CsvServlet.super.stats.recordStatsValue("http", "get", System.currentTimeMillis());
+
 		Authenticator authenticator = null;
 		RESTCallHandler handler      = null;
 
@@ -223,6 +225,8 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 
 	@Override
 	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
+
+		CsvServlet.super.stats.recordStatsValue("http", "post", System.currentTimeMillis());
 
 		final String fieldSeparatorHeader         = request.getHeader(DEFAULT_FIELD_SEPARATOR_HEADER_NAME);
 		final char fieldSeparator                 = (fieldSeparatorHeader == null) ? DEFAULT_FIELD_SEPARATOR : fieldSeparatorHeader.charAt(0);
