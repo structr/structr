@@ -1995,10 +1995,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	private void importSchemaGrants(final List<Map<String, Object>> data) throws FrameworkException {
 
-		boolean isOldExport = false;
-		final StringBuilder grantMessagesHtml = new StringBuilder();
-		final StringBuilder grantMessagesText = new StringBuilder();
-
 		final SecurityContext context = SecurityContext.getSuperUserInstance();
 		context.setDoTransactionNotifications(false);
 		final App app                 = StructrApp.getInstance(context);
@@ -2022,28 +2018,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		} catch (FrameworkException fex) {
 
-			logger.error("Unable to import resouce access grant, aborting with {}", fex.getMessage(), fex);
+			logger.error("Unable to import schema grant, aborting with {}", fex.getMessage(), fex);
 
 			throw fex;
-
-		} finally {
-
-			if (isOldExport) {
-
-				final String text = "Found outdated version of grants.json file without visibility and grantees!\n\n"
-					+ "    Configuration was auto-updated using this simple heuristic:\n"
-					+ "     * Grants with public access were set to **visibleToPublicUsers: true**\n"
-					+ "     * Grants with authenticated access were set to **visibleToAuthenticatedUsers: true**\n\n"
-					+ "    Please make any necessary changes in the 'Security' area as this may not suffice for your use case. The ability to use group/user rights to grants has been added to improve flexibility.";
-
-				final String htmlText = "Configuration was auto-updated using this simple heuristic:<br>"
-					+ "&nbsp;- Grants with public access were set to <code>visibleToPublicUsers: true</code><br>"
-					+ "&nbsp;- Grants with authenticated access were set to <code>visibleToAuthenticatedUsers: true</code><br><br>"
-					+ "Please make any necessary changes in the <a href=\"#security\">Security</a> area as this may not suffice for your use case. The ability to use group/user rights to grants has been added to improve flexibility.";
-
-				deferredLogTexts.add(text + "\n\n" + grantMessagesText);
-				publishWarningMessage("Found grants.json file without visibility and grantees", htmlText + "<br><br>" + grantMessagesHtml);
-			}
 		}
 	}
 
