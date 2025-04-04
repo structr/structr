@@ -1256,63 +1256,55 @@ let _Dashboard = {
 					</td>
 				</tr>
 			`,
-			appendMethods: async () => {
+			appendMethods: () => {
 
 				let container = document.querySelector('#dashboard-methods');
 				_Helpers.fastRemoveAllChildren(container);
 
-				let userDefinedFunctions = [];
-				let staticFunctions      = {};
-
-				let requestConfig = {
+				fetch(`${Structr.rootUrl}SchemaMethod/schema?isStatic=true&isPrivate=false&${Structr.getRequestParameterName('sort')}=name`, {
 					headers: {
 						Accept: 'properties=id,type,name,isStatic,httpVerb,schemaNode,summary,description,parameters,index,exampleValue,parameterType'
 					}
-				};
+				}).then(response => {
 
-				let response = await fetch(`${Structr.rootUrl}SchemaMethod/schema?schemaNode=&isPrivate=false&${Structr.getRequestParameterName('sort')}=name`, requestConfig);
-				if (response.ok) {
-					let data = await response.json();
-					userDefinedFunctions = data.result;
-				}
+					if (response.ok) {
+						return response.json();
+					}
 
-				let response2 = await fetch(`${Structr.rootUrl}SchemaMethod/schema?isStatic=true&isPrivate=false`, requestConfig);
-				if (response2.ok) {
-					let data = await response2.json();
+				}).then(data => {
 
-					let groupedStaticFunctions = data.result.reduce((acc, curr) => {
+					let userDefinedFunctions = data.result.filter(method => !method.schemaNode);
+					let staticFunctions      = data.result.filter(method => method.schemaNode).reduce((acc, curr) => {
 						acc[curr.schemaNode.name] ??= {};
 						acc[curr.schemaNode.name][curr.name] = curr;
 						return acc;
 					}, {});
 
-					staticFunctions = groupedStaticFunctions;
-				}
+					if (userDefinedFunctions.length === 0 && Object.keys(staticFunctions).length === 0) {
 
-				if (userDefinedFunctions.length === 0 && staticFunctions.length === 0) {
+						container.textContent = 'No functions available.';
 
-					container.textContent = 'No functions available.';
+					} else {
 
-				} else {
+						let callableMethodsListElement = _Helpers.createSingleDOMElementFromHTML(`<table class="props"></table>`);
 
-					let callableMethodsList = _Helpers.createSingleDOMElementFromHTML(`<table class="props"></table>`);
-
-					for (let method of userDefinedFunctions) {
-						_Dashboard.tabs.methods.appendMethod(method, callableMethodsList);
-					}
-
-					for (let typeName of Object.keys(staticFunctions).sort()) {
-
-						for (let methodName of Object.keys(staticFunctions[typeName]).sort()) {
-
-							let method = staticFunctions[typeName][methodName];
-
-							_Dashboard.tabs.methods.appendMethod(method, callableMethodsList);
+						for (let method of userDefinedFunctions) {
+							_Dashboard.tabs.methods.appendMethod(method, callableMethodsListElement);
 						}
-					}
 
-					container.appendChild(callableMethodsList);
-				}
+						for (let typeName of Object.keys(staticFunctions).sort()) {
+
+							for (let methodName of Object.keys(staticFunctions[typeName]).sort()) {
+
+								let method = staticFunctions[typeName][methodName];
+
+								_Dashboard.tabs.methods.appendMethod(method, callableMethodsListElement);
+							}
+						}
+
+						container.appendChild(callableMethodsListElement);
+					}
+				});
 			},
 			appendMethod: (method, container) => {
 
