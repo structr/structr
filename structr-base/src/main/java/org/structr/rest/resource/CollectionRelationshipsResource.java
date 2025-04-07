@@ -100,7 +100,7 @@ public class CollectionRelationshipsResource extends ExactMatchEndpoint {
 			for (final Object obj : super.doGet(securityContext, sortOrder, pageSize, page)) {
 
 				if (obj instanceof NodeInterface node) {
-					
+
 					List<? extends RelationshipInterface> relationships = null;
 
 					switch (direction) {

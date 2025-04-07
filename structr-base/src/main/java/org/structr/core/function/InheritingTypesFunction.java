@@ -19,9 +19,7 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.traits.Traits;
-import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionContext;
 
 import java.util.ArrayList;

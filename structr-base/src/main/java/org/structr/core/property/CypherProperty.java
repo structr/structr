@@ -21,7 +21,6 @@ package org.structr.core.property;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
-import org.structr.core.app.StructrApp;
 import org.structr.core.converter.CypherQueryConverter;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.cypher.CypherQueryHandler;

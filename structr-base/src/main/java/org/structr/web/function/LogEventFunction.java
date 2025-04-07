@@ -18,7 +18,6 @@
  */
 package org.structr.web.function;
 
-import graphql.GraphQLContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
@@ -26,7 +25,6 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
-import org.structr.rest.entity.LogEvent;
 import org.structr.rest.traits.definitions.LogEventTraitDefinition;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.dom.DOMNode;

@@ -18,10 +18,8 @@
  */
 package org.structr.schema.openapi.schema;
 
-import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
-import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.export.StructrTypeDefinition;
 
 import java.util.LinkedHashMap;

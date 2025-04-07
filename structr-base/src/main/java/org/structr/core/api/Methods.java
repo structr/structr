@@ -26,10 +26,10 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 
 /**
  *

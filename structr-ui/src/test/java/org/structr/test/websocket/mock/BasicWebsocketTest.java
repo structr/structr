@@ -21,7 +21,6 @@ package org.structr.test.websocket.mock;
 import org.apache.pulsar.shade.org.apache.commons.io.IOUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;

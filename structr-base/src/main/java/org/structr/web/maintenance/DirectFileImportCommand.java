@@ -40,6 +40,7 @@ import org.structr.storage.StorageProviderFactory;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -51,7 +52,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 /**
  *

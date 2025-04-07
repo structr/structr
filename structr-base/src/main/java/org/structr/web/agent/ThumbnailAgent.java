@@ -29,8 +29,6 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.BooleanProperty;
-import org.structr.core.property.IntProperty;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
@@ -38,15 +36,15 @@ import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.entity.Image;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.FileTraitDefinition;
+import org.structr.web.traits.definitions.ImageTraitDefinition;
+import org.structr.web.traits.relationships.ImageTHUMBNAILImage;
 
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
-import org.structr.web.traits.definitions.FileTraitDefinition;
-import org.structr.web.traits.definitions.ImageTraitDefinition;
-import org.structr.web.traits.relationships.ImageTHUMBNAILImage;
 
 public class ThumbnailAgent extends Agent<ThumbnailWorkObject> {
 

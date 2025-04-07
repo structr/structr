@@ -23,11 +23,11 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 
 import java.util.Date;
 import java.util.Map;
 import java.util.Set;
-import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 
 public class TestTwoTraitDefinition extends AbstractNodeTraitDefinition {
 

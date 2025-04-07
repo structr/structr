@@ -29,12 +29,12 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.Traits;
 import org.structr.messaging.engine.entities.MessageSubscriber;
+import org.structr.messaging.traits.definitions.PulsarClientTraitDefinition;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import org.structr.messaging.traits.definitions.PulsarClientTraitDefinition;
 
 public class PulsarClientTraitWrapper extends MessageClientTraitWrapper implements org.structr.messaging.implementation.pulsar.PulsarClient {
 

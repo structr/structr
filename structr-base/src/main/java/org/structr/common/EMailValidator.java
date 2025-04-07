@@ -22,7 +22,6 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.SemanticErrorToken;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
-import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;

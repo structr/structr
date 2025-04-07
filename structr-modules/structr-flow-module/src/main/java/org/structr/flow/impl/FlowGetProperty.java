@@ -20,11 +20,11 @@ package org.structr.flow.impl;
 
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.flow.traits.definitions.FlowGetPropertyTraitDefinition;
 
 import java.util.Map;
 import java.util.TreeMap;
-import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
-import org.structr.flow.traits.definitions.FlowGetPropertyTraitDefinition;
 
 public class FlowGetProperty extends FlowDataSource {
 

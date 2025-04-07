@@ -26,9 +26,9 @@ import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GroupTraitDefinition;
 
 import java.util.List;
-import org.structr.core.traits.definitions.GroupTraitDefinition;
 
 public class GroupTraitWrapper extends PrincipalTraitWrapper implements Group {
 

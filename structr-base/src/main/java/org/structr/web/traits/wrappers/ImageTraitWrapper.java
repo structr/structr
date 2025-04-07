@@ -37,11 +37,11 @@ import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
+import org.structr.web.traits.definitions.ImageTraitDefinition;
+import org.structr.web.traits.relationships.ImageTHUMBNAILImage;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.structr.web.traits.definitions.ImageTraitDefinition;
-import org.structr.web.traits.relationships.ImageTHUMBNAILImage;
 
 /**
  * An image whose binary data will be stored on disk.

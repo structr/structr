@@ -29,6 +29,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.web.entity.AbstractFile;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
@@ -36,7 +37,6 @@ import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 public class VirtualDirectoryStream implements DirectoryStream<Path> {
 

@@ -34,24 +34,6 @@ import java.util.Map;
 import static org.hamcrest.Matchers.equalTo;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.SchemaNode;
-import org.structr.core.graph.Tx;
-import org.structr.core.script.Scripting;
-import org.structr.rest.RestMethodResult;
-import org.structr.schema.action.ActionContext;
-import org.structr.schema.export.StructrSchema;
-import org.structr.test.rest.common.StructrRestTestBase;
-import org.testng.annotations.Test;
-
-import java.util.List;
-import java.util.Map;
-
-import static org.hamcrest.Matchers.equalTo;
-import static org.testng.AssertJUnit.*;
 
 /**
  *
@@ -200,8 +182,8 @@ public class MethodTest extends StructrRestTestBase {
 			final JsonObjectType base  = schema.addType("BaseType");
 
 			// methods
-			base.addMethod("test1", "{ $.this.test2($.methodParameters); }");
-			base.addMethod("test2", "{ $.methodParameters; }");
+			base.addMethod("test1", "{ return $.this.test2($.methodParameters); }");
+			base.addMethod("test2", "{ return $.methodParameters; }");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -248,13 +230,13 @@ public class MethodTest extends StructrRestTestBase {
 			final JsonObjectType base  = schema.addType("BaseType");
 
 			// first method with parameter definition => input should be converted to Date
-			base.addMethod("test1", "{ const result = { date: $.args.date, isDate: $.args.date instanceof Date }; result;}").addParameter("date", "Date");
+			base.addMethod("test1", "{ const result = { date: $.args.date, isDate: $.args.date instanceof Date }; return result;}").addParameter("date", "Date");
 
 			// second method without parameter definition => input should not be converted (result: string)
-			base.addMethod("test2", "{ const result = { date: $.args.date, isDate: $.args.date instanceof Date }; result;}");
+			base.addMethod("test2", "{ const result = { date: $.args.date, isDate: $.args.date instanceof Date }; return result;}");
 
 			// third method calls first, but input should not be converted because it doesn't come from a REST call
-			base.addMethod("test3", "{ $.this.test1({ date: new Date(2022, 0, 1) }); }");
+			base.addMethod("test3", "{ return $.this.test1({ date: new Date(2022, 0, 1) }); }");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -483,8 +465,8 @@ public class MethodTest extends StructrRestTestBase {
 			final JsonObjectType base  = schema.addType("BaseType");
 
 			// methods
-			base.addMethod("test1", "{ $.methodParameters; }");
-			base.addMethod("test2", "{ $.args; }");
+			base.addMethod("test1", "{ return $.methodParameters; }");
+			base.addMethod("test2", "{ return $.args; }");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -532,11 +514,11 @@ public class MethodTest extends StructrRestTestBase {
 			final JsonObjectType base  = schema.addType("BaseType");
 
 			// methods
-			base.addMethod("doGet",    "{ 'get'; }").setHttpVerb("GET");
-			base.addMethod("doPut",    "{ 'put'; }").setHttpVerb("PUT");
-			base.addMethod("doPost",   "{ 'post'; }").setHttpVerb("POST");
-			base.addMethod("doPatch",  "{ 'patch'; }").setHttpVerb("PATCH");
-			base.addMethod("doDelete", "{ 'delete'; }").setHttpVerb("DELETE");
+			base.addMethod("doGet",    "{ return 'get'; }").setHttpVerb("GET");
+			base.addMethod("doPut",    "{ return 'put'; }").setHttpVerb("PUT");
+			base.addMethod("doPost",   "{ return 'post'; }").setHttpVerb("POST");
+			base.addMethod("doPatch",  "{ return 'patch'; }").setHttpVerb("PATCH");
+			base.addMethod("doDelete", "{ return 'delete'; }").setHttpVerb("DELETE");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -591,7 +573,7 @@ public class MethodTest extends StructrRestTestBase {
 			final JsonObjectType base  = schema.addType("BaseType");
 
 			// methods
-			base.addMethod("test1", "{ $.methodParameters; }")
+			base.addMethod("test1", "{ return $.methodParameters; }")
 				.addParameter("key1", "String")
 				.addParameter("key2", "Integer")
 				.setHttpVerb("GET");

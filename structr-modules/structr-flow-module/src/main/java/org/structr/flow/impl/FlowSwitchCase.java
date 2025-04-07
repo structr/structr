@@ -26,7 +26,6 @@ import org.structr.module.api.DeployableEntity;
 
 import java.util.Map;
 import java.util.TreeMap;
-import org.structr.web.entity.StorageConfiguration;
 
 public class FlowSwitchCase extends FlowNode implements DeployableEntity {
 

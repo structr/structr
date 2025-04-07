@@ -22,11 +22,10 @@ import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
+import org.structr.core.traits.StructrTraits;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
-import org.structr.core.traits.StructrTraits;
 
 import static org.structr.core.GraphObject.SYSTEM_CATEGORY;
 

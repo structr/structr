@@ -42,6 +42,7 @@ import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.function.DateFormatFunction;
 import org.structr.core.function.FindFunction;
+import org.structr.core.function.FunctionInfoFunction;
 import org.structr.core.function.NumberFormatFunction;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
@@ -53,7 +54,17 @@ import org.structr.core.script.ScriptTestHelper;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.*;
+import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.AbstractSchemaNodeTraitDefinition;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.GroupTraitDefinition;
+import org.structr.core.traits.definitions.MailTemplateTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
+import org.structr.core.traits.definitions.RelationshipInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
+import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
+import org.structr.core.traits.definitions.SchemaRelationshipNodeTraitDefinition;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
@@ -108,9 +119,9 @@ public class ScriptingTest extends StructrTest {
 			// create two nodes and associate them with each other
 			final NodeInterface sourceNode      = createTestNode(StructrTraits.SCHEMA_NODE, "TestSource");
 			final NodeInterface targetNode      = createTestNode(StructrTraits.SCHEMA_NODE, "TestTarget");
-			final PropertyKey<String> typeKey   = Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType");
-			final PropertyKey<String> formatKey = Traits.of(StructrTraits.SCHEMA_PROPERTY).key("format");
-			final PropertyKey<String> sourceKey = Traits.of(StructrTraits.SCHEMA_METHOD).key("source");
+			final PropertyKey<String> typeKey   = Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY);
+			final PropertyKey<String> formatKey = Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.FORMAT_PROPERTY);
+			final PropertyKey<String> sourceKey = Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY);
 
 			final List<NodeInterface> properties = new LinkedList<>();
 			properties.add(createTestNode(StructrTraits.SCHEMA_PROPERTY, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testBoolean"), new NodeAttribute(typeKey, "Boolean")));
@@ -119,7 +130,7 @@ public class ScriptingTest extends StructrTest {
 			properties.add(createTestNode(StructrTraits.SCHEMA_PROPERTY, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testDouble"), new NodeAttribute(typeKey, "Double")));
 			properties.add(createTestNode(StructrTraits.SCHEMA_PROPERTY, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testEnum"), new NodeAttribute(typeKey, "Enum"), new NodeAttribute(formatKey, "OPEN, CLOSED, TEST")));
 			properties.add(createTestNode(StructrTraits.SCHEMA_PROPERTY, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testDate"), new NodeAttribute(typeKey, "Date")));
-			sourceNode.setProperty(Traits.of(StructrTraits.SCHEMA_NODE).key("schemaProperties"), properties);
+			sourceNode.setProperty(Traits.of(StructrTraits.SCHEMA_NODE).key(AbstractSchemaNodeTraitDefinition.SCHEMA_PROPERTIES_PROPERTY), properties);
 
 			final List<NodeInterface> methods = new LinkedList<>();
 			methods.add(createTestNode(StructrTraits.SCHEMA_METHOD, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "onCreate"), new NodeAttribute(sourceKey, "{ var e = Structr.get('this'); e.testtargets = Structr.find('TestTarget'); }")));
@@ -128,18 +139,18 @@ public class ScriptingTest extends StructrTest {
 			methods.add(createTestNode(StructrTraits.SCHEMA_METHOD, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "doTest03"), new NodeAttribute(sourceKey, "{ var e = Structr.get('this'); e.testEnum = 'TEST'; }")));
 			methods.add(createTestNode(StructrTraits.SCHEMA_METHOD, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "doTest04"), new NodeAttribute(sourceKey, "{ var e = Structr.get('this'); e.testEnum = 'INVALID'; }")));
 			methods.add(createTestNode(StructrTraits.SCHEMA_METHOD, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "doTest05"), new NodeAttribute(sourceKey, "{ var e = Structr.get('this'); e.testBoolean = true; e.testInteger = 123; e.testString = 'testing..'; e.testDouble = 1.2345; e.testDate = new Date(" + currentTimeMillis + "); }")));
-			sourceNode.setProperty(Traits.of(StructrTraits.SCHEMA_NODE).key("schemaMethods"), methods);
+			sourceNode.setProperty(Traits.of(StructrTraits.SCHEMA_NODE).key(AbstractSchemaNodeTraitDefinition.SCHEMA_METHODS_PROPERTY), methods);
 
 			final PropertyMap propertyMap = new PropertyMap();
 			final Traits traits           = Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE);
 
 			propertyMap.put(traits.key(RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY),       sourceNode.getUuid());
 			propertyMap.put(traits.key(RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY),       targetNode.getUuid());
-			propertyMap.put(traits.key("sourceJsonName"), "testsource");
-			propertyMap.put(traits.key("targetJsonName"), "testtargets");
-			propertyMap.put(traits.key("sourceMultiplicity"), "*");
-			propertyMap.put(traits.key("targetMultiplicity"), "*");
-			propertyMap.put(traits.key("relationshipType"), "HAS");
+			propertyMap.put(traits.key(SchemaRelationshipNodeTraitDefinition.SOURCE_JSON_NAME_PROPERTY), "testsource");
+			propertyMap.put(traits.key(SchemaRelationshipNodeTraitDefinition.TARGET_JSON_NAME_PROPERTY), "testtargets");
+			propertyMap.put(traits.key(SchemaRelationshipNodeTraitDefinition.SOURCE_MULTIPLICITY_PROPERTY), "*");
+			propertyMap.put(traits.key(SchemaRelationshipNodeTraitDefinition.TARGET_MULTIPLICITY_PROPERTY), "*");
+			propertyMap.put(traits.key(SchemaRelationshipNodeTraitDefinition.RELATIONSHIP_TYPE_PROPERTY), "HAS");
 
 			app.create(StructrTraits.SCHEMA_RELATIONSHIP_NODE, propertyMap);
 
@@ -153,8 +164,6 @@ public class ScriptingTest extends StructrTest {
 		}
 
 		try (final Tx tx = app.tx()) {
-
-			final ConfigurationProvider config = StructrApp.getConfiguration();
 
 			sourceType          = "TestSource";
 			targetType          = "TestTarget";
@@ -253,11 +262,11 @@ public class ScriptingTest extends StructrTest {
 			// create two nodes and associate them with each other
 			final NodeInterface sourceNode  = createTestNode(StructrTraits.SCHEMA_NODE, "TestSource");
 			final NodeInterface method      = createTestNode(StructrTraits.SCHEMA_METHOD,
-				new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "doTest01"),
-				new NodeAttribute(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "{ var e = Structr.get('this'); e.grant(Structr.find('Principal')[0], 'read', 'write'); }")
+					new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "doTest01"),
+					new NodeAttribute(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "{ var e = Structr.get('this'); e.grant(Structr.find('Principal')[0], 'read', 'write'); }")
 			);
 
-			sourceNode.setProperty(Traits.of(StructrTraits.SCHEMA_NODE).key("schemaMethods"), List.of(method));
+			sourceNode.setProperty(Traits.of(StructrTraits.SCHEMA_NODE).key(AbstractSchemaNodeTraitDefinition.SCHEMA_METHODS_PROPERTY), List.of(method));
 
 			tx.success();
 
@@ -267,7 +276,6 @@ public class ScriptingTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 
-		final ConfigurationProvider config = StructrApp.getConfiguration();
 		final String sourceType            = "TestSource";
 		NodeInterface testUser             = null;
 
@@ -287,8 +295,8 @@ public class ScriptingTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			testUser = app.create(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     "test"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.PASSWORD_PROPERTY), "test")
+					new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     "test"),
+					new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.PASSWORD_PROPERTY), "test")
 			);
 
 			tx.success();
@@ -686,14 +694,14 @@ public class ScriptingTest extends StructrTest {
 			// create mail template
 			template = createTestNode(StructrTraits.MAIL_TEMPLATE);
 			template.setProperty(getKey(StructrTraits.MAIL_TEMPLATE, NodeInterfaceTraitDefinition.NAME_PROPERTY), "TEST");
-			template.setProperty(getKey(StructrTraits.MAIL_TEMPLATE, "locale"), "en_EN");
-			template.setProperty(getKey(StructrTraits.MAIL_TEMPLATE, "text"), "This is a template for ${this.name}");
+			template.setProperty(getKey(StructrTraits.MAIL_TEMPLATE, MailTemplateTraitDefinition.LOCALE_PROPERTY), "en_EN");
+			template.setProperty(getKey(StructrTraits.MAIL_TEMPLATE, MailTemplateTraitDefinition.TEXT_PROPERTY), "This is a template for ${this.name}");
 
 			// create mail template
 			template2 = createTestNode(StructrTraits.MAIL_TEMPLATE);
 			template2.setProperty(getKey(StructrTraits.MAIL_TEMPLATE, NodeInterfaceTraitDefinition.NAME_PROPERTY), "TEST2");
-			template2.setProperty(getKey(StructrTraits.MAIL_TEMPLATE, "locale"), "en_EN");
-			template2.setProperty(getKey(StructrTraits.MAIL_TEMPLATE, "text"), "${this.aDouble}");
+			template2.setProperty(getKey(StructrTraits.MAIL_TEMPLATE, MailTemplateTraitDefinition.LOCALE_PROPERTY), "en_EN");
+			template2.setProperty(getKey(StructrTraits.MAIL_TEMPLATE, MailTemplateTraitDefinition.TEXT_PROPERTY), "${this.aDouble}");
 
 			// check existance
 			assertNotNull(testOne);
@@ -1609,7 +1617,7 @@ public class ScriptingTest extends StructrTest {
 			// set with null
 
 			// set date (JS scripting)
-			assertEquals("Setting the current date/time should not produce output (JS)", "", Scripting.replaceVariables(ctx, testOne, "${{var t = Structr.get('this'); t.aDate = new Date(); null;}}"));
+			assertNotNull("Setting the current date/time should not produce output (JS)", Scripting.replaceVariables(ctx, testOne, "${{var t = Structr.get('this'); (t.aDate = new Date());}}"));
 
 			try {
 
@@ -1740,9 +1748,9 @@ public class ScriptingTest extends StructrTest {
 
 			// test complex multiline statement replacement
 			final String test =
-				"${if(lte(template('TEST2', 'en_EN', this), 2), '<2', '>2')}\n" +		// first expression should evaluate to ">2"
-				"${if(lte(template('TEST2', 'en_EN', this), 3), '<3', '>3')}"			// second expression should evaluate to "<3"
-			;
+					"${if(lte(template('TEST2', 'en_EN', this), 2), '<2', '>2')}\n" +		// first expression should evaluate to ">2"
+							"${if(lte(template('TEST2', 'en_EN', this), 3), '<3', '>3')}"			// second expression should evaluate to "<3"
+					;
 
 			final String result = Scripting.replaceVariables(ctx, testOne, test);
 
@@ -2350,16 +2358,18 @@ public class ScriptingTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create(StructrTraits.SCHEMA_METHOD,
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),   "testReturnValueOfGlobalSchemaMethod"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "{ return { name: 'test', value: 123, me: Structr.me }; }")
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),   "testReturnValueOfGlobalSchemaMethod"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "{ return { name: 'test', value: 123, me: Structr.me }; }")
 			);
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("schemaNode"),   app.create(StructrTraits.SCHEMA_NODE, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Test"))),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),         "returnTest"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("propertyType"), "Function"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key("readFunction"), "{ return { name: 'test', value: 123, me: Structr.this }; }")
-			);            	tx.success();
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY),   app.create(StructrTraits.SCHEMA_NODE, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Test"))),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),         "returnTest"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "Function"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.READ_FUNCTION_PROPERTY), "{ return { name: 'test', value: 123, me: Structr.this }; }")
+			);
+
+			tx.success();
 
 		} catch (FrameworkException fex) {
 
@@ -3045,9 +3055,9 @@ public class ScriptingTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface test1 = app.nodeQuery(type1).getFirst();
-                        final NodeInterface test2 = app.nodeQuery(type2).getFirst();
+			final NodeInterface test2 = app.nodeQuery(type2).getFirst();
 			final NodeInterface test3 = app.nodeQuery(type3).getFirst();
-                        final NodeInterface test4 = app.nodeQuery(type4).getFirst();
+			final NodeInterface test4 = app.nodeQuery(type4).getFirst();
 
 			assertEquals("Newlines in script code not trimmed correctly", "passed", test1.getProperty(Traits.of("Test1").key("c")));
 			assertEquals("Newlines in script code not trimmed correctly", "passed", test2.getProperty(Traits.of("Test2").key("c")));
@@ -3076,9 +3086,9 @@ public class ScriptingTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface test1 = app.nodeQuery(type1).getFirst();
-                        final NodeInterface test2 = app.nodeQuery(type2).getFirst();
+			final NodeInterface test2 = app.nodeQuery(type2).getFirst();
 			final NodeInterface test3 = app.nodeQuery(type3).getFirst();
-                        final NodeInterface test4 = app.nodeQuery(type4).getFirst();
+			final NodeInterface test4 = app.nodeQuery(type4).getFirst();
 
 			assertEquals("Newlines in script code not trimmed correctly", "passed", (String)test1.getProperty(Traits.of("Test1").key("s")));
 			assertEquals("Newlines in script code not trimmed correctly", "passed", (String)test2.getProperty(Traits.of("Test2").key("s")));
@@ -3158,9 +3168,9 @@ public class ScriptingTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface test1 = app.nodeQuery(type1).getFirst();
-                        final NodeInterface test2 = app.nodeQuery(type2).getFirst();
+			final NodeInterface test2 = app.nodeQuery(type2).getFirst();
 			final NodeInterface test3 = app.nodeQuery(type3).getFirst();
-                        final NodeInterface test4 = app.nodeQuery(type4).getFirst();
+			final NodeInterface test4 = app.nodeQuery(type4).getFirst();
 
 			assertEquals("Whitespace in script code not trimmed correctly", "passed", test1.getProperty(Traits.of("Test1").key("c")));
 			assertEquals("Whitespace in script code not trimmed correctly", "passed", test2.getProperty(Traits.of("Test2").key("c")));
@@ -3189,9 +3199,9 @@ public class ScriptingTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface test1 = app.nodeQuery(type1).getFirst();
-                        final NodeInterface test2 = app.nodeQuery(type2).getFirst();
+			final NodeInterface test2 = app.nodeQuery(type2).getFirst();
 			final NodeInterface test3 = app.nodeQuery(type3).getFirst();
-                        final NodeInterface test4 = app.nodeQuery(type4).getFirst();
+			final NodeInterface test4 = app.nodeQuery(type4).getFirst();
 
 			assertEquals("Whitespace in script code not trimmed correctly", "passed", test1.getProperty(Traits.of("Test1").key("s")));
 			assertEquals("Whitespace in script code not trimmed correctly", "passed", test2.getProperty(Traits.of("Test2").key("s")));
@@ -3383,14 +3393,14 @@ public class ScriptingTest extends StructrTest {
 
 		final String type      = "Project";
 		final PropertyKey key1 = Traits.of(type).key("functionProperty1");
-                final PropertyKey key2 = Traits.of(type).key("functionProperty2");
+		final PropertyKey key2 = Traits.of(type).key("functionProperty2");
 
 		// test
 		try (final Tx tx = app.tx()) {
 
 			app.create(type,
-				new NodeAttribute<>(key1, "test1"),
-				new NodeAttribute<>(key2, "test2")
+					new NodeAttribute<>(key1, "test1"),
+					new NodeAttribute<>(key2, "test2")
 			);
 
 			tx.success();
@@ -3428,8 +3438,8 @@ public class ScriptingTest extends StructrTest {
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 			final JsonType project  = schema.addType("Project");
 
-			project.addFunctionProperty("test1").setFormat("{ Structr.this.name + 'test' + 123; }");
-			project.addFunctionProperty("test2").setFormat("{ 'test' + 123 + Structr.this.name; }");
+			project.addFunctionProperty("test1").setFormat("{ return Structr.this.name + 'test' + 123; }");
+			project.addFunctionProperty("test2").setFormat("{ return 'test' + 123 + Structr.this.name; }");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -3507,38 +3517,38 @@ public class ScriptingTest extends StructrTest {
 		final String testType    = "Test";
 		final String projectType = "Project";
 		final PropertyKey name1  = Traits.of(projectType).key("name1");
-                final PropertyKey name2  = Traits.of(projectType).key("name2");
-                final PropertyKey name3  = Traits.of(projectType).key("name3");
-                final PropertyKey age    = Traits.of(projectType).key("age");
-                final PropertyKey count  = Traits.of(projectType).key("count");
+		final PropertyKey name2  = Traits.of(projectType).key("name2");
+		final PropertyKey name3  = Traits.of(projectType).key("name3");
+		final PropertyKey age    = Traits.of(projectType).key("age");
+		final PropertyKey count  = Traits.of(projectType).key("count");
 
 		// setup
 		try (final Tx tx = app.tx()) {
 
 			app.create(projectType,
-				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "group1"),
-				new NodeAttribute<>(name1, "structr"),
-				new NodeAttribute<>(name2, "test"),
-				new NodeAttribute<>(name3, "other"),
-				new NodeAttribute<>(age,    22),
-				new NodeAttribute<>(count, 100)
+					new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "group1"),
+					new NodeAttribute<>(name1, "structr"),
+					new NodeAttribute<>(name2, "test"),
+					new NodeAttribute<>(name3, "other"),
+					new NodeAttribute<>(age,    22),
+					new NodeAttribute<>(count, 100)
 			);
 
 			app.create(projectType,
-				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "group2"),
-				new NodeAttribute<>(name1, "structr"),
-				new NodeAttribute<>(name2, "test"),
-				new NodeAttribute<>(name3, "other"),
-				new NodeAttribute<>(age,    33),
-				new NodeAttribute<>(count, 102)
+					new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "group2"),
+					new NodeAttribute<>(name1, "structr"),
+					new NodeAttribute<>(name2, "test"),
+					new NodeAttribute<>(name3, "other"),
+					new NodeAttribute<>(age,    33),
+					new NodeAttribute<>(count, 102)
 			);
 
 			app.create(projectType,
-				new NodeAttribute<>(name1, "structr"),
-				new NodeAttribute<>(name2, "other"),
-				new NodeAttribute<>(name3, "other"),
-				new NodeAttribute<>(age,    44),
-				new NodeAttribute<>(count, 104)
+					new NodeAttribute<>(name1, "structr"),
+					new NodeAttribute<>(name2, "other"),
+					new NodeAttribute<>(name3, "other"),
+					new NodeAttribute<>(age,    44),
+					new NodeAttribute<>(count, 104)
 			);
 
 			for (int i=0; i<100; i++) {
@@ -3662,29 +3672,29 @@ public class ScriptingTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			group1 = app.create(type,
-				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "group1"),
-				new NodeAttribute<>(name1, "structr"),
-				new NodeAttribute<>(name2, "test"),
-				new NodeAttribute<>(name3, "other"),
-				new NodeAttribute<>(age,    22),
-				new NodeAttribute<>(count, 100)
+					new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "group1"),
+					new NodeAttribute<>(name1, "structr"),
+					new NodeAttribute<>(name2, "test"),
+					new NodeAttribute<>(name3, "other"),
+					new NodeAttribute<>(age,    22),
+					new NodeAttribute<>(count, 100)
 			).getUuid();
 
 			group2 = app.create(type,
-				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "group2"),
-				new NodeAttribute<>(name1, "structr"),
-				new NodeAttribute<>(name2, "test"),
-				new NodeAttribute<>(name3, "other"),
-				new NodeAttribute<>(age,    33),
-				new NodeAttribute<>(count, 102)
+					new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "group2"),
+					new NodeAttribute<>(name1, "structr"),
+					new NodeAttribute<>(name2, "test"),
+					new NodeAttribute<>(name3, "other"),
+					new NodeAttribute<>(age,    33),
+					new NodeAttribute<>(count, 102)
 			).getUuid();
 
 			group3 = app.create(type,
-				new NodeAttribute<>(name1, "structr"),
-				new NodeAttribute<>(name2, "other"),
-				new NodeAttribute<>(name3, "other"),
-				new NodeAttribute<>(age,    44),
-				new NodeAttribute<>(count, 104)
+					new NodeAttribute<>(name1, "structr"),
+					new NodeAttribute<>(name2, "other"),
+					new NodeAttribute<>(name3, "other"),
+					new NodeAttribute<>(age,    44),
+					new NodeAttribute<>(count, 104)
 			).getUuid();
 
 			for (int i=0; i<100; i++) {
@@ -3706,17 +3716,17 @@ public class ScriptingTest extends StructrTest {
 			final List<NodeInterface> result3 = (List)Scripting.evaluate(ctx, null, "${{ $.findPrivileged('Project', $.predicate.sort('name')); }}", "testFindNewSyntax");
 
 			final String testFunction = "${{\n" +
-			"    let users = $.find('Project', {\n" +
-			"            $and: {\n" +
-			"                'name1': 'structr',\n" +
-			"                'age': $.predicate.range(30, 50)\n" +
-			"            }\n" +
-			"        },\n" +
-			"        $.predicate.sort('name', true),\n" +
-			"        $.predicate.page(1, 10)\n" +
-			"    );\n" +
-			"    users;\n" +
-			"}}";
+					"    let users = $.find('Project', {\n" +
+					"            $and: {\n" +
+					"                'name1': 'structr',\n" +
+					"                'age': $.predicate.range(30, 50)\n" +
+					"            }\n" +
+					"        },\n" +
+					"        $.predicate.sort('name', true),\n" +
+					"        $.predicate.page(1, 10)\n" +
+					"    );\n" +
+					"    users;\n" +
+					"}}";
 
 			final Object result4Object        = Scripting.evaluate(ctx, null, testFunction, "testFindNewSyntax");
 			final List<NodeInterface> result4 = (List)result4Object;
@@ -3854,9 +3864,7 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Normal find() should use OR to search for remote properties", 9, ((List)Scripting.evaluate(ctx, null, "${{ let t2 = $.find('Task', 'name', 't2'); $.find('Project', 'tasks', t2); }}", "testFindOldSyntax")).size());
 			assertEquals("Normal find() should use OR to search for remote properties", 9, ((List)Scripting.evaluate(ctx, null, "${{ let t3 = $.find('Task', 'name', 't3'); $.find('Project', 'tasks', t3); }}", "testFindOldSyntax")).size());
 
-			List result = ((List)Scripting.evaluate(ctx, null, "${{ let t1_t2 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't1'), $.predicate.equals('name', 't2'))); $.find('Project', 'tasks', t1_t2); }}", "testFindOldSyntax"));
-
-			assertEquals("Normal find() should use OR to search for remote properties", 13, result.size());
+			assertEquals("Normal find() should use OR to search for remote properties", 13, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t2 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't1'), $.predicate.equals('name', 't2'))); $.find('Project', 'tasks', t1_t2); }}", "testFindOldSyntax")).size());
 			assertEquals("Normal find() should use OR to search for remote properties", 13, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t3 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't1'), $.predicate.equals('name', 't3'))); $.find('Project', 'tasks', t1_t3); }}", "testFindOldSyntax")).size());
 			assertEquals("Normal find() should use OR to search for remote properties", 13, ((List)Scripting.evaluate(ctx, null, "${{ let t2_t3 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't2'), $.predicate.equals('name', 't3'))); $.find('Project', 'tasks', t2_t3); }}", "testFindOldSyntax")).size());
 
@@ -3910,7 +3918,7 @@ public class ScriptingTest extends StructrTest {
 
 			// create relation
 			project.relate(project, "SUB", Cardinality.OneToMany, "parent", "children");
-			 project.relate(task, "TASK", Cardinality.OneToMany, "project", "tasks");
+			project.relate(task, "TASK", Cardinality.OneToMany, "project", "tasks");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -3943,20 +3951,20 @@ public class ScriptingTest extends StructrTest {
 			final NodeInterface task8 = app.create(taskType, new NodeAttribute<>(taskName, "t8") );
 
 			final NodeInterface project1 = app.create(projectType,
-				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Project #1"),
-				new NodeAttribute<>(projectTasks, List.of(task1, task2))
+					new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Project #1"),
+					new NodeAttribute<>(projectTasks, List.of(task1, task2))
 			);
 
 			final NodeInterface project2 = app.create(projectType,
-				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Project #2"),
-				new NodeAttribute<>(projectTasks, List.of(task3, task4)),
-				new NodeAttribute<>(projectChildren, List.of(project1))
+					new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Project #2"),
+					new NodeAttribute<>(projectTasks, List.of(task3, task4)),
+					new NodeAttribute<>(projectChildren, List.of(project1))
 			);
 
 			app.create(projectType,
-				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Project #3"),
-				new NodeAttribute<>(projectTasks, List.of(task5, task6)),
-				new NodeAttribute<>(projectChildren, List.of(project2))
+					new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Project #3"),
+					new NodeAttribute<>(projectTasks, List.of(task5, task6)),
+					new NodeAttribute<>(projectChildren, List.of(project2))
 			);
 
 			app.create(projectType, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Project #4"));
@@ -4031,29 +4039,29 @@ public class ScriptingTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			group1 = app.create(type,
-				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "group1"),
-				new NodeAttribute<>(name1, "structr"),
-				new NodeAttribute<>(name2, "test"),
-				new NodeAttribute<>(name3, "other"),
-				new NodeAttribute<>(age,    22),
-				new NodeAttribute<>(count, 100)
+					new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "group1"),
+					new NodeAttribute<>(name1, "structr"),
+					new NodeAttribute<>(name2, "test"),
+					new NodeAttribute<>(name3, "other"),
+					new NodeAttribute<>(age,    22),
+					new NodeAttribute<>(count, 100)
 			).getUuid();
 
 			group2 = app.create(type,
-				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "group2"),
-				new NodeAttribute<>(name1, "structr"),
-				new NodeAttribute<>(name2, "test"),
-				new NodeAttribute<>(name3, "other"),
-				new NodeAttribute<>(age,    33),
-				new NodeAttribute<>(count, 102)
+					new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "group2"),
+					new NodeAttribute<>(name1, "structr"),
+					new NodeAttribute<>(name2, "test"),
+					new NodeAttribute<>(name3, "other"),
+					new NodeAttribute<>(age,    33),
+					new NodeAttribute<>(count, 102)
 			).getUuid();
 
 			group3 = app.create(type,
-				new NodeAttribute<>(name1, "structr"),
-				new NodeAttribute<>(name2, "other"),
-				new NodeAttribute<>(name3, "other"),
-				new NodeAttribute<>(age,    44),
-				new NodeAttribute<>(count, 104)
+					new NodeAttribute<>(name1, "structr"),
+					new NodeAttribute<>(name2, "other"),
+					new NodeAttribute<>(name3, "other"),
+					new NodeAttribute<>(age,    44),
+					new NodeAttribute<>(count, 104)
 			).getUuid();
 
 			for (int i=0; i<100; i++) {
@@ -4075,17 +4083,17 @@ public class ScriptingTest extends StructrTest {
 			final List<NodeInterface> result3 = (List)Scripting.evaluate(ctx, null, "${{ $.find('Project', $.predicate.sort('name')); }}", "testFindNewSyntax");
 
 			final String testFunction = "${{\n" +
-			"    let users = $.find('Project', {\n" +
-			"            $and: {\n" +
-			"                'name1': 'structr',\n" +
-			"                'age': $.predicate.range(30, 50)\n" +
-			"            }\n" +
-			"        },\n" +
-			"        $.predicate.sort('name', true),\n" +
-			"        $.predicate.page(1, 10)\n" +
-			"    );\n" +
-			"    users;\n" +
-			"}}";
+					"    let users = $.find('Project', {\n" +
+					"            $and: {\n" +
+					"                'name1': 'structr',\n" +
+					"                'age': $.predicate.range(30, 50)\n" +
+					"            }\n" +
+					"        },\n" +
+					"        $.predicate.sort('name', true),\n" +
+					"        $.predicate.page(1, 10)\n" +
+					"    );\n" +
+					"    users;\n" +
+					"}}";
 
 			final Object result4Object        = Scripting.evaluate(ctx, null, testFunction, "testFindNewSyntax");
 			final List<NodeInterface> result4 = (List)result4Object;
@@ -4294,13 +4302,13 @@ public class ScriptingTest extends StructrTest {
 			while (cnt < 10) {
 
 				app.create(type,
-					new NodeAttribute<>(visibleToPublicUsers, true),
-					new NodeAttribute<>(count, cnt)
+						new NodeAttribute<>(visibleToPublicUsers, true),
+						new NodeAttribute<>(count, cnt)
 				);
 
 				app.create(type,
-					new NodeAttribute<>(visibleToPublicUsers, false),
-					new NodeAttribute<>(count, cnt + 10)
+						new NodeAttribute<>(visibleToPublicUsers, false),
+						new NodeAttribute<>(count, cnt + 10)
 				);
 
 				cnt++;
@@ -4318,15 +4326,15 @@ public class ScriptingTest extends StructrTest {
 
 			// AND: works
 			final String testRangeFunctionInANDGroup = "${{\n" +
-			"    let nodes = $.find('TestType', {\n" +
-			"            $and: {\n" +
-			"                'visibleToPublicUsers': true,\n" +
-			"                'count': $.predicate.range(5, 14)\n" +
-			"            }\n" +
-			"        }\n" +
-			"    );\n" +
-			"    nodes;\n" +
-			"}}";
+					"    let nodes = $.find('TestType', {\n" +
+					"            $and: {\n" +
+					"                'visibleToPublicUsers': true,\n" +
+					"                'count': $.predicate.range(5, 14)\n" +
+					"            }\n" +
+					"        }\n" +
+					"    );\n" +
+					"    nodes;\n" +
+					"}}";
 
 			final List<NodeInterface> res1 = (List)Scripting.evaluate(ctx, null, testRangeFunctionInANDGroup, "testAdvancedFindRangeQueryLeak");
 			assertEquals("Advanced find range predicate does not filter correctly for surrounding AND", 5, res1.size());
@@ -4334,17 +4342,17 @@ public class ScriptingTest extends StructrTest {
 
 			// OR with workaround AND around range: works
 			final String testRangeFunctionORWrapRangeInAND = "${{\n" +
-			"    let nodes = $.find('TestType', {\n" +
-			"            $or: {\n" +
-			"                'visibleToPublicUsers': true,\n" +
-			"                $and: {\n" +
-			"                    'count': $.predicate.range(5, 14)\n" +
-			"                }\n" +
-			"            }\n" +
-			"        }\n" +
-			"    );\n" +
-			"    nodes;\n" +
-			"}}";
+					"    let nodes = $.find('TestType', {\n" +
+					"            $or: {\n" +
+					"                'visibleToPublicUsers': true,\n" +
+					"                $and: {\n" +
+					"                    'count': $.predicate.range(5, 14)\n" +
+					"                }\n" +
+					"            }\n" +
+					"        }\n" +
+					"    );\n" +
+					"    nodes;\n" +
+					"}}";
 
 			final List<NodeInterface> res2 = (List)Scripting.evaluate(ctx, null, testRangeFunctionORWrapRangeInAND, "testAdvancedFindRangeQueryLeak");
 			assertEquals("Advanced find range predicate does not filter correctly for surrounding OR (even when wrapped in and() itself)", 15, res2.size());
@@ -4352,14 +4360,14 @@ public class ScriptingTest extends StructrTest {
 
 			// Plain OR with structrscript syntax: does not work
 			final String testRangeFunctionInORGroupStructrScriptSyntax = "${{\n" +
-			"    let nodes = $.find('TestType', \n" +
-			"            $.predicate.or(\n" +
-			"                $.predicate.equals('visibleToPublicUsers', true),\n" +
-			"                $.predicate.equals('count', $.predicate.range(5, 14))\n" +
-			"            )\n" +
-			"    );\n" +
-			"    nodes;\n" +
-			"}}";
+					"    let nodes = $.find('TestType', \n" +
+					"            $.predicate.or(\n" +
+					"                $.predicate.equals('visibleToPublicUsers', true),\n" +
+					"                $.predicate.equals('count', $.predicate.range(5, 14))\n" +
+					"            )\n" +
+					"    );\n" +
+					"    nodes;\n" +
+					"}}";
 
 			final List<NodeInterface> res3 = (List)Scripting.evaluate(ctx, null, testRangeFunctionInORGroupStructrScriptSyntax, "testAdvancedFindRangeQueryLeak");
 			assertEquals("Advanced find range predicate does not filter correctly for surrounding OR (range() leaks outward and turns OR into AND) [StructrScript Syntax]", 15, res3.size());
@@ -4367,15 +4375,15 @@ public class ScriptingTest extends StructrTest {
 
 			// Plain OR with JavaScript syntax: does not work
 			final String testRangeFunctionInORGroupOtherSyntax = "${{\n" +
-			"    let nodes = $.find('TestType', {\n" +
-			"            $or: {\n" +
-			"                'visibleToPublicUsers': true,\n" +
-			"                'count': $.predicate.range(5, 14)\n" +
-			"            }\n" +
-			"        }\n" +
-			"    );\n" +
-			"    nodes;\n" +
-			"}}";
+					"    let nodes = $.find('TestType', {\n" +
+					"            $or: {\n" +
+					"                'visibleToPublicUsers': true,\n" +
+					"                'count': $.predicate.range(5, 14)\n" +
+					"            }\n" +
+					"        }\n" +
+					"    );\n" +
+					"    nodes;\n" +
+					"}}";
 
 			final List<NodeInterface> res4 = (List)Scripting.evaluate(ctx, null, testRangeFunctionInORGroupOtherSyntax, "testAdvancedFindRangeQueryLeak");
 			assertEquals("Advanced find range predicate does not filter correctly for surrounding OR (range() leaks outward and turns OR into AND) [JavaScript Syntax]", 15, res4.size());
@@ -4530,7 +4538,7 @@ public class ScriptingTest extends StructrTest {
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 			final JsonType test  = schema.addType("Test");
 
-			test.addMethod("doTest", "{ let arr = []; arr.push({ name: 'test1' }); arr.push({ name: 'test2' }); arr.push({ name: 'test2' }); arr; }");
+			test.addMethod("doTest", "{ let arr = []; arr.push({ name: 'test1' }); arr.push({ name: 'test2' }); arr.push({ name: 'test2' }); return arr; }");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -5046,12 +5054,12 @@ public class ScriptingTest extends StructrTest {
 			final PropertyKey key = Traits.of(type).key("test");
 
 			app.create(type,
-				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "source"),
-				new NodeAttribute<>(key, new String[] { "one", "two", "three" })
+					new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "source"),
+					new NodeAttribute<>(key, new String[] { "one", "two", "three" })
 			);
 
 			app.create(type,
-				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "target")
+					new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "target")
 			);
 
 			tx.success();
@@ -5195,10 +5203,10 @@ public class ScriptingTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final ActionContext ac = new ActionContext(securityContext);
-			assertEquals("All array properties should 0 length", "000000",                                         Scripting.evaluate(ac, null, "${{ let n = $.find('ArrayPropertiesTest', { name: 'emptyTest' })[0]; $.print($.int(n.strings.length), $.int(n.ints.length), $.int(n.doubles.length), $.int(n.longs.length), $.int(n.bools.length), $.int(n.dates.length)); }}", "emptyPushTest"));
-			assertEquals("All array properties should 1 length after one push()", "111111",                        Scripting.evaluate(ac, null, "${{ let n = $.find('ArrayPropertiesTest', { name: 'emptyPushTest' })[0]; $.print($.int(n.strings.length), $.int(n.ints.length), $.int(n.doubles.length), $.int(n.longs.length), $.int(n.bools.length), $.int(n.dates.length)); }}", "emptyPushTest"));
-			assertEquals("All array properties should 3 length after assignment of [x,y,z]", "333333",             Scripting.evaluate(ac, null, "${{ let n = $.find('ArrayPropertiesTest', { name: 'emptySetTest' })[0]; $.print($.int(n.strings.length), $.int(n.ints.length), $.int(n.doubles.length), $.int(n.longs.length), $.int(n.bools.length), $.int(n.dates.length)); }}", "emptyPushTest"));
-			assertEquals("All array properties should 4 length after assignment of [x,y,z] plus push()", "444444", Scripting.evaluate(ac, null, "${{ let n = $.find('ArrayPropertiesTest', { name: 'setAndPushTest' })[0]; $.print($.int(n.strings.length), $.int(n.ints.length), $.int(n.doubles.length), $.int(n.longs.length), $.int(n.bools.length), $.int(n.dates.length)); }}", "emptyPushTest"));
+			assertEquals("All array properties should return 0 length", "000000",                                         Scripting.evaluate(ac, null, "${{ let n = $.find('ArrayPropertiesTest', { name: 'emptyTest' })[0]; $.print($.int(n.strings.length), $.int(n.ints.length), $.int(n.doubles.length), $.int(n.longs.length), $.int(n.bools.length), $.int(n.dates.length)); }}", "emptyPushTest"));
+			assertEquals("All array properties should return 1 length after one push()", "111111",                        Scripting.evaluate(ac, null, "${{ let n = $.find('ArrayPropertiesTest', { name: 'emptyPushTest' })[0]; $.print($.int(n.strings.length), $.int(n.ints.length), $.int(n.doubles.length), $.int(n.longs.length), $.int(n.bools.length), $.int(n.dates.length)); }}", "emptyPushTest"));
+			assertEquals("All array properties should return 3 length after assignment of [x,y,z]", "333333",             Scripting.evaluate(ac, null, "${{ let n = $.find('ArrayPropertiesTest', { name: 'emptySetTest' })[0]; $.print($.int(n.strings.length), $.int(n.ints.length), $.int(n.doubles.length), $.int(n.longs.length), $.int(n.bools.length), $.int(n.dates.length)); }}", "emptyPushTest"));
+			assertEquals("All array properties should return 4 length after assignment of [x,y,z] plus push()", "444444", Scripting.evaluate(ac, null, "${{ let n = $.find('ArrayPropertiesTest', { name: 'setAndPushTest' })[0]; $.print($.int(n.strings.length), $.int(n.ints.length), $.int(n.doubles.length), $.int(n.longs.length), $.int(n.bools.length), $.int(n.dates.length)); }}", "emptyPushTest"));
 
 			tx.success();
 
@@ -5736,7 +5744,7 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid slice() result, must return a list of 2 object", 2, sliceWithFindResultList.size());
 
 			// slice with find JS
-			//final Object sliceWithFindJSResult = Scripting.evaluate(ctx, null, "${{ $.slice(function() { return $.find('TestSix') }, 0, 2); }}", "slice test with find in JS");
+			//final Object sliceWithFindJSResult = Scripting.evaluate(ctx, null, "${{ return $.slice(function() { return $.find('TestSix') }, 0, 2); }}", "slice test with find in JS");
 			//assertTrue("Invalid slice() result, must return collection for valid results", sliceWithFindJSResult instanceof Collection);
 			//assertTrue("Invalid slice() result, must return list for valid results", sliceWithFindJSResult instanceof List);
 			//final List sliceWithFindJSResultList = (List)sliceWithFindJSResult;
@@ -5749,8 +5757,8 @@ public class ScriptingTest extends StructrTest {
 
 			// test with interval larger than number of elements
 			assertEquals("Invalid slice() result for invalid inputs",
-				Iterables.toList((Iterable)testOne.getProperty(Traits.of("TestOne").key("manyToManyTestSixs"))).toString(),
-				Scripting.replaceVariables(ctx, testOne, "${slice(this.manyToManyTestSixs, 0, 1000)}")
+					Iterables.toList((Iterable)testOne.getProperty(Traits.of("TestOne").key("manyToManyTestSixs"))).toString(),
+					Scripting.replaceVariables(ctx, testOne, "${slice(this.manyToManyTestSixs, 0, 1000)}")
 			);
 
 			tx.success();
@@ -5883,8 +5891,8 @@ public class ScriptingTest extends StructrTest {
 			type.addMethod("doStaticTest", "{}").setIsStatic(true);
 			type.addMethod("doDynamicTest", "{}");
 
-			type.addMethod("doStaticTestWithThis", "{ $.this.type; }").setIsStatic(true);
-			type.addMethod("doDynamicTestWithThis", "{ $.this.type; }");
+			type.addMethod("doStaticTestWithThis", "{ return $.this.type; }").setIsStatic(true);
+			type.addMethod("doDynamicTestWithThis", "{ return $.this.type; }");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -6072,17 +6080,17 @@ public class ScriptingTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			Scripting.evaluate(new ActionContext(securityContext), null,
-				"${if (\n" +
-				"	is_collection(request.param),\n" +
-				"	(\n" +
-				"		print('collection! '),\n" +
-				"		each(request.param, print(data))\n" +
-				"	),\n" +
-				"	(\n" +
-				"		print('single param!'),\n" +
-				"		print(request.param)\n" +
-				"	)\n" +
-				")}", "test", null);
+					"${if (\n" +
+							"	is_collection(request.param),\n" +
+							"	(\n" +
+							"		print('collection! '),\n" +
+							"		each(request.param, print(data))\n" +
+							"	),\n" +
+							"	(\n" +
+							"		print('single param!'),\n" +
+							"		print(request.param)\n" +
+							"	)\n" +
+							")}", "test", null);
 
 			tx.success();
 
@@ -6141,7 +6149,7 @@ public class ScriptingTest extends StructrTest {
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 			final JsonType type     = schema.addType("Test");
 
-			type.addMethod("createMap", "{ const result = { param1: 'Test', param2: 123 }; result;}");
+			type.addMethod("createMap", "{ return { param1: 'Test', param2: 123 }; }");
 			type.addMethod("test",      "concat('success',    this.name, retrieve('param1'))");
 			type.addMethod("testOne",   "concat('successOne', this.name, retrieve('param1'), retrieve('param2'))");
 			type.addMethod("test123",   "concat('success123', this.name, retrieve('param1'), retrieve('param2'), retrieve('param3'))");
@@ -6189,36 +6197,36 @@ public class ScriptingTest extends StructrTest {
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 			final JsonType type     = schema.addType("Test");
 
-			type.addMethod("createObject", "{ let baseMap = { key1: 'value1' }; baseMap; }").setIsStatic(true);
-			type.addMethod("createDate",   "{ new Date(); }").setIsStatic(true);
-			type.addMethod("createMap",    "{ new Map(); }").setIsStatic(true);
-			type.addMethod("createSet",    "{ let baseSet = new Set(); baseSet.add('initialValue'); baseSet; }").setIsStatic(true);
+			type.addMethod("createObject", "{ return { key1: 'value1' }; }").setIsStatic(true);
+			type.addMethod("createDate",   "{ return new Date(); }").setIsStatic(true);
+			type.addMethod("createMap",    "{ return new Map(); }").setIsStatic(true);
+			type.addMethod("createSet",    "{ let mySet = new Set(); mySet.add('initialValue'); return mySet; }").setIsStatic(true);
 
 			// native object created inline
-			type.addMethod("test0",      "{ let map = { key1: 'value1' }; map.key2 = 123; map; }").setIsStatic(true); // success
-			type.addMethod("test1",      "{ let map = { key1: 'value1' }; map.set('key2', 123); map; }").setIsStatic(true); // failure
+			type.addMethod("test0",      "{ let map = { key1: 'value1' }; map.key2 = 123; return map; }").setIsStatic(true); // success
+			type.addMethod("test1",      "{ let map = { key1: 'value1' }; map.set('key2', 123); return map; }").setIsStatic(true); // failure
 
 			// native object created in method
-			type.addMethod("test2",      "{ let map = $.Test.createObject(); map.key2 = 123; map; }").setIsStatic(true); // success
-			type.addMethod("test3",      "{ let map = $.Test.createObject(); map.set('key2', 123); map; }").setIsStatic(true); // failure
+			type.addMethod("test2",      "{ let map = $.Test.createObject(); map.key2 = 123; return map; }").setIsStatic(true); // success
+			type.addMethod("test3",      "{ let map = $.Test.createObject(); map.set('key2', 123); return map; }").setIsStatic(true); // failure
 
 			// map created inline
-			type.addMethod("test4",      "{ let map = new Map(); map.test = 'ignore'; map.set('key1', 'value1'); map; }").setIsStatic(true); // success
-			type.addMethod("test5",      "{ let map = new Map(); map.test = 'ignore'; map.key1 = 'value1'; map; }").setIsStatic(true); // no error but empty map
+			type.addMethod("test4",      "{ let map = new Map(); map.test = 'ignore'; map.set('key1', 'value1'); return map; }").setIsStatic(true); // success
+			type.addMethod("test5",      "{ let map = new Map(); map.test = 'ignore'; map.key1 = 'value1'; return map; }").setIsStatic(true); // no error but empty map
 
 			// map created in method
-			type.addMethod("test6",      "{ let map = $.Test.createMap(); map.test = 'ignore'; map.set('key1', 'value1'); map.set('key2', 123); map; }").setIsStatic(true);  // success
-			type.addMethod("test7",      "{ let map = $.Test.createMap(); map.test = 'ignore'; map.key1 = 'value1'; map.key2 = 123; map; }").setIsStatic(true); // failure
+			type.addMethod("test6",      "{ let map = $.Test.createMap(); map.test = 'ignore'; map.set('key1', 'value1'); map.set('key2', 123); return map; }").setIsStatic(true);  // success
+			type.addMethod("test7",      "{ let map = $.Test.createMap(); map.test = 'ignore'; map.key1 = 'value1'; map.key2 = 123; return map; }").setIsStatic(true); // failure
 
 			// date created inline
-			type.addMethod("test8",      "{ let date = new Date(); let nextMonth = (date.getMonth() + 1).toFixed(0); nextMonth; }").setIsStatic(true);
+			type.addMethod("test8",      "{ let date = new Date(); let nextMonth = (date.getMonth() + 1).toFixed(0); return nextMonth; }").setIsStatic(true);
 
 			// date created in method
-			type.addMethod("test9",      "{ let date = $.Test.createDate(); let nextMonth = (date.getMonth() + 1).toFixed(0); nextMonth; }").setIsStatic(true);
+			type.addMethod("test9",      "{ let date = $.Test.createDate(); let nextMonth = (date.getMonth() + 1).toFixed(0); return nextMonth; }").setIsStatic(true);
 
 			// set created in method
-			type.addMethod("test10",      "{ let mySet = $.Test.createSet(); mySet.test = 'ignore'; mySet.add('initialValue'); mySet.add('value1'); mySet.add('value2'); mySet; }").setIsStatic(true);
-			type.addMethod("test11",      "{ let mySet = $.Test.createSet(); mySet.test = 'ignore'; mySet[0] = 'ignore'; mySet.add('value1'); mySet; }").setIsStatic(true);
+			type.addMethod("test10",      "{ let mySet = $.Test.createSet(); mySet.test = 'ignore'; mySet.add('initialValue'); mySet.add('value1'); mySet.add('value2'); return mySet; }").setIsStatic(true);
+			type.addMethod("test11",      "{ let mySet = $.Test.createSet(); mySet.test = 'ignore'; mySet[0] = 'ignore'; mySet.add('value1'); return mySet; }").setIsStatic(true);
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -6249,7 +6257,7 @@ public class ScriptingTest extends StructrTest {
 
 
 
-			// create a native object in a method, it, and set a property => success
+			// create a native object in a method, return it, and set a property => success
 			final Map<String, Object> value2 = (Map)Scripting.evaluate(new ActionContext(securityContext), null, "${{ $.Test.test2(); }}", "test0");
 			assertEquals("value1",  value2.get("key1"));
 			assertEquals(123,       value2.get("key2"));
@@ -6325,10 +6333,10 @@ public class ScriptingTest extends StructrTest {
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 			final JsonType type     = schema.addType("Test");
 
-			type.addMethod("getName", "{ $.this.name; }");
+			type.addMethod("getName", "{ return $.this.name; }");
 
 			// native object created inline
-			type.addMethod("test",  "{ let names = []; for (let t of $.find('Test')) { names.push(t.getName()); } names.join(''); }");
+			type.addMethod("test",  "{ let names = []; for (let t of $.find('Test')) { names.push(t.getName()); } return names.join(''); }");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -6373,13 +6381,13 @@ public class ScriptingTest extends StructrTest {
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 			final JsonType type     = schema.addType("Test");
 
-			type.addMethod("method1", "{ $.log($.methodParameters); $.userMethod(); $.methodParameters; }");
+			type.addMethod("method1", "{ $.log($.methodParameters); $.userMethod(); return $.methodParameters; }");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
 			app.create(StructrTraits.SCHEMA_METHOD,
-				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "userMethod"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "{ $.log('test'); }")
+					new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "userMethod"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "{ $.log('test'); }")
 			);
 
 			tx.success();
@@ -6419,8 +6427,8 @@ public class ScriptingTest extends StructrTest {
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 			final JsonType type     = schema.addType("Test");
 
-			type.addMethod("method1", "{ let testMap = new Map(); testMap.set('key1', 'value1'); $.this.method2({ test: testMap }); }");
-			type.addMethod("method2", "{ let testMap2 = $.methodParameters.test; testMap2.get('key1'); }");
+			type.addMethod("method1", "{ let map = new Map(); map.set('key1', 'value1'); return $.this.method2({ test: map }); }");
+			type.addMethod("method2", "{ let map = $.methodParameters.test; return map.get('key1'); }");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -6457,14 +6465,14 @@ public class ScriptingTest extends StructrTest {
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 			final JsonType type     = schema.addType("Test");
 
-			type.addMethod("getDate",             "{ new Date(); }").setIsStatic(true);
-			type.addMethod("getNowJavascript",    "{ $.now; }").setIsStatic(true);
+			type.addMethod("getDate",             "{ return new Date(); }").setIsStatic(true);
+			type.addMethod("getNowJavascript",    "{ return $.now; }").setIsStatic(true);
 			type.addMethod("getNowStructrscript", "now").setIsStatic(true);
 
-			type.addMethod("test1", "{ const result = { test1: new Date(), test2: $.now, test3: $.Test.getDate(), test4: $.Test.getNowJavascript(), test5: $.Test.getNowStructrscript() }; result;}").setIsStatic(true);
-			type.addMethod("test2", "{ $.Test.test1(); }").setIsStatic(true);
-			type.addMethod("test3", "{ $.Test.test2(); }").setIsStatic(true);
-			type.addMethod("test4", "{ const result = { test1: typeof new Date(), test2: typeof $.now, test3: typeof $.Test.getDate(), test4: typeof $.Test.getNowJavascript(), test5: typeof $.Test.getNowStructrscript() }; result;}").setIsStatic(true);
+			type.addMethod("test1", "{ return { test1: new Date(), test2: $.now, test3: $.Test.getDate(), test4: $.Test.getNowJavascript(), test5: $.Test.getNowStructrscript() }; }").setIsStatic(true);
+			type.addMethod("test2", "{ return $.Test.test1(); }").setIsStatic(true);
+			type.addMethod("test3", "{ return $.Test.test2(); }").setIsStatic(true);
+			type.addMethod("test4", "{ return { test1: typeof new Date(), test2: typeof $.now, test3: typeof $.Test.getDate(), test4: typeof $.Test.getNowJavascript(), test5: typeof $.Test.getNowStructrscript() }; }").setIsStatic(true);
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -6583,7 +6591,7 @@ public class ScriptingTest extends StructrTest {
 
 			app.create(StructrTraits.SCHEMA_METHOD,
 					new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "userMethod"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key("source"), "{ $.log('test'); }")
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "{ $.log('test'); }")
 			);
 
 			tx.success();
@@ -6672,9 +6680,9 @@ public class ScriptingTest extends StructrTest {
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 			final JsonType type     = schema.addType("Test");
 
-			type.addMethod("doTest1",             "{ 'test1'; }");
-			type.addMethod("doTest2",             "{ 'test2'; }").setIsStatic(true);
-			type.addMethod("doTest3",             "{ 'test3'; }").setIsPrivate(true);
+			type.addMethod("doTest1",             "{ return 'test1'; }");
+			type.addMethod("doTest2",             "{ return 'test2'; }").setIsStatic(true);
+			type.addMethod("doTest3",             "{ return 'test3'; }").setIsPrivate(true);
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -6734,11 +6742,11 @@ public class ScriptingTest extends StructrTest {
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 			final JsonType type     = schema.addType("Test");
 
-			type.addMethod("doTest1", "{ $.log($.functionInfo()); $.functionInfo(); }").addParameter("id", "string").addParameter("date", "date");
-			type.addMethod("doTest2", "{ $.log($.functionInfo()); $.functionInfo(); }").setIsStatic(true);
-			type.addMethod("doTest3", "{ $.log($.functionInfo()); $.functionInfo(); }").setIsPrivate(true);
-			type.addMethod("doTest4", "{ $.log($.functionInfo()); $.this.doTest1(); }");
-			type.addMethod("doTest5", "{ $.log($.functionInfo()); $.this.doTest4(); }");
+			type.addMethod("doTest1", "{ $.log($.functionInfo()); return $.functionInfo(); }").addParameter("id", "string").addParameter("date", "date");
+			type.addMethod("doTest2", "{ $.log($.functionInfo()); return $.functionInfo(); }").setIsStatic(true);
+			type.addMethod("doTest3", "{ $.log($.functionInfo()); return $.functionInfo(); }").setIsPrivate(true);
+			type.addMethod("doTest4", "{ $.log($.functionInfo()); return $.this.doTest1(); }");
+			type.addMethod("doTest5", "{ $.log($.functionInfo()); return $.this.doTest4(); }");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -6767,39 +6775,39 @@ public class ScriptingTest extends StructrTest {
 			final String result9 = (String)Scripting.evaluate(new ActionContext(securityContext), test, "${{ $.functionInfo('Test'); }}", "test");
 
 
-			assertEquals("Invalid functionInfo() result", "doTest1", result1.get("name"));
-			assertEquals("Invalid functionInfo() result", "doTest2", result2.get("name"));
-			assertEquals("Invalid functionInfo() result", "doTest3", result3.get("name"));
-			assertEquals("Invalid functionInfo() result", "doTest1", result4.get("name"));
-			assertEquals("Invalid functionInfo() result", "doTest1", result5.get("name"));
+			assertEquals("Invalid functionInfo() result", "doTest1", result1.get(NodeInterfaceTraitDefinition.NAME_PROPERTY));
+			assertEquals("Invalid functionInfo() result", "doTest2", result2.get(NodeInterfaceTraitDefinition.NAME_PROPERTY));
+			assertEquals("Invalid functionInfo() result", "doTest3", result3.get(NodeInterfaceTraitDefinition.NAME_PROPERTY));
+			assertEquals("Invalid functionInfo() result", "doTest1", result4.get(NodeInterfaceTraitDefinition.NAME_PROPERTY));
+			assertEquals("Invalid functionInfo() result", "doTest1", result5.get(NodeInterfaceTraitDefinition.NAME_PROPERTY));
 
-			assertEquals("Invalid functionInfo() result", false, result1.get("isStatic"));
-			assertEquals("Invalid functionInfo() result", false, result1.get("isPrivate"));
-			assertEquals("Invalid functionInfo() result", "POST", result1.get("httpVerb"));
-			assertEquals("Invalid functionInfo() result", "string", ((Map)result1.get("parameters")).get("id"));
-			assertEquals("Invalid functionInfo() result", "date", ((Map)result1.get("parameters")).get("date"));
+			assertEquals("Invalid functionInfo() result", false, result1.get(SchemaMethodTraitDefinition.IS_STATIC_PROPERTY));
+			assertEquals("Invalid functionInfo() result", false, result1.get(SchemaMethodTraitDefinition.IS_PRIVATE_PROPERTY));
+			assertEquals("Invalid functionInfo() result", "POST", result1.get(SchemaMethodTraitDefinition.HTTP_VERB_PROPERTY));
+			assertEquals("Invalid functionInfo() result", "string", ((Map)result1.get(SchemaMethodTraitDefinition.PARAMETERS_PROPERTY)).get("id"));
+			assertEquals("Invalid functionInfo() result", "date", ((Map)result1.get(SchemaMethodTraitDefinition.PARAMETERS_PROPERTY)).get("date"));
 
-			assertEquals("Invalid functionInfo() result", true,  result2.get("isStatic"));
-			assertEquals("Invalid functionInfo() result", false, result2.get("isPrivate"));
+			assertEquals("Invalid functionInfo() result", true,  result2.get(SchemaMethodTraitDefinition.IS_STATIC_PROPERTY));
+			assertEquals("Invalid functionInfo() result", false, result2.get(SchemaMethodTraitDefinition.IS_PRIVATE_PROPERTY));
 
-			assertEquals("Invalid functionInfo() result", false, result3.get("isStatic"));
-			assertEquals("Invalid functionInfo() result", true,  result3.get("isPrivate"));
+			assertEquals("Invalid functionInfo() result", false, result3.get(SchemaMethodTraitDefinition.IS_STATIC_PROPERTY));
+			assertEquals("Invalid functionInfo() result", true,  result3.get(SchemaMethodTraitDefinition.IS_PRIVATE_PROPERTY));
 
-			assertEquals("Invalid functionInfo() result", false, result4.get("isStatic"));
-			assertEquals("Invalid functionInfo() result", false, result4.get("isPrivate"));
+			assertEquals("Invalid functionInfo() result", false, result4.get(SchemaMethodTraitDefinition.IS_STATIC_PROPERTY));
+			assertEquals("Invalid functionInfo() result", false, result4.get(SchemaMethodTraitDefinition.IS_PRIVATE_PROPERTY));
 
-			assertEquals("Invalid functionInfo() result", false, result5.get("isStatic"));
-			assertEquals("Invalid functionInfo() result", false, result5.get("isPrivate"));
+			assertEquals("Invalid functionInfo() result", false, result5.get(SchemaMethodTraitDefinition.IS_STATIC_PROPERTY));
+			assertEquals("Invalid functionInfo() result", false, result5.get(SchemaMethodTraitDefinition.IS_PRIVATE_PROPERTY));
 
-			assertEquals("Invalid functionInfo() result", false,    result6.get("isStatic"));
-			assertEquals("Invalid functionInfo() result", false,    result6.get("isPrivate"));
-			assertEquals("Invalid functionInfo() result", "POST",   result6.get("httpVerb"));
-			assertEquals("Invalid functionInfo() result", "string", ((Map)result6.get("parameters")).get("id"));
-			assertEquals("Invalid functionInfo() result", "date",   ((Map)result6.get("parameters")).get("date"));
+			assertEquals("Invalid functionInfo() result", false,    result6.get(SchemaMethodTraitDefinition.IS_STATIC_PROPERTY));
+			assertEquals("Invalid functionInfo() result", false,    result6.get(SchemaMethodTraitDefinition.IS_PRIVATE_PROPERTY));
+			assertEquals("Invalid functionInfo() result", "POST",   result6.get(SchemaMethodTraitDefinition.HTTP_VERB_PROPERTY));
+			assertEquals("Invalid functionInfo() result", "string", ((Map)result6.get(SchemaMethodTraitDefinition.PARAMETERS_PROPERTY)).get("id"));
+			assertEquals("Invalid functionInfo() result", "date",   ((Map)result6.get(SchemaMethodTraitDefinition.PARAMETERS_PROPERTY)).get("date"));
 
-			assertEquals("Invalid functionInfo() error result", "Usage: ${$.functionInfo([type, name])}. Example ${$.functionInfo()}",  result7);
-			assertEquals("Invalid functionInfo() error result", "Usage: ${$.functionInfo([type, name])}. Example ${$.functionInfo()}",  result8);
-			assertEquals("Invalid functionInfo() error result", "Usage: ${$.functionInfo([type, name])}. Example ${$.functionInfo()}",  result9);
+			assertEquals("Invalid functionInfo() error result", FunctionInfoFunction.ERROR_MESSAGE_FUNCTION_INFO_JS,  result7);
+			assertEquals("Invalid functionInfo() error result", FunctionInfoFunction.ERROR_MESSAGE_FUNCTION_INFO_JS,  result8);
+			assertEquals("Invalid functionInfo() error result", FunctionInfoFunction.ERROR_MESSAGE_FUNCTION_INFO_JS,  result9);
 
 			tx.success();
 
@@ -6808,102 +6816,6 @@ public class ScriptingTest extends StructrTest {
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
-	}
-
-	@Test
-	public void testSetPrivileged() {
-
-		NodeInterface user1 = null;
-		NodeInterface user2 = null;
-
-		// create test user
-		try (final Tx tx = app.tx()) {
-
-			user1 = app.create(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "user1"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.PASSWORD_PROPERTY), "test")
-			);
-
-			user2 = app.create(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "user1"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.PASSWORD_PROPERTY), "test")
-			);
-
-			final NodeInterface testOne   = app.create("TestOne", "test one");
-			final NodeInterface testThree = app.create("TestThree", "test three");
-
-			// all nodes belong to user1
-			testOne.as(AccessControllable.class).setOwner(user1.as(Principal.class));
-			testThree.as(AccessControllable.class).setOwner(user1.as(Principal.class));
-
-			// all nodes are visible to authenticated users (so that user2 can fetch them)
-			testOne.setVisibility(false, true);
-			testThree.setVisibility(false, true);
-
-			tx.success();
-
-		} catch(FrameworkException fex) {
-
-			logger.warn("", fex);
-			fail("Unexpected exception.");
-		}
-
-		final SecurityContext user2Context = SecurityContext.getInstance(user2.as(User.class), AccessMode.Backend);
-		final App user2App                 = StructrApp.getInstance(user2Context);
-
-		try (final Tx tx = user2App.tx()) {
-
-			final NodeInterface one   = app.nodeQuery("TestOne").getFirst();
-			final NodeInterface three = app.nodeQuery("TestThree").getFirst();
-
-			// try to change the name (without set_privileged)
-			try {
-				Scripting.evaluate(new ActionContext(user2Context), one, "${set(this, 'name', 'changed!')}", "test1");
-				fail("Setting the name of a node without permissions should fail.");
-
-			} catch (FrameworkException fex) {
-			}
-
-			assertEquals("Name should not have changed1", "test one", one.getName());
-
-			// try to change the name (with set_privileged)
-			try {
-				Scripting.evaluate(new ActionContext(user2Context), one, "${set_privileged(this, 'name', 'changed!')}", "test1");
-
-			} catch (FrameworkException fex) {
-				fail("Setting the name of a node with set_privileged should succeed.");
-			}
-
-			assertEquals("Name should now be changed!", "changed!", one.getName());
-
-
-			// try to associate a related node (without permissions)
-			try {
-				Scripting.evaluate(new ActionContext(user2Context), one, "${set(this, 'testThree', first(find('TestThree')))}", "test1");
-				fail("Associating a related node without permissions should fail.");
-
-			} catch (FrameworkException fex) {
-			}
-
-			assertEquals("TestTwo should not be assigned", (NodeInterface)null, one.getProperty(Traits.of("TestOne").key("testTwo")));
-
-			// try to associate a related node (with set_privileged)
-			try {
-				Scripting.evaluate(new ActionContext(user2Context), one, "${set_privileged(this, 'testThree', first(find('TestThree')))}", "test1");
-
-			} catch (FrameworkException fex) {
-				fail("Associating a related node with set_privileged should succeed.");
-			}
-
-			assertEquals("TestTwo should be assigned", three, one.getProperty(Traits.of("TestOne").key("testThree")));
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			fex.printStackTrace();
-			fail("Unexpected exception.");
-		}
-
 	}
 
 	// ----- private methods ----

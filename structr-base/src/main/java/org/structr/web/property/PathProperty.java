@@ -39,12 +39,12 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.Linkable;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 /**
  * A property which returns the complete folder path of a {@link Linkable}

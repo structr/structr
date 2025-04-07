@@ -37,11 +37,11 @@ import org.structr.core.traits.wrappers.UserTraitWrapper;
 import org.structr.ldap.LDAPGroup;
 import org.structr.ldap.LDAPService;
 import org.structr.ldap.LDAPUser;
+import org.structr.ldap.traits.definitions.LDAPUserTraitDefinition;
 
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import org.structr.ldap.traits.definitions.LDAPUserTraitDefinition;
 
 /**
  *

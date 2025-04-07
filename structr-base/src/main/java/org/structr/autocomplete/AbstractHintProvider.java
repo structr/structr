@@ -55,6 +55,7 @@ import java.io.IOException;
 import java.util.*;
 
 
+
 public abstract class AbstractHintProvider {
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractHintProvider.class);

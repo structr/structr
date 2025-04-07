@@ -20,13 +20,10 @@ package org.structr.console.tabcompletion;
 
 import org.structr.common.SecurityContext;
 import org.structr.console.rest.RestCommand;
-import org.structr.core.app.StructrApp;
-import org.structr.core.traits.Traits;
 
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 /**
  *

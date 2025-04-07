@@ -20,7 +20,6 @@ package org.structr.storage.providers.memory;
 
 import org.apache.commons.compress.utils.SeekableInMemoryByteChannel;
 import org.slf4j.LoggerFactory;
-import org.structr.core.app.StructrApp;
 import org.structr.storage.AbstractStorageProvider;
 import org.structr.storage.StorageProvider;
 import org.structr.web.entity.AbstractFile;

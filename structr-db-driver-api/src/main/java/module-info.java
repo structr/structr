@@ -23,7 +23,6 @@ module structr.db.driver.api {
     requires org.apache.commons.collections4;
     requires org.apache.commons.lang3;
 
-
     exports org.structr.api;
     exports org.structr.api.config;
     exports org.structr.api.graph;

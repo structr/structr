@@ -18,7 +18,6 @@
  */
 package org.structr.flow.traits.definitions;
 
-import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
@@ -33,7 +32,6 @@ import org.structr.flow.impl.FlowComparison;
 import org.structr.flow.impl.FlowDataSource;
 import org.structr.flow.traits.operations.DataSourceOperations;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 

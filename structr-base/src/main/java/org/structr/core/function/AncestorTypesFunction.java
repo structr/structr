@@ -19,13 +19,7 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.traits.Traits;
-import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionContext;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 public class AncestorTypesFunction extends AdvancedScriptingFunction {
 

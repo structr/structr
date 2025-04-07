@@ -18,11 +18,11 @@
  */
 package org.structr.api.config;
 
+import org.apache.commons.configuration2.PropertiesConfiguration;
 import org.apache.commons.configuration2.builder.FileBasedConfigurationBuilder;
 import org.apache.commons.configuration2.builder.fluent.Parameters;
 import org.apache.commons.configuration2.convert.DefaultListDelimiterHandler;
 import org.apache.commons.configuration2.ex.ConfigurationException;
-import org.apache.commons.configuration2.PropertiesConfiguration;
 import org.apache.commons.configuration2.io.FileHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -103,7 +103,7 @@ public class Settings {
 
 	// scripting related settings
 	public static final Setting<Boolean> ScriptingDebugger          = new BooleanSetting(generalGroup,         "Scripting",   "application.scripting.debugger",               false, "Enables <b>Chrome</b> debugger initialization in scripting engine. The current debugger URL will be shown in the server log and also made available on the dashboard.");
-	public static final Setting<Boolean> WrapJSInMainFunction       = new BooleanSetting(generalGroup,                      "Scripting", "application.scripting.js.wrapinmainfunction", false, "Forces js scripts to be wrapped in a main function for legacy behaviour.");
+	public static final Setting<Boolean> WrapJSInMainFunction      = new BooleanSetting(generalGroup,                      "Scripting", "application.scripting.js.wrapinmainfunction", false, "Forces js scripts to be wrapped in a main function for legacy behaviour.");
 
 	public static final Setting<String> AllowedHostClasses          = new StringSetting(generalGroup,          "Scripting",   "application.scripting.allowedhostclasses",     "", "Space-separated list of fully-qualified Java class names that you can load dynamically in a scripting environment.");
 
@@ -814,7 +814,7 @@ public class Settings {
 
 		try {
 
-			final FileBasedConfigurationBuilder<PropertiesConfiguration> builder = new FileBasedConfigurationBuilder<>(PropertiesConfiguration.class)
+			FileBasedConfigurationBuilder<PropertiesConfiguration> builder = new FileBasedConfigurationBuilder<>(PropertiesConfiguration.class)
 					.configure(new Parameters().fileBased()
 							.setFileName(fileName)
 							.setThrowExceptionOnMissing(true)
@@ -842,7 +842,7 @@ public class Settings {
 
 			final long freeSpace = (!isFileCreation ? fileHandler.getFile().getFreeSpace() : new File(new File("").getAbsolutePath()).getFreeSpace());
 
-			if (freeSpace < 1024 * 1024) {
+			if(freeSpace < 1024 * 1024){
 				logger.error("Refusing to start with less than 1 MB of disk space.");
 				System.exit(1);
 			}
@@ -866,18 +866,18 @@ public class Settings {
 
 		} catch (ConfigurationException ex) {
 
-			logger.error("Unable to store configuration: " + ex.getMessage());
+            logger.error("Unable to store configuration: {}", ex.getMessage());
 		}
 	}
 
 	public static FileBasedConfigurationBuilder<PropertiesConfiguration> getDefaultPropertiesConfigurationBuilder() {
 
-		return new FileBasedConfigurationBuilder<>(PropertiesConfiguration.class)
-				.configure(new Parameters().fileBased()
-						.setFileName(Settings.ConfigFileName)
-						.setThrowExceptionOnMissing(true)
-						.setListDelimiterHandler(new DefaultListDelimiterHandler('\0'))
-				);
+        return new FileBasedConfigurationBuilder<>(PropertiesConfiguration.class)
+                .configure(new Parameters().fileBased()
+                        .setFileName(Settings.ConfigFileName)
+                        .setThrowExceptionOnMissing(true)
+                        .setListDelimiterHandler(new DefaultListDelimiterHandler('\0'))
+                );
 	}
 
 	public static String getExpectedConfigurationFilePermissionsAsString () {
@@ -951,7 +951,7 @@ public class Settings {
 					);
 
 			final PropertiesConfiguration config = builder.getConfiguration();
-			final Iterator<String> keys          = config.getKeys();
+            final Iterator<String> keys          = config.getKeys();
 
 			Settings.checkConfigurationFilePermissions(builder, true);
 

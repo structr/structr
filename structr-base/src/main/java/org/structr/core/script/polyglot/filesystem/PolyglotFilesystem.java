@@ -35,6 +35,7 @@ import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 import java.io.IOException;
 import java.net.URI;
@@ -45,7 +46,6 @@ import java.nio.file.attribute.FileTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 public class PolyglotFilesystem implements FileSystem {
 	private static final Logger logger = LoggerFactory.getLogger(PolyglotFilesystem.class);

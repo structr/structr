@@ -29,14 +29,13 @@ import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.LocationTraitDefinition;
 import org.structr.rest.resource.MaintenanceResource;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
-import org.structr.core.traits.definitions.LocationTraitDefinition;
-import org.structr.rest.resource.MaintenanceResource;
 
 
 /**

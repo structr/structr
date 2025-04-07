@@ -37,7 +37,7 @@ public class Snippet {
 
 		this.source = source;
 		this.name   = name;
-		this.embed  = true;
+		this.embed  = false;
 	}
 
 	public Snippet(final String name, final String source, final boolean embed) {

@@ -24,7 +24,6 @@ import org.structr.core.api.Methods;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
-import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionContext;
 
 import java.util.LinkedHashMap;

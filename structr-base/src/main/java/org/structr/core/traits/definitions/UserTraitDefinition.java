@@ -49,11 +49,11 @@ import org.structr.core.traits.wrappers.UserTraitWrapper;
 import org.structr.rest.auth.TimeBasedOneTimePasswordHelper;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.User;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.FolderTraitDefinition;
 
 import java.util.Map;
 import java.util.Set;
-import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
-import org.structr.web.traits.definitions.FolderTraitDefinition;
 
 public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 

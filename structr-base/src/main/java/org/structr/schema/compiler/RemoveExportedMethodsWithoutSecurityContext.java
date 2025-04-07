@@ -28,10 +28,10 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 
 /**
  * A migration handler that removes methods with the @Export annotation which do not include the SecurityContext in their signature

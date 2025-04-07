@@ -23,13 +23,9 @@ import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
-import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
-import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
 import org.testng.annotations.Test;
@@ -219,7 +215,7 @@ public class MeResourceTest extends StructrUiTest {
 			final JsonType type     = schema.getType(StructrTraits.USER);
 
 			// method must be exported
-			type.addMethod("doTest", "{ ({ message: 'success', parameters: $.args }); }").setDoExport(true);
+			type.addMethod("doTest", "{ return ({ message: 'success', parameters: $.args }); }").setDoExport(true);
 
 			StructrSchema.replaceDatabaseSchema(app, schema);
 

@@ -30,12 +30,12 @@ import org.structr.core.graph.search.DistanceSearchAttribute;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.LocationTraitDefinition;
 
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
-import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
-import org.structr.core.traits.definitions.LocationTraitDefinition;
 
 /**
  * Helper class to create location nodes from coordinates or by using

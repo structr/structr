@@ -20,7 +20,6 @@ package org.structr.console.tabcompletion;
 
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
-import org.structr.core.app.StructrApp;
 
 import java.util.Collections;
 import java.util.LinkedList;

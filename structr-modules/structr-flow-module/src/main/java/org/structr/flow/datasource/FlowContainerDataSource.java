@@ -34,11 +34,11 @@ import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.web.common.RenderContext;
 import org.structr.web.function.UiFunction;
+import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 
 /**
  * Renders dynamic markup for the results of a {@link FlowContainer}.

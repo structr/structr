@@ -30,10 +30,10 @@ import org.structr.core.graph.CreationContainer;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.relationships.SecurityRelationshipDefinition;
 
 import java.util.*;
 import java.util.Map.Entry;
-import org.structr.core.traits.relationships.SecurityRelationshipDefinition;
 
 /**
  * A container for properties and their values that is used for input/output and database

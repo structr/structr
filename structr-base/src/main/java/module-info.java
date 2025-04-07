@@ -93,22 +93,17 @@ module structr.base {
     requires zero.allocation.hashing;
     requires zip4j;
     requires ch.qos.logback.core;
-    requires jakarta.activation;
     requires org.apache.commons.configuration2;
-    requires org.apache.commons.codec;
+    requires commons.lang;
     requires java.sql;
-    requires org.apache.groovy;
-    requires org.apache.poi.poi;
-    requires org.glassfish.jaxb.runtime;
-    requires org.eclipse.jgit;
-    requires api.all;
+    requires org.apache.commons.collections4;
+    requires org.apache.commons.codec;
     requires org.json;
-	requires pulsar.client;
     requires org.apache.commons.text;
     requires org.apache.commons.lang3;
     requires java.desktop;
 
-	exports org.structr;
+    exports org.structr;
     exports org.structr.agent;
     exports org.structr.autocomplete;
     exports org.structr.common;

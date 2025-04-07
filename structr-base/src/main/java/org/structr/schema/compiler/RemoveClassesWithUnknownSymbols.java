@@ -27,10 +27,10 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.structr.core.traits.StructrTraits;
 
 /**
  * A migration handler that removes schema nodes for classes that have

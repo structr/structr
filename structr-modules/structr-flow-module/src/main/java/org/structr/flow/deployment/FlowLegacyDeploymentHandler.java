@@ -35,7 +35,6 @@ import org.structr.core.traits.Traits;
 import org.structr.flow.impl.FlowContainer;
 import org.structr.flow.impl.FlowContainerConfiguration;
 import org.structr.flow.impl.rels.FlowContainerConfigurationFlow;
-import org.structr.flow.traits.definitions.FlowConditionTraitDefinition;
 import org.structr.flow.traits.definitions.FlowContainerConfigurationTraitDefinition;
 import org.structr.module.api.DeployableEntity;
 import org.structr.web.common.AbstractMapComparator;
