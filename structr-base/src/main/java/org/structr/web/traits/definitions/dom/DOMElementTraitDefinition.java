@@ -503,7 +503,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 							Collections.sort(htmlAttributes);
 						}
 
-						for (PropertyKey attribute : htmlAttributes) {
+						for (final PropertyKey attribute : htmlAttributes) {
 
 							String value = null;
 
@@ -753,7 +753,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 									}
 								}
 
-								if (isTargetElement(thisElementWithSuperuserContext)) {
+								if (thisElementWithSuperuserContext.isTargetElement()) {
 
 									outputStructrId = true;
 
@@ -1934,7 +1934,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		// Possible values for the success behaviour are nothing, full-page-reload, partial-refresh, navigate-to-url, fire-event
 		final String successBehaviour = triggeredAction.getSuccessBehaviour();
 		final String successPartial   = triggeredAction.getSuccessPartial();
-		final String successURL       = triggeredAction.getSuccessURL();
+		final String successURL       = triggeredAction.getPropertyWithVariableReplacement(renderContext, traits.key(ActionMappingTraitDefinition.SUCCESS_URL_PROPERTY));
 		final String successEvent     = triggeredAction.getSuccessEvent();
 
 		String successTargetString = null;
@@ -2019,7 +2019,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		// Possible values for the failure behaviour are nothing, full-page-reload, partial-refresh, navigate-to-url, fire-event
 		final String failureBehaviour = triggeredAction.getFailureBehaviour();
 		final String failurePartial   = triggeredAction.getFailurePartial();
-		final String failureURL       = triggeredAction.getFailureURL();
+		final String failureURL       = triggeredAction.getPropertyWithVariableReplacement(renderContext, traits.key(ActionMappingTraitDefinition.FAILURE_URL_PROPERTY));
 		final String failureEvent     = triggeredAction.getFailureEvent();
 
 		String failureTargetString = null;

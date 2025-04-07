@@ -61,6 +61,8 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 	@Override
 	public Relationship createRelationshipTo(final Node endNode, final RelationshipType relationshipType, final Map<String, Object> properties) {
 
+		db.getCurrentTransaction().queryResultCache.clear();
+
 		final SessionTransaction tx   = db.getCurrentTransaction();
 		final Map<String, Object> map = new HashMap<>();
 		final String tenantIdentifier = getTenantIdentifier(db);
@@ -123,6 +125,8 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 			return;
 		}
 
+		db.getCurrentTransaction().queryResultCache.clear();
+
 		final SessionTransaction tx   = db.getCurrentTransaction();
 		final Map<String, Object> map = new HashMap<>();
 		final String tenantIdentifier = getTenantIdentifier(db);
@@ -135,6 +139,8 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 
 	@Override
 	public void removeLabel(final String label) {
+
+		db.getCurrentTransaction().queryResultCache.clear();
 
 		final SessionTransaction tx   = db.getCurrentTransaction();
 		final Map<String, Object> map = new HashMap<>();

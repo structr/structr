@@ -18,14 +18,9 @@
  */
 package org.structr.bolt;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.LinkedList;
 import org.apache.commons.lang.StringUtils;
+
+import java.util.*;
 
 /**
  * A tree-based hierarchical cache implementation.
@@ -33,7 +28,9 @@ import org.apache.commons.lang.StringUtils;
  */
 public class TreeCache<T extends Comparable> {
 
-	private final TreeCacheNode root = new TreeCacheNode("root");
+	private final TreeCacheNode root               = new TreeCacheNode("root");
+	private final Map<String, String[]> splitCache = new HashMap<>();
+
 	private final String keyPartSeparator;
 	private final long nodeId;
 
@@ -74,7 +71,15 @@ public class TreeCache<T extends Comparable> {
 
 	// ----- private methods -----
 	private String[] split(final String key) {
-		return StringUtils.split(key, keyPartSeparator);
+
+		String[] cached = splitCache.get(key);
+		if (cached == null) {
+
+			cached = StringUtils.split(key, keyPartSeparator);
+			splitCache.put(key, cached);
+		}
+
+		return cached;
 	}
 
 	private String serialize() {
@@ -108,7 +113,7 @@ public class TreeCache<T extends Comparable> {
 	// ----- nested classes -----
 	private class TreeCacheNode<T extends Comparable> {
 
-		private final Map<String, TreeCacheNode> children = new LinkedHashMap<>();
+		private final Map<String, TreeCacheNode> children = new HashMap<>();
 		private final Set<T> data                         = new TreeSet<>();
 		private final String key;
 

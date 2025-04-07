@@ -21,7 +21,6 @@ package org.structr.test;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import io.restassured.RestAssured;
-import io.restassured.filter.log.RequestLoggingFilter;
 import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
@@ -35,12 +34,10 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.AbstractSchemaNodeTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
-import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
-import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.FileHelper;
 import org.testng.annotations.Test;
 
@@ -54,7 +51,7 @@ import static org.testng.AssertJUnit.fail;
 
 /**
  */
-public class CsvImportTest extends StructrUiTest {
+public class CsvImportTest extends CsvTestBase {
 
 	@Test
 	public void testCsvFileImportNoQuotes() {
@@ -120,9 +117,6 @@ public class CsvImportTest extends StructrUiTest {
 			.contentType("application/json; charset=UTF-8")
 			.header(X_USER_HEADER,     ADMIN_USERNAME)
 			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
-			.filter(RequestLoggingFilter.logRequestTo(System.out))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
@@ -245,8 +239,6 @@ public class CsvImportTest extends StructrUiTest {
 			.contentType("application/json; charset=UTF-8")
 			.header(X_USER_HEADER,     ADMIN_USERNAME)
 			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
-			.filter(RequestLoggingFilter.logRequestTo(System.out))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
@@ -370,8 +362,6 @@ public class CsvImportTest extends StructrUiTest {
 			.contentType("application/json; charset=UTF-8")
 			.header(X_USER_HEADER,     ADMIN_USERNAME)
 			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
-			.filter(RequestLoggingFilter.logRequestTo(System.out))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
@@ -495,8 +485,6 @@ public class CsvImportTest extends StructrUiTest {
 			.contentType("application/json; charset=UTF-8")
 			.header(X_USER_HEADER,     ADMIN_USERNAME)
 			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
-			.filter(RequestLoggingFilter.logRequestTo(System.out))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
@@ -671,5 +659,134 @@ public class CsvImportTest extends StructrUiTest {
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
+	}
+
+	@Test
+	public void testCsvImportViaServlet() {
+
+		createAdminUser();
+
+		try (final Tx tx = app.tx()) {
+
+			// create new type
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			schema.addType("Project");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		RestAssured.basePath = "/";
+
+		RestAssured.given()
+			.header(X_USER_HEADER,     ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.body(CsvImportTest.class.getResourceAsStream("/test/projects.csv"))
+			.expect().statusCode(201).when().post("/structr/csv/Project");
+
+		RestAssured.basePath = "/structr/rest";
+
+		// wait for async import..
+		try { Thread.sleep(2000); } catch (Throwable t) {}
+
+		// check imported data for correct import
+		try (final Tx tx = app.tx()) {
+
+			final List<NodeInterface> projects  = app.nodeQuery("Project").sort(Traits.of("Project").key("name")).getAsList();
+
+			assertEquals("Invalid number of imported projects via CSV", 3, projects.size());
+			assertEquals("Name of project not imported correctly", "dr",   projects.get(0).getName());
+			assertEquals("Name of project not imported correctly", "eins", projects.get(1).getName());
+			assertEquals("Name of project not imported correctly", "zw",   projects.get(2).getName());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void testCsvExportViaServlet() {
+
+		final List<String> ids = new LinkedList<>();
+
+		createAdminUser();
+
+		try (final Tx tx = app.tx()) {
+
+			// create new type
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			schema.addType("Project");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// check imported data for correct import
+		try (final Tx tx = app.tx()) {
+
+			ids.add(app.create("Project", "Project #1").getUuid());
+			ids.add(app.create("Project", "Project #2").getUuid());
+			ids.add(app.create("Project", "Project #3").getUuid());
+			ids.add(app.create("Project", "Project #4").getUuid());
+			ids.add(app.create("Project", "Project #5").getUuid());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		RestAssured.basePath = "/";
+
+		final String actual = RestAssured.given()
+			.header(X_USER_HEADER,     ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.expect().statusCode(200)
+			.contentType("text/csv")
+			.when().get("/structr/csv/Project?_sort=name").asString();
+
+		String expected = "\"id\";\"type\";\"name\"\r\n";
+
+		expected += "\"" + ids.get(0) + "\";\"Project\";\"Project #1\"\r\n";
+		expected += "\"" + ids.get(1) + "\";\"Project\";\"Project #2\"\r\n";
+		expected += "\"" + ids.get(2) + "\";\"Project\";\"Project #3\"\r\n";
+		expected += "\"" + ids.get(3) + "\";\"Project\";\"Project #4\"\r\n";
+		expected += "\"" + ids.get(4) + "\";\"Project\";\"Project #5\"\r\n";
+
+		assertEquals("Invalid CSV export result", expected, actual);
+
+		RestAssured.basePath = "/structr/rest";
 	}
 }

@@ -34,11 +34,8 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
 
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -50,9 +47,9 @@ public class GraphObjectGSONAdapter {
 	private static final Logger logger                   = LoggerFactory.getLogger(GraphObjectGSONAdapter.class.getName());
 	private static final long MAX_SERIALIZATION_TIME     = TimeUnit.SECONDS.toMillis(30);
 
-	private final Map<String, Serializer> serializerCache = new LinkedHashMap<>(100);
-	private final Map<String, Serializer> serializers     = new LinkedHashMap<>();
-	private final Set<String> nonSerializerClasses        = new LinkedHashSet<>();
+	private final Map<String, Serializer> serializerCache = new HashMap<>(100);
+	private final Map<String, Serializer> serializers     = new HashMap<>();
+	private final Set<String> nonSerializerClasses        = new HashSet<>();
 	private final Serializer<GraphObject> root            = new RootSerializer();
 	private int outputNestingDepth                        = 3;
 	private SecurityContext securityContext               = null;

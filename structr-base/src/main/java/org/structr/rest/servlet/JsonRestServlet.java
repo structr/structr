@@ -63,9 +63,7 @@ import java.util.*;
  */
 public class JsonRestServlet extends AbstractDataServlet {
 
-	private static final Logger logger                  = LoggerFactory.getLogger(JsonRestServlet.class.getName());
-	public static final int DEFAULT_VALUE_PAGE_SIZE     = 20;
-	public static final String DEFAULT_VALUE_SORT_ORDER = "asc";
+	private static final Logger logger = LoggerFactory.getLogger(JsonRestServlet.class.getName());
 
 	// ----- protected methods -----
 	@Override
@@ -81,7 +79,6 @@ public class JsonRestServlet extends AbstractDataServlet {
 		super.service(request, resp);
 	}
 
-	// ----- interface Feature -----
 	@Override
 	public String getModuleName() {
 		return "rest";

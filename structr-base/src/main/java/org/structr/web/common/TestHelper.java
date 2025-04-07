@@ -28,17 +28,13 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.*;
+import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 import java.util.Map.Entry;
-import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
-import org.structr.core.traits.definitions.LocalizationTraitDefinition;
-import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
-import org.structr.core.traits.definitions.PrincipalTraitDefinition;
-import org.structr.core.traits.definitions.ResourceAccessTraitDefinition;
-import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
 
 /**
  */
@@ -46,7 +42,7 @@ public class TestHelper {
 
 	public static void testViews(final App app, final InputStream specificationSource, final Map<String, List<String>> additionalRequiredAttributes) {
 
-		final Set<String> useLowercaseNameForTypes           = Set.of(StructrTraits.SCHEMA_METHOD);
+		final Set<String> useLowercaseNameForTypes           = Set.of(StructrTraits.SCHEMA_METHOD, StructrTraits.SCHEMA_PROPERTY);
 		final Map<String, Map<String, List<String>>> viewMap = new LinkedHashMap<>();
 		final Map<String, List<String>> requiredAttributes   = new LinkedHashMap<>();
 		final Map<String, List<String>> baseMap              = new LinkedHashMap<>();
@@ -64,6 +60,7 @@ public class TestHelper {
 		requiredAttributes.put(StructrTraits.DYNAMIC_RESOURCE_ACCESS, Arrays.asList(ResourceAccessTraitDefinition.SIGNATURE_PROPERTY, "i:" + ResourceAccessTraitDefinition.FLAGS_PROPERTY));
 		requiredAttributes.put(StructrTraits.LOCALIZATION,            Arrays.asList(LocalizationTraitDefinition.LOCALE_PROPERTY));
 		requiredAttributes.put(StructrTraits.RESOURCE_ACCESS,         Arrays.asList(ResourceAccessTraitDefinition.SIGNATURE_PROPERTY, "i:" + ResourceAccessTraitDefinition.FLAGS_PROPERTY));
+		requiredAttributes.put(StructrTraits.SCHEMA_RELATIONSHIP_NODE, Arrays.asList(SchemaRelationshipNodeTraitDefinition.RELATIONSHIP_TYPE_PROPERTY, SchemaRelationshipNodeTraitDefinition.SOURCE_TYPE_PROPERTY, SchemaRelationshipNodeTraitDefinition.TARGET_TYPE_PROPERTY));
 
 		// insert required attributes specified by test class
 		if (additionalRequiredAttributes != null) {

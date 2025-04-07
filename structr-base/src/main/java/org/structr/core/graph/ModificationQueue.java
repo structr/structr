@@ -50,22 +50,23 @@ public class ModificationQueue {
 
 	private static final Logger logger = LoggerFactory.getLogger(ModificationQueue.class.getName());
 
-	private final ConcurrentSkipListMap<String, GraphObjectModificationState> modifications = new ConcurrentSkipListMap<>();
-	private final Collection<ModificationEvent> modificationEvents                          = new ArrayDeque<>(1000);
-	private final Map<String, TransactionPostProcess> postProcesses                         = new LinkedHashMap<>();
-	private final Set<String> alreadyPropagated                                             = new LinkedHashSet<>();
-	private final Set<Long> ids                                                             = new LinkedHashSet<>();
-	private final Set<String> synchronizationKeys                                           = new TreeSet<>();
-	private boolean doUpateChangelogIfEnabled                                               = true;
-	private boolean transactionWasSuccessful                                                = false;
-	private CallbackCounter counter                                                         = null;
-	private boolean hasChanges                                                              = false;
-	private long changelogUpdateTime                                                        = 0L;
-	private long outerCallbacksTime                                                         = 0L;
-	private long innerCallbacksTime                                                         = 0L;
-	private long postProcessingTime                                                         = 0L;
-	private long validationTime                                                             = 0L;
-	private long indexingTime                                                               = 0L;
+	private final ConcurrentSkipListMap<Long, GraphObjectModificationState> nodeModifications   = new ConcurrentSkipListMap<>();
+	private final ConcurrentSkipListMap<Long, GraphObjectModificationState> relModifications    = new ConcurrentSkipListMap<>();
+	private final Collection<ModificationEvent> modificationEvents                              = new ArrayDeque<>(1000);
+	private final Map<String, TransactionPostProcess> postProcesses                             = new LinkedHashMap<>();
+	private final Set<String> alreadyPropagated                                                 = new LinkedHashSet<>();
+	private final Set<Long> ids                                                                 = new LinkedHashSet<>();
+	private final Set<String> synchronizationKeys                                               = new TreeSet<>();
+	private boolean doUpateChangelogIfEnabled                                                   = true;
+	private boolean transactionWasSuccessful                                                    = false;
+	private CallbackCounter counter                                                             = null;
+	private boolean hasChanges                                                                  = false;
+	private long changelogUpdateTime                                                            = 0L;
+	private long outerCallbacksTime                                                             = 0L;
+	private long innerCallbacksTime                                                             = 0L;
+	private long postProcessingTime                                                             = 0L;
+	private long validationTime                                                                 = 0L;
+	private long indexingTime                                                                   = 0L;
 
 	public ModificationQueue(final long transactionId, final String threadName) {
 		this.counter = new CallbackCounter(logger, transactionId, threadName);
@@ -82,7 +83,7 @@ public class ModificationQueue {
 	}
 
 	public int getSize() {
-		return modifications.size();
+		return nodeModifications.size() + relModifications.size();
 	}
 
 	public boolean doInnerCallbacks(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
@@ -111,7 +112,7 @@ public class ModificationQueue {
 
 		innerCallbacksTime = System.currentTimeMillis() - t0;
 		if (innerCallbacksTime > 1000) {
-			logger.info("{} ms ({} modifications)", innerCallbacksTime, modifications.size());
+			logger.info("{} ms ({} modifications)", innerCallbacksTime, getSize());
 		}
 
 		return true;
@@ -138,7 +139,7 @@ public class ModificationQueue {
 		long t = System.currentTimeMillis() - t0;
 		if (t > 1000) {
 
-			logger.info("doValidation: {} ms ({} modifications)   ({} ms validation - {} ms indexing)", t, modifications.size(), validationTime, indexingTime);
+			logger.info("doValidation: {} ms ({} modifications)   ({} ms validation - {} ms indexing)", t, getSize(), validationTime, indexingTime);
 		}
 
 		return true;
@@ -168,13 +169,18 @@ public class ModificationQueue {
 		long t0 = System.currentTimeMillis();
 
 		// copy modifications, do after transaction callbacks
-		for (GraphObjectModificationState state : modifications.values()) {
+		for (GraphObjectModificationState state : nodeModifications.values()) {
+			state.doOuterCallback(securityContext, counter);
+		}
+
+		// copy modifications, do after transaction callbacks
+		for (GraphObjectModificationState state : relModifications.values()) {
 			state.doOuterCallback(securityContext, counter);
 		}
 
 		outerCallbacksTime = System.currentTimeMillis() - t0;
 		if (outerCallbacksTime > 3000) {
-			logger.info("doOutCallbacks: {} ms ({} modifications)", outerCallbacksTime, modifications.size());
+			logger.info("doOutCallbacks: {} ms ({} modifications)", outerCallbacksTime, getSize());
 		}
 	}
 
@@ -235,7 +241,8 @@ public class ModificationQueue {
 
 		// clear collections afterwards
 		alreadyPropagated.clear();
-		modifications.clear();
+		nodeModifications.clear();
+		relModifications.clear();
 		modificationEvents.clear();
 		ids.clear();
 	}
@@ -365,7 +372,7 @@ public class ModificationQueue {
 
 	public boolean isDeleted(final Node node) {
 
-		final GraphObjectModificationState state = modifications.get(hash(node));
+		final GraphObjectModificationState state = nodeModifications.get(hash(node));
 		if (state != null) {
 
 			return state.isDeleted() || state.isPassivelyDeleted();
@@ -376,7 +383,7 @@ public class ModificationQueue {
 
 	public boolean isDeleted(final Relationship rel) {
 
-		final GraphObjectModificationState state = modifications.get(hash(rel));
+		final GraphObjectModificationState state = relModifications.get(hash(rel));
 		if (state != null) {
 
 			return state.isDeleted() || state.isPassivelyDeleted();
@@ -580,13 +587,13 @@ public class ModificationQueue {
 
 	private GraphObjectModificationState getState(final NodeInterface node, final boolean checkPropagation) {
 
-		String hash = hash(node.getNode());
-		GraphObjectModificationState state = modifications.get(hash);
+		long hash = hash(node.getNode());
+		GraphObjectModificationState state = nodeModifications.get(hash);
 
 		if (state == null && !(checkPropagation && alreadyPropagated.contains(hash))) {
 
 			state = new GraphObjectModificationState(node);
-			modifications.put(hash, state);
+			nodeModifications.put(hash, state);
 			modificationEvents.add(state);
 		}
 
@@ -599,30 +606,33 @@ public class ModificationQueue {
 
 	private GraphObjectModificationState getState(final RelationshipInterface rel, final boolean create) {
 
-		String hash = hash(rel.getRelationship());
-		GraphObjectModificationState state = modifications.get(hash);
+		long hash = hash(rel.getRelationship());
+		GraphObjectModificationState state = relModifications.get(hash);
 
 		if (state == null && create) {
 
 			state = new GraphObjectModificationState(rel);
-			modifications.put(hash, state);
+			relModifications.put(hash, state);
 			modificationEvents.add(state);
 		}
 
 		return state;
 	}
 
-	private String hash(final Node node) {
-		return "N" + node.getId();
+	private long hash(final Node node) {
+		return node.getId().getId();
 	}
 
-	private String hash(final Relationship rel) {
-		return "R" + rel.getId();
+	private long hash(final Relationship rel) {
+		return rel.getId().getId();
 	}
 
 	private List<GraphObjectModificationState> getSortedModifications() {
 
-		final List<GraphObjectModificationState> state = new LinkedList<>(modifications.values());
+		final List<GraphObjectModificationState> state = new LinkedList<>();
+
+		state.addAll(nodeModifications.values());
+		state.addAll(relModifications.values());
 
 		Collections.sort(state, (a, b) -> {
 

@@ -110,7 +110,9 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 					final PropertyKey<String> nameKey              = traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 					boolean valid                                  = true;
 
-					valid &= ValidationHelper.isValidStringMatchingRegex(obj, nameKey, SchemaMethod.schemaMethodNamePattern, errorBuffer);
+					valid &= ValidationHelper.isValidStringMatchingRegex(obj, nameKey, SchemaMethod.schemaMethodNamePattern,
+						"Method name must match the following pattern: '" + SchemaMethod.schemaMethodNamePattern + "', which means it must start with a lowercase letter and may only contain letters, numbers and underscores.",
+						errorBuffer);
 
 					final Set<String> propertyViews = schemaNode != null ? schemaNode.getViewNames() : Set.of();
 					final String thisMethodName     = method.getName();

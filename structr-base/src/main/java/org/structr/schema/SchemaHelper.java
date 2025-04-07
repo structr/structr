@@ -27,7 +27,6 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
 import org.structr.common.helper.CaseHelper;
-import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation;
@@ -51,7 +50,7 @@ import java.util.*;
 public class SchemaHelper {
 
 	private static final Logger logger                                 = LoggerFactory.getLogger(SchemaHelper.class.getName());
-	private static final Map<String, String> normalizedEntityNameCache = new LinkedHashMap<>();
+	private static final Map<String, String> normalizedEntityNameCache = new HashMap<>();
 	private static final String WORD_SEPARATOR                         = "_";
 
 	public static final Map<Type, PropertyGeneratorFactory> generatorMap = new TreeMap<>(new ReverseTypeComparator());

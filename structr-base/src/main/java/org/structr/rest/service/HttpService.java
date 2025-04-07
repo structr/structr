@@ -84,7 +84,7 @@ public class HttpService implements RunnableService, StatsCallback {
 		Started, Stopped
 	}
 
-	private final Map<String, Map<String, Stats>> stats = new LinkedHashMap<>();
+	private final Map<String, Map<String, Stats>> stats = new HashMap<>();
 	private SslContextFactory.Server sslContextFactory  = null;
 	private DefaultSessionCache sessionCache            = null;
 	private GzipHandler gzipHandler                     = null;
@@ -763,7 +763,7 @@ public class HttpService implements RunnableService, StatsCallback {
 		Map<String, Stats> map = stats.get(key);
 		if (map == null) {
 
-			map = new LinkedHashMap<>();
+			map = new HashMap<>();
 			stats.put(key, map);
 		}
 

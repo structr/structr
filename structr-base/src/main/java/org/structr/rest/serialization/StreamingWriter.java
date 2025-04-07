@@ -19,8 +19,6 @@
 package org.structr.rest.serialization;
 
 import jakarta.servlet.http.HttpServletRequest;
-import org.apache.commons.collections4.ListUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.eclipse.jetty.io.QuietException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,17 +30,14 @@ import org.structr.common.RequestKeywords;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
-import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
 import org.structr.schema.Schema;
 
 import java.io.IOException;
-import java.io.StringWriter;
 import java.io.Writer;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -50,9 +45,6 @@ import java.text.SimpleDateFormat;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 /**
  *
@@ -60,13 +52,25 @@ import java.util.concurrent.Future;
  */
 public abstract class StreamingWriter {
 
-	private static final Logger logger                   = LoggerFactory.getLogger(StreamingWriter.class.getName());
+	private static final Logger logger                       = LoggerFactory.getLogger(StreamingWriter.class.getName());
+	private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(Settings.JsonOuputDateFormat.getValue("yyyy-MM-dd'T'HH:mm:ssZ"), Locale.ENGLISH);
 
-	private final ExecutorService threadPool              = Executors.newWorkStealingPool();
-	private final Map<String, Serializer> serializerCache = new LinkedHashMap<>();
-	private final Map<String, Serializer> serializers     = new LinkedHashMap<>();
+	private static final Set<String> nonSerializerClasses = Set.of(
+		Object.class.getName(),
+		String.class.getName(),
+		Integer.class.getName(),
+		Long.class.getName(),
+		Double.class.getName(),
+		Float.class.getName(),
+		Byte.class.getName(),
+		Character.class.getName(),
+		StringBuffer.class.getName(),
+		Boolean.class.getName()
+	);
+
+	private final Map<String, Serializer> serializerCache = new HashMap<>();
+	private final Map<String, Serializer> serializers     = new HashMap<>();
 	private final Serializer<GraphObject> root            = new RootSerializer();
-	private final Set<String> nonSerializerClasses        = new LinkedHashSet<>();
 	private final DecimalFormat decimalFormat             = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 	private String resultKeyName                          = "result";
 	private boolean serializeNulls                        = true;
@@ -78,7 +82,6 @@ public abstract class StreamingWriter {
 	protected boolean wrapSingleResultInArray             = false;
 	private int skippedDeletedObjects                     = 0;
 	private Integer overriddenResultCount                 = null;
-	private DateTimeFormatter dateTimeFormatter           = null;
 
 	private boolean reduceNestedObjectsForRestrictedViews = true;
 	private int reduceNestedObjectsInRestrictedViewsDepth = Settings.JsonReduceNestedObjectsDepth.getValue();
@@ -87,7 +90,6 @@ public abstract class StreamingWriter {
 
 	public StreamingWriter(final String propertyView, final boolean indent, final int outputNestingDepth, final boolean wrapSingleResultInArray, final boolean serializeNulls) {
 
-		this.dateTimeFormatter       = DateTimeFormatter.ofPattern(Settings.JsonOuputDateFormat.getValue("yyyy-MM-dd'T'HH:mm:ssZ"), Locale.ENGLISH);
 		this.wrapSingleResultInArray = wrapSingleResultInArray;
 		this.serializeNulls          = serializeNulls;
 		this.reduceRedundancy        = Settings.JsonRedundancyReduction.getValue(true);
@@ -100,21 +102,11 @@ public abstract class StreamingWriter {
 		serializers.put(Iterable.class.getName(),    new IterableSerializer());
 		serializers.put(Map.class.getName(),         new MapSerializer());
 
-		nonSerializerClasses.add(Object.class.getName());
-		nonSerializerClasses.add(String.class.getName());
-		nonSerializerClasses.add(Integer.class.getName());
-		nonSerializerClasses.add(Long.class.getName());
-		nonSerializerClasses.add(Double.class.getName());
-		nonSerializerClasses.add(Float.class.getName());
-		nonSerializerClasses.add(Byte.class.getName());
-		nonSerializerClasses.add(Character.class.getName());
-		nonSerializerClasses.add(StringBuffer.class.getName());
-		nonSerializerClasses.add(Boolean.class.getName());
 	}
 
 	public void streamSingle(final SecurityContext securityContext, final Writer output, final GraphObject obj) throws IOException {
 
-		final Set<Integer> visitedObjects = new LinkedHashSet<>();
+		final Set<Integer> visitedObjects = new HashSet<>();
 		final RestWriter writer           = getRestWriter(securityContext, output);
 
 		configureWriter(writer);
@@ -141,7 +133,7 @@ public abstract class StreamingWriter {
 		setReduceNestedObjectsInRestrictedViewsDepth(securityContext);
 
 		// result fields in alphabetical order
-		final Set<Integer> visitedObjects = new LinkedHashSet<>();
+		final Set<Integer> visitedObjects = new HashSet<>();
 		final String queryTime            = result.getQueryTime();
 		final Integer page                = result.getPage();
 		final Integer pageSize            = result.getPageSize();
@@ -248,8 +240,6 @@ public abstract class StreamingWriter {
 		}
 
 		rootWriter.endDocument();
-
-		threadPool.shutdown();
 	}
 
 	public void setResultKeyName(final String resultKeyName) {
@@ -631,69 +621,6 @@ public abstract class StreamingWriter {
 			writer.endObject();
 
 			return count;
-		}
-	}
-
-	// ----- private methods -----
-	private void doParallel(final List list, final RestWriter parentWriter, final Set<Integer> visitedObjects, final Operation op) {
-
-		final SecurityContext securityContext = parentWriter.getSecurityContext();
-		final int numberOfPartitions          = (int)Math.rint(Math.log(list.size())) + 1;
-		final List<List> partitions           = ListUtils.partition(list, numberOfPartitions);
-		final List<Future<String>> futures    = new LinkedList<>();
-
-		for (final List partition : partitions) {
-
-			futures.add(threadPool.submit(() -> {
-
-				final StringWriter buffer = new StringWriter();
-
-				// avoid deadlocks by preventing writes in this transaction
-				securityContext.setReadOnlyTransaction();
-
-				try (final Tx tx = StructrApp.getInstance(securityContext).tx(false, false, false)) {
-
-					final RestWriter bufferingRestWriter = getRestWriter(securityContext, buffer);
-					final Set<Integer> nestedObjects     = new LinkedHashSet<>(visitedObjects);
-					configureWriter(bufferingRestWriter);
-
-					bufferingRestWriter.beginArray();
-
-					for (final Object o : partition) {
-
-						op.run(bufferingRestWriter, o, nestedObjects);
-					}
-
-					bufferingRestWriter.endArray();
-					bufferingRestWriter.flush();
-
-					tx.success();
-				}
-
-				final String data = buffer.toString();
-				final String sub  = data.substring(1, data.length() - 1);
-
-				return sub;
-
-			}));
-		}
-
-		for (final Iterator<Future<String>> it = futures.iterator(); it.hasNext();) {
-
-			try {
-
-				final Future<String> future = it.next();
-				final String raw            = future.get();
-
-				parentWriter.raw(raw);
-
-				if (it.hasNext()) {
-					parentWriter.raw(",");
-				}
-
-			} catch (Throwable t) {
-				logger.error(ExceptionUtils.getStackTrace(t));
-			}
 		}
 	}
 

@@ -135,7 +135,9 @@ public class AbstractFileTraitDefinition extends AbstractNodeTraitDefinition {
 					boolean valid = true;
 
 					// validations that are stored in the format attribute of a property must be implemented in IsValid, manually!
-					valid &= ValidationHelper.isValidStringMatchingRegex(obj, nameKey, "[^\\/\\x00]+", errorBuffer);
+					valid &= ValidationHelper.isValidStringMatchingRegex(obj, nameKey, "[^\\/\\x00]+",
+						"File and folder names may not contain the slash character (/).",
+						errorBuffer);
 					valid &= ValidationHelper.isValidPropertyNotNull(obj, nameKey, errorBuffer);
 
 					return valid;

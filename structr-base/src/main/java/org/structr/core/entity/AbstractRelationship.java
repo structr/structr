@@ -39,7 +39,7 @@ import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -108,7 +108,7 @@ public final class AbstractRelationship extends AbstractGraphObject<Relationship
 	@Override
 	public PropertyMap getProperties() throws FrameworkException {
 
-		Map<String, Object> properties = new LinkedHashMap<>();
+		Map<String, Object> properties = new HashMap<>();
 
 		for (String key : getRelationship().getPropertyKeys()) {
 

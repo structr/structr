@@ -64,7 +64,10 @@ import org.structr.web.servlet.HtmlServlet;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -74,11 +77,12 @@ public class UiAuthenticator implements Authenticator {
 
 	private static final Logger logger = LoggerFactory.getLogger(UiAuthenticator.class.getName());
 
+	private static final Map<String, Map<String,String[]>> stateParameters = new HashMap<>();
+	private static final Map<String, Method> methods                       = new HashMap();
+
 	protected boolean examined = false;
 
 	private enum Method { GET, PUT, POST, DELETE, HEAD, OPTIONS, PATCH }
-	private static final Map<String, Method> methods = new LinkedHashMap();
-	private static final Map<String, Map<String,String[]>> stateParameters = new LinkedHashMap<>();
 
 	// HTTP methods
 	static {
