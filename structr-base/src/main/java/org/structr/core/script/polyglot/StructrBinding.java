@@ -30,6 +30,7 @@ import org.structr.core.Services;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Methods;
 import org.structr.core.function.Functions;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.script.polyglot.function.*;
 import org.structr.core.script.polyglot.wrappers.*;
 import org.structr.core.traits.Traits;
@@ -140,7 +141,7 @@ public class StructrBinding implements ProxyObject {
 
 				// TODO: remove in first stable release after 6.0
 				final String deprecationWarning = "Using deprecated \"$.globalSchemaMethods\" to call a user-defined function, please call it using \"$.\" directly. Support for this will be dropped in the near future.";
-//				TransactionCommand.simpleBroadcastWarning("Deprecation warning", deprecationWarning, null);
+				TransactionCommand.simpleBroadcastDeprecationWarning("SCRIPTING", "Deprecation warning", deprecationWarning);
 				logger.warn(deprecationWarning);
 
 				return new UserDefinedFunctionWrapper(actionContext);
