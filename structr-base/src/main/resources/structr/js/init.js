@@ -1740,10 +1740,14 @@ let Structr = {
 
 								builder.allowConfirmAll().show();
 							});
+
 						} else {
+
 							builder.allowConfirmAll().show();
 						}
+
 					} else {
+
 						builder.allowConfirmAll().show();
 					}
 				}
@@ -3034,18 +3038,6 @@ let UISettings = {
 					defaultValue: false,
 					type: 'checkbox',
 					onUpdate: () => {
-					}
-				},
-				showJavaMethodsForBuiltInTypes: {
-					text: 'Show Java methods for built-in types',
-					storageKey: 'structrShowJavaMethods_' + location.port,
-					defaultValue: false,
-					type: 'checkbox',
-					infoText: 'Advanced Feature: Shows built-in Java methods but changes are not possible',
-					onUpdate: () => {
-						if (Structr.isModuleActive(_Code)) {
-							_Code.codeTree.jstree().refresh();
-						}
 					}
 				}
 			}

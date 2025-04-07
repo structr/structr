@@ -685,6 +685,31 @@
                     <shortRevisionLength>5</shortRevisionLength>
                 </configuration>
             </plugin>
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>replace-placeholder</id>
+                        <phase>generate-resources</phase>
+                        <configuration>
+                            <target>
+                                <delete file="src/main/resources/structr/index.html" />
+
+                                <copy   file="src/main/resources/structr/index.template.html"
+                                      tofile="src/main/resources/structr/index.html" />
+
+                                <replace file="src/main/resources/structr/index.html"
+                                         token="@buildNumber@"
+                                         value="${buildNumber}" />
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
 
         <!-- Added to make m2e happy, thanks to http://stackoverflow.com/questions/8706017/maven-dependency-plugin-goals-copy-dependencies-unpack-is-not-supported-b -->

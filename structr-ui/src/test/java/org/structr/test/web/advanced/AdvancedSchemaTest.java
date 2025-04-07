@@ -29,6 +29,7 @@ import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
+import org.structr.core.entity.Group;
 import org.structr.core.function.TypeInfoFunction;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
@@ -39,18 +40,17 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.AbstractSchemaNodeTraitDefinition;
-import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
-import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
-import org.structr.core.traits.definitions.SchemaNodeTraitDefinition;
-import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
-import org.structr.core.traits.definitions.SchemaViewTraitDefinition;
+import org.structr.core.traits.definitions.*;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.basic.FrontendTest;
 import org.structr.test.web.basic.ResourceAccessTest;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.entity.File;
+import org.structr.web.entity.User;
+import org.structr.web.entity.dom.Content;
+import org.structr.web.entity.dom.DOMElement;
+import org.structr.web.entity.dom.Page;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -1332,7 +1332,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 			);
 
 			// we do not even set "isStatic = true" because the backend should do this automatically for service classes
-			final NodeInterface method = app.create(StructrTraits.SCHEMA_METHOD,
+			app.create(StructrTraits.SCHEMA_METHOD,
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), serviceMethodName),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "{ return 'did stuff'; }"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY), node)
@@ -1372,34 +1372,211 @@ public class AdvancedSchemaTest extends FrontendTest {
 			fail("Unexpected exception");
 		}
 
+		RestAssured
+
+			.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
+
+			.expect()
+			.statusCode(200)
+
+			.body("result",	equalTo("did stuff"))
+
+			.when()
+			.post("/" + serviceClassName + "/" + serviceMethodName);
+	}
+
+	@Test
+	public void testMultipleInheritance() {
+
+		String id = null;
+
+		// create a type that inherits from different base types
 		try (final Tx tx = app.tx()) {
 
-			RestAssured
+			createAdminUser();
 
-					.given()
-					.contentType("application/json; charset=UTF-8")
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-					.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType type     = schema.addType("Multi");
 
-					.expect()
-					.statusCode(200)
+			type.addTrait("Group");
+			type.addTrait("Page");
 
-					.body("result",	equalTo("did stuff"))
-
-					.when()
-					.post("/" + serviceClassName + "/" + serviceMethodName);
+			StructrSchema.extendDatabaseSchema(app, schema);
 
 			tx.success();
 
-		} catch (FrameworkException ex) {
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
 
-			logger.error(ex.toString());
-			fail("Unexpected exception");
+		// create a type that inherits from three different base types
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface node = app.create("Multi", "MultiTest");
+
+			id = node.getUuid();
+
+			// it's a page
+			final Page page       = node.as(Page.class);
+			final DOMElement html = page.createElement("html");
+			final DOMElement head = page.createElement("head");
+			final DOMElement body = page.createElement("body");
+			final DOMElement div  = page.createElement("div");
+			final DOMElement h1   = page.createElement("h1");
+			final Content text    = page.createTextNode("Hello world, I'm a page!");
+
+			page.appendChild(html);
+			html.appendChild(head);
+			html.appendChild(body);
+			body.appendChild(div);
+			div.appendChild(h1);
+			h1.appendChild(text);
+
+			// and it's a group
+			final Group group = node.as(Group.class);
+			final User admin  = app.nodeQuery("User").andName("admin").getFirst().as(User.class);
+
+			group.addMember(securityContext, admin);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		RestAssured.basePath = "/structr/rest";
+
+		// test that the type has all traits
+		RestAssured
+
+			.given()
+			.contentType("application/json; charset=UTF-8")
+			.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
+
+			.expect()
+			.statusCode(200)
+
+			.body("result[0].id",      equalTo(id))
+			.body("result[0].name",    equalTo("MultiTest"))
+			.body("result[0].isPage",  equalTo(true))
+			.body("result[0].isGroup", equalTo(true))
+
+			.when()
+			.get("/Multi");
+
+		// test that we can find it by type
+		RestAssured
+
+			.given()
+			.contentType("application/json; charset=UTF-8")
+			.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
+			.filter(ResponseLoggingFilter.logResponseTo(System.out))
+			.expect()
+			.statusCode(200)
+
+			.body("result[0].id",      equalTo(id))
+			.body("result[0].name",    equalTo("MultiTest"))
+			.body("result[0].isPage",  equalTo(true))
+			.body("result[0].isGroup", equalTo(true))
+
+			.when()
+			.get("/Page");
+
+		// test that we can find it by type
+		RestAssured
+
+			.given()
+			.contentType("application/json; charset=UTF-8")
+			.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
+			.filter(ResponseLoggingFilter.logResponseTo(System.out))
+			.expect()
+			.statusCode(200)
+
+			.body("result[0].id",              equalTo(id))
+			.body("result[0].name",            equalTo("MultiTest"))
+			.body("result[0].isPage",          equalTo(true))
+			.body("result[0].isGroup",         equalTo(true))
+			.body("result[0].members[0].name", equalTo("admin"))
+
+			.when()
+			.get("/Group");
+
+		RestAssured.basePath = "/";
+
+		// test that the new instance is also a page and returns the HTML content
+		final String actual = RestAssured
+
+			.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseTo(System.out))
+			.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
+
+			.expect()
+			.statusCode(200)
+			.when()
+			.get("/MultiTest").asString();
+
+		final String expected = "<!DOCTYPE html>\n" +
+			"<html>\n" +
+			"\t<head></head>\n" +
+			"\t<body>\n" +
+			"\t\t<div>\n" +
+			"\t\t\t<h1>Hello world, I'm a page!</h1>\n" +
+			"\t\t</div>\n" +
+			"\t</body>\n" +
+			"</html>";
+
+		assertEquals("Multiple inheritance Page type did not return correct HTML content", expected, actual);
+
+		// test that the new instance returns the HTML content
+		final String actual2 = RestAssured
+
+			.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseTo(System.out))
+			.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
+
+			.expect()
+			.statusCode(200)
+
+			.when()
+			.get("/" + id).asString();
+
+		assertEquals("Multiple inheritance Page type did not return correct HTML content", expected, actual2);
+	}
+
+	@Test
+	public void testMultipleInheritanceWithClashes() {
+
+		String id = null;
+
+		// create a type that inherits from clashing base types (and we get an error)
+		try (final Tx tx = app.tx()) {
+
+			createAdminUser();
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType type = schema.addType("Multi");
+
+			type.addTrait("File");
+			type.addTrait("Folder");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+			fail("Creating a type that inherits from File AND Folder should throw an error.");
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
 		}
 	}
 }

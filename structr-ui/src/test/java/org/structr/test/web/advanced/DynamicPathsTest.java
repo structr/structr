@@ -385,10 +385,69 @@ public class DynamicPathsTest extends FrontendTest {
 		assertEquals("Path parameters are not available through nested templates!", "one,5", getContent(200, "/structr/html/test1/one/5"));
 	}
 
-	// ----- private methods -----
+	@Test
+	public void test004ShowOnErrorCodeWithPaths() {
+
+		// In this test we create a non-public page with a page path and a login page
+		// with showOnErrorCode 404 so that we can expect to be redirected to the login page.
+
+		// create public page
+		try (final Tx tx = app.tx()) {
+
+			final Page page = Page.createSimplePage(securityContext, "test004");
+			page.setVisibilityRecursively(false, true);
+
+			final Page loginPage = Page.createSimplePage(securityContext, "login");
+			loginPage.setVisibilityRecursively(true, false);
+			loginPage.setProperty(loginPage.getTraits().key(PageTraitDefinition.SHOW_ON_ERROR_CODES_PROPERTY), "401, 404");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		RestAssured.basePath = "/";
+
+		final String expected = "<!DOCTYPE html>\n" +
+			"<html>\n" +
+			"\t<head>\n" +
+			"\t\t<title>Login</title>\n" +
+			"\t</head>\n" +
+			"\t<body>\n" +
+			"\t\t<h1>Login</h1>\n" +
+			"\t\t<div>Initial body text</div>\n" +
+			"\t</body>\n" +
+			"</html>";
+
+
+		// verify that the page is visible
+		assertEquals("Invalid precondition", expected, getPublicContent(404, "/test004/"));
+
+		// now we create a page path and expect the same result
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface page = app.nodeQuery(StructrTraits.PAGE).andName("test004").getFirst();
+
+			app.create(StructrTraits.PAGE_PATH,
+				new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(PagePathTraitDefinition.PAGE_PROPERTY), page),
+				new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "/test004/")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		assertEquals("Existing page path prevents showOnErrorCode redirect!", expected, getPublicContent(404, "/test004/"));
+	}
+
+
+		// ----- private methods -----
 	private ResponseBody getBody(final int statusCode, final String url) {
 
-		final ResponseBody body =  RestAssured
+		final ResponseBody body = RestAssured
 			.given()
 				.contentType("application/json; charset=UTF-8")
 				.header(X_USER_HEADER,     "admin")
@@ -404,5 +463,18 @@ public class DynamicPathsTest extends FrontendTest {
 
 	private String getContent(final int statusCode, final String url) {
 		return getBody(statusCode, url).asString();
+	}
+
+	private String getPublicContent(final int statusCode, final String url) {
+
+		final ResponseBody body = RestAssured
+			.given()
+			.expect()
+			.statusCode(statusCode)
+			.when()
+			.get(url)
+			.andReturn();
+
+		return body.asString();
 	}
 }

@@ -341,7 +341,12 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 			final Object[] array = (Object[]) value;
 
 			for (final Object val : array) {
-				resultArray.add(toJsonPrimitive(val));
+
+				final JsonPrimitive p = toJsonPrimitive(val);
+				if (p != null) {
+
+					resultArray.add(p);
+				}
 			}
 
 			return resultArray;
@@ -349,7 +354,12 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 		} else if (value instanceof Iterable) {
 
 			for (final Object val : (Iterable) value) {
-				resultArray.add(toJsonPrimitive(val));
+
+				final JsonPrimitive p = toJsonPrimitive(val);
+				if (p != null) {
+
+					resultArray.add(p);
+				}
 			}
 
 			return resultArray;
@@ -362,7 +372,7 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 	private JsonPrimitive toJsonPrimitive(final Object value) {
 
-		JsonPrimitive jp;
+		JsonPrimitive jp = null;
 
 		if (value instanceof PropertyKey) {
 
@@ -384,7 +394,7 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 			jp = new JsonPrimitive((Character) value);
 
-		} else {
+		} else if (value != null) {
 
 			jp = new JsonPrimitive(value.toString());
 		}

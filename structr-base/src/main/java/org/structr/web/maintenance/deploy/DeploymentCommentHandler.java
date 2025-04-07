@@ -133,19 +133,17 @@ public class DeploymentCommentHandler implements CommentHandler {
 			node.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.HIDE_FOR_LOCALES_PROPERTY), DOMNode.unescapeForHtmlAttributes(DOMNode.unescapeForHtmlAttributes(parameters)));
 		});
 
-		handlers.put("owner", (final Page page, final DOMNode node, final String parameters) -> {
+		handlers.put("owner", (final Page page, final DOMNode node, final String name) -> {
 
-			final List<NodeInterface> principals = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).andName(parameters).getAsList();
+			final List<NodeInterface> principals = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).andName(name).getAsList();
 
 			if (principals.isEmpty()) {
 
-				logger.warn("Unknown owner! Found no node of type Principal named '{}', ignoring.", parameters);
-				DeployCommand.addMissingPrincipal(parameters);
+				DeployCommand.encounteredMissingPrincipal("Unknown owner", name);
 
 			} else if (principals.size() > 1) {
 
-				logger.warn("Ambiguous owner! Found {} nodes of type Principal named '{}', ignoring.", principals.size(), parameters);
-				DeployCommand.addAmbiguousPrincipal(parameters);
+				DeployCommand.encounteredAmbiguousPrincipal("Ambiguous owner", name, principals.size());
 
 			} else {
 
@@ -162,13 +160,11 @@ public class DeploymentCommentHandler implements CommentHandler {
 
 				if (principals.isEmpty()) {
 
-					logger.warn("Unknown grantee! Found no node of type Principal named '{}', ignoring.", parts[0]);
-					DeployCommand.addMissingPrincipal(parts[0]);
+					DeployCommand.encounteredMissingPrincipal("Unknown grantee", parts[0]);
 
 				} else if (principals.size() > 1) {
 
-					logger.warn("Ambiguous grantee! Found {} nodes of type Principal named '{}', ignoring.", principals.size(), parts[0]);
-					DeployCommand.addAmbiguousPrincipal(parts[0]);
+					DeployCommand.encounteredAmbiguousPrincipal("Ambiguous grantee", parts[0], principals.size());
 
 				} else {
 

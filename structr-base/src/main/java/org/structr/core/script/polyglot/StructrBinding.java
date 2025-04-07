@@ -30,6 +30,7 @@ import org.structr.core.Services;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Methods;
 import org.structr.core.function.Functions;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.script.polyglot.function.*;
 import org.structr.core.script.polyglot.wrappers.*;
 import org.structr.core.traits.Traits;
@@ -137,12 +138,17 @@ public class StructrBinding implements ProxyObject {
 				return new PolyglotProxyMap(actionContext, actionContext.getContextStore().getTemporaryParameters());
 
 			case "globalSchemaMethods":
-				// deprecated, we want user-defined functions in the global scope!
+
+				// TODO: remove in first stable release after 6.0
+				final String deprecationWarning = "Using deprecated \"$.globalSchemaMethods\" to call a user-defined function, please call it using \"$.\" directly. Support for this will be dropped in the near future.";
+				TransactionCommand.simpleBroadcastDeprecationWarning("SCRIPTING", "Deprecation warning", deprecationWarning);
+				logger.warn(deprecationWarning);
+
 				return new UserDefinedFunctionWrapper(actionContext);
 
 			default:
 
-				// look for built-in function with the given name first (because it' fast)
+				// look for built-in function with the given name first (because it is fast)
 				Function<Object, Object> func = Functions.get(CaseHelper.toUnderscore(name, false));
 				if (func != null) {
 

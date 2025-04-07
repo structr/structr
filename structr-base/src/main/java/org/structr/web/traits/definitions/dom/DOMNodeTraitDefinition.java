@@ -584,6 +584,30 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 			}
 		);
 
+		methods.put(
+
+			AvoidWhitespace.class,
+			new AvoidWhitespace() {
+
+				@Override
+				public boolean avoidWhitespace() {
+					return false;
+				}
+			}
+		);
+
+		methods.put(
+
+			IsVoidElement.class,
+			new IsVoidElement() {
+
+				@Override
+				public boolean isVoidElement() {
+					return false;
+				}
+			}
+		);
+
 		return methods;
 	}
 

@@ -36,12 +36,12 @@ import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.path.PagePath;
 import org.structr.web.entity.path.PagePathParameter;
+import org.structr.web.traits.definitions.PagePathParameterTraitDefinition;
+import org.structr.web.traits.definitions.PagePathTraitDefinition;
 
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.structr.web.traits.definitions.PagePathParameterTraitDefinition;
-import org.structr.web.traits.definitions.PagePathTraitDefinition;
 
 /**
  *
@@ -62,6 +62,11 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 		}
 
 		return null;
+	}
+
+	@Override
+	public Integer getPriority() {
+		return wrappedObject.getProperty(traits.key(PagePathTraitDefinition.PRIORITY_PROPERTY));
 	}
 
 	@Override

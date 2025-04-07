@@ -39,7 +39,7 @@ import java.util.Set;
 
 public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 
-	private static final String schemaPropertyNamePattern = "[_A-Za-z][\\-_0-9A-Za-z]*";
+	private static final String schemaPropertyNamePattern = "[a-z][\\-_0-9A-Za-z]*";
 
 	public static final String SCHEMA_NODE_PROPERTY                = "schemaNode";
 	public static final String SCHEMA_VIEWS_PROPERTY               = "schemaViews";
@@ -87,7 +87,10 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 
 				@Override
 				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
-					return ValidationHelper.isValidStringMatchingRegex(obj, Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), schemaPropertyNamePattern, errorBuffer);
+					return ValidationHelper.isValidStringMatchingRegex(obj, Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),
+						schemaPropertyNamePattern,
+						"Property name must match the following pattern: '" + schemaPropertyNamePattern + "', which means it must begin with a lowercase letter and may only contain letters, numbers, underscores and hyphens.",
+						errorBuffer);
 				}
 			}
 		);

@@ -25,11 +25,11 @@ package org.structr.common.error;
  */
 public class MatchToken extends SemanticErrorToken {
 
-	public MatchToken(final String type, final String propertyKey, final String expression, final Object value) {
+	public MatchToken(final String type, final String propertyKey, final String description, final Object value) {
 
 		super(type, propertyKey, "must_match");
 
-		withDetail(expression);
+		withDetail(description);
 		withValue(value);
 	}
 }

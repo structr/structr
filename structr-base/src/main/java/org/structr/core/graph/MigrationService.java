@@ -38,24 +38,17 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
 import org.structr.web.entity.Folder;
-import org.structr.web.entity.StorageConfigurationEntry;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.event.ActionMapping;
-
-import java.util.*;
-import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
-import org.structr.web.traits.definitions.ActionMappingTraitDefinition;
-import org.structr.web.traits.definitions.FolderTraitDefinition;
-import org.structr.web.traits.definitions.ParameterMappingTraitDefinition;
-import org.structr.web.traits.definitions.StorageConfigurationEntryTraitDefinition;
-import org.structr.web.traits.definitions.StorageConfigurationTraitDefinition;
+import org.structr.web.traits.definitions.*;
 import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
 import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
+
+import java.util.*;
 
 public class MigrationService {
 
@@ -239,8 +232,6 @@ public class MigrationService {
 		try (final Tx tx = app.tx()) {
 
 			// check (and fix) principal nodes
-			logger.info("Checking if static schema needs migration..");
-
 			for (final NodeInterface p : app.nodeQuery(StructrTraits.SCHEMA_NODE).getResultStream()) {
 
 				final SchemaNode schemaNode = p.as(SchemaNode.class);
@@ -291,7 +282,6 @@ public class MigrationService {
 		try (final Tx tx = app.tx()) {
 
 			// check (and fix) principal nodes
-			logger.info("Checking if principal nodes need migration..");
 
 			for (final NodeInterface p : app.nodeQuery(StructrTraits.PRINCIPAL).getResultStream()) {
 				p.getNode().addLabels(Set.of(StructrTraits.PRINCIPAL));
@@ -325,8 +315,6 @@ public class MigrationService {
 		try (final Tx tx = app.tx()) {
 
 			// check (and fix) schema relationships
-			logger.info("Checking if event action mapping schema needs migration..");
-
 			for (final String name : relationshipNodeNames) {
 
 				final NodeInterface rel1 = app.nodeQuery(StructrTraits.SCHEMA_RELATIONSHIP_NODE).andName(name).getFirst();
@@ -346,8 +334,6 @@ public class MigrationService {
 		try (final Tx tx = app.tx()) {
 
 			// check (and fix) event action mapping relationships
-			logger.info("Checking if event action mapping relationships need migration..");
-
 			final Traits actionMappingTraits                                          = Traits.of(StructrTraits.ACTION_MAPPING);
 			final PropertyKey<Iterable<NodeInterface>> triggerElementsKey             = actionMappingTraits.key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY);
 			final PropertyKey<Iterable<NodeInterface>> successTargetsKey              = actionMappingTraits.key(ActionMappingTraitDefinition.SUCCESS_TARGETS_PROPERTY);
@@ -436,8 +422,6 @@ public class MigrationService {
 			final PropertyKey<String> eventMappingKey     = domElementTraits.key(DOMElementTraitDefinition.EVENT_MAPPING_PROPERTY);
 
 			// check (and fix if possible) structr-app.js implementations
-			logger.info("Checking for structr-app.js implementations that need migration..");
-
 			for (final NodeInterface elem : app.nodeQuery(StructrTraits.DOM_ELEMENT).and().not().and(actionKey, null).getResultStream()) {
 
 				migrateStructrAppMapping(elem, actionKey.jsonName());
@@ -445,8 +429,6 @@ public class MigrationService {
 			}
 
 			// check (and fix) old event action mappings
-			logger.info("Checking for event mapping implementations that need migration..");
-
 			for (final NodeInterface elem : app.nodeQuery(StructrTraits.DOM_ELEMENT).and().not().and(eventMappingKey, null).getResultStream()) {
 
 				migrateEventMapping(elem, eventMappingKey.jsonName());
@@ -822,15 +804,13 @@ public class MigrationService {
 
 		try (final Tx tx = app.tx()) {
 
-			// check (and fix) event action mapping relationships
-			logger.info("Checking hasSharedComponent flag..");
-
 			// prefetch dom nodes with sync rels
 			tx.prefetch(StructrTraits.DOM_ELEMENT, StructrTraits.DOM_ELEMENT,
 				Set.of("all/INCOMING/SYNC",
 					"all/OUTGOING/SYNC")
 			);
 
+			// check (and fix) event action mapping relationships
 			for (final NodeInterface node : app.nodeQuery(StructrTraits.DOM_ELEMENT).getResultStream()) {
 
 				final DOMElement elem = node.as(DOMElement.class);
@@ -938,8 +918,6 @@ public class MigrationService {
 
 		try (final Tx tx = app.tx()) {
 
-			logger.info("Checking for notion properties that might need migration..");
-
 			for (final NodeInterface property : StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_PROPERTY).and(typeKey, "Notion").getResultStream()) {
 
 				final SchemaProperty schemaProperty = property.as(SchemaProperty.class);
@@ -965,8 +943,6 @@ public class MigrationService {
 		final App app                 = StructrApp.getInstance();
 
 		try (final Tx tx = app.tx()) {
-
-			logger.info("Checking for REST query repeaters that need migration..");
 
 			for (final NodeInterface elem : StructrApp.getInstance().nodeQuery(StructrTraits.DOM_ELEMENT).and().not().and(key, null).getResultStream()) {
 

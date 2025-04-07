@@ -47,6 +47,7 @@ let _Schema = {
 	schemaConnectorStyleKey: '_schema_' + location.port + 'connectorStyle',
 	schemaNodePositionKeySuffix: '_schema_' + location.port + 'node-position',
 	currentNodeDialogId: null,
+	timeoutBecauseSnapshotsCommandReturnsTooEarly: 1000,
 	onload: () => {
 
 		_Code.helpers.preloadAvailableTagsForEntities().then(() => {
@@ -225,11 +226,11 @@ let _Schema = {
 
 		Structr.adaptUiToAvailableFeatures();
 	},
-	showSchemaRecompileMessage: () => {
-		_Dialogs.loadingMessage.show('Schema is compiling', 'Please wait...', 'schema-compilation-message');
+	showUpdatingSchemaMessage: () => {
+		_Dialogs.loadingMessage.show('Updating Schema', 'Please wait...', 'updating-schema-message');
 	},
-	hideSchemaRecompileMessage:  () => {
-		_Dialogs.loadingMessage.hide('schema-compilation-message');
+	hideUpdatingSchemaMessage:  () => {
+		_Dialogs.loadingMessage.hide('updating-schema-message');
 	},
 	loadSchema: async () => {
 
@@ -503,7 +504,6 @@ let _Schema = {
 				} else {
 
 					// save data
-					_Schema.showSchemaRecompileMessage();
 					let data = _Schema.bulkDialogsGeneral.getPayloadFromBulkInfo(bulkInfo);
 
 					let response = await fetch(Structr.rootUrl + schemaNode.id, {
@@ -521,8 +521,6 @@ let _Schema = {
 							_Schema.reload();
 						}
 					}
-
-					_Schema.hideSchemaRecompileMessage();
 
 					if (response.ok) {
 
@@ -1199,16 +1197,12 @@ let _Schema = {
 
 			return new Promise(((resolve, reject) => {
 
-				_Schema.showSchemaRecompileMessage();
-
 				fetch(`${Structr.rootUrl}SchemaNode`, {
 					method: 'POST',
 					body: JSON.stringify(data)
 				}).then(response => {
 
 					response.json().then(responseData => {
-
-						_Schema.hideSchemaRecompileMessage();
 
 						if (response.ok) {
 
@@ -1701,16 +1695,12 @@ let _Schema = {
 		},
 		createRelationshipDefinition: async (data) => {
 
-			_Schema.showSchemaRecompileMessage();
-
 			let response = await fetch(Structr.rootUrl + 'SchemaRelationshipNode', {
 				method: 'POST',
 				body: JSON.stringify(data)
 			});
 
 			let responseData = await response.json();
-
-			_Schema.hideSchemaRecompileMessage();
 
 			if (response.ok) {
 
@@ -1724,8 +1714,6 @@ let _Schema = {
 		},
 		removeRelationshipDefinition: async (id) => {
 
-			_Schema.showSchemaRecompileMessage();
-
 			let response = await fetch(Structr.rootUrl + 'SchemaRelationshipNode/' + id, {
 				method: 'DELETE'
 			});
@@ -1733,20 +1721,16 @@ let _Schema = {
 			if (response.ok) {
 
 				_Schema.reload();
-				_Schema.hideSchemaRecompileMessage();
 
 			} else {
 
 				let data = await response.json();
 
-				_Schema.hideSchemaRecompileMessage();
 				Structr.errorFromResponse(data);
 			}
 
 		},
 		updateRelationship: async (entity, newData) => {
-
-			_Schema.showSchemaRecompileMessage();
 
 			let getResponse = await fetch(`${Structr.rootUrl}SchemaRelationshipNode/${entity.id}`);
 
@@ -1765,7 +1749,6 @@ let _Schema = {
 						body: JSON.stringify(newData)
 					});
 
-					_Schema.hideSchemaRecompileMessage();
 					let responseData = await putResponse.json();
 
 					if (putResponse.ok) {
@@ -1792,7 +1775,6 @@ let _Schema = {
 
 					// force a schema-reload so that we dont break the relationships
 					_Schema.reload();
-					_Schema.hideSchemaRecompileMessage();
 				}
 			}
 		},
@@ -1981,8 +1963,6 @@ let _Schema = {
 
 			if (allow) {
 
-				_Schema.showSchemaRecompileMessage();
-
 				fetch(Structr.rootUrl + entity.id, {
 					method: 'PUT',
 					body: JSON.stringify(data)
@@ -1995,7 +1975,6 @@ let _Schema = {
 							_Helpers.fastRemoveAllChildren(container);
 
 							_Schema.properties.appendLocalProperties(container, reloadedEntity, overrides, optionalAfterSaveCallback);
-							_Schema.hideSchemaRecompileMessage();
 
 							_Schema.invalidateTypeInfoCache(entity.name);
 
@@ -2009,8 +1988,6 @@ let _Schema = {
 						response.json().then((data) => {
 							Structr.errorFromResponse(data, undefined, { requiresConfirmation: true });
 						});
-
-						_Schema.hideSchemaRecompileMessage();
 					}
 				});
 			}
@@ -2376,11 +2353,7 @@ let _Schema = {
 							return;
 						}
 
-						_Schema.showSchemaRecompileMessage();
-
 						Command.setProperty(entity.id, key, text2, false, () => {
-
-							_Schema.hideSchemaRecompileMessage();
 
 							_Dialogs.custom.showAndHideInfoBoxMessage('Code saved.', 'success', 2000, 200);
 							_Helpers.disableElements(true, dialogSaveButton, saveAndClose);
@@ -2741,8 +2714,6 @@ let _Schema = {
 
 			if (allow) {
 
-				_Schema.showSchemaRecompileMessage();
-
 				fetch(Structr.rootUrl + entity.id, {
 					method: 'PUT',
 					body: JSON.stringify(data)
@@ -2755,7 +2726,6 @@ let _Schema = {
 							_Helpers.fastRemoveElement(el);
 
 							_Schema.remoteProperties.appendRemote(el, reloadedEntity, editSchemaObjectLinkHandler);
-							_Schema.hideSchemaRecompileMessage();
 
 							if (optionalAfterSaveCallback) {
 								optionalAfterSaveCallback();
@@ -2764,7 +2734,6 @@ let _Schema = {
 
 					} else {
 
-						_Schema.hideSchemaRecompileMessage();
 						response.json().then((data) => {
 							Structr.errorFromResponse(data, undefined, { requiresConfirmation: true });
 						});
@@ -3020,8 +2989,6 @@ let _Schema = {
 
 			if (allow) {
 
-				_Schema.showSchemaRecompileMessage();
-
 				fetch(Structr.rootUrl + entity.id, {
 					method: 'PUT',
 					body: JSON.stringify(data)
@@ -3032,7 +2999,6 @@ let _Schema = {
 						Command.get(entity.id, null, (reloadedEntity) => {
 							_Helpers.fastRemoveAllChildren(el);
 							_Schema.views.appendViews(el, reloadedEntity, optionalAfterSaveCallback);
-							_Schema.hideSchemaRecompileMessage();
 
 							if (optionalAfterSaveCallback) {
 								optionalAfterSaveCallback();
@@ -3040,10 +3006,10 @@ let _Schema = {
 						});
 
 					} else {
+
 						response.json().then((data) => {
 							Structr.errorFromResponse(data, undefined, {requiresConfirmation: true});
 						});
-						_Schema.hideSchemaRecompileMessage();
 					}
 				});
 			}
@@ -3342,7 +3308,6 @@ let _Schema = {
 				buttons: _Schema.methods.templates.addMethodsDropdown({ entity, availableLifecycleMethods }) + '<div class="flex-grow flex"></div>'
 			};
 
-			methods = _Schema.filterJavaMethods(methods, entity);
 			_Helpers.sort(methods);
 
 			container.insertAdjacentHTML('beforeend', _Schema.methods.templates.methodsContainer({ class: (entity ? 'entity' : 'global') }));
@@ -3444,12 +3409,6 @@ let _Schema = {
 				new: 0
 			};
 
-			// insert java methods if they are not being displayed
-			let javaMethodsOrEmpty = _Schema.getOnlyJavaMethodsIfFilteringIsActive(entity?.schemaMethods ?? []);
-			for (let javaMethod of javaMethodsOrEmpty) {
-				data.schemaMethods.push({ id: javaMethod.id });
-			}
-
 			for (let gridRow of gridBody.querySelectorAll('.schema-grid-row')) {
 
 				let methodId   = gridRow.dataset['methodId'];
@@ -3524,8 +3483,6 @@ let _Schema = {
 					_Schema.methods.setLastEditedMethod(entity, undefined);
 				}
 
-				_Schema.showSchemaRecompileMessage();
-
 				let targetUrl = (entity ? Structr.rootUrl + entity.id : Structr.rootUrl + 'SchemaMethod');
 
 				fetch(targetUrl, {
@@ -3542,7 +3499,6 @@ let _Schema = {
 								_Helpers.fastRemoveAllChildren(container);
 
 								_Schema.methods.appendMethods(container, reloadedEntity, reloadedEntity.schemaMethods, optionalAfterSaveCallback);
-								_Schema.hideSchemaRecompileMessage();
 
 								optionalAfterSaveCallback?.();
 							});
@@ -3554,7 +3510,6 @@ let _Schema = {
 								_Helpers.fastRemoveAllChildren(container);
 
 								_Schema.methods.appendMethods(container, null, methods, optionalAfterSaveCallback);
-								_Schema.hideSchemaRecompileMessage();
 
 								optionalAfterSaveCallback?.();
 							});
@@ -3565,7 +3520,6 @@ let _Schema = {
 						response.json().then((data) => {
 							Structr.errorFromResponse(data, undefined, { requiresConfirmation: true });
 						});
-						_Schema.hideSchemaRecompileMessage();
 					}
 				});
 			}
@@ -4215,14 +4169,10 @@ let _Schema = {
 	},
 	deleteNode: async (id) => {
 
-		_Schema.showSchemaRecompileMessage();
-
 		let response = await fetch(`${Structr.rootUrl}SchemaNode/${id}`, {
 			method: 'DELETE'
 		});
 		let data = await response.json();
-
-		_Schema.hideSchemaRecompileMessage();
 
 		if (response.ok) {
 
@@ -4357,13 +4307,23 @@ let _Schema = {
 	},
 	performSnapshotAction: (action, snapshot) => {
 
+		_Schema.showUpdatingSchemaMessage();
+
 		Command.snapshots(action, snapshot, null, (data) => {
 
 			let status = data[0].status;
 
 			if (status === 'success') {
-				_Schema.reload();
+
+				setTimeout(() => {
+
+					_Schema.hideUpdatingSchemaMessage();
+					_Schema.reload();
+
+				}, _Schema.timeoutBecauseSnapshotsCommandReturnsTooEarly);
+
 			} else {
+
 				if (_Dialogs.custom.isDialogOpen()) {
 					_Dialogs.custom.showAndHideInfoBoxMessage(status, 'error', 2000, 200);
 				}
@@ -4418,10 +4378,16 @@ let _Schema = {
 
 			if (confirm === true) {
 
-				_Schema.showSchemaRecompileMessage();
+				_Schema.showUpdatingSchemaMessage();
+
 				Command.snapshots("purge", undefined, undefined, () => {
-					_Schema.reload();
-					_Schema.hideSchemaRecompileMessage();
+
+					setTimeout(() => {
+
+						_Schema.hideUpdatingSchemaMessage();
+						_Schema.reload();
+
+					}, _Schema.timeoutBecauseSnapshotsCommandReturnsTooEarly);
 				});
 			}
 		});
@@ -5137,34 +5103,6 @@ let _Schema = {
 				left: calculatedX,
 				top: calculatedY
 			};
-		}
-	},
-	shouldShowJavaMethodsForBuiltInTypes: () => UISettings.getValueForSetting(UISettings.settingGroups.schema_code.settings.showJavaMethodsForBuiltInTypes),
-	filterJavaMethods: (methods, entity) => {
-
-		// java methods should always be shown for custom types and for global schema methods
-		// otherwise (for built-in types) they should only be shown if the setting is active
-
-		let isGlobalSchemaMethods = !entity;
-		let isCustomType          = !(entity?.isBuiltinType ?? true);
-
-		if (isGlobalSchemaMethods || isCustomType || _Schema.shouldShowJavaMethodsForBuiltInTypes()) {
-			return methods;
-		}
-
-		return methods.filter(m => m.codeType !== 'java');
-	},
-	getOnlyJavaMethodsIfFilteringIsActive: (methods) => {
-
-		// only relevant when bulk saving methods to not lose java methods (if they are not shown)
-
-		if (_Schema.shouldShowJavaMethodsForBuiltInTypes() === true) {
-
-			return [];
-
-		} else {
-
-			return methods.filter(m => m.codeType === 'java');
 		}
 	},
 	markElementAsChanged: (element, hasClass) => {

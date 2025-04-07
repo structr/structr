@@ -19,9 +19,14 @@
 package org.structr.web.traits.definitions;
 
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Arguments;
+import org.structr.core.api.JavaMethod;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
@@ -34,6 +39,7 @@ import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
+import org.structr.schema.action.EvaluationHints;
 import org.structr.web.entity.path.PagePath;
 import org.structr.web.traits.wrappers.PagePathTraitWrapper;
 
@@ -71,6 +77,20 @@ public class PagePathTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
+	public Set<AbstractMethod> getDynamicMethods() {
+
+		return newSet(
+			new JavaMethod("updatePathAndParameters", false, false) {
+
+				@Override
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
+					return entity.as(PagePath.class).updatePathAndParameters(securityContext, arguments.toMap());
+				}
+			}
+		);
+	}
+
+	@Override
 	public Map<Class, FrameworkMethod> getFrameworkMethods() {
 		return Map.of();
 	}
@@ -94,7 +114,7 @@ public class PagePathTraitDefinition extends AbstractNodeTraitDefinition {
 
 		final Property<NodeInterface> pageProperty                 = new StartNode(PAGE_PROPERTY, StructrTraits.PAGE_HAS_PATH_PAGE_PATH);
 		final Property<Iterable<NodeInterface>> parametersProperty = new EndNodes(PARAMETERS_PROPERTY, StructrTraits.PAGE_PATH_HAS_PARAMETER_PAGE_PATH_PARAMETER);
-		final Property<String> nameProperty                        = new StringProperty(NAME_PROPERTY).notNull();		// FIXME: why custom name property?
+		final Property<String> nameProperty                        = new StringProperty(NAME_PROPERTY).notNull();		// Custom name property because we need a not null constraint on the name.
 		final Property<Integer> priorityProperty                   = new IntProperty(PRIORITY_PROPERTY);
 
 		return Set.of(

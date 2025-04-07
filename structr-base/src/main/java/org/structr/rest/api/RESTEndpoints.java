@@ -20,9 +20,9 @@ package org.structr.rest.api;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.traits.Traits;
 import org.structr.rest.resource.*;
 import org.structr.web.resource.*;
-import org.structr.core.traits.Traits;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -48,6 +48,7 @@ public class RESTEndpoints {
 		RESTEndpoints.register(new DeprecatedGlobalSchemaMethodsResource());
 		RESTEndpoints.register(new EntityResolverResource());
 		RESTEndpoints.register(new EnvResource());
+		RESTEndpoints.register(new StatsResource());
 		RESTEndpoints.register(new UserDefinedFunctionsResource());
 		RESTEndpoints.register(new InstanceMethodResource());
 		RESTEndpoints.register(new InstanceRelationshipsResource());

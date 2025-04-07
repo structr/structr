@@ -30,17 +30,17 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
-import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.dom.*;
+import org.structr.web.entity.path.PagePath;
 import org.structr.web.maintenance.DeployCommand;
+import org.structr.web.traits.definitions.FileTraitDefinition;
 import org.structr.web.traits.definitions.dom.ContentTraitDefinition;
 import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 import org.structr.web.traits.definitions.dom.PageTraitDefinition;
@@ -59,14 +59,13 @@ import static org.testng.AssertJUnit.fail;
 
 public abstract class DeploymentTestBase extends StructrUiTest {
 
-	// ----- private methods -----
 	protected void compare(final String sourceHash, final boolean deleteTestDirectory) {
 		compare(sourceHash, deleteTestDirectory, true);
 	}
 
 	protected void compare(final String sourceHash, final boolean deleteTestDirectory, final boolean cleanDatabase) {
 
-		doImportExportRoundtrip(deleteTestDirectory, cleanDatabase, null);
+		doImportExportRoundtrip(deleteTestDirectory, null, cleanDatabase);
 
 		final String roundtripHash = calculateHash();
 
@@ -86,10 +85,14 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 	}
 
 	protected void doImportExportRoundtrip(final boolean deleteTestDirectory) {
-		doImportExportRoundtrip(deleteTestDirectory, true, null);
+		doImportExportRoundtrip(deleteTestDirectory, null, true);
 	}
 
-	protected void doImportExportRoundtrip(final boolean deleteTestDirectory, final boolean cleanDatabase, final Function callback) {
+	protected void doImportExportRoundtrip(final boolean deleteTestDirectory, final Function callback) {
+		doImportExportRoundtrip(deleteTestDirectory, callback, true);
+	}
+
+	protected void doImportExportRoundtrip(final boolean deleteTestDirectory, final Function callback, final boolean cleanDatabase) {
 
 		final DeployCommand cmd = app.command(DeployCommand.class);
 		final Path tmp          = Paths.get("/tmp/structr-deployment-test" + System.currentTimeMillis() + System.nanoTime());
@@ -218,6 +221,18 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 
 		} else if (start.is(StructrTraits.DOM_NODE)) {
 
+			//
+			if (start.is(StructrTraits.PAGE)) {
+
+				final Page page = start.as(Page.class);
+
+				for (final PagePath path : page.getPaths()) {
+
+					calculateHash(path, buf, depth+1);
+				}
+
+			}
+
 			for (final DOMNode child : start.as(DOMNode.class).getChildren()) {
 
 				calculateHash(child, buf, depth+1);
@@ -288,6 +303,9 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.PAGE_CREATES_RAW_DATA_PROPERTY)));
 		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.POSITION_PROPERTY)));
 		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.SHOW_ON_ERROR_CODES_PROPERTY)));
+
+		// File
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.FILE).key(FileTraitDefinition.SIZE_PROPERTY)));
 
 		// HTML attributes
 		if (node.is(StructrTraits.DOM_ELEMENT)) {

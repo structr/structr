@@ -31,8 +31,8 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
-import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.core.traits.definitions.SchemaGrantTraitDefinition;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
@@ -42,6 +42,9 @@ import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.FileTraitDefinition;
+import org.structr.web.traits.definitions.PagePathParameterTraitDefinition;
+import org.structr.web.traits.definitions.PagePathTraitDefinition;
 import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
 import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 import org.structr.web.traits.definitions.html.Option;
@@ -117,7 +120,7 @@ public class Deployment5Test extends DeploymentTestBase {
 		}
 
 		// deployment export, clean database, create new group with same name but different ID, deployment import
-		doImportExportRoundtrip(true, true, new Function() {
+		doImportExportRoundtrip(true, new Function() {
 
 			@Override
 			public Object apply(final Object o) {
@@ -513,7 +516,7 @@ public class Deployment5Test extends DeploymentTestBase {
 		}
 
 		// test, don't clean the database but change folder+file name back to v1
-		doImportExportRoundtrip(true, false, t -> {
+		doImportExportRoundtrip(true, t -> {
 
 			try (final Tx tx = app.tx()) {
 
@@ -548,7 +551,7 @@ public class Deployment5Test extends DeploymentTestBase {
 			}
 
 			return null;
-		});
+		}, false);
 
 		// check that the correct file/folder name is set
 		try (final Tx tx = app.tx()) {
@@ -569,5 +572,77 @@ public class Deployment5Test extends DeploymentTestBase {
 			fail("Unexpected exception.");
 		}
 
+	}
+
+	@Test
+	public void test57DynamicFileExecution() {
+
+		final String dynamicFileCode = "${{ $.log('!!!!!!!!!!!!!!!!!!!!!!!!!! This should no be run during deployment !!!!!!!!!!!!!!!!!!!!!!!!!!! '); }}";
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface test1 = FileHelper.createFile(securityContext, dynamicFileCode.getBytes(), "text/plain", StructrTraits.FILE, "test1.txt", true);
+
+			test1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY),                     true);
+			test1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY),              true);
+			test1.setProperty(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY), true);
+			test1.setProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.IS_TEMPLATE_PROPERTY),              true);
+			test1.setProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.DONT_CACHE_PROPERTY),               false);
+
+			tx.success();
+
+		} catch (FrameworkException|IOException fex) {
+			fail("Unexpected exception.");
+		}
+
+		final String hash1 = calculateHash();
+		doImportExportRoundtrip(true, null, false);
+		final String hash2 = calculateHash();
+
+		assertEquals("Invalid deployment roundtrip result for dynamic file", hash1, hash2);
+	}
+
+	@Test
+	public void test58PagePathExport() {
+
+		// create page and path
+		try (final Tx tx = app.tx()) {
+
+			// create page
+			final Page page = Page.createSimplePage(securityContext, "test058");
+
+			// create path
+			final NodeInterface path = app.create(StructrTraits.PAGE_PATH,
+				new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(PagePathTraitDefinition.PAGE_PROPERTY), page),
+				new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "/test058/{test}/static/{test2}")
+			);
+
+			// create one parameter with all values
+			app.create(StructrTraits.PAGE_PATH_PARAMETER,
+				new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.PATH_PROPERTY),          path),
+				new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),              "test1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.VALUE_TYPE_PROPERTY),    "String"),
+				new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.DEFAULT_VALUE_PROPERTY), "TEST"),
+				new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.IS_OPTIONAL_PROPERTY),   true)
+			);
+
+			// create one parameter with only required values
+			app.create(StructrTraits.PAGE_PATH_PARAMETER,
+				new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.PATH_PROPERTY), path),
+				new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     "test2")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		final String hash1 = calculateHash();
+		doImportExportRoundtrip(true, null);
+		final String hash2 = calculateHash();
+
+		assertEquals("Invalid deployment roundtrip result for dynamic file", hash1, hash2);
 	}
 }

@@ -88,6 +88,8 @@ public class JsonRestServlet extends AbstractDataServlet {
 	@Override
 	protected void doDelete(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
+		JsonRestServlet.super.stats.recordStatsValue("http", "delete", System.currentTimeMillis(), false);
+
 		SecurityContext securityContext = null;
 		Authenticator authenticator     = null;
 		RestMethodResult result         = null;
@@ -185,6 +187,8 @@ public class JsonRestServlet extends AbstractDataServlet {
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
+		JsonRestServlet.super.stats.recordStatsValue("http", "get", System.currentTimeMillis(), false);
+
 		final boolean returnContent = true;
 
 		try {
@@ -201,6 +205,8 @@ public class JsonRestServlet extends AbstractDataServlet {
 	@Override
 	protected void doHead(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
+		JsonRestServlet.super.stats.recordStatsValue("http", "head", System.currentTimeMillis(), false);
+
 		final boolean returnContent = false;
 
 		try {
@@ -216,6 +222,8 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 	@Override
 	protected void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+		JsonRestServlet.super.stats.recordStatsValue("http", "options", System.currentTimeMillis(), false);
 
 		setCustomResponseHeaders(response);
 
@@ -300,6 +308,8 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 	@Override
 	protected void doPost(final HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+		JsonRestServlet.super.stats.recordStatsValue("http", "post", System.currentTimeMillis(), false);
 
 		final List<RestMethodResult> results = new LinkedList<>();
 		final SecurityContext securityContext;
@@ -490,6 +500,8 @@ public class JsonRestServlet extends AbstractDataServlet {
 	@Override
 	protected void doPut(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
+		JsonRestServlet.super.stats.recordStatsValue("http", "put", System.currentTimeMillis(), false);
+
 		final SecurityContext securityContext;
 		final Authenticator authenticator;
 		final RESTCallHandler handler;
@@ -624,6 +636,8 @@ public class JsonRestServlet extends AbstractDataServlet {
 	}
 
 	protected void doPatch(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+		JsonRestServlet.super.stats.recordStatsValue("http", "patch", System.currentTimeMillis(), false);
 
 		final SecurityContext securityContext;
 		final Authenticator authenticator;

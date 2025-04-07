@@ -41,6 +41,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
+import org.structr.core.entity.SchemaMethod;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
@@ -49,9 +50,7 @@ import org.structr.core.script.ScriptTestHelper;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
-import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
-import org.structr.core.traits.definitions.PrincipalTraitDefinition;
+import org.structr.core.traits.definitions.*;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
 import org.structr.schema.action.EvaluationHints;
@@ -1903,6 +1902,71 @@ public class UiScriptingTest extends StructrUiTest {
 
 			final AbstractMethod shouldBeFound = Methods.resolveMethod(Traits.of(StructrTraits.USER), methodName);
 			assertEquals(true, shouldBeFound != null);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testCallFunctionCacheInvalidation() {
+
+		// create user-defined function
+		try (final Tx tx = app.tx()) {
+
+			app.create(StructrTraits.SCHEMA_METHOD,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "userDefinedFunction"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "{ return 'before change'; }")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// test function call
+		try (final Tx tx = app.tx()) {
+
+			final Object result = Scripting.evaluate(new ActionContext(securityContext), null, "${call('userDefinedFunction')}", "testCallFunctionCacheInvalidation");
+
+			assertEquals("Invalid precondition", "before change", result);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// modify function
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface node = app.nodeQuery(StructrTraits.SCHEMA_METHOD).andName("userDefinedFunction").getFirst();
+
+			node.as(SchemaMethod.class).setSource("{ return 'after change' }");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// test function call again
+		try (final Tx tx = app.tx()) {
+
+			final Object result = Scripting.evaluate(new ActionContext(securityContext), null, "${call('userDefinedFunction')}", "testCallFunctionCacheInvalidation");
+
+			assertEquals("Call function cache is not invalidated correctly", "after change", result);
 
 			tx.success();
 

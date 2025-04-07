@@ -53,12 +53,7 @@ import org.structr.core.script.ScriptTestHelper;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
-import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
-import org.structr.core.traits.definitions.GroupTraitDefinition;
-import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
-import org.structr.core.traits.definitions.PrincipalTraitDefinition;
-import org.structr.core.traits.definitions.RelationshipInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.*;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
@@ -6813,6 +6808,102 @@ public class ScriptingTest extends StructrTest {
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
+	}
+
+	@Test
+	public void testSetPrivileged() {
+
+		NodeInterface user1 = null;
+		NodeInterface user2 = null;
+
+		// create test user
+		try (final Tx tx = app.tx()) {
+
+			user1 = app.create(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "user1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.PASSWORD_PROPERTY), "test")
+			);
+
+			user2 = app.create(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "user1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.PASSWORD_PROPERTY), "test")
+			);
+
+			final NodeInterface testOne   = app.create("TestOne", "test one");
+			final NodeInterface testThree = app.create("TestThree", "test three");
+
+			// all nodes belong to user1
+			testOne.as(AccessControllable.class).setOwner(user1.as(Principal.class));
+			testThree.as(AccessControllable.class).setOwner(user1.as(Principal.class));
+
+			// all nodes are visible to authenticated users (so that user2 can fetch them)
+			testOne.setVisibility(false, true);
+			testThree.setVisibility(false, true);
+
+			tx.success();
+
+		} catch(FrameworkException fex) {
+
+			logger.warn("", fex);
+			fail("Unexpected exception.");
+		}
+
+		final SecurityContext user2Context = SecurityContext.getInstance(user2.as(User.class), AccessMode.Backend);
+		final App user2App                 = StructrApp.getInstance(user2Context);
+
+		try (final Tx tx = user2App.tx()) {
+
+			final NodeInterface one   = app.nodeQuery("TestOne").getFirst();
+			final NodeInterface three = app.nodeQuery("TestThree").getFirst();
+
+			// try to change the name (without set_privileged)
+			try {
+				Scripting.evaluate(new ActionContext(user2Context), one, "${set(this, 'name', 'changed!')}", "test1");
+				fail("Setting the name of a node without permissions should fail.");
+
+			} catch (FrameworkException fex) {
+			}
+
+			assertEquals("Name should not have changed1", "test one", one.getName());
+
+			// try to change the name (with set_privileged)
+			try {
+				Scripting.evaluate(new ActionContext(user2Context), one, "${set_privileged(this, 'name', 'changed!')}", "test1");
+
+			} catch (FrameworkException fex) {
+				fail("Setting the name of a node with set_privileged should succeed.");
+			}
+
+			assertEquals("Name should now be changed!", "changed!", one.getName());
+
+
+			// try to associate a related node (without permissions)
+			try {
+				Scripting.evaluate(new ActionContext(user2Context), one, "${set(this, 'testThree', first(find('TestThree')))}", "test1");
+				fail("Associating a related node without permissions should fail.");
+
+			} catch (FrameworkException fex) {
+			}
+
+			assertEquals("TestTwo should not be assigned", (NodeInterface)null, one.getProperty(Traits.of("TestOne").key("testTwo")));
+
+			// try to associate a related node (with set_privileged)
+			try {
+				Scripting.evaluate(new ActionContext(user2Context), one, "${set_privileged(this, 'testThree', first(find('TestThree')))}", "test1");
+
+			} catch (FrameworkException fex) {
+				fail("Associating a related node with set_privileged should succeed.");
+			}
+
+			assertEquals("TestTwo should be assigned", three, one.getProperty(Traits.of("TestOne").key("testThree")));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
 	}
 
 	// ----- private methods ----

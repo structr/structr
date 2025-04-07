@@ -24,6 +24,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
 
 import javax.activation.DataSource;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
 
@@ -35,6 +36,7 @@ public interface File extends AbstractFile, DataSource {
 	Map<String, Object> getCSVHeaders(final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException;
 	Map<String, Object> getFirstLines(final SecurityContext securityContext, final Map<String, Object> parameters);
 	OutputStream getOutputStream(final boolean notifyIndexerAfterClosing, boolean append);
+	InputStream getRawInputStream();
 	boolean isTemplate();
 	boolean dontCache();
 

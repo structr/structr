@@ -1433,7 +1433,7 @@ let _Entities = {
 					input.parentNode.remove();
 					input.dataset['changed'] = 'true';
 
-					_Entities.saveValue(cell, input, objId, key, oldValue, id, type, typeInfo);
+					_Entities.saveValue(cell, input, objId, key, oldValue, id, type, typeInfo, onUpdateCallback);
 				});
 
 				input.addEventListener('focus', function() {
@@ -1469,6 +1469,7 @@ let _Entities = {
 				if (_Crud.types?.[type]?.views?.all?.[key]?.type === 'Date[]') {
 
 					_Entities.addDatePicker(input, key, type, () => {
+						input.dataset['changed'] = 'true';
 						input.dispatchEvent(new Event('input-finished'));
 					});
 				}
@@ -1586,7 +1587,7 @@ let _Entities = {
 			if (!isCreateDialog) {
 
 				_Entities.setProperty(objId, key, val, false, newVal => {
-					updateInput(newVal ?? (isArrayType ? [] : undefined))
+					updateInput(newVal ?? (isArrayType ? [] : undefined));
 				});
 
 			} else {

@@ -98,6 +98,8 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws UnsupportedEncodingException {
 
+		CsvServlet.super.stats.recordStatsValue("http", "get", System.currentTimeMillis());
+
 		Authenticator authenticator = null;
 		RESTCallHandler handler      = null;
 
@@ -120,18 +122,18 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 			response.setCharacterEncoding("UTF-8");
 			response.setContentType("text/csv; charset=utf-8");
 
-			final Principal currentUser = securityContext.getUser(false);
-
 			// isolate resource authentication
 			try (final Tx tx = app.tx()) {
+
+				final Principal currentUser = securityContext.getUser(false);
 
 				handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), getTypeOrDefault(currentUser, StructrTraits.USER));
 				authenticator.checkResourceAccess(securityContext, request, handler.getResourceSignature(), handler.getRequestedView());
 
+				RuntimeEventLog.csv("Get", handler.getResourceSignature(), currentUser);
+
 				tx.success();
 			}
-
-			RuntimeEventLog.csv("Get", handler.getResourceSignature(), currentUser);
 
 			try (final Tx tx = app.tx()) {
 
@@ -224,6 +226,8 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 	@Override
 	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
+		CsvServlet.super.stats.recordStatsValue("http", "post", System.currentTimeMillis());
+
 		final String fieldSeparatorHeader         = request.getHeader(DEFAULT_FIELD_SEPARATOR_HEADER_NAME);
 		final char fieldSeparator                 = (fieldSeparatorHeader == null) ? DEFAULT_FIELD_SEPARATOR : fieldSeparatorHeader.charAt(0);
 		final String quoteCharacterHeader         = request.getHeader(DEFAULT_QUOTE_CHARACTER_HEADER_NAME);
@@ -263,24 +267,27 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 
 			if (securityContext != null) {
 
-				final Principal currentUser = securityContext.getUser(false);
+				String username = null;
 
 				// isolate resource authentication
 				try (final Tx tx = app.tx()) {
 
+					final Principal currentUser = securityContext.getUser(false);
+
+					username = currentUser.getName();
 					handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), getTypeOrDefault(currentUser, StructrTraits.USER));
 					authenticator.checkResourceAccess(securityContext, request, handler.getResourceSignature(), handler.getRequestedView());
+
+					RuntimeEventLog.csv("Post", handler.getResourceSignature(), currentUser);
+
 					tx.success();
 				}
-
-				RuntimeEventLog.csv("Post", handler.getResourceSignature(), currentUser);
 
 				// do not send websocket notifications for created objects
 				securityContext.setDoTransactionNotifications(false);
 				securityContext.disableModificationOfAccessTime();
 				securityContext.disablePreventDuplicateRelationships();
 
-				final String username = securityContext.getUser(false).getName();
 				final long startTime = System.currentTimeMillis();
 
 				final Map<String, Object> data = new LinkedHashMap();

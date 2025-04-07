@@ -30,16 +30,18 @@ import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.web.entity.Site;
 import org.structr.web.entity.path.PagePath;
-
-import java.util.List;
 import org.structr.web.traits.definitions.LinkableTraitDefinition;
 import org.structr.web.traits.definitions.dom.PageTraitDefinition;
+
+import java.util.List;
 
 public interface Page extends DOMNode {
 
 	void setVersion(int version) throws FrameworkException;
 	void increaseVersion() throws FrameworkException;
 	int getVersion();
+
+	void setVisibilityRecursively(final boolean visibleToPublic, final boolean visibleToAuth) throws FrameworkException;
 
 	Integer getCacheForSeconds();
 	Integer getPosition();

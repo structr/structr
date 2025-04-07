@@ -112,8 +112,16 @@ public class DateArrayProperty extends ArrayProperty<Date> {
 		public Object revert(final Date[] source) throws FrameworkException {
 
 			final ArrayList<String> result = new ArrayList<>();
-			for (final Date o : source) {
-				result.add(DatePropertyGenerator.format(o, format));
+
+			if (source != null) {
+
+				for (final Date o : source) {
+
+					if (o != null) {
+
+						result.add(DatePropertyGenerator.format(o, format));
+					}
+				}
 			}
 
 			return result;
@@ -161,10 +169,18 @@ public class DateArrayProperty extends ArrayProperty<Date> {
 
 		for (final Long o : source) {
 
+			if (o == null) {
+				continue;
+			}
+
 			result.add(new Date(o));
 		}
 
-		return (Date[])result.toArray(new Date[result.size()]);
+		if (result.isEmpty()) {
+			return null;
+		}
+
+		return result.toArray(new Date[result.size()]);
 	}
 
 	private Long[] convertDateArrayToLongArray(final Date[] source) {
@@ -173,10 +189,19 @@ public class DateArrayProperty extends ArrayProperty<Date> {
 
 		for (final Date o : source) {
 
+			// skip unparseable dates
+			if (o == null) {
+				continue;
+			}
+
 			result.add(o.getTime());
 		}
 
-		return (Long[])result.toArray(new Long[result.size()]);
+		if (result.isEmpty()) {
+			return null;
+		}
+
+		return result.toArray(new Long[result.size()]);
 	}
 
 	private Date[] convert(final List source) {
@@ -185,6 +210,11 @@ public class DateArrayProperty extends ArrayProperty<Date> {
 
 		for (final Object o : source) {
 
+			// skip unparseable dates
+			if (o == null) {
+				continue;
+			}
+
 			if (o instanceof Date) {
 
 				result.add((Date)o);
@@ -192,15 +222,14 @@ public class DateArrayProperty extends ArrayProperty<Date> {
 			} else if (o != null) {
 
 				result.add(DatePropertyGenerator.parse(o.toString(), format));
-
-			} else {
-
-				// dont know
-				throw new IllegalStateException("Conversion of array type failed.");
 			}
 		}
 
-		return (Date[])result.toArray(new Date[0]);
+		if (result.isEmpty())  {
+			return null;
+		}
+
+		return result.toArray(new Date[0]);
 	}
 
 	// ----- OpenAPI -----
