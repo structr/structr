@@ -4541,14 +4541,13 @@ public class ScriptingTest extends StructrTest {
 			fail("Unexpected exception");
 		}
 
-		final ActionContext ctx = new ActionContext(securityContext);
-		final Class projectType = StructrApp.getConfiguration().getNodeEntityClass("Project");
-		final Class taskType    = StructrApp.getConfiguration().getNodeEntityClass("Task");
+		final ActionContext ctx  = new ActionContext(securityContext);
+		final String projectType = "Project";
+		final String taskType    = "Task";
 
-		final PropertyKey projectName  = StructrApp.key(projectType, "name");
-		final PropertyKey projectTasks = StructrApp.key(projectType, "tasks");
-
-		final PropertyKey taskName     = StructrApp.key(taskType, "name");
+		final PropertyKey projectName  = Traits.of(projectType).key("name");
+		final PropertyKey projectTasks = Traits.of(projectType).key("tasks");
+		final PropertyKey taskName     = Traits.of(taskType).key("name");
 
 		try (final Tx tx = app.tx()) {
 
@@ -4582,13 +4581,21 @@ public class ScriptingTest extends StructrTest {
 					");" +
 					"}}";
 
+			Settings.CypherDebugLogging.setValue(true);
+
 			// ($.not and $.equals)
 			assertEquals("Using advanced find() to find all **other** tasks in a project using not and equals predicate should work", 4, ((List)Scripting.evaluate(ctx, null, script, "testFindNewSyntax")).size());
+
+			tx.success();
 
 		} catch (FrameworkException t) {
 
 			t.printStackTrace();
 			fail("Unexpected exception");
+
+		} finally {
+
+			Settings.CypherDebugLogging.setValue(false);
 		}
 
 	}
