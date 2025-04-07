@@ -592,12 +592,30 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			if (!Files.exists(preDeployConf)) {
 
-				writeStringToFile(preDeployConf, "{\n\t// automatically created " + preDeployConf.getFileName() + ". This file is interpreted as a script and run before the application deployment process. To learn more about this, please have a look at the documentation.\n}");
+				writeStringToFile(preDeployConf, """
+				{
+					// This file was auto-generated. You may adapt it to suit your specific needs.
+					// During the application deployment import process, this file is treated as a script and executed *before* any other actions take place.
+					//
+					// Important: because this script runs before the application schema is imported, it operates on the existing (current) schema.
+					//
+					// Its purpose is to ensure that all required users and groups are present before the application import occurs.
+					// All operations in this script should be **idempotent** — meaning they can be safely run multiple times without causing unintended side effects.
+					// For example, prefer using methods like `get_or_create` rather than `create` to avoid duplicate entries.
+					//
+					// For more information, please refer to the documentation.
+				}""");
 			}
 
 			if (!Files.exists(postDeployConf)) {
 
-				writeStringToFile(postDeployConf, "{\n\t// automatically created " + postDeployConf.getFileName() + ". This file is interpreted as a script and run after the application deployment process. To learn more about this, please have a look at the documentation.\n}");
+				writeStringToFile(postDeployConf, """
+				{
+					// This file was auto-generated. You may adapt it to suit your specific needs.
+					// During the application deployment import process, this file is treated as a script and executed *after* all other operations have finished.
+					//
+					// For more information, please refer to the documentation.
+				}""");
 			}
 
 			writeDeploymentConfigurationFile(deploymentConfFile);
