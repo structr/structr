@@ -2234,11 +2234,8 @@ let _Pages = {
 					name: 'Go to Schema Node',
 					clickHandler: () => {
 
-						let pathToOpen = `/root/${entity.isBuiltinType ? 'builtin' : 'custom'}/${entity.id}`;
-
-						window.location.href = '#code';
 						window.setTimeout(() => {
-							_Code.tree.findAndOpenNode(pathToOpen, false);
+							_Code.helpers.navigateToSchemaObjectFromAnywhere(entity);
 						}, 1000);
 					}
 				});
