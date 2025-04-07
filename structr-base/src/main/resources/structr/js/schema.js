@@ -3308,7 +3308,6 @@ let _Schema = {
 				buttons: _Schema.methods.templates.addMethodsDropdown({ entity, availableLifecycleMethods }) + '<div class="flex-grow flex"></div>'
 			};
 
-			methods = _Schema.filterJavaMethods(methods, entity);
 			_Helpers.sort(methods);
 
 			container.insertAdjacentHTML('beforeend', _Schema.methods.templates.methodsContainer({ class: (entity ? 'entity' : 'global') }));
@@ -3409,12 +3408,6 @@ let _Schema = {
 				delete: 0,
 				new: 0
 			};
-
-			// insert java methods if they are not being displayed
-			let javaMethodsOrEmpty = _Schema.getOnlyJavaMethodsIfFilteringIsActive(entity?.schemaMethods ?? []);
-			for (let javaMethod of javaMethodsOrEmpty) {
-				data.schemaMethods.push({ id: javaMethod.id });
-			}
 
 			for (let gridRow of gridBody.querySelectorAll('.schema-grid-row')) {
 
@@ -5110,34 +5103,6 @@ let _Schema = {
 				left: calculatedX,
 				top: calculatedY
 			};
-		}
-	},
-	shouldShowJavaMethodsForBuiltInTypes: () => UISettings.getValueForSetting(UISettings.settingGroups.schema_code.settings.showJavaMethodsForBuiltInTypes),
-	filterJavaMethods: (methods, entity) => {
-
-		// java methods should always be shown for custom types and for global schema methods
-		// otherwise (for built-in types) they should only be shown if the setting is active
-
-		let isGlobalSchemaMethods = !entity;
-		let isCustomType          = !(entity?.isBuiltinType ?? true);
-
-		if (isGlobalSchemaMethods || isCustomType || _Schema.shouldShowJavaMethodsForBuiltInTypes()) {
-			return methods;
-		}
-
-		return methods.filter(m => m.codeType !== 'java');
-	},
-	getOnlyJavaMethodsIfFilteringIsActive: (methods) => {
-
-		// only relevant when bulk saving methods to not lose java methods (if they are not shown)
-
-		if (_Schema.shouldShowJavaMethodsForBuiltInTypes() === true) {
-
-			return [];
-
-		} else {
-
-			return methods.filter(m => m.codeType === 'java');
 		}
 	},
 	markElementAsChanged: (element, hasClass) => {

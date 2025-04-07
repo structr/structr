@@ -333,11 +333,6 @@ let _Code = {
 							// generic query function, controlled by data object
 							Command.query(data.key, _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', data.query, result => {
 
-								if (data.key === 'SchemaMethod' && result.length > 0) {
-
-									result = _Schema.filterJavaMethods(result, result[0].schemaNode);
-								}
-
 								_Code.tree.displayFunction(result, data);
 
 							}, true, 'ui');
@@ -562,7 +557,7 @@ let _Code = {
 				{
 					id:       path + '/methods',
 					text:     'Methods',
-					children: _Schema.filterJavaMethods(entity.schemaMethods, entity).length > 0,
+					children: entity.schemaMethods.length > 0,
 					icon:     _Icons.nonExistentEmptyIcon,
 					li_attr:  { 'data-id': 'methods' },
 					data:     {
@@ -613,20 +608,7 @@ let _Code = {
 				// only show results after all 6 searches are finished (to prevent duplicates)
 				if (++count === 6) {
 
-					let results = Object.values(searchResults).filter(result => {
-
-						if (result.type === 'SchemaMethod') {
-
-							// let our only filter method filter schema methods
-							let filtered = _Schema.filterJavaMethods([result], result.schemaNode);
-
-							return filtered.length > 0;
-						}
-
-						return true;
-					});
-
-					_Code.tree.displayFunction(results, data, false, true);
+					_Code.tree.displayFunction(searchResults, data, false, true);
 				}
 			};
 
@@ -648,7 +630,7 @@ let _Code = {
 
 						let matchingMethods = [];
 
-						for (let method of _Schema.filterJavaMethods(schemaNode.schemaMethods, schemaNode)) {
+						for (let method of schemaNode.schemaMethods) {
 
 							if (method.name.indexOf(parts[1]) === 0) {
 
@@ -692,21 +674,10 @@ let _Code = {
 		},
 		hasVisibleChildren: (id, entity) => {
 
-			let hasVisibleChildren = false;
+			return (entity?.schemaMethods ?? []).some(method => {
 
-			if (entity.schemaMethods) {
-
-				let methods = _Schema.filterJavaMethods(entity.schemaMethods, entity);
-				for (let m of methods) {
-
-					if (id === 'custom' || !m.isPartOfBuiltInSchema) {
-
-						hasVisibleChildren = true;
-					}
-				}
-			}
-
-			return hasVisibleChildren;
+				return (id === 'custom' || !method.isPartOfBuiltInSchema);
+			});
 		},
 		handleTreeClick: (evt, data) => {
 
