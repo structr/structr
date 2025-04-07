@@ -155,6 +155,8 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) {
 
+		this.stats.recordStatsValue("http", "get", System.currentTimeMillis(), false);
+
 		final long t0                                   = System.currentTimeMillis();
 		final Authenticator auth                        = getConfig().getAuthenticator();
 		final Traits pageTraits                         = Traits.of(StructrTraits.PAGE);
@@ -168,7 +170,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			assertInitialized();
 
 			final String path = request.getPathInfo() != null ? request.getPathInfo() : "/";
-			final String cacheKey = request.getRequestURL().toString();
 
 			// check for registration (has its own tx because of write access
 			if (checkRegistration(auth, request, response, path)) {
@@ -584,11 +585,15 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	@Override
 	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
+		this.stats.recordStatsValue("http", "post", System.currentTimeMillis(), false);
+
 		doGet(request, response);
 	}
 
 	@Override
 	protected void doHead(final HttpServletRequest request, final HttpServletResponse response) {
+
+		this.stats.recordStatsValue("http", "head", System.currentTimeMillis(), false);
 
 		final Authenticator auth        = getConfig().getAuthenticator();
 		SecurityContext securityContext = null;
@@ -834,6 +839,8 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	@Override
 	protected void doOptions(final HttpServletRequest request, final HttpServletResponse response) {
 
+		this.stats.recordStatsValue("http", "options", System.currentTimeMillis(), false);
+
 		final Authenticator auth = config.getAuthenticator();
 
 		try {
@@ -900,7 +907,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				}
 
 				// record async rendering time
-				HtmlServlet.super.stats.recordStatsValue("html", rootElement.getName(), System.currentTimeMillis() - requestStartTime);
+				HtmlServlet.super.stats.recordStatsValue("html", name, System.currentTimeMillis() - requestStartTime);
 			}
 
 		});

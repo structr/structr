@@ -62,12 +62,10 @@ public class ImportCommand extends AbstractCommand {
 		final boolean authVisible             = webSocketData.getNodeDataBooleanValue("authVisible");
 		final boolean includeInExport         = webSocketData.getNodeDataBooleanValue("includeInExport");
 		final boolean processDeploymentInfo   = webSocketData.getNodeDataBooleanValue("processDeploymentInfo");
-		final boolean withTemplate            = webSocketData.getNodeDataBooleanValue("withTemplate");
-		final String templateName             = webSocketData.getNodeDataStringValue("templateName");
 
 		try {
 
-			final Importer pageImporter = new Importer(securityContext, code, address, name, publicVisible, authVisible, includeInExport, false, withTemplate);
+			final Importer pageImporter = new Importer(securityContext, code, address, name, publicVisible, authVisible, includeInExport, false);
 
 			if (processDeploymentInfo) {
 
@@ -88,37 +86,6 @@ public class ImportCommand extends AbstractCommand {
 				Map<String, Object> resultData = new HashMap();
 
 				if (pageId != null) {
-
-					if (withTemplate) {
-
-						final App app                   = StructrApp.getInstance(securityContext);
-						final NodeInterface newPageNode = app.getNodeById(StructrTraits.PAGE, pageId);
-						final RenderContext ctx         = new RenderContext(securityContext);
-						final StringRenderBuffer buffer = new StringRenderBuffer();
-						final Page newPage              = newPageNode.as(Page.class);
-						ctx.setBuffer(buffer);
-
-						// render
-						newPage.render(ctx, 0);
-
-						final String renderedContent = buffer.getBuffer().toString();
-						logger.info("Rendered content of page " + pageId + ": " + renderedContent);
-
-						final Template template = app.create(StructrTraits.TEMPLATE, templateName != null ? templateName : "Main Page Template").as(Template.class);
-
-						template.setContent(renderedContent);
-						template.setContentType("text/html");
-
-						for (final DOMNode node : newPage.getChildren()) {
-
-							newPage.removeChild(node);
-							app.delete(node);
-						}
-
-						newPage.appendChild(template);
-
-					}
-
 
 					resultData.put("id", pageId);
 					getWebSocket().send(MessageBuilder.status().code(200).message("Successfully created page " + name).data(resultData).build(), true);

@@ -18,14 +18,28 @@
  */
 package org.structr.rest.common;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
 public class Stats {
 
-	private long count   = 0L;
-	private long sum     = 0L;
-	private long min     = Long.MAX_VALUE;
-	private long max     = Long.MIN_VALUE;
+	private List<Long> values = new LinkedList<>();
+	private long count        = 0L;
+	private long sum          = 0L;
+	private long min          = Long.MAX_VALUE;
+	private long max          = Long.MIN_VALUE;
 
-	public void value(final long value) {
+	public void value(final long value, final boolean aggregateOnly) {
+
+		if (!aggregateOnly) {
+
+			synchronized (values) {
+				// list is reversed!
+				values.add(0, value);
+			}
+		}
 
 		sum += value;
 
@@ -38,6 +52,10 @@ public class Stats {
 		}
 
 		count++;
+	}
+
+	public List<Long> getValues() {
+		return values;
 	}
 
 	public long getCount() {
@@ -54,5 +72,35 @@ public class Stats {
 
 	public long getAverageValue() {
 		return sum / count;
+	}
+
+	public Map<Long, Long> aggregate(final long aggregationIntervalMilliseconds, final long maxCount) {
+
+		final Map<Long, Long> aggregation = new TreeMap<>();
+
+		synchronized (values) {
+
+			for (final Long value : values) {
+
+				final Long key = value - (value % aggregationIntervalMilliseconds);
+
+				Long sum = aggregation.get(key);
+				if (sum == null) {
+
+					aggregation.put(key, 1L);
+
+				} else {
+
+					aggregation.put(key, sum + 1);
+				}
+
+				// max
+				if (aggregation.size() >= maxCount) {
+					break;
+				}
+			}
+		}
+
+		return aggregation;
 	}
 }

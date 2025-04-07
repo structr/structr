@@ -1409,8 +1409,6 @@ let _Code = {
 						formData.schemaProperties   = _Schema.views.findSchemaPropertiesByNodeAndName(reloadedEntity, sortedAttrs);
 						formData.nonGraphProperties = _Schema.views.findNonGraphProperties(reloadedEntity, sortedAttrs);
 
-						_Code.helpers.showSchemaRecompileMessage();
-
 						Command.setProperties(view.id, formData, () => {
 							Object.assign(view, formData);
 							_Code.persistence.updateDirtyFlag(view);
@@ -1420,8 +1418,6 @@ let _Code = {
 							if (formData.name) {
 								_Code.tree.refreshTree();
 							}
-
-							_Code.helpers.hideSchemaRecompileMessage();
 						});
 					});
 				}
@@ -2515,12 +2511,6 @@ let _Code = {
 				}
 			}
 		},
-		showSchemaRecompileMessage: () => {
-			_Dialogs.loadingMessage.show('Schema is compiling', 'Please wait...', 'code-compilation-message');
-		},
-		hideSchemaRecompileMessage:  () => {
-			_Dialogs.loadingMessage.hide('code-compilation-message');
-		},
 		preloadAvailableTagsForEntities: async () => {
 
 			let schemaNodeTags   = await Command.queryPromise('SchemaNode', _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', null, false, null, 'tags');
@@ -2568,12 +2558,6 @@ let _Code = {
 					modFn(formData);
 				}
 
-				let compileRequired = _Code.persistence.isCompileRequiredForSave(formData);
-
-				if (compileRequired) {
-					_Code.helpers.showSchemaRecompileMessage();
-				}
-
 				fetch(Structr.rootUrl + entity.id, {
 					method: 'PUT',
 					body: JSON.stringify(formData)
@@ -2590,9 +2574,6 @@ let _Code = {
 							_Code.tree.refreshTree();
 						}
 
-						if (compileRequired) {
-							_Code.helpers.hideSchemaRecompileMessage();
-						}
 						_Code.persistence.showSaveAction(formData);
 
 						if (typeof callback === 'function') {
@@ -2604,8 +2585,6 @@ let _Code = {
 						let data = await response.json();
 
 						Structr.errorFromResponse(data);
-
-						_Code.helpers.hideSchemaRecompileMessage();
 					}
 				});
 			}
@@ -2623,36 +2602,15 @@ let _Code = {
 
 				if (confirm === true) {
 
-					_Code.helpers.showSchemaRecompileMessage();
 					_Code.dirty = false;
 
 					Command.deleteNode(entity.id, false, () => {
 						_Code.persistence.forceNotDirty();
-						_Code.helpers.hideSchemaRecompileMessage();
 						_Code.tree.findAndOpenNode(parent, false);
 						_Code.tree.refreshTree();
 					});
 				}
 			});
-		},
-		isCompileRequiredForSave: (changes) => {
-
-			let compileRequired = false;
-
-			for (let key in changes) {
-				compileRequired = compileRequired || _Code.persistence.compileRequiredForKey(key);
-			}
-
-			return compileRequired;
-		},
-		compileRequiredForKey: (key) => {
-
-			let element = _Code.helpers.getElementForKey(key);
-			if (element && element.dataset.recompile === "false") {
-				return false;
-			}
-
-			return true;
 		},
 		forceNotDirty: () => {
 			_Code.codeContents.find('.to-delete').removeClass('to-delete');

@@ -926,31 +926,6 @@ let Command = {
 		return StructrWS.sendObj(obj);
 	},
 	/**
-	 * Send an IMPORT command to the server.
-	 *
-	 * This command will trigger the server-side importer to start with
-	 * parsing the given source code or importing the page data from the given address.
-	 * If successful, the server will add a new page with the given name which contains a single Template node
-	 * and make it visible for public or authenticated users.
-	 */
-	importPageAsTemplate: function(address, name, templateName) {
-		let obj = {
-			command: 'IMPORT',
-			data: {
-				code: null,
-				address: address,
-				name: name,
-				publicVisible: false,
-				authVisible: false,
-				includeInExport: false,
-				processDeploymentInfo: false,
-				withTemplate: true,
-				templateName: templateName
-			}
-		};
-		return StructrWS.sendObj(obj);
-	},
-	/**
 	 * Send a PATCH command to the server.
 	 *
 	 * This will change the text contained in the 'content' property of the

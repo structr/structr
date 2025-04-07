@@ -32,7 +32,6 @@ import org.structr.common.AccessControllable;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.VersionHelper;
-import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
@@ -45,13 +44,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.CorsSettingTraitDefinition;
-import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
-import org.structr.core.traits.definitions.LocalizationTraitDefinition;
-import org.structr.core.traits.definitions.MailTemplateTraitDefinition;
-import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
-import org.structr.core.traits.definitions.ResourceAccessTraitDefinition;
-import org.structr.core.traits.definitions.SchemaGrantTraitDefinition;
+import org.structr.core.traits.definitions.*;
 import org.structr.core.traits.relationships.SecurityRelationshipDefinition;
 import org.structr.module.StructrModule;
 import org.structr.rest.resource.MaintenanceResource;
@@ -67,15 +60,7 @@ import org.structr.web.entity.dom.*;
 import org.structr.web.entity.event.ActionMapping;
 import org.structr.web.entity.event.ParameterMapping;
 import org.structr.web.maintenance.deploy.*;
-import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
-import org.structr.web.traits.definitions.ActionMappingTraitDefinition;
-import org.structr.web.traits.definitions.ApplicationConfigurationDataNodeTraitDefinition;
-import org.structr.web.traits.definitions.FileTraitDefinition;
-import org.structr.web.traits.definitions.ImageTraitDefinition;
-import org.structr.web.traits.definitions.LinkableTraitDefinition;
-import org.structr.web.traits.definitions.ParameterMappingTraitDefinition;
-import org.structr.web.traits.definitions.SiteTraitDefinition;
-import org.structr.web.traits.definitions.WidgetTraitDefinition;
+import org.structr.web.traits.definitions.*;
 import org.structr.web.traits.definitions.dom.ContentTraitDefinition;
 import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
 import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
@@ -384,7 +369,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			// apply pre-deploy.conf
 			applyConfigurationFileIfExists(ctx, preDeployConfFile, DEPLOYMENT_IMPORT_STATUS);
 
-			importSchemaGrants(schemaGrantsMetadataFile);
 			importResourceAccessGrants(grantsMetadataFile);
 			importCorsSettings(corsSettingsMetadataFile);
 			importMailTemplates(mailTemplatesMetadataFile, source);
@@ -392,6 +376,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			importLocalizations(localizationsMetadataFile);
 			importApplicationConfigurationNodes(applicationConfigurationDataMetadataFile);
 			importSchema(schemaFolder, extendExistingApp);
+			importSchemaGrants(schemaGrantsMetadataFile);
 
 			final FileImportVisitor.FileImportProblems fileImportProblems = importFiles(filesMetadataFile, source, ctx);
 
@@ -864,7 +849,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			try {
 
-				IOUtils.copy(file.getInputStream(), new FileOutputStream(targetPath.toFile()));
+				IOUtils.copy(file.getRawInputStream(), new FileOutputStream(targetPath.toFile()));
 
 			} catch (IOException ioex) {
 
@@ -1094,7 +1079,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final SchemaNode optionalSchemaNode = schemaGrant.getSchemaNode();
 				if (optionalSchemaNode != null) {
 
-					grant.put(SchemaGrantTraitDefinition.SCHEMA_NODE_PROPERTY, Map.of("id", optionalSchemaNode.getUuid()));
+					grant.put(SchemaGrantTraitDefinition.SCHEMA_NODE_PROPERTY, Map.of("name", optionalSchemaNode.getName()));
 				}
 			}
 
@@ -1475,20 +1460,19 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				if (principals.isEmpty()) {
 
-					logger.warn("Unknown owner! Found no node of type Principal named '{}', ignoring.", ownerName);
-					DeployCommand.addMissingPrincipal(ownerName);
+					DeployCommand.encounteredMissingPrincipal("Unknown owner", ownerName);
 
 					entry.remove("owner");
 
 				} else if (principals.size() > 1) {
 
-					logger.warn("Ambiguous owner! Found {} nodes of type Principal named '{}', ignoring.", principals.size(), ownerName);
-					DeployCommand.addAmbiguousPrincipal(ownerName);
+					DeployCommand.encounteredAmbiguousPrincipal("Ambiguous owner", ownerName, principals.size());
 
 					entry.remove("owner");
 				}
 
 			} else if (removeNullOwner) {
+
 				entry.remove("owner");
 			}
 		}
@@ -1505,13 +1489,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				if (principals.isEmpty()) {
 
-					logger.warn("Unknown owner! Found no node of type Principal named '{}', ignoring.", granteeName);
-					DeployCommand.addMissingPrincipal(granteeName);
+					DeployCommand.encounteredMissingPrincipal("Unknown grantee", granteeName);
 
 				} else if (principals.size() > 1) {
 
-					logger.warn("Ambiguous grantee! Found {} nodes of type Principal named '{}', ignoring.", principals.size(), granteeName);
-					DeployCommand.addAmbiguousPrincipal(granteeName);
+					DeployCommand.encounteredAmbiguousPrincipal("Ambiguous grantee", granteeName, principals.size());
 
 				} else {
 
@@ -1525,32 +1507,30 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		// new section for schema grants
 		if (entry.containsKey("principal")) {
 
-			final Map ownerData = ((Map)entry.get("principal"));
-			if (ownerData != null) {
+			final Map principalData = ((Map)entry.get("principal"));
+			if (principalData != null) {
 
-				final String ownerName               = (String) ((Map)entry.get("principal")).get("name");
-				final List<NodeInterface> principals = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).andName(ownerName).getAsList();
+				final String principalName           = (String) principalData.get("name");
+				final List<NodeInterface> principals = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).andName(principalName).getAsList();
 
 				if (principals.isEmpty()) {
 
-					logger.warn("Unknown principal! Found no node of type Principal named '{}', ignoring.", ownerName);
-					DeployCommand.addMissingPrincipal(ownerName);
+					DeployCommand.encounteredMissingPrincipal("Unknown principal", principalName);
 
 					entry.remove("principal");
 
 				} else if (principals.size() > 1) {
 
-					logger.warn("Ambiguous principal! Found {} nodes of type Principal named '{}', ignoring.", principals.size(), ownerName);
-					DeployCommand.addAmbiguousPrincipal(ownerName);
+					DeployCommand.encounteredAmbiguousPrincipal("Ambiguous principal", principalName, principals.size());
 
 					entry.remove("principal");
 				}
 
 			} else if (removeNullOwner) {
+
 				entry.remove("principal");
 			}
 		}
-
 	}
 
 	private void exportMailTemplates(final Path targetConf, final Path targetFolder) throws FrameworkException {
@@ -1995,10 +1975,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	private void importSchemaGrants(final List<Map<String, Object>> data) throws FrameworkException {
 
-		boolean isOldExport = false;
-		final StringBuilder grantMessagesHtml = new StringBuilder();
-		final StringBuilder grantMessagesText = new StringBuilder();
-
 		final SecurityContext context = SecurityContext.getSuperUserInstance();
 		context.setDoTransactionNotifications(false);
 		final App app                 = StructrApp.getInstance(context);
@@ -2022,28 +1998,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		} catch (FrameworkException fex) {
 
-			logger.error("Unable to import resouce access grant, aborting with {}", fex.getMessage(), fex);
+			logger.error("Unable to import schema grant, aborting with {}", fex.getMessage(), fex);
 
 			throw fex;
-
-		} finally {
-
-			if (isOldExport) {
-
-				final String text = "Found outdated version of grants.json file without visibility and grantees!\n\n"
-					+ "    Configuration was auto-updated using this simple heuristic:\n"
-					+ "     * Grants with public access were set to **visibleToPublicUsers: true**\n"
-					+ "     * Grants with authenticated access were set to **visibleToAuthenticatedUsers: true**\n\n"
-					+ "    Please make any necessary changes in the 'Security' area as this may not suffice for your use case. The ability to use group/user rights to grants has been added to improve flexibility.";
-
-				final String htmlText = "Configuration was auto-updated using this simple heuristic:<br>"
-					+ "&nbsp;- Grants with public access were set to <code>visibleToPublicUsers: true</code><br>"
-					+ "&nbsp;- Grants with authenticated access were set to <code>visibleToAuthenticatedUsers: true</code><br><br>"
-					+ "Please make any necessary changes in the <a href=\"#security\">Security</a> area as this may not suffice for your use case. The ability to use group/user rights to grants has been added to improve flexibility.";
-
-				deferredLogTexts.add(text + "\n\n" + grantMessagesText);
-				publishWarningMessage("Found grants.json file without visibility and grantees", htmlText + "<br><br>" + grantMessagesHtml);
-			}
 		}
 	}
 
@@ -3049,12 +3006,22 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	public static void addMissingPrincipal (final String principalName) {
-		missingPrincipals.add(principalName);
+	public static void encounteredMissingPrincipal(final String errorPrefix, final String principalName) {
+
+		if (!missingPrincipals.contains(principalName)) {
+
+			logger.warn("{}! No node of type Principal with name '{}' found, ignoring.", errorPrefix, principalName);
+			missingPrincipals.add(principalName);
+		}
 	}
 
-	public static void addAmbiguousPrincipal (final String principalName) {
-		ambiguousPrincipals.add(principalName);
+	public static void encounteredAmbiguousPrincipal(final String errorPrefix, final String principalName, final int numberOfHits) {
+
+		if (!ambiguousPrincipals.contains(principalName)) {
+
+			logger.warn("{}! Found {} nodes of type Principal named '{}', ignoring.\"", errorPrefix, numberOfHits, principalName);
+			ambiguousPrincipals.add(principalName);
+		}
 	}
 
 	public static void addMissingSchemaFile (final String fileName) {

@@ -21,4 +21,5 @@ package org.structr.rest.common;
 public interface StatsCallback {
 
 	void recordStatsValue(final String key, final String source, final long milliseconds);
+	void recordStatsValue(final String key, final String source, final long milliseconds, final boolean aggregateOnly);
 }

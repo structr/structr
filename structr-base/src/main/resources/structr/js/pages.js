@@ -44,7 +44,6 @@ let _Pages = {
 	localizationsSlideout: undefined,
 
 	widgetsSlideout: undefined,
-	paletteSlideout: undefined,
 	componentsSlideout: undefined,
 	unusedElementsSlideout: undefined,
 	previewSlideout: undefined,
@@ -118,7 +117,6 @@ let _Pages = {
 		_Pages.centerPane              = document.querySelector('#center-pane');
 		_Pages.previews.previewElement = document.querySelector('#previews');
 		_Pages.widgetsSlideout         = $('#widgetsSlideout');
-		_Pages.paletteSlideout         = $('#palette');
 		_Pages.componentsSlideout      = $('#components');
 		_Pages.unusedElementsSlideout  = $('#elements');
 		_Pages.unusedElementsTree      = $('#elementsArea', _Pages.unusedElementsSlideout);
@@ -172,25 +170,16 @@ let _Pages = {
 
 			let widgetsTab = document.getElementById('widgetsTab');
 			widgetsTab.addEventListener('click', () => {
-				Structr.slideouts.rightSlideoutClickTrigger(widgetsTab, _Pages.widgetsSlideout, [_Pages.paletteSlideout, _Pages.componentsSlideout, _Pages.unusedElementsSlideout, _Pages.previewSlideout], (params) => {
+				Structr.slideouts.rightSlideoutClickTrigger(widgetsTab, _Pages.widgetsSlideout, [_Pages.componentsSlideout, _Pages.unusedElementsSlideout, _Pages.previewSlideout], (params) => {
 					LSWrapper.setItem(_Pages.activeTabRightKey, widgetsTab.id);
 					_Widgets.reloadWidgets();
 					Structr.resize();
 				}, _Pages.rightSlideoutClosedCallback);
 			});
 
-			let paletteTab = document.getElementById('paletteTab');
-			paletteTab.addEventListener('click', () => {
-				Structr.slideouts.rightSlideoutClickTrigger(paletteTab, _Pages.paletteSlideout, [_Pages.widgetsSlideout, _Pages.componentsSlideout, _Pages.unusedElementsSlideout, _Pages.previewSlideout], (params) => {
-					LSWrapper.setItem(_Pages.activeTabRightKey, paletteTab.id);
-					_Pages.designTools.reload();
-					Structr.resize();
-				}, _Pages.rightSlideoutClosedCallback);
-			});
-
 			let componentsTab = document.getElementById('componentsTab');
 			let componentsTabSlideoutAction = (isDragOpen = false) => {
-				Structr.slideouts.rightSlideoutClickTrigger(componentsTab, _Pages.componentsSlideout, [_Pages.widgetsSlideout, _Pages.paletteSlideout, _Pages.unusedElementsSlideout, _Pages.previewSlideout], (params) => {
+				Structr.slideouts.rightSlideoutClickTrigger(componentsTab, _Pages.componentsSlideout, [_Pages.widgetsSlideout, _Pages.unusedElementsSlideout, _Pages.previewSlideout], (params) => {
 					LSWrapper.setItem(_Pages.activeTabRightKey, componentsTab.id);
 					_Pages.sharedComponents.reload(isDragOpen);
 					Structr.resize();
@@ -216,7 +205,7 @@ let _Pages = {
 
 			let elementsTab = document.getElementById('elementsTab');
 			elementsTab.addEventListener('click', () => {
-				Structr.slideouts.rightSlideoutClickTrigger(elementsTab, _Pages.unusedElementsSlideout, [_Pages.widgetsSlideout, _Pages.paletteSlideout, _Pages.componentsSlideout, _Pages.previewSlideout], (params) => {
+				Structr.slideouts.rightSlideoutClickTrigger(elementsTab, _Pages.unusedElementsSlideout, [_Pages.widgetsSlideout, _Pages.componentsSlideout, _Pages.previewSlideout], (params) => {
 					LSWrapper.setItem(_Pages.activeTabRightKey, elementsTab.id);
 					_Pages.unattachedNodes.reload();
 					Structr.resize();
@@ -228,7 +217,7 @@ let _Pages = {
 
 			let previewTab = document.getElementById('previewTab');
 			previewTab.addEventListener('click', () => {
-				Structr.slideouts.rightSlideoutClickTrigger(previewTab, _Pages.previewSlideout, [_Pages.widgetsSlideout, _Pages.paletteSlideout, _Pages.componentsSlideout, _Pages.unusedElementsSlideout], (params) => {
+				Structr.slideouts.rightSlideoutClickTrigger(previewTab, _Pages.previewSlideout, [_Pages.widgetsSlideout, _Pages.componentsSlideout, _Pages.unusedElementsSlideout], (params) => {
 					LSWrapper.setItem(_Pages.activeTabRightKey, previewTab.id);
 					_Pages.previews.updatePreviewSlideout();
 					Structr.resize();
@@ -2758,7 +2747,6 @@ let _Pages = {
 		activePreviewPageId: null,
 		activePreviewHighlightElementId: null,
 		wrapperTypeForContextMenu: 'PreviewElement',
-
 		getContextMenuElements: (div, entityWrapper) => {
 
 			const entity = entityWrapper.entity;
@@ -2846,7 +2834,6 @@ let _Pages = {
 
 			return elements;
 		},
-
 		findDroppablesInIframe: (iframeDocument, id) => {
 			let droppables = iframeDocument.find('[data-structr-id]');
 			if (droppables.length === 0) {
@@ -2857,14 +2844,7 @@ let _Pages = {
 			droppables = iframeDocument.find('[data-structr-id]');
 			return droppables;
 		},
-
 		previewIframeLoaded: (iframe, highlightElementId) => {
-
-			let designToolsActive = false;
-			if (LSWrapper.getItem(_Pages.activeTabRightKey) === 'paletteTab') {
-				// Design tools are open
-				designToolsActive = true;
-			}
 
 			let doc = $(iframe.contentDocument || iframe.contentWindow.document);
 
@@ -2888,83 +2868,6 @@ let _Pages = {
 						 */
 						+ '.navbar-fixed-top { -webkit-transform: none ! important; }\n'
 						+ '</style>\n');
-
-					if (designToolsActive) {
-
-						const mouseOverHandler = (e) => {
-							let tagName     = e.target.tagName;
-							let idString    = e.target.id;
-							let classString = e.target.className;
-							let el = e.target;
-							el.classList.add('design-tools-hover');
-
-							// if (!document.getElementById('design-tools-area').classList.contains('locked')) {
-							// 	document.getElementById('design-tools-hover-tag-name-input').value = tagName;
-							// 	document.getElementById('design-tools-hover-id-input').value       = idString;
-							// 	document.getElementById('design-tools-hover-class-input').value    = classString;
-							// }
-
-						};
-
-						const mouseOutHandler = (e) => {
-							let tagName     = e.target.tagName;
-							let idString    = e.target.id;
-							let classString = e.target.className;
-							let el = e.target;
-							el.classList.remove('design-tools-hover');
-							// document.getElementById('design-tools-hover-tag-name-input').value = tagName;
-							// document.getElementById('design-tools-hover-id-input').value       = idString;
-							// document.getElementById('design-tools-hover-class-input').value    = classString;
-						};
-
-						head.append('<style media="screen">\n'
-							+ '*.design-tools-hover { -moz-box-shadow: 0 0 8px #72a132; -webkit-box-shadow: 0 0 8px #72a132; box-shadow: 0 0 8px #72a132; }\n'
-							+ '*.design-tools-locked { -moz-box-shadow: 0 0 8px #595 ; -webkit-box-shadow: 0 0 8px #595; box-shadow: 0 0 8px #595; }\n'
-							+ '</style>\n');
-
-						for (let el of doc[0].querySelectorAll('*')) {
-							// el.addEventListener('mouseenter', (e) => {
-							// 	console.log('Mouseenter:', e.target);
-							// 	document.getElementById('design-tools-hover-selector-input').value = e.target;
-							// });
-							el.addEventListener('mouseover', mouseOverHandler);
-							el.addEventListener('mouseout', mouseOutHandler);
-
-							el.addEventListener('click', (e) => {
-								e.preventDefault();
-								e.stopPropagation();
-								//document.getElementById('design-tools-area').classList.add('locked');
-								for (let otherEl of doc[0].querySelectorAll('*')) {
-									otherEl.classList.remove('design-tools-hover');
-									otherEl.classList.remove('design-tools-locked');
-									//otherEl.removeEventListener('mouseover', mouseOverHandler);
-									//otherEl.removeEventListener('mouseout', mouseOutHandler);
-								}
-								el.classList.add('design-tools-locked');
-
-								// remove design-tool specific classes
-								let html = el.outerHTML.replaceAll(/ ?design-tools-locked/g, '').replaceAll(' class=""', '');
-
-								_Pages.designTools.selectedElementOrigSource = html;
-								_Pages.designTools.sourceEditor.setValue(html);
-								//_Pages.designTools.sourceEditor.getAction().run();
-								_Pages.designTools.sourceEditor.getAction('editor.action.formatDocument').run();
-								_Pages.designTools.selectedElement = el;
-								_Pages.designTools.selectedElementSelector = TopLevelObject.DOMPresentationUtils.cssPath(el);
-
-								let childTemplateNameInput = document.getElementById('design-tools-template-name-input');
-								let tagString   = el.tagName[0].toUpperCase() + el.tagName.toLowerCase().slice(1) + ' Element';
-								let idString    = el.id ? ('#' + el.id) : '';
-								let classString = Array.from(el.classList).filter(c => c !== 'design-tools-locked').map(t => t.length > 1 ? '.' + t : null).join(' ');
-								childTemplateNameInput.value = tagString + ((el.id || classString) ? ' (' : '')
-									+ idString + ((el.id && classString) ? ' ' : '')
-									+ classString
-									+ ((el.id || classString) ? ')' : '');
-
-							});
-						}
-					}
-
 				}
 
 				_Pages.previews.findDroppablesInIframe(doc, highlightElementId).each(function(i, element) {
@@ -3042,7 +2945,6 @@ let _Pages = {
 
 			_Pages.previews.activateComments(doc);
 		},
-
 		getComments: (el) => {
 
 			let comments = [];
@@ -3069,7 +2971,6 @@ let _Pages = {
 			}
 			return comments;
 		},
-
 		getNonCommentSiblings: (el) => {
 
 			let siblings = [];
@@ -3337,366 +3238,6 @@ let _Pages = {
 				_Helpers.blinkGreen(autoRefreshCheckbox.parentNode);
 			});
 		},
-	},
-
-	designTools: {
-		sourceEditor: null,
-		selectedElement: null,
-		urlHistoryKey: 'design-tools-url-history',
-		reload: () => {
-			//console.log('Design tools opened');
-
-			let html = `
-				<div class="inner">
-					<div class="mr-12" id="design-tools-area">
-
-						<h3>Import from page</h3>
-						<div class="w-full mb-4">
-							<label class="block mb-2" for="design-tools-url-input" data-comment="Must be full URL including scheme">Enter URL of example page to preview</label>
-							<input class="w-full rounded-r" style="margin-left: -1px" type="text" id="design-tools-url-input">
-						</div>
-						<div class="w-full mb-4">
-							<label class="block mb-2" for="design-tools-url-history-select">URL history</label>
-							<select id="design-tools-url-history-select" class=""><option></option></optin></select>
-						</div>
-						<div class="w-full mb-4">
-							<label class="block mb-2" for="design-tools-page-name-input">Page name</label>
-							<input id="design-tools-page-name-input" class="w-full" type="text">
-						</div>
-						<div class="w-full mb-4">
-							<label class="block mb-2" for="design-tools-page-template-name-input">Page template name</label>
-							<input id="design-tools-page-template-name-input" class="w-full" type="text">
-						</div>
-						<div class="w-full mb-8">
-							<button class="hover:bg-gray-100 focus:border-gray-666 active:border-green" id="design-tools-create-page-button">Create new page</button>
-						</div>
-
-						<h3>Select element</h3>
-						<p>Hover over elements in the preview page. Click to select and lock an element.</p>
-						<div class="grid grid-cols-6 gap-4">
-							<!--
-							<div class="col-span-3 mr-4">
-								<label class="block mb-2" for="design-tools-url-input">Tag name</label>
-								<input id="design-tools-hover-tag-name-input" class="w-full" type="text">
-							</div>
-							<div class="col-span-3">
-								<label class="block mb-2" for="design-tools-url-input">ID</label>
-								<input id="design-tools-hover-id-input" class="w-full" type="text">
-							</div>
-							<div class="col-span-6">
-								<label class="block mb-2" for="design-tools-url-input">CSS Classes</label>
-								<input id="design-tools-hover-class-input"class="w-full" type="text">
-							</div>
-							-->
-							<div class="col-span-6 h-80 mb-4" id="design-tool-source-editor-area">
-								<label class="block mb-2" for="design-tools-source-code">Source code</label>
-								<!--textarea id="design-tool-source-textarea" class="w-full h-40"></textarea-->
-							</div>
-							<div class="col-span-6">
-								<label class="block mb-2" for="design-tools-template-name-input">Template name</label>
-								<input id="design-tools-template-name-input" class="w-full" type="text">
-							</div>
-							<div class="col-span-3">
-								<label class="" for="design-tools-create-as-dom-tree">Create as DOM tree</label>
-							</div>
-							<div class="col-span-3">
-								<input id="design-tools-create-as-dom-tree" class="" type="checkbox">
-							</div>
-							<div class="col-span-3">
-								<label class="" for="design-tools-remove-siblings">Remove similar siblings (for repeater)</label>
-							</div>
-							<div class="col-span-3">
-								<input id="design-tools-remove-siblings" class="" type="checkbox">
-							</div>
-							<div class="cols-span-6">
-								<button class="hover:bg-gray-100 focus:border-gray-666 active:border-green" id="design-tools-create-child-template">Create sub node</button>
-							</div>
-						</div>
-					</div>
-				</div>
-			`;
-
-			let designTools = document.getElementById('palette');
-			_Helpers.fastRemoveAllChildren(designTools);
-			designTools.insertAdjacentHTML('afterbegin', html);
-
-			_Helpers.activateCommentsInElement(designTools);
-
-			let pageTemplateNameInput = document.getElementById('design-tools-page-template-name-input');
-			let pageNameInput         = document.getElementById('design-tools-page-name-input');
-			let urlInput              = document.getElementById('design-tools-url-input');
-
-			document.getElementById('design-tools-create-page-button').addEventListener('click', (e) => {
-
-				Command.importPageAsTemplate(urlInput.value, pageNameInput.value, pageTemplateNameInput.value, (newPage) => {
-					//console.log('Page imported as template', newPage);
-
-					//Command.setProperty(newPage.children[0].id)
-
-				});
-
-				// Command.create({ type: 'Page', name: pageNameInput.value }, (newPage) => {
-				//
-				// 	//console.log('New page created', newPage);
-				// 	let previewIframe = document.querySelector('.previewBox iframe');
-				// 	let html = previewIframe.contentDocument.documentElement.outerHTML.replaceAll(/ ?design-tools-locked/g, '').replaceAll(' class=""', '');
-				// 	//console.log(previewIframe.contentDocument); return;
-				// 	let pageTemplateNameInput = document.getElementById('design-tools-page-template-name-input');
-				//
-				// 	fetch(urlInput.value)
-				// 		.then(response => response.text())
-				// 		.then(html => {
-				//
-				// 			Command.create({
-				// 				type: 'Template',
-				// 				name: pageTemplateNameInput.value,
-				// 				content: html,
-				// 				contentType: 'text/html'
-				// 			}, (newTemplate) => {
-				// 				console.log('New template created', newTemplate);
-				// 				Command.appendChild(newTemplate.id, newPage.id);
-				// 			});
-				//
-				// 		});
-				// });
-			});
-
-			const createChildTemplates = (obj, parentTemplateContent) => {
-
-				//console.log('Root of createChildTemplates with obj', obj);
-
-				for (let child of obj.children) {
-
-					//console.log('Testing child', child);
-
-					if (child.type === 'Template') {
-
-						Command.get(child.id, 'id,type,name,content,children', (template) => {
-							//console.log('Template found', childObj.content);
-
-							// Match template content with source code of currently selected element
-							// let selectedElementSource = _Pages.designTools.selectedElementOrigSource.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-							// let templateContent = template.content.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-
-							let selectedElementSource = _Pages.designTools.selectedElementOrigSource.replace(/[.*+?^#%${}()|[\]\\]/g, '\\$&');
-							let templateContent = template.content; //.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-
-							//let regex = new RegExp(RegExp.escape(selectedElementSource));
-							let regex = new RegExp(selectedElementSource);
-							let matches = regex.test(templateContent);
-							let el = _Pages.designTools.selectedElement;
-
-							let childTemplateNameInput = document.getElementById('design-tools-template-name-input');
-							let newChildTemplateName   = childTemplateNameInput.value;
-
-							//let tmpDoc      = document.implementation.createHTMLDocument();
-							//let tmpEl       = tmpDoc.createElement('html');
-							//tmpEl.innerHTML = selectedElementSource;
-
-							let templateTmpDoc      = document.implementation.createHTMLDocument();
-							let templateTmpEl       = templateTmpDoc.createElement('html');
-							templateTmpEl.innerHTML = templateContent;
-
-							//console.log(parentTemplateContent);
-							//console.log(templateContent);
-
-							// TODO: Bei der Suche in Child-Elementen muss der relative Pfad berücksichtigt werden.
-							// Das Matching muss von der Stelle aus gemacht werden, wo das ${include_child()} im Parent-Template steht.
-							// Oder es muss der Reverse CSS Path immer mit class (und id) aufgelöst werden ...
-
-							//console.log(templateTmpEl);
-
-							let selectedEl = templateTmpEl.querySelector(_Pages.designTools.selectedElementSelector); //.replace('html > body > ', ''));
-							//console.log(_Pages.designTools.selectedElementSelector);
-							//console.log(selectedEl); return;
-
-
-
-							//console.log(templateTmpEl); return;
-
-							if (selectedEl) {
-
-								selectedEl.outerHTML = '${include_child(\'' + newChildTemplateName + '\')}';
-
-								//console.log('Match!');
-
-								// If it matches, replace by ${include_child(...)} expression
-
-								//Command.setProperty(template.id, 'content', templateContent.replace(regex, '${include_child(\'' + newChildTemplateName + '\')}\n'));
-
-								let newHTML = templateContent.startsWith('<!DOCTYPE') ? '<!DOCTYPE html>\n' + templateTmpEl.outerHTML : templateTmpEl.querySelector('html > body').innerHTML;
-
-								Command.setProperty(template.id, 'content', newHTML);
-
-								let newTemplateContent = _Pages.designTools.sourceEditor.getValue();
-
-								Command.create({
-									type: 'Template',
-									name: newChildTemplateName,
-									content: newTemplateContent,
-									contentType: 'text/html'
-								}, (newTemplate) => {
-									//console.log('New template created', newTemplate);
-									Command.appendChild(newTemplate.id, template.id);
-								});
-
-							} else {
-								//console.log('No match, step down to', template);
-								createChildTemplates(template, templateContent);
-							}
-						});
-
-					}
-				}
-			};
-
-			document.getElementById('design-tools-create-child-template').addEventListener('click', (e) => {
-				// To create a new template, we must figure out which is the parent template first
-				// Get currently selected page and iterate through the templates to find the corresponding HTML
-				let activePageId = _Pages.previews.activePreviewPageId;
-				Command.get(activePageId, 'id,type,name,children', (pageObj) => {
-					createChildTemplates(pageObj);
-				});
-			});
-
-			const updateUrlHistorySelect = () => {
-
-				let urlHistorySelectEl = document.getElementById('design-tools-url-history-select');
-				_Helpers.fastRemoveAllChildren(urlHistorySelectEl);
-
-				urlHistorySelectEl.insertAdjacentHTML('beforeend', '<option disabled selected></option>');
-
-				for (let urlHistoryEntry of (LSWrapper.getItem(_Pages.designTools.urlHistoryKey) || []).reverse()) {
-					urlHistorySelectEl.insertAdjacentHTML('beforeend', '<option>' + urlHistoryEntry + '</option>');
-				}
-			}
-
-			const validateUrl = (element, url) => {
-
-				try {
-					new URL(url);
-				} catch(e) {
-					_Helpers.blinkRed(element);
-
-					return false;
-				}
-
-				return true;
-			};
-
-			const loadPreviewPage = async (url) => {
-
-				let response = await fetch('/structr/proxy?url=' + url);
-
-				if (response.ok === false) {
-
-					if (response.status === 503) {
-
-						new WarningMessage().title(response.statusText).text('ProxyServlet not available - this can be configured via the <b><code>application.proxy.mode</code></b> setting in structr.conf').requiresConfirmation().show();
-
-					} else {
-
-						new WarningMessage().title(response.statusText).text('Unknown error in ProxyServlet. Please check the server log and act accordingly.').requiresConfirmation().show();
-					}
-
-					return;
-				}
-
-				let html = await response.text();
-
-				_Pages.hideAllFunctionBarTabs();
-
-				// clear UI in Pages tree
-				_Entities.selectedObject = null;
-				_Entities.deselectAllElements();
-				_Entities.removeSelectedNodeClassFromAllNodes();
-
-				document.querySelector('a[href="#pages:preview"]').closest('li').classList.remove('hidden');
-				document.querySelector('a[href="#pages:preview"]').click();
-
-				// make sure center pane + iframe are created to prevent duplicate handlers
-				_Pages.emptyCenterPane();
-
-				_Pages.centerPane.insertAdjacentHTML('beforeend', _Pages.templates.preview({ pageId: null }));
-				let previewIframe = document.querySelector('.previewBox iframe');
-				_Pages.showTabsMenu();
-				previewIframe.onload = () => {
-					_Pages.previews.previewIframeLoaded(previewIframe);
-				};
-
-				previewIframe.addEventListener('load', (e) => {
-
-					let pageName;
-					let pageHref = previewIframe.contentDocument.documentElement.querySelector('base').href;
-					if (pageHref) {
-						let hrefParts = pageHref.split('/');
-						pageName = hrefParts[hrefParts.length-2];
-					}
-					pageNameInput.value = pageName;
-
-					let pageTitle = previewIframe.contentDocument.documentElement.querySelector('title').innerText;
-					pageTemplateNameInput.value = pageTitle;
-				});
-
-				previewIframe = document.querySelector('.previewBox iframe');
-				previewIframe.srcdoc = html;
-			}
-
-			let urlHistorySelectEl = document.getElementById('design-tools-url-history-select');
-			urlHistorySelectEl.addEventListener('change', async (e) => {
-				let url = e.target.value;
-
-				if (validateUrl(e.target, url)) {
-					urlInput.value = url;
-					await loadPreviewPage(url);
-				}
-			});
-
-			updateUrlHistorySelect();
-
-			urlInput.addEventListener('keyup', async (e) => {
-				let inputElement = e.target;
-				switch (e.key) {
-					case 'Enter':
-
-						if (validateUrl(inputElement, inputElement.value)) {
-
-							let history = LSWrapper.getItem(_Pages.designTools.urlHistoryKey);
-							if (!history || (history.length && history.indexOf(inputElement.value) === -1)) {
-								LSWrapper.setItem(_Pages.designTools.urlHistoryKey, (LSWrapper.getItem(_Pages.designTools.urlHistoryKey) || []).concat(inputElement.value));
-							}
-
-							updateUrlHistorySelect();
-
-							await loadPreviewPage(inputElement.value);
-						}
-
-						break;
-
-					default:
-						return;
-				}
-			});
-
-			let sourceEditorTextElement = document.getElementById('design-tool-source-textarea');
-			let sourceEditorConfig = {
-				//value: 'test',
-				language: 'text/html',
-				lint: true,
-				autocomplete: true,
-				autoIndent: 'full',
-				automaticLayout: true,
-				//changeFn: (editor, entity) => { },
-				isAutoscriptEnv: true,
-				//saveFn: saveFunction,
-				//saveFnText: 'SAVE TEXT'
-			};
-
-			let sourceEditorArea = document.getElementById('design-tool-source-editor-area');
-			//let sourceEditor = _Editors.getMonacoEditor({ id: 'dummy-id'}, 'id', $(sourceEditorArea), sourceEditorConfig);
-
-			_Pages.designTools.sourceEditor = monaco.editor.create(sourceEditorArea, sourceEditorConfig);
-		}
 	},
 
 	sharedComponents: {
@@ -4332,24 +3873,6 @@ let _Pages = {
 			</div>
 
 			<div id="widgetsSlideout" class="slideOut slideOutRight">
-			</div>
-
-			<div class="slideout-activator right" id="paletteTab">
-				<svg height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28">
-					<g transform="matrix(1.1666666666666667,0,0,1.1666666666666667,0,0)"><g>
-						<rect x="0.75" y="0.75" width="22.5" height="22.5" rx="1.5" style="fill: none;stroke: currentColor;stroke-linecap: round;stroke-linejoin: round;stroke-width: 1.5px"></rect>
-						<rect x="4.25" y="4.25" width="9.5" height="9.5" rx="0.75" style="fill: none;stroke: currentColor;stroke-linecap: round;stroke-linejoin: round;stroke-width: 1.5px"></rect>
-						<rect x="13.25" y="16.25" width="6.5" height="3.5" rx="0.75" style="fill: none;stroke: currentColor;stroke-linecap: round;stroke-linejoin: round;stroke-width: 1.5px"></rect>
-						<line x1="4.25" y1="19.75" x2="7.75" y2="19.75" style="fill: none;stroke: currentColor;stroke-linecap: round;stroke-linejoin: round;stroke-width: 1.5px"></line>
-						<line x1="4.25" y1="16.75" x2="9.25" y2="16.75" style="fill: none;stroke: currentColor;stroke-linecap: round;stroke-linejoin: round;stroke-width: 1.5px"></line>
-						<line x1="4.47" y1="4.47" x2="13.53" y2="13.53" style="fill: none;stroke: currentColor;stroke-linecap: round;stroke-linejoin: round;stroke-width: 1.5px"></line>
-						<line x1="13.53" y1="4.47" x2="4.47" y2="13.53" style="fill: none;stroke: currentColor;stroke-linecap: round;stroke-linejoin: round;stroke-width: 1.5px"></line>
-						<line x1="19.75" y1="13.25" x2="19.75" y2="4.5" style="fill: none;stroke: currentColor;stroke-linecap: round;stroke-linejoin: round;stroke-width: 1.5px"></line>
-					  </g></g></svg>
-				<br>Design Tools
-			</div>
-
-			<div id="palette" class="slideOut slideOutRight">
 			</div>
 
 			<div class="slideout-activator right" id="componentsTab">
