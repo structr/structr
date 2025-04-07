@@ -59,6 +59,8 @@ import org.structr.web.entity.*;
 import org.structr.web.entity.dom.*;
 import org.structr.web.entity.event.ActionMapping;
 import org.structr.web.entity.event.ParameterMapping;
+import org.structr.web.entity.path.PagePath;
+import org.structr.web.entity.path.PagePathParameter;
 import org.structr.web.maintenance.deploy.*;
 import org.structr.web.traits.definitions.*;
 import org.structr.web.traits.definitions.dom.ContentTraitDefinition;
@@ -128,6 +130,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private final static String ACTION_MAPPING_FILE_PATH                              = "events/action-mapping.json";
 	private final static String PARAMETER_MAPPING_FILE_PATH                           = "events/parameter-mapping.json";
 	private final static String SITES_FILE_PATH                                       = "sites.json";
+	private final static String PAGE_PATHS_FILE_PATH                                  = "page-paths.json";
 	private final static String SCHEMA_FOLDER_PATH                                    = "schema";
 	private final static String COMPONENTS_FOLDER_PATH                                = "components";
 	protected final static String FILES_FOLDER_PATH                                   = "files";
@@ -323,6 +326,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Path actionMappingMetadataFile                = source.resolve(ACTION_MAPPING_FILE_PATH);
 			final Path parameterMappingMetadataFile             = source.resolve(PARAMETER_MAPPING_FILE_PATH);
 			final Path sitesConfFile                            = source.resolve(SITES_FILE_PATH);
+			final Path pathsConfFile                            = source.resolve(PAGE_PATHS_FILE_PATH);
 			final Path schemaFolder                             = source.resolve(SCHEMA_FOLDER_PATH);
 
 			if (
@@ -342,6 +346,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				!Files.exists(actionMappingMetadataFile) &&
 				!Files.exists(parameterMappingMetadataFile) &&
 				!Files.exists(sitesConfFile) &&
+				!Files.exists(pathsConfFile) &&
 				!Files.exists(schemaFolder)
 			) {
 
@@ -380,7 +385,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			final FileImportVisitor.FileImportProblems fileImportProblems = importFiles(filesMetadataFile, source, ctx);
 
-			importHTMLContent(app, source, pagesMetadataFile, componentsMetadataFile, templatesMetadataFile, sitesConfFile, extendExistingApp, relativeVisibility, deferredNodesAndTheirProperties);
+			importHTMLContent(app, source, pagesMetadataFile, componentsMetadataFile, templatesMetadataFile, sitesConfFile, pathsConfFile, extendExistingApp, relativeVisibility, deferredNodesAndTheirProperties);
 			linkDeferredPages(app);
 			importParameterMapping(parameterMappingMetadataFile);
 			importActionMapping(actionMappingMetadataFile);
@@ -571,6 +576,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Path filesConf                           = target.resolve(FILES_FILE_PATH);
 			final Path sitesConf                           = target.resolve(SITES_FILE_PATH);
 			final Path pagesConf                           = target.resolve(PAGES_FILE_PATH);
+			final Path pathsConf                           = target.resolve(PAGE_PATHS_FILE_PATH);
 			final Path componentsConf                      = target.resolve(COMPONENTS_FILE_PATH);
 			final Path templatesConf                       = target.resolve(TEMPLATES_FILE_PATH);
 			final Path mailTemplatesConf                   = target.resolve(MAIL_TEMPLATES_FILE_PATH);
@@ -601,6 +607,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Sites");
 			exportSites(sitesConf);
+
+			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Page Paths");
+			exportPagePaths(pathsConf);
 
 			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Parameter Mapping");
 			exportParameterMapping(parameterMappingConf);
@@ -903,6 +912,66 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 
 		writeJsonToFile(target, sites);
+	}
+
+	private void exportPagePaths(final Path target) throws FrameworkException {
+
+		logger.info("Exporting page paths");
+
+		final List<Map<String, Object>> paths = new LinkedList<>();
+		final App app                         = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			for (final NodeInterface node : app.nodeQuery(StructrTraits.PAGE_PATH).sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getAsList()) {
+
+				final PagePath path             = node.as(PagePath.class);
+				final Map<String, Object> entry = new TreeMap<>();
+
+				paths.add(entry);
+
+				entry.put(GraphObjectTraitDefinition.ID_PROPERTY,                             path.getUuid());
+				entry.put(NodeInterfaceTraitDefinition.NAME_PROPERTY,                         path.getName());
+				entry.put(PagePathTraitDefinition.PRIORITY_PROPERTY,                          path.getPriority());
+				entry.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, path.isVisibleToAuthenticatedUsers());
+				entry.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        path.isVisibleToPublicUsers());
+				entry.put(PagePathTraitDefinition.PAGE_PROPERTY,                              Map.of("id", path.getPage().getUuid()));
+
+				final List<Map<String, Object>> parameters = new LinkedList<>();
+
+				for (final NodeInterface parameterNode : path.getParameters()) {
+
+					final PagePathParameter parameter = parameterNode.as(PagePathParameter.class);
+					final Map<String, Object> data    = new TreeMap<>();
+
+					parameters.add(data);
+
+					data.put(GraphObjectTraitDefinition.ID_PROPERTY, parameter.getUuid());
+
+					if (parameter.getValueType() != null) {
+						data.put(PagePathParameterTraitDefinition.VALUE_TYPE_PROPERTY, parameter.getValueType());
+					}
+
+					if (parameter.getDefaultValue() != null) {
+						data.put(PagePathParameterTraitDefinition.DEFAULT_VALUE_PROPERTY, parameter.getDefaultValue());
+					}
+
+					if (parameter.getPosition() != null) {
+						data.put(PagePathParameterTraitDefinition.POSITION_PROPERTY, parameter.getPosition());
+					}
+
+					data.put(PagePathParameterTraitDefinition.IS_OPTIONAL_PROPERTY,   parameter.getIsOptional());
+				}
+
+				entry.put(PagePathTraitDefinition.PARAMETERS_PROPERTY, parameters);
+
+				exportOwnershipAndSecurity(node, entry);
+			}
+
+			tx.success();
+		}
+
+		writeJsonToFile(target, paths);
 	}
 
 	private void exportPages(final Path targetFolder, final Path configTarget) throws FrameworkException {
@@ -2250,7 +2319,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	private void importHTMLContent(final App app, final Path source, final Path pagesMetadataFile, final Path componentsMetadataFile, final Path templatesMetadataFile, final Path sitesConfFile, final boolean extendExistingApp, final boolean relativeVisibility, final Map<DOMNode, PropertyMap> deferredNodesAndTheirProperties) throws FrameworkException {
+	private void importHTMLContent(final App app, final Path source, final Path pagesMetadataFile, final Path componentsMetadataFile, final Path templatesMetadataFile, final Path sitesConfFile, final Path pathsConfFile, final boolean extendExistingApp, final boolean relativeVisibility, final Map<DOMNode, PropertyMap> deferredNodesAndTheirProperties) throws FrameworkException {
 
 		final Map<String, Object> componentsMetadata = new HashMap<>();
 		final Map<String, Object> templatesMetadata  = new HashMap<>();
@@ -2407,6 +2476,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			importSites(readConfigList(sitesConfFile));
 		}
+
+		if (Files.exists(pathsConfFile)) {
+
+			logger.info("Importing page paths");
+			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing page paths");
+
+			importPagePaths(readConfigList(pathsConfFile));
+		}
 	}
 
 	private void importActionMapping(final Path path) throws FrameworkException {
@@ -2506,6 +2583,48 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		} catch (FrameworkException fex) {
 
 			logger.error("Unable to import site, aborting with {}", fex.getMessage(), fex);
+
+			throw fex;
+		}
+	}
+
+	private void importPagePaths(final List<Map<String, Object>> data) throws FrameworkException {
+
+		final SecurityContext context = SecurityContext.getSuperUserInstance();
+		final App app                 = StructrApp.getInstance(context);
+
+		context.setDoTransactionNotifications(false);
+
+		try (final Tx tx = app.tx()) {
+
+			tx.disableChangelog();
+
+			for (Map<String, Object> entry : data) {
+
+				final List<Map<String, Object>> parameterEntriesInput = (List) entry.get(PagePathTraitDefinition.PARAMETERS_PROPERTY);
+				final List<NodeInterface> parameters                  = new LinkedList<>();
+
+				for (final Map<String, Object> parameterEntry : parameterEntriesInput) {
+
+					// create parameter nodes
+					parameters.add(app.create(StructrTraits.PAGE_PATH_PARAMETER, PropertyMap.inputTypeToJavaType(context, StructrTraits.PAGE_PATH_PARAMETER, parameterEntry)));
+				}
+
+				// remove from root entry to prevent evaluation of parameters in inputTypeToJavaType below
+				entry.remove(PagePathTraitDefinition.PARAMETERS_PROPERTY);
+
+				// create path node
+				final NodeInterface path = app.create(StructrTraits.PAGE_PATH, PropertyMap.inputTypeToJavaType(context, StructrTraits.PAGE_PATH, entry));
+
+				// store imported page path parameters in path node
+				path.setProperty(path.getTraits().key(PagePathTraitDefinition.PARAMETERS_PROPERTY), parameters);
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			logger.error("Unable to import page path, aborting with {}", fex.getMessage(), fex);
 
 			throw fex;
 		}

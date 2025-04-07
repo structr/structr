@@ -43,6 +43,8 @@ import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 import org.structr.web.traits.definitions.FileTraitDefinition;
+import org.structr.web.traits.definitions.PagePathParameterTraitDefinition;
+import org.structr.web.traits.definitions.PagePathTraitDefinition;
 import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
 import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 import org.structr.web.traits.definitions.html.Option;
@@ -596,6 +598,49 @@ public class Deployment5Test extends DeploymentTestBase {
 
 		final String hash1 = calculateHash();
 		doImportExportRoundtrip(true, null, false);
+		final String hash2 = calculateHash();
+
+		assertEquals("Invalid deployment roundtrip result for dynamic file", hash1, hash2);
+	}
+
+	@Test
+	public void test58PagePathExport() {
+
+		// create page and path
+		try (final Tx tx = app.tx()) {
+
+			// create page
+			final Page page = Page.createSimplePage(securityContext, "test058");
+
+			// create path
+			final NodeInterface path = app.create(StructrTraits.PAGE_PATH,
+				new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(PagePathTraitDefinition.PAGE_PROPERTY), page),
+				new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "/test058/{test}/static/{test2}")
+			);
+
+			// create one parameter with all values
+			app.create(StructrTraits.PAGE_PATH_PARAMETER,
+				new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.PATH_PROPERTY),          path),
+				new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),              "test1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.VALUE_TYPE_PROPERTY),    "String"),
+				new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.DEFAULT_VALUE_PROPERTY), "TEST"),
+				new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.IS_OPTIONAL_PROPERTY),   true)
+			);
+
+			// create one parameter with only required values
+			app.create(StructrTraits.PAGE_PATH_PARAMETER,
+				new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.PATH_PROPERTY), path),
+				new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     "test2")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		final String hash1 = calculateHash();
+		doImportExportRoundtrip(true, null);
 		final String hash2 = calculateHash();
 
 		assertEquals("Invalid deployment roundtrip result for dynamic file", hash1, hash2);

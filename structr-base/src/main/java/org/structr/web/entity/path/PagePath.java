@@ -32,10 +32,12 @@ public interface PagePath extends NodeInterface {
 	Pattern PATH_COMPONENT_PATTERN = Pattern.compile("\\{([a-z][a-zA-Z0-9]+)\\}");
 
 	Page getPage();
+	Integer getPriority();
 	Iterable<PagePathParameter> getParameters();
 	Object updatePathAndParameters(final SecurityContext securityContext, final Map<String, Object> arguments) throws FrameworkException;
 	Map<String, PagePathParameter> getMappedParameters();
 	Map<String, Object> tryResolvePath(final String[] requestParts);
 	String[] getValues(final Matcher matcher);
 	String getValueOrNull(final String[] array, final int index);
+
 }

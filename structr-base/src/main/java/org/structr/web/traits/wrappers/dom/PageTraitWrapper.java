@@ -39,13 +39,13 @@ import org.structr.web.entity.dom.*;
 import org.structr.web.entity.path.PagePath;
 import org.structr.web.importer.Importer;
 import org.structr.web.maintenance.deploy.DeploymentCommentHandler;
+import org.structr.web.traits.definitions.dom.ContentTraitDefinition;
+import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
+import org.structr.web.traits.definitions.dom.PageTraitDefinition;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import org.structr.web.traits.definitions.dom.ContentTraitDefinition;
-import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
-import org.structr.web.traits.definitions.dom.PageTraitDefinition;
 
 /**
  * Represents a page resource.
@@ -80,6 +80,16 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 	@Override
 	public int getVersion() {
 		return wrappedObject.getProperty(traits.key(PageTraitDefinition.VERSION_PROPERTY));
+	}
+
+	@Override
+	public void setVisibilityRecursively(boolean visibleToPublic, boolean visibleToAuth) throws FrameworkException {
+
+		setVisibility(visibleToPublic, visibleToAuth);
+
+		for (final NodeInterface node : getAllChildNodes()) {
+			node.setVisibility(visibleToPublic, visibleToAuth);
+		}
 	}
 
 	@Override

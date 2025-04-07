@@ -245,7 +245,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				final RenderContext renderContext = RenderContext.getInstance(securityContext, request, response);
 				final EditMode edit               = renderContext.getEditMode(user);
 				final String[] uriParts           = PathHelper.getParts(path);
-				boolean isDynamicPath             = false;
 				DOMNode rootElement               = null;
 				NodeInterface dataNode            = null;
 				File file                         = null;
@@ -298,7 +297,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 							if (pathResult != null) {
 
 								rootElement   = pathResult;
-								isDynamicPath = true;
 							}
 
 						}
