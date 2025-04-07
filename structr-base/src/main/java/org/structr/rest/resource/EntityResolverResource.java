@@ -19,19 +19,19 @@
 package org.structr.rest.resource;
 
 
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.rest.RestMethodResult;
-
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
-import org.structr.common.SecurityContext;
 import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.api.parameter.RESTParameter;
+
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
 
 
 /**
@@ -68,7 +68,7 @@ public class EntityResolverResource extends ExactMatchEndpoint {
 
 					if (obj instanceof String) {
 
-						AbstractNode node = (AbstractNode) StructrApp.getInstance().getNodeById((String)obj);
+						NodeInterface node = StructrApp.getInstance().getNodeById((String)obj);
 						if (node != null) {
 
 							result.addContent(node);
@@ -90,7 +90,7 @@ public class EntityResolverResource extends ExactMatchEndpoint {
 		}
 
 		@Override
-		public Class getEntityClass(final SecurityContext securityContext) {
+		public String getTypeName(final SecurityContext securityContext) {
 			return null;
 		}
 

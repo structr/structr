@@ -18,6 +18,8 @@
  */
 package org.structr.bolt;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.lang.StringUtils;
 import org.neo4j.driver.Record;
@@ -52,18 +54,22 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 	protected static final Map<String, Set<PrefetchInfo>> prefetchInfos = new ConcurrentHashMap<>();
 	protected static final Map<String, Boolean> prefetchBlacklist       = new ConcurrentHashMap<>();
 
-	protected final Map<String, PrefetchInfo> histogram = new LinkedHashMap<>();
-	protected final Map<Long, RelationshipWrapper> rels = new LinkedHashMap<>();
-	protected final Map<Long, NodeWrapper> nodes        = new LinkedHashMap<>();
-	protected final Set<Long> deletedNodes              = new LinkedHashSet<>();
-	protected final Set<Long> createdNodes              = new LinkedHashSet<>();
-	protected final Set<Long> deletedRels               = new LinkedHashSet<>();
-	protected final Set<String> prefetchedOutgoing      = new LinkedHashSet<>();
-	protected final Set<String> prefetchedIncoming      = new LinkedHashSet<>();
-	protected final Set<String> prefetchedQueries       = new LinkedHashSet<>();
-	protected BoltDatabaseService db                    = null;
+	protected final Map<String, PrefetchInfo> histogram = new ConcurrentHashMap<>();
+	protected final Map<Long, RelationshipWrapper> rels = new HashMap<>();
+	protected final Map<Long, NodeWrapper> nodes        = new HashMap<>();
+	protected final Set<Long> deletedNodes              = new HashSet<>();
+	protected final Set<Long> createdNodes              = new HashSet<>();
+	protected final Set<Long> deletedRels               = new HashSet<>();
+	protected final Set<String> prefetchedOutgoing      = new HashSet<>();
+	protected final Set<String> prefetchedIncoming      = new HashSet<>();
+	protected final Set<String> prefetchedQueries       = new HashSet<>();
+
+	protected final Map<Integer, Set<Long>> queryResultCache = new HashMap<>();
+
+	protected final BoltDatabaseService db;
+	protected final long transactionId;
+
 	protected String prefetchHint                       = null;
-	protected long transactionId                        = 0L;
 	protected boolean success                           = false;
 	protected boolean isPing                            = false;
 	protected boolean logPrefetching                    = false;
@@ -82,9 +88,11 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 	protected abstract Iterable<Record> collectRecords(final CypherQuery query, final IterableQueueingRecordConsumer consumer);
 	protected abstract Iterable<Map<String, Object>> run(final CypherQuery query);
 
-	protected abstract void set(final String statement, final Map<String, Object> map);
-
 	public abstract Iterable<Record> newIterable(final BoltDatabaseService db, final CypherQuery query);
+
+	protected void set(final String statement, final Map<String, Object> map) {
+		queryResultCache.clear();
+	}
 
 	public void delete(final NodeWrapper wrapper) {
 
@@ -93,6 +101,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 		prefetchedOutgoing.clear();
 		prefetchedIncoming.clear();
 		prefetchedQueries.clear();
+		queryResultCache.clear();
 	}
 
 	public void delete(final RelationshipWrapper wrapper) {
@@ -102,6 +111,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 		prefetchedOutgoing.clear();
 		prefetchedIncoming.clear();
 		prefetchedQueries.clear();
+		queryResultCache.clear();
 	}
 
 	public void setIsPing(final boolean isPing) {
@@ -541,7 +551,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 		prefetchedIncoming.addAll(incomingKeys);
 		prefetchedQueries.add(query + id);
 
-		final Map<String, Object> data = new LinkedHashMap<>();
+		final Map<String, Object> data = new ConcurrentHashMap<>();
 		final long t0                  = System.currentTimeMillis();
 		long count                     = 0L;
 
@@ -680,7 +690,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 					if (query.contains("extractedContent")) {
 						logger.info("{}: {}\t\t SET on extractedContent - value suppressed", Thread.currentThread().getId(), query);
 					} else {
-						logger.info("{}: {} - {}\t\t Parameters: {}", Thread.currentThread().getId(), transactionId + ": " + nodes.size() + "/" + rels.size(), query, map.toString());
+						logger.info("{}: {} - {}\t\t Parameters: {}", Thread.currentThread().getId(), transactionId + ": " + nodes.size() + "/" + rels.size(), query, stringify(map));
 					}
 
 				} else {
@@ -721,14 +731,14 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 		rels.clear();
 	}
 
-	private String createPatternFromDetails(final Class type, final Set<String> relTypes, final boolean outgoing) {
+	private String createPatternFromDetails(final String type, final Set<String> relTypes, final boolean outgoing) {
 
 		final String rawTenantIdentifier = db.getTenantIdentifier();
 		final String tenantIdentifier    = StringUtils.isNotBlank(rawTenantIdentifier) ? ":" + rawTenantIdentifier : "";
 		final StringBuilder pattern      = new StringBuilder();
 
 		pattern.append("(n:");
-		pattern.append(type.getSimpleName());
+		pattern.append(type);
 		pattern.append(tenantIdentifier);
 		pattern.append(")");
 
@@ -754,10 +764,9 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 
 		final String rawTenantIdentifier = db.getTenantIdentifier();
 		final String tenantIdentifier    = StringUtils.isNotBlank(rawTenantIdentifier) ? ":" + rawTenantIdentifier : "";
-		final Class type                 = query.getType();
+		final String type                = query.getType();
 		final String relType             = query.getRelationshipType();
 		final boolean isOutgoing         = query.isOutgoing();
-		final StringBuilder buf          = new StringBuilder();
 
 		if (type != null && relType != null) {
 
@@ -772,7 +781,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 				pattern = "<" + pattern + "(m)";
 			}
 
-			pattern = "(n:" + type.getSimpleName() + tenantIdentifier + ")" + pattern;
+			pattern = "(n:" + type + tenantIdentifier + ")" + pattern;
 
 			return pattern;
 		}
@@ -794,12 +803,12 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 			final Set<PrefetchInfo> infos = prefetchInfos.get(prefetchHint);
 			if (infos != null) {
 
-				final Map<Class, Set<PrefetchInfo>> typesOutgoing = new LinkedHashMap<>();
-				final Map<Class, Set<PrefetchInfo>> typesIncoming = new LinkedHashMap<>();
+				final Map<String, Set<PrefetchInfo>> typesOutgoing = new ConcurrentHashMap<>();
+				final Map<String, Set<PrefetchInfo>> typesIncoming = new ConcurrentHashMap<>();
 
 				for (final PrefetchInfo info : infos) {
 
-					final Class type = info.getType();
+					final String type = info.getType();
 
 					if (info.isOutgoing()) {
 
@@ -812,7 +821,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 					}
 				}
 
-				for (final Class type : typesOutgoing.keySet()) {
+				for (final String type : typesOutgoing.keySet()) {
 
 					final Set<PrefetchInfo> entriesToReplace = typesOutgoing.get(type);
 					if (entriesToReplace.size() > 1) {
@@ -840,7 +849,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 					}
 				}
 
-				for (final Class type : typesIncoming.keySet()) {
+				for (final String type : typesIncoming.keySet()) {
 
 					final Set<PrefetchInfo> entriesToReplace = typesIncoming.get(type);
 					if (entriesToReplace.size() > 1) {
@@ -913,10 +922,10 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 
 			if (info1 != null && info2 != null) {
 
-				final Class type1 = info1.getType();
-				final Class type2 = info2.getType();
+				final String type1 = info1.getType();
+				final String type2 = info2.getType();
 
-				final Class commonBaseType = getHighestCommonBaseType(type1, type2);
+				final String commonBaseType = getHighestCommonBaseType(type1, type2);
 				if (commonBaseType != null) {
 
 					hasChanges = true;
@@ -951,10 +960,10 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 
 			if (info1 != null && info2 != null) {
 
-				final Class type1 = info1.getType();
-				final Class type2 = info2.getType();
+				final String type1 = info1.getType();
+				final String type2 = info2.getType();
 
-				final Class commonBaseType = getHighestCommonBaseType(type1, type2);
+				final String commonBaseType = getHighestCommonBaseType(type1, type2);
 				if (commonBaseType != null) {
 
 					hasChanges = true;
@@ -975,47 +984,61 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 		}
 	}
 
-	private Class getHighestCommonBaseType(final Class type1, final Class type2) {
+	private String getHighestCommonBaseType(final String type1, final String type2) {
 
-		final Set<Class> types1 = getBaseTypes(type1);
-		final Set<Class> types2 = getBaseTypes(type2);
+		final Set<String> types1 = getBaseTypes(type1);
+		final Set<String> types2 = getBaseTypes(type2);
 
 		types1.retainAll(types2);
 
 		return Iterables.first(types1);
 	}
 
-	private Set<Class> getBaseTypes(final Class type) {
+	private String stringify(final Map map) {
 
-		final Set<String> blacklist = Set.of("NodeInterface", "AbstractNode", "AbstractFile");
-		final Set<Class> baseTypes = new LinkedHashSet<>();
-		final Queue<Class> queue   = new LinkedList<>();
+		final Gson gson = new GsonBuilder().create();
+
+		return gson.toJson(map);
+	}
+
+	private Set<String> getBaseTypes(final String type) {
+
+		final Set<String> baseTypes = new LinkedHashSet<>();
+		final Queue<String> queue   = new LinkedList<>();
 
 		queue.add(type);
 
 		while (!queue.isEmpty()) {
 
-			final Class c = queue.remove();
+			final String c = queue.remove();
 
 			baseTypes.add(c);
-
-			final Class superClass = c.getSuperclass();
-			if (superClass != null && Object.class != superClass && !blacklist.contains(superClass.getSimpleName())) {
-
-				queue.add(superClass);
-			}
-
-			// add interfaces as well
-			for (final Class iface : c.getInterfaces()) {
-
-				if (!blacklist.contains(iface.getSimpleName())) {
-
-					queue.add(iface);
-				}
-			}
 		}
 
 		return baseTypes;
+	}
+
+	public Iterable<org.structr.api.graph.Node> getCachedResult(final CypherQuery query) {
+
+		final int hashCode = query.hashCode();
+		Set<Long> cached   = queryResultCache.get(hashCode);
+
+		if (cached != null) {
+
+			// fetch nodes from cache (ids are cached and mapped to nodes)
+			return Iterables.map(id -> nodes.get(id), cached);
+		}
+
+		final List<org.structr.api.graph.Node> nodes = Iterables.toList(Iterables.map(new PrefetchNodeMapper(db), new LazyRecordIterable(db, query)));
+		final Set<Long> ids                          = new LinkedHashSet<>();
+
+		queryResultCache.put(hashCode, ids);
+
+		for (final org.structr.api.graph.Node node : nodes) {
+			ids.add(node.getId().getId());
+		}
+
+		return nodes;
 	}
 
 	private class PrefetchInfo {
@@ -1023,7 +1046,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 		private final Set<String> outgoingSet = new LinkedHashSet<>();
 		private final Set<String> incomingSet = new LinkedHashSet<>();
 		private final Set<String> relTypes    = new LinkedHashSet<>();
-		private Class type                    = null;
+		private String type                   = null;
 		private String pattern                = null;
 		private boolean outgoing              = false;
 		private int count                     = 1;
@@ -1034,13 +1057,13 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 			this.type     = query.getType();
 			this.outgoing = query.isOutgoing();
 
-			outgoingSet.add(type.getSimpleName() + "/all/OUTGOING/" + query.getRelationshipType());
-			incomingSet.add(type.getSimpleName() + "/all/INCOMING/" + query.getRelationshipType());
+			outgoingSet.add(type + "/all/OUTGOING/" + query.getRelationshipType());
+			incomingSet.add(type + "/all/INCOMING/" + query.getRelationshipType());
 
 			relTypes.add(query.getRelationshipType());
 		}
 
-		public PrefetchInfo(final String pattern, final Class type, final boolean isOutgoing, final Set<String> outgoingSet, final Set<String> incomingSet, final Set<String> relTypes) {
+		public PrefetchInfo(final String pattern, final String type, final boolean isOutgoing, final Set<String> outgoingSet, final Set<String> incomingSet, final Set<String> relTypes) {
 
 			this.pattern  = pattern;
 			this.type     = type;
@@ -1072,7 +1095,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 			return count;
 		}
 
-		public Class getType() {
+		public String getType() {
 			return type;
 		}
 
@@ -1095,7 +1118,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 
 		@Override
 		public boolean equals(final Object other) {
-			return ((PrefetchInfo)other).hashCode() == this.hashCode();
+			return other.hashCode() == this.hashCode();
 		}
 	}
 }

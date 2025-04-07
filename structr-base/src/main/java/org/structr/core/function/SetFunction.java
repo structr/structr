@@ -31,6 +31,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.Traits;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 
@@ -62,13 +63,13 @@ public class SetFunction extends CoreFunction {
 			final SecurityContext securityContext          = ctx.getSecurityContext();
 			final ConfigurationProvider config             = StructrApp.getConfiguration();
 
-			Class type = null;
+			Traits type = null;
 			PropertyMap propertyMap = null;
 
 			if (sources[0] instanceof GraphObject) {
 
 				final GraphObject source = (GraphObject) sources[0];
-				type = source.getEntityType();
+				type = source.getTraits();
 			}
 
 			if (type == null) {
@@ -80,11 +81,11 @@ public class SetFunction extends CoreFunction {
 
 			if (sources.length == 2 && sources[1] instanceof Map) {
 
-				propertyMap = PropertyMap.inputTypeToJavaType(securityContext, type, (Map) sources[1]);
+				propertyMap = PropertyMap.inputTypeToJavaType(securityContext, type.getName(), (Map) sources[1]);
 
 			} else if (sources.length == 2 && sources[1] instanceof GraphObjectMap) {
 
-				propertyMap = PropertyMap.inputTypeToJavaType(securityContext, type, ((GraphObjectMap)sources[1]).toMap());
+				propertyMap = PropertyMap.inputTypeToJavaType(securityContext, type.getName(), ((GraphObjectMap)sources[1]).toMap());
 
 			} else if (sources.length == 2 && sources[1] instanceof String) {
 
@@ -93,7 +94,7 @@ public class SetFunction extends CoreFunction {
 				final Map<String, Object> values = deserialize(gson, sources[1].toString());
 				if (values != null) {
 
-					propertyMap = PropertyMap.inputTypeToJavaType(securityContext, type, values);
+					propertyMap = PropertyMap.inputTypeToJavaType(securityContext, type.getName(), values);
 
 				}
 
@@ -110,7 +111,7 @@ public class SetFunction extends CoreFunction {
 				for (int c = 1; c < parameter_count; c += 2) {
 
 					final String keyName  = sources[c].toString();
-					final PropertyKey key = config.getPropertyKeyForJSONName(type, keyName, useGenericPropertyForUnknownKeys);
+					final PropertyKey key = type.key(keyName);
 
 					if (key != null) {
 
@@ -127,7 +128,7 @@ public class SetFunction extends CoreFunction {
 					} else {
 
 						// key does not exist and generic property is not desired => log warning
-						logger.warn("Unknown property {}.{}, value will not be set.", type.getSimpleName(), keyName);
+						logger.warn("Unknown property {}.{}, value will not be set.", type.getName(), keyName);
 					}
 				}
 

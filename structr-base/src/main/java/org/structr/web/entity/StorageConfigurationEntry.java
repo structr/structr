@@ -18,44 +18,13 @@
  */
 package org.structr.web.entity;
 
-import org.structr.common.PropertyView;
-import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.EncryptedStringProperty;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNode;
-import org.structr.core.property.StringProperty;
-import org.structr.web.entity.relationship.StorageConfigurationCONFIG_ENTRYStorageConfigurationEntry;
+import org.structr.core.graph.NodeInterface;
 
-/**
- * Storage object for mount configuration data.
- */
-public class StorageConfigurationEntry extends AbstractNode {
+public interface StorageConfigurationEntry extends NodeInterface {
 
-	public static final Property<StorageConfiguration> configurationProperty = new StartNode<>("configuration", StorageConfigurationCONFIG_ENTRYStorageConfigurationEntry.class).partOfBuiltInSchema();
-
-	public static final Property<String> nameProperty  = new StringProperty("name").partOfBuiltInSchema();
-	public static final Property<String> valueProperty = new EncryptedStringProperty("value").partOfBuiltInSchema();
-
-	public static final View uiView = new View(StorageConfigurationEntry.class, PropertyView.Ui,
-		nameProperty, valueProperty, configurationProperty
-	);
-
-	public StorageConfiguration getConfiguration() {
-		return getProperty(configurationProperty);
-	}
-
-	public void setName(final String name) throws FrameworkException {
-		setProperty(nameProperty, name);
-	}
-
-	public String getValue() {
-		return getProperty(valueProperty);
-	}
-
-	public void setValue(final String value) throws FrameworkException {
-		setProperty(valueProperty, value);
-	}
-
+	StorageConfiguration getConfiguration();
+	void setName(final String name) throws FrameworkException;
+	String getValue();
+	void setValue(final String value) throws FrameworkException;
 }

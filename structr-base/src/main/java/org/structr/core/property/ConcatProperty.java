@@ -18,12 +18,16 @@
  */
 package org.structr.core.property;
 
+import org.apache.commons.lang.StringUtils;
 import org.structr.api.Predicate;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
+import org.structr.core.graph.NodeInterface;
 
+import java.util.Arrays;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 /**
@@ -33,14 +37,14 @@ import java.util.TreeMap;
  */
 public class ConcatProperty extends AbstractReadOnlyProperty<String> {
 
-	private PropertyKey<String>[] propertyKeys = null;
-	private String separator = null;
+	private Set<PropertyKey> propertyKeys = null;
+	private String separator              = null;
 
-	public ConcatProperty(String name, String separator, PropertyKey<String>... propertyKeys) {
+	public ConcatProperty(String name, String separator, PropertyKey... propertyKeys) {
 
 		super(name);
 
-		this.propertyKeys = propertyKeys;
+		this.propertyKeys.addAll(Arrays.asList(propertyKeys));
 		this.separator = separator;
 	}
 
@@ -50,24 +54,12 @@ public class ConcatProperty extends AbstractReadOnlyProperty<String> {
 	}
 
 	@Override
-	public String getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
-
-		StringBuilder combinedPropertyValue = new StringBuilder();
-		int len = propertyKeys.length;
-
-		for(int i=0; i<len; i++) {
-
-			combinedPropertyValue.append(obj.getProperty(propertyKeys[i]));
-			if(i < len-1) {
-				combinedPropertyValue.append(separator);
-			}
-		}
-
-		return combinedPropertyValue.toString();
+	public String getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
+		return StringUtils.join(propertyKeys.stream().map(k -> obj.getProperty(k)).toList(), separator);
 	}
 
 	@Override
-	public Class relatedType() {
+	public String relatedType() {
 		return null;
 	}
 
@@ -78,6 +70,11 @@ public class ConcatProperty extends AbstractReadOnlyProperty<String> {
 
 	@Override
 	public boolean isCollection() {
+		return false;
+	}
+
+	@Override
+	public boolean isArray() {
 		return false;
 	}
 

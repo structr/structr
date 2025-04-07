@@ -23,25 +23,28 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.importer.Importer;
 import org.structr.web.maintenance.DeployCommand;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
+import org.structr.web.traits.definitions.dom.PageTraitDefinition;
 
 public class PageImporter extends HtmlFileImporter {
 
@@ -84,12 +87,19 @@ public class PageImporter extends HtmlFileImporter {
 
 	// ----- private methods -----
 	private Page getExistingPage(final String name) throws FrameworkException {
-		return StructrApp.getInstance().nodeQuery(Page.class).andName(name).getFirst();
+
+		final NodeInterface node = StructrApp.getInstance().nodeQuery(StructrTraits.PAGE).andName(name).getFirst();
+		if (node != null) {
+
+			return node.as(Page.class);
+		}
+
+		return null;
 	}
 
 	private void deletePage(final App app, final String name) throws FrameworkException {
 
-		final Page page = app.nodeQuery(Page.class).andName(name).getFirst();
+		final Page page = getExistingPage(name);
 		if (page != null) {
 
 			for (final DOMNode child : page.getElements()) {
@@ -109,7 +119,7 @@ public class PageImporter extends HtmlFileImporter {
 
 				DeployCommand.checkOwnerAndSecurity((Map<String, Object>)data);
 
-				return PropertyMap.inputTypeToJavaType(SecurityContext.getSuperUserInstance(), Page.class, (Map<String, Object>)data);
+				return PropertyMap.inputTypeToJavaType(SecurityContext.getSuperUserInstance(), StructrTraits.PAGE, (Map<String, Object>)data);
 
 			} catch (FrameworkException ex) {
 				logger.warn("Unable to resolve properties for page: {}", ex.getMessage());
@@ -156,24 +166,23 @@ public class PageImporter extends HtmlFileImporter {
 			tx.disableChangelog();
 
 			final PropertyMap properties = getPropertiesForPage(name);
-
 			if (properties == null) {
 
 				logger.info("Ignoring {} (not in pages.json)", fileName);
+
 			} else {
 
-				final Page existingPage      = getExistingPage(name);
-
+				final Page existingPage = getExistingPage(name);
 				if (existingPage != null) {
 
 					deletePage(app, name);
 				}
 
 				final String src         = new String(Files.readAllBytes(file),Charset.forName("UTF-8"));
-				final String contentType = get(properties, StructrApp.key(Page.class, "contentType"), "text/html");
-
-				boolean visibleToPublic = get(properties, GraphObject.visibleToPublicUsers, false);
-				boolean visibleToAuth   = get(properties, GraphObject.visibleToAuthenticatedUsers, false);
+				final Traits traits      = Traits.of(StructrTraits.PAGE);
+				final String contentType = get(properties, traits.key(PageTraitDefinition.CONTENT_TYPE_PROPERTY),                 "text/html");
+				boolean visibleToPublic  = get(properties, traits.key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY),        false);
+				boolean visibleToAuth    = get(properties, traits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), false);
 
 				final Importer importer = new Importer(securityContext, src, null, name, visibleToPublic, visibleToAuth, false, relativeVisibility);
 
@@ -220,7 +229,7 @@ public class PageImporter extends HtmlFileImporter {
 						importer.setCommentHandler(new DeploymentCommentHandler());
 
 						// parse page
-						final Page newPage = app.create(Page.class, name);
+						final Page newPage = app.create(StructrTraits.PAGE, name).as(Page.class);
 
 						// store properties from pages.json
 						newPage.setProperties(securityContext, properties);
@@ -241,14 +250,14 @@ public class PageImporter extends HtmlFileImporter {
 	 * Remove duplicate Head element from import process.
 	 * @param page
 	 */
-	private void fixDocumentElements(final Page page) {
+	private void fixDocumentElements(final Page page) throws FrameworkException {
 
-		final NodeList heads = page.getElementsByTagName("head");
-		if (heads.getLength() > 1) {
+		final List<DOMNode> heads = page.getElementsByTagName("head");
+		if (heads.size() > 1) {
 
-			final Node head1   = heads.item(0);
-			final Node head2   = heads.item(1);
-			final Node parent  = head1.getParentNode();
+			final DOMNode head1  = heads.get(0);
+			final DOMNode head2  = heads.get(1);
+			final DOMNode parent = head1.getParent();
 
 			final boolean h1 = head1.hasChildNodes();
 			final boolean h2 = head2.hasChildNodes();
@@ -256,7 +265,7 @@ public class PageImporter extends HtmlFileImporter {
 			if (h1 && h2) {
 
 				// merge
-				for (Node child = head2.getFirstChild(); child != null; child = child.getNextSibling()) {
+				for (DOMNode child = head2.getFirstChild(); child != null; child = child.getNextSibling()) {
 
 					head2.removeChild(child);
 					head1.appendChild(child);

@@ -23,7 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -47,18 +47,18 @@ public class RestMethodResult {
 	private Integer overridenResultCount              = null;
 
 	public RestMethodResult(final int responseCode) {
-		this.headers      = new LinkedHashMap<>();
+		this.headers      = new HashMap<>();
 		this.responseCode = responseCode;
 	}
 
 	public RestMethodResult(final int responseCode, final String message) {
-		headers           = new LinkedHashMap<>();
+		headers           = new HashMap<>();
 		this.message      = message;
 		this.responseCode = responseCode;
 	}
 
 	public RestMethodResult(final int responseCode, final boolean serializeSingleObjectAsCollection) {
-		this.headers                           = new LinkedHashMap<>();
+		this.headers                           = new HashMap<>();
 		this.responseCode                      = responseCode;
 		this.serializeSingleObjectAsCollection = serializeSingleObjectAsCollection;
 	}

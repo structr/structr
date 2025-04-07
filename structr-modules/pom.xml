@@ -2,7 +2,6 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<name>Structr Modules</name>
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>org.structr</groupId>
 	<artifactId>structr-modules</artifactId>
 	<version>6.0-SNAPSHOT</version>
 
@@ -36,8 +35,6 @@
 		<module>structr-odf-module</module>
 		<module>structr-ldap-client-module</module>
 		<module>structr-payment-module</module>
-		<module>structr-xml-module</module>
-		<module>structr-knowledge-module</module>
 		<module>structr-translation-module</module>
 		<module>structr-messaging-engine-module</module>
 		<module>structr-excel-module</module>

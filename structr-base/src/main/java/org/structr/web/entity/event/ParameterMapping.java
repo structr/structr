@@ -18,30 +18,17 @@
  */
 package org.structr.web.entity.event;
 
-import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNode;
-import org.structr.core.property.StringProperty;
+import org.structr.core.graph.NodeInterface;
 import org.structr.web.entity.dom.DOMElement;
-import org.structr.web.entity.dom.relationship.ActionMappingPARAMETERParameterMapping;
-import org.structr.web.entity.dom.relationship.DOMElementINPUT_ELEMENTParameterMapping;
 
-public class ParameterMapping extends AbstractNode {
+public interface ParameterMapping extends NodeInterface {
 
-	public static final Property<ActionMapping> actionMappingProperty = new StartNode<>("actionMapping", ActionMappingPARAMETERParameterMapping.class).partOfBuiltInSchema();
-	public static final Property<DOMElement> inputElement             = new StartNode<>("inputElement", DOMElementINPUT_ELEMENTParameterMapping.class).partOfBuiltInSchema();
+	DOMElement getInputElement();
 
-	// user-input, constant-value, page-param, pagesize-param, script-expression, method-result, flow-result
-	public static final Property<String> parameterType    = new StringProperty("parameterType").hint("Type of this parameter, e.g. user input, constant value, page-param, pagesize-param, result of a script expression, method call or flow...").partOfBuiltInSchema();
-	public static final Property<String> parameterName    = new StringProperty("parameterName").hint("Parameter name").partOfBuiltInSchema();
-	public static final Property<String> constantValue    = new StringProperty("constantValue").hint("Constant value").partOfBuiltInSchema();
-	public static final Property<String> scriptExpression = new StringProperty("scriptExpression").hint("Script expression to be evaluated to result value").partOfBuiltInSchema();
-	public static final Property<String> methodResult     = new StringProperty("methodResult").hint("Method to be evaluated to result value").partOfBuiltInSchema();
-	public static final Property<String> flowResult       = new StringProperty("flowResult").hint("Flow to be evaluated to result value").partOfBuiltInSchema();
-
-	public static final View uiView = new View(ParameterMapping.class, PropertyView.Ui,
-		parameterType, parameterName, constantValue, scriptExpression, methodResult, flowResult, inputElement
-	);
+	String getParameterType();
+	String getParameterName();
+	String getConstantValue();
+	String getScriptExpression();
+	String getMethodResult();
+	String getFlowResult();
 }

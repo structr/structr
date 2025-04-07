@@ -22,13 +22,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
-import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.Arrays;
-
-//~--- classes ----------------------------------------------------------------
 
 /**
  * Websocket command to retrieve a single relationship by id.
@@ -53,9 +51,9 @@ public class GetRelationshipCommand extends AbstractCommand {
 
 		final SecurityContext securityContext  = getWebSocket().getSecurityContext();
 
-		final String nodeId            = webSocketData.getNodeDataStringValue("nodeId");
-		final AbstractRelationship rel = getRelationship(webSocketData.getId(), nodeId);
-		final String properties        = webSocketData.getRelDataStringValue("properties");
+		final String nodeId             = webSocketData.getNodeDataStringValue("nodeId");
+		final RelationshipInterface rel = getRelationship(webSocketData.getId(), nodeId);
+		final String properties         = webSocketData.getRelDataStringValue("properties");
 
 		if (properties != null) {
 			securityContext.setCustomView(StringUtils.split(properties, ","));
@@ -76,8 +74,6 @@ public class GetRelationshipCommand extends AbstractCommand {
 
 		}
 	}
-
-	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public String getCommand() {

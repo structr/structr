@@ -20,30 +20,32 @@ package org.structr.files.ssh;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.sshd.common.channel.Channel;
-import org.apache.sshd.server.*;
+import org.apache.sshd.server.Environment;
+import org.apache.sshd.server.ExitCallback;
+import org.apache.sshd.server.Signal;
+import org.apache.sshd.server.SignalListener;
 import org.apache.sshd.server.channel.ChannelSession;
 import org.apache.sshd.server.command.Command;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.common.AccessMode;
-import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.helper.VersionHelper;
 import org.structr.console.Console;
 import org.structr.console.Console.ConsoleMode;
 import org.structr.console.tabcompletion.TabCompletionResult;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.util.Writable;
-import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.User;
 
 import java.io.*;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import org.structr.common.helper.VersionHelper;
 
 /**
  *
@@ -111,7 +113,11 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 			final App app = StructrApp.getInstance();
 			try (final Tx tx = app.tx()) {
 
-				user = app.nodeQuery(User.class).andName(userName).getFirst();
+				final NodeInterface userNode = app.nodeQuery(StructrTraits.USER).andName(userName).getFirst();
+				if (userNode != null && userNode.is(StructrTraits.USER)) {
+
+					user = userNode.as(User.class);
+				}
 
 				tx.success();
 

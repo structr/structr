@@ -24,89 +24,58 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.search.ComparisonQuery;
 import org.structr.api.search.Occurrence;
-import org.structr.common.PropertyView;
-import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.App;
 import org.structr.core.app.Query;
-import org.structr.core.app.StructrApp;
-import org.structr.core.graph.Tx;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.ComparisonSearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.property.*;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.script.Scripting;
-import org.structr.flow.api.DataSource;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.flow.engine.Context;
-import org.structr.flow.impl.rels.FlowDataInput;
+import org.structr.flow.traits.definitions.FlowDataSourceTraitDefinition;
+import org.structr.flow.traits.definitions.FlowTypeQueryTraitDefinition;
 import org.structr.module.api.DeployableEntity;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
-public class FlowTypeQuery extends FlowBaseNode implements DataSource, DeployableEntity {
+public class FlowTypeQuery extends FlowDataSource implements DeployableEntity {
 
-	private static final Logger logger                                  = LoggerFactory.getLogger(FlowTypeQuery.class);
-	public static final Property<DataSource> dataSource                 = new StartNode<>("dataSource", FlowDataInput.class);
-	public static final Property<Iterable<FlowBaseNode>> dataTarget     = new EndNodes<>("dataTarget", FlowDataInput.class);
-	public static final Property<String> dataType                       = new StringProperty("dataType");
-	public static final Property<String> query                          = new StringProperty("query");
+	private static final Logger logger = LoggerFactory.getLogger(FlowTypeQuery.class);
 
-	public static final View defaultView                                = new View(FlowAction.class, PropertyView.Public, dataTarget, dataType, query);
-	public static final View uiView                                     = new View(FlowAction.class, PropertyView.Ui, dataTarget, dataType, query);
+	public FlowTypeQuery(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
+	}
 
-	@Override
-	public Object get(Context context) {
+	public String getDataType() {
+		return wrappedObject.getProperty(traits.key(FlowTypeQueryTraitDefinition.DATA_TYPE_PROPERTY));
+	}
 
-		App app = StructrApp.getInstance(securityContext);
-
-		try (Tx tx = app.tx()) {
-
-			Class clazz = StructrApp.getConfiguration().getNodeEntityClass(getProperty(dataType));
-
-			JSONObject jsonObject = null;
-
-			final String queryString = getProperty(query);
-			if (queryString != null) {
-				jsonObject = new JSONObject(queryString);
-			}
-
-			final Query query = app.nodeQuery(clazz);
-
-			if (jsonObject != null && jsonObject.getJSONArray("operations").length() > 0) {
-				resolveQueryObject(context, jsonObject, query);
-			}
-
-			final List list = query.getAsList();
-
-			tx.success();
-
-			return list;
-
-		} catch (FrameworkException ex) {
-
-			logger.error("Exception in FlowTypeQuery: " + ex.getMessage());
-		}
-
-		return null;
+	public String getQuery() {
+		return wrappedObject.getProperty(traits.key(FlowDataSourceTraitDefinition.QUERY_PROPERTY));
 	}
 
 	@Override
 	public Map<String, Object> exportData() {
-		Map<String, Object> result = new HashMap<>();
 
-		result.put("id", this.getUuid());
-		result.put("type", this.getClass().getSimpleName());
-		result.put("dataType", getProperty(dataType));
-		result.put("query", getProperty(query));
-		result.put("visibleToPublicUsers", this.getProperty(visibleToPublicUsers));
-		result.put("visibleToAuthenticatedUsers", this.getProperty(visibleToAuthenticatedUsers));
+		final Map<String, Object> result = new TreeMap<>();
+
+		result.put(GraphObjectTraitDefinition.ID_PROPERTY,                             getUuid());
+		result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,                           getType());
+		result.put(FlowTypeQueryTraitDefinition.DATA_TYPE_PROPERTY,                    getDataType());
+		result.put(FlowDataSourceTraitDefinition.QUERY_PROPERTY,                       getQuery());
+		result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        isVisibleToPublicUsers());
+		result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, isVisibleToAuthenticatedUsers());
 
 		return result;
 	}
 
-	private Query resolveQueryObject(final Context context, final JSONObject object, final Query query) {
+	public Query resolveQueryObject(final Context context, final JSONObject object, final Query query) {
 		final String type = object.getString("type");
 		switch(type) {
 			case "group":
@@ -119,22 +88,18 @@ public class FlowTypeQuery extends FlowBaseNode implements DataSource, Deployabl
 		return query;
 	}
 
-	private Query resolveSortOperation(final JSONObject object, final Query query) {
+	public Query resolveSortOperation(final JSONObject object, final Query query) {
 
 		final String queryType = object.getString("queryType");
-		final String key = object.getString("key");
-		final String order = object.getString("order");
+		final String key       = object.getString("key");
+		final String order     = object.getString("order");
+		final Traits traits    = Traits.of(queryType);
 
-		if (queryType != null && queryType.length() > 0 && key != null && key.length() > 0) {
+		if (queryType != null && queryType.length() > 0 && key != null && traits.hasKey(key)) {
 
-			final Class queryTypeClass = StructrApp.getConfiguration().getNodeEntityClass(queryType);
-			if (queryTypeClass != null) {
+			final PropertyKey propKey = traits.key(key);
 
-				final PropertyKey propKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(queryTypeClass, key);
-
-				query.sort(propKey, "desc".equals(order));
-			}
-
+			query.sort(propKey, "desc".equals(order));
 		}
 
 		return query;
@@ -168,36 +133,33 @@ public class FlowTypeQuery extends FlowBaseNode implements DataSource, Deployabl
 	}
 
 	private Query resolveOperation(final Context context, final JSONObject object, final Query query) {
+
 		final String key = object.getString("key");
 		final String op = object.getString("op");
 		Object value = object.get("value");
 
 		PropertyKey propKey = null;
 
-		String queryType = getProperty(dataType);
-		if (queryType != null) {
+		final String queryType = getDataType();
+		if (queryType != null && Traits.exists(queryType) && Traits.of(queryType).hasKey(key)) {
 
-			Class queryTypeClass = StructrApp.getConfiguration().getNodeEntityClass(queryType);
-
-			if (queryTypeClass != null) {
-				propKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(queryTypeClass, key);
-			}
-
+			propKey = Traits.of(queryType).key(key);
 		}
 
 		if (value != null) {
+
 			try {
 
-				DataSource ds = getProperty(FlowTypeQuery.dataSource);
-
+				final FlowDataSource ds = getDataSource();
 				if (ds != null) {
 
-					Object data = ds.get(context);
+					final Object data = ds.get(context);
 
 					context.setData(getUuid(), data);
 				}
 
-				value = Scripting.replaceVariables(context.getActionContext(securityContext, this), null, value.toString(), "FlowTypeQuery");
+				value = Scripting.replaceVariables(context.getActionContext(getSecurityContext(), this), null, value.toString(), StructrTraits.FLOW_TYPE_QUERY);
+
 			} catch (FrameworkException ex) {
 				logger.warn("FlowTypeQuery: Could not evaluate given operation.", ex);
 			}

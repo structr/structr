@@ -57,9 +57,6 @@ public class ConverterProperty<T> extends AbstractPrimitiveProperty<T> {
 				name
 			});
 		}
-
-		// make us known to the entity context
-		StructrApp.getConfiguration().registerConvertedProperty(this);
 	}
 
 	@Override
@@ -83,21 +80,26 @@ public class ConverterProperty<T> extends AbstractPrimitiveProperty<T> {
 	}
 
 	@Override
-	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext) {
+	public boolean isArray() {
+		return false;
+	}
+
+	@Override
+	public PropertyConverter<T, ?> databaseConverter(final SecurityContext securityContext) {
 		return databaseConverter(securityContext, null);
 	}
 
 	@Override
-	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+	public PropertyConverter<T, ?> databaseConverter(final SecurityContext securityContext, final GraphObject entity) {
 		return createConverter(securityContext, entity);
 	}
 
 	@Override
-	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, T> inputConverter(final SecurityContext securityContext) {
 		return null;
 	}
 
-	private PropertyConverter createConverter(SecurityContext securityContext, GraphObject entity) {
+	private PropertyConverter createConverter(final SecurityContext securityContext, final GraphObject entity) {
 
 		try {
 

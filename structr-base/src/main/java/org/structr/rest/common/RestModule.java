@@ -20,7 +20,13 @@ package org.structr.rest.common;
 
 import org.structr.api.service.LicenseManager;
 import org.structr.core.entity.AbstractSchemaNode;
+import org.structr.core.traits.StructrTraits;
 import org.structr.module.StructrModule;
+import org.structr.rest.traits.definitions.LogEventTraitDefinition;
+import org.structr.rest.traits.definitions.LogObjectTraitDefinition;
+import org.structr.rest.traits.definitions.LogSubjectTraitDefinition;
+import org.structr.rest.traits.relationships.ObjectEventRelationship;
+import org.structr.rest.traits.relationships.SubjectEventRelationship;
 import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
 
@@ -32,6 +38,13 @@ public class RestModule implements StructrModule {
 
 	@Override
 	public void onLoad(final LicenseManager licenseManager) {
+
+		StructrTraits.registerRelationshipType(StructrTraits.OBJECT_EVENT_RELATIONSHIP,  new ObjectEventRelationship());
+		StructrTraits.registerRelationshipType(StructrTraits.SUBJECT_EVENT_RELATIONSHIP, new SubjectEventRelationship());
+
+		StructrTraits.registerNodeType(StructrTraits.LOG_EVENT,   new LogEventTraitDefinition());
+		StructrTraits.registerNodeType(StructrTraits.LOG_OBJECT,  new LogObjectTraitDefinition());
+		StructrTraits.registerNodeType(StructrTraits.LOG_SUBJECT, new LogSubjectTraitDefinition());
 	}
 
 	@Override
@@ -45,7 +58,7 @@ public class RestModule implements StructrModule {
 
 	@Override
 	public Set<String> getDependencies() {
-		return null;
+		return Set.of("core");
 	}
 
 	@Override

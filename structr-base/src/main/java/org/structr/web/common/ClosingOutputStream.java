@@ -21,30 +21,24 @@ package org.structr.web.common;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.File;
 
+import java.io.BufferedOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 
 /**
  */
-public class ClosingOutputStream extends OutputStream {
+public class ClosingOutputStream extends BufferedOutputStream {
 
-	private final OutputStream os;
 	private boolean closed = false;
 	private boolean notifyIndexerAfterClosing = false;
 	private File thisFile  = null;
 
 	public ClosingOutputStream(final File thisFile, final boolean append, final boolean notifyIndexerAfterClosing) throws IOException {
 
-		this.os = StorageProviderFactory.getStorageProvider(thisFile).getOutputStream(append);
+		super(StorageProviderFactory.getStorageProvider(thisFile).getOutputStream(append));
+
 		this.notifyIndexerAfterClosing = notifyIndexerAfterClosing;
 
 		this.thisFile = thisFile;
-	}
-
-	@Override
-	public void write(int b) throws IOException {
-
-		os.write(b);
 	}
 
 	@Override
@@ -54,7 +48,7 @@ public class ClosingOutputStream extends OutputStream {
 			return;
 		}
 
-		os.close();
+		super.close();
 
 		if (notifyIndexerAfterClosing) {
 			thisFile.notifyUploadCompletion();

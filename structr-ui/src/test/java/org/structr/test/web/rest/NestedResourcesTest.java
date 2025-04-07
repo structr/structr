@@ -24,6 +24,7 @@ import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.traits.StructrTraits;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.auth.UiAuthenticator;
@@ -47,7 +48,7 @@ public class NestedResourcesTest extends StructrUiTest {
 	@Test
 	public void testNodeAssociationOnCreate() {
 
-		this.grant("User",                UiAuthenticator.NON_AUTH_USER_POST, true);
+		this.grant(StructrTraits.USER,                UiAuthenticator.NON_AUTH_USER_POST, true);
 		this.grant("TestThree",           UiAuthenticator.AUTH_USER_POST, false);
 		this.grant("TestFour",            UiAuthenticator.AUTH_USER_POST | UiAuthenticator.AUTH_USER_GET, false);
 		this.grant("TestFour/_TestView",  UiAuthenticator.AUTH_USER_GET, false);
@@ -69,8 +70,8 @@ public class NestedResourcesTest extends StructrUiTest {
 				.given()
 					.contentType("application/json; charset=UTF-8")
 					.filter(ResponseLoggingFilter.logResponseTo(System.out))
-					.header("X-User",     "user1")
-					.header("X-Password", "password1")
+					.header(X_USER_HEADER,     "user1")
+					.header(X_PASSWORD_HEADER, "password1")
 				.expect()
 					.statusCode(200)
 					.body("result_count",                equalTo(1))
@@ -94,8 +95,8 @@ public class NestedResourcesTest extends StructrUiTest {
 
 				.given()
 					.contentType("application/json; charset=UTF-8")
-					.header("X-User",     "user1")
-					.header("X-Password", "password1")
+					.header(X_USER_HEADER,     "user1")
+					.header(X_PASSWORD_HEADER, "password1")
 				.expect()
 					.statusCode(200)
 					.body("result_count",                equalTo(1))
@@ -112,7 +113,7 @@ public class NestedResourcesTest extends StructrUiTest {
 	@Test
 	public void testNodeAssociationOnUpdate() {
 
-		this.grant("User",                UiAuthenticator.NON_AUTH_USER_POST, true);
+		this.grant(StructrTraits.USER,                UiAuthenticator.NON_AUTH_USER_POST, true);
 		this.grant("TestThree",           UiAuthenticator.AUTH_USER_POST, false);
 		this.grant("TestFour",            UiAuthenticator.AUTH_USER_POST | UiAuthenticator.AUTH_USER_PUT, false);
 		this.grant("TestFour/_TestView",  UiAuthenticator.AUTH_USER_GET, false);
@@ -134,8 +135,8 @@ public class NestedResourcesTest extends StructrUiTest {
 				.given()
 					.contentType("application/json; charset=UTF-8")
 					.body("{ oneToOneTestThree: \"" + testThree + "\" }")
-					.header("X-User",     "user1")
-					.header("X-Password", "password1")
+					.header(X_USER_HEADER,     "user1")
+					.header(X_PASSWORD_HEADER, "password1")
 				.expect()
 					.statusCode(200)
 				.when()
@@ -147,8 +148,8 @@ public class NestedResourcesTest extends StructrUiTest {
 				.given()
 					.contentType("application/json; charset=UTF-8")
 					.filter(ResponseLoggingFilter.logResponseTo(System.out))
-					.header("X-User",     "user1")
-					.header("X-Password", "password1")
+					.header(X_USER_HEADER,     "user1")
+					.header(X_PASSWORD_HEADER, "password1")
 				.expect()
 					.statusCode(200)
 					.body("result_count",                equalTo(1))
@@ -172,8 +173,8 @@ public class NestedResourcesTest extends StructrUiTest {
 				.given()
 					.contentType("application/json; charset=UTF-8")
 					.body("{ oneToOneTestThree: { id: \"" + testThree + "\" } }")
-					.header("X-User",     "user1")
-					.header("X-Password", "password1")
+					.header(X_USER_HEADER,     "user1")
+					.header(X_PASSWORD_HEADER, "password1")
 				.expect()
 					.statusCode(200)
 				.when()
@@ -185,8 +186,8 @@ public class NestedResourcesTest extends StructrUiTest {
 				.given()
 					.contentType("application/json; charset=UTF-8")
 					.filter(ResponseLoggingFilter.logResponseTo(System.out))
-					.header("X-User",     "user1")
-					.header("X-Password", "password1")
+					.header(X_USER_HEADER,     "user1")
+					.header(X_PASSWORD_HEADER, "password1")
 				.expect()
 					.statusCode(200)
 					.body("result_count",                equalTo(1))
@@ -205,7 +206,7 @@ public class NestedResourcesTest extends StructrUiTest {
 	@Test
 	public void testFailingNodeAssociationOnUpdateWithProperties() {
 
-		this.grant("User",                UiAuthenticator.NON_AUTH_USER_POST, true);
+		this.grant(StructrTraits.USER,                UiAuthenticator.NON_AUTH_USER_POST, true);
 		this.grant("TestThree",           UiAuthenticator.AUTH_USER_POST, false);
 		this.grant("TestFour",            UiAuthenticator.AUTH_USER_POST | UiAuthenticator.AUTH_USER_PUT, false);
 		this.grant("TestFour/_TestView",  UiAuthenticator.AUTH_USER_GET, false);
@@ -227,8 +228,8 @@ public class NestedResourcesTest extends StructrUiTest {
 				.given()
 					.contentType("application/json; charset=UTF-8")
 					.body("{ oneToOneTestThree: { id: \"" + testThree + "\", name: \"test123\" } }")
-					.header("X-User",     "user1")
-					.header("X-Password", "password1")
+					.header(X_USER_HEADER,     "user1")
+					.header(X_PASSWORD_HEADER, "password1")
 				.expect()
 					.statusCode(403)
 				.when()
@@ -243,7 +244,7 @@ public class NestedResourcesTest extends StructrUiTest {
 	@Test
 	public void testSuccessfulNodeAssociationOnUpdateWithProperties() {
 
-		this.grant("User",                UiAuthenticator.NON_AUTH_USER_POST, true);
+		this.grant(StructrTraits.USER,                UiAuthenticator.NON_AUTH_USER_POST, true);
 		this.grant("TestThree",           UiAuthenticator.AUTH_USER_POST, false);
 		this.grant("TestFour",            UiAuthenticator.AUTH_USER_POST | UiAuthenticator.AUTH_USER_PUT, false);
 		this.grant("TestFour/_TestView",  UiAuthenticator.AUTH_USER_GET, false);
@@ -264,8 +265,8 @@ public class NestedResourcesTest extends StructrUiTest {
 				.given()
 					.contentType("application/json; charset=UTF-8")
 					.body("{ oneToOneTestThree: { id: \"" + testThree + "\", name: \"test123\" } }")
-					.header("X-User",     "user1")
-					.header("X-Password", "password1")
+					.header(X_USER_HEADER,     "user1")
+					.header(X_PASSWORD_HEADER, "password1")
 				.expect()
 					.statusCode(200)
 				.when()
@@ -277,8 +278,8 @@ public class NestedResourcesTest extends StructrUiTest {
 				.given()
 					.contentType("application/json; charset=UTF-8")
 					.filter(ResponseLoggingFilter.logResponseTo(System.out))
-					.header("X-User",     "user1")
-					.header("X-Password", "password1")
+					.header(X_USER_HEADER,     "user1")
+					.header(X_PASSWORD_HEADER, "password1")
 				.expect()
 					.statusCode(200)
 					.body("result_count",                  equalTo(1))
@@ -323,11 +324,11 @@ public class NestedResourcesTest extends StructrUiTest {
 			fail("Unexpected exception.");
 		}
 
-		createEntityAsSuperUser("/User", "{ name: admin, password: admin, isAdmin: true }");
+		createEntityAsSuperUser("/User", "{ name: " + ADMIN_USERNAME + ", password: " + ADMIN_PASSWORD + ", isAdmin: true }");
 
-		final String authorId    = createEntityAsUser("admin", "admin", "/TestAuthor", "{ name: 'Tester' }");
-		final String versionId   = createEntityAsUser("admin", "admin", "/TestVersion", "{ name: 'TestVersion' }");
-		final String documentId  = createEntityAsUser("admin", "admin", "/TestDocument", "{ name: 'TestDocument', hasVersion: { id: '" + versionId + "', hasAuthor: { id: '" + authorId + "' } } } ");
+		final String authorId    = createEntityAsUser(ADMIN_USERNAME, ADMIN_PASSWORD, "/TestAuthor", "{ name: 'Tester' }");
+		final String versionId   = createEntityAsUser(ADMIN_USERNAME, ADMIN_PASSWORD, "/TestVersion", "{ name: 'TestVersion' }");
+		final String documentId  = createEntityAsUser(ADMIN_USERNAME, ADMIN_PASSWORD, "/TestDocument", "{ name: 'TestDocument', hasVersion: { id: '" + versionId + "', hasAuthor: { id: '" + authorId + "' } } } ");
 
 
 		// check document to have correct associations
@@ -336,8 +337,8 @@ public class NestedResourcesTest extends StructrUiTest {
 			.given()
 				.contentType("application/json; charset=UTF-8")
 				.filter(ResponseLoggingFilter.logResponseTo(System.out))
-				.header("X-User",     "admin")
-				.header("X-Password", "admin")
+				.header(X_USER_HEADER,     ADMIN_USERNAME)
+				.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.expect()
 				.statusCode(200)
 				.body("result_count",                     equalTo(1))

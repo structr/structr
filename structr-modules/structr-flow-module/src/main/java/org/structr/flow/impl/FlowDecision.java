@@ -18,57 +18,76 @@
  */
 package org.structr.flow.impl;
 
-import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.core.property.EndNode;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNode;
-import org.structr.flow.api.DataSource;
-import org.structr.flow.api.Decision;
-import org.structr.flow.api.FlowElement;
-import org.structr.flow.impl.rels.FlowDecisionCondition;
-import org.structr.flow.impl.rels.FlowDecisionFalse;
-import org.structr.flow.impl.rels.FlowDecisionTrue;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.flow.traits.definitions.FlowDecisionTraitDefinition;
 import org.structr.module.api.DeployableEntity;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
-/**
- *
- */
-public class FlowDecision extends FlowNode implements Decision, DeployableEntity {
+public class FlowDecision extends FlowNode implements DeployableEntity {
 
-	public static final Property<FlowCondition> condition = new StartNode<>("condition", FlowDecisionCondition.class);
-	public static final Property<FlowNode> trueElement    = new EndNode<>("trueElement", FlowDecisionTrue.class);
-	public static final Property<FlowNode> falseElement   = new EndNode<>("falseElement", FlowDecisionFalse.class);
-
-	public static final View defaultView = new View(FlowDecision.class, PropertyView.Public, condition, trueElement, falseElement, isStartNodeOfContainer);
-	public static final View uiView      = new View(FlowDecision.class, PropertyView.Ui,     condition, trueElement, falseElement, isStartNodeOfContainer);
-
-	@Override
-	public DataSource getCondition() {
-		return getProperty(condition);
+	public FlowDecision(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
 	}
 
-	@Override
-	public FlowElement getTrueElement() {
-		return getProperty(trueElement);
+	public FlowCondition getCondition() {
+
+		final NodeInterface node = wrappedObject.getProperty(traits.key(FlowDecisionTraitDefinition.CONDITION_PROPERTY));
+		if (node != null) {
+
+			return node.as(FlowCondition.class);
+		}
+
+		return null;
 	}
 
-	@Override
-	public FlowElement getFalseElement() {
-		return getProperty(falseElement);
+	public void setCondition(final FlowDataSource condition) throws FrameworkException {
+		wrappedObject.setProperty(traits.key(FlowDecisionTraitDefinition.CONDITION_PROPERTY), condition);
+	}
+
+	public FlowNode getTrueElement() {
+
+		final NodeInterface node = wrappedObject.getProperty(traits.key(FlowDecisionTraitDefinition.TRUE_ELEMENT_PROPERTY));
+		if (node != null) {
+
+			return node.as(FlowNode.class);
+		}
+
+		return null;
+	}
+
+	public FlowNode getFalseElement() {
+
+		final NodeInterface node = wrappedObject.getProperty(traits.key(FlowDecisionTraitDefinition.FALSE_ELEMENT_PROPERTY));
+		if (node != null) {
+
+			return node.as(FlowNode.class);
+		}
+
+		return null;
+	}
+
+	public void setTrueElement(final FlowNode trueElement) throws FrameworkException {
+		wrappedObject.setProperty(traits.key(FlowDecisionTraitDefinition.TRUE_ELEMENT_PROPERTY), trueElement);
+	}
+
+	public void setFalseElement(final FlowNode falseElement) throws FrameworkException {
+		wrappedObject.setProperty(traits.key(FlowDecisionTraitDefinition.FALSE_ELEMENT_PROPERTY), falseElement);
 	}
 
 	@Override
 	public Map<String, Object> exportData() {
-		Map<String, Object> result = new HashMap<>();
 
-		result.put("id", this.getUuid());
-		result.put("type", this.getClass().getSimpleName());
-		result.put("visibleToPublicUsers", this.getProperty(visibleToPublicUsers));
-		result.put("visibleToAuthenticatedUsers", this.getProperty(visibleToAuthenticatedUsers));
+		final Map<String, Object> result = new TreeMap<>();
+
+		result.put(GraphObjectTraitDefinition.ID_PROPERTY,                             getUuid());
+		result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,                           getType());
+		result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        isVisibleToPublicUsers());
+		result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, isVisibleToAuthenticatedUsers());
 
 		return result;
 	}

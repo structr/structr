@@ -27,6 +27,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 
 import java.util.*;
@@ -45,10 +46,11 @@ public class GraphQLQuery {
 		this.securityContext = securityContex;
 		this.fieldName       = field.getName();
 
-		final Class type = StructrApp.getConfiguration().getNodeEntityClass(fieldName);
-		if (type != null) {
+		if (Traits.exists(fieldName)) {
 
-			init(securityContex, type, field, "/" + fieldName);
+			final Traits traits = Traits.of(fieldName);
+
+			init(securityContex, traits, field, "/" + fieldName);
 		}
 	}
 
@@ -77,8 +79,8 @@ public class GraphQLQuery {
 
 	public Iterable<GraphObject> getEntities(final SecurityContext securityContext) throws FrameworkException {
 
-		final Class type         = StructrApp.getConfiguration().getNodeEntityClass(fieldName);
-		final Query query        = StructrApp.getInstance(securityContext).nodeQuery(type);
+		final Traits type        = Traits.of(fieldName);
+		final Query query        = StructrApp.getInstance(securityContext).nodeQuery(fieldName);
 		final QueryConfig config = getConfig(getRootPath());
 
 		config.configureQuery(query);
@@ -87,7 +89,7 @@ public class GraphQLQuery {
 	}
 
 	// ----- private methods -----
-	private void init(final SecurityContext securityContext, final Class type, final Field field, final String path) throws FrameworkException {
+	private void init(final SecurityContext securityContext, final Traits type, final Field field, final String path) throws FrameworkException {
 
 		final QueryConfig config = getConfig(path);
 
@@ -102,17 +104,18 @@ public class GraphQLQuery {
 
 					final Field childField      = (Field)selection;
 					final SelectionSet childSet = childField.getSelectionSet();
-					final PropertyKey key       = StructrApp.key(type, childField.getName());
-					final Class relatedType     = key.relatedType() != null ? key.relatedType() : type;
+					final PropertyKey key       = type.key(childField.getName());
 
 					// add field to property set
 					config.addPropertyKey(key);
-					config.handleFieldArguments(securityContext, relatedType, field, childField);
+					config.handleFieldArguments(securityContext, type, field, childField);
 
 					// recurse
 					if (childSet != null) {
 
-						init(securityContext, relatedType, childField, path + "/" + childField.getName());
+						final Traits childType = key.relatedType() != null ? Traits.of(key.relatedType()) : type;
+
+						init(securityContext, childType, childField, path + "/" + childField.getName());
 					}
 				}
 			}

@@ -23,8 +23,10 @@ import org.structr.api.Predicate;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.AbstractReadOnlyProperty;
 import org.structr.core.property.Property;
+import org.structr.core.traits.StructrTraits;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Image;
 
@@ -33,7 +35,7 @@ import java.util.Map;
 /**
  * A property that automatically creates a thumbnail for an image.
  */
-public class ThumbnailProperty extends AbstractReadOnlyProperty<Image> {
+public class ThumbnailProperty extends AbstractReadOnlyProperty<NodeInterface> {
 
 	private int width    = 0;
 	private int height   = 0;
@@ -49,35 +51,52 @@ public class ThumbnailProperty extends AbstractReadOnlyProperty<Image> {
 	}
 
 	@Override
-	public Image getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+	public NodeInterface getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter) {
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
 	@Override
-	public Image getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, Predicate<GraphObject> predicate) {
+	public NodeInterface getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
 
-		if (obj instanceof File && ((File)obj).isTemplate()) {
-			return null;
-		} else
-		if (obj instanceof Image && ((Image)obj).isThumbnail()) {
+		if (obj == null) {
 			return null;
 		}
 
-		return ((Image)obj).getScaledImage(width, height, crop);
+		if (obj.is(StructrTraits.FILE) && obj.as(File.class).isTemplate()) {
+
+			return null;
+
+		} else if (obj.is(StructrTraits.IMAGE) && obj.as(Image.class).isThumbnail()) {
+
+			return null;
+		}
+
+		final Image tn = obj.as(Image.class).getScaledImage(width, height, crop);
+		if (tn != null) {
+
+			return tn;
+		}
+
+		return null;
 	}
 
 	@Override
-	public Class relatedType() {
-		return Image.class;
+	public String relatedType() {
+		return StructrTraits.IMAGE;
 	}
 
 	@Override
 	public Class valueType() {
-		return relatedType();
+		return NodeInterface.class;
 	}
 
 	@Override
 	public boolean isCollection() {
+		return false;
+	}
+
+	@Override
+	public boolean isArray() {
 		return false;
 	}
 
@@ -87,7 +106,7 @@ public class ThumbnailProperty extends AbstractReadOnlyProperty<Image> {
 	}
 
 	@Override
-	public Property<Image> format(final String format) {
+	public Property<NodeInterface> format(final String format) {
 
 		if (StringUtils.isNotBlank(format) && format.contains(",")) {
 

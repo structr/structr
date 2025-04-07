@@ -19,25 +19,33 @@
 package org.structr.test.web.advanced;
 
 import org.apache.commons.lang3.StringUtils;
+import org.structr.common.AccessControllable;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.entity.Security;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.dom.*;
+import org.structr.web.entity.path.PagePath;
 import org.structr.web.maintenance.DeployCommand;
+import org.structr.web.traits.definitions.FileTraitDefinition;
+import org.structr.web.traits.definitions.dom.ContentTraitDefinition;
+import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
+import org.structr.web.traits.definitions.dom.PageTraitDefinition;
 import org.structr.websocket.command.CloneComponentCommand;
 import org.structr.websocket.command.CreateComponentCommand;
-import org.w3c.dom.Node;
 
 import java.io.IOException;
 import java.nio.file.*;
@@ -51,14 +59,13 @@ import static org.testng.AssertJUnit.fail;
 
 public abstract class DeploymentTestBase extends StructrUiTest {
 
-	// ----- private methods -----
 	protected void compare(final String sourceHash, final boolean deleteTestDirectory) {
 		compare(sourceHash, deleteTestDirectory, true);
 	}
 
 	protected void compare(final String sourceHash, final boolean deleteTestDirectory, final boolean cleanDatabase) {
 
-		doImportExportRoundtrip(deleteTestDirectory, cleanDatabase, null);
+		doImportExportRoundtrip(deleteTestDirectory, null, cleanDatabase);
 
 		final String roundtripHash = calculateHash();
 
@@ -78,50 +85,50 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 	}
 
 	protected void doImportExportRoundtrip(final boolean deleteTestDirectory) {
-		doImportExportRoundtrip(deleteTestDirectory, true, null);
+		doImportExportRoundtrip(deleteTestDirectory, null, true);
 	}
 
-	protected void doImportExportRoundtrip(final boolean deleteTestDirectory, final boolean cleanDatabase, final Function callback) {
+	protected void doImportExportRoundtrip(final boolean deleteTestDirectory, final Function callback) {
+		doImportExportRoundtrip(deleteTestDirectory, callback, true);
+	}
+
+	protected void doImportExportRoundtrip(final boolean deleteTestDirectory, final Function callback, final boolean cleanDatabase) {
 
 		final DeployCommand cmd = app.command(DeployCommand.class);
 		final Path tmp          = Paths.get("/tmp/structr-deployment-test" + System.currentTimeMillis() + System.nanoTime());
 
 		try {
-			if (tmp != null) {
 
-				// export to temp directory
-				final Map<String, Object> firstExportParams = new HashMap<>();
-				firstExportParams.put("mode", "export");
-				firstExportParams.put("target", tmp.toString());
+			// export to temp directory
+			final Map<String, Object> firstExportParams = new HashMap<>();
+			firstExportParams.put("mode", "export");
+			firstExportParams.put("target", tmp.toString());
 
-				// execute deploy command
-				cmd.execute(firstExportParams);
+			// execute deploy command
+			cmd.execute(firstExportParams);
 
-				if (cleanDatabase) {
-					cleanDatabase();
-				}
-
-				// apply callback if present
-				if (callback != null) {
-					callback.apply(null);
-				}
-
-				// import from exported source
-				final Map<String, Object> firstImportParams = new HashMap<>();
-				firstImportParams.put("mode", "import");
-				firstImportParams.put("source", tmp.toString());
-
-				// execute deploy command
-				cmd.execute(firstImportParams);
-
-			} else {
-
-				fail("Unable to create temporary directory.");
+			if (cleanDatabase) {
+				cleanDatabase();
 			}
+
+			// apply callback if present
+			if (callback != null) {
+				callback.apply(null);
+			}
+
+			// import from exported source
+			final Map<String, Object> firstImportParams = new HashMap<>();
+			firstImportParams.put("mode", "import");
+			firstImportParams.put("source", tmp.toString());
+
+			// execute deploy command
+			cmd.execute(firstImportParams);
 
 		} catch (Throwable t) {
 
 			t.printStackTrace();
+
+			fail("Unexpected exception: " + t.getMessage());
 
 		} finally {
 
@@ -143,10 +150,10 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			for (final Page page : app.nodeQuery(Page.class).sort(AbstractNode.name).getAsList()) {
+			for (final NodeInterface page : app.nodeQuery(StructrTraits.PAGE).sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getAsList()) {
 
 				// skip shadow document
-				if (page instanceof ShadowDocument) {
+				if (page.is(StructrTraits.SHADOW_DOCUMENT)) {
 					continue;
 				}
 
@@ -157,9 +164,9 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 				calculateHash(page, buf, 1);
 			}
 
-			for (final Folder folder : app.nodeQuery(Folder.class).sort(AbstractNode.name).getAsList()) {
+			for (final NodeInterface folder : app.nodeQuery(StructrTraits.FOLDER).sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getAsList()) {
 
-				if (folder.includeInFrontendExport()) {
+				if (folder.as(Folder.class).includeInFrontendExport()) {
 
 					buf.append("Folder ");
 					buf.append(folder.getName());
@@ -169,9 +176,9 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 				}
 			}
 
-			for (final File file : app.nodeQuery(File.class).sort(AbstractNode.name).getAsList()) {
+			for (final NodeInterface file : app.nodeQuery(StructrTraits.FILE).sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getAsList()) {
 
-				if (file.includeInFrontendExport()) {
+				if (file.as(File.class).includeInFrontendExport()) {
 
 					buf.append("File ");
 					buf.append(file.getName());
@@ -201,9 +208,9 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 		buf.append(StringUtils.leftPad("", indent*4));
 		hash(start, buf);
 
-		if (start instanceof ShadowDocument) {
+		if (start.is(StructrTraits.SHADOW_DOCUMENT)) {
 
-			for (final DOMNode child : ((ShadowDocument)start).getElements()) {
+			for (final DOMNode child : start.as(ShadowDocument.class).getElements()) {
 
 				// only include toplevel elements of the shadow document
 				if (child.getParent() == null) {
@@ -212,9 +219,21 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 				}
 			}
 
-		} else if (start instanceof DOMNode) {
+		} else if (start.is(StructrTraits.DOM_NODE)) {
 
-			for (final DOMNode child : ((DOMNode)start).getChildren()) {
+			//
+			if (start.is(StructrTraits.PAGE)) {
+
+				final Page page = start.as(Page.class);
+
+				for (final PagePath path : page.getPaths()) {
+
+					calculateHash(path, buf, depth+1);
+				}
+
+			}
+
+			for (final DOMNode child : start.as(DOMNode.class).getChildren()) {
 
 				calculateHash(child, buf, depth+1);
 			}
@@ -228,20 +247,22 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 	protected void hash(final NodeInterface node, final StringBuilder buf) {
 
 		// AbstractNode
-		buf.append(valueOrEmpty(node, AbstractNode.type));
-		buf.append(valueOrEmpty(node, AbstractNode.name));
-		buf.append(valueOrEmpty(node, AbstractNode.visibleToPublicUsers));
-		buf.append(valueOrEmpty(node, AbstractNode.visibleToAuthenticatedUsers));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.TYPE_PROPERTY)));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY)));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY)));
 
 		// include owner in content hash generation!
-		final PrincipalInterface owner = node.getOwnerNode();
+		final AccessControllable ac = node.as(AccessControllable.class);
+		final Principal owner       = ac.getOwnerNode();
+
 		if (owner != null) {
 
-			buf.append(valueOrEmpty(owner, AbstractNode.name));
+			buf.append(valueOrEmpty(owner, Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)));
 		}
 
 		// include permissions in content hash generation!
-		for (final Security r : node.getSecurityRelationships()) {
+		for (final Security r : ac.getSecurityRelationships()) {
 
 			if (r != null) {
 
@@ -251,42 +272,45 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 		}
 
 		// DOMNode
-		buf.append(valueOrEmpty(node, StructrApp.key(DOMNode.class, "showConditions")));
-		buf.append(valueOrEmpty(node, StructrApp.key(DOMNode.class, "hideConditions")));
-		buf.append(valueOrEmpty(node, StructrApp.key(DOMNode.class, "showForLocales")));
-		buf.append(valueOrEmpty(node, StructrApp.key(DOMNode.class, "hideForLocales")));
-		buf.append(valueOrEmpty(node, StructrApp.key(DOMNode.class, "sharedComponentConfiguration")));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.SHOW_CONDITIONS_PROPERTY)));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.HIDE_CONDITIONS_PROPERTY)));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.SHOW_FOR_LOCALES_PROPERTY)));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.HIDE_FOR_LOCALES_PROPERTY)));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.SHARED_COMPONENT_CONFIGURATION_PROPERTY)));
 
-		if (node instanceof DOMNode) {
+		if (node.is(StructrTraits.DOM_NODE)) {
 
-			final Page ownerDocument = ((DOMNode)node).getOwnerDocument();
+			final Page ownerDocument = node.as(DOMNode.class).getOwnerDocument();
 			if (ownerDocument != null) {
 
-				buf.append(valueOrEmpty(ownerDocument, AbstractNode.name));
+				buf.append(valueOrEmpty(ownerDocument, Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)));
 			}
 		}
 
 		// DOMElement
-		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "dataKey")));
-		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "restQuery")));
-		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "cypherQuery")));
-		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "functionQuery")));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_ELEMENT).key(DOMNodeTraitDefinition.DATA_KEY_PROPERTY)));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_ELEMENT).key(DOMNodeTraitDefinition.REST_QUERY_PROPERTY)));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_ELEMENT).key(DOMNodeTraitDefinition.CYPHER_QUERY_PROPERTY)));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_ELEMENT).key(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY)));
 
 		// Content
-		buf.append(valueOrEmpty(node, StructrApp.key(Content.class, "contentType")));
-		buf.append(valueOrEmpty(node, StructrApp.key(Content.class, "content")));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.CONTENT).key(ContentTraitDefinition.CONTENT_TYPE_PROPERTY)));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.CONTENT).key(ContentTraitDefinition.CONTENT_PROPERTY)));
 
 		// Page
-		buf.append(valueOrEmpty(node, StructrApp.key(Page.class, "cacheForSeconds")));
-		buf.append(valueOrEmpty(node, StructrApp.key(Page.class, "dontCache")));
-		buf.append(valueOrEmpty(node, StructrApp.key(Page.class, "pageCreatesRawData")));
-		buf.append(valueOrEmpty(node, StructrApp.key(Page.class, "position")));
-		buf.append(valueOrEmpty(node, StructrApp.key(Page.class, "showOnErrorCodes")));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.CACHE_FOR_SECONDS_PROPERTY)));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.PAGE).key(DOMNodeTraitDefinition.DONT_CACHE_PROPERTY)));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.PAGE_CREATES_RAW_DATA_PROPERTY)));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.POSITION_PROPERTY)));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.SHOW_ON_ERROR_CODES_PROPERTY)));
+
+		// File
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.FILE).key(FileTraitDefinition.SIZE_PROPERTY)));
 
 		// HTML attributes
-		if (node instanceof DOMElement) {
+		if (node.is(StructrTraits.DOM_ELEMENT)) {
 
-			for (final PropertyKey key : ((DOMElement)node).getHtmlAttributes()) {
+			for (final PropertyKey key : node.as(DOMElement.class).getHtmlAttributes()) {
 
 				buf.append(valueOrEmpty(node, key));
 			}
@@ -294,7 +318,8 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 
 		for (final PropertyKey key : node.getPropertyKeys(PropertyView.All)) {
 
-			if (!key.isPartOfBuiltInSchema()) {
+			// fixme
+			if (key.isDynamic()) {
 
 				buf.append(valueOrEmpty(node, key));
 			}
@@ -314,16 +339,16 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 		return "";
 	}
 
-	protected <T extends Node> T createElement(final Page page, final DOMNode parent, final String tag, final String... content) {
+	protected DOMElement createElement(final Page page, final DOMNode parent, final String tag, final String... content) throws FrameworkException {
 
-		final T child = (T)page.createElement(tag);
-		parent.appendChild((DOMNode)child);
+		final DOMElement child = page.createElement(tag);
+		parent.appendChild(child);
 
 		if (content != null && content.length > 0) {
 
 			for (final String text : content) {
 
-				final Node node = page.createTextNode(text);
+				final Content node = page.createTextNode(text);
 				child.appendChild(node);
 			}
 		}
@@ -333,43 +358,45 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 
 	protected Template createTemplate(final Page page, final DOMNode parent, final String content) throws FrameworkException {
 
-		final Template template = StructrApp.getInstance().create(Template.class,
-			new NodeAttribute<>(StructrApp.key(Template.class, "content"), content),
-			new NodeAttribute<>(StructrApp.key(Template.class, "ownerDocument"), page)
+		final NodeInterface template = StructrApp.getInstance().create(StructrTraits.TEMPLATE,
+			new NodeAttribute<>(Traits.of(StructrTraits.TEMPLATE).key(ContentTraitDefinition.CONTENT_PROPERTY), content),
+			new NodeAttribute<>(Traits.of(StructrTraits.TEMPLATE).key(DOMNodeTraitDefinition.OWNER_DOCUMENT_PROPERTY), page)
 		);
 
 		if (parent != null) {
-			parent.appendChild((DOMNode)template);
+			parent.appendChild(template.as(DOMNode.class));
 		}
 
-		return template;
+		return template.as(Template.class);
 	}
 
-	protected <T> T createContent(final Page page, final DOMNode parent, final String content) {
+	protected Content createContent(final Page page, final DOMNode parent, final String content) throws FrameworkException {
 
-		final T child = (T)page.createTextNode(content);
-		parent.appendChild((DOMNode)child);
+		final Content child = page.createTextNode(content);
+
+		parent.appendChild(child);
 
 		return child;
 	}
 
-	protected <T> T createComment(final Page page, final DOMNode parent, final String comment) {
+	protected Comment createComment(final Page page, final DOMNode parent, final String comment) throws FrameworkException {
 
-		final T child = (T)page.createComment(comment);
-		parent.appendChild((DOMNode)child);
+		final Comment child = page.createComment(comment);
+
+		parent.appendChild(child);
 
 		return child;
 	}
 
-	protected <T> T createComponent(final DOMNode node) throws FrameworkException {
-		return (T) new CreateComponentCommand().create(node);
+	protected DOMNode createComponent(final DOMNode node) throws FrameworkException {
+		return new CreateComponentCommand().create(node);
 	}
 
-	protected <T> T cloneComponent(final DOMNode node, final DOMNode parentNode) throws FrameworkException {
-		return (T) new CloneComponentCommand().cloneComponent(node, parentNode);
+	protected DOMNode cloneComponent(final DOMNode node, final DOMNode parentNode) throws FrameworkException {
+		return new CloneComponentCommand().cloneComponent(node, parentNode);
 	}
 
-	protected Folder getRootFolder(final Folder folder) {
+	protected NodeInterface getRootFolder(final Folder folder) {
 
 		Folder parent = folder;
 		boolean root  = false;

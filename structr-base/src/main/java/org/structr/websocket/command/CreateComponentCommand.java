@@ -20,10 +20,11 @@ package org.structr.websocket.command;
 
 
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.core.traits.StructrTraits;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.ShadowDocument;
-import org.structr.web.entity.dom.Template;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -32,10 +33,7 @@ import org.w3c.dom.DOMException;
 
 /**
  * Create a shared component as a clone of the source node.
- *
  * This command will create a SYNC relationship: (source)<-[:SYNC]-(component)
- *
- *
  */
 public class CreateComponentCommand extends AbstractCommand {
 
@@ -49,11 +47,10 @@ public class CreateComponentCommand extends AbstractCommand {
 
 		setDoTransactionNotifications(true);
 
-		String id = webSocketData.getId();
-
+		final String id = webSocketData.getId();
 		if (id != null) {
 
-			final DOMNode node = (DOMNode) getDOMNode(id);
+			final DOMNode node = getDOMNode(id);
 
 			try {
 
@@ -61,26 +58,21 @@ public class CreateComponentCommand extends AbstractCommand {
 
 				TransactionCommand.registerNodeCallback(clonedNode, callback);
 
-
 			} catch (DOMException | FrameworkException ex) {
 
 				// send DOM exception
 				getWebSocket().send(MessageBuilder.status().code(422).message(ex.getMessage()).build(), true);
-
 			}
 
 		} else {
 
 			getWebSocket().send(MessageBuilder.status().code(422).message("Cannot append node without id").build(), true);
 		}
-
 	}
 
 	@Override
 	public String getCommand() {
-
 		return "CREATE_COMPONENT";
-
 	}
 
 	public DOMNode create(final DOMNode node) throws FrameworkException {
@@ -89,10 +81,10 @@ public class CreateComponentCommand extends AbstractCommand {
 			throw new FrameworkException(422, "No node to clone");
 		}
 		
-		final DOMNode clonedNode = (DOMNode) node.cloneNode(false);
+		final DOMNode clonedNode = node.cloneNode(false);
 
 		// Child nodes of a template must stay in page tree
-		if (!(clonedNode instanceof Template)) {
+		if (!(clonedNode.is(StructrTraits.TEMPLATE))) {
 
 			moveChildNodes(node, clonedNode);
 		}
@@ -101,8 +93,9 @@ public class CreateComponentCommand extends AbstractCommand {
 		clonedNode.setOwnerDocument(hiddenDoc);
 
 		// Change page (owner document) of all children recursively
-		for (DOMNode child : DOMNode.getAllChildNodes(clonedNode)) {
-			child.setOwnerDocument(hiddenDoc);
+		for (final NodeInterface child : clonedNode.getAllChildNodes()) {
+
+			child.as(DOMNode.class).setOwnerDocument(hiddenDoc);
 		}
 
 		node.setSharedComponent(clonedNode);

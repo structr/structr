@@ -28,22 +28,23 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.flow.impl.FlowContainer;
 import org.structr.flow.impl.FlowContainerConfiguration;
 import org.structr.flow.impl.rels.FlowContainerConfigurationFlow;
+import org.structr.flow.traits.definitions.FlowConditionTraitDefinition;
+import org.structr.flow.traits.definitions.FlowContainerConfigurationTraitDefinition;
 import org.structr.module.api.DeployableEntity;
-import org.structr.schema.SchemaHelper;
 import org.structr.web.common.AbstractMapComparator;
 
 import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 public class FlowLegacyDeploymentHandler extends FlowAbstractDeploymentHandler implements FlowDeploymentInterface {
 
@@ -51,18 +52,23 @@ public class FlowLegacyDeploymentHandler extends FlowAbstractDeploymentHandler i
 
 	@Override
 	public void doExport(final Path target, final Gson gson) throws FrameworkException {
-		final App app                                		= StructrApp.getInstance();
-		final Path flowEngineFile							= target.resolve("flow-engine.json");
-		final List<Map<String, ?>> flowElements 			= new LinkedList<>();
-		final List<Map<String, String>> flowRelationships 	= new LinkedList<>();
+
+		final App app                                      = StructrApp.getInstance();
+		final Path flowEngineFile                          = target.resolve("flow-engine.json");
+		final List<Map<String, ?>> flowElements            = new LinkedList<>();
+		final List<Map<String, String>> flowRelationships  = new LinkedList<>();
+		final PropertyKey<Date> lastModifiedProperty       = Traits.of("NodeInterface").key("lastModifiedDate");
+		final PropertyKey<String> idProperty               = Traits.of("NodeInterface").key("id");
+		final PropertyKey<NodeInterface> flowKey           = Traits.of(StructrTraits.FLOW_CONTAINER_CONFIGURATION).key(FlowContainerConfigurationTraitDefinition.FLOW_PROPERTY);
 
 		try (final Tx tx = app.tx()) {
 
-			for (Class c : classesToExport) {
+			for (final String c : classesToExport) {
 
-				for (final Object current : app.nodeQuery(c).sort(StructrApp.key(NodeInterface.class, "id")).getAsList()) {
+				for (final NodeInterface current : app.nodeQuery(c).sort(idProperty).getAsList()) {
 
-					if (current instanceof DeployableEntity && ((NodeInterface)current).getType().equals(c.getSimpleName()) ) {
+					// FIXME: NodeInterface is will not be an instance of DeployableEntity, we need a base trait that is
+					if (current instanceof DeployableEntity && current.getType().equals(c) ) {
 
 						flowElements.add( ((DeployableEntity)current).exportData() );
 					}
@@ -71,9 +77,11 @@ public class FlowLegacyDeploymentHandler extends FlowAbstractDeploymentHandler i
 
 			// Special handling for FlowContainerConfiguration: Only export last modified layout
 
-			for (final FlowContainer cont: app.nodeQuery(FlowContainer.class).sort(StructrApp.key(NodeInterface.class, "id")).getAsList()) {
+			for (final NodeInterface containerNode : app.nodeQuery(StructrTraits.FLOW_CONTAINER).sort(idProperty).getAsList()) {
 
-				final FlowContainerConfiguration conf = app.nodeQuery(FlowContainerConfiguration.class).and(FlowContainerConfiguration.flow, cont).sort(StructrApp.key(NodeInterface.class,"lastModifiedDate"), true).getFirst();
+				final FlowContainer flowContainer     = containerNode.as(FlowContainer.class);
+				final NodeInterface configNode        = app.nodeQuery(StructrTraits.FLOW_CONTAINER_CONFIGURATION).and(flowKey, flowContainer).sort(lastModifiedProperty).getFirst();
+				final FlowContainerConfiguration conf = configNode.as(FlowContainerConfiguration.class);
 
 				if (conf != null) {
 
@@ -84,28 +92,31 @@ public class FlowLegacyDeploymentHandler extends FlowAbstractDeploymentHandler i
 					attrs.put("type", FlowContainerConfigurationFlow.class.getSimpleName());
 					attrs.put("relType", "CONTAINS_CONFIGURATION_FOR");
 					attrs.put("sourceId", conf.getUuid());
-					attrs.put("targetId", cont.getUuid());
+					attrs.put("targetId", flowContainer.getUuid());
 					flowRelationships.add(attrs);
 				}
 
 			}
 
-			for (Class c : relsToExport) {
+			for (final String c : relsToExport) {
 
-				for (final Object current : app.relationshipQuery(c).getAsList()) {
+				for (final RelationshipInterface current : app.relationshipQuery(c).getAsList()) {
 
 					Map<String, String> attrs = new TreeMap<>();
-					attrs.put("type", c.getSimpleName());
-					attrs.put("relType", ((RelationshipInterface)current).getRelType().name());
-					attrs.put("sourceId", ((RelationshipInterface)current).getSourceNodeId());
-					attrs.put("targetId", ((RelationshipInterface)current).getTargetNodeId());
+
+					attrs.put("type",     c);
+					attrs.put("relType",  current.getRelType().name());
+					attrs.put("sourceId", current.getSourceNodeId());
+					attrs.put("targetId", current.getTargetNodeId());
+
 					flowRelationships.add(attrs);
 				}
 			}
 
-			flowRelationships.sort(new AbstractMapComparator<String>() {
+			flowRelationships.sort(new AbstractMapComparator<>() {
+
 				@Override
-				public String getKey (Map<String, String> map) {
+				public String getKey (final Map<String, String> map) {
 					return map.get("sourceId").concat(map.get("targetId"));
 				}
 			});
@@ -143,35 +154,31 @@ public class FlowLegacyDeploymentHandler extends FlowAbstractDeploymentHandler i
 
 				try (final Tx tx = app.tx()) {
 
-					for (Class c : classesToExport) {
+					for (final String c : classesToExport) {
 
-						for (final Object toDelete : app.nodeQuery(c).getAsList()) {
+						for (final NodeInterface toDelete : app.nodeQuery(c).getAsList()) {
 
-							if (toDelete instanceof NodeInterface) {
-								app.delete((NodeInterface) toDelete);
-							}
+							app.delete(toDelete);
 						}
 					}
 
 					// Special handling for FlowContainerConfiguration
-					for (final FlowContainerConfiguration toDelete : app.nodeQuery(FlowContainerConfiguration.class).getAsList()) {
+					for (final NodeInterface toDelete : app.nodeQuery(StructrTraits.FLOW_CONTAINER_CONFIGURATION).getAsList()) {
 
 						app.delete(toDelete);
 					}
 
 
-					for (Class c : relsToExport) {
+					for (final String c : relsToExport) {
 
-						for (final Object toDelete : app.relationshipQuery(c).getAsList()) {
+						for (final RelationshipInterface toDelete : app.relationshipQuery(c).getAsList()) {
 
-							if (toDelete instanceof RelationshipInterface) {
-								app.delete((RelationshipInterface) toDelete);
-							}
+							app.delete(toDelete);
 						}
 					}
 
 					// Special handling for FlowContainerConfigurationFlow
-					for (final FlowContainerConfigurationFlow toDelete : app.relationshipQuery(FlowContainerConfigurationFlow.class).getAsList()) {
+					for (final RelationshipInterface toDelete : app.relationshipQuery(StructrTraits.FLOW_CONTAINER_CONFIGURATION_FLOW).getAsList()) {
 
 						app.delete(toDelete);
 					}
@@ -183,21 +190,18 @@ public class FlowLegacyDeploymentHandler extends FlowAbstractDeploymentHandler i
 						if (rawType != null ) {
 
 							final String type = (String)rawType;
-							final Class clazz = SchemaHelper.getEntityClassForRawType(type);
 
-							if (clazz != null) {
+							if ( !entry.containsKey("relType") ) {
 
-								if ( !entry.containsKey("relType") ) {
-									final PropertyMap map = PropertyMap.inputTypeToJavaType(context, clazz, entry);
-									app.create(clazz, map);
-								} else {
+								final PropertyMap map = PropertyMap.inputTypeToJavaType(context, type, entry);
+								app.create(type, map);
 
-									final NodeInterface sourceNode = app.nodeQuery().uuid((String)entry.get("sourceId")).getFirst();
-									final NodeInterface targetNode = app.nodeQuery().uuid((String)entry.get("targetId")).getFirst();
+							} else {
 
-									app.create(sourceNode, targetNode, SchemaHelper.getEntityClassForRawType((String)entry.get("type")));
+								final NodeInterface sourceNode = app.nodeQuery().uuid((String)entry.get("sourceId")).getFirst();
+								final NodeInterface targetNode = app.nodeQuery().uuid((String)entry.get("targetId")).getFirst();
 
-								}
+								app.create(sourceNode, targetNode, (String)entry.get("type"));
 							}
 						}
 					}

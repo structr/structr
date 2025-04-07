@@ -621,27 +621,24 @@ img.disabled {
  * Pages: Left slideout activators
  */
 #pagesTab,
-#inheritanceTab,
 #widgetsTab {
 	top: 4rem;
-}
-
-#paletteTab {
-	top: 10rem;
-}
-
-#componentsTab {
-	top: 16rem;
 }
 
 #localizationsTab {
 	top: 10rem;
 }
-#elementsTab {
-	top: 22rem;
+
+#componentsTab {
+	top: 9rem;
 }
+
+#elementsTab {
+	top: 15rem;
+}
+
 #previewTab {
-	top: 28rem;
+	top: 21rem;
 }
 
 
@@ -2585,27 +2582,6 @@ input.tree-search-input {
 	font-weight: 600;
 }
 /* END: Show title of dialog box in schema edit dialogs */
-
-.dialog.run-global-schema-method-dialog .dialogText {
-	display: flex;
-	flex-direction: column;
-	height: calc(100% - 40px);
-}
-
-.dialog.run-global-schema-method-dialog .dialogText h3 {
-	margin: 3px 0;
-}
-
-.dialog.run-global-schema-method-dialog .dialogText #global-method-comment {
-	margin: 3px 0;
-}
-
-.dialog.run-global-schema-method-dialog .dialogText #log-output {
-	flex-grow: 1;
-	margin: 3px 0;
-}
-
-/**/
 
 #type-content-add-property i,
 #type-content-add-method i {
@@ -4697,4 +4673,35 @@ ul.combined-input-select-field li:hover {
 }
 .-rotate-180 {
 	transform: rotate(-180deg);
+}
+
+/**
+	statistics tab
+ */
+.http-statistics-GET {
+	fill: #61affe;
+}
+
+.http-statistics-PUT {
+	fill: #fca130;
+}
+
+.http-statistics-PATCH {
+	fill: #fca130;
+}
+
+.http-statistics-POST {
+	fill: #49cc40;
+}
+
+.http-statistics-DELETE {
+	fill: #f93e3e;
+}
+
+.http-statistics-OPTIONS {
+	fill: #999999;
+}
+
+.http-statistics-HEAD {
+	fill: #94c9fe;
 }

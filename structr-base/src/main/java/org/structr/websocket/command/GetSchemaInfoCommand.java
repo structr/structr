@@ -24,6 +24,7 @@ import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
+import org.structr.core.traits.Traits;
 import org.structr.rest.resource.SchemaResource;
 import org.structr.rest.resource.SchemaTypeResource;
 import org.structr.websocket.StructrWebSocket;
@@ -50,16 +51,9 @@ public class GetSchemaInfoCommand extends AbstractCommand {
 		try {
 
 			final String type = webSocketData.getNodeDataStringValue("type");
-
 			if (type != null) {
 
-				Class typeClass = StructrApp.getConfiguration().getNodeEntityClass(type);
-				if (typeClass == null) {
-
-					typeClass = StructrApp.getConfiguration().getRelationshipEntityClass(type);
-				}
-
-				webSocketData.setResult(SchemaTypeResource.getSchemaTypeResult(getWebSocket().getSecurityContext(), type, typeClass, PropertyView.All));
+				webSocketData.setResult(SchemaTypeResource.getSchemaTypeResult(getWebSocket().getSecurityContext(), type, PropertyView.All));
 
 			} else {
 

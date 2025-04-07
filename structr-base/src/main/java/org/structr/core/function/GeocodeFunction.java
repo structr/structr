@@ -24,6 +24,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.geo.AddressComponent;
 import org.structr.common.geo.GeoCodingResult;
 import org.structr.common.geo.GeoHelper;
+import org.structr.core.traits.definitions.LocationTraitDefinition;
 import org.structr.schema.action.ActionContext;
 
 import java.util.LinkedHashMap;
@@ -60,38 +61,38 @@ public class GeocodeFunction extends AdvancedScriptingFunction {
 
 				final Map<String, Object> map = new LinkedHashMap<>();
 
-				map.put("latitude", result.getLatitude());
-				map.put("longitude", result.getLongitude());
+				map.put(LocationTraitDefinition.LATITUDE_PROPERTY, result.getLatitude());
+				map.put(LocationTraitDefinition.LONGITUDE_PROPERTY, result.getLongitude());
 
 				AddressComponent cur = null;
 
 				cur = result.getAddressComponent(GeoCodingResult.Type.country);
 				if(cur != null){
-					map.put("country", cur.getValue());
+					map.put(LocationTraitDefinition.COUNTRY_PROPERTY, cur.getValue());
 				}
 				cur = result.getAddressComponent(GeoCodingResult.Type.postal_code);
 				if(cur != null){
-					map.put("postalCode", cur.getValue());
+					map.put(LocationTraitDefinition.POSTAL_CODE_PROPERTY, cur.getValue());
 				}
 				cur = result.getAddressComponent(GeoCodingResult.Type.locality);
 				if(cur != null){
-					map.put("city", cur.getValue());
+					map.put(LocationTraitDefinition.CITY_PROPERTY, cur.getValue());
 				}
 				cur = result.getAddressComponent(GeoCodingResult.Type.route);
 				if(cur != null){
-					map.put("street", cur.getValue());
+					map.put(LocationTraitDefinition.STREET_PROPERTY, cur.getValue());
 				}
 				cur = result.getAddressComponent(GeoCodingResult.Type.street_number);
 				if(cur != null){
-					map.put("houseNumber", cur.getValue());
+					map.put(LocationTraitDefinition.HOUSE_NUMBER_PROPERTY, cur.getValue());
 				}
 				cur = result.getAddressComponent(GeoCodingResult.Type.administrative_area_level_1);
 				if(cur != null){
-					map.put("state", cur.getValue());
+					map.put(LocationTraitDefinition.STATE_PROPERTY, cur.getValue());
 				}
 				cur = result.getAddressComponent(GeoCodingResult.Type.administrative_area_level_3);
 				if(cur != null){
-					map.put("stateDistrict", cur.getValue());
+					map.put(LocationTraitDefinition.STATE_DISTRICT_PROPERTY, cur.getValue());
 				}
 
 				return map;

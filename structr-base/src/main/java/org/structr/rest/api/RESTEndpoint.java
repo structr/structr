@@ -18,13 +18,14 @@
  */
 package org.structr.rest.api;
 
+import org.apache.commons.lang3.StringUtils;
+import org.structr.common.error.FrameworkException;
+import org.structr.rest.api.parameter.RESTParameter;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.apache.commons.lang3.StringUtils;
-import org.structr.common.error.FrameworkException;
-import org.structr.rest.api.parameter.RESTParameter;
 
 /**
  */
@@ -80,7 +81,7 @@ public abstract class RESTEndpoint {
 		return pattern.matcher(path);
 	}
 
-	public RESTCall initializeRESTCall(final Matcher matcher, final String viewName, final boolean isDefaultView, final Class userType) {
+	public RESTCall initializeRESTCall(final Matcher matcher, final String viewName, final boolean isDefaultView, final String userType) {
 
 		final RESTCall call = new RESTCall(matcher.group(), viewName, isDefaultView, userType);
 		int group           = 1;
@@ -113,7 +114,7 @@ public abstract class RESTEndpoint {
 			if (StringUtils.isNotBlank(optionalPart)) {
 
 				// first slash must be removed because it creates an empty first value
-				call.addPathParameters(optionalPart.substring(1).split("[/]+"));
+				call.addPathParameters(StringUtils.splitPreserveAllTokens(optionalPart.substring(1), "/"));
 			}
 		}
 

@@ -52,7 +52,6 @@ import org.structr.api.schema.InvalidSchemaException;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.service.Command;
 import org.structr.api.util.PagingIterable;
-import org.structr.core.GraphObject;
 import org.structr.core.graph.BulkChangeNodePropertyKeyCommand;
 import org.structr.core.graph.BulkCopyRelationshipPropertyCommand;
 import org.structr.core.graph.BulkCreateLabelsCommand;
@@ -284,7 +283,7 @@ public class MaintenanceResource extends ExactMatchEndpoint {
 		}
 
 		@Override
-		public Class getEntityClass(final SecurityContext securityContext) {
+		public String getTypeName(final SecurityContext securityContext) {
 			return null;
 		}
 
@@ -320,7 +319,7 @@ public class MaintenanceResource extends ExactMatchEndpoint {
 		}
 
 		@Override
-		public Class<? extends GraphObject> getEntityClass(final SecurityContext securityContext) {
+		public String getTypeName(final SecurityContext securityContext) {
 			return null;
 		}
 

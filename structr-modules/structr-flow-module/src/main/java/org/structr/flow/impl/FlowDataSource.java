@@ -18,83 +18,74 @@
  */
 package org.structr.flow.impl;
 
-import org.structr.common.PropertyView;
-import org.structr.common.View;
+import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.property.*;
-import org.structr.core.script.Scripting;
-import org.structr.flow.api.DataSource;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.flow.api.ThrowingElement;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
-import org.structr.flow.impl.rels.FlowDataInput;
-import org.structr.flow.impl.rels.FlowExceptionHandlerNodes;
+import org.structr.flow.traits.definitions.FlowDataSourceTraitDefinition;
+import org.structr.flow.traits.operations.DataSourceOperations;
 import org.structr.module.api.DeployableEntity;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
-/**
- *
- */
-public class FlowDataSource extends FlowBaseNode implements DataSource, DeployableEntity, ThrowingElement {
+public class FlowDataSource extends FlowNode implements DeployableEntity, ThrowingElement {
 
-	public static final Property<DataSource> dataSource = new StartNode<>("dataSource", FlowDataInput.class);
-	public static final Property<Iterable<FlowBaseNode>> dataTarget = new EndNodes<>("dataTarget", FlowDataInput.class);
-	public static final Property<FlowExceptionHandler> exceptionHandler = new EndNode<>("exceptionHandler", FlowExceptionHandlerNodes.class);
-	public static final Property<String> query = new StringProperty("query");
+	public FlowDataSource(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
+	}
 
-	public static final View defaultView = new View(FlowDataSource.class, PropertyView.Public, query, dataTarget, exceptionHandler, dataSource);
-	public static final View uiView = new View(FlowDataSource.class, PropertyView.Ui,     query, dataTarget, exceptionHandler, dataSource);
+	public String getQuery() {
+		return wrappedObject.getProperty(traits.key(FlowDataSourceTraitDefinition.QUERY_PROPERTY));
+	}
 
-	@Override
-	public Object get(final Context context) throws FlowException {
+	public void setQuery(final String query) throws FrameworkException {
+		wrappedObject.setProperty(traits.key(FlowDataSourceTraitDefinition.QUERY_PROPERTY), query);
+	}
 
-		if (!context.hasData(getUuid())) {
+	public final FlowExceptionHandler getExceptionHandler() {
 
-			final DataSource _ds = getProperty(dataSource);
-			if (_ds != null) {
-				Object data = _ds.get(context);
-				context.setData(getUuid(), data);
-			}
+		final NodeInterface exceptionHandler = wrappedObject.getProperty(traits.key(FlowDataSourceTraitDefinition.EXCEPTION_HANDLER_PROPERTY));
+		if (exceptionHandler != null) {
 
-			final String _script = getProperty(query);
-			if (_script != null) {
-
-				try {
-
-					Object result = Scripting.evaluate(context.getActionContext(securityContext, this), context.getThisObject(), "${" + _script.trim() + "}", "FlowDataSource(" + getUuid() + ")");
-					context.setData(getUuid(), result);
-					return result;
-				} catch (FrameworkException fex) {
-
-					throw new FlowException(fex, this);
-				}
-			}
-
-		} else {
-
-			return context.getData(getUuid());
+			return exceptionHandler.as(FlowExceptionHandler.class);
 		}
 
 		return null;
+	}
 
+	public void setDataTarget(final Iterable<FlowBaseNode> nodes) throws FrameworkException {
+		wrappedObject.setProperty(traits.key(FlowDataSourceTraitDefinition.DATA_TARGET_PROPERTY), nodes);
+	}
+
+	public final Iterable<FlowBaseNode> getDataTarget() {
+		final Iterable<NodeInterface> dataTargets = wrappedObject.getProperty(traits.key(FlowDataSourceTraitDefinition.DATA_TARGET_PROPERTY));
+		return Iterables.map(n -> n.as(FlowBaseNode.class), dataTargets);
+	}
+
+	public final Object get(final Context context) throws FlowException {
+		return traits.getMethod(DataSourceOperations.class).get(context, this);
 	}
 
 	@Override
-	public FlowExceptionHandler getExceptionHandler(Context context) {
-		return getProperty(exceptionHandler);
+	public final FlowExceptionHandler getExceptionHandler(final Context context) {
+		return getExceptionHandler();
 	}
 
 	@Override
 	public Map<String, Object> exportData() {
-		Map<String, Object> result = new HashMap<>();
 
-		result.put("id", this.getUuid());
-		result.put("type", this.getClass().getSimpleName());
-		result.put("query", this.getProperty(query));
-		result.put("visibleToPublicUsers", this.getProperty(visibleToPublicUsers));
-		result.put("visibleToAuthenticatedUsers", this.getProperty(visibleToAuthenticatedUsers));
+		final Map<String, Object> result = new TreeMap<>();
+
+		result.put(GraphObjectTraitDefinition.ID_PROPERTY,                             getUuid());
+		result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,                           getType());
+		result.put(FlowDataSourceTraitDefinition.QUERY_PROPERTY,                       getQuery());
+		result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        isVisibleToPublicUsers());
+		result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, isVisibleToAuthenticatedUsers());
 
 		return result;
 	}

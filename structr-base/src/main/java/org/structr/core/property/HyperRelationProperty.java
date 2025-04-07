@@ -22,8 +22,7 @@ import org.structr.api.Predicate;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -34,7 +33,7 @@ import java.util.Map;
  *
  *
  */
-public class HyperRelationProperty<S extends AbstractNode, T extends AbstractNode> extends AbstractReadOnlyProperty<Iterable<T>> {
+public class HyperRelationProperty<S extends NodeInterface, T extends NodeInterface> extends AbstractReadOnlyProperty<Iterable<T>> {
 
 	Property<Iterable<S>> step1 = null;
 	Property<T> step2           = null;
@@ -45,9 +44,6 @@ public class HyperRelationProperty<S extends AbstractNode, T extends AbstractNod
 
 		this.step1 = step1;
 		this.step2 = step2;
-
-		// make us known to the Collection context
-		StructrApp.getConfiguration().registerConvertedProperty(this);
 	}
 
 	@Override
@@ -56,14 +52,14 @@ public class HyperRelationProperty<S extends AbstractNode, T extends AbstractNod
 	}
 
 	@Override
-	public Iterable<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
+	public Iterable<T> getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		Iterable<S> connectors = obj.getProperty(step1);
 		List<T> endNodes       = new LinkedList<>();
 
 		if (connectors != null) {
 
-			for (AbstractNode node : connectors) {
+			for (NodeInterface node : connectors) {
 
 				endNodes.add(node.getProperty(step2));
 			}
@@ -73,17 +69,22 @@ public class HyperRelationProperty<S extends AbstractNode, T extends AbstractNod
 	}
 
 	@Override
-	public Class relatedType() {
+	public String relatedType() {
 		return step2.relatedType();
 	}
 
 	@Override
 	public Class valueType() {
-		return relatedType();
+		return NodeInterface.class;
 	}
 
 	@Override
 	public boolean isCollection() {
+		return true;
+	}
+
+	@Override
+	public boolean isArray() {
 		return true;
 	}
 

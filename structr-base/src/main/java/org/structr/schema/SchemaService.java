@@ -20,40 +20,41 @@ package org.structr.schema;
 
 import graphql.Scalars;
 import graphql.schema.*;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
-import org.structr.api.Prefetcher;
-import org.structr.api.config.Settings;
 import org.structr.api.index.IndexConfig;
 import org.structr.api.index.NodeIndexConfig;
 import org.structr.api.index.RelationshipIndexConfig;
-import org.structr.api.schema.JsonSchema;
-import org.structr.api.schema.JsonType;
 import org.structr.api.service.*;
-import org.structr.common.AccessPathCache;
-import org.structr.common.error.*;
-import org.structr.core.GraphObject;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
+import org.structr.common.error.InvalidSchemaToken;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.*;
-import org.structr.core.graph.*;
-import org.structr.core.graph.search.SearchCommand;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.NodeService;
+import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Trait;
+import org.structr.core.traits.TraitDefinition;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.SchemaGrantTraitDefinition;
+import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
+import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
+import org.structr.core.traits.definitions.SchemaViewTraitDefinition;
 import org.structr.schema.compiler.*;
-import org.structr.schema.export.StructrSchema;
 
-import java.lang.reflect.Modifier;
 import java.net.URI;
 import java.util.*;
-import java.util.Map.Entry;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import org.structr.web.maintenance.DeployCommand;
 
 /**
  * Structr Schema Service for dynamic class support at runtime.
@@ -64,9 +65,8 @@ public class SchemaService implements Service {
 	public static final URI DynamicSchemaRootURI                  = URI.create("https://structr.org/v2.0/#");
 	private static final Logger logger                            = LoggerFactory.getLogger(SchemaService.class.getName());
 	private static final List<MigrationHandler> migrationHandlers = new LinkedList<>();
-	private static final JsonSchema dynamicSchema                 = StructrSchema.newInstance(DynamicSchemaRootURI);
 	private static final Semaphore IndexUpdateSemaphore           = new Semaphore(1, true);
-	private static final AtomicBoolean compiling                  = new AtomicBoolean(false);
+	private static final AtomicBoolean schemaIsBeingReplaced      = new AtomicBoolean(false);
 	private static final Set<String> blacklist                    = new LinkedHashSet<>();
 	private static GraphQLSchema graphQLSchema                    = null;
 
@@ -93,18 +93,229 @@ public class SchemaService implements Service {
 		return SchemaHelper.reloadSchema(new ErrorBuffer(), null, true, false);
 	}
 
-	public static JsonSchema getDynamicSchema() {
-		return dynamicSchema;
-	}
-
 	public static synchronized GraphQLSchema getGraphQLSchema() {
 		return graphQLSchema;
 	}
 
 	public static ServiceResult reloadSchema(final ErrorBuffer errorBuffer, final String initiatedBySessionId, final boolean fullReload, final boolean notifyCluster) {
 
+		// compiling must only be done once
+		if (!schemaIsBeingReplaced.compareAndSet(false, true)) {
+
+			errorBuffer.add(new InvalidSchemaToken("Base", "source", "token"));
+
+		} else {
+
+			final App app = StructrApp.getInstance();
+			final long t0 = System.currentTimeMillis();
+
+			try (final Tx tx = app.tx()) {
+
+				tx.prefetchHint("Reload schema");
+
+				final Map<String, Map<String, PropertyKey>> removedTypes = Traits.clearDynamicSchema();
+
+				// fetch schema relationships
+				for (final NodeInterface node : app.nodeQuery(StructrTraits.SCHEMA_RELATIONSHIP_NODE).getResultStream()) {
+
+					final SchemaRelationshipNode schemaRel = node.as(SchemaRelationshipNode.class);
+					final String name                      = schemaRel.getClassName();
+					final TraitDefinition[] definitions    = schemaRel.getTraitDefinitions();
+
+					StructrTraits.registerDynamicRelationshipType(name, !schemaRel.changelogDisabled(), definitions);
+
+					// type still exists, was not removed, so we remove it from the map of removed types
+					removedTypes.remove(name);
+				}
+
+				// fetch schema nodes
+				for (final NodeInterface node : app.nodeQuery(StructrTraits.SCHEMA_NODE).getResultStream()) {
+
+					final SchemaNode schemaNode = node.as(SchemaNode.class);
+
+					// migration entry point
+					schemaNode.handleMigration();
+
+					// create traits
+					final String name                   = schemaNode.getClassName();
+					final TraitDefinition[] definitions = schemaNode.getTraitDefinitions();
+
+					StructrTraits.registerDynamicNodeType(name, !schemaNode.changelogDisabled(), schemaNode.isServiceClass(), definitions);
+
+					// type still exists, was not removed, so we remove it from the map of removed types
+					removedTypes.remove(name);
+				}
+
+				// fetch schema methods that extend the static schema (not attached to a schema node)
+				for (final NodeInterface node : app.nodeQuery(StructrTraits.SCHEMA_METHOD).and(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY), null).getResultStream()) {
+
+					final SchemaMethod schemaMethod   = node.as(SchemaMethod.class);
+					final String staticSchemaNodeName = schemaMethod.getStaticSchemaNodeName();
+
+					if (StringUtils.isNotBlank(staticSchemaNodeName)) {
+
+						// attach method to existing type
+						if (Traits.exists(staticSchemaNodeName)) {
+
+							final Trait trait = Traits.getTrait(staticSchemaNodeName);
+
+							trait.registerDynamicMethod(schemaMethod);
+
+						} else {
+
+							throw new FrameworkException(422, "Invalid schema method " + schemaMethod.getUuid() + ": property staticSchemaNodeName contains unknown type " + staticSchemaNodeName);
+						}
+					}
+				}
+
+				// fetch schema properties that extend the static schema (not attached to a schema node)
+				for (final NodeInterface node : app.nodeQuery(StructrTraits.SCHEMA_PROPERTY).and(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), null).getResultStream()) {
+
+					final SchemaProperty schemaProperty = node.as(SchemaProperty.class);
+					final String staticSchemaNodeName   = schemaProperty.getStaticSchemaNodeName();
+
+					if (StringUtils.isNotBlank(staticSchemaNodeName)) {
+
+						// attach method to existing type
+						if (Traits.exists(staticSchemaNodeName)) {
+
+							final Trait trait = Traits.getTrait(staticSchemaNodeName);
+
+							trait.registerDynamicProperty(schemaProperty);
+
+						} else {
+
+							throw new FrameworkException(422, "Invalid schema property " + schemaProperty.getUuid() + ": property staticSchemaNodeName contains unknown type " + staticSchemaNodeName);
+						}
+					}
+				}
+
+				// fetch schema views that extend the static schema (not attached to a schema node)
+				for (final NodeInterface node : app.nodeQuery(StructrTraits.SCHEMA_VIEW).and(Traits.of(StructrTraits.SCHEMA_VIEW).key(SchemaViewTraitDefinition.SCHEMA_NODE_PROPERTY), null).getResultStream()) {
+
+					final SchemaView schemaView       = node.as(SchemaView.class);
+					final String staticSchemaNodeName = schemaView.getStaticSchemaNodeName();
+
+					if (StringUtils.isNotBlank(staticSchemaNodeName)) {
+
+						// attach method to existing type
+						if (Traits.exists(staticSchemaNodeName)) {
+
+							final Trait trait = Traits.getTrait(staticSchemaNodeName);
+
+							trait.registerDynamicView(schemaView);
+
+						} else {
+
+							throw new FrameworkException(422, "Invalid schema view " + schemaView.getUuid() + ": property staticSchemaNodeName contains unknown type " + staticSchemaNodeName);
+						}
+					}
+				}
+
+				// fetch schema grants that extend the static schema (not attached to a schema node)
+				for (final NodeInterface node : app.nodeQuery(StructrTraits.SCHEMA_GRANT).and(Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.SCHEMA_NODE_PROPERTY), null).getResultStream()) {
+
+					final SchemaGrant schemaGrant     = node.as(SchemaGrant.class);
+					final String staticSchemaNodeName = schemaGrant.getStaticSchemaNodeName();
+
+					if (StringUtils.isNotBlank(staticSchemaNodeName)) {
+
+						// attach method to existing type
+						if (Traits.exists(staticSchemaNodeName)) {
+
+							final Trait trait = Traits.getTrait(staticSchemaNodeName);
+
+							trait.registerSchemaGrant(schemaGrant);
+
+						} else {
+
+							throw new FrameworkException(422, "Invalid schema grant " + schemaGrant.getUuid() + ": property staticSchemaNodeName contains unknown type " + staticSchemaNodeName);
+						}
+					}
+				}
+
+				updateIndexConfiguration(removedTypes);
+
+				final GraphQLObjectType.Builder queryTypeBuilder         = GraphQLObjectType.newObject();
+				final Map<String, GraphQLInputObjectType> selectionTypes = new LinkedHashMap<>();
+				final Set<String> existingQueryTypeNames                 = new LinkedHashSet<>();
+				final Map<String, GraphQLType> graphQLTypes              = new LinkedHashMap<>();
+				final GraphQLHelper graphQLHelper                        = new GraphQLHelper();
+
+				for (final String nodeType : Traits.getAllTypes(t -> t.isNodeType())) {
+					graphQLHelper.initializeGraphQLForNodeType(nodeType, graphQLTypes, blacklist);
+				}
+
+				for (final String relType : Traits.getAllTypes(t -> t.isRelationshipType())) {
+					graphQLHelper.initializeGraphQLForRelationshipType(relType, graphQLTypes);
+				}
+
+				// register types in "Query" type
+				for (final Map.Entry<String, GraphQLType> entry : graphQLTypes.entrySet()) {
+
+					final String className = entry.getKey();
+					final GraphQLType type = entry.getValue();
+
+					if (!Traits.exists(className)) {
+						continue;
+					}
+
+					try {
+
+						// register type in query type
+						queryTypeBuilder.field(GraphQLFieldDefinition
+							.newFieldDefinition()
+							.name(className)
+							.type(new GraphQLList(type))
+							.argument(GraphQLArgument.newArgument().name("id").type(Scalars.GraphQLString).build())
+							.argument(GraphQLArgument.newArgument().name("type").type(Scalars.GraphQLString).build())
+							.argument(GraphQLArgument.newArgument().name("name").type(Scalars.GraphQLString).build())
+							.argument(GraphQLArgument.newArgument().name("_page").type(Scalars.GraphQLInt).build())
+							.argument(GraphQLArgument.newArgument().name("_pageSize").type(Scalars.GraphQLInt).build())
+							.argument(GraphQLArgument.newArgument().name("_sort").type(Scalars.GraphQLString).build())
+							.argument(GraphQLArgument.newArgument().name("_desc").type(Scalars.GraphQLBoolean).build())
+							.arguments(graphQLHelper.getGraphQLQueryArgumentsForType(selectionTypes, existingQueryTypeNames, className))
+						);
+
+					} catch (Throwable t) {
+						t.printStackTrace();
+						logger.warn("Unable to add GraphQL type {}: {}", className, t.getMessage());
+					}
+				}
+
+				// exchange graphQL schema after successful build
+				synchronized (SchemaService.class) {
+
+					try {
+
+						graphQLSchema = GraphQLSchema
+							.newSchema()
+							.query(queryTypeBuilder.name("Query").build())
+							.additionalTypes(new LinkedHashSet<>(graphQLTypes.values()))
+							.build();
+
+					} catch (Throwable t) {
+						logger.warn("Unable to build GraphQL schema: {}", t.getMessage());
+						logger.error(ExceptionUtils.getStackTrace(t));
+					}
+				}
+
+				tx.success();
+
+			} catch (Throwable t) {
+
+				logger.error(ExceptionUtils.getStackTrace(t));
+
+			} finally {
+
+				logger.info("Schema reload took a total of {} ms", System.currentTimeMillis() - t0);
+
+				schemaIsBeingReplaced.set(false);
+			}
+		}
+		/*
+
 		final ConfigurationProvider config = StructrApp.getConfiguration();
-		final App app                      = StructrApp.getInstance();
 		boolean success                    = true;
 		int retryCount                     = 2;
 
@@ -182,7 +393,7 @@ public class SchemaService implements Service {
 						}
 
 						// collect list of schema nodes
-						app.nodeQuery(SchemaNode.class).getAsList().stream().forEach(n -> {
+						app.nodeQuery(StructrTraits.SCHEMA_NODE).getAsList().stream().forEach(n -> {
 							schemaNodes.put(n.getName(), n);
 						});
 
@@ -217,7 +428,7 @@ public class SchemaService implements Service {
 						}
 
 						// collect relationship classes
-						for (final SchemaRelationshipNode schemaRelationship : app.nodeQuery(SchemaRelationshipNode.class).getAsList()) {
+						for (final SchemaRelationshipNode schemaRelationship : app.nodeQuery(StructrTraits.SCHEMA_RELATIONSHIP_NODE).getAsList()) {
 
 							final String sourceType = schemaRelationship.getSchemaNodeSourceType();
 							final String targetType = schemaRelationship.getSchemaNodeTargetType();
@@ -238,7 +449,7 @@ public class SchemaService implements Service {
 						synchronized (SchemaService.class) {
 
 							// clear propagating relationship cache
-							SchemaRelationshipNode.clearPropagatingRelationshipTypes();
+							Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("clearPropagatingRelationshipTypes")();
 
 							// compile all classes at once and register
 							final Map<String, Class> newTypes = nodeExtender.compile(errorBuffer);
@@ -332,92 +543,15 @@ public class SchemaService implements Service {
 							AccessPathCache.invalidate();
 
 							// clear relationship instance cache
-							AbstractNode.clearRelationshipTemplateInstanceCache();
+							NodeInterface.clearRelationshipTemplateInstanceCache();
 
 							// clear permission cache
-							AbstractNode.clearCaches();
+							AccessControllableTraitDefinition.clearCaches();
 
 							// inject views in configuration provider
 							config.registerDynamicViews(dynamicViews);
 
 							updateIndexConfiguration(removedClasses);
-
-							final GraphQLObjectType.Builder queryTypeBuilder         = GraphQLObjectType.newObject();
-							final Map<String, GraphQLInputObjectType> selectionTypes = new LinkedHashMap<>();
-							final Set<String> existingQueryTypeNames                 = new LinkedHashSet<>();
-							final Map<String, GraphQLType> graphQLTypes              = new LinkedHashMap<>();
-							final GraphQLHelper graphQLHelper                        = new GraphQLHelper();
-
-							for (final Class nodeType : config.getNodeEntities().values()) {
-								graphQLHelper.initializeGraphQLForNodeType(nodeType, graphQLTypes, blacklist);
-							}
-
-							for (final Class relType : config.getRelationshipEntities().values()) {
-								graphQLHelper.initializeGraphQLForRelationshipType(relType, graphQLTypes);
-							}
-
-							// register types in "Query" type
-							for (final Entry<String, GraphQLType> entry : graphQLTypes.entrySet()) {
-
-								final String className = entry.getKey();
-								final GraphQLType type = entry.getValue();
-
-								// node type?
-								Class typeClass  = config.getNodeEntityClass(className);
-
-								// relationship type?
-								if (typeClass == null) {
-									typeClass = config.getRelationshipEntityClass(className);
-								}
-
-								// interface?
-								if (typeClass == null) {
-									typeClass = config.getInterfaces().get(className);
-								}
-
-								if (typeClass == null) {
-									continue;
-								}
-
-								try {
-
-									// register type in query type
-									queryTypeBuilder.field(GraphQLFieldDefinition
-										.newFieldDefinition()
-										.name(className)
-										.type(new GraphQLList(type))
-										.argument(GraphQLArgument.newArgument().name("id").type(Scalars.GraphQLString).build())
-										.argument(GraphQLArgument.newArgument().name("type").type(Scalars.GraphQLString).build())
-										.argument(GraphQLArgument.newArgument().name("name").type(Scalars.GraphQLString).build())
-										.argument(GraphQLArgument.newArgument().name("_page").type(Scalars.GraphQLInt).build())
-										.argument(GraphQLArgument.newArgument().name("_pageSize").type(Scalars.GraphQLInt).build())
-										.argument(GraphQLArgument.newArgument().name("_sort").type(Scalars.GraphQLString).build())
-										.argument(GraphQLArgument.newArgument().name("_desc").type(Scalars.GraphQLBoolean).build())
-										.arguments(graphQLHelper.getGraphQLQueryArgumentsForType(selectionTypes, existingQueryTypeNames, typeClass))
-									);
-
-								} catch (Throwable t) {
-									t.printStackTrace();
-									logger.warn("Unable to add GraphQL type {}: {}", className, t.getMessage());
-								}
-							}
-
-							// exchange graphQL schema after successful build
-							synchronized (SchemaService.class) {
-
-								try {
-
-									graphQLSchema = GraphQLSchema
-										.newSchema()
-										.query(queryTypeBuilder.name("Query").build())
-										.additionalTypes(new LinkedHashSet<>(graphQLTypes.values()))
-										.build();
-
-								} catch (Throwable t) {
-									logger.warn("Unable to build GraphQL schema: {}", t.getMessage());
-									logger.error(ExceptionUtils.getStackTrace(t));
-								}
-							}
 
 							// moved success() call for the transaction to the bottom..
 							tx.success();
@@ -461,8 +595,9 @@ public class SchemaService implements Service {
 				}
 			}
 		}
+		*/
 
-		return new ServiceResult(success);
+		return new ServiceResult(true);
 	}
 
 	@Override
@@ -491,10 +626,6 @@ public class SchemaService implements Service {
 		return SchemaService.blacklist;
 	}
 
-	public static void ensureBuiltinTypesExist(final App app) throws FrameworkException {
-		StructrSchema.extendDatabaseSchema(app, dynamicSchema);
-	}
-
 	@Override
 	public boolean isVital() {
 		return true;
@@ -515,38 +646,8 @@ public class SchemaService implements Service {
 		return 1;
 	}
 
-	public static boolean isCompiling() {
-		return compiling.get();
-	}
-
-	public static void prefetchSchemaNodes(final Prefetcher tx) {
-
-		/*
-		tx.prefetch("SchemaReloadingNode", (String)null, Set.of(
-
-			"all/INCOMING/OWNS",
-			"all/INCOMING/EXTENDS",
-			"all/INCOMING/HAS_METHOD",
-			"all/INCOMING/HAS_PARAMETER",
-			"all/INCOMING/HAS_PROPERTY",
-			"all/INCOMING/HAS_VIEW",
-			"all/INCOMING/HAS_VIEW_PROPERTY",
-			"all/INCOMING/IS_EXCLUDED_FROM_VIEW",
-			"all/INCOMING/IS_RELATED_TO",
-			"all/INCOMING/SCHEMA_GRANT",
-
-			"all/OUTGOING/OWNS",
-			"all/OUTGOING/EXTENDS",
-			"all/OUTGOING/HAS_PROPERTY",
-			"all/OUTGOING/HAS_VIEW_PROPERTY",
-			"all/OUTGOING/HAS_METHOD",
-			"all/OUTGOING/HAS_PARAMETER",
-			"all/OUTGOING/HAS_VIEW",
-			"all/OUTGOING/IS_RELATED_TO"
-
-		));
-
-		 */
+	public static boolean getSchemaIsBeingReplaced() {
+		return schemaIsBeingReplaced.get();
 	}
 
 	// ----- interface Feature -----
@@ -556,7 +657,7 @@ public class SchemaService implements Service {
 	}
 
 	// ----- private methods -----
-	private static void updateIndexConfiguration(final Map<String, Map<String, PropertyKey>> removedClasses) {
+	private static void updateIndexConfiguration(final Map<String, Map<String, PropertyKey>> removedTypes) {
 
 		if (Services.overrideIndexManagement()) {
 
@@ -588,67 +689,63 @@ public class SchemaService implements Service {
 						return;
 					}
 
-					final Set<Class> whitelist    = new LinkedHashSet<>(Set.of(GraphObject.class, NodeInterface.class));
+					final Set<String> whitelist   = new LinkedHashSet<>(Set.of(StructrTraits.GRAPH_OBJECT, StructrTraits.NODE_INTERFACE));
 					final DatabaseService graphDb = StructrApp.getInstance().getDatabaseService();
 
-					final Map<String, Map<String, IndexConfig>> schemaIndexConfig    = new HashMap();
-					final Map<String, Map<String, IndexConfig>> removedClassesConfig = new HashMap();
+					final Map<String, Map<String, IndexConfig>> schemaIndexConfig  = new HashMap();
+					final Map<String, Map<String, IndexConfig>> removedTypesConfig = new HashMap();
 
-					for (final Entry<String, Map<String, PropertyKey>> entry : StructrApp.getConfiguration().getTypeAndPropertyMapping().entrySet()) {
+					for (final String type : Traits.getAllTypes()) {
 
-						final Class type = getType(entry.getKey());
-						if (type != null) {
+						final Traits traits                 = Traits.of(type);
+						final String typeName               = getIndexingTypeName(type);
+						Map<String, IndexConfig> typeConfig = schemaIndexConfig.get(typeName);
+						final boolean isRelationship        = traits.isRelationshipType();
 
-							final String typeName               = getIndexingTypeName(type);
-							Map<String, IndexConfig> typeConfig = schemaIndexConfig.get(typeName);
-							final boolean isRelationship        = Relation.class.isAssignableFrom(type);
+						if (typeConfig == null) {
 
-							if (typeConfig == null) {
-
-								typeConfig = new LinkedHashMap<>();
-								schemaIndexConfig.put(typeName, typeConfig);
-							}
+							typeConfig = new LinkedHashMap<>();
+							schemaIndexConfig.put(typeName, typeConfig);
+						}
 
 
-							for (final PropertyKey key : entry.getValue().values()) {
+						for (final PropertyKey key : traits.getAllPropertyKeys()) {
 
-								boolean createIndex        = key.isIndexed() || key.isIndexedWhenEmpty();
-								final Class declaringClass = key.getDeclaringClass();
+							boolean createIndex = key.isIndexed() || key.isIndexedWhenEmpty();
+							final Trait trait   = key.getDeclaringTrait();
 
-								if (isRelationship) {
+							if (isRelationship) {
 
-									// prevent creation of node property indexes on relationships
-									if (!key.isNodeIndexOnly()) {
+								// prevent creation of node property indexes on relationships
+								if (!key.isNodeIndexOnly()) {
 
-										typeConfig.put(key.dbName(), new RelationshipIndexConfig(createIndex));
-									}
-
-								} else {
-
-									createIndex &= (declaringClass == null || whitelist.contains(type) || type.equals(declaringClass));
-									createIndex &= (!NonIndexed.class.isAssignableFrom(type));
-
-									typeConfig.put(key.dbName(), new NodeIndexConfig(createIndex));
+									typeConfig.put(key.dbName(), new RelationshipIndexConfig(createIndex));
 								}
+
+							} else {
+
+								createIndex &= (trait == null || whitelist.contains(type) || type.equals(trait.getLabel()));
+								//createIndex &= (!NonIndexed.class.isAssignableFrom(type));
+
+								typeConfig.put(key.dbName(), new NodeIndexConfig(createIndex));
 							}
 						}
 					}
 
-					for (final Entry<String, Map<String, PropertyKey>> entry : removedClasses.entrySet()) {
+					for (final Map.Entry<String, Map<String, PropertyKey>> entry : removedTypes.entrySet()) {
 
-						final String key       = entry.getKey();
+						String typeName        = entry.getKey();
 						boolean isRelationship = true;
-						String typeName        = key;
 
 						// remove fqcn parts if present (relationships dont have it)
-						if (key.contains(".")) {
+						if (typeName.contains(".")) {
 
-							typeName = StringUtils.substringAfterLast(entry.getKey(), ".");
+							typeName = StringUtils.substringAfterLast(typeName, ".");
 							isRelationship = false;
 						}
 
 						final Map<String, IndexConfig> typeConfig = new HashMap();
-						removedClassesConfig.put(typeName, typeConfig);
+						removedTypesConfig.put(typeName, typeConfig);
 
 						for (final PropertyKey propertyKey : entry.getValue().values()) {
 
@@ -662,7 +759,7 @@ public class SchemaService implements Service {
 
 							} else {
 
-								final boolean wasIdIndex = GraphObject.id.equals(propertyKey);
+								final boolean wasIdIndex = "id".equals(propertyKey.jsonName());
 								final boolean dropIndex  = wasIndexed && !wasIdIndex;
 
 								typeConfig.put(propertyKey.dbName(), new NodeIndexConfig(dropIndex));
@@ -670,18 +767,18 @@ public class SchemaService implements Service {
 						}
 					}
 
-					graphDb.updateIndexConfiguration(schemaIndexConfig, removedClassesConfig, false);
+					graphDb.updateIndexConfiguration(schemaIndexConfig, removedTypesConfig, false);
 
-				} catch (InterruptedException iex) {
+				} catch (Throwable t) {
 
-					iex.printStackTrace();
+					t.printStackTrace();
 
 				} finally {
 
 					IndexUpdateSemaphore.release();
 				}
 			}
-		});
+		}, "Structr Index Updater");
 
 		indexUpdater.setName("indexUpdater");
 		indexUpdater.setDaemon(true);
@@ -690,23 +787,27 @@ public class SchemaService implements Service {
 
 	private static Class getType(final String name) {
 
+		/*
+
 		try { return Class.forName(name); } catch (ClassNotFoundException ignore) {}
 
-		final Class nodeClass = StructrApp.getConfiguration().getNodeEntityClass(StringUtils.substringAfterLast(name, "."));
+		final Class nodeClass = Traits.of(StringUtils.substringAfterLast(name, "."));
 		if (nodeClass != null) {
 
 			return nodeClass;
 		}
 
-		final Class relClass = StructrApp.getConfiguration().getRelationshipEntityClass(StringUtils.substringAfterLast(name, "."));
+		final Class relClass = StringUtils.substringAfterLast(name, "."));
 		if (relClass != null) {
 
 			return relClass;
 		}
+		*/
 
 		return null;
 	}
 
+	/*
 	private static Map<String, Map<String, PropertyKey>> translateRelationshipClassesToRelTypes(final Map<String, Map<String, PropertyKey>> source) {
 
 		// we need to replace all relationship type classes with their respective relationship type
@@ -750,22 +851,21 @@ public class SchemaService implements Service {
 		}
 
 	}
+	*/
 
-	private static String getIndexingTypeName(final Class type) {
+	private static String getIndexingTypeName(final String typeName) {
 
-		final String typeName = type.getSimpleName();
-
-		if ("GraphObject".equals(typeName)) {
-			return "NodeInterface";
+		if (StructrTraits.GRAPH_OBJECT.equals(typeName)) {
+			return StructrTraits.NODE_INTERFACE;
 		}
 
-		// new: return relationship type for rels
-		if (Relation.class.isAssignableFrom(type)) {
+		final Traits traits = Traits.of(typeName);
+		if (traits.isRelationshipType()) {
 
-			final Relation rel = AbstractNode.getRelationshipForType(type);
-			if (rel != null) {
+			final Relation relation = traits.getRelation();
+			if (relation != null) {
 
-				return rel.name();
+				return relation.name();
 			}
 		}
 

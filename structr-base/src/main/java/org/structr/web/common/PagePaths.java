@@ -18,15 +18,18 @@
  */
 package org.structr.web.common;
 
-import java.util.Map;
-import java.util.Map.Entry;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.ContextStore;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.path.PagePath;
+
+import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  */
@@ -41,8 +44,9 @@ public class PagePaths {
 
 		if (requestLength > 0) {
 
-			for (final PagePath pathCandidate : app.nodeQuery(PagePath.class).getResultStream()) {
+			for (final NodeInterface node : app.nodeQuery(StructrTraits.PAGE_PATH).getResultStream()) {
 
+				final PagePath pathCandidate     = node.as(PagePath.class);
 				final Map<String, Object> values = pathCandidate.tryResolvePath(requestParts);
 				if (values != null) {
 
@@ -54,8 +58,13 @@ public class PagePaths {
 						contextStore.setConstant(entry.getKey(), entry.getValue());
 					}
 
-					// return resolved page
-					return pathCandidate.getPage();
+					final Page resolvedPage = pathCandidate.getPage();
+
+					// only return resolved page if it is visible for the current user (or public)
+					if (renderContext.getSecurityContext().isReadable(resolvedPage, false, false)) {
+
+						return resolvedPage;
+					}
 				}
 			}
 		}

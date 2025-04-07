@@ -27,8 +27,9 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.messaging.implementation.mqtt.entity.MQTTClient;
 
 import java.util.HashMap;
@@ -51,11 +52,11 @@ public abstract class MQTTContext {
 		});
 	}
 
-	public static MQTTClientConnection getClientForId(String id){
+	public static MQTTClientConnection getClientForId(final String id){
 		return connections.get(id);
 	}
 
-	public static void disconnect(String uuid) throws FrameworkException {
+	public static void disconnect(final String uuid) throws FrameworkException {
 
 		MQTTClientConnection con = getClientForId(uuid);
 
@@ -70,7 +71,7 @@ public abstract class MQTTContext {
 		}
 	}
 
-	public static void disconnect(MQTTInfo info) throws FrameworkException {
+	public static void disconnect(final MQTTInfo info) throws FrameworkException {
 
 		MQTTClientConnection con = getClientForId(info.getUuid());
 
@@ -100,7 +101,7 @@ public abstract class MQTTContext {
 		}
 	}
 
-	public static void connect(MQTTInfo info) throws FrameworkException {
+	public static void connect(final MQTTInfo info) throws FrameworkException {
 
 		try {
 
@@ -126,7 +127,7 @@ public abstract class MQTTContext {
 		}
 	}
 
-	public static void subscribeAllTopics(MQTTInfo info) throws FrameworkException {
+	public static void subscribeAllTopics(final MQTTInfo info) throws FrameworkException {
 
 		MQTTClientConnection con = getClientForId(info.getUuid());
 
@@ -153,12 +154,14 @@ public abstract class MQTTContext {
 
 			try (final Tx tx = app.tx()) {
 
-				for (final MQTTClient client : app.nodeQuery(MQTTClient.class).getAsList()) {
+				for (final NodeInterface clientNode : app.nodeQuery(StructrTraits.MQTT_CLIENT).getAsList()) {
 
-					client.setProperties(client.getSecurityContext(), new PropertyMap(StructrApp.key(MQTTClient.class,"isConnected"), false));
+					MQTTClient client = clientNode.as(MQTTClient.class);
+
+					client.setIsConnected(false);
 
 					// enable clients on startup
-					if (client.getProperty(StructrApp.key(MQTTClient.class,"isEnabled"))) {
+					if (client.getEnabled()) {
 
 						try {
 
@@ -168,7 +171,7 @@ public abstract class MQTTContext {
 
 						} catch (FrameworkException ex) {
 
-							client.setProperty(StructrApp.key(MQTTClient.class, "isEnabled"), false);
+							client.setEnabled(false);
 						}
 					}
 				}

@@ -25,13 +25,17 @@ package org.structr.core.property;
 
 import org.structr.api.Predicate;
 import org.structr.api.search.SortType;
+import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.notion.Notion;
 
 import java.util.Map;
+import org.structr.core.traits.StructrTraits;
 
 /**
  *
@@ -40,13 +44,13 @@ import java.util.Map;
 public class NodeRelationshipProperty<T extends AbstractRelationship> extends AbstractReadOnlyProperty<Iterable<T>> {
 
 	private Notion notion = null;
-	private Class<T> type = null;
+	private String type   = null;
 
-	public NodeRelationshipProperty(String name, final Class<T> type) {
+	public NodeRelationshipProperty(final String name, final String type) {
 		this(name, type, null);
 	}
 
-	public NodeRelationshipProperty(String name, final Class<T> type, final Notion notion) {
+	public NodeRelationshipProperty(String name, final String type, final Notion notion) {
 
 		super(name);
 
@@ -65,13 +69,13 @@ public class NodeRelationshipProperty<T extends AbstractRelationship> extends Ab
 	}
 
 	@Override
-	public Class relatedType() {
-		return AbstractRelationship.class;
+	public String relatedType() {
+		return StructrTraits.RELATIONSHIP_INTERFACE;
 	}
 
 	@Override
 	public Class valueType() {
-		return relatedType();
+		return RelationshipInterface.class;
 	}
 
 	@Override
@@ -90,19 +94,19 @@ public class NodeRelationshipProperty<T extends AbstractRelationship> extends Ab
 	}
 
 	@Override
-	public Iterable<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
-
-		// FIXME
-
-		return null;
-
-//		NodeInterface node = (NodeInterface)obj;
-//		return Iterables.toList(node.getRelationships(type));
+	public Iterable<T> getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
+		NodeInterface node = (NodeInterface)obj;
+		return (Iterable)node.getRelationships(type);
 	}
 
 	@Override
 	public boolean isCollection() {
 		return true;
+	}
+
+	@Override
+	public boolean isArray() {
+		return false;
 	}
 
 	@Override

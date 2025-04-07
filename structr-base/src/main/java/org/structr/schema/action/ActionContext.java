@@ -40,9 +40,10 @@ import org.structr.core.Services;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
 import org.structr.core.api.Methods;
-import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.script.Scripting;
-import org.structr.schema.parser.DatePropertyParser;
+import org.structr.core.traits.Traits;
+import org.structr.schema.parser.DatePropertyGenerator;
 
 import java.io.IOException;
 import java.time.ZonedDateTime;
@@ -126,12 +127,10 @@ public class ActionContext {
 
 	public Object getReferencedProperty(final GraphObject entity, final String initialRefKey, final Object initialData, final int depth, final EvaluationHints hints, final int row, final int column) throws FrameworkException {
 
-		final String DEFAULT_VALUE_SEP = "!";
-
 		// split
-		final String[] refs  = StringUtils.split(initialRefKey, DEFAULT_VALUE_SEP);
+		final String[] refs  = StringUtils.split(initialRefKey, "!");
 		final String refKey  = refs[0];
-		final String[] parts = refKey.split("[\\.]+");
+		final String[] parts = StringUtils.split(refKey, ".");
 		Object _data         = initialData;
 		String defaultValue  = null;
 
@@ -144,7 +143,11 @@ public class ActionContext {
 
 			final String key = parts[i];
 
-			if (_data instanceof GraphObject obj) {
+			if (_data instanceof NodeInterface n) {
+
+				_data = n.evaluate(this, key, null, hints, row, column);
+
+			} else if (_data instanceof GraphObject obj) {
 
 				_data = obj.evaluate(this, key, null, hints, row, column);
 
@@ -302,9 +305,9 @@ public class ActionContext {
 
 						value = graphObject.evaluate(this, key, defaultValue, hints, row, column);
 
-					} else if (data instanceof Class clazz) {
+					} else if (data instanceof Traits traits) {
 
-						final AbstractMethod method = Methods.resolveMethod(clazz, key);
+						final AbstractMethod method = Methods.resolveMethod(traits, key);
 						if (method != null) {
 
 							hints.reportExistingKey(key);
@@ -452,7 +455,7 @@ public class ActionContext {
 
 						case "now":
 							hints.reportExistingKey(key);
-							return this.isJavaScriptContext() ? ZonedDateTime.now() : DatePropertyParser.format(ZonedDateTime.now(), Settings.DefaultDateFormat.getValue());
+							return this.isJavaScriptContext() ? ZonedDateTime.now() : DatePropertyGenerator.format(ZonedDateTime.now(), Settings.DefaultDateFormat.getValue());
 
 						case "this":
 							hints.reportExistingKey(key);
@@ -477,11 +480,11 @@ public class ActionContext {
 							// Do the (slow) class check only if key value starts with uppercase character or could have a package path
 							if (StringUtils.isNotEmpty(key) && (Character.isUpperCase(key.charAt(0)) || StringUtils.contains(key, "."))) {
 
-								final Class type = StructrApp.getConfiguration().getNodeEntityClass(key);
-								if (type != null) {
+								if (Traits.exists(key)) {
 
 									hints.reportExistingKey(key);
-									return type;
+
+									return Traits.of(key);
 								}
 							}
 

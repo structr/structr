@@ -21,7 +21,6 @@ package org.structr.bolt;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.TransactionConfig;
-import org.neo4j.driver.Values;
 import org.neo4j.driver.async.AsyncSession;
 import org.neo4j.driver.async.AsyncTransaction;
 import org.neo4j.driver.async.ResultCursor;
@@ -35,7 +34,9 @@ import org.structr.api.RetryException;
 import org.structr.api.search.QueryContext;
 import org.structr.api.util.Iterables;
 
-import java.util.*;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletionStage;
 
 /**
@@ -54,7 +55,6 @@ class AsyncSessionTransaction extends SessionTransaction {
 
 		this.session       = session;
 		this.tx            = resolveImmediately(session.beginTransactionAsync(db.getTransactionConfig(transactionId)));
-		this.db            = db;
 	}
 
 	public AsyncSessionTransaction(final BoltDatabaseService db, final AsyncSession session, final int timeoutInSeconds) {
@@ -63,10 +63,8 @@ class AsyncSessionTransaction extends SessionTransaction {
 
 		final TransactionConfig config = db.getTransactionConfigForTimeout(timeoutInSeconds, transactionId);
 
-		this.transactionId = ID_SOURCE.getAndIncrement();
 		this.session       = session;
 		this.tx            = resolveImmediately(session.beginTransactionAsync(config));
-		this.db            = db;
 	}
 
 	@Override

@@ -20,6 +20,7 @@ package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.search.SearchCommand;
+import org.structr.core.traits.Traits;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionContext;
 
@@ -49,12 +50,12 @@ public class InheritingTypesFunction extends AdvancedScriptingFunction {
 			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2);
 
 			final String typeName       = sources[0].toString();
-			final Class type            = SchemaHelper.getEntityClassForRawType(typeName);
+			final Traits type           = Traits.of(typeName);
 			final ArrayList inheritants = new ArrayList();
 
 			if (type != null) {
 
-				inheritants.addAll(SearchCommand.getAllSubtypesAsStringSet(type.getSimpleName()));
+				inheritants.addAll(type.getAllTraits());
 
 				if (sources.length == 2) {
 					inheritants.removeAll((List)sources[1]);

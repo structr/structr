@@ -382,7 +382,8 @@ let StructrModel = {
 			}
 
 			// update HTML 'class' and 'id' attributes
-			if (_Helpers.isIn('_html_id', Object.keys(obj)) || _Helpers.isIn('_html_class', Object.keys(obj))) {
+			let keys = Object.keys(obj);
+			if (keys.includes('_html_id') || keys.includes('_html_class')) {
 
 				let classIdAttrsEl = element.children('.node-container').find('.class-id-attrs');
 				if (classIdAttrsEl.length) {

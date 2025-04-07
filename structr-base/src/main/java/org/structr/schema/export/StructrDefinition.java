@@ -20,6 +20,7 @@ package org.structr.schema.export;
 
 import org.structr.api.schema.JsonMethod;
 import org.structr.api.schema.JsonParameter;
+import org.structr.core.traits.Traits;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -33,14 +34,15 @@ import java.util.List;
  */
 public interface StructrDefinition {
 
-	public StructrDefinition resolveJsonPointerKey(final String key);
+	StructrDefinition resolveJsonPointerKey(final String key);
 
 	default String[] listToArray(final Collection<String> list) {
 		return list.toArray(new String[0]);
 	}
 
-	default Field getFieldOrNull(final Class type, final String fieldName) {
+	default Field getFieldOrNull(final Traits type, final String fieldName) {
 
+		/*
 		if (type == null) {
 			return null;
 		}
@@ -50,12 +52,14 @@ public interface StructrDefinition {
 			return type.getField(fieldName);
 
 		} catch (Throwable ignore) {}
+		*/
 
 		return null;
 	}
 
-	default Method getMethodOrNull(final Class type, final JsonMethod method) {
+	default Method getMethodOrNull(final Traits type, final JsonMethod method) {
 
+		/*
 		if (type == null) {
 			return null;
 		}
@@ -107,12 +111,13 @@ public interface StructrDefinition {
 
 			}
 
-			return type.getMethod(name, types.toArray(new Class[0]));
+			return type.getMethod(name);
 
 		} catch (NoSuchMethodException nsmex) {
 		} catch (Throwable ignore) {
 			ignore.printStackTrace();
 		}
+		*/
 
 		return null;
 	}

@@ -55,7 +55,7 @@ public class ConstantBooleanProperty extends AbstractPrimitiveProperty<Boolean>	
 	@Override
 	public Boolean getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
 
-		if (declaringClass.isAssignableFrom(obj.getClass())) {
+		if (obj.getTraits().contains(declaringTrait.getLabel())) {
 			return this.constantValue;
 		}
 
@@ -65,6 +65,11 @@ public class ConstantBooleanProperty extends AbstractPrimitiveProperty<Boolean>	
 	@Override
 	public Object setProperty(final SecurityContext securityContext, final GraphObject obj, final Boolean value) throws FrameworkException {
 		throw new FrameworkException(422, "Unable to change value of constant property ‛" + jsonName() + "‛", new ReadOnlyPropertyToken(obj.getType(), jsonName()));
+	}
+
+	@Override
+	public boolean isArray() {
+		return false;
 	}
 
 	@Override

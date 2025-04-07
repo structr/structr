@@ -28,10 +28,13 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.RelationProperty;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 
 /**
  *
@@ -43,7 +46,7 @@ public class GraphSearchAttribute<T> extends PropertySearchAttribute<T> implemen
 	private Set<Object> values    = null;
 
 	public GraphSearchAttribute(PropertyKey<T> key, T value, final Occurrence occurrence, final boolean exact) {
-		this(GraphObject.id, key, value, occurrence, exact);
+		this(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), key, value, occurrence, exact);
 	}
 
 	public GraphSearchAttribute(final PropertyKey notionKey, final PropertyKey<T> key, final T value, final Occurrence occurrence, final boolean exact) {
@@ -129,7 +132,7 @@ public class GraphSearchAttribute<T> extends PropertySearchAttribute<T> implemen
 
 		final PropertyKey<T> key = getKey();
 
-		return key.relatedType().getSimpleName();
+		return key.relatedType();
 	}
 
 	@Override

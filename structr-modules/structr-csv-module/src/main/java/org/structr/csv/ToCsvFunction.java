@@ -24,7 +24,6 @@ import org.structr.api.util.ResultStream;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
-import org.structr.core.app.StructrApp;
 import org.structr.core.function.LocalizeFunction;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.servlet.CsvServlet;
@@ -274,13 +273,13 @@ public class ToCsvFunction extends CsvFunction {
 						isFirstCol = appendColumnString(row, value, isFirstCol, quoteChar, delimiterChar);
 					}
 
-				} else if (obj instanceof GraphObject) {
-
-					final GraphObject graphObj = (GraphObject)obj;
+				} else if (obj instanceof GraphObject graphObj) {
 
 					for (final String colName : properties) {
-						final PropertyKey key = StructrApp.key(obj.getClass(), colName);
-						final Object value = graphObj.getProperty(key);
+
+						final PropertyKey key = graphObj.getTraits().key(colName);
+						final Object value    = graphObj.getProperty(key);
+
 						isFirstCol = appendColumnString(row, value, isFirstCol, quoteChar, delimiterChar);
 					}
 

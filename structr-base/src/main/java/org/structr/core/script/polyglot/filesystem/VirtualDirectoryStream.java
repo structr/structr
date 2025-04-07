@@ -23,10 +23,12 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.web.entity.AbstractFile;
-import org.structr.web.entity.Folder;
 
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
@@ -34,85 +36,93 @@ import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 public class VirtualDirectoryStream implements DirectoryStream<Path> {
-    private static final Logger logger = LoggerFactory.getLogger(VirtualDirectoryStream.class);
-    private final Path root;
-    private final DirectoryStream.Filter<? super Path> filter;
-    private List<Path> virtualPaths = new LinkedList<>();
 
-    public VirtualDirectoryStream(final Path root, final DirectoryStream.Filter<? super Path> filter) {
-        this.root = root;
-        this.filter = filter;
-    }
-    @Override
-    public Iterator<Path> iterator() {
+	private static final Logger logger = LoggerFactory.getLogger(VirtualDirectoryStream.class);
+	private final Path root;
+	private final DirectoryStream.Filter<? super Path> filter;
+	private List<Path> virtualPaths = new LinkedList<>();
 
-        findPaths(this.root);
-        return new Iterator<>() {
-            @Override
-            public boolean hasNext() {
-                return !virtualPaths.isEmpty();
-            }
+	public VirtualDirectoryStream(final Path root, final DirectoryStream.Filter<? super Path> filter) {
+		this.root = root;
+		this.filter = filter;
+	}
 
-            @Override
-            public Path next() {
-                Path next = virtualPaths.get(0);
-                virtualPaths.remove(0);
-                return next;
-            }
-        };
-    }
+	@Override
+	public Iterator<Path> iterator() {
 
-    @Override
-    public void close() throws IOException {
-    }
+		findPaths(this.root);
+		return new Iterator<>() {
+			@Override
+			public boolean hasNext() {
+				return !virtualPaths.isEmpty();
+			}
 
-    private boolean applyFilter(final Path p) {
-        try {
+			@Override
+			public Path next() {
+				Path next = virtualPaths.get(0);
+				virtualPaths.remove(0);
+				return next;
+			}
+		};
+	}
 
-            return filter == null || filter.accept(p);
-        } catch (IOException ex) {
+	@Override
+	public void close() throws IOException {
+	}
 
-            logger.error("Error while trying to filter found paths.", ex);
-            return false;
-        }
-    }
-    private void findPaths(Path root) {
-        App app = StructrApp.getInstance();
+	private boolean applyFilter(final Path p) {
+		try {
 
-        try (final Tx tx = app.tx()) {
+			return filter == null || filter.accept(p);
+		} catch (IOException ex) {
 
-            PropertyKey<Folder> parentKey = StructrApp.key(AbstractFile.class, "parent");
+			logger.error("Error while trying to filter found paths.", ex);
+			return false;
+		}
+	}
 
-            if (!(root.toString().equals("/"))) {
-                PropertyKey<String> path = StructrApp.key(AbstractFile.class, "path");
-                Folder rootFolder = app.nodeQuery(Folder.class).and(path, root.toString()).getFirst();
+	private void findPaths(Path root) {
 
-                if (rootFolder != null) {
-                    app.nodeQuery(AbstractFile.class).and(parentKey, rootFolder)
-                            .getAsList()
-                            .stream()
-                            .map(f -> Path.of(f.getPath()))
-                            .filter(this::applyFilter)
-                            .forEach(p -> virtualPaths.add(p));
-                }
+		final App app = StructrApp.getInstance();
+		final Traits traits = Traits.of(StructrTraits.ABSTRACT_FILE);
 
-            } else {
+		try (final Tx tx = app.tx()) {
 
-                app.nodeQuery(AbstractFile.class).and(parentKey, null)
-                        .getAsList()
-                        .stream()
-                        .map(f -> Path.of(f.getPath()))
-                        .filter(this::applyFilter)
-                        .forEach(p -> virtualPaths.add(p));
-            }
+			PropertyKey<NodeInterface> parentKey = traits.key(AbstractFileTraitDefinition.PARENT_PROPERTY);
 
-            tx.success();
-        } catch (FrameworkException ex) {
+			if (!(root.toString().equals("/"))) {
 
-            logger.error("Could not find paths for VirtualDirectoryStream.", ex);
-        }
+				final PropertyKey<String> path = traits.key(AbstractFileTraitDefinition.PATH_PROPERTY);
+				final NodeInterface rootFolder = app.nodeQuery(StructrTraits.FOLDER).and(path, root.toString()).getFirst();
 
-    }
+				if (rootFolder != null) {
+
+					app.nodeQuery(StructrTraits.ABSTRACT_FILE).and(parentKey, rootFolder)
+						.getAsList()
+						.stream()
+						.map(f -> Path.of(f.as(AbstractFile.class).getPath()))
+						.filter(this::applyFilter)
+						.forEach(p -> virtualPaths.add(p));
+				}
+
+			} else {
+
+				app.nodeQuery(StructrTraits.ABSTRACT_FILE).and(parentKey, null)
+					.getAsList()
+					.stream()
+					.map(f -> Path.of(f.as(AbstractFile.class).getPath()))
+					.filter(this::applyFilter)
+					.forEach(p -> virtualPaths.add(p));
+			}
+
+			tx.success();
+		} catch (FrameworkException ex) {
+
+			logger.error("Could not find paths for VirtualDirectoryStream.", ex);
+		}
+
+	}
 }

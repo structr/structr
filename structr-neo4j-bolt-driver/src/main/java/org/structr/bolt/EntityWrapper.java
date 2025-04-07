@@ -18,19 +18,21 @@
  */
 package org.structr.bolt;
 
-import java.lang.reflect.Array;
 import org.neo4j.driver.types.Entity;
+import org.structr.api.NotInTransactionException;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.PropertyContainer;
 
+import java.lang.reflect.Array;
 import java.util.*;
 import java.util.Map.Entry;
-import org.structr.api.NotInTransactionException;
 
 
 abstract class EntityWrapper<T extends Entity> implements PropertyContainer {
 
+	private Map<String, Object> dataCache = new HashMap<>();
 	protected final BoltDatabaseService db;
+	protected final BoltIdentity identity;
 	protected final long id;
 	protected T entity;
 
@@ -38,13 +40,13 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer {
 
 	public EntityWrapper(final BoltDatabaseService db, final T entity) {
 
-		this.entity = entity;
-		this.id     = entity.id();
-		this.db     = db;
+		this.identity = new BoltIdentity(entity.id());
+		this.entity   = entity;
+		this.id       = entity.id();
+		this.db       = db;
 	}
 
 	protected abstract String getQueryPrefix();
-	protected abstract boolean isNode();
 
 	@Override
 	public int hashCode() {
@@ -58,7 +60,7 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer {
 
 	@Override
 	public Identity getId() {
-		return new BoltIdentity(id);
+		return identity;
 	}
 
 	public long getDatabaseId() {
@@ -116,6 +118,8 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer {
 
 		final SessionTransaction tx = db.getCurrentTransaction();
 
+		tx.queryResultCache.clear();
+
 		// only update values if actually different from what is stored
 		if (needsUpdate(key, value)) {
 
@@ -146,6 +150,8 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer {
 			map.put("id", id);
 			map.put("properties", values);
 
+			tx.queryResultCache.clear();
+
 			updateEntity(tx, query, map);
 		}
 	}
@@ -158,6 +164,8 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer {
 		final String query            = getQueryPrefix() + " WHERE ID(n) = $id SET n.`" + key + "` = Null RETURN n";
 
 		map.put("id", id);
+
+		tx.queryResultCache.clear();
 
 		updateEntity(tx, query, map);
 	}
@@ -194,6 +202,10 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer {
 	@Override
 	public boolean isDeleted() {
 		return deleted;
+	}
+
+	public Map<String, Object> getCache() {
+		return dataCache;
 	}
 
 	// ----- protected methods -----

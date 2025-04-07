@@ -23,12 +23,13 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.console.Console;
 import org.structr.console.Console.ConsoleMode;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.test.web.StructrUiTest;
-import org.structr.web.entity.Folder;
 import org.structr.web.entity.User;
 import org.testng.annotations.Test;
 
@@ -64,8 +65,8 @@ public class ConsoleTest extends StructrUiTest {
 	public void testUserCommand() {
 
 		final Console console = new Console(securityContext, ConsoleMode.JavaScript, Collections.emptyMap());
-		PrincipalInterface admin = null;
-		String uuid              = null;
+		Principal admin       = null;
+		String uuid           = null;
 
 		try {
 
@@ -77,15 +78,17 @@ public class ConsoleTest extends StructrUiTest {
 			assertEquals("Invalid console execution result", "User created.\r\n", console.runForTest("user add admin admin@localhost isAdmin"));
 			assertEquals("Invalid console execution result", "User created.\r\n", console.runForTest("user add root isAdmin"));
 
+			final Traits userTraits = Traits.of(StructrTraits.USER);
+
 			// check success
 			try (final Tx tx = app.tx()) {
 
-				final User user = app.nodeQuery(User.class).andName("tester").sort(AbstractNode.name).getFirst();
+				final User user = app.nodeQuery(StructrTraits.USER).andName("tester").sort(userTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getFirst().as(User.class);
 
-				assertNotNull("Invalid console execution result", user);
-				assertEquals("Invalid console execution result", "tester",         user.getProperty(User.name));
+				assertNotNull("Invalid console execution result",                          user);
+				assertEquals("Invalid console execution result", "tester",         user.getName());
 				assertEquals("Invalid console execution result", "tester@test.de", user.getEMail());
-				assertEquals("Invalid console execution result", Boolean.FALSE,    (Boolean)user.isAdmin());
+				assertEquals("Invalid console execution result", Boolean.FALSE,             (Boolean)user.isAdmin());
 
 				tx.success();
 			}
@@ -102,11 +105,11 @@ public class ConsoleTest extends StructrUiTest {
 			// check "root" user
 			try (final Tx tx = app.tx()) {
 
-				final User root = app.nodeQuery(User.class).andName("root").getFirst();
+				final User root = app.nodeQuery(StructrTraits.USER).andName("root").getFirst().as(User.class);
 
-				assertNotNull("Invalid console execution result", root);
-				assertEquals("Invalid console execution result", "root",           root.getProperty(User.name));
-				assertEquals("Invalid console execution result", Boolean.TRUE,     (Boolean)root.isAdmin());
+				assertNotNull("Invalid console execution result",                root);
+				assertEquals("Invalid console execution result", "root", root.getName());
+				assertEquals("Invalid console execution result", Boolean.TRUE,   (Boolean)root.isAdmin());
 
 				tx.success();
 			}
@@ -114,17 +117,17 @@ public class ConsoleTest extends StructrUiTest {
 			// make check "admin" user
 			try (final Tx tx = app.tx()) {
 
-				admin = app.nodeQuery(User.class).andName("admin").getFirst();
+				admin = app.nodeQuery(StructrTraits.USER).andName("admin").getFirst().as(Principal.class);
 
 				uuid = admin.getUuid();
 
-				assertNotNull("Invalid console execution result", admin);
-				assertEquals("Invalid console execution result", "admin",           admin.getProperty(User.name));
+				assertNotNull("Invalid console execution result",                           admin);
+				assertEquals("Invalid console execution result", "admin",           admin.getName());
 				assertEquals("Invalid console execution result", "admin@localhost", admin.getEMail());
-				assertEquals("Invalid console execution result", Boolean.TRUE,      (Boolean)admin.isAdmin());
+				assertEquals("Invalid console execution result", Boolean.TRUE,              (Boolean)admin.isAdmin());
 
-				final Folder folder = app.create(Folder.class, "folder");
-				folder.setProperties(folder.getSecurityContext(), new PropertyMap(Folder.owner, admin));
+				final NodeInterface folder = app.create(StructrTraits.FOLDER, "folder");
+				folder.setProperty(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), admin);
 
 				tx.success();
 			}
@@ -151,29 +154,25 @@ public class ConsoleTest extends StructrUiTest {
 
 		final Console console = new Console(securityContext, ConsoleMode.JavaScript, Collections.emptyMap());
 
-		final int nodeCount           = 196;
-		final int relCount            = 306;
+		final int nodeCount           = 0;
+		final int relCount            = 0;
 		final int resourceAccessCount = 0;
 
 		final String fullIndexRebuildOutput =
 			"Node type not set or no entity class found. Starting (re-)indexing all nodes\r\n" +
 			"RebuildNodeIndex: " + nodeCount + " objects processed\r\n" +
-			"RebuildNodeIndex: " + nodeCount + " objects processed\r\n" +
 			"Done with (re-)indexing " + nodeCount + " nodes\r\n" +
 			"Relationship type not set, starting (re-)indexing all relationships\r\n" +
-			"RebuildRelIndex: " + relCount + " objects processed\r\n" +
 			"RebuildRelIndex: " + relCount + " objects processed\r\n" +
 			"Done with (re-)indexing " + relCount + " relationships\r\n";
 
 		final String nodeIndexRebuildOutput =
 			"Node type not set or no entity class found. Starting (re-)indexing all nodes\r\n" +
 			"RebuildNodeIndex: " + nodeCount + " objects processed\r\n" +
-			"RebuildNodeIndex: " + nodeCount + " objects processed\r\n" +
 			"Done with (re-)indexing " + nodeCount + " nodes\r\n";
 
 		final String relIndexRebuildOutput =
 			"Relationship type not set, starting (re-)indexing all relationships\r\n" +
-			"RebuildRelIndex: " + relCount + " objects processed\r\n" +
 			"RebuildRelIndex: " + relCount + " objects processed\r\n" +
 			"Done with (re-)indexing " + relCount + " relationships\r\n";
 
@@ -190,7 +189,6 @@ public class ConsoleTest extends StructrUiTest {
 		final String createNodeUuidsOutput =
 			"Start setting UUID on all nodes\r\n" +
 			"SetNodeUuid: " + nodeCount + " objects processed\r\n" +
-			"SetNodeUuid: " + nodeCount + " objects processed\r\n" +
 			"Done with setting UUID on " + nodeCount + " nodes\r\n";
 
 		final String createNodeUuidsOnUserOutput =
@@ -206,12 +204,10 @@ public class ConsoleTest extends StructrUiTest {
 		final String createRelUuidsOutput =
 			"Start setting UUID on all rels\r\n" +
 			"SetRelationshipUuid: " + relCount + " objects processed\r\n" +
-			"SetRelationshipUuid: " + relCount + " objects processed\r\n" +
 			"Done with setting UUID on " + relCount + " relationships\r\n";
 
 		final String createLabelsOutput =
 			"Node type not set or no entity class found. Starting creation of labels for all nodes.\r\n" +
-			"CreateLabels: " + nodeCount + " objects processed\r\n" +
 			"CreateLabels: " + nodeCount + " objects processed\r\n" +
 			"Done with creating labels on " + nodeCount + " nodes\r\n";
 

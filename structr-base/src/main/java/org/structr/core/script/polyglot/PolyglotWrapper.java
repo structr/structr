@@ -25,6 +25,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
 import org.structr.core.script.polyglot.wrappers.*;
+import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 
 import java.time.*;
@@ -58,9 +59,9 @@ public abstract class PolyglotWrapper {
 				return ((NonWrappableObject) obj).unwrap();
 			}
 
-			if (obj instanceof Class) {
+			if (obj instanceof Traits t) {
 
-				return new StaticTypeWrapper(actionContext, (Class) obj);
+				return new StaticTypeWrapper(actionContext, t);
 			}
 
 			if (obj instanceof GraphObject) {
@@ -301,10 +302,16 @@ public abstract class PolyglotWrapper {
 
 			return obj;
 
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+
 		} finally {
 
 			actionContext.level --;
 		}
+
+		return null;
 	}
 
 	public static Arguments unwrapExecutableArguments(final ActionContext actionContext, final AbstractMethod method, final Value[] args) throws FrameworkException {

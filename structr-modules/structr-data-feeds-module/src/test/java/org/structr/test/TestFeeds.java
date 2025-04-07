@@ -20,12 +20,14 @@ package org.structr.test;
 
 import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
-import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
-import org.structr.feed.entity.DataFeed;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
+import org.structr.feed.traits.definitions.DataFeedTraitDefinition;
 import org.structr.test.web.StructrUiTest;
-import org.structr.web.entity.User;
 import org.testng.annotations.Test;
 
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -40,17 +42,14 @@ public class TestFeeds extends StructrUiTest {
 	@Test
 	public void testFeeds() {
 
-		final Class type = StructrApp.getConfiguration().getNodeEntityClass("DataFeed");
+		final String type       = StructrTraits.DATA_FEED;
+		final Traits feedTraits = Traits.of(type);
 
-		assertNotNull("Type DataFeed should exist", type);
+		assertNotNull("Type DataFeed should exist", feedTraits);
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"),  true)
-			);
+			createAdminUser();
 
 			tx.success();
 
@@ -62,9 +61,9 @@ public class TestFeeds extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create(type,
-				new NodeAttribute<>(StructrApp.key(DataFeed.class, "url"),            "https://structr.com/blog/rss"),
-				new NodeAttribute<>(StructrApp.key(DataFeed.class, "updateInterval"), 86400000),
-				new NodeAttribute<>(StructrApp.key(DataFeed.class, "maxItems"),       3)
+				new NodeAttribute<>(feedTraits.key(DataFeedTraitDefinition.URL_PROPERTY),            "https://structr.com/blog/rss"),
+				new NodeAttribute<>(feedTraits.key(DataFeedTraitDefinition.UPDATE_INTERVAL_PROPERTY), 86400000),
+				new NodeAttribute<>(feedTraits.key(DataFeedTraitDefinition.MAX_ITEMS_PROPERTY),       3)
 			);
 
 			tx.success();
@@ -78,10 +77,10 @@ public class TestFeeds extends StructrUiTest {
 			.given()
 				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 				.contentType("application/json; charset=UTF-8")
-				.headers("X-User", "admin" , "X-Password", "admin")
+				.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.expect()
 				.statusCode(200)
-				.body("result[0].type",           equalTo("DataFeed"))
+				.body("result[0].type",           equalTo(type))
 				.body("result[0].description",    equalTo("This is the official Structr blog"))
 				.body("result[0].feedType",       equalTo("rss_2.0"))
 				.body("result[0].maxAge",         equalTo(null))
@@ -89,9 +88,9 @@ public class TestFeeds extends StructrUiTest {
 				.body("result[0].updateInterval", equalTo(86400000))
 				.body("result[0].url",            equalTo("https://structr.com/blog/rss"))
 				.body("result[0].items",          hasSize(3))
-				.body("result[0].items[0].type",  equalTo("FeedItem"))
-				.body("result[0].items[1].type",  equalTo("FeedItem"))
-				.body("result[0].items[2].type",  equalTo("FeedItem"))
+				.body("result[0].items[0].type",  equalTo(StructrTraits.FEED_ITEM))
+				.body("result[0].items[1].type",  equalTo(StructrTraits.FEED_ITEM))
+				.body("result[0].items[2].type",  equalTo(StructrTraits.FEED_ITEM))
 			.when()
 				.get("/DataFeed/ui");
 
@@ -100,17 +99,14 @@ public class TestFeeds extends StructrUiTest {
 	@Test
 	public void testRemoteDocument() {
 
-		final Class type = StructrApp.getConfiguration().getNodeEntityClass("RemoteDocument");
+		final String type                 = StructrTraits.REMOTE_DOCUMENT;
+		final Traits remoteDocumentTraits = Traits.of(type);
 
-		assertNotNull("Type RemoteDocument should exist", type);
+		assertNotNull("Type RemoteDocument should exist", remoteDocumentTraits);
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"),  true)
-			);
+			createAdminUser();
 
 			tx.success();
 
@@ -122,7 +118,7 @@ public class TestFeeds extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create(type,
-				new NodeAttribute<>(StructrApp.key(type, "url"), "https://structr.com/blog")
+				new NodeAttribute<>(remoteDocumentTraits.key("url"), "https://structr.com/blog")
 			);
 
 			tx.success();
@@ -136,10 +132,10 @@ public class TestFeeds extends StructrUiTest {
 			.given()
 				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 				.contentType("application/json; charset=UTF-8")
-				.headers("X-User", "admin" , "X-Password", "admin")
+				.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.expect()
 				.statusCode(200)
-				.body("result[0].type",           equalTo("RemoteDocument"))
+				.body("result[0].type",           equalTo(type))
 			.when()
 				.get("/RemoteDocument");
 

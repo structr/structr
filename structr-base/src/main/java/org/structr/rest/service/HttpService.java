@@ -71,6 +71,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.SecureRandom;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 @ServiceDependency(SchemaService.class)
@@ -84,7 +85,7 @@ public class HttpService implements RunnableService, StatsCallback {
 		Started, Stopped
 	}
 
-	private final Map<String, Map<String, Stats>> stats = new LinkedHashMap<>();
+	private final Map<String, Map<String, Stats>> stats = new ConcurrentHashMap<>();
 	private SslContextFactory.Server sslContextFactory  = null;
 	private DefaultSessionCache sessionCache            = null;
 	private GzipHandler gzipHandler                     = null;
@@ -241,7 +242,6 @@ public class HttpService implements RunnableService, StatsCallback {
 		final boolean enableHttps           = Settings.HttpsEnabled.getValue();
 		final boolean enableGzipCompression = Settings.GzipCompression.getValue();
 		final boolean logRequests           = Settings.RequestLogging.getValue();
-		final String logPrefix              = Settings.LogPrefix.getValue();
 		final String host                   = Settings.ApplicationHost.getValue();
 		final boolean mainteanceModeActive  = Settings.MaintenanceModeEnabled.getValue();
 		final int httpPort                  = Settings.getSettingOrMaintenanceSetting(Settings.HttpPort).getValue();
@@ -763,7 +763,7 @@ public class HttpService implements RunnableService, StatsCallback {
 		Map<String, Stats> map = stats.get(key);
 		if (map == null) {
 
-			map = new LinkedHashMap<>();
+			map = new ConcurrentHashMap<>();
 			stats.put(key, map);
 		}
 
@@ -771,8 +771,11 @@ public class HttpService implements RunnableService, StatsCallback {
 	}
 
 	// ----- interface StatsCallback -----
-	@Override
 	public void recordStatsValue(final String key, final String source, final long value) {
+		recordStatsValue(key, source, value, true);
+	}
+
+	public void recordStatsValue(final String key, final String source, final long value, final boolean aggregateOnly) {
 
 		final Map<String, Stats> map = getRequestStats(key);
 		Stats stats                  = map.get(source);
@@ -783,7 +786,7 @@ public class HttpService implements RunnableService, StatsCallback {
 			map.put(source, stats);
 		}
 
-		stats.value(value);
+		stats.value(value, aggregateOnly);
 	}
 
 

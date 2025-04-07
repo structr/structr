@@ -22,103 +22,20 @@ package org.structr.web.entity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
-import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.SemanticErrorToken;
-import org.structr.common.error.UniqueToken;
-import org.structr.core.GraphObject;
-import org.structr.core.GraphObjectMap;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.TransactionCommand;
-import org.structr.core.property.*;
-import org.structr.files.external.DirectoryWatchService;
-import org.structr.schema.SchemaService;
-import org.structr.storage.StorageProvider;
-import org.structr.storage.StorageProviderFactory;
-import org.structr.web.common.FileHelper;
-import org.structr.web.entity.relationship.AbstractFileCONFIGURED_BYStorageConfiguration;
-import org.structr.web.entity.relationship.FolderCONTAINSAbstractFile;
-import org.structr.web.property.MethodProperty;
-import org.structr.web.property.PathProperty;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 import java.io.IOException;
-import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Base class for filesystem objects in structr.
  */
 public interface AbstractFile extends NodeInterface {
-
-	Property<StorageConfiguration> storageConfigurationProperty = new EndNode<>("storageConfiguration", AbstractFileCONFIGURED_BYStorageConfiguration.class).partOfBuiltInSchema();
-	Property<Folder> parentProperty                             = new StartNode<>("parent", FolderCONTAINSAbstractFile.class).partOfBuiltInSchema().updateCallback(AbstractFile::updateHasParent);
-	Property<String> parentIdProperty                           = new EntityIdProperty("parentId", AbstractFile.parentProperty).format("parent, {},").partOfBuiltInSchema();
-
-	View uiView = new View(AbstractFile.class, PropertyView.Ui, parentProperty, storageConfigurationProperty);
-
-	static class Impl { static {
-
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("AbstractFile");
-
-		type.setIsAbstract();
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/AbstractFile"));
-		type.setCategory("ui");
-
-		type.addStringProperty("name", PropertyView.Public).setIndexed(true).setRequired(true).setFormat("[^\\\\/\\\\x00]+");
-
-		type.addCustomProperty("isMounted", MethodProperty.class.getName(), PropertyView.Public, PropertyView.Ui).setTypeHint("Boolean").setFormat(AbstractFile.class.getName() + ", isMounted");
-		type.addBooleanProperty("includeInFrontendExport",                  PropertyView.Ui).setIndexed(true);
-		type.addBooleanProperty("isExternal",                               PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addLongProperty("lastSeenMounted",                             PropertyView.Public, PropertyView.Ui);
-
-		type.addBooleanProperty("hasParent").setIndexed(true);
-
-		type.addCustomProperty("path", PathProperty.class.getName(), PropertyView.Public, PropertyView.Ui).setTypeHint("String").setIndexed(true);
-
-		type.addPropertyGetter("hasParent", Boolean.TYPE);
-		type.addPropertyGetter("parent", Folder.class);
-		type.addPropertyGetter("path", String.class);
-
-		type.addPropertyGetter("storageConfiguration", StorageConfiguration.class);
-
-		type.addPropertySetter("hasParent", Boolean.TYPE);
-
-		type.overrideMethod("onCreation",                  true,  AbstractFile.class.getName() + ".onCreation(this, arg0, arg1);");
-		type.overrideMethod("onModification",              true,  AbstractFile.class.getName() + ".onModification(this, arg0, arg1, arg2);");
-		type.overrideMethod("isExternal",                  false, "return getProperty(isExternalProperty);");
-		type.overrideMethod("isBinaryDataAccessible",      false, "return !isExternal() || isMounted();")
-//			.addParameter("ctx", SecurityContext.class.getName())
-			.setDoExport(true);
-		type.overrideMethod("isMounted",                   false, "return " + AbstractFile.class.getName() + ".isMounted(this);");
-		type.overrideMethod("getFolderPath",               false, "return " + AbstractFile.class.getName() + ".getFolderPath(this);");
-		type.overrideMethod("includeInFrontendExport",     false, "return " + AbstractFile.class.getName() + ".includeInFrontendExport(this);");
-
-		type.addMethod("setParent")
-			.setSource("setProperty(parentProperty, (Folder)parent);")
-			.addException(FrameworkException.class.getName())
-			.addParameter("parent", "org.structr.web.entity.Folder");
-
-		// view configuration
-		type.addViewProperty(PropertyView.Public, "visibleToAuthenticatedUsers");
-		type.addViewProperty(PropertyView.Public, "visibleToPublicUsers");
-
-		type.addViewProperty(PropertyView.Ui, "parent");
-		type.addViewProperty(PropertyView.Ui, "storageConfiguration");
-	}}
 
 	void setParent(final Folder parent) throws FrameworkException;
 	void setHasParent(final boolean hasParent) throws FrameworkException;
@@ -132,238 +49,15 @@ public interface AbstractFile extends NodeInterface {
 	boolean isMounted();
 	boolean isExternal();
 	boolean getHasParent();
+
+	void setHasParent() throws FrameworkException;
+
 	boolean isBinaryDataAccessible(final SecurityContext securityContext);
 	boolean includeInFrontendExport();
 
-	static void onCreation(final AbstractFile thisFile, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+	boolean validateAndRenameFileOnce(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException;
+	boolean renameMountedAbstractFile (final Folder thisFolder, final AbstractFile file, final String path, final String previousName);
 
-		if (org.structr.api.config.Settings.UniquePaths.getValue()) {
-			AbstractFile.validateAndRenameFileOnce(thisFile, securityContext, errorBuffer);
-		}
-	}
-
-	static void onModification(final AbstractFile thisFile, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
-
-		if (thisFile.isExternal()) {
-
-			// check if name changed
-			final GraphObjectMap beforeProps = modificationQueue.getModifications(thisFile).get(new GenericProperty<>("before"));
-
-			if (beforeProps != null) {
-
-				final String prevName = beforeProps.getProperty(new GenericProperty<>("name"));
-
-				if (prevName != null) {
-
-					final boolean renameSuccess = AbstractFile.renameMountedAbstractFile(thisFile.getParent(), thisFile, "", prevName);
-
-					if (!renameSuccess) {
-						errorBuffer.add(new SemanticErrorToken("RenameFailed", AbstractFile.name.jsonName(), "Renaming failed"));
-					}
-				}
-			}
-
-		} else if (org.structr.api.config.Settings.UniquePaths.getValue()) {
-
-			AbstractFile.validateAndRenameFileOnce(thisFile, securityContext, errorBuffer);
-		}
-	}
-
-	static boolean validatePath(final AbstractFile thisFile, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
-
-		final PropertyKey<String> pathKey = StructrApp.key(AbstractFile.class, "path");
-		final String filePath             = thisFile.getProperty(pathKey);
-
-		if (filePath != null) {
-
-			final List<AbstractFile> files = StructrApp.getInstance().nodeQuery(AbstractFile.class).and(pathKey, filePath).getAsList();
-			for (final AbstractFile file : files) {
-
-				if (!file.getUuid().equals(thisFile.getUuid())) {
-
-					if (errorBuffer != null) {
-
-						final UniqueToken token = new UniqueToken(AbstractFile.class.getSimpleName(), pathKey.jsonName(), file.getUuid(), thisFile.getUuid(), filePath);
-						token.setValue(filePath);
-
-						errorBuffer.add(token);
-					}
-
-					return false;
-				}
-			}
-		}
-
-		return true;
-	}
-
-	static String getRenamedFilename(final String oldName) {
-
-		final String insertionPosition  = Settings.UniquePathsInsertionPosition.getValue();
-		final String timestamp          = FileHelper.getDateString();
-
-		switch (insertionPosition) {
-
-			case "beforeextension":
-				if (oldName.contains(".")) {
-					final int lastDot = oldName.lastIndexOf(".");
-					return oldName.substring(0, lastDot).concat("_").concat(timestamp).concat(oldName.substring(lastDot));
-
-				} else {
-					return oldName.concat("_").concat(timestamp);
-				}
-
-			case "start":
-				return timestamp.concat("_").concat(oldName);
-
-			case "end":
-			default:
-				return oldName.concat("_").concat(timestamp);
-		}
-
-	}
-
-	static boolean validateAndRenameFileOnce(final AbstractFile thisFile, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
-
-		final PropertyKey<String> pathKey = StructrApp.key(AbstractFile.class, "path");
-		boolean valid                     = AbstractFile.validatePath(thisFile, securityContext, null);
-
-		if (!valid) {
-
-			final Logger logger       = LoggerFactory.getLogger(AbstractFile.class);
-			final String originalPath = thisFile.getProperty(pathKey);
-			final String newName      = getRenamedFilename(thisFile.getProperty(AbstractFile.name));
-
-			thisFile.setProperty(AbstractNode.name, newName);
-
-			valid = AbstractFile.validatePath(thisFile, securityContext, errorBuffer);
-
-			if (valid) {
-				logger.warn("File {} already exists, renaming to {}", new Object[] { originalPath, newName });
-			} else {
-				logger.warn("File {} already existed. Tried renaming to {} and failed. Aborting.", new Object[] { originalPath, newName });
-			}
-		}
-
-		return valid;
-	}
-
-	static boolean renameMountedAbstractFile (final Folder thisFolder, final AbstractFile file, final String path, final String previousName) {
-
-		// ToDo: Implement renameMountedAbstractFile for new fs layer
-		throw new UnsupportedOperationException("Not implemented for new fs abstraction layer");
-		/*
-		final String _mountTarget = thisFolder.getMountTarget();
-		final Folder parentFolder = thisFolder.getParent();
-
-		if (_mountTarget != null) {
-
-			final String fullOldPath         = Folder.removeDuplicateSlashes(_mountTarget + "/" + path + "/" + previousName);
-			final String fullNewPath         = Folder.removeDuplicateSlashes(_mountTarget + "/" + path + "/" + file.getProperty(File.name));
-			final java.io.File oldFileOnDisk = new java.io.File(fullOldPath);
-			final java.io.File newFileOnDisk = new java.io.File(fullNewPath);
-
-			if (newFileOnDisk.exists()) {
-
-				final Logger logger = LoggerFactory.getLogger(Folder.class);
-				logger.error("Preventing renaming file {} from {} to {} because a file with the target name already exists", file, previousName, file.getProperty(File.name));
-
-			} else if (oldFileOnDisk.exists()) {
-
-				try {
-
-					final boolean renameResult = oldFileOnDisk.renameTo(newFileOnDisk);
-
-					if (!renameResult) {
-						final Logger logger = LoggerFactory.getLogger(Folder.class);
-						logger.error("Renaming file failed {}: From {} to {}", file, previousName, file.getProperty(File.name));
-					}
-
-					return renameResult;
-
-				} catch (Throwable t) {
-
-					final Logger logger = LoggerFactory.getLogger(Folder.class);
-					logger.error("Unable to rename file {}: {}", file, t.getMessage());
-				}
-			}
-
-		} else if (parentFolder != null) {
-
-			return AbstractFile.renameMountedAbstractFile(parentFolder, file, thisFolder.getProperty(Folder.name) + "/" + path, previousName);
-
-		} else {
-
-			// this should not happen. This means a file/folder marked as "isExternal" has no mounted folder in its parents
-			final Logger logger = LoggerFactory.getLogger(Folder.class);
-			logger.error("Unable to rename file {}: Mount target not found!", file);
-
-		}
-
-		return false;
-
-		 */
-	}
-
-	static String getFolderPath(final AbstractFile thisFile) {
-
-		String folderPath = thisFile.getProperty(AbstractFile.name);
-		if (folderPath == null) {
-			folderPath = thisFile.getUuid();
-		}
-
-		if (thisFile.getHasParent()) {
-
-			Folder parentFolder = thisFile.getParent();
-			while (parentFolder != null) {
-
-				folderPath = parentFolder.getName().concat("/").concat(folderPath);
-				parentFolder = parentFolder.getParent();
-			}
-		}
-
-		final String path = "/".concat(folderPath);
-
-		return path;
-	}
-
-	static boolean includeInFrontendExport(final AbstractFile thisFile) {
-
-		if (thisFile.getProperty(StructrApp.key(File.class, "includeInFrontendExport"))) {
-
-			return true;
-		}
-
-		final Folder _parent = thisFile.getParent();
-		if (_parent != null) {
-
-			// recurse
-			return _parent.includeInFrontendExport();
-		}
-
-		return false;
-	}
-
-	static boolean isMounted(final AbstractFile thisFile) {
-
-		final StorageProvider provider             = StorageProviderFactory.getStorageProvider(thisFile);
-		final boolean hasMountTarget               = provider.getConfig() != null && provider.getConfig().getConfiguration().get("mountTarget") != null;
-		final boolean watchServiceHasMountedFolder = Settings.Services.getValue("").contains("DirectoryWatchService") && StructrApp.getInstance().getService(DirectoryWatchService.class) != null && StructrApp.getInstance().getService(DirectoryWatchService.class).isMounted(thisFile.getUuid());
-
-		if (hasMountTarget && watchServiceHasMountedFolder) {
-			return true;
-		}
-
-		final Folder parent = thisFile.getParent();
-		if (parent != null) {
-
-			return AbstractFile.isMounted(parent);
-		}
-
-		return false;
-	}
-
-	// ----- protected methods -----
 	static java.io.File defaultGetFileOnDisk(final File fileBase, final boolean create) {
 
 		final String uuid       = fileBase.getUuid();
@@ -385,7 +79,7 @@ public interface AbstractFile extends NodeInterface {
 
 			} catch (IOException ioex) {
 
-				final Logger logger = LoggerFactory.getLogger(AbstractFile.class);
+				final Logger logger = LoggerFactory.getLogger(AbstractFileTraitDefinition.class);
 				logger.error("Unable to create file {}: {}", file, ioex.getMessage());
 			}
 		}
@@ -399,9 +93,5 @@ public interface AbstractFile extends NodeInterface {
 			? uuid.substring(0, 1) + "/" + uuid.substring(1, 2) + "/" + uuid.substring(2, 3) + "/" + uuid.substring(3, 4)
 			: null;
 
-	}
-
-	static void updateHasParent(final GraphObject obj, final Folder value) throws FrameworkException {
-		obj.setProperty(StructrApp.key(AbstractFile.class, "hasParent"), value != null);
 	}
 }

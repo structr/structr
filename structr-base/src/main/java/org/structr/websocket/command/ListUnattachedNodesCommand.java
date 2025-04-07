@@ -23,25 +23,17 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
-import org.structr.core.graph.search.SearchCommand;
-import org.structr.core.property.PropertyKey;
-import org.structr.web.entity.dom.*;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
-
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-
-import org.structr.common.helper.PagingHelper;
 
 /**
  * Websocket command to retrieve DOM nodes which are not attached to a parent
@@ -93,27 +85,27 @@ public class ListUnattachedNodesCommand extends AbstractCommand {
 	 * @return
 	 * @throws FrameworkException
 	 */
-	protected static Iterable<DOMNode> getUnattachedNodes(final App app, final SecurityContext securityContext, final WebSocketMessage webSocketData) throws FrameworkException {
+	protected static Iterable<NodeInterface> getUnattachedNodes(final App app, final SecurityContext securityContext, final WebSocketMessage webSocketData) throws FrameworkException {
 
-		final Set<String> types    = SearchCommand.getAllSubtypesAsStringSet("Page");
+		final Traits traits        = Traits.of(StructrTraits.DOM_NODE);
 		final String sortOrder     = webSocketData.getSortOrder();
 		final String sortKey       = webSocketData.getSortKey();
 		final int pageSize         = webSocketData.getPageSize();
 		final int page             = webSocketData.getPage();
 
-		final Query<DOMNode> query = app.nodeQuery(DOMNode.class)
+		final Query<NodeInterface> query = app.nodeQuery(StructrTraits.DOM_NODE)
 			.includeHidden()
 			.pageSize(pageSize)
 			.page(page)
-			.and(DOMNode.ownerDocumentProperty, null)
-			.and(DOMNode.parentProperty, null);
+			.and(traits.key(DOMNodeTraitDefinition.OWNER_DOCUMENT_PROPERTY), null)
+			.and(traits.key(DOMNodeTraitDefinition.PARENT_PROPERTY), null);
 
 		if (sortKey != null) {
 
-			query.sort(StructrApp.key(DOMNode.class, sortKey), "desc".equals(sortOrder));
+			query.sort(traits.key(sortKey), "desc".equals(sortOrder));
 		}
 
-		return Iterables.filter(n -> !types.contains(n.getType()), query.getResultStream());
+		return Iterables.filter(n -> !n.getTraits().contains(StructrTraits.PAGE), query.getResultStream());
 	}
 
 	@Override

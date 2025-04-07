@@ -26,9 +26,9 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.Property;
+import org.structr.core.traits.StructrTraits;
 import org.structr.schema.action.ActionContext;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
@@ -69,7 +69,7 @@ public class AutocompleteCommand extends AbstractCommand {
 
 			try {
 
-				final List<GraphObject> hints = AbstractHintProvider.getHints(new ActionContext(securityContext), isAutoscriptEnv, StructrApp.getInstance().get(AbstractNode.class, id), before, after, line, cursorPosition);
+				final List<GraphObject> hints = AbstractHintProvider.getHints(new ActionContext(securityContext), isAutoscriptEnv, StructrApp.getInstance().getNodeById(StructrTraits.NODE_INTERFACE, id), before, after, line, cursorPosition);
 				result.addAll(hints);
 
 			} catch(FrameworkException fex) {

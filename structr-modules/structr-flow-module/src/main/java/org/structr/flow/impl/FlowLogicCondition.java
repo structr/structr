@@ -18,75 +18,41 @@
  */
 package org.structr.flow.impl;
 
-import org.structr.api.util.Iterables;
-import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNodes;
-import org.structr.flow.api.DataSource;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
-import org.structr.flow.impl.rels.FlowConditionCondition;
+import org.structr.flow.traits.operations.LogicConditionOperations;
 import org.structr.module.api.DeployableEntity;
 
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.StreamSupport;
+import java.util.TreeMap;
 
-import static org.structr.flow.impl.FlowAction.script;
+public class FlowLogicCondition extends FlowCondition implements DeployableEntity {
 
-/**
- *
- */
-public abstract class FlowLogicCondition extends FlowCondition implements DeployableEntity {
+	public FlowLogicCondition(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
+	}
 
-	public static final Property<Iterable<FlowCondition>> dataSources = new StartNodes<>("conditions", FlowConditionCondition.class);
-
-	public static final View defaultView = new View(FlowAnd.class, PropertyView.Public, script, dataSources);
-	public static final View uiView      = new View(FlowAnd.class, PropertyView.Ui,     script, dataSources);
-
-	protected abstract Boolean combine(final Boolean result, final Boolean value);
-
-	@Override
-	public Object get(final Context context) throws FlowException {
-
-		final List<FlowCondition> _dataSources = Iterables.toList(getProperty(dataSources));
-		if (_dataSources.isEmpty()) {
-
-			return false;
-		}
-
-
-		if (StreamSupport.stream(getProperty(dataSources).spliterator(), false).count() == 1) {
-
-			return combine(null, getBoolean(context, getProperty(dataSources).iterator().next()));
-		}
-
-		Boolean result = null;
-
-		for (final FlowCondition _dataSource : getProperty(dataSources)) {
-
-			result = combine(result, getBoolean(context, _dataSource));
-		}
-
-		return result;
+	public final Boolean combine(final Boolean result, final Boolean value) {
+		return traits.getMethod(LogicConditionOperations.class).combine(this, result, value);
 	}
 
 	@Override
 	public Map<String, Object> exportData() {
-		Map<String, Object> result = new HashMap<>();
 
-		result.put("id", this.getUuid());
-		result.put("type", this.getClass().getSimpleName());
-		result.put("visibleToPublicUsers", this.getProperty(visibleToPublicUsers));
-		result.put("visibleToAuthenticatedUsers", this.getProperty(visibleToAuthenticatedUsers));
+		final Map<String, Object> result = new TreeMap<>();
+
+		result.put(GraphObjectTraitDefinition.ID_PROPERTY,                          getUuid());
+		result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,                        getType());
+		result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        isVisibleToPublicUsers());
+		result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, isVisibleToAuthenticatedUsers());
 
 		return result;
 	}
 
-	// ----- protected methods -----
-	protected static boolean getBoolean(final Context context, final DataSource source) throws FlowException {
+	public static boolean getBoolean(final Context context, final FlowDataSource source) throws FlowException {
 
 		if (source != null) {
 

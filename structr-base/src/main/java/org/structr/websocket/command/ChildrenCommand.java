@@ -20,17 +20,13 @@ package org.structr.websocket.command;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.graph.Direction;
-import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.core.GraphObject;
-import org.structr.core.IterableAdapter;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Group;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipFactory;
-import org.structr.core.graph.RelationshipInterface;
-import org.structr.web.entity.dom.Content;
+import org.structr.core.traits.StructrTraits;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.websocket.StructrWebSocket;
@@ -38,9 +34,6 @@ import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
-
-import org.structr.core.graph.TransactionCommand;
 
 /**
  * Websocket command to return the children of the given node.
@@ -61,7 +54,7 @@ public class ChildrenCommand extends AbstractCommand {
 		setDoTransactionNotifications(false);
 
 		final RelationshipFactory factory = new RelationshipFactory(getWebSocket().getSecurityContext());
-		final AbstractNode node           = getNode(webSocketData.getId());
+		final NodeInterface node          = getNode(webSocketData.getId());
 
 		if (node == null) {
 
@@ -70,22 +63,25 @@ public class ChildrenCommand extends AbstractCommand {
 
 		final List<GraphObject> result = new LinkedList();
 
-		if (node instanceof Page page) {
+		if (node.is(StructrTraits.PAGE)) {
 
-			DOMNode subNode = (DOMNode) (page).treeGetFirstChild();
+			final Page page = node.as(Page.class);
 
-			while (subNode != null) {
+			for (final DOMNode child : page.getChildren()) {
 
-				result.add(subNode);
-
-				subNode = (DOMNode) subNode.getNextSibling();
+				result.add(child);
 			}
 
-		} else  if (node instanceof Group group) {
+		} else  if (node.is(StructrTraits.GROUP)) {
 
-			result.addAll(Iterables.toList(group.getMembers()));
+			final Group group = node.as(Group.class);
 
-		} else  if (node instanceof Content content) {
+			for (final Principal p : group.getMembers()) {
+
+				result.add(p);
+			}
+
+		} else  if (node.is(StructrTraits.CONTENT)) {
 
 			// Content has no children
 

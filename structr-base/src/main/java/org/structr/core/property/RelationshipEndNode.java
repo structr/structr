@@ -28,9 +28,10 @@ import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.Notion;
+import org.structr.core.traits.StructrTraits;
 
 import java.util.Collections;
 import java.util.Map;
@@ -39,7 +40,7 @@ import java.util.Map;
  *
  *
  */
-public class RelationshipEndNode<T extends AbstractNode> extends AbstractReadOnlyProperty<T> {
+public class RelationshipEndNode<T extends NodeInterface> extends AbstractReadOnlyProperty<T> {
 
 	private Notion notion = null;
 
@@ -61,21 +62,21 @@ public class RelationshipEndNode<T extends AbstractNode> extends AbstractReadOnl
 
 	@Override
 	public String typeName() {
-		return "Node";
+		return StructrTraits.NODE_INTERFACE;
 	}
 
 	@Override
 	public Class valueType() {
-		return relatedType();
+		return NodeInterface.class;
 	}
 
 	@Override
-	public Class relatedType() {
-		return AbstractRelationship.class;
+	public String relatedType() {
+		return StructrTraits.NODE_INTERFACE;
 	}
 
 	@Override
-	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, T> inputConverter(final SecurityContext securityContext) {
 
 		if (notion != null) {
 			return notion.getEntityConverter(securityContext);
@@ -85,17 +86,22 @@ public class RelationshipEndNode<T extends AbstractNode> extends AbstractReadOnl
 	}
 
 	@Override
-	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+	public T getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter) {
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
 	@Override
-	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
+	public T getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
 		return (T)((AbstractRelationship)obj).getTargetNode();
 	}
 
 	@Override
 	public boolean isCollection() {
+		return false;
+	}
+
+	@Override
+	public boolean isArray() {
 		return false;
 	}
 

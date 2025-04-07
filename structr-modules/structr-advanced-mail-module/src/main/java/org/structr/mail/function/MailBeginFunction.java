@@ -19,13 +19,14 @@
 package org.structr.mail.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.common.helper.AdvancedMailContainer;
+import org.structr.core.graph.NodeInterface;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.File;
 
 import java.net.MalformedURLException;
 import java.util.List;
-import org.structr.common.helper.AdvancedMailContainer;
 
 public class MailBeginFunction extends AdvancedMailModuleFunction {
 
@@ -60,13 +61,15 @@ public class MailBeginFunction extends AdvancedMailModuleFunction {
 
 			switch (sources.length) {
 				case 6: {
-					if (sources[5] instanceof List && ((List) sources[5]).size() > 0 && ((List) sources[5]).get(0) instanceof File) {
+					if (sources[5] instanceof List && ((List) sources[5]).size() > 0 && ((List) sources[5]).get(0) instanceof NodeInterface) {
 
-						for (File fileNode : (List<File>) sources[5]) {
+						for (NodeInterface fileNode : (List<NodeInterface>) sources[5]) {
+
+							final File file = fileNode.as(File.class);
 
 							try {
 
-								MailAddAttachmentFunction.addAttachment(amc, fileNode);
+								MailAddAttachmentFunction.addAttachment(amc, file);
 
 							} catch (MalformedURLException ex) {
 

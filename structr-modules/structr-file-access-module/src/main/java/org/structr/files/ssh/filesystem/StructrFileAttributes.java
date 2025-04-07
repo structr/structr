@@ -21,17 +21,16 @@ package org.structr.files.ssh.filesystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
+import org.structr.common.AccessControllable;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Group;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.AbstractFile;
-import org.structr.web.entity.File;
-import org.structr.web.entity.Folder;
 
 import java.io.IOException;
 import java.nio.file.attribute.*;
@@ -43,7 +42,7 @@ import java.util.*;
 public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttributes, PosixFileAttributeView {
 
 	private static final Logger logger              = LoggerFactory.getLogger(StructrFileAttributes.class.getName());
-	public static final Set<String> SUPPORTED_VIEWS = new LinkedHashSet<>(Arrays.asList(new String[] { "owner", "dos", "basic", "posix", "permissions" } ));
+	public static final Set<String> SUPPORTED_VIEWS = new LinkedHashSet<>(Arrays.asList("owner", "dos", "basic", "posix", "permissions"));
 
 	private SecurityContext securityContext = null;
 	private AbstractFile file               = null;
@@ -65,7 +64,7 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			final PrincipalInterface fileOwner = file.getOwnerNode();
+			final Principal fileOwner = file.as(AccessControllable.class).getOwnerNode();
 			if (fileOwner == null) {
 
 				owner = securityContext.getUser(false)::getName;
@@ -92,7 +91,7 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			final PrincipalInterface owner = file.getOwnerNode();
+			final Principal owner = file.as(AccessControllable.class).getOwnerNode();
 			if (owner != null) {
 
 				groups.addAll(Iterables.toList(owner.getGroups()));
@@ -171,7 +170,7 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 		boolean isRegularFile = false;
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
-			isRegularFile = file instanceof File;
+			isRegularFile = file.is(StructrTraits.FILE);
 			tx.success();
 		} catch (FrameworkException fex) {
 			logger.error("", fex);
@@ -190,7 +189,7 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 		boolean isDirectory = false;
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
-			isDirectory = file instanceof Folder;
+			isDirectory = file.is(StructrTraits.FOLDER);
 			tx.success();
 		} catch (FrameworkException fex) {
 			logger.error("", fex);
@@ -221,7 +220,7 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			if (file instanceof File) {
+			if (file.is(StructrTraits.FILE)) {
 
 				final Number s = StorageProviderFactory.getStorageProvider(file).size();
 				if (s != null) {
@@ -266,7 +265,7 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 
 		if (file != null) {
 
-			if (file instanceof Folder) {
+			if (file.is(StructrTraits.FOLDER)) {
 				permissions.add(PosixFilePermission.OWNER_EXECUTE);
 			}
 
@@ -277,7 +276,7 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 					permissions.add(PosixFilePermission.OTHERS_READ);
 					permissions.add(PosixFilePermission.OTHERS_WRITE);
 
-					if (file instanceof Folder) {
+					if (file.is(StructrTraits.FOLDER)) {
 						permissions.add(PosixFilePermission.OTHERS_EXECUTE);
 					}
 				}
@@ -287,7 +286,7 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 					permissions.add(PosixFilePermission.GROUP_READ);
 					permissions.add(PosixFilePermission.GROUP_WRITE);
 
-					if (file instanceof Folder) {
+					if (file.is(StructrTraits.FOLDER)) {
 						permissions.add(PosixFilePermission.GROUP_EXECUTE);
 					}
 				}
@@ -426,8 +425,8 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			file.setProperty(AbstractNode.visibleToAuthenticatedUsers, perms.contains(PosixFilePermission.GROUP_READ));
-			file.setProperty(AbstractNode.visibleToPublicUsers,        perms.contains(PosixFilePermission.OTHERS_READ));
+			file.setVisibleToAuthenticatedUsers(perms.contains(PosixFilePermission.GROUP_READ));
+			file.setVisibleToPublicUsers(perms.contains(PosixFilePermission.OTHERS_READ));
 
 			tx.success();
 

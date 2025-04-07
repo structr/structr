@@ -33,8 +33,8 @@ import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.EndNodeProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
@@ -295,7 +295,7 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 		private final Property<String>  changelog_userId                      = new StringProperty("userId");
 		private final Property<String>  changelog_userName                    = new StringProperty("userName");
 		private final Property<String>  changelog_target                      = new StringProperty("target");
-		private final Property<AbstractNode> changelog_targetObj              = new EndNodeProperty<>("targetObj");
+		private final Property<NodeInterface> changelog_targetObj             = new EndNodeProperty<>("targetObj");
 		private final Property<String>  changelog_rel                         = new StringProperty("rel");
 		private final Property<String>  changelog_relId                       = new StringProperty("relId");
 		private final Property<String>  changelog_relDir                      = new StringProperty("relDir");
@@ -486,9 +486,9 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 
 		private Object resolveTarget(final String targetId) throws FrameworkException {
 
-			if (PrincipalInterface.SUPERUSER_ID.equals(targetId)) {
+			if (Principal.SUPERUSER_ID.equals(targetId)) {
 				return null;
-			} else if (PrincipalInterface.ANONYMOUS.equals(targetId)) {
+			} else if (Principal.ANONYMOUS.equals(targetId)) {
 				return null;
 			}
 

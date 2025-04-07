@@ -18,6 +18,8 @@
  */
 package org.structr.schema.openapi.operation;
 
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.schema.openapi.common.OpenAPIOneOf;
 import org.structr.schema.openapi.common.OpenAPISchemaReference;
 import org.structr.schema.openapi.request.OpenAPIRequestResponse;
@@ -58,8 +60,8 @@ public class OpenAPILoginOperation extends LinkedHashMap<String, Object> {
 					new OpenAPISchemaReference("EMailLoginBody")
 				),
 				Map.of(
-					"name",     "admin",
-					"password", "admin"
+					NodeInterfaceTraitDefinition.NAME_PROPERTY, "admin",
+					PrincipalTraitDefinition.PASSWORD_PROPERTY, "admin"
 				)
 			),
 

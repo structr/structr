@@ -19,6 +19,7 @@
 package org.structr.core.notion;
 
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.Traits;
 
 /**
  * Combines a {@link PropertySerializationStrategy} and a {@link TypeAndValueDeserializationStrategy}
@@ -28,24 +29,24 @@ import org.structr.core.property.PropertyKey;
  */
 public class PropertyNotion extends Notion {
 
-	private PropertyKey propertyKey = null;
+	private String propertyKeyName = null;
 	
-	public PropertyNotion(PropertyKey propertyKey) {
-		this(propertyKey, false);
+	public PropertyNotion(final String propertyKeyName) {
+		this(propertyKeyName, false);
 	}
 	
-	public PropertyNotion(PropertyKey propertyKey, boolean createIfNotExisting) {
+	public PropertyNotion(final String propertyKeyName, final boolean createIfNotExisting) {
 
 		super(
-			new PropertySerializationStrategy(propertyKey),
-			new TypeAndValueDeserializationStrategy(propertyKey, createIfNotExisting)
+			new PropertySerializationStrategy(propertyKeyName),
+			new TypeAndValueDeserializationStrategy(propertyKeyName, createIfNotExisting)
 		);
 		
-		this.propertyKey = propertyKey;
+		this.propertyKeyName = propertyKeyName;
 	}
 
 	@Override
 	public PropertyKey getPrimaryPropertyKey() {
-		return propertyKey;
+		return Traits.of(type).key(propertyKeyName);
 	}
 }

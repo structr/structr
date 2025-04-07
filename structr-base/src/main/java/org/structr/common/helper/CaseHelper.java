@@ -49,7 +49,6 @@ public class CaseHelper {
 		if (input.toUpperCase().equals(input)) {
 
 			return input;
-
 		}
 
 		StringBuilder out = new StringBuilder();

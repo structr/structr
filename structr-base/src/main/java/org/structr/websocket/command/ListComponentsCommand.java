@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.ShadowDocument;
@@ -57,9 +58,9 @@ public class ListComponentsCommand extends AbstractCommand {
 
 		try {
 
-			final ShadowDocument hiddenDoc     = CreateComponentCommand.getOrCreateHiddenDocument();
-			List<DOMNode> filteredResults      = new LinkedList();
-			List<DOMNode> resultList           = Iterables.toList(hiddenDoc.getElements());
+			final ShadowDocument hiddenDoc = CreateComponentCommand.getOrCreateHiddenDocument();
+			List<DOMNode> filteredResults  = new LinkedList();
+			List<DOMNode> resultList       = Iterables.toList(hiddenDoc.getElements());
 
 			TransactionCommand.getCurrentTransaction().prefetch("(n:NodeInterface { id: \"" + hiddenDoc.getUuid() + "\" })<-[:PAGE]-(:DOMNode)-[r:CONTAINS*]->(m:DOMNode)", Set.of(
 
@@ -83,9 +84,10 @@ public class ListComponentsCommand extends AbstractCommand {
 			// Sort the components by name
 			Collections.sort(filteredResults, new Comparator<DOMNode>() {
 				@Override
-				public int compare(DOMNode node1, DOMNode node2) {
-					final String nameNode1 = node1.getProperty(DOMNode.name);
-					final String nameNode2 = node2.getProperty(DOMNode.name);
+				public int compare(final DOMNode node1, final DOMNode node2) {
+
+					final String nameNode1 = node1.getName();
+					final String nameNode2 = node2.getName();
 
 					if (nameNode1 != null && nameNode2 != null) {
 
@@ -112,7 +114,7 @@ public class ListComponentsCommand extends AbstractCommand {
 			int resultCountBeforePaging = filteredResults.size();
 
 			// set full result list
-			webSocketData.setResult(PagingHelper.subList(filteredResults, pageSize, page));
+			webSocketData.setResult(unwrap(PagingHelper.subList(filteredResults, pageSize, page)));
 			webSocketData.setRawResultCount(resultCountBeforePaging);
 
 			// send only over local connection
@@ -134,4 +136,16 @@ public class ListComponentsCommand extends AbstractCommand {
 
 	}
 
+	// ----- private methods -----
+	private List<NodeInterface> unwrap(final List<DOMNode> source) {
+
+		final List<NodeInterface> result = new ArrayList<>(source.size());
+
+		for (final DOMNode n : source) {
+
+			result.add(n);
+		}
+
+		return result;
+	}
 }

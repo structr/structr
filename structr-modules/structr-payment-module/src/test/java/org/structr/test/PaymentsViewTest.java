@@ -18,6 +18,9 @@
  */
 package org.structr.test;
 
+import org.structr.core.traits.StructrTraits;
+import org.structr.payment.traits.definitions.PaymentItemNodeTraitDefinition;
+import org.structr.payment.traits.definitions.PaymentNodeTraitDefinition;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.TestHelper;
 import org.testng.annotations.Test;
@@ -36,7 +39,7 @@ public class PaymentsViewTest extends StructrUiTest {
 
 		final Map<String, List<String>> additionalRequiredAttributes = new HashMap<>();
 
-		additionalRequiredAttributes.put("PaymentItemNode", Arrays.asList("i:amount", "i:quantity"));
+		additionalRequiredAttributes.put(StructrTraits.PAYMENT_ITEM_NODE, Arrays.asList("i:" + PaymentItemNodeTraitDefinition.AMOUNT_PROPERTY, "i:" + PaymentItemNodeTraitDefinition.QUANTITY_PROPERTY));
 
 		TestHelper.testViews(app, PaymentsViewTest.class.getResourceAsStream("/views.properties"), additionalRequiredAttributes);
 	}

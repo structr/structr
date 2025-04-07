@@ -20,19 +20,23 @@ package org.structr.test.web.advanced;
 
 import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
-
 import io.restassured.filter.session.SessionFilter;
 import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.Matchers;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
+import org.structr.core.traits.definitions.UserTraitDefinition;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.auth.UiAuthenticator;
-import org.structr.web.entity.User;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.servlet.HtmlServlet;
@@ -78,13 +82,13 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final User user = app.nodeQuery(User.class).getFirst();
+			final NodeInterface user = app.nodeQuery(StructrTraits.USER).getFirst();
 
 			assertNotNull("User was not created", user);
 
 			// store ID for later user
-			id      = user.getProperty(StructrApp.key(User.class, "id"));
-			confKey = user.getProperty(StructrApp.key(User.class, "confirmationKey"));
+			id      = user.getProperty(Traits.of(StructrTraits.USER).key(GraphObjectTraitDefinition.ID_PROPERTY));
+			confKey = user.getProperty(Traits.of(StructrTraits.USER).key(UserTraitDefinition.CONFIRMATION_KEY_PROPERTY));
 
 			assertNotNull("Confirmation key was not set", confKey);
 
@@ -109,13 +113,13 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 		// verify that the user has no confirmation key
 		try (final Tx tx = app.tx()) {
 
-			final User user = app.nodeQuery(User.class).getFirst();
+			final NodeInterface user = app.nodeQuery(StructrTraits.USER).getFirst();
 
 			assertNotNull("User was not created", user);
 
 			// store ID for later user
-			id      = user.getProperty(StructrApp.key(User.class, "id"));
-			confKey = user.getProperty(StructrApp.key(User.class, "confirmationKey"));
+			id      = user.getProperty(Traits.of(StructrTraits.USER).key(GraphObjectTraitDefinition.ID_PROPERTY));
+			confKey = user.getProperty(Traits.of(StructrTraits.USER).key(UserTraitDefinition.CONFIRMATION_KEY_PROPERTY));
 
 			assertNull("Confirmation key was set after confirmation", confKey);
 
@@ -160,13 +164,13 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final User user = app.nodeQuery(User.class).getFirst();
+			final NodeInterface user = app.nodeQuery(StructrTraits.USER).getFirst();
 
 			assertNotNull("User was not created", user);
 
 			// store ID for later user
-			id      = user.getProperty(StructrApp.key(User.class, "id"));
-			confKey = user.getProperty(StructrApp.key(User.class, "confirmationKey"));
+			id      = user.getProperty(Traits.of(StructrTraits.USER).key(GraphObjectTraitDefinition.ID_PROPERTY));
+			confKey = user.getProperty(Traits.of(StructrTraits.USER).key(UserTraitDefinition.CONFIRMATION_KEY_PROPERTY));
 
 			assertNotNull("Confirmation key was not set", confKey);
 
@@ -207,13 +211,13 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 		// verify that the user has no confirmation key
 		try (final Tx tx = app.tx()) {
 
-			final User user = app.nodeQuery(User.class).getFirst();
+			final NodeInterface user = app.nodeQuery(StructrTraits.USER).getFirst();
 
 			assertNotNull("User was not created", user);
 
-			assertNull("Confirmation key was set after confirmation", user.getProperty(StructrApp.key(User.class, "confirmationKey")));
+			assertNull("Confirmation key was set after confirmation", user.getProperty(Traits.of(StructrTraits.USER).key(UserTraitDefinition.CONFIRMATION_KEY_PROPERTY)));
 
-			final String[] sessionIds  = user.getProperty(StructrApp.key(User.class, "sessionIds"));
+			final String[] sessionIds  = user.getProperty(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.SESSION_IDS_PROPERTY));
 
 			assertEquals("Invalid number of sessions after user confirmation", 1, sessionIds.length);
 			assertEquals("Invalid session ID after user confirmation", StringUtils.substringBeforeLast(sessionFilter.getSessionId(), "."), sessionIds[0]);
@@ -243,14 +247,14 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final User user = app.create(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "name"), "tester"),
-				new NodeAttribute<>(StructrApp.key(User.class, "eMail"), eMail),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "correct")
+			final NodeInterface user = app.create(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "tester"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.EMAIL_PROPERTY), eMail),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.PASSWORD_PROPERTY), "correct")
 			);
 
 			// store ID for later user
-			id = user.getProperty(User.id);
+			id = user.getUuid();
 
 			tx.success();
 
@@ -277,7 +281,7 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.expect()
 			.statusCode(200)
-			.body("result.type",   equalTo("User"))
+			.body("result.type",   equalTo(StructrTraits.USER))
 			.body("result.name",   equalTo("tester"))
 			.body("result.isUser", equalTo(true))
 			.body("result.id",     equalTo(id))
@@ -308,22 +312,14 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 
 		try {
 
-			src.setProperty(DOMNode.visibleToAuthenticatedUsers, true);
-			if (publicToo) {
-
-				src.setProperty(DOMNode.visibleToPublicUsers, true);
-			}
+			src.setVisibility(publicToo, true);
 
 		} catch (FrameworkException fex) {}
 
 		src.getAllChildNodes().stream().forEach((n) -> {
 
 			try {
-				n.setProperty(DOMNode.visibleToAuthenticatedUsers, true);
-				if (publicToo) {
-
-					src.setProperty(DOMNode.visibleToPublicUsers, true);
-				}
+				n.setVisibility(publicToo, true);
 
 			} catch (FrameworkException fex) {}
 		} );

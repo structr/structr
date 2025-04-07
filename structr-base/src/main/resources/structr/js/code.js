@@ -204,7 +204,7 @@ let _Code = {
 								data: {
 									svgIcon: _Icons.getSvgIcon(_Icons.iconFolderClosed, 16, 24),
 									key:     'SchemaNode',
-									query:   { isBuiltinType: false, isServiceClass: false },
+									query:   { isServiceClass: false },
 									content: 'custom',
 									path:    '/root/custom',
 								},
@@ -223,20 +223,21 @@ let _Code = {
 									path:    '/root/services',
 								},
 							},
-							{
-								id:       '/root/builtin',
-								text:     'Built-In',
-								children: true,
-								icon:     _Icons.nonExistentEmptyIcon,
-								li_attr:  { 'data-id': 'builtin' },
-								data: {
-									svgIcon: _Icons.getSvgIcon(_Icons.iconFolderClosed, 16, 24),
-									key:     'SchemaNode',
-									query:   { isBuiltinType: true },
-									content: 'builtin',
-									path:    '/root/builtin'
-								},
-							},
+							// maybe show something like "overrides"
+							// {
+							// 	id:       '/root/builtin',
+							// 	text:     'Built-In',
+							// 	children: true,
+							// 	icon:     _Icons.nonExistentEmptyIcon,
+							// 	li_attr:  { 'data-id': 'builtin' },
+							// 	data: {
+							// 		svgIcon: _Icons.getSvgIcon(_Icons.iconFolderClosed, 16, 24),
+							// 		key:     'SchemaNode',
+							// 		query:   { isBuiltinType: true },
+							// 		content: 'builtin',
+							// 		path:    '/root/builtin'
+							// 	},
+							// },
 							{
 								id:       '/root/workingsets',
 								text:     'Working Sets',
@@ -331,11 +332,6 @@ let _Code = {
 
 							// generic query function, controlled by data object
 							Command.query(data.key, _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', data.query, result => {
-
-								if (data.key === 'SchemaMethod' && result.length > 0) {
-
-									result = _Schema.filterJavaMethods(result, result[0].schemaNode);
-								}
 
 								_Code.tree.displayFunction(result, data);
 
@@ -561,7 +557,7 @@ let _Code = {
 				{
 					id:       path + '/methods',
 					text:     'Methods',
-					children: _Schema.filterJavaMethods(entity.schemaMethods, entity).length > 0,
+					children: entity.schemaMethods.length > 0,
 					icon:     _Icons.nonExistentEmptyIcon,
 					li_attr:  { 'data-id': 'methods' },
 					data:     {
@@ -612,20 +608,7 @@ let _Code = {
 				// only show results after all 6 searches are finished (to prevent duplicates)
 				if (++count === 6) {
 
-					let results = Object.values(searchResults).filter(result => {
-
-						if (result.type === 'SchemaMethod') {
-
-							// let our only filter method filter schema methods
-							let filtered = _Schema.filterJavaMethods([result], result.schemaNode);
-
-							return filtered.length > 0;
-						}
-
-						return true;
-					});
-
-					_Code.tree.displayFunction(results, data, false, true);
+					_Code.tree.displayFunction(searchResults, data, false, true);
 				}
 			};
 
@@ -647,7 +630,7 @@ let _Code = {
 
 						let matchingMethods = [];
 
-						for (let method of _Schema.filterJavaMethods(schemaNode.schemaMethods, schemaNode)) {
+						for (let method of schemaNode.schemaMethods) {
 
 							if (method.name.indexOf(parts[1]) === 0) {
 
@@ -691,21 +674,10 @@ let _Code = {
 		},
 		hasVisibleChildren: (id, entity) => {
 
-			let hasVisibleChildren = false;
+			return (entity?.schemaMethods ?? []).some(method => {
 
-			if (entity.schemaMethods) {
-
-				let methods = _Schema.filterJavaMethods(entity.schemaMethods, entity);
-				for (let m of methods) {
-
-					if (id === 'custom' || !m.isPartOfBuiltInSchema) {
-
-						hasVisibleChildren = true;
-					}
-				}
-			}
-
-			return hasVisibleChildren;
+				return (id === 'custom' || !method.isPartOfBuiltInSchema);
+			});
 		},
 		handleTreeClick: (evt, data) => {
 
@@ -1408,8 +1380,6 @@ let _Code = {
 						formData.schemaProperties   = _Schema.views.findSchemaPropertiesByNodeAndName(reloadedEntity, sortedAttrs);
 						formData.nonGraphProperties = _Schema.views.findNonGraphProperties(reloadedEntity, sortedAttrs);
 
-						_Code.helpers.showSchemaRecompileMessage();
-
 						Command.setProperties(view.id, formData, () => {
 							Object.assign(view, formData);
 							_Code.persistence.updateDirtyFlag(view);
@@ -1419,8 +1389,6 @@ let _Code = {
 							if (formData.name) {
 								_Code.tree.refreshTree();
 							}
-
-							_Code.helpers.hideSchemaRecompileMessage();
 						});
 					});
 				}
@@ -1593,6 +1561,7 @@ let _Code = {
 					language: 'auto',
 					lint: true,
 					autocomplete: true,
+					isAutoscriptEnv: true,
 					changeFn: (editor, entity) => {
 						_Code.persistence.updateDirtyFlag(entity);
 					}
@@ -2273,17 +2242,18 @@ let _Code = {
 			},
 			runSchemaMethod: (schemaMethod) => {
 
-				let name = (schemaMethod.schemaNode === null) ? schemaMethod.name : schemaMethod.schemaNode.name + '/' + schemaMethod.name;
-				let url  = _Code.mainArea.helpers.getURLForSchemaMethod(schemaMethod);
+				let storagePrefix = 'schemaMethodParameters_';
+				let name          = (schemaMethod.schemaNode === null) ? schemaMethod.name : schemaMethod.schemaNode.name + '/' + schemaMethod.name;
+				let url           = _Code.mainArea.helpers.getURLForSchemaMethod(schemaMethod);
 
-				let { dialogText } = _Dialogs.custom.openDialog(`Run user-defined function ${name}`, null, ['run-global-schema-method-dialog']);
+				let { dialogText } = _Dialogs.custom.openDialog(`Run user-defined function ${name}`);
 
 				let runButton = _Dialogs.custom.prependCustomDialogButton(`
-			<button id="run-method" class="flex items-center action focus:border-gray-666 active:border-green">
-				${_Icons.getSvgIcon(_Icons.iconRunButton, 16, 18, 'mr-2')}
-				<span>Run</span>
-			</button>
-		`);
+					<button id="run-method" class="flex items-center action focus:border-gray-666 active:border-green">
+						${_Icons.getSvgIcon(_Icons.iconRunButton, 16, 18, 'mr-2')}
+						<span>Run</span>
+					</button>
+				`);
 
 				let clearButton = _Dialogs.custom.appendCustomDialogButton('<button id="clear-log" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Clear output</button>');
 
@@ -2292,17 +2262,17 @@ let _Code = {
 				}, 50);
 
 				let paramsOuterBox = _Helpers.createSingleDOMElementFromHTML(`
-			<div>
-				<div id="params">
-					<h3 class="heading-narrow">Parameters</h3>
 					<div>
-						${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-green', 'add-param-action']), 'Add parameter')}
+						<div id="params">
+							<h3 class="heading-narrow">Parameters</h3>
+							<div class="method-parameters">
+								${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-green', 'add-param-action']), 'Add parameter')}
+							</div>
+						</div>
+						<h3 class="mt-4">Result</h3>
+						<pre id="log-output"></pre>
 					</div>
-				</div>
-				<h3>Method output</h3>
-				<pre id="log-output"></pre>
-			</div>
-		`);
+				`);
 				dialogText.appendChild(paramsOuterBox);
 
 				_Helpers.appendInfoTextToElement({
@@ -2312,41 +2282,98 @@ let _Code = {
 					helpElementCss: { fontSize: "12px" }
 				});
 
-				let newParamTrigger = paramsOuterBox.querySelector('.add-param-action');
-				newParamTrigger.addEventListener('click', () => {
+				let appendParameter = (name = '', value = '', paramDefinition = {}) => {
+
+					let infoSpan = '';
+
+					if (paramDefinition.parameterType || paramDefinition.description || paramDefinition.exampleValue) {
+
+						let infoText = `
+							Type: ${paramDefinition.parameterType ?? ''}<br>
+							Description: ${paramDefinition.description ?? ''}<br>
+							Example Value: ${paramDefinition.exampleValue ?? ''}<br>
+						`;
+
+						infoSpan = `<span data-comment="${_Helpers.escapeForHtmlAttributes(infoText)}"></span>`;
+					}
 
 					let newParam = _Helpers.createSingleDOMElementFromHTML(`
-				<div class="param flex items-center mb-1">
-					<input class="param-name" placeholder="Parameter name">
-					<span class="px-2">=</span>
-					<input class="param-value" placeholder="Parameter value">
-					${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action', 'ml-2']), 'Remove parameter')}
-				</div>
-			`);
+						<div class="param flex items-center mb-1">
+							<input class="param-name" placeholder="Key">
+							${infoSpan}
+							<span class="px-2">=</span>
+							<input class="param-value" placeholder="Value" data-input-type="${(paramDefinition.parameterType ?? 'string').toLowerCase()}">
+							${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action', 'ml-2']), 'Remove parameter')}
+						</div>
+					`);
+
+					newParam.querySelector('.param-name').value  = name;
+					newParam.querySelector('.param-value').value = (typeof value === "string") ? value : JSON.stringify(value);
 
 					newParam.querySelector('.remove-action').addEventListener('click', () => {
 						_Helpers.fastRemoveElement(newParam);
 					});
 
-					newParamTrigger.parentNode.appendChild(newParam);
+					paramsOuterBox.querySelector('.method-parameters').appendChild(newParam);
+				};
+
+				let lastParams = LSWrapper.getItem(storagePrefix + url, {});
+
+				if (Object.keys(lastParams).length > 0) {
+
+					let paramDefinitions = Object.fromEntries((schemaMethod.parameters ?? []).map(p => [p.name, p]));
+
+					for (let [k,v] of Object.entries(lastParams)) {
+						appendParameter(k, v, paramDefinitions[k]);
+					}
+
+				} else {
+
+					for (let paramDefinition of (schemaMethod.parameters ?? [])) {
+						appendParameter(paramDefinition.name, '', paramDefinition);
+					}
+				}
+
+				_Helpers.activateCommentsInElement(paramsOuterBox);
+
+				paramsOuterBox.querySelector('.add-param-action').addEventListener('click', () => {
+					appendParameter();
 				});
 
 				let logOutput = paramsOuterBox.querySelector('#log-output');
 
 				runButton.addEventListener('click', async () => {
 
-					logOutput.textContent = 'Running method..\n';
+					logOutput.textContent = 'Running method...';
 
 					let params = {};
 					for (let paramRow of paramsOuterBox.querySelectorAll('#params .param')) {
+
 						let name = paramRow.querySelector('.param-name').value;
 						if (name) {
-							params[name] = paramRow.querySelector('.param-value').value;
+
+							let valueInput = paramRow.querySelector('.param-value');
+							let value = valueInput.value;
+
+							// if the value type is not a basic string, try to parse it as JSON (but fail gracefully)
+							// if this ever creates problems, we should rather add a dropdown "Parameter Type" and
+							// populate it with "String" by default and also take the OpenAPI parameter definition into account
+							if (valueInput.dataset['inputType'] !== 'string') {
+								try {
+									value = JSON.parse(value);
+								} catch(e) {}
+							}
+
+							params[name] = value;
 						}
 					}
 
+					LSWrapper.setItem(storagePrefix + url, params);
+
 					let methodCallUrl = url;
-					let fetchConfig = { method: schemaMethod.httpVerb };
+					let fetchConfig = {
+						method: schemaMethod.httpVerb
+					};
 
 					if (schemaMethod.httpVerb === 'GET') {
 
@@ -2358,9 +2385,7 @@ let _Code = {
 					}
 
 					let response = await fetch(methodCallUrl, fetchConfig);
-					let text     = await response.text();
-
-					logOutput.textContent = text + 'Done.';
+					logOutput.textContent = await response.text();
 				});
 
 				clearButton.addEventListener('click', () => {
@@ -2391,22 +2416,29 @@ let _Code = {
 	},
 	helpers: {
 		getAttributesToFetchForErrorObject: () => 'id,type,name,content,isStatic,ownerDocument,schemaNode',
-		getPathToOpenForSchemaObjectFromError: (obj) => {
-			let firstSubFolder = (obj.schemaNode?.isServiceClass === true) ? 'services' : 'custom';
-			let typeFolder     = (obj.type === 'SchemaProperty') ? 'properties' : 'methods';
-			let pathToOpen     = (obj.schemaNode) ? `/root/${firstSubFolder}/${obj.schemaNode.id}/${typeFolder}/${obj.id}` : `/globals/${obj.id}`;
+		getPathToOpenForSchemaObject: (obj) => {
 
-			return pathToOpen;
+			if (obj.type === 'SchemaNode') {
+
+				return `/root/${obj.isServiceClass === true ? 'services' : 'custom'}/${obj.id}`;
+
+			} else {
+
+				let firstSubFolder = (obj.schemaNode?.isServiceClass === true) ? 'services' : 'custom';
+				let typeFolder     = (obj.type === 'SchemaProperty') ? 'properties' : 'methods';
+
+				return (obj.schemaNode) ? `/root/${firstSubFolder}/${obj.schemaNode.id}/${typeFolder}/${obj.id}` : `/globals/${obj.id}`;
+			}
 		},
-		navigateToSchemaObjectFromAnywhere: (obj) => {
+		navigateToSchemaObjectFromAnywhere: (obj, updateLocationStack = false) => {
 
-			let pathToOpen = _Code.helpers.getPathToOpenForSchemaObjectFromError(obj);
+			let pathToOpen = _Code.helpers.getPathToOpenForSchemaObject(obj);
 			let timeout    = (window.location.hash === '#code') ? 100 : 1000;
 
 			window.location.href = '#code';
 
 			window.setTimeout(() => {
-				_Code.tree.findAndOpenNode(pathToOpen, false);
+				_Code.tree.findAndOpenNode(pathToOpen, updateLocationStack);
 			}, timeout);
 		},
 		handleKeyDownEvent: (e) => {
@@ -2449,12 +2481,6 @@ let _Code = {
 					}
 				}
 			}
-		},
-		showSchemaRecompileMessage: () => {
-			_Dialogs.loadingMessage.show('Schema is compiling', 'Please wait...', 'code-compilation-message');
-		},
-		hideSchemaRecompileMessage:  () => {
-			_Dialogs.loadingMessage.hide('code-compilation-message');
 		},
 		preloadAvailableTagsForEntities: async () => {
 
@@ -2503,12 +2529,6 @@ let _Code = {
 					modFn(formData);
 				}
 
-				let compileRequired = _Code.persistence.isCompileRequiredForSave(formData);
-
-				if (compileRequired) {
-					_Code.helpers.showSchemaRecompileMessage();
-				}
-
 				fetch(Structr.rootUrl + entity.id, {
 					method: 'PUT',
 					body: JSON.stringify(formData)
@@ -2525,9 +2545,6 @@ let _Code = {
 							_Code.tree.refreshTree();
 						}
 
-						if (compileRequired) {
-							_Code.helpers.hideSchemaRecompileMessage();
-						}
 						_Code.persistence.showSaveAction(formData);
 
 						if (typeof callback === 'function') {
@@ -2539,8 +2556,6 @@ let _Code = {
 						let data = await response.json();
 
 						Structr.errorFromResponse(data);
-
-						_Code.helpers.hideSchemaRecompileMessage();
 					}
 				});
 			}
@@ -2558,36 +2573,15 @@ let _Code = {
 
 				if (confirm === true) {
 
-					_Code.helpers.showSchemaRecompileMessage();
 					_Code.dirty = false;
 
 					Command.deleteNode(entity.id, false, () => {
 						_Code.persistence.forceNotDirty();
-						_Code.helpers.hideSchemaRecompileMessage();
 						_Code.tree.findAndOpenNode(parent, false);
 						_Code.tree.refreshTree();
 					});
 				}
 			});
-		},
-		isCompileRequiredForSave: (changes) => {
-
-			let compileRequired = false;
-
-			for (let key in changes) {
-				compileRequired = compileRequired || _Code.persistence.compileRequiredForKey(key);
-			}
-
-			return compileRequired;
-		},
-		compileRequiredForKey: (key) => {
-
-			let element = _Code.helpers.getElementForKey(key);
-			if (element && element.dataset.recompile === "false") {
-				return false;
-			}
-
-			return true;
 		},
 		forceNotDirty: () => {
 			_Code.codeContents.find('.to-delete').removeClass('to-delete');
@@ -2819,7 +2813,7 @@ let _Code = {
 			if (_Code.persistence.isDirty()) {
 				new WarningMessage().text('No save action is defined - but the editor has unsaved changes!').requiresConfirmation().show();
 			}
-		},		
+		},
 	},
 	search: {
 		searchThreshold: 3,

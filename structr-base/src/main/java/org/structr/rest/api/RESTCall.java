@@ -33,12 +33,12 @@ public class RESTCall extends LinkedHashMap<String, String> {
 
 	private final List<String> pathParameters = new LinkedList<>();
 	private final List<String> signatureParts = new LinkedList<>();
-	private Class userType                    = null;
+	private String userType                   = null;
 	private String viewName                   = null;
 	private String url                        = null;
 	private boolean isDefaultView             = false;
 
-	public RESTCall(final String url, final String viewName, final boolean isDefaultView, final Class userType) {
+	public RESTCall(final String url, final String viewName, final boolean isDefaultView, final String userType) {
 
 		this.isDefaultView     = isDefaultView;
 		this.viewName          = viewName;
@@ -70,7 +70,7 @@ public class RESTCall extends LinkedHashMap<String, String> {
 		return pathParameters;
 	}
 
-	public Class getUserType() {
+	public String getUserType() {
 		return userType;
 	}
 

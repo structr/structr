@@ -24,25 +24,23 @@ import org.graalvm.polyglot.proxy.ProxyObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.helper.CaseHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
-import org.structr.core.app.StructrApp;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Methods;
 import org.structr.core.function.Functions;
-import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.script.polyglot.function.*;
 import org.structr.core.script.polyglot.wrappers.*;
+import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 
 import java.time.ZonedDateTime;
 import java.util.Arrays;
-import java.util.Date;
-import java.util.Map;
 import java.util.Set;
-import org.structr.common.helper.CaseHelper;
-import org.structr.core.api.AbstractMethod;
-import org.structr.core.api.Methods;
 
 import static org.structr.core.script.polyglot.PolyglotWrapper.wrap;
 
@@ -140,12 +138,17 @@ public class StructrBinding implements ProxyObject {
 				return new PolyglotProxyMap(actionContext, actionContext.getContextStore().getTemporaryParameters());
 
 			case "globalSchemaMethods":
-				// deprecated, we want user-defined functions in the global scope!
+
+				// TODO: remove in first stable release after 6.0
+				final String deprecationWarning = "Using deprecated \"$.globalSchemaMethods\" to call a user-defined function, please call it using \"$.\" directly. Support for this will be dropped in the near future.";
+				TransactionCommand.simpleBroadcastDeprecationWarning("SCRIPTING", "Deprecation warning", deprecationWarning);
+				logger.warn(deprecationWarning);
+
 				return new UserDefinedFunctionWrapper(actionContext);
 
 			default:
 
-				// look for built-in function with the given name first (because it' fast)
+				// look for built-in function with the given name first (because it is fast)
 				Function<Object, Object> func = Functions.get(CaseHelper.toUnderscore(name, false));
 				if (func != null) {
 
@@ -163,12 +166,8 @@ public class StructrBinding implements ProxyObject {
 				}
 
 				// static type?
-				final Map<String, Class<? extends NodeInterface>> entityClasses = StructrApp.getConfiguration().getNodeEntities();
-				final Class nodeType                                            = entityClasses.get(name);
-
-				if (nodeType != null) {
-
-					return new StaticTypeWrapper(actionContext, nodeType);
+				if (Traits.exists(name)) {
+					return new StaticTypeWrapper(actionContext, Traits.of(name));
 				}
 
 				// look for user-defined function with the given name

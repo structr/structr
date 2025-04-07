@@ -24,16 +24,15 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.files.ssh.filesystem.StructrFilesystem;
 import org.structr.files.ssh.filesystem.StructrPath;
 import org.structr.files.ssh.filesystem.StructrRootAttributes;
-import org.structr.files.ssh.filesystem.StructrToplevelAttributes;
-import org.structr.web.entity.AbstractFile;
-import org.structr.web.entity.File;
-import org.structr.web.entity.Folder;
 
 import java.io.IOException;
 import java.nio.channels.SeekableByteChannel;
@@ -42,6 +41,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileAttributeView;
 import java.util.*;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 /**
  *
@@ -74,17 +74,19 @@ public class StructrFilesRootPath extends StructrPath {
 				if (!closed) {
 
 					final App app                           = StructrApp.getInstance(fs.getSecurityContext());
-					final PropertyKey<Boolean> hasParentKey = StructrApp.key(AbstractFile.class, "hasParent");
-					final List<Path> files           = new LinkedList<>();
+					final Traits traits                     = Traits.of(StructrTraits.ABSTRACT_FILE);
+					final PropertyKey<String> nameKey       = traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
+					final PropertyKey<Boolean> hasParentKey = traits.key(AbstractFileTraitDefinition.HAS_PARENT_PROPERTY);
+					final List<Path> files                  = new LinkedList<>();
 
 					try (final Tx tx = app.tx()) {
 
-						for (final Folder folder : app.nodeQuery(Folder.class).and(hasParentKey, false).sort(AbstractNode.name).getAsList()) {
+						for (final NodeInterface folder : app.nodeQuery(StructrTraits.FOLDER).and(hasParentKey, false).sort(nameKey).getAsList()) {
 
 							files.add(new StructrFilePath(fs, StructrFilesRootPath.this, folder.getName()));
 						}
 
-						for (final File file : app.nodeQuery(File.class).and(hasParentKey, false).sort(AbstractNode.name).getAsList()) {
+						for (final NodeInterface file : app.nodeQuery(StructrTraits.FILE).and(hasParentKey, false).sort(nameKey).getAsList()) {
 
 							files.add(new StructrFilePath(fs, StructrFilesRootPath.this, file.getName()));
 						}

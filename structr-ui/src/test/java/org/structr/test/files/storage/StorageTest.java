@@ -21,30 +21,33 @@ package org.structr.test.files.storage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.storage.StorageProviderFactory;
+import org.structr.storage.providers.local.LocalFSStorageProvider;
+import org.structr.storage.providers.memory.InMemoryStorageProvider;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.entity.File;
-import org.structr.web.entity.Folder;
+import org.structr.web.entity.StorageConfiguration;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Scanner;
-import org.structr.storage.providers.local.LocalFSStorageProvider;
-import org.structr.storage.providers.memory.InMemoryStorageProvider;
-import org.structr.web.entity.StorageConfiguration;
 
 import static org.testng.AssertJUnit.*;
 
 
 public class StorageTest extends StructrUiTest {
+
 	private static final Logger logger = LoggerFactory.getLogger(StorageTest.class);
 
 	@Test
@@ -54,21 +57,23 @@ public class StorageTest extends StructrUiTest {
 
 			final StorageConfiguration local  = StorageProviderFactory.createConfig("local",  LocalFSStorageProvider.class, Map.of());
 			final StorageConfiguration memory = StorageProviderFactory.createConfig("memory", InMemoryStorageProvider.class, Map.of());
+			final Traits folderTraits         = Traits.of(StructrTraits.FOLDER);
+			final Traits fileTraits           = Traits.of(StructrTraits.FILE);
 
 			PropertyMap folderProps = new PropertyMap();
-			folderProps.put(StructrApp.key(Folder.class, "name"), "local");
-			folderProps.put(StructrApp.key(Folder.class, "storageConfiguration"), local);
-			Folder folder = app.create(Folder.class, folderProps);
+			folderProps.put(folderTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "local");
+			folderProps.put(folderTraits.key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY), local);
+			NodeInterface folder = app.create(StructrTraits.FOLDER, folderProps);
 
 			PropertyMap folderProps2 = new PropertyMap();
-			folderProps2.put(StructrApp.key(Folder.class, "name"), "memory");
-			folderProps2.put(StructrApp.key(Folder.class, "storageConfiguration"), memory);
-			Folder folder2 = app.create(Folder.class, folderProps2);
+			folderProps2.put(folderTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "memory");
+			folderProps2.put(folderTraits.key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY), memory);
+			NodeInterface folder2 = app.create(StructrTraits.FOLDER, folderProps2);
 
 			PropertyMap fileProps = new PropertyMap();
-			fileProps.put(StructrApp.key(File.class, "name"), "testFile.txt");
-			fileProps.put(StructrApp.key(File.class, "parent"), folder);
-			File file = app.create(File.class, fileProps);
+			fileProps.put(folderTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testFile.txt");
+			fileProps.put(fileTraits.key(AbstractFileTraitDefinition.PARENT_PROPERTY), folder);
+			File file = app.create(StructrTraits.FILE, fileProps).as(File.class);
 
 			final String payload = "test payload written to this file";
 
@@ -82,7 +87,7 @@ public class StorageTest extends StructrUiTest {
 			assertEquals(payload, result);
 
 			// Move from in local to memory storage provider folder
-			file.setProperty(StructrApp.key(File.class, "parent"), folder2);
+			file.setProperty(fileTraits.key(AbstractFileTraitDefinition.PARENT_PROPERTY), folder2);
 
 			// Check if data is still equal after migration
 			is = file.getInputStream();
@@ -102,12 +107,13 @@ public class StorageTest extends StructrUiTest {
 
 			final StorageConfiguration local  = StorageProviderFactory.createConfig("local",  LocalFSStorageProvider.class, null);
 			final StorageConfiguration memory = StorageProviderFactory.createConfig("memory", InMemoryStorageProvider.class, null);
+			final Traits fileTraits           = Traits.of(StructrTraits.FILE);
 
-			final PropertyKey<StorageConfiguration> storageConfigurationKey = StructrApp.key(File.class, "storageConfiguration");
+			final PropertyKey<StorageConfiguration> storageConfigurationKey = fileTraits.key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY);
 
 			PropertyMap fileProps = new PropertyMap();
-			fileProps.put(StructrApp.key(File.class, "name"), "testFile.txt");
-			File file = app.create(File.class, fileProps);
+			fileProps.put(fileTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testFile.txt");
+			File file = app.create(StructrTraits.FILE, fileProps).as(File.class);
 
 			final String payload = "test payload written to this file";
 

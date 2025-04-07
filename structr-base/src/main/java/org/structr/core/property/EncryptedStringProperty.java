@@ -18,8 +18,6 @@
  */
 package org.structr.core.property;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -32,9 +30,7 @@ import org.structr.core.function.CryptFunction;
  */
 public class EncryptedStringProperty extends StringProperty {
 
-	private static final Logger logger = LoggerFactory.getLogger(EncryptedStringProperty.class);
-
-	public EncryptedStringProperty(String name) {
+	public EncryptedStringProperty(final String name) {
 		this(name, name);
 	}
 
@@ -76,9 +72,11 @@ public class EncryptedStringProperty extends StringProperty {
 
 	@Override
 	public PropertyConverter<String, ?> databaseConverter(SecurityContext securityContext) {
+
 		return new PropertyConverter<>(securityContext) {
+
 			@Override
-			public String revert(Object source) throws FrameworkException {
+			public String revert(final Object source) throws FrameworkException {
 
 				if (source != null) {
 
@@ -89,7 +87,7 @@ public class EncryptedStringProperty extends StringProperty {
 			}
 
 			@Override
-			public Object convert(String source) throws FrameworkException {
+			public Object convert(final String source) throws FrameworkException {
 
 				if (source != null) {
 
@@ -102,8 +100,10 @@ public class EncryptedStringProperty extends StringProperty {
 	}
 
 	@Override
-	public PropertyConverter<String, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+	public PropertyConverter<String, ?> databaseConverter(final SecurityContext securityContext, final GraphObject entity) {
+
 		return new PropertyConverter<>(securityContext) {
+
 			@Override
 			public String revert(Object source) throws FrameworkException {
 
@@ -127,5 +127,4 @@ public class EncryptedStringProperty extends StringProperty {
 			}
 		};
 	}
-
 }

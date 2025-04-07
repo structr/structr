@@ -18,39 +18,39 @@
  */
 package org.structr.core.graph.search;
 
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
-import org.structr.api.Transaction;
-import org.structr.api.graph.Direction;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.index.Index;
+import org.structr.api.search.ComparisonQuery;
 import org.structr.api.search.Occurrence;
 import org.structr.api.search.QueryContext;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.Iterables;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
-import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.geo.GeoCodingResult;
 import org.structr.common.geo.GeoHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.app.Query;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.*;
-import org.structr.core.graph.*;
+import org.structr.core.entity.Principal;
+import org.structr.core.graph.Factory;
+import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.property.AbstractPrimitiveProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.property.RelationProperty;
-import org.structr.schema.ConfigurationProvider;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Trait;
+import org.structr.core.traits.Traits;
 
 import java.util.*;
-import org.structr.api.search.ComparisonQuery;
-import org.structr.schema.SchemaService;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
+import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
 
 /**
  *
@@ -60,28 +60,17 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 	private static final Logger logger = LoggerFactory.getLogger(SearchCommand.class.getName());
 
-	private static final Set<PropertyKey> indexedWarningDisabled    = new LinkedHashSet<>(Arrays.asList(SchemaMethod.source, SchemaProperty.readFunction, SchemaProperty.writeFunction));
-	private static final Map<String, Set<String>> subtypeMapForType = new LinkedHashMap<>();
-	private static final Set<String> baseTypes                      = new LinkedHashSet<>();
-
-	static {
-
-		baseTypes.add(RelationshipInterface.class.getSimpleName());
-		baseTypes.add(AbstractRelationship.class.getSimpleName());
-		baseTypes.add(NodeInterface.class.getSimpleName());
-		baseTypes.add(AbstractNode.class.getSimpleName());
-	}
+	private static final Set<String> indexedWarningDisabled = new LinkedHashSet<>(Arrays.asList(SchemaMethodTraitDefinition.SOURCE_PROPERTY, SchemaPropertyTraitDefinition.READ_FUNCTION_PROPERTY, SchemaPropertyTraitDefinition.WRITE_FUNCTION_PROPERTY));
 
 	private final SearchAttributeGroup rootGroup = new SearchAttributeGroup(Occurrence.REQUIRED);
 	private SortOrder sortOrder                  = new DefaultSortOrder();
 	private QueryContext queryContext            = new QueryContext();
 	private SearchAttributeGroup currentGroup    = rootGroup;
 	private Comparator comparator                = null;
+	private Traits traits                        = null;
 	private boolean publicOnly                   = false;
 	private boolean includeHidden                = true;
-	private boolean prefetchingEnabled           = true;
 	private boolean doNotSort                    = false;
-	private Class type                           = null;
 	private int pageSize                         = Integer.MAX_VALUE;
 	private int page                             = 1;
 
@@ -96,19 +85,10 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			return PagingIterable.EMPTY_ITERABLE;
 		}
 
-		// automatic prefetching
-		if (prefetchingEnabled && type != null) {
-
-			final Set<Class> schemaTypes = Set.of(SchemaNode.class, SchemaMethod.class, SchemaProperty.class, SchemaView.class);
-			if (schemaTypes.contains(type)) {
-
-				SchemaService.prefetchSchemaNodes(TransactionCommand.getCurrentTransaction());
-			}
-		}
-
-		final Factory<S, T> factory   = getFactory(securityContext, includeHidden, publicOnly, pageSize, page);
-		final PrincipalInterface user = securityContext.getUser(false);
-		final SearchConfig config     = new SearchConfig();
+		final Factory<S, T> factory = getFactory(securityContext, includeHidden, publicOnly, pageSize, page);
+		final Principal user        = securityContext.getUser(false);
+		final Traits traits         = Traits.of(StructrTraits.NODE_INTERFACE);
+		final SearchConfig config   = new SearchConfig();
 
 		if (user == null) {
 
@@ -134,7 +114,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		// special handling of deleted and hidden flags
 		if (!includeHidden && !isRelationshipSearch()) {
 
-			rootGroup.add(new PropertySearchAttribute(NodeInterface.hidden,  true, Occurrence.FORBIDDEN, true));
+			rootGroup.add(new PropertySearchAttribute(traits.key(NodeInterfaceTraitDefinition.HIDDEN_PROPERTY),  true, Occurrence.FORBIDDEN, true));
 		}
 
 		// At this point, all search attributes are ready
@@ -363,6 +343,11 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		return null;
 	}
 
+	@Override
+	public Traits getTraits() {
+		return traits;
+	}
+
 	// ----- builder methods -----
 	@Override
 	public org.structr.core.app.Query<T> disableSorting() {
@@ -444,60 +429,41 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 		doNotSort = true;
 
-		return and(GraphObject.id, uuid);
+		return and(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), uuid);
 	}
 
 	@Override
-	public org.structr.core.app.Query<T> andType(final Class type) {
+	public org.structr.core.app.Query<T> andTypes(final Traits traits) {
 
-		this.type = type;
+		this.traits = traits;
+
+		andType(traits.getName());
+
+		return this;
+	}
+
+	@Override
+	public org.structr.core.app.Query<T> andType(final String type) {
 
 		currentGroup.getSearchAttributes().add(new TypeSearchAttribute(type, Occurrence.REQUIRED, true));
 		return this;
 	}
 
 	@Override
-	public org.structr.core.app.Query<T> orType(final Class type) {
-
-		this.type = type;
+	public org.structr.core.app.Query<T> orType(final String type) {
 
 		currentGroup.getSearchAttributes().add(new TypeSearchAttribute(type, Occurrence.OPTIONAL, true));
 		return this;
 	}
 
 	@Override
-	public org.structr.core.app.Query<T> andTypes(final Class type) {
-
-		this.type = type;
-
-		andType(type);
-
-		return this;
-	}
-
-	@Override
-	public org.structr.core.app.Query<T> orTypes(final Class type) {
-
-		this.type = type;
-
-		orType(type);
-
-		return this;
-	}
-
-	@Override
-	public Class getType() {
-		return this.type;
-	}
-
-	@Override
 	public org.structr.core.app.Query<T> andName(final String name) {
-		return and(AbstractNode.name, name);
+		return and(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name);
 	}
 
 	@Override
 	public org.structr.core.app.Query<T> orName(final String name) {
-		return or(AbstractNode.name, name);
+		return or(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name);
 	}
 
 	@Override
@@ -525,7 +491,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	@Override
 	public <P> org.structr.core.app.Query<T> and(final PropertyKey<P> key, final P value) {
 
-		if (GraphObject.id.equals(key)) {
+		if (Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY).equals(key)) {
 			this.doNotSort = false;
 		}
 
@@ -535,7 +501,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	@Override
 	public <P> org.structr.core.app.Query<T> and(final PropertyKey<P> key, final P value, final boolean exact) {
 
-		if (GraphObject.id.equals(key)) {
+		if (Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY).equals(key)) {
 
 			this.doNotSort = false;
 		}
@@ -548,7 +514,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	@Override
 	public <P> org.structr.core.app.Query<T> and(final PropertyKey<P> key, final P value, final boolean exact, final Occurrence occur) {
 
-		if (GraphObject.id.equals(key)) {
+		if (Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY).equals(key)) {
 
 			this.doNotSort = false;
 		}
@@ -568,7 +534,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			final PropertyKey key = entry.getKey();
 			final Object value = entry.getValue();
 
-			if (GraphObject.id.equals(key)) {
+			if (Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY).equals(key)) {
 
 				this.doNotSort = false;
 			}
@@ -679,7 +645,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	}
 
 	@Override
-	public <P> Query<T> matches(final PropertyKey<P> key, final String regex) {
+	public <P> Query<T> matches(final PropertyKey<String> key, final String regex) {
 
 		currentGroup.getSearchAttributes().add(new ComparisonSearchAttribute(key, ComparisonQuery.Operation.matches, regex, Occurrence.EXACT));
 
@@ -761,23 +727,13 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	}
 
 	@Override
-	public Predicate<GraphObject> toPredicate() {
+	public Predicate<org.structr.core.GraphObject> toPredicate() {
 		return new AndPredicate(rootGroup.getSearchAttributes());
-	}
-
-	@Override
-	public SearchAttributeGroup getRootAttributeGroup() {
-		return rootGroup;
 	}
 
 	@Override
 	public Occurrence getCurrentOccurrence() {
 		return currentGroup.getOccurrence();
-	}
-
-	@Override
-	public void setQueryContext(final QueryContext queryContext) {
-		this.queryContext = queryContext;
 	}
 
 	@Override
@@ -792,163 +748,16 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		return this;
 	}
 
-	@Override
-	public void overrideFetchSize(final int fetchSizeForThisRequest) {
-		queryContext.overrideFetchSize(fetchSizeForThisRequest);
-	}
+	// ----- public static methods -----
+	public static boolean isTypeAssignableFromOtherType (final Traits type1, final Traits type2) {
 
-	public org.structr.core.app.Query<T> disablePrefetching() {
-		prefetchingEnabled = false;
-		return this;
-	}
+		final Set<String> traits1 = type1.getAllTraits();
+		final Set<String> traits2 = type2.getAllTraits();
 
-	// ----- static methods -----
-	public static synchronized void clearInheritanceMap() {
-		subtypeMapForType.clear();
-	}
+		traits1.retainAll(traits2);
 
-	public static synchronized Set<String> getAllSubtypesAsStringSet(final String type) {
-
-		Set<String> allSubtypes = subtypeMapForType.get(type);
-		if (allSubtypes == null) {
-
-			logger.debug("Subtype map cache miss.");
-
-			allSubtypes = new LinkedHashSet<>();
-			subtypeMapForType.put(type, allSubtypes);
-
-			final ConfigurationProvider configuration                             = StructrApp.getConfiguration();
-			final Map<String, Class<? extends NodeInterface>> nodeEntities        = configuration.getNodeEntities();
-			final Map<String, Class<? extends RelationshipInterface>> relEntities = configuration.getRelationshipEntities();
-
-			// add type first (this is neccesary because two class objects of the same dynamic type node are not equal
-			// to each other and not assignable, if the schema node was modified in the meantime)
-			allSubtypes.add(type);
-
-			// scan all node entities for subtypes
-			for (final Map.Entry<String, Class<? extends NodeInterface>> entity : nodeEntities.entrySet()) {
-
-				final Class entityType     = entity.getValue();
-				final Set<Class> ancestors = typeAndAllSupertypes(entityType);
-
-				for (final Class superClass : ancestors) {
-
-					final String superClasSimpleName = superClass.getSimpleName();
-					final String superClassFullName  = superClass.getName();
-
-					if ((superClassFullName.startsWith("org.structr.") || superClassFullName.startsWith("com.structr.")) && superClasSimpleName.equals(type)) {
-
-						allSubtypes.add(entityType.getSimpleName());
-					}
-				}
-			}
-
-			// scan all relationship entities for subtypes
-			for (final Map.Entry<String, Class<? extends RelationshipInterface>> entity : relEntities.entrySet()) {
-
-				final Class entityType     = entity.getValue();
-				final Set<Class> ancestors = typeAndAllSupertypes(entityType);
-
-				for (final Class superClass : ancestors) {
-
-					final String superClasSimpleName = superClass.getSimpleName();
-					final String superClassFullName  = superClass.getName();
-
-					if ((superClassFullName.startsWith("org.structr.") || superClassFullName.startsWith("com.structr.")) && superClasSimpleName.equals(type)) {
-
-						allSubtypes.add(entityType.getSimpleName());
-					}
-				}
-			}
-
-		} else {
-
-			logger.debug("Subtype map cache hit.");
-		}
-
-		return Collections.unmodifiableSet(allSubtypes);
-	}
-
-	public static boolean isTypeAssignableFromOtherType (Class type, Class otherType) {
-
-		return getAllSubtypesAsStringSet(type.getSimpleName()).contains(otherType.getSimpleName());
-	}
-
-	public static Set<Class> typeAndAllSupertypes(final Class type) {
-
-		final ConfigurationProvider configuration = StructrApp.getConfiguration();
-		final Set<Class> allSupertypes            = new LinkedHashSet<>();
-
-		Class localType = type;
-
-		while (localType != null && !localType.equals(Object.class)) {
-
-			allSupertypes.add(localType);
-			allSupertypes.addAll(configuration.getInterfacesForType(localType));
-
-			localType = localType.getSuperclass();
-		}
-
-		// remove base types
-		allSupertypes.removeAll(baseTypes);
-
-		return allSupertypes;
-	}
-
-	public static void prefetch(final Class type, final String uuid) {
-
-		final Set<String> keys    = new LinkedHashSet<>();
-		final Set<String> types1  = new LinkedHashSet<>();
-		final Set<String> types2  = new LinkedHashSet<>();
-
-		final Set<PropertyKey> all = StructrApp.getConfiguration().getPropertySet(type, PropertyView.All);
-
-		for (final PropertyKey<?> key : all) {
-
-			if (key instanceof RelationProperty relationProperty) {
-
-				final Relation relation   = relationProperty.getRelation();
-				final Direction direction = relation.getDirectionForType(type);
-				final String name         = relation.name();
-
-				for (final Class s : SearchCommand.typeAndAllSupertypes(relation.getSourceType())) {
-
-					if (!s.isInterface()) {
-
-						types1.add(s.getSimpleName());
-					}
-				}
-
-				for (final Class s : SearchCommand.typeAndAllSupertypes(relation.getTargetType())) {
-
-					if (!s.isInterface()) {
-
-						types2.add(s.getSimpleName());
-					}
-				}
-
-				switch (direction) {
-
-					case INCOMING -> keys.add("all/INCOMING/" + name);
-					case OUTGOING -> keys.add("all/OUTGOING/" + name);
-				}
-			}
-		}
-
-		// intersect
-		types1.retainAll(types2);
-
-		types1.remove(AbstractNode.class.getSimpleName());
-		types1.remove(NodeInterface.class.getSimpleName());
-		types1.remove(type.getSimpleName());
-
-		if (!types1.isEmpty()) {
-
-			final List<String> list      = Iterables.toList(types1);
-			final String commonBaseClass = list.get(0);
-
-			TransactionCommand.getCurrentTransaction().prefetch(commonBaseClass, (String)null, keys);
-		}
+		// fixme: how do we determine assignability with traits?!
+		return !traits1.isEmpty();
 	}
 
 	// ----- private methods ----
@@ -956,17 +765,17 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 		if (key != null && !key.isIndexed() && key instanceof AbstractPrimitiveProperty) {
 
-			final Class declaringClass = key.getDeclaringClass();
+			final Trait declaringClass = key.getDeclaringTrait();
 			String className           = "";
 
 			if (declaringClass != null) {
 
-				className = declaringClass.getSimpleName() + ".";
+				className = declaringClass.getLabel() + ".";
 			}
 
 			// disable logging for keys we know are not indexed and cannot
 			// easily be indexed because of the character limit of 4000..
-			if (!indexedWarningDisabled.contains(key)) {
+			if (!indexedWarningDisabled.contains(key.jsonName())) {
 
 				logger.debug("Non-indexed property key {}{} is used in query. This can lead to performance problems in large databases.", className, key.jsonName());
 			}
@@ -974,19 +783,13 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	}
 
 	private String getQueryDescription() {
-
-		if (type != null) {
-
-			return "(" + type.getSimpleName() + ")";
-		}
-
 		return null;
 	}
 
 	// ----- nested classes -----
-	private class AndPredicate implements Predicate<GraphObject> {
+	private class AndPredicate implements Predicate<org.structr.core.GraphObject> {
 
-		final List<Predicate<GraphObject>> predicates = new ArrayList<>();
+		final List<Predicate<org.structr.core.GraphObject>> predicates = new ArrayList<>();
 
 		public AndPredicate(final List<SearchAttribute> searchAttributes) {
 
@@ -1030,11 +833,11 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		}
 
 		@Override
-		public boolean accept(GraphObject obj) {
+		public boolean accept(org.structr.core.GraphObject obj) {
 
 			boolean result = true;
 
-			for (final Predicate<GraphObject> predicate : predicates) {
+			for (final Predicate<org.structr.core.GraphObject> predicate : predicates) {
 
 				result &= predicate.accept(obj);
 			}

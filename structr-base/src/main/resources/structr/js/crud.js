@@ -160,7 +160,7 @@ let _Crud = {
 			};
 
 			if (!_Crud.type) {
-				setCurrentTypeIfPossible(_Helpers.urlParam('type'));
+				setCurrentTypeIfPossible(_Helpers.getURLParameter('type'));
 			}
 
 			if (!_Crud.type) {
@@ -290,12 +290,12 @@ let _Crud = {
 				return Object.keys(_Crud.types).sort().filter(typeName => {
 
 					let type            = _Crud.types[typeName];
-					let isRelType       = type.isRel === true;
-					let isBuiltInRel    = isRelType && !(type.className.startsWith('org.structr.dynamic'));
-					let isCustomRelType = isRelType && (type.className.startsWith('org.structr.dynamic'));
-					let isDynamicType   = !isRelType && (type.className.startsWith('org.structr.dynamic'));
-					let isHtmlType      = !isRelType && (type.extendsClass.startsWith('org.structr.web.entity.dom'));
-					let isFlowType      = !isRelType && type.className.startsWith('org.structr.flow');
+					let isRelType       = (type.isRel === true);
+					let isBuiltInRel    = isRelType && type.isBuiltin;
+					let isCustomRelType = isRelType && !type.isBuiltin;
+					let isDynamicType   = !isRelType && !type.isBuiltin;
+					let isHtmlType      = type.traits.includes('DOMNode');
+					let isFlowType      = type.traits.includes('FlowNode');
 					let isOtherType     = !(isRelType || isDynamicType || isHtmlType || isFlowType);
 
 					let hide = (!typeVisibility.rels && isBuiltInRel) || (!typeVisibility.customRels && isCustomRelType) || (!typeVisibility.custom && isDynamicType) ||
@@ -430,7 +430,15 @@ let _Crud = {
 
 			let pagerNode = _Crud.objectList.pager.addPager(type, crudRight);
 
-			crudRight.insertAdjacentHTML('beforeend', '<table class="crud-table"><thead><tr></tr></thead><tbody></tbody></table><div id="query-info">Query: <span class="queryTime"></span> s &nbsp; Serialization: <span class="serTime"></span> s</div>');
+			crudRight.insertAdjacentHTML('beforeend', `
+				<table class="crud-table" data-type="${type}">
+					<thead>
+						<tr></tr>
+					</thead>
+					<tbody></tbody>
+					</table>
+				<div id="query-info">Query: <span class="queryTime"></span> s &nbsp; Serialization: <span class="serTime"></span> s</div>
+			`);
 
 			_Crud.objectList.updateCrudTableHeader(type);
 
@@ -703,6 +711,10 @@ let _Crud = {
 				}
 			});
 		},
+		isDisplayedTableForType: (type) => {
+
+			return (type === document.querySelector('#crud-type-detail table')?.dataset['type']);
+		},
 		refreshList: (type) => {
 			_Crud.objectList.clearList(type);
 			_Crud.objectList.activateList(type);
@@ -887,18 +899,20 @@ let _Crud = {
 		},
 		appendRow: (type, properties, item) => {
 
-			_Crud.helpers.ensurePropertiesForTypeAreLoaded(item.type, () => {
+			if (_Crud.objectList.isDisplayedTableForType(type)) {
 
-				let id    = item['id'];
-				let row   = _Crud.objectList.getRow(id);
+				_Crud.helpers.ensurePropertiesForTypeAreLoaded(item.type, () => {
 
-				if ( !(row && row.length) ) {
+					let id  = item['id'];
+					let row = _Crud.objectList.getRow(id);
 
-					document.querySelector('#crud-type-detail table tbody').insertAdjacentHTML('beforeend', `<tr id="id_${id}"></tr>`);
-				}
+					if (!row[0]) {
+						document.querySelector('#crud-type-detail table tbody').insertAdjacentHTML('beforeend', `<tr id="id_${id}"></tr>`);
+					}
 
-				_Crud.objectList.populateRow(id, item, type, properties);
-			});
+					_Crud.objectList.populateRow(id, item, type, properties);
+				});
+			}
 		},
 		populateRow: (id, item, type, properties) => {
 
@@ -1829,7 +1843,13 @@ let _Crud = {
 			const hiddenKeysForImageTypes     = [ 'base64Data', 'imageData', 'favoriteContent', 'favoriteContext', 'favoriteUsers', 'resultDocumentForExporter', 'documentTemplateForExporter', 'isFile', 'position', 'extractedContent', 'indexedWords', 'fileModificationDate' ];
 			const hiddenKeysForPrincipalTypes = [ 'isUser', 'isAdmin', 'createdBy', 'sessionIds', 'publicKeys', 'sessionData', 'password', 'passwordChangeDate', 'salt', 'twoFactorSecret', 'twoFactorToken', 'isTwoFactorUser', 'twoFactorConfirmed', 'ownedNodes', 'localStorage' ];
 
-			if (_Crud.helpers.isPrincipalType(_Crud.types[type])) {
+			let typeDef = _Crud.types[type];
+
+			let hasPrincipalTrait = typeDef.traits.includes['Principal'];
+			let hasImageTrait     = typeDef.traits.includes['AbstractFile'];
+			let hasFileTrait      = typeDef.traits.includes['Image'];
+
+			if (hasPrincipalTrait) {
 
 				for (let key of hiddenKeysForPrincipalTypes) {
 					if (!hiddenKeys.includes(key)) {
@@ -1838,7 +1858,7 @@ let _Crud = {
 				}
 			}
 
-			if (_Crud.helpers.isImageType(_Crud.types[type])) {
+			if (hasImageTrait) {
 
 				for (let key of hiddenKeysForImageTypes) {
 					if (!hiddenKeys.includes(key)) {
@@ -1847,7 +1867,7 @@ let _Crud = {
 				}
 			}
 
-			if (_Crud.helpers.isFileType(_Crud.types[type])) {
+			if (hasFileTrait) {
 
 				for (let key of hiddenKeysForFileTypes) {
 					if (!hiddenKeys.includes(key)) {
@@ -1960,8 +1980,8 @@ let _Crud = {
 			crudPagerDataKey: 'structrCrudPagerData_' + location.port + '_',
 			addPager: (type, el) => {
 
-				_Crud.page[type]     ??= _Helpers.urlParam('page') ?? (_Crud.objectList.pager.defaultPage ?? 1);
-				_Crud.pageSize[type] ??= _Helpers.urlParam('pageSize') ?? (_Crud.objectList.pager.defaultPageSize ?? 10);
+				_Crud.page[type]     ??= _Helpers.getURLParameter('page') ?? (_Crud.objectList.pager.defaultPage ?? 1);
+				_Crud.pageSize[type] ??= _Helpers.getURLParameter('pageSize') ?? (_Crud.objectList.pager.defaultPageSize ?? 10);
 
 				el.insertAdjacentHTML('beforeend', _Crud.objectList.pager.templates.pagerHTML({ type }));
 
@@ -2104,11 +2124,11 @@ let _Crud = {
 				// Priority: JS vars -> Local Storage -> URL -> Default
 
 				if (!_Crud.view[type]) {
-					_Crud.view[type]     = _Helpers.urlParam('view');
-					_Crud.sort[type]     = _Helpers.urlParam('sort');
-					_Crud.order[type]    = _Helpers.urlParam('order');
-					_Crud.pageSize[type] = _Helpers.urlParam('pageSize');
-					_Crud.page[type]     = _Helpers.urlParam('page');
+					_Crud.view[type]     = _Helpers.getURLParameter('view');
+					_Crud.sort[type]     = _Helpers.getURLParameter('sort');
+					_Crud.order[type]    = _Helpers.getURLParameter('order');
+					_Crud.pageSize[type] = _Helpers.getURLParameter('pageSize');
+					_Crud.page[type]     = _Helpers.getURLParameter('page');
 				}
 
 				if (!_Crud.view[type]) {
@@ -2449,7 +2469,7 @@ let _Crud = {
 				}
 				if (_Helpers.isUUID(searchString)) {
 					attr = 'uuid';
-					types = ['AbstractNode'];
+					types = ['NodeInterface'];
 				}
 			}
 
@@ -2728,18 +2748,6 @@ let _Crud = {
 		getFormat: (type, key) => {
 			return _Crud.types[type].views.all[key].format;
 		},
-		isPrincipalType: (typeDef) => {
-			let cls = Structr.getFQCNForDynamicTypeName('Principal');
-			return typeDef.className === cls || _Crud.helpers.inheritsFromAncestorType(typeDef, cls);
-		},
-		isFileType: (typeDef) => {
-			let cls = Structr.getFQCNForDynamicTypeName('AbstractFile');
-			return typeDef.className === cls || _Crud.helpers.inheritsFromAncestorType(typeDef, cls);
-		},
-		isImageType: (typeDef) => {
-			let cls = Structr.getFQCNForDynamicTypeName('Image');
-			return typeDef.className === cls || _Crud.helpers.inheritsFromAncestorType(typeDef, cls);
-		},
 		isRelType: (type) => {
 			return (_Crud.types[type]?.isRel === true);
 		},
@@ -2817,24 +2825,6 @@ let _Crud = {
 
 				return info;
 			}
-		},
-		inheritsFromAncestorType: (typeDef, ancestorFQCN) => {
-
-			if (typeDef.extendsClass === ancestorFQCN) {
-
-				return true;
-
-			} else {
-
-				// search parent type
-				let parentType = Object.values(_Crud.types).filter(t => (t.className === typeDef.extendsClass));
-
-				if (parentType.length === 1) {
-					return _Crud.helpers.inheritsFromAncestorType(parentType[0], ancestorFQCN);
-				}
-			}
-
-			return false;
 		},
 		extractIds: (result) => {
 

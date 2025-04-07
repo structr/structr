@@ -18,68 +18,31 @@
  */
 package org.structr.flow.impl;
 
-import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.core.property.EndNode;
-import org.structr.core.property.Property;
-import org.structr.flow.api.Action;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.flow.api.ThrowingElement;
-import org.structr.flow.engine.Context;
-import org.structr.flow.engine.FlowException;
-import org.structr.flow.impl.rels.FlowExceptionHandlerNodes;
 import org.structr.module.api.DeployableEntity;
 
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Queue;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
+import java.util.TreeMap;
 
-public class FlowForkJoin extends FlowNode implements Action, DeployableEntity, ThrowingElement {
+public class FlowForkJoin extends FlowAction implements DeployableEntity, ThrowingElement {
 
-	public static final Property<FlowExceptionHandler> exceptionHandler 	= new EndNode<>("exceptionHandler", FlowExceptionHandlerNodes.class);
-
-	public static final View defaultView 									= new View(FlowAction.class, PropertyView.Public, exceptionHandler, isStartNodeOfContainer);
-	public static final View uiView      									= new View(FlowAction.class, PropertyView.Ui, exceptionHandler, isStartNodeOfContainer);
-
-	@Override
-	public FlowExceptionHandler getExceptionHandler(Context context) {
-		return getProperty(exceptionHandler);
+	public FlowForkJoin(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
 	}
 
 	@Override
 	public Map<String, Object> exportData() {
-		Map<String, Object> result = new HashMap<>();
 
-		result.put("id", this.getUuid());
-		result.put("type", this.getClass().getSimpleName());
+		final Map<String, Object> result = new TreeMap<>();
 
-		result.put("visibleToPublicUsers", this.getProperty(visibleToPublicUsers));
-		result.put("visibleToAuthenticatedUsers", this.getProperty(visibleToAuthenticatedUsers));
+		result.put(GraphObjectTraitDefinition.ID_PROPERTY,                          getUuid());
+		result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,                        getType());
+		result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        isVisibleToPublicUsers());
+		result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, isVisibleToAuthenticatedUsers());
 
 		return result;
-	}
-
-	@Override
-	public void execute(Context context) throws FlowException {
-
-		try {
-
-			Queue<Future> futures = context.getForkFutures();
-
-			while(futures.size() > 0) {
-				//Poll head and invoke get to force the promise to resolve and thus waiting for thread termination
-				Future f = futures.poll();
-				if (f != null) {
-					f.get();
-				}
-			}
-
-		} catch (ExecutionException | InterruptedException ex) {
-
-			throw new FlowException(ex, this);
-
-		}
-
 	}
 }

@@ -21,11 +21,9 @@ package org.structr.core.graph;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.DatabaseService;
-import org.structr.api.NetworkException;
-import org.structr.api.NotInTransactionException;
-import org.structr.api.Predicate;
+import org.structr.api.*;
 import org.structr.api.graph.Node;
+import org.structr.api.graph.PropertyContainer;
 import org.structr.api.graph.Relationship;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.DatabaseServiceNetworkException;
@@ -37,8 +35,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.StructrTransactionListener;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.scheduler.TransactionPostProcessQueue;
 
@@ -46,7 +43,6 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import org.structr.api.Transaction;
 
 /**
  * Graph service command for database operations that need to be wrapped in
@@ -276,7 +272,7 @@ public class TransactionCommand {
 
 	}
 
-	public static void nodeCreated(final PrincipalInterface user, final NodeInterface node) {
+	public static void nodeCreated(final Principal user, final NodeInterface node) {
 
 		TransactionCommand command = commands.get();
 		if (command != null) {
@@ -302,7 +298,7 @@ public class TransactionCommand {
 		}
 	}
 
-	public static void nodeModified(final PrincipalInterface user, final AbstractNode node, final PropertyKey key, final Object previousValue, final Object newValue) {
+	public static void nodeModified(final Principal user, final NodeInterface node, final PropertyKey key, final Object previousValue, final Object newValue) {
 
 		TransactionCommand command = commands.get();
 		if (command != null) {
@@ -326,7 +322,7 @@ public class TransactionCommand {
 		}
 	}
 
-	public static void nodeDeleted(final PrincipalInterface user, final NodeInterface node) {
+	public static void nodeDeleted(final Principal user, final NodeInterface node) {
 
 		TransactionCommand command = commands.get();
 		if (command != null) {
@@ -350,7 +346,7 @@ public class TransactionCommand {
 		}
 	}
 
-	public static void relationshipCreated(final PrincipalInterface user, final RelationshipInterface relationship) {
+	public static void relationshipCreated(final Principal user, final RelationshipInterface relationship) {
 
 		TransactionCommand command = commands.get();
 		if (command != null) {
@@ -374,7 +370,7 @@ public class TransactionCommand {
 		}
 	}
 
-	public static void relationshipModified(final PrincipalInterface user, final RelationshipInterface relationship, final PropertyKey key, final Object previousValue, final Object newValue) {
+	public static void relationshipModified(final Principal user, final RelationshipInterface relationship, final PropertyKey key, final Object previousValue, final Object newValue) {
 
 		TransactionCommand command = commands.get();
 		if (command != null) {
@@ -398,7 +394,7 @@ public class TransactionCommand {
 		}
 	}
 
-	public static void relationshipDeleted(final PrincipalInterface user, final RelationshipInterface relationship, final boolean passive) {
+	public static void relationshipDeleted(final Principal user, final RelationshipInterface relationship, final boolean passive) {
 
 		TransactionCommand command = commands.get();
 		if (command != null) {
@@ -445,25 +441,32 @@ public class TransactionCommand {
 		TransactionCommand.simpleBroadcastGenericMessage(messageData, sessionIdPredicate);
 	}
 
-	public static void simpleBroadcastGenericMessage (final Map<String, Object> data) {
+	public static void simpleBroadcastGenericMessage(final Map<String, Object> data) {
 		simpleBroadcastGenericMessage(data, null);
 	}
 
-	public static void simpleBroadcastGenericMessage (final Map<String, Object> data, final Predicate<String> sessionIdPredicate) {
+	public static void simpleBroadcastGenericMessage(final Map<String, Object> data, final Predicate<String> sessionIdPredicate) {
 		simpleBroadcast("GENERIC_MESSAGE", data, sessionIdPredicate);
 	}
 
-	public static void simpleBroadcastDeprecationWarning (final String deprecationSubType, final String title, final String text, final String uuid) {
+	public static void simpleBroadcastDeprecationWarning(final String deprecationSubType, final String title, final String text) {
+		simpleBroadcastDeprecationWarning(deprecationSubType, title, text, null);
+	}
 
-		final Map<String, Object> messageData = Map.of(
-				MaintenanceCommand.COMMAND_TYPE_KEY,    "DEPRECATION",
-				MaintenanceCommand.COMMAND_SUBTYPE_KEY, deprecationSubType,
-				MaintenanceCommand.COMMAND_TITLE_KEY,   title,
-				MaintenanceCommand.COMMAND_MESSAGE_KEY, text,
-				"nodeId", uuid
-		);
+	public static void simpleBroadcastDeprecationWarning(final String deprecationSubType, final String title, final String text, final String uuid) {
 
-		TransactionCommand.simpleBroadcastGenericMessage(messageData);
+		final Map<String, Object> messageData = new HashMap();
+
+		messageData.put(MaintenanceCommand.COMMAND_TYPE_KEY,    "DEPRECATION");
+		messageData.put(MaintenanceCommand.COMMAND_SUBTYPE_KEY, deprecationSubType);
+		messageData.put(MaintenanceCommand.COMMAND_TITLE_KEY,   title);
+		messageData.put(MaintenanceCommand.COMMAND_MESSAGE_KEY, text);
+
+		if (uuid != null) {
+			messageData.put("nodeId", uuid);
+		}
+
+		simpleBroadcastGenericMessage(messageData);
 	}
 
 	public static void simpleBroadcastException (final Exception ex, final Map<String, Object> data, final boolean printStackTrace) {
@@ -523,6 +526,15 @@ public class TransactionCommand {
 
 		RuntimeEventLog.transaction("Not in transaction");
 		throw new NotInTransactionException("Not in transaction.");
+	}
+
+	public static boolean isDeleted(final PropertyContainer propertyContainer) {
+
+		if (propertyContainer.isNode()) {
+			return isDeleted((Node)propertyContainer);
+		}
+
+		return isDeleted((Relationship)propertyContainer);
 	}
 
 	public static boolean isDeleted(final Node node) {

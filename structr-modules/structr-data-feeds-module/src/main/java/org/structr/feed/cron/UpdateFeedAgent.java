@@ -27,6 +27,7 @@ import org.structr.common.SecurityContext;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.feed.entity.DataFeed;
 
 /**
@@ -46,7 +47,7 @@ public class UpdateFeedAgent<T extends DataFeed> extends Agent<T> {
 
 			for (DataFeed feed : task.getWorkObjects()) {
 
-				logger.debug("Updating data feed {} if due", feed.getProperty(DataFeed.name));
+				logger.debug("Updating data feed {} if due", (Object)feed.getProperty(feed.getTraits().key(NodeInterfaceTraitDefinition.NAME_PROPERTY)));
 
 				feed.updateIfDue(SecurityContext.getSuperUserInstance());
 			}

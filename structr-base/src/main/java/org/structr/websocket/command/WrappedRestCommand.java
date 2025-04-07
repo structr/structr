@@ -24,22 +24,22 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.Principal;
+import org.structr.core.traits.StructrTraits;
 import org.structr.rest.RestMethodResult;
+import org.structr.rest.api.RESTCallHandler;
+import org.structr.rest.api.RESTEndpoints;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
+import org.structr.rest.servlet.AbstractDataServlet;
 import org.structr.web.common.HttpServletRequestWrapper;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.Map;
-import org.structr.common.SecurityContext;
-import org.structr.core.entity.PrincipalInterface;
-import org.structr.rest.api.RESTCallHandler;
-import org.structr.rest.api.RESTEndpoints;
-import org.structr.rest.servlet.AbstractDataServlet;
-import org.structr.web.entity.User;
 
 
 public class WrappedRestCommand extends AbstractCommand {
@@ -71,7 +71,7 @@ public class WrappedRestCommand extends AbstractCommand {
 		final StructrWebSocket socket         = this.getWebSocket();
 		final SecurityContext securityContext = socket.getSecurityContext();
 		final String url                      = webSocketData.getNodeDataStringValue("url");
-		final PrincipalInterface currentUser           = securityContext.getUser(false);
+		final Principal currentUser           = securityContext.getUser(false);
 
 		// mimic HTTP request
 		final HttpServletRequest wrappedRequest = new HttpServletRequestWrapper(socket.getRequest(), url);
@@ -80,7 +80,7 @@ public class WrappedRestCommand extends AbstractCommand {
 
 		try {
 
-			handler = RESTEndpoints.resolveRESTCallHandler(wrappedRequest, PropertyView.Public, AbstractDataServlet.getTypeOrDefault(currentUser, User.class));
+			handler = RESTEndpoints.resolveRESTCallHandler(wrappedRequest, PropertyView.Public, AbstractDataServlet.getTypeOrDefault(currentUser, StructrTraits.USER));
 
 		} catch (IllegalPathException | NotFoundException e) {
 

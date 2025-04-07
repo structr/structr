@@ -732,7 +732,9 @@ let _Entities = {
 		let cell = $(`.value.${key}_`, container);
 		cell.css('height', '60px');
 
-		let fetchKey = (key === 'syncedNodesIds') ? 'syncedNodes' : key;
+		let fetchKey = key;
+		if (key === 'syncedNodesIds') { fetchKey = 'syncedNodes'; }
+		if (key === 'childrenIds') { fetchKey = 'children'; }
 
 		fetch(`${Structr.rootUrl + entity.type}/${entity.id}/${fetchKey}?${Structr.getRequestParameterName('pageSize')}=${pageSize}&${Structr.getRequestParameterName('page')}=${page}`, {
 			headers: _Helpers.getHeadersForCustomView(['id', 'name'])
@@ -857,7 +859,7 @@ let _Entities = {
 		for (let key of keys) {
 
 			let valueCell    = undefined;
-			let isReadOnly   = _Helpers.isIn(key, _Entities.readOnlyAttrs) || (typeInfo[key]?.readOnly ?? false);
+			let isReadOnly   = _Entities.readOnlyAttrs.includes(key) || (typeInfo[key]?.readOnly ?? false);
 			let isSystem     = (typeInfo[key]?.system ?? false);
 			let isBoolean    = (typeInfo[key]?.type === 'Boolean');
 			let isDate       = (typeInfo[key]?.type === 'Date');
@@ -868,7 +870,7 @@ let _Entities = {
 
 				let showKeyInitially = (key === '_html_class' || key === '_html_id');
 				for (let mostUsed of _Elements.mostUsedAttrs) {
-					if (_Helpers.isIn(entity.tag, mostUsed.elements) && _Helpers.isIn(key.substring(6), mostUsed.attrs)) {
+					if (mostUsed.elements.includes(entity.tag) && mostUsed.attrs.includes(key.substring(6))) {
 						showKeyInitially = true;
 						focusAttr = mostUsed.focus ? mostUsed.focus : focusAttr;
 					}
@@ -879,26 +881,14 @@ let _Entities = {
 					showKeyInitially = true;
 				}
 
-				let displayKey  = _Entities.getDisplayKeyForHTMLKey(key);
-
-				let rowClass = '';
-				if  (showKeyInitially === false) {
-					rowClass = 'hidden';
-				}
-
 				let value = res[key];
-				let row   = _Helpers.createSingleDOMElementFromHTML(`
-					<tr class="${rowClass}">
-						<td class="key">
-							<span class="flex justify-between items-center">
-								<span>${displayKey}</span>
-								<span class="${_Entities.classNameForEmptyStringWarningContainer} flex"></span>
-							</span>
-						</td>
-						<td class="value ${key}_">${_Helpers.formatValueInputField(key, value, typeInfo[key])}</td>
-						<td>${_Entities.getNullIconForKey(key)}</td>
-					</tr>
-				`);
+				let row   = _Helpers.createSingleDOMElementFromHTML(_Entities.templates.propertyRow({
+					rowClass: (showKeyInitially === false) ? 'hidden' : '',
+					displayKey: _Entities.getDisplayKeyForHTMLKey(key),
+					key,
+					value,
+					typeInfo: typeInfo[key]
+				}));
 				propsTable[0].appendChild(row);
 				valueCell = $(`.value.${key}_`, propsTable);
 
@@ -1143,26 +1133,33 @@ let _Entities = {
 
 						Command.setProperty(id, newKey, val, false, (newVal) => {
 
-							_Helpers.blinkGreen(exitedInput);
-							_Dialogs.custom.showAndHideInfoBoxMessage(`New property "${newKey}" has been added and saved with value "${val}".`, 'success', 2000, 1000);
+							// replace input so that the old event (this function) is removed and we can attach new elements via "activateInput"
+							let newRow = _Helpers.createSingleDOMElementFromHTML(_Entities.templates.propertyRow({
+								rowClass: '',
+								displayKey: _Entities.getDisplayKeyForHTMLKey(key),
+								key: newKey,
+								value: val,
+								typeInfo: typeInfo[key]
+							}));
 
-							keyInput.replaceWith(key);
-							valInput.name = newKey;
+							_Helpers.fastRemoveAllChildren(row);
 
-							let nullIcon = _Helpers.createSingleDOMElementFromHTML(_Entities.getNullIconForKey(newKey));
-							row.querySelector('td:last-of-type').appendChild(nullIcon);
-							nullIcon.addEventListener('click', () => {
+							row.replaceWith(newRow);
 
-								let key = nullIcon.getAttribute('id').substring(_Entities.null_prefix.length);
+							let newValueInput = newRow.querySelector('input');
+							_Helpers.blinkGreen(newValueInput);
 
-								_Entities.setProperty(id, key, null, false, (newVal) => {
-									row.remove();
+							_Dialogs.custom.showAndHideInfoBoxMessage(`New property "${key}" has been added and saved with value "${val}".`, 'success', 2000, 1000);
+
+							_Entities.activateInput(newValueInput, id, newKey, entity.type, typeInfo, onUpdateCallback);
+
+							newRow.querySelector(`#${_Entities.null_prefix}${newKey}`).addEventListener('click', () => {
+
+								_Entities.setProperty(id, newKey, null, false, (newVal) => {
+									newRow.remove();
 									_Dialogs.custom.showAndHideInfoBoxMessage(`Custom HTML property "${key}" has been removed`, 'success', 2000, 1000);
 								});
 							});
-
-							// deactivate this function and resume regular save-actions
-							_Entities.activateInput(valInput, id, key, entity.type, typeInfo);
 						});
 					}
 				}
@@ -1436,7 +1433,7 @@ let _Entities = {
 					input.parentNode.remove();
 					input.dataset['changed'] = 'true';
 
-					_Entities.saveValue(cell, input, objId, key, oldValue, id, type, typeInfo);
+					_Entities.saveValue(cell, input, objId, key, oldValue, id, type, typeInfo, onUpdateCallback);
 				});
 
 				input.addEventListener('focus', function() {
@@ -1465,7 +1462,6 @@ let _Entities = {
 					input.classList.remove('active');
 
 					for (let icon of input.parentNode.querySelectorAll('.icon')) {
-						console.log(icon)
 						icon.remove();
 					}
 				});
@@ -1473,6 +1469,7 @@ let _Entities = {
 				if (_Crud.types?.[type]?.views?.all?.[key]?.type === 'Date[]') {
 
 					_Entities.addDatePicker(input, key, type, () => {
+						input.dataset['changed'] = 'true';
 						input.dispatchEvent(new Event('input-finished'));
 					});
 				}
@@ -1590,7 +1587,7 @@ let _Entities = {
 			if (!isCreateDialog) {
 
 				_Entities.setProperty(objId, key, val, false, newVal => {
-					updateInput(newVal ?? (isArrayType ? [] : undefined))
+					updateInput(newVal ?? (isArrayType ? [] : undefined));
 				});
 
 			} else {
@@ -2458,6 +2455,20 @@ let _Entities = {
 				input.val(oldVal);
 			}
 		});
+	},
+	templates: {
+		propertyRow: config => `
+			<tr class="${config.rowClass}">
+				<td class="key">
+					<span class="flex justify-between items-center">
+						<span>${config.displayKey}</span>
+						<span class="${_Entities.classNameForEmptyStringWarningContainer} flex"></span>
+					</span>
+				</td>
+				<td class="value ${config.key}_">${_Helpers.formatValueInputField(config.key, config.value, config.typeInfo)}</td>
+				<td>${_Entities.getNullIconForKey(config.key)}</td>
+			</tr>
+		`
 	},
 
 	basicTab: {

@@ -21,7 +21,6 @@ package org.structr.test.rest.document;
 import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
 import org.apache.commons.lang3.StringUtils;
-import org.structr.api.config.Settings;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonReferenceType;
@@ -30,14 +29,16 @@ import org.structr.api.schema.JsonSchema.Cascade;
 import org.structr.api.schema.JsonType;
 import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
-import org.structr.core.entity.relationship.GroupCONTAINSPrincipal;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.testng.annotations.Test;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
@@ -52,8 +53,8 @@ public class DocumentTest extends StructrRestTestBase {
 	@Test
 	public void testSchemaAutocreateNone() {
 
-		final String projectNodeId     = createSchemaNode("Project", new Pair("_name", "+String!"));
-		final String taskNodeId        = createSchemaNode("Task",    new Pair("_name", "+String"));
+		final String projectNodeId     = createSchemaNode("Project", new PropertySpec("name", "String", true, true));
+		final String taskNodeId        = createSchemaNode("Task",    new PropertySpec("name", "String", false, true));
 
 		createSchemaRelationships(projectNodeId, taskNodeId, "TASK", "1", "*", "project", "tasks", Relation.NONE, Relation.SOURCE_TO_TARGET);
 
@@ -86,8 +87,8 @@ public class DocumentTest extends StructrRestTestBase {
 	@Test
 	public void testSchemaAutocreateSourceToTarget() {
 
-		final String projectNodeId     = createSchemaNode("Project", new Pair("_name", "+String!"));
-		final String taskNodeId        = createSchemaNode("Task",    new Pair("_name", "+String"));
+		final String projectNodeId     = createSchemaNode("Project", new PropertySpec("name", "String", true, true));
+		final String taskNodeId        = createSchemaNode("Task",    new PropertySpec("name", "String", false, true));
 
 		createSchemaRelationships(projectNodeId, taskNodeId, "TASK", "1", "*", "project", "tasks", Relation.SOURCE_TO_TARGET, Relation.SOURCE_TO_TARGET);
 
@@ -121,8 +122,8 @@ public class DocumentTest extends StructrRestTestBase {
 	@Test
 	public void testSchemaAutocreateTargetToSource() {
 
-		final String projectNodeId     = createSchemaNode("Project", new Pair("_name", "+String!"));
-		final String taskNodeId        = createSchemaNode("Task",    new Pair("_name", "+String"));
+		final String projectNodeId     = createSchemaNode("Project", new PropertySpec("name", "String", true, true));
+		final String taskNodeId        = createSchemaNode("Task",    new PropertySpec("name", "String", false, true));
 
 		createSchemaRelationships(projectNodeId, taskNodeId, "TASK", "1", "*", "project", "tasks", Relation.TARGET_TO_SOURCE, Relation.SOURCE_TO_TARGET);
 
@@ -156,8 +157,8 @@ public class DocumentTest extends StructrRestTestBase {
 	@Test
 	public void testSchemaAutocreateAlways() {
 
-		final String projectNodeId     = createSchemaNode("Project", new Pair("_name", "+String!"));
-		final String taskNodeId        = createSchemaNode("Task",    new Pair("_name", "+String"));
+		final String projectNodeId     = createSchemaNode("Project", new PropertySpec("name", "String", true, true));
+		final String taskNodeId        = createSchemaNode("Task",    new PropertySpec("name", "String", false, true));
 
 		createSchemaRelationships(projectNodeId, taskNodeId, "TASK", "1", "*", "project", "tasks", Relation.ALWAYS, Relation.SOURCE_TO_TARGET);
 
@@ -189,33 +190,14 @@ public class DocumentTest extends StructrRestTestBase {
 	@Test
 	public void testSimpleDocumentWithSchema() {
 
-		final String projectNodeId     = createSchemaNode("Project", new Pair("_name", "+String!"));
-		final String taskNodeId        = createSchemaNode("Task",    new Pair("_name", "+String"));
-		final String workerNodeId      = createSchemaNode("Worker",  new Pair("_name", "+String!"));
+		final String projectNodeId     = createSchemaNode("Project", new PropertySpec("name", "String", true, true), new ViewSpec("test", "name, tasks"));
+		final String taskNodeId        = createSchemaNode("Task",    new PropertySpec("name", "String", false, true), new ViewSpec("test","name, project, subtasks, parentTask, worker"));
+		final String workerNodeId      = createSchemaNode("Worker",  new PropertySpec("name", "String", true, true), new ViewSpec("test", "name, tasks"));
 
 		// create relationships
 		createSchemaRelationships(projectNodeId, taskNodeId, "TASK",    "1", "*", "project",    "tasks",    Relation.SOURCE_TO_TARGET, Relation.SOURCE_TO_TARGET);
 		createSchemaRelationships(taskNodeId, taskNodeId,    "SUBTASK", "1", "*", "parentTask", "subtasks", Relation.SOURCE_TO_TARGET, Relation.SOURCE_TO_TARGET);
 		createSchemaRelationships(workerNodeId, taskNodeId,  "WORKS",   "1", "*", "worker",     "tasks",    Relation.ALWAYS,           Relation.SOURCE_TO_TARGET);
-
-		// create views
-		RestAssured.given().contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-			.body("{ \"__test\": \"_name, _tasks\" }")
-			.expect().statusCode(200).when().put("/SchemaNode/" + projectNodeId);
-
-		RestAssured.given().contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-			.body("{ \"__test\": \"_name, _project, _subtasks, _parentTask, _worker\" }")
-			.expect().statusCode(200).when().put("/SchemaNode/" + taskNodeId);
-
-		RestAssured.given().contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-			.body("{ \"__test\": \"_name, _tasks\" }")
-			.expect().statusCode(200).when().put("/SchemaNode/" + workerNodeId);
 
 		// post document
 		RestAssured
@@ -305,41 +287,16 @@ public class DocumentTest extends StructrRestTestBase {
 	@Test
 	public void testComplexDocumentWithSchema() {
 
-		final String projectNodeId     = createSchemaNode("Project", new Pair("_name", "+String!"));
-		final String taskNodeId        = createSchemaNode("Task",    new Pair("_name", "+String"));
-		final String workerNodeId      = createSchemaNode("Worker",  new Pair("_name", "+String!"));
-		final String companyNodeId     = createSchemaNode("Company", new Pair("_name", "+String!"));
+		final String projectNodeId     = createSchemaNode("Project", new PropertySpec("name", "String", true, true), new ViewSpec("test", "name, tasks"));
+		final String taskNodeId        = createSchemaNode("Task",    new PropertySpec("name", "String", true, true), new ViewSpec("test", "name, subtasks, worker"));
+		final String workerNodeId      = createSchemaNode("Worker",  new PropertySpec("name", "String", true, true), new ViewSpec("test", "name, tasks, company"));
+		final String companyNodeId     = createSchemaNode("Company", new PropertySpec("name", "String", true, true), new ViewSpec("test", "name, workers"));
 
 		// create relationships
 		createSchemaRelationships(projectNodeId, taskNodeId,   "TASK",     "1", "*", "project",    "tasks",    Relation.ALWAYS, Relation.SOURCE_TO_TARGET);
 		createSchemaRelationships(taskNodeId, taskNodeId,      "SUBTASK",  "1", "*", "parentTask", "subtasks", Relation.ALWAYS, Relation.SOURCE_TO_TARGET);
 		createSchemaRelationships(workerNodeId, taskNodeId,    "WORKS_ON", "1", "*", "worker",     "tasks",    Relation.ALWAYS, Relation.SOURCE_TO_TARGET);
 		createSchemaRelationships(workerNodeId, companyNodeId, "WORKS_AT", "*", "1", "workers",    "company",  Relation.ALWAYS, Relation.SOURCE_TO_TARGET);
-
-		// create views
-		RestAssured.given().contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-			.body("{ \"__test\": \"_name, _tasks\" }")
-			.expect().statusCode(200).when().put("/SchemaNode/" + projectNodeId);
-
-		RestAssured.given().contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-			.body("{ \"__test\": \"_name, _subtasks, _worker\" }")
-			.expect().statusCode(200).when().put("/SchemaNode/" + taskNodeId);
-
-		RestAssured.given().contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-			.body("{ \"__test\": \"_name, _tasks, _company\" }")
-			.expect().statusCode(200).when().put("/SchemaNode/" + workerNodeId);
-
-		RestAssured.given().contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-			.body("{ \"__test\": \"_name, _workers\" }")
-			.expect().statusCode(200).when().put("/SchemaNode/" + companyNodeId);
 
 		String jsonBody =
                 "{"
@@ -811,41 +768,16 @@ public class DocumentTest extends StructrRestTestBase {
 	@Test
 	public void testComplexDocumentUpdate() {
 
-		final String projectNodeId     = createSchemaNode("Project", new Pair("_name", "+String!"), new Pair("_description", "String"));
-		final String taskNodeId        = createSchemaNode("Task",    new Pair("_name", "+String!"),  new Pair("_description", "String"));
-		final String workerNodeId      = createSchemaNode("Worker",  new Pair("_name", "+String!"), new Pair("_description", "String"));
-		final String companyNodeId     = createSchemaNode("Company", new Pair("_name", "+String!"), new Pair("_description", "String"));
+		final String projectNodeId     = createSchemaNode("Project", new PropertySpec("name", "String", true, true), new PropertySpec("description", "String"), new ViewSpec("test", "name, description, tasks"));
+		final String taskNodeId        = createSchemaNode("Task",    new PropertySpec("name", "String", true, true), new PropertySpec("description", "String"), new ViewSpec("test", "name, description, subtasks, worker"));
+		final String workerNodeId      = createSchemaNode("Worker",  new PropertySpec("name", "String", true, true), new PropertySpec("description", "String"), new ViewSpec("test", "name, description, tasks, company"));
+		final String companyNodeId     = createSchemaNode("Company", new PropertySpec("name", "String", true, true), new PropertySpec("description", "String"), new ViewSpec("test", "name, description, workers"));
 
 		// create relationships
 		createSchemaRelationships(projectNodeId, taskNodeId,   "TASK",     "1", "*", "project",    "tasks",    Relation.ALWAYS, Relation.SOURCE_TO_TARGET);
 		createSchemaRelationships(taskNodeId, taskNodeId,      "SUBTASK",  "1", "*", "parentTask", "subtasks", Relation.ALWAYS, Relation.SOURCE_TO_TARGET);
 		createSchemaRelationships(workerNodeId, taskNodeId,    "WORKS_ON", "1", "*", "worker",     "tasks",    Relation.ALWAYS, Relation.SOURCE_TO_TARGET);
 		createSchemaRelationships(workerNodeId, companyNodeId, "WORKS_AT", "*", "1", "workers",    "company",  Relation.ALWAYS, Relation.SOURCE_TO_TARGET);
-
-		// create views
-		RestAssured.given().contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-			.body("{ \"__test\": \"_name, _description, _tasks\" }")
-			.expect().statusCode(200).when().put("/SchemaNode/" + projectNodeId);
-
-		RestAssured.given().contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-			.body("{ \"__test\": \"_name, _description, _subtasks, _worker\" }")
-			.expect().statusCode(200).when().put("/SchemaNode/" + taskNodeId);
-
-		RestAssured.given().contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-			.body("{ \"__test\": \"_name, _description, _tasks, _company\" }")
-			.expect().statusCode(200).when().put("/SchemaNode/" + workerNodeId);
-
-		RestAssured.given().contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-			.body("{ \"__test\": \"_name, _description, _workers\" }")
-			.expect().statusCode(200).when().put("/SchemaNode/" + companyNodeId);
 
 		String jsonBody1 =
                 "{"
@@ -1378,9 +1310,9 @@ public class DocumentTest extends StructrRestTestBase {
 	@Test
 	public void testMergeOnNestedProperties() {
 
-		final String projectNodeId     = createSchemaNode("Project", new Pair("_name", "+String!"), new Pair("_description", "String"));
-		final String taskNodeId        = createSchemaNode("Task",    new Pair("_name", "+String!"), new Pair("_description", "String"));
-		final String workerNodeId      = createSchemaNode("Worker",  new Pair("_name", "+String!"), new Pair("_description", "String"));
+		final String projectNodeId     = createSchemaNode("Project", new PropertySpec("name", "String", true, true), new PropertySpec("description", "String"));
+		final String taskNodeId        = createSchemaNode("Task",    new PropertySpec("name", "String", true, true), new PropertySpec("description", "String"));
+		final String workerNodeId      = createSchemaNode("Worker",  new PropertySpec("name", "String", true, true), new PropertySpec("description", "String"));
 
 		// create relationships
 		createSchemaRelationships(projectNodeId, taskNodeId,   "TASK",     "*", "*", "project",    "tasks",    Relation.ALWAYS, Relation.SOURCE_TO_TARGET);
@@ -1429,9 +1361,9 @@ public class DocumentTest extends StructrRestTestBase {
 	@Test
 	public void testNestedUpdate() {
 
-		final String projectNodeId     = createSchemaNode("Project", new Pair("_name", "+String!"), new Pair("_description", "String"), new Pair("__test", "id, type, name, tasks"));
-		final String taskNodeId        = createSchemaNode("Task",    new Pair("_name", "+String!"), new Pair("_description", "String"), new Pair("__test", "id, type, name, workers"));
-		final String workerNodeId      = createSchemaNode("Worker",  new Pair("_name", "+String!"), new Pair("_description", "String"), new Pair("__test", "id, type, name"));
+		final String projectNodeId     = createSchemaNode("Project", new PropertySpec("name", "String", true, true), new PropertySpec("description", "String"), new ViewSpec("test", "id, type, name, tasks"));
+		final String taskNodeId        = createSchemaNode("Task",    new PropertySpec("name", "String", true, true), new PropertySpec("description", "String"), new ViewSpec("test", "id, type, name, workers"));
+		final String workerNodeId      = createSchemaNode("Worker",  new PropertySpec("name", "String", true, true), new PropertySpec("description", "String"), new ViewSpec("test", "id, type, name"));
 
 		// create relationships
 		createSchemaRelationships(projectNodeId, taskNodeId,   "TASK",     "*", "*", "project",    "tasks",    Relation.NONE, Relation.SOURCE_TO_TARGET);
@@ -1649,7 +1581,7 @@ public class DocumentTest extends StructrRestTestBase {
 				.statusCode(200)
 
 			.when()
-				.put("/Project/" + projectId);
+	 			.put("/Project/" + projectId);
 
 		// check result
 		RestAssured
@@ -1673,9 +1605,7 @@ public class DocumentTest extends StructrRestTestBase {
 		try (final Tx tx = app.tx()) {
 
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
-			final JsonType type     = schema.getType("GroupCONTAINSPrincipal");
-
-			type.setExtends(GroupCONTAINSPrincipal.class);
+			final JsonType type     = schema.getType(StructrTraits.GROUP_CONTAINS_PRINCIPAL);
 
 			type.addStringProperty("test", PropertyView.Public);
 
@@ -1688,8 +1618,8 @@ public class DocumentTest extends StructrRestTestBase {
 			fail("Unexpected exception");
 		}
 
-		final String parent = createEntity("Group", "{ name: 'parent' }");
-		final String child  = createEntity("Group", "{ name: 'child' }");
+		final String parent = createEntity(StructrTraits.GROUP, "{ name: 'parent' }");
+		final String child  = createEntity(StructrTraits.GROUP, "{ name: 'child' }");
 
 
 		// create data
@@ -1725,41 +1655,16 @@ public class DocumentTest extends StructrRestTestBase {
 	@Test
 	public void testAdvancedObjectCreationResult() {
 
-		final String projectNodeId     = createSchemaNode("Project", new Pair("_name", "+String!"), new Pair("_description", "String"));
-		final String taskNodeId        = createSchemaNode("Task",    new Pair("_name", "+String!"),  new Pair("_description", "String"));
-		final String workerNodeId      = createSchemaNode("Worker",  new Pair("_name", "+String!"), new Pair("_description", "String"));
-		final String companyNodeId     = createSchemaNode("Company", new Pair("_name", "+String!"), new Pair("_description", "String"));
+		final String projectNodeId     = createSchemaNode("Project", new PropertySpec("name", "String", true, true), new PropertySpec("description", "String"), new ViewSpec("test", "name, description, tasks"));
+		final String taskNodeId        = createSchemaNode("Task",    new PropertySpec("name", "String", true, true), new PropertySpec("description", "String"), new ViewSpec("test", "name, description, subtasks, worker"));
+		final String workerNodeId      = createSchemaNode("Worker",  new PropertySpec("name", "String", true, true), new PropertySpec("description", "String"), new ViewSpec("test", "name, description, tasks, company"));
+		final String companyNodeId     = createSchemaNode("Company", new PropertySpec("name", "String", true, true), new PropertySpec("description", "String"), new ViewSpec("test", "name, description, workers"));
 
 		// create relationships
 		createSchemaRelationships(projectNodeId, taskNodeId,    "TASK",     "1", "*", "project",    "tasks",    Relation.ALWAYS, Relation.SOURCE_TO_TARGET);
 		createSchemaRelationships(taskNodeId,    taskNodeId,    "SUBTASK",  "1", "*", "parentTask", "subtasks", Relation.ALWAYS, Relation.SOURCE_TO_TARGET);
 		createSchemaRelationships(workerNodeId,  taskNodeId,    "WORKS_ON", "1", "*", "worker",     "tasks",    Relation.ALWAYS, Relation.SOURCE_TO_TARGET);
 		createSchemaRelationships(workerNodeId,  companyNodeId, "WORKS_AT", "*", "1", "workers",    "company",  Relation.ALWAYS, Relation.SOURCE_TO_TARGET);
-
-		// create views
-		RestAssured.given().contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-			.body("{ \"__test\": \"_name, _description, _tasks\" }")
-			.expect().statusCode(200).when().put("/SchemaNode/" + projectNodeId);
-
-		RestAssured.given().contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-			.body("{ \"__test\": \"_name, _description, _subtasks, _worker\" }")
-			.expect().statusCode(200).when().put("/SchemaNode/" + taskNodeId);
-
-		RestAssured.given().contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-			.body("{ \"__test\": \"_name, _description, _tasks, _company\" }")
-			.expect().statusCode(200).when().put("/SchemaNode/" + workerNodeId);
-
-		RestAssured.given().contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-			.body("{ \"__test\": \"_name, _description, _workers\" }")
-			.expect().statusCode(200).when().put("/SchemaNode/" + companyNodeId);
 
 		String jsonBody1 =
                 "{"
@@ -1932,42 +1837,75 @@ public class DocumentTest extends StructrRestTestBase {
 
 
 	// ----- private methods -----
-	private String createSchemaNode(final String name, Pair... properties) {
+	private String createSchemaNode(final String name, SchemaSpec... specs) {
 
-		final StringBuilder buf = new StringBuilder();
-		final List<String> view = new LinkedList<>();
+		final StringBuilder buf              = new StringBuilder();
+		final Map<String, Set<String>> views = new LinkedHashMap<>();
+		boolean first                        = true;
 
 		// append name
 		buf.append("{ \"name\": \"");
 		buf.append(name);
-		buf.append("\"");
+		buf.append("\", schemaProperties: [");
 
-		for (final Pair pair : properties) {
+		for (final SchemaSpec spec : specs) {
 
-			final boolean isString = pair.value instanceof String;
-			view.add(pair.key);
+			if (spec.isView) {
 
-			buf.append(", \"");
-			buf.append(pair.key);
-			buf.append("\": ");
+				final Set<String> view = views.computeIfAbsent(spec.key, k -> new LinkedHashSet<>());
+				for (final String p : spec.type.split("[, ]+")) {
 
-			if (isString) {
-				buf.append("\"");
-			}
+					view.add(p.trim());
+				}
 
-			buf.append(pair.value);
+			} else {
 
-			if (isString) {
-				buf.append("\"");
+				views.computeIfAbsent("public", k -> new LinkedHashSet<>()).add(spec.key);
+
+				if (!first) {
+					buf.append(", ");
+				}
+
+				buf.append("{ name: \"");
+				buf.append(spec.key);
+				buf.append("\", propertyType: ");
+				buf.append(spec.type);
+				buf.append(", ");
+				buf.append("unique: ");
+				buf.append(spec.unique);
+				buf.append(", notNull: ");
+				buf.append(spec.notNull);
+				buf.append(" }");
+
+				first = false;
 			}
 		}
 
 		// append view as well
-		buf.append(", __public: \"");
-		buf.append(StringUtils.join(view, ", "));
-		buf.append("\"");
+		buf.append("], schemaViews: [");
 
-		buf.append(" }");
+		first = true;
+
+		for (final Map.Entry<String, Set<String>> entry : views.entrySet()) {
+
+			final String viewName = entry.getKey();
+
+			if (!first) {
+				buf.append(", ");
+			}
+
+			buf.append("{ name: ");
+			buf.append(viewName);
+			buf.append(", nonGraphProperties: \"");
+			buf.append(StringUtils.join(entry.getValue(), ","));
+			buf.append("\" }");
+
+			first = false;
+		}
+
+		System.out.println(buf);
+
+		buf.append("] }");
 
 		return createEntity("/SchemaNode", buf.toString());
 	}
@@ -1988,14 +1926,43 @@ public class DocumentTest extends StructrRestTestBase {
 			" }");
 	}
 
-	private static class Pair {
+	private static class PropertySpec extends SchemaSpec {
 
-		public String key = null;
-		public Object value = null;
+		public PropertySpec(final String key, final String type) {
+			this(key, type, false, false);
+		}
 
-		public Pair(final String key, final Object value) {
-			this.key = key;
-			this.value = value;
+		public PropertySpec(final String key, final String type, final boolean unique, final boolean notNull) {
+			super(false, key, type, unique, notNull);
+		}
+	}
+
+	private static class ViewSpec extends SchemaSpec {
+
+		public ViewSpec(final String key, final String properties) {
+			super(true, key, properties, false, false);
+		}
+	}
+
+	private static class SchemaSpec {
+
+		String key      = null;
+		String type     = null;
+		boolean unique  = false;
+		boolean notNull = false;
+		boolean isView  = false;
+
+		public SchemaSpec(final boolean isView, final String key, final String type) {
+			this(isView, key, type, false, false);
+		}
+
+		public SchemaSpec(final boolean isView, final String key, final String type, final boolean unique, final boolean notNull) {
+
+			this.key     = key;
+			this.type    = type;
+			this.unique  = unique;
+			this.notNull = notNull;
+			this.isView  = isView;
 		}
 	}
 }

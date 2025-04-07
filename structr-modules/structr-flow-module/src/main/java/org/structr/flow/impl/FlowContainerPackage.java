@@ -20,124 +20,93 @@ package org.structr.flow.impl;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
-import org.structr.common.View;
-import org.structr.common.error.ErrorBuffer;
+import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.helper.ValidationHelper;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.ModificationQueue;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.*;
-import org.structr.flow.impl.rels.FlowContainerPackageFlow;
-import org.structr.flow.impl.rels.FlowContainerPackagePackage;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
+import org.structr.flow.traits.definitions.FlowContainerPackageTraitDefinition;
 import org.structr.module.api.DeployableEntity;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
-/**
- *
- */
-public class FlowContainerPackage extends AbstractNode implements DeployableEntity {
-
-	public static final Property<FlowContainerPackage> parent             = new StartNode<>("parent", FlowContainerPackagePackage.class);
-	public static final Property<Iterable<FlowContainerPackage>> packages = new EndNodes<>("packages", FlowContainerPackagePackage.class);
-	public static final Property<Iterable<FlowContainer>> flows           = new EndNodes<>("flows", FlowContainerPackageFlow.class);
-
-	public static final Property<String> name                             = new StringProperty("name").notNull().indexed();
-	public static final Property<Object> effectiveName                    = new FunctionProperty<>("effectiveName").indexed().unique().notNull().readFunction("if(empty(this.parent), this.name, concat(this.parent.effectiveName, \".\", this.name))").writeFunction("{\r\n\tlet self = Structr.get(\'this\');\r\n\tlet path = Structr.get(\'value\');\r\n\r\n\tfunction getOrCreatePackage(name, path) {\r\n\t\tlet effectiveName = Structr.empty(path) ? name : Structr.concat(path,\".\",name);\r\n\r\n\t\tlet package = Structr.first(Structr.find(\"FlowContainerPackage\", \"effectiveName\", effectiveName));\r\n\r\n\t\tif (Structr.empty(path)) {\r\n\t\t\t\r\n\t\t\tif (Structr.empty(package)) {\r\n\t\t\t\tpackage = Structr.create(\"FlowContainerPackage\", \"name\", name);\r\n\t\t\t}\r\n\t\t} else {\r\n\t\t\tlet parent = Structr.first(Structr.find(\"FlowContainerPackage\", \"effectiveName\", path));\r\n\r\n\t\t\tif (Structr.empty(package)) {\r\n\t\t\t\tpackage = Structr.create(\"FlowContainerPackage\", \"name\", name, \"parent\", parent);\r\n\t\t\t}\r\n\t\t}\r\n\r\n\t\treturn package;\r\n\t}\r\n\r\n\tif (!Structr.empty(path)) {\r\n\r\n\t\tif (path.length > 0) {\r\n\r\n\t\t\tlet flowName = null;\r\n\r\n\t\t\tif (path.indexOf(\".\") !== -1) {\r\n\r\n\t\t\t\tlet elements = path.split(\".\");\r\n\r\n\t\t\t\tif (elements.length > 1) {\r\n\r\n\t\t\t\t\tflowName = elements.pop();\r\n\t\t\t\t\tlet currentPath = \"\";\r\n\t\t\t\t\tlet parentPackage = null;\r\n\r\n\t\t\t\t\tfor (let el of elements) {\r\n\t\t\t\t\t\tlet package = getOrCreatePackage(el, currentPath);\r\n\t\t\t\t\t\tparentPackage = package;\r\n\t\t\t\t\t\tcurrentPath = package.effectiveName;\r\n\t\t\t\t\t}\r\n\r\n\t\t\t\t\tself.flowPackage = parentPackage;\r\n\t\t\t\t} else {\r\n\r\n\t\t\t\t\tflowName = elements[0];\r\n\t\t\t\t}\r\n\r\n\t\t\t\tself.name = flowName;\r\n\t\t\t} else {\r\n\r\n\t\t\t\tself.name = path;\r\n\t\t\t}\r\n\r\n\t\t}\r\n\r\n\t}\r\n\r\n}").typeHint("String");
-	public static final Property<Boolean> scheduledForIndexing            = new BooleanProperty("scheduledForIndexing").defaultValue(false);
-
-	public static final View defaultView = new View(FlowContainer.class, PropertyView.Public, name, effectiveName, packages, flows, scheduledForIndexing);
-	public static final View uiView      = new View(FlowContainer.class, PropertyView.Ui,     name, effectiveName, packages, flows, parent, scheduledForIndexing);
+public class FlowContainerPackage extends AbstractNodeTraitWrapper implements DeployableEntity {
 
 	private static final Logger logger = LoggerFactory.getLogger(FlowContainerPackage.class);
 
-	@Override
-	public boolean isValid(final ErrorBuffer errorBuffer) {
+	public FlowContainerPackage(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
+	}
 
-		boolean valid = super.isValid(errorBuffer);
+	public Iterable<FlowContainer> getFlows() {
 
-		valid &= ValidationHelper.isValidStringNotBlank(this, FlowContainerPackage.name, errorBuffer);
-		valid &= ValidationHelper.isValidPropertyNotNull(this, FlowContainerPackage.effectiveName, errorBuffer);
-		valid &= ValidationHelper.isValidUniqueProperty(this, FlowContainerPackage.effectiveName, errorBuffer);
+		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key(FlowContainerPackageTraitDefinition.FLOWS_PROPERTY));
 
-		return valid;
+		return Iterables.map(n -> n.as(FlowContainer.class), nodes);
+	}
+
+	public Iterable<FlowContainerPackage> getPackages() {
+
+		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key(FlowContainerPackageTraitDefinition.PACKAGES_PROPERTY));
+
+		return Iterables.map(n -> n.as(FlowContainerPackage.class), nodes);
+	}
+
+	public String getEffectiveName() {
+		return getProperty(traits.key(FlowContainerPackageTraitDefinition.EFFECTIVE_NAME_PROPERTY));
+	}
+
+	public void setScheduledForIndexing(final boolean b) throws FrameworkException {
+		wrappedObject.setProperty(traits.key(FlowContainerPackageTraitDefinition.SCHEDULED_FOR_INDEXING_PROPERTY), b);
 	}
 
 	@Override
 	public Map<String, Object> exportData() {
 		Map<String, Object> result = new HashMap<>();
 
-		result.put("id", this.getUuid());
-		result.put("type", this.getClass().getSimpleName());
-		result.put("name", this.getName());
-
-		result.put("visibleToPublicUsers", this.getProperty(visibleToPublicUsers));
-		result.put("visibleToAuthenticatedUsers", this.getProperty(visibleToAuthenticatedUsers));
+		result.put(GraphObjectTraitDefinition.ID_PROPERTY,                             getUuid());
+		result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,                           getType());
+		result.put(NodeInterfaceTraitDefinition.NAME_PROPERTY,                         getName());
+		result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        isVisibleToPublicUsers());
+		result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, isVisibleToAuthenticatedUsers());
 
 		return result;
 	}
 
-	@Override
-	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
-		super.onCreation(securityContext, errorBuffer);
+	public void scheduleIndexingForRelatedEntities() {
 
-		this.setProperty(visibleToAuthenticatedUsers, true);
-		this.setProperty(visibleToPublicUsers, true);;
-	}
-
-
-	@Override
-	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
-		super.onModification(securityContext, errorBuffer, modificationQueue);
-		Set<PropertyKey> props = modificationQueue.getModifiedProperties();
-
-		if (props.contains(scheduledForIndexing) || props.contains(name) || props.contains(packages) || props.contains(flows)) {
-			scheduleIndexingForRelatedEntities();
-		}
-		setProperty(scheduledForIndexing, false);
-	}
-
-
-	@Override
-	public void onNodeDeletion(SecurityContext securityContext) {
-		deleteChildren();
-	}
-
-	private void scheduleIndexingForRelatedEntities() {
-
-		final Iterable<FlowContainerPackage> p = getProperty(packages);
-		final Iterable<FlowContainer> c        = getProperty(flows);
+		final Iterable<FlowContainerPackage> p = getPackages();
+		final Iterable<FlowContainer> c        = getFlows();
 		final App app                          = StructrApp.getInstance();
 
 		try (Tx tx = app.tx()) {
 
 			for (FlowContainerPackage pack : p) {
-				pack.setProperty(FlowContainerPackage.scheduledForIndexing, true);
+				pack.setScheduledForIndexing(true);
 			}
 
 			for (FlowContainer cont : c) {
-				cont.setProperty(FlowContainer.scheduledForIndexing, true);
+				cont.setScheduledForIndexing(true);
 			}
 
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			logger.warn("Could not handle onDelete for FlowContainerPackage: " + ex.getMessage());
 		}
-
 	}
 
-	private void deleteChildren() {
+	public void deleteChildren() {
 
-		final Iterable<FlowContainerPackage> p = getProperty(packages);
-		final Iterable<FlowContainer> c        = getProperty(flows);
+		final Iterable<FlowContainerPackage> p = getPackages();
+		final Iterable<FlowContainer> c        = getFlows();
 		final App app                          = StructrApp.getInstance();
 
 		try (Tx tx = app.tx()) {
@@ -153,9 +122,8 @@ public class FlowContainerPackage extends AbstractNode implements DeployableEnti
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			logger.warn("Could not handle onDelete for FlowContainerPackage: " + ex.getMessage());
 		}
-
 	}
-
 }

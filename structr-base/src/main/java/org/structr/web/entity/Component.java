@@ -18,26 +18,7 @@
  */
 package org.structr.web.entity;
 
-import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.core.property.IntProperty;
-import org.structr.core.property.Property;
-import org.structr.core.property.StringProperty;
-import org.structr.web.entity.dom.DOMElement;
+import org.structr.core.graph.NodeInterface;
 
-/**
- * Represents a component. A component is an assembly of elements
- */
-public class Component extends DOMElement {
-
-	public static final Property<String> kindProperty      = new StringProperty("kind").partOfBuiltInSchema();
-	public static final Property<Integer> positionProperty = new IntProperty("position").partOfBuiltInSchema();
-
-	public static final View defaultView = new View(Component.class,PropertyView.Public,
-		kindProperty
-	);
-
-	public static final View uiView = new View(Component.class,PropertyView.Ui,
-		kindProperty
-	);
+public interface Component extends NodeInterface {
 }

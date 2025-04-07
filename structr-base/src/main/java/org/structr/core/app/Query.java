@@ -26,9 +26,9 @@ import org.structr.api.util.ResultStream;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchAttributeGroup;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.Traits;
 
 import java.util.Comparator;
 import java.util.List;
@@ -38,84 +38,67 @@ import java.util.List;
  *
  * @param <T>
  */
-public interface Query<T extends GraphObject> {
+public interface Query<T> {
 
-	public void setQueryContext(final QueryContext queryContext);
-	public QueryContext getQueryContext();
-	public Query<T> isPing(final boolean isPing);
+	QueryContext getQueryContext();
+	Query<T> isPing(final boolean isPing);
 
-	public ResultStream<T> getResultStream() throws FrameworkException;
-	public List<T> getAsList() throws FrameworkException;
-	public T getFirst() throws FrameworkException;
+	ResultStream<T> getResultStream() throws FrameworkException;
+	List<T> getAsList() throws FrameworkException;
+	T getFirst() throws FrameworkException;
+	Traits getTraits();
 
 	// ----- builder methods -----
-	public Query<T> disableSorting();
-	public Query<T> sort(final SortOrder sortOrder);
-	public Query<T> sort(final PropertyKey key, final boolean descending);
-	default public Query<T> sort(final PropertyKey key) { return sort(key, false); }
-	public Query<T> comparator(final Comparator<T> comparator);
-	public Query<T> pageSize(final int pageSize);
-	public Query<T> page(final int page);
-	public Query<T> publicOnly();
-	public Query<T> includeHidden();
-	public Query<T> publicOnly(final boolean publicOnly);
-	public Query<T> includeHidden(final boolean includeHidden);
-	public Query<T> uuid(final String uuid);
-	public Query<T> andType(final Class<T> type);
-	public Query<T> orType(final Class<T> type);
-	public Query<T> andTypes(final Class<T> type);
-	public Query<T> orTypes(final Class<T> type);
-	public Class getType();
+	Query<T> disableSorting();
+	Query<T> sort(final SortOrder sortOrder);
+	Query<T> sort(final PropertyKey key, final boolean descending);
+	default Query<T> sort(final PropertyKey key) { return sort(key, false); }
+	Query<T> comparator(final Comparator<T> comparator);
+	Query<T> pageSize(final int pageSize);
+	Query<T> page(final int page);
+	Query<T> publicOnly();
+	Query<T> includeHidden();
+	Query<T> publicOnly(final boolean publicOnly);
+	Query<T> includeHidden(final boolean includeHidden);
+	Query<T> uuid(final String uuid);
+	Query<T> andTypes(final Traits type);
+	Query<T> andType(final String type);
+	Query<T> orType(final String type);
 
-	public Query<T> andName(final String name);
-	public Query<T> orName(final String name);
+	Query<T> andName(final String name);
+	Query<T> orName(final String name);
 
-	public Query<T> location(final double latitude, final double longitude, final double distance);
-	public Query<T> location(final String street, final String postalCode, final String city, final String country, final double distance);
-	public Query<T> location(final String street, final String postalCode, final String city, final String state, final String country, final double distance);
-	public Query<T> location(final String street, final String house, final String postalCode, final String city, final String state, final String country, final double distance);
+	Query<T> location(final double latitude, final double longitude, final double distance);
+	Query<T> location(final String street, final String postalCode, final String city, final String country, final double distance);
+	Query<T> location(final String street, final String postalCode, final String city, final String state, final String country, final double distance);
+	Query<T> location(final String street, final String house, final String postalCode, final String city, final String state, final String country, final double distance);
+	<P> Query<T> and(final PropertyKey<P> key, final P value);
+	<P> Query<T> and(final PropertyKey<P> key, final P value, final boolean exact);
+	<P> Query<T> and(final PropertyKey<P> key, final P value, final boolean exact, final Occurrence occur);
+	<P> Query<T> and(final PropertyMap attributes);
+	Query<T> and();
+	<P> Query<T> or(final PropertyKey<P> key, P value);
+	<P> Query<T> or(final PropertyKey<P> key, P value, boolean exact);
+	<P> Query<T> or(final PropertyMap attributes);
+	Query<T> notBlank(final PropertyKey key);
+	Query<T> blank(final PropertyKey key);
+	<P> Query<T> startsWith(final PropertyKey<P> key, final P prefix, final boolean caseInsensitive);
+	<P> Query<T> endsWith(final PropertyKey<P> key, final P suffix, final boolean caseInsensitive);
+	<P> Query<T> matches(final PropertyKey<String> key, final String regex);
 
-	default public <P> Query<T> and(final String name, final P value) {
+	<P> Query<T> andRange(final PropertyKey<P> key, final P rangeStart, final P rangeEnd);
+	<P> Query<T> andRange(final PropertyKey<P> key, final P rangeStart, final P rangeEnd, final boolean includeStart, final boolean includeEnd);
+	<P> Query<T> orRange(final PropertyKey<P> key, final P rangeStart, final P rangeEnd);
+	<P> Query<T> orRange(final PropertyKey<P> key, final P rangeStart, final P rangeEnd, final boolean includeStart, final boolean includeEnd);
 
-		final PropertyKey<P> key = StructrApp.getConfiguration().getPropertyKeyForJSONName(getType(), name, false);
-		if (key != null) {
+	Query<T> or();
+	Query<T> not();
 
-			return and(key, value);
-		}
+	Query<T> parent();
+	Query<T> attributes(final List<SearchAttribute> attributes);
 
-		throw new IllegalArgumentException("Invalid property key " + name + " for type " + getClass().getSimpleName());
-	}
+	Predicate<GraphObject> toPredicate();
 
-	public <P> Query<T> and(final PropertyKey<P> key, final P value);
-	public <P> Query<T> and(final PropertyKey<P> key, final P value, final boolean exact);
-	public <P> Query<T> and(final PropertyKey<P> key, final P value, final boolean exact, final Occurrence occur);
-	public <P> Query<T> and(final PropertyMap attributes);
-	public Query<T> and();
-	public <P> Query<T> or(final PropertyKey<P> key, P value);
-	public <P> Query<T> or(final PropertyKey<P> key, P value, boolean exact);
-	public <P> Query<T> or(final PropertyMap attributes);
-	public Query<T> notBlank(final PropertyKey key);
-	public Query<T> blank(final PropertyKey key);
-	public <P> Query<T> startsWith(final PropertyKey<P> key, final P prefix, final boolean caseInsensitive);
-	public <P> Query<T> endsWith(final PropertyKey<P> key, final P suffix, final boolean caseInsensitive);
-	public <P> Query<T> matches(final PropertyKey<P> key, final String regex);
+	Occurrence getCurrentOccurrence();
 
-	public <P> Query<T> andRange(final PropertyKey<P> key, final P rangeStart, final P rangeEnd);
-	public <P> Query<T> andRange(final PropertyKey<P> key, final P rangeStart, final P rangeEnd, final boolean includeStart, final boolean includeEnd);
-	public <P> Query<T> orRange(final PropertyKey<P> key, final P rangeStart, final P rangeEnd);
-	public <P> Query<T> orRange(final PropertyKey<P> key, final P rangeStart, final P rangeEnd, final boolean includeStart, final boolean includeEnd);
-
-	public Query<T> or();
-	public Query<T> not();
-
-	public Query<T> parent();
-	public Query<T> attributes(final List<SearchAttribute> attributes);
-
-	public Predicate<GraphObject> toPredicate();
-	public SearchAttributeGroup getRootAttributeGroup();
-
-	void overrideFetchSize(final int fetchSizeForThisRequest);
-	Query<T> disablePrefetching();
-
-	public Occurrence getCurrentOccurrence();
 }

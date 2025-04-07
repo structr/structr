@@ -21,8 +21,8 @@ package org.structr.websocket.message;
 import com.google.gson.JsonElement;
 import org.apache.commons.lang3.BooleanUtils;
 import org.structr.common.SecurityContext;
-import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.GraphObject;
 
 import java.util.*;
 
@@ -37,7 +37,7 @@ public class WebSocketMessage {
 	private int chunkSize                          = 512;
 	private int code                               = 0;
 	private String command                         = null;
-	private GraphObject graphObject                = null;
+	private GraphObject graphObject                 = null;
 	private String id                              = null;
 	private String pageId                          = null;
 	private String message                         = null;
@@ -49,7 +49,7 @@ public class WebSocketMessage {
 	private Map<String, Object> relData            = new LinkedHashMap();
 	private Set<PropertyKey> modifiedProperties    = new LinkedHashSet();
 	private Set<PropertyKey> removedProperties     = new LinkedHashSet();
-	private Iterable<? extends GraphObject> result = null;
+	private Iterable<? extends GraphObject> result  = null;
 	private int rawResultCount                     = 0;
 	private String sessionId                       = null;
 	private boolean sessionValid                   = false;

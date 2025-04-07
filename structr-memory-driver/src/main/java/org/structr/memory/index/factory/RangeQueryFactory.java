@@ -45,12 +45,13 @@ public class RangeQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 			final Comparable rangeStart = (Comparable)getReadValue(rangeQuery.getRangeStart());
 			final Comparable rangeEnd   = (Comparable)getReadValue(rangeQuery.getRangeEnd());
 			final String name           = predicate.getName();
+			final Class type            = null;
 
 			if (rangeStart == null && rangeEnd == null) {
 				return false;
 			}
 
-			final RangePredicate rangePredicate = new RangePredicate<>(name, rangeStart, rangeEnd, predicate.getType());
+			final RangePredicate rangePredicate = new RangePredicate<>(name, rangeStart, rangeEnd, type);
 
 			rangePredicate.setStartInclusive(rangeQuery.getIncludeStart());
 			rangePredicate.setEndInclusive(rangeQuery.getIncludeEnd());

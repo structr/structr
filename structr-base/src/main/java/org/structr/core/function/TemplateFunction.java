@@ -26,6 +26,9 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.MailTemplateTraitDefinition;
 import org.structr.schema.action.ActionContext;
 
 public class TemplateFunction extends AdvancedScriptingFunction {
@@ -57,13 +60,13 @@ public class TemplateFunction extends AdvancedScriptingFunction {
 
 			if (sources[2] instanceof GraphObject) {
 
-				final Class type                    = StructrApp.getConfiguration().getNodeEntityClass("MailTemplate");
-				final PropertyKey<String> localeKey = StructrApp.key(type, "locale");
-				final PropertyKey<String> textKey   = StructrApp.key(type, "text");
+				final Traits traits                 = Traits.of(StructrTraits.MAIL_TEMPLATE);
+				final PropertyKey<String> localeKey = traits.key(MailTemplateTraitDefinition.LOCALE_PROPERTY);
+				final PropertyKey<String> textKey   = traits.key(MailTemplateTraitDefinition.TEXT_PROPERTY);
 				final App app                       = StructrApp.getInstance(ctx.getSecurityContext());
 				final String name                   = sources[0].toString();
 				final String locale                 = sources[1].toString();
-				final GraphObject template          = app.nodeQuery(type).andName(name).and(localeKey, locale).getFirst();
+				final GraphObject template          = app.nodeQuery(StructrTraits.MAIL_TEMPLATE).andName(name).and(localeKey, locale).getFirst();
 				final GraphObject templateInstance  = (GraphObject)sources[2];
 
 				if (template != null) {

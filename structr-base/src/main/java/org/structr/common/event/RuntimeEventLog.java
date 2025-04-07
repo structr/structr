@@ -19,7 +19,7 @@
 package org.structr.common.event;
 
 import org.structr.api.Predicate;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -33,6 +33,11 @@ import java.util.concurrent.LinkedBlockingDeque;
  * them for a limited amount of time.
  */
 public class RuntimeEventLog {
+
+	public static final String METHOD_KEY = "method";
+	public static final String PATH_KEY   = "path";
+	public static final String ID_KEY     = "id";
+	public static final String NAME_KEY   = "name";
 
 	private static final BlockingDeque<RuntimeEvent> events = new LinkedBlockingDeque<>(101_000);
 
@@ -88,35 +93,54 @@ public class RuntimeEventLog {
 		add(EventType.Maintenance, command, data);
 	}
 
-	public static void rest(final String method, final String path, final PrincipalInterface user) {
+	public static void rest(final String method, final String path, final Principal user) {
 
 		if (user != null) {
 
-			add(EventType.Rest, method, Map.of("method", method, "path", path, "id", user.getUuid(), "name", user.getName()));
+			add(EventType.Rest, method, Map.of(
+					METHOD_KEY, method,
+					PATH_KEY,   path,
+					ID_KEY,     user.getUuid(),
+					NAME_KEY,   user.getName()
+			));
 
 		} else {
 
-			add(EventType.Rest, method, Map.of("method", method, "path", path));
+			add(EventType.Rest, method, Map.of(
+					METHOD_KEY, method,
+					PATH_KEY,   path
+			));
 		}
 	}
 
-	public static void csv(final String method, final String path, final PrincipalInterface user) {
+	public static void csv(final String method, final String path, final Principal user) {
 
 		if (user != null) {
 
-			add(EventType.Csv, method, Map.of("method", method, "path", path, "id", user.getUuid(), "name", user.getName()));
+			add(EventType.Csv, method, Map.of(
+					METHOD_KEY, method,
+					PATH_KEY,   path,
+					ID_KEY,     user.getUuid(),
+					NAME_KEY,   user.getName()
+			));
 
 		} else {
 
-			add(EventType.Csv, method, Map.of("method", method, "path", path));
+			add(EventType.Csv, method, Map.of(
+					METHOD_KEY, method,
+					PATH_KEY,   path
+			));
 		}
 	}
 
-	public static void graphQL(final String query, final PrincipalInterface user) {
+	public static void graphQL(final String query, final Principal user) {
 
 		if (user != null) {
 
-			add(EventType.GraphQL, query, Map.of("id", user.getUuid(), "name", user.getName()));
+			add(EventType.GraphQL, query, Map.of(
+					ID_KEY,   user.getUuid(),
+					NAME_KEY, user.getName()
+			));
 
 		} else {
 
@@ -124,11 +148,14 @@ public class RuntimeEventLog {
 		}
 	}
 
-	public static void http(final String path, final PrincipalInterface user) {
+	public static void http(final String path, final Principal user) {
 
 		if (user != null) {
 
-			add(EventType.Http, path, Map.of("id", user.getUuid(), "name", user.getName()));
+			add(EventType.Http, path, Map.of(
+					ID_KEY, user.getUuid(),
+					NAME_KEY, user.getName()
+			));
 
 		} else {
 
@@ -161,6 +188,14 @@ public class RuntimeEventLog {
 		}
 
 		return list;
+	}
+
+	public static void acknowledgeAllEventsForId(final String uuid) {
+
+		if (uuid != null) {
+
+			RuntimeEventLog.getEvents(e -> uuid.equals(e.getData().get(RuntimeEvent.ID_PROPERTY))).stream().forEach(e -> e.acknowledge());
+		}
 	}
 
 	// ----- private methods -----

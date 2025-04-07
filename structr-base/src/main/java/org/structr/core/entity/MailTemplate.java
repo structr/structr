@@ -18,49 +18,12 @@
  */
 package org.structr.core.entity;
 
-import org.structr.api.schema.JsonSchema;
-import org.structr.api.schema.JsonType;
-import org.structr.common.PropertyView;
-import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.property.Property;
-import org.structr.core.property.StringProperty;
-import org.structr.schema.SchemaService;
+import org.structr.core.graph.NodeInterface;
 
-/**
- *
- */
+public interface MailTemplate extends NodeInterface {
 
-public class MailTemplate extends AbstractNode {
-
-	public static final Property<String> textProperty = new StringProperty("text").partOfBuiltInSchema();
-	public static final Property<String> localeProperty = new StringProperty("locale").indexed().partOfBuiltInSchema();
-
-	public static final View defaultView = new View(MailTemplate.class, PropertyView.Public,
-		name, textProperty, localeProperty
-	);
-
-	public static final View uiView      = new View(MailTemplate.class, PropertyView.Ui,
-		name, textProperty, localeProperty
-	);
-
-	static {
-
-		final JsonSchema schema = SchemaService.getDynamicSchema();
-		final JsonType type     = schema.addType("MailTemplate");
-
-		type.setExtends(MailTemplate.class);
-	}
-
-	public String getText() {
-		return getProperty(textProperty);
-	}
-
-	public String getLocale() {
-		return getProperty(localeProperty);
-	}
-
-	public void setLocale(final String locale) throws FrameworkException {
-		setProperty(localeProperty, locale);
-	}
+	String getText();
+	String getLocale();
+	void setLocale(final String locale) throws FrameworkException;
 }

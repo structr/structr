@@ -26,9 +26,13 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Localization;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.LocalizationTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.action.ActionContext;
 
 import java.util.ArrayList;
@@ -222,7 +226,7 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 		final String fullLocale   = locale.toString();
 		final String lang         = locale.getLanguage();
 		final String finalDomain  = (requestedDomain == null) ? "" : requestedDomain;
-		Localization result = null;
+		NodeInterface result      = null;
 
 		// find localization with exact key, domain and (full) locale
 		if (result == null) { result = getLocalizationFromDatabase(requestedKey, finalDomain, fullLocale); }
@@ -240,7 +244,7 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 
 		if (result != null) {
 
-			value = result.getProperty(StructrApp.key(Localization.class, "localizedName"));
+			value = result.getProperty(result.getTraits().key(LocalizationTraitDefinition.LOCALIZED_NAME_PROPERTY));
 		}
 
 		ctx.getContextStore().addRequestedLocalization(caller, requestedKey, finalDomain, fullLocale, result);
@@ -281,13 +285,15 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 		localizationCache.put(cacheKey, value);
 	}
 
-	private static Localization getLocalizationFromDatabase(final String key, final String domain, final String locale) throws FrameworkException {
+	private static NodeInterface getLocalizationFromDatabase(final String key, final String domain, final String locale) throws FrameworkException {
 
-		final PropertyKey<String> domainKey        = StructrApp.key(Localization.class, "domain");
-		final PropertyKey<String> localeKey        = StructrApp.key(Localization.class, "locale");
+		final Traits traits                 = Traits.of(StructrTraits.LOCALIZATION);
+		final PropertyKey<String> nameKey   = traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
+		final PropertyKey<String> domainKey = traits.key(LocalizationTraitDefinition.DOMAIN_PROPERTY);
+		final PropertyKey<String> localeKey = traits.key(LocalizationTraitDefinition.LOCALE_PROPERTY);
 
-		final List<Localization> localizations = StructrApp.getInstance().nodeQuery(Localization.class)
-			.and(Localization.name,   key)
+		final List<NodeInterface> localizations = StructrApp.getInstance().nodeQuery(StructrTraits.LOCALIZATION)
+			.and(nameKey,   key)
 			.and(domainKey, domain)
 			.and(localeKey, locale)
 			.getAsList();
@@ -310,7 +316,7 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 
 	private static String getLocalizedNameFromDatabase(final String key, final String domain, final String locale) throws FrameworkException {
 
-		final Localization localization = getLocalizationFromDatabase(key, domain, locale);
+		final NodeInterface localization = getLocalizationFromDatabase(key, domain, locale);
 
 		// nothing found
 		if (localization == null) {
@@ -318,7 +324,7 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 		}
 
 		// return first
-		return localization.getProperty(StructrApp.key(Localization.class, "localizedName"));
+		return localization.getProperty(localization.getTraits().key(LocalizationTraitDefinition.LOCALIZED_NAME_PROPERTY));
 	}
 
 }

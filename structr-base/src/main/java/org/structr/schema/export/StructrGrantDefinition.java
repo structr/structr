@@ -27,17 +27,20 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.entity.AbstractSchemaNode;
-import org.structr.core.entity.PrincipalInterface;
 import org.structr.core.entity.SchemaGrant;
 import org.structr.core.entity.SchemaNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.SchemaGrantTraitDefinition;
+import org.structr.web.maintenance.DeployCommand;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import org.structr.web.maintenance.DeployCommand;
 
 /**
  *
@@ -149,43 +152,39 @@ public class StructrGrantDefinition implements JsonGrant, StructrDefinition {
 
 		final PropertyMap getOrCreateProperties = new PropertyMap();
 		final PropertyMap updateProperties      = new PropertyMap();
-		final List<PrincipalInterface> principals        = app.nodeQuery(PrincipalInterface.class).andName(principalName).getAsList();
+		final List<NodeInterface> principals    = app.nodeQuery(StructrTraits.PRINCIPAL).andName(principalName).getAsList();
+		final Traits traits                     = Traits.of(StructrTraits.SCHEMA_GRANT);
 
 		if (principals.isEmpty()) {
 
-			// log error
-			logger.warn("No node of type Principal with name '{}' found for schema grant, ignoring.", principalName);
-			DeployCommand.addMissingPrincipal(principalName);
+			DeployCommand.encounteredMissingPrincipal("Missing principal for schema grant", principalName);
+			return null;
+
+		} else if (principals.size() > 1) {
+
+			DeployCommand.encounteredAmbiguousPrincipal("Missing principal for schema grant", principalName, principals.size());
 			return null;
 		}
 
-		if (principals.size() > 1) {
+		getOrCreateProperties.put(traits.key("principal"),  principals.get(0));
+		getOrCreateProperties.put(traits.key(SchemaGrantTraitDefinition.SCHEMA_NODE_PROPERTY), (SchemaNode)schemaNode);
 
-			// log error
-			logger.warn("Found {} nodes of type Principal named '{}' for schema grant, ignoring.", principals.size(), principalName);
-			DeployCommand.addAmbiguousPrincipal(principalName);
-			return null;
-		}
-
-		getOrCreateProperties.put(SchemaGrant.principal,  principals.get(0));
-		getOrCreateProperties.put(SchemaGrant.schemaNode, (SchemaNode)schemaNode);
-
-		SchemaGrant grant = app.nodeQuery(SchemaGrant.class).and(getOrCreateProperties).getFirst();
+		NodeInterface grant = app.nodeQuery(StructrTraits.SCHEMA_GRANT).and(getOrCreateProperties).getFirst();
 		if (grant == null) {
 
-			grant = app.create(SchemaGrant.class, getOrCreateProperties);
+			grant = app.create(StructrTraits.SCHEMA_GRANT, getOrCreateProperties);
 		}
 
-		updateProperties.put(SchemaGrant.allowRead,          getAllowRead());
-		updateProperties.put(SchemaGrant.allowWrite,         getAllowWrite());
-		updateProperties.put(SchemaGrant.allowDelete,        getAllowDelete());
-		updateProperties.put(SchemaGrant.allowAccessControl, getAllowAccessControl());
+		updateProperties.put(traits.key("allowRead"),          getAllowRead());
+		updateProperties.put(traits.key("allowWrite"),         getAllowWrite());
+		updateProperties.put(traits.key("allowDelete"),        getAllowDelete());
+		updateProperties.put(traits.key("allowAccessControl"), getAllowAccessControl());
 
 		grant.setProperties(SecurityContext.getSuperUserInstance(), updateProperties);
 
-		this.schemaGrant = grant;
+		this.schemaGrant = grant.as(SchemaGrant.class);
 
-		return grant;
+		return this.schemaGrant;
 	}
 
 
@@ -220,10 +219,10 @@ public class StructrGrantDefinition implements JsonGrant, StructrDefinition {
 
 		this.schemaGrant = grant;
 
-		this.allowRead          = schemaGrant.getProperty(SchemaGrant.allowRead);
-		this.allowWrite         = schemaGrant.getProperty(SchemaGrant.allowWrite);
-		this.allowDelete        = schemaGrant.getProperty(SchemaGrant.allowDelete);
-		this.allowAccessControl = schemaGrant.getProperty(SchemaGrant.allowAccessControl);
+		this.allowRead          = schemaGrant.allowRead();
+		this.allowWrite         = schemaGrant.allowWrite();
+		this.allowDelete        = schemaGrant.allowDelete();
+		this.allowAccessControl = schemaGrant.allowAccessControl();
 	}
 
 	Map<String, Object> serialize() {

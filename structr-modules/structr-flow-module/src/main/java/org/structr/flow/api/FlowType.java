@@ -18,9 +18,7 @@
  */
 package org.structr.flow.api;
 
-/**
- *
- */
+
 public enum FlowType {
 
 	Action,

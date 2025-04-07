@@ -24,7 +24,6 @@ import org.structr.api.graph.Direction;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -38,11 +37,11 @@ public class NodeRelationshipStatisticsCommand extends NodeServiceCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(NodeRelationshipStatisticsCommand.class.getName());
 
-	public Map<String, Long> execute(final AbstractNode sNode) throws FrameworkException {
+	public Map<String, Long> execute(final NodeInterface sNode) throws FrameworkException {
 		return execute(sNode, null);
 	}
 
-	public Map<String, Long> execute(AbstractNode sNode, Direction dir) throws FrameworkException {
+	public Map<String, Long> execute(NodeInterface sNode, Direction dir) throws FrameworkException {
 
 		final Map<String, Long> statistics = new LinkedHashMap<>();
 		final Node node                    = sNode.getNode();

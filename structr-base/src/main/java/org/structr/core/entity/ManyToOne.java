@@ -24,15 +24,14 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.search.SearchCommand;
-import org.structr.core.notion.Notion;
-import org.structr.core.notion.RelationshipNotion;
+import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.traits.Traits;
 
 /**
  *
  *
  */
-public abstract class ManyToOne<S extends NodeInterface, T extends NodeInterface> extends AbstractRelationship<S, T> implements Relation<S, T, ManyStartpoint<S>, OneEndpoint<T>> {
+public abstract class ManyToOne extends AbstractRelation implements Relation<ManyStartpoint, OneEndpoint> {
 
 	@Override
 	public Multiplicity getSourceMultiplicity() {
@@ -45,61 +44,46 @@ public abstract class ManyToOne<S extends NodeInterface, T extends NodeInterface
 	}
 
 	@Override
-	public ManyStartpoint<S> getSource() {
-		return new ManyStartpoint<>(this);
+	public ManyStartpoint getSource() {
+		return new ManyStartpoint(this);
 	}
 
 	@Override
-	public OneEndpoint<T> getTarget() {
-		return new OneEndpoint<>(this);
-	}
-
-	@Override
-	public int getCascadingDeleteFlag() {
-		return Relation.NONE;
-	}
-
-	@Override
-	public int getAutocreationFlag() {
-		return Relation.NONE;
+	public OneEndpoint getTarget() {
+		return new OneEndpoint(this);
 	}
 
 	@Override
 	public void ensureCardinality(final SecurityContext securityContext, final NodeInterface sourceNode, final NodeInterface targetNode) throws FrameworkException {
 
-		final App app                          = StructrApp.getInstance();
-		final Class<? extends ManyToOne> clazz = this.getClass();
-		final Class<T> targetType              = getTargetType();
+		final App app           = StructrApp.getInstance();
+		final String type       = getType();
+		final String targetType = getTargetType();
 
 		if (sourceNode != null) {
 
 			// check existing relationships
-			final Relation<?, T, ?, ?> outgoingRel = sourceNode.getOutgoingRelationshipAsSuperUser(clazz);
-			if (outgoingRel != null && SearchCommand.isTypeAssignableFromOtherType(targetType, outgoingRel.getTargetType())) {
+			final RelationshipInterface outgoingRel = sourceNode.getOutgoingRelationshipAsSuperUser(type);
+			if (outgoingRel != null) {
 
-				app.delete(outgoingRel);
+				final Relation relation   = outgoingRel.getRelation();
+				final Traits targetTraits = Traits.of(relation.getTargetType());
+
+				if (targetTraits.contains(targetType)) {
+
+					app.delete(outgoingRel);
+				}
 			}
 		}
 	}
 
 	@Override
-	public Notion getEndNodeNotion() {
-		return new RelationshipNotion(getTargetIdProperty());
-
+	public Direction getDirectionForType(final String type) {
+		return getDirectionForType(getSourceType(), getTargetType(), type);
 	}
 
 	@Override
-	public Notion getStartNodeNotion() {
-		return new RelationshipNotion(getSourceIdProperty());
-	}
-
-	@Override
-	public Direction getDirectionForType(final Class<? extends NodeInterface> type) {
-		return super.getDirectionForType(getSourceType(), getTargetType(), type);
-	}
-
-	@Override
-	public Class getOtherType(final Class type) {
+	public String getOtherType(final String type) {
 
 		switch (getDirectionForType(type)) {
 
@@ -109,15 +93,5 @@ public abstract class ManyToOne<S extends NodeInterface, T extends NodeInterface
 		}
 
 		return null;
-	}
-
-	@Override
-	public boolean isHidden() {
-		return false;
-	}
-
-	@Override
-	public boolean isInternal() {
-		return false;
 	}
 }

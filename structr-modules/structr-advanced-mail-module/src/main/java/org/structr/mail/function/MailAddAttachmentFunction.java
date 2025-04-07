@@ -20,15 +20,17 @@ package org.structr.mail.function;
 
 import org.apache.commons.mail.EmailAttachment;
 import org.structr.common.error.FrameworkException;
-import org.structr.storage.StorageProviderFactory;
+import org.structr.common.helper.AdvancedMailContainer;
+import org.structr.common.helper.DynamicMailAttachment;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.mail.DynamicFileDataSource;
 import org.structr.schema.action.ActionContext;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.File;
 
 import java.net.MalformedURLException;
-import org.structr.common.helper.AdvancedMailContainer;
-import org.structr.common.helper.DynamicMailAttachment;
 
 public class MailAddAttachmentFunction extends AdvancedMailModuleFunction {
 
@@ -58,9 +60,9 @@ public class MailAddAttachmentFunction extends AdvancedMailModuleFunction {
 
 			final AdvancedMailContainer amc = ctx.getAdvancedMailContainer();
 
-			if (sources[0] instanceof File) {
+			if (sources[0] instanceof NodeInterface n && n.is(StructrTraits.FILE)) {
 
-				final File fileNode = (File)sources[0];
+				final File fileNode = n.as(File.class);
 				final String attachmentName = (sources.length == 2) ? sources[1].toString() : fileNode.getName();
 
 				try {

@@ -28,16 +28,17 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.helper.PathHelper;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.web.common.FileHelper;
-import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
-import org.structr.web.entity.dom.Page;
 
 /**
  *
@@ -55,7 +56,13 @@ public class StructrFileSystemView implements FileSystemView {
 
 		try (Tx tx = StructrApp.getInstance().tx()) {
 
-			org.structr.web.entity.User structrUser = (org.structr.web.entity.User) AuthHelper.getPrincipalForCredential(PrincipalInterface.name, user.getName());
+			org.structr.web.entity.User structrUser = null;
+
+			final Principal principal = AuthHelper.getPrincipalForCredential(Traits.of(StructrTraits.PRINCIPAL).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), user.getName());
+			if (principal != null) {
+
+				structrUser = principal.as(org.structr.web.entity.User.class);
+			}
 
 			securityContext = SecurityContext.getInstance(structrUser, AccessMode.Backend);
 
@@ -73,7 +80,13 @@ public class StructrFileSystemView implements FileSystemView {
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			org.structr.web.entity.User structrUser = (org.structr.web.entity.User) AuthHelper.getPrincipalForCredential(PrincipalInterface.name, user.getName());
+			org.structr.web.entity.User structrUser = null;
+
+			final Principal principal = AuthHelper.getPrincipalForCredential(Traits.of(StructrTraits.PRINCIPAL).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), user.getName());
+			if (principal != null) {
+
+				structrUser = principal.as(org.structr.web.entity.User.class);
+			}
 
 			final Folder homeDir = structrUser.getHomeDirectory();
 
@@ -93,15 +106,15 @@ public class StructrFileSystemView implements FileSystemView {
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			AbstractFile structrWorkingDir = FileHelper.getFileByAbsolutePath(securityContext, workingDir);
+			NodeInterface structrWorkingDir = FileHelper.getFileByAbsolutePath(securityContext, workingDir);
 
 			tx.success();
 
-			if (structrWorkingDir == null || structrWorkingDir instanceof File) {
+			if (structrWorkingDir == null || structrWorkingDir.is(StructrTraits.FILE)) {
 				return new StructrFtpFolder(securityContext, null);
 			}
 
-			return new StructrFtpFolder(securityContext, (Folder) structrWorkingDir);
+			return new StructrFtpFolder(securityContext, structrWorkingDir.as(Folder.class));
 
 		} catch (FrameworkException fex) {
 			logger.error("Error in changeWorkingDirectory()", fex);
@@ -155,7 +168,7 @@ public class StructrFileSystemView implements FileSystemView {
 			}
 
 			if ("..".equals(requestedPath) || "../".equals(requestedPath)) {
-				return new StructrFtpFolder(securityContext, cur.getStructrFile().getParent());
+				return new StructrFtpFolder(securityContext, cur.getStructrFile().getParent().as(Folder.class));
 			}
 
 			// If relative path requested, prepend base path
@@ -176,27 +189,19 @@ public class StructrFileSystemView implements FileSystemView {
 
 			}
 
-			AbstractFile file = FileHelper.getFileByAbsolutePath(securityContext, requestedPath);
-
-
+			NodeInterface file = FileHelper.getFileByAbsolutePath(securityContext, requestedPath);
 			if (file != null) {
 
-				if (file instanceof Folder) {
+				if (file.is(StructrTraits.FOLDER)) {
+
 					tx.success();
-					return new StructrFtpFolder(securityContext, (Folder) file);
+					return new StructrFtpFolder(securityContext, file.as(Folder.class));
+
 				} else {
+
 					tx.success();
-					return new StructrFtpFile(securityContext, (File) file);
+					return new StructrFtpFile(securityContext, file.as(File.class));
 				}
-			}
-
-			// Look up a page by its name
-			Page page = StructrApp.getInstance(securityContext).nodeQuery(Page.class).andName(PathHelper.getName(requestedPath)).getFirst();
-			if (page != null) {
-
-				tx.success();
-
-				return new FtpFilePageWrapper(page);
 			}
 
 			logger.warn("No existing file found: {}", requestedPath);

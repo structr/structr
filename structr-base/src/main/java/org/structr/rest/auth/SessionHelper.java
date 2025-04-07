@@ -32,11 +32,14 @@ import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.PrincipalInterface;
+import org.structr.core.entity.Principal;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.rest.service.HttpService;
-import org.structr.web.servlet.HtmlServlet;
 
 import java.time.Instant;
 import java.util.Date;
@@ -119,14 +122,14 @@ public class SessionHelper {
 		}
 
 		final App app                            = StructrApp.getInstance();
-		final PropertyKey<String[]> sessionIdKey = StructrApp.key(PrincipalInterface.class, "sessionIds");
-		final Query<PrincipalInterface> query    = app.nodeQuery(PrincipalInterface.class).and(sessionIdKey, new String[]{sessionId}).disableSorting();
+		final PropertyKey<String[]> sessionIdKey = Traits.of(StructrTraits.PRINCIPAL).key(PrincipalTraitDefinition.SESSION_IDS_PROPERTY);
+		final Query<NodeInterface> query         = app.nodeQuery(StructrTraits.PRINCIPAL).and(sessionIdKey, new String[]{sessionId}, false).disableSorting();
 
 		try {
 
-			for (final PrincipalInterface p : query.getAsList()) {
+			for (final NodeInterface p : query.getResultStream()) {
 
-				p.removeSessionId(sessionId);
+				p.as(Principal.class).removeSessionId(sessionId);
 			}
 
 		} catch (Exception fex) {
@@ -147,12 +150,11 @@ public class SessionHelper {
 	 *
 	 * @param user
 	 */
-	public static void clearInvalidSessions(final PrincipalInterface user) {
+	public static void clearInvalidSessions(final Principal user) {
 
 		logger.info("Clearing invalid sessions for user {} ({})", user.getName(), user.getUuid());
 
-		final PropertyKey<String[]> sessionIdKey = StructrApp.key(PrincipalInterface.class, "sessionIds");
-		final String[] sessionIds                = user.getProperty(sessionIdKey);
+		final String[] sessionIds = user.getSessionIds();
 
 		if (sessionIds != null && sessionIds.length > 0) {
 
@@ -175,16 +177,13 @@ public class SessionHelper {
 	 *
 	 * @param user
 	 */
-	public static void clearAllSessions(final PrincipalInterface user) {
+	public static void clearAllSessions(final Principal user) {
 
-		final Class groupClass = StructrApp.getConfiguration().getNodeEntityClass("Group");
-
-		if (!groupClass.isAssignableFrom(user.getClass())) {
+		if (!user.getTraits().contains(StructrTraits.GROUP)) {
 
 			logger.info("Clearing all sessions for user {} ({})", user.getName(), user.getUuid());
 
-			final PropertyKey<String[]> sessionIdKey = StructrApp.key(PrincipalInterface.class, "sessionIds");
-			final String[] sessionIds                = user.getProperty(sessionIdKey);
+			final String[] sessionIds = user.getSessionIds();
 
 			if (sessionIds != null && sessionIds.length > 0) {
 
@@ -207,8 +206,8 @@ public class SessionHelper {
 
 		try (final Tx tx = StructrApp.getInstance().tx(false, false, false)) {
 
-			for (final PrincipalInterface user : StructrApp.getInstance().nodeQuery(PrincipalInterface.class).getAsList()) {
-				clearAllSessions(user);
+			for (final NodeInterface user : StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).getAsList()) {
+				clearAllSessions(user.as(Principal.class));
 			}
 
 			tx.success();
@@ -234,7 +233,7 @@ public class SessionHelper {
 		}
 	}
 
-	public static PrincipalInterface checkSessionAuthentication(final HttpServletRequest request) throws FrameworkException {
+	public static Principal checkSessionAuthentication(final HttpServletRequest request) throws FrameworkException {
 
 		String requestedSessionId = request.getRequestedSessionId();
 		String sessionId          = null;
@@ -331,7 +330,7 @@ public class SessionHelper {
 			}
 		}
 
-		final PrincipalInterface user = AuthHelper.getPrincipalForSessionId(sessionId);
+		final Principal user = AuthHelper.getPrincipalForSessionId(sessionId);
 
 		if (isNotTimedOut) {
 

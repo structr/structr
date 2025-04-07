@@ -24,16 +24,15 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
-import org.structr.schema.SchemaHelper;
-import org.structr.web.entity.User;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.*;
+import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -43,19 +42,25 @@ public class TestHelper {
 
 	public static void testViews(final App app, final InputStream specificationSource, final Map<String, List<String>> additionalRequiredAttributes) {
 
-		final Set<String> useLowercaseNameForTypes           = Set.of("SchemaMethod");
+		final Set<String> useLowercaseNameForTypes           = Set.of(StructrTraits.SCHEMA_METHOD, StructrTraits.SCHEMA_PROPERTY);
 		final Map<String, Map<String, List<String>>> viewMap = new LinkedHashMap<>();
 		final Map<String, List<String>> requiredAttributes   = new LinkedHashMap<>();
 		final Map<String, List<String>> baseMap              = new LinkedHashMap<>();
 		boolean fail                                         = false;
 
-		baseMap.put("ui",     Arrays.asList("id", "type", "name", "owner", "createdBy", "hidden", "createdDate", "lastModifiedDate", "visibleToPublicUsers", "visibleToAuthenticatedUsers"));
-		baseMap.put("_html_", Arrays.asList("_html_data", "_html_is", "_html_properties"));
-		baseMap.put("public", Arrays.asList("id", "type"));
+		baseMap.put("ui",     Arrays.asList(
+				GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY,
+				NodeInterfaceTraitDefinition.OWNER_PROPERTY, GraphObjectTraitDefinition.CREATED_BY_PROPERTY, NodeInterfaceTraitDefinition.HIDDEN_PROPERTY,
+				GraphObjectTraitDefinition.CREATED_DATE_PROPERTY, GraphObjectTraitDefinition.LAST_MODIFIED_DATE_PROPERTY,
+				GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY
+		));
+		baseMap.put("_html_", Arrays.asList(DOMElementTraitDefinition._HTML_DATA_PROPERTY, DOMElementTraitDefinition._HTML_IS_PROPERTY, DOMElementTraitDefinition._HTML_PROPERTIES_PROPERTY));
+		baseMap.put("public", Arrays.asList(GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY));
 
-		requiredAttributes.put("DynamicResourceAccess", Arrays.asList("signature", "i:flags"));
-		requiredAttributes.put("Localization",          Arrays.asList("locale"));
-		requiredAttributes.put("ResourceAccess",        Arrays.asList("signature", "i:flags"));
+		requiredAttributes.put(StructrTraits.DYNAMIC_RESOURCE_ACCESS, Arrays.asList(ResourceAccessTraitDefinition.SIGNATURE_PROPERTY, "i:" + ResourceAccessTraitDefinition.FLAGS_PROPERTY));
+		requiredAttributes.put(StructrTraits.LOCALIZATION,            Arrays.asList(LocalizationTraitDefinition.LOCALE_PROPERTY));
+		requiredAttributes.put(StructrTraits.RESOURCE_ACCESS,         Arrays.asList(ResourceAccessTraitDefinition.SIGNATURE_PROPERTY, "i:" + ResourceAccessTraitDefinition.FLAGS_PROPERTY));
+		requiredAttributes.put(StructrTraits.SCHEMA_RELATIONSHIP_NODE, Arrays.asList(SchemaRelationshipNodeTraitDefinition.RELATIONSHIP_TYPE_PROPERTY, SchemaRelationshipNodeTraitDefinition.SOURCE_TYPE_PROPERTY, SchemaRelationshipNodeTraitDefinition.TARGET_TYPE_PROPERTY));
 
 		// insert required attributes specified by test class
 		if (additionalRequiredAttributes != null) {
@@ -123,10 +128,10 @@ public class TestHelper {
 		// create test user
 		try (final Tx tx = app.tx()) {
 
-			app.create(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"),  true)
+			app.create(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.PASSWORD_PROPERTY), "admin"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY),  true)
 			);
 
 			tx.success();
@@ -141,12 +146,12 @@ public class TestHelper {
 
 			final String typeName                   = entry.getKey();
 			final Map<String, List<String>> typeMap = entry.getValue();
-			final Class type                        = SchemaHelper.getEntityClassForRawType(typeName);
+			final Traits type                       = Traits.of(typeName);
 
 			if (type != null) {
 
 				// only test node types for now..
-				if (!Modifier.isAbstract(type.getModifiers()) && !type.isInterface() && !RelationshipInterface.class.isAssignableFrom(type)) {
+				if (!type.isAbstract() && !type.isInterface() && !type.isRelationshipType()) {
 
 					final String namePrefix = useLowercaseNameForTypes.contains(typeName) ? "test" : "Test";
 					final String body       = createPostBody(requiredAttributes.get(typeName), namePrefix);
@@ -179,6 +184,7 @@ public class TestHelper {
 							.given()
 							.header("X-User",     "admin")
 							.header("X-Password", "admin")
+							.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 							.expect()
 							.statusCode(200)
 							.when()
@@ -195,7 +201,7 @@ public class TestHelper {
 
 						if (!expectedKeys.isEmpty()) {
 
-							System.out.println(type.getSimpleName() + "." + viewName + " is missing the following keys: " + expectedKeys);
+							System.out.println(type.getName() + "." + viewName + " is missing the following keys: " + expectedKeys);
 							fail = true;
 						}
 
@@ -206,7 +212,7 @@ public class TestHelper {
 
 						if (!itemKeySet.isEmpty()) {
 
-							System.out.println(type.getSimpleName() + "." + viewName + " contains keys that are not listed in the specification: " + itemKeySet);
+							System.out.println(type.getName() + "." + viewName + " contains keys that are not listed in the specification: " + itemKeySet);
 							fail = true;
 						}
 					}

@@ -19,67 +19,49 @@
 package org.structr.flow.impl;
 
 import org.structr.api.util.Iterables;
-import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.core.property.EndNode;
-import org.structr.core.property.EndNodes;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNodes;
-import org.structr.flow.api.DataSource;
-import org.structr.flow.engine.Context;
-import org.structr.flow.engine.FlowException;
-import org.structr.flow.impl.rels.FlowConditionCondition;
-import org.structr.flow.impl.rels.FlowDataInputs;
-import org.structr.flow.impl.rels.FlowDecisionCondition;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.Traits;
 
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.flow.traits.definitions.FlowIsTrueTraitDefinition;
 
-/**
- *
- */
 public class FlowIsTrue extends FlowCondition {
 
-	public static final Property<Iterable<DataSource>> dataSources = new StartNodes<>("dataSources", FlowDataInputs.class);
-	public static final Property<FlowCondition> condition          = new EndNode<>("condition", FlowConditionCondition.class);
-	public static final Property<Iterable<FlowDecision>> decision  = new EndNodes<>("decision", FlowDecisionCondition.class);
-
-	public static final View defaultView = new View(FlowNotNull.class, PropertyView.Public, dataSources, condition, decision);
-	public static final View uiView      = new View(FlowNotNull.class, PropertyView.Ui,     dataSources, condition, decision);
-
-	@Override
-	public Object get(final Context context) throws FlowException {
-
-		final List<DataSource> _dataSources = Iterables.toList(getProperty(FlowIsTrue.dataSources));
-		if (_dataSources.isEmpty()) {
-
-			return false;
-		}
-
-		Boolean result = null;
-
-		for (final DataSource _dataSource : getProperty(FlowIsTrue.dataSources)) {
-
-			result = combine(result, FlowLogicCondition.getBoolean(context, _dataSource));
-		}
-
-		return result;
+	public FlowIsTrue(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
 	}
 
-	private Boolean combine(Boolean result, Boolean value) {
+	public final void setDataSources(final Iterable<FlowDataSource> dataSources) throws FrameworkException {
+		wrappedObject.setProperty(traits.key(FlowIsTrueTraitDefinition.DATA_SOURCES_PROPERTY), dataSources);
+	}
+
+	public final Iterable<FlowDataSource> getDataSources() {
+
+		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key(FlowIsTrueTraitDefinition.DATA_SOURCES_PROPERTY));
+
+		return Iterables.map(n -> n.as(FlowDataSource.class), nodes);
+	}
+
+	public final Boolean combine(final Boolean result, final Boolean value) {
+
 		if (result == null) {
+
 			return value;
 		}
+
 		return result && value;
 	}
 
 	@Override
 	public Map<String, Object> exportData() {
-		Map<String, Object> result = new HashMap<>();
 
-		result.put("id", this.getUuid());
-		result.put("type", this.getClass().getSimpleName());
+		final Map<String, Object> result = new TreeMap<>();
+
+		result.put(GraphObjectTraitDefinition.ID_PROPERTY,   getUuid());
+		result.put(GraphObjectTraitDefinition.TYPE_PROPERTY, getType());
 
 		return result;
 	}

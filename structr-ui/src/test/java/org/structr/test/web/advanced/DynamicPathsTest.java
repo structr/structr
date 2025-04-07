@@ -20,20 +20,27 @@ package org.structr.test.web.advanced;
 
 import io.restassured.RestAssured;
 import io.restassured.response.ResponseBody;
-import java.util.Random;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.test.web.basic.FrontendTest;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.Template;
-import org.structr.web.entity.path.PagePath;
-import org.structr.web.entity.path.PagePathParameter;
+import org.structr.web.traits.definitions.PagePathParameterTraitDefinition;
+import org.structr.web.traits.definitions.PagePathTraitDefinition;
+import org.structr.web.traits.definitions.dom.ContentTraitDefinition;
+import org.structr.web.traits.definitions.dom.PageTraitDefinition;
+import org.testng.annotations.Test;
+
+import java.util.Random;
+
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
-import org.testng.annotations.Test;
 
 /**
  */
@@ -47,63 +54,63 @@ public class DynamicPathsTest extends FrontendTest {
 		try (final Tx tx = app.tx()) {
 
 			final Page page         = Page.createNewPage(securityContext, "test001");
-			final Template template = app.create(Template.class);
+			final Template template = app.create(StructrTraits.TEMPLATE).as(Template.class);
 
-			page.setProperty(StructrApp.key(Page.class, "contentType"), "text/plain");
+			page.setProperty(Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.CONTENT_TYPE_PROPERTY), "text/plain");
 			page.appendChild(template);
 
 			template.setContent("${key1},${key2},${key3}");
-			template.setProperty(StructrApp.key(Template.class, "contentType"), "text/plain");
+			template.setProperty(Traits.of(StructrTraits.TEMPLATE).key(ContentTraitDefinition.CONTENT_TYPE_PROPERTY), "text/plain");
 
 			{
-				final PagePath path = app.create(PagePath.class,
-					new NodeAttribute<>(StructrApp.key(PagePath.class, "page"), page),
-					new NodeAttribute<>(StructrApp.key(PagePath.class, "name"), "/test1/prefix_{key1}/{key2}")
+				final NodeInterface path = app.create(StructrTraits.PAGE_PATH,
+					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(PagePathTraitDefinition.PAGE_PROPERTY), page),
+					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "/test1/prefix_{key1}/{key2}")
 				);
 
-				app.create(PagePathParameter.class,
-					new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "path"),          path),
-					new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "name"),          "key1"),
-					new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "position"),      0),
-					new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "valueType"),     "String"),
-					new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "defaultValue"),  "defaultValue1")
+				app.create(StructrTraits.PAGE_PATH_PARAMETER,
+					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.PATH_PROPERTY),          path),
+					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),              "key1"),
+					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.POSITION_PROPERTY),      0),
+					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.VALUE_TYPE_PROPERTY),    "String"),
+					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.DEFAULT_VALUE_PROPERTY), "defaultValue1")
 				);
 
-				app.create(PagePathParameter.class,
-					new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "path"),          path),
-					new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "name"),          "key2"),
-					new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "position"),      1),
-					new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "valueType"),     "Integer"),
-					new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "defaultValue"),  "1")
+				app.create(StructrTraits.PAGE_PATH_PARAMETER,
+					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.PATH_PROPERTY),          path),
+					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),              "key2"),
+					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.POSITION_PROPERTY),      1),
+					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.VALUE_TYPE_PROPERTY),    "Integer"),
+					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.DEFAULT_VALUE_PROPERTY), "1")
 				);
 			}
 
 			{
-				final PagePath path = app.create(PagePath.class,
-					new NodeAttribute<>(StructrApp.key(PagePath.class, "page"), page),
-					new NodeAttribute<>(StructrApp.key(PagePath.class, "name"), "/test2/{key1}_{key2}_{key3}")
+				final NodeInterface path = app.create(StructrTraits.PAGE_PATH,
+					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(PagePathTraitDefinition.PAGE_PROPERTY), page),
+					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "/test2/{key1}_{key2}_{key3}")
 				);
 
-				app.create(PagePathParameter.class,
-					new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "path"),          path),
-					new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "name"),          "key1"),
-					new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "position"),      0),
-					new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "valueType"),     "String"),
-					new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "defaultValue"),  "defaultValue2")
-				);
-			}
-
-			{
-				app.create(PagePath.class,
-					new NodeAttribute<>(StructrApp.key(PagePath.class, "page"), page),
-					new NodeAttribute<>(StructrApp.key(PagePath.class, "name"), "/test3/{key1}/{key2}/{key3}")
+				app.create(StructrTraits.PAGE_PATH_PARAMETER,
+					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.PATH_PROPERTY),          path),
+					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),              "key1"),
+					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.POSITION_PROPERTY),      0),
+					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.VALUE_TYPE_PROPERTY),    "String"),
+					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.DEFAULT_VALUE_PROPERTY), "defaultValue2")
 				);
 			}
 
 			{
-				app.create(PagePath.class,
-					new NodeAttribute<>(StructrApp.key(PagePath.class, "page"), page),
-					new NodeAttribute<>(StructrApp.key(PagePath.class, "name"), "/{key1}/test4/{key2}/{key3}")
+				app.create(StructrTraits.PAGE_PATH,
+					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(PagePathTraitDefinition.PAGE_PROPERTY), page),
+					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "/test3/{key1}/{key2}/{key3}")
+				);
+			}
+
+			{
+				app.create(StructrTraits.PAGE_PATH,
+					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(PagePathTraitDefinition.PAGE_PROPERTY), page),
+					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "/{key1}/test4/{key2}/{key3}")
 				);
 			}
 
@@ -192,63 +199,63 @@ public class DynamicPathsTest extends FrontendTest {
 				final String pageNumber = StringUtils.leftPad(Integer.toString(i), 3, "0");
 				final String pageName   = "test" + pageNumber;
 				final Page page         = Page.createNewPage(securityContext, pageName);
-				final Template template = app.create(Template.class);
+				final Template template = app.create(StructrTraits.TEMPLATE).as(Template.class);
 
-				page.setProperty(StructrApp.key(Page.class, "contentType"), "text/plain");
+				page.setProperty(Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.CONTENT_TYPE_PROPERTY), "text/plain");
 				page.appendChild(template);
 
 				template.setContent("${key1},${key2},${key3}");
-				template.setProperty(StructrApp.key(Template.class, "contentType"), "text/plain");
+				template.setProperty(Traits.of(StructrTraits.TEMPLATE).key(ContentTraitDefinition.CONTENT_TYPE_PROPERTY), "text/plain");
 
 				{
-					final PagePath path = app.create(PagePath.class,
-						new NodeAttribute<>(StructrApp.key(PagePath.class, "page"), page),
-						new NodeAttribute<>(StructrApp.key(PagePath.class, "name"), "/test" + pageNumber + "_1/prefix_{key1}/{key2}")
+					final NodeInterface path = app.create(StructrTraits.PAGE_PATH,
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(PagePathTraitDefinition.PAGE_PROPERTY), page),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "/test" + pageNumber + "_1/prefix_{key1}/{key2}")
 					);
 
-					app.create(PagePathParameter.class,
-						new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "path"),          path),
-						new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "name"),          "key1"),
-						new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "position"),      0),
-						new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "valueType"),     "String"),
-						new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "defaultValue"),  "defaultValue1")
+					app.create(StructrTraits.PAGE_PATH_PARAMETER,
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.PATH_PROPERTY),          path),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),              "key1"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.POSITION_PROPERTY),      0),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.VALUE_TYPE_PROPERTY),    "String"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.DEFAULT_VALUE_PROPERTY), "defaultValue1")
 					);
 
-					app.create(PagePathParameter.class,
-						new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "path"),          path),
-						new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "name"),          "key2"),
-						new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "position"),      1),
-						new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "valueType"),     "Integer"),
-						new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "defaultValue"),  "1")
+					app.create(StructrTraits.PAGE_PATH_PARAMETER,
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.PATH_PROPERTY),          path),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),              "key2"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.POSITION_PROPERTY),      1),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.VALUE_TYPE_PROPERTY),    "Integer"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.DEFAULT_VALUE_PROPERTY), "1")
 					);
 				}
 
 				{
-					final PagePath path = app.create(PagePath.class,
-						new NodeAttribute<>(StructrApp.key(PagePath.class, "page"), page),
-						new NodeAttribute<>(StructrApp.key(PagePath.class, "name"), "/test" + pageNumber + "_2/{key1}_{key2}_{key3}")
+					final NodeInterface path = app.create(StructrTraits.PAGE_PATH,
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(PagePathTraitDefinition.PAGE_PROPERTY), page),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "/test" + pageNumber + "_2/{key1}_{key2}_{key3}")
 					);
 
-					app.create(PagePathParameter.class,
-						new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "path"),          path),
-						new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "name"),          "key1"),
-						new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "position"),      0),
-						new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "valueType"),     "String"),
-						new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "defaultValue"),  "defaultValue2")
-					);
-				}
-
-				{
-					app.create(PagePath.class,
-						new NodeAttribute<>(StructrApp.key(PagePath.class, "page"), page),
-						new NodeAttribute<>(StructrApp.key(PagePath.class, "name"), "/test" + pageNumber + "_3/{key1}/{key2}/{key3}")
+					app.create(StructrTraits.PAGE_PATH_PARAMETER,
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.PATH_PROPERTY),          path),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),              "key1"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.POSITION_PROPERTY),      0),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.VALUE_TYPE_PROPERTY),    "String"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.DEFAULT_VALUE_PROPERTY), "defaultValue2")
 					);
 				}
 
 				{
-					app.create(PagePath.class,
-						new NodeAttribute<>(StructrApp.key(PagePath.class, "page"), page),
-						new NodeAttribute<>(StructrApp.key(PagePath.class, "name"), "/{key1}/test" + pageNumber + "_4/{key2}/{key3}")
+					app.create(StructrTraits.PAGE_PATH,
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(PagePathTraitDefinition.PAGE_PROPERTY), page),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "/test" + pageNumber + "_3/{key1}/{key2}/{key3}")
+					);
+				}
+
+				{
+					app.create(StructrTraits.PAGE_PATH,
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(PagePathTraitDefinition.PAGE_PROPERTY), page),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "/{key1}/test" + pageNumber + "_4/{key2}/{key3}")
 					);
 				}
 			}
@@ -342,28 +349,28 @@ public class DynamicPathsTest extends FrontendTest {
 
 			final Page page = Page.createNewPage(securityContext, "test001");
 
-			page.setProperty(StructrApp.key(Page.class, "contentType"), "text/plain");
+			page.setProperty(Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.CONTENT_TYPE_PROPERTY), "text/plain");
 
-			final Template template1 = app.create(Template.class);
+			final Template template1 = app.create(StructrTraits.TEMPLATE).as(Template.class);
 			template1.setContent("${render(children)}");
-			template1.setProperty(StructrApp.key(Template.class, "contentType"), "text/plain");
+			template1.setProperty(Traits.of(StructrTraits.TEMPLATE).key(ContentTraitDefinition.CONTENT_TYPE_PROPERTY), "text/plain");
 			page.appendChild(template1);
 
-			final Template template2 = app.create(Template.class);
+			final Template template2 = app.create(StructrTraits.TEMPLATE).as(Template.class);
 			template2.setContent("${render(children)}");
-			template2.setProperty(StructrApp.key(Template.class, "contentType"), "text/plain");
+			template2.setProperty(Traits.of(StructrTraits.TEMPLATE).key(ContentTraitDefinition.CONTENT_TYPE_PROPERTY), "text/plain");
 			template1.appendChild(template2);
 
-			final Template template3 = app.create(Template.class);
+			final Template template3 = app.create(StructrTraits.TEMPLATE).as(Template.class);
 			template3.setContent("${render(children)}");
-			template3.setProperty(StructrApp.key(Template.class, "contentType"), "text/plain");
+			template3.setProperty(Traits.of(StructrTraits.TEMPLATE).key(ContentTraitDefinition.CONTENT_TYPE_PROPERTY), "text/plain");
 			template2.appendChild(template3);
 
 			template3.setContent("${key1},${key2}");
 
-			final PagePath path = app.create(PagePath.class,
-				new NodeAttribute<>(StructrApp.key(PagePath.class, "page"), page),
-				new NodeAttribute<>(StructrApp.key(PagePath.class, "name"), "/test1/{key1}/{key2}")
+			final NodeInterface path = app.create(StructrTraits.PAGE_PATH,
+				new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(PagePathTraitDefinition.PAGE_PROPERTY), page),
+				new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "/test1/{key1}/{key2}")
 			);
 
 			tx.success();
@@ -378,14 +385,73 @@ public class DynamicPathsTest extends FrontendTest {
 		assertEquals("Path parameters are not available through nested templates!", "one,5", getContent(200, "/structr/html/test1/one/5"));
 	}
 
-	// ----- private methods -----
+	@Test
+	public void test004ShowOnErrorCodeWithPaths() {
+
+		// In this test we create a non-public page with a page path and a login page
+		// with showOnErrorCode 404 so that we can expect to be redirected to the login page.
+
+		// create public page
+		try (final Tx tx = app.tx()) {
+
+			final Page page = Page.createSimplePage(securityContext, "test004");
+			page.setVisibilityRecursively(false, true);
+
+			final Page loginPage = Page.createSimplePage(securityContext, "login");
+			loginPage.setVisibilityRecursively(true, false);
+			loginPage.setProperty(loginPage.getTraits().key(PageTraitDefinition.SHOW_ON_ERROR_CODES_PROPERTY), "401, 404");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		RestAssured.basePath = "/";
+
+		final String expected = "<!DOCTYPE html>\n" +
+			"<html>\n" +
+			"\t<head>\n" +
+			"\t\t<title>Login</title>\n" +
+			"\t</head>\n" +
+			"\t<body>\n" +
+			"\t\t<h1>Login</h1>\n" +
+			"\t\t<div>Initial body text</div>\n" +
+			"\t</body>\n" +
+			"</html>";
+
+
+		// verify that the page is visible
+		assertEquals("Invalid precondition", expected, getPublicContent(404, "/test004/"));
+
+		// now we create a page path and expect the same result
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface page = app.nodeQuery(StructrTraits.PAGE).andName("test004").getFirst();
+
+			app.create(StructrTraits.PAGE_PATH,
+				new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(PagePathTraitDefinition.PAGE_PROPERTY), page),
+				new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "/test004/")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		assertEquals("Existing page path prevents showOnErrorCode redirect!", expected, getPublicContent(404, "/test004/"));
+	}
+
+
+		// ----- private methods -----
 	private ResponseBody getBody(final int statusCode, final String url) {
 
-		final ResponseBody body =  RestAssured
+		final ResponseBody body = RestAssured
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.header("X-User",     "admin")
-				.header("X-Password", "admin")
+				.header(X_USER_HEADER,     "admin")
+				.header(X_PASSWORD_HEADER, "admin")
 			.expect()
 				.statusCode(statusCode)
 			.when()
@@ -397,5 +463,18 @@ public class DynamicPathsTest extends FrontendTest {
 
 	private String getContent(final int statusCode, final String url) {
 		return getBody(statusCode, url).asString();
+	}
+
+	private String getPublicContent(final int statusCode, final String url) {
+
+		final ResponseBody body = RestAssured
+			.given()
+			.expect()
+			.statusCode(statusCode)
+			.when()
+			.get(url)
+			.andReturn();
+
+		return body.asString();
 	}
 }

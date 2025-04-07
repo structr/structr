@@ -24,10 +24,10 @@ package org.structr.api.graph;
 public interface RelationshipType {
 
 	String name();
-	Class<?> getSourceType();
-	Class<?> getTargetType();
+	String getSourceType();
+	String getTargetType();
 
-	public static RelationshipType forName(final String name) {
+	static RelationshipType forName(final String name) {
 
 		return new RelationshipType() {
 
@@ -37,12 +37,12 @@ public interface RelationshipType {
 			}
 
 			@Override
-			public Class<?> getSourceType() {
+			public String getSourceType() {
 				return null;
 			}
 
 			@Override
-			public Class<?> getTargetType() {
+			public String getTargetType() {
 				return null;
 			}
 		};

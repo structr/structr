@@ -24,15 +24,14 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.search.SearchCommand;
-import org.structr.core.notion.Notion;
-import org.structr.core.notion.RelationshipNotion;
+import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.traits.Traits;
 
 /**
  *
  *
  */
-public abstract class OneToOne<S extends NodeInterface, T extends NodeInterface> extends AbstractRelationship<S, T> implements Relation<S, T, OneStartpoint<S>, OneEndpoint<T>> {
+public abstract class OneToOne extends AbstractRelation implements Relation<OneStartpoint, OneEndpoint> {
 
 	@Override
 	public Multiplicity getSourceMultiplicity() {
@@ -45,73 +44,64 @@ public abstract class OneToOne<S extends NodeInterface, T extends NodeInterface>
 	}
 
 	@Override
-	public OneStartpoint<S> getSource() {
-		return new OneStartpoint<>(this);
+	public OneStartpoint getSource() {
+		return new OneStartpoint(this);
 	}
 
 	@Override
-	public OneEndpoint<T> getTarget() {
-		return new OneEndpoint<>(this);
-	}
-
-	@Override
-	public int getCascadingDeleteFlag() {
-		return Relation.NONE;
-	}
-
-	@Override
-	public int getAutocreationFlag() {
-		return Relation.NONE;
+	public OneEndpoint getTarget() {
+		return new OneEndpoint(this);
 	}
 
 	@Override
 	public void ensureCardinality(final SecurityContext securityContext, final NodeInterface sourceNode, final NodeInterface targetNode) throws FrameworkException {
 
-		final App app                         = StructrApp.getInstance();
-		final Class<? extends OneToOne> clazz = getClass();
-		final Class<S> sourceType             = getSourceType();
-		final Class<T> targetType             = getTargetType();
+		final App app           = StructrApp.getInstance();
+		final String type       = getType();
+		final String sourceType = getSourceType();
+		final String targetType = getTargetType();
 
 		if (sourceNode != null) {
 
 			// check existing relationships
-			final Relation<S, ?, ?, ?> outgoingRel = sourceNode.getOutgoingRelationshipAsSuperUser(clazz);
+			final RelationshipInterface outgoingRel = sourceNode.getOutgoingRelationshipAsSuperUser(type);
+			if (outgoingRel != null) {
 
-			// remove relationship if exists
-			if (outgoingRel != null && SearchCommand.isTypeAssignableFromOtherType(targetType, outgoingRel.getTargetType())) {
-				app.delete(outgoingRel);
+				final Relation relation   = outgoingRel.getRelation();
+				final Traits targetTraits = Traits.of(relation.getTargetType());
+
+				// remove relationship if exists
+				if (targetTraits.contains(targetType)) {
+
+					app.delete(outgoingRel);
+				}
 			}
 		}
 
 		if (targetNode != null) {
 
 			// check existing relationships
-			final Relation<?, T, ?, ?> incomingRel = targetNode.getIncomingRelationshipAsSuperUser(clazz);
+			final RelationshipInterface incomingRel = targetNode.getIncomingRelationshipAsSuperUser(type);
+			if (incomingRel != null) {
 
-			if (incomingRel != null && SearchCommand.isTypeAssignableFromOtherType(sourceType, incomingRel.getSourceType())) {
-				app.delete(incomingRel);
+				final Relation relation   = incomingRel.getRelation();
+				final Traits sourceTraits = Traits.of(relation.getSourceType());
+
+				if (sourceTraits.contains(sourceType)) {
+
+					app.delete(incomingRel);
+				}
 			}
 		}
 	}
 
 	@Override
-	public Notion getEndNodeNotion() {
-		return new RelationshipNotion(getTargetIdProperty());
-
+	public Direction getDirectionForType(final String type) {
+		return getDirectionForType(getSourceType(), getTargetType(), type);
 	}
 
 	@Override
-	public Notion getStartNodeNotion() {
-		return new RelationshipNotion(getSourceIdProperty());
-	}
-
-	@Override
-	public Direction getDirectionForType(final Class<? extends NodeInterface> type) {
-		return super.getDirectionForType(getSourceType(), getTargetType(), type);
-	}
-
-	@Override
-	public Class getOtherType(final Class type) {
+	public String getOtherType(final String type) {
 
 		switch (getDirectionForType(type)) {
 
@@ -121,15 +111,5 @@ public abstract class OneToOne<S extends NodeInterface, T extends NodeInterface>
 		}
 
 		return null;
-	}
-
-	@Override
-	public boolean isHidden() {
-		return false;
-	}
-
-	@Override
-	public boolean isInternal() {
-		return false;
 	}
 }

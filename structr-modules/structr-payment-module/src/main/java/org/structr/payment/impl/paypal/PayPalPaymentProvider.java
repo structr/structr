@@ -90,7 +90,7 @@ public class PayPalPaymentProvider implements PaymentProvider {
 			if (AckCodeType.SUCCESS.equals(response.getAck())) {
 
 				payment.setToken(response.getToken());
-				payment.setPaymentState(PaymentState.open);
+				payment.setPaymentState("open");
 				return new PayPalBeginCheckoutResponse(response, response.getToken());
 			}
 
@@ -109,7 +109,7 @@ public class PayPalPaymentProvider implements PaymentProvider {
 		try {
 
 			payment.setToken(null);
-			payment.setPaymentState(PaymentState.cancelled);
+			payment.setPaymentState("cancelled");
 
 		} catch (FrameworkException fex) {
 			logger.warn("", fex);
@@ -186,7 +186,7 @@ public class PayPalPaymentProvider implements PaymentProvider {
 						payment.setBillingAgreementId(billingAgreementId);
 						payment.setNote(note);
 						payment.setInvoiceId(details.getInvoiceID());
-						payment.setPaymentState(PaymentState.completed);
+						payment.setPaymentState("completed");
 						payment.setToken(null);
 
 						// success

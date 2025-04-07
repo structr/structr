@@ -23,6 +23,6 @@ import org.structr.flow.impl.FlowExceptionHandler;
 
 public interface ThrowingElement {
 
-	FlowExceptionHandler getExceptionHandler(Context context);
+	FlowExceptionHandler getExceptionHandler(final Context context);
 
 }
