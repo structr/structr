@@ -85,7 +85,6 @@ public class TypeSearchAttribute<S extends GraphObject> extends PropertySearchAt
 	@Override
 	public boolean includeInResult(final GraphObject entity) {
 
-		final String nodeValue   = entity.getProperty(getKey());
 		final Occurrence occur   = getOccurrence();
 		final boolean isOfType   = entity.getTraits().contains(type);
 
