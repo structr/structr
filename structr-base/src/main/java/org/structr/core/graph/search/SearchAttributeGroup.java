@@ -19,7 +19,7 @@
 package org.structr.core.graph.search;
 
 import org.structr.api.search.GroupQuery;
-import org.structr.api.search.Occurrence;
+import org.structr.api.search.Operation;
 import org.structr.api.search.QueryPredicate;
 import org.structr.core.GraphObject;
 
@@ -37,13 +37,14 @@ public class SearchAttributeGroup extends SearchAttribute implements GroupQuery 
 	private List<SearchAttribute> searchItems = new LinkedList<>();
 	private SearchAttributeGroup parent       = null;
 
-	public SearchAttributeGroup(final Occurrence occur) {
-		this(null, occur);
+	public SearchAttributeGroup(final Operation operation) {
+		this(null, operation);
 	}
 
-	public SearchAttributeGroup(final SearchAttributeGroup parent, final Occurrence occur) {
+	public SearchAttributeGroup(final SearchAttributeGroup parent, final Operation operation) {
 
-		super(occur);
+		super(operation);
+
 		this.parent = parent;
 	}
 
@@ -104,14 +105,17 @@ public class SearchAttributeGroup extends SearchAttribute implements GroupQuery 
 
 		for (SearchAttribute attr : getSearchAttributes()) {
 
-			switch (attr.getOccurrence()) {
+			switch (attr.getOperation()) {
 
-				case FORBIDDEN:
-				case REQUIRED:
+				case NOT:
+					includeInResult &= !attr.includeInResult(entity);
+					break;
+
+				case AND:
 					includeInResult &= attr.includeInResult(entity);
 					break;
 
-				case OPTIONAL:
+				case OR:
 					// special behaviour for OR'ed predicates
 					if (attr.includeInResult(entity)) {
 

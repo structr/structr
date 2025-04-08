@@ -43,13 +43,13 @@ public class GraphQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 
 		if (values.isEmpty() || onlyEmptyValues(values)) {
 
-			checkOccur(query, predicate.getOccurrence(), isFirst);
+			checkOperation(query, predicate.getOperation(), isFirst);
 
 			query.addPredicate(new NoRelationshipPredicate<>(predicate.getName(), graphQuery));
 
 		} else {
 
-			checkOccur(query, predicate.getOccurrence(), isFirst);
+			checkOperation(query, predicate.getOperation(), isFirst);
 
 			query.addPredicate(new GraphPredicate(graphQuery));
 		}

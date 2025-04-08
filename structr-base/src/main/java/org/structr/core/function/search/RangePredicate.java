@@ -18,7 +18,7 @@
  */
 package org.structr.core.function.search;
 
-import org.structr.api.search.Occurrence;
+import org.structr.api.search.Operation;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.Query;
@@ -63,7 +63,7 @@ public class RangePredicate implements SearchFunctionPredicate {
 			}
 		}
 
-		if (Occurrence.OPTIONAL.equals(query.getCurrentOccurrence())) {
+		if (Operation.OR.equals(query.getCurrentOperation())) {
 
 			query.orRange(key, effectiveRangeStart, effectiveRangeEnd, includeStart, includeEnd);
 

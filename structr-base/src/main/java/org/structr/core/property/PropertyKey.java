@@ -20,7 +20,7 @@ package org.structr.core.property;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.structr.api.Predicate;
-import org.structr.api.search.Occurrence;
+import org.structr.api.search.Operation;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -338,7 +338,7 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	boolean isPropertyTypeIndexable();
 	boolean isPropertyValueIndexable(final Object value);
 
-	SearchAttribute getSearchAttribute(final SecurityContext securityContext, final Occurrence occur, final T searchValue, final boolean exactMatch, final Query query);
+	SearchAttribute getSearchAttribute(final SecurityContext securityContext, final Operation operation, final T searchValue, final boolean exactMatch, final Query query);
 	void extractSearchableAttribute(final SecurityContext securityContext, final HttpServletRequest request, final boolean exactMatch, final Query query) throws FrameworkException;
 	T convertSearchValue(final SecurityContext securityContext, final String requestParameter) throws FrameworkException;
 

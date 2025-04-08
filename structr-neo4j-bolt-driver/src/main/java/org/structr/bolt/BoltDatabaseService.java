@@ -826,8 +826,8 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 		}
 
 		@Override
-		public Occurrence getOccurrence() {
-			return Occurrence.REQUIRED;
+		public Operation getOperation() {
+			return Operation.AND;
 		}
 
 		@Override
@@ -875,8 +875,8 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 		}
 
 		@Override
-		public Occurrence getOccurrence() {
-			return Occurrence.REQUIRED;
+		public Operation getOperation() {
+			return Operation.AND;
 		}
 
 		@Override

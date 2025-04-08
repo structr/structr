@@ -18,7 +18,7 @@
  */
 package org.structr.core.graph.search;
 
-import org.structr.api.search.Occurrence;
+import org.structr.api.search.Operation;
 import org.structr.api.search.SpatialQuery;
 import org.structr.core.GraphObject;
 
@@ -41,18 +41,18 @@ public class DistanceSearchAttribute extends SearchAttribute implements SpatialQ
 	private String state        = null;
 	private String country      = null;
 
-	public DistanceSearchAttribute(final Double latitude, final Double longitude, final Double distance, final Occurrence occur) {
+	public DistanceSearchAttribute(final Double latitude, final Double longitude, final Double distance, final Operation operation) {
 
-		super(occur);
+		super(operation);
 
 		this.coords         = new Double[] { latitude, longitude };
 		this.distance       = distance;
 		this.needsGeocoding = false;
 	}
 
-	public DistanceSearchAttribute(final String street, final String house, final String postalCode, final String city, final String state, final String country, final Double distance, final Occurrence occur) {
+	public DistanceSearchAttribute(final String street, final String house, final String postalCode, final String city, final String state, final String country, final Double distance, final Operation operation) {
 
-		super(occur);
+		super(operation);
 
 		this.street = street;
 		this.house = house;

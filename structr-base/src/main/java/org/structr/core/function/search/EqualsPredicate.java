@@ -18,7 +18,7 @@
  */
 package org.structr.core.function.search;
 
-import org.structr.api.search.Occurrence;
+import org.structr.api.search.Operation;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.Query;
@@ -40,7 +40,7 @@ public class EqualsPredicate extends AbstractPredicate {
 
 		if (propertyKey.isCollection()) {
 
-			query.and(propertyKey, value, true, Occurrence.EXACT);
+			query.and(propertyKey, value, true, Operation.AND);
 
 		} else {
 

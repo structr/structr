@@ -19,7 +19,7 @@
 package org.structr.core.app;
 
 import org.structr.api.Predicate;
-import org.structr.api.search.Occurrence;
+import org.structr.api.search.Operation;
 import org.structr.api.search.QueryContext;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.ResultStream;
@@ -74,7 +74,7 @@ public interface Query<T> {
 	Query<T> location(final String street, final String house, final String postalCode, final String city, final String state, final String country, final double distance);
 	<P> Query<T> and(final PropertyKey<P> key, final P value);
 	<P> Query<T> and(final PropertyKey<P> key, final P value, final boolean exact);
-	<P> Query<T> and(final PropertyKey<P> key, final P value, final boolean exact, final Occurrence occur);
+	<P> Query<T> and(final PropertyKey<P> key, final P value, final boolean exact, final Operation operation);
 	<P> Query<T> and(final PropertyMap attributes);
 	Query<T> and();
 	<P> Query<T> or(final PropertyKey<P> key, P value);
@@ -99,6 +99,6 @@ public interface Query<T> {
 
 	Predicate<GraphObject> toPredicate();
 
-	Occurrence getCurrentOccurrence();
+	Operation getCurrentOperation();
 
 }

@@ -24,7 +24,7 @@ import org.structr.api.Predicate;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.index.Index;
 import org.structr.api.search.ComparisonQuery;
-import org.structr.api.search.Occurrence;
+import org.structr.api.search.Operation;
 import org.structr.api.search.QueryContext;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.Iterables;
@@ -45,12 +45,12 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Trait;
 import org.structr.core.traits.Traits;
-
-import java.util.*;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
+
+import java.util.*;
 
 /**
  *
@@ -62,7 +62,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 	private static final Set<String> indexedWarningDisabled = new LinkedHashSet<>(Arrays.asList(SchemaMethodTraitDefinition.SOURCE_PROPERTY, SchemaPropertyTraitDefinition.READ_FUNCTION_PROPERTY, SchemaPropertyTraitDefinition.WRITE_FUNCTION_PROPERTY));
 
-	private final SearchAttributeGroup rootGroup = new SearchAttributeGroup(Occurrence.REQUIRED);
+	private final SearchAttributeGroup rootGroup = new SearchAttributeGroup(Operation.AND);
 	private SortOrder sortOrder                  = new DefaultSortOrder();
 	private QueryContext queryContext            = new QueryContext();
 	private SearchAttributeGroup currentGroup    = rootGroup;
@@ -114,7 +114,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		// special handling of deleted and hidden flags
 		if (!includeHidden && !isRelationshipSearch()) {
 
-			rootGroup.add(new PropertySearchAttribute(traits.key(NodeInterfaceTraitDefinition.HIDDEN_PROPERTY),  true, Occurrence.FORBIDDEN, true));
+			rootGroup.add(new PropertySearchAttribute(traits.key(NodeInterfaceTraitDefinition.HIDDEN_PROPERTY),  true, Operation.NOT, true));
 		}
 
 		// At this point, all search attributes are ready
@@ -299,19 +299,19 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 			} else {
 
-				switch (attr.getOccurrence()) {
+				switch (attr.getOperation()) {
 
-					case REQUIRED:
+					case AND:
 
 						mergedResult.retainAll(attr.getResult());
 						break;
 
-					case OPTIONAL:
+					case OR:
 
 						mergedResult.addAll(attr.getResult());
 						break;
 
-					case FORBIDDEN:
+					case NOT:
 						mergedResult.removeAll(attr.getResult());
 						break;
 				}
@@ -445,14 +445,14 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	@Override
 	public org.structr.core.app.Query<T> andType(final String type) {
 
-		currentGroup.getSearchAttributes().add(new TypeSearchAttribute(type, Occurrence.REQUIRED, true));
+		currentGroup.getSearchAttributes().add(new TypeSearchAttribute(type, Operation.AND, true));
 		return this;
 	}
 
 	@Override
 	public org.structr.core.app.Query<T> orType(final String type) {
 
-		currentGroup.getSearchAttributes().add(new TypeSearchAttribute(type, Occurrence.OPTIONAL, true));
+		currentGroup.getSearchAttributes().add(new TypeSearchAttribute(type, Operation.OR, true));
 		return this;
 	}
 
@@ -468,7 +468,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 	@Override
 	public org.structr.core.app.Query<T> location(final double latitude, final double longitude, final double distance) {
-		currentGroup.getSearchAttributes().add(new DistanceSearchAttribute(latitude, longitude, distance, Occurrence.REQUIRED));
+		currentGroup.getSearchAttributes().add(new DistanceSearchAttribute(latitude, longitude, distance, Operation.AND));
 		return this;
 	}
 
@@ -484,7 +484,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 	@Override
 	public org.structr.core.app.Query<T> location(final String street, final String house, final String postalCode, final String city, final String state, final String country, final double distance) {
-		currentGroup.getSearchAttributes().add(new DistanceSearchAttribute(street, house, postalCode, city, state, country, distance, Occurrence.REQUIRED));
+		currentGroup.getSearchAttributes().add(new DistanceSearchAttribute(street, house, postalCode, city, state, country, distance, Operation.AND));
 		return this;
 	}
 
@@ -508,11 +508,11 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 		assertPropertyIsIndexed(key);
 
-		return and(key, value, exact, Occurrence.REQUIRED);
+		return and(key, value, exact, Operation.AND);
 	}
 
 	@Override
-	public <P> org.structr.core.app.Query<T> and(final PropertyKey<P> key, final P value, final boolean exact, final Occurrence occur) {
+	public <P> org.structr.core.app.Query<T> and(final PropertyKey<P> key, final P value, final boolean exact, final Operation operation) {
 
 		if (Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY).equals(key)) {
 
@@ -521,7 +521,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 		assertPropertyIsIndexed(key);
 
-		currentGroup.getSearchAttributes().add(key.getSearchAttribute(securityContext, occur, value, exact, this));
+		currentGroup.getSearchAttributes().add(key.getSearchAttribute(securityContext, operation, value, exact, this));
 
 		return this;
 	}
@@ -550,7 +550,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	public org.structr.core.app.Query<T> and() {
 
 		// create nested group that the user can add to
-		final SearchAttributeGroup group = new SearchAttributeGroup(currentGroup, Occurrence.REQUIRED);
+		final SearchAttributeGroup group = new SearchAttributeGroup(currentGroup, Operation.AND);
 
 		currentGroup.getSearchAttributes().add(group);
 		currentGroup = group;
@@ -566,7 +566,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	@Override
 	public <P> org.structr.core.app.Query<T> or(final PropertyKey<P> key, P value, final boolean exact) {
 
-		currentGroup.getSearchAttributes().add(key.getSearchAttribute(securityContext, Occurrence.OPTIONAL, value, exact, this));
+		currentGroup.getSearchAttributes().add(key.getSearchAttribute(securityContext, Operation.OR, value, exact, this));
 
 		assertPropertyIsIndexed(key);
 
@@ -606,11 +606,11 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			// related nodes
 			if (key.isCollection()) {
 
-				currentGroup.getSearchAttributes().add(key.getSearchAttribute(securityContext, Occurrence.EXACT, Collections.EMPTY_LIST, true, this));
+				currentGroup.getSearchAttributes().add(key.getSearchAttribute(securityContext, Operation.AND, Collections.EMPTY_LIST, true, this));
 
 			} else {
 
-				currentGroup.getSearchAttributes().add(key.getSearchAttribute(securityContext, Occurrence.EXACT, null, true, this));
+				currentGroup.getSearchAttributes().add(key.getSearchAttribute(securityContext, Operation.AND, null, true, this));
 			}
 
 		} else {
@@ -627,7 +627,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	@Override
 	public <P> org.structr.core.app.Query<T> startsWith(final PropertyKey<P> key, final P prefix, final boolean caseSensitive) {
 
-		currentGroup.getSearchAttributes().add(new ComparisonSearchAttribute(key, caseSensitive ? ComparisonQuery.Operation.startsWith : ComparisonQuery.Operation.caseInsensitiveStartsWith, prefix, Occurrence.EXACT));
+		currentGroup.getSearchAttributes().add(new ComparisonSearchAttribute(key, caseSensitive ? ComparisonQuery.Comparison.startsWith : ComparisonQuery.Comparison.caseInsensitiveStartsWith, prefix, Operation.AND));
 
 		assertPropertyIsIndexed(key);
 
@@ -637,7 +637,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	@Override
 	public <P> org.structr.core.app.Query<T> endsWith(final PropertyKey<P> key, final P suffix, final boolean caseSensitive) {
 
-		currentGroup.getSearchAttributes().add(new ComparisonSearchAttribute(key, caseSensitive ? ComparisonQuery.Operation.endsWith : ComparisonQuery.Operation.caseInsensitiveEndsWith, suffix, Occurrence.EXACT));
+		currentGroup.getSearchAttributes().add(new ComparisonSearchAttribute(key, caseSensitive ? ComparisonQuery.Comparison.endsWith : ComparisonQuery.Comparison.caseInsensitiveEndsWith, suffix, Operation.AND));
 
 		assertPropertyIsIndexed(key);
 
@@ -647,7 +647,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	@Override
 	public <P> Query<T> matches(final PropertyKey<String> key, final String regex) {
 
-		currentGroup.getSearchAttributes().add(new ComparisonSearchAttribute(key, ComparisonQuery.Operation.matches, regex, Occurrence.EXACT));
+		currentGroup.getSearchAttributes().add(new ComparisonSearchAttribute(key, ComparisonQuery.Comparison.matches, regex, Operation.AND));
 
 		return this;
 	}
@@ -661,7 +661,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	@Override
 	public <P> org.structr.core.app.Query<T> andRange(final PropertyKey<P> key, final P rangeStart, final P rangeEnd, final boolean includeStart, final boolean includeEnd) {
 
-		currentGroup.getSearchAttributes().add(new RangeSearchAttribute(key, rangeStart, rangeEnd, Occurrence.REQUIRED, includeStart, includeEnd));
+		currentGroup.getSearchAttributes().add(new RangeSearchAttribute(key, rangeStart, rangeEnd, Operation.AND, includeStart, includeEnd));
 
 		assertPropertyIsIndexed(key);
 
@@ -677,7 +677,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	@Override
 	public <P> org.structr.core.app.Query<T> orRange(final PropertyKey<P> key, final P rangeStart, final P rangeEnd, final boolean includeStart, final boolean includeEnd) {
 
-		currentGroup.getSearchAttributes().add(new RangeSearchAttribute(key, rangeStart, rangeEnd, Occurrence.OPTIONAL, includeStart, includeEnd));
+		currentGroup.getSearchAttributes().add(new RangeSearchAttribute(key, rangeStart, rangeEnd, Operation.OR, includeStart, includeEnd));
 
 		assertPropertyIsIndexed(key);
 
@@ -688,7 +688,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	public org.structr.core.app.Query<T> or() {
 
 		// create nested group that the user can add to
-		final SearchAttributeGroup group = new SearchAttributeGroup(currentGroup, Occurrence.OPTIONAL);
+		final SearchAttributeGroup group = new SearchAttributeGroup(currentGroup, Operation.OR);
 		currentGroup.getSearchAttributes().add(group);
 		currentGroup = group;
 
@@ -699,7 +699,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	public org.structr.core.app.Query<T> not() {
 
 		// create nested group that the user can add to
-		final SearchAttributeGroup group = new SearchAttributeGroup(currentGroup, Occurrence.FORBIDDEN);
+		final SearchAttributeGroup group = new SearchAttributeGroup(currentGroup, Operation.NOT);
 		currentGroup.getSearchAttributes().add(group);
 		currentGroup = group;
 
@@ -732,8 +732,8 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	}
 
 	@Override
-	public Occurrence getCurrentOccurrence() {
-		return currentGroup.getOccurrence();
+	public Operation getCurrentOperation() {
+		return currentGroup.getOperation();
 	}
 
 	@Override

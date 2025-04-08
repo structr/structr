@@ -23,7 +23,7 @@ import org.structr.api.DatabaseService;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.RelationshipType;
-import org.structr.api.search.Occurrence;
+import org.structr.api.search.Operation;
 import org.structr.api.search.QueryContext;
 import org.structr.api.search.SortOrder;
 import org.structr.api.search.SortSpec;
@@ -477,8 +477,8 @@ public class AdvancedCypherQuery implements CypherQuery {
 
 	public void addGraphQueryPart(final GraphQueryPart newPart) {
 
-		final Occurrence occurrence = newPart.getOccurrence();
-		if (Occurrence.OPTIONAL.equals(occurrence)) {
+		final Operation operation = newPart.getOperation();
+		if (Operation.OR.equals(operation)) {
 
 			final String linkIdentifier       = newPart.getLinkIdentifier();
 			final GraphQueryPart existingPart = parts.get(linkIdentifier);

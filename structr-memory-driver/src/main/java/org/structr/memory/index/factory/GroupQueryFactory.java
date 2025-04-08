@@ -48,23 +48,23 @@ public class GroupQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 
 			// Filter type predicates since they require special handling
 			final List<QueryPredicate> predicateList               = group.getQueryPredicates();
-			final List<QueryPredicate> typePredicates              = predicateList.stream().filter((p) -> { return p instanceof TypeQuery; }).collect(Collectors.toList());
-			final List<QueryPredicate> attributeAndGroupPredicates = predicateList.stream().filter((p) -> { return !(p instanceof TypeQuery); }).collect(Collectors.toList());
+			final List<QueryPredicate> typePredicates              = predicateList.stream().filter((p) -> p instanceof TypeQuery).collect(Collectors.toList());
+			final List<QueryPredicate> attributeAndGroupPredicates = predicateList.stream().filter((p) -> !(p instanceof TypeQuery)).collect(Collectors.toList());
 
 			if (!typePredicates.isEmpty()) {
 
 
-				switch (group.getOccurrence()) {
+				switch (group.getOperation()) {
 
-					case REQUIRED:
+					case AND:
 						query.beginGroup(Conjunction.And);
 						break;
 
-					case OPTIONAL:
+					case OR:
 						query.beginGroup(Conjunction.Or);
 						break;
 
-					case FORBIDDEN:
+					case NOT:
 						query.beginGroup(Conjunction.Not);
 						break;
 				}
@@ -99,7 +99,7 @@ public class GroupQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 				}
 
 				if (!(allChildrenAreGroups && !nonEmptyGroup)) {
-					checkOccur(query, predicate.getOccurrence(), isFirst);
+					checkOperation(query, predicate.getOperation(), isFirst);
 				}
 
 				if (attributeAndGroupPredicates.size() > 1 && !(allChildrenAreGroups && !nonEmptyGroup)) {

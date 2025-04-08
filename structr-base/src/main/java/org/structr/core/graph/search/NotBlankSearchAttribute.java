@@ -19,7 +19,7 @@
 package org.structr.core.graph.search;
 
 import org.structr.api.search.NotEmptyQuery;
-import org.structr.api.search.Occurrence;
+import org.structr.api.search.Operation;
 import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
 
@@ -46,10 +46,10 @@ public class NotBlankSearchAttribute<T> extends EmptySearchAttribute<T> {
 	@Override
 	public boolean includeInResult(GraphObject entity) {
 
-		Occurrence occur = getOccurrence();
-		T nodeValue      = entity.getProperty(getKey());
+		final Operation operation = getOperation();
+		final T nodeValue         = entity.getProperty(getKey());
 
-		if (occur.equals(Occurrence.FORBIDDEN)) {
+		if (operation.equals(Operation.NOT)) {
 
 			// reverse
 			return nodeValue == null;

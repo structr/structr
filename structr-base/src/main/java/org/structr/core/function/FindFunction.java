@@ -24,7 +24,6 @@ import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.traits.Traits;
-import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 
 public class FindFunction extends AbstractQueryFunction {
@@ -60,9 +59,8 @@ public class FindFunction extends AbstractQueryFunction {
 				throw new IllegalArgumentException();
 			}
 
-			final ConfigurationProvider config    = StructrApp.getConfiguration();
-			final App app                         = StructrApp.getInstance(securityContext);
-			final Query query                     = app.nodeQuery();
+			final App app     = StructrApp.getInstance(securityContext);
+			final Query query = app.nodeQuery();
 
 			// the type to query for
 			Traits type = null;

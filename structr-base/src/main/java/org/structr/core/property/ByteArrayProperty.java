@@ -20,9 +20,7 @@ package org.structr.core.property;
 
 import org.apache.commons.lang.SerializationUtils;
 import org.apache.commons.lang3.ArrayUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.api.search.Occurrence;
+import org.structr.api.search.Operation;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -35,9 +33,6 @@ import org.structr.core.graph.search.SearchAttributeGroup;
 
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
-import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
-import java.nio.LongBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -193,18 +188,18 @@ public class ByteArrayProperty extends AbstractPrimitiveProperty<Byte[]> {
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final Occurrence occur, final Byte[] searchValue, final boolean exactMatch, final Query query) {
+	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final Operation operation, final Byte[] searchValue, final boolean exactMatch, final Query query) {
 
 		// early exit, return empty search attribute
 		if (searchValue == null) {
-			return new ArraySearchAttribute(this, "", exactMatch ? occur : Occurrence.OPTIONAL, exactMatch);
+			return new ArraySearchAttribute(this, "", exactMatch ? operation : Operation.OR, exactMatch);
 		}
 
-		final SearchAttributeGroup group = new SearchAttributeGroup(occur);
+		final SearchAttributeGroup group = new SearchAttributeGroup(operation);
 
 		for (byte value : searchValue) {
 
-			group.add(new ArraySearchAttribute(this, value, exactMatch ? occur : Occurrence.OPTIONAL, exactMatch));
+			group.add(new ArraySearchAttribute(this, value, exactMatch ? operation : Operation.OR, exactMatch));
 		}
 
 		return group;

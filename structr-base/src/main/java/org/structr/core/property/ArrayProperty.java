@@ -21,7 +21,7 @@ package org.structr.core.property;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.search.Occurrence;
+import org.structr.api.search.Operation;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -278,7 +278,7 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occurrence occur, T[] valueInput, boolean exactMatch, Query query) {
+	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Operation operation, T[] valueInput, boolean exactMatch, Query query) {
 
 		T[] searchValue = null;
 
@@ -300,21 +300,21 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 
 		// early exit, return empty search attribute
 		if (searchValue == null) {
-			return new ArraySearchAttribute(this, "", exactMatch ? occur : Occurrence.OPTIONAL, exactMatch);
+			return new ArraySearchAttribute(this, "", exactMatch ? operation : Operation.OR, exactMatch);
 		}
 
 		if (!exactMatch) {
 
-			final SearchAttributeGroup group = new SearchAttributeGroup(occur);
+			final SearchAttributeGroup group = new SearchAttributeGroup(operation);
 			for (T value : searchValue) {
 
-				group.add(new ArraySearchAttribute(this, value, Occurrence.REQUIRED, false));
+				group.add(new ArraySearchAttribute(this, value, Operation.AND, false));
 			}
 
 			return group;
 		}
 
-		return new ArraySearchAttribute(this, searchValue, Occurrence.REQUIRED, exactMatch);
+		return new ArraySearchAttribute(this, searchValue, Operation.AND, exactMatch);
 	}
 
 	@Override

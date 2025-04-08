@@ -21,7 +21,7 @@ package org.structr.core.property;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
-import org.structr.api.search.Occurrence;
+import org.structr.api.search.Operation;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -165,11 +165,11 @@ public class EntityNotionProperty<S extends NodeInterface, T> extends Property<T
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occurrence occur, T searchValue, boolean exactMatch, final Query query) {
+	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Operation operation, T searchValue, boolean exactMatch, final Query query) {
 
 		final PropertyKey<S> entityProperty = Traits.of(baseType).key(basePropertyName);
 
-		return new GraphSearchAttribute(notion.getPrimaryPropertyKey(), entityProperty, searchValue, occur, exactMatch);
+		return new GraphSearchAttribute(notion.getPrimaryPropertyKey(), entityProperty, searchValue, operation, exactMatch);
 	}
 
 	@Override

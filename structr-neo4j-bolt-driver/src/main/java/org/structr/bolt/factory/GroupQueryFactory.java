@@ -78,7 +78,7 @@ public class GroupQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery>
 				}
 
 				if (!(allChildrenAreGroups && !nonEmptyGroup)) {
-					checkOccur(query, predicate.getOccurrence(), isFirst);
+					checkOperation(query, predicate.getOperation(), isFirst);
 				}
 
 				if (attributeAndGroupPredicates.size() > 1 && !(allChildrenAreGroups && !nonEmptyGroup)) {

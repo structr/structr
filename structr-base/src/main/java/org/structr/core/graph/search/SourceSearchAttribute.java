@@ -18,7 +18,7 @@
  */
 package org.structr.core.graph.search;
 
-import org.structr.api.search.Occurrence;
+import org.structr.api.search.Operation;
 import org.structr.core.GraphObject;
 
 /**
@@ -27,8 +27,8 @@ import org.structr.core.GraphObject;
  */
 public class SourceSearchAttribute<T> extends SearchAttribute<T> {
 
-	public SourceSearchAttribute(Occurrence occur) {
-		super(occur);
+	public SourceSearchAttribute(final Operation operation) {
+		super(operation);
 	}
 
 	@Override

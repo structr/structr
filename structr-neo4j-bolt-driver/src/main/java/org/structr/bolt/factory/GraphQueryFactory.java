@@ -22,7 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.api.index.AbstractIndex;
 import org.structr.api.index.AbstractQueryFactory;
 import org.structr.api.search.GraphQuery;
-import org.structr.api.search.Occurrence;
+import org.structr.api.search.Operation;
 import org.structr.api.search.QueryPredicate;
 import org.structr.bolt.AdvancedCypherQuery;
 import org.structr.bolt.BoltIdentity;
@@ -45,13 +45,13 @@ public class GraphQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery>
 
 		if (values.isEmpty() || onlyEmptyValues(values)) {
 
-			checkOccur(query, predicate.getOccurrence(), isFirst);
+			checkOperation(query, predicate.getOperation(), isFirst);
 
 			query.addNullObjectParameter(graphQuery.getDirection(), graphQuery.getRelationship());
 
 		} else {
 
-			checkOccur(query, predicate.getOccurrence(), isFirst);
+			checkOperation(query, predicate.getOperation(), isFirst);
 
 			query.addGraphQueryPart(part);
 
@@ -60,7 +60,7 @@ public class GraphQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery>
 
 			for (final Object value : graphQuery.getValues()) {
 
-				checkOccur(query, Occurrence.OPTIONAL, first);
+				checkOperation(query, Operation.OR, first);
 
 				if (predicate.isExactMatch()) {
 

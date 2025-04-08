@@ -19,7 +19,7 @@
 package org.structr.core.property;
 
 
-import org.structr.api.search.Occurrence;
+import org.structr.api.search.Operation;
 import org.structr.common.SecurityContext;
 import org.structr.core.app.Query;
 import org.structr.core.graph.NodeServiceCommand;
@@ -49,8 +49,8 @@ public class UuidProperty extends StringProperty {
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final Occurrence occur, final String searchValue, final boolean exactMatch, final Query query) {
-		return new UuidSearchAttribute(searchValue, occur);
+	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final Operation operation, final String searchValue, final boolean exactMatch, final Query query) {
+		return new UuidSearchAttribute(searchValue, operation);
 	}
 
 	// ----- OpenAPI -----

@@ -22,7 +22,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
-import org.structr.api.search.Occurrence;
+import org.structr.api.search.Operation;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -218,8 +218,8 @@ public class EndNode extends Property<NodeInterface> implements RelationProperty
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occurrence occur, NodeInterface searchValue, boolean exactMatch, final Query query) {
-		return new GraphSearchAttribute<>(this, searchValue, occur, exactMatch);
+	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Operation operation, NodeInterface searchValue, boolean exactMatch, final Query query) {
+		return new GraphSearchAttribute<>(this, searchValue, operation, exactMatch);
 	}
 
 	@Override

@@ -23,7 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
-import org.structr.api.search.Occurrence;
+import org.structr.api.search.Operation;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -574,8 +574,8 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final Occurrence occur, final T searchValue, final boolean exactMatch, final Query query) {
-		return new PropertySearchAttribute(this, searchValue, occur, exactMatch);
+	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final Operation operation, final T searchValue, final boolean exactMatch, final Query query) {
+		return new PropertySearchAttribute(this, searchValue, operation, exactMatch);
 	}
 
 	@Override

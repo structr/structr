@@ -34,7 +34,7 @@ public interface QueryPredicate {
 	Object getValue();
 	String getLabel();
 
-	Occurrence getOccurrence();
+	Operation getOperation();
 	boolean isExactMatch();
 
 	SortOrder getSortOrder();

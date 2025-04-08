@@ -20,7 +20,7 @@ package org.structr.core.graph.search;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.search.Occurrence;
+import org.structr.api.search.Operation;
 import org.structr.api.search.TypeQuery;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.Relation;
@@ -42,9 +42,9 @@ public class TypeSearchAttribute<S extends GraphObject> extends PropertySearchAt
 	private String targetType = null;
 	private String type       = null;
 
-	public TypeSearchAttribute(final String type, final Occurrence occur, final boolean isExactMatch) {
+	public TypeSearchAttribute(final String type, final Operation operation, final boolean isExactMatch) {
 
-		super(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY), null, occur, isExactMatch);
+		super(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY), null, operation, isExactMatch);
 
 		final Traits traits = Traits.of(type);
 
@@ -85,10 +85,10 @@ public class TypeSearchAttribute<S extends GraphObject> extends PropertySearchAt
 	@Override
 	public boolean includeInResult(final GraphObject entity) {
 
-		final Occurrence occur   = getOccurrence();
+		final Operation operation = getOperation();
 		final boolean isOfType   = entity.getTraits().contains(type);
 
-		if (occur.equals(Occurrence.FORBIDDEN)) {
+		if (operation.equals(Operation.NOT)) {
 
 			return !isOfType;
 

@@ -19,7 +19,7 @@
 package org.structr.core.function;
 
 import org.structr.api.config.Settings;
-import org.structr.api.search.Occurrence;
+import org.structr.api.search.Operation;
 import org.structr.autocomplete.AbstractHint;
 import org.structr.autocomplete.TypeNameHint;
 import org.structr.common.ContextStore;
@@ -260,22 +260,21 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 
 					if (!isAdvancedSearch(securityContext, traits, key, value, query, exact)) {
 
+						Object convertedValue = value;
+
 						final PropertyConverter inputConverter = key.inputConverter(securityContext);
 						if (inputConverter != null) {
 
-							if (Occurrence.OPTIONAL.equals(query.getCurrentOccurrence())) {
-								query.or(key, inputConverter.convert(value), exact);
-							} else {
-								query.and(key, inputConverter.convert(value), exact);
-							}
+							convertedValue = inputConverter.convert(value);
+						}
+
+						if (Operation.OR.equals(query.getCurrentOperation())) {
+
+							query.or(key, convertedValue, exact);
 
 						} else {
 
-							if (Occurrence.OPTIONAL.equals(query.getCurrentOccurrence())) {
-								query.or(key, value, exact);
-							} else {
-								query.and(key, value, exact);
-							}
+							query.and(key, convertedValue, exact);
 						}
 					}
 				}

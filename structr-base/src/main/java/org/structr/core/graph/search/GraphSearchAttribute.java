@@ -22,7 +22,7 @@ import org.structr.api.graph.Direction;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
 import org.structr.api.search.GraphQuery;
-import org.structr.api.search.Occurrence;
+import org.structr.api.search.Operation;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
@@ -30,11 +30,11 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.RelationProperty;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 
 /**
  *
@@ -45,13 +45,13 @@ public class GraphSearchAttribute<T> extends PropertySearchAttribute<T> implemen
 	private PropertyKey notionKey = null;
 	private Set<Object> values    = null;
 
-	public GraphSearchAttribute(PropertyKey<T> key, T value, final Occurrence occurrence, final boolean exact) {
-		this(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), key, value, occurrence, exact);
+	public GraphSearchAttribute(PropertyKey<T> key, T value, final Operation operation, final boolean exact) {
+		this(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), key, value, operation, exact);
 	}
 
-	public GraphSearchAttribute(final PropertyKey notionKey, final PropertyKey<T> key, final T value, final Occurrence occurrence, final boolean exact) {
+	public GraphSearchAttribute(final PropertyKey notionKey, final PropertyKey<T> key, final T value, final Operation operation, final boolean exact) {
 
-		super(key, value, occurrence, exact);
+		super(key, value, operation, exact);
 		this.notionKey = notionKey;
 	}
 
@@ -70,9 +70,9 @@ public class GraphSearchAttribute<T> extends PropertySearchAttribute<T> implemen
 
 		boolean includeInResult = true;
 
-		switch (getOccurrence()) {
+		switch (getOperation()) {
 
-			case EXACT:
+			case AND:
 
 				{
 					final Set<Object> entityValues = new LinkedHashSet<>();
@@ -84,7 +84,7 @@ public class GraphSearchAttribute<T> extends PropertySearchAttribute<T> implemen
 				}
 				break;
 
-			case CONTAINS:
+			case OR:
 
 				{
 					final Set<Object> entityValues = new LinkedHashSet<>();

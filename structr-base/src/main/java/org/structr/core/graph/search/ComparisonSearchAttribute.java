@@ -21,7 +21,7 @@ package org.structr.core.graph.search;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
 import org.structr.api.search.ComparisonQuery;
-import org.structr.api.search.Occurrence;
+import org.structr.api.search.Operation;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -36,14 +36,14 @@ public class ComparisonSearchAttribute<T> extends SearchAttribute<T> implements 
 
 	private PropertyKey<T> searchKey = null;
 	private T searchValue	         = null;
-	private Operation operation      = null;
+	private Comparison comparison    = null;
 	private Pattern pattern          = null;
 
-	public ComparisonSearchAttribute(final PropertyKey<T> searchKey, final Operation operation, final Object value, final Occurrence occur) {
-		super(occur);
+	public ComparisonSearchAttribute(final PropertyKey<T> searchKey, final Comparison comparison, final Object value, final Operation operation) {
+		super(operation);
 
-		this.searchKey = searchKey;
-		this.operation = operation;
+		this.searchKey  = searchKey;
+		this.comparison = comparison;
 
 		try {
 
@@ -93,8 +93,8 @@ public class ComparisonSearchAttribute<T> extends SearchAttribute<T> implements 
 	}
 
 	@Override
-	public Operation getOperation() {
-		return operation;
+	public Comparison getComparison() {
+		return comparison;
 	}
 
 	@Override
@@ -112,7 +112,7 @@ public class ComparisonSearchAttribute<T> extends SearchAttribute<T> implements 
 				final String propertyStringValue = stringOrNull(value);
 				final String searchStringValue   = stringOrNull(searchValue);
 
-				switch (this.operation) {
+				switch (this.comparison) {
 
 					case equal -> {
 						return a.compareTo(b) == 0;
@@ -168,11 +168,11 @@ public class ComparisonSearchAttribute<T> extends SearchAttribute<T> implements 
 				}
 			}
 
-		} else if (value == null && operation.equals(Operation.isNull)) {
+		} else if (value == null && comparison.equals(Comparison.isNull)) {
 
 			return true;
 
-		} else if (value != null && operation.equals(Operation.isNotNull)) {
+		} else if (value != null && comparison.equals(Comparison.isNotNull)) {
 
 			return true;
 		}

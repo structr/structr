@@ -20,7 +20,7 @@ package org.structr.core.graph.search;
 
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.search.EmptyQuery;
-import org.structr.api.search.Occurrence;
+import org.structr.api.search.Operation;
 import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
 
@@ -34,13 +34,13 @@ public class EmptySearchAttribute<T> extends PropertySearchAttribute<T> {
 
 	private boolean removeFromQuery = false;
 
-	public EmptySearchAttribute(PropertyKey<T> key, T value) {
+	public EmptySearchAttribute(final PropertyKey<T> key, final T value) {
 		this(key, value, false);
 	}
 
-	public EmptySearchAttribute(PropertyKey<T> key, T value, final boolean removeFromQuery) {
+	public EmptySearchAttribute(final PropertyKey<T> key, final T value, final boolean removeFromQuery) {
 
-		super(key, value, Occurrence.REQUIRED, true);
+		super(key, value, Operation.AND, true);
 
 		this.removeFromQuery = removeFromQuery;
 	}
@@ -56,7 +56,7 @@ public class EmptySearchAttribute<T> extends PropertySearchAttribute<T> {
 	}
 
 	@Override
-	public boolean includeInResult(GraphObject entity) {
+	public boolean includeInResult(final GraphObject entity) {
 
 		/*
 		Occurrence occur = getOccurrence();

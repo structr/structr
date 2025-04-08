@@ -27,7 +27,7 @@ import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.search.ComparisonQuery;
-import org.structr.api.search.Occurrence;
+import org.structr.api.search.Operation;
 import org.structr.api.util.ResultStream;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
@@ -2045,25 +2045,25 @@ public class SearchAndSortingTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final List<SearchAttribute> attributes       = new ArrayList<>();
-			final SearchAttributeGroup rootGroup         = new SearchAttributeGroup(Occurrence.REQUIRED);
-			final SearchAttributeGroup mainMatchingGroup = new SearchAttributeGroup(Occurrence.REQUIRED);
+			final SearchAttributeGroup rootGroup         = new SearchAttributeGroup(Operation.AND);
+			final SearchAttributeGroup mainMatchingGroup = new SearchAttributeGroup(Operation.AND);
 
-			mainMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Operation.equal, "a", Occurrence.OPTIONAL));
-			mainMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Operation.equal, "b", Occurrence.OPTIONAL));
-			mainMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Operation.equal, "c", Occurrence.OPTIONAL));
-			mainMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Operation.equal, "d", Occurrence.OPTIONAL));
+			mainMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Comparison.equal, "a", Operation.OR));
+			mainMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Comparison.equal, "b", Operation.OR));
+			mainMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Comparison.equal, "c", Operation.OR));
+			mainMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Comparison.equal, "d", Operation.OR));
 
-			final SearchAttributeGroup secondaryMatchingGroup = new SearchAttributeGroup(Occurrence.REQUIRED);
+			final SearchAttributeGroup secondaryMatchingGroup = new SearchAttributeGroup(Operation.AND);
 
-			secondaryMatchingGroup.add(new ComparisonSearchAttribute(ownerKey, ComparisonQuery.Operation.isNull, null, Occurrence.REQUIRED));
-			secondaryMatchingGroup.add(new ComparisonSearchAttribute(ownerKey, ComparisonQuery.Operation.isNotNull, null, Occurrence.FORBIDDEN));
+			secondaryMatchingGroup.add(new ComparisonSearchAttribute(ownerKey, ComparisonQuery.Comparison.isNull, null, Operation.AND));
+			secondaryMatchingGroup.add(new ComparisonSearchAttribute(ownerKey, ComparisonQuery.Comparison.isNotNull, null, Operation.NOT));
 
 			// Test Greater/Less with ASCII chars
-			secondaryMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Operation.greater, "_", Occurrence.REQUIRED));
-			secondaryMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Operation.greaterOrEqual, "a", Occurrence.REQUIRED));
-			secondaryMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Operation.lessOrEqual, "d", Occurrence.REQUIRED));
-			secondaryMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Operation.less, "e", Occurrence.REQUIRED));
-			secondaryMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Operation.notEqual, "b", Occurrence.REQUIRED));
+			secondaryMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Comparison.greater, "_", Operation.AND));
+			secondaryMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Comparison.greaterOrEqual, "a", Operation.AND));
+			secondaryMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Comparison.lessOrEqual, "d", Operation.AND));
+			secondaryMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Comparison.less, "e", Operation.AND));
+			secondaryMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Comparison.notEqual, "b", Operation.AND));
 
 			rootGroup.add(mainMatchingGroup);
 			rootGroup.add(secondaryMatchingGroup);

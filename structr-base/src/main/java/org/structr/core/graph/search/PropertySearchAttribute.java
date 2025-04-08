@@ -21,7 +21,7 @@ package org.structr.core.graph.search;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.search.ExactQuery;
 import org.structr.api.search.FulltextQuery;
-import org.structr.api.search.Occurrence;
+import org.structr.api.search.Operation;
 import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
 
@@ -32,9 +32,9 @@ public class PropertySearchAttribute<T> extends SearchAttribute<T> implements Ex
 
 	private boolean isExactMatch = false;
 
-	public PropertySearchAttribute(final PropertyKey<T> key, final T value, final Occurrence occur, final boolean isExactMatch) {
+	public PropertySearchAttribute(final PropertyKey<T> key, final T value, final Operation operation, final boolean isExactMatch) {
 
-		super(occur, key, value);
+		super(operation, key, value);
 
 		this.isExactMatch = isExactMatch;
 	}
@@ -62,11 +62,11 @@ public class PropertySearchAttribute<T> extends SearchAttribute<T> implements Ex
 	@Override
 	public boolean includeInResult(final GraphObject entity) {
 
-		T nodeValue          = entity.getProperty(getKey());
-		Occurrence occur     = getOccurrence();
-		T searchValue        = getValue();
+		T nodeValue         = entity.getProperty(getKey());
+		Operation operation = getOperation();
+		T searchValue       = getValue();
 
-		if (occur.equals(Occurrence.FORBIDDEN)) {
+		if (operation.equals(Operation.NOT)) {
 
 			if ((nodeValue != null) && compare(nodeValue, searchValue) == 0) {
 

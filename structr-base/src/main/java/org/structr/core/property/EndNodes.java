@@ -19,7 +19,7 @@
 package org.structr.core.property;
 
 import org.structr.api.Predicate;
-import org.structr.api.search.Occurrence;
+import org.structr.api.search.Operation;
 import org.structr.api.search.SortType;
 import org.structr.api.util.Iterables;
 import org.structr.common.NotNullPredicate;
@@ -231,9 +231,9 @@ public class EndNodes extends Property<Iterable<NodeInterface>> implements Relat
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final Occurrence occur, final Iterable<NodeInterface> searchValue, final boolean exactMatch, final Query query) {
+	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final Operation operation, final Iterable<NodeInterface> searchValue, final boolean exactMatch, final Query query) {
 
-		return new GraphSearchAttribute<>(this, searchValue, occur, exactMatch);
+		return new GraphSearchAttribute<>(this, searchValue, operation, exactMatch);
 	}
 
 
