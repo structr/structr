@@ -41,6 +41,15 @@ import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.parser.DatePropertyGenerator;
 
+<<<<<<< Updated upstream
+=======
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Map.Entry;
+
+>>>>>>> Stashed changes
 /**
  *
  */
@@ -99,12 +108,13 @@ public abstract class AbstractMethod {
 						final ActionContext previousContext = binding.getActionContext();
 						final Value previousMethodParameters = binding.getMethodParameters();
 						final Map<String, Object> tmp = securityContext.getContextStore().getTemporaryParameters();
-
+						Locale effectiveLocale = actionContext.getLocale();
 						try {
 
 							final Arguments args      = Arguments.fromValues(actionContext, arguments);
 							final Arguments converted = checkAndConvertArguments(securityContext, args, true);
 							final ActionContext inner = new ActionContext(securityContext, converted.toMap());
+							inner.setLocale(effectiveLocale);
 
 							inner.setScriptingContexts(actionContext.getScriptingContexts());
 
@@ -118,7 +128,9 @@ public abstract class AbstractMethod {
 							// store current AbstractMethod object in ActionContext
 							inner.setCurrentMethod(this);
 
-							return Scripting.evaluatePolyglot(inner, engineName, context, entity, snippet);
+							final Value result = Scripting.evaluatePolyglot(inner, engineName, context, entity, snippet);
+							effectiveLocale = inner.getLocale();
+							return result;
 
 						} catch (IllegalArgumentTypeException iaex) {
 
@@ -131,7 +143,8 @@ public abstract class AbstractMethod {
 							binding.setActionContext(previousContext);
 							binding.setMethodParameters(previousMethodParameters);
 							securityContext.getContextStore().setTemporaryParameters(tmp);
-
+							// take over inner locale, in case it changed
+							actionContext.setLocale(effectiveLocale);
 						}
 					}
 				}
