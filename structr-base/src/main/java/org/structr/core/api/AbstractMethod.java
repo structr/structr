@@ -22,6 +22,7 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Locale;
 
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
@@ -41,15 +42,7 @@ import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.parser.DatePropertyGenerator;
 
-<<<<<<< Updated upstream
-=======
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Map.Entry;
 
->>>>>>> Stashed changes
 /**
  *
  */
