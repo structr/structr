@@ -18,6 +18,12 @@
  */
 package org.structr.core.api;
 
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Locale;
+
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
@@ -35,12 +41,6 @@ import org.structr.core.script.polyglot.context.ContextFactory;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.parser.DatePropertyGenerator;
-
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Map.Entry;
 
 /**
  *

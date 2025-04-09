@@ -5956,6 +5956,74 @@ public class ScriptingTest extends StructrTest {
 	}
 
 	@Test
+	public void testMethodParameterPassing() {
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType type = schema.addType("Activity");
+
+			type.addMethod("test1", """
+					{
+						let container = {
+							target: []
+						};
+					
+						$.Activity.testAddElement({ container, value: '0' });
+					
+						$.Activity.test2({ container });
+					
+						return { container };
+					}
+					""").setIsStatic(true);
+
+			type.addMethod("test2", """
+					{
+						$.Activity.testAddElement({ container: $.methodParameters.container, value: '1' });
+						$.Activity.testAddElement({ container: $.methodParameters.container, value: '2' });
+						$.Activity.testAddElement({ container: $.methodParameters.container, value: '3' });
+					
+						let container = $.methodParameters.container;
+					
+						$.Activity.testAddElement({ container: container, value: '4' });
+						$.Activity.testAddElement({ container: container, value: '5' });
+						$.Activity.testAddElement({ container: container, value: '6' });
+					
+					}
+					""").setIsStatic(true);
+			type.addMethod("testAddElement", """
+					{
+						$.log('Adding: ', $.methodParameters.value)
+						$.methodParameters.container.target.push('test' + $.methodParameters.value);
+					}
+					""").setIsStatic(true);
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final Object result = Scripting.evaluate(new ActionContext(securityContext), null, "{$.Activity.test1();}", "testArgumentPassing");
+			assertTrue(result instanceof Map);
+			final Map resultMap = (Map)result;
+			final List resultTargetList = (List)((Map)(resultMap.get("container"))).get("target");
+			assertEquals(7, resultTargetList.size());
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
 	public void testStaticAndDynamicMethodCall() {
 
 		/**
