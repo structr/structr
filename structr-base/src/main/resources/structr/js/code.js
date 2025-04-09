@@ -608,7 +608,7 @@ let _Code = {
 				// only show results after all 6 searches are finished (to prevent duplicates)
 				if (++count === 6) {
 
-					_Code.tree.displayFunction(searchResults, data, false, true);
+					_Code.tree.displayFunction(Object.values(searchResults), data, false, true);
 				}
 			};
 
