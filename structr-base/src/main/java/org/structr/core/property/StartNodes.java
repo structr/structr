@@ -19,7 +19,6 @@
 package org.structr.core.property;
 
 import org.structr.api.Predicate;
-import org.structr.api.search.Operation;
 import org.structr.api.search.SortType;
 import org.structr.api.util.Iterables;
 import org.structr.common.NotNullPredicate;
@@ -27,7 +26,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.TruePredicate;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.app.Query;
+import org.structr.core.app.QueryGroup;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.ManyStartpoint;
 import org.structr.core.entity.Relation;
@@ -230,8 +229,8 @@ public class StartNodes extends Property<Iterable<NodeInterface>> implements Rel
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Operation operation, Iterable<NodeInterface> searchValue, boolean exactMatch, final Query query) {
-		return new GraphSearchAttribute<>(this, searchValue, operation, exactMatch);
+	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final Iterable<NodeInterface> searchValue, final boolean exactMatch, final QueryGroup query) {
+		return new GraphSearchAttribute<>(this, searchValue, exactMatch);
 	}
 
 	@Override

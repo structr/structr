@@ -28,7 +28,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.NumberFormatToken;
 import org.structr.common.error.PropertyInputParsingException;
 import org.structr.core.GraphObject;
-import org.structr.core.app.Query;
+import org.structr.core.app.QueryGroup;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.search.ArraySearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
@@ -229,38 +229,22 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 	}
 
 	@Override
-	protected void determineSearchType(final SecurityContext securityContext, final String requestParameter, final boolean exactMatch, final Query query) throws FrameworkException {
+	protected void determineSearchType(final SecurityContext securityContext, final String requestParameter, final boolean exactMatch, final QueryGroup query) throws FrameworkException {
 
 		if (requestParameter.contains(",") || requestParameter.contains(";")) {
 
 			if (requestParameter.contains(";")) {
 
-				if (exactMatch) {
+				final QueryGroup orGroup = query.or();
 
-					query.and();
+				for (final Object part : trimFilterAndConvert(securityContext, requestParameter.split(";"))) {
 
-					for (final Object part : trimFilterAndConvert(securityContext, requestParameter.split(";"))) {
-
-						query.or(this, part, false);
-					}
-
-					query.parent();
-
-				} else {
-
-					query.and();
-
-					for (final Object part : trimFilterAndConvert(securityContext, requestParameter.split(";"))) {
-
-						query.or(this, part, false);
-					}
-
-					query.parent();
+					orGroup.key(this, part, exactMatch);
 				}
 
 			} else {
 
-				query.and(this, convertSearchValue(securityContext, requestParameter), exactMatch);
+				query.key(this, convertSearchValue(securityContext, requestParameter), exactMatch);
 			}
 
 			return;
@@ -268,7 +252,7 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 
 		if (StringUtils.isEmpty(requestParameter)) {
 
-			query.and(this, null);
+			query.key(this, null);
 
 			return;
 		}
@@ -278,7 +262,7 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Operation operation, T[] valueInput, boolean exactMatch, Query query) {
+	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final T[] valueInput, final boolean exactMatch, final QueryGroup query) {
 
 		T[] searchValue = null;
 
@@ -300,21 +284,21 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 
 		// early exit, return empty search attribute
 		if (searchValue == null) {
-			return new ArraySearchAttribute(this, "", exactMatch ? operation : Operation.OR, exactMatch);
+			return new ArraySearchAttribute(this, "", exactMatch);
 		}
 
 		if (!exactMatch) {
 
-			final SearchAttributeGroup group = new SearchAttributeGroup(operation);
+			final SearchAttributeGroup group = new SearchAttributeGroup(Operation.AND);
 			for (T value : searchValue) {
 
-				group.add(new ArraySearchAttribute(this, value, Operation.AND, false));
+				group.add(new ArraySearchAttribute(this, value, false));
 			}
 
 			return group;
 		}
 
-		return new ArraySearchAttribute(this, searchValue, Operation.AND, exactMatch);
+		return new ArraySearchAttribute(this, searchValue, exactMatch);
 	}
 
 	@Override

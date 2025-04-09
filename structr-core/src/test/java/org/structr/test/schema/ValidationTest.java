@@ -2236,7 +2236,7 @@ public class ValidationTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface schemaNode = app.nodeQuery(StructrTraits.SCHEMA_NODE).andName("Project").getFirst();
+			final NodeInterface schemaNode = app.nodeQuery(StructrTraits.SCHEMA_NODE).name("Project").getFirst();
 			final NodeInterface group      = app.create(StructrTraits.GROUP, "Group1");
 
 			app.create(StructrTraits.SCHEMA_GRANT, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("principal"), group), new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.SCHEMA_NODE_PROPERTY), schemaNode));

@@ -238,7 +238,7 @@ public class ServicePrincipal implements Principal {
 
 					for (final String id : jwksReferenceIds) {
 
-						for (final NodeInterface node : StructrApp.getInstance().nodeQuery(StructrTraits.GROUP).and(jwksReferenceIdKey, id).getResultStream()) {
+						for (final NodeInterface node : StructrApp.getInstance().nodeQuery(StructrTraits.GROUP).key(jwksReferenceIdKey, id).getResultStream()) {
 
 							groups.add(node.as(Group.class));
 						}

@@ -21,12 +21,11 @@ package org.structr.core.property;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
-import org.structr.api.search.Operation;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.app.Query;
+import org.structr.core.app.QueryGroup;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.OneStartpoint;
 import org.structr.core.entity.Relation;
@@ -221,8 +220,8 @@ public class StartNode extends Property<NodeInterface> implements RelationProper
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final Operation operation, final NodeInterface searchValue, final boolean exactMatch, final Query query) {
-		return new GraphSearchAttribute<>(this, searchValue, operation, exactMatch);
+	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final NodeInterface searchValue, final boolean exactMatch, final QueryGroup query) {
+		return new GraphSearchAttribute<>(this, searchValue, exactMatch);
 	}
 
 	@Override

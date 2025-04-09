@@ -43,7 +43,7 @@ import org.structr.core.graph.NodeInterface;
 public class SearchNodeCommand extends SearchCommand<Node, NodeInterface> {
 
 	@Override
-	public NodeFactory getFactory(SecurityContext securityContext, boolean includeHidden, boolean publicOnly, int pageSize, int page) {
+	public NodeFactory getFactory(final SecurityContext securityContext, final boolean includeHidden, final boolean publicOnly, final int pageSize, final int page) {
 		return new NodeFactory(securityContext, includeHidden, publicOnly, pageSize, page);
 	}
 

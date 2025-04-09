@@ -18,7 +18,6 @@
  */
 package org.structr.core.graph.search;
 
-import org.structr.api.search.Operation;
 import org.structr.api.search.SpatialQuery;
 import org.structr.core.GraphObject;
 
@@ -41,27 +40,26 @@ public class DistanceSearchAttribute extends SearchAttribute implements SpatialQ
 	private String state        = null;
 	private String country      = null;
 
-	public DistanceSearchAttribute(final Double latitude, final Double longitude, final Double distance, final Operation operation) {
+	public DistanceSearchAttribute(final Double latitude, final Double longitude, final Double distance) {
 
-		super(operation);
+		super(null, null);
 
 		this.coords         = new Double[] { latitude, longitude };
 		this.distance       = distance;
 		this.needsGeocoding = false;
 	}
 
-	public DistanceSearchAttribute(final String street, final String house, final String postalCode, final String city, final String state, final String country, final Double distance, final Operation operation) {
+	public DistanceSearchAttribute(final String street, final String house, final String postalCode, final String city, final String state, final String country, final Double distance) {
 
-		super(operation);
+		super(null, null);
 
-		this.street = street;
-		this.house = house;
+		this.street     = street;
+		this.house      = house;
 		this.postalCode = postalCode;
-		this.city = city;
-		this.state = state;
-		this.country = country;
-
-		this.distance = distance;
+		this.city       = city;
+		this.state      = state;
+		this.country    = country;
+		this.distance   = distance;
 	}
 
 	@Override
@@ -126,7 +124,7 @@ public class DistanceSearchAttribute extends SearchAttribute implements SpatialQ
 		this.country = country;
 	}
 
-	public boolean needsGeocding() {
+	public boolean needsGeocoding() {
 		return needsGeocoding;
 	}
 
@@ -136,7 +134,7 @@ public class DistanceSearchAttribute extends SearchAttribute implements SpatialQ
 	}
 
 	@Override
-	public boolean includeInResult(GraphObject entity) {
+	public boolean includeInResult(final GraphObject entity) {
 		return true;
 	}
 

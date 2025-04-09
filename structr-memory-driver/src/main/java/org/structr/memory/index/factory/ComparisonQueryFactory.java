@@ -36,7 +36,7 @@ public class ComparisonQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 
 		if (predicate instanceof ComparisonQuery) {
 
-			checkOperation(query, predicate.getOperation(), isFirst);
+			//checkOperation(query, predicate.getOperation(), isFirst);
 
 			final ComparisonQuery comparisonQuery       = (ComparisonQuery)predicate;
 			final Comparable value                      = (Comparable)getReadValue(comparisonQuery.getSearchValue());

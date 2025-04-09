@@ -32,7 +32,7 @@ public class EmptyQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery>
 	@Override
 	public boolean createQuery(final QueryPredicate predicate, final AdvancedCypherQuery query, final boolean isFirst) {
 
-		checkOperation(query, predicate.getOperation(), isFirst);
+		//checkOperation(query, predicate.getOperation(), isFirst);
 
 		// add label of declaring class for the given property name
 		// to select the correct index

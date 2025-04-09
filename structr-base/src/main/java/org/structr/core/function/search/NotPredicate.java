@@ -20,8 +20,7 @@ package org.structr.core.function.search;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.Query;
-import org.structr.core.app.StructrApp;
+import org.structr.core.app.QueryGroup;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
 
@@ -30,7 +29,7 @@ import org.structr.core.traits.Traits;
 public class NotPredicate extends AbstractPredicate {
 
 	@Override
-	public void configureQuery(final SecurityContext securityContext, final Traits type, final PropertyKey propertyKey, final Query query, final boolean exact) throws FrameworkException {
+	public void configureQuery(final SecurityContext securityContext, final Traits type, final PropertyKey propertyKey, final QueryGroup query, final boolean exact) throws FrameworkException {
 
 		for (final SearchParameter p : parameters) {
 
@@ -40,37 +39,32 @@ public class NotPredicate extends AbstractPredicate {
 				final Object value = p.getValue();
 
 				// check if value is predicate...
-				if (value instanceof SearchFunctionPredicate) {
+				if (value instanceof SearchFunctionPredicate predicate) {
 
-					query.not();
-					((SearchFunctionPredicate)value).configureQuery(securityContext, type, key, query, p.isExact());
-					query.parent();
+					predicate.configureQuery(securityContext, type, key, query.not(), p.isExact());
 
 				} else {
 
-					query.not();
+					final QueryGroup notGroup = query.not();
 
 					if (p.isEmptyPredicate()) {
 
-						query.blank(key);
+						notGroup.blank(key);
 
 					} else {
 
-						query.and(key, value, p.isExact());
+						notGroup.key(key, value, p.isExact());
 					}
-
-					query.parent();
 				}
 			}
 		}
 
 		for (final SearchFunctionPredicate p : predicates) {
 
-			query.and();
-			query.not();
-			p.configureQuery(securityContext, type, propertyKey, query, exact);
-			query.parent();
-			query.parent();
+			final QueryGroup andGroup = query.and();
+			final QueryGroup notGroup = andGroup.not();
+
+			p.configureQuery(securityContext, type, propertyKey, notGroup, exact);
 		}
 	}
 }

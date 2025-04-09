@@ -826,11 +826,6 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 		}
 
 		@Override
-		public Operation getOperation() {
-			return Operation.AND;
-		}
-
-		@Override
 		public boolean isExactMatch() {
 			return true;
 		}
@@ -872,11 +867,6 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 		@Override
 		public String getLabel() {
 			return null;
-		}
-
-		@Override
-		public Operation getOperation() {
-			return Operation.AND;
 		}
 
 		@Override

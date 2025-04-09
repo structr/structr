@@ -93,7 +93,7 @@ public class FlowServlet extends JsonRestServlet {
 
 				final PropertyKey<String> nameKey = Traits.of(StructrTraits.FLOW_CONTAINER).key(FlowContainerTraitDefinition.EFFECTIVE_NAME_PROPERTY);
 				final String flowName             = request.getPathInfo().substring(1);
-				final NodeInterface flowNode      = flowName.length() > 0 ? StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.FLOW_CONTAINER).and(nameKey, flowName).getFirst() : null;
+				final NodeInterface flowNode      = flowName.length() > 0 ? StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.FLOW_CONTAINER).key(nameKey, flowName).getFirst() : null;
 
 				tx.prefetchHint("Flow " + flowName);
 
@@ -222,7 +222,7 @@ public class FlowServlet extends JsonRestServlet {
 
 				final PropertyKey<String> nameKey = Traits.of(StructrTraits.FLOW_CONTAINER).key(FlowContainerTraitDefinition.EFFECTIVE_NAME_PROPERTY);
 				final String flowName             = request.getPathInfo().substring(1);
-				final NodeInterface flowNode      = flowName.length() > 0 ? StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.FLOW_CONTAINER).and(nameKey, flowName).getFirst() : null;
+				final NodeInterface flowNode      = flowName.length() > 0 ? StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.FLOW_CONTAINER).key(nameKey, flowName).getFirst() : null;
 
 				if (flowNode != null) {
 

@@ -234,7 +234,7 @@ public class UiAuthenticator implements Authenticator {
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
-			final NodeInterface corsSettingObjectFromDatabase = StructrApp.getInstance().nodeQuery(StructrTraits.CORS_SETTING).and(traits.key(CorsSettingTraitDefinition.REQUEST_URI_PROPERTY), requestUri).getFirst();
+			final NodeInterface corsSettingObjectFromDatabase = StructrApp.getInstance().nodeQuery(StructrTraits.CORS_SETTING).key(traits.key(CorsSettingTraitDefinition.REQUEST_URI_PROPERTY), requestUri).getFirst();
 			if (corsSettingObjectFromDatabase != null) {
 
 				acceptedOriginsString = (String)  getEffectiveCorsSettingValue(corsSettingObjectFromDatabase, CorsSettingTraitDefinition.ACCEPTED_ORIGINS_PROPERTY,  acceptedOriginsString);

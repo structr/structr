@@ -92,7 +92,7 @@ public class DeploymentCommentHandler implements CommentHandler {
 
 			if (node.is(StructrTraits.LINK_SOURCE)) {
 
-				final NodeInterface file = StructrApp.getInstance().nodeQuery(StructrTraits.LINKABLE).and(Traits.of(StructrTraits.ABSTRACT_FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY), parameters).getFirst();
+				final NodeInterface file = StructrApp.getInstance().nodeQuery(StructrTraits.LINKABLE).key(Traits.of(StructrTraits.ABSTRACT_FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY), parameters).getFirst();
 				if (file != null) {
 
 					final LinkSource linkSource = node.as(LinkSource.class);
@@ -135,7 +135,7 @@ public class DeploymentCommentHandler implements CommentHandler {
 
 		handlers.put("owner", (final Page page, final DOMNode node, final String name) -> {
 
-			final List<NodeInterface> principals = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).andName(name).getAsList();
+			final List<NodeInterface> principals = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).name(name).getAsList();
 
 			if (principals.isEmpty()) {
 
@@ -156,7 +156,7 @@ public class DeploymentCommentHandler implements CommentHandler {
 			final String[] parts  = parameters.split("[,]+");
 			if (parts.length == 2) {
 
-				final List<NodeInterface> principals = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).andName(parts[0]).getAsList();
+				final List<NodeInterface> principals = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).name(parts[0]).getAsList();
 
 				if (principals.isEmpty()) {
 

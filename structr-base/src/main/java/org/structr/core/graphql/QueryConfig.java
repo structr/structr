@@ -25,7 +25,7 @@ import org.structr.common.PathResolvingComparator;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.app.Query;
+import org.structr.core.app.QueryGroup;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.search.GraphSearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
@@ -133,7 +133,7 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 		return this.sortDescending;
 	}
 
-	public void configureQuery(final Query query) {
+	public void configureQuery(final QueryGroup query) {
 
 		query.page(page);
 		query.pageSize(pageSize);
@@ -191,6 +191,8 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 		final PropertyKey key                = type.key(field.getName());
 		Operation operation                  = Operation.AND;
 
+		// FIXME: create a search group here...
+
 		// parse arguments
 		for (final Argument argument : field.getArguments()) {
 
@@ -218,11 +220,16 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 			}
 		}
 
+		//final SearchAttributeGroup group = new SearchAttributeGroup(operation);
+		// FIXME: conjunction is not used here, how can we fix this?
+
 		// only add field if a value was set
 		for (final SearchTuple tuple : searchTuples) {
 
-			addAttribute(parentName, key.getSearchAttribute(securityContext, operation, tuple.value, tuple.exact, null), operation);
+			addAttribute(parentName, key.getSearchAttribute(securityContext, tuple.value, tuple.exact, null));
 		}
+
+		//addAttribute(parentName, group);
 	}
 
 	// ----- private methods -----
@@ -351,7 +358,7 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 		return null;
 	}
 
-	private void addAttribute(final String parentName, final SearchAttribute newAttribute, final Operation operation) {
+	private void addAttribute(final String parentName, final SearchAttribute newAttribute) {
 
 		final SearchAttribute existingAttribute = attributes.get(parentName);
 		if (existingAttribute == null) {
@@ -362,18 +369,15 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 		} else {
 
 			// we need to combine the attributes
-			if (existingAttribute instanceof SearchAttributeGroup) {
+			if (existingAttribute instanceof SearchAttributeGroup group) {
 
 				// attribute already set, add
-				final SearchAttributeGroup group = (SearchAttributeGroup)existingAttribute;
-
 				group.add(newAttribute);
-				group.setOperation(operation);
 
 			} else {
 
 				// create group from two single attributes
-				final SearchAttributeGroup group = new SearchAttributeGroup(operation);
+				final SearchAttributeGroup group = new SearchAttributeGroup(Operation.AND);
 				group.add(existingAttribute);
 				group.add(newAttribute);
 
@@ -407,7 +411,7 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 			if (value instanceof StringValue || value instanceof IntValue || value instanceof FloatValue || value instanceof BooleanValue) {
 
 				// handle simple selections like an _equals on the field
-				addAttribute(name, key.getSearchAttribute(securityContext, Operation.AND, castValue(securityContext, type, key, value), true, null), Operation.AND);
+				addAttribute(name, key.getSearchAttribute(securityContext, castValue(securityContext, type, key, value), true, null));
 
 			} else if (value instanceof ObjectValue) {
 
@@ -442,7 +446,7 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 										equals = conv.convert(equals);
 									}
 
-									addAttribute(name, new GraphSearchAttribute(notionKey, key, equals, Operation.AND, true), Operation.AND);
+									addAttribute(name, new GraphSearchAttribute(notionKey, key, equals, true));
 
 									// primitive property
 									//addAttribute(key, key.getSearchAttribute(securityContext, Occurrence.REQUIRED, equals, true, null), Occurrence.REQUIRED);
@@ -455,7 +459,7 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 										contains = conv.convert(contains);
 									}
 
-									addAttribute(name, new GraphSearchAttribute(notionKey, key, contains, Operation.AND, false), Operation.AND);
+									addAttribute(name, new GraphSearchAttribute(notionKey, key, contains, false));
 
 									//addAttribute(key, key.getSearchAttribute(securityContext, Occurrence.REQUIRED, contains, false, null), Occurrence.REQUIRED);
 								}
@@ -470,11 +474,11 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 							if (equals != null) {
 
 								// primitive property
-								addAttribute(name, key.getSearchAttribute(securityContext, Operation.AND, equals, true, null), Operation.AND);
+								addAttribute(name, key.getSearchAttribute(securityContext, equals, true, null));
 
 							} else if (contains != null) {
 
-								addAttribute(name, key.getSearchAttribute(securityContext, Operation.AND, contains, false, null), Operation.AND);
+								addAttribute(name, key.getSearchAttribute(securityContext, contains, false, null));
 							}
 						}
 
@@ -489,16 +493,18 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 							operation = getOperation(input.get("_conj"));
 						}
 
+						// FIXME: this must create a new group!
+
 						for (final Object listValue : list) {
 
 							switch (searchKey) {
 
 								case "_contains":
-									addAttribute(name, key.getSearchAttribute(securityContext, operation, listValue, false, null), Operation.AND);
+									addAttribute(name, key.getSearchAttribute(securityContext, listValue, false, null));
 									break;
 
 								case "_equals":
-									addAttribute(name, key.getSearchAttribute(securityContext, operation, listValue, true, null), Operation.AND);
+									addAttribute(name, key.getSearchAttribute(securityContext, listValue, true, null));
 									break;
 							}
 						}
@@ -508,11 +514,11 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 						switch (searchKey) {
 
 							case "_contains":
-								addAttribute(name, key.getSearchAttribute(securityContext, Operation.AND, searchValue, false, null), Operation.AND);
+								addAttribute(name, key.getSearchAttribute(securityContext, searchValue, false, null));
 								break;
 
 							case "_equals":
-								addAttribute(name, key.getSearchAttribute(securityContext, Operation.AND, searchValue, true, null), Operation.AND);
+								addAttribute(name, key.getSearchAttribute(securityContext, searchValue, true, null));
 								break;
 						}
 

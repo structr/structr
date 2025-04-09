@@ -40,12 +40,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
-import org.structr.core.traits.definitions.GroupTraitDefinition;
-import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
-import org.structr.core.traits.definitions.RelationshipInterfaceTraitDefinition;
-import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
-import org.structr.core.traits.definitions.SchemaRelationshipNodeTraitDefinition;
+import org.structr.core.traits.definitions.*;
 import org.structr.web.entity.User;
 import org.testng.annotations.Test;
 
@@ -1809,14 +1804,14 @@ public class BasicTest extends StructrTest {
 		// query for relationships
 		try (final Tx tx = app.tx()) {
 
-			final List<RelationshipInterface> rels1 = app.relationshipQuery().and(traits.key(RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY), user.getUuid()).getAsList();
+			final List<RelationshipInterface> rels1 = app.relationshipQuery().and().key(traits.key(RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY), user.getUuid()).getAsList();
 			final Set<String> classes1              = rels1.stream().map(r -> r.getType()).collect(Collectors.toSet());
 
 			assertEquals("Invalid number of relationships after object creation", 2, rels1.size());
 			assertTrue("Invalid relationship type after object creation", classes1.contains(StructrTraits.SECURITY));
 			assertTrue("Invalid relationship type after object creation", classes1.contains(StructrTraits.PRINCIPAL_OWNS_NODE));
 
-			final List<RelationshipInterface> rels2 = app.relationshipQuery().and(traits.key(RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY), test.getUuid()).getAsList();
+			final List<RelationshipInterface> rels2 = app.relationshipQuery().and().key(traits.key(RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY), test.getUuid()).getAsList();
 			final List<String> classes2             = rels2.stream().map(r -> r.getType()).collect(Collectors.toList());
 
 			assertEquals("Invalid number of relationships after object creation", 2, rels2.size());
@@ -1887,8 +1882,8 @@ public class BasicTest extends StructrTest {
 			test = app.create("TestThirteen");
 			uuid = test.getUuid();
 
-			rels1 = app.relationshipQuery().and(traits.key(RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY), user.getUuid()).getAsList();
-			rels2 = app.relationshipQuery().and(traits.key(RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY), test.getUuid()).getAsList();
+			rels1 = app.relationshipQuery().and().key(traits.key(RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY), user.getUuid()).getAsList();
+			rels2 = app.relationshipQuery().and().key(traits.key(RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY), test.getUuid()).getAsList();
 			rels3 = Iterables.toList(test.getIncomingRelationships());
 			rels4 = Iterables.toList(user.getOutgoingRelationships());
 
@@ -1910,7 +1905,7 @@ public class BasicTest extends StructrTest {
 			final NodeInterface test2 = app.getNodeById("TestThirteen", uuid);
 			assertNull(test2);
 
-			rels1 = app.relationshipQuery().and(traits.key(RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY), user.getUuid()).getAsList();
+			rels1 = app.relationshipQuery().and().key(traits.key(RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY), user.getUuid()).getAsList();
 			rels4 = Iterables.toList(user.getOutgoingRelationships());
 
 			System.out.println("rels1: " + rels1.size());
@@ -1932,7 +1927,7 @@ public class BasicTest extends StructrTest {
 		// query for relationships
 		try (final Tx tx = app.tx()) {
 
-			rels1 = app.relationshipQuery().and(traits.key(RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY), user.getUuid()).getAsList();
+			rels1 = app.relationshipQuery().and().key(traits.key(RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY), user.getUuid()).getAsList();
 			assertEquals("Invalid number of relationships after object creation", 0, rels1.size());
 
 			rels4 = Iterables.toList(user.getOutgoingRelationships());
@@ -2129,7 +2124,7 @@ public class BasicTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<NodeInterface> list = app.nodeQuery("TestOne").and(nameKey, null).getAsList();
+			final List<NodeInterface> list = app.nodeQuery("TestOne").key(nameKey, null).getAsList();
 
 			assertEquals("Query for node with null string value should include nodes with empty string value", 2, list.size());
 

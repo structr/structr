@@ -2242,14 +2242,14 @@ public class GraphQLTest extends StructrGraphQLTest {
 		// modify data, remove some tasks from projects
 		try (final Tx tx = app.tx()) {
 
-			app.nodeQuery(task).andName("Task1.3").getFirst().setProperty(projectKey, null);
-			app.nodeQuery(task).andName("Task1.4").getFirst().setProperty(projectKey, null);
-			app.nodeQuery(task).andName("Task1.5").getFirst().setProperty(projectKey, null);
+			app.nodeQuery(task).name("Task1.3").getFirst().setProperty(projectKey, null);
+			app.nodeQuery(task).name("Task1.4").getFirst().setProperty(projectKey, null);
+			app.nodeQuery(task).name("Task1.5").getFirst().setProperty(projectKey, null);
 
-			app.nodeQuery(task).andName("Task2.1").getFirst().setProperty(projectKey, null);
-			app.nodeQuery(task).andName("Task2.2").getFirst().setProperty(projectKey, null);
-			app.nodeQuery(task).andName("Task2.3").getFirst().setProperty(projectKey, null);
-			app.nodeQuery(task).andName("Task2.7").getFirst().setProperty(projectKey, null);
+			app.nodeQuery(task).name("Task2.1").getFirst().setProperty(projectKey, null);
+			app.nodeQuery(task).name("Task2.2").getFirst().setProperty(projectKey, null);
+			app.nodeQuery(task).name("Task2.3").getFirst().setProperty(projectKey, null);
+			app.nodeQuery(task).name("Task2.7").getFirst().setProperty(projectKey, null);
 
 			tx.success();
 

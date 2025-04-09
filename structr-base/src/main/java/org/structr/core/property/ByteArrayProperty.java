@@ -25,7 +25,7 @@ import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.app.Query;
+import org.structr.core.app.QueryGroup;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.search.ArraySearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
@@ -188,18 +188,18 @@ public class ByteArrayProperty extends AbstractPrimitiveProperty<Byte[]> {
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final Operation operation, final Byte[] searchValue, final boolean exactMatch, final Query query) {
+	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final Byte[] searchValue, final boolean exactMatch, final QueryGroup query) {
 
 		// early exit, return empty search attribute
 		if (searchValue == null) {
-			return new ArraySearchAttribute(this, "", exactMatch ? operation : Operation.OR, exactMatch);
+			return new ArraySearchAttribute(this, "", exactMatch);
 		}
 
-		final SearchAttributeGroup group = new SearchAttributeGroup(operation);
+		final SearchAttributeGroup group = new SearchAttributeGroup(Operation.AND);
 
 		for (byte value : searchValue) {
 
-			group.add(new ArraySearchAttribute(this, value, exactMatch ? operation : Operation.OR, exactMatch));
+			group.add(new ArraySearchAttribute(this, value, exactMatch));
 		}
 
 		return group;

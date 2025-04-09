@@ -317,7 +317,7 @@ public class MigrationService {
 			// check (and fix) schema relationships
 			for (final String name : relationshipNodeNames) {
 
-				final NodeInterface rel1 = app.nodeQuery(StructrTraits.SCHEMA_RELATIONSHIP_NODE).andName(name).getFirst();
+				final NodeInterface rel1 = app.nodeQuery(StructrTraits.SCHEMA_RELATIONSHIP_NODE).name(name).getFirst();
 				if (rel1 != null) {
 
 					app.delete(rel1);
@@ -422,21 +422,21 @@ public class MigrationService {
 			final PropertyKey<String> eventMappingKey     = domElementTraits.key(DOMElementTraitDefinition.EVENT_MAPPING_PROPERTY);
 
 			// check (and fix if possible) structr-app.js implementations
-			for (final NodeInterface elem : app.nodeQuery(StructrTraits.DOM_ELEMENT).and().not().and(actionKey, null).getResultStream()) {
+			for (final NodeInterface elem : app.nodeQuery(StructrTraits.DOM_ELEMENT).and().not().key(actionKey, null).getResultStream()) {
 
 				migrateStructrAppMapping(elem, actionKey.jsonName());
 				structrAppJsCount++;
 			}
 
 			// check (and fix) old event action mappings
-			for (final NodeInterface elem : app.nodeQuery(StructrTraits.DOM_ELEMENT).and().not().and(eventMappingKey, null).getResultStream()) {
+			for (final NodeInterface elem : app.nodeQuery(StructrTraits.DOM_ELEMENT).and().not().key(eventMappingKey, null).getResultStream()) {
 
 				migrateEventMapping(elem, eventMappingKey.jsonName());
 				eventMappingCount++;
 			}
 
 			// check and fix custom actions that call methods (action => "method", method => action)
-			for (final NodeInterface action : app.nodeQuery(StructrTraits.ACTION_MAPPING).and().not().and(newActionKey, null).getResultStream()) {
+			for (final NodeInterface action : app.nodeQuery(StructrTraits.ACTION_MAPPING).and().not().key(newActionKey, null).getResultStream()) {
 
 				if (migrateCustomEventAction(action)) {
 					eventMappingCount++;
@@ -444,7 +444,7 @@ public class MigrationService {
 			}
 
 			// check and fix custom actions that miss successBehaviour or targetBehaviour
-			for (final NodeInterface action : app.nodeQuery(StructrTraits.ACTION_MAPPING).and(successBehaviourKey, null).getResultStream()) {
+			for (final NodeInterface action : app.nodeQuery(StructrTraits.ACTION_MAPPING).key(successBehaviourKey, null).getResultStream()) {
 
 				if (migrateReloadBehaviourAction(action)) {
 					eventMappingCount++;
@@ -918,7 +918,7 @@ public class MigrationService {
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface property : StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_PROPERTY).and(typeKey, "Notion").getResultStream()) {
+			for (final NodeInterface property : StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_PROPERTY).key(typeKey, "Notion").getResultStream()) {
 
 				final SchemaProperty schemaProperty = property.as(SchemaProperty.class);
 				final AbstractSchemaNode type       = schemaProperty.getSchemaNode();
@@ -944,7 +944,7 @@ public class MigrationService {
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface elem : StructrApp.getInstance().nodeQuery(StructrTraits.DOM_ELEMENT).and().not().and(key, null).getResultStream()) {
+			for (final NodeInterface elem : StructrApp.getInstance().nodeQuery(StructrTraits.DOM_ELEMENT).and().not().key(key, null).getResultStream()) {
 
 				final String str     = elem.getProperty(key);
 				final String cleaned = str.replaceAll("[\\W0-9]+", "");

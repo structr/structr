@@ -20,7 +20,7 @@ package org.structr.core.function.search;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.Query;
+import org.structr.core.app.QueryGroup;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
 
@@ -39,7 +39,7 @@ public class LocationPredicate extends AbstractPredicate {
 	}
 
 	@Override
-	public void configureQuery(final SecurityContext securityContext, final Traits type, final PropertyKey propertyKey, final Query query, final boolean exact) throws FrameworkException {
+	public void configureQuery(final SecurityContext securityContext, final Traits type, final PropertyKey propertyKey, final QueryGroup query, final boolean exact) throws FrameworkException {
 		query.location(latitude, longitude, distance);
 	}
 }

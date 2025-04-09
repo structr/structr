@@ -88,7 +88,7 @@ public class PageImporter extends HtmlFileImporter {
 	// ----- private methods -----
 	private Page getExistingPage(final String name) throws FrameworkException {
 
-		final NodeInterface node = StructrApp.getInstance().nodeQuery(StructrTraits.PAGE).andName(name).getFirst();
+		final NodeInterface node = StructrApp.getInstance().nodeQuery(StructrTraits.PAGE).name(name).getFirst();
 		if (node != null) {
 
 			return node.as(Page.class);

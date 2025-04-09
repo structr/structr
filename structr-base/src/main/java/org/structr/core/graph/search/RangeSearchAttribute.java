@@ -18,7 +18,6 @@
  */
 package org.structr.core.graph.search;
 
-import org.structr.api.search.Operation;
 import org.structr.api.search.RangeQuery;
 import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
@@ -37,9 +36,9 @@ public class RangeSearchAttribute<T> extends SearchAttribute<T> implements Range
 	private T rangeStart             = null;
 	private T rangeEnd               = null;
 
-	public RangeSearchAttribute(final PropertyKey<T> searchKey, final T rangeStart, final T rangeEnd, final Operation operation, final boolean includeStart, final boolean includeEnd) {
+	public RangeSearchAttribute(final PropertyKey<T> searchKey, final T rangeStart, final T rangeEnd, final boolean includeStart, final boolean includeEnd) {
 
-		super(operation);
+		super(null, null);
 
 		this.includeStart = includeStart;
 		this.includeEnd   = includeEnd;
@@ -53,7 +52,6 @@ public class RangeSearchAttribute<T> extends SearchAttribute<T> implements Range
 		return "RangeSearchAttribute()";
 	}
 
-	@Override
 	public PropertyKey getKey() {
 		return searchKey;
 	}

@@ -86,7 +86,7 @@ public class FulltextIndexingAgent extends Agent<String> {
 
 						//SearchCommand.prefetch(Indexable.class, indexableId);
 
-						final NodeInterface indexable = app.nodeQuery(StructrTraits.FILE).and(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.ID_PROPERTY), indexableId).getFirst();
+						final NodeInterface indexable = app.nodeQuery(StructrTraits.FILE).key(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.ID_PROPERTY), indexableId).getFirst();
 						if (indexable != null) {
 
 							if (doIndexing(app, indexable.as(File.class))) {

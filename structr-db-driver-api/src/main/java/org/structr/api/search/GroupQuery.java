@@ -25,4 +25,6 @@ public interface GroupQuery extends QueryPredicate {
 
 	// nesting
 	List<QueryPredicate> getQueryPredicates();
+
+	Operation getOperation();
 }

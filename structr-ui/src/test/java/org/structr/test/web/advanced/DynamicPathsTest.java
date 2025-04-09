@@ -427,7 +427,7 @@ public class DynamicPathsTest extends FrontendTest {
 		// now we create a page path and expect the same result
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface page = app.nodeQuery(StructrTraits.PAGE).andName("test004").getFirst();
+			final NodeInterface page = app.nodeQuery(StructrTraits.PAGE).name("test004").getFirst();
 
 			app.create(StructrTraits.PAGE_PATH,
 				new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(PagePathTraitDefinition.PAGE_PROPERTY), page),

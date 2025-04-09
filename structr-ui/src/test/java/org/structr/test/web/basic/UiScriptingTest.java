@@ -466,7 +466,7 @@ public class UiScriptingTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// create view without property "folders"
-			final NodeInterface testFn = app.nodeQuery(StructrTraits.SCHEMA_PROPERTY).and(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.STATIC_SCHEMA_NODE_NAME_PROPERTY), StructrTraits.FOLDER).andName("testFunction").getFirst();
+			final NodeInterface testFn = app.nodeQuery(StructrTraits.SCHEMA_PROPERTY).key(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.STATIC_SCHEMA_NODE_NAME_PROPERTY), StructrTraits.FOLDER).name("testFunction").getFirst();
 
 			app.create(StructrTraits.SCHEMA_VIEW,
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "someprops"),
@@ -1818,7 +1818,7 @@ public class UiScriptingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface project1 = app.nodeQuery(projectType).andName("Project 1").getFirst();
+			final NodeInterface project1 = app.nodeQuery(projectType).name("Project 1").getFirst();
 			invokeMethod(securityContext, project1, "doTest", new LinkedHashMap<>(), false, new EvaluationHints());
 
 			tx.success();
@@ -1829,7 +1829,7 @@ public class UiScriptingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface project2 = app.nodeQuery(projectType).andName("Project 2").getFirst();
+			final NodeInterface project2 = app.nodeQuery(projectType).name("Project 2").getFirst();
 			invokeMethod(securityContext, project2, "doTest", new LinkedHashMap<>(), false, new EvaluationHints());
 
 			tx.success();
@@ -1840,7 +1840,7 @@ public class UiScriptingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final GraphObject project2 = app.nodeQuery(projectType).andName("Project 2").getFirst();
+			final GraphObject project2 = app.nodeQuery(projectType).name("Project 2").getFirst();
 			final List tasks           = Iterables.toList((Iterable)project2.getProperty(Traits.of(projectType).key("tasks")));
 
 			assertEquals("Project should not have tasks after a failed assertion rolls back the transaction", 0, tasks.size());
@@ -1955,7 +1955,7 @@ public class UiScriptingTest extends StructrUiTest {
 		// modify function
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface node = app.nodeQuery(StructrTraits.SCHEMA_METHOD).andName("userDefinedFunction").getFirst();
+			final NodeInterface node = app.nodeQuery(StructrTraits.SCHEMA_METHOD).name("userDefinedFunction").getFirst();
 
 			node.as(SchemaMethod.class).setSource("{ return 'after change' }");
 

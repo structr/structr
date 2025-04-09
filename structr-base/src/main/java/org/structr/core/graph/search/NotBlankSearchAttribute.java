@@ -19,7 +19,6 @@
 package org.structr.core.graph.search;
 
 import org.structr.api.search.NotEmptyQuery;
-import org.structr.api.search.Operation;
 import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
 
@@ -44,8 +43,11 @@ public class NotBlankSearchAttribute<T> extends EmptySearchAttribute<T> {
 	}
 
 	@Override
-	public boolean includeInResult(GraphObject entity) {
+	public boolean includeInResult(final GraphObject entity) {
 
+		throw new RuntimeException("Not implemented");
+
+		/*
 		final Operation operation = getOperation();
 		final T nodeValue         = entity.getProperty(getKey());
 
@@ -58,5 +60,7 @@ public class NotBlankSearchAttribute<T> extends EmptySearchAttribute<T> {
 
 			return nodeValue != null;
 		}
+
+		 */
 	}
 }

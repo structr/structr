@@ -45,7 +45,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.api.RESTEndpoints;
-import org.structr.web.entity.User;
 import org.structr.web.traits.definitions.dom.PageTraitDefinition;
 
 /**
@@ -178,7 +177,7 @@ public class LoginServlet extends AbstractDataServlet implements HttpServiceServ
 	// ----- private methods -----
 	private String getRedirectPage(final HttpServletRequest request, final Integer statusCode) throws FrameworkException {
 
-		final NodeInterface errorPage = StructrApp.getInstance().nodeQuery(StructrTraits.PAGE).and(Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.SHOW_ON_ERROR_CODES_PROPERTY), statusCode.toString(), false).getFirst();
+		final NodeInterface errorPage = StructrApp.getInstance().nodeQuery(StructrTraits.PAGE).key(Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.SHOW_ON_ERROR_CODES_PROPERTY), statusCode.toString(), false).getFirst();
 		if (errorPage != null && HtmlServlet.isVisibleForSite(request, errorPage.as(Page.class))) {
 
 			final String path = errorPage.as(Page.class).getPagePath();

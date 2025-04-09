@@ -24,7 +24,7 @@ import graphql.language.SelectionSet;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.app.Query;
+import org.structr.core.app.QueryGroup;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
@@ -79,8 +79,7 @@ public class GraphQLQuery {
 
 	public Iterable<GraphObject> getEntities(final SecurityContext securityContext) throws FrameworkException {
 
-		final Traits type        = Traits.of(fieldName);
-		final Query query        = StructrApp.getInstance(securityContext).nodeQuery(fieldName);
+		final QueryGroup query   = StructrApp.getInstance(securityContext).nodeQuery(fieldName);
 		final QueryConfig config = getConfig(getRootPath());
 
 		config.configureQuery(query);

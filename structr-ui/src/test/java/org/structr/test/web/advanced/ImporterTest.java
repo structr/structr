@@ -473,7 +473,7 @@ public class ImporterTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final String filename = PathHelper.getName(expectedPath);
-			file = app.nodeQuery(StructrTraits.FILE).andName(filename).getFirst();
+			file = app.nodeQuery(StructrTraits.FILE).name(filename).getFirst();
 
 			assertNotNull(filename + " file not found", file);
 			assertEquals("Wrong path of " + filename + " file", (String) file.getProperty(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY)), expectedPath);
@@ -492,7 +492,7 @@ public class ImporterTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final String filename = PathHelper.getName(expectedPath);
-			file = app.nodeQuery(StructrTraits.FILE).andName(filename).getFirst();
+			file = app.nodeQuery(StructrTraits.FILE).name(filename).getFirst();
 
 			assertNull("File " + filename + " found", file);
 

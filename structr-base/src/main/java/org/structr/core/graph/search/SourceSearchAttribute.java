@@ -18,7 +18,6 @@
  */
 package org.structr.core.graph.search;
 
-import org.structr.api.search.Operation;
 import org.structr.core.GraphObject;
 
 /**
@@ -27,8 +26,8 @@ import org.structr.core.GraphObject;
  */
 public class SourceSearchAttribute<T> extends SearchAttribute<T> {
 
-	public SourceSearchAttribute(final Operation operation) {
-		super(operation);
+	public SourceSearchAttribute() {
+		super(null, null);
 	}
 
 	@Override
@@ -42,7 +41,7 @@ public class SourceSearchAttribute<T> extends SearchAttribute<T> {
 	}
 
 	@Override
-	public boolean includeInResult(GraphObject entity) {
+	public boolean includeInResult(final GraphObject entity) {
 		return true;
 	}
 

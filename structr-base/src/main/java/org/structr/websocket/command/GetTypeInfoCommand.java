@@ -65,7 +65,7 @@ public class GetTypeInfoCommand extends AbstractCommand {
 		final NodeInterface typeNode;
 		try {
 
-			typeNode = app.nodeQuery(StructrTraits.SCHEMA_NODE).andName(type).getFirst();
+			typeNode = app.nodeQuery(StructrTraits.SCHEMA_NODE).name(type).getFirst();
 			if (typeNode != null) {
 
 				webSocketData.setResult(Arrays.asList(typeNode));

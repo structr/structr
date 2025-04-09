@@ -208,7 +208,7 @@ public abstract class AbstractHintProvider {
 
 			final Traits traits = Traits.of(StructrTraits.SCHEMA_METHOD);
 
-			for (final NodeInterface node : StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_METHOD).and(traits.key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY), null).sort(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getResultStream()) {
+			for (final NodeInterface node : StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_METHOD).key(traits.key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY), null).sort(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getResultStream()) {
 
 				final SchemaMethod method = node.as(SchemaMethod.class);
 

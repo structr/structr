@@ -245,7 +245,7 @@ public class APIBuilderModule implements StructrModule, APIBuilder {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface node = app.nodeQuery(StructrTraits.VIRTUAL_TYPE).andName(targetType).getFirst();
+			final NodeInterface node = app.nodeQuery(StructrTraits.VIRTUAL_TYPE).name(targetType).getFirst();
 			if (node != null) {
 
 				final VirtualType type = node.as(VirtualType.class);

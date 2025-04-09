@@ -131,7 +131,7 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 						}
 					}
 
-					for (final NodeInterface n : app.nodeQuery(type).and(searchAttributes).getResultStream()) {
+					for (final NodeInterface n : app.nodeQuery(type).key(searchAttributes).getResultStream()) {
 						result.add((T)n);
 					}
 

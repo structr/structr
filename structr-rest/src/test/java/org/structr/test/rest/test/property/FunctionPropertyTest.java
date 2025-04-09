@@ -162,7 +162,7 @@ public class FunctionPropertyTest extends StructrRestTestBase {
 		// test
 		try (final Tx tx = app.tx()) {
 
-			assertEquals("Invalid search result for typed function property", 1, app.nodeQuery(type).and(key, value).getAsList().size());
+			assertEquals("Invalid search result for typed function property", 1, app.nodeQuery(type).key(key, value).getAsList().size());
 
 			tx.success();
 

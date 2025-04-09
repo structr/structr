@@ -21,7 +21,6 @@ package org.structr.core.graph.search;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
 import org.structr.api.search.ComparisonQuery;
-import org.structr.api.search.Operation;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -39,8 +38,9 @@ public class ComparisonSearchAttribute<T> extends SearchAttribute<T> implements 
 	private Comparison comparison    = null;
 	private Pattern pattern          = null;
 
-	public ComparisonSearchAttribute(final PropertyKey<T> searchKey, final Comparison comparison, final Object value, final Operation operation) {
-		super(operation);
+	public ComparisonSearchAttribute(final PropertyKey<T> searchKey, final Comparison comparison, final T value) {
+		
+		super(searchKey, value);
 
 		this.searchKey  = searchKey;
 		this.comparison = comparison;

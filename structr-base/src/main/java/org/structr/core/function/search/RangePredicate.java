@@ -18,10 +18,9 @@
  */
 package org.structr.core.function.search;
 
-import org.structr.api.search.Operation;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.Query;
+import org.structr.core.app.QueryGroup;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
 
@@ -43,7 +42,7 @@ public class RangePredicate implements SearchFunctionPredicate {
 	}
 
 	@Override
-	public void configureQuery(final SecurityContext securityContext, final Traits type, final PropertyKey key, final Query query, final boolean exact) throws FrameworkException {
+	public void configureQuery(final SecurityContext securityContext, final Traits type, final PropertyKey key, final QueryGroup query, final boolean exact) throws FrameworkException {
 
 		Object effectiveRangeStart = rangeStart;
 
@@ -63,13 +62,16 @@ public class RangePredicate implements SearchFunctionPredicate {
 			}
 		}
 
-		if (Operation.OR.equals(query.getCurrentOperation())) {
+		/*
+		if (Operation.OR.equals(query.getOperation())) {
 
 			query.orRange(key, effectiveRangeStart, effectiveRangeEnd, includeStart, includeEnd);
 
 		} else {
 
-			query.andRange(key, effectiveRangeStart, effectiveRangeEnd, includeStart, includeEnd);
-		}
+
+		 */
+			query.range(key, effectiveRangeStart, effectiveRangeEnd, includeStart, includeEnd);
+		//}
 	}
 }

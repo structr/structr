@@ -45,7 +45,7 @@ public abstract class FrontendTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			user = app.nodeQuery(StructrTraits.USER).andName("admin").getFirst();
+			user = app.nodeQuery(StructrTraits.USER).name("admin").getFirst();
 			user.setProperty(Traits.of(StructrTraits.USER).key(UserTraitDefinition.LOCAL_STORAGE_PROPERTY), null);
 			tx.success();
 

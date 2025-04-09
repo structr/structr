@@ -52,7 +52,7 @@ public class Methods {
 
 				final PropertyKey<NodeInterface> schemaNodeKey = Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY);
 
-				for (final NodeInterface globalMethod : StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_METHOD).and(schemaNodeKey, null).getResultStream()) {
+				for (final NodeInterface globalMethod : StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_METHOD).key(schemaNodeKey, null).getResultStream()) {
 
 					allMethods.put(globalMethod.getName(), new ScriptMethod(globalMethod.as(SchemaMethod.class)));
 				}
@@ -87,7 +87,7 @@ public class Methods {
 				try (final Tx tx = StructrApp.getInstance().tx()) {
 
 					final PropertyKey<NodeInterface> schemaNodeKey = Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY);
-					final NodeInterface method = StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_METHOD).andName(methodName).and(schemaNodeKey, null).getFirst();
+					final NodeInterface method = StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_METHOD).name(methodName).key(schemaNodeKey, null).getFirst();
 
 					if (method != null) {
 

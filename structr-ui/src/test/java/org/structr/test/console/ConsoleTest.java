@@ -83,7 +83,7 @@ public class ConsoleTest extends StructrUiTest {
 			// check success
 			try (final Tx tx = app.tx()) {
 
-				final User user = app.nodeQuery(StructrTraits.USER).andName("tester").sort(userTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getFirst().as(User.class);
+				final User user = app.nodeQuery(StructrTraits.USER).name("tester").sort(userTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getFirst().as(User.class);
 
 				assertNotNull("Invalid console execution result",                          user);
 				assertEquals("Invalid console execution result", "tester",         user.getName());
@@ -105,7 +105,7 @@ public class ConsoleTest extends StructrUiTest {
 			// check "root" user
 			try (final Tx tx = app.tx()) {
 
-				final User root = app.nodeQuery(StructrTraits.USER).andName("root").getFirst().as(User.class);
+				final User root = app.nodeQuery(StructrTraits.USER).name("root").getFirst().as(User.class);
 
 				assertNotNull("Invalid console execution result",                root);
 				assertEquals("Invalid console execution result", "root", root.getName());
@@ -117,7 +117,7 @@ public class ConsoleTest extends StructrUiTest {
 			// make check "admin" user
 			try (final Tx tx = app.tx()) {
 
-				admin = app.nodeQuery(StructrTraits.USER).andName("admin").getFirst().as(Principal.class);
+				admin = app.nodeQuery(StructrTraits.USER).name("admin").getFirst().as(Principal.class);
 
 				uuid = admin.getUuid();
 

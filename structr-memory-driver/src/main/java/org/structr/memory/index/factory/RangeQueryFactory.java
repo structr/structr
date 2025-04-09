@@ -39,7 +39,7 @@ public class RangeQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 
 		if (predicate instanceof RangeQuery) {
 
-			checkOperation(query, predicate.getOperation(), isFirst);
+			//checkOperation(query, predicate.getOperation(), isFirst);
 
 			final RangeQuery rangeQuery = (RangeQuery)predicate;
 			final Comparable rangeStart = (Comparable)getReadValue(rangeQuery.getRangeStart());

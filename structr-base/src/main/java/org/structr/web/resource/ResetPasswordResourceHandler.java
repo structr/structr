@@ -26,7 +26,7 @@ import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.MailHelper;
-import org.structr.core.app.Query;
+import org.structr.core.app.QueryGroup;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.MailTemplate;
 import org.structr.core.entity.Principal;
@@ -94,7 +94,7 @@ public class ResetPasswordResourceHandler extends RESTCallHandler {
 			final PropertyKey<String> eMail           = traits.key(PrincipalTraitDefinition.EMAIL_PROPERTY);
 			final String localeString                 = (String) propertySet.get("locale");
 			final String confKey                      = AuthHelper.getConfirmationKey();
-			final NodeInterface user                  = StructrApp.getInstance().nodeQuery(StructrTraits.USER).and(eMail, emailString).getFirst();
+			final NodeInterface user                  = StructrApp.getInstance().nodeQuery(StructrTraits.USER).key(eMail, emailString).getFirst();
 
 			if (user != null) {
 
@@ -165,10 +165,10 @@ public class ResetPasswordResourceHandler extends RESTCallHandler {
 
 		try {
 
-			final Query<NodeInterface> query = StructrApp.getInstance().nodeQuery(StructrTraits.MAIL_TEMPLATE).andName(key.name());
+			final QueryGroup<NodeInterface> query = StructrApp.getInstance().nodeQuery(StructrTraits.MAIL_TEMPLATE).name(key.name());
 
 			if (localeString != null) {
-				query.and(Traits.of(StructrTraits.MAIL_TEMPLATE).key(MailTemplateTraitDefinition.LOCALE_PROPERTY), localeString);
+				query.key(Traits.of(StructrTraits.MAIL_TEMPLATE).key(MailTemplateTraitDefinition.LOCALE_PROPERTY), localeString);
 			}
 
 			NodeInterface template = query.getFirst();

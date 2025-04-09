@@ -773,17 +773,18 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		try (final Tx tx = app.tx()) {
 
 			// fetch toplevel folders and recurse
-			for (final NodeInterface folder : app.nodeQuery(StructrTraits.FOLDER).and(parentKey, null).sort(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).and(inclKey, true).getAsList()) {
+			for (final NodeInterface folder : app.nodeQuery(StructrTraits.FOLDER).key(parentKey, null).sort(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).and().key(inclKey, true).getAsList()) {
 				exportFilesAndFolders(target, folder, config);
 			}
 
 			// fetch toplevel files that are marked for export or for use as a javascript library
-			for (final NodeInterface file : app.nodeQuery(StructrTraits.FILE)
-				.and(parentKey, null)
+			for (final NodeInterface file : app.nodeQuery()
 				.sort(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY))
 				.and()
-					.or(inclKey, true)
-					.or(jsKey, true)
+					.key(parentKey, null)
+					.or()
+						.key(inclKey, true)
+						.key(jsKey, true)
 				.getAsList()) {
 
 				exportFile(target, file, config);
@@ -1543,7 +1544,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			if (ownerData != null) {
 
 				final String ownerName               = (String) ownerData.get("name");
-				final List<NodeInterface> principals = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).andName(ownerName).getAsList();
+				final List<NodeInterface> principals = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).name(ownerName).getAsList();
 
 				if (principals.isEmpty()) {
 
@@ -1572,7 +1573,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			for (final Map<String, Object> grantee : grantees) {
 
 				final String granteeName             = (String) grantee.get("name");
-				final List<NodeInterface> principals = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).andName(granteeName).getAsList();
+				final List<NodeInterface> principals = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).name(granteeName).getAsList();
 
 				if (principals.isEmpty()) {
 
@@ -1598,7 +1599,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			if (principalData != null) {
 
 				final String principalName           = (String) principalData.get("name");
-				final List<NodeInterface> principals = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).andName(principalName).getAsList();
+				final List<NodeInterface> principals = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).name(principalName).getAsList();
 
 				if (principals.isEmpty()) {
 
@@ -2582,7 +2583,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final List<NodeInterface> pages = new LinkedList();
 
 				for (final String pageName : (List<String>)entry.get(SiteTraitDefinition.PAGES_PROPERTY)) {
-					pages.add(app.nodeQuery(StructrTraits.PAGE).andName(pageName).getFirst());
+					pages.add(app.nodeQuery(StructrTraits.PAGE).name(pageName).getFirst());
 				}
 
 				entry.remove(SiteTraitDefinition.PAGES_PROPERTY);
@@ -2662,8 +2663,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 					final NodeInterface linkElementNode = StructrApp.getInstance().getNodeById(StructrTraits.DOM_NODE, linkableUUID);
 					final NodeInterface linkedPageNode  = StructrApp.getInstance().nodeQuery(StructrTraits.LINKABLE)
-							.and(traits.key(DOMElementTraitDefinition.PATH_PROPERTY), pagePath)
-							.or(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), pagePath)
+							.or()
+							.key(traits.key(DOMElementTraitDefinition.PATH_PROPERTY), pagePath)
+							.key(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), pagePath)
 							.getFirst();
 
 					final LinkSource linkSource = linkElementNode.as(LinkSource.class);

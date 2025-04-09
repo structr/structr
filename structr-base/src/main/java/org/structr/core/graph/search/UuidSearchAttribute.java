@@ -18,8 +18,6 @@
  */
 package org.structr.core.graph.search;
 
-import org.apache.commons.lang3.StringUtils;
-import org.structr.api.search.Operation;
 import org.structr.api.search.UuidQuery;
 import org.structr.core.GraphObject;
 import org.structr.core.traits.StructrTraits;
@@ -31,8 +29,9 @@ import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
  */
 public class UuidSearchAttribute extends SearchAttribute<String> implements UuidQuery {
 
-	public UuidSearchAttribute(final String value, final Operation operation) {
-		super(operation, Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), value);
+	public UuidSearchAttribute(final String value) {
+
+		super(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), value);
 	}
 
 	@Override
@@ -56,6 +55,10 @@ public class UuidSearchAttribute extends SearchAttribute<String> implements Uuid
 
 	@Override
 	public boolean includeInResult(final GraphObject entity) {
+
+		throw new RuntimeException("Not implemented.");
+
+		/*
 
 		String nodeValue    = entity.getProperty(getKey());
 		Operation operation = getOperation();
@@ -86,6 +89,7 @@ public class UuidSearchAttribute extends SearchAttribute<String> implements Uuid
 		}
 
 		return true;
+		*/
 	}
 
 	// ----- interface UuidQuery -----

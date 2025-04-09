@@ -43,7 +43,6 @@ public class GraphQueryPart {
 		this.otherLabel   = query.getOtherLabel();
 		this.direction    = query.getDirection();
 		this.relationship = query.getRelationship();
-		this.operation    = query.getOperation();
 	}
 
 	public String getLinkIdentifier() {

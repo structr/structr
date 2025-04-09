@@ -256,7 +256,7 @@ public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper imple
 
 			try {
 
-				final NodeInterface inheritedSchemaNode = StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_NODE).andName(inheritedTrait).getFirst();
+				final NodeInterface inheritedSchemaNode = StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_NODE).name(inheritedTrait).getFirst();
 				if (inheritedSchemaNode != null && !inheritedTrait.equals(schemaNode.getName())) {
 
 					// recurse

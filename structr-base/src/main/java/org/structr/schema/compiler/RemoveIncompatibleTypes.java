@@ -80,7 +80,7 @@ public class RemoveIncompatibleTypes  implements MigrationHandler {
 
 						if (handled == false) {
 
-							final NodeInterface schemaNode = app.nodeQuery(StructrTraits.ABSTRACT_SCHEMA_NODE).andName(type).getFirst();
+							final NodeInterface schemaNode = app.nodeQuery(StructrTraits.ABSTRACT_SCHEMA_NODE).name(type).getFirst();
 							if (schemaNode != null) {
 
 								app.delete(schemaNode);

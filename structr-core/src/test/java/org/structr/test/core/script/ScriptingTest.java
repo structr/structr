@@ -2732,7 +2732,7 @@ public class ScriptingTest extends StructrTest {
 		// Create first object
 		try (final Tx tx = app.tx()) {
 
-			final Principal testUser = StructrApp.getInstance().nodeQuery(StructrTraits.USER).and(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testuser").getFirst().as(Principal.class);
+			final Principal testUser = StructrApp.getInstance().nodeQuery(StructrTraits.USER).key(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testuser").getFirst().as(Principal.class);
 			final ActionContext ctx = new ActionContext(SecurityContext.getInstance(testUser, AccessMode.Frontend));
 
 			userObjects += Scripting.replaceVariables(ctx, null, "${ create('TestOne') }");
@@ -2748,7 +2748,7 @@ public class ScriptingTest extends StructrTest {
 		// find() it - this works because the cache is empty
 		try (final Tx tx = app.tx()) {
 
-			final Principal testUser = StructrApp.getInstance().nodeQuery(StructrTraits.USER).and(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testuser").getFirst().as(Principal.class);
+			final Principal testUser = StructrApp.getInstance().nodeQuery(StructrTraits.USER).key(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testuser").getFirst().as(Principal.class);
 			final ActionContext ctx = new ActionContext(SecurityContext.getInstance(testUser, AccessMode.Frontend));
 
 			assertEquals("User should be able to find newly created object!", userObjects + "]", Scripting.replaceVariables(ctx, null, "${ find('TestOne', 'owner', me.id) }"));
@@ -2764,7 +2764,7 @@ public class ScriptingTest extends StructrTest {
 		// create second object
 		try (final Tx tx = app.tx()) {
 
-			final Principal testUser = StructrApp.getInstance().nodeQuery(StructrTraits.USER).and(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testuser").getFirst().as(Principal.class);
+			final Principal testUser = StructrApp.getInstance().nodeQuery(StructrTraits.USER).key(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testuser").getFirst().as(Principal.class);
 			final ActionContext ctx = new ActionContext(SecurityContext.getInstance(testUser, AccessMode.Frontend));
 
 			userObjects += ", " + Scripting.replaceVariables(ctx, null, "${ create('TestOne') }");
@@ -2780,7 +2780,7 @@ public class ScriptingTest extends StructrTest {
 		// find() it - this does not work because there is a cache entry already and it was not invalidated after creating the last relationship to it
 		try (final Tx tx = app.tx()) {
 
-			final Principal testUser = StructrApp.getInstance().nodeQuery(StructrTraits.USER).and(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testuser").getFirst().as(Principal.class);
+			final Principal testUser = StructrApp.getInstance().nodeQuery(StructrTraits.USER).key(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testuser").getFirst().as(Principal.class);
 			final ActionContext ctx = new ActionContext(SecurityContext.getInstance(testUser, AccessMode.Frontend));
 
 			assertEquals("User should be able to find newly created object!", userObjects + "]", Scripting.replaceVariables(ctx, null, "${ find('TestOne', 'owner', me.id, sort('createdDate', 'desc')) }"));
@@ -2913,7 +2913,7 @@ public class ScriptingTest extends StructrTest {
 		// test modifications
 		try (final Tx tx = app.tx()) {
 
-			final Principal tester = app.nodeQuery(StructrTraits.USER).andName("modifications-tester").getFirst().as(Principal.class);
+			final Principal tester = app.nodeQuery(StructrTraits.USER).name("modifications-tester").getFirst().as(Principal.class);
 			final NodeInterface c = app.nodeQuery(customer).getFirst();
 			final NodeInterface p = app.nodeQuery(project).getFirst();
 			final NodeInterface t = app.nodeQuery(task).getFirst();
@@ -4851,8 +4851,8 @@ public class ScriptingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface group1 = app.nodeQuery(StructrTraits.GROUP).andName("group1").getFirst();
-			final NodeInterface group2 = app.nodeQuery(StructrTraits.GROUP).andName("group2").getFirst();
+			final NodeInterface group1 = app.nodeQuery(StructrTraits.GROUP).name("group1").getFirst();
+			final NodeInterface group2 = app.nodeQuery(StructrTraits.GROUP).name("group2").getFirst();
 			final String script1       = "${{ return $.find('Group', { $and: { name: 'group1', id: $.predicate.not($.predicate.equals('" + group1.getUuid() + "')) }}); }}";
 			final String script2       = "${{ return $.find('Group', { $and: { name: 'group1', id: $.predicate.not($.predicate.equals('" + group2.getUuid() + "')) }}); }}";
 

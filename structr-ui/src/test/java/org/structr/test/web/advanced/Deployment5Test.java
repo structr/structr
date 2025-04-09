@@ -102,7 +102,7 @@ public class Deployment5Test extends DeploymentTestBase {
 		// test1: verify that user is allowed to access MailTemplates
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface user          = app.nodeQuery(StructrTraits.USER).andName("tester").getFirst();
+			final NodeInterface user          = app.nodeQuery(StructrTraits.USER).name("tester").getFirst();
 			final SecurityContext userContext = SecurityContext.getInstance(user.as(User.class), AccessMode.Backend);
 
 			for (final NodeInterface template : app.nodeQuery(StructrTraits.MAIL_TEMPLATE).getAsList()) {
@@ -146,7 +146,7 @@ public class Deployment5Test extends DeploymentTestBase {
 		// test2: verify that new user is allowed to access MailTemplates
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface user          = app.nodeQuery(StructrTraits.USER).andName("tester").getFirst();
+			final NodeInterface user          = app.nodeQuery(StructrTraits.USER).name("tester").getFirst();
 			final SecurityContext userContext = SecurityContext.getInstance(user.as(User.class), AccessMode.Backend);
 
 			for (final NodeInterface template : app.nodeQuery(StructrTraits.MAIL_TEMPLATE).getAsList()) {
@@ -520,10 +520,10 @@ public class Deployment5Test extends DeploymentTestBase {
 
 			try (final Tx tx = app.tx()) {
 
-				final NodeInterface folder = app.nodeQuery(StructrTraits.FOLDER).andName(v2FolderName).getFirst();
+				final NodeInterface folder = app.nodeQuery(StructrTraits.FOLDER).name(v2FolderName).getFirst();
 				folder.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), v1FolderName);
 
-				final NodeInterface file = app.nodeQuery(StructrTraits.FILE).andName(v2FileName).getFirst();
+				final NodeInterface file = app.nodeQuery(StructrTraits.FILE).name(v2FileName).getFirst();
 				file.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), v1FileName);
 
 				tx.success();
@@ -536,8 +536,8 @@ public class Deployment5Test extends DeploymentTestBase {
 
 			try (final Tx tx = app.tx()) {
 
-				final NodeInterface folder = app.nodeQuery(StructrTraits.FOLDER).andName(v1FolderName).getFirst();
-				final NodeInterface file = app.nodeQuery(StructrTraits.FILE).andName(v1FileName).getFirst();
+				final NodeInterface folder = app.nodeQuery(StructrTraits.FOLDER).name(v1FolderName).getFirst();
+				final NodeInterface file = app.nodeQuery(StructrTraits.FILE).name(v1FileName).getFirst();
 
 				assertNotNull("Folder rename did not work", folder);
 				assertNotNull("File rename did not work", file);
@@ -556,11 +556,11 @@ public class Deployment5Test extends DeploymentTestBase {
 		// check that the correct file/folder name is set
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface folder = app.nodeQuery(StructrTraits.FOLDER).andName(v2FolderName).getFirst();
+			final NodeInterface folder = app.nodeQuery(StructrTraits.FOLDER).name(v2FolderName).getFirst();
 
 			assertNotNull("Invalid deployment result", folder);
 
-			final NodeInterface file = app.nodeQuery(StructrTraits.FILE).andName(v2FileName).getFirst();
+			final NodeInterface file = app.nodeQuery(StructrTraits.FILE).name(v2FileName).getFirst();
 
 			assertNotNull("Invalid deployment result", file);
 

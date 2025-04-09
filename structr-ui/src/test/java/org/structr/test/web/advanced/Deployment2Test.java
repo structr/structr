@@ -420,8 +420,8 @@ public class Deployment2Test extends DeploymentTestBase {
 		// check
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface file1 = app.nodeQuery(StructrTraits.FILE).and(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), fileName1).getFirst();
-			final NodeInterface file2 = app.nodeQuery(StructrTraits.FILE).and(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), fileName2).getFirst();
+			final NodeInterface file1 = app.nodeQuery(StructrTraits.FILE).key(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), fileName1).getFirst();
+			final NodeInterface file2 = app.nodeQuery(StructrTraits.FILE).key(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), fileName2).getFirst();
 
 			assertNotNull("Invalid deployment result", file1);
 			assertNotNull("Invalid deployment result", file2);
@@ -478,8 +478,8 @@ public class Deployment2Test extends DeploymentTestBase {
 		// check
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface template1 = app.nodeQuery(StructrTraits.MAIL_TEMPLATE).and(Traits.of(StructrTraits.MAIL_TEMPLATE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "template1").getFirst();
-			final NodeInterface template2 = app.nodeQuery(StructrTraits.MAIL_TEMPLATE).and(Traits.of(StructrTraits.MAIL_TEMPLATE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "template2").getFirst();
+			final NodeInterface template1 = app.nodeQuery(StructrTraits.MAIL_TEMPLATE).key(Traits.of(StructrTraits.MAIL_TEMPLATE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "template1").getFirst();
+			final NodeInterface template2 = app.nodeQuery(StructrTraits.MAIL_TEMPLATE).key(Traits.of(StructrTraits.MAIL_TEMPLATE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "template2").getFirst();
 
 			assertNotNull("Invalid deployment result", template1);
 			assertNotNull("Invalid deployment result", template2);
@@ -536,8 +536,8 @@ public class Deployment2Test extends DeploymentTestBase {
 		// check
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface localization1 = app.nodeQuery(StructrTraits.LOCALIZATION).and(Traits.of(StructrTraits.LOCALIZATION).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "localization1").getFirst();
-			final NodeInterface localization2 = app.nodeQuery(StructrTraits.LOCALIZATION).and(Traits.of(StructrTraits.LOCALIZATION).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "localization2").getFirst();
+			final NodeInterface localization1 = app.nodeQuery(StructrTraits.LOCALIZATION).key(Traits.of(StructrTraits.LOCALIZATION).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "localization1").getFirst();
+			final NodeInterface localization2 = app.nodeQuery(StructrTraits.LOCALIZATION).key(Traits.of(StructrTraits.LOCALIZATION).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "localization2").getFirst();
 
 			assertNotNull("Invalid deployment result", localization1);
 			assertNotNull("Invalid deployment result", localization2);

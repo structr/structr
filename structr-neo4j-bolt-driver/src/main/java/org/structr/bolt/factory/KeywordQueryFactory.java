@@ -61,7 +61,7 @@ public class KeywordQueryFactory extends AbstractQueryFactory<AdvancedCypherQuer
 		final Object value     = getReadValue(predicate.getValue());
 		final String name      = predicate.getName();
 
-		checkOperation(query, predicate.getOperation(), isFirst);
+		//checkOperation(query, predicate.getOperation(), isFirst);
 
 		// add label of declaring class for the given property name
 		// to select the correct index

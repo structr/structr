@@ -177,7 +177,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 		try (final Tx tx = app.tx()) {
 
-			NodeInterface fileNodeDef = app.nodeQuery(StructrTraits.SCHEMA_NODE).andName(StructrTraits.FILE).getFirst();
+			NodeInterface fileNodeDef = app.nodeQuery(StructrTraits.SCHEMA_NODE).name(StructrTraits.FILE).getFirst();
 
 			NodeInterface testFileProperty = app.create(StructrTraits.SCHEMA_PROPERTY);
 
@@ -268,7 +268,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 		try (final Tx tx = app.tx()) {
 
-			NodeInterface fileNodeDef = app.nodeQuery(StructrTraits.SCHEMA_NODE).andName(StructrTraits.FILE).getFirst();
+			NodeInterface fileNodeDef = app.nodeQuery(StructrTraits.SCHEMA_NODE).name(StructrTraits.FILE).getFirst();
 
 			NodeInterface testFileProperty = app.create(StructrTraits.SCHEMA_PROPERTY);
 
@@ -1297,7 +1297,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 			final File file                = app.nodeQuery(StructrTraits.FILE).getFirst().as(File.class);
 
 			// store UUID of SchemaNode with name StructrTraits.FILE for later use
-			final NodeInterface fileTypeNode  = app.nodeQuery(StructrTraits.SCHEMA_NODE).andName(StructrTraits.FILE).getFirst();
+			final NodeInterface fileTypeNode  = app.nodeQuery(StructrTraits.SCHEMA_NODE).name(StructrTraits.FILE).getFirst();
 			fileTypeId = fileTypeNode.getUuid();
 
 			assertTrue("Lifecycle method onDownload was not called!", file.getProperty(key));
@@ -1442,7 +1442,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 			// and it's a group
 			final Group group = node.as(Group.class);
-			final User admin  = app.nodeQuery("User").andName("admin").getFirst().as(User.class);
+			final User admin  = app.nodeQuery("User").name("admin").getFirst().as(User.class);
 
 			group.addMember(securityContext, admin);
 

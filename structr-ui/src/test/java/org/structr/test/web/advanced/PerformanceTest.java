@@ -432,7 +432,7 @@ public class PerformanceTest extends StructrUiTest {
 					final long t0 = System.currentTimeMillis();
 
 					final int r               = randm.nextInt(10000);
-					final List<NodeInterface> nodes = app.nodeQuery("TestTwo").andName("Test" + StringUtils.leftPad(Integer.toString(r), 5, "0")).getAsList();
+					final List<NodeInterface> nodes = app.nodeQuery("TestTwo").name("Test" + StringUtils.leftPad(Integer.toString(r), 5, "0")).getAsList();
 
 					assertEquals(1, nodes.size());
 

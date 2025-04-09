@@ -19,11 +19,9 @@
 package org.structr.core.graph.search;
 
 import org.structr.api.Predicate;
-import org.structr.api.search.Operation;
 import org.structr.api.search.QueryPredicate;
 import org.structr.api.search.SortOrder;
 import org.structr.core.GraphObject;
-import org.structr.core.graph.NodeAttribute;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Trait;
@@ -35,45 +33,30 @@ import java.util.Set;
 /**
  * Wrapper representing a part of a search query. All parts of a search query
  * must have a search operator and a payload. The payload can be either a node
- * attribute oder a group of serach attributes.
+ * attribute oder a group of search attributes.
  *
  * @param <T>
  */
-public abstract class SearchAttribute<T> extends NodeAttribute<T> implements Predicate<GraphObject>, QueryPredicate {
-
-	public static final String WILDCARD = "*";
+public abstract class SearchAttribute<T> implements Predicate<GraphObject>, QueryPredicate {
 
  	private Set<GraphObject> result            = new LinkedHashSet<>();
 	private Comparator<GraphObject> comparator = null;
 	private SortOrder sortOrder                = null;
-	private Operation operation                = null;
+	private PropertyKey<T> key                 = null;
+	private T value                            = null;
 
 	public abstract boolean includeInResult(final GraphObject entity);
 
-	public SearchAttribute() {
-		this(null, null);
-	}
-
-	public SearchAttribute(final Operation operation) {
-		this(operation, null, null);
-	}
-
-	public SearchAttribute(final PropertyKey<T> key, T value) {
-		this(null, key, value);
-	}
-
-	public SearchAttribute(final Operation operation, final PropertyKey<T> key, final T value) {
-
-		super(key, value);
-
-		this.operation = operation;
+	public SearchAttribute(final PropertyKey<T> key, final T value) {
+		this.key    = key;
+		this.value  = value;
 	}
 
 	public void setResult(final Set<GraphObject> result) {
 		this.result = result;
 	}
 
-	public Set<org.structr.core.GraphObject> getResult() {
+	public Set<GraphObject> getResult() {
 		return result;
 	}
 
@@ -88,14 +71,17 @@ public abstract class SearchAttribute<T> extends NodeAttribute<T> implements Pre
 		this.comparator = comparator;
 	}
 
-	public void setOperation(final Operation operation) {
-		this.operation = operation;
-	}
-
 	public void setSortOrder(final SortOrder sortOrder) {
 		this.sortOrder = sortOrder;
 	}
 
+	public PropertyKey<T> getKey() {
+		return key;
+	}
+
+	public void setValue(final T value) {
+		this.value = value;
+	}
 
 	// ----- interface Predicate<GraphObject> -----
 	@Override
@@ -110,19 +96,18 @@ public abstract class SearchAttribute<T> extends NodeAttribute<T> implements Pre
 
 	// ----- interface QueryPredicate -----
 	@Override
-	public Operation getOperation() {
-		return operation;
+	public String getName() {
+		return key.dbName();
 	}
 
 	@Override
-	public String getName() {
-		return getKey().dbName();
+	public T getValue() {
+		return value;
 	}
 
 	@Override
 	public Class getType() {
 
-		final PropertyKey key = getKey();
 		if (key != null) {
 
 			return key.valueType();
@@ -134,7 +119,6 @@ public abstract class SearchAttribute<T> extends NodeAttribute<T> implements Pre
 	@Override
 	public String getLabel() {
 
-		final PropertyKey key = getKey();
 		if (key != null) {
 
 			final Trait declaringTrait = key.getDeclaringTrait();

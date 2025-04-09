@@ -22,7 +22,6 @@ import org.structr.api.graph.Direction;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
 import org.structr.api.search.GraphQuery;
-import org.structr.api.search.Operation;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
@@ -45,13 +44,14 @@ public class GraphSearchAttribute<T> extends PropertySearchAttribute<T> implemen
 	private PropertyKey notionKey = null;
 	private Set<Object> values    = null;
 
-	public GraphSearchAttribute(PropertyKey<T> key, T value, final Operation operation, final boolean exact) {
-		this(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), key, value, operation, exact);
+	public GraphSearchAttribute(final PropertyKey<T> key, final T value, final boolean exact) {
+		this(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), key, value, exact);
 	}
 
-	public GraphSearchAttribute(final PropertyKey notionKey, final PropertyKey<T> key, final T value, final Operation operation, final boolean exact) {
+	public GraphSearchAttribute(final PropertyKey notionKey, final PropertyKey<T> key, final T value, final boolean exact) {
 
-		super(key, value, operation, exact);
+		super(key, value, exact);
+
 		this.notionKey = notionKey;
 	}
 
@@ -67,6 +67,10 @@ public class GraphSearchAttribute<T> extends PropertySearchAttribute<T> implemen
 
 	@Override
 	public boolean includeInResult(GraphObject entity) {
+
+		throw new RuntimeException("Not implemented");
+
+		/*
 
 		boolean includeInResult = true;
 
@@ -98,6 +102,7 @@ public class GraphSearchAttribute<T> extends PropertySearchAttribute<T> implemen
 		}
 
 		return includeInResult;
+		*/
 	}
 
 	@Override

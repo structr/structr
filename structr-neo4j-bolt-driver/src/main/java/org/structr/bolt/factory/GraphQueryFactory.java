@@ -45,13 +45,13 @@ public class GraphQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery>
 
 		if (values.isEmpty() || onlyEmptyValues(values)) {
 
-			checkOperation(query, predicate.getOperation(), isFirst);
+			//checkOperation(query, predicate.getOperation(), isFirst);
 
 			query.addNullObjectParameter(graphQuery.getDirection(), graphQuery.getRelationship());
 
 		} else {
 
-			checkOperation(query, predicate.getOperation(), isFirst);
+			//checkOperation(query, predicate.getOperation(), isFirst);
 
 			query.addGraphQueryPart(part);
 

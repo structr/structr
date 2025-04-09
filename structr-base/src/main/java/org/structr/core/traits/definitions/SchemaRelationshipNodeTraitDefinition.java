@@ -30,7 +30,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.SemanticErrorToken;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
-import org.structr.core.app.Query;
+import org.structr.core.app.QueryGroup;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.*;
 import org.structr.core.graph.ModificationQueue;
@@ -342,11 +342,11 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 			final SchemaNode sourceNode = node.getSourceNode();
 			final SchemaNode targetNode = node.getTargetNode();
 
-			final Query<NodeInterface> query = StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_RELATIONSHIP_NODE).and(relTypeKey, node.getRelationshipType(), true);
+			final QueryGroup<NodeInterface> query = StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(relTypeKey, node.getRelationshipType(), true);
 
 			// source node or static type (string-based)
-			if (sourceNode != null) query.and(sourceNodeKey, sourceNode); else query.and(sourceTypeKey, node.getSourceType());
-			if (targetNode != null) query.and(targetNodeKey, targetNode); else query.and(targetTypeKey, node.getTargetType());
+			if (sourceNode != null) query.key(sourceNodeKey, sourceNode); else query.key(sourceTypeKey, node.getSourceType());
+			if (targetNode != null) query.key(targetNodeKey, targetNode); else query.key(targetTypeKey, node.getTargetType());
 
 			for (final NodeInterface exRel : query.getResultStream()) {
 
@@ -363,7 +363,7 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 				);
 			}
 
-		} catch (FrameworkException fex) {
+		} catch (Throwable fex) {
 			fex.printStackTrace();
 		}
 

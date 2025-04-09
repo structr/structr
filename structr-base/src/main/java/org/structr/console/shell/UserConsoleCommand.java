@@ -165,7 +165,7 @@ public class UserConsoleCommand extends AdminConsoleCommand {
 
 		try (final Tx tx = app.tx()) {
 
-			NodeInterface user = app.nodeQuery(StructrTraits.USER).andName(name).getFirst();
+			NodeInterface user = app.nodeQuery(StructrTraits.USER).name(name).getFirst();
 			if (user == null) {
 
 				user = app.getNodeById(StructrTraits.USER, name);
@@ -221,7 +221,7 @@ public class UserConsoleCommand extends AdminConsoleCommand {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface node = app.nodeQuery(StructrTraits.USER).andName(name).getFirst();
+			final NodeInterface node = app.nodeQuery(StructrTraits.USER).name(name).getFirst();
 			if (node != null) {
 
 				final Principal user = node.as(Principal.class);

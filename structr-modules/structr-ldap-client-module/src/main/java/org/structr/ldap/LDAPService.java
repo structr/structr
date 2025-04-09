@@ -252,7 +252,7 @@ public class LDAPService extends Thread implements SingletonService {
 
 			attributes.put(userTraits.key(LDAPUserTraitDefinition.ORIGIN_ID_PROPERTY), originId);
 
-			NodeInterface userNode = app.nodeQuery(StructrTraits.LDAP_USER).and(attributes).getFirst();
+			NodeInterface userNode = app.nodeQuery(StructrTraits.LDAP_USER).key(attributes).getFirst();
 			if (userNode == null) {
 
 				logger.debug("Creating new user for originId {}", originId);

@@ -337,7 +337,7 @@ public class StructrFilePath extends StructrPath {
 		try (final Tx tx = app.tx()) {
 
 			// remove /files from path since it is a virtual directory
-			final NodeInterface actualFile = app.nodeQuery(StructrTraits.ABSTRACT_FILE).and(traits.key( AbstractFileTraitDefinition.PATH_PROPERTY), filePath).sort(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getFirst();
+			final NodeInterface actualFile = app.nodeQuery(StructrTraits.ABSTRACT_FILE).key(traits.key( AbstractFileTraitDefinition.PATH_PROPERTY), filePath).sort(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getFirst();
 
 			tx.success();
 

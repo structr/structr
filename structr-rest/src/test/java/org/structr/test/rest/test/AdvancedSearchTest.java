@@ -753,7 +753,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				 * the same name and package etc.
 				 */
 
-				assertEquals("Query for dynamic node should return exactly one result: ", 1, app.nodeQuery(dynamicType).and(testKey, 10).getAsList().size());
+				assertEquals("Query for dynamic node should return exactly one result: ", 1, app.nodeQuery(dynamicType).key(testKey, 10).getAsList().size());
 
 				tx.success();
 			}
@@ -811,7 +811,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 
 				for (final NodeInterface user : users) {
 
-					for (final NodeInterface test : app.nodeQuery("TestThree").and(traits.key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), user).and(traits.key("enumProperty"), "Status1").getAsList()) {
+					for (final NodeInterface test : app.nodeQuery("TestThree").key(traits.key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), user).key(traits.key("enumProperty"), "Status1").getAsList()) {
 						assertEquals("Invalid enum query result", "Status1", test.getProperty(traits.key("enumProperty")));
 					}
 				}

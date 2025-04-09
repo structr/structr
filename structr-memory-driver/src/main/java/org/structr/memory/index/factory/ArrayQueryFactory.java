@@ -35,7 +35,7 @@ public class ArrayQueryFactory extends KeywordQueryFactory {
 		final Object value = getReadValue(predicate.getValue());
 		final String name  = predicate.getName();
 
-		checkOperation(query, predicate.getOperation(), isFirst);
+		//checkOperation(query, predicate.getOperation(), isFirst);
 
 		// interesting fact: the query engine separates array values and calls createQuery for
 		// each of the components separately, so the value here is never an array.

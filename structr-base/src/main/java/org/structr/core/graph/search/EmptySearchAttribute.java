@@ -20,7 +20,6 @@ package org.structr.core.graph.search;
 
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.search.EmptyQuery;
-import org.structr.api.search.Operation;
 import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
 
@@ -40,7 +39,7 @@ public class EmptySearchAttribute<T> extends PropertySearchAttribute<T> {
 
 	public EmptySearchAttribute(final PropertyKey<T> key, final T value, final boolean removeFromQuery) {
 
-		super(key, value, Operation.AND, true);
+		super(key, value, true);
 
 		this.removeFromQuery = removeFromQuery;
 	}

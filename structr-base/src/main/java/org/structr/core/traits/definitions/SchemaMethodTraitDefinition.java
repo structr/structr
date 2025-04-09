@@ -131,7 +131,7 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 
 					try {
 
-						final List<NodeInterface> methodsOnCurrentLevel = StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_METHOD).and(schemaNodeKey, parentOrNull).getAsList();
+						final List<NodeInterface> methodsOnCurrentLevel = StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_METHOD).key(schemaNodeKey, parentOrNull).getAsList();
 						final List<SchemaMethodParameter> params        = Iterables.toList(method.getParameters());
 						// param comparison is required because otherwise this would fail for at least "getScaledImage" and "updateFeedTask"
 						final String paramsAsString                     = params.stream().map(p -> p.getName() + ":" + p.getParameterType()).collect(Collectors.joining(";"));

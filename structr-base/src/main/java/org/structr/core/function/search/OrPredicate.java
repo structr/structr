@@ -20,7 +20,7 @@ package org.structr.core.function.search;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.Query;
+import org.structr.core.app.QueryGroup;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
 
@@ -29,7 +29,7 @@ import org.structr.core.traits.Traits;
 public class OrPredicate extends AbstractPredicate {
 
 	@Override
-	public void configureQuery(final SecurityContext securityContext, final Traits type, final PropertyKey propertyKey, final Query query, final boolean exact) throws FrameworkException {
+	public void configureQuery(final SecurityContext securityContext, final Traits type, final PropertyKey propertyKey, final QueryGroup query, final boolean exact) throws FrameworkException {
 
 		for (final SearchParameter p : parameters) {
 
@@ -39,23 +39,21 @@ public class OrPredicate extends AbstractPredicate {
 				final Object value = p.getValue();
 
 				// check if value is predicate...
-				if (value instanceof SearchFunctionPredicate) {
+				if (value instanceof SearchFunctionPredicate predicate) {
 
-					query.or();
-					((SearchFunctionPredicate)value).configureQuery(securityContext, type, key, query, p.isExact());
-					query.parent();
+					predicate.configureQuery(securityContext, type, key, query.or(), p.isExact());
 
 				} else {
 
+					final QueryGroup orGroup = query.or();
+
 					if (p.isEmptyPredicate()) {
 
-						query.or();
-						query.blank(key);
-						query.parent();
+						orGroup.blank(key);
 
 					} else {
 
-						query.or(key, value, p.isExact());
+						orGroup.key(key, value, p.isExact());
 					}
 				}
 			}
@@ -63,9 +61,7 @@ public class OrPredicate extends AbstractPredicate {
 
 		for (final SearchFunctionPredicate p : predicates) {
 
-			query.or();
-			p.configureQuery(securityContext, type, propertyKey, query, exact);
-			query.parent();
+			p.configureQuery(securityContext, type, propertyKey, query.or(), exact);
 		}
 
 	}

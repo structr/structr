@@ -754,7 +754,7 @@ public abstract class FullStructrTest {
 	}
 
 	protected SchemaNode getSchemaNode(final String name) throws FrameworkException {
-		return app.nodeQuery(StructrTraits.SCHEMA_NODE).andName(name).getFirst().as(SchemaNode.class);
+		return app.nodeQuery(StructrTraits.SCHEMA_NODE).name(name).getFirst().as(SchemaNode.class);
 	}
 
 	protected Set<String> getSchemaNodeTraits(final String name) throws FrameworkException {

@@ -18,10 +18,8 @@
  */
 package org.structr.core.graph.search;
 
-import org.apache.commons.lang3.StringUtils;
 import org.structr.api.search.ExactQuery;
 import org.structr.api.search.FulltextQuery;
-import org.structr.api.search.Operation;
 import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
 
@@ -32,16 +30,11 @@ public class PropertySearchAttribute<T> extends SearchAttribute<T> implements Ex
 
 	private boolean isExactMatch = false;
 
-	public PropertySearchAttribute(final PropertyKey<T> key, final T value, final Operation operation, final boolean isExactMatch) {
+	public PropertySearchAttribute(final PropertyKey<T> key, final T value, final boolean isExactMatch) {
 
-		super(operation, key, value);
+		super(key, value);
 
 		this.isExactMatch = isExactMatch;
-	}
-
-	@Override
-	public String toString() {
-		return "PropertySearchAttribute(" + super.toString() + ")";
 	}
 
 	@Override
@@ -61,6 +54,10 @@ public class PropertySearchAttribute<T> extends SearchAttribute<T> implements Ex
 
 	@Override
 	public boolean includeInResult(final GraphObject entity) {
+
+		throw new RuntimeException("Not implemented");
+
+		/*
 
 		T nodeValue         = entity.getProperty(getKey());
 		Operation operation = getOperation();
@@ -104,6 +101,7 @@ public class PropertySearchAttribute<T> extends SearchAttribute<T> implements Ex
 		}
 
 		return true;
+		*/
 	}
 
 	private int compare(T nodeValue, T searchValue) {

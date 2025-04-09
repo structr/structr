@@ -969,8 +969,8 @@ public class SecurityContext {
 				try (final Tx tx = app.tx()) {
 
 					final List<NodeInterface> jsFiles = app.nodeQuery(StructrTraits.FILE)
-							.and(Traits.key(StructrTraits.FILE, NodeInterfaceTraitDefinition.NAME_PROPERTY), fileName)
-							.and(Traits.key(StructrTraits.FILE, FileTraitDefinition.USE_AS_JAVASCRIPT_LIBRARY_PROPERTY), true)
+							.key(Traits.key(StructrTraits.FILE, NodeInterfaceTraitDefinition.NAME_PROPERTY), fileName)
+							.key(Traits.key(StructrTraits.FILE, FileTraitDefinition.USE_AS_JAVASCRIPT_LIBRARY_PROPERTY), true)
 							.getAsList();
 
 					if (jsFiles.isEmpty()) {

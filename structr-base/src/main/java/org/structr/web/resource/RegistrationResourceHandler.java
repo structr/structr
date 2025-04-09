@@ -29,7 +29,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.MailHelper;
 import org.structr.core.app.App;
-import org.structr.core.app.Query;
+import org.structr.core.app.QueryGroup;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.entity.MailTemplate;
@@ -42,11 +42,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
-import org.structr.core.traits.definitions.MailTemplateTraitDefinition;
-import org.structr.core.traits.definitions.PersonTraitDefinition;
-import org.structr.core.traits.definitions.PrincipalTraitDefinition;
-import org.structr.core.traits.definitions.UserTraitDefinition;
+import org.structr.core.traits.definitions.*;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
@@ -113,7 +109,7 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 
 			try (final Tx tx = app.tx(true, true, true)) {
 
-				final NodeInterface userNode = app.nodeQuery(StructrTraits.USER).and(eMailKey, emailString).getFirst();
+				final NodeInterface userNode = app.nodeQuery(StructrTraits.USER).key(eMailKey, emailString).getFirst();
 				if (userNode != null) {
 
 					// For existing users, update confirmation key
@@ -233,10 +229,10 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 
 		try {
 
-			final Query<NodeInterface> query = StructrApp.getInstance().nodeQuery(StructrTraits.MAIL_TEMPLATE).andName(key.name());
+			final QueryGroup<NodeInterface> query = StructrApp.getInstance().nodeQuery(StructrTraits.MAIL_TEMPLATE).name(key.name());
 
 			if (localeString != null) {
-				query.and(Traits.of(StructrTraits.MAIL_TEMPLATE).key(MailTemplateTraitDefinition.LOCALE_PROPERTY), localeString);
+				query.key(Traits.of(StructrTraits.MAIL_TEMPLATE).key(MailTemplateTraitDefinition.LOCALE_PROPERTY), localeString);
 			}
 
 			NodeInterface template = query.getFirst();

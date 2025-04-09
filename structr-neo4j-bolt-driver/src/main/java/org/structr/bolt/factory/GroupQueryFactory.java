@@ -41,9 +41,7 @@ public class GroupQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery>
 	@Override
 	public boolean createQuery(final QueryPredicate predicate, final AdvancedCypherQuery query, final boolean isFirst) {
 
-		if (predicate instanceof GroupQuery) {
-
-			final GroupQuery group   = (GroupQuery)predicate;
+		if (predicate instanceof GroupQuery group) {
 
 			// Filter type predicates since they require special handling
 			final List<QueryPredicate> predicateList               = group.getQueryPredicates();
@@ -65,21 +63,25 @@ public class GroupQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery>
 
 				for (QueryPredicate p : attributeAndGroupPredicates) {
 
-					if (p instanceof GroupQuery) {
+					if (p instanceof GroupQuery g) {
 
-						final List<QueryPredicate> containedPredicates = ((GroupQuery)p).getQueryPredicates();
+						final List<QueryPredicate> containedPredicates = g.getQueryPredicates();
 						if (!containedPredicates.isEmpty()) {
 
 							nonEmptyGroup = true;
 						}
+
 					} else {
+
 						allChildrenAreGroups = false;
 					}
 				}
 
+				/*
 				if (!(allChildrenAreGroups && !nonEmptyGroup)) {
-					checkOperation(query, predicate.getOperation(), isFirst);
+					checkOperation(query, group.getOperation(), isFirst);
 				}
+				*/
 
 				if (attributeAndGroupPredicates.size() > 1 && !(allChildrenAreGroups && !nonEmptyGroup)) {
 					query.beginGroup();
@@ -90,6 +92,22 @@ public class GroupQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery>
 				Iterator<QueryPredicate> it = attributeAndGroupPredicates.iterator();
 
 				while (it.hasNext()) {
+
+					if (!firstWithinGroup) {
+
+						switch (group.getOperation()) {
+
+							case NOT:
+								query.not();
+								break;
+							case AND:
+								query.and();
+								break;
+							case OR:
+								query.or();
+								break;
+						}
+					}
 
 					if (index.createQuery(it.next(), query, firstWithinGroup)) {
 
@@ -102,8 +120,11 @@ public class GroupQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery>
 				}
 
 				if (allChildrenAreGroups && !nonEmptyGroup) {
+
 					return false;
+
 				} else {
+
 					return true;
 				}
 

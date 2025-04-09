@@ -27,7 +27,7 @@ import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.app.Query;
+import org.structr.core.app.QueryGroup;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
@@ -159,12 +159,12 @@ public class SearchCommand extends AbstractCommand {
 		final String sortOrder         = webSocketData.getSortOrder();
 		final String sortKey           = (webSocketData.getSortKey() == null ? "name" : webSocketData.getSortKey());
 		final PropertyKey sortProperty = type.key(sortKey);
-		final Query query              = StructrApp.getInstance(securityContext).nodeQuery().includeHidden().sort(sortProperty, "desc".equals(sortOrder));
+		final QueryGroup query         = StructrApp.getInstance(securityContext).nodeQuery().includeHidden().sort(sortProperty, "desc".equals(sortOrder)).and();
 
-		query.and(type.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), searchString, exactSearch);
+		query.key(type.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), searchString, exactSearch);
 
 		if (type != null) {
-			query.andTypes(type);
+			query.types(type);
 		}
 
 		try {

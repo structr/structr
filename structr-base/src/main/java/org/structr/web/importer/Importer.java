@@ -656,7 +656,7 @@ public class Importer {
 
 					if (DeployCommand.isUuid(src)) {
 
-						template = StructrApp.getInstance().nodeQuery(StructrTraits.NODE_INTERFACE).and(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), src).getFirst();
+						template = StructrApp.getInstance().nodeQuery(StructrTraits.NODE_INTERFACE).key(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), src).getFirst();
 
 						if (template == null) {
 
@@ -668,7 +668,7 @@ public class Importer {
 						final String uuidAtEnd = DeployCommand.getUuidOrNullFromEndOfString(src);
 						if (uuidAtEnd != null) {
 
-							template = StructrApp.getInstance().nodeQuery(StructrTraits.NODE_INTERFACE).and(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), uuidAtEnd).getFirst();
+							template = StructrApp.getInstance().nodeQuery(StructrTraits.NODE_INTERFACE).key(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), uuidAtEnd).getFirst();
 
 							if (template == null) {
 
@@ -751,7 +751,7 @@ public class Importer {
 					DOMNode component = null;
 					if (DeployCommand.isUuid(src)) {
 
-						final NodeInterface n = app.nodeQuery(StructrTraits.DOM_NODE).and(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), src).getFirst();
+						final NodeInterface n = app.nodeQuery(StructrTraits.DOM_NODE).key(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), src).getFirst();
 						if (n != null) {
 
 							component = n.as(DOMNode.class);
@@ -763,7 +763,7 @@ public class Importer {
 
 						if (uuidAtEnd != null) {
 
-							final NodeInterface n = app.nodeQuery(StructrTraits.DOM_NODE).and(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), uuidAtEnd).getFirst();
+							final NodeInterface n = app.nodeQuery(StructrTraits.DOM_NODE).key(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), uuidAtEnd).getFirst();
 							if (n != null) {
 
 								component = n.as(DOMNode.class);
@@ -1139,7 +1139,7 @@ public class Importer {
 		final PropertyKey<Long> checksumKey = Traits.of(StructrTraits.FILE).key(FileTraitDefinition.CHECKSUM_PROPERTY);
 		final PropertyKey<String> pathKey   = Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY);
 
-		final NodeInterface node = app.nodeQuery(StructrTraits.FILE).and(pathKey, path).and(checksumKey, checksum).getFirst();
+		final NodeInterface node = app.nodeQuery(StructrTraits.FILE).key(pathKey, path).key(checksumKey, checksum).getFirst();
 		if (node != null) {
 
 			return node.as(File.class);
@@ -1448,7 +1448,7 @@ public class Importer {
 		final PropertyKey<NodeInterface> parentKey        = Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.PARENT_PROPERTY);
 		final ShadowDocument shadowDocument               = CreateComponentCommand.getOrCreateHiddenDocument();
 
-		for (final NodeInterface n : StructrApp.getInstance().nodeQuery(StructrTraits.DOM_NODE).andName(name).and(ownerDocumentKey, shadowDocument).getAsList()) {
+		for (final NodeInterface n : StructrApp.getInstance().nodeQuery(StructrTraits.DOM_NODE).name(name).key(ownerDocumentKey, shadowDocument).getAsList()) {
 
 			// only return toplevel nodes in shared components
 			if (n.getProperty(parentKey) == null) {
@@ -1469,7 +1469,7 @@ public class Importer {
 		final PropertyKey<NodeInterface> sharedComponentKey = traits.key(DOMNodeTraitDefinition.SHARED_COMPONENT_PROPERTY);
 		final PropertyKey<String> nameKey                   = traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 
-		for (final NodeInterface n : StructrApp.getInstance().nodeQuery(StructrTraits.TEMPLATE).andName(name).and().notBlank(nameKey).getAsList()) {
+		for (final NodeInterface n : StructrApp.getInstance().nodeQuery(StructrTraits.TEMPLATE).name(name).notBlank(nameKey).getAsList()) {
 
 			// IGNORE everything that REFERENCES a shared component!
 			if (n.getProperty(sharedComponentKey) == null) {

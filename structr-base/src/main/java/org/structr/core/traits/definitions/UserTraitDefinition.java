@@ -209,7 +209,7 @@ public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 
 						// create home directory
 						final App app            = StructrApp.getInstance();
-						NodeInterface homeFolder = app.nodeQuery(StructrTraits.FOLDER).and(folderTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "home").and(parentKey, null).getFirst();
+						NodeInterface homeFolder = app.nodeQuery(StructrTraits.FOLDER).key(folderTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "home").key(parentKey, null).getFirst();
 
 						if (homeFolder == null) {
 

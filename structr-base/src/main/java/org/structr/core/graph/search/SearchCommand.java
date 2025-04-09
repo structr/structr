@@ -23,7 +23,6 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.index.Index;
-import org.structr.api.search.ComparisonQuery;
 import org.structr.api.search.Operation;
 import org.structr.api.search.QueryContext;
 import org.structr.api.search.SortOrder;
@@ -35,17 +34,15 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.geo.GeoCodingResult;
 import org.structr.common.geo.GeoHelper;
 import org.structr.core.GraphObject;
-import org.structr.core.app.Query;
+import org.structr.core.app.QueryGroup;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Factory;
 import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.property.AbstractPrimitiveProperty;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Trait;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
@@ -85,6 +82,8 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			return PagingIterable.EMPTY_ITERABLE;
 		}
 
+		System.out.println(description + ": " + rootGroup.toString());
+
 		final Factory<S, T> factory = getFactory(securityContext, includeHidden, publicOnly, pageSize, page);
 		final Principal user        = securityContext.getUser(false);
 		final Traits traits         = Traits.of(StructrTraits.NODE_INTERFACE);
@@ -114,7 +113,11 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		// special handling of deleted and hidden flags
 		if (!includeHidden && !isRelationshipSearch()) {
 
-			rootGroup.add(new PropertySearchAttribute(traits.key(NodeInterfaceTraitDefinition.HIDDEN_PROPERTY),  true, Operation.NOT, true));
+			final SearchAttributeGroup group = new SearchAttributeGroup(Operation.NOT);
+
+			group.getSearchAttributes().add(new PropertySearchAttribute(traits.key(NodeInterfaceTraitDefinition.HIDDEN_PROPERTY),  true, true));
+
+			rootGroup.add(group);
 		}
 
 		// At this point, all search attributes are ready
@@ -235,7 +238,6 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	private void handleSearchAttributeGroup(final SearchConfig config, final SearchAttributeGroup group, final List<SourceSearchAttribute> sources) throws FrameworkException {
 
 		// check for optional-only queries
-		// (some query types seem to allow no MUST occurs)
 		for (final Iterator<SearchAttribute> it = group.getSearchAttributes().iterator(); it.hasNext();) {
 
 			final SearchAttribute attr = it.next();
@@ -249,7 +251,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			if (attr instanceof DistanceSearchAttribute) {
 
 				final DistanceSearchAttribute distanceSearch = (DistanceSearchAttribute) attr;
-				if (distanceSearch.needsGeocding()) {
+				if (distanceSearch.needsGeocoding()) {
 
 					final GeoCodingResult coords = GeoHelper.geocode(distanceSearch);
 					if (coords != null) {
@@ -283,7 +285,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		}
 	}
 
-	private Set<T> mergeSources(List<SourceSearchAttribute> sources) {
+	private Set<T> mergeSources(final List<SourceSearchAttribute> sources) {
 
 		final Set<T> mergedResult = new LinkedHashSet<>();
 		boolean alreadyAdded      = false;
@@ -299,6 +301,9 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 			} else {
 
+				throw new RuntimeException("Not implemented.");
+
+				/*
 				switch (attr.getOperation()) {
 
 					case AND:
@@ -315,6 +320,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 						mergedResult.removeAll(attr.getResult());
 						break;
 				}
+				*/
 			}
 		}
 
@@ -425,315 +431,41 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	}
 
 	@Override
-	public org.structr.core.app.Query<T> uuid(final String uuid) {
-
-		doNotSort = true;
-
-		return and(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), uuid);
-	}
-
-	@Override
-	public org.structr.core.app.Query<T> andTypes(final Traits traits) {
-
-		this.traits = traits;
-
-		andType(traits.getName());
-
-		return this;
-	}
-
-	@Override
-	public org.structr.core.app.Query<T> andType(final String type) {
-
-		currentGroup.getSearchAttributes().add(new TypeSearchAttribute(type, Operation.AND, true));
-		return this;
-	}
-
-	@Override
-	public org.structr.core.app.Query<T> orType(final String type) {
-
-		currentGroup.getSearchAttributes().add(new TypeSearchAttribute(type, Operation.OR, true));
-		return this;
-	}
-
-	@Override
-	public org.structr.core.app.Query<T> andName(final String name) {
-		return and(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name);
-	}
-
-	@Override
-	public org.structr.core.app.Query<T> orName(final String name) {
-		return or(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name);
-	}
-
-	@Override
-	public org.structr.core.app.Query<T> location(final double latitude, final double longitude, final double distance) {
-		currentGroup.getSearchAttributes().add(new DistanceSearchAttribute(latitude, longitude, distance, Operation.AND));
-		return this;
-	}
-
-	@Override
-	public org.structr.core.app.Query<T> location(final String street, final String postalCode, final String city, final String country, final double distance) {
-		return location(street, null, postalCode, city, null, country, distance);
-	}
-
-	@Override
-	public org.structr.core.app.Query<T> location(final String street, final String postalCode, final String city, final String state, final String country, final double distance) {
-		return location(street, null, postalCode, city, state, country, distance);
-	}
-
-	@Override
-	public org.structr.core.app.Query<T> location(final String street, final String house, final String postalCode, final String city, final String state, final String country, final double distance) {
-		currentGroup.getSearchAttributes().add(new DistanceSearchAttribute(street, house, postalCode, city, state, country, distance, Operation.AND));
-		return this;
-	}
-
-	@Override
-	public <P> org.structr.core.app.Query<T> and(final PropertyKey<P> key, final P value) {
-
-		if (Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY).equals(key)) {
-			this.doNotSort = false;
-		}
-
-		return and(key, value, true);
-	}
-
-	@Override
-	public <P> org.structr.core.app.Query<T> and(final PropertyKey<P> key, final P value, final boolean exact) {
-
-		if (Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY).equals(key)) {
-
-			this.doNotSort = false;
-		}
-
-		assertPropertyIsIndexed(key);
-
-		return and(key, value, exact, Operation.AND);
-	}
-
-	@Override
-	public <P> org.structr.core.app.Query<T> and(final PropertyKey<P> key, final P value, final boolean exact, final Operation operation) {
-
-		if (Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY).equals(key)) {
-
-			this.doNotSort = false;
-		}
-
-		assertPropertyIsIndexed(key);
-
-		currentGroup.getSearchAttributes().add(key.getSearchAttribute(securityContext, operation, value, exact, this));
-
-		return this;
-	}
-
-	@Override
-	public <P> org.structr.core.app.Query<T> and(final PropertyMap attributes) {
-
-		for (final Map.Entry<PropertyKey, Object> entry : attributes.entrySet()) {
-
-			final PropertyKey key = entry.getKey();
-			final Object value = entry.getValue();
-
-			if (Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY).equals(key)) {
-
-				this.doNotSort = false;
-			}
-
-			and(key, value);
-		}
-
-
-		return this;
-	}
-
-	@Override
-	public org.structr.core.app.Query<T> and() {
+	public QueryGroup<T> and() {
 
 		// create nested group that the user can add to
-		final SearchAttributeGroup group = new SearchAttributeGroup(currentGroup, Operation.AND);
-
+		final SearchAttributeGroup group = new SearchAttributeGroup(Operation.AND);
 		currentGroup.getSearchAttributes().add(group);
 		currentGroup = group;
 
-		return this;
+		return currentGroup;
 	}
 
 	@Override
-	public <P> org.structr.core.app.Query<T> or(final PropertyKey<P> key, P value) {
-		return or(key, value, true);
-	}
-
-	@Override
-	public <P> org.structr.core.app.Query<T> or(final PropertyKey<P> key, P value, final boolean exact) {
-
-		currentGroup.getSearchAttributes().add(key.getSearchAttribute(securityContext, Operation.OR, value, exact, this));
-
-		assertPropertyIsIndexed(key);
-
-		return this;
-	}
-
-	@Override
-	public <P> org.structr.core.app.Query<T> or(final PropertyMap attributes) {
-
-		for (final Map.Entry<PropertyKey, Object> entry : attributes.entrySet()) {
-
-			final PropertyKey key = entry.getKey();
-			final Object value = entry.getValue();
-
-			or(key, value);
-		}
-
-
-		return this;
-	}
-
-	@Override
-	public org.structr.core.app.Query<T> notBlank(final PropertyKey key) {
-
-		currentGroup.getSearchAttributes().add(new NotBlankSearchAttribute(key));
-
-		assertPropertyIsIndexed(key);
-
-		return this;
-	}
-
-	@Override
-	public org.structr.core.app.Query<T> blank(final PropertyKey key) {
-
-		if (key.relatedType() != null) {
-
-			// related nodes
-			if (key.isCollection()) {
-
-				currentGroup.getSearchAttributes().add(key.getSearchAttribute(securityContext, Operation.AND, Collections.EMPTY_LIST, true, this));
-
-			} else {
-
-				currentGroup.getSearchAttributes().add(key.getSearchAttribute(securityContext, Operation.AND, null, true, this));
-			}
-
-		} else {
-
-			// everything else
-			currentGroup.getSearchAttributes().add(new EmptySearchAttribute(key, null));
-		}
-
-		assertPropertyIsIndexed(key);
-
-		return this;
-	}
-
-	@Override
-	public <P> org.structr.core.app.Query<T> startsWith(final PropertyKey<P> key, final P prefix, final boolean caseSensitive) {
-
-		currentGroup.getSearchAttributes().add(new ComparisonSearchAttribute(key, caseSensitive ? ComparisonQuery.Comparison.startsWith : ComparisonQuery.Comparison.caseInsensitiveStartsWith, prefix, Operation.AND));
-
-		assertPropertyIsIndexed(key);
-
-		return this;
-	}
-
-	@Override
-	public <P> org.structr.core.app.Query<T> endsWith(final PropertyKey<P> key, final P suffix, final boolean caseSensitive) {
-
-		currentGroup.getSearchAttributes().add(new ComparisonSearchAttribute(key, caseSensitive ? ComparisonQuery.Comparison.endsWith : ComparisonQuery.Comparison.caseInsensitiveEndsWith, suffix, Operation.AND));
-
-		assertPropertyIsIndexed(key);
-
-		return this;
-	}
-
-	@Override
-	public <P> Query<T> matches(final PropertyKey<String> key, final String regex) {
-
-		currentGroup.getSearchAttributes().add(new ComparisonSearchAttribute(key, ComparisonQuery.Comparison.matches, regex, Operation.AND));
-
-		return this;
-	}
-
-	@Override
-	public <P> org.structr.core.app.Query<T> andRange(final PropertyKey<P> key, final P rangeStart, final P rangeEnd) {
-
-		return andRange(key, rangeStart, rangeEnd, true, true);
-	}
-
-	@Override
-	public <P> org.structr.core.app.Query<T> andRange(final PropertyKey<P> key, final P rangeStart, final P rangeEnd, final boolean includeStart, final boolean includeEnd) {
-
-		currentGroup.getSearchAttributes().add(new RangeSearchAttribute(key, rangeStart, rangeEnd, Operation.AND, includeStart, includeEnd));
-
-		assertPropertyIsIndexed(key);
-
-		return this;
-	}
-
-	@Override
-	public <P> org.structr.core.app.Query<T> orRange(final PropertyKey<P> key, final P rangeStart, final P rangeEnd) {
-
-		return orRange(key, rangeStart, rangeEnd, true, true);
-	}
-
-	@Override
-	public <P> org.structr.core.app.Query<T> orRange(final PropertyKey<P> key, final P rangeStart, final P rangeEnd, final boolean includeStart, final boolean includeEnd) {
-
-		currentGroup.getSearchAttributes().add(new RangeSearchAttribute(key, rangeStart, rangeEnd, Operation.OR, includeStart, includeEnd));
-
-		assertPropertyIsIndexed(key);
-
-		return this;
-	}
-
-	@Override
-	public org.structr.core.app.Query<T> or() {
+	public QueryGroup<T> or() {
 
 		// create nested group that the user can add to
-		final SearchAttributeGroup group = new SearchAttributeGroup(currentGroup, Operation.OR);
+		final SearchAttributeGroup group = new SearchAttributeGroup(Operation.OR);
 		currentGroup.getSearchAttributes().add(group);
 		currentGroup = group;
 
-		return this;
+		return currentGroup;
 	}
 
 	@Override
-	public org.structr.core.app.Query<T> not() {
+	public QueryGroup<T> not() {
 
 		// create nested group that the user can add to
-		final SearchAttributeGroup group = new SearchAttributeGroup(currentGroup, Operation.NOT);
+		final SearchAttributeGroup group = new SearchAttributeGroup(Operation.NOT);
 		currentGroup.getSearchAttributes().add(group);
 		currentGroup = group;
 
-		return this;
-	}
-
-	@Override
-	public org.structr.core.app.Query<T> parent() {
-
-		// one level up
-		final SearchAttributeGroup parent = currentGroup.getParent();
-		if (parent != null) {
-
-			currentGroup = parent;
-		}
-
-		return this;
-	}
-
-	@Override
-	public org.structr.core.app.Query<T> attributes(final List<SearchAttribute> attributes) {
-
-		currentGroup.getSearchAttributes().addAll(attributes);
-		return this;
+		return currentGroup;
 	}
 
 	@Override
 	public Predicate<org.structr.core.GraphObject> toPredicate() {
 		return new AndPredicate(rootGroup.getSearchAttributes());
-	}
-
-	@Override
-	public Operation getCurrentOperation() {
-		return currentGroup.getOperation();
 	}
 
 	@Override
@@ -787,7 +519,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	}
 
 	// ----- nested classes -----
-	private class AndPredicate implements Predicate<org.structr.core.GraphObject> {
+	private class AndPredicate implements Predicate<GraphObject> {
 
 		final List<Predicate<org.structr.core.GraphObject>> predicates = new ArrayList<>();
 

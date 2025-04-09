@@ -343,7 +343,7 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface testType = app.nodeQuery(StructrTraits.SCHEMA_NODE).andName("TestType").getFirst();
+			final NodeInterface testType = app.nodeQuery(StructrTraits.SCHEMA_NODE).name("TestType").getFirst();
 
 			// create private method that is not exported via REST
 			app.create(StructrTraits.SCHEMA_METHOD,

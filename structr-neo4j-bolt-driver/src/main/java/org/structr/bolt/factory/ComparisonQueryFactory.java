@@ -35,7 +35,7 @@ public class ComparisonQueryFactory extends AbstractQueryFactory<AdvancedCypherQ
 
 		if (predicate instanceof ComparisonQuery) {
 
-			checkOperation(query, predicate.getOperation(), isFirst);
+			//checkOperation(query, predicate.getOperation(), isFirst);
 
 			// add label of declaring class for the given property name
 			// to select the correct index
