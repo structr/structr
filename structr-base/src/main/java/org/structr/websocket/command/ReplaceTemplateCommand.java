@@ -71,7 +71,7 @@ public class ReplaceTemplateCommand extends AbstractCommand {
 		}
 
 		// check if parent node with given ID exists
-		final Template newTemplate = (Template) getNode(newTemplateId);
+		final Template newTemplate = getNode(newTemplateId).as(Template.class);
 
 		if (newTemplate == null) {
 
