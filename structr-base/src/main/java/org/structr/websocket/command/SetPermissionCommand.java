@@ -81,7 +81,7 @@ public class SetPermissionCommand extends AbstractCommand {
 			getWebSocket().send(MessageBuilder.status().code(400).build(), true);
 		}
 
-		Principal principal = getNode(principalId).as(Principal.class);
+		Principal principal = getNodeAs(principalId, Principal.class, StructrTraits.PRINCIPAL);
 		if (principal == null) {
 
 			logger.error("No principal found with id {}", principalId);

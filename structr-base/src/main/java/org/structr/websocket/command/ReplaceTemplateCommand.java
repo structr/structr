@@ -22,6 +22,7 @@ package org.structr.websocket.command;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.core.traits.StructrTraits;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Template;
 import org.structr.websocket.StructrWebSocket;
@@ -71,7 +72,7 @@ public class ReplaceTemplateCommand extends AbstractCommand {
 		}
 
 		// check if parent node with given ID exists
-		final Template newTemplate = getNode(newTemplateId).as(Template.class);
+		final Template newTemplate = getNodeAs(newTemplateId, Template.class, StructrTraits.TEMPLATE);
 
 		if (newTemplate == null) {
 
