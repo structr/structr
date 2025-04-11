@@ -4476,7 +4476,7 @@ public class ScriptingTest extends StructrTest {
 		}
 	}
 
-	//@Test
+	@Test
 	public void testAdvancedFindWithNotPredicateAndRemoteProperty() {
 
 		try (final Tx tx = app.tx()) {
