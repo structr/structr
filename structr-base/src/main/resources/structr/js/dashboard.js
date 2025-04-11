@@ -1314,7 +1314,7 @@ let _Dashboard = {
 				let methodEntry = _Helpers.createSingleDOMElementFromHTML(_Dashboard.tabs.methods.getMarkupForMethod(method));
 
 				methodEntry.querySelector('button.run').addEventListener('click', () => {
-					_Code.mainArea.helpers.runSchemaMethod(method);
+					_Schema.methods.runSchemaMethod(method);
 				});
 
 				container.appendChild(methodEntry);

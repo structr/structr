@@ -941,7 +941,7 @@ let _Code = {
 
 			_Code.codeContents.append(_Code.templates.globals());
 
-			Command.rest('SchemaMethod/schema?schemaNode=null&' + Structr.getRequestParameterName('sort') + '=name&' + Structr.getRequestParameterName('order') + '=ascending', (methods) => {
+			_Schema.methods.fetchUserDefinedMethods((methods) => {
 
 				_Schema.methods.appendMethods(_Code.codeContents[0].querySelector('.content-container'), null, methods, () => {
 					_Code.tree.refreshNode(data.path);
@@ -1138,7 +1138,7 @@ let _Code = {
 
 			_Code.codeContents.append(_Code.templates.methods({ data: data }));
 
-			Command.get(data.id, null, (entity) => {
+			fetch(Structr.rootUrl + data.id + '/schema').then(res => res.json()).then(r => r.result).then((entity) => {
 
 				_Schema.methods.appendMethods(_Code.codeContents[0].querySelector('.content-container'), entity, entity.schemaMethods, () => {
 					_Code.tree.refreshNode(data.path);
@@ -1147,7 +1147,7 @@ let _Code = {
 				_Code.persistence.runCurrentEntitySaveAction = () => {
 					$('.save-all', _Code.codeContents).click();
 				};
-			}, 'schema');
+			});
 		},
 		displayInheritedPropertiesContent: (data, updateLocationStack) => {
 
@@ -1487,8 +1487,7 @@ let _Code = {
 		},
 		displaySchemaMethodContent: (data) => {
 
-			// ID of schema method can either be in typeId (for user-defined functions) or in memberId (for type methods)
-			Command.get(data.id, 'id,owner,type,createdBy,hidden,createdDate,lastModifiedDate,name,isStatic,isPrivate,returnRawResult,httpVerb,schemaNode,source,openAPIReturnType,exceptions,callSuper,overridesExisting,doExport,codeType,isPartOfBuiltInSchema,tags,summary,description,parameters,includeInOpenAPI,index,exampleValue,parameterType', (result) => {
+			fetch(Structr.rootUrl + data.id + '/schema').then(res => res.json()).then(r => r.result).then((result) => {
 
 				let isCallableViaHTTP   = (result.isPrivate !== true);
 				let isUserDefinedMethod = (!result.schemaNode && !result.isPartOfBuiltInSchema);
@@ -1688,7 +1687,7 @@ let _Code = {
 					let exampleData      = Object.fromEntries((result.parameters ?? []).map(p => [p.name, (p.exampleValue ?? '')]));
 					let isGet            = (result.httpVerb.toLowerCase() === 'get');
 					let isStatic         = (result.isStatic === true);
-					let url              = _Code.mainArea.helpers.getURLForSchemaMethod(result, true);
+					let url              = _Schema.methods.getURLForSchemaMethod(result, true);
 					let queryString      = new URLSearchParams(exampleData).toString();
 					let isUserDefinedFn  = (!result.schemaNode);
 					let isInstanceMethod = (!isStatic && !isUserDefinedMethod);
@@ -1723,7 +1722,7 @@ let _Code = {
 								parts.push(`// ${uuidHelpText}`);
 							}
 
-							parts.push(`fetch('${_Code.mainArea.helpers.getURLForSchemaMethod(result, true)}', {`);
+							parts.push(`fetch('${_Schema.methods.getURLForSchemaMethod(result, true)}', {`);
 							parts.push(`	method: '${result.httpVerb.toUpperCase()}',`);
 							parts.push('	body: JSON.stringify(data)');
 							parts.push('}).then(response => {');
@@ -1859,7 +1858,7 @@ let _Code = {
 				if ((isUserDefinedMethod || isStaticMethod) && isCallableViaHTTP) {
 
 					_Code.mainArea.helpers.displaySvgActionButton('#method-actions', _Icons.getSvgIcon(_Icons.iconRunButton, 14, 14), 'run', 'Open run dialog', () => {
-						_Code.mainArea.helpers.runSchemaMethod(result);
+						_Schema.methods.runSchemaMethod(result);
 					});
 				}
 
@@ -2239,178 +2238,6 @@ let _Code = {
 				targetNode.appendChild(button);
 
 				return button;
-			},
-			runSchemaMethod: (schemaMethod) => {
-
-				let storagePrefix = 'schemaMethodParameters_';
-				let name          = (schemaMethod.schemaNode === null) ? schemaMethod.name : schemaMethod.schemaNode.name + '/' + schemaMethod.name;
-				let url           = _Code.mainArea.helpers.getURLForSchemaMethod(schemaMethod);
-
-				let { dialogText } = _Dialogs.custom.openDialog(`Run user-defined function ${name}`);
-
-				let runButton = _Dialogs.custom.prependCustomDialogButton(`
-					<button id="run-method" class="flex items-center action focus:border-gray-666 active:border-green">
-						${_Icons.getSvgIcon(_Icons.iconRunButton, 16, 18, 'mr-2')}
-						<span>Run</span>
-					</button>
-				`);
-
-				let clearButton = _Dialogs.custom.appendCustomDialogButton('<button id="clear-log" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Clear output</button>');
-
-				window.setTimeout(() => {
-					runButton.focus();
-				}, 50);
-
-				let paramsOuterBox = _Helpers.createSingleDOMElementFromHTML(`
-					<div>
-						<div id="params">
-							<h3 class="heading-narrow">Parameters</h3>
-							<div class="method-parameters">
-								${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-green', 'add-param-action']), 'Add parameter')}
-							</div>
-						</div>
-						<h3 class="mt-4">Result</h3>
-						<pre id="log-output"></pre>
-					</div>
-				`);
-				dialogText.appendChild(paramsOuterBox);
-
-				_Helpers.appendInfoTextToElement({
-					element: paramsOuterBox.querySelector('h3'),
-					text: 'Parameters can be accessed in the called method by using the <code>$.methodParameters[name]</code> object (JavaScript-only) or the <code>retrieve(name)</code> function.<br>For methods called via GET, the parameters are sent using the request URL and thus, they can be accessed via the <code>request</code> object',
-					css: { marginLeft: "5px" },
-					helpElementCss: { fontSize: "12px" }
-				});
-
-				let appendParameter = (name = '', value = '', paramDefinition = {}) => {
-
-					let infoSpan = '';
-
-					if (paramDefinition.parameterType || paramDefinition.description || paramDefinition.exampleValue) {
-
-						let infoText = `
-							Type: ${paramDefinition.parameterType ?? ''}<br>
-							Description: ${paramDefinition.description ?? ''}<br>
-							Example Value: ${paramDefinition.exampleValue ?? ''}<br>
-						`;
-
-						infoSpan = `<span data-comment="${_Helpers.escapeForHtmlAttributes(infoText)}"></span>`;
-					}
-
-					let newParam = _Helpers.createSingleDOMElementFromHTML(`
-						<div class="param flex items-center mb-1">
-							<input class="param-name" placeholder="Key">
-							${infoSpan}
-							<span class="px-2">=</span>
-							<input class="param-value" placeholder="Value" data-input-type="${(paramDefinition.parameterType ?? 'string').toLowerCase()}">
-							${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action', 'ml-2']), 'Remove parameter')}
-						</div>
-					`);
-
-					newParam.querySelector('.param-name').value  = name;
-					newParam.querySelector('.param-value').value = (typeof value === "string") ? value : JSON.stringify(value);
-
-					newParam.querySelector('.remove-action').addEventListener('click', () => {
-						_Helpers.fastRemoveElement(newParam);
-					});
-
-					paramsOuterBox.querySelector('.method-parameters').appendChild(newParam);
-				};
-
-				let lastParams = LSWrapper.getItem(storagePrefix + url, {});
-
-				if (Object.keys(lastParams).length > 0) {
-
-					let paramDefinitions = Object.fromEntries((schemaMethod.parameters ?? []).map(p => [p.name, p]));
-
-					for (let [k,v] of Object.entries(lastParams)) {
-						appendParameter(k, v, paramDefinitions[k]);
-					}
-
-				} else {
-
-					for (let paramDefinition of (schemaMethod.parameters ?? [])) {
-						appendParameter(paramDefinition.name, '', paramDefinition);
-					}
-				}
-
-				_Helpers.activateCommentsInElement(paramsOuterBox);
-
-				paramsOuterBox.querySelector('.add-param-action').addEventListener('click', () => {
-					appendParameter();
-				});
-
-				let logOutput = paramsOuterBox.querySelector('#log-output');
-
-				runButton.addEventListener('click', async () => {
-
-					logOutput.textContent = 'Running method...';
-
-					let params = {};
-					for (let paramRow of paramsOuterBox.querySelectorAll('#params .param')) {
-
-						let name = paramRow.querySelector('.param-name').value;
-						if (name) {
-
-							let valueInput = paramRow.querySelector('.param-value');
-							let value = valueInput.value;
-
-							// if the value type is not a basic string, try to parse it as JSON (but fail gracefully)
-							// if this ever creates problems, we should rather add a dropdown "Parameter Type" and
-							// populate it with "String" by default and also take the OpenAPI parameter definition into account
-							if (valueInput.dataset['inputType'] !== 'string') {
-								try {
-									value = JSON.parse(value);
-								} catch(e) {}
-							}
-
-							params[name] = value;
-						}
-					}
-
-					LSWrapper.setItem(storagePrefix + url, params);
-
-					let methodCallUrl = url;
-					let fetchConfig = {
-						method: schemaMethod.httpVerb
-					};
-
-					if (schemaMethod.httpVerb === 'GET') {
-
-						methodCallUrl += '?' + new URLSearchParams(params).toString();
-
-					} else {
-
-						fetchConfig.body = JSON.stringify(params);
-					}
-
-					let response = await fetch(methodCallUrl, fetchConfig);
-					logOutput.textContent = await response.text();
-				});
-
-				clearButton.addEventListener('click', () => {
-					logOutput.textContent = '';
-				});
-			},
-			getURLForSchemaMethod: (schemaMethod, absolute = true) => {
-
-				let isStatic              = (schemaMethod.isStatic === true);
-				let isUserDefinedFunction = (schemaMethod.schemaNode === null);
-
-				let parts = [];
-
-				if (!isUserDefinedFunction) {
-					parts.push(schemaMethod.schemaNode.name);
-
-					if (!isStatic) {
-						parts.push('<b>{uuid}</b>');
-					}
-				}
-
-				parts.push(schemaMethod.name);
-				let url  = (absolute ? location.origin : '') + Structr.rootUrl + parts.join('/');
-
-				return url;
 			},
 		}
 	},
