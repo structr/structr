@@ -26,8 +26,6 @@ let _Code = {
 	codeTree: undefined,
 	codeContents: undefined,
 	lastClickedPath: '',
-	layouter: null,
-	seed: 42,
 	availableTags: [],
 	tagBlacklist: ['core', 'ui', 'html'],       // don't show internal tags (core, ui, html)
 	codeLastOpenMethodKey: 'structrCodeLastOpenMethod_' + location.port,
@@ -238,19 +236,6 @@ let _Code = {
 							// 		path:    '/root/builtin'
 							// 	},
 							// },
-							{
-								id:       '/root/workingsets',
-								text:     'Working Sets',
-								children: true,
-								icon:     _Icons.nonExistentEmptyIcon,
-								li_attr:  { 'data-id': 'workingsets' },
-								data: {
-									svgIcon: _Icons.getSvgIcon(_Icons.iconFavoritesFolder, 16, 24),
-									key: 'workingsets',
-									content: 'workingsets',
-									path: '/root/workingsets'
-								},
-							}
 						],
 					}
 				];
@@ -290,18 +275,6 @@ let _Code = {
 					case 'openapi':
 						_Code.tree.displayFunction(_Code.availableTags.map(t => { return { id: t, name: t, type: "OpenAPITag" } }), data);
 						break;
-
-					case 'workingsets':
-						_Code.tree.loadWorkingSets(data);
-						break;
-
-					case 'workingset':
-						_Code.tree.loadWorkingSet(data);
-						break;
-
-					// case 'loadmultiple':
-					// 	_Code.loadMultiple(data);
-					// 	break;
 
 					case 'remoteproperties':
 						_Code.tree.loadRemoteProperties(data);
@@ -374,26 +347,6 @@ let _Code = {
 									name:    entity.name,
 									key:     entity.type,
 									id:      entity.id,
-									path:    path + '/' + entity.id
-								},
-							});
-
-							break;
-						}
-
-						case 'SchemaGroup': {
-
-							list.push({
-								id:       path + '/' + entity.id,
-								text:     entity.name,
-								children: entity.children.length > 0,
-								icon:     _Icons.nonExistentEmptyIcon,
-								li_attr:  { 'data-id': entity.id },
-								data: {
-									svgIcon: _Icons.getSvgIcon((entity.name === _WorkingSets.recentlyUsedName ? _Icons.iconRecentlyUsed : _Icons.iconFolderClosed), 16, 24),
-									key:     'workingset',
-									id:      entity.id,
-									content: 'workingset',
 									path:    path + '/' + entity.id
 								},
 							});
@@ -732,14 +685,6 @@ let _Code = {
 						_Code.mainArea.displayBuiltInTypesContent(data.type);
 						break;
 
-					case 'workingsets':
-						_Code.mainArea.displayWorkingSetsContent();
-						break;
-
-					case 'workingset':
-						_Code.mainArea.displayWorkingSetContent(data);
-						break;
-
 					case 'properties':
 						_Code.mainArea.displayPropertiesContent(data, data.updateLocationStack);
 						break;
@@ -770,15 +715,6 @@ let _Code = {
 				}
 			}
 		},
-		// loadMultiple: async (data) => {
-		// 	// execute a list of queries and join the results
-		// 	let result = [];
-		// 	for (let query of data.queries) {
-		// 		let r = await Command.queryPromise(query.type, _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', query.query, true, 'ui');
-		// 		result = result.concat(r);
-		// 	}
-		// 	_Code.tree.displayFunction(result, data);
-		// },
 		loadWorkingSets: (data) => {
 			_WorkingSets.getWorkingSets(result => _Code.tree.displayFunction(result, data, true));
 		},
@@ -2030,126 +1966,6 @@ let _Code = {
 
 			_Code.codeContents.append(_Code.templates.swaggerui({ iframeSrc: iframeSrc }));
 		},
-		displayWorkingSetsContent: () => {
-			_Code.codeContents.append(_Code.templates.workingSets());
-		},
-		displayWorkingSetContent: (data) => {
-
-			_WorkingSets.getWorkingSet(data.id, function(workingSet) {
-
-				_Code.recentElements.updateRecentlyUsed(workingSet, data.path, data.updateLocationStack);
-				_Helpers.fastRemoveAllChildren(_Code.codeContents[0]);
-				_Code.codeContents.append(_Code.templates.workingSet({ type: workingSet }));
-
-				if (workingSet.name === _WorkingSets.recentlyUsedName) {
-
-					_Code.mainArea.helpers.displaySvgActionButton('#working-set-content', _Icons.getSvgIcon(_Icons.iconTrashcan, 14, 14, 'icon-red'), 'clear', 'Clear', function() {
-						_WorkingSets.clearRecentlyUsed(function() {
-							_Code.tree.refreshTree();
-						});
-					});
-
-					$('#group-name-input').prop('disabled', true);
-
-				} else {
-
-					_Code.mainArea.helpers.displaySvgActionButton('#working-set-content', _Icons.getSvgIcon(_Icons.iconTrashcan, 14, 14, 'icon-red'), 'remove', 'Remove', function() {
-						_WorkingSets.deleteSet(data.id, function() {
-							_Code.tree.refreshNode('/workingsets');
-							_Code.tree.findAndOpenNode('/workingsets');
-						});
-					});
-
-					$('input#group-name-input').on('blur', function() {
-						let elem     = $(this);
-						let previous = elem.attr('value');
-
-						if (previous !== elem.val()) {
-							let data   = {
-								name: elem.val()
-							};
-
-							Command.setProperties(workingSet.id, data, () => {
-								_Helpers.blinkGreen(elem);
-								_TreeHelper.refreshTree('#code-tree');
-							});
-						}
-					});
-				}
-
-				$('#schema-graph').append(_Code.templates.root());
-
-				var layouter = new SigmaLayouter('group-contents');
-
-				Command.query('SchemaNode', 10000, 1, 'name', 'asc', { }, function(result1) {
-
-					for (let node of result1) {
-						if (workingSet.children.includes(node.name)) {
-							layouter.addNode(node, data.path);
-						}
-					}
-
-					Command.query('SchemaRelationshipNode', 10000, 1, 'name', 'asc', { }, function(result2) {
-
-						for (let r of result2) {
-							layouter.addEdge(r.id, r.relationshipType, r.sourceId, r.targetId, true);
-						}
-
-						layouter.refresh();
-						layouter.layout();
-						layouter.on('clickNode', e => {
-
-							let eventData = e.data;
-							if (eventData.node) {
-
-								if (eventData.node.path) {
-
-									_Code.tree.findAndOpenNode(eventData.node.path + '/' + eventData.node.id, false);
-
-								} else {
-
-									// we need to find out if this node is a custom type or built-in
-									if (eventData.node.builtIn) {
-										_Code.tree.findAndOpenNode('/root/builtin/' + eventData.node.id, false);
-									} else {
-										_Code.tree.findAndOpenNode('/root/custom/' + eventData.node.id, false);
-									}
-								}
-							}
-						});
-
-						_Code.layouter = layouter;
-
-						// experimental: use positions from schema layouter to initialize positions in schema editor
-						window.setTimeout(function() {
-
-							let minX = 0;
-							let minY = 0;
-
-							layouter.getNodes().forEach(function(node) {
-								if (node.x < minX) { minX = node.x; }
-								if (node.y < minY) { minY = node.y; }
-							});
-
-							let positions = {};
-
-							layouter.getNodes().forEach(function(node) {
-
-								positions[node.label] = {
-									top: node.y - minY + 20,
-									left: node.x - minX + 20
-								};
-							});
-
-							_WorkingSets.updatePositions(workingSet.id, positions);
-
-						}, 300);
-
-					}, true, 'ui');
-
-				}, true, 'ui');
-			});
-		},
 		displayServiceClassesContent: (data) => {
 
 			_Code.codeContents[0].insertAdjacentHTML('beforeend', _Code.templates.createNewType({ text: 'Service Class'}));
@@ -3347,241 +3163,10 @@ let _Code = {
 			<h2>Views of type ${config.data.type}</h2>
 			<div class="content-container"></div>
 		`,
-		workingSet: config => `
-			<h2>Group ${config.type.name}</h2>
-			<div class="mb-4">
-				A customizable group of classes. To add classes, click on the class name and then on the "New group" button.
-			</div>
-
-			<div id="working-set-content" data-type-id="${config.type.id}"></div>
-
-			<div class="mb-4">
-				<p class="input">
-					<label class="block">Name</label>
-					<input type="text" id="group-name-input" data-property="name" size="30" value="${config.type.name}">
-				</p>
-			</div>
-
-			<div id="group-contents" style="height: calc(100% - 200px); background-color: #fff;"></div>
-		`,
-		workingSets: config => `
-			<h2>Working Sets</h2>
-			<div class="mb-4">
-				<p>
-					Working Sets are customizable group of classes. To add classes to a working set, click on the class name and then on the "New working set" button.
-				</p>
-			</div>
-		`,
 		swaggerui: config => `
 			<div id="swagger-ui-container" class="flex-grow">
 				<iframe class="border-0" src="${config.iframeSrc}" width="100%" height="100%"></iframe>
 			</div>
 		`
-	}
-};
-
-let _WorkingSets = {
-
-	recentlyUsedName: 'Recently Used Types',
-	deleted: {},
-	getWorkingSets: (callback) => {
-
-		Command.query('ApplicationConfigurationDataNode', 1000, 1, 'name', true, { configType: 'layout' }, (result) => {
-
-			let workingSets = [];
-			let recent;
-
-			for (let layout of result) {
-
-				if (!layout.owner || layout.owner.name === StructrWS.me.username) {
-
-					let content  = JSON.parse(layout.content);
-					let children = Object.keys(content.positions);
-					let data     = {
-						id: layout.id,
-						type: 'SchemaGroup',
-						name: layout.name,
-						children: children
-					};
-
-					if (layout.name === _WorkingSets.recentlyUsedName) {
-
-						recent = data;
-
-					} else {
-
-						workingSets.push(data);
-					}
-				}
-			}
-
-			// insert most recent at the top
-			if (recent) {
-				workingSets.unshift(recent);
-			}
-
-			callback(workingSets);
-
-		}, true, null, 'id,type,name,content,owner');
-	},
-	getWorkingSet: (id, callback) => {
-
-		Command.get(id, null, (result) => {
-
-			let content = JSON.parse(result.content);
-
-			callback({
-				id: result.id,
-				type: result.type,
-				name: result.name,
-				owner: result.owner,
-				children: Object.keys(content.positions)
-			});
-		});
-	},
-	getWorkingSetContents: (id, callback) => {
-
-		Command.get(id, null, (result) => {
-
-			let content   = JSON.parse(result.content);
-			let positions = content.positions;
-
-			Command.query('SchemaNode', 1000, 1, 'name', true, {}, (result) => {
-
-				callback(result.filter(schemaNode => positions[schemaNode.name]));
-			});
-		});
-	},
-	addTypeToSet: (id, type, callback) => {
-
-		Command.get(id, null, (result) => {
-
-			let content = JSON.parse(result.content);
-			if (!content.positions[type]) {
-
-				content.positions[type] = {
-					top: 0,
-					left: 0
-				};
-
-				// adjust hidden types as well
-				content.hiddenTypes.splice(content.hiddenTypes.indexOf(type), 1);
-
-				Command.setProperty(id, 'content', JSON.stringify(content), false, callback);
-			}
-		});
-	},
-	removeTypeFromSet: (id, type, callback) => {
-
-		Command.get(id, null, (result) => {
-
-			let content = JSON.parse(result.content);
-			delete content.positions[type];
-
-			// adjust hidden types as well
-			content.hiddenTypes.push(type);
-
-			Command.setProperty(id, 'content', JSON.stringify(content), false, callback);
-		});
-	},
-	createNewSetAndAddType: (name, callback, setName) => {
-
-		Command.query('SchemaNode', 10000, 1, 'name', true, { }, (result) => {
-
-			let positions = {};
-
-			positions[name] = { top: 0, left: 0 };
-
-			// all types are hidden except the one we want to add
-			let hiddenTypes = result.filter(t => t.name !== name).map(t => t.name);
-
-			let config = {
-				_version: 2,
-				positions: positions,
-				hiddenTypes: hiddenTypes,
-				zoom: 1,
-				connectorStyle: 'Flowchart',
-				showRelLabels: true
-			};
-
-			Command.create({
-				type: 'ApplicationConfigurationDataNode',
-				name: setName || 'New Working Set',
-				content: JSON.stringify(config),
-				configType: 'layout'
-			}, callback);
-
-		}, true, null, 'id,name');
-	},
-	deleteSet: (id, callback) => {
-
-		_WorkingSets.deleted[id] = true;
-
-		Command.deleteNode(id, false, callback);
-	},
-	updatePositions: (id, positions, callback) => {
-
-		if (positions && !_WorkingSets.deleted[id]) {
-
-			Command.get(id, null, (result) => {
-
-				let content = JSON.parse(result.content);
-
-				for (let key of Object.keys(content.positions)) {
-
-					let position = content.positions[key];
-
-					if (position && position.left === 0 && position.top === 0 && positions[key]) {
-
-						position.left = positions[key].left * 2;
-						position.top  = positions[key].top * 2;
-					}
-				}
-
-				Command.setProperty(id, 'content', JSON.stringify(content), false, callback);
-			});
-		}
-	},
-	addRecentlyUsed: (name) => {
-
-		Command.query('ApplicationConfigurationDataNode', 1, 1, 'name', true, { name: _WorkingSets.recentlyUsedName }, (result) => {
-
-			if (result && result.length) {
-
-				_WorkingSets.addTypeToSet(result[0].id, name, () => {
-					_Code.tree.refreshNode('/workingsets/' + result[0].id);
-				});
-
-			} else {
-
-				_WorkingSets.createNewSetAndAddType(name, () => {
-					_Code.tree.refreshNode('/workingsets');
-				}, _WorkingSets.recentlyUsedName);
-			}
-
-		}, true, null, 'id,name');
-	},
-	clearRecentlyUsed: (callback) => {
-
-		Command.query('ApplicationConfigurationDataNode', 1, 1, 'name', true, { name: _WorkingSets.recentlyUsedName }, (result) => {
-
-			if (result && result.length) {
-
-				let set     = result[0];
-				let content = JSON.parse(set.content);
-
-				for (let type of Object.keys(content.positions)) {
-
-					// remove type from positions object
-					delete content.positions[type];
-
-					// add type to hidden types
-					content.hiddenTypes.push(type);
-				}
-
-				Command.setProperty(set.id, 'content', JSON.stringify(content), false, callback);
-			}
-
-		}, true, null, 'id,name,content');
 	}
 };

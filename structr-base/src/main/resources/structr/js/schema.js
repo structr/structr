@@ -859,17 +859,6 @@ let _Schema = {
 			let methodsTabContent     = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'methods', 'Methods', targetView === 'methods', _Editors.resizeVisibleEditors);
 			tabControls.schemaMethods = _Schema.methods.appendMethods(methodsTabContent, entity, entity.schemaMethods);
 
-			if (Structr.isModuleActive(_Code)) {
-
-				// only show the following tab in the Code area where it is not opened in a popup
-
-				if (entity.isServiceClass === false) {
-					let workingSetsTabContent = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'working-sets', 'Working Sets', targetView === 'working-sets');
-					workingSetsTabContent.classList.add('relative');
-					_Schema.nodes.appendWorkingSets(workingSetsTabContent, entity);
-				}
-			}
-
 			_Schema.bulkDialogsGeneral.overrideDialogCancel(mainTabs, callbackCancel);
 
 			Structr.resize();
@@ -1051,81 +1040,6 @@ let _Schema = {
 				}
 			};
 		},
-		appendWorkingSets: (container, entity) => {
-
-			container.insertAdjacentHTML('beforeend', _Schema.templates.workingSets({
-				type: entity,
-				buttons: _Schema.templates.basicAddButton({ addButtonText: 'Add Working Set' })
-			}));
-
-			// manage working sets
-			_WorkingSets.getWorkingSets((workingSets) => {
-
-				let groupSelect = document.querySelector('select#type-groups');
-
-				let createAndAddWorkingSetOption = (set, forceAdd) => {
-
-					let setOption = document.createElement('option');
-					setOption.textContent = set.name;
-					setOption.dataset['groupId'] = set.id;
-
-					if (forceAdd === true || set.children && set.children.includes(entity.name)) {
-						setOption.selected = true;
-					}
-
-					groupSelect.appendChild(setOption);
-				};
-
-				for (let set of workingSets) {
-
-					if (set.name !== _WorkingSets.recentlyUsedName) {
-						createAndAddWorkingSetOption(set);
-					}
-				}
-
-				let isUnselectAction = false;
-				$(groupSelect).select2({
-					search_contains: true,
-					width: '100%',
-					closeOnSelect: false
-				}).on('select2:unselecting', function(e, p) {
-					isUnselectAction = true;
-
-				}).on('select2:opening', function(e, p) {
-					if (isUnselectAction) {
-						e.preventDefault();
-						isUnselectAction = false;
-					}
-
-				}).on('select2:select', function(e, p) {
-					let id = e.params.data.element.dataset['groupId'];
-
-					_WorkingSets.addTypeToSet(id, entity.name, function() {
-						_TreeHelper.refreshNode('#code-tree', 'workingsets-' + id);
-					});
-
-				}).on('select2:unselect', function(e, p) {
-					let id = e.params.data.element.dataset['groupId'];
-
-					_WorkingSets.removeTypeFromSet(id, entity.name, function() {
-						_TreeHelper.refreshNode('#code-tree', 'workingsets-' + id);
-					});
-				});
-
-				container.querySelector('.add-button')?.addEventListener('click', () => {
-
-					_WorkingSets.createNewSetAndAddType(entity.name, (ws) => {
-
-						_TreeHelper.refreshNode('#code-tree', 'workingsets');
-
-						createAndAddWorkingSetOption(ws, true);
-						$(groupSelect).trigger('change');
-					});
-				})
-			});
-
-		},
-
 		getTypeDefinitionDataFromForm: (tabContent, entity) => {
 			return _Code.persistence.collectDataFromContainer(tabContent, entity);
 		},
@@ -5721,37 +5635,6 @@ let _Schema = {
 		`,
 		basicAddButton: config => `
 			<button class="add-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')}${config.addButtonText}</button>
-		`,
-		workingSets: config => `
-			<div>
-				<div class="inline-info">
-					<div class="inline-info-icon">
-						${_Icons.getSvgIcon(_Icons.iconInfo, 24, 24)}
-					</div>
-					<div class="inline-info-text">
-						Working Sets are identical to layouts. Removing an element from a group removes it from the layout
-					</div>
-				</div>
-
-				<div style="width: calc(100% - 4rem);" class="pt-4 mb-4">
-					<select id="type-groups" multiple="multiple"></select>
-					<span id="add-to-new-group"></span>
-				</div>
-
-				${config.buttons ?? ''}
-
-			</div>
-		`,
-		usageSearch: config => `
-			<div class="mb-4">
-				<div>
-					<label id="usage-label"></label>
-				</div>
-
-				<div id="usage-tree-container">
-					<ul id="usage-tree"></ul>
-				</div>
-			</div>
 		`,
 	}
 };
