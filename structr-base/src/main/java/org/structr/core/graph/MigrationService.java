@@ -798,33 +798,33 @@ public class MigrationService {
 
 	private static void updateSharedComponentFlag() {
 
-		final PropertyKey<Boolean> key = Traits.of(StructrTraits.DOM_ELEMENT).key(DOMNodeTraitDefinition.HAS_SHARED_COMPONENT_PROPERTY);
+		final PropertyKey<Boolean> key = Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.HAS_SHARED_COMPONENT_PROPERTY);
 		final App app                  = StructrApp.getInstance();
 		long count                     = 0L;
 
 		try (final Tx tx = app.tx()) {
 
 			// prefetch dom nodes with sync rels
-			tx.prefetch(StructrTraits.DOM_ELEMENT, StructrTraits.DOM_ELEMENT,
+			tx.prefetch(StructrTraits.DOM_NODE, StructrTraits.DOM_NODE,
 				Set.of("all/INCOMING/SYNC",
 					"all/OUTGOING/SYNC")
 			);
 
 			// check (and fix) event action mapping relationships
-			for (final NodeInterface node : app.nodeQuery(StructrTraits.DOM_ELEMENT).getResultStream()) {
+			for (final NodeInterface node : app.nodeQuery(StructrTraits.DOM_NODE).getResultStream()) {
 
-				final DOMElement elem = node.as(DOMElement.class);
+				final DOMNode elem = node.as(DOMNode.class);
 
 				if (!node.getProperty(key) && elem.getSharedComponent() != null) {
 					node.setProperty(key, true);
 					count++;
 				}
-
 			}
 
 			tx.success();
 
 		} catch (Throwable fex) {
+
 			logger.warn("Unable to update hasSharedComponent flag: {}", fex.getMessage());
 			fex.printStackTrace();
 		}
