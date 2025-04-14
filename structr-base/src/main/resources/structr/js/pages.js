@@ -1613,7 +1613,7 @@ let _Pages = {
 
 			Command.get(entity.id, 'id,type,triggeredActions', (result) => {
 				actionMapping = result.triggeredActions[0];
-				Command.create({type: 'ParameterMapping', actionMapping: actionMapping.id}, (parameterMapping) => {
+				Command.create({type: 'ParameterMapping', actionMapping: actionMapping.id, parameterName: "parameter-" + actionMapping.id.slice(0,4)}, (parameterMapping) => {
 					getAndAppendParameterMapping(parameterMapping.id);
 				});
 			});
