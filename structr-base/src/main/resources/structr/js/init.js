@@ -1440,6 +1440,8 @@ let Structr = {
 					if (isImport) {
 
 						finalMessage.specialInteractionButton('Reload Page', () => { location.reload(); }, 'Ignore').updatesButtons();
+
+						Structr.cleanupAfterDeploymentImport();
 					}
 
 					finalMessage.show();
@@ -1764,6 +1766,12 @@ let Structr = {
 				new WarningMessage().title("GENERIC_MESSAGE").text(text).requiresConfirmation().show();
 			}
 		}
+	},
+	cleanupAfterDeploymentImport: () => {
+
+		_Elements.unselectEntity();	// selected entity could be in shadow page
+
+		_Pages.updateShadowPageAfterDeployment();
 	},
 	showReconnectDialog: () => {
 
