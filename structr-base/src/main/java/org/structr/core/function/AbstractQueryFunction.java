@@ -242,15 +242,15 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 					switch (operator) {
 
 						case "and":
-							handleAndObject(securityContext, traits, query, value, exact);
+							handleObject(securityContext, traits, query.and(), value, exact);
 							break;
 
 						case "or":
-							handleOrObject(securityContext, traits, query, value, exact);
+							handleObject(securityContext, traits, query.or(), value, exact);
 							break;
 
 						case "not":
-							handleNotObject(securityContext, traits, query, value, exact);
+							handleObject(securityContext, traits, query.not(), value, exact);
 							break;
 					}
 
@@ -268,16 +268,7 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 							convertedValue = inputConverter.convert(value);
 						}
 
-						/*
-						if (Operation.OR.equals(query.getCurrentOperation())) {
-
-							query.or(key, convertedValue, exact);
-
-						} else {
-
-							query.key(key, convertedValue, exact);
-						}
-						*/
+						query.key(key, convertedValue, exact);
 					}
 				}
 			}
@@ -290,17 +281,5 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 
 			throw new FrameworkException(422, "Invalid type in advanced search query: expected object, got null");
 		}
-	}
-
-	private void handleAndObject(final SecurityContext securityContext, final Traits type, final Query query, final Object source, final boolean exact) throws FrameworkException {
-		handleObject(securityContext, type, query.and(), source, exact);
-	}
-
-	private void handleOrObject(final SecurityContext securityContext, final Traits type, final Query query, final Object source, final boolean exact) throws FrameworkException {
-		handleObject(securityContext, type, query.or(), source, exact);
-	}
-
-	private void handleNotObject(final SecurityContext securityContext, final Traits type, final Query query, final Object source, final boolean exact) throws FrameworkException {
-		handleObject(securityContext, type, query.not(), source, exact);
 	}
 }

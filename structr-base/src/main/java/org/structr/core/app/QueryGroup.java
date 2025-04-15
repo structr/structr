@@ -49,7 +49,8 @@ public interface QueryGroup<T> extends Query<T> {
 	<P> QueryGroup<T> range(final PropertyKey<P> key, final P rangeStart, final P rangeEnd);
 	<P> QueryGroup<T> range(final PropertyKey<P> key, final P rangeStart, final P rangeEnd, final boolean includeStart, final boolean includeEnd);
 
-	QueryGroup<T> attributes(final List<SearchAttribute> attributes);
+	Query<T> attributes(final List<SearchAttribute> attributes, final Operation operation);
 
 	Operation getOperation();
+	Query<T> getParent();
 }

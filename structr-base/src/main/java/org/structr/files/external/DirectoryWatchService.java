@@ -38,6 +38,8 @@ import org.structr.storage.StorageProvider;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.StorageConfiguration;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.FolderTraitDefinition;
 
 import java.io.File;
 import java.io.IOException;
@@ -45,8 +47,6 @@ import java.nio.file.*;
 import java.nio.file.WatchEvent.Kind;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
-import org.structr.web.traits.definitions.FolderTraitDefinition;
 
 import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
 
@@ -290,7 +290,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 		try (final Tx tx = app.tx(false, false, false)) {
 
 			// find all folders with storageConfigurations and try to mount them
-			for (final NodeInterface folder : app.nodeQuery(StructrTraits.FOLDER).not().blank(storageConfigurationKey).getAsList()) {
+			for (final NodeInterface folder : app.nodeQuery(StructrTraits.FOLDER).notBlank(storageConfigurationKey).getAsList()) {
 
 				mountFolder(folder.as(Folder.class));
 			}

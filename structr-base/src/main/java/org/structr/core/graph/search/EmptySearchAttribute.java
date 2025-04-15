@@ -57,35 +57,21 @@ public class EmptySearchAttribute<T> extends PropertySearchAttribute<T> {
 	@Override
 	public boolean includeInResult(final GraphObject entity) {
 
-		/*
-		Occurrence occur = getOccurrence();
-		T searchValue    = getValue();
-		T nodeValue      = entity.getProperty(getKey());
+		T searchValue = getValue();
+		T nodeValue   = entity.getProperty(getKey());
 
-		if (occur.equals(Occurrence.FORBIDDEN)) {
+		if (nodeValue != null) {
 
-			if ((nodeValue != null) && !equal(nodeValue, searchValue)) {
-
-				// don't add, do not check other results
+			if (!equal(nodeValue, searchValue)) {
 				return false;
 			}
 
 		} else {
 
-			if (nodeValue != null) {
-
-				if (!equal(nodeValue, searchValue)) {
-					return false;
-				}
-
-			} else {
-
-				if (searchValue != null) {
-					return false;
-				}
+			if (searchValue != null) {
+				return false;
 			}
 		}
-		*/
 
 		return true;
 	}

@@ -240,15 +240,19 @@ public class AdvancedCypherQuery implements CypherQuery {
 		buffer.append("(");
 	}
 
-	public void endGroup() {
+	public boolean endGroup() {
 
 		if ('(' == buffer.charAt(buffer.length() - 1)) {
 
 			buffer.deleteCharAt(buffer.length() - 1);
 
+			return false;
+
 		} else {
 
 			buffer.append(")");
+
+			return true;
 		}
 	}
 

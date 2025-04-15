@@ -42,14 +42,19 @@ public abstract class SearchAttribute<T> implements Predicate<GraphObject>, Quer
  	private Set<GraphObject> result            = new LinkedHashSet<>();
 	private Comparator<GraphObject> comparator = null;
 	private SortOrder sortOrder                = null;
-	private PropertyKey<T> key                 = null;
-	private T value                            = null;
+	protected PropertyKey<T> key               = null;
+	protected T value                          = null;
 
 	public abstract boolean includeInResult(final GraphObject entity);
 
 	public SearchAttribute(final PropertyKey<T> key, final T value) {
 		this.key    = key;
 		this.value  = value;
+	}
+
+	@Override
+	public String toString() {
+		return key.dbName() + "=" + value;
 	}
 
 	public void setResult(final Set<GraphObject> result) {

@@ -340,14 +340,18 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 		final List<Relationship> list = new LinkedList<>();
 
 		// store rels in cache
-		for (final Relationship rel : index.getResult(query)) {
+		try {
+			for (final Relationship rel : index.getResult(query)) {
 
-			final String relKey = createKey(rel);
+				final String relKey = createKey(rel);
 
-			relationshipCache.insert(relKey, rel);
-			list.add(rel);
+				relationshipCache.insert(relKey, rel);
+				list.add(rel);
 
-			prefetched.add(relKey);
+				prefetched.add(relKey);
+			}
+		} catch (FrameworkException e) {
+			throw new RuntimeException(e);
 		}
 
 		prefetched.add(key);

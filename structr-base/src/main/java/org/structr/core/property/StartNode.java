@@ -55,6 +55,7 @@ public class StartNode extends Property<NodeInterface> implements RelationProper
 	// relationship members
 	private final Relation<OneStartpoint, ? extends Target> relation;
 	private final Traits traits;
+	private final String sourceType;
 	private final String destType;
 	private final Notion notion;
 
@@ -84,10 +85,11 @@ public class StartNode extends Property<NodeInterface> implements RelationProper
 
 		super(name);
 
-		this.traits   = Traits.of(type);
-		this.relation = traits.getRelation();
-		this.notion   = notion;
-		this.destType = relation.getSourceType();
+		this.traits     = Traits.of(type);
+		this.relation   = traits.getRelation();
+		this.notion     = notion;
+		this.sourceType = relation.getSourceType();
+		this.destType   = relation.getSourceType();
 
 		// configure notion
 		this.notion.setType(destType);
@@ -215,12 +217,17 @@ public class StartNode extends Property<NodeInterface> implements RelationProper
 	}
 
 	@Override
+	public String getSourceType() {
+		return sourceType;
+	}
+
+	@Override
 	public String getTargetType() {
 		return destType;
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final NodeInterface searchValue, final boolean exactMatch, final QueryGroup query) {
+	public SearchAttribute getSearchAttribute(final NodeInterface searchValue, final boolean exactMatch, final QueryGroup query) {
 		return new GraphSearchAttribute<>(this, searchValue, exactMatch);
 	}
 

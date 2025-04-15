@@ -835,7 +835,7 @@ public class UnifiedArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[2]." + type + "ArrayProperty[1]", equalTo(value2))
 
 			.when()
-			.get("/TestThree?_sort=name&" + type + "ArrayProperty=" + value1 + ";" + value2);
+			.get("/TestThree?_sort=name&" + type + "ArrayProperty=" + value1 + ";" + value2 + "&_inexact=1");
 
 		// remove all test objects
 		RestAssured.given()

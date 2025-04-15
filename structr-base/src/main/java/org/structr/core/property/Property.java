@@ -573,7 +573,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final T searchValue, final boolean exactMatch, final QueryGroup query) {
+	public SearchAttribute getSearchAttribute(final T searchValue, final boolean exactMatch, final QueryGroup query) {
 		return new PropertySearchAttribute(this, searchValue, exactMatch);
 	}
 

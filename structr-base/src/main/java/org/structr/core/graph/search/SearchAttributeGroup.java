@@ -18,11 +18,12 @@
  */
 package org.structr.core.graph.search;
 
-import org.structr.api.search.ComparisonQuery;
-import org.structr.api.search.GroupQuery;
-import org.structr.api.search.Operation;
-import org.structr.api.search.QueryPredicate;
+import org.structr.api.Predicate;
+import org.structr.api.search.*;
+import org.structr.api.util.ResultStream;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.app.Query;
 import org.structr.core.app.QueryGroup;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -30,6 +31,8 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
+import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
 
 import java.util.*;
 
@@ -40,14 +43,22 @@ import java.util.*;
  */
 public class SearchAttributeGroup<T> extends SearchAttribute<T> implements QueryGroup<T>, GroupQuery {
 
+	private static final Set<String> indexedWarningDisabled = Set.of(
+		SchemaMethodTraitDefinition.SOURCE_PROPERTY,
+		SchemaPropertyTraitDefinition.READ_FUNCTION_PROPERTY,
+		SchemaPropertyTraitDefinition.WRITE_FUNCTION_PROPERTY
+	);
+
 	private final List<SearchAttribute> searchItems = new LinkedList<>();
 	private final Operation operation;
+	private final Query<T> query;
 
-	public SearchAttributeGroup(final Operation operation) {
+	public SearchAttributeGroup(final Query<T> parent, final Operation operation) {
 
 		super(null, null);
 
 		this.operation = operation;
+		this.query     = parent;
 	}
 
 	@Override
@@ -93,7 +104,7 @@ public class SearchAttributeGroup<T> extends SearchAttribute<T> implements Query
 	}
 
 	@Override
-	public boolean includeInResult(GraphObject entity) {
+	public boolean includeInResult(final GraphObject entity) {
 
 		boolean includeInResult = true;
 
@@ -131,6 +142,26 @@ public class SearchAttributeGroup<T> extends SearchAttribute<T> implements Query
 	}
 
 	@Override
+	public boolean isEmpty() {
+
+		boolean isEmpty = searchItems.isEmpty();
+
+		for (SearchAttribute attr : searchItems) {
+
+			if (attr instanceof SearchAttributeGroup g) {
+
+				isEmpty &= g.isEmpty();
+
+			} else {
+
+				return false;
+			}
+		}
+
+		return isEmpty;
+	}
+
+	@Override
 	public void setExactMatch(final boolean exact) {
 
 		for (SearchAttribute attr : getSearchAttributes()) {
@@ -156,22 +187,42 @@ public class SearchAttributeGroup<T> extends SearchAttribute<T> implements Query
 		return predicates;
 	}
 
+	// ----- interface QueryGroup<T> -----
 	@Override
 	public Operation getOperation() {
 		return operation;
 	}
 
 	@Override
-	public QueryGroup attributes(final List<SearchAttribute> attributes) {
+	public Query<T> getParent() {
+		return query;
+	}
 
-		searchItems.addAll(attributes);
+	@Override
+	public QueryGroup attributes(final List<SearchAttribute> attributes, final Operation operation) {
+
+		final SearchAttributeGroup group = new SearchAttributeGroup(this, operation);
+
+		// add all search items
+		for (final SearchAttribute attr : searchItems) {
+			group.add(attr);
+		}
+
+		// add new attributes
+		for (final SearchAttribute attr : attributes) {
+			group.add(attr);
+		}
+
+		searchItems.clear();
+		searchItems.add(group);
+
 		return this;
 	}
 
 	@Override
 	public QueryGroup<T> uuid(final String uuid) {
 
-		doNotSort = true;
+		query.doNotSort(true);
 
 		return key(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), uuid);
 	}
@@ -179,7 +230,7 @@ public class SearchAttributeGroup<T> extends SearchAttribute<T> implements Query
 	@Override
 	public QueryGroup<T> types(final Traits traits) {
 
-		this.traits = traits;
+		query.setTraits(traits);
 
 		type(traits.getName());
 
@@ -224,7 +275,7 @@ public class SearchAttributeGroup<T> extends SearchAttribute<T> implements Query
 	public <P> QueryGroup<T> key(final PropertyKey<P> key, final P value) {
 
 		if (Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY).equals(key)) {
-			this.doNotSort = false;
+			query.doNotSort(false);
 		}
 
 		return key(key, value, true);
@@ -235,24 +286,10 @@ public class SearchAttributeGroup<T> extends SearchAttribute<T> implements Query
 
 		if (Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY).equals(key)) {
 
-			this.doNotSort = false;
+			query.doNotSort(false);
 		}
 
-		assertPropertyIsIndexed(key);
-
-		if (currentGroup.getOperation().equals(Operation.AND)) {
-
-			searchItems.add(key.getSearchAttribute(securityContext, value, exact, this));
-
-		} else {
-
-			// we need to create a new group with AND
-			final SearchAttributeGroup andGroup = new SearchAttributeGroup(Operation.AND);
-
-			searchItems.add(andGroup);
-
-			currentGroup = andGroup;
-		}
+		searchItems.add(key.getSearchAttribute(value, exact, this));
 
 		return this;
 	}
@@ -267,7 +304,7 @@ public class SearchAttributeGroup<T> extends SearchAttribute<T> implements Query
 
 			if (Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY).equals(key)) {
 
-				this.doNotSort = false;
+				query.doNotSort(false);
 			}
 
 			key(key, value);
@@ -281,8 +318,6 @@ public class SearchAttributeGroup<T> extends SearchAttribute<T> implements Query
 
 		searchItems.add(new NotBlankSearchAttribute(key));
 
-		assertPropertyIsIndexed(key);
-
 		return this;
 	}
 
@@ -294,11 +329,11 @@ public class SearchAttributeGroup<T> extends SearchAttribute<T> implements Query
 			// related nodes
 			if (key.isCollection()) {
 
-				searchItems.add(key.getSearchAttribute(securityContext, Collections.EMPTY_LIST, true, this));
+				searchItems.add(key.getSearchAttribute(Collections.EMPTY_LIST, true, this));
 
 			} else {
 
-				searchItems.add(key.getSearchAttribute(securityContext, null, true, this));
+				searchItems.add(key.getSearchAttribute(null, true, this));
 			}
 
 		} else {
@@ -306,8 +341,6 @@ public class SearchAttributeGroup<T> extends SearchAttribute<T> implements Query
 			// everything else
 			searchItems.add(new EmptySearchAttribute(key, null));
 		}
-
-		assertPropertyIsIndexed(key);
 
 		return this;
 	}
@@ -317,8 +350,6 @@ public class SearchAttributeGroup<T> extends SearchAttribute<T> implements Query
 
 		searchItems.add(new ComparisonSearchAttribute(key, caseSensitive ? ComparisonQuery.Comparison.startsWith : ComparisonQuery.Comparison.caseInsensitiveStartsWith, prefix));
 
-		assertPropertyIsIndexed(key);
-
 		return this;
 	}
 
@@ -326,8 +357,6 @@ public class SearchAttributeGroup<T> extends SearchAttribute<T> implements Query
 	public <P> QueryGroup<T> endsWith(final PropertyKey<P> key, final P suffix, final boolean caseSensitive) {
 
 		searchItems.add(new ComparisonSearchAttribute(key, caseSensitive ? ComparisonQuery.Comparison.endsWith : ComparisonQuery.Comparison.caseInsensitiveEndsWith, suffix));
-
-		assertPropertyIsIndexed(key);
 
 		return this;
 	}
@@ -351,9 +380,132 @@ public class SearchAttributeGroup<T> extends SearchAttribute<T> implements Query
 
 		searchItems.add(new RangeSearchAttribute(key, rangeStart, rangeEnd, includeStart, includeEnd));
 
-		assertPropertyIsIndexed(key);
-
 		return this;
 	}
 
+	// ----- interface Query<T> -----
+	@Override
+	public QueryContext getQueryContext() {
+		return query.getQueryContext();
+	}
+
+	@Override
+	public Query<T> isPing(boolean isPing) {
+		return query.isPing(isPing);
+	}
+
+	@Override
+	public ResultStream<T> getResultStream() throws FrameworkException {
+		return query.getResultStream();
+	}
+
+	@Override
+	public List<T> getAsList() throws FrameworkException {
+		return query.getAsList();
+	}
+
+	@Override
+	public T getFirst() throws FrameworkException {
+		return query.getFirst();
+	}
+
+	@Override
+	public Traits getTraits() {
+		return query.getTraits();
+	}
+
+	@Override
+	public Query<T> disableSorting() {
+		return query.disableSorting();
+	}
+
+	@Override
+	public Query<T> sort(final SortOrder sortOrder) {
+		return query.sort(sortOrder);
+	}
+
+	@Override
+	public Query<T> sort(final PropertyKey key, final boolean descending) {
+		return query.sort(key, descending);
+	}
+
+	@Override
+	public Query<T> comparator(final Comparator<T> comparator) {
+		return query.comparator(comparator);
+	}
+
+	@Override
+	public Query<T> pageSize(final int pageSize) {
+		return query.pageSize(pageSize);
+	}
+
+	@Override
+	public Query<T> page(final int page) {
+		return query.page(page);
+	}
+
+	@Override
+	public Query<T> publicOnly() {
+		return query.publicOnly();
+	}
+
+	@Override
+	public Query<T> includeHidden() {
+		return query.includeHidden();
+	}
+
+	@Override
+	public Query<T> publicOnly(final boolean publicOnly) {
+		return query.publicOnly(publicOnly);
+	}
+
+	@Override
+	public Query<T> includeHidden(final boolean includeHidden) {
+		return query.includeHidden(includeHidden);
+	}
+
+	@Override
+	public QueryGroup<T> and() {
+
+		// create nested group that the user can add to
+		final SearchAttributeGroup group = new SearchAttributeGroup(this, Operation.AND);
+		searchItems.add(group);
+
+		return group;
+	}
+
+	@Override
+	public QueryGroup<T> or() {
+
+		// create nested group that the user can add to
+		final SearchAttributeGroup group = new SearchAttributeGroup(this, Operation.OR);
+		searchItems.add(group);
+
+		return group;
+	}
+
+	@Override
+	public QueryGroup<T> not() {
+
+		// create nested group that the user can add to
+		final SearchAttributeGroup group = new SearchAttributeGroup(this, Operation.NOT);
+		searchItems.add(group);
+
+		return group;
+	}
+
+	@Override
+	public Predicate<GraphObject> toPredicate() {
+		return query.toPredicate();
+	}
+
+	@Override
+	public void doNotSort(final boolean doNotSort) {
+		query.doNotSort(doNotSort);
+	}
+
+	@Override
+	public void setTraits(final Traits traits) {
+		query.setTraits(traits);
+	}
 }

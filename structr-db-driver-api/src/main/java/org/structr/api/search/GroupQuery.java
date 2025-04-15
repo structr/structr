@@ -27,4 +27,6 @@ public interface GroupQuery extends QueryPredicate {
 	List<QueryPredicate> getQueryPredicates();
 
 	Operation getOperation();
+
+	boolean isEmpty();
 }

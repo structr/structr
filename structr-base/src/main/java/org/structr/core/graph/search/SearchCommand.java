@@ -18,8 +18,6 @@
  */
 package org.structr.core.graph.search;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.index.Index;
@@ -34,14 +32,13 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.geo.GeoCodingResult;
 import org.structr.common.geo.GeoHelper;
 import org.structr.core.GraphObject;
+import org.structr.core.app.Query;
 import org.structr.core.app.QueryGroup;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Factory;
 import org.structr.core.graph.NodeServiceCommand;
-import org.structr.core.property.AbstractPrimitiveProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
-import org.structr.core.traits.Trait;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
@@ -53,23 +50,20 @@ import java.util.*;
  *
  *
  */
-public abstract class SearchCommand<S extends PropertyContainer, T extends GraphObject> extends NodeServiceCommand implements org.structr.core.app.Query<T> {
-
-	private static final Logger logger = LoggerFactory.getLogger(SearchCommand.class.getName());
+public abstract class SearchCommand<S extends PropertyContainer, T extends GraphObject> extends NodeServiceCommand implements Query<T> {
 
 	private static final Set<String> indexedWarningDisabled = new LinkedHashSet<>(Arrays.asList(SchemaMethodTraitDefinition.SOURCE_PROPERTY, SchemaPropertyTraitDefinition.READ_FUNCTION_PROPERTY, SchemaPropertyTraitDefinition.WRITE_FUNCTION_PROPERTY));
 
-	private final SearchAttributeGroup rootGroup = new SearchAttributeGroup(Operation.AND);
-	private SortOrder sortOrder                  = new DefaultSortOrder();
-	private QueryContext queryContext            = new QueryContext();
-	private SearchAttributeGroup currentGroup    = rootGroup;
-	private Comparator comparator                = null;
-	private Traits traits                        = null;
-	private boolean publicOnly                   = false;
-	private boolean includeHidden                = true;
-	private boolean doNotSort                    = false;
-	private int pageSize                         = Integer.MAX_VALUE;
-	private int page                             = 1;
+	private final SearchAttributeGroup<T> rootGroup = new SearchAttributeGroup<>(this, Operation.AND);
+	private SortOrder sortOrder                     = new DefaultSortOrder();
+	private QueryContext queryContext               = new QueryContext();
+	private Comparator comparator                   = null;
+	private Traits traits                           = null;
+	private boolean publicOnly                      = false;
+	private boolean includeHidden                   = true;
+	private boolean doNotSort                       = false;
+	private int pageSize                            = Integer.MAX_VALUE;
+	private int page                                = 1;
 
 	public abstract Factory<S, T> getFactory(final SecurityContext securityContext, final boolean includeHidden, final boolean publicOnly, final int pageSize, final int page);
 	public abstract boolean isRelationshipSearch();
@@ -81,8 +75,6 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 			return PagingIterable.EMPTY_ITERABLE;
 		}
-
-		System.out.println(description + ": " + rootGroup.toString());
 
 		final Factory<S, T> factory = getFactory(securityContext, includeHidden, publicOnly, pageSize, page);
 		final Principal user        = securityContext.getUser(false);
@@ -113,7 +105,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		// special handling of deleted and hidden flags
 		if (!includeHidden && !isRelationshipSearch()) {
 
-			final SearchAttributeGroup group = new SearchAttributeGroup(Operation.NOT);
+			final SearchAttributeGroup group = new SearchAttributeGroup(this, Operation.NOT);
 
 			group.getSearchAttributes().add(new PropertySearchAttribute(traits.key(NodeInterfaceTraitDefinition.HIDDEN_PROPERTY),  true, true));
 
@@ -354,6 +346,16 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		return traits;
 	}
 
+	@Override
+	public void setTraits(final Traits traits) {
+		this.traits = traits;
+	}
+
+	@Override
+	public void doNotSort(final boolean doNotSort) {
+		this.doNotSort = doNotSort;
+	}
+
 	// ----- builder methods -----
 	@Override
 	public org.structr.core.app.Query<T> disableSorting() {
@@ -434,33 +436,30 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	public QueryGroup<T> and() {
 
 		// create nested group that the user can add to
-		final SearchAttributeGroup group = new SearchAttributeGroup(Operation.AND);
-		currentGroup.getSearchAttributes().add(group);
-		currentGroup = group;
+		final SearchAttributeGroup group = new SearchAttributeGroup(this, Operation.AND);
+		rootGroup.getSearchAttributes().add(group);
 
-		return currentGroup;
+		return group;
 	}
 
 	@Override
 	public QueryGroup<T> or() {
 
 		// create nested group that the user can add to
-		final SearchAttributeGroup group = new SearchAttributeGroup(Operation.OR);
-		currentGroup.getSearchAttributes().add(group);
-		currentGroup = group;
+		final SearchAttributeGroup group = new SearchAttributeGroup(this, Operation.OR);
+		rootGroup.getSearchAttributes().add(group);
 
-		return currentGroup;
+		return group;
 	}
 
 	@Override
 	public QueryGroup<T> not() {
 
 		// create nested group that the user can add to
-		final SearchAttributeGroup group = new SearchAttributeGroup(Operation.NOT);
-		currentGroup.getSearchAttributes().add(group);
-		currentGroup = group;
+		final SearchAttributeGroup group = new SearchAttributeGroup(this, Operation.NOT);
+		rootGroup.getSearchAttributes().add(group);
 
-		return currentGroup;
+		return group;
 	}
 
 	@Override
@@ -492,28 +491,6 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		return !traits1.isEmpty();
 	}
 
-	// ----- private methods ----
-	private void assertPropertyIsIndexed(final PropertyKey key) {
-
-		if (key != null && !key.isIndexed() && key instanceof AbstractPrimitiveProperty) {
-
-			final Trait declaringClass = key.getDeclaringTrait();
-			String className           = "";
-
-			if (declaringClass != null) {
-
-				className = declaringClass.getLabel() + ".";
-			}
-
-			// disable logging for keys we know are not indexed and cannot
-			// easily be indexed because of the character limit of 4000..
-			if (!indexedWarningDisabled.contains(key.jsonName())) {
-
-				logger.debug("Non-indexed property key {}{} is used in query. This can lead to performance problems in large databases.", className, key.jsonName());
-			}
-		}
-	}
-
 	private String getQueryDescription() {
 		return null;
 	}
@@ -521,7 +498,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	// ----- nested classes -----
 	private class AndPredicate implements Predicate<GraphObject> {
 
-		final List<Predicate<org.structr.core.GraphObject>> predicates = new ArrayList<>();
+		final List<Predicate<GraphObject>> predicates = new ArrayList<>();
 
 		public AndPredicate(final List<SearchAttribute> searchAttributes) {
 
@@ -529,7 +506,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 				if (attr instanceof SearchAttributeGroup) {
 
-					final SearchAttributeGroup group            = (SearchAttributeGroup)attr;
+					final SearchAttributeGroup<T> group         = (SearchAttributeGroup<T>) attr;
 					final List<SearchAttribute> groupAttributes = group.getSearchAttributes();
 
 					if (groupAttributes.isEmpty()) {

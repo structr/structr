@@ -53,6 +53,7 @@ public class StartNodes extends Property<Iterable<NodeInterface>> implements Rel
 	private final Relation<ManyStartpoint, ? extends Target> relation;
 	private final Traits traits;
 	private final Notion notion;
+	private final String sourceType;
 	private final String destType;
 
 	/**
@@ -76,10 +77,11 @@ public class StartNodes extends Property<Iterable<NodeInterface>> implements Rel
 
 		super(name);
 
-		this.traits   = Traits.of(type);
-		this.relation = traits.getRelation();
-		this.notion   = notion;
-		this.destType = relation.getSourceType();
+		this.traits     = Traits.of(type);
+		this.relation   = traits.getRelation();
+		this.notion     = notion;
+		this.sourceType = relation.getSourceType();
+		this.destType   = relation.getSourceType();
 
 		this.notion.setType(destType);
 		this.notion.setRelationProperty(this);
@@ -204,6 +206,11 @@ public class StartNodes extends Property<Iterable<NodeInterface>> implements Rel
 	}
 
 	@Override
+	public String getSourceType() {
+		return sourceType;
+	}
+
+	@Override
 	public String getTargetType() {
 		return destType;
 	}
@@ -229,7 +236,7 @@ public class StartNodes extends Property<Iterable<NodeInterface>> implements Rel
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final Iterable<NodeInterface> searchValue, final boolean exactMatch, final QueryGroup query) {
+	public SearchAttribute getSearchAttribute(final Iterable<NodeInterface> searchValue, final boolean exactMatch, final QueryGroup query) {
 		return new GraphSearchAttribute<>(this, searchValue, exactMatch);
 	}
 

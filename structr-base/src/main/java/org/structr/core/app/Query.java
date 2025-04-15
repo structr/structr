@@ -87,4 +87,6 @@ public interface Query<T> {
 
 	Predicate<GraphObject> toPredicate();
 
+	void doNotSort(final boolean doNotSort);
+	void setTraits(final Traits traits);
 }

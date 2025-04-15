@@ -245,7 +245,7 @@ public class Deployment3Test extends DeploymentTestBase {
 		// test
 		try (final Tx tx = app.tx()) {
 
-			NodeInterface div = app.nodeQuery().name("WidgetTestPage-Div").getFirst();
+			NodeInterface div = app.nodeQuery().and().name("WidgetTestPage-Div").getFirst();
 
 			assertEquals(1, div.as(DOMNode.class).treeGetChildCount());
 

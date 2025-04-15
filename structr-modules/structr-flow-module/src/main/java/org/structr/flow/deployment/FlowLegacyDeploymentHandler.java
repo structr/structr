@@ -197,8 +197,8 @@ public class FlowLegacyDeploymentHandler extends FlowAbstractDeploymentHandler i
 
 							} else {
 
-								final NodeInterface sourceNode = app.nodeQuery().uuid((String)entry.get("sourceId")).getFirst();
-								final NodeInterface targetNode = app.nodeQuery().uuid((String)entry.get("targetId")).getFirst();
+								final NodeInterface sourceNode = app.nodeQuery().and().uuid((String)entry.get("sourceId")).getFirst();
+								final NodeInterface targetNode = app.nodeQuery().and().uuid((String)entry.get("targetId")).getFirst();
 
 								app.create(sourceNode, targetNode, (String)entry.get("type"));
 							}

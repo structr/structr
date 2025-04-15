@@ -18,6 +18,7 @@
  */
 package org.structr.core.graph.search;
 
+import org.apache.commons.lang.StringUtils;
 import org.structr.api.search.UuidQuery;
 import org.structr.core.GraphObject;
 import org.structr.core.traits.StructrTraits;
@@ -56,40 +57,23 @@ public class UuidSearchAttribute extends SearchAttribute<String> implements Uuid
 	@Override
 	public boolean includeInResult(final GraphObject entity) {
 
-		throw new RuntimeException("Not implemented.");
-
-		/*
-
 		String nodeValue    = entity.getProperty(getKey());
-		Operation operation = getOperation();
 		String searchValue  = getValue();
 
-		if (operation.equals(Operation.NOT)) {
+		if (nodeValue != null) {
 
-			if ((nodeValue != null) && compare(nodeValue, searchValue) == 0) {
-
-				// don't add, do not check other results
+			if (compare(nodeValue, searchValue) != 0) {
 				return false;
 			}
 
 		} else {
 
-			if (nodeValue != null) {
-
-				if (compare(nodeValue, searchValue) != 0) {
-					return false;
-				}
-
-			} else {
-
-				if (searchValue != null && StringUtils.isNotBlank(searchValue)) {
-					return false;
-				}
+			if (searchValue != null && StringUtils.isNotBlank(searchValue)) {
+				return false;
 			}
 		}
 
 		return true;
-		*/
 	}
 
 	// ----- interface UuidQuery -----

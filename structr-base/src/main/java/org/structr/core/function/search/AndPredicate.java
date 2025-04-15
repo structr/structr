@@ -31,6 +31,8 @@ public class AndPredicate extends AbstractPredicate {
 	@Override
 	public void configureQuery(final SecurityContext securityContext, final Traits type, final PropertyKey propertyKey, final QueryGroup query, final boolean exact) throws FrameworkException {
 
+		final QueryGroup andGroup = query.and();
+
 		for (final SearchParameter parameter : parameters) {
 
 			final PropertyKey key = type.key(parameter.getKey());
@@ -45,7 +47,6 @@ public class AndPredicate extends AbstractPredicate {
 
 				} else {
 
-					final QueryGroup andGroup = query.and();
 
 					if (parameter.isEmptyPredicate()) {
 
@@ -61,7 +62,7 @@ public class AndPredicate extends AbstractPredicate {
 
 		for (final SearchFunctionPredicate p : predicates) {
 
-			p.configureQuery(securityContext, type, propertyKey, query.and(), exact);
+			p.configureQuery(securityContext, type, propertyKey, andGroup, exact);
 		}
 	}
 }

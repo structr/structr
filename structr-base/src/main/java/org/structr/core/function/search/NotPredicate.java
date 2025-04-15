@@ -31,6 +31,8 @@ public class NotPredicate extends AbstractPredicate {
 	@Override
 	public void configureQuery(final SecurityContext securityContext, final Traits type, final PropertyKey propertyKey, final QueryGroup query, final boolean exact) throws FrameworkException {
 
+		final QueryGroup notGroup = query.not();
+
 		for (final SearchParameter p : parameters) {
 
 			final PropertyKey key = type.key(p.getKey());
@@ -41,11 +43,10 @@ public class NotPredicate extends AbstractPredicate {
 				// check if value is predicate...
 				if (value instanceof SearchFunctionPredicate predicate) {
 
-					predicate.configureQuery(securityContext, type, key, query.not(), p.isExact());
+					predicate.configureQuery(securityContext, type, key, notGroup, p.isExact());
 
 				} else {
 
-					final QueryGroup notGroup = query.not();
 
 					if (p.isEmptyPredicate()) {
 
@@ -60,9 +61,6 @@ public class NotPredicate extends AbstractPredicate {
 		}
 
 		for (final SearchFunctionPredicate p : predicates) {
-
-			final QueryGroup andGroup = query.and();
-			final QueryGroup notGroup = andGroup.not();
 
 			p.configureQuery(securityContext, type, propertyKey, notGroup, exact);
 		}

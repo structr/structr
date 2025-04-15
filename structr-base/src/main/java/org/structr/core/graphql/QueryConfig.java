@@ -26,7 +26,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.QueryGroup;
-import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.search.GraphSearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchAttributeGroup;
@@ -137,7 +136,7 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 
 		query.page(page);
 		query.pageSize(pageSize);
-		query.attributes(new LinkedList<>(attributes.values()));
+		query.attributes(new LinkedList<>(attributes.values()), Operation.AND);
 
 		if (sortKey != null) {
 
@@ -191,8 +190,6 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 		final PropertyKey key                = type.key(field.getName());
 		Operation operation                  = Operation.AND;
 
-		// FIXME: create a search group here...
-
 		// parse arguments
 		for (final Argument argument : field.getArguments()) {
 
@@ -202,12 +199,10 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 			switch (name) {
 
 				case "_equals":
-					//searchTuples.add(new SearchTuple(castValue(securityContext, Traits.of(key.relatedType()), key, value), true));
 					searchTuples.add(new SearchTuple(castValue(securityContext, type, key, value), true));
 					break;
 
 				case "_contains":
-					//searchTuples.add(new SearchTuple(castValue(securityContext, Traits.of(key.relatedType()), key, value), false));
 					searchTuples.add(new SearchTuple(castValue(securityContext, type, key, value), false));
 					break;
 
@@ -220,16 +215,18 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 			}
 		}
 
-		//final SearchAttributeGroup group = new SearchAttributeGroup(operation);
-		// FIXME: conjunction is not used here, how can we fix this?
+		if (!searchTuples.isEmpty()) {
 
-		// only add field if a value was set
-		for (final SearchTuple tuple : searchTuples) {
+			final SearchAttributeGroup group = new SearchAttributeGroup(null, operation);
 
-			addAttribute(parentName, key.getSearchAttribute(securityContext, tuple.value, tuple.exact, null));
+			// only add field if a value was set
+			for (final SearchTuple tuple : searchTuples) {
+
+				group.add(key.getSearchAttribute(tuple.value, tuple.exact, null));
+			}
+
+			addAttribute(parentName, group);
 		}
-
-		//addAttribute(parentName, group);
 	}
 
 	// ----- private methods -----
@@ -360,6 +357,10 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 
 	private void addAttribute(final String parentName, final SearchAttribute newAttribute) {
 
+		if (newAttribute instanceof SearchAttributeGroup group && group.isEmpty()) {
+			return;
+		}
+
 		final SearchAttribute existingAttribute = attributes.get(parentName);
 		if (existingAttribute == null) {
 
@@ -377,7 +378,7 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 			} else {
 
 				// create group from two single attributes
-				final SearchAttributeGroup group = new SearchAttributeGroup(Operation.AND);
+				final SearchAttributeGroup group = new SearchAttributeGroup(null, Operation.AND);
 				group.add(existingAttribute);
 				group.add(newAttribute);
 
@@ -411,7 +412,7 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 			if (value instanceof StringValue || value instanceof IntValue || value instanceof FloatValue || value instanceof BooleanValue) {
 
 				// handle simple selections like an _equals on the field
-				addAttribute(name, key.getSearchAttribute(securityContext, castValue(securityContext, type, key, value), true, null));
+				addAttribute(name, key.getSearchAttribute(castValue(securityContext, type, key, value), true, null));
 
 			} else if (value instanceof ObjectValue) {
 
@@ -440,28 +441,27 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 
 								if (equals != null) {
 
+									/*
 									final PropertyConverter conv = notionKey.inputConverter(securityContext);
 									if (conv != null) {
 
 										equals = conv.convert(equals);
 									}
+									*/
 
 									addAttribute(name, new GraphSearchAttribute(notionKey, key, equals, true));
 
-									// primitive property
-									//addAttribute(key, key.getSearchAttribute(securityContext, Occurrence.REQUIRED, equals, true, null), Occurrence.REQUIRED);
-
 								} else if (contains != null) {
 
+									/*
 									final PropertyConverter conv = notionKey.inputConverter(securityContext);
 									if (conv != null) {
 
 										contains = conv.convert(contains);
 									}
+									*/
 
 									addAttribute(name, new GraphSearchAttribute(notionKey, key, contains, false));
-
-									//addAttribute(key, key.getSearchAttribute(securityContext, Occurrence.REQUIRED, contains, false, null), Occurrence.REQUIRED);
 								}
 
 							} else {
@@ -474,11 +474,11 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 							if (equals != null) {
 
 								// primitive property
-								addAttribute(name, key.getSearchAttribute(securityContext, equals, true, null));
+								addAttribute(name, key.getSearchAttribute(equals, true, null));
 
 							} else if (contains != null) {
 
-								addAttribute(name, key.getSearchAttribute(securityContext, contains, false, null));
+								addAttribute(name, key.getSearchAttribute(contains, false, null));
 							}
 						}
 
@@ -493,32 +493,34 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 							operation = getOperation(input.get("_conj"));
 						}
 
-						// FIXME: this must create a new group!
+						final SearchAttributeGroup group = new SearchAttributeGroup(null, operation);
 
 						for (final Object listValue : list) {
 
 							switch (searchKey) {
 
 								case "_contains":
-									addAttribute(name, key.getSearchAttribute(securityContext, listValue, false, null));
+									group.add(key.getSearchAttribute(listValue, false, null));
 									break;
 
 								case "_equals":
-									addAttribute(name, key.getSearchAttribute(securityContext, listValue, true, null));
+									group.add(key.getSearchAttribute(listValue, true, null));
 									break;
 							}
 						}
+
+						addAttribute(name, group);
 
 					} else {
 
 						switch (searchKey) {
 
 							case "_contains":
-								addAttribute(name, key.getSearchAttribute(securityContext, searchValue, false, null));
+								addAttribute(name, key.getSearchAttribute(searchValue, false, null));
 								break;
 
 							case "_equals":
-								addAttribute(name, key.getSearchAttribute(securityContext, searchValue, true, null));
+								addAttribute(name, key.getSearchAttribute(searchValue, true, null));
 								break;
 						}
 
@@ -537,29 +539,47 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 			final String name = field.getName();
 			final Value child = field.getValue();
 
-			if (child instanceof ObjectValue) {
-
-				putObjectOrList(map, name, unwrapValue((ObjectValue)child));
-
-			} else if (child instanceof StringValue) {
-
-				putObjectOrList(map, name, ((StringValue)child).getValue());
-
-			} else if (child instanceof IntValue) {
-
-				putObjectOrList(map, name, ((IntValue)child).getValue().intValue());
-
-			} else if (child instanceof FloatValue) {
-
-				putObjectOrList(map, name, ((FloatValue)child).getValue().doubleValue());
-
-			} else if (child instanceof BooleanValue) {
-
-				putObjectOrList(map, name, ((BooleanValue)child).isValue());
-			}
+			putObjectOrList(map, name, unwrapValue(child));
 		}
 
 		return map;
+	}
+
+	private Object unwrapValue(final Value value) {
+
+		if (value instanceof ArrayValue a) {
+
+			final List<Object> values = new LinkedList<>();
+
+			for (final Value v : a.getValues()) {
+
+				values.add(unwrapValue(v));
+			}
+
+			return values;
+
+		} else if (value instanceof ObjectValue o) {
+
+			return unwrapValue(o);
+
+		} else if (value instanceof StringValue s) {
+
+			return s.getValue();
+
+		} else if (value instanceof IntValue i) {
+
+			return i.getValue().intValue();
+
+		} else if (value instanceof FloatValue f) {
+
+			return f.getValue().doubleValue();
+
+		} else if (value instanceof BooleanValue b) {
+
+			return b.isValue();
+		}
+
+		return null;
 	}
 
 	private void putObjectOrList(final Map<String, Object> map, final String key, final Object value) {

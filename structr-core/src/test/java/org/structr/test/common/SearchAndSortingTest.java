@@ -1992,17 +1992,13 @@ public class SearchAndSortingTest extends StructrTest {
 			List<NodeInterface> list = app.nodeQuery(groupType)
 					.or()
 						.name("aaa")
-						.not().name("bbb").parent()
+						.not().name("bbb")
 					.or()
-						.name("ttt").parent()
+						.name("ttt")
 					.or()
-						.name("xxx").parent()
+						.name("xxx")
 					.or()
-						.name("bbb").parent()
-					.and()
-						.and().parent()
-						.and().parent()
-						.and().parent().parent()
+						.name("bbb")
 					.sort(nameKey, false)
 					.getAsList();
 
@@ -2045,32 +2041,40 @@ public class SearchAndSortingTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final List<SearchAttribute> attributes       = new ArrayList<>();
-			final SearchAttributeGroup rootGroup         = new SearchAttributeGroup(Operation.AND);
-			final SearchAttributeGroup mainMatchingGroup = new SearchAttributeGroup(Operation.AND);
+			final SearchAttributeGroup rootGroup         = new SearchAttributeGroup(null, Operation.AND);
+			final SearchAttributeGroup mainMatchingGroup = new SearchAttributeGroup(null, Operation.OR);
 
-			mainMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Comparison.equal, "a"));//, Operation.OR));
-			mainMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Comparison.equal, "b"));//, Operation.OR));
-			mainMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Comparison.equal, "c"));//, Operation.OR));
-			mainMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Comparison.equal, "d"));//, Operation.OR));
+			mainMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Comparison.equal, "a"));
+			mainMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Comparison.equal, "b"));
+			mainMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Comparison.equal, "c"));
+			mainMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Comparison.equal, "d"));
 
-			final SearchAttributeGroup secondaryMatchingGroup = new SearchAttributeGroup(Operation.AND);
+			final SearchAttributeGroup secondaryMatchingGroup = new SearchAttributeGroup(null, Operation.AND);
 
-			secondaryMatchingGroup.add(new ComparisonSearchAttribute(ownerKey, ComparisonQuery.Comparison.isNull, null));//, Operation.AND));
-			secondaryMatchingGroup.add(new ComparisonSearchAttribute(ownerKey, ComparisonQuery.Comparison.isNotNull, null));//, Operation.NOT));
+			secondaryMatchingGroup.add(new ComparisonSearchAttribute(ownerKey, ComparisonQuery.Comparison.isNull, null));
+
+			final SearchAttributeGroup notGroup = new SearchAttributeGroup(null, Operation.NOT);
+			secondaryMatchingGroup.add(notGroup);
+
+			notGroup.add(new ComparisonSearchAttribute(ownerKey, ComparisonQuery.Comparison.isNotNull, null));
 
 			// Test Greater/Less with ASCII chars
-			secondaryMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Comparison.greater, "_"));//, Operation.AND));
-			secondaryMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Comparison.greaterOrEqual, "a"));//, Operation.AND));
-			secondaryMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Comparison.lessOrEqual, "d"));//, Operation.AND));
-			secondaryMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Comparison.less, "e"));//, Operation.AND));
-			secondaryMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Comparison.notEqual, "b"));//, Operation.AND));
+			final SearchAttributeGroup andGroup = new SearchAttributeGroup(null, Operation.AND);
+
+			secondaryMatchingGroup.add(andGroup);
+
+			andGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Comparison.greater, "_"));
+			andGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Comparison.greaterOrEqual, "a"));
+			andGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Comparison.lessOrEqual, "d"));
+			andGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Comparison.less, "e"));
+			andGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Comparison.notEqual, "b"));
 
 			rootGroup.add(mainMatchingGroup);
 			rootGroup.add(secondaryMatchingGroup);
 			attributes.add(rootGroup);
 
 			final List<NodeInterface> list = app.nodeQuery(groupType)
-					.attributes(attributes)
+					.attributes(attributes, Operation.AND)
 					.sort(nameKey, false)
 					.getAsList();
 
@@ -2539,7 +2543,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 			final List<AbstractNode> result1 = (List)ScriptTestHelper.testExternalScript(ctx, SearchAndSortingTest.class.getResourceAsStream("/test/scripting/testFindQueryWithOrPredicate.js"));
 
-			assertEquals("Wrong result for predicate list,", "[Project0, Project1, Project3]", result1.stream().map(r -> r.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY))).collect(Collectors.toList()).toString());
+			assertEquals("Wrong result for predicate list,", "[Project0, Project1]", result1.stream().map(r -> r.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY))).collect(Collectors.toList()).toString());
 
 			tx.success();
 

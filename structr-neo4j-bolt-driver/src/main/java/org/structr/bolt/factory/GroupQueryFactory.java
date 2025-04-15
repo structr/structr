@@ -65,11 +65,7 @@ public class GroupQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery>
 
 					if (p instanceof GroupQuery g) {
 
-						final List<QueryPredicate> containedPredicates = g.getQueryPredicates();
-						if (!containedPredicates.isEmpty()) {
-
-							nonEmptyGroup = true;
-						}
+						nonEmptyGroup = !g.isEmpty();
 
 					} else {
 
@@ -77,13 +73,13 @@ public class GroupQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery>
 					}
 				}
 
-				/*
 				if (!(allChildrenAreGroups && !nonEmptyGroup)) {
 					checkOperation(query, group.getOperation(), isFirst);
 				}
-				*/
 
-				if (attributeAndGroupPredicates.size() > 1 && !(allChildrenAreGroups && !nonEmptyGroup)) {
+				final boolean createGroup = attributeAndGroupPredicates.size() > 1 && !(allChildrenAreGroups && !nonEmptyGroup);
+
+				if (createGroup) {
 					query.beginGroup();
 				}
 
@@ -98,6 +94,7 @@ public class GroupQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery>
 						switch (group.getOperation()) {
 
 							case NOT:
+								query.and();
 								query.not();
 								break;
 							case AND:
@@ -109,13 +106,13 @@ public class GroupQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery>
 						}
 					}
 
-					if (index.createQuery(it.next(), query, firstWithinGroup)) {
+					if (index.createQuery(it.next(), query, true)) {
 
 						firstWithinGroup = false;
 					}
 				}
 
-				if (attributeAndGroupPredicates.size() > 1 && !(allChildrenAreGroups && !nonEmptyGroup)) {
+				if (createGroup) {
 					query.endGroup();
 				}
 
@@ -129,8 +126,6 @@ public class GroupQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery>
 				}
 
 			}
-
-			return false;
 		}
 
 		return false;

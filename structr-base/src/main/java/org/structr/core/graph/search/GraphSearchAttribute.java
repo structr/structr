@@ -18,6 +18,7 @@
  */
 package org.structr.core.graph.search;
 
+import org.apache.commons.lang3.StringUtils;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
@@ -41,11 +42,15 @@ import java.util.Set;
  */
 public class GraphSearchAttribute<T> extends PropertySearchAttribute<T> implements GraphQuery {
 
-	private PropertyKey notionKey = null;
-	private Set<Object> values    = null;
+	private final PropertyKey notionKey;
+	private Set<Object> values;
+	private boolean byId = false;
 
 	public GraphSearchAttribute(final PropertyKey<T> key, final T value, final boolean exact) {
+
 		this(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), key, value, exact);
+
+		byId = true;
 	}
 
 	public GraphSearchAttribute(final PropertyKey notionKey, final PropertyKey<T> key, final T value, final boolean exact) {
@@ -66,43 +71,77 @@ public class GraphSearchAttribute<T> extends PropertySearchAttribute<T> implemen
 	}
 
 	@Override
-	public boolean includeInResult(GraphObject entity) {
+	public Class getType() {
 
-		throw new RuntimeException("Not implemented");
+		if (notionKey != null) {
 
-		/*
+			return notionKey.valueType();
+		}
+
+		return super.getType();
+	}
+
+	@Override
+	public boolean includeInResult(final GraphObject entity) {
 
 		boolean includeInResult = true;
 
-		switch (getOperation()) {
+		if (isExactMatch) {
 
-			case AND:
+			final Set<Object> entityValues = new LinkedHashSet<>();
+			final Set<Object> searchValues = getValues();
 
-				{
-					final Set<Object> entityValues = new LinkedHashSet<>();
-					final Set<Object> givenValues  = getValues();
+			collect(entityValues, entity.getProperty(getKey()));
 
-					collect(entityValues, entity.getProperty(getKey()));
+			//System.out.println("Comparing entity values " + entityValues + " to search values " + searchValues + " , exactly");
 
-					includeInResult = givenValues.containsAll(entityValues) && givenValues.size() == entityValues.size();
+			if (searchValues.isEmpty() && entityValues.isEmpty()) {
+				return true;
+			}
+
+			return searchValues.containsAll(entityValues) && searchValues.size() == entityValues.size();
+
+		} else {
+
+			final Set<Object> entityValues = new LinkedHashSet<>();
+			final Set<Object> searchValues = getValues();
+
+			collect(entityValues, entity.getProperty(getKey()));
+
+			/**
+			 * if the notion property key is NOT the ID key, we need to be
+			 * able to differentiate between two kinds of "contains" predicates..
+			 */
+			if (byId) {
+
+				//System.out.println("Comparing entity values " + entityValues + " to search values " + searchValues + " by ID, inexactly");
+
+				includeInResult =  entityValues.containsAll(searchValues);
+
+			} else {
+
+				for (final Object entityValue : entityValues) {
+
+					for (final Object searchString : searchValues) {
+
+						if (entityValue != null && searchString != null) {
+
+							final String entityString = entityValue.toString();
+							final String givenString  = searchString.toString();
+
+							//System.out.println("Comparing entity value " + entityString + " to search value " + searchString + " by string, inexactly");
+
+							if (entityString.contains(givenString)) {
+
+								return true;
+							}
+						}
+					}
 				}
-				break;
-
-			case OR:
-
-				{
-					final Set<Object> entityValues = new LinkedHashSet<>();
-					final Set<Object> givenValues  = getValues();
-
-					collect(entityValues, entity.getProperty(getKey()));
-
-					includeInResult =  entityValues.containsAll(givenValues);
-				}
-				break;
+			}
 		}
 
 		return includeInResult;
-		*/
 	}
 
 	@Override
@@ -148,7 +187,10 @@ public class GraphSearchAttribute<T> extends PropertySearchAttribute<T> implemen
 			values = new LinkedHashSet<>();
 			final Object value = getValue();
 
-			collect(values, value);
+			if (!(value instanceof String s) || StringUtils.isNotBlank(s)) {
+
+				collect(values, value);
+			}
 		}
 
 		return values;
@@ -197,6 +239,7 @@ public class GraphSearchAttribute<T> extends PropertySearchAttribute<T> implemen
 		if (value instanceof Iterable) {
 
 			for (final Object o : (Iterable)value) {
+
 				collect(values, o);
 			}
 
@@ -204,7 +247,7 @@ public class GraphSearchAttribute<T> extends PropertySearchAttribute<T> implemen
 
 			values.add(((GraphObject)value).getProperty(notionKey));
 
-		} else {
+		} else if (value != null) {
 
 			values.add(value);
 		}

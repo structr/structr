@@ -193,7 +193,6 @@ public class HtmlServletObjectResolvingTest extends StructrUiTest {
 					.or()
 					.types(Traits.of(StructrTraits.PAGE))
 					.types(Traits.of(StructrTraits.FILE))
-					.parent()
 				.key(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), uuid);
 
 			// Searching for pages needs super user context anyway

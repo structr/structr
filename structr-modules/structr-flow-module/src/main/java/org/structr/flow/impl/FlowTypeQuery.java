@@ -126,8 +126,6 @@ public class FlowTypeQuery extends FlowDataSource implements DeployableEntity {
 			resolveQueryObject(context, operations.getJSONObject(i), query);
 		}
 
-		query.parent();
-
 		return query;
 	}
 
@@ -213,7 +211,7 @@ public class FlowTypeQuery extends FlowDataSource implements DeployableEntity {
 					break;
 			}
 
-			query.attributes(attributes);
+			//query.attributes(attributes);
 
 		}
 

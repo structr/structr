@@ -203,7 +203,7 @@ public class BasicTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				List result = app.nodeQuery().uuid(uuid).getAsList();
+				List result = app.nodeQuery().and().uuid(uuid).getAsList();
 
 				assertEquals("Node should have been deleted", 0, result.size());
 
@@ -259,7 +259,7 @@ public class BasicTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				List result = app.relationshipQuery().uuid(uuid).getAsList();
+				List result = app.relationshipQuery().and().uuid(uuid).getAsList();
 
 				assertEquals("Relationship should have been deleted", 0, result.size());
 

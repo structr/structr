@@ -3820,6 +3820,7 @@ public class ScriptingTest extends StructrTest {
 
 			final NodeInterface task4 = app.create(taskType, new NodeAttribute<>(taskName, "t4") );
 			final NodeInterface task5 = app.create(taskType, new NodeAttribute<>(taskName, "t5") );
+			final NodeInterface task6 = app.create(taskType, new NodeAttribute<>(taskName, "t6") );
 
 			app.create(projectType, new NodeAttribute<>(projectName, "p1a"), new NodeAttribute<>(projectTasks, Arrays.asList(task1)) );
 			app.create(projectType, new NodeAttribute<>(projectName, "p2a"), new NodeAttribute<>(projectTasks, Arrays.asList(task2)) );
@@ -3849,16 +3850,29 @@ public class ScriptingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			assertEquals("Normal find() should use OR to search for remote properties", 9, ((List)Scripting.evaluate(ctx, null, "${{ let t1 = $.find('Task', 'name', 't1'); return $.find('Project', 'tasks', t1); }}", "testFindOldSyntax")).size());
-			assertEquals("Normal find() should use OR to search for remote properties", 9, ((List)Scripting.evaluate(ctx, null, "${{ let t2 = $.find('Task', 'name', 't2'); return $.find('Project', 'tasks', t2); }}", "testFindOldSyntax")).size());
-			assertEquals("Normal find() should use OR to search for remote properties", 9, ((List)Scripting.evaluate(ctx, null, "${{ let t3 = $.find('Task', 'name', 't3'); return $.find('Project', 'tasks', t3); }}", "testFindOldSyntax")).size());
+			// find all projects with t1 (result: 2)
+			assertEquals("Normal find() should use EXACT search for remote properties", 2, ((List)Scripting.evaluate(ctx, null, "${{ let t1 = $.find('Task', 'name', 't1'); return $.find('Project', 'tasks', t1); }}", "testFindOldSyntax")).size());
 
-			assertEquals("Normal find() should use OR to search for remote properties", 13, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t2 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't1'), $.predicate.equals('name', 't2'))); return $.find('Project', 'tasks', t1_t2); }}", "testFindOldSyntax")).size());
-			assertEquals("Normal find() should use OR to search for remote properties", 13, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t3 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't1'), $.predicate.equals('name', 't3'))); return $.find('Project', 'tasks', t1_t3); }}", "testFindOldSyntax")).size());
-			assertEquals("Normal find() should use OR to search for remote properties", 13, ((List)Scripting.evaluate(ctx, null, "${{ let t2_t3 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't2'), $.predicate.equals('name', 't3'))); return $.find('Project', 'tasks', t2_t3); }}", "testFindOldSyntax")).size());
+			// find all projects with t2 (result: 2)
+			assertEquals("Normal find() should use EXACT search for remote properties", 2, ((List)Scripting.evaluate(ctx, null, "${{ let t2 = $.find('Task', 'name', 't2'); return $.find('Project', 'tasks', t2); }}", "testFindOldSyntax")).size());
 
-			assertEquals("Normal find() should use OR to search for remote properties", 15, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t2_t3 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't1'), $.predicate.equals('name', 't2'), $.predicate.equals('name', 't3'))); return $.find('Project', 'tasks', t1_t2_t3); }}", "testFindOldSyntax")).size());
-			assertEquals("Normal find() should use OR to search for remote properties", 15, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', 'tasks', $.find('Task')); }}", "testFindOldSyntax")).size());
+			// find all projects with t2 (result: 2)
+			assertEquals("Normal find() should use EXACT search for remote properties", 2, ((List)Scripting.evaluate(ctx, null, "${{ let t3 = $.find('Task', 'name', 't3'); return $.find('Project', 'tasks', t3); }}", "testFindOldSyntax")).size());
+
+			// find all projects with t1 and t2 (result: 2)
+			assertEquals("Normal find() should use EXACT search for remote properties", 2, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t2 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't1'), $.predicate.equals('name', 't2'))); return $.find('Project', 'tasks', t1_t2); }}", "testFindOldSyntax")).size());
+
+			// find all projects with t1 and t3 (result: 2)
+			assertEquals("Normal find() should use EXACT search for remote properties", 2, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t3 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't1'), $.predicate.equals('name', 't3'))); return $.find('Project', 'tasks', t1_t3); }}", "testFindOldSyntax")).size());
+
+			// find all projects with t2 and t3 (result: 2)
+			assertEquals("Normal find() should use EXACT search for remote properties", 2, ((List)Scripting.evaluate(ctx, null, "${{ let t2_t3 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't2'), $.predicate.equals('name', 't3'))); return $.find('Project', 'tasks', t2_t3); }}", "testFindOldSyntax")).size());
+
+			// find all projects with t1, t2 and t3 (result: 2)
+			assertEquals("Normal find() should use EXACT search for remote properties", 2, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t2_t3 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't1'), $.predicate.equals('name', 't2'), $.predicate.equals('name', 't3'))); return $.find('Project', 'tasks', t1_t2_t3); }}", "testFindOldSyntax")).size());
+
+			// find all projects with all tasks(i.e. t1, t2, t3 and t4) (result: 0 because t5 exists and has no project)
+			assertEquals("Normal find() should use EXACT search for remote properties", 0, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', 'tasks', $.find('Task')); }}", "testFindOldSyntax")).size());
 
 			assertEquals("Advanced find() should use EXACT search for $.equals predicate on remote properties", 2, ((List)Scripting.evaluate(ctx, null, "${{ let t1 = $.find('Task', 'name', 't1'); return $.find('Project', 'tasks', $.predicate.equals(t1)); }}", "testFindNewSyntax")).size());
 
@@ -3887,7 +3901,9 @@ public class ScriptingTest extends StructrTest {
 
 			// ($.not and $.empty)
 			assertEquals("Advanced find() should understand $.not predicate for remote properties", 4, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Task', $.predicate.not($.predicate.empty('projects'))); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() should understand $.empty predicate for remote properties", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Task', $.predicate.empty('projects')); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() should understand $.empty predicate for remote properties", 2, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Task', $.predicate.empty('projects')); }}", "testFindNewSyntax")).size());
+
+			tx.success();
 
 		} catch (FrameworkException t) {
 
@@ -4428,13 +4444,15 @@ public class ScriptingTest extends StructrTest {
 		}
 
 
-		final ActionContext ctx                = new ActionContext(securityContext);
+		final ActionContext ctx = new ActionContext(securityContext);
 
 		try (final Tx tx = app.tx()) {
 
 			final int testNodeCount = StructrApp.getInstance().nodeQuery("TestType").getAsList().size();
 
 			final String errorMessage = "all test nodes should be returned - no cypher exception should be triggered by empty clauses!";
+
+			Settings.CypherDebugLogging.setValue(true);
 
 			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('TestType').length; }}", ""));
 
@@ -5032,6 +5050,8 @@ public class ScriptingTest extends StructrTest {
 			final String query1               = "${find('Contact', and(not(empty('num')), not(equals('contactType', first(find('ContactType', 'name', 'type1'))))), sort('num', true), page(1, 20))}";
 			final List<NodeInterface> result1 = (List)Scripting.evaluate(ctx, null, query1, "test1");
 
+			assertEquals("Invalid result for advanced find with graph predicate", 10, result1.size());
+
 			// expected: 19, 18, 16, 15, 13, 12, 8, 7, 3, 2
 			assertEquals("Invalid result for advanced find with graph predicate", 19, result1.get(0).getProperty(numKey));
 			assertEquals("Invalid result for advanced find with graph predicate", 18, result1.get(1).getProperty(numKey));
@@ -5054,7 +5074,7 @@ public class ScriptingTest extends StructrTest {
 	}
 
 	@Test
-	public void NodeInterface() {
+	public void testLoggingOfGraphObjects() {
 
 		final ActionContext ctx = new ActionContext(securityContext);
 

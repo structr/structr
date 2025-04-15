@@ -29,12 +29,13 @@ import org.structr.core.graphql.GraphQLListType;
 import org.structr.core.property.*;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
-
-import java.util.*;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 
+import java.util.*;
+
 import static graphql.schema.GraphQLTypeReference.typeRef;
+import static org.structr.core.entity.Relation.Multiplicity.Many;
 
 public class GraphQLHelper {
 
@@ -257,12 +258,13 @@ public class GraphQLHelper {
 				final String targetType = relationProperty.getTargetType();
 				final String propertyName = outProperty.jsonName();
 				final String queryTypeName = type + propertyName + targetType + "InInput";
+				final boolean isMultiple   = Many.equals(relationProperty.getRelation().getTargetMultiplicity());
 
 				if (!queryTypeNames.contains(queryTypeName)) {
 
 					arguments.add(GraphQLArgument.newArgument().name(propertyName).type(GraphQLInputObjectType.newInputObject()
 						.name(queryTypeName)
-						.fields(getGraphQLInputFieldsForType(selectionTypes, targetType))
+						.fields(getGraphQLInputFieldsForType(selectionTypes, targetType, isMultiple))
 						.build()
 					).build());
 
@@ -274,15 +276,16 @@ public class GraphQLHelper {
 			for (final Property inProperty : getRelationshipProperties(type, false)) {
 
 				final RelationProperty relationProperty = (RelationProperty) inProperty;
-				final String sourceType = relationProperty.getTargetType();
+				final String targetType = relationProperty.getTargetType();
 				final String propertyName = inProperty.jsonName();
-				final String queryTypeName = type + propertyName + sourceType + "OutInput";
+				final String queryTypeName = type + propertyName + targetType + "OutInput";
+				final boolean isMultiple   = Many.equals(relationProperty.getRelation().getSourceMultiplicity());
 
 				if (!queryTypeNames.contains(queryTypeName)) {
 
 					arguments.add(GraphQLArgument.newArgument().name(propertyName).type(GraphQLInputObjectType.newInputObject()
 						.name(queryTypeName)
-						.fields(getGraphQLInputFieldsForType(selectionTypes, sourceType))
+						.fields(getGraphQLInputFieldsForType(selectionTypes, targetType, isMultiple))
 						.build()
 					).build());
 
@@ -326,7 +329,7 @@ public class GraphQLHelper {
 				// manual registration for built-in relationships that are not dynamic
 				arguments.add(GraphQLArgument.newArgument().name("owner").type(GraphQLInputObjectType.newInputObject()
 					.name(ownerTypeName)
-					.fields(getGraphQLInputFieldsForType(selectionTypes, StructrTraits.PRINCIPAL))
+					.fields(getGraphQLInputFieldsForType(selectionTypes, StructrTraits.PRINCIPAL, false))
 					.build()
 				).build());
 
@@ -337,7 +340,7 @@ public class GraphQLHelper {
 		return arguments;
 	}
 
-	private List<GraphQLInputObjectField> getGraphQLInputFieldsForType(final Map<String, GraphQLInputObjectType> selectionTypes, final String type) throws IllegalAccessException {
+	private List<GraphQLInputObjectField> getGraphQLInputFieldsForType(final Map<String, GraphQLInputObjectType> selectionTypes, final String type, final boolean isMultiple) throws IllegalAccessException {
 
 		if (Traits.exists(type)) {
 
@@ -352,7 +355,7 @@ public class GraphQLHelper {
 					if (!trait.equals(type) && !InternalTypes.contains(trait)) {
 
 						// add inherited fields from superclass
-						for (final GraphQLInputObjectField field : getGraphQLInputFieldsForType(selectionTypes, trait)) {
+						for (final GraphQLInputObjectField field : getGraphQLInputFieldsForType(selectionTypes, trait, false)) {
 
 							fields.put(field.getName(), field);
 						}
@@ -371,7 +374,7 @@ public class GraphQLHelper {
 
 							selectionType = GraphQLInputObjectType.newInputObject()
 								.name(selectionName)
-								.field(GraphQLInputObjectField.newInputObjectField().name("_contains").type(Scalars.GraphQLString).build())
+								.field(GraphQLInputObjectField.newInputObjectField().name("_contains").type(getGraphQLInputTypeForProperty(property)).build())
 								.field(GraphQLInputObjectField.newInputObjectField().name("_equals").type(getGraphQLInputTypeForProperty(property)).build())
 								.field(GraphQLInputObjectField.newInputObjectField().name("_conj").type(Scalars.GraphQLString).build())
 								.build();
@@ -391,7 +394,9 @@ public class GraphQLHelper {
 						selectionType = GraphQLInputObjectType.newInputObject()
 							.name("nameSelection")
 							.field(GraphQLInputObjectField.newInputObjectField().name("_contains").type(Scalars.GraphQLString).build())
-							.field(GraphQLInputObjectField.newInputObjectField().name("_equals").type(Scalars.GraphQLString).build())
+							.field(GraphQLInputObjectField.newInputObjectField().name("_equals").type(
+								isMultiple ? new GraphQLListType(Scalars.GraphQLString) : Scalars.GraphQLString
+							).build())
 							.field(GraphQLInputObjectField.newInputObjectField().name("_conj").type(Scalars.GraphQLString).build())
 							.build();
 
@@ -641,7 +646,7 @@ public class GraphQLHelper {
 		final Relation relation          = property.getRelation();
 		final Relation.Multiplicity mult = outgoing ? relation.getTargetMultiplicity() : relation.getSourceMultiplicity();
 
-		return Relation.Multiplicity.Many.equals(mult);
+		return Many.equals(mult);
 	}
 
 }

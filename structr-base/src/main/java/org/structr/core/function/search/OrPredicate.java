@@ -31,6 +31,8 @@ public class OrPredicate extends AbstractPredicate {
 	@Override
 	public void configureQuery(final SecurityContext securityContext, final Traits type, final PropertyKey propertyKey, final QueryGroup query, final boolean exact) throws FrameworkException {
 
+		final QueryGroup orGroup = query.or();
+
 		for (final SearchParameter p : parameters) {
 
 			final PropertyKey key = type.key(p.getKey());
@@ -41,11 +43,9 @@ public class OrPredicate extends AbstractPredicate {
 				// check if value is predicate...
 				if (value instanceof SearchFunctionPredicate predicate) {
 
-					predicate.configureQuery(securityContext, type, key, query.or(), p.isExact());
+					predicate.configureQuery(securityContext, type, key, orGroup, p.isExact());
 
 				} else {
-
-					final QueryGroup orGroup = query.or();
 
 					if (p.isEmptyPredicate()) {
 
@@ -61,7 +61,7 @@ public class OrPredicate extends AbstractPredicate {
 
 		for (final SearchFunctionPredicate p : predicates) {
 
-			p.configureQuery(securityContext, type, propertyKey, query.or(), exact);
+			p.configureQuery(securityContext, type, propertyKey, orGroup, exact);
 		}
 
 	}

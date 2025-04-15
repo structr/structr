@@ -30,7 +30,6 @@ import org.structr.core.property.PropertyKey;
  */
 public class RangeSearchAttribute<T> extends SearchAttribute<T> implements RangeQuery {
 
-	private PropertyKey<T> searchKey = null;
 	private boolean includeStart     = true;
 	private boolean includeEnd       = true;
 	private T rangeStart             = null;
@@ -38,11 +37,10 @@ public class RangeSearchAttribute<T> extends SearchAttribute<T> implements Range
 
 	public RangeSearchAttribute(final PropertyKey<T> searchKey, final T rangeStart, final T rangeEnd, final boolean includeStart, final boolean includeEnd) {
 
-		super(null, null);
+		super(searchKey, null);
 
 		this.includeStart = includeStart;
 		this.includeEnd   = includeEnd;
-		this.searchKey    = searchKey;
 		this.rangeStart   = rangeStart;
 		this.rangeEnd     = rangeEnd;
 	}
@@ -50,10 +48,6 @@ public class RangeSearchAttribute<T> extends SearchAttribute<T> implements Range
 	@Override
 	public String toString() {
 		return "RangeSearchAttribute()";
-	}
-
-	public PropertyKey getKey() {
-		return searchKey;
 	}
 
 	@Override
@@ -69,7 +63,7 @@ public class RangeSearchAttribute<T> extends SearchAttribute<T> implements Range
 	@Override
 	public boolean includeInResult(GraphObject entity) {
 
-		final T value = entity.getProperty(searchKey);
+		final T value = entity.getProperty(key);
 		if (value != null) {
 
 			final Comparable cv = (Comparable)value;
