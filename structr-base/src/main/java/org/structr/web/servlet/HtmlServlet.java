@@ -1168,10 +1168,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		// Find pages by path or name
 		final List<NodeInterface> possiblePages = StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.PAGE)
 			.or()
-				.notBlank(pathKey)
 				.key(pathKey, path)
-			.or()
-				.blank(pathKey)
 				.key(nameKey, name)
 			.sort(pathKey)
 			.getAsList();

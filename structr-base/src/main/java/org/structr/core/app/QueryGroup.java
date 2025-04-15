@@ -51,6 +51,8 @@ public interface QueryGroup<T> extends Query<T> {
 
 	Query<T> attributes(final List<SearchAttribute> attributes, final Operation operation);
 
+	void add(final SearchAttribute<T> attribute);
+
 	Operation getOperation();
 	Query<T> getParent();
 }

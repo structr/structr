@@ -164,7 +164,7 @@ public class EntityNotionProperty<S extends NodeInterface, T> extends Property<T
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(final T searchValue, final boolean exactMatch, final QueryGroup query) {
+	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final T searchValue, final boolean exactMatch, final QueryGroup query) {
 
 		final PropertyKey<S> entityProperty = Traits.of(baseType).key(basePropertyName);
 

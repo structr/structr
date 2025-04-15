@@ -109,9 +109,9 @@ public class PathProperty extends AbstractReadOnlyProperty<String> {
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(final String searchValue, final boolean exactMatch, final QueryGroup query) {
+	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final String searchValue, final boolean exactMatch, final QueryGroup query) {
 
-		final App app                    = StructrApp.getInstance();
+		final App app                    = StructrApp.getInstance(securityContext);
 		final SourceSearchAttribute attr = new SourceSearchAttribute();
 
 		try {

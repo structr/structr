@@ -2041,25 +2041,25 @@ public class SearchAndSortingTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final List<SearchAttribute> attributes       = new ArrayList<>();
-			final SearchAttributeGroup rootGroup         = new SearchAttributeGroup(null, Operation.AND);
-			final SearchAttributeGroup mainMatchingGroup = new SearchAttributeGroup(null, Operation.OR);
+			final SearchAttributeGroup rootGroup         = new SearchAttributeGroup(securityContext, null, Operation.AND);
+			final SearchAttributeGroup mainMatchingGroup = new SearchAttributeGroup(securityContext, null, Operation.OR);
 
 			mainMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Comparison.equal, "a"));
 			mainMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Comparison.equal, "b"));
 			mainMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Comparison.equal, "c"));
 			mainMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Comparison.equal, "d"));
 
-			final SearchAttributeGroup secondaryMatchingGroup = new SearchAttributeGroup(null, Operation.AND);
+			final SearchAttributeGroup secondaryMatchingGroup = new SearchAttributeGroup(securityContext, null, Operation.AND);
 
 			secondaryMatchingGroup.add(new ComparisonSearchAttribute(ownerKey, ComparisonQuery.Comparison.isNull, null));
 
-			final SearchAttributeGroup notGroup = new SearchAttributeGroup(null, Operation.NOT);
+			final SearchAttributeGroup notGroup = new SearchAttributeGroup(securityContext, null, Operation.NOT);
 			secondaryMatchingGroup.add(notGroup);
 
 			notGroup.add(new ComparisonSearchAttribute(ownerKey, ComparisonQuery.Comparison.isNotNull, null));
 
 			// Test Greater/Less with ASCII chars
-			final SearchAttributeGroup andGroup = new SearchAttributeGroup(null, Operation.AND);
+			final SearchAttributeGroup andGroup = new SearchAttributeGroup(securityContext, null, Operation.AND);
 
 			secondaryMatchingGroup.add(andGroup);
 

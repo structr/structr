@@ -188,14 +188,14 @@ public class ByteArrayProperty extends AbstractPrimitiveProperty<Byte[]> {
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(final Byte[] searchValue, final boolean exactMatch, final QueryGroup query) {
+	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final Byte[] searchValue, final boolean exactMatch, final QueryGroup query) {
 
 		// early exit, return empty search attribute
 		if (searchValue == null) {
 			return new ArraySearchAttribute(this, "", exactMatch);
 		}
 
-		final SearchAttributeGroup group = new SearchAttributeGroup(query.getParent(), Operation.AND);
+		final SearchAttributeGroup group = new SearchAttributeGroup(securityContext, query.getParent(), Operation.AND);
 
 		for (byte value : searchValue) {
 

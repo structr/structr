@@ -217,12 +217,12 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 
 		if (!searchTuples.isEmpty()) {
 
-			final SearchAttributeGroup group = new SearchAttributeGroup(null, operation);
+			final SearchAttributeGroup group = new SearchAttributeGroup(securityContext, null, operation);
 
 			// only add field if a value was set
 			for (final SearchTuple tuple : searchTuples) {
 
-				group.add(key.getSearchAttribute(tuple.value, tuple.exact, null));
+				group.add(key.getSearchAttribute(securityContext, tuple.value, tuple.exact, null));
 			}
 
 			addAttribute(parentName, group);
@@ -378,7 +378,7 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 			} else {
 
 				// create group from two single attributes
-				final SearchAttributeGroup group = new SearchAttributeGroup(null, Operation.AND);
+				final SearchAttributeGroup group = new SearchAttributeGroup(actionContext.getSecurityContext(), null, Operation.AND);
 				group.add(existingAttribute);
 				group.add(newAttribute);
 
@@ -412,7 +412,7 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 			if (value instanceof StringValue || value instanceof IntValue || value instanceof FloatValue || value instanceof BooleanValue) {
 
 				// handle simple selections like an _equals on the field
-				addAttribute(name, key.getSearchAttribute(castValue(securityContext, type, key, value), true, null));
+				addAttribute(name, key.getSearchAttribute(securityContext, castValue(securityContext, type, key, value), true, null));
 
 			} else if (value instanceof ObjectValue) {
 
@@ -474,11 +474,11 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 							if (equals != null) {
 
 								// primitive property
-								addAttribute(name, key.getSearchAttribute(equals, true, null));
+								addAttribute(name, key.getSearchAttribute(securityContext, equals, true, null));
 
 							} else if (contains != null) {
 
-								addAttribute(name, key.getSearchAttribute(contains, false, null));
+								addAttribute(name, key.getSearchAttribute(securityContext, contains, false, null));
 							}
 						}
 
@@ -493,18 +493,18 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 							operation = getOperation(input.get("_conj"));
 						}
 
-						final SearchAttributeGroup group = new SearchAttributeGroup(null, operation);
+						final SearchAttributeGroup group = new SearchAttributeGroup(actionContext.getSecurityContext(), null, operation);
 
 						for (final Object listValue : list) {
 
 							switch (searchKey) {
 
 								case "_contains":
-									group.add(key.getSearchAttribute(listValue, false, null));
+									group.add(key.getSearchAttribute(securityContext, listValue, false, null));
 									break;
 
 								case "_equals":
-									group.add(key.getSearchAttribute(listValue, true, null));
+									group.add(key.getSearchAttribute(securityContext, listValue, true, null));
 									break;
 							}
 						}
@@ -516,11 +516,11 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 						switch (searchKey) {
 
 							case "_contains":
-								addAttribute(name, key.getSearchAttribute(searchValue, false, null));
+								addAttribute(name, key.getSearchAttribute(securityContext, searchValue, false, null));
 								break;
 
 							case "_equals":
-								addAttribute(name, key.getSearchAttribute(searchValue, true, null));
+								addAttribute(name, key.getSearchAttribute(securityContext, searchValue, true, null));
 								break;
 						}
 

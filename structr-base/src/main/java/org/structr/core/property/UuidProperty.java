@@ -19,6 +19,7 @@
 package org.structr.core.property;
 
 
+import org.structr.common.SecurityContext;
 import org.structr.core.app.QueryGroup;
 import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.search.SearchAttribute;
@@ -47,7 +48,7 @@ public class UuidProperty extends StringProperty {
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(final String searchValue, final boolean exactMatch, final QueryGroup query) {
+	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final String searchValue, final boolean exactMatch, final QueryGroup query) {
 		return new UuidSearchAttribute(searchValue);
 	}
 

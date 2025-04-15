@@ -196,9 +196,9 @@ public class Deployment5Test extends DeploymentTestBase {
 			createElement(page1, head1, "title", "test52_1");
 
 			final DOMElement body1 =  createElement(page1, html1, "body");
-			final DOMElement div1   =  createElement(page1, body1, "div");
-			final DOMElement sel1 = createElement(page1, div1,  "select");
-			final DOMElement opt1 = createElement(page1, sel1,  "option", "${group.name}");
+			final DOMElement div1  =  createElement(page1, body1, "div");
+			final DOMElement sel1  = createElement(page1, div1,  "select");
+			final DOMElement opt1  = createElement(page1, sel1,  "option", "${group.name}");
 
 			sel1.setProperty(Traits.of(StructrTraits.SELECT).key(Select.MULTIPLE_PROPERTY), "multiple");
 
@@ -221,6 +221,7 @@ public class Deployment5Test extends DeploymentTestBase {
 		// check HTML result before roundtrip
 		RestAssured
 			.given()
+			.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))

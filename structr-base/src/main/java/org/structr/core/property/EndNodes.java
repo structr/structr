@@ -237,7 +237,7 @@ public class EndNodes extends Property<Iterable<NodeInterface>> implements Relat
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(final Iterable<NodeInterface> searchValue, final boolean exactMatch, final QueryGroup query) {
+	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final Iterable<NodeInterface> searchValue, final boolean exactMatch, final QueryGroup query) {
 
 		return new GraphSearchAttribute<>(this, searchValue, exactMatch);
 	}

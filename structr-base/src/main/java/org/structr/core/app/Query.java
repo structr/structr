@@ -62,29 +62,6 @@ public interface Query<T> {
 	QueryGroup<T> or();
 	QueryGroup<T> not();
 
-	/*
-	Query<T> uuid(final String uuid);
-	Query<T> types(final Traits type);
-	Query<T> type(final String type);
-	Query<T> name(final String name);
-	Query<T> location(final double latitude, final double longitude, final double distance);
-	Query<T> location(final String street, final String postalCode, final String city, final String country, final double distance);
-	Query<T> location(final String street, final String postalCode, final String city, final String state, final String country, final double distance);
-	Query<T> location(final String street, final String house, final String postalCode, final String city, final String state, final String country, final double distance);
-	<P> Query<T> key(final PropertyKey<P> key, final P value);
-	<P> Query<T> key(final PropertyKey<P> key, final P value, final boolean exact);
-	<P> Query<T> key(final PropertyMap attributes);
-	Query<T> notBlank(final PropertyKey key);
-	Query<T> blank(final PropertyKey key);
-	<P> Query<T> startsWith(final PropertyKey<P> key, final P prefix, final boolean caseInsensitive);
-	<P> Query<T> endsWith(final PropertyKey<P> key, final P suffix, final boolean caseInsensitive);
-	<P> Query<T> matches(final PropertyKey<String> key, final String regex);
-	<P> Query<T> range(final PropertyKey<P> key, final P rangeStart, final P rangeEnd);
-	<P> Query<T> range(final PropertyKey<P> key, final P rangeStart, final P rangeEnd, final boolean includeStart, final boolean includeEnd);
-
-	Query<T> attributes(final List<SearchAttribute> attributes);
-	*/
-
 	Predicate<GraphObject> toPredicate();
 
 	void doNotSort(final boolean doNotSort);

@@ -262,7 +262,7 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(final T[] valueInput, final boolean exactMatch, final QueryGroup query) {
+	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final T[] valueInput, final boolean exactMatch, final QueryGroup query) {
 
 		T[] searchValue = null;
 
@@ -289,7 +289,7 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 
 		if (!exactMatch) {
 
-			final SearchAttributeGroup group = new SearchAttributeGroup(query.getParent(), Operation.AND);
+			final SearchAttributeGroup group = new SearchAttributeGroup(securityContext, query.getParent(), Operation.AND);
 			for (T value : searchValue) {
 
 				group.add(new ArraySearchAttribute(this, value, false));

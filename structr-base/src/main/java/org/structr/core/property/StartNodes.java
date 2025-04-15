@@ -119,7 +119,7 @@ public class StartNodes extends Property<Iterable<NodeInterface>> implements Rel
 	}
 
 	@Override
-	public Iterable<NodeInterface> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+	public Iterable<NodeInterface> getProperty(final SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
@@ -216,7 +216,7 @@ public class StartNodes extends Property<Iterable<NodeInterface>> implements Rel
 	}
 
 	@Override
-	public Iterable<NodeInterface> convertSearchValue(SecurityContext securityContext, String requestParameter) throws FrameworkException {
+	public Iterable<NodeInterface> convertSearchValue(final SecurityContext securityContext, String requestParameter) throws FrameworkException {
 
 		final PropertyConverter inputConverter = inputConverter(securityContext);
 		if (inputConverter != null) {
@@ -236,7 +236,7 @@ public class StartNodes extends Property<Iterable<NodeInterface>> implements Rel
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(final Iterable<NodeInterface> searchValue, final boolean exactMatch, final QueryGroup query) {
+	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final Iterable<NodeInterface> searchValue, final boolean exactMatch, final QueryGroup query) {
 		return new GraphSearchAttribute<>(this, searchValue, exactMatch);
 	}
 

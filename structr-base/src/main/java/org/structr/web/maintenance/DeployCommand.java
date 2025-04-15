@@ -778,7 +778,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			}
 
 			// fetch toplevel files that are marked for export or for use as a javascript library
-			for (final NodeInterface file : app.nodeQuery()
+			for (final NodeInterface file : app.nodeQuery(StructrTraits.FILE)
 				.sort(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY))
 				.and()
 					.key(parentKey, null)

@@ -54,7 +54,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 	private static final Set<String> indexedWarningDisabled = new LinkedHashSet<>(Arrays.asList(SchemaMethodTraitDefinition.SOURCE_PROPERTY, SchemaPropertyTraitDefinition.READ_FUNCTION_PROPERTY, SchemaPropertyTraitDefinition.WRITE_FUNCTION_PROPERTY));
 
-	private final SearchAttributeGroup<T> rootGroup = new SearchAttributeGroup<>(this, Operation.AND);
+	private SearchAttributeGroup<T> rootGroup       = null;
 	private SortOrder sortOrder                     = new DefaultSortOrder();
 	private QueryContext queryContext               = new QueryContext();
 	private Comparator comparator                   = null;
@@ -69,6 +69,16 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	public abstract boolean isRelationshipSearch();
 	public abstract Index<S> getIndex();
 
+
+	@Override
+	public void initialized() {
+
+		// sets security context
+		super.initialized();
+
+		this.rootGroup = new SearchAttributeGroup<>(securityContext, this, Operation.AND);
+	}
+
 	private ResultStream<T> doSearch(final String description) throws FrameworkException {
 
 		if (page == 0 || pageSize <= 0) {
@@ -80,6 +90,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		final Principal user        = securityContext.getUser(false);
 		final Traits traits         = Traits.of(StructrTraits.NODE_INTERFACE);
 		final SearchConfig config   = new SearchConfig();
+
 
 		if (user == null) {
 
@@ -105,7 +116,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		// special handling of deleted and hidden flags
 		if (!includeHidden && !isRelationshipSearch()) {
 
-			final SearchAttributeGroup group = new SearchAttributeGroup(this, Operation.NOT);
+			final SearchAttributeGroup group = new SearchAttributeGroup(securityContext, this, Operation.NOT);
 
 			group.getSearchAttributes().add(new PropertySearchAttribute(traits.key(NodeInterfaceTraitDefinition.HIDDEN_PROPERTY),  true, true));
 
@@ -436,7 +447,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	public QueryGroup<T> and() {
 
 		// create nested group that the user can add to
-		final SearchAttributeGroup group = new SearchAttributeGroup(this, Operation.AND);
+		final SearchAttributeGroup group = new SearchAttributeGroup(securityContext, this, Operation.AND);
 		rootGroup.getSearchAttributes().add(group);
 
 		return group;
@@ -446,7 +457,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	public QueryGroup<T> or() {
 
 		// create nested group that the user can add to
-		final SearchAttributeGroup group = new SearchAttributeGroup(this, Operation.OR);
+		final SearchAttributeGroup group = new SearchAttributeGroup(securityContext, this, Operation.OR);
 		rootGroup.getSearchAttributes().add(group);
 
 		return group;
@@ -456,7 +467,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	public QueryGroup<T> not() {
 
 		// create nested group that the user can add to
-		final SearchAttributeGroup group = new SearchAttributeGroup(this, Operation.NOT);
+		final SearchAttributeGroup group = new SearchAttributeGroup(securityContext, this, Operation.NOT);
 		rootGroup.getSearchAttributes().add(group);
 
 		return group;

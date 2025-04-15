@@ -21,6 +21,7 @@ package org.structr.core.graph.search;
 import org.structr.api.Predicate;
 import org.structr.api.search.*;
 import org.structr.api.util.ResultStream;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.Query;
@@ -50,15 +51,17 @@ public class SearchAttributeGroup<T> extends SearchAttribute<T> implements Query
 	);
 
 	private final List<SearchAttribute> searchItems = new LinkedList<>();
+	private final SecurityContext securityContext;
 	private final Operation operation;
 	private final Query<T> query;
 
-	public SearchAttributeGroup(final Query<T> parent, final Operation operation) {
+	public SearchAttributeGroup(final SecurityContext securityContext, final Query<T> parent, final Operation operation) {
 
 		super(null, null);
 
-		this.operation = operation;
-		this.query     = parent;
+		this.securityContext = securityContext;
+		this.operation       = operation;
+		this.query           = parent;
 	}
 
 	@Override
@@ -201,7 +204,7 @@ public class SearchAttributeGroup<T> extends SearchAttribute<T> implements Query
 	@Override
 	public QueryGroup attributes(final List<SearchAttribute> attributes, final Operation operation) {
 
-		final SearchAttributeGroup group = new SearchAttributeGroup(this, operation);
+		final SearchAttributeGroup group = new SearchAttributeGroup(securityContext, this, operation);
 
 		// add all search items
 		for (final SearchAttribute attr : searchItems) {
@@ -289,7 +292,7 @@ public class SearchAttributeGroup<T> extends SearchAttribute<T> implements Query
 			query.doNotSort(false);
 		}
 
-		searchItems.add(key.getSearchAttribute(value, exact, this));
+		searchItems.add(key.getSearchAttribute(securityContext, value, exact, this));
 
 		return this;
 	}
@@ -329,11 +332,11 @@ public class SearchAttributeGroup<T> extends SearchAttribute<T> implements Query
 			// related nodes
 			if (key.isCollection()) {
 
-				searchItems.add(key.getSearchAttribute(Collections.EMPTY_LIST, true, this));
+				searchItems.add(key.getSearchAttribute(securityContext, Collections.EMPTY_LIST, true, this));
 
 			} else {
 
-				searchItems.add(key.getSearchAttribute(null, true, this));
+				searchItems.add(key.getSearchAttribute(securityContext, null, true, this));
 			}
 
 		} else {
@@ -468,7 +471,7 @@ public class SearchAttributeGroup<T> extends SearchAttribute<T> implements Query
 	public QueryGroup<T> and() {
 
 		// create nested group that the user can add to
-		final SearchAttributeGroup group = new SearchAttributeGroup(this, Operation.AND);
+		final SearchAttributeGroup group = new SearchAttributeGroup(securityContext, this, Operation.AND);
 		searchItems.add(group);
 
 		return group;
@@ -478,7 +481,7 @@ public class SearchAttributeGroup<T> extends SearchAttribute<T> implements Query
 	public QueryGroup<T> or() {
 
 		// create nested group that the user can add to
-		final SearchAttributeGroup group = new SearchAttributeGroup(this, Operation.OR);
+		final SearchAttributeGroup group = new SearchAttributeGroup(securityContext, this, Operation.OR);
 		searchItems.add(group);
 
 		return group;
@@ -488,7 +491,7 @@ public class SearchAttributeGroup<T> extends SearchAttribute<T> implements Query
 	public QueryGroup<T> not() {
 
 		// create nested group that the user can add to
-		final SearchAttributeGroup group = new SearchAttributeGroup(this, Operation.NOT);
+		final SearchAttributeGroup group = new SearchAttributeGroup(securityContext, this, Operation.NOT);
 		searchItems.add(group);
 
 		return group;

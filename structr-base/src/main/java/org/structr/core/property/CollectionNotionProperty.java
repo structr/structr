@@ -194,7 +194,7 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(final Iterable<T> searchValueIterable, final boolean exactMatch, final QueryGroup query) {
+	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final Iterable<T> searchValueIterable, final boolean exactMatch, final QueryGroup query) {
 
 		final PropertyKey<Iterable<S>> collectionProperty = Traits.of(baseType).key(basePropertyName);
 

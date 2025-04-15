@@ -219,7 +219,7 @@ public class EndNode extends Property<NodeInterface> implements RelationProperty
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(final NodeInterface searchValue, final boolean exactMatch, final QueryGroup query) {
+	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final NodeInterface searchValue, final boolean exactMatch, final QueryGroup query) {
 		return new GraphSearchAttribute<>(this, searchValue, exactMatch);
 	}
 

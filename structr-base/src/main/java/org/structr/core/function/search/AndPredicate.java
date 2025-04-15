@@ -18,9 +18,11 @@
  */
 package org.structr.core.function.search;
 
+import org.structr.api.search.Operation;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.QueryGroup;
+import org.structr.core.graph.search.SearchAttributeGroup;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
 
@@ -31,7 +33,7 @@ public class AndPredicate extends AbstractPredicate {
 	@Override
 	public void configureQuery(final SecurityContext securityContext, final Traits type, final PropertyKey propertyKey, final QueryGroup query, final boolean exact) throws FrameworkException {
 
-		final QueryGroup andGroup = query.and();
+		final SearchAttributeGroup andGroup = new SearchAttributeGroup(securityContext, query, Operation.AND);
 
 		for (final SearchParameter parameter : parameters) {
 
@@ -63,6 +65,11 @@ public class AndPredicate extends AbstractPredicate {
 		for (final SearchFunctionPredicate p : predicates) {
 
 			p.configureQuery(securityContext, type, propertyKey, andGroup, exact);
+		}
+
+		// only add group if it is not empty!
+		if (!andGroup.isEmpty()) {
+			query.add(andGroup);
 		}
 	}
 }
