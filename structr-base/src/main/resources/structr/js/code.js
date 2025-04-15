@@ -715,12 +715,6 @@ let _Code = {
 				}
 			}
 		},
-		loadWorkingSets: (data) => {
-			_WorkingSets.getWorkingSets(result => _Code.tree.displayFunction(result, data, true));
-		},
-		loadWorkingSet: (data) => {
-			_WorkingSets.getWorkingSetContents(data.id, result => _Code.tree.displayFunction(result, data));
-		},
 		loadRemoteProperties: (data) => {
 
 			Command.get(data.id, null, entity => {
@@ -2598,11 +2592,6 @@ let _Code = {
 		updateRecentlyUsed: (entity, path, updateLocationStack) => {
 
 			_Code.recentElements.addRecentlyUsedEntity(entity, path);
-
-			// add recently used types to corresponding working set
-			if (entity.type === 'SchemaNode') {
-				_WorkingSets.addRecentlyUsed(entity.name);
-			}
 
 			if (updateLocationStack) {
 				_Code.pathLocations.updatePathLocationStack(path);
