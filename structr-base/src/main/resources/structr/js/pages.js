@@ -3529,6 +3529,12 @@ let _Pages = {
 			}
 		});
 	},
+	updateShadowPageAfterDeployment: () => {
+
+		_Pages.shadowPage = null;
+
+		_Pages.ensureShadowPageExists();
+	},
 	templates: {
 		pagesActions: config => `
 					<div id="pages-actions" class="dropdown-menu darker-shadow-dropdown dropdown-menu-large">

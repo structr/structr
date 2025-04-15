@@ -61,6 +61,7 @@ public interface Page extends DOMNode {
 	DOMElement createElement(final String tag) throws FrameworkException;
 	DOMElement createElement(final String tag, final boolean suppressException) throws FrameworkException;
 	Content createTextNode(final String text);
+	Content createTemplate(final String text);
 	Comment createComment(final String comment);
 
 	void adoptNode(final DOMNode newHtmlNode) throws FrameworkException;

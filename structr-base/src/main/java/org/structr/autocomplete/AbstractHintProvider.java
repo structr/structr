@@ -200,7 +200,6 @@ public abstract class AbstractHintProvider {
 		hints.add(0, createKeywordHint("locale",              "The current locale",         "locale"));
 		hints.add(0, createKeywordHint("current",             "The current details object", "current"));
 		hints.add(0, createKeywordHint("cache",               "Time-based cache object", "cache"));
-		hints.add(0, createKeywordHint("batch",               "Open a batch transaction context", "batch"));
 		hints.add(0, createKeywordHint("applicationStore",    "The application store", "applicationStore"));
 
 		// add global schema methods to show at the start of the list

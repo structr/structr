@@ -2456,48 +2456,6 @@ public class ScriptingTest extends StructrTest {
 	}
 
 	@Test
-	public void testStructrScriptBatchFunction() {
-
-		try (final Tx tx = app.tx()) {
-
-			createTestNodes("TestOne", 1000);
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-
-			fex.printStackTrace();
-			fail("Unexpected exception.");
-		}
-
-		try (final Tx tx = app.tx()) {
-
-			final ActionContext ctx  = new ActionContext(securityContext, null);
-			Scripting.evaluate(ctx, null, "${batch(each(find('TestOne'), set(data, 'name', 'test')), 100)}", "test");
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-
-			fex.printStackTrace();
-			fail("Unexpected exception: " + fex.getMessage());
-		}
-
-		try (final Tx tx = app.tx()) {
-
-			final ActionContext ctx  = new ActionContext(securityContext, null);
-			Scripting.evaluate(ctx, null, "${batch(delete(find('TestOne')), 100)}", "test");
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-
-			fex.printStackTrace();
-			fail("Unexpected exception: " + fex.getMessage());
-		}
-	}
-
-	@Test
 	public void testBulkDeleteWithoutBatching() {
 
 		try (final Tx tx = app.tx()) {

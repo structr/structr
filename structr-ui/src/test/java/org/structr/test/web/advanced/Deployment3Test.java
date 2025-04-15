@@ -412,10 +412,7 @@ public class Deployment3Test extends DeploymentTestBase {
 
 			try {
 
-				final DOMNode newNode = page.createTextNode("#template");
-				newNode.unlockSystemPropertiesOnce();
-
-				newNode.setProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY), StructrTraits.TEMPLATE);
+				final DOMNode newNode = page.createTemplate("#template");
 
 				// append template
 				div.appendChild(newNode);

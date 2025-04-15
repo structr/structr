@@ -350,9 +350,6 @@ public class Functions {
 			case "slice":
 				return new SliceExpression(row, column);
 
-			case "batch":
-				return new BatchExpression(row, column);
-
 			case "data":
 				return new ValueExpression("data", row, column);
 

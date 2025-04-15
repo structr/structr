@@ -145,7 +145,7 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 						// create a child text node if content is given
 						if (StringUtils.isNotBlank(childContent)) {
 
-							final DOMNode childNode = (DOMNode)document.createTextNode(childContent);
+							final DOMNode childNode = document.createTextNode(childContent);
 
 							newNode.appendChild(childNode);
 
@@ -273,15 +273,7 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 					break;
 
 				case "#template":
-					newNode = document.createTextNode("#template");
-					try {
-
-						newNode.unlockSystemPropertiesOnce();
-						newNode.setProperties(newNode.getSecurityContext(), new PropertyMap(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY), StructrTraits.TEMPLATE));
-
-					} catch (FrameworkException fex) {
-						logger.warn("Unable to set type of node {} to Template: {}", new Object[] { newNode.getUuid(), fex.getMessage() } );
-					}
+					newNode = document.createTemplate("#template");
 					break;
 
 				case "custom":

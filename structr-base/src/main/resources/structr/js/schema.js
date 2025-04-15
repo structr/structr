@@ -859,17 +859,6 @@ let _Schema = {
 			let methodsTabContent     = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'methods', 'Methods', targetView === 'methods', _Editors.resizeVisibleEditors);
 			tabControls.schemaMethods = _Schema.methods.appendMethods(methodsTabContent, entity, entity.schemaMethods);
 
-			if (Structr.isModuleActive(_Code)) {
-
-				// only show the following tab in the Code area where it is not opened in a popup
-
-				if (entity.isServiceClass === false) {
-					let workingSetsTabContent = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'working-sets', 'Working Sets', targetView === 'working-sets');
-					workingSetsTabContent.classList.add('relative');
-					_Schema.nodes.appendWorkingSets(workingSetsTabContent, entity);
-				}
-			}
-
 			_Schema.bulkDialogsGeneral.overrideDialogCancel(mainTabs, callbackCancel);
 
 			Structr.resize();
@@ -1051,81 +1040,6 @@ let _Schema = {
 				}
 			};
 		},
-		appendWorkingSets: (container, entity) => {
-
-			container.insertAdjacentHTML('beforeend', _Schema.templates.workingSets({
-				type: entity,
-				buttons: _Schema.templates.basicAddButton({ addButtonText: 'Add Working Set' })
-			}));
-
-			// manage working sets
-			_WorkingSets.getWorkingSets((workingSets) => {
-
-				let groupSelect = document.querySelector('select#type-groups');
-
-				let createAndAddWorkingSetOption = (set, forceAdd) => {
-
-					let setOption = document.createElement('option');
-					setOption.textContent = set.name;
-					setOption.dataset['groupId'] = set.id;
-
-					if (forceAdd === true || set.children && set.children.includes(entity.name)) {
-						setOption.selected = true;
-					}
-
-					groupSelect.appendChild(setOption);
-				};
-
-				for (let set of workingSets) {
-
-					if (set.name !== _WorkingSets.recentlyUsedName) {
-						createAndAddWorkingSetOption(set);
-					}
-				}
-
-				let isUnselectAction = false;
-				$(groupSelect).select2({
-					search_contains: true,
-					width: '100%',
-					closeOnSelect: false
-				}).on('select2:unselecting', function(e, p) {
-					isUnselectAction = true;
-
-				}).on('select2:opening', function(e, p) {
-					if (isUnselectAction) {
-						e.preventDefault();
-						isUnselectAction = false;
-					}
-
-				}).on('select2:select', function(e, p) {
-					let id = e.params.data.element.dataset['groupId'];
-
-					_WorkingSets.addTypeToSet(id, entity.name, function() {
-						_TreeHelper.refreshNode('#code-tree', 'workingsets-' + id);
-					});
-
-				}).on('select2:unselect', function(e, p) {
-					let id = e.params.data.element.dataset['groupId'];
-
-					_WorkingSets.removeTypeFromSet(id, entity.name, function() {
-						_TreeHelper.refreshNode('#code-tree', 'workingsets-' + id);
-					});
-				});
-
-				container.querySelector('.add-button')?.addEventListener('click', () => {
-
-					_WorkingSets.createNewSetAndAddType(entity.name, (ws) => {
-
-						_TreeHelper.refreshNode('#code-tree', 'workingsets');
-
-						createAndAddWorkingSetOption(ws, true);
-						$(groupSelect).trigger('change');
-					});
-				})
-			});
-
-		},
-
 		getTypeDefinitionDataFromForm: (tabContent, entity) => {
 			return _Code.persistence.collectDataFromContainer(tabContent, entity);
 		},
@@ -3299,7 +3213,7 @@ let _Schema = {
 
 			let methodsGridConfig = {
 				class: 'actions schema-props grid',
-				style: 'grid-template-columns: [ name ] minmax(0, 1fr) [ more ] 2rem [ actions ] 6rem',
+				style: 'grid-template-columns: [ name ] minmax(0, 1fr) [ more ] 2rem [ actions ] 7.5rem',
 				cols: [
 					{ class: 'text-center font-bold pb-2', title: 'Name' },
 					{ class: 'more-settings-col flex justify-center font-bold', title: 'More' },
@@ -3353,6 +3267,7 @@ let _Schema = {
 					returnRawResult: method.returnRawResult,
 					httpVerb:        method.httpVerb,
 					schemaNode:      entity,
+					parameters:      method.parameters,
 					initialData: {
 						name:            method.name,
 						isStatic:        method.isStatic,
@@ -3501,11 +3416,12 @@ let _Schema = {
 								_Schema.methods.appendMethods(container, reloadedEntity, reloadedEntity.schemaMethods, optionalAfterSaveCallback);
 
 								optionalAfterSaveCallback?.();
-							});
+
+							}, 'schema');
 
 						} else {
 
-							Command.rest(`SchemaMethod?schemaNode=null&${Structr.getRequestParameterName('sort')}=name&${Structr.getRequestParameterName('order')}=ascending`, (methods) => {
+							_Schema.methods.fetchUserDefinedMethods((methods) => {
 
 								_Helpers.fastRemoveAllChildren(container);
 
@@ -3669,6 +3585,18 @@ let _Schema = {
 				_Schema.methods.editMethod(gridRow, entity);
 			});
 
+			gridRow.querySelector('.run-method-action').addEventListener('click', () => {
+
+				if (gridRow.classList.contains("has-changes")) {
+
+					new WarningMessage().text("Method has unsaved changes, unable to run before saving").show();
+
+				} else {
+
+					_Schema.methods.runSchemaMethod(methodData);
+				}
+			});
+
 			gridRow.querySelector('.clone-action').addEventListener('click', () => {
 
 				let clonedData = Object.assign({}, methodData, {
@@ -3751,6 +3679,9 @@ let _Schema = {
 
 			// completely hide 'more' button for lifecycle methods
 			container.querySelector('.toggle-more-method-settings')?.classList.toggle('hidden', isLifecycleMethod);
+
+			let isStatic = (methodData.isStatic === true);
+			container.querySelector('.run-method-action')?.classList.toggle('hidden', !isStatic);
 		},
 		saveAndDisposePreviousEditor: (tr) => {
 
@@ -3808,7 +3739,7 @@ let _Schema = {
 		},
 		showUserDefinedMethods: () => {
 
-			Command.rest(`SchemaMethod?schemaNode=null&${Structr.getRequestParameterName('sort')}=name&${Structr.getRequestParameterName('order')}=ascending`, (methods) => {
+			_Schema.methods.fetchUserDefinedMethods((methods) => {
 
 				let { dialogText } = _Dialogs.custom.openDialog('User-defined functions', () => {
 
@@ -3821,6 +3752,12 @@ let _Schema = {
 				dialogText.insertAdjacentHTML('beforeend', '<div class="schema-details"><div id="tabView-methods" class="schema-details"></div></div>');
 
 				_Schema.methods.appendMethods(dialogText.querySelector('#tabView-methods'), null, methods);
+			});
+		},
+		fetchUserDefinedMethods: (callback) => {
+
+			Command.rest(`SchemaMethod/schema?schemaNode=null&${Structr.getRequestParameterName('sort')}=name&${Structr.getRequestParameterName('order')}=ascending`, (methods) => {
+				callback(methods);
 			});
 		},
 		rowChanged: (gridRow, hasChanges) => {
@@ -3839,6 +3776,178 @@ let _Schema = {
 			}
 
 			return true;
+		},
+		getURLForSchemaMethod: (schemaMethod, absolute = true) => {
+
+			let isStatic              = (schemaMethod.isStatic === true);
+			let isUserDefinedFunction = (schemaMethod.schemaNode === null);
+
+			let parts = [];
+
+			if (!isUserDefinedFunction) {
+				parts.push(schemaMethod.schemaNode.name);
+
+				if (!isStatic) {
+					parts.push('<b>{uuid}</b>');
+				}
+			}
+
+			parts.push(schemaMethod.name);
+			let url  = (absolute ? location.origin : '') + Structr.rootUrl + parts.join('/');
+
+			return url;
+		},
+		runSchemaMethod: (schemaMethod) => {
+
+			let storagePrefix = 'schemaMethodParameters_';
+			let name          = (schemaMethod.schemaNode === null) ? schemaMethod.name : schemaMethod.schemaNode.name + '/' + schemaMethod.name;
+			let url           = _Schema.methods.getURLForSchemaMethod(schemaMethod);
+
+			let { dialogText } = _Dialogs.custom.openDialog(`Run user-defined function ${name}`);
+
+			let runButton = _Dialogs.custom.prependCustomDialogButton(`
+					<button id="run-method" class="flex items-center action focus:border-gray-666 active:border-green">
+						${_Icons.getSvgIcon(_Icons.iconRunButton, 16, 18, 'mr-2')}
+						<span>Run</span>
+					</button>
+				`);
+
+			let clearButton = _Dialogs.custom.appendCustomDialogButton('<button id="clear-log" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Clear output</button>');
+
+			window.setTimeout(() => {
+				runButton.focus();
+			}, 50);
+
+			let paramsOuterBox = _Helpers.createSingleDOMElementFromHTML(`
+					<div>
+						<div id="params">
+							<h3 class="heading-narrow">Parameters</h3>
+							<div class="method-parameters">
+								${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-green', 'add-param-action']), 'Add parameter')}
+							</div>
+						</div>
+						<h3 class="mt-4">Result</h3>
+						<pre id="log-output"></pre>
+					</div>
+				`);
+			dialogText.appendChild(paramsOuterBox);
+
+			_Helpers.appendInfoTextToElement({
+				element: paramsOuterBox.querySelector('h3'),
+				text: 'Parameters can be accessed in the called method by using the <code>$.methodParameters[name]</code> object (JavaScript-only) or the <code>retrieve(name)</code> function.<br>For methods called via GET, the parameters are sent using the request URL and thus, they can be accessed via the <code>request</code> object',
+				css: { marginLeft: "5px" },
+				helpElementCss: { fontSize: "12px" }
+			});
+
+			let appendParameter = (name = '', value = '', paramDefinition = {}) => {
+
+				let infoSpan = '';
+
+				if (paramDefinition.parameterType || paramDefinition.description || paramDefinition.exampleValue) {
+
+					let infoText = `
+						Type: ${_Helpers.escapeForHtmlAttributes(paramDefinition.parameterType ?? '')}<br>
+						Description: ${_Helpers.escapeForHtmlAttributes(paramDefinition.description ?? '')}<br>
+						Example Value: ${_Helpers.escapeForHtmlAttributes(paramDefinition.exampleValue ?? '')}<br>
+					`;
+
+					infoSpan = `<span data-comment="${_Helpers.escapeForHtmlAttributes(infoText)}"></span>`;
+				}
+
+				let newParam = _Helpers.createSingleDOMElementFromHTML(`
+					<div class="param flex items-center mb-1">
+						<input class="param-name" placeholder="Key">
+						${infoSpan}
+						<span class="px-2">=</span>
+						<input class="param-value" placeholder="Value" data-input-type="${(paramDefinition.parameterType ?? 'string').toLowerCase()}">
+						${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action', 'ml-2']), 'Remove parameter')}
+					</div>
+				`);
+
+				newParam.querySelector('.param-name').value  = name;
+				newParam.querySelector('.param-value').value = (typeof value === "string") ? value : JSON.stringify(value);
+
+				newParam.querySelector('.remove-action').addEventListener('click', () => {
+					_Helpers.fastRemoveElement(newParam);
+				});
+
+				paramsOuterBox.querySelector('.method-parameters').appendChild(newParam);
+			};
+
+			let lastParams = LSWrapper.getItem(storagePrefix + url, {});
+
+			if (Object.keys(lastParams).length > 0) {
+
+				let paramDefinitions = Object.fromEntries((schemaMethod.parameters ?? []).map(p => [p.name, p]));
+
+				for (let [k,v] of Object.entries(lastParams)) {
+					appendParameter(k, v, paramDefinitions[k]);
+				}
+
+			} else {
+
+				for (let paramDefinition of (schemaMethod.parameters ?? [])) {
+					appendParameter(paramDefinition.name, '', paramDefinition);
+				}
+			}
+
+			_Helpers.activateCommentsInElement(paramsOuterBox);
+
+			paramsOuterBox.querySelector('.add-param-action').addEventListener('click', () => {
+				appendParameter();
+			});
+
+			let logOutput = paramsOuterBox.querySelector('#log-output');
+
+			runButton.addEventListener('click', async () => {
+
+				logOutput.textContent = 'Running method...';
+
+				let params = {};
+				for (let paramRow of paramsOuterBox.querySelectorAll('#params .param')) {
+
+					let name = paramRow.querySelector('.param-name').value;
+					if (name) {
+
+						let valueInput = paramRow.querySelector('.param-value');
+						let value = valueInput.value;
+
+						// if the value type is not a basic string, try to parse it as JSON (but fail gracefully)
+						// if this ever creates problems, we should rather add a dropdown "Parameter Type" and
+						// populate it with "String" by default and also take the OpenAPI parameter definition into account
+						if (valueInput.dataset['inputType'] !== 'string') {
+							try {
+								value = JSON.parse(value);
+							} catch(e) {}
+						}
+
+						params[name] = value;
+					}
+				}
+
+				LSWrapper.setItem(storagePrefix + url, params);
+
+				let methodCallUrl = url;
+				let fetchConfig = {
+					method: schemaMethod.httpVerb
+				};
+
+				if (schemaMethod.httpVerb === 'GET') {
+
+					methodCallUrl += '?' + new URLSearchParams(params).toString();
+
+				} else {
+
+					fetchConfig.body = JSON.stringify(params);
+				}
+
+				let response = await fetch(methodCallUrl, fetchConfig);
+				logOutput.textContent = await response.text();
+			});
+
+			clearButton.addEventListener('click', () => {
+				logOutput.textContent = '';
+			});
 		},
 		templates: {
 			methodsContainer: config => `
@@ -3875,6 +3984,7 @@ let _Schema = {
 					</div>
 					<div class="flex items-center justify-center gap-1">
 						${_Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['edit-action']), 'Edit')}
+						${_Icons.getSvgIcon(_Icons.iconRunButton, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['run-method-action']), 'Open run dialog')}
 						${_Icons.getSvgIcon(_Icons.iconClone, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['clone-action']), 'Clone')}
 						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16,  _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']), 'Discard changes')}
 						${config.isNew ? '' : _Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action']), 'Discard')}
@@ -5525,37 +5635,6 @@ let _Schema = {
 		`,
 		basicAddButton: config => `
 			<button class="add-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')}${config.addButtonText}</button>
-		`,
-		workingSets: config => `
-			<div>
-				<div class="inline-info">
-					<div class="inline-info-icon">
-						${_Icons.getSvgIcon(_Icons.iconInfo, 24, 24)}
-					</div>
-					<div class="inline-info-text">
-						Working Sets are identical to layouts. Removing an element from a group removes it from the layout
-					</div>
-				</div>
-
-				<div style="width: calc(100% - 4rem);" class="pt-4 mb-4">
-					<select id="type-groups" multiple="multiple"></select>
-					<span id="add-to-new-group"></span>
-				</div>
-
-				${config.buttons ?? ''}
-
-			</div>
-		`,
-		usageSearch: config => `
-			<div class="mb-4">
-				<div>
-					<label id="usage-label"></label>
-				</div>
-
-				<div id="usage-tree-container">
-					<ul id="usage-tree"></ul>
-				</div>
-			</div>
 		`,
 	}
 };
