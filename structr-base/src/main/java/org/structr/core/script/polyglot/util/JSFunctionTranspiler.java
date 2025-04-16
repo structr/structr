@@ -31,7 +31,7 @@ public abstract class JSFunctionTranspiler {
 
         if (snippet.embed()) {
 
-            final String transpiledSource = "function main() {" + snippet.getSource() + "\n}\n\nmain();";
+            final String transpiledSource = "const main = async () => {" + snippet.getSource() + "\n}\n\nmain();";
             snippet.setTranscribedSource(transpiledSource);
             return snippet.getTranscribedSource();
         }

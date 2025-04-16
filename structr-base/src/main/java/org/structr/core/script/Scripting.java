@@ -45,6 +45,7 @@ import org.structr.core.script.polyglot.util.JSFunctionTranspiler;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.script.polyglot.util.JSFunctionTranspiler;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.parser.DatePropertyGenerator;

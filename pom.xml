@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
 	<parent>
 		<groupId>org.sonatype.oss</groupId>
@@ -58,7 +57,7 @@
 		<test.forkCount>4</test.forkCount>
 		<slf4j.version>2.0.0</slf4j.version>
 		<tika.version>2.9.1</tika.version>
-		<pulsar.version>4.0.3</pulsar.version>
+		<pulsar.version>3.2.0</pulsar.version>
 	</properties>
 
 	<modules>
@@ -71,7 +70,6 @@
 		<module>structr-rest</module>
 		<module>structr-ui</module>
 		<module>structr-modules</module>
-		<module>structr-full-tests</module>
 		<module>structr-binaries</module>
 		<module>structr-test-configuration</module>
 	</modules>
@@ -118,26 +116,20 @@
 			</dependency>
 			<dependency>
 				<groupId>org.bouncycastle</groupId>
-				<artifactId>bcutil-jdk18on</artifactId>
-				<version>1.77</version>
+				<artifactId>bcmail-jdk15on</artifactId>
+				<version>1.67</version>
 				<optional>true</optional>
 			</dependency>
 			<dependency>
 				<groupId>org.bouncycastle</groupId>
-				<artifactId>bcmail-jdk18on</artifactId>
-				<version>1.77</version>
+				<artifactId>bcprov-jdk15on</artifactId>
+				<version>1.67</version>
 				<optional>true</optional>
 			</dependency>
 			<dependency>
 				<groupId>org.bouncycastle</groupId>
-				<artifactId>bcprov-jdk18on</artifactId>
-				<version>1.77</version>
-				<optional>true</optional>
-			</dependency>
-			<dependency>
-				<groupId>org.bouncycastle</groupId>
-				<artifactId>bcpkix-jdk18on</artifactId>
-				<version>1.77</version>
+				<artifactId>bcpkix-jdk15on</artifactId>
+				<version>1.67</version>
 				<optional>true</optional>
 			</dependency>
 			<dependency>
@@ -381,7 +373,7 @@
 					<encoding>${project.build.sourceEncoding}</encoding>
 					<debug>true</debug>
 					<useModulePath>true</useModulePath>
-					<showDeprecation>false</showDeprecation>
+				 	<showDeprecation>false</showDeprecation>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -614,11 +606,11 @@
 
 				structr is distributed in the hope that it will be useful,
 				but WITHOUT ANY WARRANTY; without even the implied warranty of
-				MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+				MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 				GNU General Public License for more details.
 
 				You should have received a copy of the GNU General Public License
-				along with structr. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+				along with structr.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 			</comments>
 		</license>
 		<license>
@@ -636,11 +628,11 @@
 
 				structr is distributed in the hope that it will be useful,
 				but WITHOUT ANY WARRANTY; without even the implied warranty of
-				MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+				MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 				GNU Affero General Public License for more details.
 
 				You should have received a copy of the GNU Affero General Public License
-				along with structr. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+				along with structr.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 			</comments>
 		</license>
 	</licenses>
