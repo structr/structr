@@ -60,10 +60,10 @@ public interface App extends Closeable {
 	RelationshipInterface getRelationshipById(final String uuid) throws FrameworkException;
 
 	Query<NodeInterface> nodeQuery();
-	Query<NodeInterface> nodeQuery(final String type);
+	QueryGroup<NodeInterface> nodeQuery(final String type);
 
 	Query<RelationshipInterface> relationshipQuery();
-	Query<RelationshipInterface> relationshipQuery(final String type);
+	QueryGroup<RelationshipInterface> relationshipQuery(final String type);
 
 	void shutdown();
 

@@ -123,7 +123,7 @@ public class SessionHelper {
 
 		final App app                            = StructrApp.getInstance();
 		final PropertyKey<String[]> sessionIdKey = Traits.of(StructrTraits.PRINCIPAL).key(PrincipalTraitDefinition.SESSION_IDS_PROPERTY);
-		final Query<NodeInterface> query         = app.nodeQuery(StructrTraits.PRINCIPAL).and(sessionIdKey, new String[]{sessionId}, false).disableSorting();
+		final Query<NodeInterface> query         = app.nodeQuery(StructrTraits.PRINCIPAL).key(sessionIdKey, new String[]{sessionId}, false).disableSorting();
 
 		try {
 

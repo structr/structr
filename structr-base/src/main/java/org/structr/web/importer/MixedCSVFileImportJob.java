@@ -174,7 +174,7 @@ public class MixedCSVFileImportJob extends FileImportJob {
 
 								// search for object before creating it again
 								if (!searchAttributes.isEmpty()) {
-									newObject = app.nodeQuery(typeName).and(searchAttributes).getFirst();
+									newObject = app.nodeQuery(typeName).key(searchAttributes).getFirst();
 								}
 
 								// create new object if it doesn't exist yet

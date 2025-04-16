@@ -130,7 +130,7 @@ public class CreateOrUpdateFunction extends CoreFunction {
 				if (key.isUnique()) {
 
 					// If a key is unique, try to find an existing object
-					obj = (NodeInterface) app.nodeQuery(type.getName()).disableSorting().pageSize(1).and(key, properties.get(key)).getFirst();
+					obj = (NodeInterface) app.nodeQuery(type.getName()).disableSorting().pageSize(1).and().key(key, properties.get(key)).getFirst();
 
 					if (obj != null) {
 						break;

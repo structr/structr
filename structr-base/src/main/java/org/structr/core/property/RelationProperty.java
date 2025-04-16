@@ -32,6 +32,7 @@ public interface RelationProperty {
 	Notion getNotion();
 
 	String getTargetType();
+	String getSourceType();
 
 	Relation getRelation();
 

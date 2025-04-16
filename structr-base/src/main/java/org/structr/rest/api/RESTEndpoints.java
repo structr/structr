@@ -48,6 +48,7 @@ public class RESTEndpoints {
 		RESTEndpoints.register(new DeprecatedGlobalSchemaMethodsResource());
 		RESTEndpoints.register(new EntityResolverResource());
 		RESTEndpoints.register(new EnvResource());
+		RESTEndpoints.register(new StatsResource());
 		RESTEndpoints.register(new UserDefinedFunctionsResource());
 		RESTEndpoints.register(new InstanceMethodResource());
 		RESTEndpoints.register(new InstanceRelationshipsResource());

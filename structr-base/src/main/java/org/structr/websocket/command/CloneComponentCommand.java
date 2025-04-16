@@ -87,7 +87,7 @@ public class CloneComponentCommand extends AbstractCommand {
 		}
 
 		// check if parent node with given ID exists
-		final DOMNode parentNode = (DOMNode) getNode(parentId);
+		final DOMNode parentNode = getDOMNode(parentId);
 
 		if (parentNode == null) {
 

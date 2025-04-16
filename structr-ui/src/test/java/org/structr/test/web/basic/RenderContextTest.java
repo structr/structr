@@ -33,7 +33,14 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.*;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.GroupTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
+import org.structr.core.traits.definitions.RelationshipInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
+import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
+import org.structr.core.traits.definitions.SchemaRelationshipNodeTraitDefinition;
 import org.structr.schema.action.ActionContext;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.RenderContext;
@@ -534,8 +541,8 @@ public class RenderContextTest extends StructrUiTest {
 			assertEquals("true", Scripting.replaceVariables(ctx, p1, "${equal(42, this.null!42)}"));
 
 
-			final User tester1 = app.nodeQuery(StructrTraits.USER).andName("tester1").getFirst().as(User.class);
-			final User tester2 = app.nodeQuery(StructrTraits.USER).andName("tester2").getFirst().as(User.class);
+			final User tester1 = app.nodeQuery(StructrTraits.USER).name("tester1").getFirst().as(User.class);
+			final User tester2 = app.nodeQuery(StructrTraits.USER).name("tester2").getFirst().as(User.class);
 
 			assertNotNull("User tester1 should exist.", tester1);
 			assertNotNull("User tester2 should exist.", tester2);

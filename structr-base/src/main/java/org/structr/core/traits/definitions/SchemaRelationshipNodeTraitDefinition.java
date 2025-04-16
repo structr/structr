@@ -30,7 +30,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.SemanticErrorToken;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
-import org.structr.core.app.Query;
+import org.structr.core.app.QueryGroup;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.*;
 import org.structr.core.graph.ModificationQueue;
@@ -57,7 +57,7 @@ import java.util.*;
 public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 	private static final Logger logger                           = LoggerFactory.getLogger(SchemaRelationshipNodeTraitDefinition.class);
-	private static final String SchemaRemoteAttributeNamePattern = "[a-zA-Z_][a-zA-Z0-9_]*";
+	private static final String SchemaRemoteAttributeNamePattern = "[a-z][a-zA-Z0-9_]*";
 
 	public static final String SOURCE_TYPE_PROPERTY                = "sourceType";
 	public static final String TARGET_TYPE_PROPERTY                = "targetType";
@@ -105,8 +105,12 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 					final PropertyKey<String> relationshipType  = traits.key(RELATIONSHIP_TYPE_PROPERTY);
 					boolean valid                               = true;
 
-					valid &= (obj.getProperty(sourceJsonName) == null || ValidationHelper.isValidStringMatchingRegex(obj, sourceJsonName, SchemaRemoteAttributeNamePattern, errorBuffer));
-					valid &= (obj.getProperty(targetJsonName) == null || ValidationHelper.isValidStringMatchingRegex(obj, targetJsonName, SchemaRemoteAttributeNamePattern, errorBuffer));
+					valid &= (obj.getProperty(sourceJsonName) == null || ValidationHelper.isValidStringMatchingRegex(obj, sourceJsonName, SchemaRemoteAttributeNamePattern,
+						"Source attribute name must match the following pattern: '" + SchemaRemoteAttributeNamePattern + "', which means it must start with a lowercase letter and may only contain letters, numbers and underscores.",
+						errorBuffer));
+					valid &= (obj.getProperty(targetJsonName) == null || ValidationHelper.isValidStringMatchingRegex(obj, targetJsonName, SchemaRemoteAttributeNamePattern,
+						"Target attribute name must match the following pattern: '" + SchemaRemoteAttributeNamePattern + "', which means it must start with a lowercase letter and may only contain letters, numbers and underscores.",
+						errorBuffer));
 					valid &= ValidationHelper.isValidStringNotBlank(obj, relationshipType, errorBuffer);
 
 					// source and target node can be type names
@@ -227,28 +231,28 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-					GraphObjectTraitDefinition.ID_PROPERTY, NAME_PROPERTY, RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY, RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY,
+					GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NAME_PROPERTY, RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY, RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY,
 					SOURCE_TYPE_PROPERTY, TARGET_TYPE_PROPERTY, SOURCE_MULTIPLICITY_PROPERTY, TARGET_MULTIPLICITY_PROPERTY, SOURCE_NOTION_PROPERTY, TARGET_NOTION_PROPERTY, RELATIONSHIP_TYPE_PROPERTY,
 					SOURCE_JSON_NAME_PROPERTY, TARGET_JSON_NAME_PROPERTY, CASCADING_DELETE_FLAG_PROPERTY, AUTOCREATION_FLAG_PROPERTY, PREVIOUS_SOURCE_JSON_NAME_PROPERTY, PREVIOUS_TARGET_JSON_NAME_PROPERTY,
 					PERMISSION_PROPAGATION_PROPERTY, READ_PROPAGATION_PROPERTY, WRITE_PROPAGATION_PROPERTY, DELETE_PROPAGATION_PROPERTY, ACCESS_CONTROL_PROPAGATION_PROPERTY, PROPERTY_MASK_PROPERTY, IS_PART_OF_BUILT_IN_SCHEMA_PROPERTY
 			),
 			PropertyView.Ui,
 			newSet(
-					GraphObjectTraitDefinition.ID_PROPERTY, NAME_PROPERTY, RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY, RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY,
+					GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NAME_PROPERTY, RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY, RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY,
 					SOURCE_TYPE_PROPERTY, TARGET_TYPE_PROPERTY, SOURCE_MULTIPLICITY_PROPERTY, TARGET_MULTIPLICITY_PROPERTY, SOURCE_NOTION_PROPERTY, TARGET_NOTION_PROPERTY, RELATIONSHIP_TYPE_PROPERTY,
 					SOURCE_JSON_NAME_PROPERTY, TARGET_JSON_NAME_PROPERTY, CASCADING_DELETE_FLAG_PROPERTY, AUTOCREATION_FLAG_PROPERTY, PREVIOUS_SOURCE_JSON_NAME_PROPERTY, PREVIOUS_TARGET_JSON_NAME_PROPERTY,
 					PERMISSION_PROPAGATION_PROPERTY, READ_PROPAGATION_PROPERTY, WRITE_PROPAGATION_PROPERTY, DELETE_PROPAGATION_PROPERTY, ACCESS_CONTROL_PROPAGATION_PROPERTY, PROPERTY_MASK_PROPERTY, IS_PART_OF_BUILT_IN_SCHEMA_PROPERTY
 			),
 			"export",
 			newSet(
-					GraphObjectTraitDefinition.ID_PROPERTY, RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY, RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY,
+					GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY, RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY,
 					SOURCE_TYPE_PROPERTY, TARGET_TYPE_PROPERTY, SOURCE_MULTIPLICITY_PROPERTY, TARGET_MULTIPLICITY_PROPERTY, SOURCE_NOTION_PROPERTY, TARGET_NOTION_PROPERTY, RELATIONSHIP_TYPE_PROPERTY,
 					SOURCE_JSON_NAME_PROPERTY, TARGET_JSON_NAME_PROPERTY, CASCADING_DELETE_FLAG_PROPERTY, AUTOCREATION_FLAG_PROPERTY,
 					PERMISSION_PROPAGATION_PROPERTY, PROPERTY_MASK_PROPERTY, IS_PART_OF_BUILT_IN_SCHEMA_PROPERTY
 			),
 			"schema",
 			newSet(
-					GraphObjectTraitDefinition.ID_PROPERTY, NAME_PROPERTY, RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY, RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY,
+					GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NAME_PROPERTY, RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY, RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY,
 					SOURCE_TYPE_PROPERTY, TARGET_TYPE_PROPERTY, SOURCE_MULTIPLICITY_PROPERTY, TARGET_MULTIPLICITY_PROPERTY, SOURCE_NOTION_PROPERTY, TARGET_NOTION_PROPERTY, RELATIONSHIP_TYPE_PROPERTY,
 					SOURCE_JSON_NAME_PROPERTY, TARGET_JSON_NAME_PROPERTY, CASCADING_DELETE_FLAG_PROPERTY, AUTOCREATION_FLAG_PROPERTY, PREVIOUS_SOURCE_JSON_NAME_PROPERTY, PREVIOUS_TARGET_JSON_NAME_PROPERTY,
 					PERMISSION_PROPAGATION_PROPERTY, READ_PROPAGATION_PROPERTY, WRITE_PROPAGATION_PROPERTY, DELETE_PROPAGATION_PROPERTY, ACCESS_CONTROL_PROPAGATION_PROPERTY, PROPERTY_MASK_PROPERTY, IS_PART_OF_BUILT_IN_SCHEMA_PROPERTY
@@ -338,11 +342,11 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 			final SchemaNode sourceNode = node.getSourceNode();
 			final SchemaNode targetNode = node.getTargetNode();
 
-			final Query<NodeInterface> query = StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_RELATIONSHIP_NODE).and(relTypeKey, node.getRelationshipType(), true);
+			final QueryGroup<NodeInterface> query = StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(relTypeKey, node.getRelationshipType(), true);
 
 			// source node or static type (string-based)
-			if (sourceNode != null) query.and(sourceNodeKey, sourceNode); else query.and(sourceTypeKey, node.getSourceType());
-			if (targetNode != null) query.and(targetNodeKey, targetNode); else query.and(targetTypeKey, node.getTargetType());
+			if (sourceNode != null) query.key(sourceNodeKey, sourceNode); else query.key(sourceTypeKey, node.getSourceType());
+			if (targetNode != null) query.key(targetNodeKey, targetNode); else query.key(targetTypeKey, node.getTargetType());
 
 			for (final NodeInterface exRel : query.getResultStream()) {
 
@@ -359,7 +363,7 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 				);
 			}
 
-		} catch (FrameworkException fex) {
+		} catch (Throwable fex) {
 			fex.printStackTrace();
 		}
 

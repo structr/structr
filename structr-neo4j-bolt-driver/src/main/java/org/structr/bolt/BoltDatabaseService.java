@@ -827,11 +827,6 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 		}
 
 		@Override
-		public Occurrence getOccurrence() {
-			return Occurrence.REQUIRED;
-		}
-
-		@Override
 		public boolean isExactMatch() {
 			return true;
 		}
@@ -873,11 +868,6 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 		@Override
 		public String getLabel() {
 			return null;
-		}
-
-		@Override
-		public Occurrence getOccurrence() {
-			return Occurrence.REQUIRED;
 		}
 
 		@Override

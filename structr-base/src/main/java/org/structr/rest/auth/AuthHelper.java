@@ -84,7 +84,7 @@ public class AuthHelper {
 
 			try {
 
-				final NodeInterface node = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).and(key, value, isExact).disableSorting().isPing(isPing).getFirst();
+				final NodeInterface node = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).key(key, value, isExact).disableSorting().isPing(isPing).getFirst();
 				if (node != null) {
 
 					return node.as(Principal.class);
@@ -137,7 +137,7 @@ public class AuthHelper {
 
 			try {
 
-				final NodeInterface node = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).and().or(key, value).or(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), value).disableSorting().getFirst();
+				final NodeInterface node = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).and().or().key(key, value).key(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), value).disableSorting().getFirst();
 				if (node != null) {
 
 					principal = node.as(Principal.class);
@@ -465,7 +465,7 @@ public class AuthHelper {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface node = app.nodeQuery(StructrTraits.PRINCIPAL).and(twoFactorTokenKey, twoFactorIdentificationToken).getFirst();
+			final NodeInterface node = app.nodeQuery(StructrTraits.PRINCIPAL).key(twoFactorTokenKey, twoFactorIdentificationToken).getFirst();
 			if (node != null) {
 
 				principal = node.as(Principal.class);

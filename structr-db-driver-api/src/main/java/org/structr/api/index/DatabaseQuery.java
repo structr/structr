@@ -25,22 +25,22 @@ public interface DatabaseQuery {
 	/**
 	 * Indicates AND conjunction with the next predicate.
 	 */
-	public void and();
+	void and();
 
 	/**
 	 * Indicates OR conjunction with the next predicate.
 	 */
-	public void or();
+	void or();
 
 	/**
 	 * Indicates negation of the next predicate.
 	 */
-	public void not();
+	void not();
 
 	/**
 	 * Indicates AND conjunction and negation of the next predicate.
 	 */
-	public void andNot();
+	void andNot();
 
 	void sort(final SortOrder sortOrder);
 }

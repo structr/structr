@@ -130,7 +130,7 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> extends D
 						identifyingKeyValues.put(key, attributes.get(key));
 					}
 
-					result.addAll((List)app.nodeQuery(type).and(identifyingKeyValues).getAsList());
+					result.addAll((List)app.nodeQuery(type).key(identifyingKeyValues).getAsList());
 
 				}
 			}

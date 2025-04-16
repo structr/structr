@@ -432,7 +432,7 @@ public class ResourceAccessTest extends StructrUiTest {
 			uuid = test.getUuid();
 
 			// set owner
-			final NodeInterface tester = app.nodeQuery(StructrTraits.PRINCIPAL).andName("tester").getFirst();
+			final NodeInterface tester = app.nodeQuery(StructrTraits.PRINCIPAL).name("tester").getFirst();
 
 			test.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), tester);
 

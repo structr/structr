@@ -160,10 +160,7 @@ public class Actions {
 		CachedMethod cachedSource = methodCache.get(key);
 		if (cachedSource == null) {
 
-			// we might want to introduce caching here at some point in the future..
-			// Cache can be invalidated when the schema is rebuilt for example..
-
-			final List<NodeInterface> methods = StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_METHOD).andName(key).getAsList();
+			final List<NodeInterface> methods = StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_METHOD).name(key).getAsList();
 			if (methods.isEmpty()) {
 
 				if (!NOTIFICATION_LOGIN.equals(key) && !NOTIFICATION_LOGOUT.equals(key)) {

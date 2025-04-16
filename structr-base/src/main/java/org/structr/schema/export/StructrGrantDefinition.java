@@ -152,29 +152,24 @@ public class StructrGrantDefinition implements JsonGrant, StructrDefinition {
 
 		final PropertyMap getOrCreateProperties = new PropertyMap();
 		final PropertyMap updateProperties      = new PropertyMap();
-		final List<NodeInterface> principals    = app.nodeQuery(StructrTraits.PRINCIPAL).andName(principalName).getAsList();
+		final List<NodeInterface> principals    = app.nodeQuery(StructrTraits.PRINCIPAL).name(principalName).getAsList();
 		final Traits traits                     = Traits.of(StructrTraits.SCHEMA_GRANT);
 
 		if (principals.isEmpty()) {
 
-			// log error
-			logger.warn("No node of type Principal with name '{}' found for schema grant, ignoring.", principalName);
-			DeployCommand.addMissingPrincipal(principalName);
+			DeployCommand.encounteredMissingPrincipal("Missing principal for schema grant", principalName);
 			return null;
-		}
 
-		if (principals.size() > 1) {
+		} else if (principals.size() > 1) {
 
-			// log error
-			logger.warn("Found {} nodes of type Principal named '{}' for schema grant, ignoring.", principals.size(), principalName);
-			DeployCommand.addAmbiguousPrincipal(principalName);
+			DeployCommand.encounteredAmbiguousPrincipal("Missing principal for schema grant", principalName, principals.size());
 			return null;
 		}
 
 		getOrCreateProperties.put(traits.key("principal"),  principals.get(0));
 		getOrCreateProperties.put(traits.key(SchemaGrantTraitDefinition.SCHEMA_NODE_PROPERTY), (SchemaNode)schemaNode);
 
-		NodeInterface grant = app.nodeQuery(StructrTraits.SCHEMA_GRANT).and(getOrCreateProperties).getFirst();
+		NodeInterface grant = app.nodeQuery(StructrTraits.SCHEMA_GRANT).key(getOrCreateProperties).getFirst();
 		if (grant == null) {
 
 			grant = app.create(StructrTraits.SCHEMA_GRANT, getOrCreateProperties);

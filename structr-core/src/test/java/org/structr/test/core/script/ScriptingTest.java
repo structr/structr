@@ -54,18 +54,7 @@ import org.structr.core.script.ScriptTestHelper;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
-import org.structr.core.traits.definitions.AbstractSchemaNodeTraitDefinition;
-import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
-import org.structr.core.traits.definitions.GroupTraitDefinition;
-import org.structr.core.traits.definitions.MailTemplateTraitDefinition;
-import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
-import org.structr.core.traits.definitions.PrincipalTraitDefinition;
-import org.structr.core.traits.definitions.RelationshipInterfaceTraitDefinition;
-import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
-import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
-import org.structr.core.traits.definitions.SchemaRelationshipNodeTraitDefinition;
-import org.structr.schema.ConfigurationProvider;
+import org.structr.core.traits.definitions.*;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
 import org.structr.schema.action.EvaluationHints;
@@ -2467,48 +2456,6 @@ public class ScriptingTest extends StructrTest {
 	}
 
 	@Test
-	public void testStructrScriptBatchFunction() {
-
-		try (final Tx tx = app.tx()) {
-
-			createTestNodes("TestOne", 1000);
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-
-			fex.printStackTrace();
-			fail("Unexpected exception.");
-		}
-
-		try (final Tx tx = app.tx()) {
-
-			final ActionContext ctx  = new ActionContext(securityContext, null);
-			Scripting.evaluate(ctx, null, "${batch(each(find('TestOne'), set(data, 'name', 'test')), 100)}", "test");
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-
-			fex.printStackTrace();
-			fail("Unexpected exception: " + fex.getMessage());
-		}
-
-		try (final Tx tx = app.tx()) {
-
-			final ActionContext ctx  = new ActionContext(securityContext, null);
-			Scripting.evaluate(ctx, null, "${batch(delete(find('TestOne')), 100)}", "test");
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-
-			fex.printStackTrace();
-			fail("Unexpected exception: " + fex.getMessage());
-		}
-	}
-
-	@Test
 	public void testBulkDeleteWithoutBatching() {
 
 		try (final Tx tx = app.tx()) {
@@ -2743,7 +2690,7 @@ public class ScriptingTest extends StructrTest {
 		// Create first object
 		try (final Tx tx = app.tx()) {
 
-			final Principal testUser = StructrApp.getInstance().nodeQuery(StructrTraits.USER).and(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testuser").getFirst().as(Principal.class);
+			final Principal testUser = StructrApp.getInstance().nodeQuery(StructrTraits.USER).key(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testuser").getFirst().as(Principal.class);
 			final ActionContext ctx = new ActionContext(SecurityContext.getInstance(testUser, AccessMode.Frontend));
 
 			userObjects += Scripting.replaceVariables(ctx, null, "${ create('TestOne') }");
@@ -2759,7 +2706,7 @@ public class ScriptingTest extends StructrTest {
 		// find() it - this works because the cache is empty
 		try (final Tx tx = app.tx()) {
 
-			final Principal testUser = StructrApp.getInstance().nodeQuery(StructrTraits.USER).and(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testuser").getFirst().as(Principal.class);
+			final Principal testUser = StructrApp.getInstance().nodeQuery(StructrTraits.USER).key(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testuser").getFirst().as(Principal.class);
 			final ActionContext ctx = new ActionContext(SecurityContext.getInstance(testUser, AccessMode.Frontend));
 
 			assertEquals("User should be able to find newly created object!", userObjects + "]", Scripting.replaceVariables(ctx, null, "${ find('TestOne', 'owner', me.id) }"));
@@ -2775,7 +2722,7 @@ public class ScriptingTest extends StructrTest {
 		// create second object
 		try (final Tx tx = app.tx()) {
 
-			final Principal testUser = StructrApp.getInstance().nodeQuery(StructrTraits.USER).and(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testuser").getFirst().as(Principal.class);
+			final Principal testUser = StructrApp.getInstance().nodeQuery(StructrTraits.USER).key(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testuser").getFirst().as(Principal.class);
 			final ActionContext ctx = new ActionContext(SecurityContext.getInstance(testUser, AccessMode.Frontend));
 
 			userObjects += ", " + Scripting.replaceVariables(ctx, null, "${ create('TestOne') }");
@@ -2791,7 +2738,7 @@ public class ScriptingTest extends StructrTest {
 		// find() it - this does not work because there is a cache entry already and it was not invalidated after creating the last relationship to it
 		try (final Tx tx = app.tx()) {
 
-			final Principal testUser = StructrApp.getInstance().nodeQuery(StructrTraits.USER).and(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testuser").getFirst().as(Principal.class);
+			final Principal testUser = StructrApp.getInstance().nodeQuery(StructrTraits.USER).key(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testuser").getFirst().as(Principal.class);
 			final ActionContext ctx = new ActionContext(SecurityContext.getInstance(testUser, AccessMode.Frontend));
 
 			assertEquals("User should be able to find newly created object!", userObjects + "]", Scripting.replaceVariables(ctx, null, "${ find('TestOne', 'owner', me.id, sort('createdDate', 'desc')) }"));
@@ -2924,7 +2871,7 @@ public class ScriptingTest extends StructrTest {
 		// test modifications
 		try (final Tx tx = app.tx()) {
 
-			final Principal tester = app.nodeQuery(StructrTraits.USER).andName("modifications-tester").getFirst().as(Principal.class);
+			final Principal tester = app.nodeQuery(StructrTraits.USER).name("modifications-tester").getFirst().as(Principal.class);
 			final NodeInterface c = app.nodeQuery(customer).getFirst();
 			final NodeInterface p = app.nodeQuery(project).getFirst();
 			final NodeInterface t = app.nodeQuery(task).getFirst();
@@ -3831,6 +3778,7 @@ public class ScriptingTest extends StructrTest {
 
 			final NodeInterface task4 = app.create(taskType, new NodeAttribute<>(taskName, "t4") );
 			final NodeInterface task5 = app.create(taskType, new NodeAttribute<>(taskName, "t5") );
+			final NodeInterface task6 = app.create(taskType, new NodeAttribute<>(taskName, "t6") );
 
 			app.create(projectType, new NodeAttribute<>(projectName, "p1a"), new NodeAttribute<>(projectTasks, Arrays.asList(task1)) );
 			app.create(projectType, new NodeAttribute<>(projectName, "p2a"), new NodeAttribute<>(projectTasks, Arrays.asList(task2)) );
@@ -3860,16 +3808,29 @@ public class ScriptingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			assertEquals("Normal find() should use OR to search for remote properties", 9, ((List)Scripting.evaluate(ctx, null, "${{ let t1 = $.find('Task', 'name', 't1'); $.find('Project', 'tasks', t1); }}", "testFindOldSyntax")).size());
-			assertEquals("Normal find() should use OR to search for remote properties", 9, ((List)Scripting.evaluate(ctx, null, "${{ let t2 = $.find('Task', 'name', 't2'); $.find('Project', 'tasks', t2); }}", "testFindOldSyntax")).size());
-			assertEquals("Normal find() should use OR to search for remote properties", 9, ((List)Scripting.evaluate(ctx, null, "${{ let t3 = $.find('Task', 'name', 't3'); $.find('Project', 'tasks', t3); }}", "testFindOldSyntax")).size());
+			// find all projects with t1 (result: 2)
+			assertEquals("Normal find() should use EXACT search for remote properties", 2, ((List)Scripting.evaluate(ctx, null, "${{ let t1 = $.find('Task', 'name', 't1'); $.find('Project', 'tasks', t1); }}", "testFindOldSyntax")).size());
 
-			assertEquals("Normal find() should use OR to search for remote properties", 13, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t2 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't1'), $.predicate.equals('name', 't2'))); $.find('Project', 'tasks', t1_t2); }}", "testFindOldSyntax")).size());
-			assertEquals("Normal find() should use OR to search for remote properties", 13, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t3 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't1'), $.predicate.equals('name', 't3'))); $.find('Project', 'tasks', t1_t3); }}", "testFindOldSyntax")).size());
-			assertEquals("Normal find() should use OR to search for remote properties", 13, ((List)Scripting.evaluate(ctx, null, "${{ let t2_t3 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't2'), $.predicate.equals('name', 't3'))); $.find('Project', 'tasks', t2_t3); }}", "testFindOldSyntax")).size());
+			// find all projects with t2 (result: 2)
+			assertEquals("Normal find() should use EXACT search for remote properties", 2, ((List)Scripting.evaluate(ctx, null, "${{ let t2 = $.find('Task', 'name', 't2'); $.find('Project', 'tasks', t2); }}", "testFindOldSyntax")).size());
 
-			assertEquals("Normal find() should use OR to search for remote properties", 15, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t2_t3 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't1'), $.predicate.equals('name', 't2'), $.predicate.equals('name', 't3'))); $.find('Project', 'tasks', t1_t2_t3); }}", "testFindOldSyntax")).size());
-			assertEquals("Normal find() should use OR to search for remote properties", 15, ((List)Scripting.evaluate(ctx, null, "${{ $.find('Project', 'tasks', $.find('Task')); }}", "testFindOldSyntax")).size());
+			// find all projects with t2 (result: 2)
+			assertEquals("Normal find() should use EXACT search for remote properties", 2, ((List)Scripting.evaluate(ctx, null, "${{ let t3 = $.find('Task', 'name', 't3'); $.find('Project', 'tasks', t3); }}", "testFindOldSyntax")).size());
+
+			// find all projects with t1 and t2 (result: 2)
+			assertEquals("Normal find() should use EXACT search for remote properties", 2, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t2 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't1'), $.predicate.equals('name', 't2'))); $.find('Project', 'tasks', t1_t2); }}", "testFindOldSyntax")).size());
+
+			// find all projects with t1 and t3 (result: 2)
+			assertEquals("Normal find() should use EXACT search for remote properties", 2, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t3 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't1'), $.predicate.equals('name', 't3'))); $.find('Project', 'tasks', t1_t3); }}", "testFindOldSyntax")).size());
+
+			// find all projects with t2 and t3 (result: 2)
+			assertEquals("Normal find() should use EXACT search for remote properties", 2, ((List)Scripting.evaluate(ctx, null, "${{ let t2_t3 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't2'), $.predicate.equals('name', 't3'))); $.find('Project', 'tasks', t2_t3); }}", "testFindOldSyntax")).size());
+
+			// find all projects with t1, t2 and t3 (result: 2)
+			assertEquals("Normal find() should use EXACT search for remote properties", 2, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t2_t3 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't1'), $.predicate.equals('name', 't2'), $.predicate.equals('name', 't3'))); $.find('Project', 'tasks', t1_t2_t3); }}", "testFindOldSyntax")).size());
+
+			// find all projects with all tasks(i.e. t1, t2, t3 and t4) (result: 0 because t5 exists and has no project)
+			assertEquals("Normal find() should use EXACT search for remote properties", 0, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', 'tasks', $.find('Task')); }}", "testFindOldSyntax")).size());
 
 			assertEquals("Advanced find() should use EXACT search for $.equals predicate on remote properties", 2, ((List)Scripting.evaluate(ctx, null, "${{ let t1 = $.find('Task', 'name', 't1'); $.find('Project', 'tasks', $.predicate.equals(t1)); }}", "testFindNewSyntax")).size());
 
@@ -3898,7 +3859,9 @@ public class ScriptingTest extends StructrTest {
 
 			// ($.not and $.empty)
 			assertEquals("Advanced find() should understand $.not predicate for remote properties", 4, ((List)Scripting.evaluate(ctx, null, "${{ $.find('Task', $.predicate.not($.predicate.empty('projects'))); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() should understand $.empty predicate for remote properties", 1, ((List)Scripting.evaluate(ctx, null, "${{ $.find('Task', $.predicate.empty('projects')); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() should understand $.empty predicate for remote properties", 2, ((List)Scripting.evaluate(ctx, null, "${{ $.find('Task', $.predicate.empty('projects')); }}", "testFindNewSyntax")).size());
+
+			tx.success();
 
 		} catch (FrameworkException t) {
 
@@ -4439,13 +4402,15 @@ public class ScriptingTest extends StructrTest {
 		}
 
 
-		final ActionContext ctx                = new ActionContext(securityContext);
+		final ActionContext ctx = new ActionContext(securityContext);
 
 		try (final Tx tx = app.tx()) {
 
 			final int testNodeCount = StructrApp.getInstance().nodeQuery("TestType").getAsList().size();
 
 			final String errorMessage = "all test nodes should be returned - no cypher exception should be triggered by empty clauses!";
+
+			Settings.CypherDebugLogging.setValue(true);
 
 			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ $.find('TestType').length; }}", ""));
 
@@ -4527,6 +4492,88 @@ public class ScriptingTest extends StructrTest {
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
+	}
+
+	@Test
+	public void testAdvancedFindWithNotPredicateAndRemoteProperty() {
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema      = StructrSchema.createFromDatabase(app);
+			final JsonObjectType project = schema.addType("Project");
+			final JsonObjectType task    = schema.addType("Task");
+
+			// create relation
+			final JsonReferenceType rel = project.relate(task, "has", Cardinality.OneToMany, "project", "tasks");
+			rel.setName("ProjectTasks");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final ActionContext ctx  = new ActionContext(securityContext);
+		final String projectType = "Project";
+		final String taskType    = "Task";
+
+		final PropertyKey projectName  = Traits.of(projectType).key("name");
+		final PropertyKey projectTasks = Traits.of(projectType).key("tasks");
+		final PropertyKey taskName     = Traits.of(taskType).key("name");
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface task1 = app.create(taskType, new NodeAttribute<>(taskName, "t1") );
+			final NodeInterface task2 = app.create(taskType, new NodeAttribute<>(taskName, "t2") );
+			final NodeInterface task3 = app.create(taskType, new NodeAttribute<>(taskName, "t3") );
+			final NodeInterface task4 = app.create(taskType, new NodeAttribute<>(taskName, "t4") );
+			final NodeInterface task5 = app.create(taskType, new NodeAttribute<>(taskName, "t5") );
+
+			app.create(projectType, new NodeAttribute<>(projectName, "Project 1"), new NodeAttribute<>(projectTasks, Arrays.asList(task1, task2, task3, task4, task5)) );
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			assertEquals("Task t1 should be in project with 5 tasks", 5, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Task', 'name', 't1')[0].project.tasks }}", "testFindNewSyntax")).size());
+
+			final String script = "${{" +
+					"let t1 = $.find('Task', 'name', 't1')[0];" +
+					"" +
+					"return $.find('Task', $.predicate.and(" +
+					"	$.predicate.equals('project', t1.project)," +
+					"	$.predicate.not($.predicate.equals('id', t1.id))" +
+					")" +
+					");" +
+					"}}";
+
+			Settings.CypherDebugLogging.setValue(true);
+
+			// ($.not and $.equals)
+			assertEquals("Using advanced find() to find all **other** tasks in a project using not and equals predicate should work", 4, ((List)Scripting.evaluate(ctx, null, script, "testFindNewSyntax")).size());
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception");
+
+		} finally {
+
+			Settings.CypherDebugLogging.setValue(false);
+		}
+
 	}
 
 	@Test
@@ -4780,8 +4827,8 @@ public class ScriptingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface group1 = app.nodeQuery(StructrTraits.GROUP).andName("group1").getFirst();
-			final NodeInterface group2 = app.nodeQuery(StructrTraits.GROUP).andName("group2").getFirst();
+			final NodeInterface group1 = app.nodeQuery(StructrTraits.GROUP).name("group1").getFirst();
+			final NodeInterface group2 = app.nodeQuery(StructrTraits.GROUP).name("group2").getFirst();
 			final String script1       = "${{ $.find('Group', { $and: { name: 'group1', id: $.predicate.not($.predicate.equals('" + group1.getUuid() + "')) }}); }}";
 			final String script2       = "${{ $.find('Group', { $and: { name: 'group1', id: $.predicate.not($.predicate.equals('" + group2.getUuid() + "')) }}); }}";
 
@@ -4961,6 +5008,8 @@ public class ScriptingTest extends StructrTest {
 			final String query1               = "${find('Contact', and(not(empty('num')), not(equals('contactType', first(find('ContactType', 'name', 'type1'))))), sort('num', true), page(1, 20))}";
 			final List<NodeInterface> result1 = (List)Scripting.evaluate(ctx, null, query1, "test1");
 
+			assertEquals("Invalid result for advanced find with graph predicate", 10, result1.size());
+
 			// expected: 19, 18, 16, 15, 13, 12, 8, 7, 3, 2
 			assertEquals("Invalid result for advanced find with graph predicate", 19, result1.get(0).getProperty(numKey));
 			assertEquals("Invalid result for advanced find with graph predicate", 18, result1.get(1).getProperty(numKey));
@@ -4983,7 +5032,7 @@ public class ScriptingTest extends StructrTest {
 	}
 
 	@Test
-	public void NodeInterface() {
+	public void testLoggingOfGraphObjects() {
 
 		final ActionContext ctx = new ActionContext(securityContext);
 
@@ -6816,6 +6865,102 @@ public class ScriptingTest extends StructrTest {
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
+	}
+
+	@Test
+	public void testSetPrivileged() {
+
+		NodeInterface user1 = null;
+		NodeInterface user2 = null;
+
+		// create test user
+		try (final Tx tx = app.tx()) {
+
+			user1 = app.create(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "user1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.PASSWORD_PROPERTY), "test")
+			);
+
+			user2 = app.create(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "user1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.PASSWORD_PROPERTY), "test")
+			);
+
+			final NodeInterface testOne   = app.create("TestOne", "test one");
+			final NodeInterface testThree = app.create("TestThree", "test three");
+
+			// all nodes belong to user1
+			testOne.as(AccessControllable.class).setOwner(user1.as(Principal.class));
+			testThree.as(AccessControllable.class).setOwner(user1.as(Principal.class));
+
+			// all nodes are visible to authenticated users (so that user2 can fetch them)
+			testOne.setVisibility(false, true);
+			testThree.setVisibility(false, true);
+
+			tx.success();
+
+		} catch(FrameworkException fex) {
+
+			logger.warn("", fex);
+			fail("Unexpected exception.");
+		}
+
+		final SecurityContext user2Context = SecurityContext.getInstance(user2.as(User.class), AccessMode.Backend);
+		final App user2App                 = StructrApp.getInstance(user2Context);
+
+		try (final Tx tx = user2App.tx()) {
+
+			final NodeInterface one   = app.nodeQuery("TestOne").getFirst();
+			final NodeInterface three = app.nodeQuery("TestThree").getFirst();
+
+			// try to change the name (without set_privileged)
+			try {
+				Scripting.evaluate(new ActionContext(user2Context), one, "${set(this, 'name', 'changed!')}", "test1");
+				fail("Setting the name of a node without permissions should fail.");
+
+			} catch (FrameworkException fex) {
+			}
+
+			assertEquals("Name should not have changed1", "test one", one.getName());
+
+			// try to change the name (with set_privileged)
+			try {
+				Scripting.evaluate(new ActionContext(user2Context), one, "${set_privileged(this, 'name', 'changed!')}", "test1");
+
+			} catch (FrameworkException fex) {
+				fail("Setting the name of a node with set_privileged should succeed.");
+			}
+
+			assertEquals("Name should now be changed!", "changed!", one.getName());
+
+
+			// try to associate a related node (without permissions)
+			try {
+				Scripting.evaluate(new ActionContext(user2Context), one, "${set(this, 'testThree', first(find('TestThree')))}", "test1");
+				fail("Associating a related node without permissions should fail.");
+
+			} catch (FrameworkException fex) {
+			}
+
+			assertEquals("TestTwo should not be assigned", (NodeInterface)null, one.getProperty(Traits.of("TestOne").key("testTwo")));
+
+			// try to associate a related node (with set_privileged)
+			try {
+				Scripting.evaluate(new ActionContext(user2Context), one, "${set_privileged(this, 'testThree', first(find('TestThree')))}", "test1");
+
+			} catch (FrameworkException fex) {
+				fail("Associating a related node with set_privileged should succeed.");
+			}
+
+			assertEquals("TestTwo should be assigned", three, one.getProperty(Traits.of("TestOne").key("testThree")));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
 	}
 
 	// ----- private methods ----

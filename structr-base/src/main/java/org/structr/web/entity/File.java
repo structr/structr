@@ -36,6 +36,7 @@ public interface File extends AbstractFile, DataSource {
 	Map<String, Object> getCSVHeaders(final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException;
 	Map<String, Object> getFirstLines(final SecurityContext securityContext, final Map<String, Object> parameters);
 	OutputStream getOutputStream(final boolean notifyIndexerAfterClosing, boolean append);
+	InputStream getRawInputStream();
 	boolean isTemplate();
 	boolean dontCache();
 

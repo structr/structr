@@ -1126,7 +1126,7 @@ public class AccessControlTest extends StructrTest {
 
 		try (final Tx tx = user2App.tx()) {
 
-			final Group testGroup = user2App.nodeQuery(StructrTraits.GROUP).andName("group").getFirst().as(Group.class);
+			final Group testGroup = user2App.nodeQuery(StructrTraits.GROUP).name("group").getFirst().as(Group.class);
 
 			assertNotNull("Group should be readable for members", testGroup);
 			assertEquals("Group name should be readable for members", "group", testGroup.getName());
@@ -1145,7 +1145,7 @@ public class AccessControlTest extends StructrTest {
 		String testType = "";
 		try (final Tx tx = user2App.tx()) {
 
-			final Group testGroup = user2App.nodeQuery(StructrTraits.GROUP).andName("group").getFirst().as(Group.class);
+			final Group testGroup = user2App.nodeQuery(StructrTraits.GROUP).name("group").getFirst().as(Group.class);
 
 			assertNotNull("Group should be readable for members", testGroup);
 			assertEquals("Group name should be readable for members", "group", testGroup.getName());

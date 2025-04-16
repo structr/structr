@@ -166,7 +166,7 @@ public class ValidationHelper {
 	 * @param errorBuffer
 	 * @return true if string matches expression
 	 */
-	public static boolean isValidStringMatchingRegex(final GraphObject node, final PropertyKey<String> key, final String expression, final ErrorBuffer errorBuffer) {
+	public static boolean isValidStringMatchingRegex(final GraphObject node, final PropertyKey<String> key, final String expression, final String description, final ErrorBuffer errorBuffer) {
 
 		final String value = node.getProperty(key);
 
@@ -175,7 +175,7 @@ public class ValidationHelper {
 		}
 
 		// no match
-		errorBuffer.add(new MatchToken(node.getType(), key.jsonName(), expression, value));
+		errorBuffer.add(new MatchToken(node.getType(), key.jsonName(), description, value));
 		return false;
 	}
 
@@ -578,7 +578,7 @@ public class ValidationHelper {
 
 						result = StructrApp.getInstance()
 								.nodeQuery(type)
-								.and(key, value)
+								.key(key, value)
 								.sort(traits.key(GraphObjectTraitDefinition.CREATED_DATE_PROPERTY))
 								.getAsList();
 
@@ -586,7 +586,7 @@ public class ValidationHelper {
 
 						result = StructrApp.getInstance()
 								.relationshipQuery(type)
-								.and(key, value)
+								.key(key, value)
 								.sort(traits.key(GraphObjectTraitDefinition.CREATED_DATE_PROPERTY))
 								.getAsList();
 
@@ -665,7 +665,7 @@ public class ValidationHelper {
 
 					result = StructrApp.getInstance()
 							.nodeQuery(type)
-							.and(properties)
+							.key(properties)
 							.sort(traits.key(GraphObjectTraitDefinition.CREATED_DATE_PROPERTY))
 							.getAsList();
 
@@ -673,7 +673,7 @@ public class ValidationHelper {
 
 					result = StructrApp.getInstance()
 							.relationshipQuery(type)
-							.and(properties)
+							.key(properties)
 							.sort(traits.key(GraphObjectTraitDefinition.CREATED_DATE_PROPERTY))
 							.getAsList();
 
@@ -733,7 +733,8 @@ public class ValidationHelper {
 
 					result = StructrApp.getInstance()
 							.nodeQuery()
-							.and(key, value)
+							.and()
+							.key(key, value)
 							.sort(traits.key(GraphObjectTraitDefinition.CREATED_DATE_PROPERTY))
 							.getAsList();
 
@@ -741,7 +742,8 @@ public class ValidationHelper {
 
 					result = StructrApp.getInstance()
 							.relationshipQuery()
-							.and(key, value)
+							.and()
+							.key(key, value)
 							.sort(traits.key(GraphObjectTraitDefinition.CREATED_DATE_PROPERTY))
 							.getAsList();
 

@@ -178,11 +178,11 @@ public class Deployment1Test extends DeploymentTestBase {
 		// check
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface folder = app.nodeQuery(StructrTraits.FOLDER).andName("with spaces").getFirst();
+			final NodeInterface folder = app.nodeQuery(StructrTraits.FOLDER).name("with spaces").getFirst();
 
 			assertNotNull("Folder was not created correctly", folder);
 
-			final NodeInterface file = app.nodeQuery(StructrTraits.FILE).and(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY), folder).and(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), fileName).getFirst();
+			final NodeInterface file = app.nodeQuery(StructrTraits.FILE).key(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY), folder).key(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), fileName).getFirst();
 
 			assertNotNull("File was not created correctly", file);
 
@@ -233,14 +233,14 @@ public class Deployment1Test extends DeploymentTestBase {
 		}
 
 		// test, don't clean the database but modify the file flags
-		doImportExportRoundtrip(true, false, new Function() {
+		doImportExportRoundtrip(true, new Function() {
 
 			@Override
 			public Object apply(Object t) {
 
 				try (final Tx tx = app.tx()) {
 
-					final NodeInterface file = app.nodeQuery(StructrTraits.FILE).and(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), fileName).getFirst();
+					final NodeInterface file = app.nodeQuery(StructrTraits.FILE).key(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), fileName).getFirst();
 					file.setProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), false);
 					file.setProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), false);
 					file.setProperty(Traits.of(StructrTraits.FILE).key(LinkableTraitDefinition.ENABLE_BASIC_AUTH_PROPERTY), false);
@@ -254,16 +254,76 @@ public class Deployment1Test extends DeploymentTestBase {
 				return null;
 			}
 
-		});
+		}, false);
 
 		// check
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface folder = app.nodeQuery(StructrTraits.FOLDER).andName("with spaces").getFirst();
+			final NodeInterface folder = app.nodeQuery(StructrTraits.FOLDER).name("with spaces").getFirst();
 
 			assertNotNull("Folder was not created", folder);
 
-			final NodeInterface file = app.nodeQuery(StructrTraits.FILE).and(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY), folder).and(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), fileName).getFirst();
+			final NodeInterface file = app.nodeQuery(StructrTraits.FILE).key(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY), folder).key(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), fileName).getFirst();
+
+			assertNotNull("File was not created", file);
+
+			assertEquals("Deployment import of existing file does not restore attributes correctly", folder, file.as(File.class).getParent());
+			assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY)));
+			assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY)));
+			assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(Traits.of(StructrTraits.FILE).key(LinkableTraitDefinition.ENABLE_BASIC_AUTH_PROPERTY)));
+			assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.USE_AS_JAVASCRIPT_LIBRARY_PROPERTY)));
+			assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY)));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+	}
+
+	@Test
+	public void test15FileAttributesOnUpdateWithCleanDatabase() {
+
+		final String folderPath = "/deeply/nested/Folder Structure/with spaces";
+		final String fileName   = "test15.txt";
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface folder     = FileHelper.createFolderPath(securityContext, folderPath);
+			final NodeInterface file       = FileHelper.createFile(securityContext, "test".getBytes("utf-8"), "text/plain", StructrTraits.FILE, fileName, true);
+			final NodeInterface rootFolder = getRootFolder(folder.as(Folder.class));
+
+			assertNotNull("Root folder should not be null", rootFolder);
+
+			// root folder needs to have "includeInFrontendExport" set
+			rootFolder.setProperty(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY), true);
+
+			file.setProperty(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY), folder);
+			file.setProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
+			file.setProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
+			file.setProperty(Traits.of(StructrTraits.FILE).key(LinkableTraitDefinition.ENABLE_BASIC_AUTH_PROPERTY), true);
+			file.setProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.USE_AS_JAVASCRIPT_LIBRARY_PROPERTY), true);
+			file.setProperty(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY), true);
+
+			tx.success();
+
+		} catch (IOException | FrameworkException fex) {
+			logger.warn("", fex);
+			fail("Unexpected exception.");
+		}
+
+		doImportExportRoundtrip(true, null);
+
+		// check
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface folder = app.nodeQuery(StructrTraits.FOLDER).name("with spaces").getFirst();
+
+			assertNotNull("Folder was not created", folder);
+
+			final NodeInterface file = app.nodeQuery(StructrTraits.FILE).key(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY), folder).key(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), fileName).getFirst();
 
 			assertNotNull("File was not created", file);
 
@@ -313,7 +373,7 @@ public class Deployment1Test extends DeploymentTestBase {
 		}
 
 		// test
-		compare(calculateHash(), true, false);
+		compare(calculateHash(), true);
 	}
 
 	@Test
@@ -346,7 +406,7 @@ public class Deployment1Test extends DeploymentTestBase {
 		}
 
 		// test
-		compare(calculateHash(), true, false);
+		compare(calculateHash(), true);
 	}
 
 	@Test
@@ -378,7 +438,7 @@ public class Deployment1Test extends DeploymentTestBase {
 		}
 
 		// test
-		compare(calculateHash(), true, false);
+		compare(calculateHash(), true);
 	}
 
 	@Test
@@ -405,7 +465,7 @@ public class Deployment1Test extends DeploymentTestBase {
 		}
 
 		// test
-		compare(calculateHash(), true, false);
+		compare(calculateHash(), true);
 	}
 
 	@Test
@@ -494,7 +554,7 @@ public class Deployment1Test extends DeploymentTestBase {
 			fail("Unexpected exception.");
 		}
 
-		doImportExportRoundtrip(true, true, null);
+		doImportExportRoundtrip(true, null);
 
 		// check
 		try (final Tx tx = app.tx()) {

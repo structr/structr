@@ -40,7 +40,7 @@ public class SpatialQueryFactory extends AbstractQueryFactory<AdvancedCypherQuer
 
 		if (predicate instanceof SpatialQuery) {
 
-			checkOccur(query, predicate.getOccurrence(), isFirst);
+			//checkOperation(query, predicate.getOperation(), isFirst);
 
 			// add label of declaring class for the given property name
 			// to select the correct index

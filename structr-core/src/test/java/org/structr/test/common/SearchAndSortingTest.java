@@ -27,7 +27,7 @@ import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.search.ComparisonQuery;
-import org.structr.api.search.Occurrence;
+import org.structr.api.search.Operation;
 import org.structr.api.util.ResultStream;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
@@ -114,7 +114,7 @@ public class SearchAndSortingTest extends StructrTest {
 					System.out.println(node);
 				}
 
-				result = app.nodeQuery(type).andName("TestOne-12").getAsList();
+				result = app.nodeQuery(type).name("TestOne-12").getAsList();
 
 				assertEquals(1, result.size());
 
@@ -164,7 +164,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				List<NodeInterface> result = app.nodeQuery(type).and(Traits.of("TestOne").key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "TestOne-13").getAsList();
+				List<NodeInterface> result = app.nodeQuery(type).key(Traits.of("TestOne").key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "TestOne-13").getAsList();
 
 				assertEquals(1, result.size());
 
@@ -215,7 +215,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				List<NodeInterface> result = app.nodeQuery(type).and(Traits.of("TestOne").key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testone", false).getAsList();
+				List<NodeInterface> result = app.nodeQuery(type).key(Traits.of("TestOne").key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testone", false).getAsList();
 
 				assertEquals(4, result.size());
 
@@ -266,7 +266,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				List<NodeInterface> result = app.nodeQuery(type).and(Traits.of("TestOne").key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "TestOne", false).getAsList();
+				List<NodeInterface> result = app.nodeQuery(type).key(Traits.of("TestOne").key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "TestOne", false).getAsList();
 
 				assertEquals(4, result.size());
 
@@ -317,7 +317,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				List<NodeInterface> result = app.nodeQuery(type).and(Traits.of("TestOne").key("stringWithDefault"), "default value", false).getAsList();
+				List<NodeInterface> result = app.nodeQuery(type).key(Traits.of("TestOne").key("stringWithDefault"), "default value", false).getAsList();
 
 				assertEquals(4, result.size());
 
@@ -378,7 +378,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 					final String query         = source.substring(0, 6);
 					final int count            = testResults.get(source);
-					final List<NodeInterface> result = app.nodeQuery("TestOne").and(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), query, false).getAsList();
+					final List<NodeInterface> result = app.nodeQuery("TestOne").key(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), query, false).getAsList();
 
 					assertEquals("Unexpected query result for special char query " + query, count, result.size());
 				}
@@ -465,13 +465,13 @@ public class SearchAndSortingTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				assertEquals("Invalid inexact search result for type String",  test, app.nodeQuery("TestOne").and(Traits.of("TestOne").key(NodeInterfaceTraitDefinition.NAME_PROPERTY),    "TestOne", false).getFirst());
-				assertEquals("Invalid inexact search result for type Boolean", test, app.nodeQuery("TestOne").and(Traits.of("TestOne").key("aBoolean"), true,     false).getFirst());
-				assertEquals("Invalid inexact search result for type Date",    test, app.nodeQuery("TestOne").and(Traits.of("TestOne").key("aDate"),    date,     false).getFirst());
-				assertEquals("Invalid inexact search result for type Double",  test, app.nodeQuery("TestOne").and(Traits.of("TestOne").key("aDouble"),  1.234,    false).getFirst());
-				assertEquals("Invalid inexact search result for type Long",    test, app.nodeQuery("TestOne").and(Traits.of("TestOne").key("aLong"),    12345L,   false).getFirst());
-				assertEquals("Invalid inexact search result for type String",  test, app.nodeQuery("TestOne").and(Traits.of("TestOne").key("anEnum"),   "One", false).getFirst());
-				assertEquals("Invalid inexact search result for type Enum",    test, app.nodeQuery("TestOne").and(Traits.of("TestOne").key("anInt"),    123,      false).getFirst());
+				assertEquals("Invalid inexact search result for type String",  test, app.nodeQuery("TestOne").key(Traits.of("TestOne").key(NodeInterfaceTraitDefinition.NAME_PROPERTY),    "TestOne", false).getFirst());
+				assertEquals("Invalid inexact search result for type Boolean", test, app.nodeQuery("TestOne").key(Traits.of("TestOne").key("aBoolean"), true,     false).getFirst());
+				assertEquals("Invalid inexact search result for type Date",    test, app.nodeQuery("TestOne").key(Traits.of("TestOne").key("aDate"),    date,     false).getFirst());
+				assertEquals("Invalid inexact search result for type Double",  test, app.nodeQuery("TestOne").key(Traits.of("TestOne").key("aDouble"),  1.234,    false).getFirst());
+				assertEquals("Invalid inexact search result for type Long",    test, app.nodeQuery("TestOne").key(Traits.of("TestOne").key("aLong"),    12345L,   false).getFirst());
+				assertEquals("Invalid inexact search result for type String",  test, app.nodeQuery("TestOne").key(Traits.of("TestOne").key("anEnum"),   "One", false).getFirst());
+				assertEquals("Invalid inexact search result for type Enum",    test, app.nodeQuery("TestOne").key(Traits.of("TestOne").key("anInt"),    123,      false).getFirst());
 
 				tx.success();
 			}
@@ -502,7 +502,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				final List<RelationshipInterface> result1 = app.relationshipQuery("SixOneManyToMany").and(traits.key(RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY), tests.get(0).getUuid()).getAsList();
+				final List<RelationshipInterface> result1 = app.relationshipQuery("SixOneManyToMany").key(traits.key(RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY), tests.get(0).getUuid()).getAsList();
 
 				assertEquals("Invalid sourceId query result", 1, result1.size());
 
@@ -513,7 +513,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				final List<RelationshipInterface> result1 = app.relationshipQuery("SixOneManyToMany").and(traits.key(RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY), test1.getUuid()).getAsList();
+				final List<RelationshipInterface> result1 = app.relationshipQuery("SixOneManyToMany").key(traits.key(RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY), test1.getUuid()).getAsList();
 
 				assertEquals("Invalid targetId query result", 5, result1.size());
 
@@ -1056,7 +1056,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				result = app.nodeQuery("TestOne").andName(name).includeHidden().getAsList();
+				result = app.nodeQuery("TestOne").name(name).includeHidden().getAsList();
 
 				assertTrue(result.size() == 1);
 				assertTrue(result.get(0).equals(node));
@@ -1073,7 +1073,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				result = app.nodeQuery("TestOne").andName(name2).includeHidden().getAsList();
+				result = app.nodeQuery("TestOne").name(name2).includeHidden().getAsList();
 
 				assertTrue(result.size() == 1);
 				assertTrue(result.get(0).equals(node));
@@ -1106,7 +1106,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				List<NodeInterface> result = app.nodeQuery(type).and(key, date).includeHidden().getAsList();
+				List<NodeInterface> result = app.nodeQuery(type).key(key, date).includeHidden().getAsList();
 
 				assertEquals(1, result.size());
 				assertTrue(result.get(0).equals(node));
@@ -1147,7 +1147,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 				assertTrue(rel.getProperty(key1).equals(val1));
 
-				result = app.relationshipQuery(type).and(key1, val1).getAsList();
+				result = app.relationshipQuery(type).key(key1, val1).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(rel, result.get(0));
@@ -1290,7 +1290,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				List<NodeInterface> result = app.nodeQuery("TestOne").andName(name).includeHidden().getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestOne").name(name).includeHidden().getAsList();
 
 				assertTrue(result.size() == 1);
 				assertTrue(result.get(0).equals(node));
@@ -1324,7 +1324,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				List<NodeInterface> result = app.nodeQuery("TestOne").andName(name).includeHidden().getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestOne").name(name).includeHidden().getAsList();
 
 				assertTrue(result.size() == 1);
 				assertTrue(result.get(0).equals(node));
@@ -1357,7 +1357,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				List<NodeInterface> result = app.nodeQuery("TestOne").andName(null).includeHidden().getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestOne").name(null).includeHidden().getAsList();
 
 				assertTrue(result.isEmpty());
 
@@ -1385,7 +1385,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				List<NodeInterface> result = app.nodeQuery("TestOne").and(Traits.of("TestOne").key("aString"), null).includeHidden().getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestOne").key(Traits.of("TestOne").key("aString"), null).includeHidden().getAsList();
 
 				assertTrue(result.size() == 1);
 				assertTrue(result.get(0).equals(node));
@@ -1414,7 +1414,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				List<NodeInterface> result = app.nodeQuery("TestOne").and(Traits.of("TestOne").key("aDate"), null).includeHidden().getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestOne").key(Traits.of("TestOne").key("aDate"), null).includeHidden().getAsList();
 
 				assertTrue(result.size() == 1);
 				assertTrue(result.get(0).equals(node));
@@ -1443,7 +1443,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				List<NodeInterface> result = app.nodeQuery("TestOne").and(Traits.of("TestOne").key("anInt"), null).includeHidden().getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestOne").key(Traits.of("TestOne").key("anInt"), null).includeHidden().getAsList();
 
 				assertTrue(result.size() == 1);
 				assertTrue(result.get(0).equals(node));
@@ -1472,7 +1472,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				List<NodeInterface> result = app.nodeQuery("TestOne").and(Traits.of("TestOne").key("aLong"), null).includeHidden().getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestOne").key(Traits.of("TestOne").key("aLong"), null).includeHidden().getAsList();
 
 				assertTrue(result.size() == 1);
 				assertTrue(result.get(0).equals(node));
@@ -1501,7 +1501,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				List<NodeInterface> result = app.nodeQuery("TestOne").and(Traits.of("TestOne").key("aDouble"), null).includeHidden().getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestOne").key(Traits.of("TestOne").key("aDouble"), null).includeHidden().getAsList();
 				assertTrue(result.size() == 1);
 				assertTrue(result.get(0).equals(node));
 
@@ -1907,15 +1907,15 @@ public class SearchAndSortingTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			// search for a group with empty list of parents
-			final List<NodeInterface> result1 = app.nodeQuery(StructrTraits.GROUP).and(groupsKey, new LinkedList<>()).getAsList();
+			final List<NodeInterface> result1 = app.nodeQuery(StructrTraits.GROUP).key(groupsKey, new LinkedList<>()).getAsList();
 			assertEquals("Invalid search result", 1, result1.size());
 
 			// search for a group with group2 as a parent
-			final List<NodeInterface> result2 = app.nodeQuery(StructrTraits.GROUP).and(groupsKey, Arrays.asList(groups.get(1))).getAsList();
+			final List<NodeInterface> result2 = app.nodeQuery(StructrTraits.GROUP).key(groupsKey, Arrays.asList(groups.get(1))).getAsList();
 			assertEquals("Invalid search result", 2, result2.size());
 
 			// search for a group with group2 as a parent and a given name
-			final List<NodeInterface> result3 = app.nodeQuery(StructrTraits.GROUP).andName("Group3").and(groupsKey, Arrays.asList(groups.get(1))).getAsList();
+			final List<NodeInterface> result3 = app.nodeQuery(StructrTraits.GROUP).name("Group3").key(groupsKey, Arrays.asList(groups.get(1))).getAsList();
 			assertEquals("Invalid search result", 1, result3.size());
 
 			tx.success();
@@ -1991,18 +1991,14 @@ public class SearchAndSortingTest extends StructrTest {
 
 			List<NodeInterface> list = app.nodeQuery(groupType)
 					.or()
-						.andName("aaa")
-						.not().andName("bbb").parent()
+						.name("aaa")
+						.not().name("bbb")
 					.or()
-						.andName("ttt").parent()
+						.name("ttt")
 					.or()
-						.andName("xxx").parent()
+						.name("xxx")
 					.or()
-						.andName("bbb").parent()
-					.and()
-						.and().parent()
-						.and().parent()
-						.and().parent()
+						.name("bbb")
 					.sort(nameKey, false)
 					.getAsList();
 
@@ -2045,32 +2041,40 @@ public class SearchAndSortingTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final List<SearchAttribute> attributes       = new ArrayList<>();
-			final SearchAttributeGroup rootGroup         = new SearchAttributeGroup(Occurrence.REQUIRED);
-			final SearchAttributeGroup mainMatchingGroup = new SearchAttributeGroup(Occurrence.REQUIRED);
+			final SearchAttributeGroup rootGroup         = new SearchAttributeGroup(securityContext, null, Operation.AND);
+			final SearchAttributeGroup mainMatchingGroup = new SearchAttributeGroup(securityContext, null, Operation.OR);
 
-			mainMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Operation.equal, "a", Occurrence.OPTIONAL));
-			mainMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Operation.equal, "b", Occurrence.OPTIONAL));
-			mainMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Operation.equal, "c", Occurrence.OPTIONAL));
-			mainMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Operation.equal, "d", Occurrence.OPTIONAL));
+			mainMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Comparison.equal, "a"));
+			mainMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Comparison.equal, "b"));
+			mainMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Comparison.equal, "c"));
+			mainMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Comparison.equal, "d"));
 
-			final SearchAttributeGroup secondaryMatchingGroup = new SearchAttributeGroup(Occurrence.REQUIRED);
+			final SearchAttributeGroup secondaryMatchingGroup = new SearchAttributeGroup(securityContext, null, Operation.AND);
 
-			secondaryMatchingGroup.add(new ComparisonSearchAttribute(ownerKey, ComparisonQuery.Operation.isNull, null, Occurrence.REQUIRED));
-			secondaryMatchingGroup.add(new ComparisonSearchAttribute(ownerKey, ComparisonQuery.Operation.isNotNull, null, Occurrence.FORBIDDEN));
+			secondaryMatchingGroup.add(new ComparisonSearchAttribute(ownerKey, ComparisonQuery.Comparison.isNull, null));
+
+			final SearchAttributeGroup notGroup = new SearchAttributeGroup(securityContext, null, Operation.NOT);
+			secondaryMatchingGroup.add(notGroup);
+
+			notGroup.add(new ComparisonSearchAttribute(ownerKey, ComparisonQuery.Comparison.isNotNull, null));
 
 			// Test Greater/Less with ASCII chars
-			secondaryMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Operation.greater, "_", Occurrence.REQUIRED));
-			secondaryMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Operation.greaterOrEqual, "a", Occurrence.REQUIRED));
-			secondaryMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Operation.lessOrEqual, "d", Occurrence.REQUIRED));
-			secondaryMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Operation.less, "e", Occurrence.REQUIRED));
-			secondaryMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Operation.notEqual, "b", Occurrence.REQUIRED));
+			final SearchAttributeGroup andGroup = new SearchAttributeGroup(securityContext, null, Operation.AND);
+
+			secondaryMatchingGroup.add(andGroup);
+
+			andGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Comparison.greater, "_"));
+			andGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Comparison.greaterOrEqual, "a"));
+			andGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Comparison.lessOrEqual, "d"));
+			andGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Comparison.less, "e"));
+			andGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Comparison.notEqual, "b"));
 
 			rootGroup.add(mainMatchingGroup);
 			rootGroup.add(secondaryMatchingGroup);
 			attributes.add(rootGroup);
 
 			final List<NodeInterface> list = app.nodeQuery(groupType)
-					.attributes(attributes)
+					.attributes(attributes, Operation.AND)
 					.sort(nameKey, false)
 					.getAsList();
 
@@ -2301,33 +2305,33 @@ public class SearchAndSortingTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final List<NodeInterface> result1 = app.nodeQuery(centerType)
-				.and(types1Key, Arrays.asList(type11))
+				.key(types1Key, Arrays.asList(type11))
 				.getAsList();
 
 			final List<NodeInterface> result2 = app.nodeQuery(centerType)
-				.and(types1Key, Arrays.asList(type12))
-				.and(types2Key, Arrays.asList(type21))
+				.key(types1Key, Arrays.asList(type12))
+				.key(types2Key, Arrays.asList(type21))
 				.getAsList();
 
 			final List<NodeInterface> result3 = app.nodeQuery(centerType)
-				.and(types1Key, Arrays.asList(type13))
-				.and(types2Key, Arrays.asList(type22))
-				.and(types3Key, Arrays.asList(type31))
+				.key(types1Key, Arrays.asList(type13))
+				.key(types2Key, Arrays.asList(type22))
+				.key(types3Key, Arrays.asList(type31))
 				.getAsList();
 
 			final List<NodeInterface> result4 = app.nodeQuery(centerType)
-				.and(types1Key, Arrays.asList(type14))
-				.and(types2Key, Arrays.asList(type23))
-				.and(types3Key, Arrays.asList(type32))
-				.and(types4Key, Arrays.asList(type41))
+				.key(types1Key, Arrays.asList(type14))
+				.key(types2Key, Arrays.asList(type23))
+				.key(types3Key, Arrays.asList(type32))
+				.key(types4Key, Arrays.asList(type41))
 				.getAsList();
 
 			final List<NodeInterface> result5 = app.nodeQuery(centerType)
-				.and(types1Key, Arrays.asList(type15))
-				.and(types2Key, Arrays.asList(type24))
-				.and(types3Key, Arrays.asList(type33))
-				.and(types4Key, Arrays.asList(type42))
-				.and(types5Key, Arrays.asList(type51))
+				.key(types1Key, Arrays.asList(type15))
+				.key(types2Key, Arrays.asList(type24))
+				.key(types3Key, Arrays.asList(type33))
+				.key(types4Key, Arrays.asList(type42))
+				.key(types5Key, Arrays.asList(type51))
 				.getAsList();
 
 
@@ -2346,29 +2350,29 @@ public class SearchAndSortingTest extends StructrTest {
 
 			// test negative results as well (expect 0 results)
 			assertEquals("Invalid graph search result with 2 wrong components", 0, app.nodeQuery(centerType)
-				.and(types1Key, Arrays.asList(type12))
-				.and(types2Key, Arrays.asList(type23))
+				.key(types1Key, Arrays.asList(type12))
+				.key(types2Key, Arrays.asList(type23))
 				.getAsList().size());
 
 			assertEquals("Invalid graph search result with 3 wrong components", 0, app.nodeQuery(centerType)
-				.and(types1Key, Arrays.asList(type12))
-				.and(types2Key, Arrays.asList(type23))
-				.and(types3Key, Arrays.asList(type31))
+				.key(types1Key, Arrays.asList(type12))
+				.key(types2Key, Arrays.asList(type23))
+				.key(types3Key, Arrays.asList(type31))
 				.getAsList().size());
 
 			assertEquals("Invalid graph search result with 3 wrong components", 0, app.nodeQuery(centerType)
-				.and(types1Key, Arrays.asList(type12))
-				.and(types2Key, Arrays.asList(type23))
-				.and(types3Key, Arrays.asList(type31))
-				.and(types4Key, Arrays.asList(type41))
+				.key(types1Key, Arrays.asList(type12))
+				.key(types2Key, Arrays.asList(type23))
+				.key(types3Key, Arrays.asList(type31))
+				.key(types4Key, Arrays.asList(type41))
 				.getAsList().size());
 
 			assertEquals("Invalid graph search result with 3 wrong components", 0, app.nodeQuery(centerType)
-				.and(types1Key, Arrays.asList(type12))
-				.and(types2Key, Arrays.asList(type23))
-				.and(types3Key, Arrays.asList(type31))
-				.and(types4Key, Arrays.asList(type42))
-				.and(types5Key, Arrays.asList(type51))
+				.key(types1Key, Arrays.asList(type12))
+				.key(types2Key, Arrays.asList(type23))
+				.key(types3Key, Arrays.asList(type31))
+				.key(types4Key, Arrays.asList(type42))
+				.key(types5Key, Arrays.asList(type51))
 				.getAsList().size());
 
 			tx.success();
@@ -2447,54 +2451,54 @@ public class SearchAndSortingTest extends StructrTest {
 			final NodeInterface type11 = (NodeInterface)app.nodeQuery(type1).getFirst();
 
 			// string
-			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(stringKey, null, "string4", false, false).getAsList().size());
-			assertEquals("", 4, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(stringKey, null, "string4", false,  true).getAsList().size());
-			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(stringKey, null, "string4",  true, false).getAsList().size());
-			assertEquals("", 4, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(stringKey, null, "string4",  true,  true).getAsList().size());
-			assertEquals("", 2, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(stringKey, "string3", null, false, false).getAsList().size());
-			assertEquals("", 2, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(stringKey, "string3", null, false,  true).getAsList().size());
-			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(stringKey, "string3", null,  true, false).getAsList().size());
-			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(stringKey, "string3", null,  true,  true).getAsList().size());
+			assertEquals("", 3, app.nodeQuery(centerType).key(types1Key, Arrays.asList(type11)).range(stringKey, null, "string4", false, false).getAsList().size());
+			assertEquals("", 4, app.nodeQuery(centerType).key(types1Key, Arrays.asList(type11)).range(stringKey, null, "string4", false,  true).getAsList().size());
+			assertEquals("", 3, app.nodeQuery(centerType).key(types1Key, Arrays.asList(type11)).range(stringKey, null, "string4",  true, false).getAsList().size());
+			assertEquals("", 4, app.nodeQuery(centerType).key(types1Key, Arrays.asList(type11)).range(stringKey, null, "string4",  true,  true).getAsList().size());
+			assertEquals("", 2, app.nodeQuery(centerType).key(types1Key, Arrays.asList(type11)).range(stringKey, "string3", null, false, false).getAsList().size());
+			assertEquals("", 2, app.nodeQuery(centerType).key(types1Key, Arrays.asList(type11)).range(stringKey, "string3", null, false,  true).getAsList().size());
+			assertEquals("", 3, app.nodeQuery(centerType).key(types1Key, Arrays.asList(type11)).range(stringKey, "string3", null,  true, false).getAsList().size());
+			assertEquals("", 3, app.nodeQuery(centerType).key(types1Key, Arrays.asList(type11)).range(stringKey, "string3", null,  true,  true).getAsList().size());
 
 			// integer
-			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(intKey, null, 4, false, false).getAsList().size());
-			assertEquals("", 4, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(intKey, null, 4, false,  true).getAsList().size());
-			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(intKey, null, 4,  true, false).getAsList().size());
-			assertEquals("", 4, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(intKey, null, 4,  true,  true).getAsList().size());
-			assertEquals("", 2, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(intKey, 3, null, false, false).getAsList().size());
-			assertEquals("", 2, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(intKey, 3, null, false,  true).getAsList().size());
-			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(intKey, 3, null,  true, false).getAsList().size());
-			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(intKey, 3, null,  true,  true).getAsList().size());
+			assertEquals("", 3, app.nodeQuery(centerType).key(types1Key, Arrays.asList(type11)).range(intKey, null, 4, false, false).getAsList().size());
+			assertEquals("", 4, app.nodeQuery(centerType).key(types1Key, Arrays.asList(type11)).range(intKey, null, 4, false,  true).getAsList().size());
+			assertEquals("", 3, app.nodeQuery(centerType).key(types1Key, Arrays.asList(type11)).range(intKey, null, 4,  true, false).getAsList().size());
+			assertEquals("", 4, app.nodeQuery(centerType).key(types1Key, Arrays.asList(type11)).range(intKey, null, 4,  true,  true).getAsList().size());
+			assertEquals("", 2, app.nodeQuery(centerType).key(types1Key, Arrays.asList(type11)).range(intKey, 3, null, false, false).getAsList().size());
+			assertEquals("", 2, app.nodeQuery(centerType).key(types1Key, Arrays.asList(type11)).range(intKey, 3, null, false,  true).getAsList().size());
+			assertEquals("", 3, app.nodeQuery(centerType).key(types1Key, Arrays.asList(type11)).range(intKey, 3, null,  true, false).getAsList().size());
+			assertEquals("", 3, app.nodeQuery(centerType).key(types1Key, Arrays.asList(type11)).range(intKey, 3, null,  true,  true).getAsList().size());
 
 			// long
-			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(longKey, null, 4L, false, false).getAsList().size());
-			assertEquals("", 4, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(longKey, null, 4L, false,  true).getAsList().size());
-			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(longKey, null, 4L,  true, false).getAsList().size());
-			assertEquals("", 4, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(longKey, null, 4L,  true,  true).getAsList().size());
-			assertEquals("", 2, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(longKey, 3L, null, false, false).getAsList().size());
-			assertEquals("", 2, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(longKey, 3L, null, false,  true).getAsList().size());
-			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(longKey, 3L, null,  true, false).getAsList().size());
-			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(longKey, 3L, null,  true,  true).getAsList().size());
+			assertEquals("", 3, app.nodeQuery(centerType).key(types1Key, Arrays.asList(type11)).range(longKey, null, 4L, false, false).getAsList().size());
+			assertEquals("", 4, app.nodeQuery(centerType).key(types1Key, Arrays.asList(type11)).range(longKey, null, 4L, false,  true).getAsList().size());
+			assertEquals("", 3, app.nodeQuery(centerType).key(types1Key, Arrays.asList(type11)).range(longKey, null, 4L,  true, false).getAsList().size());
+			assertEquals("", 4, app.nodeQuery(centerType).key(types1Key, Arrays.asList(type11)).range(longKey, null, 4L,  true,  true).getAsList().size());
+			assertEquals("", 2, app.nodeQuery(centerType).key(types1Key, Arrays.asList(type11)).range(longKey, 3L, null, false, false).getAsList().size());
+			assertEquals("", 2, app.nodeQuery(centerType).key(types1Key, Arrays.asList(type11)).range(longKey, 3L, null, false,  true).getAsList().size());
+			assertEquals("", 3, app.nodeQuery(centerType).key(types1Key, Arrays.asList(type11)).range(longKey, 3L, null,  true, false).getAsList().size());
+			assertEquals("", 3, app.nodeQuery(centerType).key(types1Key, Arrays.asList(type11)).range(longKey, 3L, null,  true,  true).getAsList().size());
 
 			// double
-			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(doubleKey, null, 4.0, false, false).getAsList().size());
-			assertEquals("", 4, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(doubleKey, null, 4.0, false,  true).getAsList().size());
-			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(doubleKey, null, 4.0,  true, false).getAsList().size());
-			assertEquals("", 4, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(doubleKey, null, 4.0,  true,  true).getAsList().size());
-			assertEquals("", 2, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(doubleKey, 3.0, null, false, false).getAsList().size());
-			assertEquals("", 2, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(doubleKey, 3.0, null, false,  true).getAsList().size());
-			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(doubleKey, 3.0, null,  true, false).getAsList().size());
-			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(doubleKey, 3.0, null,  true,  true).getAsList().size());
+			assertEquals("", 3, app.nodeQuery(centerType).key(types1Key, Arrays.asList(type11)).range(doubleKey, null, 4.0, false, false).getAsList().size());
+			assertEquals("", 4, app.nodeQuery(centerType).key(types1Key, Arrays.asList(type11)).range(doubleKey, null, 4.0, false,  true).getAsList().size());
+			assertEquals("", 3, app.nodeQuery(centerType).key(types1Key, Arrays.asList(type11)).range(doubleKey, null, 4.0,  true, false).getAsList().size());
+			assertEquals("", 4, app.nodeQuery(centerType).key(types1Key, Arrays.asList(type11)).range(doubleKey, null, 4.0,  true,  true).getAsList().size());
+			assertEquals("", 2, app.nodeQuery(centerType).key(types1Key, Arrays.asList(type11)).range(doubleKey, 3.0, null, false, false).getAsList().size());
+			assertEquals("", 2, app.nodeQuery(centerType).key(types1Key, Arrays.asList(type11)).range(doubleKey, 3.0, null, false,  true).getAsList().size());
+			assertEquals("", 3, app.nodeQuery(centerType).key(types1Key, Arrays.asList(type11)).range(doubleKey, 3.0, null,  true, false).getAsList().size());
+			assertEquals("", 3, app.nodeQuery(centerType).key(types1Key, Arrays.asList(type11)).range(doubleKey, 3.0, null,  true,  true).getAsList().size());
 
 			// date
-			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(dateKey, null, new Date(4000L), false, false).getAsList().size());
-			assertEquals("", 4, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(dateKey, null, new Date(4000L), false,  true).getAsList().size());
-			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(dateKey, null, new Date(4000L),  true, false).getAsList().size());
-			assertEquals("", 4, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(dateKey, null, new Date(4000L),  true,  true).getAsList().size());
-			assertEquals("", 2, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(dateKey, new Date(3000L), null, false, false).getAsList().size());
-			assertEquals("", 2, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(dateKey, new Date(3000L), null, false,  true).getAsList().size());
-			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(dateKey, new Date(3000L), null,  true, false).getAsList().size());
-			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(dateKey, new Date(3000L), null,  true,  true).getAsList().size());
+			assertEquals("", 3, app.nodeQuery(centerType).key(types1Key, Arrays.asList(type11)).range(dateKey, null, new Date(4000L), false, false).getAsList().size());
+			assertEquals("", 4, app.nodeQuery(centerType).key(types1Key, Arrays.asList(type11)).range(dateKey, null, new Date(4000L), false,  true).getAsList().size());
+			assertEquals("", 3, app.nodeQuery(centerType).key(types1Key, Arrays.asList(type11)).range(dateKey, null, new Date(4000L),  true, false).getAsList().size());
+			assertEquals("", 4, app.nodeQuery(centerType).key(types1Key, Arrays.asList(type11)).range(dateKey, null, new Date(4000L),  true,  true).getAsList().size());
+			assertEquals("", 2, app.nodeQuery(centerType).key(types1Key, Arrays.asList(type11)).range(dateKey, new Date(3000L), null, false, false).getAsList().size());
+			assertEquals("", 2, app.nodeQuery(centerType).key(types1Key, Arrays.asList(type11)).range(dateKey, new Date(3000L), null, false,  true).getAsList().size());
+			assertEquals("", 3, app.nodeQuery(centerType).key(types1Key, Arrays.asList(type11)).range(dateKey, new Date(3000L), null,  true, false).getAsList().size());
+			assertEquals("", 3, app.nodeQuery(centerType).key(types1Key, Arrays.asList(type11)).range(dateKey, new Date(3000L), null,  true,  true).getAsList().size());
 
 			tx.success();
 
@@ -2539,7 +2543,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 			final List<AbstractNode> result1 = (List)ScriptTestHelper.testExternalScript(ctx, SearchAndSortingTest.class.getResourceAsStream("/test/scripting/testFindQueryWithOrPredicate.js"));
 
-			assertEquals("Wrong result for predicate list,", "[Project0, Project1, Project3]", result1.stream().map(r -> r.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY))).collect(Collectors.toList()).toString());
+			assertEquals("Wrong result for predicate list,", "[Project0, Project1]", result1.stream().map(r -> r.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY))).collect(Collectors.toList()).toString());
 
 			tx.success();
 

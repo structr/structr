@@ -1440,6 +1440,8 @@ let Structr = {
 					if (isImport) {
 
 						finalMessage.specialInteractionButton('Reload Page', () => { location.reload(); }, 'Ignore').updatesButtons();
+
+						Structr.cleanupAfterDeploymentImport();
 					}
 
 					finalMessage.show();
@@ -1740,10 +1742,14 @@ let Structr = {
 
 								builder.allowConfirmAll().show();
 							});
+
 						} else {
+
 							builder.allowConfirmAll().show();
 						}
+
 					} else {
+
 						builder.allowConfirmAll().show();
 					}
 				}
@@ -1760,6 +1766,12 @@ let Structr = {
 				new WarningMessage().title("GENERIC_MESSAGE").text(text).requiresConfirmation().show();
 			}
 		}
+	},
+	cleanupAfterDeploymentImport: () => {
+
+		_Elements.unselectEntity();	// selected entity could be in shadow page
+
+		_Pages.updateShadowPageAfterDeployment();
 	},
 	showReconnectDialog: () => {
 
@@ -3034,18 +3046,6 @@ let UISettings = {
 					defaultValue: false,
 					type: 'checkbox',
 					onUpdate: () => {
-					}
-				},
-				showJavaMethodsForBuiltInTypes: {
-					text: 'Show Java methods for built-in types',
-					storageKey: 'structrShowJavaMethods_' + location.port,
-					defaultValue: false,
-					type: 'checkbox',
-					infoText: 'Advanced Feature: Shows built-in Java methods but changes are not possible',
-					onUpdate: () => {
-						if (Structr.isModuleActive(_Code)) {
-							_Code.codeTree.jstree().refresh();
-						}
 					}
 				}
 			}

@@ -92,7 +92,7 @@ public class DeploymentCommentHandler implements CommentHandler {
 
 			if (node.is(StructrTraits.LINK_SOURCE)) {
 
-				final NodeInterface file = StructrApp.getInstance().nodeQuery(StructrTraits.LINKABLE).and(Traits.of(StructrTraits.ABSTRACT_FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY), parameters).getFirst();
+				final NodeInterface file = StructrApp.getInstance().nodeQuery(StructrTraits.LINKABLE).key(Traits.of(StructrTraits.ABSTRACT_FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY), parameters).getFirst();
 				if (file != null) {
 
 					final LinkSource linkSource = node.as(LinkSource.class);
@@ -133,19 +133,17 @@ public class DeploymentCommentHandler implements CommentHandler {
 			node.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.HIDE_FOR_LOCALES_PROPERTY), DOMNode.unescapeForHtmlAttributes(DOMNode.unescapeForHtmlAttributes(parameters)));
 		});
 
-		handlers.put("owner", (final Page page, final DOMNode node, final String parameters) -> {
+		handlers.put("owner", (final Page page, final DOMNode node, final String name) -> {
 
-			final List<NodeInterface> principals = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).andName(parameters).getAsList();
+			final List<NodeInterface> principals = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).name(name).getAsList();
 
 			if (principals.isEmpty()) {
 
-				logger.warn("Unknown owner! Found no node of type Principal named '{}', ignoring.", parameters);
-				DeployCommand.addMissingPrincipal(parameters);
+				DeployCommand.encounteredMissingPrincipal("Unknown owner", name);
 
 			} else if (principals.size() > 1) {
 
-				logger.warn("Ambiguous owner! Found {} nodes of type Principal named '{}', ignoring.", principals.size(), parameters);
-				DeployCommand.addAmbiguousPrincipal(parameters);
+				DeployCommand.encounteredAmbiguousPrincipal("Ambiguous owner", name, principals.size());
 
 			} else {
 
@@ -158,17 +156,15 @@ public class DeploymentCommentHandler implements CommentHandler {
 			final String[] parts  = parameters.split("[,]+");
 			if (parts.length == 2) {
 
-				final List<NodeInterface> principals = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).andName(parts[0]).getAsList();
+				final List<NodeInterface> principals = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).name(parts[0]).getAsList();
 
 				if (principals.isEmpty()) {
 
-					logger.warn("Unknown grantee! Found no node of type Principal named '{}', ignoring.", parts[0]);
-					DeployCommand.addMissingPrincipal(parts[0]);
+					DeployCommand.encounteredMissingPrincipal("Unknown grantee", parts[0]);
 
 				} else if (principals.size() > 1) {
 
-					logger.warn("Ambiguous grantee! Found {} nodes of type Principal named '{}', ignoring.", principals.size(), parts[0]);
-					DeployCommand.addAmbiguousPrincipal(parts[0]);
+					DeployCommand.encounteredAmbiguousPrincipal("Ambiguous grantee", parts[0], principals.size());
 
 				} else {
 

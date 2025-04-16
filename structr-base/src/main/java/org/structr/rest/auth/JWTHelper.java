@@ -256,7 +256,7 @@ public class JWTHelper {
 		// if the instance is the same that issued the token, we can lookup the user with uuid claim
 		if (StringUtils.equals(instance, instanceName)) {
 
-			userNode = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).and().or(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), uuid).disableSorting().getFirst();
+			userNode = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).key(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), uuid).disableSorting().getFirst();
 			if (userNode != null) {
 
 				user = userNode.as(Principal.class);
@@ -264,7 +264,7 @@ public class JWTHelper {
 
 		} else if (eMail != null && StringUtils.isNotEmpty(eMail)) {
 
-			userNode = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).and().or(eMailKey, eMail).disableSorting().getFirst();
+			userNode = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).key(eMailKey, eMail).disableSorting().getFirst();
 			if (userNode != null) {
 
 				user = userNode.as(Principal.class);

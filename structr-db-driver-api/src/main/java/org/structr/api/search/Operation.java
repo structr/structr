@@ -18,14 +18,7 @@
  */
 package org.structr.api.search;
 
-/**
- *
- */
-public enum Occurrence {
+public enum Operation {
 
-	REQUIRED,
-	OPTIONAL,
-	EXACT,
-	CONTAINS,
-	FORBIDDEN
+	AND, OR, NOT
 }

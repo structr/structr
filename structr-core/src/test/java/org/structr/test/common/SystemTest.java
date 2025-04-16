@@ -650,7 +650,7 @@ public class SystemTest extends StructrTest {
 		// test setProperty with different user (should delete the previous relationship)
 		try (final Tx tx = tester2App.tx()) {
 
-			final NodeInterface item1 = tester2App.nodeQuery(type).andName("item1").getFirst();
+			final NodeInterface item1 = tester2App.nodeQuery(type).name("item1").getFirst();
 
 			assertNotNull("Item 1 should be visible to tester2", item1);
 
@@ -666,7 +666,7 @@ public class SystemTest extends StructrTest {
 		// check result
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface item1              = app.nodeQuery(type).andName("item1").getFirst();
+			final NodeInterface item1              = app.nodeQuery(type).name("item1").getFirst();
 			final List<RelationshipInterface> rels = Iterables.toList(item1.getOutgoingRelationships());
 
 			for (final RelationshipInterface rel : rels) {
@@ -742,7 +742,7 @@ public class SystemTest extends StructrTest {
 		// test setProperty with different user (should delete the previous relationship)
 		try (final Tx tx = tester2App.tx()) {
 
-			final NodeInterface item1 = tester2App.nodeQuery(itemType).andName("item1").getFirst();
+			final NodeInterface item1 = tester2App.nodeQuery(itemType).name("item1").getFirst();
 
 			assertNotNull("Item 1 should be visible to tester2", item1);
 
@@ -758,7 +758,7 @@ public class SystemTest extends StructrTest {
 		// check result
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface item1                  = app.nodeQuery(itemType).andName("item1").getFirst();
+			final NodeInterface item1                  = app.nodeQuery(itemType).name("item1").getFirst();
 			final List<RelationshipInterface> rels     = Iterables.toList(item1.getIncomingRelationships());
 			final List<RelationshipInterface> filtered = new LinkedList<>();
 
@@ -838,7 +838,7 @@ public class SystemTest extends StructrTest {
 		// test setProperty with different user (should delete the previous relationship)
 		try (final Tx tx = tester2App.tx()) {
 
-			final NodeInterface item1 = tester2App.nodeQuery(type).andName("item1").getFirst();
+			final NodeInterface item1 = tester2App.nodeQuery(type).name("item1").getFirst();
 
 			assertNotNull("Item 1 should be visible to tester2", item1);
 
@@ -854,7 +854,7 @@ public class SystemTest extends StructrTest {
 		// check result
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface item1              = app.nodeQuery(type).andName("item1").getFirst();
+			final NodeInterface item1              = app.nodeQuery(type).name("item1").getFirst();
 			final List<RelationshipInterface> rels = Iterables.toList(item1.getOutgoingRelationships());
 
 			for (final RelationshipInterface rel : rels) {
@@ -1054,7 +1054,7 @@ public class SystemTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			app.nodeQuery(StructrTraits.GROUP).getAsList();
-			app.nodeQuery(StructrTraits.GROUP).andName("test").getAsList();
+			app.nodeQuery(StructrTraits.GROUP).name("test").getAsList();
 
 			tx.success();
 
@@ -1354,7 +1354,7 @@ public class SystemTest extends StructrTest {
 
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 
-				final GraphObject node1 = app.nodeQuery(type).andName("Test").getFirst();
+				final GraphObject node1 = app.nodeQuery(type).name("Test").getFirst();
 
 				node1.setProperty(key1, "key1.value after thread1");
 
@@ -1373,7 +1373,7 @@ public class SystemTest extends StructrTest {
 
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 
-				final GraphObject node1 = app.nodeQuery(type).andName("Test").getFirst();
+				final GraphObject node1 = app.nodeQuery(type).name("Test").getFirst();
 
 				node1.setProperty(key2, "key2.value after thread2");
 
@@ -1394,7 +1394,7 @@ public class SystemTest extends StructrTest {
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
-			final GraphObject node1 = app.nodeQuery(type).andName("Test").getFirst();
+			final GraphObject node1 = app.nodeQuery(type).name("Test").getFirst();
 
 			assertEquals("Invalid result for interleaving transactions, transaction isolation violated.", "key1.value after thread1", node1.getProperty(key1));
 			assertEquals("Invalid result for interleaving transactions, transaction isolation violated.", "key2.value after thread2", node1.getProperty(key2));
@@ -1443,7 +1443,7 @@ public class SystemTest extends StructrTest {
 
 			testGroup3.addMember(securityContext, user);
 
-			final NodeInterface projectNode = app.nodeQuery(StructrTraits.SCHEMA_NODE).andName("Project").getFirst();
+			final NodeInterface projectNode = app.nodeQuery(StructrTraits.SCHEMA_NODE).name("Project").getFirst();
 
 			// create grant
 			app.create(StructrTraits.SCHEMA_GRANT,
@@ -1489,7 +1489,7 @@ public class SystemTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface testGroup1  = app.create(StructrTraits.GROUP, "Group1");
-			final NodeInterface projectNode = app.nodeQuery(StructrTraits.SCHEMA_NODE).andName("Project").getFirst();
+			final NodeInterface projectNode = app.nodeQuery(StructrTraits.SCHEMA_NODE).name("Project").getFirst();
 
 			app.create(StructrTraits.SCHEMA_GRANT,
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.SCHEMA_NODE_PROPERTY),          projectNode),
@@ -1509,7 +1509,7 @@ public class SystemTest extends StructrTest {
 		// test - delete schema node
 		try (final Tx tx = app.tx()) {
 
-			app.delete(app.nodeQuery(StructrTraits.SCHEMA_NODE).andName("Project").getFirst());
+			app.delete(app.nodeQuery(StructrTraits.SCHEMA_NODE).name("Project").getFirst());
 
 			tx.success();
 
@@ -1562,7 +1562,7 @@ public class SystemTest extends StructrTest {
 		// test: load all groups
 		try (final Tx tx = app.tx()) {
 
-			final Group root = app.nodeQuery(StructrTraits.GROUP).andName("root").getFirst().as(Group.class);
+			final Group root = app.nodeQuery(StructrTraits.GROUP).name("root").getFirst().as(Group.class);
 			int count        = 0;
 
 			for (final Principal p : root.getMembers()) {

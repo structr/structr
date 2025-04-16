@@ -79,7 +79,9 @@ public class StringPropertyGenerator extends PropertyGenerator<String> {
 
 		if (StringUtils.isNotBlank(expression) && !("multi-line".equals(expression))) {
 
-			validators.add((obj, errorBuffer) -> ValidationHelper.isValidStringMatchingRegex(obj, obj.getTraits().key(key), expression, errorBuffer));
+			validators.add((obj, errorBuffer) -> ValidationHelper.isValidStringMatchingRegex(obj, obj.getTraits().key(key), expression,
+				"Property value must match the following pattern: '" + expression + "'.",
+				errorBuffer));
 		}
 
 		return validators;

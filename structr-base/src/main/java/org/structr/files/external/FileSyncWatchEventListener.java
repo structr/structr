@@ -193,7 +193,7 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 		final App app                              = StructrApp.getInstance();
 		final String type                          = isFile ? (fileType != null ? fileType : StructrTraits.FILE) : (folderType != null ? folderType : StructrTraits.FOLDER);
 
-		NodeInterface file = app.nodeQuery(type).and(nameKey, fileName).and(parentKey, parentFolder).getFirst();
+		NodeInterface file = app.nodeQuery(type).key(nameKey, fileName).key(parentKey, parentFolder).getFirst();
 		if (file == null && doCreate) {
 
 			file = app.create(type,

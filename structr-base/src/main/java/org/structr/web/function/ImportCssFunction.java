@@ -121,7 +121,7 @@ public class ImportCssFunction extends UiAdvancedFunction {
 		final Traits traits          = Traits.of(StructrTraits.CSS_RULE);
 		final App app                = StructrApp.getInstance();
 
-		final NodeInterface existingRuleNode = app.nodeQuery(StructrTraits.CSS_RULE).andName(selectorsString).getFirst();
+		final NodeInterface existingRuleNode = app.nodeQuery(StructrTraits.CSS_RULE).name(selectorsString).getFirst();
 		if (existingRuleNode != null) {
 			return existingRuleNode;
 		}

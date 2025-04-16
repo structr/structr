@@ -284,6 +284,16 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 	}
 
 	@Override
+	public InputStream getRawInputStream() {
+
+		FileHelper.prefetchFileData(getUuid());
+
+		final InputStream is = StorageProviderFactory.getStorageProvider(wrappedObject.as(AbstractFile.class)).getInputStream();
+
+		return is;
+	}
+
+	@Override
 	public OutputStream getOutputStream() {
 		return getOutputStream(true, false);
 	}

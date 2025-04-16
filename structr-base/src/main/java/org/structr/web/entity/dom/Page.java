@@ -41,6 +41,8 @@ public interface Page extends DOMNode {
 	void increaseVersion() throws FrameworkException;
 	int getVersion();
 
+	void setVisibilityRecursively(final boolean visibleToPublic, final boolean visibleToAuth) throws FrameworkException;
+
 	Integer getCacheForSeconds();
 	Integer getPosition();
 
@@ -59,6 +61,7 @@ public interface Page extends DOMNode {
 	DOMElement createElement(final String tag) throws FrameworkException;
 	DOMElement createElement(final String tag, final boolean suppressException) throws FrameworkException;
 	Content createTextNode(final String text);
+	Content createTemplate(final String text);
 	Comment createComment(final String comment);
 
 	void adoptNode(final DOMNode newHtmlNode) throws FrameworkException;

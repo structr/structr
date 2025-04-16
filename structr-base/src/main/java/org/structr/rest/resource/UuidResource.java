@@ -152,10 +152,10 @@ public class UuidResource extends ExactMatchEndpoint {
 
 			final App app = StructrApp.getInstance(securityContext);
 
-			GraphObject entity = app.nodeQuery().uuid(uuid).getFirst();
+			GraphObject entity = app.nodeQuery().and().uuid(uuid).getFirst();
 			if (entity == null) {
 
-				entity = app.relationshipQuery().uuid(uuid).getFirst();
+				entity = app.relationshipQuery().and().uuid(uuid).getFirst();
 			}
 
 			if (entity == null) {

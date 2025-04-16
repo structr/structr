@@ -165,7 +165,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[1].id", equalTo(test11))
 
 			.when()
-				.get(concat("/TestSeven?_sort=name&testSixIds=", test01, ";", test06));
+				.get(concat("/TestSeven?_sort=name&testSixIds=", test01, ";", test06, "&_inexact=1"));
 
 		// test simple related search with one object,
 		// expected result is a list of two elements
@@ -183,7 +183,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[1].id", equalTo(test20))
 
 			.when()
-				.get(concat("/TestEight?_sort=name&testSixIds=", test01));
+				.get(concat("/TestEight?_sort=name&testSixIds=", test01, "&_inexact=1"));
 
 		// test simple related search with two objects, OR
 		// expected result is a list of two elements:
@@ -204,7 +204,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[3].id", equalTo(test20))
 
 			.when()
-				.get(concat("/TestEight?_sort=name&testSixIds=", test01, ";", test06));
+				.get(concat("/TestEight?_sort=name&testSixIds=", test01, ";", test06, "&_inexact=1"));
 
 		// test related search with two related properties,
 		// expected result is a single object:
@@ -222,7 +222,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[0].id", equalTo(test01))
 
 			.when()
-				.get(concat("/TestSix?_sort=name&testSevenName=test09&testEightStrings=string20"));
+				.get(concat("/TestSix?_sort=name&testSevenName=test09&testEightStrings=string20&_inexact=1"));
 
 
 		// test related search with a single related property and two
@@ -261,7 +261,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[0].id", equalTo(test07))
 
 			.when()
-				.get(concat("/TestSix?_sort=name&testEightStrings=string19&testSevenName=test12&anInt=7"));
+				.get(concat("/TestSix?_sort=name&testEightStrings=string19&testSevenName=test12&anInt=7&_inexact=1"));
 
 		// test inexact related search with collection property
 		// expected result is a list of four objects:
@@ -433,7 +433,8 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.get(concat("/TestSeven?_sort=name&testSixs=", test01, ",", test06));
 
 		// test simple related search with two objects, AND,
-		// expected result is exactly one element
+		// expected result is empty because no object has the
+		// requested search value (test01 AND test02)
 		RestAssured
 
 			.given()
@@ -442,10 +443,8 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(1))
-				.body("result_count", equalTo(1))
-
-				.body("result[0].id", equalTo(test09))
+				.body("result",	      hasSize(0))
+				.body("result_count", equalTo(0))
 
 			.when()
 				.get(concat("/TestSeven?_sort=name&testSixs=", test01, ",", test02));
@@ -467,7 +466,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[1].id", equalTo(test11))
 
 			.when()
-				.get(concat("/TestSeven?_sort=name&testSixs=", test01, ";", test06));
+				.get(concat("/TestSeven?_sort=name&testSixs=", test01, ";", test06, "&_inexact=1"));
 
 		// test simple related search with one object,
 		// expected result is a list of two elements
@@ -485,7 +484,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[1].id", equalTo(test20))
 
 			.when()
-				.get(concat("/TestEight?_sort=name&testSixs=", test01));
+				.get(concat("/TestEight?_sort=name&testSixs=", test01, "&_inexact=1"));
 
 		// test simple related search with two objects, OR
 		// expected result is a list of four elements:
@@ -505,7 +504,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[3].id", equalTo(test20))
 
 			.when()
-				.get(concat("/TestEight?_sort=name&testSixs=", test01, ";", test06));
+				.get(concat("/TestEight?_sort=name&testSixs=", test01, ";", test06, "&_inexact=1"));
 
 		// test simple related search with two objects, OR
 		// expected result is a list of two elements:
@@ -523,144 +522,8 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[0].id", equalTo(test13))
 
 			.when()
-				.get(concat("/TestEight?_sort=name&testSixs=", test01, ",", test02));
+				.get(concat("/TestEight?_sort=name&testSixs=", test01, ",", test02, "&_inexact=1"));
 
-	}
-
-	//@Test
-	public void testGraphBasedIndexingSearchCombinedWithGeocoding() {
-
-		String test01 = createEntity("/TestEight", "{ name: test01, aString: string01, anInt: 1 }");
-		String test02 = createEntity("/TestEight", "{ name: test02, aString: string02, anInt: 2 }");
-		String test03 = createEntity("/TestEight", "{ name: test03, aString: string03, anInt: 3 }");
-		String test04 = createEntity("/TestEight", "{ name: test04, aString: string04, anInt: 4 }");
-
-		String test05 = createEntity("/TestNine", "{ name: test05, city: Dortmund, street: Strobelallee, testEightIds: [ ", test01, ",", test02, "] }");
-		String test06 = createEntity("/TestNine", "{ name: test06, city: 'Fehlerstadt', street: 'Unbekanntstraße', testEightIds: [ ", test03, ",", test04, "] }");
-		String test07 = createEntity("/TestNine", "{ name: test07, city: München, street: Maximiliansplatz }");
-
-		RestAssured.given().filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200)).get("/TestNine/" + test05);
-		RestAssured.given().filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200)).get("/TestNine/" + test06);
-		RestAssured.given().filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200)).get("/TestNine/" + test07);
-
-		// test geocoding, expected result is a list of 3 objects
-		// test05, test06 and test07
-		RestAssured
-
-			.given()
-				.contentType("application/json; charset=UTF-8")
-
-			.expect()
-				.statusCode(200)
-
-				.body("result",	              hasSize(3))
-				.body("result_count",         equalTo(3))
-				.body("result[0].id",         equalTo(test05))
-				.body("result[0].postalCode", equalTo("44139"))
-				.body("result[0].latitude",   notNullValue())
-				.body("result[0].longitude",  notNullValue())
-
-			.when()
-				.get(concat("/TestNine"));
-
-		// test geocoding, expected result is a list of 2 objects
-		// test01 and test02
-		RestAssured
-
-			.given()
-				.contentType("application/json; charset=UTF-8")
-
-			.expect()
-				.statusCode(200)
-
-				.body("result",	              hasSize(2))
-				.body("result_count",         equalTo(2))
-				.body("result[0].id",         equalTo(test01))
-				.body("result[1].id",         equalTo(test02))
-
-			.when()
-				.get(concat("/TestEight?_sort=name&testNinePostalCodes=44139"));
-
-		// test spatial search, expected result is a single object:
-		// test05
-		RestAssured
-
-			.given()
-				.contentType("application/json; charset=UTF-8")
-
-			.expect()
-				.statusCode(200)
-
-				.body("result",	              hasSize(1))
-				.body("result_count",         equalTo(1))
-				.body("result[0].id",         equalTo(test05))
-
-			.when()
-				.get(concat("/TestNine?_distance=2&_location=Poststraße,Dortmund"));
-
-
-
-
-
-
-		// test spatial search with large radius,
-		// expected result is a list of two objects:
-		// test05, test06 has no coordinates and should be ignored!
-		RestAssured
-
-			.given()
-				.contentType("application/json; charset=UTF-8")
-
-			.expect()
-				.statusCode(200)
-
-				.body("result",	              hasSize(1))
-				.body("result_count",         equalTo(1))
-				.body("result[0].id",         equalTo(test05))
-
-			.when()
-				.get(concat("/TestNine?_distance=100&_location=Bahnhofstraße,Wuppertal"));
-
-		// test spatial search in combination with graph-based related node search,
-		// expected result is a single result:
-		// test05
-		RestAssured
-
-			.given()
-				.contentType("application/json; charset=UTF-8")
-
-			.expect()
-				.statusCode(200)
-
-				.body("result",	              hasSize(1))
-				.body("result_count",         equalTo(1))
-				.body("result[0].id",         equalTo(test05))
-
-			.when()
-				.get(concat("/TestNine?_distance=100&_location=Bahnhofstraße,Wuppertal&testEightIds=", test01));
-
-		// test spatial search in combination with an empty related node property,
-		// expected result is a single result:
-		// test06
-
-		// NOTE: This test assumes that the geocoding will NOT find a postal
-		// code for the address "Köln, Heumarkt", so this test will fail if
-		// the  geocoding information of the given provider changes!
-		RestAssured
-
-			.given()
-				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-
-			.expect()
-				.statusCode(200)
-
-				.body("result",	              hasSize(1))
-				.body("result_count",         equalTo(1))
-				//.body("result[0].id",         equalTo(test06))
-
-			.when()
-				.get(concat("/TestNine?_distance=100&_location=Bahnhofstraße,Wuppertal"));
 	}
 
 	@Test
@@ -753,7 +616,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				 * the same name and package etc.
 				 */
 
-				assertEquals("Query for dynamic node should return exactly one result: ", 1, app.nodeQuery(dynamicType).and(testKey, 10).getAsList().size());
+				assertEquals("Query for dynamic node should return exactly one result: ", 1, app.nodeQuery(dynamicType).key(testKey, 10).getAsList().size());
 
 				tx.success();
 			}
@@ -811,7 +674,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 
 				for (final NodeInterface user : users) {
 
-					for (final NodeInterface test : app.nodeQuery("TestThree").and(traits.key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), user).and(traits.key("enumProperty"), "Status1").getAsList()) {
+					for (final NodeInterface test : app.nodeQuery("TestThree").key(traits.key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), user).key(traits.key("enumProperty"), "Status1").getAsList()) {
 						assertEquals("Invalid enum query result", "Status1", test.getProperty(traits.key("enumProperty")));
 					}
 				}

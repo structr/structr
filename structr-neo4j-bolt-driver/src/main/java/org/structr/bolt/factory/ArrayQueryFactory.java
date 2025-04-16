@@ -34,7 +34,7 @@ public class ArrayQueryFactory extends KeywordQueryFactory {
 		final Object value = getReadValue(predicate.getValue());
 		final String name  = predicate.getName();
 
-		checkOccur(query, predicate.getOccurrence(), isFirst);
+		//checkOperation(query, predicate.getOperation(), isFirst);
 
 		// add label of declaring class for the given property name
 		// to select the correct index

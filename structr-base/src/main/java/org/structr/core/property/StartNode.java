@@ -21,12 +21,11 @@ package org.structr.core.property;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
-import org.structr.api.search.Occurrence;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.app.Query;
+import org.structr.core.app.QueryGroup;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.OneStartpoint;
 import org.structr.core.entity.Relation;
@@ -56,6 +55,7 @@ public class StartNode extends Property<NodeInterface> implements RelationProper
 	// relationship members
 	private final Relation<OneStartpoint, ? extends Target> relation;
 	private final Traits traits;
+	private final String sourceType;
 	private final String destType;
 	private final Notion notion;
 
@@ -85,10 +85,11 @@ public class StartNode extends Property<NodeInterface> implements RelationProper
 
 		super(name);
 
-		this.traits   = Traits.of(type);
-		this.relation = traits.getRelation();
-		this.notion   = notion;
-		this.destType = relation.getSourceType();
+		this.traits     = Traits.of(type);
+		this.relation   = traits.getRelation();
+		this.notion     = notion;
+		this.sourceType = relation.getSourceType();
+		this.destType   = relation.getSourceType();
 
 		// configure notion
 		this.notion.setType(destType);
@@ -216,13 +217,18 @@ public class StartNode extends Property<NodeInterface> implements RelationProper
 	}
 
 	@Override
+	public String getSourceType() {
+		return sourceType;
+	}
+
+	@Override
 	public String getTargetType() {
 		return destType;
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final Occurrence occur, final NodeInterface searchValue, final boolean exactMatch, final Query query) {
-		return new GraphSearchAttribute<>(this, searchValue, occur, exactMatch);
+	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final NodeInterface searchValue, final boolean exactMatch, final QueryGroup query) {
+		return new GraphSearchAttribute<>(this, searchValue, exactMatch);
 	}
 
 	@Override

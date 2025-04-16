@@ -83,6 +83,16 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 	}
 
 	@Override
+	public void setVisibilityRecursively(boolean visibleToPublic, boolean visibleToAuth) throws FrameworkException {
+
+		setVisibility(visibleToPublic, visibleToAuth);
+
+		for (final NodeInterface node : getAllChildNodes()) {
+			node.setVisibility(visibleToPublic, visibleToAuth);
+		}
+	}
+
+	@Override
 	public Integer getCacheForSeconds() {
 		return wrappedObject.getProperty(traits.key(PageTraitDefinition.CACHE_FOR_SECONDS_PROPERTY));
 	}
@@ -373,16 +383,41 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 
 	@Override
 	public Content createTextNode(final String text) {
-
+		// TODO: combine createTextNode, createTemplate and createComment
 		try {
 
 			final App app       = StructrApp.getInstance(getSecurityContext());
 			final Traits traits = Traits.of(StructrTraits.CONTENT);
 
 			// create new content element
-			final Content content = app.create(StructrTraits.CONTENT,
-				new NodeAttribute(traits.key(ContentTraitDefinition.CONTENT_PROPERTY), text)
-			).as(Content.class);
+			final Content content = app.create(StructrTraits.CONTENT, new NodeAttribute(traits.key(ContentTraitDefinition.CONTENT_PROPERTY), text)).as(Content.class);
+
+			content.setOwnerDocument(this);
+
+			return content;
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+
+			// FIXME: what to do with the exception here?
+			final Logger logger = LoggerFactory.getLogger(Page.class);
+			logger.warn("", fex);
+		}
+
+		return null;
+	}
+
+	@Override
+	public Content createTemplate(final String text) {
+		// TODO: combine createTextNode, createTemplate and createComment
+		try {
+
+			final App app       = StructrApp.getInstance(getSecurityContext());
+			final Traits traits = Traits.of(StructrTraits.TEMPLATE);
+
+			// create new template element
+			final Template content = app.create(StructrTraits.TEMPLATE, new NodeAttribute(traits.key(ContentTraitDefinition.CONTENT_PROPERTY), text)).as(Template.class);
 
 			content.setOwnerDocument(this);
 
@@ -402,13 +437,13 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 
 	@Override
 	public Comment createComment(final String comment) {
-
+		// TODO: combine createTextNode, createTemplate and createComment
 		try {
 
 			final App app       = StructrApp.getInstance(getSecurityContext());
-			final Traits traits = Traits.of(StructrTraits.CONTENT);
+			final Traits traits = Traits.of(StructrTraits.COMMENT);
 
-			// create new content element
+			// create new comment element
 			final Comment commentNode = app.create(StructrTraits.COMMENT, new NodeAttribute(traits.key(ContentTraitDefinition.CONTENT_PROPERTY), comment)).as(Comment.class);
 
 			commentNode.setOwnerDocument(this);

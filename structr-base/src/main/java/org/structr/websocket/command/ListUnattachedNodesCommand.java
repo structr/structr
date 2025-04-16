@@ -97,8 +97,9 @@ public class ListUnattachedNodesCommand extends AbstractCommand {
 			.includeHidden()
 			.pageSize(pageSize)
 			.page(page)
-			.and(traits.key(DOMNodeTraitDefinition.OWNER_DOCUMENT_PROPERTY), null)
-			.and(traits.key(DOMNodeTraitDefinition.PARENT_PROPERTY), null);
+			.and()
+				.key(traits.key(DOMNodeTraitDefinition.OWNER_DOCUMENT_PROPERTY), null)
+				.key(traits.key(DOMNodeTraitDefinition.PARENT_PROPERTY), null);
 
 		if (sortKey != null) {
 

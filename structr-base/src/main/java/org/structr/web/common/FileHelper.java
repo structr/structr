@@ -738,7 +738,7 @@ public class FileHelper {
 
 			final Traits traits = Traits.of(StructrTraits.ABSTRACT_FILE);
 
-			return StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.ABSTRACT_FILE).and(traits.key(AbstractFileTraitDefinition.PATH_PROPERTY), absolutePath).getFirst();
+			return StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.ABSTRACT_FILE).key(traits.key(AbstractFileTraitDefinition.PATH_PROPERTY), absolutePath).getFirst();
 
 		} catch (FrameworkException ex) {
 			logger.warn("File not found: {}", absolutePath);
@@ -767,7 +767,7 @@ public class FileHelper {
 		logger.debug("Search for file with name: {}", name);
 
 		try {
-			return StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.ABSTRACT_FILE).andName(name).getFirst();
+			return StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.ABSTRACT_FILE).name(name).getFirst();
 
 		} catch (FrameworkException fex) {
 
@@ -789,7 +789,7 @@ public class FileHelper {
 		logger.debug("Search for file with name: {}", name);
 
 		try {
-			final List<NodeInterface> files = StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.ABSTRACT_FILE).andName(name).getAsList();
+			final List<NodeInterface> files = StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.ABSTRACT_FILE).name(name).getAsList();
 
 			for (final NodeInterface file : files) {
 

@@ -138,7 +138,7 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> extends Deser
 					//  (this is quite similar to the Cypher MERGE command),
 					if (!uniqueKeyValues.isEmpty()) {
 
-						final List<T> possibleResults = convert(app.nodeQuery(type).and(uniqueKeyValues).getResultStream());
+						final List<T> possibleResults = convert(app.nodeQuery(type).key(uniqueKeyValues).getResultStream());
 						final int num                 = possibleResults.size();
 
 						switch (num) {

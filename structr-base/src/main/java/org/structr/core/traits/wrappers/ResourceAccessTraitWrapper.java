@@ -104,7 +104,7 @@ public class ResourceAccessTraitWrapper extends AbstractNodeTraitWrapper impleme
 			permissions = new LinkedList<>();
 
 			// Ignore securityContext here (so we can cache all permissions for a signature independent of a user)
-			final List<NodeInterface> nodes = StructrApp.getInstance().nodeQuery(StructrTraits.RESOURCE_ACCESS).and(traits.key(ResourceAccessTraitDefinition.SIGNATURE_PROPERTY), signature).getAsList();
+			final List<NodeInterface> nodes = StructrApp.getInstance().nodeQuery(StructrTraits.RESOURCE_ACCESS).key(traits.key(ResourceAccessTraitDefinition.SIGNATURE_PROPERTY), signature).getAsList();
 
 			for (final NodeInterface node : nodes) {
 

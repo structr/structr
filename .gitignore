@@ -21,6 +21,7 @@ structr-base/logDb.dat
 structr-base/src/test/javascript/screenshots
 structr-base/structr-ui*.pid
 structr-base/*.key*
+structr-base/src/main/resources/structr/index.html
 **/logs
 *.diff
 **nb-configuration.xml

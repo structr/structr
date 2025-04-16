@@ -539,8 +539,8 @@ public class MaintenanceTest extends StructrTest {
 		// test 2: verify that nothing except the initial schema is there..
 		try (final Tx tx = app.tx()) {
 
-			assertNull("Database was not cleaned correctly by ClearDatabase command", app.nodeQuery(StructrTraits.SCHEMA_NODE).andName("Test123").getFirst());
-			assertNull("Database was not cleaned correctly by ClearDatabase command", app.nodeQuery(StructrTraits.SCHEMA_NODE).andName("OneTwoTreeFour").getFirst());
+			assertNull("Database was not cleaned correctly by ClearDatabase command", app.nodeQuery(StructrTraits.SCHEMA_NODE).name("Test123").getFirst());
+			assertNull("Database was not cleaned correctly by ClearDatabase command", app.nodeQuery(StructrTraits.SCHEMA_NODE).name("OneTwoTreeFour").getFirst());
 
 			assertNull("Database was not cleaned correctly by ClearDatabase command", app.nodeQuery(test1).getFirst());
 			assertNull("Database was not cleaned correctly by ClearDatabase command", app.nodeQuery(test2).getFirst());

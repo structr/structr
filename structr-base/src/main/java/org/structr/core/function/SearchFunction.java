@@ -20,10 +20,9 @@ package org.structr.core.function;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.Query;
+import org.structr.core.app.QueryGroup;
 import org.structr.core.app.StructrApp;
 import org.structr.core.traits.Traits;
-import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 
 public class SearchFunction extends AbstractQueryFunction {
@@ -58,8 +57,7 @@ public class SearchFunction extends AbstractQueryFunction {
 				throw new IllegalArgumentException();
 			}
 
-			final ConfigurationProvider config    = StructrApp.getConfiguration();
-			final Query query                     = StructrApp.getInstance(securityContext).nodeQuery();
+			final QueryGroup query = StructrApp.getInstance(securityContext).nodeQuery().and();
 
 			applyQueryParameters(securityContext, query);
 
@@ -72,7 +70,7 @@ public class SearchFunction extends AbstractQueryFunction {
 
 				if (type != null) {
 
-					query.andTypes(type);
+					query.types(type);
 
 				} else {
 

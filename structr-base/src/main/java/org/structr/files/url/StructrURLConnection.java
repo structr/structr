@@ -69,7 +69,7 @@ public class StructrURLConnection extends URLConnection {
 
 				final NodeInterface node = app
 					.nodeQuery(StructrTraits.FILE)
-					.and(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY), url.getPath())
+					.key(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY), url.getPath())
 					.getFirst();
 
 				if (node != null) {

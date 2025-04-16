@@ -179,7 +179,7 @@ public class Deployment4Test extends DeploymentTestBase {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface page = app.nodeQuery(StructrTraits.PAGE).and(Traits.of(StructrTraits.PAGE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), testName).getFirst();
+			final NodeInterface page = app.nodeQuery(StructrTraits.PAGE).key(Traits.of(StructrTraits.PAGE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), testName).getFirst();
 
 			assertTrue("Expected page to have the hidden flag!", page.isHidden());
 
@@ -281,9 +281,9 @@ public class Deployment4Test extends DeploymentTestBase {
 		// modify permissions of files that were exported
 		try (final Tx tx = app.tx()) {
 
-			final Principal p1 = app.nodeQuery(StructrTraits.PRINCIPAL).andName("user1").getFirst().as(Principal.class);
-			final Principal p2 = app.nodeQuery(StructrTraits.PRINCIPAL).andName("user2").getFirst().as(Principal.class);
-			final Principal p3 = app.nodeQuery(StructrTraits.PRINCIPAL).andName("user3").getFirst().as(Principal.class);
+			final Principal p1 = app.nodeQuery(StructrTraits.PRINCIPAL).name("user1").getFirst().as(Principal.class);
+			final Principal p2 = app.nodeQuery(StructrTraits.PRINCIPAL).name("user2").getFirst().as(Principal.class);
+			final Principal p3 = app.nodeQuery(StructrTraits.PRINCIPAL).name("user3").getFirst().as(Principal.class);
 
 			for (final NodeInterface test : app.nodeQuery(StructrTraits.FILE).getResultStream()) {
 
@@ -332,12 +332,12 @@ public class Deployment4Test extends DeploymentTestBase {
 		// check files
 		try (final Tx tx = app.tx()) {
 
-			final Principal p1 = app.nodeQuery(StructrTraits.PRINCIPAL).andName("user1").getFirst().as(Principal.class);
-			final Principal p2 = app.nodeQuery(StructrTraits.PRINCIPAL).andName("user2").getFirst().as(Principal.class);
-			final NodeInterface test1   = app.nodeQuery(StructrTraits.FILE).andName("test1.txt").getFirst();
-			final NodeInterface test2   = app.nodeQuery(StructrTraits.FILE).andName("test2.txt").getFirst();
-			final NodeInterface test3   = app.nodeQuery(StructrTraits.FILE).andName("test3.txt").getFirst();
-			final NodeInterface test4   = app.nodeQuery(StructrTraits.FILE).andName("test4.txt").getFirst();
+			final Principal p1 = app.nodeQuery(StructrTraits.PRINCIPAL).name("user1").getFirst().as(Principal.class);
+			final Principal p2 = app.nodeQuery(StructrTraits.PRINCIPAL).name("user2").getFirst().as(Principal.class);
+			final NodeInterface test1   = app.nodeQuery(StructrTraits.FILE).name("test1.txt").getFirst();
+			final NodeInterface test2   = app.nodeQuery(StructrTraits.FILE).name("test2.txt").getFirst();
+			final NodeInterface test3   = app.nodeQuery(StructrTraits.FILE).name("test3.txt").getFirst();
+			final NodeInterface test4   = app.nodeQuery(StructrTraits.FILE).name("test4.txt").getFirst();
 
 			// test1
 			{
@@ -508,7 +508,7 @@ public class Deployment4Test extends DeploymentTestBase {
 			testGroup3.addMember(securityContext, user.as(User.class));
 
 			// create grant
-			final NodeInterface projectNode = app.nodeQuery(StructrTraits.SCHEMA_NODE).andName("Project").getFirst();
+			final NodeInterface projectNode = app.nodeQuery(StructrTraits.SCHEMA_NODE).name("Project").getFirst();
 			final NodeInterface grant      = app.create(StructrTraits.SCHEMA_GRANT,
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.SCHEMA_NODE_PROPERTY),          projectNode),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("principal"),           testGroup1),
@@ -557,10 +557,49 @@ public class Deployment4Test extends DeploymentTestBase {
 		final String hash1 = calculateHash();
 
 		// roundtrip
-		doImportExportRoundtrip(true, false, null);
+		doImportExportRoundtrip(true, (x) -> {
+
+			// create group for schema grant to refer to
+			try (final Tx tx = app.tx()) {
+
+				final Group testGroup1       = app.create(StructrTraits.GROUP, "Group1").as(Group.class);
+				final Group testGroup2       = app.create(StructrTraits.GROUP, "Group2").as(Group.class);
+				final Group testGroup3       = app.create(StructrTraits.GROUP, "Group3").as(Group.class);
+
+				// create group hierarchy
+				testGroup1.addMember(securityContext, testGroup2);
+				testGroup2.addMember(securityContext, testGroup3);
+
+				app.create(StructrTraits.USER,
+					new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "user"),
+					new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.PASSWORD_PROPERTY), "password"),
+					new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.GROUPS_PROPERTY), List.of(testGroup3))
+				);
+
+				tx.success();
+			} catch (Throwable t) {
+				t.printStackTrace();
+			}
+
+			return null;
+		});
 
 		// test
 		final String hash2 = calculateHash();
+
+		// create projects as well (database was cleared)
+		final String projectType = "Project";
+
+		try (final Tx tx = app.tx()) {
+
+			app.create(projectType, "Project1");
+			app.create(projectType, "Project2");
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
 
 		// test after roundtrip
 		RestAssured
@@ -585,7 +624,7 @@ public class Deployment4Test extends DeploymentTestBase {
 		// test again but delete group hierarchy first
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface group2 = app.nodeQuery(StructrTraits.GROUP).andName("Group2").getFirst();
+			final NodeInterface group2 = app.nodeQuery(StructrTraits.GROUP).name("Group2").getFirst();
 
 			// Group2 connects the schema grant group (Group1) with the user in Group3,
 			// so we expect the user to not see any Projects after this
@@ -622,7 +661,32 @@ public class Deployment4Test extends DeploymentTestBase {
 		final String hash3 = calculateHash();
 
 		// roundtrip
-		doImportExportRoundtrip(true, false, null);
+		doImportExportRoundtrip(true, (x) -> {
+
+			// create group for schema grant to refer to
+			try (final Tx tx = app.tx()) {
+
+				final Group testGroup1       = app.create(StructrTraits.GROUP, "Group1").as(Group.class);
+				final Group testGroup2       = app.create(StructrTraits.GROUP, "Group2").as(Group.class);
+				final Group testGroup3       = app.create(StructrTraits.GROUP, "Group3").as(Group.class);
+
+				// create group hierarchy
+				testGroup1.addMember(securityContext, testGroup2);
+				testGroup2.addMember(securityContext, testGroup3);
+
+				app.create(StructrTraits.USER,
+					new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "user"),
+					new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.PASSWORD_PROPERTY), "password"),
+					new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.GROUPS_PROPERTY), List.of(testGroup3))
+				);
+
+				tx.success();
+			} catch (Throwable t) {
+				t.printStackTrace();
+			}
+
+			return null;
+		});
 
 		// test after roundtrip
 		RestAssured
@@ -675,7 +739,7 @@ public class Deployment4Test extends DeploymentTestBase {
 		// verify that the changelog flag is still disabled
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface node = app.nodeQuery(StructrTraits.SCHEMA_NODE).andName("Project").getFirst();
+			final NodeInterface node = app.nodeQuery(StructrTraits.SCHEMA_NODE).name("Project").getFirst();
 
 			assertTrue("Changelog disabled flag should be set after deployment roundtrip", node.getProperty(Traits.of(StructrTraits.SCHEMA_NODE).key(AbstractSchemaNodeTraitDefinition.CHANGELOG_DISABLED_PROPERTY)));
 
@@ -780,7 +844,7 @@ public class Deployment4Test extends DeploymentTestBase {
 
 		// roundtrip and compare
 		final String hash1 = calculateHash();
-		doImportExportRoundtrip(true, false, null);
+		doImportExportRoundtrip(true, null, false);
 		final String hash2 = calculateHash();
 
 		// test after roundtrip

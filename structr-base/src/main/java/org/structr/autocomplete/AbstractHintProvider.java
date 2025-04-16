@@ -201,7 +201,6 @@ public abstract class AbstractHintProvider {
 		hints.add(0, createKeywordHint("locale",              "The current locale",         "locale"));
 		hints.add(0, createKeywordHint("current",             "The current details object", "current"));
 		hints.add(0, createKeywordHint("cache",               "Time-based cache object", "cache"));
-		hints.add(0, createKeywordHint("batch",               "Open a batch transaction context", "batch"));
 		hints.add(0, createKeywordHint("applicationStore",    "The application store", "applicationStore"));
 
 		// add global schema methods to show at the start of the list
@@ -209,7 +208,7 @@ public abstract class AbstractHintProvider {
 
 			final Traits traits = Traits.of(StructrTraits.SCHEMA_METHOD);
 
-			for (final NodeInterface node : StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_METHOD).and(traits.key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY), null).sort(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getResultStream()) {
+			for (final NodeInterface node : StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_METHOD).key(traits.key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY), null).sort(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getResultStream()) {
 
 				final SchemaMethod method = node.as(SchemaMethod.class);
 

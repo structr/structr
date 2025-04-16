@@ -65,7 +65,7 @@ public class KeywordQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 		final Object value     = getReadValue(predicate.getValue());
 		final String name      = predicate.getName();
 
-		checkOccur(query, predicate.getOccurrence(), isFirst);
+		//checkOperation(query, predicate.getOperation(), isFirst);
 
 		// only String properties can be used for inexact search
 		if (predicate.isExactMatch() || !isString) {

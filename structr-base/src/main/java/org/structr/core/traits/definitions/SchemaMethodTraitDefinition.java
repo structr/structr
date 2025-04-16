@@ -27,7 +27,6 @@ import org.structr.common.error.SemanticErrorToken;
 import org.structr.common.event.RuntimeEventLog;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
-import org.structr.core.api.Methods;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.Relation;
@@ -46,6 +45,7 @@ import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnDeletion;
 import org.structr.core.traits.operations.graphobject.OnModification;
 import org.structr.core.traits.wrappers.SchemaMethodTraitWrapper;
+import org.structr.schema.action.Actions;
 
 import java.util.List;
 import java.util.Map;
@@ -110,7 +110,9 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 					final PropertyKey<String> nameKey              = traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 					boolean valid                                  = true;
 
-					valid &= ValidationHelper.isValidStringMatchingRegex(obj, nameKey, SchemaMethod.schemaMethodNamePattern, errorBuffer);
+					valid &= ValidationHelper.isValidStringMatchingRegex(obj, nameKey, SchemaMethod.schemaMethodNamePattern,
+						"Method name must match the following pattern: '" + SchemaMethod.schemaMethodNamePattern + "', which means it must start with a lowercase letter and may only contain letters, numbers and underscores.",
+						errorBuffer);
 
 					final Set<String> propertyViews = schemaNode != null ? schemaNode.getViewNames() : Set.of();
 					final String thisMethodName     = method.getName();
@@ -129,7 +131,7 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 
 					try {
 
-						final List<NodeInterface> methodsOnCurrentLevel = StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_METHOD).and(schemaNodeKey, parentOrNull).getAsList();
+						final List<NodeInterface> methodsOnCurrentLevel = StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_METHOD).key(schemaNodeKey, parentOrNull).getAsList();
 						final List<SchemaMethodParameter> params        = Iterables.toList(method.getParameters());
 						// param comparison is required because otherwise this would fail for at least "getScaledImage" and "updateFeedTask"
 						final String paramsAsString                     = params.stream().map(p -> p.getName() + ":" + p.getParameterType()).collect(Collectors.joining(";"));
@@ -173,6 +175,8 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 					final SchemaMethod schemaMethod = graphObject.as(SchemaMethod.class);
 
 					schemaMethod.handleAutomaticCorrectionOfAttributes();
+
+					Actions.clearCache();
 				}
 			},
 
@@ -196,8 +200,8 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 					// acknowledge all events for this node when it is modified
 					RuntimeEventLog.acknowledgeAllEventsForId(schemaMethod.getUuid());
 
-					// clear methods cache
-					Methods.clearMethodCache();
+					// clear caches
+					Actions.clearCache();
 				}
 			},
 
@@ -206,7 +210,9 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 
 				@Override
 				public void onDeletion(GraphObject graphObject, SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
-					Methods.clearMethodCache();
+
+					// clear caches
+					Actions.clearCache();
 				}
 			}
 		);
@@ -273,37 +279,42 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 
 			PropertyView.Public,
 			newSet(
-				NodeInterfaceTraitDefinition.NAME_PROPERTY, SCHEMA_NODE_PROPERTY, STATIC_SCHEMA_NODE_NAME_PROPERTY,
-					SOURCE_PROPERTY, RETURN_TYPE_PROPERTY, EXCEPTIONS_PROPERTY, CALL_SUPER_PROPERTY, OVERRIDES_EXISTING_PROPERTY,
-					DO_EXPORT_PROPERTY, CODE_TYPE_PROPERTY, IS_PART_OF_BUILT_IN_SCHEMA_PROPERTY, TAGS_PROPERTY, SUMMARY_PROPERTY,
-					DESCRIPTION_PROPERTY, IS_STATIC_PROPERTY, IS_PRIVATE_PROPERTY, RETURN_RAW_RESULT_PROPERTY, HTTP_VERB_PROPERTY
+					GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY,
+					SCHEMA_NODE_PROPERTY, STATIC_SCHEMA_NODE_NAME_PROPERTY, SOURCE_PROPERTY, RETURN_TYPE_PROPERTY,
+					EXCEPTIONS_PROPERTY, CALL_SUPER_PROPERTY, OVERRIDES_EXISTING_PROPERTY, DO_EXPORT_PROPERTY, CODE_TYPE_PROPERTY,
+					IS_PART_OF_BUILT_IN_SCHEMA_PROPERTY, TAGS_PROPERTY, SUMMARY_PROPERTY, DESCRIPTION_PROPERTY, IS_STATIC_PROPERTY,
+					INCLUDE_IN_OPEN_API_PROPERTY, OPEN_API_RETURN_TYPE_PROPERTY,
+					IS_PRIVATE_PROPERTY, RETURN_RAW_RESULT_PROPERTY, HTTP_VERB_PROPERTY
 			),
 
 			PropertyView.Ui,
 			newSet(
-					NodeInterfaceTraitDefinition.NAME_PROPERTY, SCHEMA_NODE_PROPERTY, STATIC_SCHEMA_NODE_NAME_PROPERTY,
-					SOURCE_PROPERTY, RETURN_TYPE_PROPERTY, EXCEPTIONS_PROPERTY, CALL_SUPER_PROPERTY, OVERRIDES_EXISTING_PROPERTY,
-					DO_EXPORT_PROPERTY, CODE_TYPE_PROPERTY, IS_PART_OF_BUILT_IN_SCHEMA_PROPERTY, TAGS_PROPERTY, SUMMARY_PROPERTY,
-					DESCRIPTION_PROPERTY, IS_STATIC_PROPERTY, INCLUDE_IN_OPEN_API_PROPERTY, OPEN_API_RETURN_TYPE_PROPERTY,
+					GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY,
+					SCHEMA_NODE_PROPERTY, STATIC_SCHEMA_NODE_NAME_PROPERTY, SOURCE_PROPERTY, RETURN_TYPE_PROPERTY,
+					EXCEPTIONS_PROPERTY, CALL_SUPER_PROPERTY, OVERRIDES_EXISTING_PROPERTY, DO_EXPORT_PROPERTY, CODE_TYPE_PROPERTY,
+					IS_PART_OF_BUILT_IN_SCHEMA_PROPERTY, TAGS_PROPERTY, SUMMARY_PROPERTY, DESCRIPTION_PROPERTY, IS_STATIC_PROPERTY,
+					INCLUDE_IN_OPEN_API_PROPERTY, OPEN_API_RETURN_TYPE_PROPERTY,
 					IS_PRIVATE_PROPERTY, RETURN_RAW_RESULT_PROPERTY, HTTP_VERB_PROPERTY
 			),
 
 			"schema",
 			newSet(
-				GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, SCHEMA_NODE_PROPERTY,
-					STATIC_SCHEMA_NODE_NAME_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY, SOURCE_PROPERTY, RETURN_TYPE_PROPERTY,
+					GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY,
+					SCHEMA_NODE_PROPERTY, STATIC_SCHEMA_NODE_NAME_PROPERTY, SOURCE_PROPERTY, RETURN_TYPE_PROPERTY,
 					EXCEPTIONS_PROPERTY, CALL_SUPER_PROPERTY, OVERRIDES_EXISTING_PROPERTY, DO_EXPORT_PROPERTY, CODE_TYPE_PROPERTY,
 					IS_PART_OF_BUILT_IN_SCHEMA_PROPERTY, TAGS_PROPERTY, SUMMARY_PROPERTY, DESCRIPTION_PROPERTY, IS_STATIC_PROPERTY,
-					INCLUDE_IN_OPEN_API_PROPERTY, OPEN_API_RETURN_TYPE_PROPERTY, IS_PRIVATE_PROPERTY, RETURN_RAW_RESULT_PROPERTY, HTTP_VERB_PROPERTY
+					INCLUDE_IN_OPEN_API_PROPERTY, OPEN_API_RETURN_TYPE_PROPERTY,
+					IS_PRIVATE_PROPERTY, RETURN_RAW_RESULT_PROPERTY, HTTP_VERB_PROPERTY, PARAMETERS_PROPERTY
 			),
 
 			"export",
 			newSet(
-					GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, SCHEMA_NODE_PROPERTY,
-					STATIC_SCHEMA_NODE_NAME_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY, SOURCE_PROPERTY, RETURN_TYPE_PROPERTY,
+					GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY,
+					SCHEMA_NODE_PROPERTY, STATIC_SCHEMA_NODE_NAME_PROPERTY, SOURCE_PROPERTY, RETURN_TYPE_PROPERTY,
 					EXCEPTIONS_PROPERTY, CALL_SUPER_PROPERTY, OVERRIDES_EXISTING_PROPERTY, DO_EXPORT_PROPERTY, CODE_TYPE_PROPERTY,
 					IS_PART_OF_BUILT_IN_SCHEMA_PROPERTY, TAGS_PROPERTY, SUMMARY_PROPERTY, DESCRIPTION_PROPERTY, IS_STATIC_PROPERTY,
-					INCLUDE_IN_OPEN_API_PROPERTY, OPEN_API_RETURN_TYPE_PROPERTY, IS_PRIVATE_PROPERTY, RETURN_RAW_RESULT_PROPERTY, HTTP_VERB_PROPERTY
+					INCLUDE_IN_OPEN_API_PROPERTY, OPEN_API_RETURN_TYPE_PROPERTY,
+					IS_PRIVATE_PROPERTY, RETURN_RAW_RESULT_PROPERTY, HTTP_VERB_PROPERTY, PARAMETERS_PROPERTY
 			)
 		);
 	}

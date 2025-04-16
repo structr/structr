@@ -65,6 +65,11 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 	}
 
 	@Override
+	public Integer getPriority() {
+		return wrappedObject.getProperty(traits.key(PagePathTraitDefinition.PRIORITY_PROPERTY));
+	}
+
+	@Override
 	public Iterable<PagePathParameter> getParameters() {
 
 		final PropertyKey<Iterable<NodeInterface>> key = traits.key(PagePathTraitDefinition.PARAMETERS_PROPERTY);

@@ -191,10 +191,9 @@ public class HtmlServletObjectResolvingTest extends StructrUiTest {
 			query
 				.and()
 					.or()
-					.andTypes(Traits.of(StructrTraits.PAGE))
-					.andTypes(Traits.of(StructrTraits.FILE))
-					.parent()
-				.and(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), uuid);
+					.types(Traits.of(StructrTraits.PAGE))
+					.types(Traits.of(StructrTraits.FILE))
+				.key(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), uuid);
 
 			// Searching for pages needs super user context anyway
 			List<Linkable> results = query.getAsList();

@@ -155,11 +155,11 @@ public class DirectFileImportTest extends StructrUiTest {
 		// verify successful file import
 		try (final Tx tx = app.tx()) {
 
-			assertNotNull("Folder should have been created by import", app.nodeQuery(StructrTraits.FOLDER).and(pathKey, "/" + testDir.getFileName().toString()).sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getFirst());
+			assertNotNull("Folder should have been created by import", app.nodeQuery(StructrTraits.FOLDER).key(pathKey, "/" + testDir.getFileName().toString()).sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getFirst());
 
-			final File file1 = app.nodeQuery(StructrTraits.FILE).and(pathKey, "/" + testDir.getFileName().toString() + "/test1.txt").sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getFirst().as(File.class);
-			final File file2 = app.nodeQuery(StructrTraits.FILE).and(pathKey, "/" + testDir.getFileName().toString() + "/test2.txt").sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getFirst().as(File.class);
-			final File file3 = app.nodeQuery(StructrTraits.FILE).and(pathKey, "/" + testDir.getFileName().toString() + "/test3.txt").sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getFirst().as(File.class);
+			final File file1 = app.nodeQuery(StructrTraits.FILE).key(pathKey, "/" + testDir.getFileName().toString() + "/test1.txt").sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getFirst().as(File.class);
+			final File file2 = app.nodeQuery(StructrTraits.FILE).key(pathKey, "/" + testDir.getFileName().toString() + "/test2.txt").sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getFirst().as(File.class);
+			final File file3 = app.nodeQuery(StructrTraits.FILE).key(pathKey, "/" + testDir.getFileName().toString() + "/test3.txt").sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getFirst().as(File.class);
 
 			assertNotNull("Test file should have been created by import", file1);
 			assertNotNull("Test file should have been created by import", file2);
@@ -218,11 +218,11 @@ public class DirectFileImportTest extends StructrUiTest {
 		// verify successful file import
 		try (final Tx tx = app.tx()) {
 
-			assertNotNull("Folder should have been created by import", app.nodeQuery(StructrTraits.FOLDER).and(pathKey, "/" + testDir.getFileName().toString()).sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getFirst());
+			assertNotNull("Folder should have been created by import", app.nodeQuery(StructrTraits.FOLDER).key(pathKey, "/" + testDir.getFileName().toString()).sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getFirst());
 
-			final File file1 = app.nodeQuery(StructrTraits.FILE).and(pathKey, "/" +  testDir.getFileName().toString() + "/test1.txt").sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getFirst().as(File.class);
-			final File file2 = app.nodeQuery(StructrTraits.FILE).and(pathKey, "/" +  testDir.getFileName().toString() + "/test2.txt").sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getFirst().as(File.class);
-			final File file3 = app.nodeQuery(StructrTraits.FILE).and(pathKey, "/" +  testDir.getFileName().toString() + "/test3.txt").sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getFirst().as(File.class);
+			final File file1 = app.nodeQuery(StructrTraits.FILE).key(pathKey, "/" +  testDir.getFileName().toString() + "/test1.txt").sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getFirst().as(File.class);
+			final File file2 = app.nodeQuery(StructrTraits.FILE).key(pathKey, "/" +  testDir.getFileName().toString() + "/test2.txt").sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getFirst().as(File.class);
+			final File file3 = app.nodeQuery(StructrTraits.FILE).key(pathKey, "/" +  testDir.getFileName().toString() + "/test3.txt").sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getFirst().as(File.class);
 
 			assertNotNull("Test file should have been created by import", file1);
 			assertNotNull("Test file should have been created by import", file2);
@@ -1053,10 +1053,10 @@ public class DirectFileImportTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			//assertNotNull("Folder should have been created by import",     app.nodeQuery(StructrTraits.FOLDER).andName(testDir.getFileName().toString()).getFirst());
-			assertNotNull("Test file should have been created by import",  app.nodeQuery(StructrTraits.FILE).and(pathKey, "/test1.txt").sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getFirst());
-			assertNull("Test file should NOT have been created by import", app.nodeQuery(StructrTraits.FILE).and(pathKey, "/test2.pdf").sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getFirst());
-			assertNull("Test file should NOT have been created by import", app.nodeQuery(StructrTraits.FILE).and(pathKey, "/test3.zip").sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getFirst());
-			assertNotNull("Test file should have been created by import",  app.nodeQuery(StructrTraits.FILE).and(pathKey, "/test4.txt").sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getFirst());
+			assertNotNull("Test file should have been created by import",  app.nodeQuery(StructrTraits.FILE).key(pathKey, "/test1.txt").sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getFirst());
+			assertNull("Test file should NOT have been created by import", app.nodeQuery(StructrTraits.FILE).key(pathKey, "/test2.pdf").sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getFirst());
+			assertNull("Test file should NOT have been created by import", app.nodeQuery(StructrTraits.FILE).key(pathKey, "/test3.zip").sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getFirst());
+			assertNotNull("Test file should have been created by import",  app.nodeQuery(StructrTraits.FILE).key(pathKey, "/test4.txt").sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getFirst());
 
 			tx.success();
 

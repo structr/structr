@@ -19,7 +19,6 @@
 package org.structr.core.property;
 
 import org.structr.api.Predicate;
-import org.structr.api.search.Occurrence;
 import org.structr.api.search.SortType;
 import org.structr.api.util.Iterables;
 import org.structr.common.NotNullPredicate;
@@ -27,7 +26,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.TruePredicate;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.app.Query;
+import org.structr.core.app.QueryGroup;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.ManyEndpoint;
 import org.structr.core.entity.Relation;
@@ -54,6 +53,7 @@ public class EndNodes extends Property<Iterable<NodeInterface>> implements Relat
 	private final Relation<? extends Source, ManyEndpoint> relation;
 	private final Traits traits;
 	private final Notion notion;
+	private final String sourceType;
 	private final String destType;
 
 	/**
@@ -77,10 +77,11 @@ public class EndNodes extends Property<Iterable<NodeInterface>> implements Relat
 
 		super(name);
 
-		this.traits   = Traits.of(type);
-		this.relation = traits.getRelation();
-		this.notion   = notion;
-		this.destType = this.relation.getTargetType();
+		this.traits     = Traits.of(type);
+		this.relation   = traits.getRelation();
+		this.notion     = notion;
+		this.sourceType = this.relation.getSourceType();
+		this.destType   = this.relation.getTargetType();
 
 		this.notion.setType(destType);
 		this.notion.setRelationProperty(this);
@@ -206,6 +207,11 @@ public class EndNodes extends Property<Iterable<NodeInterface>> implements Relat
 	}
 
 	@Override
+	public String getSourceType() {
+		return sourceType;
+	}
+
+	@Override
 	public String getTargetType() {
 		return destType;
 	}
@@ -231,9 +237,9 @@ public class EndNodes extends Property<Iterable<NodeInterface>> implements Relat
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final Occurrence occur, final Iterable<NodeInterface> searchValue, final boolean exactMatch, final Query query) {
+	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final Iterable<NodeInterface> searchValue, final boolean exactMatch, final QueryGroup query) {
 
-		return new GraphSearchAttribute<>(this, searchValue, occur, exactMatch);
+		return new GraphSearchAttribute<>(this, searchValue, exactMatch);
 	}
 
 

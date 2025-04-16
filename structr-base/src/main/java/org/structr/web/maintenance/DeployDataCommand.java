@@ -148,12 +148,24 @@ public class DeployDataCommand extends DeployCommand {
 
 			if (!Files.exists(preDataDeployConf)) {
 
-				writeStringToFile(preDataDeployConf, "{\n\t// automatically created " + preDataDeployConf.getFileName() + ". This file is interpreted as a script and run before the data deployment process. To learn more about this, please have a look at the documentation.\n}");
+				writeStringToFile(preDataDeployConf, """
+				{
+					// This file was auto-generated. You may adapt it to suit your specific needs.
+					// During the data deployment import process, this file is treated as a script and executed *before* any other actions take place.
+					//
+					// For more information, please refer to the documentation.
+				}""");
 			}
 
 			if (!Files.exists(postDataDeployConf)) {
 
-				writeStringToFile(postDataDeployConf, "{\n\t// automatically created " + postDataDeployConf.getFileName() + ". This file is interpreted as a script and run after the data deployment process. To learn more about this, please have a look at the documentation.\n}");
+				writeStringToFile(postDataDeployConf, """
+				{
+					// This file was auto-generated. You may adapt it to suit your specific needs.
+					// During the data deployment import process, this file is treated as a script and executed *after* all other operations have finished.
+					//
+					// For more information, please refer to the documentation.
+				}""");
 			}
 
 			final Path nodesDir        = Files.createDirectories(target.resolve(DEPLOYMENT_DATA_IMPORT_NODE_DIRECTORY));

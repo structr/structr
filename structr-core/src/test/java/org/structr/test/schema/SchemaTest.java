@@ -462,7 +462,7 @@ public class SchemaTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface schemaNode = app.nodeQuery(StructrTraits.SCHEMA_NODE).andName(StructrTraits.GROUP).getFirst();
+			final NodeInterface schemaNode = app.nodeQuery(StructrTraits.SCHEMA_NODE).name(StructrTraits.GROUP).getFirst();
 
 			assertNotNull("Schema node Group should exist", schemaNode);
 
@@ -936,7 +936,7 @@ public class SchemaTest extends StructrTest {
 
 			logger.info("Renaming base type..");
 
-			final NodeInterface base = app.nodeQuery(StructrTraits.SCHEMA_NODE).andName("BaseType").getFirst();
+			final NodeInterface base = app.nodeQuery(StructrTraits.SCHEMA_NODE).name("BaseType").getFirst();
 
 			assertNotNull("Base type schema node not found", base);
 
@@ -1032,7 +1032,7 @@ public class SchemaTest extends StructrTest {
 
 			logger.info("Deleting base type..");
 
-			final NodeInterface base = app.nodeQuery(StructrTraits.SCHEMA_NODE).andName("BaseType").getFirst();
+			final NodeInterface base = app.nodeQuery(StructrTraits.SCHEMA_NODE).name("BaseType").getFirst();
 
 			/* getGeneratedSourceCode does not exist any more
 			try {
@@ -1376,9 +1376,9 @@ public class SchemaTest extends StructrTest {
 		// change methods
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface method1 = app.nodeQuery(StructrTraits.SCHEMA_METHOD).andName("test01").getFirst();
-			final NodeInterface method2 = app.nodeQuery(StructrTraits.SCHEMA_METHOD).andName("test02").getFirst();
-			final NodeInterface method3 = app.nodeQuery(StructrTraits.SCHEMA_METHOD).andName("test03").getFirst();
+			final NodeInterface method1 = app.nodeQuery(StructrTraits.SCHEMA_METHOD).name("test01").getFirst();
+			final NodeInterface method2 = app.nodeQuery(StructrTraits.SCHEMA_METHOD).name("test02").getFirst();
+			final NodeInterface method3 = app.nodeQuery(StructrTraits.SCHEMA_METHOD).name("test03").getFirst();
 
 			method1.as(SchemaMethod.class).setSource("{ return 'second version'; }");
 			method2.as(SchemaMethod.class).setSource("{ return 'second version'; }");

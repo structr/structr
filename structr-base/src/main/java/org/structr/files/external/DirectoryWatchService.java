@@ -290,7 +290,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 		try (final Tx tx = app.tx(false, false, false)) {
 
 			// find all folders with storageConfigurations and try to mount them
-			for (final NodeInterface folder : app.nodeQuery(StructrTraits.FOLDER).not().blank(storageConfigurationKey).getAsList()) {
+			for (final NodeInterface folder : app.nodeQuery(StructrTraits.FOLDER).notBlank(storageConfigurationKey).getAsList()) {
 
 				mountFolder(folder.as(Folder.class));
 			}

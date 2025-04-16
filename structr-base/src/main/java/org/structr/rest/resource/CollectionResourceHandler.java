@@ -82,7 +82,7 @@ public class CollectionResourceHandler extends RESTCallHandler {
 
 			final Query query = createQuery(StructrApp.getInstance(securityContext), typeName, isNode);
 
-			collectSearchAttributes(securityContext, typeName, query);
+			collectSearchAttributes(securityContext, typeName, query.and());
 
 			return query
 				.includeHidden(includeHidden)

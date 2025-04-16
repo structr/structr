@@ -148,7 +148,7 @@ public class MessageEngineModule implements StructrModule {
 			}
 
 
-			for (final NodeInterface clientNode : app.nodeQuery(StructrTraits.MESSAGE_CLIENT).andType(StructrTraits.MESSAGE_CLIENT).sort(nameKey).getAsList()) {
+			for (final NodeInterface clientNode : app.nodeQuery(StructrTraits.MESSAGE_CLIENT).type(StructrTraits.MESSAGE_CLIENT).sort(nameKey).getAsList()) {
 
 				final MessageClient client      = clientNode.as(MessageClient.class);
 				final Map<String, Object> entry = new TreeMap<>();

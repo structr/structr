@@ -282,7 +282,7 @@ public class BasicWebsocketTest extends StructrWebsocketBaseTest {
 			// but we can check that the object exists
 			try (final Tx tx = app.tx()) {
 
-				AssertJUnit.assertNotNull(type + " " + name + " was not created correctly", app.nodeQuery(type).andName(name).getFirst());
+				AssertJUnit.assertNotNull(type + " " + name + " was not created correctly", app.nodeQuery(type).name(name).getFirst());
 
 				tx.success();
 
