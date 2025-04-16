@@ -451,8 +451,8 @@ public class ResourceAccessTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createResourceAccess("Test/getName", UiAuthenticator.AUTH_USER_POST).setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
-			createResourceAccess("Test/getName2", UiAuthenticator.AUTH_USER_GET).setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
+			createResourceAccess("Test/_id/getName", UiAuthenticator.AUTH_USER_POST).setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
+			createResourceAccess("Test/_id/getName2", UiAuthenticator.AUTH_USER_GET).setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
 
 			tx.success();
 
