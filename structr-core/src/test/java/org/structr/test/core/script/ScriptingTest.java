@@ -7085,11 +7085,11 @@ public class ScriptingTest extends StructrTest {
 
 			final ActionContext actionContext = new ActionContext(securityContext);
 
-			final List<NodeInterface> result1 = (List) Scripting.evaluate(actionContext, null, "${{ return $.find('Task', $.predicate.and($.predicate.equals('assignee', $.find('User', { name: 'User 1' })[0]), $.predicate.not($.predicate.equals('status', 'done')))); }}", "test1");
+			final List<NodeInterface> result1 = (List) Scripting.evaluate(actionContext, null, "${{ $.find('Task', $.predicate.and($.predicate.equals('assignee', $.find('User', { name: 'User 1' })[0]), $.predicate.not($.predicate.equals('status', 'done')))); }}", "test1");
 
 			assertEquals("Invalid result for and-not-query.", expectedUuid, result1.get(0).getUuid());
 
-			final List<NodeInterface> result2 = (List) Scripting.evaluate(actionContext, null, "${{ return $.find('Task', $.predicate.and($.predicate.equals('assignee', $.find('User', { name: 'User 1' })[0]), $.predicate.not($.predicate.equals('status', 'open')))); }}", "test2");
+			final List<NodeInterface> result2 = (List) Scripting.evaluate(actionContext, null, "${{ $.find('Task', $.predicate.and($.predicate.equals('assignee', $.find('User', { name: 'User 1' })[0]), $.predicate.not($.predicate.equals('status', 'open')))); }}", "test2");
 
 			assertEquals("Invalid result for and-and-query.", 0, result2.size());
 

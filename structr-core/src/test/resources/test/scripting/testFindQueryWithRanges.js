@@ -27,7 +27,7 @@ let id = tasks[5].id;
 let begin = new Date(2021, 0, 1);
 let end = new Date(2023, 0, 1);
 
-let result = $.find('Task',
+$.find('Task',
     $.predicate.and(
         $.predicate.equals('project', project),
         $.predicate.or(
@@ -41,5 +41,3 @@ let result = $.find('Task',
         $.predicate.not($.predicate.equals('id', id))
     )
 );
-
-return result;
