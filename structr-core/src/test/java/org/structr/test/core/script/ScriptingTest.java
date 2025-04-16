@@ -3841,7 +3841,7 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Normal find() should use EXACT search for remote properties", 2, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t2_t3 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't1'), $.predicate.equals('name', 't2'), $.predicate.equals('name', 't3'))); $.find('Project', 'tasks', t1_t2_t3); }}", "testFindOldSyntax")).size());
 
 			// find all projects with all tasks(i.e. t1, t2, t3 and t4) (result: 0 because t5 exists and has no project)
-			assertEquals("Normal find() should use EXACT search for remote properties", 0, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', 'tasks', $.find('Task')); }}", "testFindOldSyntax")).size());
+			assertEquals("Normal find() should use EXACT search for remote properties", 0, ((List)Scripting.evaluate(ctx, null, "${{ $.find('Project', 'tasks', $.find('Task')); }}", "testFindOldSyntax")).size());
 
 			assertEquals("Advanced find() should use EXACT search for $.equals predicate on remote properties", 2, ((List)Scripting.evaluate(ctx, null, "${{ let t1 = $.find('Task', 'name', 't1'); $.find('Project', 'tasks', $.predicate.equals(t1)); }}", "testFindNewSyntax")).size());
 
@@ -4556,12 +4556,12 @@ public class ScriptingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			assertEquals("Task t1 should be in project with 5 tasks", 5, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Task', 'name', 't1')[0].project.tasks }}", "testFindNewSyntax")).size());
+			assertEquals("Task t1 should be in project with 5 tasks", 5, ((List)Scripting.evaluate(ctx, null, "${{ $.find('Task', 'name', 't1')[0].project.tasks }}", "testFindNewSyntax")).size());
 
 			final String script = "${{" +
 					"let t1 = $.find('Task', 'name', 't1')[0];" +
 					"" +
-					"return $.find('Task', $.predicate.and(" +
+					"$.find('Task', $.predicate.and(" +
 					"	$.predicate.equals('project', t1.project)," +
 					"	$.predicate.not($.predicate.equals('id', t1.id))" +
 					")" +
