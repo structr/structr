@@ -52,14 +52,14 @@ public class RestScriptingTest extends StructrRestTestBase {
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 			final JsonType type     = schema.addType("Test");
 
-			type.addMethod("getDate",             "{ new Date(); }").setIsStatic(true);
-			type.addMethod("getNowJavascript",    "{ $.now; }").setIsStatic(true);
+			type.addMethod("getDate",             "{ return new Date(); }").setIsStatic(true);
+			type.addMethod("getNowJavascript",    "{ return $.now; }").setIsStatic(true);
 			type.addMethod("getNowStructrscript", "now").setIsStatic(true);
 
-			type.addMethod("test1", "{ ({ test1: new Date(), test2: $.now, test3: $.Test.getDate(), test4: $.Test.getNowJavascript(), test5: $.Test.getNowStructrscript() }); }").setIsStatic(true);
-			type.addMethod("test2", "{ $.Test.test1(); }").setIsStatic(true);
-			type.addMethod("test3", "{ $.Test.test2(); }").setIsStatic(true);
-			type.addMethod("test4", "{ ({ test1: typeof new Date(), test2: typeof $.now, test3: typeof $.Test.getDate(), test4: typeof $.Test.getNowJavascript(), test5: typeof $.Test.getNowStructrscript() }); }").setIsStatic(true);
+			type.addMethod("test1", "{ return ({ test1: new Date(), test2: $.now, test3: $.Test.getDate(), test4: $.Test.getNowJavascript(), test5: $.Test.getNowStructrscript() }); }").setIsStatic(true);
+			type.addMethod("test2", "{ return $.Test.test1(); }").setIsStatic(true);
+			type.addMethod("test3", "{ return $.Test.test2(); }").setIsStatic(true);
+			type.addMethod("test4", "{ return ({ test1: typeof new Date(), test2: typeof $.now, test3: typeof $.Test.getDate(), test4: typeof $.Test.getNowJavascript(), test5: typeof $.Test.getNowStructrscript() }); }").setIsStatic(true);
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -140,7 +140,7 @@ public class RestScriptingTest extends StructrRestTestBase {
 			// create test group
 			JsonSchema schema       = StructrSchema.createFromDatabase(app);
 			final JsonType type     = schema.addType("API");
-			final JsonMethod method = type.addMethod("doTest", "{ $.create('Group', { name: 'Test' }); $.rollbackTransaction(); ({ errorCode: 42, obj1: { key1: 'value1', key2: 22, list: [ 1, 2, 3 ] } }) }");
+			final JsonMethod method = type.addMethod("doTest", "{ $.create('Group', { name: 'Test' }); $.rollbackTransaction(); return ({ errorCode: 42, obj1: { key1: 'value1', key2: 22, list: [ 1, 2, 3 ] } }) }");
 
 			method.setIsStatic(true);
 			method.setReturnRawResult(true);
@@ -242,10 +242,10 @@ public class RestScriptingTest extends StructrRestTestBase {
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 
 			final JsonType type = schema.addType("API");
-			type.addMethod("calledTestMethod", "{ $.test1(); $.test2(); $.API.test1(); $.API.test2(); 'test'; }").setIsStatic(true);
+			type.addMethod("calledTestMethod", "{ $.test1(); $.test2(); $.API.test1(); $.API.test2(); return 'test'; }").setIsStatic(true);
 
 			type.addMethod("test1", "'static structr script method'"        ).setIsStatic(true).setReturnRawResult(true);
-			type.addMethod("test2", "{ 'static javascript method'; }").setIsStatic(true).setReturnRawResult(true);
+			type.addMethod("test2", "{ return 'static javascript method'; }").setIsStatic(true).setReturnRawResult(true);
 
 			StructrSchema.replaceDatabaseSchema(app, schema);
 
