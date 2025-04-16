@@ -20,11 +20,8 @@ package org.structr.websocket.command;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
-import org.structr.core.traits.Traits;
 import org.structr.rest.resource.SchemaResource;
 import org.structr.rest.resource.SchemaTypeResource;
 import org.structr.websocket.StructrWebSocket;

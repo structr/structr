@@ -21,7 +21,6 @@ package org.structr.common.error;
 import org.structr.core.property.PropertyKey;
 
 import java.time.ZonedDateTime;
-import java.util.Date;
 
 /**
  * Indicates that a given date property has the wrong format.

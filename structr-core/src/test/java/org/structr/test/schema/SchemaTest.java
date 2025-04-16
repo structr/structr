@@ -20,7 +20,7 @@ package org.structr.test.schema;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseFeature;
@@ -1148,10 +1148,10 @@ public class SchemaTest extends StructrTest {
 
 			final ActionContext ctx = new ActionContext(securityContext);
 
-			assertEquals("Invalid inheritance result, overriding method is not called", "BaseType",   (Scripting.evaluate(ctx, base,  "${{ return $.this.doTest(); }}", "test1")));
-			assertEquals("Invalid inheritance result, overriding method is not called", "Extended1",  (Scripting.evaluate(ctx, ext1,  "${{ return $.this.doTest(); }}", "test2")));
-			assertEquals("Invalid inheritance result, overriding method is not called", "Extended11", (Scripting.evaluate(ctx, ext11, "${{ return $.this.doTest(); }}", "test3")));
-			assertEquals("Invalid inheritance result, overriding method is not called", "Extended2",  (Scripting.evaluate(ctx, ext2,  "${{ return $.this.doTest(); }}", "test4")));
+			assertEquals("Invalid inheritance result, overriding method is not called", "BaseType",   (Scripting.evaluate(ctx, base,  "${{ $.this.doTest(); }}", "test1")));
+			assertEquals("Invalid inheritance result, overriding method is not called", "Extended1",  (Scripting.evaluate(ctx, ext1,  "${{ $.this.doTest(); }}", "test2")));
+			assertEquals("Invalid inheritance result, overriding method is not called", "Extended11", (Scripting.evaluate(ctx, ext11, "${{ $.this.doTest(); }}", "test3")));
+			assertEquals("Invalid inheritance result, overriding method is not called", "Extended2",  (Scripting.evaluate(ctx, ext2,  "${{ $.this.doTest(); }}", "test4")));
 
 			tx.success();
 
@@ -1361,9 +1361,9 @@ public class SchemaTest extends StructrTest {
 			final NodeInterface instance = app.create("Test", "MyTestInstance");
 			final ActionContext actionContext = new ActionContext(securityContext);
 
-			assertEquals("Invalid precondition", "first version", Scripting.evaluate(actionContext, instance, "{ return $.this.test01(); }", "test01"));
-			assertEquals("Invalid precondition", "first version", Scripting.evaluate(actionContext, instance, "{ return $.Test.test02(); }", "test02"));
-			assertEquals("Invalid precondition", "first version", Scripting.evaluate(actionContext, instance, "{ return $.test03(); }", "test03"));
+			assertEquals("Invalid precondition", "first version", Scripting.evaluate(actionContext, instance, "{ $.this.test01(); }", "test01"));
+			assertEquals("Invalid precondition", "first version", Scripting.evaluate(actionContext, instance, "{ $.Test.test02(); }", "test02"));
+			assertEquals("Invalid precondition", "first version", Scripting.evaluate(actionContext, instance, "{ $.test03(); }", "test03"));
 
 			tx.success();
 
@@ -1398,9 +1398,9 @@ public class SchemaTest extends StructrTest {
 			final NodeInterface instance = app.create("Test", "MyTestInstance");
 			final ActionContext actionContext = new ActionContext(securityContext);
 
-			assertEquals("Schema method cache for instance methods is not invalidated correctly.", "second version", Scripting.evaluate(actionContext, instance, "{ return $.this.test01(); }", "test01"));
-			assertEquals("Schema method cache for static methods is not invalidated correctly.", "second version", Scripting.evaluate(actionContext, instance, "{ return $.Test.test02(); }", "test02"));
-			assertEquals("Schema method cache for user-defined functions is not invalidated correctly.", "second version", Scripting.evaluate(actionContext, instance, "{ return $.test03(); }", "test03"));
+			assertEquals("Schema method cache for instance methods is not invalidated correctly.", "second version", Scripting.evaluate(actionContext, instance, "{ $.this.test01(); }", "test01"));
+			assertEquals("Schema method cache for static methods is not invalidated correctly.", "second version", Scripting.evaluate(actionContext, instance, "{ $.Test.test02(); }", "test02"));
+			assertEquals("Schema method cache for user-defined functions is not invalidated correctly.", "second version", Scripting.evaluate(actionContext, instance, "{ $.test03(); }", "test03"));
 
 			tx.success();
 

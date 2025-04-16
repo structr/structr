@@ -19,9 +19,9 @@
 package org.structr.web.resource;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
-import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.parameter.RESTParameter;
 
 /**

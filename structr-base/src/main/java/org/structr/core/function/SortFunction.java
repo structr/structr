@@ -22,7 +22,6 @@ import org.structr.api.util.Iterables;
 import org.structr.common.PathResolvingComparator;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.app.StructrApp;
 import org.structr.core.graph.search.DefaultSortOrder;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;

@@ -20,7 +20,6 @@ package org.structr.core.function.search;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.function.AdvancedScriptingFunction;
-import org.structr.core.function.search.RangePredicate;
 import org.structr.schema.action.ActionContext;
 
 public class FindRangeFunction extends AdvancedScriptingFunction {

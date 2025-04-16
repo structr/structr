@@ -18,7 +18,6 @@
  */
 package org.structr.rest.service;
 
-import java.lang.reflect.InvocationTargetException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +25,8 @@ import org.structr.api.config.Settings;
 import org.structr.common.PropertyView;
 import org.structr.core.auth.Authenticator;
 import org.structr.schema.compiler.NodeExtender;
+
+import java.lang.reflect.InvocationTargetException;
 
 
 /**

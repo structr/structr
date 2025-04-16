@@ -22,7 +22,6 @@ import org.structr.api.schema.JsonDateProperty;
 import org.structr.api.schema.JsonSchema;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
-import org.structr.core.traits.Traits;
 import org.structr.schema.SchemaHelper.Type;
 
 import java.util.Map;

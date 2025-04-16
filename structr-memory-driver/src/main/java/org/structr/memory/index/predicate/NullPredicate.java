@@ -18,7 +18,7 @@
  */
 package org.structr.memory.index.predicate;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.api.Predicate;
 import org.structr.api.graph.PropertyContainer;
 

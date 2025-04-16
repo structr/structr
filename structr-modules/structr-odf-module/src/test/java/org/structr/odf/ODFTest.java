@@ -26,7 +26,6 @@ import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
-import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.odf.traits.definitions.ODFExporterTraitDefinition;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;

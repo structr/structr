@@ -21,8 +21,6 @@ package org.structr.schema.export;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.schema.JsonEnumProperty;
 import org.structr.api.schema.JsonSchema;
-import org.structr.core.entity.SchemaNode;
-import org.structr.core.entity.SchemaProperty;
 import org.structr.schema.SchemaHelper.Type;
 
 import java.util.LinkedHashSet;

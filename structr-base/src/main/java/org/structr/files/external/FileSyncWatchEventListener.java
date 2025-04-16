@@ -36,10 +36,10 @@ import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
-
-import java.nio.file.Path;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 import org.structr.web.traits.definitions.FolderTraitDefinition;
+
+import java.nio.file.Path;
 
 /**
  * Implementation of the watch event listener interface that syncs

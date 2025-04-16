@@ -35,12 +35,12 @@ import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.SchemaRelationshipNodeTraitDefinition;
 
 import java.net.URI;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import org.structr.core.traits.definitions.SchemaRelationshipNodeTraitDefinition;
 
 /**
  *

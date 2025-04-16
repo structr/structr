@@ -20,7 +20,7 @@ package org.structr.test.rest.test.property;
 
 import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.testng.annotations.Test;
 

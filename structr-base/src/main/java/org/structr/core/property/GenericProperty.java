@@ -23,7 +23,6 @@ import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 
-import java.lang.reflect.ParameterizedType;
 import java.util.Map;
 
 /**

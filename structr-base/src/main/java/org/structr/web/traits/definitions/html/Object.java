@@ -21,10 +21,10 @@ package org.structr.web.traits.definitions.html;
 import org.structr.common.PropertyView;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
+import org.structr.core.traits.StructrTraits;
 
 import java.util.Map;
 import java.util.Set;
-import org.structr.core.traits.StructrTraits;
 
 public class Object extends GenericHtmlElementTraitDefinition {
 

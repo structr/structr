@@ -25,12 +25,12 @@ import org.structr.core.entity.ResourceAccess;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.ResourceAccessTraitDefinition;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import org.structr.core.traits.definitions.ResourceAccessTraitDefinition;
 
 public class ResourceAccessTraitWrapper extends AbstractNodeTraitWrapper implements ResourceAccess {
 

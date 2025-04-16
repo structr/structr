@@ -26,7 +26,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NativeQueryCommand;
-import org.structr.core.graph.Tx;
 import org.structr.schema.action.ActionContext;
 
 import java.util.LinkedHashMap;

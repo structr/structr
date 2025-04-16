@@ -45,14 +45,14 @@ import org.structr.media.AVConv;
 import org.structr.media.VideoFile;
 import org.structr.media.traits.wrappers.VideoFileTraitWrapper;
 import org.structr.rest.RestMethodResult;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.FileTraitDefinition;
 
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
-import org.structr.web.traits.definitions.FileTraitDefinition;
 
 /**
  * A video whose binary data will be stored on disk.

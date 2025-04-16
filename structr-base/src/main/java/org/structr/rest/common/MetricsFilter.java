@@ -23,6 +23,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.structr.api.config.Settings;
 import org.structr.rest.servlet.MetricsServlet;
+
 import java.io.IOException;
 
 /**

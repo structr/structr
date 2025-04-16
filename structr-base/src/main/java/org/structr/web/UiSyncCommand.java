@@ -32,10 +32,10 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.rest.resource.MaintenanceResource;
 import org.structr.web.entity.dom.DOMNode;
-
-import java.util.*;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 import org.structr.web.traits.definitions.dom.PageTraitDefinition;
+
+import java.util.*;
 
 /**
  *

@@ -30,12 +30,12 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.Tx;
+import org.structr.rest.resource.MaintenanceResource;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import org.structr.rest.resource.MaintenanceResource;
 
 public class MaintenanceFunction extends UiAdvancedFunction {
 

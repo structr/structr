@@ -42,6 +42,9 @@ import org.structr.core.traits.StructrTraits;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
  *
  *
@@ -120,6 +123,10 @@ public class Actions {
 	}
 
 	public static Object execute(final SecurityContext securityContext, final GraphObject entity, final String source, final Map<String, Object> parameters, final String methodName, final String codeSource) throws FrameworkException, UnlicensedScriptException {
+		return execute(securityContext, entity, source, parameters, methodName, codeSource, false);
+	}
+
+	public static Object execute(final SecurityContext securityContext, final GraphObject entity, final String source, final Map<String, Object> parameters, final String methodName, final String codeSource, final boolean wrapJsInFunction) throws FrameworkException, UnlicensedScriptException {
 
 		final ContextStore store = securityContext.getContextStore();
 		final Map<String, Object> previousParams = store.getTemporaryParameters();
@@ -127,7 +134,7 @@ public class Actions {
 		store.setTemporaryParameters(new HashMap<>());
 
 		final ActionContext context = new ActionContext(securityContext, parameters);
-		final Object result         = Scripting.evaluate(context, entity, source, methodName, codeSource);
+		final Object result         = Scripting.evaluate(context, entity, source, methodName, codeSource, wrapJsInFunction);
 
 		store.setTemporaryParameters(previousParams);
 
@@ -196,7 +203,7 @@ public class Actions {
 		}
 
 		if (cachedSource != null) {
-			return Actions.execute(securityContext, null, "${" + StringUtils.strip(cachedSource.sourceCode) + "}", parameters, cachedSource.name, cachedSource.uuidOfSource);
+			return Actions.execute(securityContext, null, "${" + StringUtils.strip(cachedSource.sourceCode) + "}", parameters, cachedSource.name, cachedSource.uuidOfSource, true);
 		}
 
 		return null;

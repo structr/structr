@@ -20,15 +20,9 @@ package org.structr.core.script.polyglot.wrappers;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.graalvm.polyglot.Value;
-import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.graalvm.polyglot.proxy.ProxyObject;
-import org.slf4j.LoggerFactory;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.schema.action.ActionContext;
-
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.Arrays;
 
 public class HttpServletRequestWrapper implements ProxyObject {
 	private final ActionContext actionContext;

@@ -16,33 +16,26 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.test.rest.traits.definitions;
+package org.structr.core.script.polyglot.util;
 
-import org.structr.common.PropertyView;
-import org.structr.core.entity.Relation;
-import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
-import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.script.Snippet;
 
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
-public class TestObjectTraitDefinition extends AbstractNodeTraitDefinition {
+public abstract class JSFunctionTranspiler {
 
-	public TestObjectTraitDefinition() {
-		super("TestObject");
-	}
+    public static String transpileSource(final Snippet snippet) {
 
-	@Override
-	public Map<String, Set<String>> getViews() {
+        if (snippet.embed()) {
 
-		return Map.of(
-			PropertyView.Public,
-			newSet(NodeInterfaceTraitDefinition.NAME_PROPERTY)
-		);
-	}
+            final String transpiledSource = "(() => {" + snippet.getSource() + "\n})();";
+            snippet.setTranscribedSource(transpiledSource);
+            return snippet.getTranscribedSource();
+        }
 
-	@Override
-	public Relation getRelation() {
-		return null;
-	}
+        return snippet.getSource();
+    }
 }

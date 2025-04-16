@@ -23,10 +23,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
-import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.traits.definitions.FlowComparisonTraitDefinition;
-import org.structr.flow.traits.definitions.FlowIsTrueTraitDefinition;
-import org.structr.flow.traits.operations.LogicConditionOperations;
 import org.structr.module.api.DeployableEntity;
 
 import java.util.HashMap;

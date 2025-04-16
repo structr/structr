@@ -29,13 +29,13 @@ import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.web.entity.File;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
-import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 /**
  * A URLConnection that fetches a SecurityContext using a custom URL scheme

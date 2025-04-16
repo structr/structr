@@ -1,6 +1,6 @@
 'use strict';
 
-import { Node } from "../../../../../lib/structr/persistence/model/Node.js";
+import {Node} from "../../../../../lib/structr/persistence/model/Node.js";
 
 export class FlowContainer extends Node {
 

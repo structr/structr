@@ -19,10 +19,9 @@
 module structr.db.driver.api {
     requires java.management;
     requires org.slf4j;
-    requires commons.lang3;
-    requires commons.lang;
-    requires commons.collections4;
-    requires commons.configuration;
+    requires org.apache.commons.configuration2;
+    requires org.apache.commons.collections4;
+    requires org.apache.commons.lang3;
 
     exports org.structr.api;
     exports org.structr.api.config;

@@ -21,6 +21,7 @@ package org.structr.autocomplete;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.helper.CaseHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.function.ParseResult;
 import org.structr.schema.action.ActionContext;
@@ -28,7 +29,6 @@ import org.structr.schema.action.ActionContext;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import org.structr.common.helper.CaseHelper;
 
 /**
  *
