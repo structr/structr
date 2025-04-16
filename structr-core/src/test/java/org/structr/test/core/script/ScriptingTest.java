@@ -4102,7 +4102,6 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Advanced search() returns wrong result", 10, ((List)Scripting.evaluate(ctx, null, "${{ return $.search('Test', { name: $.predicate.startsWith('TEST00') }); }}", "testFindNewSyntax")).size());
 			assertEquals("Advanced search() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.search('Test', { name: $.predicate.endsWith('21') }); }}", "testFindNewSyntax")).size());
 
-			Settings.CypherDebugLogging.setValue(true);
 			assertEquals("Advanced search() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.search('Project', { name: $.predicate.contains('2') }); }}", "testFindNewSyntax")).size());
 			assertEquals("Advanced search() returns wrong result", 3, ((List)Scripting.evaluate(ctx, null, "${{ return $.search('Project', $.predicate.contains('name2', 'e')); }}", "testFindNewSyntax")).size());
 			assertEquals("Advanced search() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.search('Project', { name: 'group1', name1: 'structr', name2: 'test' }); }}", "testFindNewSyntax")).size());
@@ -4414,8 +4413,6 @@ public class ScriptingTest extends StructrTest {
 
 			final String errorMessage = "all test nodes should be returned - no cypher exception should be triggered by empty clauses!";
 
-			Settings.CypherDebugLogging.setValue(true);
-
 			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('TestType').length; }}", ""));
 
 			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('TestType', $.predicate.and()).length; }}", ""));
@@ -4561,8 +4558,6 @@ public class ScriptingTest extends StructrTest {
 					");" +
 					"}}";
 
-			Settings.CypherDebugLogging.setValue(true);
-
 			// ($.not and $.equals)
 			assertEquals("Using advanced find() to find all **other** tasks in a project using not and equals predicate should work", 4, ((List)Scripting.evaluate(ctx, null, script, "testFindNewSyntax")).size());
 
@@ -4572,10 +4567,6 @@ public class ScriptingTest extends StructrTest {
 
 			t.printStackTrace();
 			fail("Unexpected exception");
-
-		} finally {
-
-			Settings.CypherDebugLogging.setValue(false);
 		}
 
 	}
@@ -6964,7 +6955,120 @@ public class ScriptingTest extends StructrTest {
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
+	}
 
+	@Test
+	public void testFindPredicateOperations() {
+
+		String expectedUuid = null;
+
+		// create schema
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
+			final JsonObjectType task = schema.addType("Task");
+			final JsonObjectType user = schema.addType("User");
+
+			task.addEnumProperty("status").setFormat("open, inprogress, done");
+
+			task.relate(user, "ASSIGNEE", Cardinality.ManyToOne, "tasks", "assignee");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface task1 = app.create("Task", "Task 1");
+			final NodeInterface task2 = app.create("Task", "Task 2");
+			final NodeInterface task3 = app.create("Task", "Task 3");
+
+			expectedUuid = task1.getUuid();
+
+			final NodeInterface user1 = app.create("User", "User 1");
+			final NodeInterface user2 = app.create("User", "User 2");
+			final NodeInterface user3 = app.create("User", "User 3");
+
+			final PropertyKey<NodeInterface> assigneeProperty = Traits.of("Task").key("assignee");
+			final PropertyKey<String> statusProperty          = Traits.of("Task").key("status");
+
+			task1.setProperty(assigneeProperty, user1);
+			task2.setProperty(assigneeProperty, user2);
+			task3.setProperty(assigneeProperty, user3);
+
+			task1.setProperty(statusProperty, "open");
+			task2.setProperty(statusProperty, "inprogress");
+			task3.setProperty(statusProperty, "done");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext actionContext = new ActionContext(securityContext);
+
+			final List<NodeInterface> result1 = (List) Scripting.evaluate(actionContext, null, "${{ return $.find('Task', $.predicate.and($.predicate.equals('assignee', $.find('User', { name: 'User 1' })[0]), $.predicate.not($.predicate.equals('status', 'done')))); }}", "test1");
+
+			assertEquals("Invalid result for and-not-query.", expectedUuid, result1.get(0).getUuid());
+
+			final List<NodeInterface> result2 = (List) Scripting.evaluate(actionContext, null, "${{ return $.find('Task', $.predicate.and($.predicate.equals('assignee', $.find('User', { name: 'User 1' })[0]), $.predicate.not($.predicate.equals('status', 'open')))); }}", "test2");
+
+			assertEquals("Invalid result for and-and-query.", 0, result2.size());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testFindPredicateOperationsWithRange() {
+
+		// create schema
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
+			final JsonObjectType proj = schema.addType("Project");
+			final JsonObjectType task = schema.addType("Task");
+
+			task.addDateProperty("beginDate");
+			task.addDateProperty("endDate");
+
+			proj.relate(task, "TASK", Cardinality.OneToMany, "project", "tasks");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext actionContext = new ActionContext(securityContext);
+
+			final List<NodeInterface> result1 = (List) ScriptTestHelper.testExternalScript(actionContext, ScriptingTest.class.getResourceAsStream("/test/scripting/testFindQueryWithRanges.js"));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
 	}
 
 	// ----- private methods ----
