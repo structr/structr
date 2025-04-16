@@ -36,14 +36,6 @@ public class EqualsPredicate extends AbstractPredicate {
 
 	@Override
 	public void configureQuery(final SecurityContext securityContext, final Traits type, final PropertyKey propertyKey, final QueryGroup query, final boolean exact) throws FrameworkException {
-
-		if (propertyKey.isCollection()) {
-
-			query.key(propertyKey, value, true);
-
-		} else {
-
-			query.key(propertyKey, value, true);
-		}
+		query.key(propertyKey, value, true);
 	}
 }

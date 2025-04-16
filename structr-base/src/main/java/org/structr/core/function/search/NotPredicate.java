@@ -45,7 +45,7 @@ public class NotPredicate extends AbstractPredicate {
 				// check if value is predicate...
 				if (value instanceof SearchFunctionPredicate predicate) {
 
-					predicate.configureQuery(securityContext, type, key, notGroup, p.isExact());
+					predicate.configureQuery(securityContext, type, key, notGroup, exact && p.isExact());
 
 				} else {
 
@@ -56,7 +56,7 @@ public class NotPredicate extends AbstractPredicate {
 
 					} else {
 
-						notGroup.key(key, value, p.isExact());
+						notGroup.key(key, value, exact && p.isExact());
 					}
 				}
 			}

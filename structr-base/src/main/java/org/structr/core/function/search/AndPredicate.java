@@ -45,7 +45,7 @@ public class AndPredicate extends AbstractPredicate {
 				// check if value is predicate...
 				if (value instanceof SearchFunctionPredicate predicate) {
 
-					predicate.configureQuery(securityContext, type, key, query.and(), parameter.isExact());
+					predicate.configureQuery(securityContext, type, key, query.and(), exact && parameter.isExact());
 
 				} else {
 
@@ -56,7 +56,7 @@ public class AndPredicate extends AbstractPredicate {
 
 					} else {
 
-						andGroup.key(key, value, parameter.isExact());
+						andGroup.key(key, value, exact && parameter.isExact());
 					}
 				}
 			}

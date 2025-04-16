@@ -45,7 +45,7 @@ public class OrPredicate extends AbstractPredicate {
 				// check if value is predicate...
 				if (value instanceof SearchFunctionPredicate predicate) {
 
-					predicate.configureQuery(securityContext, type, key, orGroup, p.isExact());
+					predicate.configureQuery(securityContext, type, key, orGroup, exact && p.isExact());
 
 				} else {
 
@@ -55,7 +55,7 @@ public class OrPredicate extends AbstractPredicate {
 
 					} else {
 
-						orGroup.key(key, value, p.isExact());
+						orGroup.key(key, value, exact && p.isExact());
 					}
 				}
 			}
