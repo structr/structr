@@ -4072,19 +4072,6 @@ public class ScriptingTest extends StructrTest {
 			final Object result4Object        = Scripting.evaluate(ctx, null, testFunction, "testFindNewSyntax");
 			final List<NodeInterface> result4 = (List)result4Object;
 
-			// make results visible in log file
-			System.out.println("#### result1");
-			result1.stream().forEach(n -> System.out.println((String)n.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY))));
-
-			System.out.println("#### result2");
-			result2.stream().forEach(n -> System.out.println((String)n.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY))));
-
-			System.out.println("#### result3");
-			result3.stream().forEach(n -> System.out.println((String)n.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY))));
-
-			System.out.println("#### result4");
-			result4.stream().forEach(n -> System.out.println((String)n.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY))));
-
 			assertEquals("Advanced find() does not filter correctly", 2, result1.size());
 			assertEquals("Advanced find() does not filter correctly", result1.get(0).getUuid(), group2);
 			assertEquals("Advanced find() does not filter correctly", result1.get(1).getUuid(), group1);
@@ -4123,9 +4110,26 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ $.find('Test', { name: $.predicate.endsWith('21') }); }}", "testFindNewSyntax")).size());
 
 			//case insensitive
-			System.out.println("#################################");
-			assertEquals("Advanced find() returns wrong result", 10, ((List)Scripting.evaluate(ctx, null, "${{ $.search('Test', { name: $.predicate.startsWith('TEST00') }); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ $.search('Test', { name: $.predicate.endsWith('21') }); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced search() returns wrong result", 10, ((List)Scripting.evaluate(ctx, null, "${{ $.search('Test', { name: $.predicate.startsWith('TEST00') }); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced search() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ $.search('Test', { name: $.predicate.endsWith('21') }); }}", "testFindNewSyntax")).size());
+
+			Settings.CypherDebugLogging.setValue(true);
+			assertEquals("Advanced search() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ $.search('Project', { name: $.predicate.contains('2') }); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced search() returns wrong result", 3, ((List)Scripting.evaluate(ctx, null, "${{ $.search('Project', $.predicate.contains('name2', 'e')); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced search() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ $.search('Project', { name: 'group1', name1: 'structr', name2: 'test' }); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced search() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ $.search('Project', $.predicate.empty('name')); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced search() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ $.search('Project', $.predicate.or($.predicate.empty('name'), $.predicate.equals('name', 'GROUP2'))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced search() returns wrong result", 3, ((List)Scripting.evaluate(ctx, null, "${{ $.search('Project', $.predicate.contains('name2', 'e'), $.predicate.contains('name2', 'E'), $.predicate.contains('name2', 'E')); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced search() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ $.search('Project', $.predicate.and($.predicate.equals('age', $.predicate.range(0, 35)))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced search() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ $.search('Project', $.predicate.equals('age', $.predicate.range(0, 35)), $.predicate.equals('name', 'grOUP2')); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced search() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ $.search('Project', $.predicate.and($.predicate.equals('age', $.predicate.range(0, 35)), $.predicate.equals('name', 'groUP2'))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced search() returns wrong result", 3, ((List)Scripting.evaluate(ctx, null, "${{ $.search('Project', $.predicate.and($.predicate.contains('name2', 'E'))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced search() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ $.search('Project', $.predicate.and($.predicate.equals('name', 'GROUP1'))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced search() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ $.search('Project', $.predicate.and($.predicate.equals('name', 'GROUP1'), $.predicate.equals('name1', 'stRUCTR'))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced search() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ $.search('Project', $.predicate.and($.predicate.equals('name1', 'sTRUCTR'), $.predicate.equals('name2', 'TEST'))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced search() returns wrong result", 0, ((List)Scripting.evaluate(ctx, null, "${{ $.search('Project', $.predicate.and($.predicate.equals('name1', 'sTRUCTR'), $.predicate.equals('name2', 'sTRUCTR'))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced search() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ $.search('Project', $.predicate.or($.predicate.equals('age', 22), $.predicate.equals('age', 44))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced search() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ $.search('Project', $.predicate.and($.predicate.equals('name3', 'otHER'), $.predicate.or($.predicate.equals('age', 22), $.predicate.equals('age', 44)))); }}", "testFindNewSyntax")).size());
 
 			final List<NodeInterface> page1 = (List)Scripting.evaluate(ctx, null, "${{ $.find('Test', $.predicate.sort('name'), $.predicate.page(1, 10)); }}", "testFindNewSyntax");
 			final List<NodeInterface> page2 = (List)Scripting.evaluate(ctx, null, "${{ $.find('Test', $.predicate.sort('name'), $.predicate.page(1, 5)); }}", "testFindNewSyntax");
