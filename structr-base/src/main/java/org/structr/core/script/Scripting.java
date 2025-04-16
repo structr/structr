@@ -295,7 +295,7 @@ public class Scripting {
 			Source source = null;
 			String code;
 
-			if (Settings.WrapJSInMainFunction.getValue(false) || snippet.embed()) {
+			if ("js".equals(engineName) && (Settings.WrapJSInMainFunction.getValue(false) || snippet.embed())) {
 				code = JSFunctionTranspiler.transpileSource(snippet);
 			} else {
 				code = snippet.getSource();
