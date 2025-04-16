@@ -195,7 +195,7 @@ public class FunctionPropertyTest extends StructrRestTestBase {
 			final JsonSchema schema = StructrSchema.createEmptySchema();
 			final JsonType type     = schema.addType("TestType");
 
-			type.addFunctionProperty("test").setReadFunction("{ 'value1'; }").setTypeHint("String");
+			type.addFunctionProperty("test").setReadFunction("{ return 'value1'; }").setTypeHint("String");
 
 			type.addViewProperty("public", "test");
 
@@ -253,7 +253,7 @@ public class FunctionPropertyTest extends StructrRestTestBase {
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			.body("{ readFunction: '{ \"changed\"; }' }")
+			.body("{ readFunction: '{ return \"changed\"; }' }")
 			.expect()
 			.statusCode(200)
 			.when()
