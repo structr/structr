@@ -192,6 +192,7 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 	Template getClosestTemplate(final Page page);
 
 	void updateFromNode(final DOMNode otherNode) throws FrameworkException;
+	void updateHasSharedComponentFlag() throws FrameworkException;
 	void setVisibility(final boolean publicUsers, final boolean authenticatedUsers) throws FrameworkException;
 	void renderNodeList(final SecurityContext securityContext, final RenderContext renderContext, final int depth, final String dataKey) throws FrameworkException;
 	void handleNewChild(final DOMNode newChild) throws FrameworkException;
