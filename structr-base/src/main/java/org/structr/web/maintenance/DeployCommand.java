@@ -58,8 +58,8 @@ import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.AbstractMapComparator;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.RenderContext;
-import org.structr.web.entity.*;
 import org.structr.web.entity.File;
+import org.structr.web.entity.*;
 import org.structr.web.entity.dom.*;
 import org.structr.web.entity.event.ActionMapping;
 import org.structr.web.entity.event.ParameterMapping;
@@ -2505,7 +2505,19 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			logger.info("Importing page paths");
 			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing page paths");
 
-			importPagePaths(readConfigList(pathsConfFile));
+			try (final Tx tx = app.tx()) {
+
+				tx.disableChangelog();
+
+				// remove existing paths
+				for (final NodeInterface path : app.nodeQuery(StructrTraits.PAGE_PATH).getResultStream()) {
+					app.delete(path);
+				}
+
+				importPagePaths(readConfigList(pathsConfFile));
+
+				tx.success();
+			}
 		}
 	}
 
