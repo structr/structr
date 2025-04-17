@@ -48,7 +48,7 @@ public class UuidResource extends ExactMatchEndpoint {
 
 	public UuidResource() {
 
-		super(RESTParameter.forPattern("uuid", Settings.getValidUUIDRegexStringForURLParts(), false));
+		super(RESTParameter.forPattern("uuid", Settings.getValidUUIDRegexStringForURLParts(), true, "_id"));
 	}
 
 	@Override

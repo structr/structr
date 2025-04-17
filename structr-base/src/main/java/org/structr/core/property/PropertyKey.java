@@ -178,7 +178,7 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 
 	PropertyConverter<T, ?> databaseConverter(final SecurityContext securityContext);
 	PropertyConverter<T, ?> databaseConverter(final SecurityContext securityContext, final GraphObject entity);
-	PropertyConverter<?, T> inputConverter(final SecurityContext securityContext);
+	PropertyConverter<?, T> inputConverter(final SecurityContext securityContext, final boolean fromString);
 	Object fixDatabaseProperty(final Object value);
 
 	boolean requiresSynchronization();

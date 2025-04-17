@@ -193,7 +193,7 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 					if (traits.hasKey(keyName)) {
 
 						final PropertyKey key = traits.key(keyName);
-						final PropertyConverter inputConverter = key.inputConverter(securityContext);
+						final PropertyConverter inputConverter = key.inputConverter(securityContext, false);
 
 						// check number of parameters dynamically
 						if (c + 1 >= sources.length) {
@@ -262,7 +262,7 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 
 						Object convertedValue = value;
 
-						final PropertyConverter inputConverter = key.inputConverter(securityContext);
+						final PropertyConverter inputConverter = key.inputConverter(securityContext, false);
 						if (inputConverter != null) {
 
 							convertedValue = inputConverter.convert(value);

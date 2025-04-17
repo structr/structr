@@ -104,7 +104,7 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 	}
 
 	@Override
-	public PropertyConverter<?, Iterable<T>> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, Iterable<T>> inputConverter(SecurityContext securityContext, boolean fromString) {
 		return null;
 	}
 
@@ -173,7 +173,7 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 
 		if (propertyKey != null) {
 
-			PropertyConverter inputConverter = propertyKey.inputConverter(securityContext);
+			PropertyConverter inputConverter = propertyKey.inputConverter(securityContext, false);
 			if (inputConverter != null) {
 
 				for (String part : requestParameter.split("[,;]+")) {

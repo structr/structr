@@ -49,7 +49,7 @@ public class GetProperty extends AbstractCommand {
 		if (obj != null) {
 
 			final PropertyKey propertyKey     = obj.getTraits().hasKey(key) ? obj.getTraits().key(key) : new GenericProperty(key);
-			final PropertyConverter converter = propertyKey.inputConverter(getWebSocket().getSecurityContext());
+			final PropertyConverter converter = propertyKey.inputConverter(getWebSocket().getSecurityContext(), false);
 
 			Object value = obj.getProperty(propertyKey);
 			if (converter != null) {

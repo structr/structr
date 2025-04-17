@@ -109,7 +109,7 @@ public class EndNodes extends Property<Iterable<NodeInterface>> implements Relat
 	}
 
 	@Override
-	public PropertyConverter<?, Iterable<NodeInterface>> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, Iterable<NodeInterface>> inputConverter(SecurityContext securityContext, boolean fromString) {
 		return getNotion().getCollectionConverter(securityContext);
 	}
 
@@ -219,7 +219,7 @@ public class EndNodes extends Property<Iterable<NodeInterface>> implements Relat
 	@Override
 	public Iterable<NodeInterface> convertSearchValue(final SecurityContext securityContext, final String requestParameter) throws FrameworkException {
 
-		final PropertyConverter inputConverter = inputConverter(securityContext);
+		final PropertyConverter inputConverter = inputConverter(securityContext, false);
 		if (inputConverter != null) {
 
 			final List<String> sources = new LinkedList<>();

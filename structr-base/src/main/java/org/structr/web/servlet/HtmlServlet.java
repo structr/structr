@@ -1778,7 +1778,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 						try {
 
-							final PropertyConverter converter = key.inputConverter(SecurityContext.getSuperUserInstance());
+							final PropertyConverter converter = key.inputConverter(SecurityContext.getSuperUserInstance(), false);
 							if (converter != null) {
 
 								// try converted value, fail silenty

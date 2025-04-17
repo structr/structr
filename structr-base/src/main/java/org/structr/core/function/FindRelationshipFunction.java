@@ -125,7 +125,7 @@ public class FindRelationshipFunction extends CoreFunction {
 
 					if (key != null) {
 
-						final PropertyConverter inputConverter = key.inputConverter(securityContext);
+						final PropertyConverter inputConverter = key.inputConverter(securityContext, false);
 						Object value = sources[c + 1];
 
 						if (inputConverter != null) {

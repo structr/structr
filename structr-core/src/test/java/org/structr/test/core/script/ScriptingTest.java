@@ -54,18 +54,7 @@ import org.structr.core.script.ScriptTestHelper;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
-import org.structr.core.traits.definitions.AbstractSchemaNodeTraitDefinition;
-import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
-import org.structr.core.traits.definitions.GroupTraitDefinition;
-import org.structr.core.traits.definitions.MailTemplateTraitDefinition;
-import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
-import org.structr.core.traits.definitions.PrincipalTraitDefinition;
-import org.structr.core.traits.definitions.RelationshipInterfaceTraitDefinition;
-import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
-import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
-import org.structr.core.traits.definitions.SchemaRelationshipNodeTraitDefinition;
-import org.structr.schema.ConfigurationProvider;
+import org.structr.core.traits.definitions.*;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
 import org.structr.schema.action.EvaluationHints;
@@ -4113,7 +4102,6 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Advanced search() returns wrong result", 10, ((List)Scripting.evaluate(ctx, null, "${{ $.search('Test', { name: $.predicate.startsWith('TEST00') }); }}", "testFindNewSyntax")).size());
 			assertEquals("Advanced search() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ $.search('Test', { name: $.predicate.endsWith('21') }); }}", "testFindNewSyntax")).size());
 
-			Settings.CypherDebugLogging.setValue(true);
 			assertEquals("Advanced search() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ $.search('Project', { name: $.predicate.contains('2') }); }}", "testFindNewSyntax")).size());
 			assertEquals("Advanced search() returns wrong result", 3, ((List)Scripting.evaluate(ctx, null, "${{ $.search('Project', $.predicate.contains('name2', 'e')); }}", "testFindNewSyntax")).size());
 			assertEquals("Advanced search() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ $.search('Project', { name: 'group1', name1: 'structr', name2: 'test' }); }}", "testFindNewSyntax")).size());
@@ -4425,8 +4413,6 @@ public class ScriptingTest extends StructrTest {
 
 			final String errorMessage = "all test nodes should be returned - no cypher exception should be triggered by empty clauses!";
 
-			Settings.CypherDebugLogging.setValue(true);
-
 			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ $.find('TestType').length; }}", ""));
 
 			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ $.find('TestType', $.predicate.and()).length; }}", ""));
@@ -4572,8 +4558,6 @@ public class ScriptingTest extends StructrTest {
 					");" +
 					"}}";
 
-			Settings.CypherDebugLogging.setValue(true);
-
 			// ($.not and $.equals)
 			assertEquals("Using advanced find() to find all **other** tasks in a project using not and equals predicate should work", 4, ((List)Scripting.evaluate(ctx, null, script, "testFindNewSyntax")).size());
 
@@ -4583,10 +4567,6 @@ public class ScriptingTest extends StructrTest {
 
 			t.printStackTrace();
 			fail("Unexpected exception");
-
-		} finally {
-
-			Settings.CypherDebugLogging.setValue(false);
 		}
 
 	}
@@ -6947,6 +6927,215 @@ public class ScriptingTest extends StructrTest {
 
 			t.printStackTrace();
 			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void testSetPrivileged() {
+
+		NodeInterface user1 = null;
+		NodeInterface user2 = null;
+
+		// create test user
+		try (final Tx tx = app.tx()) {
+
+			user1 = app.create(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "user1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.PASSWORD_PROPERTY), "test")
+			);
+
+			user2 = app.create(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.PRINCIPAL).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "user1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.PASSWORD_PROPERTY), "test")
+			);
+
+			final NodeInterface testOne   = app.create("TestOne", "test one");
+			final NodeInterface testThree = app.create("TestThree", "test three");
+
+			// all nodes belong to user1
+			testOne.as(AccessControllable.class).setOwner(user1.as(Principal.class));
+			testThree.as(AccessControllable.class).setOwner(user1.as(Principal.class));
+
+			// all nodes are visible to authenticated users (so that user2 can fetch them)
+			testOne.setVisibility(false, true);
+			testThree.setVisibility(false, true);
+
+			tx.success();
+
+		} catch(FrameworkException fex) {
+
+			logger.warn("", fex);
+			fail("Unexpected exception.");
+		}
+
+		final SecurityContext user2Context = SecurityContext.getInstance(user2.as(User.class), AccessMode.Backend);
+		final App user2App                 = StructrApp.getInstance(user2Context);
+
+		try (final Tx tx = user2App.tx()) {
+
+			final NodeInterface one   = app.nodeQuery("TestOne").getFirst();
+			final NodeInterface three = app.nodeQuery("TestThree").getFirst();
+
+			// try to change the name (without set_privileged)
+			try {
+				Scripting.evaluate(new ActionContext(user2Context), one, "${set(this, 'name', 'changed!')}", "test1");
+				fail("Setting the name of a node without permissions should fail.");
+
+			} catch (FrameworkException fex) {
+			}
+
+			assertEquals("Name should not have changed1", "test one", one.getName());
+
+			// try to change the name (with set_privileged)
+			try {
+				Scripting.evaluate(new ActionContext(user2Context), one, "${set_privileged(this, 'name', 'changed!')}", "test1");
+
+			} catch (FrameworkException fex) {
+				fail("Setting the name of a node with set_privileged should succeed.");
+			}
+
+			assertEquals("Name should now be changed!", "changed!", one.getName());
+
+
+			// try to associate a related node (without permissions)
+			try {
+				Scripting.evaluate(new ActionContext(user2Context), one, "${set(this, 'testThree', first(find('TestThree')))}", "test1");
+				fail("Associating a related node without permissions should fail.");
+
+			} catch (FrameworkException fex) {
+			}
+
+			assertEquals("TestTwo should not be assigned", (NodeInterface)null, one.getProperty(Traits.of("TestOne").key("testTwo")));
+
+			// try to associate a related node (with set_privileged)
+			try {
+				Scripting.evaluate(new ActionContext(user2Context), one, "${set_privileged(this, 'testThree', first(find('TestThree')))}", "test1");
+
+			} catch (FrameworkException fex) {
+				fail("Associating a related node with set_privileged should succeed.");
+			}
+
+			assertEquals("TestTwo should be assigned", three, one.getProperty(Traits.of("TestOne").key("testThree")));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void testFindPredicateOperations() {
+
+		String expectedUuid = null;
+
+		// create schema
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
+			final JsonObjectType task = schema.addType("Task");
+			final JsonObjectType user = schema.addType("User");
+
+			task.addEnumProperty("status").setFormat("open, inprogress, done");
+
+			task.relate(user, "ASSIGNEE", Cardinality.ManyToOne, "tasks", "assignee");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface task1 = app.create("Task", "Task 1");
+			final NodeInterface task2 = app.create("Task", "Task 2");
+			final NodeInterface task3 = app.create("Task", "Task 3");
+
+			expectedUuid = task1.getUuid();
+
+			final NodeInterface user1 = app.create("User", "User 1");
+			final NodeInterface user2 = app.create("User", "User 2");
+			final NodeInterface user3 = app.create("User", "User 3");
+
+			final PropertyKey<NodeInterface> assigneeProperty = Traits.of("Task").key("assignee");
+			final PropertyKey<String> statusProperty          = Traits.of("Task").key("status");
+
+			task1.setProperty(assigneeProperty, user1);
+			task2.setProperty(assigneeProperty, user2);
+			task3.setProperty(assigneeProperty, user3);
+
+			task1.setProperty(statusProperty, "open");
+			task2.setProperty(statusProperty, "inprogress");
+			task3.setProperty(statusProperty, "done");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext actionContext = new ActionContext(securityContext);
+
+			final List<NodeInterface> result1 = (List) Scripting.evaluate(actionContext, null, "${{ $.find('Task', $.predicate.and($.predicate.equals('assignee', $.find('User', { name: 'User 1' })[0]), $.predicate.not($.predicate.equals('status', 'done')))); }}", "test1");
+
+			assertEquals("Invalid result for and-not-query.", expectedUuid, result1.get(0).getUuid());
+
+			final List<NodeInterface> result2 = (List) Scripting.evaluate(actionContext, null, "${{ $.find('Task', $.predicate.and($.predicate.equals('assignee', $.find('User', { name: 'User 1' })[0]), $.predicate.not($.predicate.equals('status', 'open')))); }}", "test2");
+
+			assertEquals("Invalid result for and-and-query.", 0, result2.size());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testFindPredicateOperationsWithRange() {
+
+		// create schema
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
+			final JsonObjectType proj = schema.addType("Project");
+			final JsonObjectType task = schema.addType("Task");
+
+			task.addDateProperty("beginDate");
+			task.addDateProperty("endDate");
+
+			proj.relate(task, "TASK", Cardinality.OneToMany, "project", "tasks");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext actionContext = new ActionContext(securityContext);
+
+			final List<NodeInterface> result1 = (List) ScriptTestHelper.testExternalScript(actionContext, ScriptingTest.class.getResourceAsStream("/test/scripting/testFindQueryWithRanges.js"));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
 		}
 	}
 

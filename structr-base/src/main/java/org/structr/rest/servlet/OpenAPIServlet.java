@@ -493,7 +493,7 @@ public class OpenAPIServlet extends AbstractDataServlet {
 
 		parameters.put("page",               new OpenAPIQueryParameter("_page",     "Page number of the results to fetch.", Map.of("type", "integer", "default", 1)));
 		parameters.put("pageSize",           new OpenAPIQueryParameter("_pageSize", "Page size of result pages.",           Map.of("type", "integer")));
-		parameters.put("inexactSearch",      new OpenAPIQueryParameter("_loose",    "Use inexact search",                   Map.of("type", "boolean", "default", false)));
+		parameters.put("inexactSearch",      new OpenAPIQueryParameter("_inexact",  "Use inexact search",                   Map.of("type", "boolean", "default", false)));
 		parameters.put("outputNestingDepth", new OpenAPIQueryParameter("_outputNestingDepth",     "Depth in the graph of the JSON output rendering. Does not work with the all view.", Map.of("type", "integer", "default", 3)));
 
 		return parameters;

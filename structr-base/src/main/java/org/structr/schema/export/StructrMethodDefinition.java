@@ -684,11 +684,13 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 
 						if (isStatic()) {
 
-							operations.put(createPath(verb, true), Map.of(verb, new OpenAPIStaticMethodOperation(this, parentType, viewNames)));
+							// send empty viewNames set so the method spec does not include the {view} parameter
+							operations.put(createPath(verb, true, false), Map.of(verb, new OpenAPIStaticMethodOperation(this, parentType, Set.of())));
 
 						} else {
 
-							operations.put(createPath(verb, false), Map.of(verb, new OpenAPIMethodOperation(this, parentType, viewNames)));
+							// send empty viewNames set so the method spec does not include the {view} parameter
+							operations.put(createPath(verb, false, false), Map.of(verb, new OpenAPIMethodOperation(this, parentType, Set.of())));
 
 						}
 
@@ -705,7 +707,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		return operations;
 	}
 
-	public String createPath(final String verb, final boolean isStatic) {
+	public String createPath(final String verb, final boolean isStatic, final boolean includeView) {
 
 		final StringBuilder pathBuilder = new StringBuilder("/");
 
@@ -729,7 +731,9 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 			}
 		}
 
-		pathBuilder.append("/{view}");
+		if (includeView) {
+			pathBuilder.append("/{view}");
+		}
 
 		return pathBuilder.toString();
 	}
@@ -839,7 +843,9 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 			}
 		}
 
-		list.add(new OpenAPIPathParameter("view", "Changes the response schema to the selected views schema", Map.of("type", "string", "enum", viewNames), false));
+		if (!viewNames.isEmpty()) {
+			list.add(new OpenAPIPathParameter("view", "Changes the response schema to the selected views schema", Map.of("type", "string", "enum", viewNames), false));
+		}
 
 		return list;
 	}

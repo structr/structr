@@ -183,7 +183,7 @@ public class PolyglotProxyArray implements ProxyArray {
 
 			try {
 
-				node.setProperty(propKey, propKey.inputConverter(actionContext.getSecurityContext()).convert(list));
+				node.setProperty(propKey, propKey.inputConverter(actionContext.getSecurityContext(), false).convert(list));
 
 			} catch (FrameworkException ex) {
 

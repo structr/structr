@@ -593,7 +593,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	@Override
 	public T convertSearchValue(final SecurityContext securityContext, final String requestParameter) throws FrameworkException {
 
-		PropertyConverter inputConverter = inputConverter(securityContext);
+		PropertyConverter inputConverter = inputConverter(securityContext, true);
 		Object convertedSearchValue      = requestParameter;
 
 		if (inputConverter != null) {
@@ -652,7 +652,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 					final String rangeStart = matcher.group(1);
 					final String rangeEnd   = matcher.group(2);
 
-					final PropertyConverter inputConverter = inputConverter(securityContext);
+					final PropertyConverter inputConverter = inputConverter(securityContext, false);
 					Object rangeStartConverted = (rangeStart.equals("")) ? null : rangeStart;
 					Object rangeEndConverted   = (rangeEnd.equals(""))   ? null : rangeEnd;
 

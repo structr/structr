@@ -78,7 +78,7 @@ public class NodeRelationshipProperty<T extends AbstractRelationship> extends Ab
 	}
 
 	@Override
-	public PropertyConverter<?, Iterable<T>> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, Iterable<T>> inputConverter(SecurityContext securityContext, boolean fromString) {
 
 		if (notion != null) {
 			return notion.getCollectionConverter(securityContext);

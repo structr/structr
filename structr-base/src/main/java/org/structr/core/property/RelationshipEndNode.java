@@ -76,7 +76,7 @@ public class RelationshipEndNode<T extends NodeInterface> extends AbstractReadOn
 	}
 
 	@Override
-	public PropertyConverter<?, T> inputConverter(final SecurityContext securityContext) {
+	public PropertyConverter<?, T> inputConverter(final SecurityContext securityContext, boolean fromString) {
 
 		if (notion != null) {
 			return notion.getEntityConverter(securityContext);

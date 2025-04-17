@@ -71,7 +71,7 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> implements N
 	}
 
 	@Override
-	public PropertyConverter<?, Integer> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, Integer> inputConverter(SecurityContext securityContext, boolean fromString) {
 		return new InputConverter(securityContext);
 	}
 

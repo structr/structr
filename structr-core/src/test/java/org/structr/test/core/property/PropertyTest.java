@@ -465,7 +465,7 @@ public class PropertyTest extends StructrTest {
 	public void testInputConverterOnCollectionProperty() {
 
 		PropertyKey<Iterable<NodeInterface>> instance = Traits.of("TestSix").key("manyToManyTestOnes");
-		PropertyConverter result = instance.inputConverter(securityContext);
+		PropertyConverter result = instance.inputConverter(securityContext, false);
 
 		assertTrue(result != null);
 	}
@@ -1135,7 +1135,7 @@ public class PropertyTest extends StructrTest {
 	@Test
 	public void testInputConverterOnEntityProperty() {
 
-		PropertyConverter result = Traits.of("TestSix").key("oneToOneTestThree").inputConverter(securityContext);
+		PropertyConverter result = Traits.of("TestSix").key("oneToOneTestThree").inputConverter(securityContext, false);
 
 		assertTrue(result != null);
 	}

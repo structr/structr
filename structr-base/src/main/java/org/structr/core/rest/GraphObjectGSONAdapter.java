@@ -214,7 +214,7 @@ public class GraphObjectGSONAdapter {
 		public JsonElement serializeProperty(PropertyKey key, Object value, String localPropertyView, int depth) {
 
 			try {
-				PropertyConverter converter = key.inputConverter(securityContext);
+				PropertyConverter converter = key.inputConverter(securityContext, false);
 
 				if (converter != null) {
 

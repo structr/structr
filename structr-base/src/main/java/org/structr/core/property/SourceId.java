@@ -131,7 +131,7 @@ public class SourceId extends Property<String> {
 	}
 
 	@Override
-	public PropertyConverter<?, String> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, String> inputConverter(SecurityContext securityContext, boolean fromString) {
 		return null;
 	}
 

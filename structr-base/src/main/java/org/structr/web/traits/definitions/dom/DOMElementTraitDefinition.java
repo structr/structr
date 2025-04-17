@@ -2025,8 +2025,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 			node.setProperty(traits.key(RELOAD_SOURCES_PROPERTY), actualReloadSources);
 			node.setProperty(traits.key(RELOAD_TARGETS_PROPERTY), actualReloadTargets);
 
-			// update shared component sync flag
-			node.setProperty(traits.key(DOMNodeTraitDefinition.HAS_SHARED_COMPONENT_PROPERTY), domElement.getSharedComponent() != null);
+			domElement.updateHasSharedComponentFlag();
 
 		} catch (Throwable t) {
 

@@ -75,7 +75,7 @@ public class GetOrNullFunction extends CoreFunction {
 
 				if (key != null) {
 
-					final PropertyConverter inputConverter = key.inputConverter(securityContext);
+					final PropertyConverter inputConverter = key.inputConverter(securityContext, false);
 					Object value = dataObject.getProperty(key);
 
 					if (inputConverter != null) {

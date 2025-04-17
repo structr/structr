@@ -137,7 +137,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 		try {
 
-			if (request.getParts().size() <= 0) {
+			if (!request.getContentType().startsWith("multipart/form-data") || request.getParts().size() <= 0) {
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 				response.getOutputStream().write("ERROR (400): Request does not contain multipart content.\n".getBytes("UTF-8"));
 				return;

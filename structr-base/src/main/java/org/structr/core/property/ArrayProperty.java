@@ -128,14 +128,17 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 	}
 
 	@Override
-	public PropertyConverter<?, T[]> inputConverter(SecurityContext securityContext) {
-		return new ArrayInputConverter(securityContext);
+	public PropertyConverter<?, T[]> inputConverter(SecurityContext securityContext, boolean fromString) {
+		return new ArrayInputConverter(securityContext, fromString);
 	}
 
 	private class ArrayInputConverter extends PropertyConverter<Object, T[]> {
 
-		public ArrayInputConverter(SecurityContext securityContext) {
+		private final boolean fromString;
+
+		public ArrayInputConverter(final SecurityContext securityContext, final boolean fromString) {
 			super(securityContext, null);
+			this.fromString = fromString;
 		}
 
 		@Override
@@ -158,24 +161,31 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 				return convert(Arrays.asList((T[])source));
 			}
 
-			if (source instanceof String) {
+			if (!fromString) {
 
-				final String s = (String)source;
-				if (s.contains(",")) {
+				// we only accept lists and arrays from now on
+				throw new ClassCastException();
 
-					return ArrayProperty.this.convert(Arrays.asList(s.split(",")));
+			} else {
+
+				if (source instanceof String s) {
+
+					if (s.contains(",")) {
+
+						return ArrayProperty.this.convert(Arrays.asList(s.split(",")));
+					}
 				}
+
+				// create array of componentTypes
+				final T[] result = (T[])Array.newInstance(componentType, 1);
+				final T value    = ArrayProperty.this.fromString(source.toString());
+
+				if (value != null) {
+					result[0] = value;
+				}
+
+				return result;
 			}
-
-			// create array of componentTypes
-			final T[] result = (T[])Array.newInstance(componentType, 1);
-			final T value    = ArrayProperty.this.fromString(source.toString());
-
-			if (value != null) {
-				result[0] = value;
-			}
-
-			return result;
 		}
 
 	}

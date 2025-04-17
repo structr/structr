@@ -80,19 +80,19 @@ public class FlowConstantTraitDefinition extends AbstractNodeTraitDefinition {
 								switch (cType) {
 
 									case "String":
-										converter = new StringProperty("").inputConverter(securityContext);
+										converter = new StringProperty("").inputConverter(securityContext, false);
 										break;
 									case "Boolean":
-										converter = new BooleanProperty("").inputConverter(securityContext);
+										converter = new BooleanProperty("").inputConverter(securityContext, false);
 										break;
 									case "Integer":
-										converter = new IntProperty("").inputConverter(securityContext);
+										converter = new IntProperty("").inputConverter(securityContext, false);
 										break;
 									case "Double":
-										converter = new DoubleProperty("").inputConverter(securityContext);
+										converter = new DoubleProperty("").inputConverter(securityContext, false);
 										break;
 									default:
-										converter = new StringProperty("").inputConverter(securityContext);
+										converter = new StringProperty("").inputConverter(securityContext, false);
 								}
 
 							}

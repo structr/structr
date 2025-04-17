@@ -47,7 +47,7 @@ public class RangePredicate implements SearchFunctionPredicate {
 		Object effectiveRangeStart = rangeStart;
 
 		if (key != null && rangeStart != null && !key.valueType().isAssignableFrom(rangeStart.getClass())) {
-			Object converted = key.inputConverter(securityContext).convert(rangeStart);
+			Object converted = key.inputConverter(securityContext, false).convert(rangeStart);
 			if (converted != null) {
 				effectiveRangeStart = converted;
 			};
@@ -56,7 +56,7 @@ public class RangePredicate implements SearchFunctionPredicate {
 		Object effectiveRangeEnd = rangeEnd;
 
 		if (key != null && rangeEnd != null && !key.valueType().isAssignableFrom(rangeEnd.getClass())) {
-			Object converted = key.inputConverter(securityContext).convert(rangeEnd);
+			Object converted = key.inputConverter(securityContext, false).convert(rangeEnd);
 			if (converted != null) {
 				effectiveRangeEnd = converted;
 			}
