@@ -59,6 +59,10 @@ public class Snippet {
 		return this.embed;
 	}
 
+	public void setEmbed(final boolean embed) {
+		this.embed = embed;
+	}
+
 	public void setStartRow(final int startRow) {
 		this.startRow = startRow;
 	}

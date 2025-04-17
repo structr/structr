@@ -293,14 +293,22 @@ public class Scripting {
 		try {
 
 			Source source = null;
-			String code;
+			String code = snippet.getSource();
 
-			if ("js".equals(engineName) && (Settings.WrapJSInMainFunction.getValue(false) || snippet.embed())) {
-				code = JSFunctionTranspiler.transpileSource(snippet);
-			} else {
-				code = snippet.getSource();
+			if ("js".equals(engineName)) {
+
+				final boolean wrapJSInMainFunction = Settings.WrapJSInMainFunction.getValue(false);
+
+				if(wrapJSInMainFunction || snippet.embed()) {
+
+					if (!snippet.embed()) {
+
+						snippet.setEmbed(true);
+					}
+
+					code = JSFunctionTranspiler.transpileSource(snippet);
+				}
 			}
-
 			source = Source.newBuilder(engineName, code, snippet.getName()).mimeType(snippet.getMimeType()).build();
 
 			try {
