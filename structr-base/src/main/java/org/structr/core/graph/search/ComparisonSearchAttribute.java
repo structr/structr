@@ -49,7 +49,7 @@ public class ComparisonSearchAttribute<T> extends SearchAttribute<T> implements 
 
 			if (!(searchKey instanceof FunctionProperty)) {
 
-				PropertyConverter converter = searchKey.inputConverter(SecurityContext.getSuperUserInstance());
+				PropertyConverter converter = searchKey.inputConverter(SecurityContext.getSuperUserInstance(), false);
 				if (converter != null) {
 
 					this.searchValue = (T) converter.convert(value);

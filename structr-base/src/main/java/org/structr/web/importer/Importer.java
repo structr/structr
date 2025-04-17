@@ -22,8 +22,8 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.WordUtils;
 import org.jsoup.Jsoup;
-import org.jsoup.nodes.*;
 import org.jsoup.nodes.Comment;
+import org.jsoup.nodes.*;
 import org.jsoup.parser.Parser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -883,7 +883,7 @@ public class Importer {
 									if (newNodeType.hasKey(camelCaseKey)) {
 
 										final PropertyKey actualKey       = newNodeType.key(camelCaseKey);
-										final PropertyConverter converter = actualKey.inputConverter(securityContext);
+										final PropertyConverter converter = actualKey.inputConverter(securityContext, false);
 
 										if (converter != null) {
 
@@ -915,11 +915,11 @@ public class Importer {
 								if (newNodeType.hasKey(key)) {
 
 									final PropertyKey propertyKey = newNodeType.key(key);
-									final PropertyConverter inputConverter = propertyKey.inputConverter(securityContext);
+									final PropertyConverter inputConverter = propertyKey.inputConverter(securityContext, false);
 
 									if (value != null && inputConverter != null) {
 
-										newNodeProperties.put(propertyKey, propertyKey.inputConverter(securityContext).convert(value));
+										newNodeProperties.put(propertyKey, propertyKey.inputConverter(securityContext, false).convert(value));
 
 									} else {
 

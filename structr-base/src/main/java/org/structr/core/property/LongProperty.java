@@ -75,7 +75,7 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> implements Num
 	}
 
 	@Override
-	public PropertyConverter<?, Long> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, Long> inputConverter(SecurityContext securityContext, boolean fromString) {
 		return new InputConverter(securityContext);
 	}
 

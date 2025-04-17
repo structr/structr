@@ -109,7 +109,7 @@ public class ElementCounter extends AbstractReadOnlyProperty<Integer> {
 	}
 
 	@Override
-	public PropertyConverter<?, Integer> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, Integer> inputConverter(SecurityContext securityContext, boolean fromString) {
 		return new InputConverter(securityContext);
 	}
 

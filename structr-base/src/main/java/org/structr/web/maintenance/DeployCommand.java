@@ -1520,13 +1520,13 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			if (security != null) {
 
-				final String allowedActions     = StringUtils.join(security.getPermissions(), ",");
-				final Map<String, Object> grant = new TreeMap<>();
+				final Set<String> allowedActions = security.getPermissions();
+				final Map<String, Object> grant  = new TreeMap<>();
 
 				grant.put(NodeInterfaceTraitDefinition.NAME_PROPERTY, security.getRelationship().getSourceNode().getName());
 				grant.put(SecurityRelationshipDefinition.ALLOWED_PROPERTY, allowedActions);
 
-				if (allowedActions.length() > 0) {
+				if (!allowedActions.isEmpty()) {
 					grantees.add(grant);
 				}
 			}
@@ -1590,6 +1590,16 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				} else {
 
 					cleanedGrantees.add(grantee);
+				}
+
+				// convert allowed string from old format (must be an array)
+				if (grantee.containsKey("allowed")) {
+
+					final Object value = grantee.get("allowed");
+					if (value instanceof String s) {
+
+						grantee.put("allowed", StringUtils.split(s, ","));
+					}
 				}
 			}
 
@@ -2562,7 +2572,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				for (final PropertyKey propertyKey : properties.keySet()) {
 
-					final PropertyConverter inputConverter = propertyKey.inputConverter(securityContext);
+					final PropertyConverter inputConverter = propertyKey.inputConverter(securityContext, true);
 
 					if (inputConverter != null) {
 

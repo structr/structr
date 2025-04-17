@@ -78,8 +78,8 @@ public class RelatedNodeProperty<T> extends AbstractPrimitiveProperty<T> {
 	}
 
 	@Override
-	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext) {
-		return targetKey.inputConverter(securityContext);
+	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext, boolean fromString) {
+		return targetKey.inputConverter(securityContext, false);
 	}
 
 	@Override

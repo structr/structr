@@ -87,7 +87,7 @@ public class ByteArrayProperty extends AbstractPrimitiveProperty<Byte[]> {
 	}
 
 	@Override
-	public PropertyConverter<?, Byte[]> inputConverter(final SecurityContext securityContext) {
+	public PropertyConverter<?, Byte[]> inputConverter(final SecurityContext securityContext, boolean fromString) {
 		return new ArrayInputConverter(securityContext);
 	}
 

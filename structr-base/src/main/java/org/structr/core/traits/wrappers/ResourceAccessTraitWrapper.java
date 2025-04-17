@@ -90,6 +90,11 @@ public class ResourceAccessTraitWrapper extends AbstractNodeTraitWrapper impleme
 		return cachedResourceSignature;
 	}
 
+	@Override
+	public void setResourceSignature(final String signature) throws FrameworkException {
+		wrappedObject.setProperty(traits.key(ResourceAccessTraitDefinition.SIGNATURE_PROPERTY), signature);
+	}
+
 	// ----- public static methods -----
 	public static void clearCache() {
 		permissionsCache.clear();

@@ -94,6 +94,8 @@ public class Methods {
 						cacheEntry.method = new ScriptMethod(method.as(SchemaMethod.class));
 					}
 
+					tx.success();
+
 				} catch (FrameworkException fex) {
 					throw new RuntimeException(fex);
 				}

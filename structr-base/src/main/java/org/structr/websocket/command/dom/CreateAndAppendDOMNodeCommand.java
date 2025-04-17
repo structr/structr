@@ -208,7 +208,7 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 
 					Object convertedValue = val;
 
-					PropertyConverter inputConverter = propertyKey.inputConverter(SecurityContext.getSuperUserInstance());
+					PropertyConverter inputConverter = propertyKey.inputConverter(SecurityContext.getSuperUserInstance(), false);
 					if (inputConverter != null) {
 
 						convertedValue = inputConverter.convert(val);

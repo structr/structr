@@ -79,23 +79,26 @@ public class BooleanArrayProperty extends ArrayProperty<Boolean> {
 	}
 
 	@Override
-	public PropertyConverter<?, Boolean[]> inputConverter(final SecurityContext securityContext) {
-		return new ArrayInputConverter(securityContext);
+	public PropertyConverter<?, Boolean[]> inputConverter(final SecurityContext securityContext, boolean fromString) {
+		return new ArrayInputConverter(securityContext, fromString);
 	}
 
 	private class ArrayInputConverter extends PropertyConverter<Object, Boolean[]> {
 
-		public ArrayInputConverter(final SecurityContext securityContext) {
+		final boolean fromString;
+
+		public ArrayInputConverter(final SecurityContext securityContext, final boolean fromString) {
 			super(securityContext, null);
+			this.fromString = fromString;
 		}
 
 		@Override
-		public Object revert(Boolean[] source) throws FrameworkException {
+		public Object revert(final Boolean[] source) throws FrameworkException {
 			return source != null ? Arrays.asList(source) : null;
 		}
 
 		@Override
-		public Boolean[] convert(Object source) throws FrameworkException {
+		public Boolean[] convert(final Object source) throws FrameworkException {
 
 			if (source == null) {
 				return null;
@@ -109,22 +112,29 @@ public class BooleanArrayProperty extends ArrayProperty<Boolean> {
 				return convert(Arrays.asList((Boolean[])source));
 			}
 
-			if (source instanceof String) {
+			if (!fromString) {
 
-				final String s = (String)source;
-				if (s.contains(",")) {
+				throw new ClassCastException();
 
-					return BooleanArrayProperty.this.convert(Arrays.asList(s.split(",")));
+			} else {
+
+				if (source instanceof String) {
+
+					final String s = (String) source;
+					if (s.contains(",")) {
+
+						return BooleanArrayProperty.this.convert(Arrays.asList(s.split(",")));
+					}
+
+					// special handling of empty search attribute
+					if (StringUtils.isBlank(s)) {
+						return null;
+					}
+
 				}
 
-				// special handling of empty search attribute
-				if (StringUtils.isBlank(s)) {
-					return null;
-				}
-
+				return new Boolean[]{Boolean.valueOf(source.toString())};
 			}
-
-			return new Boolean[] { Boolean.valueOf(source.toString()) };
 		}
 	}
 

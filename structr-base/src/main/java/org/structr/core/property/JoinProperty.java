@@ -62,7 +62,7 @@ public class JoinProperty extends StringProperty {
 		for (Iterator<PropertyKey> it = keys.iterator(); it.hasNext();) {
 
 			final PropertyKey key                  = it.next();
-			final PropertyConverter inputConverter = key.inputConverter(securityContext);
+			final PropertyConverter inputConverter = key.inputConverter(securityContext, false);
 
 			if (inputConverter != null) {
 
@@ -113,7 +113,7 @@ public class JoinProperty extends StringProperty {
 		for (int i=0; i<len; i++) {
 
 			final PropertyKey key                  = keys.get(i);
-			final PropertyConverter inputConverter = key.inputConverter(securityContext);
+			final PropertyConverter inputConverter = key.inputConverter(securityContext, false);
 
 			if (inputConverter != null) {
 

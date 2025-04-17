@@ -110,7 +110,7 @@ public class EndNode extends Property<NodeInterface> implements RelationProperty
 	}
 
 	@Override
-	public PropertyConverter<?, NodeInterface> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, NodeInterface> inputConverter(SecurityContext securityContext, boolean fromString) {
 		return notion.getEntityConverter(securityContext);
 	}
 

@@ -94,7 +94,7 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 						PropertyKey propertyKey = node.getTraits().key(key);
 						if (propertyKey != null) {
 
-							final PropertyConverter inputConverter = propertyKey.inputConverter(securityContext);
+							final PropertyConverter inputConverter = propertyKey.inputConverter(securityContext, false);
 							if (inputConverter != null) {
 
 								try {

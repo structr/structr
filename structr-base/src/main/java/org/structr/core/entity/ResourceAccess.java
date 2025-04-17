@@ -32,4 +32,5 @@ public interface ResourceAccess extends NodeInterface {
 	void clearFlag(final long flag) throws FrameworkException;
 	long getFlags();
 	String getResourceSignature();
+	void setResourceSignature(final String signature) throws FrameworkException;
 }

@@ -56,25 +56,8 @@ public interface JsonType extends Comparable<JsonType> {
 	JsonType setVisibleForAuthenticatedUsers();
 
 	JsonMethod addMethod(final String name, final String source);
-	JsonMethod addMethod(final String name);
-
-	JsonMethod overrideMethod(final String name, final boolean callSuper, final String implementation);
-
-	JsonMethod addPropertyGetter(final String propertyName, final Class type);
-	JsonMethod addPropertySetter(final String propertyName, final Class type);
 
 	JsonType addTrait(final String name);
-
-	/*
-	JsonType setExtends(final JsonType superType);
-	JsonType setExtends(final URI externalReference);
-	JsonType setExtends(final Class staticType);
-	URI getExtends();
-
-	JsonType setImplements(final URI externalReference);
-	JsonType setImplements(final Class staticReference);
-	Set<URI> getImplements();
-	 */
 
 	Set<JsonProperty> getProperties();
 	Set<String> getRequiredProperties();

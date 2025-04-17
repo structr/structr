@@ -125,7 +125,7 @@ public class TargetNodeProperty extends Property<NodeInterface> {
 	}
 
 	@Override
-	public PropertyConverter<?, NodeInterface> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, NodeInterface> inputConverter(SecurityContext securityContext, boolean fromString) {
 		return null;
 	}
 

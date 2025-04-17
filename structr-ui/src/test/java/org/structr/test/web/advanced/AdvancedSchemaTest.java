@@ -1144,43 +1144,6 @@ public class AdvancedSchemaTest extends FrontendTest {
 	}
 
 
-	//@Test
-	// Disabled because we don't need to allow overriding of built-in methods
-	// in custom classes.
-	public void testIsValidPasswordMethodOfUser() {
-
-		try (final Tx tx = app.tx()) {
-
-			createAdminUser();
-
-			final JsonSchema schema = StructrSchema.createFromDatabase(app);
-
-			schema.getType(StructrTraits.USER).overrideMethod("isValidPassword", false, "true;")
-				.addParameter("password", "String")
-				.setReturnType("boolean");
-
-			StructrSchema.extendDatabaseSchema(app, schema);
-
-			tx.success();
-
-		} catch (Throwable t) {
-			t.printStackTrace();
-		}
-
-		RestAssured
-
-			.given()
-				.filter(ResponseLoggingFilter.logResponseTo(System.out))
-				.contentType("application/json; charset=UTF-8")
-				.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, "wrong")
-
-			.expect()
-				.statusCode(200)
-
-			.when()
-				.get("/User");
-	}
-
 	@Test
 	public void testMixedOnCreateMethods() {
 

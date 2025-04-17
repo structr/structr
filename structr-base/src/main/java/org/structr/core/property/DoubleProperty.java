@@ -90,7 +90,7 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> implements
 	}
 
 	@Override
-	public PropertyConverter<?, Double> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, Double> inputConverter(SecurityContext securityContext, boolean fromString) {
 		return new InputConverter(securityContext);
 	}
 

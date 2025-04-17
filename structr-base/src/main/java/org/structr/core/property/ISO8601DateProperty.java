@@ -47,7 +47,7 @@ public class ISO8601DateProperty extends DateProperty {
 	}
 
 	@Override
-	public PropertyConverter<Object, Date> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<Object, Date> inputConverter(SecurityContext securityContext, boolean fromString) {
 		return new InputConverter(securityContext);
 	}
 

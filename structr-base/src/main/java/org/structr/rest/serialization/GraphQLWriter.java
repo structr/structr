@@ -244,7 +244,7 @@ public class GraphQLWriter {
 			final SecurityContext securityContext = writer.getSecurityContext();
 
 			try {
-				final PropertyConverter converter = key.inputConverter(securityContext);
+				final PropertyConverter converter = key.inputConverter(securityContext, false);
 				if (converter != null) {
 
 					Object convertedValue = null;

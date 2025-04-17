@@ -123,7 +123,7 @@ public class StartNode extends Property<NodeInterface> implements RelationProper
 	}
 
 	@Override
-	public PropertyConverter<?, NodeInterface> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, NodeInterface> inputConverter(SecurityContext securityContext, boolean fromString) {
 		return notion.getEntityConverter(securityContext);
 	}
 
