@@ -95,10 +95,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private static final Map<String, String> deferredPageLinks        = new LinkedHashMap<>();
 	private Map<DOMNode, PropertyMap> deferredNodesAndTheirProperties = new LinkedHashMap<>();
 
-	protected static final Set<String> missingPrincipals       = new HashSet<>();
-	protected static final Set<String> ambiguousPrincipals     = new HashSet<>();
-	protected static final Set<String> missingSchemaFile       = new HashSet<>();
-	protected static final Set<String> deferredLogTexts        = new HashSet<>();
+	protected static final Map<String, Integer> missingPrincipals   = new LinkedHashMap();
+	protected static final Map<String, Integer> ambiguousPrincipals = new LinkedHashMap();
+	protected static final Set<String> missingSchemaFile            = new HashSet<>();
+	protected static final Set<String> deferredLogTexts             = new HashSet<>();
 
 	protected static final AtomicBoolean deploymentActive      = new AtomicBoolean(false);
 
@@ -409,14 +409,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final String title = "Missing Principal(s)";
 				final String text = "The following user(s) and/or group(s) are missing for resource access permissions or node ownership during <b>deployment</b>.<br>"
 						+ "Because of these missing permissions/ownerships, <b>the functionality is not identical to the export you just imported</b>."
-						+ "<ul><li>" + missingPrincipals.stream().sorted().collect(Collectors.joining("</li><li>")) + "</li></ul>"
+						+ "<ul><li>" + transformCountedMapToHumanReadableList(missingPrincipals, "</li><li>") + "</li></ul>"
 						+ "Consider adding these principals to your <a href=\"https://docs.structr.com/docs/fundamental-concepts#pre-deployconf\">pre-deploy.conf</a> and re-importing.";
 
 				logger.info("\n###############################################################################\n"
 						+ "\tWarning: " + title + "!\n"
 						+ "\tThe following user(s) and/or group(s) are missing for resource access permissions or node ownership during deployment.\n"
 						+ "\tBecause of these missing permissions/ownerships, the functionality is not identical to the export you just imported.\n\n"
-						+ "\t" + missingPrincipals.stream().sorted().collect(Collectors.joining("\n\t"))
+						+ "\t" + transformCountedMapToHumanReadableList(missingPrincipals, "\n\t")
 						+ "\n\n\tConsider adding these principals to your 'pre-deploy.conf' (see https://docs.structr.com/docs/fundamental-concepts#pre-deployconf) and re-importing.\n"
 						+ "###############################################################################"
 				);
@@ -428,14 +428,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final String title = "Ambiguous Principal(s)";
 				final String text = "For the following names, there are multiple candidates (User/Group) for resource access permissions or node ownership during <b>deployment</b>.<br>"
 						+ "Because of this ambiguity, <b>node access rights could not be restored as defined in the export you just imported</b>."
-						+ "<ul><li>" + ambiguousPrincipals.stream().sorted().collect(Collectors.joining("</li><li>")) + "</li></ul>"
+						+ "<ul><li>" + transformCountedMapToHumanReadableList(ambiguousPrincipals, "</li><li>") + "</li></ul>"
 						+ "Consider clearing up such ambiguities in the database.";
 
 				logger.info("\n###############################################################################\n"
 						+ "\tWarning: " + title + "!\n"
 						+ "\tFor the following names, there are multiple candidates (User/Group) for resource access permissions or node ownership during deployment.\n"
 						+ "\tBecause of this ambiguity, node access rights could not be restored as defined in the export you just imported.\n\n"
-						+ "\t" + ambiguousPrincipals.stream().sorted().collect(Collectors.joining("\n\t"))
+						+ "\t" + transformCountedMapToHumanReadableList(ambiguousPrincipals, "\n\t")
 						+ "\n\n\tConsider clearing up such ambiguities in the database.\n"
 						+ "###############################################################################"
 				);
@@ -1951,7 +1951,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		writeJsonToFile(target, parameterMappings);
 	}
 
-
 	protected void putData(final Map<String, Object> target, final String key, final Object value) {
 
 		if (value instanceof Iterable) {
@@ -2542,7 +2541,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-
 	private void importParameterMapping(final Path parameterMappingPath) throws FrameworkException {
 
 		if (Files.exists(parameterMappingPath)) {
@@ -2553,7 +2551,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			importListData(StructrTraits.PARAMETER_MAPPING, readConfigList(parameterMappingPath));
 		}
 	}
-
 
 	private void handleDeferredProperties() throws FrameworkException {
 
@@ -2880,7 +2877,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	public boolean isDOMNodeVisibilityRelativeToParent(final Map<String, String> deploymentConf) {
+	private boolean isDOMNodeVisibilityRelativeToParent(final Map<String, String> deploymentConf) {
 		return DEPLOYMENT_DOM_NODE_VISIBILITY_RELATIVE_TO_PARENT_VALUE.equals(deploymentConf.get(DEPLOYMENT_DOM_NODE_VISIBILITY_RELATIVE_TO_KEY));
 	}
 
@@ -3180,6 +3177,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		customResult = result;
 	}
 
+	protected String transformCountedMapToHumanReadableList(final Map<String, Integer> map, final String separator) {
+
+		return map.entrySet()
+				.stream().sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
+				.map(entry -> entry.getValue() + "x " + entry.getKey())
+				.collect(Collectors.joining(separator));
+	}
+
 	// ----- public static methods -----
 	public static void addDeferredPagelink (String linkableUUID, String pagePath) {
 		deferredPageLinks.put(linkableUUID, pagePath);
@@ -3195,19 +3200,27 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	public static void encounteredMissingPrincipal(final String errorPrefix, final String principalName) {
 
-		if (!missingPrincipals.contains(principalName)) {
+		if (!missingPrincipals.containsKey(principalName)) {
 
 			logger.warn("{}! No node of type Principal with name '{}' found, ignoring.", errorPrefix, principalName);
-			missingPrincipals.add(principalName);
+			missingPrincipals.put(principalName, 1);
+
+		} else {
+
+			missingPrincipals.put(principalName, missingPrincipals.get(principalName) + 1);
 		}
 	}
 
 	public static void encounteredAmbiguousPrincipal(final String errorPrefix, final String principalName, final int numberOfHits) {
 
-		if (!ambiguousPrincipals.contains(principalName)) {
+		if (!ambiguousPrincipals.containsKey(principalName)) {
 
 			logger.warn("{}! Found {} nodes of type Principal named '{}', ignoring.\"", errorPrefix, numberOfHits, principalName);
-			ambiguousPrincipals.add(principalName);
+			ambiguousPrincipals.put(principalName, 1);
+
+		} else {
+
+			ambiguousPrincipals.put(principalName, ambiguousPrincipals.get(principalName) + 1);
 		}
 	}
 
