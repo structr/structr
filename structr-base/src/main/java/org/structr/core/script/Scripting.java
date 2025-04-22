@@ -96,7 +96,7 @@ public class Scripting {
 
 					try {
 
-						final Object extractedValue = evaluate(actionContext, entity, expression, methodName, 0, entity != null ? entity.getUuid() : null, false);
+						final Object extractedValue = evaluate(actionContext, entity, expression, methodName, 0, entity != null ? entity.getUuid() : null, Settings.WrapJSInMainFunction.getValue(false));
 						String partValue            = extractedValue != null ? formatToDefaultDateOrString(extractedValue) : "";
 
 						// non-null value?
@@ -143,11 +143,11 @@ public class Scripting {
 	}
 
 	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String input, final String methodName) throws FrameworkException, UnlicensedScriptException {
-		return evaluate(actionContext, entity, input, methodName, null, false);
+		return evaluate(actionContext, entity, input, methodName, null, Settings.WrapJSInMainFunction.getValue(false));
 	}
 
 	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String input, final String methodName, final String codeSource) throws FrameworkException, UnlicensedScriptException {
-		return evaluate(actionContext, entity, input, methodName, 0, codeSource, false);
+		return evaluate(actionContext, entity, input, methodName, 0, codeSource, Settings.WrapJSInMainFunction.getValue(false));
 	}
 
 	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String input, final String methodName, final String codeSource, final boolean wrapInJSFunction) throws FrameworkException, UnlicensedScriptException {
@@ -295,20 +295,11 @@ public class Scripting {
 			Source source = null;
 			String code = snippet.getSource();
 
-			if ("js".equals(engineName)) {
+			if ("js".equals(engineName) && snippet.embed()) {
 
-				final boolean wrapJSInMainFunction = Settings.WrapJSInMainFunction.getValue(false);
-
-				if(wrapJSInMainFunction || snippet.embed()) {
-
-					if (!snippet.embed()) {
-
-						snippet.setEmbed(true);
-					}
-
-					code = JSFunctionTranspiler.transpileSource(snippet);
-				}
+				code = JSFunctionTranspiler.transpileSource(snippet);
 			}
+
 			source = Source.newBuilder(engineName, code, snippet.getName()).mimeType(snippet.getMimeType()).build();
 
 			try {

@@ -22,6 +22,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.ContextStore;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -123,7 +124,7 @@ public class Actions {
 	}
 
 	public static Object execute(final SecurityContext securityContext, final GraphObject entity, final String source, final Map<String, Object> parameters, final String methodName, final String codeSource) throws FrameworkException, UnlicensedScriptException {
-		return execute(securityContext, entity, source, parameters, methodName, codeSource, false);
+		return execute(securityContext, entity, source, parameters, methodName, codeSource, Settings.WrapJSInMainFunction.getValue(false));
 	}
 
 	public static Object execute(final SecurityContext securityContext, final GraphObject entity, final String source, final Map<String, Object> parameters, final String methodName, final String codeSource, final boolean wrapJsInFunction) throws FrameworkException, UnlicensedScriptException {
