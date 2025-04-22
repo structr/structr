@@ -18,6 +18,7 @@
  */
 package org.structr.core.notion;
 
+import org.slf4j.LoggerFactory;
 import org.structr.common.EntityAndPropertiesContainer;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -220,9 +221,18 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> extends Deser
 					}
 				}
 
-			} else if (source instanceof GraphObject g && g.getTraits().contains(type)) {
+			} else if (source instanceof GraphObject g) {
 
-				return (T)source;
+				final Traits traits = g.getTraits();
+
+				if (traits != null && traits.contains(type)) {
+
+					return (T) source;
+
+				} else {
+
+					LoggerFactory.getLogger(IdDeserializationStrategy.class).warn("Got GraphObject of type {} that has no traits (null)!", g.getClass());
+				}
 
 			} else {
 

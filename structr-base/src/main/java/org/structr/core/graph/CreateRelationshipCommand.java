@@ -72,8 +72,8 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 		final RelationshipFactory factory              = new RelationshipFactory(securityContext);
 		final PropertyMap properties                   = new PropertyMap(attributes);
 		final PropertyMap toNotify                     = new PropertyMap();
-		final CreationContainer tmp                    = new CreationContainer(false);
 		final Traits traits                            = Traits.of(entityType);
+		final CreationContainer tmp                    = new CreationContainer(traits, false);
 		final Relation relation                        = traits.getRelation();
 		final Date now                                 = new Date();
 		final Principal user                           = securityContext.getCachedUser();

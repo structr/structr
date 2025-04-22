@@ -32,6 +32,8 @@ import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
+import java.util.List;
+
 /**
  *
  */
@@ -75,11 +77,38 @@ public class SaveNodeCommand extends AbstractCommand {
 
 				} else {
 
-					app.delete(importedPage);
+					try {
 
-					throw new RuntimeException("TODO: pencil edit must be reimplemented");
+						final List<DOMNode> bodyList = importedPage.getElementsByTagName("body");
+						if (!bodyList.isEmpty()) {
+
+							final Page hostPage = sourceNode.getOwnerDocument();
+							DOMNode child       = bodyList.get(0);
+
+							child = child.getFirstChild();
+
+							// skip first div (why is it there?)
+							if (child != null) {
+								child = child.getFirstChild();
+							}
+
+							while (child != null) {
+
+								hostPage.adoptNode(child);
+								sourceNode.appendChild(child);
+
+								// next sibling
+								child = child.getNextSibling();
+							}
+
+						}
+
+					} finally {
+
+						// make sure we delete the imported page
+						app.delete(importedPage);
+					}
 				}
-
 
 			} catch (Throwable t) {
 

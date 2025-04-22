@@ -31,14 +31,15 @@ import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * A named collection of traits that a node can have.
  */
 public class TraitsImplementation implements Traits {
 
-	private static final Map<String, Traits> globalTypeMap = new HashMap<>();
-	private static final Map<String, Trait> globalTraitMap = new HashMap<>();
+	private static final Map<String, Traits> globalTypeMap = new ConcurrentHashMap<>();
+	private static final Map<String, Trait> globalTraitMap = new ConcurrentHashMap<>();
 
 	private final Map<String, TraitDefinition> traits                   = new LinkedHashMap<>();
 	private final Set<Trait> localTraitsCache                           = new LinkedHashSet<>();

@@ -67,7 +67,7 @@ public interface Page extends DOMNode {
 	void adoptNode(final DOMNode newHtmlNode) throws FrameworkException;
 	DOMNode importNode(final DOMNode node, final boolean deep) throws FrameworkException;
 
-	List<DOMNode> getElementsByTagName(final String head) throws FrameworkException;
+	List<DOMNode> getElementsByTagName(final String tagName) throws FrameworkException;
 
 	/**
 	 * Creates a new Page entity with the given name in the database.

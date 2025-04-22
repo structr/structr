@@ -100,7 +100,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 			final Traits nodeType         = Traits.of(typeObject.toString());
 			final String typeName         = nodeType.getName();
 			final Set<String> labels      = nodeType.getLabels();
-			final CreationContainer tmp   = new CreationContainer(true);
+			final CreationContainer tmp   = new CreationContainer(nodeType, true);
 			final Date now                = new Date();
 			final boolean isCreation      = true;
 

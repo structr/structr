@@ -60,6 +60,9 @@ public interface SchemaRelationshipNode extends AbstractSchemaNode {
 	void setPreviousTargetJsonName(String propertyName) throws FrameworkException;
 	void setAutocreationFlag(Long aLong) throws FrameworkException;
 	void setCascadingDeleteFlag(final Long flag) throws FrameworkException;
+	void setRelationshipType(final String relType) throws FrameworkException;
+	void setSourceMultiplicity(final String sourceMultiplicity) throws FrameworkException;
+	void setTargetMultiplicity(final String targetMultiplicity) throws FrameworkException;
 
 	Map<String, Object> resolveCascadingFlags();
 
@@ -80,6 +83,8 @@ public interface SchemaRelationshipNode extends AbstractSchemaNode {
 	void setTargetNode(final SchemaNode targetSchemaNode) throws FrameworkException;
 	void setSourceType(final String substring) throws FrameworkException;
 	void setTargetType(final String substring) throws FrameworkException;
+	void setSourceJsonName(final String sourcePropertyName) throws FrameworkException;
+	void setTargetJsonName(final String targetPropertyName) throws FrameworkException;
 
 	TraitDefinition[] getTraitDefinitions();
 
