@@ -69,7 +69,7 @@ public class ParameterMappingTraitDefinition extends AbstractNodeTraitDefinition
 
 					final Traits traits = obj.getTraits();
 
-					return ValidationHelper.isValidStringNotBlank(obj, traits.key("parameterName"), errorBuffer);
+					return ValidationHelper.isValidStringNotBlank(obj, traits.key(PARAMETER_NAME_PROPERTY), errorBuffer);
 				}
 			}
 
