@@ -1456,29 +1456,20 @@ let _Pages = {
 		let failureNavigateToURLInput        = container.querySelector('#failure-navigate-to-url-input');
 		let failureFireEventInput            = container.querySelector('#failure-fire-event-input');
 
-		let saveButton                       = container.querySelector('#save-event-mapping-button');
-
 		let actionMapping;
 
-		Command.getByType('SchemaNode', 1000, 1, 'name', 'asc', 'id,name', false, result => {
-			dataTypeSelect.insertAdjacentHTML('beforeend', result.map(typeObj => `<option>${typeObj.name}</option>`).join(''));
-			dataTypeSelectUl.insertAdjacentHTML('beforeend', result.map(typeObj => `<li data-value="${typeObj.name}">${typeObj.name}</li>`).join(''));
-		});
+		Command.query('SchemaNode', 2000, 1, 'name', 'asc', { isServiceClass: false }, (schemaNodes) => {
+			dataTypeSelect.insertAdjacentHTML('beforeend', schemaNodes.map(typeObj => `<option>${typeObj.name}</option>`).join(''));
+			dataTypeSelectUl.insertAdjacentHTML('beforeend', schemaNodes.map(typeObj => `<li data-value="${typeObj.name}">${typeObj.name}</li>`).join(''));
+		}, false, null, 'id,name,isBuiltinType');
 
 		if (entity.triggeredActions && entity.triggeredActions.length) {
 
 			actionMapping = entity.triggeredActions[0];
 
 			Command.get(actionMapping.id, 'event,action,method,idExpression,dataType,parameterMappings,successNotifications,successNotificationsPartial,successNotificationsEvent,successNotificationsDelay,failureNotifications,failureNotificationsPartial,failureNotificationsEvent,failureNotificationsDelay,successBehaviour,successPartial,successURL,successEvent,failureBehaviour,failurePartial,failureURL,failureEvent,dialogType,dialogTitle,dialogText', (result) => {
-				console.log('Using first object for event action mapping:', result);
+				//console.log('Using first object for event action mapping:', result);
 				updateEventMappingInterface(entity, result);
-			});
-		}
-
-		if (saveButton) {
-			saveButton.addEventListener('click', () => {
-				saveEventMappingData(entity);
-				saveParameterMappings();
 			});
 		}
 
@@ -2191,30 +2182,27 @@ let _Pages = {
 				{ key: 'flowResult',       selector: '.em-parameter-mapping .parameter-flow-result-input' }
 			];
 
-			//console.log('save parameter mappings', inputDefinitions, parameterMappings);
+			let parameterMappingElement = el.closest('.em-parameter-mapping');
 
-			for (const parameterMappingElement of container.querySelectorAll('.em-parameter-mapping')) {
+			const parameterMappingId = parameterMappingElement.dataset['structrId'];
+			//console.log(parameterMappingId);
+			const parameterMappingData = { id: parameterMappingId };
+			for (const inputDefinition of inputDefinitions) {
 
-				const parameterMappingId = parameterMappingElement.dataset['structrId'];
-				//console.log(parameterMappingId);
-				const parameterMappingData = { id: parameterMappingId };
-				for (const inputDefinition of inputDefinitions) {
+				for (const inp of parameterMappingElement.querySelectorAll(inputDefinition.selector)) {
 
-					for (const inp of parameterMappingElement.querySelectorAll(inputDefinition.selector)) {
-
-						const value = inp.value;
-						//if (value) {
-							//console.log(inputDefinition.key, value);
-							parameterMappingData[inputDefinition.key] = value;
-						//}
-					}
+					const value = inp.value;
+					//if (value) {
+						//console.log(inputDefinition.key, value);
+						parameterMappingData[inputDefinition.key] = value;
+					//}
 				}
-
-				//console.log(parameterMappingData);
-				Command.setProperties(parameterMappingId, parameterMappingData, () => {
-					_Helpers.blinkGreen(el);
-				});
 			}
+
+			//console.log(parameterMappingData);
+			Command.setProperties(parameterMappingId, parameterMappingData, () => {
+				_Helpers.blinkGreen(el);
+			});
 		};
 
 	},
@@ -4106,10 +4094,6 @@ let _Pages = {
 								</div>
 							</div>
 						</div>
-
-						<!--div class="col-span-2">
-							<button type="button" class="action" id="save-event-mapping-button">Save</button>
-						</div-->
 
 					</div>
 
