@@ -1613,7 +1613,9 @@ let _Pages = {
 
 			Command.get(entity.id, 'id,type,triggeredActions', (result) => {
 				actionMapping = result.triggeredActions[0];
-				Command.create({type: 'ParameterMapping', actionMapping: actionMapping.id}, (parameterMapping) => {
+                nextParameterIndex = document.getElementsByClassName("em-parameter-mapping").length + 1;
+
+				Command.create({type: 'ParameterMapping', actionMapping: actionMapping.id, parameterName: "parameter_" + nextParameterIndex}, (parameterMapping) => {
 					getAndAppendParameterMapping(parameterMapping.id);
 				});
 			});
