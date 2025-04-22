@@ -18,7 +18,6 @@
  */
 package org.structr.core.traits.definitions;
 
-import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -31,7 +30,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaMethod;
-import org.structr.core.entity.SchemaMethodParameter;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.PropertySetNotion;
@@ -47,10 +45,8 @@ import org.structr.core.traits.operations.graphobject.OnModification;
 import org.structr.core.traits.wrappers.SchemaMethodTraitWrapper;
 import org.structr.schema.action.Actions;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  *
@@ -131,12 +127,7 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 
 					try {
 
-						final List<NodeInterface> methodsOnCurrentLevel = StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_METHOD).key(schemaNodeKey, parentOrNull).getAsList();
-						final List<SchemaMethodParameter> params        = Iterables.toList(method.getParameters());
-						// param comparison is required because otherwise this would fail for at least "getScaledImage" and "updateFeedTask"
-						final String paramsAsString                     = params.stream().map(p -> p.getName() + ":" + p.getParameterType()).collect(Collectors.joining(";"));
-
-						for (final NodeInterface otherSchemaMethodNode : methodsOnCurrentLevel) {
+						for (final NodeInterface otherSchemaMethodNode : StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_METHOD).key(schemaNodeKey, parentOrNull).getResultStream()) {
 
 							final boolean isDifferentMethod = !(method.getUuid().equals(otherSchemaMethodNode.getUuid()));
 
@@ -144,12 +135,8 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 
 								final SchemaMethod otherSchemaMethod                = otherSchemaMethodNode.as(SchemaMethod.class);
 								final boolean isSameNameIgnoringCase                = thisMethodName.equalsIgnoreCase(otherSchemaMethod.getName());
-								final List<SchemaMethodParameter> otherMethodParams = Iterables.toList(otherSchemaMethod.getParameters());
-								final String otherParamsAsString                    = otherMethodParams.stream().map(p -> p.getName() + ":" + p.getParameterType()).collect(Collectors.joining(";"));
 
-								final boolean hasSameParameters = (params.size() == otherMethodParams.size() && paramsAsString.equals(otherParamsAsString));
-
-								if (isSameNameIgnoringCase && hasSameParameters) {
+								if (isSameNameIgnoringCase) {
 
 									errorBuffer.add(new SemanticErrorToken(method.getType(), "name", "already_exists").withValue(thisMethodName).withDetail("Multiple methods with identical names (case-insensitive) are not supported on the same level"));
 									valid = false;

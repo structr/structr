@@ -1293,7 +1293,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 						final String methodSource          = (String) schemaMethod.get(DEPLOYMENT_SCHEMA_SOURCE_ATTRIBUTE_KEY);
 						final Path globalMethodSourceFile  = globalMethodsFolder.resolve(methodName);
 
-						final String relativeSourceFilePath  = "./" + targetFolder.relativize(globalMethodSourceFile).toString();
+						final String relativeSourceFilePath  = "./" + targetFolder.relativize(globalMethodSourceFile);
 
 						schemaMethod.put(DEPLOYMENT_SCHEMA_SOURCE_ATTRIBUTE_KEY, relativeSourceFilePath);
 
@@ -1338,7 +1338,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 								if (readFunction != null) {
 									writeStringToFile(readFunctionFile, readFunction);
-									fp.setReadFunction("./" + targetFolder.relativize(readFunctionFile).toString());
+									fp.setReadFunction("./" + targetFolder.relativize(readFunctionFile));
 								}
 
 								final Path writeFunctionFile = functionsFolder.resolve(fp.getName() + DEPLOYMENT_SCHEMA_WRITE_FUNCTION_SUFFIX);
@@ -1346,7 +1346,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 								if (writeFunction != null) {
 									writeStringToFile(writeFunctionFile, writeFunction);
-									fp.setWriteFunction("./" + targetFolder.relativize(writeFunctionFile).toString());
+									fp.setWriteFunction("./" + targetFolder.relativize(writeFunctionFile));
 								}
 							}
 						}
@@ -1366,7 +1366,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 								if (methodSource != null) {
 
 									writeStringToFile(methodSourceFile, methodSource);
-									method.setSource("./" + targetFolder.relativize(methodSourceFile).toString());
+									method.setSource("./" + targetFolder.relativize(methodSourceFile));
 								}
 							}
 						}
@@ -2821,8 +2821,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 											if (method.getSource() != null) {
 
-												// new export name includes the number of parameters
-												final Path methodSourceFile = methodsFolder.resolve(uniqueMethodName);
+												// unique method name does not include number of parameters any more!
+												Path methodSourceFile = methodsFolder.resolve(uniqueMethodName);
+												if (!Files.exists(methodSourceFile)) {
+
+													// deprecated export name includes the number of parameters, check this one as well
+													methodSourceFile = methodsFolder.resolve(uniqueMethodName + "." + method.getParameters().size());
+												}
+
 												if (Files.exists(methodSourceFile)) {
 
 													method.setSource(new String(Files.readAllBytes(methodSourceFile)));

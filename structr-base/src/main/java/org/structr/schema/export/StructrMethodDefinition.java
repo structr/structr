@@ -133,7 +133,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	}
 
 	public String getUniqueName() {
-		return name + "." + this.parameters.size();
+		return name;
 	}
 
 	@Override
