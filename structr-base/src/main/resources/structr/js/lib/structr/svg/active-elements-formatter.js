@@ -2,6 +2,10 @@
 
 class ActiveElementsFormatter {
 
+	constructor(data) {
+		this.data = data;
+	}
+
 	async createAndAddDiagramNode(svg, child, offset, color) {
 
 		let shape = await this.createShapeForType(svg, child, offset, color);
@@ -87,18 +91,15 @@ class ActiveElementsFormatter {
 			}
 		}
 
-		let node = await Command.getPromise(child.id);
-		if (node) {
+		let nodeData = this.data[child.id];
+		if (nodeData?.dataKey) {
 
-			if (node?.dataKey) {
-
-				svg.appendChild(this.createDefaultRect(child, { x: offset.x + 6, y: offset.y + 6 }, '#dddddd', '#999999'));
-				svg.appendChild(this.createDefaultRect(child, { x: offset.x + 3, y: offset.y + 3 }, '#eeeeee', '#999999'));
-			}
-
-			shape.dataset.nodeId = node.id;
-			shape.classList.add('diagram-element');
+			svg.appendChild(this.createDefaultRect(child, { x: offset.x + 6, y: offset.y + 6 }, '#dddddd', '#999999'));
+			svg.appendChild(this.createDefaultRect(child, { x: offset.x + 3, y: offset.y + 3 }, '#eeeeee', '#999999'));
 		}
+
+		shape.dataset.nodeId = child.id;
+		shape.classList.add('diagram-element');
 
 		return shape;
 	}

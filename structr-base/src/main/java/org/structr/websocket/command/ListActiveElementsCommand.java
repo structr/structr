@@ -110,24 +110,26 @@ public class ListActiveElementsCommand extends AbstractCommand {
 	private Map<String, Object> getActiveElements(final DOMNode page) throws FrameworkException {
 
 		final Map<String, Object> activeElements     = new LinkedHashMap<>();
+		final Map<String, Object> nodeData           = new LinkedHashMap<>();
 		final List<Map<String, Object>> nodes        = new LinkedList<>();
 		final List<Map<String, Object>> edges        = new LinkedList<>();
 		final Map<String, Map<String, Object>> index = new LinkedHashMap<>();
 
-		activeElements.put("children",      nodes);
-		activeElements.put("edges",         edges);
-		activeElements.put("id",            "root");
+		activeElements.put("nodeData", nodeData);
+		activeElements.put("children", nodes);
+		activeElements.put("edges",    edges);
+		activeElements.put("id",       "root");
 
 		// Always add Page element
-		addIfNotPresent(nodes, createNodeFromNodeInterface(index, page));
+		addIfNotPresent(nodes, createNodeFromNodeInterface(nodeData, index, page));
 
 		// everything is on the top level
-		addElements(index, nodes, edges, page, page, nodes, edges);
+		addElements(nodeData, index, nodes, edges, page, page, nodes, edges);
 
 		return activeElements;
 	}
 
-	private void addElements(final Map<String, Map<String, Object>> index, final List<Map<String, Object>> nodes, final List<Map<String, Object>> edges, final DOMNode current, final DOMNode lastParent, final List<Map<String, Object>> pageChildren, final List<Map<String, Object>> pageEdges) {
+	private void addElements(final Map<String, Object> nodeData, final Map<String, Map<String, Object>> index, final List<Map<String, Object>> nodes, final List<Map<String, Object>> edges, final DOMNode current, final DOMNode lastParent, final List<Map<String, Object>> pageChildren, final List<Map<String, Object>> pageEdges) {
 
 		boolean included = isActiveNode(current);
 
@@ -141,18 +143,18 @@ public class ListActiveElementsCommand extends AbstractCommand {
 
 		if (included) {
 
-			final Map<String, Object> currentNode = createNodeFromNodeInterface(index, current);
+			final Map<String, Object> currentNode = createNodeFromNodeInterface(nodeData, index, current);
 			final boolean addNestedChildren       = false;
 
 			addIfNotPresent(pageChildren, currentNode);
 			addAndLinkDataSourceIfPresent(index, nodes, edges, current);
 
 			if (current.is("DOMElement")) {
-				addAndLinkActionMappingIfPresent(index, nodes, edges, current.as(DOMElement.class));
+				addAndLinkActionMappingIfPresent(nodeData, index, nodes, edges, current.as(DOMElement.class));
 			}
 
 			// conditions add an intermediate node so we don't have to connect them here..
-			if (!addAndLinkConditionsIfPresent(index, pageChildren, pageEdges, current, lastParent)) {
+			if (!addAndLinkConditionsIfPresent(nodeData, index, pageChildren, pageEdges, current, lastParent)) {
 
 				if (lastParent != null && !addNestedChildren) {
 					addEdge(edges, lastParent, current, Map.of());
@@ -166,14 +168,14 @@ public class ListActiveElementsCommand extends AbstractCommand {
 
 				for (final DOMNode child : current.getChildren()) {
 
-					addElements(index, nodes, edges, child, current, nestedChildren, nestedEdges);
+					addElements(nodeData, index, nodes, edges, child, current, nestedChildren, nestedEdges);
 				}
 
 			} else {
 
 				for (final DOMNode child : current.getChildren()) {
 
-					addElements(index, nodes, edges, child, current, pageChildren, pageEdges);
+					addElements(nodeData, index, nodes, edges, child, current, pageChildren, pageEdges);
 				}
 			}
 
@@ -181,12 +183,12 @@ public class ListActiveElementsCommand extends AbstractCommand {
 
 			for (final DOMNode child : current.getChildren()) {
 
-				addElements(index, nodes, edges, child, lastParent, pageChildren, pageEdges);
+				addElements(nodeData, index, nodes, edges, child, lastParent, pageChildren, pageEdges);
 			}
 		}
 	}
 
-	private Map<String, Object> createNodeFromNodeInterface(final Map<String, Map<String, Object>> index, final NodeInterface node) {
+	private Map<String, Object> createNodeFromNodeInterface(final Map<String, Object> nodeData, final Map<String, Map<String, Object>> index, final NodeInterface node) {
 
 		final String id = node.getUuid();
 
@@ -221,6 +223,19 @@ public class ListActiveElementsCommand extends AbstractCommand {
 			}
 
 			index.put(id, map);
+
+			if (node.is("DOMNode")) {
+
+				final DOMNode domNode            = node.as(DOMNode.class);
+				final Map<String, Object> values = new LinkedHashMap<>();
+
+				nodeData.put(id, values);
+
+				values.put("id", id);
+				values.put("type", domNode.getType());
+				values.put("name", domNode.getName());
+				values.put("dataKey", domNode.getDataKey());
+			}
 		}
 
 		return index.get(id);
@@ -495,28 +510,28 @@ public class ListActiveElementsCommand extends AbstractCommand {
 		}
 	}
 
-	private void addAndLinkSharedComponentIfPresent(final Map<String, Map<String, Object>> index, final List<Map<String, Object>> nodes, final List<Map<String, Object>> edges, final DOMNode node) {
+	private void addAndLinkSharedComponentIfPresent(final Map<String, Object> nodeData, final Map<String, Map<String, Object>> index, final List<Map<String, Object>> nodes, final List<Map<String, Object>> edges, final DOMNode node) {
 
 		final DOMNode sharedComponent = node.getSharedComponent();
 		if (sharedComponent != null) {
 
-			addIfNotPresent(nodes, createNodeFromNodeInterface(index, sharedComponent));
+			addIfNotPresent(nodes, createNodeFromNodeInterface(nodeData, index, sharedComponent));
 
 			addEdge(edges, node, sharedComponent, Map.of());
 		}
 	}
 
-	private void addAndLinkActionMappingIfPresent(final Map<String, Map<String, Object>> index, final List<Map<String, Object>> nodes, final List<Map<String, Object>> edges, final DOMElement node) {
+	private void addAndLinkActionMappingIfPresent(final Map<String, Object> nodeData, final Map<String, Map<String, Object>> index, final List<Map<String, Object>> nodes, final List<Map<String, Object>> edges, final DOMElement node) {
 
 		for (final ActionMapping action : node.getTriggeredActions()) {
 
-			addIfNotPresent(nodes, createNodeFromNodeInterface(index, action));
+			addIfNotPresent(nodes, createNodeFromNodeInterface(nodeData, index, action));
 
 			addEdge(edges, node, action, Map.of());
 		}
 	}
 
-	private boolean addAndLinkConditionsIfPresent(final Map<String, Map<String, Object>> index, final List<Map<String, Object>> nodes, final List<Map<String, Object>> edges, final DOMNode node, final DOMNode lastParent) {
+	private boolean addAndLinkConditionsIfPresent(final Map<String, Object> nodeData, final Map<String, Map<String, Object>> index, final List<Map<String, Object>> nodes, final List<Map<String, Object>> edges, final DOMNode node, final DOMNode lastParent) {
 
 		if (node.getShowConditions() != null) {
 
@@ -524,7 +539,7 @@ public class ListActiveElementsCommand extends AbstractCommand {
 			final String parentId    = parent.getUuid();
 			final String conditionId = parentId + "_condition";
 
-			addIfNotPresent(nodes, createNodeFromNodeInterface(index, parent));
+			addIfNotPresent(nodes, createNodeFromNodeInterface(nodeData, index, parent));
 			addIfNotPresent(nodes, createNodeFromMap(index, conditionId, null, "Condition"));
 
 			if (lastParent != null) {
@@ -543,7 +558,7 @@ public class ListActiveElementsCommand extends AbstractCommand {
 			final String parentId    = parent.getUuid();
 			final String conditionId = parentId + "_condition";
 
-			addIfNotPresent(nodes, createNodeFromNodeInterface(index, parent));
+			addIfNotPresent(nodes, createNodeFromNodeInterface(nodeData, index, parent));
 			addIfNotPresent(nodes, createNodeFromMap(index, conditionId, null, "Condition"));
 
 			if (lastParent != null) {

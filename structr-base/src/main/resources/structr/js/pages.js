@@ -3541,13 +3541,16 @@ let _Pages = {
 			Command.listActiveElements(id, input => {
 
 				input.layoutOptions = {
-					'elk.algorithm':                    'layered',
-					'elk.direction':                    'RIGHT',
+					'elk.algorithm': 'layered',
+					'elk.direction': 'RIGHT',
 				};
+
+				let data = Object.assign({}, input.nodeData);
+				delete input.nodeData;
 
 				Command.layout(input, async (layout) => {
 
-					await _Pages.layout.createSVGFromLayout(container, layout, new ActiveElementsFormatter());
+					await _Pages.layout.createSVGFromLayout(container, layout, new ActiveElementsFormatter(data));
 
 					container.querySelectorAll('.diagram-element').forEach(e => {
 						if (e.dataset.nodeId) {
