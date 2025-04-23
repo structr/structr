@@ -276,7 +276,7 @@ export class Frontend {
 
 		if (success) {
 			mode = element.dataset.structrSuccessNotifications;
-			statusText = '✅ Operation successful (' + status + (parameter?.message ? ': ' + parameter.message : ')');
+			statusText = '✅ Operation successful (' + status + (parameter?.message ? ': ' + parameter.message : '') + ')';
 			statusHTML = '<div class="structr-event-action-notification" id="notification-for-' + id + '" style="font-size:small;display:block;background-color:white;border:1px solid #ccc;border-radius:.25rem;box-shadow:0 0 .625rem 0 rgba(0,0,0,0.1);position:absolute;z-index:9999;padding:.25rem .5rem;margin-top:.25rem;color:green">' + statusText + '</div>';
 			delay = element.dataset.structrSuccessNotificationsDelay;
 
@@ -286,7 +286,7 @@ export class Frontend {
 			}
 		} else {
 			mode = element.dataset.structrFailureNotifications;
-			statusText = '❌ Operation failed (' + status + (parameter?.message ? ': ' + parameter.message : ')');
+			statusText = '❌ Operation failed (' + status + (parameter?.message ? ': ' + parameter.message : '') + ')';
 			statusHTML = '<div class="structr-event-action-notification" id="notification-for-' + id + '" style="font-size:small;display:block;background-color:white;border:1px solid #ccc;border-radius:.25rem;box-shadow:0 0 .625rem 0 rgba(0,0,0,0.1);position:absolute;z-index:9999;padding:.25rem .5rem;margin-top:.25rem;color:red">' + statusText + '<br>';
 			delay = element.dataset.structrFailureNotificationsDelay;
 
