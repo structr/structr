@@ -1194,6 +1194,15 @@ let _Pages = {
 				_Pages.linkableDialog.show(obj, _Pages.centerPane.querySelector('.linkable-container'));
 				break;
 
+			case '#pages:active':
+
+				_Pages.centerPane.insertAdjacentHTML('beforeend', _Pages.templates.activeElements());
+				let container = document.querySelector('#center-pane .active-elements-container');
+
+				_Pages.activeElements.init(obj.id, container);
+
+				break;
+
 			default:
 				console.log('do something else, urlHash:', urlHash);
 		}
@@ -3525,6 +3534,214 @@ let _Pages = {
 
 		_Pages.ensureShadowPageExists();
 	},
+	activeElements: {
+
+		init: async function(id, container) {
+
+			Command.listActiveElements(id, input => {
+
+				input.layoutOptions = {
+					'elk.algorithm':                    'layered',
+					'elk.direction':                    'RIGHT',
+				};
+
+				Command.layout(input, async (layout) => {
+
+					await _Pages.layout.createSVGFromLayout(container, layout, new ActiveElementsFormatter());
+
+					container.querySelectorAll('.diagram-element').forEach(e => {
+						if (e.dataset.nodeId) {
+							let id = e.dataset.nodeId;
+							e.addEventListener('mouseover', m => {
+								let elem = document.querySelector('#id_' + id);
+								if (elem) {
+									elem.classList.add('nodeHover');
+								}
+							});
+							e.addEventListener('mouseout', m => {
+								let elem = document.querySelector('#id_' + id);
+								if (elem) {
+									elem.classList.remove('nodeHover');
+								}
+							});
+							e.addEventListener('click', m => {
+								console.log(id);
+								//_Pages.openAndSelectTreeObjectById(e.dataset.nodeId);
+								_Pages.expandTreeNode(id);
+							});
+
+						}
+					});
+				});
+
+			});
+		},
+	},
+
+	layout: {
+
+		createExampleDiagram: function(container) {
+
+			let input = {
+				id: 'root',
+				children: [
+					{ id: 'abc', labels: [ { text: 'abc' } ], width: 200, height: 60 },
+					{ id: 'def', labels: [ { text: 'def' } ], width: 200, height: 50 },
+					{ id: 'ghi', labels: [ { text: 'ghi' } ], width: 200, height: 40 },
+					{ id: 'jkl', labels: [ { text: 'jkl' } ], width: 200, height: 30 }
+				],
+				edges: [
+					{ id: 'hij', sources: [ 'abc' ], targets: [ 'def' ] },
+					{ id: 'klm', sources: [ 'def' ], targets: [ 'ghi' ] },
+					{ id: 'hij', sources: [ 'def' ], targets: [ 'jkl' ] }
+				],
+				layoutOptions: {
+					'elk.algorithm': 'layered'
+				}
+			};
+
+			_Pages.layout.createSVGDiagram(container, input, new ActiveElementsFormatter());
+		},
+
+		createSVGDiagram: function(container, input, formatter) {
+
+			Command.layout(input, layout => {
+
+				_Pages.layout.createSVGFromLayout(container, layout, formatter);
+			});
+		},
+
+		createSVGFromLayout: async function(container, layout, formatter) {
+
+			if (layout && layout.children) {
+
+				let svg       = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+				let defs      = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+				let marker    = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+
+				marker.setAttribute('id', 'arrow');
+				marker.setAttribute('viewBox', '0 0 10 10');
+				marker.setAttribute('refX', 9);
+				marker.setAttribute('refY', 5);
+				marker.setAttribute('markerWidth', 4);
+				marker.setAttribute('markerHeight', 4);
+				marker.setAttribute('orient', 'auto-start-reverse');
+				marker.setAttribute('stroke', '#333333');
+				marker.setAttribute('fill', '#333333');
+
+				let p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+				p.setAttribute('d', 'M 0 0 L 10 5 L 0 10 z');
+
+				marker.appendChild(p);
+				defs.appendChild(marker);
+				svg.appendChild(defs);
+
+				//svg.classList.add('mt-4', 'w-full', 'h-full');
+				svg.setAttribute('width', '100%');
+				svg.setAttribute('height', '100%');
+				svg.setAttribute('viewbox', '0 0 ' + layout.width + ' ' + layout.height);
+				//svg.setAttribute('shape-rendering', 'geometricPrecision');
+
+				let group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+
+				svg.appendChild(group);
+
+				for (let child of layout.children) {
+
+					await formatter.createAndAddDiagramNode(group, child, { x: 0, y: 0 }, 248);
+				}
+
+				if (layout.edges) {
+					for (let edge of layout.edges) {
+						await formatter.createAndAddDiagramEdge(group, edge, { x: 0, y: 0 });
+					}
+				}
+
+				container.appendChild(svg);
+
+				let instance = panzoom(group, {
+					bounds: true,
+					boundsPadding: 0.1
+				});
+
+				window.panZoomTest = instance;
+
+				let searchElement = document.querySelector('#schema-graph-search-status');
+				let buffer        = '';
+				let timeout       = -1;
+
+				container.addEventListener('keyup', k => {
+
+					// only numbers and letters allowed
+					if ((k.keyCode >= 49 && k.keyCode <= 57) || (k.keyCode >= 65 && k.keyCode <= 90)) {
+
+						buffer += k.key;
+
+						if (searchElement) {
+							searchElement.classList.remove('hidden');
+							searchElement.innerHTML = 'Go to <b>' + buffer + '</b>';
+						}
+
+						window.clearTimeout(timeout);
+
+						timeout = window.setTimeout(() => {
+
+							let buf = buffer.toLowerCase();
+							let found;
+
+							container.querySelectorAll('text').forEach(t => {
+								t.previousElementSibling.classList.remove('selected');
+								let text = t.innerHTML.toLowerCase();
+								if (!found && text === buf) {
+									found = t;
+								}
+							});
+
+							if (!found) {
+
+								container.querySelectorAll('text').forEach(t => {
+									let text = t.innerHTML.toLowerCase();
+									if (!found && text.indexOf(buf) === 0) {
+										found = t;
+									}
+								});
+							}
+
+							if (found) {
+
+								found.previousElementSibling.classList.add('selected');
+
+								let offset = { x: 0, y: 0 };
+
+								offset.x = (window.innerWidth / 2) - container.offsetLeft;
+								offset.y = (window.innerHeight / 2) - container.offsetTop;
+
+
+								let w = new Number(found.previousElementSibling.getAttribute('width'));
+								let h = new Number(found.previousElementSibling.getAttribute('height'));
+
+								let x = new Number(found.getAttribute('x')) - offset.x + w;
+								let y = new Number(found.getAttribute('y')) - offset.y + h;
+
+								instance.zoomAbs(0, 0, 1.0);
+								instance.smoothMoveTo(-x, -y);
+							}
+
+							buffer = '';
+
+							if (searchElement) {
+								searchElement.classList.add('hidden');
+							}
+
+						}, 500);
+					}
+				});
+
+				return svg;
+			}
+		}
+	},
+
 	templates: {
 		pagesActions: config => `
 					<div id="pages-actions" class="dropdown-menu darker-shadow-dropdown dropdown-menu-large">
@@ -3693,6 +3910,9 @@ let _Pages = {
 					</li>
 					<li id="tabs-menu-security">
 						<a href="#pages:security">Security</a>
+					</li>
+					<li id="tabs-menu-active">
+						<a href="#pages:active">Active Elements</a>
 					</li>
 					<li id="tabs-menu-basic">
 						<a href="#pages:routing">URL Routing</a>
@@ -4188,6 +4408,9 @@ let _Pages = {
 					<iframe></iframe>
 				</div>
 			</div>
+		`,
+		activeElements: config => `
+			<div class="content-container active-elements-container"></div>
 		`,
 		properties: config => `
 			<div class="content-container properties-container"></div>

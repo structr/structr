@@ -458,6 +458,20 @@ let StructrWS = {
 
 			StructrModel.callCallback(data.callback, result);
 
+		} else if (command === 'LIST_ACTIVE_ELEMENTS' || command === 'LAYOUT') {
+
+			if (result && result.length) {
+
+				if (result[0].json) {
+
+					StructrModel.callCallback(data.callback, JSON.parse(result[0].json));
+
+				} else if (result[0].error) {
+
+					new MessageBuilder('warning').title('Layout error.').text(result[0].error).show();
+				}
+			}
+
 		} else if (command.startsWith('LIST_LOCALIZATIONS')) {
 
 			StructrModel.callCallback(data.callback, result);

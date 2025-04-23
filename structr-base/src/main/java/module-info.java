@@ -62,6 +62,9 @@ module structr.base {
     requires org.apache.oltu.oauth2.client;
     requires org.apache.pdfbox;
     requires org.apache.tika.core;
+    requires org.eclipse.elk.core;
+    requires org.eclipse.elk.graph;
+    requires org.eclipse.elk.graph.json;
     requires org.eclipse.jetty.alpn.server;
     requires org.eclipse.jetty.http2.common;
     requires org.eclipse.jetty.http2.server;

@@ -1051,6 +1051,38 @@ let Command = {
 		};
 		return StructrWS.sendObj(obj);
 	},
+	/**
+	 * Send a LIST_ACTIVE_ELEMENTS command to the server.
+	 *
+	 * The server will return a result set containing all active elements
+	 * in the given page.
+	 *
+	 * The optional callback function will be executed for each node in the result set.
+	 */
+	listActiveElements: function(id, callback) {
+		let obj = {
+			command: 'LIST_ACTIVE_ELEMENTS',
+			id: id
+		};
+		return StructrWS.sendObj(obj, callback);
+	},
+	/**
+	 * Send a LAYOUT command to the server.
+	 *
+	 * The server will apply a layout to the object tree and
+	 * return the modified object tree as a JSON string.
+	 *
+	 * The callback function will be executed with the result.
+	 */
+	layout: function(data, callback) {
+		let obj = {
+			command: 'LAYOUT',
+			data: {
+				input: JSON.stringify(data)
+			}
+		};
+		return StructrWS.sendObj(obj, callback);
+	},
 	listLocalizations: (pageId, locale, detailObjectId, queryString) => {
 		return new Promise((resolve, reject) => {
 			let obj = {
