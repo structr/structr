@@ -25,6 +25,7 @@ import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * Websocket command to retrieve a single graph object by id.
@@ -69,6 +70,8 @@ public class GetCommand extends AbstractCommand {
 			// Not necessary to send a 404 here
 			//getWebSocket().send(MessageBuilder.status().code(404).build(), true);
 
+			webSocketData.setResult(List.of());
+			getWebSocket().send(webSocketData, true);
 		}
 	}
 

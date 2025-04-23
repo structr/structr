@@ -641,6 +641,10 @@ img.disabled {
 	top: 21rem;
 }
 
+#activeElementsTab {
+	top: 33rem;
+}
+
 
 /*
  * Pages: Right slideout activators
@@ -649,7 +653,8 @@ img.disabled {
 #paletteTab,
 #componentsTab,
 #elementsTab,
-#previewTab {
+#previewTab,
+#activeElementsTab {
 	right: 0;
 }
 
@@ -3692,6 +3697,14 @@ ul.combined-input-select-field li:hover {
 .form-input.input-invalid {
 	border: 1px solid var(--input-invalid-border-color);
 	background-color: var(--input-invalid-bg-color);
+}
+
+/**
+ * Active Elements
+ **/
+.active-elements-container svg *:hover,
+.active-elements-container svg * text:hover {
+	stroke: #000000;
 }
 
 /**
