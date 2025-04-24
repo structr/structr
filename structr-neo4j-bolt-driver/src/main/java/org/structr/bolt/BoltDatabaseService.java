@@ -53,6 +53,7 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 	private final Set<String> supportedQueryLanguages             = new LinkedHashSet<>();
 	private CypherRelationshipIndex relationshipIndex             = null;
 	private CypherNodeIndex nodeIndex                             = null;
+	private FulltextNodeIndex fulltextIndex                       = null;
 	private boolean supportsRelationshipIndexes                   = false;
 	private boolean supportsIdempotentIndexCreation               = false;
 	private int neo4jMajorVersion                                 = -1;
@@ -459,6 +460,16 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 		}
 
 		return relationshipIndex;
+	}
+
+	@Override
+	public Index<Node> fulltextIndex() {
+
+		if (fulltextIndex == null) {
+			fulltextIndex = new FulltextNodeIndex(this);
+		}
+
+		return fulltextIndex;
 	}
 
 	@Override

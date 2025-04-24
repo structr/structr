@@ -36,9 +36,7 @@ public class SearchRelationshipCommand extends SearchCommand<Relationship, Relat
 	}
 
 	@Override
-	public Index<Relationship> getIndex() {
-		return  (Index<Relationship>) arguments.get("relationshipIndex");
-	}
+	public Index<Relationship> getIndex(final boolean isFulltextSearch) { return  (Index<Relationship>) arguments.get("relationshipIndex"); }
 
 	@Override
 	public boolean isRelationshipSearch() {

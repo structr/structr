@@ -58,6 +58,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	protected boolean indexed                   = false;
 	protected boolean indexedPassively          = false;
 	protected boolean indexedWhenEmpty          = false;
+	protected boolean fulltextIndexed           = false;
 	protected boolean compound                  = false;
 	protected boolean unique                    = false;
 	protected boolean notNull                   = false;
@@ -209,6 +210,14 @@ public abstract class Property<T> implements PropertyKey<T> {
 		this.indexedWhenEmpty = true;
 
 		return this;
+	}
+
+	@Override
+	public Property<T> fulltextIndexed() {
+
+		this.fulltextIndexed = true;
+		return this;
+
 	}
 
 	public Property<T> hint(final String hint) {
@@ -476,6 +485,11 @@ public abstract class Property<T> implements PropertyKey<T> {
 	@Override
 	public boolean isPassivelyIndexed() {
 		return indexedPassively;
+	}
+
+	@Override
+	public boolean isFulltextIndexed() {
+		return fulltextIndexed;
 	}
 
 	@Override

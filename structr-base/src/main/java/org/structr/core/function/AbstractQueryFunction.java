@@ -31,8 +31,11 @@ import org.structr.core.function.search.AndPredicate;
 import org.structr.core.function.search.SearchFunctionPredicate;
 import org.structr.core.function.search.SearchParameter;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.web.entity.File;
+import org.structr.web.traits.definitions.FileTraitDefinition;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -166,6 +169,11 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 						return query.getFirst();
 
 					} else {
+
+						if (traits.contains(StructrTraits.FILE)) {
+							query.fulltext(traits.key(FileTraitDefinition.EXTRACTED_CONTENT_PROPERTY), sources[1].toString());
+							return query.getAsList();
+						}
 
 						// probably an error case where migration to predicates was forgotten
 						throw new FrameworkException(422, getReplacement() + ": Invalid parameter '" + uuid + "', returning null. If a single parameter is given, it must be of type Map, UUID or Advanced Find predicate. Maybe a missing migration of Advanced Find to predicates?");

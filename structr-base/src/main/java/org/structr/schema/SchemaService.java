@@ -25,6 +25,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
+import org.structr.api.index.FulltextIndexConfig;
 import org.structr.api.index.IndexConfig;
 import org.structr.api.index.NodeIndexConfig;
 import org.structr.api.index.RelationshipIndexConfig;
@@ -711,7 +712,7 @@ public class SchemaService implements Service {
 
 						for (final PropertyKey key : traits.getAllPropertyKeys()) {
 
-							boolean createIndex = key.isIndexed() || key.isIndexedWhenEmpty();
+							boolean createIndex = key.isIndexed() || key.isIndexedWhenEmpty() || key.isFulltextIndexed();
 							final Trait trait   = key.getDeclaringTrait();
 
 							if (isRelationship) {
@@ -727,7 +728,11 @@ public class SchemaService implements Service {
 								createIndex &= (trait == null || whitelist.contains(type) || type.equals(trait.getLabel()));
 								//createIndex &= (!NonIndexed.class.isAssignableFrom(type));
 
-								typeConfig.put(key.dbName(), new NodeIndexConfig(createIndex));
+								if (key.isFulltextIndexed()) {
+									typeConfig.put(key.dbName(), new FulltextIndexConfig(createIndex));
+								} else {
+									typeConfig.put(key.dbName(), new NodeIndexConfig(createIndex));
+								}
 							}
 						}
 					}
@@ -749,7 +754,10 @@ public class SchemaService implements Service {
 
 						for (final PropertyKey propertyKey : entry.getValue().values()) {
 
-							final boolean wasIndexed = propertyKey.isIndexed() || propertyKey.isIndexedWhenEmpty();
+							final boolean wasIndexed         = propertyKey.isIndexed() || propertyKey.isIndexedWhenEmpty() || propertyKey.isFulltextIndexed();
+							final boolean wasFulltextIndexed = propertyKey.isFulltextIndexed();
+
+							if (wasFulltextIndexed)
 
 							if (isRelationship) {
 
@@ -762,7 +770,13 @@ public class SchemaService implements Service {
 								final boolean wasIdIndex = "id".equals(propertyKey.jsonName());
 								final boolean dropIndex  = wasIndexed && !wasIdIndex;
 
-								typeConfig.put(propertyKey.dbName(), new NodeIndexConfig(dropIndex));
+								// Fulltext indexing for nodes only at the moment
+								if (propertyKey.isFulltextIndexed()) {
+									typeConfig.put(propertyKey.dbName(), new FulltextIndexConfig(dropIndex));
+								} else {
+									typeConfig.put(propertyKey.dbName(), new NodeIndexConfig(dropIndex));
+								}
+
 							}
 						}
 					}

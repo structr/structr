@@ -25,11 +25,16 @@ public abstract class IndexConfig {
 
 	protected boolean createOrDropIndex = false;
 	protected boolean isNodeIndex       = false;
+	protected boolean isFulltextIndex   = false;
 
 	protected IndexConfig(final boolean createOrDropIndex, final boolean isNodeIndex) {
+		this(createOrDropIndex, isNodeIndex, false);
+	}
+	protected IndexConfig(final boolean createOrDropIndex, final boolean isNodeIndex, final boolean isFulltextIndex) {
 
 		this.createOrDropIndex = createOrDropIndex;
 		this.isNodeIndex       = isNodeIndex;
+		this.isFulltextIndex   = isFulltextIndex;
 	}
 
 	public boolean createOrDropIndex() {
@@ -40,9 +45,13 @@ public abstract class IndexConfig {
 		return this.isNodeIndex;
 	}
 
+	public boolean isFulltextIndex() {
+		return this.isFulltextIndex;
+	}
+
 	public String getIndexDescriptionForStatement(final String typeName) {
 
-		if (this.isNodeIndex) {
+		if (this.isNodeIndex || this.isFulltextIndex) {
 
 			return "(n:" + typeName + ")";
 		}
