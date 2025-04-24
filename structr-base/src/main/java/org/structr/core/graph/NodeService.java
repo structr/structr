@@ -52,6 +52,7 @@ public class NodeService implements SingletonService {
 	private DatabaseService databaseService = null;
 	private Index<Node> nodeIndex           = null;
 	private Index<Relationship> relIndex    = null;
+	private Index<Node> fulltextIndex       = null;
 	private String filesPath                = null;
 	private boolean isInitialized           = false;
 
@@ -63,6 +64,7 @@ public class NodeService implements SingletonService {
 			command.setArgument("graphDb",           databaseService);
 			command.setArgument("nodeIndex",         nodeIndex);
 			command.setArgument("relationshipIndex", relIndex);
+			command.setArgument("fulltextIndex",     fulltextIndex);
 			command.setArgument("filesPath",         filesPath);
 		}
 	}
@@ -94,8 +96,9 @@ public class NodeService implements SingletonService {
 				// index creation transaction
 				try ( final Transaction tx = databaseService.beginTx() ) {
 
-					nodeIndex = databaseService.nodeIndex();
-					relIndex  = databaseService.relationshipIndex();
+					nodeIndex     = databaseService.nodeIndex();
+					relIndex      = databaseService.relationshipIndex();
+					fulltextIndex = databaseService.fulltextIndex();
 
 					tx.success();
 

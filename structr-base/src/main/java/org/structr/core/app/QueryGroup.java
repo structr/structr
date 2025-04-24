@@ -48,6 +48,7 @@ public interface QueryGroup<T> extends Query<T> {
 	QueryGroup<T> matches(final PropertyKey<String> key, final String regex);
 	<P> QueryGroup<T> range(final PropertyKey<P> key, final P rangeStart, final P rangeEnd);
 	<P> QueryGroup<T> range(final PropertyKey<P> key, final P rangeStart, final P rangeEnd, final boolean includeStart, final boolean includeEnd);
+	<P> QueryGroup<T> fulltext(final PropertyKey<P> key, final String value);
 
 	Query<T> attributes(final List<SearchAttribute> attributes, final Operation operation);
 

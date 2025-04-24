@@ -105,16 +105,16 @@ public class Neo5IndexUpdater {
 
 				if (neoConfig != null) {
 
-					currentState       = (String)neoConfig.get("state");
+					currentState       = (String) neoConfig.get("state");
 					indexAlreadyOnline = Boolean.TRUE.equals("ONLINE".equals(currentState));
-					indexName          = (String)neoConfig.get("name");
+					indexName          = (String) neoConfig.get("name");
 
 				}
 
 				final IndexConfig indexConfig         = propertyIndexConfig.getValue();
 				final String propertyKey              = propertyIndexConfig.getKey();
 				final boolean finalIndexAlreadyOnline = indexAlreadyOnline;
-				final String finalIndexName           = indexName;
+				final String finalIndexName           = indexName != null ? indexName : typeName + "_" + propertyKey;
 
 				// skip relationship indexes if not supported
 				if (!indexConfig.isNodeIndex() && !supportsRelationshipIndexes) {
@@ -187,7 +187,12 @@ public class Neo5IndexUpdater {
 
 											final String indexDescription = indexConfig.getIndexDescriptionForStatement(typeName);
 
-											db.consume("CREATE INDEX IF NOT EXISTS FOR " + indexDescription + " ON (n.`" + propertyKey + "`)");
+											if (indexConfig.isFulltextIndex()) {
+												db.consume("CREATE FULLTEXT INDEX " + finalIndexName + " IF NOT EXISTS FOR " + indexDescription + " ON EACH [n.`" + propertyKey + "`]");
+											} else {
+												db.consume("CREATE INDEX " + finalIndexName + " IF NOT EXISTS FOR " + indexDescription + " ON (n.`" + propertyKey + "`)");
+											}
+
 											createdIndexes.incrementAndGet();
 
 										} catch (Throwable t) {

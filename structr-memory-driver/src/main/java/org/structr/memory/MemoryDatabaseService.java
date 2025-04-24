@@ -25,6 +25,7 @@ import org.structr.api.index.IndexConfig;
 import org.structr.api.util.CountResult;
 import org.structr.api.util.Iterables;
 import org.structr.api.util.NodeWithOwnerResult;
+import org.structr.memory.index.MemoryFulltextNodeIndex;
 import org.structr.memory.index.MemoryNodeIndex;
 import org.structr.memory.index.MemoryRelationshipIndex;
 import org.structr.memory.index.filter.*;
@@ -43,6 +44,7 @@ public class MemoryDatabaseService extends AbstractDatabaseService {
 	private final MemoryNodeRepository nodes                            = new MemoryNodeRepository();
 	private MemoryRelationshipIndex relIndex                            = null;
 	private MemoryNodeIndex nodeIndex                                   = null;
+	private MemoryFulltextNodeIndex fulltextIndex                       = null;
 
 	@Override
 	public boolean initialize(final String serviceName, final String version, final String instance) {
@@ -225,6 +227,17 @@ public class MemoryDatabaseService extends AbstractDatabaseService {
 		}
 
 		return relIndex;
+	}
+
+	@Override
+	public Index<Node> fulltextIndex() {
+
+		if (fulltextIndex == null) {
+
+			fulltextIndex = new MemoryFulltextNodeIndex(this);
+		}
+
+		return fulltextIndex;
 	}
 
 	@Override
