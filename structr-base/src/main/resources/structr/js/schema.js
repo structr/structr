@@ -386,7 +386,7 @@ let _Schema = {
 						if (hasChanges) {
 
 							_Schema.bulkDialogsGeneral.closeWithoutSavingChangesQuestionOpen = true;
-							allowNavigation = await _Dialogs.confirmation.showPromise("Really close with unsaved changes?")
+							allowNavigation = await _Dialogs.confirmation.showPromise("Really close with unsaved changes?");
 						}
 
 						_Schema.bulkDialogsGeneral.closeWithoutSavingChangesQuestionOpen = false;
