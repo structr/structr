@@ -1604,9 +1604,9 @@ let _Pages = {
 
 			Command.get(entity.id, 'id,type,triggeredActions', (result) => {
 				actionMapping = result.triggeredActions[0];
-                nextParameterIndex = document.getElementsByClassName("em-parameter-mapping").length + 1;
+				let nextParameterIndex = document.querySelectorAll('.em-parameter-mappings-container .em-parameter-mapping').length + 1;
 
-				Command.create({type: 'ParameterMapping', actionMapping: actionMapping.id, parameterName: "parameter_" + nextParameterIndex}, (parameterMapping) => {
+				Command.create({ type: 'ParameterMapping', actionMapping: actionMapping.id, parameterName: 'parameter_' + nextParameterIndex }, (parameterMapping) => {
 					getAndAppendParameterMapping(parameterMapping.id);
 				});
 			});
@@ -1621,7 +1621,6 @@ let _Pages = {
 				Command.getSchemaInfo(dataTypeSelect.value, result => {
 
 					let properties = result.filter(property => !property.system);
-					//console.log(properties); return;
 
 					for (const property of properties) {
 
@@ -1632,7 +1631,6 @@ let _Pages = {
 						}, (parameterMapping) => {
 							getAndAppendParameterMapping(parameterMapping.id);
 						});
-
 					}
 				});
 			});
@@ -2086,7 +2084,19 @@ let _Pages = {
 
 						let parameterNameInput = parentElement.querySelector('.parameter-name-input');
 						if (parameterNameInput.value === '') {
+
 							parameterNameInput.value = userInputName;
+							saveParameterMappings(parameterNameInput);
+
+						} else if (parameterNameInput.value !== userInputName) {
+
+							_Dialogs.confirmation.showPromise(`Replace current parameter (${parameterNameInput.value}) name with element name (${userInputName})?`).then(shouldReplace => {
+
+								if (shouldReplace === true) {
+									parameterNameInput.value = userInputName;
+									saveParameterMappings(parameterNameInput);
+								}
+							})
 						}
 					}
 

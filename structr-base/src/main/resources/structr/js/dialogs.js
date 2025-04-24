@@ -301,17 +301,19 @@ let _Dialogs = {
 		},
 	},
 	confirmation: {
-		showPromise: (text, defaultOption = true) => {
+		showPromise: (text, highlightedOption = true) => {
 
-			let choices = [{
+			let choices = [
+				{
 					buttonText: `${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, ['icon-green', 'mr-2'])} Yes`,
 					result: true
 				}, {
 					buttonText: `${_Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, ['icon-red', 'mr-2'])} No`,
 					result: false
-			}];
+				}
+			];
 
-			return _Dialogs.multipleChoiceQuestion.askPromise(text, choices, defaultOption, !defaultOption);
+			return _Dialogs.multipleChoiceQuestion.askPromise(text, choices, highlightedOption, null);
 		},
 	},
 	multipleChoiceQuestion: {

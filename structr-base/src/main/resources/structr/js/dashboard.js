@@ -577,7 +577,7 @@ let _Dashboard = {
 					};
 
 					let confirm = await _Dialogs.confirmation.showPromise(`Are you sure you want to start an application ${mode}?<br>This will overwrite application data ${mode === 'export' ? 'on disk' : 'in the database'}.`, false);
-					if (confirm) {
+					if (confirm === true) {
 
 						_Dashboard.tabs.deployment.history.addEntry(data);
 
@@ -611,7 +611,7 @@ let _Dashboard = {
 					}
 
 					let confirm = await _Dialogs.confirmation.showPromise(`Are you sure you want to start a data ${mode}?<br>This will overwrite data ${mode === 'export' ? 'on disk' : 'in the database'}.`, false);
-					if (confirm) {
+					if (confirm = true) {
 
 						// do not listen for errors - they are sent by the backend via WS
 						await fetch(`${Structr.rootUrl}maintenance/deployData`, {
@@ -685,7 +685,7 @@ let _Dashboard = {
 				importFromZIPURL: async (deploymentType, downloadUrl, zipContentPath) => {
 
 					let confirm = await _Dialogs.confirmation.showPromise(`Are you sure you want to start ${deploymentType} import from the given ZIP URL?<br>This will overwrite ${deploymentType === 'app' ? 'the application' : 'data'} in the database.`, false);
-					if (confirm) {
+					if (confirm === true) {
 
 						let formData = new FormData();
 						formData.append('redirectUrl', window.location.pathname);
@@ -716,7 +716,7 @@ let _Dashboard = {
 				importFromZIPFileUpload: async (deploymentType, filesSelectField, zipContentPath) => {
 
 					let confirm = await _Dialogs.confirmation.showPromise(`Are you sure you want to start ${deploymentType} import from the given ZIP file?<br>This will overwrite ${deploymentType === 'app' ? 'the application' : 'data'} in the database.`, false);
-					if (confirm) {
+					if (confirm === true) {
 
 						let formData = new FormData();
 						formData.append('redirectUrl', window.location.pathname);
