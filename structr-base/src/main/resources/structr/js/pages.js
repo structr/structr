@@ -1424,7 +1424,6 @@ let _Pages = {
 		let dataTypeSelect                   = container.querySelector('#data-type-select');
 		let dataTypeSelectUl                 = dataTypeSelect.parentNode.querySelector('ul');
 		let dataTypeInput                    = container.querySelector('#data-type-input');
-
 		let methodNameInput                  = container.querySelector('#method-name-input');
 		let flowNameInput                    = container.querySelector('#flow-name-input');
 
@@ -1466,14 +1465,12 @@ let _Pages = {
 		let failureNavigateToURLInput        = container.querySelector('#failure-navigate-to-url-input');
 		let failureFireEventInput            = container.querySelector('#failure-fire-event-input');
 
-		let saveButton                       = container.querySelector('#save-event-mapping-button');
-
 		let actionMapping;
 
-		Command.getByType('SchemaNode', 1000, 1, 'name', 'asc', 'id,name', false, result => {
-			dataTypeSelect.insertAdjacentHTML('beforeend', result.map(typeObj => `<option>${typeObj.name}</option>`).join(''));
-			dataTypeSelectUl.insertAdjacentHTML('beforeend', result.map(typeObj => `<li data-value="${typeObj.name}">${typeObj.name}</li>`).join(''));
-		});
+		Command.query('SchemaNode', 2000, 1, 'name', 'asc', { isServiceClass: false }, (schemaNodes) => {
+			dataTypeSelect.insertAdjacentHTML('beforeend', schemaNodes.map(typeObj => `<option>${typeObj.name}</option>`).join(''));
+			dataTypeSelectUl.insertAdjacentHTML('beforeend', schemaNodes.map(typeObj => `<li data-value="${typeObj.name}">${typeObj.name}</li>`).join(''));
+		}, false, null, 'id,name,isBuiltinType');
 
 		// Populate process select options
 		Command.getByType('Process', 1000, 1, 'name', 'asc', 'id,name', false, result => {
@@ -1489,13 +1486,6 @@ let _Pages = {
 			Command.get(actionMapping.id, 'event,action,method,flow,process,processStep,processSuccessShowElements,processSuccessHideElements,idExpression,dataType,parameterMappings,successNotifications,successNotificationsPartial,successNotificationsEvent,successNotificationsDelay,failureNotifications,failureNotificationsPartial,failureNotificationsEvent,failureNotificationsDelay,successBehaviour,successPartial,successURL,successEvent,failureBehaviour,failurePartial,failureURL,failureEvent,dialogType,dialogTitle,dialogText', (result) => {
 				//console.log('Using first object for event action mapping:', result);
 				updateEventMappingInterface(entity, result);
-			});
-		}
-
-		if (saveButton) {
-			saveButton.addEventListener('click', () => {
-				saveEventMappingData(entity);
-				saveParameterMappings();
 			});
 		}
 
@@ -1775,7 +1765,9 @@ let _Pages = {
 
 			Command.get(entity.id, 'id,type,triggeredActions', (result) => {
 				actionMapping = result.triggeredActions[0];
-				Command.create({type: 'ParameterMapping', actionMapping: actionMapping.id}, (parameterMapping) => {
+				let nextParameterIndex = document.querySelectorAll('.em-parameter-mappings-container .em-parameter-mapping').length + 1;
+
+				Command.create({ type: 'ParameterMapping', actionMapping: actionMapping.id, parameterName: 'parameter_' + nextParameterIndex }, (parameterMapping) => {
 					getAndAppendParameterMapping(parameterMapping.id);
 				});
 			});
@@ -1790,7 +1782,6 @@ let _Pages = {
 				Command.getSchemaInfo(dataTypeSelect.value, result => {
 
 					let properties = result.filter(property => !property.system);
-					//console.log(properties); return;
 
 					for (const property of properties) {
 
@@ -1801,7 +1792,6 @@ let _Pages = {
 						}, (parameterMapping) => {
 							getAndAppendParameterMapping(parameterMapping.id);
 						});
-
 					}
 				});
 			});
@@ -2348,7 +2338,19 @@ let _Pages = {
 
 						let parameterNameInput = parentElement.querySelector('.parameter-name-input');
 						if (parameterNameInput.value === '') {
+
 							parameterNameInput.value = userInputName;
+							saveParameterMappings(parameterNameInput);
+
+						} else if (parameterNameInput.value !== userInputName) {
+
+							_Dialogs.confirmation.showPromise(`Replace current parameter (${parameterNameInput.value}) name with element name (${userInputName})?`).then(shouldReplace => {
+
+								if (shouldReplace === true) {
+									parameterNameInput.value = userInputName;
+									saveParameterMappings(parameterNameInput);
+								}
+							})
 						}
 					}
 
@@ -2390,7 +2392,7 @@ let _Pages = {
 				failureEvent:                failureFireEventInput?.value
 			};
 
-			//console.log('Save event mapping data:', actionMappingObject);
+			//console.log(actionMappingObject);
 
 			if (entity.triggeredActions && entity.triggeredActions.length) {
 
@@ -2447,30 +2449,27 @@ let _Pages = {
 				{ key: 'flowResult',       selector: '.em-parameter-mapping .parameter-flow-result-input' }
 			];
 
-			//console.log('save parameter mappings', inputDefinitions, parameterMappings);
+			let parameterMappingElement = el.closest('.em-parameter-mapping');
 
-			for (const parameterMappingElement of container.querySelectorAll('.em-parameter-mapping')) {
+			const parameterMappingId = parameterMappingElement.dataset['structrId'];
+			//console.log(parameterMappingId);
+			const parameterMappingData = { id: parameterMappingId };
+			for (const inputDefinition of inputDefinitions) {
 
-				const parameterMappingId = parameterMappingElement.dataset['structrId'];
-				//console.log(parameterMappingId);
-				const parameterMappingData = { id: parameterMappingId };
-				for (const inputDefinition of inputDefinitions) {
+				for (const inp of parameterMappingElement.querySelectorAll(inputDefinition.selector)) {
 
-					for (const inp of parameterMappingElement.querySelectorAll(inputDefinition.selector)) {
-
-						const value = inp.value;
-						//if (value) {
+					const value = inp.value;
+					//if (value) {
 						//console.log(inputDefinition.key, value);
 						parameterMappingData[inputDefinition.key] = value;
-						//}
-					}
+					//}
 				}
-
-				//console.log(parameterMappingData);
-				Command.setProperties(parameterMappingId, parameterMappingData, () => {
-					_Helpers.blinkGreen(el);
-				});
 			}
+
+			//console.log(parameterMappingData);
+			Command.setProperties(parameterMappingId, parameterMappingData, () => {
+				_Helpers.blinkGreen(el);
+			});
 		};
 
 	},
@@ -2492,11 +2491,8 @@ let _Pages = {
 					name: 'Go to Schema Node',
 					clickHandler: () => {
 
-						let pathToOpen = `/root/${entity.isBuiltinType ? 'builtin' : 'custom'}/${entity.id}`;
-
-						window.location.href = '#code';
 						window.setTimeout(() => {
-							_Code.tree.findAndOpenNode(pathToOpen, false);
+							_Code.helpers.navigateToSchemaObjectFromAnywhere(entity);
 						}, 1000);
 					}
 				});
@@ -3717,7 +3713,7 @@ let _Pages = {
 					page: page.id,
 					name: '/' + page.name + '/'
 				})
-			}).then(ifok);
+  			}).then(ifok);
 
 			if (data && data.result && data.result.length === 1) {
 				let path = await Command.getPromise(data.result[0], '', 'ui');
@@ -3789,6 +3785,12 @@ let _Pages = {
 				});
 			}
 		});
+	},
+	updateShadowPageAfterDeployment: () => {
+
+		_Pages.shadowPage = null;
+
+		_Pages.ensureShadowPageExists();
 	},
 	templates: {
 		pagesActions: config => `
@@ -4350,7 +4352,17 @@ let _Pages = {
 										</div>
 									</div>
 								</div>
-								
+
+								<div class="hidden option-success option-success-navigate-to-url">
+									<label class="block mb-2" for="success-navigate-to-url-input" data-comment="Define the relative or absolute URL of the page to load on success">Success URL</label>
+									<input type="text" id="success-navigate-to-url-input" placeholder="Enter a relative or absolute URL">
+								</div>
+
+								<div class="hidden option-success option-success-fire-event">
+									<label class="block mb-2" for="success-fire-event-input" data-comment="Define event that should be raised.">Event to raise on success</label>
+									<input type="text" id="success-fire-event-input" placeholder="Enter an event name">
+								</div>
+																
 								<div class="hidden option-success option-success-show-hide-partial-linked grid grid-cols-2 gap-8">
 									<div class="hidden option-success option-success-show-hide-partial-linked">
 										<label class="block mb-2" for="success-show-hide-partial-linked-show-input" data-comment="Drag an element and drop it here">Element(s) to show on success</label>
