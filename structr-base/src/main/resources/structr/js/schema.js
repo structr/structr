@@ -3585,11 +3585,19 @@ let _Schema = {
 				_Schema.methods.editMethod(gridRow, entity);
 			});
 
-			gridRow.querySelector('.run-method-action').addEventListener('click', () => {
+			gridRow.querySelector('.run-method-action')?.addEventListener('click', () => {
 
-				if (gridRow.classList.contains("has-changes")) {
+				if (_Code.persistence.isDirty()) {
 
-					new WarningMessage().text("Method has unsaved changes, unable to run before saving").show();
+					_Dialogs.confirmation.showPromise('There are unsaved changes. Running the method without saving may lead to unexpected behaviour. Save changes?', true).then(answer => {
+
+						if (answer === true) {
+
+							_Code.persistence.runCurrentEntitySaveAction();
+						}
+
+						_Schema.methods.runSchemaMethod(methodData);
+					});
 
 				} else {
 
@@ -3984,7 +3992,7 @@ let _Schema = {
 					</div>
 					<div class="flex items-center justify-center gap-1">
 						${_Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['edit-action']), 'Edit')}
-						${_Icons.getSvgIcon(_Icons.iconRunButton, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['run-method-action']), 'Open run dialog')}
+						${Structr.isModuleActive(_Code) ? _Icons.getSvgIcon(_Icons.iconRunButton, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['run-method-action']), 'Open run dialog') : ''}
 						${_Icons.getSvgIcon(_Icons.iconClone, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['clone-action']), 'Clone')}
 						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16,  _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']), 'Discard changes')}
 						${config.isNew ? '' : _Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action']), 'Discard')}
