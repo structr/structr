@@ -21,8 +21,6 @@ package org.structr.memory.index.predicate;
 import org.structr.api.Predicate;
 import org.structr.api.graph.PropertyContainer;
 
-import java.util.Locale;
-
 /**
  */
 public class StartsOrEndsWithPredicate<T extends PropertyContainer, V> implements Predicate<T> {

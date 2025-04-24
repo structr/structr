@@ -18,16 +18,12 @@
  */
 package org.structr.core.property;
 
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
-import org.structr.api.search.Occurrence;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.app.Query;
+import org.structr.core.app.QueryGroup;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.OneEndpoint;
 import org.structr.core.entity.Relation;
@@ -52,11 +48,10 @@ import java.util.Map;
  */
 public class EndNode extends Property<NodeInterface> implements RelationProperty {
 
-	private static final Logger logger = LoggerFactory.getLogger(EndNode.class.getName());
-
 	private final Relation<? extends Source, OneEndpoint> relation;
 	private final Traits traits;
 	private final Notion notion;
+	private final String sourceType;
 	private final String destType;
 
 	/**
@@ -83,10 +78,11 @@ public class EndNode extends Property<NodeInterface> implements RelationProperty
 
 		super(name);
 
-		this.traits    = Traits.of(type);
-		this.relation  = traits.getRelation();
-		this.notion    = notion;
-		this.destType  = relation.getTargetType();
+		this.traits     = Traits.of(type);
+		this.relation   = traits.getRelation();
+		this.notion     = notion;
+		this.sourceType = relation.getSourceType();
+		this.destType   = relation.getTargetType();
 
 		this.notion.setType(destType);
 		this.notion.setRelationProperty(this);
@@ -114,7 +110,7 @@ public class EndNode extends Property<NodeInterface> implements RelationProperty
 	}
 
 	@Override
-	public PropertyConverter<?, NodeInterface> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, NodeInterface> inputConverter(SecurityContext securityContext, boolean fromString) {
 		return notion.getEntityConverter(securityContext);
 	}
 
@@ -213,13 +209,18 @@ public class EndNode extends Property<NodeInterface> implements RelationProperty
 	}
 
 	@Override
+	public String getSourceType() {
+		return sourceType;
+	}
+
+	@Override
 	public String getTargetType() {
 		return destType;
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occurrence occur, NodeInterface searchValue, boolean exactMatch, final Query query) {
-		return new GraphSearchAttribute<>(this, searchValue, occur, exactMatch);
+	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final NodeInterface searchValue, final boolean exactMatch, final QueryGroup query) {
+		return new GraphSearchAttribute<>(this, searchValue, exactMatch);
 	}
 
 	@Override
@@ -256,21 +257,6 @@ public class EndNode extends Property<NodeInterface> implements RelationProperty
 	@Override
 	public String getDirectionKey() {
 		return "out";
-	}
-
-	// ----- private methods -----
-	private static Class getClass(final String fqcn) {
-
-		try {
-
-			return Class.forName(fqcn);
-
-		} catch (Throwable t) {
-
-			logger.error(ExceptionUtils.getStackTrace(t));
-		}
-
-		return null;
 	}
 
 	// ----- OpenAPI -----

@@ -23,7 +23,6 @@ import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 
-import java.lang.reflect.ParameterizedType;
 import java.util.Map;
 
 /**
@@ -71,7 +70,7 @@ public class GenericProperty<T> extends AbstractPrimitiveProperty<T> {
 	}
 
 	@Override
-	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext, boolean fromString) {
 		return null;
 	}
 

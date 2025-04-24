@@ -57,8 +57,8 @@ import org.structr.text.TextSearchModule;
 import org.structr.transform.APIBuilderModule;
 import org.structr.translation.TranslationModule;
 import org.structr.xmpp.XMPPModule;
-import org.testng.annotations.Optional;
 import org.testng.annotations.*;
+import org.testng.annotations.Optional;
 
 import java.io.File;
 import java.io.IOException;
@@ -754,7 +754,7 @@ public abstract class FullStructrTest {
 	}
 
 	protected SchemaNode getSchemaNode(final String name) throws FrameworkException {
-		return app.nodeQuery(StructrTraits.SCHEMA_NODE).andName(name).getFirst().as(SchemaNode.class);
+		return app.nodeQuery(StructrTraits.SCHEMA_NODE).name(name).getFirst().as(SchemaNode.class);
 	}
 
 	protected Set<String> getSchemaNodeTraits(final String name) throws FrameworkException {

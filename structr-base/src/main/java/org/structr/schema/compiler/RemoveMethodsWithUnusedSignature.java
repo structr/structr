@@ -28,11 +28,11 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
-import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 
 /**
  * A migration handler that removes old methods which signature is already
@@ -69,18 +69,18 @@ public class RemoveMethodsWithUnusedSignature implements MigrationHandler {
 
 					try (final Tx tx = app.tx()) {
 
-						NodeInterface schemaNode = app.nodeQuery(StructrTraits.SCHEMA_NODE).andName(type).getFirst();
+						NodeInterface schemaNode = app.nodeQuery(StructrTraits.SCHEMA_NODE).name(type).getFirst();
 
 						if (schemaNode == null) {
 
-							schemaNode = app.nodeQuery(StructrTraits.SCHEMA_NODE).andName(fqcn.substring(fqcn.lastIndexOf(".") + 1)).getFirst();
+							schemaNode = app.nodeQuery(StructrTraits.SCHEMA_NODE).name(fqcn.substring(fqcn.lastIndexOf(".") + 1)).getFirst();
 						}
 
 						if (schemaNode != null) {
 
 							for (final NodeInterface method : app.nodeQuery(StructrTraits.SCHEMA_METHOD)
-								.and(traits.key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY), schemaNode)
-								.and(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),       methodName)
+								.key(traits.key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY), schemaNode)
+								.key(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),       methodName)
 								.getAsList()) {
 
 								app.delete(method);

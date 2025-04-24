@@ -22,7 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.api.index.AbstractIndex;
 import org.structr.api.index.AbstractQueryFactory;
 import org.structr.api.search.GraphQuery;
-import org.structr.api.search.Occurrence;
+import org.structr.api.search.Operation;
 import org.structr.api.search.QueryPredicate;
 import org.structr.bolt.AdvancedCypherQuery;
 import org.structr.bolt.BoltIdentity;
@@ -42,16 +42,13 @@ public class GraphQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery>
 		final GraphQuery graphQuery = (GraphQuery)predicate;
 		final GraphQueryPart part   = new GraphQueryPart(graphQuery);
 		final Set<Object> values    = graphQuery.getValues();
+		final boolean isString      = predicate.getType().equals(String.class);
 
 		if (values.isEmpty() || onlyEmptyValues(values)) {
-
-			checkOccur(query, predicate.getOccurrence(), isFirst);
 
 			query.addNullObjectParameter(graphQuery.getDirection(), graphQuery.getRelationship());
 
 		} else {
-
-			checkOccur(query, predicate.getOccurrence(), isFirst);
 
 			query.addGraphQueryPart(part);
 
@@ -60,9 +57,9 @@ public class GraphQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery>
 
 			for (final Object value : graphQuery.getValues()) {
 
-				checkOccur(query, Occurrence.OPTIONAL, first);
+				checkOperation(query, Operation.OR, first);
 
-				if (predicate.isExactMatch()) {
+				if (predicate.isExactMatch() || !isString) {
 
 					final BoltIdentity boltIdentity = (BoltIdentity)graphQuery.getIdentity();
 					if (boltIdentity != null) {
@@ -78,7 +75,7 @@ public class GraphQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery>
 
 				} else {
 
-					query.addSimpleParameter(part.getIdentifier(), name, "CONTAINS", value, true, true);
+					query.addSimpleParameter(part.getIdentifier(), name, "CONTAINS", value, true, isString);
 				}
 
 				first = false;

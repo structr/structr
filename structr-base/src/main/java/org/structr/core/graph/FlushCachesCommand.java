@@ -23,7 +23,6 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.AccessPathCache;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.function.LocalizeFunction;
 import org.structr.core.property.FunctionProperty;
 import org.structr.core.traits.wrappers.ResourceAccessTraitWrapper;

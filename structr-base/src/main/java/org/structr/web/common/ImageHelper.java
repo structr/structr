@@ -54,6 +54,9 @@ import org.structr.util.Base64;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Image;
 import org.structr.web.property.ThumbnailProperty;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.FileTraitDefinition;
+import org.structr.web.traits.definitions.ImageTraitDefinition;
 
 import javax.imageio.ImageIO;
 import javax.imageio.stream.ImageInputStream;
@@ -65,9 +68,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Set;
-import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
-import org.structr.web.traits.definitions.FileTraitDefinition;
-import org.structr.web.traits.definitions.ImageTraitDefinition;
 
 public abstract class ImageHelper extends FileHelper {
 
@@ -187,7 +187,7 @@ public abstract class ImageHelper extends FileHelper {
 
 			try {
 
-				final Image thumbnail = (Image) app.nodeQuery(StructrTraits.IMAGE).and(pathKey, PathHelper.getFolderPath(originalImage.getPath()) + PathHelper.PATH_SEP + tnName).getFirst();
+				final Image thumbnail = (Image) app.nodeQuery(StructrTraits.IMAGE).key(pathKey, PathHelper.getFolderPath(originalImage.getPath()) + PathHelper.PATH_SEP + tnName).getFirst();
 
 				if (thumbnail != null) {
 
@@ -211,7 +211,7 @@ public abstract class ImageHelper extends FileHelper {
 		try {
 
 			final App app = StructrApp.getInstance();
-			final Image originalImage = (Image) app.nodeQuery(StructrTraits.IMAGE).and(pathKey, PathHelper.getFolderPath(thumbnail.getPath()) + PathHelper.PATH_SEP + originalImageName).getFirst();
+			final Image originalImage = (Image) app.nodeQuery(StructrTraits.IMAGE).key(pathKey, PathHelper.getFolderPath(thumbnail.getPath()) + PathHelper.PATH_SEP + originalImageName).getFirst();
 
 			if (originalImage != null) {
 

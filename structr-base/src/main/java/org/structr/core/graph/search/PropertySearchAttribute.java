@@ -18,10 +18,9 @@
  */
 package org.structr.core.graph.search;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.structr.api.search.ExactQuery;
 import org.structr.api.search.FulltextQuery;
-import org.structr.api.search.Occurrence;
 import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
 
@@ -30,18 +29,13 @@ import org.structr.core.property.PropertyKey;
  */
 public class PropertySearchAttribute<T> extends SearchAttribute<T> implements ExactQuery, FulltextQuery {
 
-	private boolean isExactMatch = false;
+	protected boolean isExactMatch = false;
 
-	public PropertySearchAttribute(final PropertyKey<T> key, final T value, final Occurrence occur, final boolean isExactMatch) {
+	public PropertySearchAttribute(final PropertyKey<T> key, final T value, final boolean isExactMatch) {
 
-		super(occur, key, value);
+		super(key, value);
 
 		this.isExactMatch = isExactMatch;
-	}
-
-	@Override
-	public String toString() {
-		return "PropertySearchAttribute(" + super.toString() + ")";
 	}
 
 	@Override
@@ -62,44 +56,32 @@ public class PropertySearchAttribute<T> extends SearchAttribute<T> implements Ex
 	@Override
 	public boolean includeInResult(final GraphObject entity) {
 
-		T nodeValue          = entity.getProperty(getKey());
-		Occurrence occur     = getOccurrence();
-		T searchValue        = getValue();
+		T nodeValue         = entity.getProperty(getKey());
+		T searchValue       = getValue();
 
-		if (occur.equals(Occurrence.FORBIDDEN)) {
+		if (nodeValue != null) {
 
-			if ((nodeValue != null) && compare(nodeValue, searchValue) == 0) {
+			if (!isExactMatch) {
 
-				// don't add, do not check other results
+				if (nodeValue instanceof String && searchValue instanceof String) {
+
+					String n = (String) nodeValue;
+					String s = (String) searchValue;
+
+					return StringUtils.containsIgnoreCase(n, s);
+
+				}
+
+			}
+
+			if (compare(nodeValue, searchValue) != 0) {
 				return false;
 			}
 
 		} else {
 
-			if (nodeValue != null) {
-
-				if (!isExactMatch) {
-
-					if (nodeValue instanceof String && searchValue instanceof String) {
-
-						String n = (String) nodeValue;
-						String s = (String) searchValue;
-
-						return StringUtils.containsIgnoreCase(n, s);
-
-					}
-
-				}
-
-				if (compare(nodeValue, searchValue) != 0) {
-					return false;
-				}
-
-			} else {
-
-				if (searchValue != null && StringUtils.isNotBlank(searchValue.toString())) {
-					return false;
-				}
+			if (searchValue != null && StringUtils.isNotBlank(searchValue.toString())) {
+				return false;
 			}
 		}
 

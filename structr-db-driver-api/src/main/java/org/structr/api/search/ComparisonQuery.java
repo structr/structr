@@ -20,7 +20,7 @@ package org.structr.api.search;
 
 public interface ComparisonQuery<T> extends QueryPredicate {
 
-	enum Operation {
+	enum Comparison {
 		equal,
 		notEqual,
 		greater,
@@ -39,6 +39,6 @@ public interface ComparisonQuery<T> extends QueryPredicate {
 	}
 
 	T getSearchValue();
-	Operation getOperation();
+	Comparison getComparison();
 
 }

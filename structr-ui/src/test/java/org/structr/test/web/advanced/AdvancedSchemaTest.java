@@ -177,7 +177,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 		try (final Tx tx = app.tx()) {
 
-			NodeInterface fileNodeDef = app.nodeQuery(StructrTraits.SCHEMA_NODE).andName(StructrTraits.FILE).getFirst();
+			NodeInterface fileNodeDef = app.nodeQuery(StructrTraits.SCHEMA_NODE).name(StructrTraits.FILE).getFirst();
 
 			NodeInterface testFileProperty = app.create(StructrTraits.SCHEMA_PROPERTY);
 
@@ -268,7 +268,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 		try (final Tx tx = app.tx()) {
 
-			NodeInterface fileNodeDef = app.nodeQuery(StructrTraits.SCHEMA_NODE).andName(StructrTraits.FILE).getFirst();
+			NodeInterface fileNodeDef = app.nodeQuery(StructrTraits.SCHEMA_NODE).name(StructrTraits.FILE).getFirst();
 
 			NodeInterface testFileProperty = app.create(StructrTraits.SCHEMA_PROPERTY);
 
@@ -1144,43 +1144,6 @@ public class AdvancedSchemaTest extends FrontendTest {
 	}
 
 
-	//@Test
-	// Disabled because we don't need to allow overriding of built-in methods
-	// in custom classes.
-	public void testIsValidPasswordMethodOfUser() {
-
-		try (final Tx tx = app.tx()) {
-
-			createAdminUser();
-
-			final JsonSchema schema = StructrSchema.createFromDatabase(app);
-
-			schema.getType(StructrTraits.USER).overrideMethod("isValidPassword", false, "return true;")
-				.addParameter("password", "String")
-				.setReturnType("boolean");
-
-			StructrSchema.extendDatabaseSchema(app, schema);
-
-			tx.success();
-
-		} catch (Throwable t) {
-			t.printStackTrace();
-		}
-
-		RestAssured
-
-			.given()
-				.filter(ResponseLoggingFilter.logResponseTo(System.out))
-				.contentType("application/json; charset=UTF-8")
-				.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, "wrong")
-
-			.expect()
-				.statusCode(200)
-
-			.when()
-				.get("/User");
-	}
-
 	@Test
 	public void testMixedOnCreateMethods() {
 
@@ -1297,7 +1260,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 			final File file                = app.nodeQuery(StructrTraits.FILE).getFirst().as(File.class);
 
 			// store UUID of SchemaNode with name StructrTraits.FILE for later use
-			final NodeInterface fileTypeNode  = app.nodeQuery(StructrTraits.SCHEMA_NODE).andName(StructrTraits.FILE).getFirst();
+			final NodeInterface fileTypeNode  = app.nodeQuery(StructrTraits.SCHEMA_NODE).name(StructrTraits.FILE).getFirst();
 			fileTypeId = fileTypeNode.getUuid();
 
 			assertTrue("Lifecycle method onDownload was not called!", file.getProperty(key));
@@ -1442,7 +1405,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 			// and it's a group
 			final Group group = node.as(Group.class);
-			final User admin  = app.nodeQuery("User").andName("admin").getFirst().as(User.class);
+			final User admin  = app.nodeQuery("User").name("admin").getFirst().as(User.class);
 
 			group.addMember(securityContext, admin);
 

@@ -24,7 +24,7 @@ import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.WriteListener;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.eclipse.jetty.io.EofException;
 import org.slf4j.Logger;

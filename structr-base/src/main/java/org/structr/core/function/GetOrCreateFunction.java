@@ -108,7 +108,7 @@ public class GetOrCreateFunction extends CoreFunction {
 					final PropertyKey key = type.key(sources[c].toString());
 					if (key != null) {
 
-						final PropertyConverter inputConverter = key.inputConverter(securityContext);
+						final PropertyConverter inputConverter = key.inputConverter(securityContext, false);
 						Object value                           = sources[c + 1];
 
 						if (inputConverter != null) {
@@ -121,7 +121,7 @@ public class GetOrCreateFunction extends CoreFunction {
 				}
 			}
 
-			final GraphObject obj = app.nodeQuery(type.getName()).disableSorting().pageSize(1).and(properties).getFirst();
+			final GraphObject obj = app.nodeQuery(type.getName()).disableSorting().pageSize(1).and().key(properties).getFirst();
 			if (obj != null) {
 
 				// return existing object

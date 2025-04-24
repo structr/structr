@@ -293,9 +293,9 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 		final PropertyKey<String> localeKey = traits.key(LocalizationTraitDefinition.LOCALE_PROPERTY);
 
 		final List<NodeInterface> localizations = StructrApp.getInstance().nodeQuery(StructrTraits.LOCALIZATION)
-			.and(nameKey,   key)
-			.and(domainKey, domain)
-			.and(localeKey, locale)
+			.key(nameKey,   key)
+			.key(domainKey, domain)
+			.key(localeKey, locale)
 			.getAsList();
 
 		// nothing found

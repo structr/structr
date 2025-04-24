@@ -31,7 +31,7 @@ import java.util.Map;
 
 public class JdbcFunction extends AdvancedScriptingFunction {
 
-	public static final String ERROR_MESSAGE    = "Usage: ${jdbc(url, query)}. Example: ${jdbc(\"jdbc:mysql://localhost:3306\", \"SELECT * from Test\")}";
+	public static final String ERROR_MESSAGE    = "Usage: ${jdbc(url, query[, username, password ])}. Example: ${jdbc(\"jdbc:mysql://localhost:3306\", \"SELECT * from Test\", \"user\", \"p4ssw0rd\")}";
 
 	@Override
 	public String getName() {
@@ -40,7 +40,7 @@ public class JdbcFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getSignature() {
-		return "jdbcUrl, sqlQuery";
+		return "jdbcUrl, sqlQuery[, username, password]";
 	}
 
 	@Override
@@ -54,9 +54,19 @@ public class JdbcFunction extends AdvancedScriptingFunction {
 			final String url                     = (String)sources[0];
 			final String sql                     = (String)sources[1];
 
+			String username = null;
+			String password = null;
+
+			switch (sources.length) {
+
+				case 4: password = sources[3].toString();
+				case 3: username = sources[2].toString();
+					break;
+			}
+
 			try {
 
-				try (final Connection connection = DriverManager.getConnection(url)) {
+				try (final Connection connection = getConnection(url, username, password)) {
 
 					final Statement statement = connection.createStatement();
 
@@ -87,14 +97,15 @@ public class JdbcFunction extends AdvancedScriptingFunction {
 
 			} catch (Throwable t) {
 
-				if (t instanceof ClassNotFoundException) {
+				// gets thrown as a basic SQLException
+				if (t.getMessage().contains("No suitable driver found")) {
 
-					logException(t, "JDBC driver not found. Make sure the driver's JAR is located in the lib directory.", new Object[] { t.getMessage() });
-					throw new FrameworkException(422, "JDBC driver not found. Make sure the driver's JAR is located in the lib directory.");
+					//logger.warn("No suitable JDBC driver not found. Ensure that the appropriate driver JAR file is located in the lib directory.");
+					throw new FrameworkException(422, "No suitable JDBC driver not found. Ensure that the appropriate driver JAR file is located in the lib directory.");
 
 				} else {
 
-					logException(t, t.getMessage(), sources);
+					//logException(t, t.getMessage(), sources);
 					throw new FrameworkException(422, t.getMessage());
 				}
 			}
@@ -121,5 +132,17 @@ public class JdbcFunction extends AdvancedScriptingFunction {
 	@Override
 	public String shortDescription() {
 		return "Fetches data from a JDBC source";
+	}
+
+	private Connection getConnection(final String url, final String username, final String password) throws SQLException {
+
+		if (username == null && password == null) {
+
+			return DriverManager.getConnection(url);
+
+		} else {
+
+			return DriverManager.getConnection(url, username, password);
+		}
 	}
 }

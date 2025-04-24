@@ -19,13 +19,11 @@
 package org.structr.schema.openapi.schema;
 
 import org.structr.common.PropertyView;
-import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
-import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.export.StructrTypeDefinition;
 import org.structr.schema.openapi.common.OpenAPISchemaReference;
 

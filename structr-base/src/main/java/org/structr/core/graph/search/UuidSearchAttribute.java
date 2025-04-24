@@ -18,8 +18,7 @@
  */
 package org.structr.core.graph.search;
 
-import org.apache.commons.lang3.StringUtils;
-import org.structr.api.search.Occurrence;
+import org.apache.commons.lang.StringUtils;
 import org.structr.api.search.UuidQuery;
 import org.structr.core.GraphObject;
 import org.structr.core.traits.StructrTraits;
@@ -31,8 +30,9 @@ import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
  */
 public class UuidSearchAttribute extends SearchAttribute<String> implements UuidQuery {
 
-	public UuidSearchAttribute(final String value, final Occurrence occur) {
-		super(occur, Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), value);
+	public UuidSearchAttribute(final String value) {
+
+		super(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), value);
 	}
 
 	@Override
@@ -57,31 +57,19 @@ public class UuidSearchAttribute extends SearchAttribute<String> implements Uuid
 	@Override
 	public boolean includeInResult(final GraphObject entity) {
 
-		String nodeValue     = entity.getProperty(getKey());
-		Occurrence occur     = getOccurrence();
-		String searchValue   = getValue();
+		String nodeValue    = entity.getProperty(getKey());
+		String searchValue  = getValue();
 
-		if (occur.equals(Occurrence.FORBIDDEN)) {
+		if (nodeValue != null) {
 
-			if ((nodeValue != null) && compare(nodeValue, searchValue) == 0) {
-
-				// don't add, do not check other results
+			if (compare(nodeValue, searchValue) != 0) {
 				return false;
 			}
 
 		} else {
 
-			if (nodeValue != null) {
-
-				if (compare(nodeValue, searchValue) != 0) {
-					return false;
-				}
-
-			} else {
-
-				if (searchValue != null && StringUtils.isNotBlank(searchValue)) {
-					return false;
-				}
+			if (searchValue != null && StringUtils.isNotBlank(searchValue)) {
+				return false;
 			}
 		}
 

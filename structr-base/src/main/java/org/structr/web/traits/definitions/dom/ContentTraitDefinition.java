@@ -21,6 +21,7 @@ package org.structr.web.traits.definitions.dom;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.Permission;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -209,7 +210,7 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 						final String _sharedComponentConfiguration = node.getSharedComponentConfiguration();
 						if (StringUtils.isNotBlank(_sharedComponentConfiguration)) {
 
-							Scripting.evaluate(renderContext, node, "${" + _sharedComponentConfiguration.trim() + "}", "sharedComponentConfiguration", 0, node.getUuid());
+							Scripting.evaluate(renderContext, node, "${" + _sharedComponentConfiguration.trim() + "}", "sharedComponentConfiguration", 0, node.getUuid(), Settings.WrapJSInMainFunction.getValue(false));
 						}
 
 						// determine some postprocessing flags
@@ -616,7 +617,7 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 
 				} else {
 
-					final Object value = Scripting.evaluate(renderContext, node, script, "content", row, node.getUuid());
+					final Object value = Scripting.evaluate(renderContext, node, script, "content", row, node.getUuid(), Settings.WrapJSInMainFunction.getValue(false));
 					if (value != null) {
 
 						String content = null;

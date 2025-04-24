@@ -23,7 +23,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.traits.StructrTraits;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.api.RESTEndpoints;
-import org.structr.web.entity.User;
 
 public class TokenServlet extends LoginServlet {
 

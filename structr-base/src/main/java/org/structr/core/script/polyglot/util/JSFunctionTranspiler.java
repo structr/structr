@@ -16,16 +16,26 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.api.search;
+package org.structr.core.script.polyglot.util;
 
-/**
- *
- */
-public enum Occurrence {
+import org.structr.core.script.Snippet;
 
-	REQUIRED,
-	OPTIONAL,
-	EXACT,
-	CONTAINS,
-	FORBIDDEN
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+public abstract class JSFunctionTranspiler {
+
+    public static String transpileSource(final Snippet snippet) {
+
+        if (snippet.embed()) {
+
+            final String transpiledSource = "(() => {" + snippet.getSource() + "\n})();";
+            snippet.setTranscribedSource(transpiledSource);
+            return snippet.getTranscribedSource();
+        }
+
+        return snippet.getSource();
+    }
 }

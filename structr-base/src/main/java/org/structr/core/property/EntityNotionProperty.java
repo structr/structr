@@ -21,12 +21,11 @@ package org.structr.core.property;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
-import org.structr.api.search.Occurrence;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.app.Query;
+import org.structr.core.app.QueryGroup;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.GraphSearchAttribute;
@@ -103,7 +102,7 @@ public class EntityNotionProperty<S extends NodeInterface, T> extends Property<T
 	}
 
 	@Override
-	public PropertyConverter<?, T> inputConverter(final SecurityContext securityContext) {
+	public PropertyConverter<?, T> inputConverter(final SecurityContext securityContext, boolean fromString) {
 		return null;
 	}
 
@@ -165,11 +164,11 @@ public class EntityNotionProperty<S extends NodeInterface, T> extends Property<T
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occurrence occur, T searchValue, boolean exactMatch, final Query query) {
+	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final T searchValue, final boolean exactMatch, final QueryGroup query) {
 
 		final PropertyKey<S> entityProperty = Traits.of(baseType).key(basePropertyName);
 
-		return new GraphSearchAttribute(notion.getPrimaryPropertyKey(), entityProperty, searchValue, occur, exactMatch);
+		return new GraphSearchAttribute(notion.getPrimaryPropertyKey(), entityProperty, searchValue, exactMatch);
 	}
 
 	@Override

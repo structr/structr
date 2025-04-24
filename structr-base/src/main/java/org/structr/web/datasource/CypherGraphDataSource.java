@@ -29,7 +29,6 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
-import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 
 /**

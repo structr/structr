@@ -51,14 +51,14 @@ public class ExtendNotionPropertyWithUuid implements MigrationHandler {
 					final InvalidPropertySchemaToken token = (InvalidPropertySchemaToken)errorToken;
 					final String typeName                  = token.getType();
 					final String propertyName              = token.getProperty();
-					final NodeInterface type               = app.nodeQuery(StructrTraits.SCHEMA_NODE).andName(typeName).getFirst();
+					final NodeInterface type               = app.nodeQuery(StructrTraits.SCHEMA_NODE).name(typeName).getFirst();
 					final Traits traits                    = Traits.of(StructrTraits.SCHEMA_PROPERTY);
 
 					if (type != null) {
 
 						final NodeInterface property = app.nodeQuery(StructrTraits.SCHEMA_PROPERTY)
-							.and(traits.key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), type)
-							.and(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), propertyName).getFirst();
+							.key(traits.key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), type)
+							.key(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), propertyName).getFirst();
 
 						if (property != null) {
 

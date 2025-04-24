@@ -38,12 +38,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.GroupTraitDefinition;
-import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
-import org.structr.core.traits.definitions.RelationshipInterfaceTraitDefinition;
-import org.structr.core.traits.definitions.SchemaGrantTraitDefinition;
-import org.structr.core.traits.definitions.SchemaNodeTraitDefinition;
-import org.structr.core.traits.definitions.SchemaRelationshipNodeTraitDefinition;
+import org.structr.core.traits.definitions.*;
 import org.testng.annotations.Test;
 
 import java.util.List;
@@ -448,7 +443,7 @@ public class PermissionResolutionTest extends StructrTest {
 			final Group testGroup1 = app.create(StructrTraits.GROUP, "Group1").as(Group.class);
 			final Group testGroup2 = app.create(StructrTraits.GROUP, "Group2").as(Group.class);
 			final Group testGroup3 = app.create(StructrTraits.GROUP, "Group3").as(Group.class);
-			final Principal tester = app.nodeQuery(StructrTraits.USER).andName("tester").getFirst().as(Principal.class);
+			final Principal tester = app.nodeQuery(StructrTraits.USER).name("tester").getFirst().as(Principal.class);
 
 			// create group hierarchy for test user
 			testGroup1.addMember(securityContext, testGroup2);
@@ -456,7 +451,7 @@ public class PermissionResolutionTest extends StructrTest {
 			testGroup3.addMember(securityContext, tester);
 
 			// create grant
-			final NodeInterface projectNode = app.nodeQuery(StructrTraits.SCHEMA_NODE).andName("Project").getFirst();
+			final NodeInterface projectNode = app.nodeQuery(StructrTraits.SCHEMA_NODE).name("Project").getFirst();
 			final NodeInterface grant      = app.create(StructrTraits.SCHEMA_GRANT,
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.SCHEMA_NODE_PROPERTY),          projectNode),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("principal"),           testGroup1),
@@ -479,7 +474,7 @@ public class PermissionResolutionTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final Principal tester = app.nodeQuery(StructrTraits.USER).andName("tester").getFirst().as(Principal.class);
+			final Principal tester = app.nodeQuery(StructrTraits.USER).name("tester").getFirst().as(Principal.class);
 
 			app.create(projectType, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Project1"), new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), tester));
 			app.create(projectType, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Project2"));
@@ -519,7 +514,7 @@ public class PermissionResolutionTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			// delete Group2 which links tester to granted Group1
-			app.delete(app.nodeQuery(StructrTraits.GROUP).andName("Group2").getFirst());
+			app.delete(app.nodeQuery(StructrTraits.GROUP).name("Group2").getFirst());
 			tx.success();
 
 		} catch (Throwable t) {
@@ -694,7 +689,7 @@ public class PermissionResolutionTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final Principal tester            = app.nodeQuery(StructrTraits.USER).andName("tester").getFirst().as(Principal.class);
+			final Principal tester            = app.nodeQuery(StructrTraits.USER).name("tester").getFirst().as(Principal.class);
 			final SecurityContext userContext = SecurityContext.getInstance(tester, AccessMode.Backend);
 			final List<NodeInterface> result  = app.nodeQuery(projectType).sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getAsList();
 

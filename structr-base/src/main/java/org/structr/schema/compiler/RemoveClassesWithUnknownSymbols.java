@@ -27,10 +27,10 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.structr.core.traits.StructrTraits;
 
 /**
  * A migration handler that removes schema nodes for classes that have
@@ -84,7 +84,7 @@ public class RemoveClassesWithUnknownSymbols implements MigrationHandler {
 
 						if (handled == false) {
 
-							final NodeInterface schemaNode = app.nodeQuery(StructrTraits.SCHEMA_RELOADING_NODE).andName(type).getFirst();
+							final NodeInterface schemaNode = app.nodeQuery(StructrTraits.SCHEMA_RELOADING_NODE).name(type).getFirst();
 							if (schemaNode != null) {
 
 								app.delete(schemaNode);

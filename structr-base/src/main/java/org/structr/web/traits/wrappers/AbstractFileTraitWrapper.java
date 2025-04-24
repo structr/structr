@@ -282,7 +282,7 @@ public class AbstractFileTraitWrapper extends AbstractNodeTraitWrapper implement
 		if (filePath != null) {
 
 			final PropertyKey<String> pathKey = traits.key(AbstractFileTraitDefinition.PATH_PROPERTY);
-			final List<NodeInterface> files   = StructrApp.getInstance().nodeQuery(StructrTraits.ABSTRACT_FILE).and(pathKey, filePath).getAsList();
+			final List<NodeInterface> files   = StructrApp.getInstance().nodeQuery(StructrTraits.ABSTRACT_FILE).key(pathKey, filePath).getAsList();
 
 			for (final NodeInterface file : files) {
 

@@ -34,12 +34,12 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationProperty;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 
 /**
  * Deserializes a {@link GraphObject} using a type and a set of property values.
@@ -131,7 +131,7 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 						}
 					}
 
-					for (final NodeInterface n : app.nodeQuery(type).and(searchAttributes).getResultStream()) {
+					for (final NodeInterface n : app.nodeQuery(type).key(searchAttributes).getResultStream()) {
 						result.add((T)n);
 					}
 

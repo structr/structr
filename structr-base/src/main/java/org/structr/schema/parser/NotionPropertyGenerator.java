@@ -18,7 +18,7 @@
  */
 package org.structr.schema.parser;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;

@@ -25,12 +25,12 @@ import org.structr.core.entity.ResourceAccess;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.ResourceAccessTraitDefinition;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import org.structr.core.traits.definitions.ResourceAccessTraitDefinition;
 
 public class ResourceAccessTraitWrapper extends AbstractNodeTraitWrapper implements ResourceAccess {
 
@@ -90,6 +90,11 @@ public class ResourceAccessTraitWrapper extends AbstractNodeTraitWrapper impleme
 		return cachedResourceSignature;
 	}
 
+	@Override
+	public void setResourceSignature(final String signature) throws FrameworkException {
+		wrappedObject.setProperty(traits.key(ResourceAccessTraitDefinition.SIGNATURE_PROPERTY), signature);
+	}
+
 	// ----- public static methods -----
 	public static void clearCache() {
 		permissionsCache.clear();
@@ -104,7 +109,7 @@ public class ResourceAccessTraitWrapper extends AbstractNodeTraitWrapper impleme
 			permissions = new LinkedList<>();
 
 			// Ignore securityContext here (so we can cache all permissions for a signature independent of a user)
-			final List<NodeInterface> nodes = StructrApp.getInstance().nodeQuery(StructrTraits.RESOURCE_ACCESS).and(traits.key(ResourceAccessTraitDefinition.SIGNATURE_PROPERTY), signature).getAsList();
+			final List<NodeInterface> nodes = StructrApp.getInstance().nodeQuery(StructrTraits.RESOURCE_ACCESS).key(traits.key(ResourceAccessTraitDefinition.SIGNATURE_PROPERTY), signature).getAsList();
 
 			for (final NodeInterface node : nodes) {
 

@@ -33,10 +33,10 @@ import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.TypeProperty;
-
-import java.util.*;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
+
+import java.util.*;
 
 /**
  *

@@ -19,6 +19,9 @@
 package org.structr.web.traits.definitions;
 
 import org.structr.common.PropertyView;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.helper.ValidationHelper;
+import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
@@ -29,9 +32,11 @@ import org.structr.core.property.StringProperty;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.web.entity.event.ParameterMapping;
 import org.structr.web.traits.wrappers.ParameterMappingTraitWrapper;
 
@@ -55,7 +60,20 @@ public class ParameterMappingTraitDefinition extends AbstractNodeTraitDefinition
 
 	@Override
 	public Map<Class, LifecycleMethod> getLifecycleMethods() {
-		return Map.of();
+		return Map.of(
+
+			IsValid.class,
+			new IsValid() {
+				@Override
+				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
+
+					final Traits traits = obj.getTraits();
+
+					return ValidationHelper.isValidStringNotBlank(obj, traits.key(PARAMETER_NAME_PROPERTY), errorBuffer);
+				}
+			}
+
+		);
 	}
 
 	@Override

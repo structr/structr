@@ -121,7 +121,7 @@ public class FunctionProperty<T> extends Property<T> {
 					// don't ignore predicate
 					actionContext.setPredicate(predicate);
 
-					Object result = Scripting.evaluate(actionContext, obj, "${".concat(readFunction.trim()).concat("}"), "getProperty(" + jsonName + ")", sourceUuid);
+					Object result = Scripting.evaluate(actionContext, obj, "${".concat(readFunction.trim()).concat("}"), "getProperty(" + jsonName + ")", sourceUuid, true);
 
 					PropertyConverter converter = null;
 
@@ -130,19 +130,19 @@ public class FunctionProperty<T> extends Property<T> {
 						switch (typeHint.toLowerCase()) {
 
 							case "boolean":
-								converter = pBoolean.inputConverter(securityContext);
+								converter = pBoolean.inputConverter(securityContext, false);
 								break;
 							case "int":
-								converter = pInt.inputConverter(securityContext);
+								converter = pInt.inputConverter(securityContext, false);
 								break;
 							case "long":
-								converter = pLong.inputConverter(securityContext);
+								converter = pLong.inputConverter(securityContext, false);
 								break;
 							case "double":
-								converter = pDouble.inputConverter(securityContext);
+								converter = pDouble.inputConverter(securityContext, false);
 								break;
 							case "date":
-								converter = pDate.inputConverter(securityContext);
+								converter = pDate.inputConverter(securityContext, false);
 								break;
 						}
 
@@ -257,7 +257,7 @@ public class FunctionProperty<T> extends Property<T> {
 	}
 
 	@Override
-	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext, boolean fromString) {
 		return getDatabaseConverter(securityContext);
 	}
 
@@ -279,7 +279,7 @@ public class FunctionProperty<T> extends Property<T> {
 
 				ctx.setConstant("value", value);
 
-				result = (T)Scripting.evaluate(ctx, obj, "${".concat(func.trim()).concat("}"), "setProperty(" + jsonName + ")", sourceUuid);
+				result = (T)Scripting.evaluate(ctx, obj, "${".concat(func.trim()).concat("}"), "setProperty(" + jsonName + ")", sourceUuid, true);
 
 			} catch (FrameworkException fex) {
 
@@ -315,11 +315,11 @@ public class FunctionProperty<T> extends Property<T> {
 
 			switch (typeHint.toLowerCase()) {
 
-				case "boolean": converter = pBoolean.inputConverter(securityContext); break;
-				case "int":     converter = pInt.inputConverter(securityContext); break;
-				case "long":    converter = pLong.inputConverter(securityContext); break;
-				case "double":  converter = pDouble.inputConverter(securityContext); break;
-				case "date":    converter = pDate.inputConverter(securityContext); break;
+				case "boolean": converter = pBoolean.inputConverter(securityContext, false); break;
+				case "int":     converter = pInt.inputConverter(securityContext, false); break;
+				case "long":    converter = pLong.inputConverter(securityContext, false); break;
+				case "double":  converter = pDouble.inputConverter(securityContext, false); break;
+				case "date":    converter = pDate.inputConverter(securityContext, false); break;
 			}
 
 			if (converter != null) {

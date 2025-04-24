@@ -114,7 +114,7 @@ public class PagePathTraitDefinition extends AbstractNodeTraitDefinition {
 
 		final Property<NodeInterface> pageProperty                 = new StartNode(PAGE_PROPERTY, StructrTraits.PAGE_HAS_PATH_PAGE_PATH);
 		final Property<Iterable<NodeInterface>> parametersProperty = new EndNodes(PARAMETERS_PROPERTY, StructrTraits.PAGE_PATH_HAS_PARAMETER_PAGE_PATH_PARAMETER);
-		final Property<String> nameProperty                        = new StringProperty(NAME_PROPERTY).notNull();		// FIXME: why custom name property?
+		final Property<String> nameProperty                        = new StringProperty(NAME_PROPERTY).notNull();		// Custom name property because we need a not null constraint on the name.
 		final Property<Integer> priorityProperty                   = new IntProperty(PRIORITY_PROPERTY);
 
 		return Set.of(

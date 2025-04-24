@@ -36,11 +36,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.AbstractSchemaNodeTraitDefinition;
-import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
-import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
-import org.structr.core.traits.definitions.SchemaNodeTraitDefinition;
-import org.structr.core.traits.definitions.SchemaViewTraitDefinition;
+import org.structr.core.traits.definitions.*;
 import org.structr.schema.openapi.common.OpenAPISchemaReference;
 import org.structr.schema.openapi.operation.*;
 import org.structr.schema.openapi.parameter.OpenAPIPropertyQueryParameter;
@@ -219,85 +215,6 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		final StructrMethodDefinition newMethod = new StructrMethodDefinition(this, name);
 
 		newMethod.setSource(source);
-
-		methods.add(newMethod);
-
-		// sort methods
-		Collections.sort(methods);
-
-		return newMethod;
-	}
-
-	@Override
-	public JsonMethod addMethod(final String name) {
-
-		final StructrMethodDefinition newMethod = new StructrMethodDefinition(this, name);
-
-		newMethod.setCodeType("java");
-		newMethod.setReturnType("void");
-
-		methods.add(newMethod);
-
-		// sort methods
-		Collections.sort(methods);
-
-		return newMethod;
-	}
-
-	@Override
-	public JsonMethod overrideMethod(final String name, final boolean callSuper, final String implementation) {
-
-		final StructrMethodDefinition newMethod = new StructrMethodDefinition(this, name);
-
-		newMethod.setSource(implementation);
-		newMethod.setOverridesExisting(true);
-		newMethod.setCallSuper(callSuper);
-		newMethod.setCodeType("java");
-		newMethod.setReturnType("void");
-
-		methods.add(newMethod);
-
-		// sort methods
-		Collections.sort(methods);
-
-		return newMethod;
-	}
-
-	@Override
-	public JsonMethod addPropertyGetter(final String propertyName, final Class type) {
-
-		final StructrMethodDefinition newMethod = new StructrMethodDefinition(this, "get" + StringUtils.capitalize(propertyName));
-
-		newMethod.setSource("return getProperty(" + propertyName + "Property);");
-
-		if (type.isArray()) {
-
-			newMethod.setReturnType(type.getPackageName() + "." +  type.getSimpleName());
-		} else {
-
-			newMethod.setReturnType(type.getName().replace("$", "."));
-		}
-
-		newMethod.setCodeType("java");
-
-		methods.add(newMethod);
-
-		// sort methods
-		Collections.sort(methods);
-
-		return newMethod;
-	}
-
-	@Override
-	public JsonMethod addPropertySetter(final String propertyName, final Class type) {
-
-		final StructrMethodDefinition newMethod = new StructrMethodDefinition(this, "set" + StringUtils.capitalize(propertyName));
-
-		newMethod.setSource("setProperty(" + propertyName + "Property, value);");
-		newMethod.addParameter("value", type.getName());
-		newMethod.setCodeType("java");
-		newMethod.addException("FrameworkException");
-		newMethod.setReturnType("void");
 
 		methods.add(newMethod);
 

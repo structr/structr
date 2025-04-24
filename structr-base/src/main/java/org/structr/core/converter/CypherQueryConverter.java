@@ -29,10 +29,10 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.cypher.CypherQueryHandler;
 import org.structr.core.graph.GraphDatabaseCommand;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 
 /**
  * Executes the given {@link CypherQueryConverter} on the current node and

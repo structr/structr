@@ -410,7 +410,7 @@ public class ResourceAccessTest extends StructrUiTest {
 			final JsonType type     = schema.addType("Test");
 
 			type.addMethod("getName", "{ return $.this.name; }");
-			type.addMethod("getName2", "{ return $.this.name + $.methodParameters.param1; }").setHttpVerb("GET").addParameter("param1", "string");
+			type.addMethod("getName2", "{ return ($.this.name + $.methodParameters.param1); }").setHttpVerb("GET").addParameter("param1", "string");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -432,7 +432,7 @@ public class ResourceAccessTest extends StructrUiTest {
 			uuid = test.getUuid();
 
 			// set owner
-			final NodeInterface tester = app.nodeQuery(StructrTraits.PRINCIPAL).andName("tester").getFirst();
+			final NodeInterface tester = app.nodeQuery(StructrTraits.PRINCIPAL).name("tester").getFirst();
 
 			test.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), tester);
 
@@ -451,8 +451,8 @@ public class ResourceAccessTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createResourceAccess("Test/getName", UiAuthenticator.AUTH_USER_POST).setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
-			createResourceAccess("Test/getName2", UiAuthenticator.AUTH_USER_GET).setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
+			createResourceAccess("Test/_id/getName", UiAuthenticator.AUTH_USER_POST).setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
+			createResourceAccess("Test/_id/getName2", UiAuthenticator.AUTH_USER_GET).setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
 
 			tx.success();
 
@@ -488,7 +488,7 @@ public class ResourceAccessTest extends StructrUiTest {
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 			final JsonType type     = schema.addType("Test");
 
-			type.addMethod("myMethod", "{ return 'test!'; }");
+			type.addMethod("myMethod", "{ 'test!'; }");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 

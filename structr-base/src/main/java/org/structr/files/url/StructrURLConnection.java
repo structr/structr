@@ -29,13 +29,13 @@ import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.web.entity.File;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
-import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 /**
  * A URLConnection that fetches a SecurityContext using a custom URL scheme
@@ -69,7 +69,7 @@ public class StructrURLConnection extends URLConnection {
 
 				final NodeInterface node = app
 					.nodeQuery(StructrTraits.FILE)
-					.and(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY), url.getPath())
+					.key(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY), url.getPath())
 					.getFirst();
 
 				if (node != null) {

@@ -118,17 +118,7 @@ public class ReplaceWithCommand extends CreateAndAppendDOMNodeCommand {
 
 			} else if ("#template".equals(tagName)) {
 
-				newNode = document.createTextNode("#template");
-
-				try {
-
-					newNode.unlockSystemPropertiesOnce();
-					newNode.setProperties(newNode.getSecurityContext(), new PropertyMap(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY), StructrTraits.TEMPLATE));
-
-				} catch (FrameworkException fex) {
-
-					logger.warn("Unable to set type of node {} to Template: {}", new Object[] { newNode.getUuid(), fex.getMessage() } );
-				}
+				newNode = document.createTemplate("#template");
 
 			} else if ("#content".equals(tagName)) {
 

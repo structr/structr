@@ -18,7 +18,7 @@
  */
 package org.structr.web.function;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.ParseException;
 import org.apache.http.entity.ContentType;
 import org.jsoup.Jsoup;
@@ -27,11 +27,13 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
-import org.structr.core.property.*;
+import org.structr.core.property.ByteArrayProperty;
+import org.structr.core.property.GenericProperty;
+import org.structr.core.property.IntProperty;
+import org.structr.core.property.StringProperty;
 import org.structr.rest.common.HttpHelper;
 import org.structr.schema.action.ActionContext;
 
-import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
 import java.util.ArrayList;

@@ -19,14 +19,8 @@
 package org.structr.api.util;
 
 import org.apache.commons.collections4.map.LRUMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.lang.management.ManagementFactory;
-import java.lang.management.MemoryPoolMXBean;
-import java.lang.management.MemoryUsage;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
 /**

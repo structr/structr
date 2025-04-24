@@ -232,7 +232,7 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 				// fixme: how to compare types here?
 				if (propKey != null && unwrappedValue != null && !propKey.valueType().equals(unwrappedValue.getClass().getSimpleName())) {
 
-					final PropertyConverter inputConverter = propKey.inputConverter(actionContext.getSecurityContext());
+					final PropertyConverter inputConverter = propKey.inputConverter(actionContext.getSecurityContext(), false);
 
 					if (inputConverter != null) {
 

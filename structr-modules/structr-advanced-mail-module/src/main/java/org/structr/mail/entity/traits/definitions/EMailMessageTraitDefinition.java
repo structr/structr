@@ -24,11 +24,11 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 
 import java.util.Date;
 import java.util.Map;
 import java.util.Set;
-import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 
 public class EMailMessageTraitDefinition extends AbstractNodeTraitDefinition {
 

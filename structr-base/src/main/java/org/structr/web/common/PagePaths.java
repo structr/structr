@@ -58,8 +58,13 @@ public class PagePaths {
 						contextStore.setConstant(entry.getKey(), entry.getValue());
 					}
 
-					// return resolved page
-					return pathCandidate.getPage();
+					final Page resolvedPage = pathCandidate.getPage();
+
+					// only return resolved page if it is visible for the current user (or public)
+					if (renderContext.getSecurityContext().isReadable(resolvedPage, false, false)) {
+
+						return resolvedPage;
+					}
 				}
 			}
 		}

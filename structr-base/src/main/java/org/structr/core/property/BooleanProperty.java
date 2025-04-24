@@ -80,7 +80,7 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 	}
 
 	@Override
-	public PropertyConverter<?, Boolean> inputConverter(final SecurityContext securityContext) {
+	public PropertyConverter<?, Boolean> inputConverter(final SecurityContext securityContext, boolean fromString) {
 		return new InputConverter(securityContext);
 	}
 

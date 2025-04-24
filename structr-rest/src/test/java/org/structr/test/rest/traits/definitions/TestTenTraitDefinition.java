@@ -27,10 +27,10 @@ import org.structr.core.property.FunctionProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 
 import java.util.Map;
 import java.util.Set;
-import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 
 public class TestTenTraitDefinition extends AbstractNodeTraitDefinition {
 
@@ -42,7 +42,7 @@ public class TestTenTraitDefinition extends AbstractNodeTraitDefinition {
 	public Set<PropertyKey> getPropertyKeys() {
 
 		final Property<NodeInterface> testSeven = new EndNode("testSeven", "TenSevenOneToOne", new PropertySetNotion<>(true, newSet("id", "aString")));
-		final Property<Object> functionTest     = new FunctionProperty<>("functionTest").readFunction("{ return { name: 'test', value: 123, me: Structr.this }; }");
+		final Property<Object> functionTest     = new FunctionProperty<>("functionTest").readFunction("{ return ({ name: 'test', value: 123, me: Structr.this }); }");
 		final Property<Object> getNameProperty 	= new FunctionProperty<>("getNameProperty").readFunction("{ return Structr.this.name; }").cachingEnabled(true);
 		final Property<Object> getRandomNumProp	= new FunctionProperty<>("getRandomNumProp").readFunction("{ return Math.random()*10000; }").cachingEnabled(true);
 

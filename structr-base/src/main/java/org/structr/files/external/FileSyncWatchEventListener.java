@@ -36,10 +36,10 @@ import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
-
-import java.nio.file.Path;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 import org.structr.web.traits.definitions.FolderTraitDefinition;
+
+import java.nio.file.Path;
 
 /**
  * Implementation of the watch event listener interface that syncs
@@ -193,7 +193,7 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 		final App app                              = StructrApp.getInstance();
 		final String type                          = isFile ? (fileType != null ? fileType : StructrTraits.FILE) : (folderType != null ? folderType : StructrTraits.FOLDER);
 
-		NodeInterface file = app.nodeQuery(type).and(nameKey, fileName).and(parentKey, parentFolder).getFirst();
+		NodeInterface file = app.nodeQuery(type).key(nameKey, fileName).key(parentKey, parentFolder).getFirst();
 		if (file == null && doCreate) {
 
 			file = app.create(type,

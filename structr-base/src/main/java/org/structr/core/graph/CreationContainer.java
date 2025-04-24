@@ -43,14 +43,17 @@ public class CreationContainer<T extends Comparable> implements GraphObject, Pro
 
 	private final Map<String, Object> data = new LinkedHashMap<>();
 	private GraphObject         wrappedObj = null;
-	private boolean isNode                 = true;
+	private final Traits traits;
+	private final boolean isNode;
 
-	public CreationContainer(final boolean isNode) {
+	public CreationContainer(final Traits traits, final boolean isNode) {
+		this.traits = traits;
 		this.isNode = isNode;
 	}
 
-	public CreationContainer(final GraphObject obj) {
+	public CreationContainer(final Traits traits, final GraphObject obj) {
 		this.wrappedObj = obj;
+		this.traits     = traits;
 		this.isNode     = obj.isNode();
 	}
 
@@ -79,7 +82,7 @@ public class CreationContainer<T extends Comparable> implements GraphObject, Pro
 
 	@Override
 	public Traits getTraits() {
-		return null;
+		return traits;
 	}
 
 	@Override

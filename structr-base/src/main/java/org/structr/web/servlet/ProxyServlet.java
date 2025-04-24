@@ -24,8 +24,8 @@ import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -176,7 +176,7 @@ public class ProxyServlet extends AbstractServletBase implements HttpServiceServ
 			if (StringUtils.isNotBlank(contentType)) {
 				final String[] contentTypeParts = contentType.split(";");
 				if (contentTypeParts.length == 2) {
-					charset = org.apache.commons.lang.StringUtils.trim(contentTypeParts[1]);
+					charset = org.apache.commons.lang3.StringUtils.trim(contentTypeParts[1]);
 				}
 			}
 

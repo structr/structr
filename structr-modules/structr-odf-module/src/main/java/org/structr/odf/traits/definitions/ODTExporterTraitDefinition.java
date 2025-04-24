@@ -105,7 +105,7 @@ public class ODTExporterTraitDefinition extends AbstractNodeTraitDefinition {
 		try {
 
 			final App app                        = StructrApp.getInstance(securityContext);
-			final ResultStream result            = app.nodeQuery("AbstractNode").and(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.ID_PROPERTY), uuid).getResultStream();
+			final ResultStream result            = app.nodeQuery("AbstractNode").key(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.ID_PROPERTY), uuid).getResultStream();
 			final ResultStream transformedResult = transformation.transformOutput(securityContext, StructrTraits.NODE_INTERFACE, result);
 
 			Map<String, Object> nodeProperties = new HashMap<>();

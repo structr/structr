@@ -21,10 +21,10 @@ package org.structr.test.rest.traits.definitions;
 import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 
 import java.util.Map;
 import java.util.Set;
-import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 
 public class TestObjectTraitDefinition extends AbstractNodeTraitDefinition {
 

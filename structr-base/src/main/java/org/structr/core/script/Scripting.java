@@ -23,6 +23,7 @@ import org.graalvm.polyglot.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
+import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.AssertException;
@@ -40,9 +41,11 @@ import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.DateProperty;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.core.script.polyglot.context.ContextFactory;
+import org.structr.core.script.polyglot.util.JSFunctionTranspiler;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.script.polyglot.util.JSFunctionTranspiler;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.parser.DatePropertyGenerator;
@@ -53,7 +56,6 @@ import java.util.regex.Pattern;
 
 public class Scripting {
 
-	private static final Pattern importPattern                      = Pattern.compile("import([ \\n\\t]*(?:[^ \\n\\t\\{\\}]+[ \\n\\t]*,?)?(?:[ \\n\\t]*\\{(?:[ \\n\\t]*[^ \\n\\t\"'\\{\\}]+[ \\n\\t]*,?)+\\})?[ \\n\\t]*)from[ \\n\\t]*(['\"])([^'\"\\n]+)(?:['\"])");
 	private static final Pattern ScriptEngineExpression             = Pattern.compile("^\\$\\{(\\w+)\\{(.*)\\}\\}$", Pattern.DOTALL);
 	private static final Logger logger                              = LoggerFactory.getLogger(Scripting.class.getName());
 
@@ -94,7 +96,7 @@ public class Scripting {
 
 					try {
 
-						final Object extractedValue = evaluate(actionContext, entity, expression, methodName, 0, entity != null ? entity.getUuid() : null);
+						final Object extractedValue = evaluate(actionContext, entity, expression, methodName, 0, entity != null ? entity.getUuid() : null, Settings.WrapJSInMainFunction.getValue(false));
 						String partValue            = extractedValue != null ? formatToDefaultDateOrString(extractedValue) : "";
 
 						// non-null value?
@@ -141,14 +143,18 @@ public class Scripting {
 	}
 
 	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String input, final String methodName) throws FrameworkException, UnlicensedScriptException {
-		return evaluate(actionContext, entity, input, methodName, null);
+		return evaluate(actionContext, entity, input, methodName, null, Settings.WrapJSInMainFunction.getValue(false));
 	}
 
 	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String input, final String methodName, final String codeSource) throws FrameworkException, UnlicensedScriptException {
-		return evaluate(actionContext, entity, input, methodName, 0, codeSource);
+		return evaluate(actionContext, entity, input, methodName, 0, codeSource, Settings.WrapJSInMainFunction.getValue(false));
 	}
 
-	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String input, final String methodName, final int startRow, final String codeSource) throws FrameworkException, UnlicensedScriptException {
+	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String input, final String methodName, final String codeSource, final boolean wrapInJSFunction) throws FrameworkException, UnlicensedScriptException {
+		return evaluate(actionContext, entity, input, methodName, 0, codeSource, wrapInJSFunction);
+	}
+
+	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String input, final String methodName, final int startRow, final String codeSource, final boolean wrapInJSFunction) throws FrameworkException, UnlicensedScriptException {
 
 		final String expression = StringUtils.strip(input);
 
@@ -185,7 +191,7 @@ public class Scripting {
 			securityContext.setDoTransactionNotifications(false);
 		}
 
-		final Snippet snippet = new Snippet(methodName, source, !isScriptEngine);
+		final Snippet snippet = new Snippet(methodName, source, wrapInJSFunction);
 		snippet.setCodeSource(codeSource);
 		snippet.setStartRow(startRow);
 
@@ -195,6 +201,8 @@ public class Scripting {
 
 		} else if (isJavascript) {
 
+			snippet.setMimeType("application/javascript");
+			snippet.setEngineName("js");
 			final Object result = evaluateScript(actionContext, entity, "js", snippet);
 
 			if (enableTransactionNotifications && securityContext != null) {
@@ -266,9 +274,11 @@ public class Scripting {
 		} finally {
 
 			context.leave();
+			context.close();
+			actionContext.putScriptingContext(engineName, null);
 		}
 
-		// Prefer explicitly printed output over actual result
+		// Legacy print() support: Prefer explicitly printed output over actual result
 		final String outputBuffer = actionContext.getOutput();
 		if (outputBuffer != null && !outputBuffer.isEmpty()) {
 
@@ -283,26 +293,28 @@ public class Scripting {
 		try {
 
 			Source source = null;
+			String code = snippet.getSource();
 
-			switch (engineName) {
+			if ("js".equals(engineName) && snippet.embed()) {
 
-				case "js" -> {
-
-					final String code   = Scripting.embedInFunction(snippet);
-					source = Source.newBuilder("js", code, snippet.getName()).mimeType(snippet.getMimeType()).build();
-				}
-
-				default -> {
-
-					source = Source.newBuilder(engineName, snippet.getSource(), snippet.getName()).build();
-				}
+				code = JSFunctionTranspiler.transpileSource(snippet);
 			}
+
+			source = Source.newBuilder(engineName, code, snippet.getName()).mimeType(snippet.getMimeType()).build();
 
 			try {
 				if (source != null) {
 
-					return context.eval(source);
+					final Value result = context.eval(source);
 
+					// Legacy print() support: Prefer explicitly printed output over actual result
+					final String outputBuffer = actionContext.getOutput();
+					if (outputBuffer != null && !outputBuffer.isEmpty()) {
+
+						return Value.asValue(outputBuffer);
+					}
+
+					return result;
 				} else {
 
 					return null;
@@ -386,46 +398,6 @@ public class Scripting {
 	}
 
 	// ----- private methods -----
-	public static String embedInFunction(final Snippet snippet) {
-
-		if (snippet.embed()) {
-
-			final String transpiledSource;
-			// Regex that matches import statements
-
-			/*
-			if (importPattern.matcher(snippet.getSource()).find()) {
-
-				final Map<Boolean, List<String>> partitionedScript = snippet.getSource().lines().collect(Collectors.partitioningBy(x -> importPattern.matcher(x).find()));
-				final String importStatements = String.join("\n", partitionedScript.get(true));
-				final String code = String.join("\n", partitionedScript.get(false));
-
-				StringBuilder reassembledScript = new StringBuilder();
-				reassembledScript
-						.append(importStatements).append("\n")
-						.append("function main() {\n")
-						.append(code)
-						.append("\n}\n\nmain();");
-				transpiledSource = reassembledScript.toString();
-				// Change mimetype to module since import statements have been found.
-				snippet.setMimeType("application/javascript+module");
-
-			} else {
-			*/
-
-				transpiledSource = "function main() {" + snippet.getSource() + "\n}\n\nmain();";
-			//}
-
-			snippet.setTranscribedSource(transpiledSource);
-		}
-
-		if (snippet.getTranscribedSource() == null) {
-
-			return snippet.getSource();
-		}
-
-		return snippet.getTranscribedSource();
-	}
 
 	// this is only public to be testable :(
 	public static List<String> extractScripts(final String source) {

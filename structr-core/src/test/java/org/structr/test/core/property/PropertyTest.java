@@ -37,11 +37,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
-import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
-import org.structr.core.traits.definitions.RelationshipInterfaceTraitDefinition;
-import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
-import org.structr.core.traits.definitions.SchemaRelationshipNodeTraitDefinition;
+import org.structr.core.traits.definitions.*;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.common.StructrTest;
 import org.testng.annotations.Test;
@@ -116,7 +112,7 @@ public class PropertyTest extends StructrTest {
 			// test exact search with correct value => 1 result
 			try (final Tx tx = app.tx()) {
 
-				result = app.nodeQuery("TestFour").and(key, new String[]{"one"}).getAsList();
+				result = app.nodeQuery("TestFour").key(key, new String[]{"one"}).getAsList();
 				assertEquals(1, result.size());
 				assertEquals(result.get(0), testEntity);
 
@@ -126,7 +122,7 @@ public class PropertyTest extends StructrTest {
 			// test inexact search with correct value => 1 result
 			try (final Tx tx = app.tx()) {
 
-				result = app.nodeQuery("TestFour").and(key, new String[]{"one"}, false).getAsList();
+				result = app.nodeQuery("TestFour").key(key, new String[]{"one"}, false).getAsList();
 				assertEquals(1, result.size());
 				assertEquals(result.get(0), testEntity);
 
@@ -142,7 +138,7 @@ public class PropertyTest extends StructrTest {
 			// test exact search with wrong value => no results
 			try (final Tx tx = app.tx()) {
 
-				result = app.nodeQuery("TestFour").and(key, new String[]{"one"}, true).getAsList();
+				result = app.nodeQuery("TestFour").key(key, new String[]{"one"}, true).getAsList();
 
 				assertEquals(0, result.size());
 				tx.success();
@@ -151,7 +147,7 @@ public class PropertyTest extends StructrTest {
 			// test exact search with correct value => 1 result
 			try (final Tx tx = app.tx()) {
 
-				result = app.nodeQuery("TestFour").and(key, new String[] { "one", "two", "three", "four", "five" }, true).getAsList();
+				result = app.nodeQuery("TestFour").key(key, new String[] { "one", "two", "three", "four", "five" }, true).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(result.get(0), testEntity);
@@ -162,7 +158,7 @@ public class PropertyTest extends StructrTest {
 			// test inexact search with existing value => 1 result
 			try (final Tx tx = app.tx()) {
 
-				result = app.nodeQuery("TestFour").and(key, new String[]{"one"}, false).getAsList();
+				result = app.nodeQuery("TestFour").key(key, new String[]{"one"}, false).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(result.get(0), testEntity);
@@ -173,7 +169,7 @@ public class PropertyTest extends StructrTest {
 			// test inexact search with existing values => 1 result
 			try (final Tx tx = app.tx()) {
 
-				result = app.nodeQuery("TestFour").and(key, new String[]{"one", "two"}, false).getAsList();
+				result = app.nodeQuery("TestFour").key(key, new String[]{"one", "two"}, false).getAsList();
 				assertEquals(1, result.size());
 				assertEquals(result.get(0), testEntity);
 
@@ -183,7 +179,7 @@ public class PropertyTest extends StructrTest {
 			// test exact search with nonexisting value => no result
 			try (final Tx tx = app.tx()) {
 
-				result = app.nodeQuery("TestFour").and(key, new String[]{"one", "foo"}).getAsList();
+				result = app.nodeQuery("TestFour").key(key, new String[]{"one", "foo"}).getAsList();
 				assertEquals(0, result.size());
 
 				tx.success();
@@ -249,7 +245,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals((Boolean)true, (Boolean)testEntity.getProperty(key));
 
-				List<NodeInterface> result = app.nodeQuery("TestFour").and(key, true).getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestFour").key(key, true).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -290,7 +286,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals((Boolean)true, (Boolean)testEntity.getProperty(key));
 
-				List<RelationshipInterface> result = app.relationshipQuery("OneFourOneToOne").and(key, true).getAsList();
+				List<RelationshipInterface> result = app.relationshipQuery("OneFourOneToOne").key(key, true).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -469,7 +465,7 @@ public class PropertyTest extends StructrTest {
 	public void testInputConverterOnCollectionProperty() {
 
 		PropertyKey<Iterable<NodeInterface>> instance = Traits.of("TestSix").key("manyToManyTestOnes");
-		PropertyConverter result = instance.inputConverter(securityContext);
+		PropertyConverter result = instance.inputConverter(securityContext, false);
 
 		assertTrue(result != null);
 	}
@@ -586,7 +582,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals(value, testEntity.getProperty(key));
 
-				List<NodeInterface> result = app.nodeQuery("TestFour").and(key, value).getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestFour").key(key, value).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -623,7 +619,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals(value, testEntity.getProperty(key));
 
-				List<NodeInterface> result = app.nodeQuery("TestFour").andRange(key, minValue, maxValue).getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestFour").range(key, minValue, maxValue).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -633,7 +629,7 @@ public class PropertyTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				List<NodeInterface> result = app.nodeQuery("TestFour").andRange(key, maxValue, maxMaxValue).getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestFour").range(key, maxValue, maxMaxValue).getAsList();
 
 				assertEquals(0, result.size());
 
@@ -733,7 +729,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals(3.141592653589793238, testEntity.getProperty(key), 0.0);
 
-				List<NodeInterface> result = app.nodeQuery("TestFour").and(key, 3.141592653589793238).getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestFour").key(key, 3.141592653589793238).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -800,7 +796,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals(Double.NEGATIVE_INFINITY, testEntity.getProperty(key), 0.0);
 
-				List<NodeInterface> result = app.nodeQuery("TestFour").and(key, Double.NEGATIVE_INFINITY).getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestFour").key(key, Double.NEGATIVE_INFINITY).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -833,7 +829,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals(Double.POSITIVE_INFINITY, testEntity.getProperty(key), 0.0);
 
-				List<NodeInterface> result = app.nodeQuery("TestFour").and(key, Double.POSITIVE_INFINITY).getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestFour").key(key, Double.POSITIVE_INFINITY).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -874,7 +870,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals(3.141592653589793238, testEntity.getProperty(key), 0.0);
 
-				List<RelationshipInterface> result = app.relationshipQuery("OneFourOneToOne").and(key, 3.141592653589793238).getAsList();
+				List<RelationshipInterface> result = app.relationshipQuery("OneFourOneToOne").key(key, 3.141592653589793238).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -906,7 +902,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals(123456.2, testEntity.getProperty(key));
 
-				List<NodeInterface> result = app.nodeQuery("TestFour").andRange(key, 123455.1, 123457.6).getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestFour").range(key, 123455.1, 123457.6).getAsList();
 
 
 				assertEquals(1, result.size());
@@ -917,7 +913,7 @@ public class PropertyTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				List<NodeInterface> result = app.nodeQuery("TestFour").andRange(key, 123456.3, 123456.7).getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestFour").range(key, 123456.3, 123456.7).getAsList();
 
 				assertEquals(0, result.size());
 
@@ -1139,7 +1135,7 @@ public class PropertyTest extends StructrTest {
 	@Test
 	public void testInputConverterOnEntityProperty() {
 
-		PropertyConverter result = Traits.of("TestSix").key("oneToOneTestThree").inputConverter(securityContext);
+		PropertyConverter result = Traits.of("TestSix").key("oneToOneTestThree").inputConverter(securityContext, false);
 
 		assertTrue(result != null);
 	}
@@ -1214,7 +1210,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals("Status1", testEntity.getProperty(key));
 
-				List<NodeInterface> result = app.nodeQuery("TestFour").and(key, "Status1").getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestFour").key(key, "Status1").getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -1255,7 +1251,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals("Status1", testEntity.getProperty(key));
 
-				List<RelationshipInterface> result = app.relationshipQuery("OneFourOneToOne").and(key, "Status1").getAsList();
+				List<RelationshipInterface> result = app.relationshipQuery("OneFourOneToOne").key(key, "Status1").getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -1349,7 +1345,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals((Integer)2345, (Integer)testEntity.getProperty(key));
 
-				List<NodeInterface> result = app.nodeQuery("TestFour").and(key, 2345).getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestFour").key(key, 2345).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -1390,7 +1386,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals((Integer)2345, (Integer)testEntity.getProperty(key));
 
-				List<RelationshipInterface> result = app.relationshipQuery("OneFourOneToOne").and(key, 2345).getAsList();
+				List<RelationshipInterface> result = app.relationshipQuery("OneFourOneToOne").key(key, 2345).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -1422,7 +1418,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals((Integer)123456, testEntity.getProperty(key));
 
-				List<NodeInterface> result = app.nodeQuery("TestFour").andRange(key, 123455, 123457).getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestFour").range(key, 123455, 123457).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -1432,7 +1428,7 @@ public class PropertyTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				List<NodeInterface> result = app.nodeQuery("TestFour").andRange(key, 123457, 123458).getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestFour").range(key, 123457, 123458).getAsList();
 
 				assertEquals(0, result.size());
 
@@ -1499,7 +1495,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals((Long)2857312362L, (Long)testEntity.getProperty(key));
 
-				List<NodeInterface> result = app.nodeQuery("TestFour").and(key, 2857312362L).getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestFour").key(key, 2857312362L).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -1540,7 +1536,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals((Long)2857312362L, (Long)testEntity.getProperty(key));
 
-				List<RelationshipInterface> result = app.relationshipQuery("OneFourOneToOne").and(key, 2857312362L).getAsList();
+				List<RelationshipInterface> result = app.relationshipQuery("OneFourOneToOne").key(key, 2857312362L).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -1572,7 +1568,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals((Long)123456L, testEntity.getProperty(key));
 
-				List<NodeInterface> result = app.nodeQuery("TestFour").andRange(key, 123455L, 123457L).getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestFour").range(key, 123455L, 123457L).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -1582,7 +1578,7 @@ public class PropertyTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				List<NodeInterface> result = app.nodeQuery("TestFour").andRange(key, 123457L, 123458L).getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestFour").range(key, 123457L, 123458L).getAsList();
 
 				assertEquals(0, result.size());
 
@@ -1649,7 +1645,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals("test", testEntity.getProperty(key));
 
-				List<NodeInterface> result = app.nodeQuery("TestFour").and(key, "test").getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestFour").key(key, "test").getAsList();
 
 				assertEquals(result.size(), 1);
 				assertEquals(result.get(0), testEntity);
@@ -1682,7 +1678,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals("test\nabc", testEntity.getProperty(key));
 
-				List<NodeInterface> result = app.nodeQuery("TestFour").and(key, "test\nabc").getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestFour").key(key, "test\nabc").getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -1715,7 +1711,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals("test\nabc", testEntity.getProperty(key));
 
-				List<NodeInterface> result = app.nodeQuery("TestFour").and(key, "test").getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestFour").key(key, "test").getAsList();
 
 				assertEquals(0, result.size());
 			}
@@ -1748,7 +1744,7 @@ public class PropertyTest extends StructrTest {
 				assertEquals("xyz\ntest\nabc", testEntity.getProperty(key));
 
 				// inexact searc
-				List<NodeInterface> result = app.nodeQuery("TestFour").and(key, "test", false).getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestFour").key(key, "test", false).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -1782,7 +1778,7 @@ public class PropertyTest extends StructrTest {
 				assertEquals("xyz\r\ntest\r\nabc", testEntity.getProperty(key));
 
 				// inexact searc
-				List<NodeInterface> result = app.nodeQuery("TestFour").and(key, "test", false).getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestFour").key(key, "test", false).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -1816,7 +1812,7 @@ public class PropertyTest extends StructrTest {
 				assertEquals("{\n return fooBar;\n}", testEntity.getProperty(key));
 
 				// inexact search
-				List<NodeInterface> result = app.nodeQuery("TestFour").and(key, "foo", false).getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestFour").key(key, "foo", false).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -1850,7 +1846,7 @@ public class PropertyTest extends StructrTest {
 				assertEquals("xyz\r\nTeSt\r\nabc", testEntity.getProperty(key));
 
 				// inexact searc
-				List<NodeInterface> result = app.nodeQuery("TestFour").and(key, "test", false).getAsList();
+				List<NodeInterface> result = app.nodeQuery("TestFour").key(key, "test", false).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -1891,7 +1887,7 @@ public class PropertyTest extends StructrTest {
 				// check value from database
 				assertEquals("test", testEntity.getProperty(key));
 
-				List<RelationshipInterface> result = app.relationshipQuery("OneFourOneToOne").and(key, "test").getAsList();
+				List<RelationshipInterface> result = app.relationshipQuery("OneFourOneToOne").key(key, "test").getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
@@ -2059,7 +2055,7 @@ public class PropertyTest extends StructrTest {
 
 			// fetch test node
 			final NodeInterface testNode = app.nodeQuery(testType).getFirst();
-			final NodeInterface result   = app.nodeQuery(testType).and(key, "testgroup").getFirst();
+			final NodeInterface result   = app.nodeQuery(testType).key(key, "testgroup").getFirst();
 
 			// test indexing
 			assertEquals("Invalid FunctionProperty indexing result", testNode, result);

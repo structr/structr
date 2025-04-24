@@ -19,11 +19,9 @@
 package org.structr.core.graph.search;
 
 import org.structr.api.Predicate;
-import org.structr.api.search.Occurrence;
 import org.structr.api.search.QueryPredicate;
 import org.structr.api.search.SortOrder;
 import org.structr.core.GraphObject;
-import org.structr.core.graph.NodeAttribute;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Trait;
@@ -35,53 +33,40 @@ import java.util.Set;
 /**
  * Wrapper representing a part of a search query. All parts of a search query
  * must have a search operator and a payload. The payload can be either a node
- * attribute oder a group of serach attributes.
+ * attribute oder a group of search attributes.
  *
  * @param <T>
  */
-public abstract class SearchAttribute<T> extends NodeAttribute<T> implements Predicate<GraphObject>, QueryPredicate {
+public abstract class SearchAttribute<T> implements Predicate<GraphObject>, QueryPredicate {
 
-	public static final String WILDCARD = "*";
-
+ 	private Set<GraphObject> result            = new LinkedHashSet<>();
 	private Comparator<GraphObject> comparator = null;
- 	private Set<org.structr.core.GraphObject> result          = new LinkedHashSet<>();
-	private Occurrence occur                 = null;
-	private SortOrder sortOrder              = null;
+	private SortOrder sortOrder                = null;
+	protected PropertyKey<T> key               = null;
+	protected T value                          = null;
 
 	public abstract boolean includeInResult(final GraphObject entity);
 
-	public SearchAttribute() {
-		this(null, null);
+	public SearchAttribute(final PropertyKey<T> key, final T value) {
+		this.key    = key;
+		this.value  = value;
 	}
 
-	public SearchAttribute(Occurrence occur) {
-		this(occur, null, null);
+	@Override
+	public String toString() {
+		return key.dbName() + "=" + value;
 	}
 
-	public SearchAttribute(PropertyKey<T> key, T value) {
-		this(null, key, value);
-	}
-
-	public SearchAttribute(Occurrence occur, PropertyKey<T> key, T value) {
-
-		super(key, value);
-		this.occur = occur;
-	}
-
-	public void setResult(final Set<org.structr.core.GraphObject> result) {
+	public void setResult(final Set<GraphObject> result) {
 		this.result = result;
 	}
 
-	public Set<org.structr.core.GraphObject> getResult() {
+	public Set<GraphObject> getResult() {
 		return result;
 	}
 
-	public void addToResult(final org.structr.core.GraphObject graphObject) {
+	public void addToResult(final GraphObject graphObject) {
 		result.add(graphObject);
-	}
-
-	public void addToResult(final Set<org.structr.core.GraphObject> list) {
-		result.addAll(list);
 	}
 
 	public void setExactMatch(final boolean exact) {
@@ -91,14 +76,17 @@ public abstract class SearchAttribute<T> extends NodeAttribute<T> implements Pre
 		this.comparator = comparator;
 	}
 
-	public void setOccurrence(final Occurrence occurrence) {
-		this.occur = occurrence;
-	}
-
 	public void setSortOrder(final SortOrder sortOrder) {
 		this.sortOrder = sortOrder;
 	}
 
+	public PropertyKey<T> getKey() {
+		return key;
+	}
+
+	public void setValue(final T value) {
+		this.value = value;
+	}
 
 	// ----- interface Predicate<GraphObject> -----
 	@Override
@@ -113,19 +101,18 @@ public abstract class SearchAttribute<T> extends NodeAttribute<T> implements Pre
 
 	// ----- interface QueryPredicate -----
 	@Override
-	public Occurrence getOccurrence() {
-		return occur;
+	public String getName() {
+		return key.dbName();
 	}
 
 	@Override
-	public String getName() {
-		return getKey().dbName();
+	public T getValue() {
+		return value;
 	}
 
 	@Override
 	public Class getType() {
 
-		final PropertyKey key = getKey();
 		if (key != null) {
 
 			return key.valueType();
@@ -137,7 +124,6 @@ public abstract class SearchAttribute<T> extends NodeAttribute<T> implements Pre
 	@Override
 	public String getLabel() {
 
-		final PropertyKey key = getKey();
 		if (key != null) {
 
 			final Trait declaringTrait = key.getDeclaringTrait();

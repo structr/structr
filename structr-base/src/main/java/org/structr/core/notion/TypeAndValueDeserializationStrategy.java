@@ -33,12 +33,12 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationProperty;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 
 /**
  * Deserializes a {@link GraphObject} using a type and a property value.
@@ -96,18 +96,18 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> ext
 				Object value = ((Map<String, Object>)convertedSource).get(propertyKeyName);
 				if (value != null) {
 
-					result.addAll(app.nodeQuery(type).and(propertyKey, value.toString()).getAsList());
+					result.addAll(app.nodeQuery(type).key(propertyKey, value.toString()).getAsList());
 				}
 
 			} else if (convertedSource instanceof GraphObject) {
 
 				final GraphObject obj = (GraphObject)convertedSource;
 
-				result.addAll(app.nodeQuery(type).and(propertyKey, obj.getProperty(propertyKey)).getAsList());
+				result.addAll(app.nodeQuery(type).key(propertyKey, obj.getProperty(propertyKey)).getAsList());
 
 			} else {
 
-				result.addAll(app.nodeQuery(type).and(propertyKey, convertedSource).getAsList());
+				result.addAll(app.nodeQuery(type).key(propertyKey, convertedSource).getAsList());
 			}
 		}
 

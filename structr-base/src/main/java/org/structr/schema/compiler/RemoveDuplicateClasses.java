@@ -59,7 +59,7 @@ public class RemoveDuplicateClasses implements MigrationHandler {
 
 					try (final Tx tx = app.tx()) {
 
-						final NodeInterface schemaNode = app.nodeQuery(StructrTraits.ABSTRACT_SCHEMA_NODE).andName(type).getFirst();
+						final NodeInterface schemaNode = app.nodeQuery(StructrTraits.ABSTRACT_SCHEMA_NODE).name(type).getFirst();
 						if (schemaNode != null) {
 
 							app.delete(schemaNode);

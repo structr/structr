@@ -20,7 +20,6 @@ package org.structr.core.graph.search;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.search.Occurrence;
 import org.structr.api.search.TypeQuery;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.Relation;
@@ -37,14 +36,13 @@ public class TypeSearchAttribute<S extends GraphObject> extends PropertySearchAt
 
 	private static final Logger logger = LoggerFactory.getLogger(TypeSearchAttribute.class.getName());
 
-	//private Set<String> types = null;
 	private String sourceType = null;
 	private String targetType = null;
 	private String type       = null;
 
-	public TypeSearchAttribute(final String type, final Occurrence occur, final boolean isExactMatch) {
+	public TypeSearchAttribute(final String type, final boolean isExactMatch) {
 
-		super(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY), null, occur, isExactMatch);
+		super(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY), null, isExactMatch);
 
 		final Traits traits = Traits.of(type);
 
@@ -73,30 +71,13 @@ public class TypeSearchAttribute<S extends GraphObject> extends PropertySearchAt
 	}
 
 	@Override
-	public String toString() {
-		return "TypeSearchAttribute(" + super.toString() + ")";
-	}
-
-	@Override
 	public Class getQueryType() {
 		return TypeQuery.class;
 	}
 
 	@Override
 	public boolean includeInResult(final GraphObject entity) {
-
-		final String nodeValue   = entity.getProperty(getKey());
-		final Occurrence occur   = getOccurrence();
-		final boolean isOfType   = entity.getTraits().contains(type);
-
-		if (occur.equals(Occurrence.FORBIDDEN)) {
-
-			return !isOfType;
-
-		} else {
-
-			return isOfType;
-		}
+		return entity.getTraits().contains(type);
 	}
 
 	@Override

@@ -23,10 +23,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.AccessMode;
 import org.structr.common.ContextStore;
-import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.JsonInput;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -176,7 +174,7 @@ public class MixedCSVFileImportJob extends FileImportJob {
 
 								// search for object before creating it again
 								if (!searchAttributes.isEmpty()) {
-									newObject = app.nodeQuery(typeName).and(searchAttributes).getFirst();
+									newObject = app.nodeQuery(typeName).key(searchAttributes).getFirst();
 								}
 
 								// create new object if it doesn't exist yet

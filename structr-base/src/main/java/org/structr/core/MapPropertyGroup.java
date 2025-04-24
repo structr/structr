@@ -36,22 +36,18 @@ public class MapPropertyGroup implements PropertyGroup<PropertyMap> {
 	private static final Logger logger   = LoggerFactory.getLogger(MapPropertyGroup.class.getName());
 	protected PropertyKey[] propertyKeys = null;
 
-	//~--- constructors ---------------------------------------------------
-
-	public MapPropertyGroup(PropertyKey... propertyKeys) {
+	public MapPropertyGroup(final PropertyKey... propertyKeys) {
 		this.propertyKeys = propertyKeys;
 	}
 
-	//~--- get methods ----------------------------------------------------
-
 	@Override
-	public PropertyMap getGroupedProperties(SecurityContext securityContext, GraphObject source) {
+	public PropertyMap getGroupedProperties(final SecurityContext securityContext, final GraphObject source) {
 
 		PropertyMap groupedProperties = new PropertyMap();
 
 		for (PropertyKey key : propertyKeys) {
 
-			PropertyConverter converter = key.inputConverter(securityContext);
+			PropertyConverter converter = key.inputConverter(securityContext, false);
 			if (converter != null) {
 				
 				try {

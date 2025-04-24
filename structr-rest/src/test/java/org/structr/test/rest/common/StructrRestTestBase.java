@@ -386,7 +386,7 @@ public abstract class StructrRestTestBase {
 			final JsonType type     = schema.addType("TestUser");
 
 			type.addTrait(StructrTraits.USER);
-			type.overrideMethod("onCreate", true, "set(this, 'name', concat('test', now));");
+			type.addMethod("onCreate", "set(this, 'name', concat('test', now));");
 
 			StructrSchema.replaceDatabaseSchema(app, schema);
 

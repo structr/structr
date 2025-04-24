@@ -59,18 +59,18 @@ public class DateArrayProperty extends ArrayProperty<Date> {
 	}
 
 	@Override
-	public PropertyConverter<Date[], Long[]> databaseConverter(SecurityContext securityContext) {
+	public PropertyConverter<Date[], Long[]> databaseConverter(final SecurityContext securityContext) {
 		return databaseConverter(securityContext, null);
 	}
 
 	@Override
-	public PropertyConverter<Date[], Long[]> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+	public PropertyConverter<Date[], Long[]> databaseConverter(final SecurityContext securityContext, final GraphObject entity) {
 		return new ArrayDatabaseConverter(securityContext, entity);
 	}
 
 	@Override
-	public PropertyConverter<?, Date[]> inputConverter(SecurityContext securityContext) {
-		return new ArrayInputConverter(securityContext);
+	public PropertyConverter<?, Date[]> inputConverter(final SecurityContext securityContext, final boolean fromString) {
+		return new ArrayInputConverter(securityContext, fromString);
 	}
 
 	private class ArrayDatabaseConverter extends PropertyConverter<Date[], Long[]> {
@@ -104,8 +104,11 @@ public class DateArrayProperty extends ArrayProperty<Date> {
 
 	private class ArrayInputConverter extends PropertyConverter<Object, Date[]> {
 
-		public ArrayInputConverter(SecurityContext securityContext) {
+		private final boolean fromString;
+
+		public ArrayInputConverter(final SecurityContext securityContext, final boolean fromString) {
 			super(securityContext, null);
+			this.fromString = fromString;
 		}
 
 		@Override
@@ -142,24 +145,30 @@ public class DateArrayProperty extends ArrayProperty<Date> {
 				return convert(Arrays.asList((Date[])source));
 			}
 
-			if (source instanceof String) {
+			if (!fromString) {
 
-				final String s = (String)source;
-				if (s.contains(",")) {
+				throw new ClassCastException();
 
-					return DateArrayProperty.this.convert(Arrays.asList(s.split(",")));
+			} else {
+
+				if (source instanceof String) {
+
+					final String s = (String) source;
+					if (s.contains(",")) {
+
+						return DateArrayProperty.this.convert(Arrays.asList(s.split(",")));
+					}
+
+					// special handling of empty search attribute
+					if (StringUtils.isBlank(s)) {
+						return null;
+					}
+
 				}
 
-				// special handling of empty search attribute
-				if (StringUtils.isBlank(s)) {
-					return null;
-				}
-
+				return new Date[]{DatePropertyGenerator.parse(source.toString(), format)};
 			}
-
-			return new Date[] { DatePropertyGenerator.parse(source.toString(), format) };
 		}
-
 	}
 
 	// ----- private methods -----

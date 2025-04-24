@@ -21,6 +21,7 @@ package org.structr.web.traits.wrappers.dom;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Adapter;
 import org.structr.core.graph.NodeInterface;
@@ -30,10 +31,10 @@ import org.structr.web.ContentHandler;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.traits.definitions.dom.ContentTraitDefinition;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
-import org.structr.web.traits.definitions.dom.ContentTraitDefinition;
 
 /**
  * Represents a content node. This class implements the org.w3c.dom.Text interface.
@@ -436,7 +437,7 @@ public class ContentTraitWrapper extends DOMNodeTraitWrapper implements Content 
 
 				} else {
 
-					final Object value = Scripting.evaluate(renderContext, node, script, "content", row, node.getUuid());
+					final Object value = Scripting.evaluate(renderContext, node, script, "content", row, node.getUuid(), Settings.WrapJSInMainFunction.getValue(false));
 					if (value != null) {
 
 						String content = null;

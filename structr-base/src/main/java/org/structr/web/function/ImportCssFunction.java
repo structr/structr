@@ -20,7 +20,7 @@ package org.structr.web.function;
 
 import com.steadystate.css.parser.CSSOMParser;
 import com.steadystate.css.parser.SACParserCSS3;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -121,7 +121,7 @@ public class ImportCssFunction extends UiAdvancedFunction {
 		final Traits traits          = Traits.of(StructrTraits.CSS_RULE);
 		final App app                = StructrApp.getInstance();
 
-		final NodeInterface existingRuleNode = app.nodeQuery(StructrTraits.CSS_RULE).andName(selectorsString).getFirst();
+		final NodeInterface existingRuleNode = app.nodeQuery(StructrTraits.CSS_RULE).name(selectorsString).getFirst();
 		if (existingRuleNode != null) {
 			return existingRuleNode;
 		}

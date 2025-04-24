@@ -30,10 +30,10 @@ import org.structr.core.graph.CreationContainer;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.relationships.SecurityRelationshipDefinition;
 
 import java.util.*;
 import java.util.Map.Entry;
-import org.structr.core.traits.relationships.SecurityRelationshipDefinition;
 
 /**
  * A container for properties and their values that is used for input/output and database
@@ -409,21 +409,18 @@ public class PropertyMap {
 
 					if (propertyKey != null) {
 
-						final PropertyConverter converter = propertyKey.inputConverter(securityContext);
+						final PropertyConverter converter = propertyKey.inputConverter(securityContext, false);
 
 						if (converter != null && value != null && !propertyKey.valueType().isAssignableFrom(value.getClass())) {
 
 							try {
 
-								// test
 								converter.setContext(source);
 
 								Object propertyValue = converter.convert(value);
 								resultMap.put(propertyKey, propertyValue);
 
 							} catch (ClassCastException cce) {
-
-								cce.printStackTrace();
 
 								throw new FrameworkException(422, "Invalid JSON input for key " + propertyKey.jsonName() + ", expected a JSON " + propertyKey.typeName() + ".");
 							}
@@ -476,7 +473,7 @@ public class PropertyMap {
 		for (Entry<PropertyKey, Object> entry : properties.entrySet()) {
 
 			PropertyKey propertyKey     = entry.getKey();
-			PropertyConverter converter = propertyKey.inputConverter(securityContext);
+			PropertyConverter converter = propertyKey.inputConverter(securityContext, false);
 
 			if (converter != null) {
 

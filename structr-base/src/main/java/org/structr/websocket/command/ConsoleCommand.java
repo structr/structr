@@ -19,14 +19,17 @@
 package org.structr.websocket.command;
 
 import org.apache.commons.io.output.ByteArrayOutputStream;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
+import org.structr.common.helper.VersionHelper;
 import org.structr.console.Console;
 import org.structr.console.Console.ConsoleMode;
 import org.structr.console.tabcompletion.TabCompletionResult;
+import org.structr.core.app.StructrApp;
+import org.structr.core.graph.Tx;
 import org.structr.util.Writable;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
@@ -38,9 +41,6 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
-import org.structr.common.helper.VersionHelper;
-import org.structr.core.app.StructrApp;
-import org.structr.core.graph.Tx;
 
 /**
  * Command to interact with a multi-mode server console.

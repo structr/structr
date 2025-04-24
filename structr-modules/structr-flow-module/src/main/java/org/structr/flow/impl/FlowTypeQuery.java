@@ -23,7 +23,6 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.search.ComparisonQuery;
-import org.structr.api.search.Occurrence;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.Query;
 import org.structr.core.graph.NodeInterface;
@@ -127,8 +126,6 @@ public class FlowTypeQuery extends FlowDataSource implements DeployableEntity {
 			resolveQueryObject(context, operations.getJSONObject(i), query);
 		}
 
-		query.parent();
-
 		return query;
 	}
 
@@ -171,50 +168,50 @@ public class FlowTypeQuery extends FlowDataSource implements DeployableEntity {
 
 			switch (op) {
 				case "eq":
-					attributes.add(new ComparisonSearchAttribute(propKey, ComparisonQuery.Operation.equal, value, Occurrence.REQUIRED));
+					attributes.add(new ComparisonSearchAttribute(propKey, ComparisonQuery.Comparison.equal, value));//, Operation.AND));
 					break;
 				case "neq":
-					attributes.add(new ComparisonSearchAttribute(propKey, ComparisonQuery.Operation.notEqual, value, Occurrence.REQUIRED));
+					attributes.add(new ComparisonSearchAttribute(propKey, ComparisonQuery.Comparison.notEqual, value));//, Operation.AND));
 					break;
 				case "gt":
-					attributes.add(new ComparisonSearchAttribute(propKey, ComparisonQuery.Operation.greater, value, Occurrence.REQUIRED));
+					attributes.add(new ComparisonSearchAttribute(propKey, ComparisonQuery.Comparison.greater, value));//, Operation.AND));
 					break;
 				case "gteq":
-					attributes.add(new ComparisonSearchAttribute(propKey, ComparisonQuery.Operation.greaterOrEqual, value, Occurrence.REQUIRED));
+					attributes.add(new ComparisonSearchAttribute(propKey, ComparisonQuery.Comparison.greaterOrEqual, value));//, Operation.AND));
 					break;
 				case "ls":
-					attributes.add(new ComparisonSearchAttribute(propKey, ComparisonQuery.Operation.less, value, Occurrence.REQUIRED));
+					attributes.add(new ComparisonSearchAttribute(propKey, ComparisonQuery.Comparison.less, value));//, Operation.AND));
 					break;
 				case "lseq":
-					attributes.add(new ComparisonSearchAttribute(propKey, ComparisonQuery.Operation.lessOrEqual, value, Occurrence.REQUIRED));
+					attributes.add(new ComparisonSearchAttribute(propKey, ComparisonQuery.Comparison.lessOrEqual, value));//, Operation.AND));
 					break;
 				case "null":
-					attributes.add(new ComparisonSearchAttribute(propKey, ComparisonQuery.Operation.isNull, value, Occurrence.REQUIRED));
+					attributes.add(new ComparisonSearchAttribute(propKey, ComparisonQuery.Comparison.isNull, value));//, Operation.AND));
 					break;
 				case "notNull":
-					attributes.add(new ComparisonSearchAttribute(propKey, ComparisonQuery.Operation.isNotNull, value, Occurrence.REQUIRED));
+					attributes.add(new ComparisonSearchAttribute(propKey, ComparisonQuery.Comparison.isNotNull, value));//, Operation.AND));
 					break;
 				case "startsWith":
-					attributes.add(new ComparisonSearchAttribute(propKey, ComparisonQuery.Operation.startsWith, value, Occurrence.REQUIRED));
+					attributes.add(new ComparisonSearchAttribute(propKey, ComparisonQuery.Comparison.startsWith, value));//, Operation.AND));
 					break;
 				case "endsWith":
-					attributes.add(new ComparisonSearchAttribute(propKey, ComparisonQuery.Operation.endsWith, value, Occurrence.REQUIRED));
+					attributes.add(new ComparisonSearchAttribute(propKey, ComparisonQuery.Comparison.endsWith, value));//, Operation.AND));
 					break;
 				case "contains":
-					attributes.add(new ComparisonSearchAttribute(propKey, ComparisonQuery.Operation.contains, value, Occurrence.REQUIRED));
+					attributes.add(new ComparisonSearchAttribute(propKey, ComparisonQuery.Comparison.contains, value));//, Operation.AND));
 					break;
 				case "caseInsensitiveStartsWith":
-					attributes.add(new ComparisonSearchAttribute(propKey, ComparisonQuery.Operation.caseInsensitiveStartsWith, value, Occurrence.REQUIRED));
+					attributes.add(new ComparisonSearchAttribute(propKey, ComparisonQuery.Comparison.caseInsensitiveStartsWith, value));//, Operation.AND));
 					break;
 				case "caseInsensitiveEndsWith":
-					attributes.add(new ComparisonSearchAttribute(propKey, ComparisonQuery.Operation.caseInsensitiveEndsWith, value, Occurrence.REQUIRED));
+					attributes.add(new ComparisonSearchAttribute(propKey, ComparisonQuery.Comparison.caseInsensitiveEndsWith, value));//, Operation.AND));
 					break;
 				case "caseInsensitiveContains":
-					attributes.add(new ComparisonSearchAttribute(propKey, ComparisonQuery.Operation.caseInsensitiveContains, value, Occurrence.REQUIRED));
+					attributes.add(new ComparisonSearchAttribute(propKey, ComparisonQuery.Comparison.caseInsensitiveContains, value));//, Operation.AND));
 					break;
 			}
 
-			query.attributes(attributes);
+			//query.attributes(attributes);
 
 		}
 

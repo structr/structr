@@ -441,25 +441,32 @@ public class TransactionCommand {
 		TransactionCommand.simpleBroadcastGenericMessage(messageData, sessionIdPredicate);
 	}
 
-	public static void simpleBroadcastGenericMessage (final Map<String, Object> data) {
+	public static void simpleBroadcastGenericMessage(final Map<String, Object> data) {
 		simpleBroadcastGenericMessage(data, null);
 	}
 
-	public static void simpleBroadcastGenericMessage (final Map<String, Object> data, final Predicate<String> sessionIdPredicate) {
+	public static void simpleBroadcastGenericMessage(final Map<String, Object> data, final Predicate<String> sessionIdPredicate) {
 		simpleBroadcast("GENERIC_MESSAGE", data, sessionIdPredicate);
 	}
 
-	public static void simpleBroadcastDeprecationWarning (final String deprecationSubType, final String title, final String text, final String uuid) {
+	public static void simpleBroadcastDeprecationWarning(final String deprecationSubType, final String title, final String text) {
+		simpleBroadcastDeprecationWarning(deprecationSubType, title, text, null);
+	}
 
-		final Map<String, Object> messageData = Map.of(
-				MaintenanceCommand.COMMAND_TYPE_KEY,    "DEPRECATION",
-				MaintenanceCommand.COMMAND_SUBTYPE_KEY, deprecationSubType,
-				MaintenanceCommand.COMMAND_TITLE_KEY,   title,
-				MaintenanceCommand.COMMAND_MESSAGE_KEY, text,
-				"nodeId", uuid
-		);
+	public static void simpleBroadcastDeprecationWarning(final String deprecationSubType, final String title, final String text, final String uuid) {
 
-		TransactionCommand.simpleBroadcastGenericMessage(messageData);
+		final Map<String, Object> messageData = new HashMap();
+
+		messageData.put(MaintenanceCommand.COMMAND_TYPE_KEY,    "DEPRECATION");
+		messageData.put(MaintenanceCommand.COMMAND_SUBTYPE_KEY, deprecationSubType);
+		messageData.put(MaintenanceCommand.COMMAND_TITLE_KEY,   title);
+		messageData.put(MaintenanceCommand.COMMAND_MESSAGE_KEY, text);
+
+		if (uuid != null) {
+			messageData.put("nodeId", uuid);
+		}
+
+		simpleBroadcastGenericMessage(messageData);
 	}
 
 	public static void simpleBroadcastException (final Exception ex, final Map<String, Object> data, final boolean printStackTrace) {

@@ -20,13 +20,12 @@ package org.structr.core.graphql;
 
 import graphql.language.*;
 import org.structr.api.Predicate;
-import org.structr.api.search.Occurrence;
+import org.structr.api.search.Operation;
 import org.structr.common.PathResolvingComparator;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.app.Query;
-import org.structr.core.converter.PropertyConverter;
+import org.structr.core.app.QueryGroup;
 import org.structr.core.graph.search.GraphSearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchAttributeGroup;
@@ -133,11 +132,11 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 		return this.sortDescending;
 	}
 
-	public void configureQuery(final Query query) {
+	public void configureQuery(final QueryGroup query) {
 
 		query.page(page);
 		query.pageSize(pageSize);
-		query.attributes(new LinkedList<>(attributes.values()));
+		query.attributes(new LinkedList<>(attributes.values()), Operation.AND);
 
 		if (sortKey != null) {
 
@@ -189,7 +188,7 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 		final List<SearchTuple> searchTuples = new LinkedList<>();
 		final String parentName              = parentField.getName();
 		final PropertyKey key                = type.key(field.getName());
-		Occurrence occurrence                = Occurrence.REQUIRED;
+		Operation operation                  = Operation.AND;
 
 		// parse arguments
 		for (final Argument argument : field.getArguments()) {
@@ -200,17 +199,15 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 			switch (name) {
 
 				case "_equals":
-					//searchTuples.add(new SearchTuple(castValue(securityContext, Traits.of(key.relatedType()), key, value), true));
 					searchTuples.add(new SearchTuple(castValue(securityContext, type, key, value), true));
 					break;
 
 				case "_contains":
-					//searchTuples.add(new SearchTuple(castValue(securityContext, Traits.of(key.relatedType()), key, value), false));
 					searchTuples.add(new SearchTuple(castValue(securityContext, type, key, value), false));
 					break;
 
 				case "_conj":
-					occurrence = getOccurrenceForSearchValue(value);
+					operation = getOperationForSearchValue(value);
 					break;
 
 				default:
@@ -218,10 +215,17 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 			}
 		}
 
-		// only add field if a value was set
-		for (final SearchTuple tuple : searchTuples) {
+		if (!searchTuples.isEmpty()) {
 
-			addAttribute(parentName, key.getSearchAttribute(securityContext, occurrence, tuple.value, tuple.exact, null), occurrence);
+			final SearchAttributeGroup group = new SearchAttributeGroup(securityContext, null, operation);
+
+			// only add field if a value was set
+			for (final SearchTuple tuple : searchTuples) {
+
+				group.add(key.getSearchAttribute(securityContext, tuple.value, tuple.exact, null));
+			}
+
+			addAttribute(parentName, group);
 		}
 	}
 
@@ -284,18 +288,18 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 		return map;
 	}
 
-	private Occurrence getOccurrenceForSearchValue(final Value value) {
+	private Operation getOperationForSearchValue(final Value value) {
 
 		final String val = getStringValue(value, null);
 		if (val != null) {
 
-			return getOccurrence(val);
+			return getOperation(val);
 		}
 
-		return Occurrence.REQUIRED;
+		return Operation.AND;
 	}
 
-	private Occurrence getOccurrence(final Object value) {
+	private Operation getOperation(final Object value) {
 
 		if (value instanceof String) {
 
@@ -304,17 +308,17 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 			switch (conj) {
 
 				case "or":
-					return Occurrence.OPTIONAL;
+					return Operation.OR;
 
 				case "and":
-					return Occurrence.REQUIRED;
+					return Operation.AND;
 
 				case "not":
-					return Occurrence.FORBIDDEN;
+					return Operation.NOT;
 			}
 		}
 
-		return Occurrence.REQUIRED;
+		return Operation.AND;
 	}
 
 	private Object castValue(final SecurityContext securityContext, final Traits type, final PropertyKey key, final Value value) throws FrameworkException {
@@ -351,7 +355,11 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 		return null;
 	}
 
-	private void addAttribute(final String parentName, final SearchAttribute newAttribute, final Occurrence occurrence) {
+	private void addAttribute(final String parentName, final SearchAttribute newAttribute) {
+
+		if (newAttribute instanceof SearchAttributeGroup group && group.isEmpty()) {
+			return;
+		}
 
 		final SearchAttribute existingAttribute = attributes.get(parentName);
 		if (existingAttribute == null) {
@@ -362,18 +370,15 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 		} else {
 
 			// we need to combine the attributes
-			if (existingAttribute instanceof SearchAttributeGroup) {
+			if (existingAttribute instanceof SearchAttributeGroup group) {
 
 				// attribute already set, add
-				final SearchAttributeGroup group = (SearchAttributeGroup)existingAttribute;
-
 				group.add(newAttribute);
-				group.setOccurrence(occurrence);
 
 			} else {
 
 				// create group from two single attributes
-				final SearchAttributeGroup group = new SearchAttributeGroup(occurrence);
+				final SearchAttributeGroup group = new SearchAttributeGroup(actionContext.getSecurityContext(), null, Operation.AND);
 				group.add(existingAttribute);
 				group.add(newAttribute);
 
@@ -407,7 +412,7 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 			if (value instanceof StringValue || value instanceof IntValue || value instanceof FloatValue || value instanceof BooleanValue) {
 
 				// handle simple selections like an _equals on the field
-				addAttribute(name, key.getSearchAttribute(securityContext, Occurrence.REQUIRED, castValue(securityContext, type, key, value), true, null), Occurrence.REQUIRED);
+				addAttribute(name, key.getSearchAttribute(securityContext, castValue(securityContext, type, key, value), true, null));
 
 			} else if (value instanceof ObjectValue) {
 
@@ -436,28 +441,27 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 
 								if (equals != null) {
 
+									/*
 									final PropertyConverter conv = notionKey.inputConverter(securityContext);
 									if (conv != null) {
 
 										equals = conv.convert(equals);
 									}
+									*/
 
-									addAttribute(name, new GraphSearchAttribute(notionKey, key, equals, Occurrence.REQUIRED, true), Occurrence.REQUIRED);
-
-									// primitive property
-									//addAttribute(key, key.getSearchAttribute(securityContext, Occurrence.REQUIRED, equals, true, null), Occurrence.REQUIRED);
+									addAttribute(name, new GraphSearchAttribute(notionKey, key, equals, true));
 
 								} else if (contains != null) {
 
+									/*
 									final PropertyConverter conv = notionKey.inputConverter(securityContext);
 									if (conv != null) {
 
 										contains = conv.convert(contains);
 									}
+									*/
 
-									addAttribute(name, new GraphSearchAttribute(notionKey, key, contains, Occurrence.REQUIRED, false), Occurrence.REQUIRED);
-
-									//addAttribute(key, key.getSearchAttribute(securityContext, Occurrence.REQUIRED, contains, false, null), Occurrence.REQUIRED);
+									addAttribute(name, new GraphSearchAttribute(notionKey, key, contains, false));
 								}
 
 							} else {
@@ -470,49 +474,53 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 							if (equals != null) {
 
 								// primitive property
-								addAttribute(name, key.getSearchAttribute(securityContext, Occurrence.REQUIRED, equals, true, null), Occurrence.REQUIRED);
+								addAttribute(name, key.getSearchAttribute(securityContext, equals, true, null));
 
 							} else if (contains != null) {
 
-								addAttribute(name, key.getSearchAttribute(securityContext, Occurrence.REQUIRED, contains, false, null), Occurrence.REQUIRED);
+								addAttribute(name, key.getSearchAttribute(securityContext, contains, false, null));
 							}
 						}
 
 					} else if (searchValue instanceof List) {
 
 						// handle multiple values with conjunction (AND or OR)
-						final List list  = (List)searchValue;
-						Occurrence occur = Occurrence.REQUIRED;
+						final List list     = (List)searchValue;
+						Operation operation = Operation.AND;
 
 						if (input.containsKey("_conj")) {
 
-							occur = getOccurrence(input.get("_conj"));
+							operation = getOperation(input.get("_conj"));
 						}
+
+						final SearchAttributeGroup group = new SearchAttributeGroup(actionContext.getSecurityContext(), null, operation);
 
 						for (final Object listValue : list) {
 
 							switch (searchKey) {
 
 								case "_contains":
-									addAttribute(name, key.getSearchAttribute(securityContext, occur, listValue, false, null), Occurrence.REQUIRED);
+									group.add(key.getSearchAttribute(securityContext, listValue, false, null));
 									break;
 
 								case "_equals":
-									addAttribute(name, key.getSearchAttribute(securityContext, occur, listValue, true, null), Occurrence.REQUIRED);
+									group.add(key.getSearchAttribute(securityContext, listValue, true, null));
 									break;
 							}
 						}
+
+						addAttribute(name, group);
 
 					} else {
 
 						switch (searchKey) {
 
 							case "_contains":
-								addAttribute(name, key.getSearchAttribute(securityContext, Occurrence.REQUIRED, searchValue, false, null), Occurrence.REQUIRED);
+								addAttribute(name, key.getSearchAttribute(securityContext, searchValue, false, null));
 								break;
 
 							case "_equals":
-								addAttribute(name, key.getSearchAttribute(securityContext, Occurrence.REQUIRED, searchValue, true, null), Occurrence.REQUIRED);
+								addAttribute(name, key.getSearchAttribute(securityContext, searchValue, true, null));
 								break;
 						}
 
@@ -531,29 +539,47 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 			final String name = field.getName();
 			final Value child = field.getValue();
 
-			if (child instanceof ObjectValue) {
-
-				putObjectOrList(map, name, unwrapValue((ObjectValue)child));
-
-			} else if (child instanceof StringValue) {
-
-				putObjectOrList(map, name, ((StringValue)child).getValue());
-
-			} else if (child instanceof IntValue) {
-
-				putObjectOrList(map, name, ((IntValue)child).getValue().intValue());
-
-			} else if (child instanceof FloatValue) {
-
-				putObjectOrList(map, name, ((FloatValue)child).getValue().doubleValue());
-
-			} else if (child instanceof BooleanValue) {
-
-				putObjectOrList(map, name, ((BooleanValue)child).isValue());
-			}
+			putObjectOrList(map, name, unwrapValue(child));
 		}
 
 		return map;
+	}
+
+	private Object unwrapValue(final Value value) {
+
+		if (value instanceof ArrayValue a) {
+
+			final List<Object> values = new LinkedList<>();
+
+			for (final Value v : a.getValues()) {
+
+				values.add(unwrapValue(v));
+			}
+
+			return values;
+
+		} else if (value instanceof ObjectValue o) {
+
+			return unwrapValue(o);
+
+		} else if (value instanceof StringValue s) {
+
+			return s.getValue();
+
+		} else if (value instanceof IntValue i) {
+
+			return i.getValue().intValue();
+
+		} else if (value instanceof FloatValue f) {
+
+			return f.getValue().doubleValue();
+
+		} else if (value instanceof BooleanValue b) {
+
+			return b.isValue();
+		}
+
+		return null;
 	}
 
 	private void putObjectOrList(final Map<String, Object> map, final String key, final Object value) {

@@ -18,10 +18,11 @@
  */
 package org.structr.core.function.search;
 
+import org.structr.api.search.Operation;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.Query;
-import org.structr.core.app.StructrApp;
+import org.structr.core.app.QueryGroup;
+import org.structr.core.graph.search.SearchAttributeGroup;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
 
@@ -30,33 +31,32 @@ import org.structr.core.traits.Traits;
 public class AndPredicate extends AbstractPredicate {
 
 	@Override
-	public void configureQuery(final SecurityContext securityContext, final Traits type, final PropertyKey propertyKey, final Query query, final boolean exact) throws FrameworkException {
+	public void configureQuery(final SecurityContext securityContext, final Traits type, final PropertyKey propertyKey, final QueryGroup query, final boolean exact) throws FrameworkException {
 
-		for (final SearchParameter p : parameters) {
+		final SearchAttributeGroup andGroup = new SearchAttributeGroup(securityContext, query, Operation.AND);
 
-			final PropertyKey key = type.key(p.getKey());
+		for (final SearchParameter parameter : parameters) {
+
+			final PropertyKey key = type.key(parameter.getKey());
 			if (key != null) {
 
-				final Object value = p.getValue();
+				final Object value = parameter.getValue();
 
 				// check if value is predicate...
-				if (value instanceof SearchFunctionPredicate) {
+				if (value instanceof SearchFunctionPredicate predicate) {
 
-					query.and();
-					((SearchFunctionPredicate)value).configureQuery(securityContext, type, key, query, p.isExact());
-					query.parent();
+					predicate.configureQuery(securityContext, type, key, andGroup, exact && parameter.isExact());
 
 				} else {
 
-					if (p.isEmptyPredicate()) {
 
-						query.and();
-						query.blank(key);
-						query.parent();
+					if (parameter.isEmptyPredicate()) {
+
+						andGroup.blank(key);
 
 					} else {
 
-						query.and(key, value, p.isExact());
+						andGroup.key(key, value, exact && parameter.isExact());
 					}
 				}
 			}
@@ -64,9 +64,12 @@ public class AndPredicate extends AbstractPredicate {
 
 		for (final SearchFunctionPredicate p : predicates) {
 
-			query.and();
-			p.configureQuery(securityContext, type, propertyKey, query, exact);
-			query.parent();
+			p.configureQuery(securityContext, type, propertyKey, andGroup, exact);
+		}
+
+		// only add group if it is not empty!
+		if (!andGroup.isEmpty()) {
+			query.add(andGroup);
 		}
 	}
 }

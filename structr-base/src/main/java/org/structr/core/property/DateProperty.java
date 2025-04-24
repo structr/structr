@@ -91,7 +91,7 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 	}
 
 	@Override
-	public PropertyConverter<?, Date> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, Date> inputConverter(SecurityContext securityContext, boolean fromString) {
 		return new InputConverter(securityContext);
 	}
 

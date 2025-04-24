@@ -36,19 +36,19 @@ public class ComparisonQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 
 		if (predicate instanceof ComparisonQuery) {
 
-			checkOccur(query, predicate.getOccurrence(), isFirst);
+			//checkOperation(query, predicate.getOperation(), isFirst);
 
-			final ComparisonQuery comparisonQuery     = (ComparisonQuery)predicate;
-			final Comparable value                    = (Comparable)getReadValue(comparisonQuery.getSearchValue());
-			final ComparisonQuery.Operation operation = comparisonQuery.getOperation();
-			final String name                         = predicate.getName();
-			final Class type                          = null;
+			final ComparisonQuery comparisonQuery       = (ComparisonQuery)predicate;
+			final Comparable value                      = (Comparable)getReadValue(comparisonQuery.getSearchValue());
+			final ComparisonQuery.Comparison comparison = comparisonQuery.getComparison();
+			final String name                           = predicate.getName();
+			final Class type                            = null;
 
-			if (value == null && operation == null) {
+			if (value == null && comparison == null) {
 				return false;
 			}
 
-			switch (operation) {
+			switch (comparison) {
 				case equal:
 					query.addPredicate(new ValuePredicate(name, value));
 					return true;

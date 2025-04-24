@@ -66,7 +66,7 @@ public class ZonedDateTimeProperty extends AbstractPrimitiveProperty<ZonedDateTi
 	}
 
 	@Override
-	public PropertyConverter<?, ZonedDateTime> inputConverter(final SecurityContext securityContext) {
+	public PropertyConverter<?, ZonedDateTime> inputConverter(final SecurityContext securityContext, boolean fromString) {
 		return new InputConverter(securityContext);
 	}
 

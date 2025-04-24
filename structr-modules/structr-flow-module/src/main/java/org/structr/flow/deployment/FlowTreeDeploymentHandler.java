@@ -37,14 +37,12 @@ import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.flow.impl.FlowBaseNode;
 import org.structr.flow.impl.FlowContainer;
 import org.structr.flow.impl.FlowContainerConfiguration;
+import org.structr.flow.traits.definitions.FlowContainerTraitDefinition;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
-import org.structr.flow.traits.definitions.FlowContainerTraitDefinition;
-import org.structr.flow.traits.definitions.FlowDataSourceTraitDefinition;
-import org.structr.flow.traits.definitions.FlowScriptConditionTraitDefinition;
 
 public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler implements FlowDeploymentInterface{
 

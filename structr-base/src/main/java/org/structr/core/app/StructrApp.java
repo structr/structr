@@ -187,11 +187,14 @@ public class StructrApp implements App {
 		final Identity nodeId = getNodeFromCache(uuid);
 		if (nodeId == null) {
 
-			final Query<NodeInterface> query = nodeQuery().uuid(uuid);
+			final Query<NodeInterface> query = nodeQuery();
+			QueryGroup<NodeInterface> and    = query.and();
+
+			and.uuid(uuid);
 
 			// set type for faster query
 			if (type != null) {
-				query.andType(type);
+				and.type(type);
 			}
 
 			final NodeInterface entity = query.getFirst();
@@ -231,12 +234,12 @@ public class StructrApp implements App {
 		final Identity id = getRelFromCache(uuid);
 		if (id == null) {
 
-			final Query<RelationshipInterface> query = relationshipQuery().uuid(uuid);
+			final QueryGroup<RelationshipInterface> query = relationshipQuery().and().uuid(uuid);
 
 			// set type for faster query
 			if (type != null) {
 
-				query.andType(type);
+				query.type(type);
 
 			} else {
 
@@ -272,8 +275,8 @@ public class StructrApp implements App {
 	}
 
 	@Override
-	public Query<NodeInterface> nodeQuery(final String type) {
-		return command(SearchNodeCommand.class).andType(type);
+	public QueryGroup<NodeInterface> nodeQuery(final String type) {
+		return command(SearchNodeCommand.class).and().type(type);
 	}
 
 	@Override
@@ -282,8 +285,8 @@ public class StructrApp implements App {
 	}
 
 	@Override
-	public Query<RelationshipInterface> relationshipQuery(final String type) {
-		return command(SearchRelationshipCommand.class).andType(type);
+	public QueryGroup<RelationshipInterface> relationshipQuery(final String type) {
+		return command(SearchRelationshipCommand.class).and().type(type);
 	}
 
 	@Override

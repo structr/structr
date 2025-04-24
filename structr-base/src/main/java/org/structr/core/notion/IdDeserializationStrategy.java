@@ -18,6 +18,7 @@
  */
 package org.structr.core.notion;
 
+import org.slf4j.LoggerFactory;
 import org.structr.common.EntityAndPropertiesContainer;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -33,11 +34,11 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationProperty;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
-
-import java.util.*;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
+
+import java.util.*;
 
 /**
  * Deserializes a {@link GraphObject} using the UUID property.
@@ -138,7 +139,7 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> extends Deser
 					//  (this is quite similar to the Cypher MERGE command),
 					if (!uniqueKeyValues.isEmpty()) {
 
-						final List<T> possibleResults = convert(app.nodeQuery(type).and(uniqueKeyValues).getResultStream());
+						final List<T> possibleResults = convert(app.nodeQuery(type).key(uniqueKeyValues).getResultStream());
 						final int num                 = possibleResults.size();
 
 						switch (num) {
@@ -220,9 +221,18 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> extends Deser
 					}
 				}
 
-			} else if (source instanceof GraphObject g && g.getTraits().contains(type)) {
+			} else if (source instanceof GraphObject g) {
 
-				return (T)source;
+				final Traits traits = g.getTraits();
+
+				if (traits != null && traits.contains(type)) {
+
+					return (T) source;
+
+				} else {
+
+					LoggerFactory.getLogger(IdDeserializationStrategy.class).warn("Got GraphObject of type {} that has no traits (null)!", g.getClass());
+				}
 
 			} else {
 

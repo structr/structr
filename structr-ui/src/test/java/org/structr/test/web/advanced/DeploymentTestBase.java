@@ -38,6 +38,7 @@ import org.structr.test.web.StructrUiTest;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.dom.*;
+import org.structr.web.entity.path.PagePath;
 import org.structr.web.maintenance.DeployCommand;
 import org.structr.web.traits.definitions.FileTraitDefinition;
 import org.structr.web.traits.definitions.dom.ContentTraitDefinition;
@@ -219,6 +220,18 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 			}
 
 		} else if (start.is(StructrTraits.DOM_NODE)) {
+
+			//
+			if (start.is(StructrTraits.PAGE)) {
+
+				final Page page = start.as(Page.class);
+
+				for (final PagePath path : page.getPaths()) {
+
+					calculateHash(path, buf, depth+1);
+				}
+
+			}
 
 			for (final DOMNode child : start.as(DOMNode.class).getChildren()) {
 

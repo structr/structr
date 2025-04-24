@@ -25,7 +25,6 @@ package org.structr.core.property;
 
 import org.structr.api.Predicate;
 import org.structr.api.search.SortType;
-import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
@@ -33,9 +32,9 @@ import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.notion.Notion;
+import org.structr.core.traits.StructrTraits;
 
 import java.util.Map;
-import org.structr.core.traits.StructrTraits;
 
 /**
  *
@@ -79,7 +78,7 @@ public class NodeRelationshipProperty<T extends AbstractRelationship> extends Ab
 	}
 
 	@Override
-	public PropertyConverter<?, Iterable<T>> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, Iterable<T>> inputConverter(SecurityContext securityContext, boolean fromString) {
 
 		if (notion != null) {
 			return notion.getCollectionConverter(securityContext);

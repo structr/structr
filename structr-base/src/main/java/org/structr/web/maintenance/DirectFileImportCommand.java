@@ -40,6 +40,7 @@ import org.structr.storage.StorageProviderFactory;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -51,7 +52,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 /**
  *
@@ -161,7 +161,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 			try (final Tx tx = app.tx()) {
 
-				targetFolder = app.nodeQuery(StructrTraits.FOLDER).and(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.PATH_PROPERTY), targetPath).getFirst();
+				targetFolder = app.nodeQuery(StructrTraits.FOLDER).key(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.PATH_PROPERTY), targetPath).getFirst();
 				if (targetFolder == null) {
 
 					throw new FrameworkException(422, "Target path " + targetPath + " does not exist.");
@@ -262,7 +262,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 			} else if (attrs.isRegularFile()) {
 
-				final NodeInterface existingFile = app.nodeQuery(StructrTraits.FILE).and(Traits.of(StructrTraits.ABSTRACT_FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY), parentPath + name).getFirst();
+				final NodeInterface existingFile = app.nodeQuery(StructrTraits.FILE).key(Traits.of(StructrTraits.ABSTRACT_FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY), parentPath + name).getFirst();
 				if (existingFile != null) {
 
 					switch (existing) {

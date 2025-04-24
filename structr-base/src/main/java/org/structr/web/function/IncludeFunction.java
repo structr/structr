@@ -37,12 +37,12 @@ import org.structr.web.common.RenderContext;
 import org.structr.web.datasource.FunctionDataSource;
 import org.structr.web.entity.File;
 import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.List;
-import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 
 /**
  * Convenience method to render named nodes. If more than one node is found, an error message is returned that informs the user that this is not allowed and can result in unexpected
@@ -78,7 +78,7 @@ public class IncludeFunction extends UiCommunityFunction {
 			final PropertyKey<DOMNode> sharedCompKey = Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.SHARED_COMPONENT_PROPERTY);
 			final SecurityContext securityContext    = ctx.getSecurityContext();
 			final App app                            = StructrApp.getInstance(securityContext);
-			final List<NodeInterface> nodeList       = app.nodeQuery(StructrTraits.DOM_NODE).andName((String)sources[0]).getAsList();
+			final List<NodeInterface> nodeList       = app.nodeQuery(StructrTraits.DOM_NODE).name((String)sources[0]).getAsList();
 
 
 			RenderContext innerCtx = null;
@@ -178,7 +178,7 @@ public class IncludeFunction extends UiCommunityFunction {
 
 		} else {
 
-			final NodeInterface fileNode = app.nodeQuery(StructrTraits.FILE).andName((String)sources[0]).getFirst();
+			final NodeInterface fileNode = app.nodeQuery(StructrTraits.FILE).name((String)sources[0]).getFirst();
 			if (fileNode != null) {
 
 				final File file          = fileNode.as(File.class);

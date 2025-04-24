@@ -21,10 +21,10 @@ package org.structr.web.property;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
-
-import java.util.Set;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+
+import java.util.Set;
 
 /**
  * Convenience wrapper for (id, name) tuple.

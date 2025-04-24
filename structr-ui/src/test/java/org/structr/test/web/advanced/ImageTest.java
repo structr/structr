@@ -156,7 +156,7 @@ public class ImageTest extends StructrUiTest {
 			boolean allThumbnailsAvailable = true;
 			try (final Tx tx = app.tx()) {
 
-				final List<NodeInterface> images = app.nodeQuery(StructrTraits.IMAGE).and(Traits.of(StructrTraits.IMAGE).key(ImageTraitDefinition.IS_THUMBNAIL_PROPERTY), false).getAsList();
+				final List<NodeInterface> images = app.nodeQuery(StructrTraits.IMAGE).key(Traits.of(StructrTraits.IMAGE).key(ImageTraitDefinition.IS_THUMBNAIL_PROPERTY), false).getAsList();
 				for (NodeInterface img : images) {
 
 					allThumbnailsAvailable &= img.getProperty(Traits.of(StructrTraits.IMAGE).key(ImageTraitDefinition.TN_MID_PROPERTY)) != null;

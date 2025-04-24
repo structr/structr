@@ -29,6 +29,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.web.entity.AbstractFile;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
@@ -36,7 +37,6 @@ import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 public class VirtualDirectoryStream implements DirectoryStream<Path> {
 
@@ -96,11 +96,11 @@ public class VirtualDirectoryStream implements DirectoryStream<Path> {
 			if (!(root.toString().equals("/"))) {
 
 				final PropertyKey<String> path = traits.key(AbstractFileTraitDefinition.PATH_PROPERTY);
-				final NodeInterface rootFolder = app.nodeQuery(StructrTraits.FOLDER).and(path, root.toString()).getFirst();
+				final NodeInterface rootFolder = app.nodeQuery(StructrTraits.FOLDER).key(path, root.toString()).getFirst();
 
 				if (rootFolder != null) {
 
-					app.nodeQuery(StructrTraits.ABSTRACT_FILE).and(parentKey, rootFolder)
+					app.nodeQuery(StructrTraits.ABSTRACT_FILE).key(parentKey, rootFolder)
 						.getAsList()
 						.stream()
 						.map(f -> Path.of(f.as(AbstractFile.class).getPath()))
@@ -110,7 +110,7 @@ public class VirtualDirectoryStream implements DirectoryStream<Path> {
 
 			} else {
 
-				app.nodeQuery(StructrTraits.ABSTRACT_FILE).and(parentKey, null)
+				app.nodeQuery(StructrTraits.ABSTRACT_FILE).key(parentKey, null)
 					.getAsList()
 					.stream()
 					.map(f -> Path.of(f.as(AbstractFile.class).getPath()))

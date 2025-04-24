@@ -20,12 +20,11 @@ package org.structr.core.property;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.structr.api.Predicate;
-import org.structr.api.search.Occurrence;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.app.Query;
+import org.structr.core.app.QueryGroup;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.traits.Trait;
@@ -179,7 +178,7 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 
 	PropertyConverter<T, ?> databaseConverter(final SecurityContext securityContext);
 	PropertyConverter<T, ?> databaseConverter(final SecurityContext securityContext, final GraphObject entity);
-	PropertyConverter<?, T> inputConverter(final SecurityContext securityContext);
+	PropertyConverter<?, T> inputConverter(final SecurityContext securityContext, final boolean fromString);
 	Object fixDatabaseProperty(final Object value);
 
 	boolean requiresSynchronization();
@@ -338,8 +337,8 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	boolean isPropertyTypeIndexable();
 	boolean isPropertyValueIndexable(final Object value);
 
-	SearchAttribute getSearchAttribute(final SecurityContext securityContext, final Occurrence occur, final T searchValue, final boolean exactMatch, final Query query);
-	void extractSearchableAttribute(final SecurityContext securityContext, final HttpServletRequest request, final boolean exactMatch, final Query query) throws FrameworkException;
+	SearchAttribute getSearchAttribute(final SecurityContext securityContext, final T searchValue, final boolean exactMatch, final QueryGroup query);
+	void extractSearchableAttribute(final SecurityContext securityContext, final HttpServletRequest request, final boolean exactMatch, final QueryGroup query) throws FrameworkException;
 	T convertSearchValue(final SecurityContext securityContext, final String requestParameter) throws FrameworkException;
 
 	/**

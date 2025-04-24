@@ -20,7 +20,7 @@ package org.structr.schema;
 
 import graphql.Scalars;
 import graphql.schema.*;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -147,7 +147,7 @@ public class SchemaService implements Service {
 				}
 
 				// fetch schema methods that extend the static schema (not attached to a schema node)
-				for (final NodeInterface node : app.nodeQuery(StructrTraits.SCHEMA_METHOD).and(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY), null).getResultStream()) {
+				for (final NodeInterface node : app.nodeQuery(StructrTraits.SCHEMA_METHOD).key(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY), null).getResultStream()) {
 
 					final SchemaMethod schemaMethod   = node.as(SchemaMethod.class);
 					final String staticSchemaNodeName = schemaMethod.getStaticSchemaNodeName();
@@ -169,7 +169,7 @@ public class SchemaService implements Service {
 				}
 
 				// fetch schema properties that extend the static schema (not attached to a schema node)
-				for (final NodeInterface node : app.nodeQuery(StructrTraits.SCHEMA_PROPERTY).and(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), null).getResultStream()) {
+				for (final NodeInterface node : app.nodeQuery(StructrTraits.SCHEMA_PROPERTY).key(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), null).getResultStream()) {
 
 					final SchemaProperty schemaProperty = node.as(SchemaProperty.class);
 					final String staticSchemaNodeName   = schemaProperty.getStaticSchemaNodeName();
@@ -191,7 +191,7 @@ public class SchemaService implements Service {
 				}
 
 				// fetch schema views that extend the static schema (not attached to a schema node)
-				for (final NodeInterface node : app.nodeQuery(StructrTraits.SCHEMA_VIEW).and(Traits.of(StructrTraits.SCHEMA_VIEW).key(SchemaViewTraitDefinition.SCHEMA_NODE_PROPERTY), null).getResultStream()) {
+				for (final NodeInterface node : app.nodeQuery(StructrTraits.SCHEMA_VIEW).key(Traits.of(StructrTraits.SCHEMA_VIEW).key(SchemaViewTraitDefinition.SCHEMA_NODE_PROPERTY), null).getResultStream()) {
 
 					final SchemaView schemaView       = node.as(SchemaView.class);
 					final String staticSchemaNodeName = schemaView.getStaticSchemaNodeName();
@@ -213,7 +213,7 @@ public class SchemaService implements Service {
 				}
 
 				// fetch schema grants that extend the static schema (not attached to a schema node)
-				for (final NodeInterface node : app.nodeQuery(StructrTraits.SCHEMA_GRANT).and(Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.SCHEMA_NODE_PROPERTY), null).getResultStream()) {
+				for (final NodeInterface node : app.nodeQuery(StructrTraits.SCHEMA_GRANT).key(Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.SCHEMA_NODE_PROPERTY), null).getResultStream()) {
 
 					final SchemaGrant schemaGrant     = node.as(SchemaGrant.class);
 					final String staticSchemaNodeName = schemaGrant.getStaticSchemaNodeName();

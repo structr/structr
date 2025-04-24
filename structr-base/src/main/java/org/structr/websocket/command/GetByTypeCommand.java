@@ -23,7 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.Query;
+import org.structr.core.app.QueryGroup;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
@@ -80,7 +80,11 @@ public class GetByTypeCommand extends AbstractCommand {
 			final int page           = webSocketData.getPage();
 
 
-			final Query query = StructrApp.getInstance(securityContext).nodeQuery(rawType).includeHidden(includeHidden);
+			final QueryGroup query = StructrApp.getInstance(securityContext).nodeQuery()
+				.includeHidden(includeHidden)
+				.page(page)
+				.pageSize(pageSize)
+				.and().type(rawType);
 
 			if (sortKey != null) {
 
@@ -93,7 +97,7 @@ public class GetByTypeCommand extends AbstractCommand {
 
 			// for image lists, suppress thumbnails
 			if (traits.contains(StructrTraits.IMAGE)) {
-				query.and(traits.key(ImageTraitDefinition.IS_THUMBNAIL_PROPERTY), false);
+				query.key(traits.key(ImageTraitDefinition.IS_THUMBNAIL_PROPERTY), false);
 			}
 
 			webSocketData.setResult(query.getResultStream());

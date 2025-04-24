@@ -98,7 +98,7 @@ public class RelationshipTypeProperty extends StringProperty {
 	}
 
 	@Override
-	public PropertyConverter<?, String> inputConverter(final SecurityContext securityContext) {
+	public PropertyConverter<?, String> inputConverter(final SecurityContext securityContext, boolean fromString) {
 		return null;
 	}
 }

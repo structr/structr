@@ -98,7 +98,7 @@ public class ConstantBooleanProperty extends AbstractPrimitiveProperty<Boolean>	
 	}
 
 	@Override
-	public PropertyConverter<?, Boolean> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, Boolean> inputConverter(SecurityContext securityContext, boolean fromString) {
 		return null;
 	}
 

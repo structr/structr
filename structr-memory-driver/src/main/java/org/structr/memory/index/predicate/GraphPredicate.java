@@ -77,8 +77,11 @@ public class GraphPredicate<T extends PropertyContainer> implements Predicate<T>
 						}
 					}
 
-					switch (graphQuery.getOccurrence()) {
+					/*
 
+					switch (graphQuery.getOperation()) {
+
+						FIXME
 						case CONTAINS:
 						case REQUIRED:
 						case OPTIONAL:
@@ -87,10 +90,10 @@ public class GraphPredicate<T extends PropertyContainer> implements Predicate<T>
 
 						case EXACT:
 							return actual.containsAll(expected) && actual.size() == expected.size();
-
 						default:
 							break;
 					}
+					*/
 
 				} else {
 
@@ -126,12 +129,14 @@ public class GraphPredicate<T extends PropertyContainer> implements Predicate<T>
 
 									if (contains) {
 
-										switch (graphQuery.getOccurrence()) {
+										/*
+										switch (graphQuery.getOperation()) {
 
-											case REQUIRED:
-											case CONTAINS:
+											case AND:
+											case OR:
 												return true;
 										}
+										*/
 									}
 
 									accept &= contains;

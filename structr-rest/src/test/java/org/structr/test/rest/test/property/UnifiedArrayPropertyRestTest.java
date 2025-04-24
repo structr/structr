@@ -20,7 +20,7 @@ package org.structr.test.rest.test.property;
 
 import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.testng.annotations.Test;
 
@@ -34,6 +34,35 @@ import static org.hamcrest.Matchers.equalTo;
  *
  */
 public class UnifiedArrayPropertyRestTest extends StructrRestTestBase {
+
+	@Test
+	public void testArrayCreationError() {
+
+		testArrayCreationError("boolean", true);
+		//testArrayUpdate("byte", (byte)0x01, (byte)0x02, (byte)0x03, (byte)0x04, (byte)0x05);
+		testArrayCreationError("date", "2019-02-05T12:34:56+0000");
+		testArrayCreationError("double", 1.0f);
+		testArrayCreationError("enum", "Status1");
+		testArrayCreationError("integer", 1);
+		testArrayCreationError("long", 1);
+		testArrayCreationError("string", "one");
+	}
+
+	private <T> void testArrayCreationError(final String type, final T value1) {
+
+		final String creationValue = join(value1);
+
+		// we don't accept single values for array properties anymore!
+
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			.body(" { '" + type + "ArrayProperty' : " + creationValue + " } ")
+			.expect()
+			.statusCode(422)
+			.when()
+			.post("/TestThree")
+			.getHeader("Location");
+	}
 
 	@Test
 	public void testArrayUpdate() {
@@ -835,7 +864,7 @@ public class UnifiedArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[2]." + type + "ArrayProperty[1]", equalTo(value2))
 
 			.when()
-			.get("/TestThree?_sort=name&" + type + "ArrayProperty=" + value1 + ";" + value2);
+			.get("/TestThree?_sort=name&" + type + "ArrayProperty=" + value1 + ";" + value2 + "&_inexact=1");
 
 		// remove all test objects
 		RestAssured.given()

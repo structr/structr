@@ -1251,6 +1251,11 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	}
 
 	@Override
+	public final void updateHasSharedComponentFlag() throws FrameworkException {
+		wrappedObject.setProperty(traits.key(DOMNodeTraitDefinition.HAS_SHARED_COMPONENT_PROPERTY), getSharedComponent() != null);
+	}
+
+	@Override
 	public final void setVisibility(final boolean publicUsers, final boolean authenticatedUsers) throws FrameworkException {
 		wrappedObject.setVisibility(publicUsers, authenticatedUsers);
 	}

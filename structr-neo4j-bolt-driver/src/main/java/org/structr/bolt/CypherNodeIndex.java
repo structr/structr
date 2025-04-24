@@ -18,9 +18,13 @@
  */
 package org.structr.bolt;
 
+import org.neo4j.driver.exceptions.ClientException;
+import org.neo4j.driver.exceptions.DatabaseException;
 import org.structr.api.graph.Node;
 import org.structr.api.search.SortOrder;
 import org.structr.api.search.SortSpec;
+
+import java.util.Collections;
 
 /**
  *
@@ -100,6 +104,44 @@ class CypherNodeIndex extends AbstractCypherIndex<Node> {
 
 	@Override
 	public Iterable<Node> getResult(final CypherQuery query) {
-		return db.getCurrentTransaction().getCachedResult(query);
+
+		try {
+
+			return db.getCurrentTransaction().getCachedResult(query);
+
+		} catch (ClientException e) {
+			ReactiveSessionTransaction.translateClientException(e);
+		} catch (DatabaseException d) {
+			ReactiveSessionTransaction.translateDatabaseException(d);
+		}
+
+		return Collections.EMPTY_LIST;
 	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

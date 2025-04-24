@@ -27,9 +27,9 @@ import org.structr.common.error.NumberFormatToken;
 import org.structr.common.error.PropertyInputParsingException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.traits.definitions.LocationTraitDefinition;
 
 import java.util.Map;
-import org.structr.core.traits.definitions.LocationTraitDefinition;
 
 /**
  * A property that stores and retrieves a simple Double value.
@@ -90,7 +90,7 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> implements
 	}
 
 	@Override
-	public PropertyConverter<?, Double> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, Double> inputConverter(SecurityContext securityContext, boolean fromString) {
 		return new InputConverter(securityContext);
 	}
 

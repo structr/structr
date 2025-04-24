@@ -18,15 +18,11 @@
  */
 package org.structr.rest.resource;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
 import org.structr.core.entity.Principal;
@@ -34,6 +30,10 @@ import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTMethodCallHandler;
 import org.structr.rest.exception.IllegalMethodException;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  *

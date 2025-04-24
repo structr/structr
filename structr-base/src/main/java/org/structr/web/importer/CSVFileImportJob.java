@@ -198,7 +198,7 @@ public class CSVFileImportJob extends FileImportJob {
 									if (distinct) {
 
 										// check for existing object and ignore import
-										if (app.nodeQuery(targetEntityType.getName()).and(properties).getFirst() == null) {
+										if (app.nodeQuery(targetEntityType.getName()).key(properties).getFirst() == null) {
 
 											app.create(targetEntityType.getName(), properties);
 											overallCount++;

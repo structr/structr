@@ -35,7 +35,6 @@ import org.structr.core.traits.Traits;
 import org.structr.flow.impl.FlowContainer;
 import org.structr.flow.impl.FlowContainerConfiguration;
 import org.structr.flow.impl.rels.FlowContainerConfigurationFlow;
-import org.structr.flow.traits.definitions.FlowConditionTraitDefinition;
 import org.structr.flow.traits.definitions.FlowContainerConfigurationTraitDefinition;
 import org.structr.module.api.DeployableEntity;
 import org.structr.web.common.AbstractMapComparator;
@@ -80,7 +79,7 @@ public class FlowLegacyDeploymentHandler extends FlowAbstractDeploymentHandler i
 			for (final NodeInterface containerNode : app.nodeQuery(StructrTraits.FLOW_CONTAINER).sort(idProperty).getAsList()) {
 
 				final FlowContainer flowContainer     = containerNode.as(FlowContainer.class);
-				final NodeInterface configNode        = app.nodeQuery(StructrTraits.FLOW_CONTAINER_CONFIGURATION).and(flowKey, flowContainer).sort(lastModifiedProperty).getFirst();
+				final NodeInterface configNode        = app.nodeQuery(StructrTraits.FLOW_CONTAINER_CONFIGURATION).key(flowKey, flowContainer).sort(lastModifiedProperty).getFirst();
 				final FlowContainerConfiguration conf = configNode.as(FlowContainerConfiguration.class);
 
 				if (conf != null) {
@@ -198,8 +197,8 @@ public class FlowLegacyDeploymentHandler extends FlowAbstractDeploymentHandler i
 
 							} else {
 
-								final NodeInterface sourceNode = app.nodeQuery().uuid((String)entry.get("sourceId")).getFirst();
-								final NodeInterface targetNode = app.nodeQuery().uuid((String)entry.get("targetId")).getFirst();
+								final NodeInterface sourceNode = app.nodeQuery().and().uuid((String)entry.get("sourceId")).getFirst();
+								final NodeInterface targetNode = app.nodeQuery().and().uuid((String)entry.get("targetId")).getFirst();
 
 								app.create(sourceNode, targetNode, (String)entry.get("type"));
 							}

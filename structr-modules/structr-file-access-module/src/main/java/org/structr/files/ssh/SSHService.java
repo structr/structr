@@ -268,7 +268,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 
 			try {
 
-				final NodeInterface principalNode = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).andName(username).getFirst();
+				final NodeInterface principalNode = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).name(username).getFirst();
 				if (principalNode != null) {
 
 					final Principal principal = principalNode.as(Principal.class);

@@ -137,10 +137,10 @@ public class LogResource extends ExactMatchEndpoint {
 
 					processData(logState, StructrApp.getInstance(securityContext)
 						.nodeQuery(StructrTraits.LOG_EVENT)
-						.and(traits.key(LogEventTraitDefinition.SUBJECT_PROPERTY), subjectId)
-						.and(traits.key(LogEventTraitDefinition.OBJECT_PROPERTY), objectId)
-						.and(traits.key(LogEventTraitDefinition.ACTION_PROPERTY), logState.logAction)
-						.andRange(traits.key(LogEventTraitDefinition.TIMESTAMP_PROPERTY), new Date(logState.beginTimestamp()), new Date(logState.endTimestamp()))
+						.key(traits.key(LogEventTraitDefinition.SUBJECT_PROPERTY), subjectId)
+						.key(traits.key(LogEventTraitDefinition.OBJECT_PROPERTY), objectId)
+						.key(traits.key(LogEventTraitDefinition.ACTION_PROPERTY), logState.logAction)
+						.range(traits.key(LogEventTraitDefinition.TIMESTAMP_PROPERTY), new Date(logState.beginTimestamp()), new Date(logState.endTimestamp()))
 						.getAsList()
 					);
 
@@ -148,9 +148,9 @@ public class LogResource extends ExactMatchEndpoint {
 
 					processData(logState, StructrApp.getInstance(securityContext)
 						.nodeQuery(StructrTraits.LOG_EVENT)
-						.and(traits.key(LogEventTraitDefinition.SUBJECT_PROPERTY), subjectId)
-						.and(traits.key(LogEventTraitDefinition.ACTION_PROPERTY), logState.logAction)
-						.andRange(traits.key(LogEventTraitDefinition.TIMESTAMP_PROPERTY), new Date(logState.beginTimestamp()), new Date(logState.endTimestamp()))
+						.key(traits.key(LogEventTraitDefinition.SUBJECT_PROPERTY), subjectId)
+						.key(traits.key(LogEventTraitDefinition.ACTION_PROPERTY), logState.logAction)
+						.range(traits.key(LogEventTraitDefinition.TIMESTAMP_PROPERTY), new Date(logState.beginTimestamp()), new Date(logState.endTimestamp()))
 						.getAsList()
 					);
 
@@ -160,9 +160,9 @@ public class LogResource extends ExactMatchEndpoint {
 
 					processData(logState, StructrApp.getInstance(securityContext)
 						.nodeQuery(StructrTraits.LOG_EVENT)
-						.and(traits.key(LogEventTraitDefinition.OBJECT_PROPERTY), objectId)
-						.and(traits.key(LogEventTraitDefinition.ACTION_PROPERTY), logState.logAction)
-						.andRange(traits.key(LogEventTraitDefinition.TIMESTAMP_PROPERTY), new Date(logState.beginTimestamp()), new Date(logState.endTimestamp()))
+						.key(traits.key(LogEventTraitDefinition.OBJECT_PROPERTY), objectId)
+						.key(traits.key(LogEventTraitDefinition.ACTION_PROPERTY), logState.logAction)
+						.range(traits.key(LogEventTraitDefinition.TIMESTAMP_PROPERTY), new Date(logState.beginTimestamp()), new Date(logState.endTimestamp()))
 						.getAsList()
 					);
 
@@ -343,7 +343,7 @@ public class LogResource extends ExactMatchEndpoint {
 				// get the basic correlation set (pds_click in the test case)
 				final List<NodeInterface> correlationResult = StructrApp.getInstance(securityContext)
 					.nodeQuery(StructrTraits.LOG_EVENT)
-					.and(traits.key(LogEventTraitDefinition.ACTION_PROPERTY), state.correlationAction)
+					.key(traits.key(LogEventTraitDefinition.ACTION_PROPERTY), state.correlationAction)
 					.getAsList();
 
 				for (final NodeInterface node : correlationResult) {
@@ -372,8 +372,8 @@ public class LogResource extends ExactMatchEndpoint {
 			logger.debug("No. of correlations: {}", state.getCorrelations().entrySet().size());
 
 			final List<NodeInterface> result = StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.LOG_EVENT)
-				.and(traits.key(LogEventTraitDefinition.ACTION_PROPERTY), state.logAction)
-				.andRange(traits.key(LogEventTraitDefinition.TIMESTAMP_PROPERTY), new Date(state.beginTimestamp()), new Date(state.endTimestamp()))
+				.key(traits.key(LogEventTraitDefinition.ACTION_PROPERTY), state.logAction)
+				.range(traits.key(LogEventTraitDefinition.TIMESTAMP_PROPERTY), new Date(state.beginTimestamp()), new Date(state.endTimestamp()))
 				.getAsList();
 
 			processData(state, result);

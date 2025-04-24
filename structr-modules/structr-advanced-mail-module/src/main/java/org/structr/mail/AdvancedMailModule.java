@@ -32,7 +32,6 @@ import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
 
 import java.util.Set;
-import org.yecht.Data;
 
 
 public class AdvancedMailModule implements StructrModule {

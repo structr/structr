@@ -31,11 +31,11 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
-
-import java.util.*;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
+
+import java.util.*;
 
 public class StructrGlobalSchemaMethods {
 
@@ -49,7 +49,7 @@ public class StructrGlobalSchemaMethods {
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface node : app.nodeQuery(StructrTraits.SCHEMA_METHOD).and(traits.key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY), null).sort(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getAsList()) {
+			for (final NodeInterface node : app.nodeQuery(StructrTraits.SCHEMA_METHOD).key(traits.key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY), null).sort(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getAsList()) {
 
 				final StructrMethodDefinition def = StructrMethodDefinition.deserialize(null, node.as(SchemaMethod.class));
 
@@ -75,7 +75,7 @@ public class StructrGlobalSchemaMethods {
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface node : app.nodeQuery(StructrTraits.SCHEMA_METHOD).and(traits.key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY), null).sort(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getAsList()) {
+			for (final NodeInterface node : app.nodeQuery(StructrTraits.SCHEMA_METHOD).key(traits.key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY), null).sort(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getAsList()) {
 
 				final Map<String, Object> entry  = new TreeMap<>();
 				final Map<String, Object> params = new LinkedHashMap<>();
@@ -137,7 +137,7 @@ public class StructrGlobalSchemaMethods {
 		if (JsonSchema.ImportMode.replace.equals(importMode)) {
 			// completely delete all global schema methods and import the methods from file
 
-			for (final NodeInterface method : app.nodeQuery(StructrTraits.SCHEMA_METHOD).and(traits.key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY), null).getAsList()) {
+			for (final NodeInterface method : app.nodeQuery(StructrTraits.SCHEMA_METHOD).key(traits.key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY), null).getAsList()) {
 				app.delete(method);
 			}
 
@@ -154,7 +154,7 @@ public class StructrGlobalSchemaMethods {
 
 				final String name = entry.get(JsonSchema.KEY_NAME).toString();
 
-				for (final NodeInterface method : app.nodeQuery(StructrTraits.SCHEMA_METHOD).and(traits.key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY), null).andName(name).getAsList()) {
+				for (final NodeInterface method : app.nodeQuery(StructrTraits.SCHEMA_METHOD).key(traits.key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY), null).name(name).getAsList()) {
 					app.delete(method);
 				}
 

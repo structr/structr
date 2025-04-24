@@ -43,6 +43,8 @@ import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 import org.structr.web.traits.definitions.FileTraitDefinition;
+import org.structr.web.traits.definitions.PagePathParameterTraitDefinition;
+import org.structr.web.traits.definitions.PagePathTraitDefinition;
 import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
 import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 import org.structr.web.traits.definitions.html.Option;
@@ -100,7 +102,7 @@ public class Deployment5Test extends DeploymentTestBase {
 		// test1: verify that user is allowed to access MailTemplates
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface user          = app.nodeQuery(StructrTraits.USER).andName("tester").getFirst();
+			final NodeInterface user          = app.nodeQuery(StructrTraits.USER).name("tester").getFirst();
 			final SecurityContext userContext = SecurityContext.getInstance(user.as(User.class), AccessMode.Backend);
 
 			for (final NodeInterface template : app.nodeQuery(StructrTraits.MAIL_TEMPLATE).getAsList()) {
@@ -144,7 +146,7 @@ public class Deployment5Test extends DeploymentTestBase {
 		// test2: verify that new user is allowed to access MailTemplates
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface user          = app.nodeQuery(StructrTraits.USER).andName("tester").getFirst();
+			final NodeInterface user          = app.nodeQuery(StructrTraits.USER).name("tester").getFirst();
 			final SecurityContext userContext = SecurityContext.getInstance(user.as(User.class), AccessMode.Backend);
 
 			for (final NodeInterface template : app.nodeQuery(StructrTraits.MAIL_TEMPLATE).getAsList()) {
@@ -194,9 +196,9 @@ public class Deployment5Test extends DeploymentTestBase {
 			createElement(page1, head1, "title", "test52_1");
 
 			final DOMElement body1 =  createElement(page1, html1, "body");
-			final DOMElement div1   =  createElement(page1, body1, "div");
-			final DOMElement sel1 = createElement(page1, div1,  "select");
-			final DOMElement opt1 = createElement(page1, sel1,  "option", "${group.name}");
+			final DOMElement div1  =  createElement(page1, body1, "div");
+			final DOMElement sel1  = createElement(page1, div1,  "select");
+			final DOMElement opt1  = createElement(page1, sel1,  "option", "${group.name}");
 
 			sel1.setProperty(Traits.of(StructrTraits.SELECT).key(Select.MULTIPLE_PROPERTY), "multiple");
 
@@ -219,6 +221,7 @@ public class Deployment5Test extends DeploymentTestBase {
 		// check HTML result before roundtrip
 		RestAssured
 			.given()
+			.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
@@ -518,10 +521,10 @@ public class Deployment5Test extends DeploymentTestBase {
 
 			try (final Tx tx = app.tx()) {
 
-				final NodeInterface folder = app.nodeQuery(StructrTraits.FOLDER).andName(v2FolderName).getFirst();
+				final NodeInterface folder = app.nodeQuery(StructrTraits.FOLDER).name(v2FolderName).getFirst();
 				folder.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), v1FolderName);
 
-				final NodeInterface file = app.nodeQuery(StructrTraits.FILE).andName(v2FileName).getFirst();
+				final NodeInterface file = app.nodeQuery(StructrTraits.FILE).name(v2FileName).getFirst();
 				file.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), v1FileName);
 
 				tx.success();
@@ -534,8 +537,8 @@ public class Deployment5Test extends DeploymentTestBase {
 
 			try (final Tx tx = app.tx()) {
 
-				final NodeInterface folder = app.nodeQuery(StructrTraits.FOLDER).andName(v1FolderName).getFirst();
-				final NodeInterface file = app.nodeQuery(StructrTraits.FILE).andName(v1FileName).getFirst();
+				final NodeInterface folder = app.nodeQuery(StructrTraits.FOLDER).name(v1FolderName).getFirst();
+				final NodeInterface file = app.nodeQuery(StructrTraits.FILE).name(v1FileName).getFirst();
 
 				assertNotNull("Folder rename did not work", folder);
 				assertNotNull("File rename did not work", file);
@@ -554,11 +557,11 @@ public class Deployment5Test extends DeploymentTestBase {
 		// check that the correct file/folder name is set
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface folder = app.nodeQuery(StructrTraits.FOLDER).andName(v2FolderName).getFirst();
+			final NodeInterface folder = app.nodeQuery(StructrTraits.FOLDER).name(v2FolderName).getFirst();
 
 			assertNotNull("Invalid deployment result", folder);
 
-			final NodeInterface file = app.nodeQuery(StructrTraits.FILE).andName(v2FileName).getFirst();
+			final NodeInterface file = app.nodeQuery(StructrTraits.FILE).name(v2FileName).getFirst();
 
 			assertNotNull("Invalid deployment result", file);
 
@@ -596,6 +599,49 @@ public class Deployment5Test extends DeploymentTestBase {
 
 		final String hash1 = calculateHash();
 		doImportExportRoundtrip(true, null, false);
+		final String hash2 = calculateHash();
+
+		assertEquals("Invalid deployment roundtrip result for dynamic file", hash1, hash2);
+	}
+
+	@Test
+	public void test58PagePathExport() {
+
+		// create page and path
+		try (final Tx tx = app.tx()) {
+
+			// create page
+			final Page page = Page.createSimplePage(securityContext, "test058");
+
+			// create path
+			final NodeInterface path = app.create(StructrTraits.PAGE_PATH,
+				new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(PagePathTraitDefinition.PAGE_PROPERTY), page),
+				new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "/test058/{test}/static/{test2}")
+			);
+
+			// create one parameter with all values
+			app.create(StructrTraits.PAGE_PATH_PARAMETER,
+				new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.PATH_PROPERTY),          path),
+				new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),              "test1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.VALUE_TYPE_PROPERTY),    "String"),
+				new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.DEFAULT_VALUE_PROPERTY), "TEST"),
+				new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.IS_OPTIONAL_PROPERTY),   true)
+			);
+
+			// create one parameter with only required values
+			app.create(StructrTraits.PAGE_PATH_PARAMETER,
+				new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.PATH_PROPERTY), path),
+				new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),     "test2")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		final String hash1 = calculateHash();
+		doImportExportRoundtrip(true, null);
 		final String hash2 = calculateHash();
 
 		assertEquals("Invalid deployment roundtrip result for dynamic file", hash1, hash2);

@@ -45,6 +45,7 @@ import org.structr.core.api.Arguments;
 import org.structr.core.api.Methods;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
+import org.structr.core.app.QueryGroup;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.exception.AuthenticationException;
@@ -245,7 +246,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				final RenderContext renderContext = RenderContext.getInstance(securityContext, request, response);
 				final EditMode edit               = renderContext.getEditMode(user);
 				final String[] uriParts           = PathHelper.getParts(path);
-				boolean isDynamicPath             = false;
 				DOMNode rootElement               = null;
 				NodeInterface dataNode            = null;
 				File file                         = null;
@@ -298,7 +298,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 							if (pathResult != null) {
 
 								rootElement   = pathResult;
-								isDynamicPath = true;
 							}
 
 						}
@@ -445,7 +444,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 						// Page with Basic Auth found but not yet authenticated
 						case MustAuthenticate:
 
-							final NodeInterface errorPage = StructrApp.getInstance().nodeQuery(StructrTraits.PAGE).and(pageTraits.key(PageTraitDefinition.SHOW_ON_ERROR_CODES_PROPERTY), "401", false).getFirst();
+							final NodeInterface errorPage = StructrApp.getInstance().nodeQuery(StructrTraits.PAGE).key(pageTraits.key(PageTraitDefinition.SHOW_ON_ERROR_CODES_PROPERTY), "401", false).getFirst();
 							if (errorPage != null && isVisibleForSite(request, errorPage.as(Page.class))) {
 
 								// set error page
@@ -995,7 +994,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	private Page notFound(final HttpServletResponse response, final SecurityContext securityContext) throws IOException, FrameworkException {
 
 		final PropertyKey<String> key        = Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.SHOW_ON_ERROR_CODES_PROPERTY);
-		final List<NodeInterface> errorPages = StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.PAGE).and(key, "404", false).getAsList();
+		final List<NodeInterface> errorPages = StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.PAGE).key(key, "404", false).getAsList();
 
 		for (final NodeInterface node : errorPages) {
 
@@ -1017,7 +1016,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	private Page getErrorPageForStatus(final HttpServletResponse response, final SecurityContext securityContext) throws IOException, FrameworkException {
 
 		final PropertyKey<String> key        = Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.SHOW_ON_ERROR_CODES_PROPERTY);
-		final List<NodeInterface> errorPages = StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.PAGE).and(key, "" + response.getStatus(), false).getAsList();
+		final List<NodeInterface> errorPages = StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.PAGE).key(key, "" + response.getStatus(), false).getAsList();
 
 		for (final NodeInterface node : errorPages) {
 
@@ -1054,9 +1053,10 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 			if (!possiblePropertyNamesForEntityResolving.isEmpty()) {
 
-				query.and();
+				// FIXME: default is and so we don't need the additional and() here?
+				//query.and();
 				resolvePossiblePropertyNamesForObjectResolution(query, name);
-				query.parent();
+				//query.parent();
 			}
 
 			return query.getFirst();
@@ -1130,7 +1130,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	 */
 	private DOMNode findPartialByName(final SecurityContext securityContext, final String name) throws FrameworkException {
 
-		for (final NodeInterface node : StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.DOM_NODE).andName(name).not().and(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY), StructrTraits.PAGE).getAsList()) {
+		for (final NodeInterface node : StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.DOM_NODE).name(name).not().key(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY), StructrTraits.PAGE).getAsList()) {
 
 			final DOMNode potentialPartial = node.as(DOMNode.class);
 
@@ -1163,16 +1163,13 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		final String name = PathHelper.getName(path);
 		attributes.put(nameKey, name);
 
+		// FIXME
+
 		// Find pages by path or name
 		final List<NodeInterface> possiblePages = StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.PAGE)
 			.or()
-				.notBlank(pathKey)
-				.and(pathKey, path)
-				.parent()
-			.or()
-				.blank(pathKey)
-				.and(nameKey, name)
-				.parent()
+				.key(pathKey, path)
+				.key(nameKey, name)
 			.sort(pathKey)
 			.getAsList();
 
@@ -1262,7 +1259,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			List<NodeInterface> results;
 			try (final Tx tx = app.tx()) {
 
-				results = app.nodeQuery(StructrTraits.PRINCIPAL).and(confirmationKey, key).getAsList();
+				results = app.nodeQuery(StructrTraits.PRINCIPAL).key(confirmationKey, key).getAsList();
 
 				tx.success();
 			}
@@ -1356,7 +1353,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			List<NodeInterface> results;
 			try (final Tx tx = app.tx()) {
 
-				results = app.nodeQuery(StructrTraits.PRINCIPAL).and(confirmationKeyKey, key).getAsList();
+				results = app.nodeQuery(StructrTraits.PRINCIPAL).key(confirmationKeyKey, key).getAsList();
 
 				tx.success();
 			}
@@ -1435,7 +1432,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 			final List<Linkable> list = new LinkedList<>();
 
-			for (final NodeInterface node : StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.LINKABLE).and(pathPropertyForSearch, path).getResultStream()) {
+			for (final NodeInterface node : StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.LINKABLE).key(pathPropertyForSearch, path).getResultStream()) {
 
 				list.add(node.as(Linkable.class));
 			}
@@ -1751,6 +1748,8 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 	private void resolvePossiblePropertyNamesForObjectResolution(final Query query, final String name) {
 
+		final QueryGroup orGroup = query.or();
+
 		for (final String possiblePropertyName : possiblePropertyNamesForEntityResolving) {
 
 			final String[] parts = possiblePropertyName.split("\\.");
@@ -1779,16 +1778,16 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 						try {
 
-							final PropertyConverter converter = key.inputConverter(SecurityContext.getSuperUserInstance());
+							final PropertyConverter converter = key.inputConverter(SecurityContext.getSuperUserInstance(), false);
 							if (converter != null) {
 
 								// try converted value, fail silenty
-								query.or(key, converter.convert(name));
+								orGroup.key(key, converter.convert(name));
 
 							} else {
 
 								// try unconverted value, fail silently if it doesn't work
-								query.or(key, name);
+								orGroup.key(key, name);
 							}
 
 						} catch (FrameworkException ignore) { }
@@ -1820,19 +1819,19 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 		// try the different methods..
 		if (possiblePage == null) {
-			possiblePage = StructrApp.getInstance().nodeQuery(StructrTraits.PAGE).and(pagePathKey, path).and(basicAuthKey, true).sort(positionKey).getFirst();
+			possiblePage = StructrApp.getInstance().nodeQuery(StructrTraits.PAGE).key(pagePathKey, path).key(basicAuthKey, true).sort(positionKey).getFirst();
 		}
 
 		if (possiblePage == null) {
-			possiblePage = StructrApp.getInstance().nodeQuery(StructrTraits.PAGE).and(Traits.of(StructrTraits.PAGE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), PathHelper.getName(path)).and(basicAuthKey, true).sort(positionKey).getFirst();
+			possiblePage = StructrApp.getInstance().nodeQuery(StructrTraits.PAGE).key(Traits.of(StructrTraits.PAGE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), PathHelper.getName(path)).key(basicAuthKey, true).sort(positionKey).getFirst();
 		}
 
 		if (possiblePage == null) {
-			possiblePage = StructrApp.getInstance().nodeQuery(StructrTraits.FILE).and(filePathKey, path).and(basicAuthKey, true).getFirst();
+			possiblePage = StructrApp.getInstance().nodeQuery(StructrTraits.FILE).key(filePathKey, path).key(basicAuthKey, true).getFirst();
 		}
 
 		if (possiblePage == null) {
-			possiblePage = StructrApp.getInstance().nodeQuery(StructrTraits.FILE).and(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), PathHelper.getName(path)).and(basicAuthKey, true).getFirst();
+			possiblePage = StructrApp.getInstance().nodeQuery(StructrTraits.FILE).key(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), PathHelper.getName(path)).key(basicAuthKey, true).getFirst();
 		}
 
 		if (possiblePage != null) {

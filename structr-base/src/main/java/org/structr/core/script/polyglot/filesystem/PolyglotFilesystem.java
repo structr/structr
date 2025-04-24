@@ -35,6 +35,7 @@ import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 import java.io.IOException;
 import java.net.URI;
@@ -45,7 +46,6 @@ import java.nio.file.attribute.FileTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 public class PolyglotFilesystem implements FileSystem {
 	private static final Logger logger = LoggerFactory.getLogger(PolyglotFilesystem.class);
@@ -80,7 +80,7 @@ public class PolyglotFilesystem implements FileSystem {
 		try (final Tx tx = app.tx()) {
 
 			final PropertyKey<String> pathKey = Traits.of(StructrTraits.ABSTRACT_FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY);
-			final NodeInterface abstractFile  = app.nodeQuery(StructrTraits.ABSTRACT_FILE).and(pathKey, path.toString()).getFirst();
+			final NodeInterface abstractFile  = app.nodeQuery(StructrTraits.ABSTRACT_FILE).key(pathKey, path.toString()).getFirst();
 
 			tx.success();
 
@@ -101,7 +101,7 @@ public class PolyglotFilesystem implements FileSystem {
 		try (final Tx tx = app.tx()) {
 
 			final PropertyKey<String> pathKey = Traits.of(StructrTraits.ABSTRACT_FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY);
-			final NodeInterface folder        = app.nodeQuery(StructrTraits.FOLDER).and(pathKey, dir.toString()).getFirst();
+			final NodeInterface folder        = app.nodeQuery(StructrTraits.FOLDER).key(pathKey, dir.toString()).getFirst();
 
 			if (folder == null) {
 				FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), dir.toString());
@@ -124,7 +124,7 @@ public class PolyglotFilesystem implements FileSystem {
 		try (final Tx tx = app.tx()) {
 
 			final PropertyKey<String> pathKey = Traits.of(StructrTraits.ABSTRACT_FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY);
-			final NodeInterface file          = app.nodeQuery(StructrTraits.ABSTRACT_FILE).and(pathKey, path.toString()).getFirst();
+			final NodeInterface file          = app.nodeQuery(StructrTraits.ABSTRACT_FILE).key(pathKey, path.toString()).getFirst();
 
 			if (file != null) {
 
@@ -154,7 +154,7 @@ public class PolyglotFilesystem implements FileSystem {
 			final PropertyKey<String> pathKey          = traits.key(AbstractFileTraitDefinition.PATH_PROPERTY);
 			final PropertyKey<NodeInterface> parentKey = traits.key(AbstractFileTraitDefinition.PARENT_PROPERTY);
 
-			NodeInterface file = app.nodeQuery(StructrTraits.FILE).and(pathKey, path.toString()).getFirst();
+			NodeInterface file = app.nodeQuery(StructrTraits.FILE).key(pathKey, path.toString()).getFirst();
 
 			if (file == null) {
 
@@ -197,7 +197,7 @@ public class PolyglotFilesystem implements FileSystem {
 		try (final Tx tx = app.tx()) {
 
 			final PropertyKey<String> path = Traits.of(StructrTraits.ABSTRACT_FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY);
-			final NodeInterface folder     = app.nodeQuery(StructrTraits.FOLDER).and(path, dir.toString()).getFirst();
+			final NodeInterface folder     = app.nodeQuery(StructrTraits.FOLDER).key(path, dir.toString()).getFirst();
 
 			if (folder != null) {
 				return new VirtualDirectoryStream(dir, filter);

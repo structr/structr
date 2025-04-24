@@ -98,7 +98,7 @@ public class ComponentImporter extends HtmlFileImporter {
 
 			if (DeployCommand.isUuid(name)) {
 
-				result = StructrApp.getInstance().nodeQuery(StructrTraits.DOM_NODE).and(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), name).getFirst();
+				result = StructrApp.getInstance().nodeQuery(StructrTraits.DOM_NODE).key(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), name).getFirst();
 
 			} else {
 

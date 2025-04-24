@@ -23,7 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.Query;
+import org.structr.core.app.QueryGroup;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyKey;
@@ -80,16 +80,16 @@ public class ListCommand extends AbstractCommand {
 		final int pageSize             = webSocketData.getPageSize();
 		final int page                 = webSocketData.getPage();
 		final PropertyKey sortProperty = type.key(sortKey);
-		final Query query              = StructrApp.getInstance(securityContext).nodeQuery(rawType).sort(sortProperty, "desc".equals(sortOrder)).page(page).pageSize(pageSize);
+		final QueryGroup query         = StructrApp.getInstance(securityContext).nodeQuery().sort(sortProperty, "desc".equals(sortOrder)).page(page).pageSize(pageSize).and().type(rawType);
 
 		if (type.contains(StructrTraits.FILE)) {
 
 			if (rootOnly) {
-				query.and(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.HAS_PARENT_PROPERTY), false);
+				query.key(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.HAS_PARENT_PROPERTY), false);
 			}
 
 			// inverted as isThumbnail is not necessarily present in all objects inheriting from FileBase
-			query.not().and(Traits.of(StructrTraits.IMAGE).key(ImageTraitDefinition.IS_THUMBNAIL_PROPERTY), true);
+			query.not().key(Traits.of(StructrTraits.IMAGE).key(ImageTraitDefinition.IS_THUMBNAIL_PROPERTY), true);
 
 			TransactionCommand.getCurrentTransaction().prefetch(StructrTraits.ABSTRACT_FILE, StructrTraits.ABSTRACT_FILE, Set.of(
 				"all/INCOMING/CONTAINS",
@@ -100,7 +100,7 @@ public class ListCommand extends AbstractCommand {
 		// important
 		if (type.contains(StructrTraits.FOLDER) && rootOnly) {
 
-			query.and(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.HAS_PARENT_PROPERTY), false);
+			query.key(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.HAS_PARENT_PROPERTY), false);
 
 			TransactionCommand.getCurrentTransaction().prefetch(StructrTraits.ABSTRACT_FILE, StructrTraits.ABSTRACT_FILE, Set.of(
 				"all/INCOMING/CONTAINS",

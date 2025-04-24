@@ -529,7 +529,10 @@ let _Dashboard = {
 					_Dashboard.tabs.deployment.actions.exportDataAsZip();
 				});
 
-				Command.list('SchemaNode', true, 1000, 1, 'name', 'asc', 'id,name,isBuiltinType', (nodes) => {
+				// FIXME: This can only load actual custom nodes, for ALL node types we would need to use _schema
+				Command.list('SchemaNode', true, 1000, 1, 'name', 'asc', 'id,name,isBuiltinType,isServiceClass', (nodes) => {
+
+					nodes = nodes.filter(n => !n.isServiceClass);
 
 					let builtinTypes = [];
 					let customTypes  = [];
@@ -574,7 +577,7 @@ let _Dashboard = {
 					};
 
 					let confirm = await _Dialogs.confirmation.showPromise(`Are you sure you want to start an application ${mode}?<br>This will overwrite application data ${mode === 'export' ? 'on disk' : 'in the database'}.`, false);
-					if (confirm) {
+					if (confirm === true) {
 
 						_Dashboard.tabs.deployment.history.addEntry(data);
 
@@ -608,7 +611,7 @@ let _Dashboard = {
 					}
 
 					let confirm = await _Dialogs.confirmation.showPromise(`Are you sure you want to start a data ${mode}?<br>This will overwrite data ${mode === 'export' ? 'on disk' : 'in the database'}.`, false);
-					if (confirm) {
+					if (confirm = true) {
 
 						// do not listen for errors - they are sent by the backend via WS
 						await fetch(`${Structr.rootUrl}maintenance/deployData`, {
@@ -682,7 +685,7 @@ let _Dashboard = {
 				importFromZIPURL: async (deploymentType, downloadUrl, zipContentPath) => {
 
 					let confirm = await _Dialogs.confirmation.showPromise(`Are you sure you want to start ${deploymentType} import from the given ZIP URL?<br>This will overwrite ${deploymentType === 'app' ? 'the application' : 'data'} in the database.`, false);
-					if (confirm) {
+					if (confirm === true) {
 
 						let formData = new FormData();
 						formData.append('redirectUrl', window.location.pathname);
@@ -713,7 +716,7 @@ let _Dashboard = {
 				importFromZIPFileUpload: async (deploymentType, filesSelectField, zipContentPath) => {
 
 					let confirm = await _Dialogs.confirmation.showPromise(`Are you sure you want to start ${deploymentType} import from the given ZIP file?<br>This will overwrite ${deploymentType === 'app' ? 'the application' : 'data'} in the database.`, false);
-					if (confirm) {
+					if (confirm === true) {
 
 						let formData = new FormData();
 						formData.append('redirectUrl', window.location.pathname);
@@ -1311,7 +1314,7 @@ let _Dashboard = {
 				let methodEntry = _Helpers.createSingleDOMElementFromHTML(_Dashboard.tabs.methods.getMarkupForMethod(method));
 
 				methodEntry.querySelector('button.run').addEventListener('click', () => {
-					_Code.mainArea.helpers.runSchemaMethod(method);
+					_Schema.methods.runSchemaMethod(method);
 				});
 
 				container.appendChild(methodEntry);

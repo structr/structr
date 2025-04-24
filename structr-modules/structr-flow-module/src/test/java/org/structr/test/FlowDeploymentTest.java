@@ -93,7 +93,7 @@ public class FlowDeploymentTest extends DeploymentTestBase {
 
 			try (final Tx tx = app.tx()) {
 
-				container = app.nodeQuery(StructrTraits.FLOW_CONTAINER).and(Traits.of(StructrTraits.FLOW_CONTAINER).key(FlowContainerTraitDefinition.EFFECTIVE_NAME_PROPERTY), "flow.deployment.test").getFirst().as(FlowContainer.class);
+				container = app.nodeQuery(StructrTraits.FLOW_CONTAINER).key(Traits.of(StructrTraits.FLOW_CONTAINER).key(FlowContainerTraitDefinition.EFFECTIVE_NAME_PROPERTY), "flow.deployment.test").getFirst().as(FlowContainer.class);
 
 				assertNotNull(container);
 				result = container.evaluate(securityContext, flowParameters);

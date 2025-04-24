@@ -178,11 +178,11 @@ public class Deployment1Test extends DeploymentTestBase {
 		// check
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface folder = app.nodeQuery(StructrTraits.FOLDER).andName("with spaces").getFirst();
+			final NodeInterface folder = app.nodeQuery(StructrTraits.FOLDER).name("with spaces").getFirst();
 
 			assertNotNull("Folder was not created correctly", folder);
 
-			final NodeInterface file = app.nodeQuery(StructrTraits.FILE).and(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY), folder).and(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), fileName).getFirst();
+			final NodeInterface file = app.nodeQuery(StructrTraits.FILE).key(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY), folder).key(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), fileName).getFirst();
 
 			assertNotNull("File was not created correctly", file);
 
@@ -240,7 +240,7 @@ public class Deployment1Test extends DeploymentTestBase {
 
 				try (final Tx tx = app.tx()) {
 
-					final NodeInterface file = app.nodeQuery(StructrTraits.FILE).and(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), fileName).getFirst();
+					final NodeInterface file = app.nodeQuery(StructrTraits.FILE).key(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), fileName).getFirst();
 					file.setProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), false);
 					file.setProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), false);
 					file.setProperty(Traits.of(StructrTraits.FILE).key(LinkableTraitDefinition.ENABLE_BASIC_AUTH_PROPERTY), false);
@@ -259,11 +259,11 @@ public class Deployment1Test extends DeploymentTestBase {
 		// check
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface folder = app.nodeQuery(StructrTraits.FOLDER).andName("with spaces").getFirst();
+			final NodeInterface folder = app.nodeQuery(StructrTraits.FOLDER).name("with spaces").getFirst();
 
 			assertNotNull("Folder was not created", folder);
 
-			final NodeInterface file = app.nodeQuery(StructrTraits.FILE).and(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY), folder).and(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), fileName).getFirst();
+			final NodeInterface file = app.nodeQuery(StructrTraits.FILE).key(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY), folder).key(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), fileName).getFirst();
 
 			assertNotNull("File was not created", file);
 
@@ -319,11 +319,11 @@ public class Deployment1Test extends DeploymentTestBase {
 		// check
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface folder = app.nodeQuery(StructrTraits.FOLDER).andName("with spaces").getFirst();
+			final NodeInterface folder = app.nodeQuery(StructrTraits.FOLDER).name("with spaces").getFirst();
 
 			assertNotNull("Folder was not created", folder);
 
-			final NodeInterface file = app.nodeQuery(StructrTraits.FILE).and(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY), folder).and(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), fileName).getFirst();
+			final NodeInterface file = app.nodeQuery(StructrTraits.FILE).key(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY), folder).key(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), fileName).getFirst();
 
 			assertNotNull("File was not created", file);
 

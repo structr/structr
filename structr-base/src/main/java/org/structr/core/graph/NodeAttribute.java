@@ -71,11 +71,9 @@ public class NodeAttribute<T> {
 
 		StringBuilder buf = new StringBuilder();
 
-		buf.append("NodeAttribute('");
 		buf.append(key != null ? key.dbName() : "[null]");
-		buf.append("', '");
+		buf.append("=");
 		buf.append(value);
-		buf.append("')");
 
 		return buf.toString();
 	}

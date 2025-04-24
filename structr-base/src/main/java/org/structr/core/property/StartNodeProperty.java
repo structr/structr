@@ -48,7 +48,7 @@ public class StartNodeProperty<T> extends AbstractPrimitiveProperty<T> {
 	}
 
 	@Override
-	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext, boolean fromString) {
 		return null;
 	}
 

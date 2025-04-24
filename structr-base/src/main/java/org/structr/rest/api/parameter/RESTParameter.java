@@ -27,15 +27,19 @@ public interface RESTParameter {
 	boolean includeInSignature();
 	String staticResourceSignaturePart();
 
-	public static RESTParameter forPattern(final String key, final String pattern, final boolean includeInSignature) {
-		return new PatternParameter(key, pattern, includeInSignature);
+	static RESTParameter forPattern(final String key, final String pattern, final boolean includeInSignature) {
+		return new PatternParameter(key, pattern, includeInSignature, null);
 	}
 
-	public static RESTParameter forStaticString(final String part, final boolean includeInSignature) {
+	static RESTParameter forPattern(final String key, final String pattern, final boolean includeInSignature, final String staticResourceSignaturePart) {
+		return new PatternParameter(key, pattern, includeInSignature, staticResourceSignaturePart);
+	}
+
+	static RESTParameter forStaticString(final String part, final boolean includeInSignature) {
 		return new StaticParameter(part, includeInSignature, part);
 	}
 
-	public static RESTParameter forStaticString(final String part, final boolean includeInSignature, final String staticSignaturePart) {
+	static RESTParameter forStaticString(final String part, final boolean includeInSignature, final String staticSignaturePart) {
 		return new StaticParameter(part, includeInSignature, staticSignaturePart);
 	}
 }

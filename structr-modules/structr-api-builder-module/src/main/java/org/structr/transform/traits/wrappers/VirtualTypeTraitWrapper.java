@@ -18,7 +18,7 @@
  */
 package org.structr.transform.traits.wrappers;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
@@ -38,11 +38,11 @@ import org.structr.schema.action.ActionContext;
 import org.structr.transform.Transformation;
 import org.structr.transform.VirtualProperty;
 import org.structr.transform.VirtualType;
+import org.structr.transform.traits.definitions.VirtualPropertyTraitDefinition;
+import org.structr.transform.traits.definitions.VirtualTypeTraitDefinition;
 
 import java.util.*;
 import java.util.function.Function;
-import org.structr.transform.traits.definitions.VirtualPropertyTraitDefinition;
-import org.structr.transform.traits.definitions.VirtualTypeTraitDefinition;
 
 public class VirtualTypeTraitWrapper extends AbstractNodeTraitWrapper implements VirtualType {
 

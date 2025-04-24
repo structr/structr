@@ -21,7 +21,7 @@ package org.structr.mail.service;
 import com.google.gson.Gson;
 import com.sun.mail.util.BASE64DecoderStream;
 import com.sun.mail.util.MailConnectException;
-import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -678,16 +678,16 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 
 						// Try to match via messageId first
 						if (messageId != null) {
-							existingEMailMessage = app.nodeQuery(entityType).and(traits.key(EMailMessageTraitDefinition.MESSAGE_ID_PROPERTY), messageId).getFirst();
+							existingEMailMessage = app.nodeQuery(entityType).key(traits.key(EMailMessageTraitDefinition.MESSAGE_ID_PROPERTY), messageId).getFirst();
 						}
 						// If messageId can't be matched, use fallback
 						if (existingEMailMessage == null) {
 							existingEMailMessage = app.nodeQuery(entityType)
-									.and(traits.key(EMailMessageTraitDefinition.SUBJECT_PROPERTY), message.getSubject())
-									.and(traits.key(EMailMessageTraitDefinition.FROM_PROPERTY), from)
-									.and(traits.key(EMailMessageTraitDefinition.TO_PROPERTY), to)
-									.and(traits.key(EMailMessageTraitDefinition.RECEIVED_DATE_PROPERTY), message.getReceivedDate())
-									.and(traits.key(EMailMessageTraitDefinition.SENT_DATE_PROPERTY), message.getSentDate()).getFirst();
+									.key(traits.key(EMailMessageTraitDefinition.SUBJECT_PROPERTY), message.getSubject())
+									.key(traits.key(EMailMessageTraitDefinition.FROM_PROPERTY), from)
+									.key(traits.key(EMailMessageTraitDefinition.TO_PROPERTY), to)
+									.key(traits.key(EMailMessageTraitDefinition.RECEIVED_DATE_PROPERTY), message.getReceivedDate())
+									.key(traits.key(EMailMessageTraitDefinition.SENT_DATE_PROPERTY), message.getSentDate()).getFirst();
 						}
 
 						if (existingEMailMessage == null) {

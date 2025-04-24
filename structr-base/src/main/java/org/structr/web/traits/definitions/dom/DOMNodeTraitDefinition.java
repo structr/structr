@@ -130,6 +130,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 					domNode.checkName(errorBuffer);
 					domNode.syncName(errorBuffer);
+					domNode.updateHasSharedComponentFlag();
 				}
 			},
 
@@ -144,6 +145,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					domNode.increasePageVersion();
 					domNode.checkName(errorBuffer);
 					domNode.syncName(errorBuffer);
+					domNode.updateHasSharedComponentFlag();
 
 					// acknowledge all events for this node when it is modified
 					RuntimeEventLog.acknowledgeAllEventsForId(domNode.getUuid());

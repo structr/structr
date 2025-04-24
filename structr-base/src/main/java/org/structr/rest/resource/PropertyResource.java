@@ -98,7 +98,7 @@ public class PropertyResource extends AbstractTypeIdLowercaseNameResource {
 			final Query query = StructrApp.getInstance(securityContext).nodeQuery();
 
 			// use search context from type resource
-			collectSearchAttributes(securityContext, typeName, query);
+			collectSearchAttributes(securityContext, typeName, query.and());
 
 			final Predicate<GraphObject> predicate = query.toPredicate();
 

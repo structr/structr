@@ -21,7 +21,11 @@ package org.structr.web.maintenance;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import jakarta.servlet.http.HttpServletResponse;
-import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.commons.configuration2.PropertiesConfiguration;
+import org.apache.commons.configuration2.builder.FileBasedConfigurationBuilder;
+import org.apache.commons.configuration2.builder.fluent.Parameters;
+import org.apache.commons.configuration2.convert.DefaultListDelimiterHandler;
+import org.apache.commons.configuration2.io.FileHandler;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -59,6 +63,8 @@ import org.structr.web.entity.*;
 import org.structr.web.entity.dom.*;
 import org.structr.web.entity.event.ActionMapping;
 import org.structr.web.entity.event.ParameterMapping;
+import org.structr.web.entity.path.PagePath;
+import org.structr.web.entity.path.PagePathParameter;
 import org.structr.web.maintenance.deploy.*;
 import org.structr.web.traits.definitions.*;
 import org.structr.web.traits.definitions.dom.ContentTraitDefinition;
@@ -89,10 +95,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private static final Map<String, String> deferredPageLinks        = new LinkedHashMap<>();
 	private Map<DOMNode, PropertyMap> deferredNodesAndTheirProperties = new LinkedHashMap<>();
 
-	protected static final Set<String> missingPrincipals       = new HashSet<>();
-	protected static final Set<String> ambiguousPrincipals     = new HashSet<>();
-	protected static final Set<String> missingSchemaFile       = new HashSet<>();
-	protected static final Set<String> deferredLogTexts        = new HashSet<>();
+	protected static final Map<String, Integer> missingPrincipals   = new LinkedHashMap();
+	protected static final Map<String, Integer> ambiguousPrincipals = new LinkedHashMap();
+	protected static final Set<String> missingSchemaFile            = new HashSet<>();
+	protected static final Set<String> deferredLogTexts             = new HashSet<>();
 
 	protected static final AtomicBoolean deploymentActive      = new AtomicBoolean(false);
 
@@ -128,6 +134,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private final static String ACTION_MAPPING_FILE_PATH                              = "events/action-mapping.json";
 	private final static String PARAMETER_MAPPING_FILE_PATH                           = "events/parameter-mapping.json";
 	private final static String SITES_FILE_PATH                                       = "sites.json";
+	private final static String PAGE_PATHS_FILE_PATH                                  = "page-paths.json";
 	private final static String SCHEMA_FOLDER_PATH                                    = "schema";
 	private final static String COMPONENTS_FOLDER_PATH                                = "components";
 	protected final static String FILES_FOLDER_PATH                                   = "files";
@@ -323,6 +330,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Path actionMappingMetadataFile                = source.resolve(ACTION_MAPPING_FILE_PATH);
 			final Path parameterMappingMetadataFile             = source.resolve(PARAMETER_MAPPING_FILE_PATH);
 			final Path sitesConfFile                            = source.resolve(SITES_FILE_PATH);
+			final Path pathsConfFile                            = source.resolve(PAGE_PATHS_FILE_PATH);
 			final Path schemaFolder                             = source.resolve(SCHEMA_FOLDER_PATH);
 
 			if (
@@ -342,6 +350,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				!Files.exists(actionMappingMetadataFile) &&
 				!Files.exists(parameterMappingMetadataFile) &&
 				!Files.exists(sitesConfFile) &&
+				!Files.exists(pathsConfFile) &&
 				!Files.exists(schemaFolder)
 			) {
 
@@ -380,7 +389,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			final FileImportVisitor.FileImportProblems fileImportProblems = importFiles(filesMetadataFile, source, ctx);
 
-			importHTMLContent(app, source, pagesMetadataFile, componentsMetadataFile, templatesMetadataFile, sitesConfFile, extendExistingApp, relativeVisibility, deferredNodesAndTheirProperties);
+			importHTMLContent(app, source, pagesMetadataFile, componentsMetadataFile, templatesMetadataFile, sitesConfFile, pathsConfFile, extendExistingApp, relativeVisibility, deferredNodesAndTheirProperties);
 			linkDeferredPages(app);
 			importParameterMapping(parameterMappingMetadataFile);
 			importActionMapping(actionMappingMetadataFile);
@@ -400,14 +409,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final String title = "Missing Principal(s)";
 				final String text = "The following user(s) and/or group(s) are missing for resource access permissions or node ownership during <b>deployment</b>.<br>"
 						+ "Because of these missing permissions/ownerships, <b>the functionality is not identical to the export you just imported</b>."
-						+ "<ul><li>" + missingPrincipals.stream().sorted().collect(Collectors.joining("</li><li>")) + "</li></ul>"
+						+ "<ul><li>" + transformCountedMapToHumanReadableList(missingPrincipals, "</li><li>") + "</li></ul>"
 						+ "Consider adding these principals to your <a href=\"https://docs.structr.com/docs/fundamental-concepts#pre-deployconf\">pre-deploy.conf</a> and re-importing.";
 
 				logger.info("\n###############################################################################\n"
 						+ "\tWarning: " + title + "!\n"
 						+ "\tThe following user(s) and/or group(s) are missing for resource access permissions or node ownership during deployment.\n"
 						+ "\tBecause of these missing permissions/ownerships, the functionality is not identical to the export you just imported.\n\n"
-						+ "\t" + missingPrincipals.stream().sorted().collect(Collectors.joining("\n\t"))
+						+ "\t" + transformCountedMapToHumanReadableList(missingPrincipals, "\n\t")
 						+ "\n\n\tConsider adding these principals to your 'pre-deploy.conf' (see https://docs.structr.com/docs/fundamental-concepts#pre-deployconf) and re-importing.\n"
 						+ "###############################################################################"
 				);
@@ -419,14 +428,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final String title = "Ambiguous Principal(s)";
 				final String text = "For the following names, there are multiple candidates (User/Group) for resource access permissions or node ownership during <b>deployment</b>.<br>"
 						+ "Because of this ambiguity, <b>node access rights could not be restored as defined in the export you just imported</b>."
-						+ "<ul><li>" + ambiguousPrincipals.stream().sorted().collect(Collectors.joining("</li><li>")) + "</li></ul>"
+						+ "<ul><li>" + transformCountedMapToHumanReadableList(ambiguousPrincipals, "</li><li>") + "</li></ul>"
 						+ "Consider clearing up such ambiguities in the database.";
 
 				logger.info("\n###############################################################################\n"
 						+ "\tWarning: " + title + "!\n"
 						+ "\tFor the following names, there are multiple candidates (User/Group) for resource access permissions or node ownership during deployment.\n"
 						+ "\tBecause of this ambiguity, node access rights could not be restored as defined in the export you just imported.\n\n"
-						+ "\t" + ambiguousPrincipals.stream().sorted().collect(Collectors.joining("\n\t"))
+						+ "\t" + transformCountedMapToHumanReadableList(ambiguousPrincipals, "\n\t")
 						+ "\n\n\tConsider clearing up such ambiguities in the database.\n"
 						+ "###############################################################################"
 				);
@@ -571,6 +580,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Path filesConf                           = target.resolve(FILES_FILE_PATH);
 			final Path sitesConf                           = target.resolve(SITES_FILE_PATH);
 			final Path pagesConf                           = target.resolve(PAGES_FILE_PATH);
+			final Path pathsConf                           = target.resolve(PAGE_PATHS_FILE_PATH);
 			final Path componentsConf                      = target.resolve(COMPONENTS_FILE_PATH);
 			final Path templatesConf                       = target.resolve(TEMPLATES_FILE_PATH);
 			final Path mailTemplatesConf                   = target.resolve(MAIL_TEMPLATES_FILE_PATH);
@@ -586,12 +596,30 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			if (!Files.exists(preDeployConf)) {
 
-				writeStringToFile(preDeployConf, "{\n\t// automatically created " + preDeployConf.getFileName() + ". This file is interpreted as a script and run before the application deployment process. To learn more about this, please have a look at the documentation.\n}");
+				writeStringToFile(preDeployConf, """
+				{
+					// This file was auto-generated. You may adapt it to suit your specific needs.
+					// During the application deployment import process, this file is treated as a script and executed *before* any other actions take place.
+					//
+					// Important: because this script runs before the application schema is imported, it operates on the existing (current) schema.
+					//
+					// Its purpose is to ensure that all required users and groups are present before the application import occurs.
+					// All operations in this script should be **idempotent** — meaning they can be safely run multiple times without causing unintended side effects.
+					// For example, prefer using methods like `get_or_create` rather than `create` to avoid duplicate entries.
+					//
+					// For more information, please refer to the documentation.
+				}""");
 			}
 
 			if (!Files.exists(postDeployConf)) {
 
-				writeStringToFile(postDeployConf, "{\n\t// automatically created " + postDeployConf.getFileName() + ". This file is interpreted as a script and run after the application deployment process. To learn more about this, please have a look at the documentation.\n}");
+				writeStringToFile(postDeployConf, """
+				{
+					// This file was auto-generated. You may adapt it to suit your specific needs.
+					// During the application deployment import process, this file is treated as a script and executed *after* all other operations have finished.
+					//
+					// For more information, please refer to the documentation.
+				}""");
 			}
 
 			writeDeploymentConfigurationFile(deploymentConfFile);
@@ -601,6 +629,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Sites");
 			exportSites(sitesConf);
+
+			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Page Paths");
+			exportPagePaths(pathsConf);
 
 			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Parameter Mapping");
 			exportParameterMapping(parameterMappingConf);
@@ -746,17 +777,18 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		try (final Tx tx = app.tx()) {
 
 			// fetch toplevel folders and recurse
-			for (final NodeInterface folder : app.nodeQuery(StructrTraits.FOLDER).and(parentKey, null).sort(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).and(inclKey, true).getAsList()) {
+			for (final NodeInterface folder : app.nodeQuery(StructrTraits.FOLDER).key(parentKey, null).sort(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).and().key(inclKey, true).getAsList()) {
 				exportFilesAndFolders(target, folder, config);
 			}
 
 			// fetch toplevel files that are marked for export or for use as a javascript library
 			for (final NodeInterface file : app.nodeQuery(StructrTraits.FILE)
-				.and(parentKey, null)
 				.sort(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY))
 				.and()
-					.or(inclKey, true)
-					.or(jsKey, true)
+					.key(parentKey, null)
+					.or()
+						.key(inclKey, true)
+						.key(jsKey, true)
 				.getAsList()) {
 
 				exportFile(target, file, config);
@@ -903,6 +935,66 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 
 		writeJsonToFile(target, sites);
+	}
+
+	private void exportPagePaths(final Path target) throws FrameworkException {
+
+		logger.info("Exporting page paths");
+
+		final List<Map<String, Object>> paths = new LinkedList<>();
+		final App app                         = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			for (final NodeInterface node : app.nodeQuery(StructrTraits.PAGE_PATH).sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getAsList()) {
+
+				final PagePath path             = node.as(PagePath.class);
+				final Map<String, Object> entry = new TreeMap<>();
+
+				paths.add(entry);
+
+				entry.put(GraphObjectTraitDefinition.ID_PROPERTY,                             path.getUuid());
+				entry.put(NodeInterfaceTraitDefinition.NAME_PROPERTY,                         path.getName());
+				entry.put(PagePathTraitDefinition.PRIORITY_PROPERTY,                          path.getPriority());
+				entry.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, path.isVisibleToAuthenticatedUsers());
+				entry.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        path.isVisibleToPublicUsers());
+				entry.put(PagePathTraitDefinition.PAGE_PROPERTY,                              Map.of("id", path.getPage().getUuid()));
+
+				final List<Map<String, Object>> parameters = new LinkedList<>();
+
+				for (final NodeInterface parameterNode : path.getParameters()) {
+
+					final PagePathParameter parameter = parameterNode.as(PagePathParameter.class);
+					final Map<String, Object> data    = new TreeMap<>();
+
+					parameters.add(data);
+
+					data.put(GraphObjectTraitDefinition.ID_PROPERTY, parameter.getUuid());
+
+					if (parameter.getValueType() != null) {
+						data.put(PagePathParameterTraitDefinition.VALUE_TYPE_PROPERTY, parameter.getValueType());
+					}
+
+					if (parameter.getDefaultValue() != null) {
+						data.put(PagePathParameterTraitDefinition.DEFAULT_VALUE_PROPERTY, parameter.getDefaultValue());
+					}
+
+					if (parameter.getPosition() != null) {
+						data.put(PagePathParameterTraitDefinition.POSITION_PROPERTY, parameter.getPosition());
+					}
+
+					data.put(PagePathParameterTraitDefinition.IS_OPTIONAL_PROPERTY,   parameter.getIsOptional());
+				}
+
+				entry.put(PagePathTraitDefinition.PARAMETERS_PROPERTY, parameters);
+
+				exportOwnershipAndSecurity(node, entry);
+			}
+
+			tx.success();
+		}
+
+		writeJsonToFile(target, paths);
 	}
 
 	private void exportPages(final Path targetFolder, final Path configTarget) throws FrameworkException {
@@ -1201,7 +1293,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 						final String methodSource          = (String) schemaMethod.get(DEPLOYMENT_SCHEMA_SOURCE_ATTRIBUTE_KEY);
 						final Path globalMethodSourceFile  = globalMethodsFolder.resolve(methodName);
 
-						final String relativeSourceFilePath  = "./" + targetFolder.relativize(globalMethodSourceFile).toString();
+						final String relativeSourceFilePath  = "./" + targetFolder.relativize(globalMethodSourceFile);
 
 						schemaMethod.put(DEPLOYMENT_SCHEMA_SOURCE_ATTRIBUTE_KEY, relativeSourceFilePath);
 
@@ -1246,7 +1338,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 								if (readFunction != null) {
 									writeStringToFile(readFunctionFile, readFunction);
-									fp.setReadFunction("./" + targetFolder.relativize(readFunctionFile).toString());
+									fp.setReadFunction("./" + targetFolder.relativize(readFunctionFile));
 								}
 
 								final Path writeFunctionFile = functionsFolder.resolve(fp.getName() + DEPLOYMENT_SCHEMA_WRITE_FUNCTION_SUFFIX);
@@ -1254,7 +1346,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 								if (writeFunction != null) {
 									writeStringToFile(writeFunctionFile, writeFunction);
-									fp.setWriteFunction("./" + targetFolder.relativize(writeFunctionFile).toString());
+									fp.setWriteFunction("./" + targetFolder.relativize(writeFunctionFile));
 								}
 							}
 						}
@@ -1274,7 +1366,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 								if (methodSource != null) {
 
 									writeStringToFile(methodSourceFile, methodSource);
-									method.setSource("./" + targetFolder.relativize(methodSourceFile).toString());
+									method.setSource("./" + targetFolder.relativize(methodSourceFile));
 								}
 							}
 						}
@@ -1428,13 +1520,13 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			if (security != null) {
 
-				final String allowedActions     = StringUtils.join(security.getPermissions(), ",");
-				final Map<String, Object> grant = new TreeMap<>();
+				final Set<String> allowedActions = security.getPermissions();
+				final Map<String, Object> grant  = new TreeMap<>();
 
 				grant.put(NodeInterfaceTraitDefinition.NAME_PROPERTY, security.getRelationship().getSourceNode().getName());
 				grant.put(SecurityRelationshipDefinition.ALLOWED_PROPERTY, allowedActions);
 
-				if (allowedActions.length() > 0) {
+				if (!allowedActions.isEmpty()) {
 					grantees.add(grant);
 				}
 			}
@@ -1456,7 +1548,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			if (ownerData != null) {
 
 				final String ownerName               = (String) ownerData.get("name");
-				final List<NodeInterface> principals = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).andName(ownerName).getAsList();
+				final List<NodeInterface> principals = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).name(ownerName).getAsList();
 
 				if (principals.isEmpty()) {
 
@@ -1485,7 +1577,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			for (final Map<String, Object> grantee : grantees) {
 
 				final String granteeName             = (String) grantee.get("name");
-				final List<NodeInterface> principals = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).andName(granteeName).getAsList();
+				final List<NodeInterface> principals = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).name(granteeName).getAsList();
 
 				if (principals.isEmpty()) {
 
@@ -1499,6 +1591,16 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 					cleanedGrantees.add(grantee);
 				}
+
+				// convert allowed string from old format (must be an array)
+				if (grantee.containsKey("allowed")) {
+
+					final Object value = grantee.get("allowed");
+					if (value instanceof String s) {
+
+						grantee.put("allowed", StringUtils.split(s, ","));
+					}
+				}
 			}
 
 			entry.put("grantees", cleanedGrantees);
@@ -1511,7 +1613,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			if (principalData != null) {
 
 				final String principalName           = (String) principalData.get("name");
-				final List<NodeInterface> principals = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).andName(principalName).getAsList();
+				final List<NodeInterface> principals = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).name(principalName).getAsList();
 
 				if (principals.isEmpty()) {
 
@@ -1848,7 +1950,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		writeJsonToFile(target, parameterMappings);
 	}
-
 
 	protected void putData(final Map<String, Object> target, final String key, final Object value) {
 
@@ -2250,7 +2351,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	private void importHTMLContent(final App app, final Path source, final Path pagesMetadataFile, final Path componentsMetadataFile, final Path templatesMetadataFile, final Path sitesConfFile, final boolean extendExistingApp, final boolean relativeVisibility, final Map<DOMNode, PropertyMap> deferredNodesAndTheirProperties) throws FrameworkException {
+	private void importHTMLContent(final App app, final Path source, final Path pagesMetadataFile, final Path componentsMetadataFile, final Path templatesMetadataFile, final Path sitesConfFile, final Path pathsConfFile, final boolean extendExistingApp, final boolean relativeVisibility, final Map<DOMNode, PropertyMap> deferredNodesAndTheirProperties) throws FrameworkException {
 
 		final Map<String, Object> componentsMetadata = new HashMap<>();
 		final Map<String, Object> templatesMetadata  = new HashMap<>();
@@ -2407,6 +2508,26 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			importSites(readConfigList(sitesConfFile));
 		}
+
+		if (Files.exists(pathsConfFile)) {
+
+			logger.info("Importing page paths");
+			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing page paths");
+
+			try (final Tx tx = app.tx()) {
+
+				tx.disableChangelog();
+
+				// remove existing paths
+				for (final NodeInterface path : app.nodeQuery(StructrTraits.PAGE_PATH).getResultStream()) {
+					app.delete(path);
+				}
+
+				importPagePaths(readConfigList(pathsConfFile));
+
+				tx.success();
+			}
+		}
 	}
 
 	private void importActionMapping(final Path path) throws FrameworkException {
@@ -2420,7 +2541,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-
 	private void importParameterMapping(final Path parameterMappingPath) throws FrameworkException {
 
 		if (Files.exists(parameterMappingPath)) {
@@ -2431,7 +2551,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			importListData(StructrTraits.PARAMETER_MAPPING, readConfigList(parameterMappingPath));
 		}
 	}
-
 
 	private void handleDeferredProperties() throws FrameworkException {
 
@@ -2450,7 +2569,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				for (final PropertyKey propertyKey : properties.keySet()) {
 
-					final PropertyConverter inputConverter = propertyKey.inputConverter(securityContext);
+					final PropertyConverter inputConverter = propertyKey.inputConverter(securityContext, true);
 
 					if (inputConverter != null) {
 
@@ -2487,7 +2606,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final List<NodeInterface> pages = new LinkedList();
 
 				for (final String pageName : (List<String>)entry.get(SiteTraitDefinition.PAGES_PROPERTY)) {
-					pages.add(app.nodeQuery(StructrTraits.PAGE).andName(pageName).getFirst());
+					pages.add(app.nodeQuery(StructrTraits.PAGE).name(pageName).getFirst());
 				}
 
 				entry.remove(SiteTraitDefinition.PAGES_PROPERTY);
@@ -2511,6 +2630,48 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
+	private void importPagePaths(final List<Map<String, Object>> data) throws FrameworkException {
+
+		final SecurityContext context = SecurityContext.getSuperUserInstance();
+		final App app                 = StructrApp.getInstance(context);
+
+		context.setDoTransactionNotifications(false);
+
+		try (final Tx tx = app.tx()) {
+
+			tx.disableChangelog();
+
+			for (Map<String, Object> entry : data) {
+
+				final List<Map<String, Object>> parameterEntriesInput = (List) entry.get(PagePathTraitDefinition.PARAMETERS_PROPERTY);
+				final List<NodeInterface> parameters                  = new LinkedList<>();
+
+				for (final Map<String, Object> parameterEntry : parameterEntriesInput) {
+
+					// create parameter nodes
+					parameters.add(app.create(StructrTraits.PAGE_PATH_PARAMETER, PropertyMap.inputTypeToJavaType(context, StructrTraits.PAGE_PATH_PARAMETER, parameterEntry)));
+				}
+
+				// remove from root entry to prevent evaluation of parameters in inputTypeToJavaType below
+				entry.remove(PagePathTraitDefinition.PARAMETERS_PROPERTY);
+
+				// create path node
+				final NodeInterface path = app.create(StructrTraits.PAGE_PATH, PropertyMap.inputTypeToJavaType(context, StructrTraits.PAGE_PATH, entry));
+
+				// store imported page path parameters in path node
+				path.setProperty(path.getTraits().key(PagePathTraitDefinition.PARAMETERS_PROPERTY), parameters);
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			logger.error("Unable to import page path, aborting with {}", fex.getMessage(), fex);
+
+			throw fex;
+		}
+	}
+
 	private void linkDeferredPages(final App app) throws FrameworkException {
 
 		final Traits traits = Traits.of(StructrTraits.PAGE);
@@ -2525,8 +2686,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 					final NodeInterface linkElementNode = StructrApp.getInstance().getNodeById(StructrTraits.DOM_NODE, linkableUUID);
 					final NodeInterface linkedPageNode  = StructrApp.getInstance().nodeQuery(StructrTraits.LINKABLE)
-							.and(traits.key(DOMElementTraitDefinition.PATH_PROPERTY), pagePath)
-							.or(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), pagePath)
+							.or()
+							.key(traits.key(DOMElementTraitDefinition.PATH_PROPERTY), pagePath)
+							.key(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), pagePath)
 							.getFirst();
 
 					final LinkSource linkSource = linkElementNode.as(LinkSource.class);
@@ -2659,8 +2821,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 											if (method.getSource() != null) {
 
-												// new export name includes the number of parameters
-												final Path methodSourceFile = methodsFolder.resolve(uniqueMethodName);
+												// unique method name does not include number of parameters any more!
+												Path methodSourceFile = methodsFolder.resolve(uniqueMethodName);
+												if (!Files.exists(methodSourceFile)) {
+
+													// deprecated export name includes the number of parameters, check this one as well
+													methodSourceFile = methodsFolder.resolve(uniqueMethodName + "." + method.getParameters().size());
+												}
+
 												if (Files.exists(methodSourceFile)) {
 
 													method.setSource(new String(Files.readAllBytes(methodSourceFile)));
@@ -2715,7 +2883,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	public boolean isDOMNodeVisibilityRelativeToParent(final Map<String, String> deploymentConf) {
+	private boolean isDOMNodeVisibilityRelativeToParent(final Map<String, String> deploymentConf) {
 		return DEPLOYMENT_DOM_NODE_VISIBILITY_RELATIVE_TO_PARENT_VALUE.equals(deploymentConf.get(DEPLOYMENT_DOM_NODE_VISIBILITY_RELATIVE_TO_KEY));
 	}
 
@@ -2727,7 +2895,16 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			try {
 
-				final PropertiesConfiguration config = new PropertiesConfiguration(confFile.toFile());
+				final FileBasedConfigurationBuilder<PropertiesConfiguration> builder = new FileBasedConfigurationBuilder<>(PropertiesConfiguration.class)
+						.configure(new Parameters().properties()
+								.setFile(confFile.toFile())
+								.setThrowExceptionOnMissing(true)
+								.setListDelimiterHandler(new DefaultListDelimiterHandler('\0'))
+								.setIncludesAllowed(false)
+						);
+
+				final PropertiesConfiguration config = builder.getConfiguration();
+
 				final Iterator<String> keys          = config.getKeys();
 
 				while (keys.hasNext()) {
@@ -2757,13 +2934,26 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			logger.info(message);
 			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, message);
 
-			final PropertiesConfiguration config = new PropertiesConfiguration();
+			final FileBasedConfigurationBuilder<PropertiesConfiguration> builder = new FileBasedConfigurationBuilder<>(PropertiesConfiguration.class)
+					.configure(new Parameters().properties()
+							.setFile(confFile.toFile())
+							.setThrowExceptionOnMissing(true)
+							.setListDelimiterHandler(new DefaultListDelimiterHandler('\0'))
+							.setIncludesAllowed(false)
+					);
+
+
+			// Touch file, if it doesn't exist
+			confFile.toFile().createNewFile();
+
+			final PropertiesConfiguration config = builder.getConfiguration();
 
 			config.setProperty(DEPLOYMENT_VERSION_KEY,                         VersionHelper.getFullVersionInfo());
 			config.setProperty(DEPLOYMENT_DOM_NODE_VISIBILITY_RELATIVE_TO_KEY, DEPLOYMENT_DOM_NODE_VISIBILITY_RELATIVE_TO_PARENT_VALUE);
 			config.setProperty(DEPLOYMENT_UUID_FORMAT_KEY,                     Settings.UUIDv4AllowedFormats.getValue());
 
-			config.save(confFile.toFile());
+			final FileHandler fileHandler = builder.getFileHandler();
+			fileHandler.save();
 
 		} catch (Throwable t) {
 
@@ -2993,6 +3183,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		customResult = result;
 	}
 
+	protected String transformCountedMapToHumanReadableList(final Map<String, Integer> map, final String separator) {
+
+		return map.entrySet()
+				.stream().sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
+				.map(entry -> entry.getValue() + "x " + entry.getKey())
+				.collect(Collectors.joining(separator));
+	}
+
 	// ----- public static methods -----
 	public static void addDeferredPagelink (String linkableUUID, String pagePath) {
 		deferredPageLinks.put(linkableUUID, pagePath);
@@ -3008,19 +3206,27 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	public static void encounteredMissingPrincipal(final String errorPrefix, final String principalName) {
 
-		if (!missingPrincipals.contains(principalName)) {
+		if (!missingPrincipals.containsKey(principalName)) {
 
 			logger.warn("{}! No node of type Principal with name '{}' found, ignoring.", errorPrefix, principalName);
-			missingPrincipals.add(principalName);
+			missingPrincipals.put(principalName, 1);
+
+		} else {
+
+			missingPrincipals.put(principalName, missingPrincipals.get(principalName) + 1);
 		}
 	}
 
 	public static void encounteredAmbiguousPrincipal(final String errorPrefix, final String principalName, final int numberOfHits) {
 
-		if (!ambiguousPrincipals.contains(principalName)) {
+		if (!ambiguousPrincipals.containsKey(principalName)) {
 
 			logger.warn("{}! Found {} nodes of type Principal named '{}', ignoring.\"", errorPrefix, numberOfHits, principalName);
-			ambiguousPrincipals.add(principalName);
+			ambiguousPrincipals.put(principalName, 1);
+
+		} else {
+
+			ambiguousPrincipals.put(principalName, ambiguousPrincipals.get(principalName) + 1);
 		}
 	}
 

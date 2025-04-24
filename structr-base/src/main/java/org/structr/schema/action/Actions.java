@@ -22,6 +22,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.ContextStore;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -38,6 +39,9 @@ import org.structr.core.property.FunctionProperty;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
+
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -120,6 +124,10 @@ public class Actions {
 	}
 
 	public static Object execute(final SecurityContext securityContext, final GraphObject entity, final String source, final Map<String, Object> parameters, final String methodName, final String codeSource) throws FrameworkException, UnlicensedScriptException {
+		return execute(securityContext, entity, source, parameters, methodName, codeSource, Settings.WrapJSInMainFunction.getValue(false));
+	}
+
+	public static Object execute(final SecurityContext securityContext, final GraphObject entity, final String source, final Map<String, Object> parameters, final String methodName, final String codeSource, final boolean wrapJsInFunction) throws FrameworkException, UnlicensedScriptException {
 
 		final ContextStore store = securityContext.getContextStore();
 		final Map<String, Object> previousParams = store.getTemporaryParameters();
@@ -127,7 +135,7 @@ public class Actions {
 		store.setTemporaryParameters(new HashMap<>());
 
 		final ActionContext context = new ActionContext(securityContext, parameters);
-		final Object result         = Scripting.evaluate(context, entity, source, methodName, codeSource);
+		final Object result         = Scripting.evaluate(context, entity, source, methodName, codeSource, wrapJsInFunction);
 
 		store.setTemporaryParameters(previousParams);
 
@@ -156,10 +164,7 @@ public class Actions {
 		CachedMethod cachedSource = methodCache.get(key);
 		if (cachedSource == null) {
 
-			// we might want to introduce caching here at some point in the future..
-			// Cache can be invalidated when the schema is rebuilt for example..
-
-			final List<NodeInterface> methods = StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_METHOD).andName(key).getAsList();
+			final List<NodeInterface> methods = StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_METHOD).name(key).getAsList();
 			if (methods.isEmpty()) {
 
 				if (!NOTIFICATION_LOGIN.equals(key) && !NOTIFICATION_LOGOUT.equals(key)) {
@@ -199,7 +204,7 @@ public class Actions {
 		}
 
 		if (cachedSource != null) {
-			return Actions.execute(securityContext, null, "${" + StringUtils.strip(cachedSource.sourceCode) + "}", parameters, cachedSource.name, cachedSource.uuidOfSource);
+			return Actions.execute(securityContext, null, "${" + StringUtils.strip(cachedSource.sourceCode) + "}", parameters, cachedSource.name, cachedSource.uuidOfSource, true);
 		}
 
 		return null;

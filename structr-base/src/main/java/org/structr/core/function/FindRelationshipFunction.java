@@ -20,8 +20,7 @@ package org.structr.core.function;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
-import org.structr.core.app.Query;
+import org.structr.core.app.QueryGroup;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.property.PropertyKey;
@@ -29,7 +28,6 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
-import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Map;
@@ -61,7 +59,7 @@ public class FindRelationshipFunction extends CoreFunction {
 			}
 
 			final SecurityContext securityContext = ctx.getSecurityContext();
-			final Query query  = StructrApp.getInstance(securityContext).relationshipQuery().sort(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.CREATED_DATE_PROPERTY));
+			final QueryGroup query  = StructrApp.getInstance(securityContext).relationshipQuery().sort(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.CREATED_DATE_PROPERTY)).and();
 
 			// the type to query for
 			Traits traits = null;
@@ -73,7 +71,7 @@ public class FindRelationshipFunction extends CoreFunction {
 
 				if (traits != null) {
 
-					query.andTypes(traits);
+					query.types(traits);
 
 				} else {
 
@@ -92,7 +90,7 @@ public class FindRelationshipFunction extends CoreFunction {
 			// extension for native javascript objects
 			if (sources.length == 2 && sources[1] instanceof Map) {
 
-				query.and(PropertyMap.inputTypeToJavaType(securityContext, traits.getName(), (Map)sources[1]));
+				query.key(PropertyMap.inputTypeToJavaType(securityContext, traits.getName(), (Map)sources[1]));
 
 			} else if (sources.length == 2) {
 
@@ -104,7 +102,7 @@ public class FindRelationshipFunction extends CoreFunction {
 				// special case: second parameter is a UUID
 				final PropertyKey key = traits.key(GraphObjectTraitDefinition.ID_PROPERTY);
 
-				query.and(key, sources[1].toString());
+				query.key(key, sources[1].toString());
 
 				return query.getFirst();
 
@@ -127,7 +125,7 @@ public class FindRelationshipFunction extends CoreFunction {
 
 					if (key != null) {
 
-						final PropertyConverter inputConverter = key.inputConverter(securityContext);
+						final PropertyConverter inputConverter = key.inputConverter(securityContext, false);
 						Object value = sources[c + 1];
 
 						if (inputConverter != null) {
@@ -135,7 +133,7 @@ public class FindRelationshipFunction extends CoreFunction {
 							value = inputConverter.convert(value);
 						}
 
-						query.and(key, value);
+						query.key(key, value);
 					}
 				}
 			}

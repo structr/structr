@@ -46,7 +46,7 @@ public class ImageConverterCommand extends AbstractCommand {
 		setDoTransactionNotifications(true);
 
 		final String originalImageId          = webSocketData.getId();
-		final Image originalImage             = (Image) getNode(originalImageId);
+		final Image originalImage             = getNodeAs(originalImageId, Image.class, StructrTraits.IMAGE);
 
 		final String format = webSocketData.getNodeDataStringValue("format");
 		final int width     = webSocketData.getNodeDataIntegerValue("width");

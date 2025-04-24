@@ -26,7 +26,6 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
-import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Map;
@@ -90,7 +89,7 @@ public class CreateFunction extends CoreFunction {
 
 					if (key != null) {
 
-						final PropertyConverter inputConverter = key.inputConverter(securityContext);
+						final PropertyConverter inputConverter = key.inputConverter(securityContext, false);
 						Object value = sources[c + 1];
 
 						if (inputConverter != null) {

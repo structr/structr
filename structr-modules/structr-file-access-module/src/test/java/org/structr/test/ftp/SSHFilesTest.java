@@ -518,10 +518,10 @@ public class SSHFilesTest extends SSHTest {
 
 		try (final Tx tx = app.tx()) {
 
-			assertEquals("Folder test1 should exist", "test1", app.nodeQuery(StructrTraits.FOLDER).andName("test1").sort(nameKey).getFirst().getName());
-			assertEquals("Folder test2 should exist", "test2", app.nodeQuery(StructrTraits.FOLDER).andName("test2").sort(nameKey).getFirst().getName());
-			assertEquals("Folder nested1 should exist", "nested1", app.nodeQuery(StructrTraits.FOLDER).andName("nested1").sort(nameKey).getFirst().getName());
-			assertNull("Folder nested2 should have been deleted", app.nodeQuery(StructrTraits.FOLDER).andName("nested2").sort(nameKey).getFirst());
+			assertEquals("Folder test1 should exist", "test1", app.nodeQuery(StructrTraits.FOLDER).name("test1").sort(nameKey).getFirst().getName());
+			assertEquals("Folder test2 should exist", "test2", app.nodeQuery(StructrTraits.FOLDER).name("test2").sort(nameKey).getFirst().getName());
+			assertEquals("Folder nested1 should exist", "nested1", app.nodeQuery(StructrTraits.FOLDER).name("nested1").sort(nameKey).getFirst().getName());
+			assertNull("Folder nested2 should have been deleted", app.nodeQuery(StructrTraits.FOLDER).name("nested2").sort(nameKey).getFirst());
 
 			tx.success();
 

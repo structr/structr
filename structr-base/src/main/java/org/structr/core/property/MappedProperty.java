@@ -72,8 +72,8 @@ public class MappedProperty<T> extends AbstractPrimitiveProperty<T> {
 	}
 
 	@Override
-	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext) {
-		return mappedKey.inputConverter(securityContext);
+	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext, boolean fromString) {
+		return mappedKey.inputConverter(securityContext, false);
 	}
 
 

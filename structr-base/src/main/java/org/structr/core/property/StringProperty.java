@@ -100,7 +100,7 @@ public class StringProperty extends AbstractPrimitiveProperty<String> {
 	}
 
 	@Override
-	public PropertyConverter<?, String> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, String> inputConverter(SecurityContext securityContext, boolean fromString) {
 		return new PropertyConverter<Object, String>(securityContext) {
 
 			@Override
