@@ -19,11 +19,9 @@
 
 package org.structr.process.traits.definitions;
 
-import org.apache.jena.atlas.iterator.Iter;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
@@ -35,14 +33,8 @@ import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
-import org.structr.core.traits.operations.propertycontainer.SetProperties;
-import org.structr.process.entity.Process;
-import org.structr.process.entity.ProcessInstance;
-import org.structr.process.entity.ProcessState;
 import org.structr.process.traits.operations.CreateInstance;
-import org.structr.web.entity.dom.Page;
 
-import java.awt.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;

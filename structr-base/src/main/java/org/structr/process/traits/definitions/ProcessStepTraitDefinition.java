@@ -128,7 +128,7 @@ public class ProcessStepTraitDefinition extends AbstractNodeTraitDefinition {
                         final String parameterName = processParameter.getName();
                         if (methodParameters.containsKey(parameterName)) {
 
-                            NodeInterface valueObj = app.nodeQuery(StructrTraits.PROCESS_PARAMETER_VALUE).disableSorting().pageSize(1).andName(parameterName).getFirst();
+                            NodeInterface valueObj = app.nodeQuery(StructrTraits.PROCESS_PARAMETER_VALUE).disableSorting().pageSize(1).and().name(parameterName).getFirst();
 
                             if (valueObj == null) {
 
