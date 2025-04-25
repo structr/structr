@@ -176,6 +176,8 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	 */
 	boolean cachingEnabled();
 
+	boolean serializationDisabled();
+
 	/**
 	 * Returns the openAPIReturnType value for this property.
 	 *

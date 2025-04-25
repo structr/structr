@@ -245,7 +245,7 @@ public class ImageTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> exifIFD0DataProperty                = new StringProperty(EXIF_IFD0_DATA_PROPERTY);
 		final Property<String> exifSubIFDDataProperty              = new StringProperty(EXIF_SUB_IFD_DATA_PROPERTY);
 		final Property<String> gpsDataProperty                     = new StringProperty(GPS_DATA_PROPERTY);
-		final Property<String> imageDataProperty                   = new ImageDataProperty(IMAGE_DATA_PROPERTY).typeHint("String");
+		final Property<String> imageDataProperty                   = new ImageDataProperty(IMAGE_DATA_PROPERTY).typeHint("String").disableSerialization(true);
 
 		return Set.of(
 			imageParentProperty,

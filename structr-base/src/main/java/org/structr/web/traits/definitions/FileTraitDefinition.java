@@ -285,7 +285,7 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> contentTypeProperty        = new StringProperty(CONTENT_TYPE_PROPERTY);
 		final Property<Boolean> dontCacheProperty         = new BooleanProperty(DONT_CACHE_PROPERTY).defaultValue(false);
 		final Property<Boolean> indexedProperty           = new BooleanProperty(INDEXED_PROPERTY);
-		final Property<String> extractedContentProperty   = new StringProperty(EXTRACTED_CONTENT_PROPERTY).fulltextIndexed();
+		final Property<String> extractedContentProperty   = new StringProperty(EXTRACTED_CONTENT_PROPERTY).fulltextIndexed().disableSerialization(true);
 		final Property<Boolean> isFileProperty            = new ConstantBooleanProperty(IS_FILE_PROPERTY, true).readOnly();
 		final Property<Boolean> isTemplateProperty        = new BooleanProperty(IS_TEMPLATE_PROPERTY);
 		final Property<Boolean> useAsJavascriptLibrary    = new BooleanProperty(USE_AS_JAVASCRIPT_LIBRARY_PROPERTY).indexed();
@@ -300,7 +300,7 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Long> crc32Property                = new LongProperty(CRC32_PROPERTY).indexed();
 		final Property<Long> fileModificationDateProperty = new LongProperty(FILE_MODIFICATION_DATE_PROPERTY);
 		final Property<Long> sizeProperty                 = new LongProperty(SIZE_PROPERTY).indexed();
-		final Property<String> base64DataProperty         = new FileDataProperty(BASE64_DATA_PROPERTY).typeHint("String");
+		final Property<String> base64DataProperty         = new FileDataProperty(BASE64_DATA_PROPERTY).typeHint("String").disableSerialization(true);
 
 		return Set.of(
 			fileParentProperty,
