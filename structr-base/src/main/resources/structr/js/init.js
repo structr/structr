@@ -2349,7 +2349,7 @@ class LifecycleMethods {
 		{
 			name: 'onDelete',
 			available: LifecycleMethods.onlyAvailableInSchemaNodeContext,
-			comment: 'The <strong>onDelete</strong> method runs when a node is being deleted. The deletion can still be stopped by either an error in this method or by validation code.<br><br>The <strong>onDelete</strong> method differs from the other <strong>on****</strong> methods. It runs just when a node is being deleted, so that the node itself is still available and can be used for validation purposes.',
+			comment: 'The <strong>onDelete</strong> method runs when a node is being deleted. The deletion can still be stopped by either an error in this method or by validation code.<br><br>The <strong>onDelete</strong> method differs from the other <strong>on****</strong> methods. It runs just when a node is being deleted, so that the node itself is still available and can be used for validation purposes. (Linked nodes can not be accessed. Use <code>retrieve("modifications")</code> for that.)',
 			isPrefix: true
 		},
 		{
