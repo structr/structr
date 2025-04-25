@@ -580,7 +580,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 		if (this.securityContext != null) {
 
-			if (this.console != null && this.console.getMode().equals(mode)) {
+			if (this.console != null) {
 
 				return this.console;
 
