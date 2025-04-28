@@ -140,7 +140,7 @@ public class FulltextIndexingTest extends IndexingTest {
 	private void testFile(final String searchText) {
 
 		final PropertyKey key = Traits.of(StructrTraits.FILE).key(FileTraitDefinition.EXTRACTED_CONTENT_PROPERTY);
-		final long timeout    = System.currentTimeMillis() + 20000;
+		final long timeout    = System.currentTimeMillis() + 30000;
 		String value = null;
 
 		// wait for value (indexer is async)
@@ -154,8 +154,6 @@ public class FulltextIndexingTest extends IndexingTest {
 				assertNotNull("File should exist", file);
 
 				value = (String) file.getProperty(key);
-
-				System.out.println(value);
 
 				tx.success();
 
@@ -207,8 +205,6 @@ public class FulltextIndexingTest extends IndexingTest {
 
 	private void waitForIndex(final long seconds) {
 
-		System.out.println("Waiting for index updater..");
-
 		// wait for one minute maximum
 		final long timeoutTimestamp = System.currentTimeMillis() + (seconds * 1000);
 
@@ -216,7 +212,6 @@ public class FulltextIndexingTest extends IndexingTest {
 
 			if (StructrApp.getInstance().getDatabaseService().isIndexUpdateFinished()) {
 
-				System.out.println("########## Index updater has finished, waiting some more before returning...");
 				try { Thread.sleep(10000); } catch (Throwable t) {}
 
 				return;

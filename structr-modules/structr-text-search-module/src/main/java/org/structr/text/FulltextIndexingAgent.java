@@ -78,8 +78,6 @@ public class FulltextIndexingAgent extends Agent<String> {
 	@Override
 	public ReturnValue processTask(final Task<String> task) throws Throwable {
 
-		System.out.println("Processing task: " + task.getType() + ", " + task.getWorkObjects());
-
 		final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
 		final App app                         = StructrApp.getInstance(securityContext);
 
@@ -102,10 +100,6 @@ public class FulltextIndexingAgent extends Agent<String> {
 
 								return ReturnValue.Success;
 							}
-
-						} else {
-
-							System.out.println("Indexable " + indexableId + " was null!");
 						}
 
 						tx.success();
@@ -117,7 +111,8 @@ public class FulltextIndexingAgent extends Agent<String> {
 				}
 			}
 
-			return ReturnValue.Success;
+			// retry
+			return ReturnValue.Retry;
 		}
 
 		return ReturnValue.Abort;

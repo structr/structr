@@ -438,4 +438,65 @@ public class PropertyViewRestTest extends StructrRestTestBase {
 		Settings.JsonRedundancyReduction.getValue(true);
 	}
 
+	@Test
+	public void testThatAllViewDoesNotContainBinaryData() {
+
+		// create files and images and check for offending properties in view
+		final String imageData     = "iVBORw0KGgoAAAANSUhEUgAAAFYAAAAXCAYAAAHmVYioAAAAAXNSR0IArs4c6QAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9sEBxYRJKsLwDYAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAD00lEQVRYw+1Y3XXyMAy9zuE1XSALhAHsBVigXsAL4AUyAQOQBeoF0gHIANECZIB6gTCAvhecY0wClNLv0HO4L4Cw/CNL8pWElBIAUFUVbzYbgUvouo632y0zM0spsd1uWUqJruv44+ODpZRYr9fcdR0vrLWCiDgoO+fG2eu6FgBARAIAi7CNOTjn2BgjACAzxjAAKKW4bVsOvwHAGMNlWY7fs7AsEYn9fp/OKuLvZ9sgIlZKXbZKgimdTGvNVVXxlEJd1xy2m8rmoJRiAMiGYYD3/kQhnggADocDjDFsjGHv/TgmtVusc/VGriHPcz4cDqdmwA+htT6TZUTExhherVYc26ZpmvGIwRHjz9gEQSfIF6l7HD0VRVGcyCccVQR7Bp0gz5RSQmvNbdsyHoTMGMN5niPPcwCAtZbzPD9bIL3hcPzgHd+6/XsC47swxrC1FlfXkVLi6+uLY3Rdx1JKSCkRy4Ms1QnpLB2TzhXGpHOm8jD+/f39RL6o65qLorh4qvQ/ImIigtb6Wxa/Zr30v6ZpYK0dnT2z1oqjgImItdaMJ0UWwlQpJZRSwnuP+AF6Jiw2mw2vVqsTYVVV8aMwbj6+kql8s1wuOT5o3/ew1oqpueKrT3XnXOViNlBKsdYaVVX9ejbo+37WEDe9MXVdj3nyN2Gtvd1n/wzmcl+aY2N5rDMMA4ex6/X6LM/O5WZm5kA1p2RSSux2uxP5wlqLtm2Rcr44SOq6Prs25xyGYbjZKE3TcFEUJ3MR0YnL9X2PQLy01rxarcbxRITFMfpnHXsYhknHDzz6VhRFASKaZTBpgIVYiceHPMtFUfCzu2ymlBJEhKZp8Eja9WsvmLVWKKXE8conqdzTbDbi5WKOnz/Fc5sS3BjeeyilRhJ8id6HLLHb7RgAlsvlxblChPd9L2Jd7z3atp1+bpmZ06gMxW+ccuI3e4qQl2XJzrkzjhEvHM8V0pVzThRFwU3TjAew1oopQv6jOjGqxk4Iy19EMM41wnZXfL3wwFzwiEne3t7GnkF4oEOM/0UcW2bjefb7PdLuzVXDHptct4T9bLiXZXlGy5RSs6F2qay9NSQvpaFra6V581olcBx30iZzziHOwen4RVwo3tt1uSXHhs3+j3z807Wu5Vit9WjUubHZVEv1hQeQQ2utCG4e2g+hVf+sjPZPGDZUfaHJZa2F9x6h3CUids5xWZYvI/+EbhGRMMaMhm6aBmVZwjmHS9XEC9/ksW3bvqx0B0TXdZxSo0uvofde3EJr0tfy1irtGpWZqJjOOPM9dCvPc/78/Jxs7KZ7voUS/gORqW62f9bxTgAAAABJRU5ErkJggg==";
+		final String imageFileName = "test.png";
+		final String textData      = "VGhpcyBpcyBhIHRlc3QK";
+		final String textFileName  = "test.txt";
+
+		RestAssured
+			.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseTo(System.out))
+			.body("{ name: '" + textFileName + "', base64Data: '" + textData + "' }")
+			.expect()
+			.statusCode(201)
+			.when()
+			.post("/File");
+
+		RestAssured
+			.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseTo(System.out))
+			.body("{ name: '" + imageFileName + "', base64Data: '" + imageData + "' }")
+			.expect()
+			.statusCode(201)
+			.when()
+			.post("/Image");
+
+		RestAssured
+			.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseTo(System.out))
+			.expect()
+			.body("result[0].type",         equalTo("Image"))
+			.body("result[0].name",         equalTo("test.png"))
+			.body("result[0].path",         equalTo("/test.png"))
+			.body("result[0].size",         equalTo(1126))
+			.body("result[0].width",        equalTo(86))
+			.body("result[0].height",       equalTo(23))
+			.body("result[0].isFile",       equalTo(true))
+			.body("result[0].isImage",      equalTo(true))
+			.body("result[1].type",         equalTo("File"))
+			.body("result[1].name",         equalTo("test.txt"))
+			.body("result[1].path",         equalTo("/test.txt"))
+			.body("result[1].size",         equalTo(15))
+			.body("result[1].isFile",       equalTo(true))
+			.body("result[1].isImage",      equalTo(null))
+
+			.body("result[0].extractedContent", equalTo(null))
+			.body("result[0].base64Data",       equalTo(null))
+			.body("result[0].imageData",        equalTo(null))
+
+			.body("result[1].extractedContent", equalTo(null))
+			.body("result[1].base64Data",       equalTo(null))
+			.body("result[1].imageData",        equalTo(null))
+
+			.when()
+			.get("/File/all?_sort=name");
+
+	}
 }
