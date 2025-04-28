@@ -117,7 +117,7 @@ public class Neo4IndexUpdater implements IndexUpdater {
 				final IndexConfig indexConfig         = propertyIndexConfig.getValue();
 				final String propertyKey              = propertyIndexConfig.getKey();
 				final boolean finalIndexAlreadyOnline = indexAlreadyOnline;
-				final String finalIndexName           = indexName;
+				final String finalIndexName           = indexName != null ? indexName : typeName + "_" + propertyKey;
 
 				// skip relationship indexes if not supported
 				if (!indexConfig.isNodeIndex() && !supportsRelationshipIndexes) {
@@ -188,8 +188,15 @@ public class Neo4IndexUpdater implements IndexUpdater {
 										try {
 
 											final String indexDescription = indexConfig.getIndexDescriptionForStatement(typeName);
+											if (indexConfig.isFulltextIndex()) {
 
-											db.consume("CREATE INDEX IF NOT EXISTS FOR " + indexDescription + " ON (n.`" + propertyKey + "`)");
+												db.consume("CREATE FULLTEXT INDEX " + finalIndexName + " IF NOT EXISTS FOR " + indexDescription + " ON EACH [n.`" + propertyKey + "`]");
+
+											} else {
+
+												db.consume("CREATE INDEX " + finalIndexName + " IF NOT EXISTS FOR " + indexDescription + " ON (n.`" + propertyKey + "`)");
+											}
+
 											createdIndexes.incrementAndGet();
 
 										} catch (Throwable t) {

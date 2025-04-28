@@ -19,6 +19,7 @@
 package org.structr.bolt;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.RetryException;
@@ -84,8 +85,7 @@ public class Neo5IndexUpdater implements IndexUpdater {
 			}).get(timeoutSeconds, TimeUnit.SECONDS);
 
 		} catch (Throwable t) {
-			t.printStackTrace();
-			//logger.error(ExceptionUtils.getStackTrace(t));
+			logger.error(ExceptionUtils.getStackTrace(t));
 		}
 
 		logger.debug("Found {} existing indexes", existingDbIndexes.size());
@@ -161,8 +161,7 @@ public class Neo5IndexUpdater implements IndexUpdater {
 							}).get(timeoutSeconds, TimeUnit.SECONDS);
 
 						} catch (Throwable t) {
-							t.printStackTrace();
-							//logger.error(ExceptionUtils.getStackTrace(t));
+							logger.error(ExceptionUtils.getStackTrace(t));
 						}
 					}
 				}
@@ -189,10 +188,12 @@ public class Neo5IndexUpdater implements IndexUpdater {
 										try {
 
 											final String indexDescription = indexConfig.getIndexDescriptionForStatement(typeName);
-
 											if (indexConfig.isFulltextIndex()) {
+
 												db.consume("CREATE FULLTEXT INDEX " + finalIndexName + " IF NOT EXISTS FOR " + indexDescription + " ON EACH [n.`" + propertyKey + "`]");
+
 											} else {
+
 												db.consume("CREATE INDEX " + finalIndexName + " IF NOT EXISTS FOR " + indexDescription + " ON (n.`" + propertyKey + "`)");
 											}
 
@@ -229,8 +230,7 @@ public class Neo5IndexUpdater implements IndexUpdater {
 
 							} catch (Throwable t) {
 
-								t.printStackTrace();
-								//logger.warn("Unable to update index configuration: {}", t.getMessage());
+								logger.warn("Unable to update index configuration: {}", t.getMessage());
 							}
 
 						}).get(timeoutSeconds, TimeUnit.SECONDS);
@@ -311,7 +311,6 @@ public class Neo5IndexUpdater implements IndexUpdater {
 									}).get(timeoutSeconds, TimeUnit.SECONDS);
 
 								} catch (Throwable t) {
-									t.printStackTrace();
 								}
 							}
 						}
