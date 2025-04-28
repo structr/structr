@@ -30,6 +30,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaMethod;
+import org.structr.core.function.Functions;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.PropertySetNotion;
@@ -163,6 +164,11 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 
 					schemaMethod.handleAutomaticCorrectionOfAttributes();
 
+					if (schemaMethod.getSchemaNode() == null && Functions.getNames().contains(schemaMethod.getName())) {
+
+						schemaMethod.warnAboutShadowingBuiltinFunction();
+					}
+
 					Actions.clearCache();
 				}
 			},
@@ -182,6 +188,11 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 					} else {
 
 						schemaMethod.handleAutomaticCorrectionOfAttributes();
+
+						if (schemaMethod.getSchemaNode() == null && Functions.getNames().contains(schemaMethod.getName()) && modificationQueue.isPropertyModified(graphObject, traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY))) {
+
+							schemaMethod.warnAboutShadowingBuiltinFunction();
+						}
 					}
 
 					// acknowledge all events for this node when it is modified

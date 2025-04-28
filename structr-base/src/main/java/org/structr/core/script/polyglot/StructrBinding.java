@@ -142,7 +142,18 @@ public class StructrBinding implements ProxyObject {
 
 				return new UserDefinedFunctionWrapper(actionContext);
 
+			case "_functions":
+
+				return new FunctionBinding(actionContext, entity);
+
 			default:
+
+				// look for user-defined function with the given name
+				final AbstractMethod method = Methods.resolveMethod(null, name);
+				if (method != null) {
+
+					return method.getProxyExecutable(actionContext, null);
+				}
 
 				// look for built-in function with the given name first (because it is fast)
 				Function<Object, Object> func = Functions.get(CaseHelper.toUnderscore(name, false));
@@ -164,13 +175,6 @@ public class StructrBinding implements ProxyObject {
 				// static type?
 				if (Traits.exists(name)) {
 					return new StaticTypeWrapper(actionContext, Traits.of(name));
-				}
-
-				// look for user-defined function with the given name
-				final AbstractMethod method = Methods.resolveMethod(null, name);
-				if (method != null) {
-
-					return method.getProxyExecutable(actionContext, null);
 				}
 
 				try {

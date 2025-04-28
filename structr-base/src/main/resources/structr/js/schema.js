@@ -592,7 +592,7 @@ let _Schema = {
 					LSWrapper.setItem(_Schema.hiddenSchemaNodesKey, JSON.stringify(_Schema.hiddenSchemaNodes));
 				}
 
-				_Schema.nodePositions = LSWrapper.getItem(_Schema.schemaPositionsKey, []);
+				_Schema.nodePositions = LSWrapper.getItem(_Schema.schemaPositionsKey, {});
 
 				_Schema.availableTypeNames = [];
 
