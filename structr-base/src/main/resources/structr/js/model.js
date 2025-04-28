@@ -601,6 +601,9 @@ StructrImage.prototype.setProperty = function(key, value, recursive, callback) {
 };
 
 StructrImage.prototype.remove = function() {
+	if (Structr.isModuleActive(_Files)) {
+		_Files.fileOrFolderDeletionNotification(this);
+	}
 };
 
 StructrImage.prototype.append = function() {
