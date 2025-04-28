@@ -754,10 +754,7 @@ public class SchemaService implements Service {
 
 						for (final PropertyKey propertyKey : entry.getValue().values()) {
 
-							final boolean wasIndexed         = propertyKey.isIndexed() || propertyKey.isIndexedWhenEmpty() || propertyKey.isFulltextIndexed();
-							final boolean wasFulltextIndexed = propertyKey.isFulltextIndexed();
-
-							if (wasFulltextIndexed)
+							final boolean wasIndexed = propertyKey.isIndexed() || propertyKey.isIndexedWhenEmpty() || propertyKey.isFulltextIndexed();
 
 							if (isRelationship) {
 
@@ -772,8 +769,11 @@ public class SchemaService implements Service {
 
 								// Fulltext indexing for nodes only at the moment
 								if (propertyKey.isFulltextIndexed()) {
+
 									typeConfig.put(propertyKey.dbName(), new FulltextIndexConfig(dropIndex));
+
 								} else {
+
 									typeConfig.put(propertyKey.dbName(), new NodeIndexConfig(dropIndex));
 								}
 
@@ -798,74 +798,6 @@ public class SchemaService implements Service {
 		indexUpdater.setDaemon(true);
 		indexUpdater.start();
 	}
-
-	private static Class getType(final String name) {
-
-		/*
-
-		try { return Class.forName(name); } catch (ClassNotFoundException ignore) {}
-
-		final Class nodeClass = Traits.of(StringUtils.substringAfterLast(name, "."));
-		if (nodeClass != null) {
-
-			return nodeClass;
-		}
-
-		final Class relClass = StringUtils.substringAfterLast(name, "."));
-		if (relClass != null) {
-
-			return relClass;
-		}
-		*/
-
-		return null;
-	}
-
-	/*
-	private static Map<String, Map<String, PropertyKey>> translateRelationshipClassesToRelTypes(final Map<String, Map<String, PropertyKey>> source) {
-
-		// we need to replace all relationship type classes with their respective relationship type
-		// (e.g. DOMNodeCONTAINSDOMNode => CONTAINS)
-
-		final Map<String, Map<String, PropertyKey>> translated = new LinkedHashMap<>();
-
-		for (final String key : source.keySet()) {
-
-			final Class type = getType(key);
-			if (type != null) {
-
-				if (Relation.class.isAssignableFrom(type)) {
-
-					final String typeName = getIndexingTypeName(type);
-					if (typeName != null) {
-
-						// create a deep copy
-						translated.put(typeName, new LinkedHashMap<>(source.get(key)));
-					}
-
-				} else {
-
-					// create a deep copy
-					translated.put(key, new LinkedHashMap<>(source.get(key)));
-				}
-			}
-		}
-
-		return translated;
-	}
-
-	private static void handleAutomaticMigration(final ErrorBuffer errorBuffer) throws FrameworkException {
-
-		for (final ErrorToken errorToken : errorBuffer.getErrorTokens()) {
-
-			for (final MigrationHandler handler : migrationHandlers) {
-
-				handler.handleMigration(errorToken);
-			}
-		}
-
-	}
-	*/
 
 	private static String getIndexingTypeName(final String typeName) {
 

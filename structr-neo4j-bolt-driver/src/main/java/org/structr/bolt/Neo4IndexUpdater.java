@@ -36,9 +36,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class Neo4IndexUpdater {
+public class Neo4IndexUpdater implements IndexUpdater {
 
 	private static final Logger logger          = LoggerFactory.getLogger(Neo4IndexUpdater.class);
+	private final AtomicBoolean isFinished      = new AtomicBoolean(false);
 	private boolean supportsRelationshipIndexes = false;
 	private BoltDatabaseService db              = null;
 
@@ -49,6 +50,8 @@ public class Neo4IndexUpdater {
 	}
 
 	public void updateIndexConfiguration(final Map<String, Map<String, IndexConfig>> schemaIndexConfigSource, final Map<String, Map<String, IndexConfig>> removedClassesSource, final boolean createOnly) {
+
+		isFinished.set(false);
 
 		final ExecutorService executor                           = Executors.newCachedThreadPool();
 		final Map<String, Map<String, Object>> existingDbIndexes = new HashMap<>();
@@ -311,5 +314,12 @@ public class Neo4IndexUpdater {
 				logger.debug("Dropped {} indexes of deleted types ({})", droppedIndexesOfRemovedTypes.get(), StringUtils.join(removedTypes, ", "));
 			}
 		}
+
+		isFinished.set(true);
+	}
+
+	@Override
+	public boolean isFinished() {
+		return isFinished.get();
 	}
 }

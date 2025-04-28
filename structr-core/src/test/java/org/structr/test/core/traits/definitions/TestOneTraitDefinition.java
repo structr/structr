@@ -45,7 +45,7 @@ public class TestOneTraitDefinition extends AbstractNodeTraitDefinition {
 		final PropertyKey<Double>                  aDouble            = new DoubleProperty("aDouble").indexed().indexedWhenEmpty();
 		final PropertyKey<Date>                    aDate              = new ISO8601DateProperty("aDate").indexed().indexedWhenEmpty();
 		final PropertyKey<String>                  anEnum             = new EnumProperty("anEnum", newSet("One", "Two", "Three", "Four")).indexed();
-		final PropertyKey<String>                  aString            = new StringProperty("aString").indexed().indexedWhenEmpty();
+		final PropertyKey<String>                  aString            = new StringProperty("aString").indexed().indexedWhenEmpty().fulltextIndexed();
 		final PropertyKey<Boolean>                 aBoolean           = new BooleanProperty("aBoolean").indexed();
 		final PropertyKey<String>                  testString         = new StringProperty("testString");
 		final PropertyKey<String>                  anotherString      = new StringProperty("anotherString");

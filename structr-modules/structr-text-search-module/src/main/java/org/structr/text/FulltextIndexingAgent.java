@@ -19,7 +19,6 @@
 package org.structr.text;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.tika.detect.DefaultDetector;
 import org.apache.tika.detect.Detector;
 import org.apache.tika.metadata.Metadata;
@@ -37,7 +36,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
@@ -80,6 +78,8 @@ public class FulltextIndexingAgent extends Agent<String> {
 	@Override
 	public ReturnValue processTask(final Task<String> task) throws Throwable {
 
+		System.out.println("Processing task: " + task.getType() + ", " + task.getWorkObjects());
+
 		final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
 		final App app                         = StructrApp.getInstance(securityContext);
 
@@ -102,6 +102,10 @@ public class FulltextIndexingAgent extends Agent<String> {
 
 								return ReturnValue.Success;
 							}
+
+						} else {
+
+							System.out.println("Indexable " + indexableId + " was null!");
 						}
 
 						tx.success();

@@ -21,15 +21,14 @@ package org.structr.bolt;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.*;
-import org.neo4j.driver.Record;
 import org.neo4j.driver.exceptions.AuthenticationException;
 import org.neo4j.driver.exceptions.ClientException;
 import org.neo4j.driver.exceptions.DatabaseException;
 import org.neo4j.driver.exceptions.ServiceUnavailableException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.*;
 import org.structr.api.Transaction;
+import org.structr.api.*;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
@@ -61,6 +60,7 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 	private String databaseUrl                                    = null;
 	private Driver driver                                         = null;
 	private SessionConfig sessionConfig                           = null;
+	private IndexUpdater indexUpdater                             = null;
 
 	@Override
 	public boolean initialize(final String name, final String version, final String instance) {
@@ -164,8 +164,11 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 	public Transaction beginTx(boolean forceNew) {
 
 		if (!forceNew) {
+
 			return beginTx();
+
 		} else {
+
 			try {
 				if (neo4jMajorVersion >= 4) {
 
@@ -479,14 +482,14 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 
 			case 5:
 				// cannot use db.indexes(), replaced by SHOW INDEXES call
-				new Neo5IndexUpdater(this, supportsRelationshipIndexes).updateIndexConfiguration(schemaIndexConfigSource, removedClassesSource, createOnly);
+				indexUpdater = new Neo5IndexUpdater(this, supportsRelationshipIndexes);
 				break;
 
 			case 4:
 				if (supportsIdempotentIndexCreation) {
 
 					// idempotent index update, no need to check for existance first
-					new Neo4IndexUpdater(this, supportsRelationshipIndexes).updateIndexConfiguration(schemaIndexConfigSource, removedClassesSource, createOnly);
+					indexUpdater = new Neo4IndexUpdater(this, supportsRelationshipIndexes);
 
 				} else {
 
@@ -497,7 +500,7 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 			case 3:
 
 				// non-idempotent index update, need to check for existance first
-				new Neo3IndexUpdater(this, supportsRelationshipIndexes).updateIndexConfiguration(schemaIndexConfigSource, removedClassesSource, createOnly);
+				indexUpdater = new Neo3IndexUpdater(this, supportsRelationshipIndexes);
 				break;
 
 			default:
@@ -506,10 +509,21 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 				logger.warn("This driver does not support index creation on Neo4j " + neo4jMajorVersion + ".x databases. Performance will be impacted.");
 				break;
 		}
+
+		if (indexUpdater != null) {
+
+			indexUpdater.updateIndexConfiguration(schemaIndexConfigSource, removedClassesSource, createOnly);
+		}
 	}
 
 	@Override
 	public boolean isIndexUpdateFinished() {
+
+		if (indexUpdater != null) {
+			return indexUpdater.isFinished();
+		}
+
+		// no updater, no update in progress
 		return true;
 	}
 
