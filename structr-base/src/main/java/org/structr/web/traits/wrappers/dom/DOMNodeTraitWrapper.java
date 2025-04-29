@@ -54,10 +54,7 @@ import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.common.StringRenderBuffer;
 import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.Linkable;
-import org.structr.web.entity.dom.Content;
-import org.structr.web.entity.dom.DOMNode;
-import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.dom.Template;
+import org.structr.web.entity.dom.*;
 import org.structr.web.entity.event.ActionMapping;
 import org.structr.web.property.CustomHtmlAttributeProperty;
 import org.structr.web.traits.definitions.LinkSourceTraitDefinition;
@@ -84,14 +81,18 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	 * @param nodeToClone
 	 * @return
 	 */
-	public static DOMNode cloneAndAppendChildren(final SecurityContext securityContext, final DOMNode nodeToClone) throws FrameworkException {
+	public static DOMNode cloneAndAppendChildren(final SecurityContext securityContext, final DOMNode nodeToClone, final Map<String, DOMNode> cloneMap) throws FrameworkException {
 
 		final DOMNode newNode               = nodeToClone.cloneNode(false);
 		final List<DOMNode> childrenToClone = nodeToClone.getChildNodes();
 
+		if (cloneMap.put(nodeToClone.getUuid(), newNode) != null) {
+			throw new FrameworkException(422, "Node already cloned!");
+		}
+
 		for (final DOMNode childNodeToClone : childrenToClone) {
 
-			newNode.appendChild(cloneAndAppendChildren(securityContext, childNodeToClone));
+			newNode.appendChild(cloneAndAppendChildren(securityContext, childNodeToClone, cloneMap));
 		}
 
 		// clone event action mappings as well
@@ -1937,7 +1938,40 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 		if (deep) {
 
-			return cloneAndAppendChildren(securityContext, this);
+			final Map<String, DOMNode> cloneMap = new LinkedHashMap<>();
+			final DOMNode clone                 = cloneAndAppendChildren(securityContext, this, cloneMap);
+			final App app                       = StructrApp.getInstance(securityContext);
+
+			// clone event action mapping as well (must be done after cloning all DOM nodes)
+			for (final String uuid : cloneMap.keySet()) {
+
+				// fetch original node, so we can check for action mappings to clone
+				final NodeInterface originalNode = app.getNodeById(uuid);
+				if (originalNode != null && originalNode.is("DOMElement")) {
+
+					final DOMElement originalElement = originalNode.as(DOMElement.class);
+					final DOMNode clonedNode         = cloneMap.get(uuid);
+
+					if (clonedNode.is("DOMElement")) {
+
+						final List<NodeInterface> clonedActionMappings = new LinkedList<>();
+						final DOMElement clonedElement = clonedNode.as(DOMElement.class);
+
+						for (final ActionMapping actionMapping : originalElement.getTriggeredActions()) {
+
+							final NodeInterface clonedActionMapping = actionMapping.cloneActionMapping(cloneMap);
+							if (clonedActionMapping != null) {
+
+								clonedActionMappings.add(clonedActionMapping);
+							}
+						}
+
+						clonedElement.setProperty(clonedElement.getTraits().key(DOMElementTraitDefinition.TRIGGERED_ACTIONS_PROPERTY), clonedActionMappings);
+					}
+				}
+			}
+
+			return clone;
 
 		} else {
 

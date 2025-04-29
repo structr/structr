@@ -35,6 +35,9 @@ import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 import org.w3c.dom.DOMException;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 /**
  * Websocket command to clone a page.
  */
@@ -64,26 +67,15 @@ import org.w3c.dom.DOMException;
 				if (pageToClone != null) {
 
 					final Page newPage = pageToClone.cloneNode(false).as(Page.class);
+					final Map<String, DOMNode> cloneMap = new LinkedHashMap<>();
 
 					newPage.setProperties(securityContext, new PropertyMap(Traits.of(StructrTraits.PAGE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), pageToClone.getName() + "-" + newPage.getNode().getId().toString()));
-
-//					DOMNode firstChild = (DOMNode) pageToClone.getFirstChild().getNextSibling();
-//
-//					if (firstChild == null) {
-//						firstChild = (DOMNode) pageToClone.treeGetFirstChild();
-//					}
-//
-//					if (firstChild != null) {
-//						final DOMNode newHtmlNode = DOMNode.cloneAndAppendChildren(securityContext, firstChild);
-//						newPage.adoptNode(newHtmlNode);
-//						newPage.appendChild(newHtmlNode);
-//					}
 
 					NodeInterface subNodeNode = pageToClone.treeGetFirstChild();
 					while (subNodeNode != null) {
 
 						final DOMNode subNode     = subNodeNode.as(DOMNode.class);
-						final DOMNode newHtmlNode = DOMNodeTraitWrapper.cloneAndAppendChildren(securityContext, subNode.as(DOMNode.class));
+						final DOMNode newHtmlNode = DOMNodeTraitWrapper.cloneAndAppendChildren(securityContext, subNode.as(DOMNode.class), cloneMap);
 
 						newPage.adoptNode(newHtmlNode);
 						newPage.appendChild(newHtmlNode);

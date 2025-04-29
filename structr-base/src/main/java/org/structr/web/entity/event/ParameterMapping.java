@@ -18,8 +18,12 @@
  */
 package org.structr.web.entity.event;
 
+import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.web.entity.dom.DOMElement;
+import org.structr.web.entity.dom.DOMNode;
+
+import java.util.Map;
 
 public interface ParameterMapping extends NodeInterface {
 
@@ -31,4 +35,6 @@ public interface ParameterMapping extends NodeInterface {
 	String getScriptExpression();
 	String getMethodResult();
 	String getFlowResult();
+
+	NodeInterface cloneParameterMapping(final Map<String, DOMNode> mapOfClonedNodes) throws FrameworkException;
 }

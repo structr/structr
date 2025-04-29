@@ -23,6 +23,8 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 
+import java.util.Map;
+
 public interface ActionMapping extends NodeInterface {
 
 	String getEvent();
@@ -66,4 +68,5 @@ public interface ActionMapping extends NodeInterface {
 	String getFailureNotificationsEvent();
 	Integer getFailureNotificationsDelay();
 
+	NodeInterface cloneActionMapping(final Map<String, DOMNode> mapOfClonedNodes) throws FrameworkException;
 }
