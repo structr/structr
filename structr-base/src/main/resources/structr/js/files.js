@@ -651,10 +651,10 @@ let _Files = {
 
 		[..._Files.getFolderContentsElement().children].map(el => el.style.display = 'none');
 
-		let url = Structr.rootUrl + 'files/ui?' + Structr.getRequestParameterName('loose') + '=1';
+		let url = Structr.rootUrl + 'File/ui?' + Structr.getRequestParameterName('inexact') + '=1';
 
 		for (let str of searchString.split(' ')) {
-			url = url + '&indexedWords=' + str;
+			url = url + '&extractedContent=' + str;
 		}
 
 		_Files.displaySearchResultsForURL(url, searchString);
