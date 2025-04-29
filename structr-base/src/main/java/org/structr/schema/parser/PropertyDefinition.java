@@ -42,6 +42,8 @@ public interface PropertyDefinition extends CodeSource {
 	String getContentType();
 	String getReadFunction();
 	String getWriteFunction();
+
+	boolean isSerializationDisabled();
 	String getOpenAPIReturnType();
 	String[] getTransformators();
 	String[] getValidators();

@@ -58,6 +58,7 @@ public interface JsonSchema {
 	String KEY_HINT                     = "hint";
 	String KEY_CATEGORY                 = "category";
 	String KEY_READ_ONLY                = "readOnly";
+	String KEY_SERIALIZATION_DISABLED   = "serializationDisabled";
 	String KEY_VALIDATORS               = "validators";
 	String KEY_TRANSFORMATORS           = "transformators";
 	String KEY_DATE_PATTERN             = "datePattern";
