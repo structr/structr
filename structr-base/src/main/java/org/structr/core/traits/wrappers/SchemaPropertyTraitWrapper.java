@@ -227,6 +227,11 @@ public class SchemaPropertyTraitWrapper extends AbstractNodeTraitWrapper impleme
 	}
 
 	@Override
+	public boolean isSerializationDisabled() {
+		return wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.IS_SERIALIZATION_DISABLED_PROPERTY));
+	}
+
+	@Override
 	public String getOpenAPIReturnType() {
 
 		String _openAPIReturnType = wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.OPEN_API_RETURN_TYPE_PROPERTY));

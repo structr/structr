@@ -64,6 +64,7 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 	protected boolean unique                = false;
 	protected boolean indexed               = false;
 	protected boolean readOnly              = false;
+	protected boolean serializationDisabled = false;
 
 	StructrPropertyDefinition(final JsonType parent, final String name) {
 		this.parent = parent;
@@ -165,6 +166,11 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 	}
 
 	@Override
+	public boolean isSerializationDisabled() {
+		return serializationDisabled;
+	}
+
+	@Override
 	public Set<String> getValidators() {
 		return validators;
 	}
@@ -238,6 +244,13 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 	}
 
 	@Override
+	public JsonProperty setSerializationDisabled(boolean serializationDisabled) {
+
+		this.serializationDisabled = serializationDisabled;
+		return this;
+	}
+
+	@Override
 	public JsonProperty setDefaultValue(final String defaultValue) {
 
 		this.defaultValue = defaultValue;
@@ -282,19 +295,20 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 
 			final PropertyMap getOrCreateProperties = new PropertyMap();
 
-			getOrCreateProperties.put(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),           getName());
-			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY),   schemaNode);
-			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.COMPOUND_PROPERTY),      isCompoundUnique());
-			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.UNIQUE_PROPERTY),        isUnique());
-			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.INDEXED_PROPERTY),       isIndexed());
-			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.NOT_NULL_PROPERTY),      isRequired());
-			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.READ_ONLY_PROPERTY),     isReadOnly());
-			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.FORMAT_PROPERTY),        getFormat());
-			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.HINT_PROPERTY),          getHint());
-			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.CATEGORY_PROPERTY),      getCategory());
-			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.VALIDATORS_PROPERTY),    listToArray(validators));
-			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.TRANSFORMERS_PROPERTY),  listToArray(transformers));
-			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.DEFAULT_VALUE_PROPERTY), defaultValue);
+			getOrCreateProperties.put(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),                       getName());
+			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY),               schemaNode);
+			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.COMPOUND_PROPERTY),                  isCompoundUnique());
+			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.UNIQUE_PROPERTY),                    isUnique());
+			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.INDEXED_PROPERTY),                   isIndexed());
+			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.NOT_NULL_PROPERTY),                  isRequired());
+			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.READ_ONLY_PROPERTY),                 isReadOnly());
+			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.IS_SERIALIZATION_DISABLED_PROPERTY), isSerializationDisabled());
+			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.FORMAT_PROPERTY),                    getFormat());
+			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.HINT_PROPERTY),                      getHint());
+			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.CATEGORY_PROPERTY),                  getCategory());
+			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.VALIDATORS_PROPERTY),                listToArray(validators));
+			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.TRANSFORMERS_PROPERTY),              listToArray(transformers));
+			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.DEFAULT_VALUE_PROPERTY),             defaultValue);
 
 			property = app.create(StructrTraits.SCHEMA_PROPERTY, getOrCreateProperties).as(SchemaProperty.class);
 		}
@@ -337,6 +351,10 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 
 		if (source.containsKey(JsonSchema.KEY_READ_ONLY)) {
 			this.readOnly = (Boolean)source.get(JsonSchema.KEY_READ_ONLY);
+		}
+
+		if (source.containsKey(JsonSchema.KEY_SERIALIZATION_DISABLED)) {
+			this.serializationDisabled = (Boolean)source.get(JsonSchema.KEY_SERIALIZATION_DISABLED);
 		}
 
 		final Object _format = source.get(JsonSchema.KEY_FORMAT);
@@ -386,6 +404,8 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 		setUnique(property.isUnique());
 		setIndexed(property.isIndexed());
 		setReadOnly(property.isReadOnly());
+		setSerializationDisabled(property.isSerializationDisabled());
+
 		setHint(property.getHint());
 		setCategory(property.getCategory());
 
@@ -426,6 +446,10 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 
 		if (readOnly) {
 			map.put(JsonSchema.KEY_READ_ONLY, true);
+		}
+
+		if (serializationDisabled) {
+			map.put(JsonSchema.KEY_SERIALIZATION_DISABLED, true);
 		}
 
 		if (format != null) {

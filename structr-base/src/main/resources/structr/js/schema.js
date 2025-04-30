@@ -1926,7 +1926,6 @@ let _Schema = {
 				}
 			}
 
-			let typeField = $('.property-type', gridRow);
 			$('.property-type option[value=""]', gridRow).remove();
 
 			if (property.propertyType === 'String' && !property.isBuiltinProperty) {
@@ -2052,7 +2051,7 @@ let _Schema = {
 			$('.indexed', gridRow).prop('checked', property.indexed);
 			$('.property-default', gridRow).val(property.defaultValue);
 			$('.caching-enabled', gridRow).prop('checked', property.isCachingEnabled);
-			$('.type-hint', gridRow).val(property.typeHint || "null");
+			$('.type-hint', gridRow).val(property.typeHint ?? "null");
 		},
 		removeUnwantedPropertyTypes: (property, gridRow) => {
 
