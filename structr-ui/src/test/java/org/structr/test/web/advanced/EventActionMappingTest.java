@@ -2345,8 +2345,6 @@ public class EventActionMappingTest extends StructrUiTest {
 		final String html  = fetchPageHtml("/html/page1");
 		final Document doc = Jsoup.parse(html);
 
-		System.out.println(html);
-
 		final Map<String, String> expectedValues1 = new LinkedHashMap<>();
 		final Map<String, String> expectedValues2 = new LinkedHashMap<>();
 		final Map<String, String> attrs1          = getAttributes(doc.getElementsByTag("button").get(0));
@@ -2439,8 +2437,6 @@ public class EventActionMappingTest extends StructrUiTest {
 		final String html  = fetchPageHtml("/html/page1");
 		final Document doc = Jsoup.parse(html);
 
-		System.out.println(html);
-
 		final Map<String, String> expectedValues1 = new LinkedHashMap<>();
 		final Map<String, String> expectedValues2 = new LinkedHashMap<>();
 		final Map<String, String> attrs1          = getAttributes(doc.getElementsByTag("button").get(0));
@@ -2475,6 +2471,80 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testClonePage() {
 
+
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key(DOMElementTraitDefinition._HTML_ID_PROPERTY);
+		String btnId                     = null;
+		String divId                        = null;
+
+		try (final Tx tx = app.tx()) {
+
+			createAdminUser();
+
+			final Page page1     = Page.createSimplePage(securityContext, "page1");
+			final DOMNode div    = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
+
+			div.appendChild(btn);
+			btn.appendChild(text);
+
+			btn.setProperty(htmlIdKey, "button");
+			div.setProperty(htmlIdKey, "parent-container");
+
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
+
+			// base setup
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.EVENT_PROPERTY), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.ACTION_PROPERTY), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.DATA_TYPE_PROPERTY), "Project");
+
+			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, navigate-to-url, fire-event, full-page-reload, sign-out, none)
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.SUCCESS_BEHAVIOUR_PROPERTY), "partial-refresh-linked");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.SUCCESS_TARGETS_PROPERTY), List.of(div));
+
+			// now clone the page
+			final Page page2 = page1.cloneNode(true).as(Page.class);
+
+			page2.setName("page2");
+
+			final DOMNode clonedDiv = page2.getElementsByTagName("div").get(0);
+			final DOMNode clonedBtn = page2.getElementsByTagName("button").get(0);
+
+			divId = clonedDiv.getUuid();
+			btnId = clonedBtn.getUuid();
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		RestAssured.basePath = "/";
+
+		final String html       = fetchPageHtml("/html/page1");
+		final String clonedHtml = fetchPageHtml("/html/page2");
+		final Document doc = Jsoup.parse(clonedHtml);
+
+		final Map<String, String> expectedValues = new LinkedHashMap<>();
+		final Map<String, String> attrs          = getAttributes(doc.getElementsByTag("button").get(0));
+
+		// verify that the div is a reload target (exposes data-structr-id attribute)
+		final Map<String, String> div1Attrs = getAttributes(doc.getElementsByTag("div").get(0));
+
+		assertEquals("Wrong value for cloned EAM attribute data-structr-id", divId, div1Attrs.get("data-structr-id"));
+
+		expectedValues.put("data-structr-event", "click");
+		expectedValues.put("data-structr-action", "create");
+		expectedValues.put("data-structr-target", "Project");
+		expectedValues.put("data-structr-id",     btnId);
+		expectedValues.put("data-structr-success-target", "[data-structr-id='" + divId + "']");
+
+		for (final String key : expectedValues.keySet()) {
+			assertEquals("Wrong value for EAM attribute " + key, expectedValues.get(key), attrs.get(key));
+		}
 	}
 
 
