@@ -29,7 +29,6 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
-import org.structr.web.traits.wrappers.dom.DOMNodeTraitWrapper;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -66,31 +65,10 @@ import java.util.Map;
 				final Page pageToClone = nodeToClone.is(StructrTraits.PAGE) ? nodeToClone.as(Page.class) : null;
 				if (pageToClone != null) {
 
-					final Page newPage = pageToClone.cloneNode(false).as(Page.class);
+					final Page newPage = pageToClone.cloneNode(true).as(Page.class);
 					final Map<String, DOMNode> cloneMap = new LinkedHashMap<>();
 
 					newPage.setProperties(securityContext, new PropertyMap(Traits.of(StructrTraits.PAGE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), pageToClone.getName() + "-" + newPage.getNode().getId().toString()));
-
-					NodeInterface subNodeNode = pageToClone.treeGetFirstChild();
-					while (subNodeNode != null) {
-
-						final DOMNode subNode     = subNodeNode.as(DOMNode.class);
-						final DOMNode newHtmlNode = DOMNodeTraitWrapper.cloneAndAppendChildren(securityContext, subNode.as(DOMNode.class), cloneMap);
-
-						newPage.adoptNode(newHtmlNode);
-						newPage.appendChild(newHtmlNode);
-
-						final DOMNode tmp = subNode.getNextSibling();
-						if (tmp != null) {
-
-							subNodeNode = tmp;
-
-						} else {
-
-							// must be set to null to break loop
-							subNodeNode = null;
-						}
-					}
 				}
 
 			} catch (FrameworkException fex) {

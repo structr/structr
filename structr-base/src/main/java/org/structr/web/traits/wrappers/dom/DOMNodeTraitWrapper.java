@@ -95,9 +95,6 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 			newNode.appendChild(cloneAndAppendChildren(securityContext, childNodeToClone, cloneMap));
 		}
 
-		// clone event action mappings as well
-
-
 		return newNode;
 	}
 
