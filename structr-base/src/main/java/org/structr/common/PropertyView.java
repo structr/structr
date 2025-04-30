@@ -61,4 +61,9 @@ public interface PropertyView {
 	 * The "html" view used by structr UI.
 	 */
 	public static final String Html =	"_html_";
+
+	/**
+	 * The "schema" view used by structr UI.
+	 */
+	public static final String Schema =	"schema";
 }
