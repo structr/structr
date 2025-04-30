@@ -2532,27 +2532,6 @@ public class ScriptingTest extends StructrTest {
 	}
 
 	@Test
-	public void testIncludeJs() {
-
-		final String script =  "${{ Structr.includeJs('test'); }}\n";
-
-		try (final Tx tx = app.tx()) {
-
-			final ActionContext ctx  = new ActionContext(securityContext, null);
-
-			// just run without an error, that's enough for this test
-			Scripting.evaluate(ctx, null, script, "test");
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-
-			fex.printStackTrace();
-			fail("Unexpected exception.");
-		}
-	}
-
-	@Test
 	public void testAfterCreateMethod() {
 
 		final String expectedErrorToken = "create_not_allowed";

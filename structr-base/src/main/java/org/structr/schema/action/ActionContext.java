@@ -587,10 +587,6 @@ public class ActionContext {
 		return this.securityContext.getContextStore();
 	}
 
-	public Source getJavascriptLibraryCode(String fileName) {
-		return this.securityContext.getJavascriptLibraryCode(fileName);
-	}
-
 	public Context getScriptingContext(final String language) {
 		return scriptingContexts.get(language);
 	}

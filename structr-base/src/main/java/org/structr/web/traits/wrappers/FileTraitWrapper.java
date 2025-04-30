@@ -309,11 +309,6 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 	}
 
 	@Override
-	public boolean useAsJavascriptLibrary() {
-		return wrappedObject.getProperty(traits.key(FileTraitDefinition.USE_AS_JAVASCRIPT_LIBRARY_PROPERTY));
-	}
-
-	@Override
 	public OutputStream getOutputStream(final boolean notifyIndexerAfterClosing, final boolean append) {
 
 		if (isTemplate()) {
@@ -586,23 +581,6 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 
 		// default to setting in security context
 		return wrappedObject.getSecurityContext().doIndexing();
-	}
-
-	// ----- interface JavaScriptSource -----
-	@Override
-	public String getJavascriptLibraryCode() {
-
-		try (final InputStream is = getInputStream()) {
-
-			return IOUtils.toString(new InputStreamReader(is));
-
-		} catch (IOException ioex) {
-
-			final Logger logger = LoggerFactory.getLogger(File.class);
-			logger.warn("", ioex);
-		}
-
-		return null;
 	}
 
 	@Override

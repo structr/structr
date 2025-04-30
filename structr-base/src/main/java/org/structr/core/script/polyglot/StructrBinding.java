@@ -97,10 +97,6 @@ public class StructrBinding implements ProxyObject {
 			case "doInNewTransaction":
 				return new DoInNewTransactionFunction(actionContext, entity);
 
-			case "include_js":
-			case "includeJs":
-				return new IncludeJSFunction(actionContext);
-
 			case "do_privileged":
 			case "doPrivileged":
 				return new DoPrivilegedFunction(actionContext);
@@ -197,7 +193,6 @@ public class StructrBinding implements ProxyObject {
 		keys.add("me");
 		keys.add("predicate");
 		keys.add("doInNewTransaction");
-		keys.add("includeJs");
 		keys.add("doPrivileged");
 		keys.add("request");
 		keys.add("session");

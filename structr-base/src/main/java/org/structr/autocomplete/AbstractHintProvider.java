@@ -40,7 +40,6 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.script.polyglot.function.DoAsFunction;
 import org.structr.core.script.polyglot.function.DoInNewTransactionFunction;
 import org.structr.core.script.polyglot.function.DoPrivilegedFunction;
-import org.structr.core.script.polyglot.function.IncludeJSFunction;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
@@ -177,7 +176,6 @@ public abstract class AbstractHintProvider {
 			hints.add(func);
 		}
 
-		hints.add(new IncludeJSFunction(actionContext));
 		hints.add(new DoInNewTransactionFunction(actionContext, null));
 		hints.add(new DoAsFunction(actionContext));
 		hints.add(new DoPrivilegedFunction(actionContext));
