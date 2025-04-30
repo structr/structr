@@ -26,6 +26,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Adapter;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.script.Scripting;
+import org.structr.core.script.polyglot.config.ScriptConfig;
 import org.structr.core.traits.Traits;
 import org.structr.web.ContentHandler;
 import org.structr.web.common.RenderContext;
@@ -437,7 +438,11 @@ public class ContentTraitWrapper extends DOMNodeTraitWrapper implements Content 
 
 				} else {
 
-					final Object value = Scripting.evaluate(renderContext, node, script, "content", row, node.getUuid(), Settings.WrapJSInMainFunction.getValue(false));
+					final ScriptConfig scriptConfig = ScriptConfig.builder()
+							.wrapJsInMain(Settings.WrapJSInMainFunction.getValue(false))
+							.build();
+
+					final Object value = Scripting.evaluate(renderContext, node, script, "content", row, node.getUuid(), scriptConfig);
 					if (value != null) {
 
 						String content = null;

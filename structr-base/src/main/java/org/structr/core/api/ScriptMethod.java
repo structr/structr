@@ -18,6 +18,7 @@
  */
 package org.structr.core.api;
 
+import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.AssertException;
 import org.structr.common.error.FrameworkException;
@@ -26,6 +27,7 @@ import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.script.Scripting;
 import org.structr.core.script.Snippet;
+import org.structr.core.script.polyglot.config.ScriptConfig;
 import org.structr.schema.action.Actions;
 import org.structr.schema.action.EvaluationHints;
 
@@ -132,7 +134,11 @@ public class ScriptMethod extends AbstractMethod {
 
 		try {
 
-			return Actions.execute(securityContext, entity, "${" + source.trim() + "}", converted.toMap(), name, uuid, true);
+			final ScriptConfig scriptConfig = ScriptConfig.builder()
+					.wrapJsInMain(true)
+					.build();
+
+			return Actions.execute(securityContext, entity, "${" + source.trim() + "}", converted.toMap(), name, uuid, scriptConfig);
 
 		} catch (AssertException e)   {
 			throw new FrameworkException(e.getStatus(), e.getMessage());
