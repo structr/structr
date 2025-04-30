@@ -274,8 +274,6 @@ public class Scripting {
 		} finally {
 
 			context.leave();
-			context.close();
-			actionContext.putScriptingContext(engineName, null);
 		}
 
 		// Legacy print() support: Prefer explicitly printed output over actual result
