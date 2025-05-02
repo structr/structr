@@ -26,7 +26,10 @@ import org.apache.tika.mime.MimeTypes;
 import org.apache.tika.parser.AutoDetectParser;
 import org.apache.tika.sax.BodyContentHandler;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.function.Functions;
 import org.structr.core.graph.Tx;
+import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.Function;
 import org.structr.test.web.StructrUiTest;
 import org.structr.text.FulltextTokenizer;
 import org.testng.annotations.Test;
@@ -34,9 +37,9 @@ import org.xml.sax.SAXException;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Set;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.fail;
+import static org.testng.AssertJUnit.*;
 
 /**
  *
@@ -95,6 +98,30 @@ public class ContentExtractionTest extends StructrUiTest {
 
 		// wait for indexing to finish
 		try { Thread.sleep(1000); } catch (Throwable t) {}
+	}
+
+	@Test
+	public void testStopWordsFunction() {
+
+		try {
+
+			final Function<Object, Object> function = Functions.get("stop_words");
+
+			assertNotNull("StopWords function does not exist", function);
+
+			final Set<String> words = (Set) function.apply(new ActionContext(securityContext), null, new String[] { "en" });
+
+			assertNotNull("StopWords function should return a set of words for English", words);
+
+			assertTrue("StopWords for English should contain some words", words.contains("is"));
+			assertTrue("StopWords for English should contain some words", words.contains("not"));
+			assertTrue("StopWords for English should contain some words", words.contains("he"));
+
+		} catch (FrameworkException e) {
+			throw new RuntimeException(e);
+		}
+
+
 	}
 }
 
