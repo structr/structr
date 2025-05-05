@@ -22,7 +22,10 @@ package org.structr.test.rest.test;
 import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.api.config.Settings;
+import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonType;
 import org.structr.common.RequestKeywords;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
@@ -33,6 +36,7 @@ import org.structr.core.traits.definitions.RelationshipInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
 import org.structr.core.traits.definitions.SchemaRelationshipNodeTraitDefinition;
 import org.structr.core.traits.definitions.SchemaViewTraitDefinition;
+import org.structr.schema.export.StructrSchema;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Optional;
@@ -498,5 +502,70 @@ public class PropertyViewRestTest extends StructrRestTestBase {
 			.when()
 			.get("/File/all?_sort=name");
 
+	}
+
+	@Test
+	public void testThatPropertiesWithSerializationDisabledFlagShouldNotBeSerialized() {
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema  = StructrSchema.createFromDatabase(app);
+			final JsonType dummyType = schema.addType("DummyType");
+
+			dummyType.addStringProperty("notSerialized", "public", "ui").setSerializationDisabled(true);
+
+			StructrSchema.replaceDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+			logger.error("", t);
+			fail("Unexpected exception during test setup.");
+		}
+
+		final String dummyName = "dummy";
+
+		RestAssured
+				.given()
+					.contentType("application/json; charset=UTF-8")
+					.filter(ResponseLoggingFilter.logResponseTo(System.out))
+				.body("{ name: '" + dummyName + "', notSerialized: \"should not be serialized in any view\" }")
+				.expect()
+					.statusCode(201)
+				.when()
+					.post("/DummyType");
+
+		RestAssured
+				.given()
+					.contentType("application/json; charset=UTF-8")
+					.filter(ResponseLoggingFilter.logResponseTo(System.out))
+				.expect()
+					.body("result[0].type",          equalTo("DummyType"))
+					.body("result[0].name",          equalTo(dummyName))
+					.body("result[0].notSerialized", equalTo(null))
+				.when()
+					.get("/DummyType/public?_sort=name");
+
+		RestAssured
+				.given()
+					.contentType("application/json; charset=UTF-8")
+					.filter(ResponseLoggingFilter.logResponseTo(System.out))
+				.expect()
+					.body("result[0].type",          equalTo("DummyType"))
+					.body("result[0].name",          equalTo(dummyName))
+					.body("result[0].notSerialized", equalTo(null))
+				.when()
+					.get("/DummyType/ui?_sort=name");
+
+		RestAssured
+				.given()
+					.contentType("application/json; charset=UTF-8")
+					.filter(ResponseLoggingFilter.logResponseTo(System.out))
+				.expect()
+					.body("result[0].type",          equalTo("DummyType"))
+					.body("result[0].name",          equalTo(dummyName))
+					.body("result[0].notSerialized", equalTo(null))
+				.when()
+					.get("/DummyType/all?_sort=name");
 	}
 }

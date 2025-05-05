@@ -123,7 +123,17 @@ let _Dashboard = {
 
 					fetch(`${Structr.rootUrl}stats?interval=${interval}&max=3600`).then(response => response.json()).then(json => {
 
-						httpStatisticsCell.innerHTML = '<label>Resolution: </label><select id="statistics-resolution-selector"><option value="1000">Seconds</option><option value="60000">Minutes</option><option value="3600000">Hours</option></option></select></select> <button id="statistics-refresh-button">Refresh</button><div id="statistics-diagram-container"></div>';
+						httpStatisticsCell.innerHTML = `
+							<label>Resolution: </label>
+							<select id="statistics-resolution-selector">
+								<option value="1000">Seconds</option>
+								<option value="60000">Minutes</option>
+								<option value="3600000">Hours</option>
+								</option>
+							</select>
+							<button id="statistics-refresh-button">Refresh</button>
+							<div id="statistics-diagram-container"></div>
+						`;
 
 						let data = json.result;
 						let items = [];
@@ -146,33 +156,56 @@ let _Dashboard = {
 							}
 
 							for (let date of Object.keys(local)) {
+
 								let dateNumber = new Number(date);
-								min = dateNumber < min ? dateNumber : min;
-								max = dateNumber > max ? dateNumber : max;
+								min = Math.min(dateNumber, min);
+								max = Math.max(dateNumber, max);
 								items.push({
 									x: new Date(dateNumber).toISOString(),
-									x2: new Date(dateNumber + interval).toISOString(),
-									y: local[date], group: group
+									//x2: new Date(dateNumber + interval).toISOString(),
+									y: local[date],
+									group: group
 								});
 							}
 						}
 
-						console.log(items);
+						// console.log(items);
 
-						let groupList = Object.keys(groups).map(k => groups[k]);
+						let groupList = Object.values(groups);
 
-						if (items.length > 0) {
+						let timeAxisScale = {
+							//'1000': 'second',
+							'60000': 'minute',
+							'3600000': 'hour'
+						};
+						let timeAxisStep = {
+							//'1000': 600,
+							'60000': 15,
+							'3600000': 1
+						};
 
-							var options = {
-								start: new Date(min - interval).toISOString(),
-								end: new Date(max + interval).toISOString(),
-								legend: true,
-								drawPoints: true,
-								barChart: {align: 'right'},
-								style: 'bar',
-								stack: true
-							};
-						}
+						let options = {
+							start: new Date(min - interval).toISOString(),
+							end: new Date(max + interval).toISOString(),
+							legend: true,
+							drawPoints: true,
+							barChart: {
+								align: 'right'
+							},
+							style: 'bar',
+							stack: true,
+							dataAxis: {
+								left: {
+									range: {
+										min: 0
+									}
+								}
+							},
+							timeAxis: {
+								scale: timeAxisScale[interval],
+								step: timeAxisStep[interval]
+							}
+						};
 
 						new vis.Graph2d(httpStatisticsCell.querySelector("#statistics-diagram-container"), new vis.DataSet(items), new vis.DataSet(groupList), options);
 
