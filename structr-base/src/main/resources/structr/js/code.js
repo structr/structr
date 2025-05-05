@@ -2204,11 +2204,11 @@ let _Code = {
 		deleteSchemaEntity: (entity, title, text, data) => {
 
 			let path  = data.path;
-			let parts = path.split('-');
+			let parts = path.split('/');
 
 			parts.pop();
 
-			let parent = parts.join('-');
+			let parent = parts.join('/');
 
 			_Dialogs.confirmation.showPromise(`<h3>${title}</h3><p>${(text || '')}</p>`).then((confirm) => {
 
