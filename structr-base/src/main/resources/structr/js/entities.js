@@ -651,8 +651,8 @@ let _Entities = {
 
 		_Entities.getSchemaProperties(entity.type, view, (properties) => {
 
-			let filteredProperties   = Object.keys(properties).filter(key => !(typeInfo[key].isCollection && typeInfo[key].relatedType) );
-			let collectionProperties = Object.keys(properties).filter(key => typeInfo[key].isCollection && typeInfo[key].relatedType );
+			let filteredProperties   = Object.keys(properties).filter(key => typeInfo[key] && !(typeInfo[key].isCollection && typeInfo[key].relatedType) );
+			let collectionProperties = Object.keys(properties).filter(key => typeInfo[key] && (typeInfo[key].isCollection && typeInfo[key].relatedType) );
 
 			fetch(`${Structr.rootUrl}${entity.type}/${entity.id}/all?${Structr.getRequestParameterName('edit')}=2`, {
 				headers: _Helpers.getHeadersForCustomView(filteredProperties)
