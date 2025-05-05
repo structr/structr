@@ -31,8 +31,8 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.api.AbstractMethod;
-import org.structr.core.api.Arguments;
 import org.structr.core.api.Methods;
+import org.structr.core.api.NamedArguments;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
@@ -47,8 +47,8 @@ import org.structr.schema.SchemaService;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.test.core.traits.definitions.*;
 import org.structr.test.core.traits.definitions.relationships.*;
-import org.testng.annotations.*;
 import org.testng.annotations.Optional;
+import org.testng.annotations.*;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -458,7 +458,7 @@ public class StructrTest {
 
 			hints.reportExistingKey(methodName);
 
-			return method.execute(securityContext, node, Arguments.fromMap(parameters), new EvaluationHints());
+			return method.execute(securityContext, node, NamedArguments.fromMap(parameters), new EvaluationHints());
 		}
 
 		if (throwIfNotExists) {

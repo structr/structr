@@ -18,12 +18,6 @@
  */
 package org.structr.core.api;
 
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Locale;
-
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
@@ -41,6 +35,12 @@ import org.structr.core.script.polyglot.context.ContextFactory;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.parser.DatePropertyGenerator;
+
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Map.Entry;
 
 
 /**
@@ -104,7 +104,7 @@ public abstract class AbstractMethod {
 						Locale effectiveLocale = actionContext.getLocale();
 						try {
 
-							final Arguments args      = Arguments.fromValues(actionContext, arguments);
+							final Arguments args      = NamedArguments.fromValues(actionContext, arguments);
 							final Arguments converted = checkAndConvertArguments(securityContext, args, true);
 							final ActionContext inner = new ActionContext(securityContext, converted.toMap());
 							inner.setLocale(effectiveLocale);
@@ -126,6 +126,8 @@ public abstract class AbstractMethod {
 							return result;
 
 						} catch (IllegalArgumentTypeException iaex) {
+
+							iaex.printStackTrace();
 
 							throwIllegalArgumentExceptionForMapBasedArguments();
 
@@ -167,25 +169,8 @@ public abstract class AbstractMethod {
 			return arguments;
 		}
 
-		final Arguments converted = new Arguments();
-
-		// return early if there is nothing to convert
-		if (parameters.hasSecurityContextAndMapParameters()) {
-
-			converted.add(securityContext);
-			converted.add(arguments.toMap());
-
-			return converted;
-		}
-
-		int index = 0;
-
-		// special handling for reflective methods: first argument MUST be SecurityContext
-		if (parameters.requiresSecurityContextAsFirstArgument()) {
-
-			converted.add(securityContext);
-			index++;
-		}
+		final NamedArguments converted = new NamedArguments();
+		int index                      = 0;
 
 		// The below block tries to convert method arguments according to declared parameters (if present).
 		// We go over all arguments, check if there is a corresponding parameter, and convert the value if yes.

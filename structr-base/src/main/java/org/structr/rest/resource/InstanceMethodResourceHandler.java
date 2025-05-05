@@ -25,7 +25,8 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
-import org.structr.core.api.Arguments;
+import org.structr.core.api.NamedArguments;
+import org.structr.core.api.UnnamedArguments;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.rest.RestMethodResult;
@@ -59,7 +60,7 @@ public class InstanceMethodResourceHandler extends RESTMethodCallHandler {
 		if ("GET".equals(method.getHttpVerb())) {
 
 			final GraphObject entity      = getEntity(securityContext, typeName, uuid);
-			final RestMethodResult result = executeMethod(securityContext, entity, Arguments.fromPath(call.getPathParameters()));
+			final RestMethodResult result = executeMethod(securityContext, entity, UnnamedArguments.fromPath(call.getPathParameters()));
 
 			return new PagingIterable("GET " + getURL(), result.getContent());
 
@@ -76,7 +77,7 @@ public class InstanceMethodResourceHandler extends RESTMethodCallHandler {
 
 			final GraphObject entity = getEntity(securityContext, typeName, uuid);
 
-			return executeMethod(securityContext, entity, Arguments.fromMap(propertySet));
+			return executeMethod(securityContext, entity, NamedArguments.fromMap(propertySet));
 
 		} else {
 
@@ -91,7 +92,7 @@ public class InstanceMethodResourceHandler extends RESTMethodCallHandler {
 
 			final GraphObject entity = getEntity(securityContext, typeName, uuid);
 
-			return executeMethod(securityContext, entity, Arguments.fromMap(propertySet));
+			return executeMethod(securityContext, entity, NamedArguments.fromMap(propertySet));
 
 		} else {
 
@@ -107,7 +108,7 @@ public class InstanceMethodResourceHandler extends RESTMethodCallHandler {
 			final GraphObject entity = getEntity(securityContext, typeName, uuid);
 
 			// FIXME, only the first property set is used, we need to test this
-			return executeMethod(securityContext, entity, Arguments.fromMap(propertySet.get(0)));
+			return executeMethod(securityContext, entity, NamedArguments.fromMap(propertySet.get(0)));
 
 		} else {
 
@@ -123,7 +124,7 @@ public class InstanceMethodResourceHandler extends RESTMethodCallHandler {
 			if ("DELETE".equals(method.getHttpVerb())) {
 
 				final GraphObject entity = getEntity(securityContext, typeName, uuid);
-				final RestMethodResult result = executeMethod(securityContext, entity, Arguments.fromPath(call.getPathParameters()));
+				final RestMethodResult result = executeMethod(securityContext, entity, UnnamedArguments.fromPath(call.getPathParameters()));
 
 				tx.success();
 

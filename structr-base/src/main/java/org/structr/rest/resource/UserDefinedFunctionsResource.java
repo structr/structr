@@ -25,8 +25,9 @@ import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.api.AbstractMethod;
-import org.structr.core.api.Arguments;
 import org.structr.core.api.Methods;
+import org.structr.core.api.NamedArguments;
+import org.structr.core.api.UnnamedArguments;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.graph.Tx;
@@ -85,7 +86,7 @@ public class UserDefinedFunctionsResource extends WildcardMatchEndpoint {
 
 			if ("GET".equals(method.getHttpVerb())) {
 
-				final RestMethodResult result = executeMethod(securityContext, null, Arguments.fromPath(call.getPathParameters()));
+				final RestMethodResult result = executeMethod(securityContext, null, UnnamedArguments.fromPath(call.getPathParameters()));
 
 				return new PagingIterable("GET " + getURL(), result.getContent());
 
@@ -100,7 +101,7 @@ public class UserDefinedFunctionsResource extends WildcardMatchEndpoint {
 
 			if ("POST".equals(method.getHttpVerb())) {
 
-				return executeMethod(securityContext, null, Arguments.fromMap(propertySet));
+				return executeMethod(securityContext, null, NamedArguments.fromMap(propertySet));
 
 			} else {
 
@@ -113,7 +114,7 @@ public class UserDefinedFunctionsResource extends WildcardMatchEndpoint {
 
 			if ("PUT".equals(method.getHttpVerb())) {
 
-				return executeMethod(securityContext, null, Arguments.fromMap(propertySet));
+				return executeMethod(securityContext, null, NamedArguments.fromMap(propertySet));
 
 			} else {
 
@@ -127,7 +128,7 @@ public class UserDefinedFunctionsResource extends WildcardMatchEndpoint {
 			if ("PATCH".equals(method.getHttpVerb())) {
 
 				// FIXME, only the first property set is used, we need to test this
-				return executeMethod(securityContext, null, Arguments.fromMap(propertySet.get(0)));
+				return executeMethod(securityContext, null, NamedArguments.fromMap(propertySet.get(0)));
 
 			} else {
 
@@ -142,7 +143,7 @@ public class UserDefinedFunctionsResource extends WildcardMatchEndpoint {
 
 				if ("DELETE".equals(method.getHttpVerb())) {
 
-					final RestMethodResult result = executeMethod(securityContext, null, Arguments.fromPath(call.getPathParameters()));
+					final RestMethodResult result = executeMethod(securityContext, null, UnnamedArguments.fromPath(call.getPathParameters()));
 
 					tx.success();
 

@@ -20,8 +20,8 @@ package org.structr.web.traits.definitions.dom;
 
 import com.google.common.base.CaseFormat;
 import jakarta.servlet.http.HttpServletRequest;
-import org.apache.commons.text.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -32,9 +32,9 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
-import org.structr.core.api.Arguments;
 import org.structr.core.api.InstanceMethod;
 import org.structr.core.api.Methods;
+import org.structr.core.api.NamedArguments;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
@@ -1409,7 +1409,11 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 				final AbstractMethod method = Methods.resolveMethod(target.getTraits(), methodName);
 				if (method != null) {
 
-					return method.execute(actionContext.getSecurityContext(), target, Arguments.fromMap(parameters), new EvaluationHints());
+					if (method.shouldReturnRawResult()) {
+						actionContext.getSecurityContext().enableReturnRawResult();
+					}
+
+					return method.execute(actionContext.getSecurityContext(), target, NamedArguments.fromMap(parameters), new EvaluationHints());
 
 				} else {
 
@@ -1429,7 +1433,11 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 					if (method != null) {
 
-						return method.execute(actionContext.getSecurityContext(), null, Arguments.fromMap(parameters), new EvaluationHints());
+						if (method.shouldReturnRawResult()) {
+							actionContext.getSecurityContext().enableReturnRawResult();
+						}
+
+						return method.execute(actionContext.getSecurityContext(), null, NamedArguments.fromMap(parameters), new EvaluationHints());
 
 					} else {
 

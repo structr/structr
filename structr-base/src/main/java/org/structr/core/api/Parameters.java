@@ -22,6 +22,7 @@ import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaMethodParameter;
 
@@ -75,7 +76,7 @@ public class Parameters extends LinkedHashMap<String, String> {
 		return Iterables.nth(this.keySet(), index);
 	}
 
-	public String getTypeByNameOrIndex(final String name, final int index) {
+	public String getTypeByNameOrIndex(final String name, final int index) throws FrameworkException {
 
 		if (name != null) {
 
@@ -83,11 +84,15 @@ public class Parameters extends LinkedHashMap<String, String> {
 			if (value != null) {
 
 				return value;
-	}
+			}
+
+		} else {
+
+			throw new FrameworkException(400, "Unexpected method parameter #" + (index+1) + ", method defines only " + size() + " parameters.");
 		}
 
-		// fallback: get by index
-		return Iterables.nth(this.values(), index);
+		// no named parameter found
+		return null;
 	}
 
 	// ----- public static methods -----

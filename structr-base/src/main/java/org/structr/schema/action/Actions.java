@@ -44,9 +44,6 @@ import org.structr.core.traits.StructrTraits;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-
 /**
  *
  *
@@ -189,7 +186,7 @@ public class Actions {
 						final String source = method.getSource();
 						if (source != null) {
 
-							cachedSource = new CachedMethod(source, method.getName(), method.getUuid());
+							cachedSource = new CachedMethod(source, method.getName(), method.getUuid(), method.returnRawResult());
 
 							// store in cache
 							methodCache.put(key, cachedSource);
@@ -209,9 +206,15 @@ public class Actions {
 		}
 
 		if (cachedSource != null) {
+
 			final ScriptConfig scriptConfig = ScriptConfig.builder()
 					.wrapJsInMain(true)
 					.build();
+
+			if (cachedSource.shouldReturnRawResult) {
+
+				securityContext.enableReturnRawResult();
+			}
 
 			return Actions.execute(securityContext, null, "${" + StringUtils.strip(cachedSource.sourceCode) + "}", parameters, cachedSource.name, cachedSource.uuidOfSource, scriptConfig);
 		}
@@ -228,15 +231,17 @@ public class Actions {
 	// ----- nested classes -----
 	private static class CachedMethod {
 
-		public String sourceCode   = null;
-		public String uuidOfSource = null;
-		public String name         = null;
+		public final String sourceCode;
+		public final String uuidOfSource;
+		public final String name;
+		public final boolean shouldReturnRawResult;
 
-		public CachedMethod(final String sourceCode, final String name, final String uuidOfSource) {
+		public CachedMethod(final String sourceCode, final String name, final String uuidOfSource, final boolean shouldReturnRawResult) {
 
-			this.sourceCode   = sourceCode;
-			this.uuidOfSource = uuidOfSource;
-			this.name         = name;
+			this.sourceCode            = sourceCode;
+			this.uuidOfSource          = uuidOfSource;
+			this.name                  = name;
+			this.shouldReturnRawResult = shouldReturnRawResult;
 		}
 	}
 }

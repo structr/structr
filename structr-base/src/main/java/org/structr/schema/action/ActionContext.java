@@ -23,7 +23,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
 import org.graalvm.polyglot.Context;
-import org.graalvm.polyglot.Source;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
@@ -40,6 +39,7 @@ import org.structr.core.Services;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
 import org.structr.core.api.Methods;
+import org.structr.core.api.NamedArguments;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.Traits;
@@ -314,7 +314,7 @@ public class ActionContext {
 
 							final ContextStore contextStore = getContextStore();
 							final Map<String, Object> temp  = contextStore.getTemporaryParameters();
-							final Arguments arguments       = Arguments.fromMap(temp);
+							final Arguments arguments       = NamedArguments.fromMap(temp);
 
 							return method.execute(securityContext, null, arguments, hints);
 						}

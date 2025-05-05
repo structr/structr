@@ -24,10 +24,7 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.api.AbstractMethod;
-import org.structr.core.api.Arguments;
-import org.structr.core.api.JavaMethod;
-import org.structr.core.api.Methods;
+import org.structr.core.api.*;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation;
@@ -126,7 +123,7 @@ public class MessageClientTraitDefinition extends AbstractNodeTraitDefinition {
 										final AbstractMethod method = Methods.resolveMethod(sub.getTraits(), "onMessage");
 										if (method != null) {
 
-											final Arguments params = new Arguments();
+											final NamedArguments params = new NamedArguments();
 
 											params.add("topic", topic);
 											params.add("message", message);

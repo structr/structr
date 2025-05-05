@@ -471,8 +471,13 @@ public class ResourceAccessTest extends StructrUiTest {
 			.body("result", equalTo("test123undefined"))
 			.when().get("/Test/" + uuid + "/getName2");
 
+		// expect success only if exactly the defined arguments are given
 		RestAssured.given().headers(Map.of(X_USER_HEADER, "tester", X_PASSWORD_HEADER, "test")).contentType("application/json; charset=UTF-8").expect().statusCode(200)
 			.body("result", equalTo("test123value1"))
+			.when().get("/Test/" + uuid + "/getName2/value1");
+
+		// expect error if more values are given than parameters are specified (when using values in URL path syntax)
+		RestAssured.given().headers(Map.of(X_USER_HEADER, "tester", X_PASSWORD_HEADER, "test")).contentType("application/json; charset=UTF-8").expect().statusCode(400)
 			.when().get("/Test/" + uuid + "/getName2/value1/value2/123");
 	}
 

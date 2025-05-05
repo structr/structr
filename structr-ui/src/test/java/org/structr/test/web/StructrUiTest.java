@@ -31,8 +31,8 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.api.AbstractMethod;
-import org.structr.core.api.Arguments;
 import org.structr.core.api.Methods;
+import org.structr.core.api.NamedArguments;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.*;
@@ -46,8 +46,8 @@ import org.structr.schema.action.EvaluationHints;
 import org.structr.test.web.entity.traits.definitions.*;
 import org.structr.test.web.entity.traits.definitions.relationships.FourThreeOneToOne;
 import org.structr.test.web.entity.traits.definitions.relationships.TwoFiveOneToMany;
-import org.testng.annotations.*;
 import org.testng.annotations.Optional;
+import org.testng.annotations.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -750,7 +750,7 @@ public abstract class StructrUiTest {
 
 			hints.reportExistingKey(methodName);
 
-			method.execute(securityContext, node, Arguments.fromMap(parameters), new EvaluationHints());
+			method.execute(securityContext, node, NamedArguments.fromMap(parameters), new EvaluationHints());
 		}
 
 		if (throwIfNotExists) {

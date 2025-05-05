@@ -18,7 +18,6 @@
  */
 package org.structr.core.api;
 
-import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.AssertException;
 import org.structr.common.error.FrameworkException;
@@ -148,40 +147,4 @@ public class ScriptMethod extends AbstractMethod {
 
 		return null;
 	}
-
-	/*
-
-		There are some instances of exported methods that must be called with non-map parameters.
-		We need to support this, but we should warn about it.
-
-		Example:
-
-		type.addMethod("sendMessage")
-			.setReturnType(RestMethodResult.class.getName())
-			.addParameter("ctx", SecurityContext.class.getName())
-			.addParameter("topic", String.class.getName())
-			.addParameter("message", String.class.getName())
-			.setSource("return " + MessageClient.class.getName() + ".sendMessage(this, topic, message, ctx);")
-			.addException(FrameworkException.class.getName())
-			.setDoExport(true);
-	*/
-
-	/*
-
-	protected Map<String, Object> convertArguments(final Map<String, Object> restInput) throws FrameworkException {
-
-		final Map<String, Object> convertedArguments = new LinkedHashMap<>();
-		final Map<String, String> declaredParameters = method.getParameters();
-
-		for (final String name : restInput.keySet()) {
-
-			final String type  = declaredParameters.get(name);
-			final Object input = restInput.get(name);
-
-			convertedArguments.put(name, convert(input, type));
-		}
-
-		return convertedArguments;
-	}
-	*/
 }

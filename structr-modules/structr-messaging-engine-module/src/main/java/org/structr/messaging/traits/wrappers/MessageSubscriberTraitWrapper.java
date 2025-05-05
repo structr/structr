@@ -25,8 +25,8 @@ import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.api.AbstractMethod;
-import org.structr.core.api.Arguments;
 import org.structr.core.api.Methods;
+import org.structr.core.api.NamedArguments;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.Traits;
@@ -75,7 +75,7 @@ public class MessageSubscriberTraitWrapper extends AbstractNodeTraitWrapper impl
 					final AbstractMethod method = Methods.resolveMethod(client.getTraits(), "subscribeTopic");
 					if (method != null) {
 
-						final Arguments params = new Arguments();
+						final NamedArguments params = new NamedArguments();
 
 						params.add("topic", this.getTopic());
 

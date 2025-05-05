@@ -25,6 +25,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
+import org.structr.core.api.IllegalArgumentTypeException;
+import org.structr.core.api.NamedArguments;
 import org.structr.core.script.polyglot.wrappers.*;
 import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
@@ -325,7 +327,7 @@ public abstract class PolyglotWrapper {
 
 	public static Arguments unwrapExecutableArguments(final ActionContext actionContext, final AbstractMethod method, final Value[] args) throws FrameworkException {
 
-		final Arguments arguments = new Arguments();
+		final NamedArguments arguments = new NamedArguments();
 
 		for (final Value value : args) {
 
@@ -339,8 +341,8 @@ public abstract class PolyglotWrapper {
 
 			} else {
 
-				// we don't have names for the arguments here... :(
-				arguments.add(null, unwrapped);
+				throw new IllegalArgumentTypeException();
+				//arguments.add(unwrapped);
 			}
 
 		}

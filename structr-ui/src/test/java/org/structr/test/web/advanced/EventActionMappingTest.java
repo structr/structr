@@ -19,18 +19,23 @@
 package org.structr.test.web.advanced;
 
 import io.restassured.RestAssured;
+import io.restassured.filter.log.ResponseLoggingFilter;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Attribute;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.schema.JsonMethod;
+import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonType;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
@@ -43,6 +48,7 @@ import org.testng.annotations.Test;
 
 import java.util.*;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
 
@@ -2547,6 +2553,153 @@ public class EventActionMappingTest extends StructrUiTest {
 		}
 	}
 
+	@Test
+	public void testWrappedResultInCustomMethodOutput() {
+
+		String objectUuid = null;
+		String buttonUuid = null;
+
+		try (final Tx tx = app.tx()) {
+
+			createAdminUser();
+
+			// create schema
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType type = schema.addType("Test");
+
+			final JsonMethod method1 = type.addMethod("testMethod", "{ return { test1: 1, test2: 'test1' }; }");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			// create EAM
+			final Page page1        = Page.createSimplePage(securityContext, "page1");
+			final DOMNode div       = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn    = page1.createElement("button");
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
+
+			div.appendChild(btn);
+
+			// save uuid for later
+			buttonUuid = btn.getUuid();
+
+			// base setup
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.EVENT_PROPERTY), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.ACTION_PROPERTY), "method");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.METHOD_PROPERTY), "testMethod");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			objectUuid = app.create("Test").getUuid();
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		RestAssured.basePath = "/";
+
+		RestAssured
+
+			.given()
+			.contentType("application/json; charset=UTF-8")
+			.header("X-User", "admin")
+			.header("X-Password", "admin")
+			.filter(ResponseLoggingFilter.logResponseTo(System.out))
+			.body("{ htmlEvent: click, structrMethod: testMethod, structrTarget: '" + objectUuid + "' }")
+			.expect()
+			.statusCode(200)
+			.body("result.test1", equalTo(1))
+			.body("result.test2", equalTo("test1"))
+			.when()
+			.post("/structr/rest/DOMElement/" + buttonUuid + "/event");
+	}
+
+	@Test
+	public void testRawResultInCustomMethodOutput() {
+
+		String objectUuid = null;
+		String buttonUuid = null;
+
+		try (final Tx tx = app.tx()) {
+
+			createAdminUser();
+
+			// create schema
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType type = schema.addType("Test");
+
+			final JsonMethod method1 = type.addMethod("testMethod", "{ return { test1: 1, test2: 'test1' }; }");
+
+			method1.setReturnRawResult(true);
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			// create EAM
+			final Page page1        = Page.createSimplePage(securityContext, "page1");
+			final DOMNode div       = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn    = page1.createElement("button");
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
+
+			div.appendChild(btn);
+
+			// save uuid for later
+			buttonUuid = btn.getUuid();
+
+			// base setup
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.EVENT_PROPERTY), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.ACTION_PROPERTY), "method");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.METHOD_PROPERTY), "testMethod");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			objectUuid = app.create("Test").getUuid();
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		RestAssured.basePath = "/";
+
+		RestAssured
+
+			.given()
+			.contentType("application/json; charset=UTF-8")
+			.header("X-User", "admin")
+			.header("X-Password", "admin")
+			.filter(ResponseLoggingFilter.logResponseTo(System.out))
+			.body("{ htmlEvent: click, structrMethod: testMethod, structrTarget: '" + objectUuid + "' }")
+			.expect()
+			.statusCode(200)
+			.body("test1", equalTo(1))
+			.body("test2", equalTo("test1"))
+			.when()
+			.post("/structr/rest/DOMElement/" + buttonUuid + "/event");
+	}
 
 
 	// ----- private methods -----
