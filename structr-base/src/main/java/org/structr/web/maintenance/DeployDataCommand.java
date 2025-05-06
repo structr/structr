@@ -428,16 +428,15 @@ public class DeployDataCommand extends DeployCommand {
 					if (f.isFile() && f.getName().endsWith(".json")) {
 
 						final String typeName = StringUtils.substringBeforeLast(f.getName(), ".json");
-						final Traits type     = Traits.of(typeName);
 
-						if (type == null) {
+						if (Traits.exists(typeName)) {
 
-							logger.warn("Not importing data. Relationship type cannot be found: {}!", typeName);
-							publishWarningMessage(DEPLOYMENT_DATA_IMPORT_STATUS, "Type can not be found! NOT Importing relationships for type " + typeName);
+							importRelationshipListData(context, typeName, readConfigList(p));
 
 						} else {
 
-							importRelationshipListData(context, typeName, readConfigList(p));
+							logger.warn("Not importing data. Relationship type cannot be found: {}!", typeName);
+							publishWarningMessage(DEPLOYMENT_DATA_IMPORT_STATUS, "Type can not be found! NOT Importing relationships for type " + typeName);
 						}
 					}
 				});
@@ -861,7 +860,7 @@ public class DeployDataCommand extends DeployCommand {
 
 	private void exportRelationship(final SecurityContext context, final RelationshipInterface rel, final Path relsDir) throws FrameworkException {
 
-		final String relTypeName = rel.getClass().getSimpleName();
+		final String relTypeName = rel.getType();
 
 		if (!blacklistedRelationshipTypes.contains(relTypeName)) {
 
@@ -898,9 +897,9 @@ public class DeployDataCommand extends DeployCommand {
 
 					entry.put(RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY, rel.getSourceNodeId());
 					entry.put(RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY, rel.getTargetNodeId());
-					entry.put(RelationshipInterfaceTraitDefinition.REL_TYPE_PROPERTY,  rel.getRelType());
+					entry.put(RelationshipInterfaceTraitDefinition.REL_TYPE_PROPERTY,  rel.getRelType().name());
 
-					exportRelationshipDirectly(rel.getClass().getSimpleName(), entry, relsDir);
+					exportRelationshipDirectly(relTypeName, entry, relsDir);
 
 					alreadyExportedRelationships.add(relUuid);
 				}
