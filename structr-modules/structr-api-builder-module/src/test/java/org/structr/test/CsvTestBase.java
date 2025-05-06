@@ -43,6 +43,7 @@ import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.schema.SchemaService;
 import org.structr.schema.action.EvaluationHints;
+import org.structr.test.helper.ConcurrentPortNumberHelper;
 import org.structr.test.web.entity.traits.definitions.*;
 import org.structr.test.web.entity.traits.definitions.relationships.FourThreeOneToOne;
 import org.structr.test.web.entity.traits.definitions.relationships.TwoFiveOneToMany;
@@ -51,10 +52,8 @@ import org.testng.annotations.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.lang.reflect.Method;
 import java.net.URL;
-import java.nio.channels.FileLock;
 import java.util.*;
 import java.util.function.Supplier;
 
@@ -71,8 +70,8 @@ public abstract class CsvTestBase {
 
 	protected final String contextPath = "/";
 	protected final String host        = "127.0.0.1";
-	protected final int httpPort       = getNextPortNumber();
-	protected final int ftpPort        = getNextPortNumber();
+	protected final int httpPort       = ConcurrentPortNumberHelper.getNextPortNumber(getClass());
+	protected final int ftpPort        = ConcurrentPortNumberHelper.getNextPortNumber(getClass());
 	protected final String restUrl     = "/structr/rest";
 	protected final String htmlUrl     = "/structr/html";
 	protected final String wsUrl       = "/structr/ws";
@@ -640,68 +639,6 @@ public abstract class CsvTestBase {
 				.body(buf.toString())
 				.expect().statusCode(201)
 				.when().post(resource).getHeader("Location"));
-	}
-
-	protected int getNextPortNumber() {
-
-		// allow override via system property (-DhttpPort=...)
-		if (System.getProperty("httpPort") != null) {
-
-			final int port = Integer.parseInt(System.getProperty("httpPort"));
-
-			logger.info("HTTP port assignment overridden by system property! Value is {}", port);
-
-			return port;
-		};
-
-		// use locked file to store last used port
-		final String fileName = "/tmp/structr.test.port.lock";
-		final int max         = 65500;
-		final int min         = 8875;
-		int port              = min;
-		int attempts          = 0;
-
-		// try again if an error occurs
-		while (attempts++ < 3) {
-
-			try (final RandomAccessFile raf = new RandomAccessFile(fileName, "rws")) {
-
-				try (final FileLock lock = raf.getChannel().lock()) {
-
-					if (raf.length() > 0) {
-
-						port = raf.readInt();
-					}
-
-					port++;
-
-					if (port > max) {
-						port = min;
-					}
-
-					raf.setLength(0);
-					raf.writeInt(port);
-				}
-
-			} catch (Throwable t) {
-
-				if (attempts < 3) {
-
-					logger.warn("Unable to determine HTTP port for test, retrying in 500ms");
-
-					try { Thread.sleep(500); } catch (Throwable ignore) { }
-
-				} else {
-
-					logger.warn("Unable to determine HTTP port for test, assigning random port.");
-
-					// random number between (0 and 56000) plus 8877
-					port = (int)Math.floor(Math.random() * 56000.0) + 8877;
-				}
-			}
-		}
-
-		return port;
 	}
 
 	protected String getRandomTenantIdentifier() {
