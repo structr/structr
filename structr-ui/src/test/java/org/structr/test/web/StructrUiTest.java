@@ -54,6 +54,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.lang.reflect.Method;
 import java.net.URL;
+import java.nio.channels.FileLock;
 import java.util.*;
 import java.util.function.Supplier;
 
@@ -657,28 +658,46 @@ public abstract class StructrUiTest {
 		final int max         = 65500;
 		final int min         = 8875;
 		int port              = min;
+		int attempts          = 0;
 
+		// try again if an error occurs
+		while (attempts++ < 3) {
 
-		try (final RandomAccessFile raf = new RandomAccessFile(fileName, "rws")) {
+			try (final RandomAccessFile raf = new RandomAccessFile(fileName, "rws")) {
 
-			raf.getChannel().lock();
+				try (final FileLock lock = raf.getChannel().lock()) {
 
-			if (raf.length() > 0) {
+					if (raf.length() > 0) {
 
-				port = raf.readInt();
+						port = raf.readInt();
+					}
+
+					port++;
+
+					if (port > max) {
+						port = min;
+					}
+
+					raf.setLength(0);
+					raf.writeInt(port);
+				}
+
+			} catch (Throwable t) {
+
+				if (attempts < 3) {
+
+					logger.warn("Unable to determine HTTP port for test, retrying in 500ms");
+
+					try { Thread.sleep(500); } catch (Throwable ignore) { }
+
+				} else {
+
+					logger.warn("Unable to determine HTTP port for test, assigning random port.");
+
+					// random number between (0 and 56000) plus 8877
+					port = (int)Math.floor(Math.random() * 56000.0) + 8877;
+				}
 			}
-
-			port++;
-
-			if (port > max) {
-				port = min;
-			}
-
-			raf.setLength(0);
-			raf.writeInt(port);
-
-		} catch (Throwable t) {
-			t.printStackTrace();
 		}
 
 		return port;
