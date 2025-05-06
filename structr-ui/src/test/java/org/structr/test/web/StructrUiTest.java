@@ -650,7 +650,11 @@ public abstract class StructrUiTest {
 		// allow override via system property (-DhttpPort=...)
 		if (System.getProperty("httpPort") != null) {
 
-			return Integer.parseInt(System.getProperty("httpPort"));
+			final int port = Integer.parseInt(System.getProperty("httpPort"));
+
+			logger.info("HTTP port assignment overridden by system property! Value is {}", port);
+
+			return port;
 		};
 
 		// use locked file to store last used port
