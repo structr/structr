@@ -19,10 +19,10 @@
 package org.structr.core.property;
 
 import com.google.gson.GsonBuilder;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
-import org.structr.api.config.Settings;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -275,7 +275,7 @@ public class FunctionProperty<T> extends Property<T> {
 		final String func       = getWriteFunction();
 		T result                = null;
 
-		if (func != null) {
+		if (StringUtils.isNotBlank(func)) {
 
 			try {
 
@@ -300,6 +300,10 @@ public class FunctionProperty<T> extends Property<T> {
 
 				logger.warn("Exception while evaluating write function in Function property \"{}\": {}", jsonName(), t.getMessage());
 			}
+
+		} else {
+
+			logger.warn("FunctionProperty {} has empty write function, value will not be changed.", jsonName());
 		}
 
 		if (ctx.hasError()) {
