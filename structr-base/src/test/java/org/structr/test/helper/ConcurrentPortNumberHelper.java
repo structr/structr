@@ -47,7 +47,7 @@ public class ConcurrentPortNumberHelper {
 		int attempts          = 0;
 
 		// try again if an error occurs
-		while (attempts++ < 3) {
+		while (attempts++ < 5) {
 
 			try (final RandomAccessFile raf = new RandomAccessFile(fileName, "rwd")) {
 
