@@ -170,7 +170,10 @@ public class Actions {
 			if (methods.isEmpty()) {
 
 				if (!NOTIFICATION_LOGIN.equals(key) && !NOTIFICATION_LOGOUT.equals(key)) {
+
 					logger.warn("Tried to call method {} but no SchemaMethod entity was found.", key);
+
+					throw new FrameworkException(422, "Cannot execute user-defined function " + key + ": function not found.");
 				}
 
 			} else {

@@ -1417,7 +1417,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 				} else {
 
-					throw new FrameworkException(422, "Cannot execute method " + target.getClass().getSimpleName() + "." + methodName + ": method not found.");
+					throw new FrameworkException(422, "Cannot execute method " + target.getType() + "." + methodName + ": method not found.");
 				}
 			}
 
@@ -1441,7 +1441,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 					} else {
 
-						throw new FrameworkException(422, "Cannot execute static  method " + methodName + ": method not found.");
+						throw new FrameworkException(422, "Cannot execute static method " + dataTarget + "." + methodName + ": type not found.");
 					}
 
 				} else {
