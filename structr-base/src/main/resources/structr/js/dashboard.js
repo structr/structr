@@ -123,7 +123,17 @@ let _Dashboard = {
 
 					fetch(`${Structr.rootUrl}stats?interval=${interval}&max=3600`).then(response => response.json()).then(json => {
 
-						httpStatisticsCell.innerHTML = '<label>Resolution: </label><select id="statistics-resolution-selector"><option value="1000">Seconds</option><option value="60000">Minutes</option><option value="3600000">Hours</option></option></select></select> <button id="statistics-refresh-button">Refresh</button><div id="statistics-diagram-container"></div>';
+						httpStatisticsCell.innerHTML = `
+							<label>Resolution: </label>
+							<select id="statistics-resolution-selector">
+								<option value="1000">Seconds</option>
+								<option value="60000">Minutes</option>
+								<option value="3600000">Hours</option>
+								</option>
+							</select>
+							<button id="statistics-refresh-button">Refresh</button>
+							<div id="statistics-diagram-container"></div>
+						`;
 
 						let data = json.result;
 						let items = [];
@@ -146,33 +156,56 @@ let _Dashboard = {
 							}
 
 							for (let date of Object.keys(local)) {
+
 								let dateNumber = new Number(date);
-								min = dateNumber < min ? dateNumber : min;
-								max = dateNumber > max ? dateNumber : max;
+								min = Math.min(dateNumber, min);
+								max = Math.max(dateNumber, max);
 								items.push({
 									x: new Date(dateNumber).toISOString(),
-									x2: new Date(dateNumber + interval).toISOString(),
-									y: local[date], group: group
+									//x2: new Date(dateNumber + interval).toISOString(),
+									y: local[date],
+									group: group
 								});
 							}
 						}
 
-						console.log(items);
+						// console.log(items);
 
-						let groupList = Object.keys(groups).map(k => groups[k]);
+						let groupList = Object.values(groups);
 
-						if (items.length > 0) {
+						let timeAxisScale = {
+							//'1000': 'second',
+							'60000': 'minute',
+							'3600000': 'hour'
+						};
+						let timeAxisStep = {
+							//'1000': 600,
+							'60000': 15,
+							'3600000': 1
+						};
 
-							var options = {
-								start: new Date(min - interval).toISOString(),
-								end: new Date(max + interval).toISOString(),
-								legend: true,
-								drawPoints: true,
-								barChart: {align: 'right'},
-								style: 'bar',
-								stack: true
-							};
-						}
+						let options = {
+							start: new Date(min - interval).toISOString(),
+							end: new Date(max + interval).toISOString(),
+							legend: true,
+							drawPoints: true,
+							barChart: {
+								align: 'right'
+							},
+							style: 'bar',
+							stack: true,
+							dataAxis: {
+								left: {
+									range: {
+										min: 0
+									}
+								}
+							},
+							timeAxis: {
+								scale: timeAxisScale[interval],
+								step: timeAxisStep[interval]
+							}
+						};
 
 						new vis.Graph2d(httpStatisticsCell.querySelector("#statistics-diagram-container"), new vis.DataSet(items), new vis.DataSet(groupList), options);
 
@@ -577,7 +610,7 @@ let _Dashboard = {
 					};
 
 					let confirm = await _Dialogs.confirmation.showPromise(`Are you sure you want to start an application ${mode}?<br>This will overwrite application data ${mode === 'export' ? 'on disk' : 'in the database'}.`, false);
-					if (confirm) {
+					if (confirm === true) {
 
 						_Dashboard.tabs.deployment.history.addEntry(data);
 
@@ -611,7 +644,7 @@ let _Dashboard = {
 					}
 
 					let confirm = await _Dialogs.confirmation.showPromise(`Are you sure you want to start a data ${mode}?<br>This will overwrite data ${mode === 'export' ? 'on disk' : 'in the database'}.`, false);
-					if (confirm) {
+					if (confirm = true) {
 
 						// do not listen for errors - they are sent by the backend via WS
 						await fetch(`${Structr.rootUrl}maintenance/deployData`, {
@@ -685,7 +718,7 @@ let _Dashboard = {
 				importFromZIPURL: async (deploymentType, downloadUrl, zipContentPath) => {
 
 					let confirm = await _Dialogs.confirmation.showPromise(`Are you sure you want to start ${deploymentType} import from the given ZIP URL?<br>This will overwrite ${deploymentType === 'app' ? 'the application' : 'data'} in the database.`, false);
-					if (confirm) {
+					if (confirm === true) {
 
 						let formData = new FormData();
 						formData.append('redirectUrl', window.location.pathname);
@@ -716,7 +749,7 @@ let _Dashboard = {
 				importFromZIPFileUpload: async (deploymentType, filesSelectField, zipContentPath) => {
 
 					let confirm = await _Dialogs.confirmation.showPromise(`Are you sure you want to start ${deploymentType} import from the given ZIP file?<br>This will overwrite ${deploymentType === 'app' ? 'the application' : 'data'} in the database.`, false);
-					if (confirm) {
+					if (confirm === true) {
 
 						let formData = new FormData();
 						formData.append('redirectUrl', window.location.pathname);

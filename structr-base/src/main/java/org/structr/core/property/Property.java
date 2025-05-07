@@ -58,13 +58,14 @@ public abstract class Property<T> implements PropertyKey<T> {
 	protected boolean indexed                   = false;
 	protected boolean indexedPassively          = false;
 	protected boolean indexedWhenEmpty          = false;
+	protected boolean fulltextIndexed           = false;
 	protected boolean compound                  = false;
 	protected boolean unique                    = false;
 	protected boolean notNull                   = false;
 	protected boolean dynamic                   = false;
-	protected boolean isPartOfBuiltInSchema     = false;
 	protected boolean cachingEnabled            = false;
 	protected boolean nodeOnly                  = false;
+	protected boolean serializationDisabled     = false;
 	protected String dbName                     = null;
 	protected String jsonName                   = null;
 	protected String format                     = null;
@@ -209,6 +210,14 @@ public abstract class Property<T> implements PropertyKey<T> {
 		this.indexedWhenEmpty = true;
 
 		return this;
+	}
+
+	@Override
+	public Property<T> fulltextIndexed() {
+
+		this.fulltextIndexed = true;
+		return this;
+
 	}
 
 	public Property<T> hint(final String hint) {
@@ -371,6 +380,11 @@ public abstract class Property<T> implements PropertyKey<T> {
 		return this;
 	}
 
+	public Property<T> disableSerialization(final boolean disableSerialization) {
+		this.serializationDisabled = disableSerialization;
+		return this;
+	}
+
 	@Override
 	public String openAPIReturnType() {
 		return openAPIReturnType;
@@ -479,6 +493,11 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 
 	@Override
+	public boolean isFulltextIndexed() {
+		return fulltextIndexed;
+	}
+
+	@Override
 	public boolean isIndexedWhenEmpty() {
 		return indexedWhenEmpty;
 	}
@@ -504,7 +523,14 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public boolean cachingEnabled() { return cachingEnabled; }
+	public boolean cachingEnabled() {
+		return cachingEnabled;
+	}
+
+	@Override
+	public boolean serializationDisabled() {
+		return serializationDisabled;
+	}
 
 	@Override
 	public Object getIndexValue(final Object value) {

@@ -26,8 +26,8 @@ import org.structr.common.AccessControllable;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.api.AbstractMethod;
-import org.structr.core.api.Arguments;
 import org.structr.core.api.Methods;
+import org.structr.core.api.NamedArguments;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
@@ -70,7 +70,7 @@ public interface XMPPClient extends NodeInterface, XMPPInfo {
 
 				if (method != null) {
 
-					final Arguments arguments = new Arguments();
+					final NamedArguments arguments = new NamedArguments();
 
 					arguments.add("sender",  message.getFrom());
 					arguments.add("message", message.getBody());

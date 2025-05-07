@@ -651,10 +651,10 @@ let _Files = {
 
 		[..._Files.getFolderContentsElement().children].map(el => el.style.display = 'none');
 
-		let url = Structr.rootUrl + 'files/ui?' + Structr.getRequestParameterName('loose') + '=1';
+		let url = Structr.rootUrl + 'File/ui?' + Structr.getRequestParameterName('inexact') + '=1';
 
 		for (let str of searchString.split(' ')) {
-			url = url + '&indexedWords=' + str;
+			url = url + '&extractedContent=' + str;
 		}
 
 		_Files.displaySearchResultsForURL(url, searchString);
@@ -1719,6 +1719,8 @@ let _Files = {
 
 					tbody.insertAdjacentHTML('beforeend', `<tr><td>${_Icons.getSvgIcon(_Icons.getFileIconSVG(d))} ${d.type}${d.isFile && d.contentType ? ` (${d.contentType})` : ''}</td><td>${d.name}</td><td>${d.size}</td></tr>`);
 
+					/*
+					// this is currently not possible -> commented out
 					let contextResponse = await fetch(`${Structr.rootUrl}files/${d.id}/getSearchContext`, {
 						method: 'POST',
 						body: JSON.stringify({
@@ -1766,6 +1768,8 @@ let _Files = {
 							div.append('<div style="clear: both;"></div>');
 						}
 					}
+
+					 */
 				}
 			}
 		}

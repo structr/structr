@@ -26,6 +26,7 @@ import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.script.Scripting;
 import org.structr.core.script.Snippet;
+import org.structr.core.script.polyglot.config.ScriptConfig;
 import org.structr.schema.action.Actions;
 import org.structr.schema.action.EvaluationHints;
 
@@ -99,8 +100,8 @@ public class ScriptMethod extends AbstractMethod {
 				snippet = new Snippet(name, splitSource[1], false);
 			}
 
-                        snippet.setEngineName(splitSource[0]);
-	        }
+			snippet.setEngineName(splitSource[0]);
+		}
 
 		return snippet;
 	}
@@ -132,7 +133,11 @@ public class ScriptMethod extends AbstractMethod {
 
 		try {
 
-			return Actions.execute(securityContext, entity, "${" + source.trim() + "}", converted.toMap(), name, uuid, true);
+			final ScriptConfig scriptConfig = ScriptConfig.builder()
+					.wrapJsInMain(true)
+					.build();
+
+			return Actions.execute(securityContext, entity, "${" + source.trim() + "}", converted.toMap(), name, uuid, scriptConfig);
 
 		} catch (AssertException e)   {
 			throw new FrameworkException(e.getStatus(), e.getMessage());
@@ -142,40 +147,4 @@ public class ScriptMethod extends AbstractMethod {
 
 		return null;
 	}
-
-	/*
-
-		There are some instances of exported methods that must be called with non-map parameters.
-		We need to support this, but we should warn about it.
-
-		Example:
-
-		type.addMethod("sendMessage")
-			.setReturnType(RestMethodResult.class.getName())
-			.addParameter("ctx", SecurityContext.class.getName())
-			.addParameter("topic", String.class.getName())
-			.addParameter("message", String.class.getName())
-			.setSource("return " + MessageClient.class.getName() + ".sendMessage(this, topic, message, ctx);")
-			.addException(FrameworkException.class.getName())
-			.setDoExport(true);
-	*/
-
-	/*
-
-	protected Map<String, Object> convertArguments(final Map<String, Object> restInput) throws FrameworkException {
-
-		final Map<String, Object> convertedArguments = new LinkedHashMap<>();
-		final Map<String, String> declaredParameters = method.getParameters();
-
-		for (final String name : restInput.keySet()) {
-
-			final String type  = declaredParameters.get(name);
-			final Object input = restInput.get(name);
-
-			convertedArguments.put(name, convert(input, type));
-		}
-
-		return convertedArguments;
-	}
-	*/
 }

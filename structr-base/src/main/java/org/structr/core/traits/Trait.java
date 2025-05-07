@@ -251,8 +251,11 @@ public class Trait {
 		// set declaring trait
 		key.setDeclaringTrait(this);
 
-		// add key to "all" view
-		this.views.computeIfAbsent("all", k -> new LinkedHashSet<>()).add(name);
+		if (!key.serializationDisabled()) {
+
+			// add key to "all" view
+			this.views.computeIfAbsent("all", k -> new LinkedHashSet<>()).add(name);
+		}
 
 		// add dynamic keys to "custom" view
 		if (key.isDynamic() || DEFAULT_PROPERTY_KEYS.contains(name)) {

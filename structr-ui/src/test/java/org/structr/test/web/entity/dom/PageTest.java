@@ -39,6 +39,7 @@ import org.structr.web.traits.wrappers.dom.DOMNodeTraitWrapper;
 import org.testng.annotations.Test;
 import org.w3c.dom.DOMException;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -392,7 +393,7 @@ public class PageTest extends StructrUiTest {
 			DOMNode firstChild = pageToClone.getFirstChild();
 			if (firstChild != null) {
 
-				final DOMNode newHtmlNode = DOMNodeTraitWrapper.cloneAndAppendChildren(securityContext, firstChild);
+				final DOMNode newHtmlNode = DOMNodeTraitWrapper.cloneAndAppendChildren(securityContext, firstChild, new LinkedHashMap<>());
 
 				newPage.adoptNode(newHtmlNode);
 				newPage.appendChild(newHtmlNode);

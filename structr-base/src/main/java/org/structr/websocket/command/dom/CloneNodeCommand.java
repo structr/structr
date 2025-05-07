@@ -64,13 +64,13 @@ public class CloneNodeCommand extends AbstractCommand {
 
 			} catch (final IllegalArgumentException iae) {
 
-				// default to Before
 				getWebSocket().send(MessageBuilder.status().code(422).message("Unsupported relative position: " + relativePosition).build(), true);
 				return;
 			}
 
 		} else {
 
+			// default to Before
 			position = RelativePosition.Before;
 		}
 
@@ -131,7 +131,7 @@ public class CloneNodeCommand extends AbstractCommand {
 					}
 				}
 
-				final DOMNode clonedNode = (DOMNode) node.cloneNode(deep);
+				final DOMNode clonedNode = node.cloneNode(deep);
 				final DOMNode refNode    = (refId != null) ? getDOMNode(refId) : null;
 
 				if (parent != null) {

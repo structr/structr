@@ -143,6 +143,7 @@ module structr.base {
     exports org.structr.core.script;
     exports org.structr.core.script.polyglot;
     exports org.structr.core.script.polyglot.cache;
+    exports org.structr.core.script.polyglot.config;
     exports org.structr.core.script.polyglot.context;
     exports org.structr.core.script.polyglot.filesystem;
     exports org.structr.core.script.polyglot.function;

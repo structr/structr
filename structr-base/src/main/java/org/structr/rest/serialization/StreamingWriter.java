@@ -463,6 +463,11 @@ public abstract class StreamingWriter {
 
 						for (final PropertyKey key : keys) {
 
+							// skip properties whose serialization is disabled
+							if (key.serializationDisabled()) {
+								continue;
+							}
+
 							final QueryRange range = writer.getSecurityContext().getRange(key.jsonName());
 							if (range != null) {
 								// Reset count for each key
@@ -609,6 +614,11 @@ public abstract class StreamingWriter {
 
 					final PropertyKey key   = entry.getKey();
 					final Object value      = entry.getValue();
+
+					// skip properties whose serialization is disabled
+					if (key.serializationDisabled()) {
+						continue;
+					}
 
 					if (serializeNulls || value != null) {
 

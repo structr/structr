@@ -260,6 +260,41 @@ public class PropertyTest extends StructrTest {
 	}
 
 	@Test
+	public void testBooleanPropertySearchOnNodeWithFalse() {
+
+		try {
+
+			final PropertyKey<Boolean> key = Traits.of("TestFour").key("booleanProperty");
+
+			Settings.CypherDebugLogging.setValue(true);
+
+			createTestNode("TestFour", new PropertyMap(key, true));
+			createTestNode("TestFour", new PropertyMap(key, false));
+			createTestNode("TestFour", new PropertyMap(key, null));
+			createTestNode("TestFour");
+
+			try (final Tx tx = app.tx()) {
+
+				assertEquals("Invalid search result for boolean true value", 1, app.nodeQuery("TestFour").key(key, true).getAsList().size());
+				assertEquals("Invalid search result for boolean false value",3, app.nodeQuery("TestFour").key(key, false).getAsList().size());
+				assertEquals("Invalid search result for boolean null value",0, app.nodeQuery("TestFour").key(key, null).getAsList().size());
+
+				tx.success();
+
+			} finally {
+
+				Settings.CypherDebugLogging.setValue(false);
+			}
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail(fex.getMessage());
+		}
+
+	}
+
+	@Test
 	public void testSimpleBooleanPropertySearchOnRelationship() {
 
 		try {

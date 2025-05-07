@@ -137,6 +137,10 @@ public abstract class PropertyGenerator<T> {
 			propertyKey.writeFunction(source.getWriteFunction());
 		}
 
+		if (source.isSerializationDisabled()) {
+			propertyKey.disableSerialization(source.isSerializationDisabled());
+		}
+
 		if (StringUtils.isNotBlank(source.getTypeHint())) {
 			propertyKey.typeHint(source.getTypeHint());
 		}

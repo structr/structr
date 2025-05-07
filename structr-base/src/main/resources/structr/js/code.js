@@ -1224,10 +1224,11 @@ let _Code = {
 				_Code.persistence.saveEntityAction(property);
 			};
 
-			let buttons     = $('#property-buttons');
-			let dbNameClass = (UISettings.getValueForSetting(UISettings.settingGroups.schema_code.settings.showDatabaseNameForDirectProperties) === true) ? '' : 'hidden';
+			let propertyUIContainer = $('#property-buttons');
+			let showDBName          = UISettings.getValueForSetting(UISettings.settingGroups.schema_code.settings.showDatabaseNameForDirectProperties);
+			let dbNameClass         = ((showDBName === true) ? '' : 'hidden');
 
-			buttons.prepend(_Code.templates.propertyOptions({ property: property, dbNameClass: dbNameClass }));
+			propertyUIContainer.prepend(_Code.templates.propertyOptions({ property: property, dbNameClass: dbNameClass }));
 
 			_Code.mainArea.helpers.displaySvgActionButton('#property-actions', _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, 'icon-green'), 'save', 'Save property', _Code.persistence.runCurrentEntitySaveAction);
 
@@ -1249,14 +1250,15 @@ let _Code = {
 				if (property.propertyType === 'Function') {
 
 					let propertyInfoUI = _Code.persistence.collectPropertyData(property);
-					let container      = buttons[0].querySelector('#property-indexed').closest('div');
+					let container      = propertyUIContainer[0].querySelector('#property-indexed').closest('div');
 
 					_Schema.properties.checkFunctionProperty(propertyInfoUI, container);
 				}
 			};
 
 			if (property.propertyType !== 'Function') {
-				_Helpers.fastRemoveElement($('#property-type-hint-input').parent()[0]);
+				_Helpers.fastRemoveElement(propertyUIContainer[0].querySelector('#property-type-hint-input').closest('[data-is-property-attribute-container]'));
+				_Helpers.fastRemoveElement(propertyUIContainer[0].querySelector('#property-cached').closest('[data-is-property-attribute-container]'));
 			} else {
 				$('#property-type-hint-input').val(property.typeHint || 'null');
 			}
@@ -1265,9 +1267,9 @@ let _Code = {
 				_Helpers.fastRemoveElement($('#property-format-input').parent()[0]);
 			}
 
-			$('select', buttons).on('change', changeHandler);
-			$('input[type=checkbox]', buttons).on('change', changeHandler);
-			$('input[type=text]', buttons).on('keyup', changeHandler);
+			$('select', propertyUIContainer).on('change', changeHandler);
+			$('input[type=checkbox]', propertyUIContainer).on('change', changeHandler);
+			$('input[type=text]', propertyUIContainer).on('keyup', changeHandler);
 
 			if (property.schemaNode.isBuiltinType) {
 
@@ -1281,6 +1283,8 @@ let _Code = {
 			}
 
 			changeHandler();
+
+			_Helpers.activateCommentsInElement(propertyUIContainer[0]);
 
 			if (typeof callback === 'function') {
 				callback();
@@ -2200,11 +2204,11 @@ let _Code = {
 		deleteSchemaEntity: (entity, title, text, data) => {
 
 			let path  = data.path;
-			let parts = path.split('-');
+			let parts = path.split('/');
 
 			parts.pop();
 
-			let parent = parts.join('-');
+			let parent = parts.join('/');
 
 			_Dialogs.confirmation.showPromise(`<h3>${title}</h3><p>${(text || '')}</p>`).then((confirm) => {
 
@@ -3036,23 +3040,23 @@ let _Code = {
 					<div id="property-actions"></div>
 				</div>
 				<div class="mb-4 grid grid-cols-4 gap-4">
-					<div class="col-span-3">
+					<div class="col-span-3" data-is-property-attribute-container>
 						<label class="block mb-1 font-semibold">Name</label>
 						<input type="text" id="property-name-input" data-property="name" value="${config.property.name}">
 					</div>
-					<div class="col-span-1">
+					<div class="col-span-1" data-is-property-attribute-container>
 						<label class="block mb-1 font-semibold">Default value</label>
 						<input type="text" id="property-default-input" data-property="defaultValue" value="${config.property.defaultValue || ''}">
 					</div>
-					<div class="col-span-1">
+					<div class="col-span-1" data-is-property-attribute-container>
 						<label class="block mb-1 font-semibold">Content type</label>
 						<input type="text" id="property-content-type-input" data-property="contentType" value="${config.property.contentType || ''}">
 					</div>
-					<div class="col-span-2">
+					<div class="col-span-2" data-is-property-attribute-container>
 						<label class="block mb-1 font-semibold">Format</label>
 						<input type="text" id="property-format-input" data-property="format" value="${config.property.format || ''}">
 					</div>
-					<div class="col-span-1">
+					<div class="col-span-1" data-is-property-attribute-container>
 						<label class="block mb-1 font-semibold">Type hint</label>
 						<select id="property-type-hint-input" class="type-hint" data-property="typeHint">
 							<optgroup label="Type Hint">
@@ -3066,9 +3070,9 @@ let _Code = {
 							</optgroup>
 						</select>
 					</div>
-					<div class="col-span-2 ${config.dbNameClass}">
+					<div class="col-span-2 ${config.dbNameClass}" data-is-property-attribute-container>
 						<label class="block mb-1 font-semibold">Database name</label>
-						<input type="text" id="property-dbname-input" data-property="dbName" value="${config.property.dbName || ''}">
+						<input type="text" id="property-dbname-input" data-property="dbName" value="${config.property.dbName ?? ''}">
 					</div>
 				</div>
 
@@ -3077,20 +3081,25 @@ let _Code = {
 						<label class="font-semibold">Options</label>
 					</div>
 					<div class="mt-2 grid grid-cols-3 gap-4">
-						<div>
+						<div data-is-property-attribute-container>
 							<label><input type="checkbox" id="property-unique" data-property="unique" ${config.property.unique ? 'checked' : ''}>Property value must be unique</label>
 						</div>
-						<div>
+						<div data-is-property-attribute-container>
 							<label><input type="checkbox" id="property-composite" data-property="compound" ${config.property.compound ? 'checked' : ''}>Include in composite uniqueness</label>
 						</div>
-						<div>
+						<div data-is-property-attribute-container>
 							<label><input type="checkbox" id="property-notnull" data-property="notNull" ${config.property.notNull ? 'checked' : ''}>Property value must not be null</label>
 						</div>
-						<div>
+						<div data-is-property-attribute-container>
 							<label><input type="checkbox" id="property-indexed" data-property="indexed" ${config.property.indexed ? 'checked' : ''}>Property value is indexed</label>
 						</div>
-						<div>
+						<div data-is-property-attribute-container>
 							<label><input type="checkbox" id="property-cached" data-property="isCachingEnabled" ${config.property.isCachingEnabled ? 'checked' : ''}>Property value can be cached</label>
+						</div>
+						<div data-is-property-attribute-container>
+							<label data-comment="If active, the property will not be serialized via REST but can be used otherwise. Adding it to a view does not do anything, this setting overrides view configurations.">
+								<input type="checkbox" id="property-is-serialization-disabled" data-property="isSerializationDisabled" ${config.property.isSerializationDisabled ? 'checked' : ''}>Disable Property serialization (via REST)
+							</label>
 						</div>
 					</div>
 				</div>

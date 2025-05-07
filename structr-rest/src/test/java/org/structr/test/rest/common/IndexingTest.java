@@ -63,11 +63,9 @@ public abstract class IndexingTest extends StructrRestTestBase {
 		Settings.RestServletPath.setValue(restUrl);
 		Settings.RestUserClass.setValue("");
 
-		final Services services = Services.getInstance();
-
 		Services.enableIndexConfiguration();
 
-		System.out.println("############################################ INDEXING ENABLED");
+		final Services services = Services.getInstance();
 
 		// wait for service layer to be initialized
 		do {

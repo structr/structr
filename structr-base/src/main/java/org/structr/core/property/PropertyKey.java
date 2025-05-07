@@ -105,6 +105,14 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	Property<T> indexedWhenEmpty();
 
 	/**
+	 * Use this method to mark an indexed property to be indexed
+	 * in a fulltext index.
+	 *
+	 * @return the Property to satisfy the builder pattern
+	 */
+	Property<T> fulltextIndexed();
+
+	/**
 	 * Returns the desired type name that will be used in the error message if a
 	 * wrong type was provided.
 	 * @return typeName
@@ -167,6 +175,8 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	 * @return cachingEnabled
 	 */
 	boolean cachingEnabled();
+
+	boolean serializationDisabled();
 
 	/**
 	 * Returns the openAPIReturnType value for this property.
@@ -267,6 +277,13 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	 * @return isIndexedWhenEmpty
 	 */
 	boolean isIndexedWhenEmpty();
+
+	/**
+	 * Indicates whether this property is indexed in a fulltext index.
+	 *
+	 * @return isIndexedWhenEmpty
+	 */
+	boolean isFulltextIndexed();
 
 	/**
 	 * Indicates whether this property represents a collection or a single

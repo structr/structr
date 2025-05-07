@@ -19,6 +19,7 @@
 package org.structr.bolt;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.RetryException;
@@ -35,9 +36,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class Neo5IndexUpdater {
+public class Neo5IndexUpdater implements IndexUpdater {
 
 	private static final Logger logger          = LoggerFactory.getLogger(Neo5IndexUpdater.class);
+	private final AtomicBoolean isFinished      = new AtomicBoolean(false);
 	private boolean supportsRelationshipIndexes = false;
 	private BoltDatabaseService db              = null;
 
@@ -48,6 +50,8 @@ public class Neo5IndexUpdater {
 	}
 
 	public void updateIndexConfiguration(final Map<String, Map<String, IndexConfig>> schemaIndexConfigSource, final Map<String, Map<String, IndexConfig>> removedClassesSource, final boolean createOnly) {
+
+		isFinished.set(false);
 
 		final ExecutorService executor                           = Executors.newCachedThreadPool();
 		final Map<String, Map<String, Object>> existingDbIndexes = new HashMap<>();
@@ -81,8 +85,7 @@ public class Neo5IndexUpdater {
 			}).get(timeoutSeconds, TimeUnit.SECONDS);
 
 		} catch (Throwable t) {
-			t.printStackTrace();
-			//logger.error(ExceptionUtils.getStackTrace(t));
+			logger.error(ExceptionUtils.getStackTrace(t));
 		}
 
 		logger.debug("Found {} existing indexes", existingDbIndexes.size());
@@ -105,16 +108,16 @@ public class Neo5IndexUpdater {
 
 				if (neoConfig != null) {
 
-					currentState       = (String)neoConfig.get("state");
+					currentState       = (String) neoConfig.get("state");
 					indexAlreadyOnline = Boolean.TRUE.equals("ONLINE".equals(currentState));
-					indexName          = (String)neoConfig.get("name");
+					indexName          = (String) neoConfig.get("name");
 
 				}
 
 				final IndexConfig indexConfig         = propertyIndexConfig.getValue();
 				final String propertyKey              = propertyIndexConfig.getKey();
 				final boolean finalIndexAlreadyOnline = indexAlreadyOnline;
-				final String finalIndexName           = indexName;
+				final String finalIndexName           = indexName != null ? indexName : typeName + "_" + propertyKey;
 
 				// skip relationship indexes if not supported
 				if (!indexConfig.isNodeIndex() && !supportsRelationshipIndexes) {
@@ -158,8 +161,7 @@ public class Neo5IndexUpdater {
 							}).get(timeoutSeconds, TimeUnit.SECONDS);
 
 						} catch (Throwable t) {
-							t.printStackTrace();
-							//logger.error(ExceptionUtils.getStackTrace(t));
+							logger.error(ExceptionUtils.getStackTrace(t));
 						}
 					}
 				}
@@ -186,8 +188,15 @@ public class Neo5IndexUpdater {
 										try {
 
 											final String indexDescription = indexConfig.getIndexDescriptionForStatement(typeName);
+											if (indexConfig.isFulltextIndex()) {
 
-											db.consume("CREATE INDEX IF NOT EXISTS FOR " + indexDescription + " ON (n.`" + propertyKey + "`)");
+												db.consume("CREATE FULLTEXT INDEX " + finalIndexName + " IF NOT EXISTS FOR " + indexDescription + " ON EACH [n.`" + propertyKey + "`]");
+
+											} else {
+
+												db.consume("CREATE INDEX " + finalIndexName + " IF NOT EXISTS FOR " + indexDescription + " ON (n.`" + propertyKey + "`)");
+											}
+
 											createdIndexes.incrementAndGet();
 
 										} catch (Throwable t) {
@@ -221,8 +230,7 @@ public class Neo5IndexUpdater {
 
 							} catch (Throwable t) {
 
-								t.printStackTrace();
-								//logger.warn("Unable to update index configuration: {}", t.getMessage());
+								logger.warn("Unable to update index configuration: {}", t.getMessage());
 							}
 
 						}).get(timeoutSeconds, TimeUnit.SECONDS);
@@ -303,7 +311,6 @@ public class Neo5IndexUpdater {
 									}).get(timeoutSeconds, TimeUnit.SECONDS);
 
 								} catch (Throwable t) {
-									t.printStackTrace();
 								}
 							}
 						}
@@ -314,6 +321,13 @@ public class Neo5IndexUpdater {
 			if (droppedIndexesOfRemovedTypes.get() > 0) {
 				logger.debug("Dropped {} indexes of deleted types ({})", droppedIndexesOfRemovedTypes.get(), StringUtils.join(removedTypes, ", "));
 			}
+
+			isFinished.set(true);
 		}
+	}
+
+	@Override
+	public boolean isFinished() {
+		return isFinished.get();
 	}
 }

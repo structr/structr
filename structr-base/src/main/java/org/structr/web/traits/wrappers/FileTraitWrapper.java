@@ -33,8 +33,8 @@ import org.structr.common.error.UnlicensedScriptException;
 import org.structr.common.fulltext.FulltextIndexer;
 import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
-import org.structr.core.api.Arguments;
 import org.structr.core.api.Methods;
+import org.structr.core.api.UnnamedArguments;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.core.function.Functions;
@@ -129,7 +129,7 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 			final AbstractMethod method = Methods.resolveMethod(traits, "onUpload");
 			if (method != null) {
 
-				method.execute(ctx, wrappedObject, new Arguments(), new EvaluationHints());
+				method.execute(ctx, wrappedObject, new UnnamedArguments(), new EvaluationHints());
 			}
 
 			tx.success();
@@ -300,17 +300,12 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 
 	@Override
 	public String getExtractedContent() {
-		return wrappedObject.getProperty(traits.key("extractedContent"));			// FIXME: extractedContent... this used to extend "Indexable"
+		return wrappedObject.getProperty(traits.key(FileTraitDefinition.EXTRACTED_CONTENT_PROPERTY));			// FIXME: extractedContent... this used to extend "Indexable"
 	}
 
 	@Override
 	public String getContentType() {
 		return wrappedObject.getProperty(traits.key(FileTraitDefinition.CONTENT_TYPE_PROPERTY));
-	}
-
-	@Override
-	public boolean useAsJavascriptLibrary() {
-		return wrappedObject.getProperty(traits.key(FileTraitDefinition.USE_AS_JAVASCRIPT_LIBRARY_PROPERTY));
 	}
 
 	@Override
@@ -586,23 +581,6 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 
 		// default to setting in security context
 		return wrappedObject.getSecurityContext().doIndexing();
-	}
-
-	// ----- interface JavaScriptSource -----
-	@Override
-	public String getJavascriptLibraryCode() {
-
-		try (final InputStream is = getInputStream()) {
-
-			return IOUtils.toString(new InputStreamReader(is));
-
-		} catch (IOException ioex) {
-
-			final Logger logger = LoggerFactory.getLogger(File.class);
-			logger.warn("", ioex);
-		}
-
-		return null;
 	}
 
 	@Override

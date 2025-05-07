@@ -40,7 +40,7 @@ public class AdvancedCypherQuery implements CypherQuery {
 
 	private final Map<String, Object> parameters    = new TreeMap<>();
 	private final Set<String> indexLabels           = new LinkedHashSet<>();
-	private final Set<String> typeLabels            = new LinkedHashSet<>();
+	protected final Set<String> typeLabels            = new LinkedHashSet<>();
 	private final Map<String, GraphQueryPart> parts = new LinkedHashMap<>();
 	private final StringBuilder buffer              = new StringBuilder();
 	private AbstractCypherIndex<?> index            = null;

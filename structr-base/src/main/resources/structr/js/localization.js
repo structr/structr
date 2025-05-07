@@ -413,7 +413,7 @@ let _Localization = {
 						}
 					}
 
-					let putResponse = await fetch(Structr.rootUrl + 'Localization/', {
+					let putResponse = await fetch(Structr.rootUrl + 'Localization', {
 						method: 'PATCH',
 						body: JSON.stringify(patchData)
 					});

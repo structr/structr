@@ -651,8 +651,8 @@ let _Entities = {
 
 		_Entities.getSchemaProperties(entity.type, view, (properties) => {
 
-			let filteredProperties   = Object.keys(properties).filter(key => !(typeInfo[key].isCollection && typeInfo[key].relatedType) );
-			let collectionProperties = Object.keys(properties).filter(key => typeInfo[key].isCollection && typeInfo[key].relatedType );
+			let filteredProperties   = Object.keys(properties).filter(key => typeInfo[key] && !(typeInfo[key].isCollection && typeInfo[key].relatedType) );
+			let collectionProperties = Object.keys(properties).filter(key => typeInfo[key] && (typeInfo[key].isCollection && typeInfo[key].relatedType) );
 
 			fetch(`${Structr.rootUrl}${entity.type}/${entity.id}/all?${Structr.getRequestParameterName('edit')}=2`, {
 				headers: _Helpers.getHeadersForCustomView(filteredProperties)
@@ -3158,11 +3158,6 @@ let _Entities = {
 							</div>
 
 							${_Entities.basicTab.templates.includeInFrontendExport(config)}
-
-							<div class="mb-2 flex items-center">
-								<input type="checkbox" name="useAsJavascriptLibrary" id="useAsJavascriptLibrary">
-								<label for="useAsJavascriptLibrary" data-comment-config='{"insertAfter":true}' data-comment="If checked this file can be included via <code>$.includeJs(fileName)</code> in any other server-side JavaScript context.<br><br>File must have content-type <code>text/javascript</code> or <code>application/javascript</code>">Use As Javascript Library</label>
-							</div>
 						</div>
 					</div>
 

@@ -94,8 +94,6 @@ public abstract class AbstractStorageProvider implements StorageProvider {
 				// Move binary content from old sp to new sp
 				try (final InputStream is = this.getInputStream(); final OutputStream os = destinationStorageProvider.getOutputStream()) {
 
-					Thread.dumpStack();
-
 					IOUtils.copy(is, os);
 
 					// Clean up old binary data on previous sp

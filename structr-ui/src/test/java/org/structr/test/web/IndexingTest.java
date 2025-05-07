@@ -44,7 +44,7 @@ public abstract class IndexingTest extends StructrUiTest {
 
 		basePath = "/tmp/structr-test-" + timestamp;
 
-		Settings.Services.setValue("NodeService SchemaService HttpService");
+		Settings.Services.setValue("NodeService SchemaService HttpService AgentService");
 		setupDatabaseConnection(testDatabaseConnection);
 
 		// example for new configuration setup
@@ -63,9 +63,9 @@ public abstract class IndexingTest extends StructrUiTest {
 		Settings.RestServletPath.setValue(restUrl);
 		Settings.RestUserClass.setValue("");
 
-		final Services services = Services.getInstance();
-
 		Services.enableIndexConfiguration();
+
+		final Services services = Services.getInstance();
 
 		// wait for service layer to be initialized
 		do {
@@ -75,9 +75,6 @@ public abstract class IndexingTest extends StructrUiTest {
 
 		securityContext = SecurityContext.getSuperUserInstance();
 		app             = StructrApp.getInstance(securityContext);
-
-		// wait some more... (?)
-		try { Thread.sleep(10000); } catch (Throwable t) {}
 
 		// configure RestAssured
 		RestAssured.basePath = "/structr/rest";

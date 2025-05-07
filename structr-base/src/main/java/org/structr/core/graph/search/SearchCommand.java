@@ -67,7 +67,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 	public abstract Factory<S, T> getFactory(final SecurityContext securityContext, final boolean includeHidden, final boolean publicOnly, final int pageSize, final int page);
 	public abstract boolean isRelationshipSearch();
-	public abstract Index<S> getIndex();
+	public abstract Index<S> getIndex(final boolean isFulltextSearch);
 
 
 	@Override
@@ -144,7 +144,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 				rootGroup.setSortOrder(sortOrder);
 			}
 
-			final Index<S> index = getIndex();
+			final Index<S> index = getIndex(config.isFulltextSearch);
 			if (index != null) {
 
 				// paging needs to be done AFTER instantiating all nodes
@@ -284,6 +284,10 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 			if (attr instanceof RelationshipVisibilitySearchAttribute) {
 				config.hasRelationshipVisibilitySearch = true;
+			}
+
+			if (attr instanceof FulltextSearchAttribute) {
+				config.isFulltextSearch = true;
 			}
 		}
 	}
@@ -573,5 +577,6 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		public boolean hasSpatialSource                = false;
 		public boolean hasEmptySearchFields            = false;
 		public boolean hasRelationshipVisibilitySearch = false;
+		public boolean isFulltextSearch                = false;
 	}
 }

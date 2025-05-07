@@ -72,8 +72,8 @@ elif [ -n "${NEW_GROUP_ID}" ] && [ -n "${NEW_GROUP_NAME}" ]; then
 fi
 
 # check and create memory config file before startup
-if ! [ -f "${_STRUCTR_HOME}/bin/memory.config" ]; then
-  touch "${_STRUCTR_HOME}/bin/memory.config"
+if ! [ -f "${_STRUCTR_HOME}/bin/memory.conf" ]; then
+  touch "${_STRUCTR_HOME}/bin/memory.conf"
   if [ -n "$STRUCTR_MAX_HEAP" ] &&  [ -z "$STRUCTR_MIN_HEAP" ]; then
     echo "        STRUCTR_MAX_HEAP set but STRUCTR_MIN_HEAP not found in docker environment"
     exit 1;
@@ -82,10 +82,10 @@ if ! [ -f "${_STRUCTR_HOME}/bin/memory.config" ]; then
     exit 1;
   elif ! [ -n "$STRUCTR_MIN_HEAP" ] && [ -z "$STRUCTR_MAX_HEAP" ]; then
       echo "        Creating memory configuration file with default configuration of -Xms1g -Xmx4g"
-      echo "-Xms1g -Xmx4g" > "${_STRUCTR_HOME}/bin/memory.config"
+      echo "-Xms1g -Xmx4g" > "${_STRUCTR_HOME}/bin/memory.conf"
   else
     echo "        Creating memory configuration file with -Xms${STRUCTR_MIN_HEAP} -Xmx${STRUCTR_MAX_HEAP}"
-    echo "-Xms${STRUCTR_MIN_HEAP} -Xmx${STRUCTR_MAX_HEAP}" > "${_STRUCTR_HOME}/bin/memory.config"
+    echo "-Xms${STRUCTR_MIN_HEAP} -Xmx${STRUCTR_MAX_HEAP}" > "${_STRUCTR_HOME}/bin/memory.conf"
   fi
 fi
 

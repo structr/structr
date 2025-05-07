@@ -661,6 +661,10 @@ public class IndexManagementTest extends StructrTest {
 
 			final List<IndexInfo> infos = queryIndexes(db, entityType);
 
+			for (final IndexInfo info : infos) {
+				System.out.println(info.type + ", " + info.types + ", " + info.props);
+			}
+
 			tx.success();
 
 			final boolean result = infos.size() == expectedNumberOfIndexes;

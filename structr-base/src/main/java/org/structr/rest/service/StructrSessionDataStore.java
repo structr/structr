@@ -52,12 +52,11 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 	@Override
 	public boolean doExists(final String id) throws Exception {
-
 		return exists(id);
 	}
 
 	@Override
-	public void doStore(final String id, final SessionData data, final long lastSaveTime) throws Exception {
+	public synchronized void doStore(final String id, final SessionData data, final long lastSaveTime) throws Exception {
 
 		assertInitialized();
 
@@ -104,7 +103,7 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 	}
 
 	@Override
-	public boolean exists(final String id) throws Exception {
+	public synchronized boolean exists(final String id) throws Exception {
 
 		if (anonymousSessionCache.containsKey(id)) {
 			return true;
@@ -133,7 +132,7 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 	}
 
 	@Override
-	public SessionData load(final String id) throws Exception {
+	public synchronized SessionData load(final String id) throws Exception {
 
 		if (anonymousSessionCache.containsKey(id)) {
 			return anonymousSessionCache.get(id);
@@ -174,7 +173,7 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 	}
 
 	@Override
-	public boolean delete(final String id) throws Exception {
+	public synchronized boolean delete(final String id) throws Exception {
 
 		if (anonymousSessionCache.containsKey(id)) {
 			anonymousSessionCache.remove(id);
@@ -214,7 +213,7 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 	}
 
 	@Override
-	public Set<String> doCheckExpired(final Set<String> candidates, final long sessionTimeout) {
+	public synchronized Set<String> doCheckExpired(final Set<String> candidates, final long sessionTimeout) {
 
 		final Date timeoutDate = new Date(System.currentTimeMillis() - sessionTimeout);
 
@@ -252,7 +251,7 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 	}
 
 	@Override
-	public Set<String> doGetExpired(final long sessionTimeout) {
+	public synchronized Set<String> doGetExpired(final long sessionTimeout) {
 		final Date timeoutDate    = new Date(System.currentTimeMillis() - sessionTimeout);
 
 		assertInitialized();
@@ -291,7 +290,7 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 	}
 
 	@Override
-	public void doCleanOrphans(long timeout) {
+	public synchronized void doCleanOrphans(long timeout) {
 
 		for (final String id : doGetExpired(timeout)) {
 

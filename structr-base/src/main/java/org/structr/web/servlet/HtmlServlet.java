@@ -41,8 +41,8 @@ import org.structr.common.event.RuntimeEventLog;
 import org.structr.common.helper.PathHelper;
 import org.structr.core.Services;
 import org.structr.core.api.AbstractMethod;
-import org.structr.core.api.Arguments;
 import org.structr.core.api.Methods;
+import org.structr.core.api.NamedArguments;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.QueryGroup;
@@ -1699,7 +1699,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				final AbstractMethod method = Methods.resolveMethod(file.getTraits(), "onDownload");
 				if (method != null) {
 
-					method.execute(securityContext, file, Arguments.fromMap(callbackMap), new EvaluationHints());
+					method.execute(securityContext, file, NamedArguments.fromMap(callbackMap), new EvaluationHints());
 				}
 
 			} catch (FrameworkException fex) {

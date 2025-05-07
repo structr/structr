@@ -25,24 +25,33 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.schema.JsonMethod;
+import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonType;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
+import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.traits.definitions.ActionMappingTraitDefinition;
+import org.structr.web.traits.definitions.ParameterMappingTraitDefinition;
 import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
 import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 import org.testng.annotations.Test;
 
 import java.util.*;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
 
@@ -2285,6 +2294,679 @@ public class EventActionMappingTest extends StructrUiTest {
 			assertEquals("Wrong value for EAM attribute " + key, null, attrs.get(key));
 		}
 	}
+
+	@Test
+	public void testCloneNodeIncludingReloadTarget() {
+
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key(DOMElementTraitDefinition._HTML_ID_PROPERTY);
+		final List<String> buttonIds        = new LinkedList<>();
+		final List<String> divIds           = new LinkedList<>();
+
+		try (final Tx tx = app.tx()) {
+
+			createAdminUser();
+
+			final Page page1     = Page.createSimplePage(securityContext, "page1");
+			final DOMNode div    = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
+
+			div.appendChild(btn);
+			btn.appendChild(text);
+
+			btn.setProperty(htmlIdKey, "button");
+			div.setProperty(htmlIdKey, "parent-container");
+
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
+
+			// base setup
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.EVENT_PROPERTY), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.ACTION_PROPERTY), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.DATA_TYPE_PROPERTY), "Project");
+
+			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, navigate-to-url, fire-event, full-page-reload, sign-out, none)
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.SUCCESS_BEHAVIOUR_PROPERTY), "partial-refresh-linked");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.SUCCESS_TARGETS_PROPERTY), List.of(div));
+
+			// now clone the div
+			div.getParent().appendChild(div.cloneNode(true));
+
+			// collect IDs
+			for (final DOMNode node : page1.getElementsByTagName("div")) {
+				divIds.add(node.getUuid());
+			}
+
+			for (final DOMNode node : page1.getElementsByTagName("button")) {
+				buttonIds.add(node.getUuid());
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		RestAssured.basePath = "/";
+
+		final String html  = fetchPageHtml("/html/page1");
+		final Document doc = Jsoup.parse(html);
+
+		final Map<String, String> expectedValues1 = new LinkedHashMap<>();
+		final Map<String, String> expectedValues2 = new LinkedHashMap<>();
+		final Map<String, String> attrs1          = getAttributes(doc.getElementsByTag("button").get(0));
+		final Map<String, String> attrs2          = getAttributes(doc.getElementsByTag("button").get(1));
+
+		// verify that the div is a reload target (exposes data-structr-id attribute)
+		final Map<String, String> div1Attrs = getAttributes(doc.getElementsByTag("div").get(0));
+		final Map<String, String> div2Attrs = getAttributes(doc.getElementsByTag("div").get(1));
+
+		assertEquals("Wrong value for cloned EAM attribute data-structr-id", divIds.get(0), div1Attrs.get("data-structr-id"));
+		assertEquals("Wrong value for cloned EAM attribute data-structr-id", divIds.get(1), div2Attrs.get("data-structr-id"));
+
+		expectedValues1.put("data-structr-event", "click");
+		expectedValues1.put("data-structr-action", "create");
+		expectedValues1.put("data-structr-target", "Project");
+		expectedValues1.put("data-structr-id",     buttonIds.get(0));
+		expectedValues1.put("data-structr-success-target", "[data-structr-id='" + divIds.get(0) + "']");
+
+		for (final String key : expectedValues1.keySet()) {
+			assertEquals("Wrong value for EAM attribute " + key, expectedValues1.get(key), attrs1.get(key));
+		}
+
+		expectedValues2.put("data-structr-event", "click");
+		expectedValues2.put("data-structr-action", "create");
+		expectedValues2.put("data-structr-target", "Project");
+		expectedValues2.put("data-structr-id",     buttonIds.get(1));
+		expectedValues2.put("data-structr-success-target", "[data-structr-id='" + divIds.get(1) + "']");
+
+		for (final String key : expectedValues2.keySet()) {
+			assertEquals("Wrong value for EAM attribute " + key, expectedValues2.get(key), attrs2.get(key));
+		}
+	}
+
+	@Test
+	public void testCloneNodeExcludingReloadTarget() {
+
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key(DOMElementTraitDefinition._HTML_ID_PROPERTY);
+		final List<String> buttonIds        = new LinkedList<>();
+		final List<String> divIds           = new LinkedList<>();
+
+		try (final Tx tx = app.tx()) {
+
+			createAdminUser();
+
+			final Page page1     = Page.createSimplePage(securityContext, "page1");
+			final DOMNode div    = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
+
+			div.appendChild(btn);
+			btn.appendChild(text);
+
+			btn.setProperty(htmlIdKey, "button");
+			div.setProperty(htmlIdKey, "parent-container");
+
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
+
+			// base setup
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.EVENT_PROPERTY), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.ACTION_PROPERTY), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.DATA_TYPE_PROPERTY), "Project");
+
+			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, navigate-to-url, fire-event, full-page-reload, sign-out, none)
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.SUCCESS_BEHAVIOUR_PROPERTY), "partial-refresh-linked");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.SUCCESS_TARGETS_PROPERTY), List.of(div));
+
+			// now clone the button
+			btn.getParent().appendChild(btn.cloneNode(true));
+
+			// collect IDs
+			for (final DOMNode node : page1.getElementsByTagName("div")) {
+				divIds.add(node.getUuid());
+			}
+
+			for (final DOMNode node : page1.getElementsByTagName("button")) {
+				buttonIds.add(node.getUuid());
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		RestAssured.basePath = "/";
+
+		final String html  = fetchPageHtml("/html/page1");
+		final Document doc = Jsoup.parse(html);
+
+		final Map<String, String> expectedValues1 = new LinkedHashMap<>();
+		final Map<String, String> expectedValues2 = new LinkedHashMap<>();
+		final Map<String, String> attrs1          = getAttributes(doc.getElementsByTag("button").get(0));
+		final Map<String, String> attrs2          = getAttributes(doc.getElementsByTag("button").get(1));
+
+		// verify that the div is a reload target (exposes data-structr-id attribute)
+		final Map<String, String> divAttrs = getAttributes(doc.getElementsByTag("div").get(0));
+
+		assertEquals("Wrong value for cloned EAM attribute data-structr-id", divIds.get(0), divAttrs.get("data-structr-id"));
+
+		expectedValues1.put("data-structr-event", "click");
+		expectedValues1.put("data-structr-action", "create");
+		expectedValues1.put("data-structr-target", "Project");
+		expectedValues1.put("data-structr-id",     buttonIds.get(0));
+		expectedValues1.put("data-structr-success-target", "[data-structr-id='" + divIds.get(0) + "']");
+
+		for (final String key : expectedValues1.keySet()) {
+			assertEquals("Wrong value for EAM attribute " + key, expectedValues1.get(key), attrs1.get(key));
+		}
+
+		expectedValues2.put("data-structr-event", "click");
+		expectedValues2.put("data-structr-action", "create");
+		expectedValues2.put("data-structr-target", "Project");
+		expectedValues2.put("data-structr-id",     buttonIds.get(1));
+		expectedValues2.put("data-structr-success-target", "[data-structr-id='" + divIds.get(0) + "']");
+
+		for (final String key : expectedValues2.keySet()) {
+			assertEquals("Wrong value for EAM attribute " + key, expectedValues2.get(key), attrs2.get(key));
+		}
+	}
+
+	@Test
+	public void testClonePage() {
+
+		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key(DOMElementTraitDefinition._HTML_ID_PROPERTY);
+		String btnId                     = null;
+		String divId                        = null;
+
+		try (final Tx tx = app.tx()) {
+
+			createAdminUser();
+
+			final Page page1     = Page.createSimplePage(securityContext, "page1");
+			final DOMNode div    = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
+
+			div.appendChild(btn);
+			btn.appendChild(text);
+
+			btn.setProperty(htmlIdKey, "button");
+			div.setProperty(htmlIdKey, "parent-container");
+
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
+
+			// base setup
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.EVENT_PROPERTY), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.ACTION_PROPERTY), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.DATA_TYPE_PROPERTY), "Project");
+
+			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, navigate-to-url, fire-event, full-page-reload, sign-out, none)
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.SUCCESS_BEHAVIOUR_PROPERTY), "partial-refresh-linked");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.SUCCESS_TARGETS_PROPERTY), List.of(div));
+
+			// now clone the page
+			final Page page2 = page1.cloneNode(true).as(Page.class);
+
+			page2.setName("page2");
+
+			final DOMNode clonedDiv = page2.getElementsByTagName("div").get(0);
+			final DOMNode clonedBtn = page2.getElementsByTagName("button").get(0);
+
+			divId = clonedDiv.getUuid();
+			btnId = clonedBtn.getUuid();
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		RestAssured.basePath = "/";
+
+		final String html       = fetchPageHtml("/html/page1");
+		final String clonedHtml = fetchPageHtml("/html/page2");
+		final Document doc = Jsoup.parse(clonedHtml);
+
+		final Map<String, String> expectedValues = new LinkedHashMap<>();
+		final Map<String, String> attrs          = getAttributes(doc.getElementsByTag("button").get(0));
+
+		// verify that the div is a reload target (exposes data-structr-id attribute)
+		final Map<String, String> div1Attrs = getAttributes(doc.getElementsByTag("div").get(0));
+
+		assertEquals("Wrong value for cloned EAM attribute data-structr-id", divId, div1Attrs.get("data-structr-id"));
+
+		expectedValues.put("data-structr-event", "click");
+		expectedValues.put("data-structr-action", "create");
+		expectedValues.put("data-structr-target", "Project");
+		expectedValues.put("data-structr-id",     btnId);
+		expectedValues.put("data-structr-success-target", "[data-structr-id='" + divId + "']");
+
+		for (final String key : expectedValues.keySet()) {
+			assertEquals("Wrong value for EAM attribute " + key, expectedValues.get(key), attrs.get(key));
+		}
+	}
+
+	@Test
+	public void testWrappedResultInCustomMethodOutput() {
+
+		String objectUuid = null;
+		String buttonUuid = null;
+
+		try (final Tx tx = app.tx()) {
+
+			createAdminUser();
+
+			// create schema
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType type = schema.addType("Test");
+
+			final JsonMethod method1 = type.addMethod("testMethod", "{ return { test1: 1, test2: 'test1' }; }");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			// create EAM
+			final Page page1        = Page.createSimplePage(securityContext, "page1");
+			final DOMNode div       = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn    = page1.createElement("button");
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
+
+			div.appendChild(btn);
+
+			// save uuid for later
+			buttonUuid = btn.getUuid();
+
+			// base setup
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.EVENT_PROPERTY), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.ACTION_PROPERTY), "method");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.METHOD_PROPERTY), "testMethod");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			objectUuid = app.create("Test").getUuid();
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		RestAssured.basePath = "/";
+
+		RestAssured
+
+			.given()
+			.contentType("application/json; charset=UTF-8")
+			.header("X-User", "admin")
+			.header("X-Password", "admin")
+			.body("{ htmlEvent: click, structrMethod: testMethod, structrTarget: '" + objectUuid + "' }")
+			.expect()
+			.statusCode(200)
+			.body("result.test1", equalTo(1))
+			.body("result.test2", equalTo("test1"))
+			.when()
+			.post("/structr/rest/DOMElement/" + buttonUuid + "/event");
+	}
+
+	@Test
+	public void testRawResultInCustomMethodOutput() {
+
+		String objectUuid = null;
+		String buttonUuid = null;
+
+		try (final Tx tx = app.tx()) {
+
+			createAdminUser();
+
+			// create schema
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType type = schema.addType("Test");
+
+			final JsonMethod method1 = type.addMethod("testMethod", "{ return { test1: 1, test2: 'test1' }; }");
+
+			method1.setReturnRawResult(true);
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			// create EAM
+			final Page page1        = Page.createSimplePage(securityContext, "page1");
+			final DOMNode div       = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn    = page1.createElement("button");
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
+
+			div.appendChild(btn);
+
+			// save uuid for later
+			buttonUuid = btn.getUuid();
+
+			// base setup
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.EVENT_PROPERTY), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.ACTION_PROPERTY), "method");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.METHOD_PROPERTY), "testMethod");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			objectUuid = app.create("Test").getUuid();
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		RestAssured.basePath = "/";
+
+		RestAssured
+
+			.given()
+			.contentType("application/json; charset=UTF-8")
+			.header("X-User", "admin")
+			.header("X-Password", "admin")
+			.body("{ htmlEvent: click, structrMethod: testMethod, structrTarget: '" + objectUuid + "' }")
+			.expect()
+			.statusCode(200)
+			.body("test1", equalTo(1))
+			.body("test2", equalTo("test1"))
+			.when()
+			.post("/structr/rest/DOMElement/" + buttonUuid + "/event");
+	}
+
+	@Test
+	public void testDeletionOfActionMappingsWithPage() {
+
+		// create EAM
+		try (final Tx tx = app.tx()) {
+
+			createAdminUser();
+
+			final Page page1     = Page.createSimplePage(securityContext, "page1");
+			final DOMNode div    = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
+
+			div.appendChild(btn);
+			btn.appendChild(text);
+
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
+
+			// base setup
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.EVENT_PROPERTY), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.ACTION_PROPERTY), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.DATA_TYPE_PROPERTY), "Project");
+
+			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, navigate-to-url, fire-event, full-page-reload, sign-out, none)
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.SUCCESS_BEHAVIOUR_PROPERTY), "partial-refresh-linked");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.SUCCESS_TARGETS_PROPERTY), List.of(div));
+
+			// create parameter mappings (to test cascading delete)
+			app.create(StructrTraits.PARAMETER_MAPPING,
+				new NodeAttribute<>(Traits.of(StructrTraits.PARAMETER_MAPPING).key(ParameterMappingTraitDefinition.PARAMETER_NAME_PROPERTY), "param1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.PARAMETER_MAPPING).key(ParameterMappingTraitDefinition.ACTION_MAPPING_PROPERTY), eam)
+			);
+
+			app.create(StructrTraits.PARAMETER_MAPPING,
+				new NodeAttribute<>(Traits.of(StructrTraits.PARAMETER_MAPPING).key(ParameterMappingTraitDefinition.PARAMETER_NAME_PROPERTY), "param2"),
+				new NodeAttribute<>(Traits.of(StructrTraits.PARAMETER_MAPPING).key(ParameterMappingTraitDefinition.ACTION_MAPPING_PROPERTY), eam)
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// delete all DOM nodes
+		try (final Tx tx = app.tx()) {
+
+			app.deleteAllNodesOfType(StructrTraits.DOM_NODE);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// verify that EAMs have been deleted as well
+		try (final Tx tx = app.tx()) {
+
+			assertEquals("Pages not deleted via deleteAllNodesOfType()", 0, app.nodeQuery(StructrTraits.PAGE).getAsList().size());
+			assertEquals("ActionMappings not deleted when deleting a page", 0, app.nodeQuery(StructrTraits.ACTION_MAPPING).getAsList().size());
+			assertEquals("ParameterMappings not deleted when deleting a page", 0, app.nodeQuery(StructrTraits.PARAMETER_MAPPING).getAsList().size());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testResponseForNonExistingMethod() {
+
+		String objectUuid  = null;
+		String button1Uuid = null;
+		String button2Uuid = null;
+		String button3Uuid = null;
+
+		try (final Tx tx = app.tx()) {
+
+			createAdminUser();
+
+			// create schema
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType type = schema.addType("Test");
+
+			type.addMethod("instanceMethod", "{ return { test1: 1, test2: 'test1' }; }");
+			type.addMethod("staticMethod", "{ return { test1: 2, test2: 'test2' }; }");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			app.create(StructrTraits.SCHEMA_METHOD,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "userDefinedFunction"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "{ return { test1: 3, test2: 'test3' }; }")
+			);
+
+			// create EAM
+			final Page page1        = Page.createSimplePage(securityContext, "page1");
+			final DOMNode div       = page1.getElementsByTagName("div").get(0);
+
+			// button1 for instance method
+			{
+				final DOMElement btn = page1.createElement("button");
+				final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
+
+				div.appendChild(btn);
+
+				// save uuid for later
+				button1Uuid = btn.getUuid();
+
+				// base setup
+				eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY), List.of(btn));
+				eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.EVENT_PROPERTY), "click");
+				eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.ACTION_PROPERTY), "method");
+				eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.METHOD_PROPERTY), "instanceMethod");
+			}
+
+			// button2 for static method
+			{
+				final DOMElement btn = page1.createElement("button");
+				final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
+
+				div.appendChild(btn);
+
+				// save uuid for later
+				button2Uuid = btn.getUuid();
+
+				// base setup
+				eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY), List.of(btn));
+				eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.EVENT_PROPERTY), "click");
+				eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.ACTION_PROPERTY), "method");
+				eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.METHOD_PROPERTY), "staticMethod");
+			}
+
+			// button3 for user-defined function
+			{
+				final DOMElement btn = page1.createElement("button");
+				final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
+
+				div.appendChild(btn);
+
+				// save uuid for later
+				button3Uuid = btn.getUuid();
+
+				// base setup
+				eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY), List.of(btn));
+				eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.EVENT_PROPERTY), "click");
+				eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.ACTION_PROPERTY), "method");
+				eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.METHOD_PROPERTY), "userDefinedFunction");
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			objectUuid = app.create("Test").getUuid();
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		RestAssured.basePath = "/";
+
+		// test instance method
+		RestAssured
+
+			.given()
+			.contentType("application/json; charset=UTF-8")
+			.header("X-User", "admin")
+			.header("X-Password", "admin")
+			.body("{ htmlEvent: click, structrMethod: instanceMethod, structrTarget: '" + objectUuid + "' }")
+			.expect()
+			.statusCode(200)
+			.body("result.test1", equalTo(1))
+			.body("result.test2", equalTo("test1"))
+			.when()
+			.post("/structr/rest/DOMElement/" + button1Uuid + "/event");
+
+		// test static method
+		RestAssured
+
+			.given()
+			.contentType("application/json; charset=UTF-8")
+			.header("X-User", "admin")
+			.header("X-Password", "admin")
+			.body("{ htmlEvent: click, structrMethod: staticMethod, structrTarget: 'Test' }")
+			.expect()
+			.statusCode(200)
+			.body("result.test1", equalTo(2))
+			.body("result.test2", equalTo("test2"))
+			.when()
+			.post("/structr/rest/DOMElement/" + button2Uuid + "/event");
+
+		// test user-defined function
+		RestAssured
+
+			.given()
+			.contentType("application/json; charset=UTF-8")
+			.header("X-User", "admin")
+			.header("X-Password", "admin")
+			.body("{ htmlEvent: click, structrMethod: userDefinedFunction }")
+			.expect()
+			.statusCode(200)
+			.body("result.test1", equalTo(3))
+			.body("result.test2", equalTo("test3"))
+			.when()
+			.post("/structr/rest/DOMElement/" + button3Uuid + "/event");
+
+		// now test the three cases with nonexisting methods
+		RestAssured
+
+			.given()
+			.contentType("application/json; charset=UTF-8")
+			.header("X-User", "admin")
+			.header("X-Password", "admin")
+			.body("{ htmlEvent: click, structrMethod: instanceMethodNotExisting, structrTarget: '" + objectUuid + "' }")
+			.expect()
+			.statusCode(422)
+			.when()
+			.post("/structr/rest/DOMElement/" + button1Uuid + "/event");
+
+		// test static method
+		RestAssured
+
+			.given()
+			.contentType("application/json; charset=UTF-8")
+			.header("X-User", "admin")
+			.header("X-Password", "admin")
+			.body("{ htmlEvent: click, structrMethod: staticMethodNotExisting, structrTarget: 'Test' }")
+			.expect()
+			.statusCode(422)
+			.when()
+			.post("/structr/rest/DOMElement/" + button2Uuid + "/event");
+
+		// test user-defined function
+		RestAssured
+
+			.given()
+			.contentType("application/json; charset=UTF-8")
+			.header("X-User", "admin")
+			.header("X-Password", "admin")
+			.body("{ htmlEvent: click, structrMethod: userDefinedFunctionNotExisting }")
+			.expect()
+			.statusCode(422)
+			.when()
+			.post("/structr/rest/DOMElement/" + button3Uuid + "/event");
+
+	}
+
+
 	// ----- private methods -----
 	final Map<String, String> getAttributes(final Element element) {
 

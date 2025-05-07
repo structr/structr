@@ -39,6 +39,8 @@ import org.structr.core.graph.NativeQueryCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.script.Scripting;
 import org.structr.core.script.Snippet;
+import org.structr.core.script.polyglot.config.ScriptConfig;
+import org.structr.core.script.polyglot.config.ScriptConfigBuilder;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.util.CommandLineUtils;
@@ -304,9 +306,13 @@ public class Console {
 
 		try (final Tx tx = StructrApp.getInstance(actionContext.getSecurityContext()).tx()) {
 
+			final ScriptConfig scriptConfig = ScriptConfig.builder()
+					.keepContextOpen(true)
+					.build();
+
 			Snippet script = new Snippet("console, interactive script", line, false);
 			script.setCodeSource(line);
-			Object extractedValue = Scripting.evaluateScript(actionContext, null, "js", script);
+			Object extractedValue = Scripting.evaluateScript(actionContext, null, "js", script, scriptConfig);
 
 			if (!extractedValue.toString().isEmpty()) {
 

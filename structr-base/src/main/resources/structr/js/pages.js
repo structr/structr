@@ -1613,9 +1613,9 @@ let _Pages = {
 
 			Command.get(entity.id, 'id,type,triggeredActions', (result) => {
 				actionMapping = result.triggeredActions[0];
-                nextParameterIndex = document.getElementsByClassName("em-parameter-mapping").length + 1;
+				let nextParameterIndex = document.querySelectorAll('.em-parameter-mappings-container .em-parameter-mapping').length + 1;
 
-				Command.create({type: 'ParameterMapping', actionMapping: actionMapping.id, parameterName: "parameter_" + nextParameterIndex}, (parameterMapping) => {
+				Command.create({ type: 'ParameterMapping', actionMapping: actionMapping.id, parameterName: 'parameter_' + nextParameterIndex }, (parameterMapping) => {
 					getAndAppendParameterMapping(parameterMapping.id);
 				});
 			});
@@ -1630,7 +1630,6 @@ let _Pages = {
 				Command.getSchemaInfo(dataTypeSelect.value, result => {
 
 					let properties = result.filter(property => !property.system);
-					//console.log(properties); return;
 
 					for (const property of properties) {
 
@@ -1641,7 +1640,6 @@ let _Pages = {
 						}, (parameterMapping) => {
 							getAndAppendParameterMapping(parameterMapping.id);
 						});
-
 					}
 				});
 			});
@@ -2095,7 +2093,19 @@ let _Pages = {
 
 						let parameterNameInput = parentElement.querySelector('.parameter-name-input');
 						if (parameterNameInput.value === '') {
+
 							parameterNameInput.value = userInputName;
+							saveParameterMappings(parameterNameInput);
+
+						} else if (parameterNameInput.value !== userInputName) {
+
+							_Dialogs.confirmation.showPromise(`Replace current parameter (${parameterNameInput.value}) name with element name (${userInputName})?`).then(shouldReplace => {
+
+								if (shouldReplace === true) {
+									parameterNameInput.value = userInputName;
+									saveParameterMappings(parameterNameInput);
+								}
+							})
 						}
 					}
 
@@ -4060,7 +4070,7 @@ let _Pages = {
 								</div>
 
 								<div class="hidden em-action-element em-action-method">
-									<label class="block mb-2" for="id-expression-input" data-comment="Enter a script expression like &quot;&#36;{obj.id}&quot; that evaluates to the UUID of the data object the method shall be called on, or a type name for static methods, or leave empty for global methods.">UUID or type of data object to call method on</label>
+									<label class="block mb-2" for="id-expression-input" data-comment="Enter a script expression like &quot;&#36;{obj.id}&quot; that evaluates to the UUID of the data object the method shall be called on, or a type name for static methods, or leave empty for user-defined functions.">UUID or type of data object to call method on</label>
 								</div>
 
 								<div class="hidden em-action-element em-action-custom">

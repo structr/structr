@@ -245,7 +245,7 @@ public class ImageTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> exifIFD0DataProperty                = new StringProperty(EXIF_IFD0_DATA_PROPERTY);
 		final Property<String> exifSubIFDDataProperty              = new StringProperty(EXIF_SUB_IFD_DATA_PROPERTY);
 		final Property<String> gpsDataProperty                     = new StringProperty(GPS_DATA_PROPERTY);
-		final Property<String> imageDataProperty                   = new ImageDataProperty(IMAGE_DATA_PROPERTY).typeHint("String");
+		final Property<String> imageDataProperty                   = new ImageDataProperty(IMAGE_DATA_PROPERTY).typeHint("String").disableSerialization(true);
 
 		return Set.of(
 			imageParentProperty,
@@ -283,7 +283,7 @@ public class ImageTraitDefinition extends AbstractNodeTraitDefinition {
 			newSet(
 					AbstractFileTraitDefinition.PARENT_PROPERTY, FileTraitDefinition.CONTENT_TYPE_PROPERTY, EXIF_IFD0_DATA_PROPERTY,
 					EXIF_SUB_IFD_DATA_PROPERTY, GPS_DATA_PROPERTY, HEIGHT_PROPERTY, WIDTH_PROPERTY, IS_IMAGE_PROPERTY, IS_THUMBNAIL_PROPERTY,
-					ORIENTATION_PROPERTY, TN_SMALL_PROPERTY, TN_MID_PROPERTY, FileTraitDefinition.USE_AS_JAVASCRIPT_LIBRARY_PROPERTY
+					ORIENTATION_PROPERTY, TN_SMALL_PROPERTY, TN_MID_PROPERTY
 			)
 		);
 	}

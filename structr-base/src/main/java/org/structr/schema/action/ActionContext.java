@@ -23,7 +23,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
 import org.graalvm.polyglot.Context;
-import org.graalvm.polyglot.Source;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
@@ -40,6 +39,7 @@ import org.structr.core.Services;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
 import org.structr.core.api.Methods;
+import org.structr.core.api.NamedArguments;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.Traits;
@@ -59,7 +59,7 @@ public class ActionContext {
 	public static final String SESSION_ATTRIBUTE_PREFIX = "user.";
 
 	// Regular members
-	private Map<String, Context> scriptingContexts = new HashMap<>();
+	private Map<String, Context> scriptingContexts       = new HashMap<>();
 	private final ContextStore temporaryContextStore     = new ContextStore();
 	private final StringBuilder outputBuffer             = new StringBuilder();
 	private ErrorBuffer errorBuffer                      = new ErrorBuffer();
@@ -314,7 +314,7 @@ public class ActionContext {
 
 							final ContextStore contextStore = getContextStore();
 							final Map<String, Object> temp  = contextStore.getTemporaryParameters();
-							final Arguments arguments       = Arguments.fromMap(temp);
+							final Arguments arguments       = NamedArguments.fromMap(temp);
 
 							return method.execute(securityContext, null, arguments, hints);
 						}
@@ -587,16 +587,16 @@ public class ActionContext {
 		return this.securityContext.getContextStore();
 	}
 
-	public Source getJavascriptLibraryCode(String fileName) {
-		return this.securityContext.getJavascriptLibraryCode(fileName);
-	}
-
 	public Context getScriptingContext(final String language) {
 		return scriptingContexts.get(language);
 	}
 
 	public void putScriptingContext(final String language, final Context context) {
 		scriptingContexts.put(language, context);
+	}
+
+	public void removeScriptingContextByValue(final Context context) {
+		scriptingContexts.entrySet().removeIf(entry -> entry.getValue().equals(context));
 	}
 
 	public void setScriptingContexts(final Map<String, Context> contexts) {

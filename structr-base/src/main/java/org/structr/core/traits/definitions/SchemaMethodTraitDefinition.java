@@ -30,6 +30,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaMethod;
+import org.structr.core.function.Functions;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.PropertySetNotion;
@@ -163,6 +164,11 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 
 					schemaMethod.handleAutomaticCorrectionOfAttributes();
 
+					if (schemaMethod.getSchemaNode() == null && Functions.getNames().contains(schemaMethod.getName())) {
+
+						schemaMethod.warnAboutShadowingBuiltinFunction();
+					}
+
 					Actions.clearCache();
 				}
 			},
@@ -182,6 +188,11 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 					} else {
 
 						schemaMethod.handleAutomaticCorrectionOfAttributes();
+
+						if (schemaMethod.getSchemaNode() == null && Functions.getNames().contains(schemaMethod.getName()) && modificationQueue.isPropertyModified(graphObject, traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY))) {
+
+							schemaMethod.warnAboutShadowingBuiltinFunction();
+						}
 					}
 
 					// acknowledge all events for this node when it is modified
@@ -284,17 +295,7 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 					IS_PRIVATE_PROPERTY, RETURN_RAW_RESULT_PROPERTY, HTTP_VERB_PROPERTY
 			),
 
-			"schema",
-			newSet(
-					GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY,
-					SCHEMA_NODE_PROPERTY, STATIC_SCHEMA_NODE_NAME_PROPERTY, SOURCE_PROPERTY, RETURN_TYPE_PROPERTY,
-					EXCEPTIONS_PROPERTY, CALL_SUPER_PROPERTY, OVERRIDES_EXISTING_PROPERTY, DO_EXPORT_PROPERTY, CODE_TYPE_PROPERTY,
-					IS_PART_OF_BUILT_IN_SCHEMA_PROPERTY, TAGS_PROPERTY, SUMMARY_PROPERTY, DESCRIPTION_PROPERTY, IS_STATIC_PROPERTY,
-					INCLUDE_IN_OPEN_API_PROPERTY, OPEN_API_RETURN_TYPE_PROPERTY,
-					IS_PRIVATE_PROPERTY, RETURN_RAW_RESULT_PROPERTY, HTTP_VERB_PROPERTY, PARAMETERS_PROPERTY
-			),
-
-			"export",
+			PropertyView.Schema,
 			newSet(
 					GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY,
 					SCHEMA_NODE_PROPERTY, STATIC_SCHEMA_NODE_NAME_PROPERTY, SOURCE_PROPERTY, RETURN_TYPE_PROPERTY,

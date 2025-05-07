@@ -21,7 +21,11 @@ package org.structr.text;
 import org.apache.commons.io.IOUtils;
 import org.apache.tika.detect.DefaultDetector;
 import org.apache.tika.detect.Detector;
+import org.apache.tika.metadata.Metadata;
 import org.apache.tika.mime.MimeTypes;
+import org.apache.tika.parser.AutoDetectParser;
+import org.apache.tika.parser.EmptyParser;
+import org.apache.tika.sax.BodyContentHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.agent.Agent;
@@ -39,9 +43,12 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.File;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.FileTraitDefinition;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.zip.ZipEntry;
@@ -104,7 +111,8 @@ public class FulltextIndexingAgent extends Agent<String> {
 				}
 			}
 
-			return ReturnValue.Success;
+			// retry
+			return ReturnValue.Retry;
 		}
 
 		return ReturnValue.Abort;
@@ -122,12 +130,6 @@ public class FulltextIndexingAgent extends Agent<String> {
 
 	// ----- private methods -----
 	private boolean doIndexing(final App app, final File indexable) {
-
-		logger.info("Indexing is currently disabled!");
-
-		return true;
-
-		/*
 
 		boolean parsingSuccessful         = false;
 		InputStream inputStream           = null;
@@ -154,7 +156,7 @@ public class FulltextIndexingAgent extends Agent<String> {
 
 					final Metadata metadata = new Metadata();
 
-					try (final FulltextTokenizer tokenizer = new FulltextTokenizer(indexable.indexedWordMinLength(), indexable.indexedWordMaxLength())) {
+					try (final FulltextTokenizer tokenizer = new FulltextTokenizer(indexedWordMinLength(), indexedWordMaxLength())) {
 
 						try (final InputStream is = inputStream) {
 
@@ -169,8 +171,10 @@ public class FulltextIndexingAgent extends Agent<String> {
 						if (parsingSuccessful) {
 
 							// save raw extracted text
-							indexable.setProperty(StructrApp.key(File.class, "extractedContent"), tokenizer.getRawText());
+							indexable.setProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.EXTRACTED_CONTENT_PROPERTY), tokenizer.getRawText());
+							return true;
 
+/*
 							// tokenize name
 							tokenizer.write(getName());
 
@@ -205,7 +209,6 @@ public class FulltextIndexingAgent extends Agent<String> {
 									add(indexedWords, word);
 								}
 							}
-
 							final List<String> topWords       = getFrequencySortedTopWords(indexedWords, maximumIndexedWords());
 							final List<IndexedWord> wordNodes = new LinkedList<>();
 
@@ -232,6 +235,8 @@ public class FulltextIndexingAgent extends Agent<String> {
 
 								return false;
 							}
+*/
+
 						}
 					}
 				}
@@ -245,13 +250,12 @@ public class FulltextIndexingAgent extends Agent<String> {
 
 		} catch (final Throwable t) {
 
-			logger.warn("Indexing of {} failed: {}", indexable.getProperty(StructrApp.key(File.class, "path")), t.getMessage());
+			logger.warn("Indexing of {} failed: {}", indexable.getProperty(Traits.of(StructrTraits.ABSTRACT_FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY)), t.getMessage());
 
 			return false;
 		}
 
 		return true;
-		*/
 	}
 
 	private void add(final Map<String, Integer> frequencyMap, final String word) {

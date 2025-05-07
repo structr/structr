@@ -71,9 +71,9 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String CONTENT_TYPE_PROPERTY              = "contentType";
 	public static final String DONT_CACHE_PROPERTY                = "dontCache";
 	public static final String INDEXED_PROPERTY                   = "indexed";
+	public static final String EXTRACTED_CONTENT_PROPERTY         = "extractedContent";
 	public static final String IS_FILE_PROPERTY                   = "isFile";
 	public static final String IS_TEMPLATE_PROPERTY               = "isTemplate";
-	public static final String USE_AS_JAVASCRIPT_LIBRARY_PROPERTY = "useAsJavascriptLibrary";
 	public static final String CACHE_FOR_SECONDS_PROPERTY         = "cacheForSeconds";
 	public static final String POSITION_PROPERTY                  = "position";
 	public static final String VERSION_PROPERTY                   = "version";
@@ -284,9 +284,9 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> contentTypeProperty        = new StringProperty(CONTENT_TYPE_PROPERTY);
 		final Property<Boolean> dontCacheProperty         = new BooleanProperty(DONT_CACHE_PROPERTY).defaultValue(false);
 		final Property<Boolean> indexedProperty           = new BooleanProperty(INDEXED_PROPERTY);
+		final Property<String> extractedContentProperty   = new StringProperty(EXTRACTED_CONTENT_PROPERTY).fulltextIndexed().disableSerialization(true);
 		final Property<Boolean> isFileProperty            = new ConstantBooleanProperty(IS_FILE_PROPERTY, true).readOnly();
 		final Property<Boolean> isTemplateProperty        = new BooleanProperty(IS_TEMPLATE_PROPERTY);
-		final Property<Boolean> useAsJavascriptLibrary    = new BooleanProperty(USE_AS_JAVASCRIPT_LIBRARY_PROPERTY).indexed();
 		final Property<Integer> cacheForSecondsProperty   = new IntProperty(CACHE_FOR_SECONDS_PROPERTY);
 		final Property<Integer> positionProperty          = new IntProperty(POSITION_PROPERTY).indexed();
 		final Property<Integer> versionProperty           = new IntProperty(VERSION_PROPERTY).indexed();
@@ -298,16 +298,16 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Long> crc32Property                = new LongProperty(CRC32_PROPERTY).indexed();
 		final Property<Long> fileModificationDateProperty = new LongProperty(FILE_MODIFICATION_DATE_PROPERTY);
 		final Property<Long> sizeProperty                 = new LongProperty(SIZE_PROPERTY).indexed();
-		final Property<String> base64DataProperty         = new FileDataProperty(BASE64_DATA_PROPERTY).typeHint("String");
+		final Property<String> base64DataProperty         = new FileDataProperty(BASE64_DATA_PROPERTY).typeHint("String").disableSerialization(true);
 
 		return Set.of(
 			fileParentProperty,
 			contentTypeProperty,
 			dontCacheProperty,
 			indexedProperty,
+			extractedContentProperty,
 			isFileProperty,
 			isTemplateProperty,
-			useAsJavascriptLibrary,
 			cacheForSecondsProperty,
 			positionProperty,
 			versionProperty,
@@ -329,17 +329,17 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-					URL_PROPERTY, IS_FILE_PROPERTY, IS_TEMPLATE_PROPERTY, INDEXED_PROPERTY, SIZE_PROPERTY, FILE_MODIFICATION_DATE_PROPERTY,
+					URL_PROPERTY, IS_FILE_PROPERTY, IS_TEMPLATE_PROPERTY, INDEXED_PROPERTY, EXTRACTED_CONTENT_PROPERTY, SIZE_PROPERTY, FILE_MODIFICATION_DATE_PROPERTY,
 					DONT_CACHE_PROPERTY, AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY, NodeInterfaceTraitDefinition.OWNER_PROPERTY,
 					CONTENT_TYPE_PROPERTY, AbstractFileTraitDefinition.IS_MOUNTED_PROPERTY
 			),
 
 			PropertyView.Ui,
 			newSet(
-					URL_PROPERTY, IS_FILE_PROPERTY, IS_TEMPLATE_PROPERTY, INDEXED_PROPERTY, SIZE_PROPERTY, CACHE_FOR_SECONDS_PROPERTY,
+					URL_PROPERTY, IS_FILE_PROPERTY, IS_TEMPLATE_PROPERTY, INDEXED_PROPERTY, EXTRACTED_CONTENT_PROPERTY, SIZE_PROPERTY, CACHE_FOR_SECONDS_PROPERTY,
 					VERSION_PROPERTY, CHECKSUM_PROPERTY, MD5_PROPERTY, DONT_CACHE_PROPERTY, AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY,
 					NodeInterfaceTraitDefinition.OWNER_PROPERTY, AbstractFileTraitDefinition.HAS_PARENT_PROPERTY, AbstractFileTraitDefinition.PATH_PROPERTY,
-					CONTENT_TYPE_PROPERTY, USE_AS_JAVASCRIPT_LIBRARY_PROPERTY
+					CONTENT_TYPE_PROPERTY
 			)
 		);
 	}

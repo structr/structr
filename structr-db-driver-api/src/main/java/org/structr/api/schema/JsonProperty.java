@@ -44,6 +44,7 @@ public interface JsonProperty extends Comparable<JsonProperty> {
 	boolean isUnique();
 	boolean isIndexed();
 	boolean isReadOnly();
+	boolean isSerializationDisabled();
 	Set<String> getTransformators();
 	Set<String> getValidators();
 
@@ -56,6 +57,7 @@ public interface JsonProperty extends Comparable<JsonProperty> {
 	JsonProperty setUnique(final boolean isUnique);
 	JsonProperty setIndexed(final boolean isIndexed);
 	JsonProperty setReadOnly(final boolean isReadOnly);
+	JsonProperty setSerializationDisabled(final boolean serializationDisabled);
 	JsonProperty setDefaultValue(final String defaultValue);
 
 	JsonProperty addValidator(final String fqcn);

@@ -33,8 +33,8 @@ import org.structr.common.error.UnlicensedScriptException;
 import org.structr.common.geo.GeoCodingResult;
 import org.structr.common.geo.GeoHelper;
 import org.structr.core.api.AbstractMethod;
-import org.structr.core.api.Arguments;
 import org.structr.core.api.Methods;
+import org.structr.core.api.UnnamedArguments;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Group;
@@ -311,7 +311,7 @@ public class ScriptingTest extends StructrTest {
 			final AbstractMethod method = Methods.resolveMethod(node.getTraits(), "doTest01");
 			if (method != null) {
 
-				method.execute(securityContext, node, new Arguments(), new EvaluationHints());
+				method.execute(securityContext, node, new UnnamedArguments(), new EvaluationHints());
 			}
 
 			tx.success();
@@ -2521,27 +2521,6 @@ public class ScriptingTest extends StructrTest {
 
 			assertEquals("Newline at end of JavaScript scripting should not prevent script evaluation.", "test", Scripting.evaluate(ctx, null, script, "test"));
 			assertEquals("Newline at end of JavaScript scripting should not prevent script evaluation.", "test\n", Scripting.replaceVariables(ctx, null, script));
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-
-			fex.printStackTrace();
-			fail("Unexpected exception.");
-		}
-	}
-
-	@Test
-	public void testIncludeJs() {
-
-		final String script =  "${{ Structr.includeJs('test'); }}\n";
-
-		try (final Tx tx = app.tx()) {
-
-			final ActionContext ctx  = new ActionContext(securityContext, null);
-
-			// just run without an error, that's enough for this test
-			Scripting.evaluate(ctx, null, script, "test");
 
 			tx.success();
 
