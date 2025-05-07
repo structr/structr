@@ -22,7 +22,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.service.InitializationCallback;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.App;
@@ -30,6 +29,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.messaging.implementation.mqtt.entity.MQTTClient;
 
 import java.util.HashMap;
@@ -42,13 +42,13 @@ public abstract class MQTTContext {
 
 	static {
 
-		Services.getInstance().registerInitializationCallback(new InitializationCallback() {
+		Services.getInstance().registerInitializationCallback(() -> {
 
-			@Override
-			public void initializationDone() {
+			if (Traits.exists(StructrTraits.MQTT_CLIENT)) {
 
 				new Thread(new SubscriptionWorker()).start();
 			}
+
 		});
 	}
 

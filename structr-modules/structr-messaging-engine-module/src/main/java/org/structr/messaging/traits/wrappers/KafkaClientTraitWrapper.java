@@ -78,20 +78,23 @@ public class KafkaClientTraitWrapper extends MessageClientTraitWrapper implement
 
 		Services.getInstance().registerInitializationCallback(() -> {
 
-			final App app = StructrApp.getInstance();
+			if (Traits.exists(StructrTraits.KAFKA_CLIENT)) {
 
-			try (final Tx tx = app.tx()) {
+				final App app = StructrApp.getInstance();
 
-				for (final NodeInterface client : app.nodeQuery(StructrTraits.KAFKA_CLIENT).getAsList()) {
+				try (final Tx tx = app.tx()) {
 
-					client.as(KafkaClient.class).setup();
+					for (final NodeInterface client : app.nodeQuery(StructrTraits.KAFKA_CLIENT).getAsList()) {
+
+						client.as(KafkaClient.class).setup();
+					}
+
+					tx.success();
+
+				} catch (Throwable t) {
+					final Logger logger = LoggerFactory.getLogger(KafkaClientTraitWrapper.class);
+					logger.error("Unable to initialize Kafka clients. " + t);
 				}
-
-				tx.success();
-
-			} catch (Throwable t) {
-				final Logger logger = LoggerFactory.getLogger(KafkaClientTraitWrapper.class);
-				logger.error("Unable to initialize Kafka clients. " + t);
 			}
 		});
 	}
