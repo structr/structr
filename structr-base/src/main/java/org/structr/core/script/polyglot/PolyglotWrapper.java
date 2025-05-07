@@ -18,6 +18,7 @@
  */
 package org.structr.core.script.polyglot;
 
+import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.HostAccess;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.*;
@@ -27,6 +28,7 @@ import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
 import org.structr.core.api.IllegalArgumentTypeException;
 import org.structr.core.api.NamedArguments;
+import org.structr.core.script.polyglot.context.ContextHelper;
 import org.structr.core.script.polyglot.wrappers.*;
 import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
@@ -459,6 +461,7 @@ public abstract class PolyglotWrapper {
 			if (func.canExecute()) {
 
 				this.func = func;
+				ContextHelper.incrementReferenceCount(this.func.getContext());
 			}
 		}
 
@@ -474,13 +477,33 @@ public abstract class PolyglotWrapper {
 							.map(a -> unwrap(actionContext, a))
 							.map(a -> wrap(actionContext, a))
 							.map(Value::asValue)
-							.collect(Collectors.toList());
-
+							.toList();
 
 					Object result = func.execute(processedArgs.toArray());
 					lock.unlock();
 
-					return wrap(actionContext, unwrap(actionContext, result));
+					final Object wrappedResult = wrap(actionContext, unwrap(actionContext, result));
+
+					// Handle context reference counter and close current context if thread is the last one referencing it
+					ContextHelper.decrementReferenceCount(func.getContext());
+					if (ContextHelper.getReferenceCount(func.getContext()) == 0) {
+
+						final Context curContext = actionContext.getScriptingContexts()
+								.entrySet()
+								.stream()
+								.filter(entry -> entry.getValue().equals(func.getContext()))
+								.findFirst()
+								.map(Entry::getValue)
+								.orElse(null);
+
+						if (curContext != null) {
+
+							curContext.close();
+							actionContext.removeScriptingContextByValue(curContext);
+						}
+					}
+
+					return wrappedResult;
 				}
 			}
 
