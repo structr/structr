@@ -3847,7 +3847,7 @@ let _Pages = {
 								</div>
 
 								<div class="hidden em-action-element em-action-method">
-									<label class="block mb-2" for="id-expression-input" data-comment="Enter a script expression like &quot;&#36;{obj.id}&quot; that evaluates to the UUID of the data object the method shall be called on, or a type name for static methods, or leave empty for global methods.">UUID or type of data object to call method on</label>
+									<label class="block mb-2" for="id-expression-input" data-comment="Enter a script expression like &quot;&#36;{obj.id}&quot; that evaluates to the UUID of the data object the method shall be called on, or a type name for static methods, or leave empty for user-defined functions.">UUID or type of data object to call method on</label>
 								</div>
 
 								<div class="hidden em-action-element em-action-custom">
