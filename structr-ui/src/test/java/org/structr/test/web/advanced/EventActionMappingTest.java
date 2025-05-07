@@ -30,6 +30,7 @@ import org.structr.api.schema.JsonMethod;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
@@ -42,6 +43,7 @@ import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.traits.definitions.ActionMappingTraitDefinition;
+import org.structr.web.traits.definitions.ParameterMappingTraitDefinition;
 import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
 import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 import org.testng.annotations.Test;
@@ -2477,7 +2479,6 @@ public class EventActionMappingTest extends StructrUiTest {
 	@Test
 	public void testClonePage() {
 
-
 		final PropertyKey<String> htmlIdKey = Traits.of(StructrTraits.DOM_ELEMENT).key(DOMElementTraitDefinition._HTML_ID_PROPERTY);
 		String btnId                     = null;
 		String divId                        = null;
@@ -2699,6 +2700,82 @@ public class EventActionMappingTest extends StructrUiTest {
 			.body("test2", equalTo("test1"))
 			.when()
 			.post("/structr/rest/DOMElement/" + buttonUuid + "/event");
+	}
+
+	@Test
+	public void testDeletionOfActionMappingsWithPage() {
+
+		// create EAM
+		try (final Tx tx = app.tx()) {
+
+			createAdminUser();
+
+			final Page page1     = Page.createSimplePage(securityContext, "page1");
+			final DOMNode div    = page1.getElementsByTagName("div").get(0);
+			final DOMElement btn = page1.createElement("button");
+			final Content text   = page1.createTextNode("Create");
+
+			div.appendChild(btn);
+			btn.appendChild(text);
+
+			final NodeInterface eam = app.create(StructrTraits.ACTION_MAPPING);
+
+			// base setup
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY), List.of(btn));
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.EVENT_PROPERTY), "click");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.ACTION_PROPERTY), "create");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.DATA_TYPE_PROPERTY), "Project");
+
+			// success follow-up actions (possible values are partial-refresh, partial-refresh-linked, navigate-to-url, fire-event, full-page-reload, sign-out, none)
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.SUCCESS_BEHAVIOUR_PROPERTY), "partial-refresh-linked");
+			eam.setProperty(Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.SUCCESS_TARGETS_PROPERTY), List.of(div));
+
+			// create parameter mappings (to test cascading delete)
+			app.create(StructrTraits.PARAMETER_MAPPING,
+				new NodeAttribute<>(Traits.of(StructrTraits.PARAMETER_MAPPING).key(ParameterMappingTraitDefinition.PARAMETER_NAME_PROPERTY), "param1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.PARAMETER_MAPPING).key(ParameterMappingTraitDefinition.ACTION_MAPPING_PROPERTY), eam)
+			);
+
+			app.create(StructrTraits.PARAMETER_MAPPING,
+				new NodeAttribute<>(Traits.of(StructrTraits.PARAMETER_MAPPING).key(ParameterMappingTraitDefinition.PARAMETER_NAME_PROPERTY), "param2"),
+				new NodeAttribute<>(Traits.of(StructrTraits.PARAMETER_MAPPING).key(ParameterMappingTraitDefinition.ACTION_MAPPING_PROPERTY), eam)
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// delete all DOM nodes
+		try (final Tx tx = app.tx()) {
+
+			app.deleteAllNodesOfType(StructrTraits.DOM_NODE);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// verify that EAMs have been deleted as well
+		try (final Tx tx = app.tx()) {
+
+			assertEquals("Pages not deleted via deleteAllNodesOfType()", 0, app.nodeQuery(StructrTraits.PAGE).getAsList().size());
+			assertEquals("ActionMappings not deleted when deleting a page", 0, app.nodeQuery(StructrTraits.ACTION_MAPPING).getAsList().size());
+			assertEquals("ParameterMappings not deleted when deleting a page", 0, app.nodeQuery(StructrTraits.PARAMETER_MAPPING).getAsList().size());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
 	}
 
 

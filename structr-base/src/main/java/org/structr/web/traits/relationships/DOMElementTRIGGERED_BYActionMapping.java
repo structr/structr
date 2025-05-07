@@ -56,7 +56,7 @@ public class DOMElementTRIGGERED_BYActionMapping extends AbstractRelationshipTra
 
 	@Override
 	public int getCascadingDeleteFlag() {
-		return Relation.NONE;
+		return Relation.SOURCE_TO_TARGET;
 	}
 
 	@Override
