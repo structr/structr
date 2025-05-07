@@ -19,6 +19,7 @@
 package org.structr.web.importer;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.graalvm.polyglot.Context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.AccessMode;
@@ -32,6 +33,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.scheduler.ScheduledJob;
 import org.structr.core.script.Scripting;
 import org.structr.core.script.polyglot.PolyglotWrapper;
+import org.structr.core.script.polyglot.config.ScriptConfig;
 import org.structr.schema.action.ActionContext;
 
 import java.util.HashMap;
@@ -70,23 +72,18 @@ public class ScriptJob extends ScheduledJob {
 
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 
-				final SecurityContext securityContext = SecurityContext.getInstance(user, AccessMode.Backend);
-
-				securityContext.setContextStore(ctxStore);
-
+				final SecurityContext securityContext = user.getSecurityContext();
 				final ActionContext actionContext     = new ActionContext(securityContext);
 
 				reportBegin();
 
 				// If a polyglot function was supplied, execute it directly
-				if (script instanceof PolyglotWrapper.FunctionWrapper) {
+				if (script instanceof PolyglotWrapper.FunctionWrapper functionWrapper) {
 
-					((PolyglotWrapper.FunctionWrapper)script).execute();
-
+					functionWrapper.execute();
 				} else if (script instanceof String) {
 
 					Scripting.evaluate(actionContext, null, (String)script, jobName, null);
-
 				} else if (script != null) {
 
 					logger.warn("Unable to schedule script of type {}, ignoring", script.getClass().getName());

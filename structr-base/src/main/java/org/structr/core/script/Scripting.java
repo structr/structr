@@ -41,17 +41,15 @@ import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.DateProperty;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.core.script.polyglot.config.ScriptConfig;
-import org.structr.core.script.polyglot.config.ScriptConfigBuilder;
 import org.structr.core.script.polyglot.context.ContextFactory;
+import org.structr.core.script.polyglot.context.ContextHelper;
 import org.structr.core.script.polyglot.util.JSFunctionTranspiler;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
-import org.structr.core.script.polyglot.util.JSFunctionTranspiler;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.parser.DatePropertyGenerator;
-import org.structr.web.traits.definitions.html.Script;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -282,6 +280,7 @@ public class Scripting {
 
 		final Context context = ContextFactory.getContext(engineName, actionContext, entity);
 
+		ContextHelper.incrementReferenceCount(context);
 		context.enter();
 
 		Object result = null;
@@ -294,10 +293,15 @@ public class Scripting {
 		} finally {
 
 			context.leave();
+			ContextHelper.decrementReferenceCount(context);
+
 			if (scriptConfig == null || !scriptConfig.keepContextOpen()) {
 
-				context.close();
-				actionContext.putScriptingContext(engineName, null);
+				if (ContextHelper.getReferenceCount(context) <= 0) {
+
+					context.close();
+					actionContext.putScriptingContext(engineName, null);
+				}
 			}
 		}
 
