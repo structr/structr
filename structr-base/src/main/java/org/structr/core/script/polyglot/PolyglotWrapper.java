@@ -452,15 +452,18 @@ public abstract class PolyglotWrapper {
 		private Value func;
 		private final ActionContext actionContext;
 		private final ReentrantLock lock;
+		private boolean hasRun;
 
 		public FunctionWrapper(final ActionContext actionContext, final Value func) {
 
 			this.actionContext = actionContext;
 			this.lock = new ReentrantLock();
+			this.hasRun = false;
 
 			if (func.canExecute()) {
 
 				this.func = func;
+				ContextHelper.incrementReferenceCount(func.getContext());
 			}
 		}
 
@@ -473,7 +476,11 @@ public abstract class PolyglotWrapper {
 
 			synchronized (func.getContext()) {
 
-				ContextHelper.incrementReferenceCount(func.getContext());
+				if (hasRun) {
+
+					ContextHelper.incrementReferenceCount(func.getContext());
+					hasRun = false;
+				}
 
 				lock.lock();
 				List<Value> processedArgs = Arrays.stream(arguments)
