@@ -30,6 +30,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.core.script.polyglot.context.ContextFactory;
+import org.structr.core.script.polyglot.context.ContextHelper;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
@@ -79,6 +80,7 @@ public class DoInNewTransactionFunction extends BuiltinFunctionHint implements P
 
 						try {
 
+							ContextHelper.incrementReferenceCount(innerContext);
 							innerContext.enter();
 
 							// Execute batch function until it returns anything but true
@@ -128,6 +130,13 @@ public class DoInNewTransactionFunction extends BuiltinFunctionHint implements P
 						} finally {
 
 							innerContext.leave();
+							ContextHelper.decrementReferenceCount(innerContext);
+
+							if (ContextHelper.getReferenceCount(innerContext) <= 0) {
+
+								innerContext.close();
+								actionContext.removeScriptingContextByValue(innerContext);
+							}
 						}
 					}
 

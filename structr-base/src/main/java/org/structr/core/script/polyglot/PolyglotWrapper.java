@@ -461,46 +461,48 @@ public abstract class PolyglotWrapper {
 			if (func.canExecute()) {
 
 				this.func = func;
-				ContextHelper.incrementReferenceCount(this.func.getContext());
 			}
 		}
 
 		@Override
 		public Object execute(Value... arguments) {
 
+			if (func == null) {
+				throw new IllegalStateException("FunctionWrapper: Function cannot be null.");
+			}
+
 			synchronized (func.getContext()) {
 
-				if (func != null) {
+				ContextHelper.incrementReferenceCount(func.getContext());
 
-					lock.lock();
-					List<Value> processedArgs = Arrays.stream(arguments)
-							.map(a -> unwrap(actionContext, a))
-							.map(a -> wrap(actionContext, a))
-							.map(Value::asValue)
-							.toList();
+				lock.lock();
+				List<Value> processedArgs = Arrays.stream(arguments)
+						.map(a -> unwrap(actionContext, a))
+						.map(a -> wrap(actionContext, a))
+						.map(Value::asValue)
+						.toList();
 
-					Object result = func.execute(processedArgs.toArray());
-					lock.unlock();
+				Object result = func.execute(processedArgs.toArray());
+				lock.unlock();
 
-					final Object wrappedResult = wrap(actionContext, unwrap(actionContext, result));
+				final Object wrappedResult = wrap(actionContext, unwrap(actionContext, result));
 
-					// Handle context reference counter and close current context if thread is the last one referencing it
-					ContextHelper.decrementReferenceCount(func.getContext());
-					if (ContextHelper.getReferenceCount(func.getContext()) == 0) {
+				// Handle context reference counter and close current context if thread is the last one referencing it
+				ContextHelper.decrementReferenceCount(func.getContext());
+				if (ContextHelper.getReferenceCount(func.getContext()) <= 0) {
 
-						final Context curContext = actionContext.getScriptingContexts()
-								.entrySet()
-								.stream()
-								.filter(entry -> entry.getValue().equals(func.getContext()))
-								.findFirst()
-								.map(Entry::getValue)
-								.orElse(null);
+					final Context curContext = actionContext.getScriptingContexts()
+							.entrySet()
+							.stream()
+							.filter(entry -> entry.getValue().equals(func.getContext()))
+							.findFirst()
+							.map(Entry::getValue)
+							.orElse(null);
 
-						if (curContext != null) {
+					if (curContext != null) {
 
-							curContext.close();
-							actionContext.removeScriptingContextByValue(curContext);
-						}
+						curContext.close();
+						actionContext.removeScriptingContextByValue(curContext);
 					}
 
 					return wrappedResult;
