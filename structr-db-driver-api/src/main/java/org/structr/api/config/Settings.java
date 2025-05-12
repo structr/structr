@@ -821,9 +821,10 @@ public class Settings {
 				if (setting.isModified() || "superuser.password".equals(setting.getKey())) {
 
 					config.setProperty(setting.getKey(), setting.getValue());
+
+					setting.setIsModified(false);
 				}
 			}
-
 
 			FileHandler fileHandler = builder.getFileHandler();
 

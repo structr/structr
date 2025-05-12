@@ -29,6 +29,7 @@ public abstract class Setting<T> {
 
 	protected SettingsGroup group                = null;
 	protected boolean isDynamic                  = false;
+	protected boolean isModified                 = false;
 	protected T defaultValue                     = null;
 	protected String category                    = null;
 	protected String key                         = null;
@@ -144,6 +145,8 @@ public abstract class Setting<T> {
 
 			changeHandler.execute(this, oldValue, value);
 		}
+
+		isModified = changed;
 	}
 
 	public void setDefaultValue(final T value) {
@@ -151,7 +154,11 @@ public abstract class Setting<T> {
 	}
 
 	public boolean isModified() {
-		return (defaultValue != null && !defaultValue.equals(value)) || (defaultValue == null && value != null);
+		return isModified || (defaultValue != null && !defaultValue.equals(value)) || (defaultValue == null && value != null);
+	}
+
+	public void setIsModified(final boolean isModified) {
+		this.isModified = isModified;
 	}
 
 	public boolean isDynamic() {
