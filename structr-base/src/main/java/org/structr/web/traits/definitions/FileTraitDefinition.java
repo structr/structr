@@ -197,23 +197,6 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 					return getSuper().setProperty(graphObject, key, value, isCreation);
 				}
 			}
-
-			/*
-
-			SetProperties.class,
-			new SetProperties() {
-
-				@Override
-				public void setProperties(final GraphObject graphObject, final SecurityContext securityContext, final PropertyMap properties, final boolean isCreation) throws FrameworkException {
-
-					final File thisFile = graphObject.as(File.class);
-
-					FileTraitDefinition.OnSetProperties(thisFile, securityContext, properties, isCreation);
-
-					getSuper().setProperties(graphObject, securityContext, properties, isCreation);
-				}
-			}
-			*/
 		);
 	}
 
@@ -349,112 +332,6 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 		return null;
 	}
 
-	/*
-	class Impl { static {
-
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType(StructrTraits.FILE);
-
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/File"));
-		type.setImplements(Linkable.class);
-		type.setImplements(JavaScriptSource.class);
-		type.setExtends(URI.create("#/definitions/AbstractFile"));
-		type.setCategory("ui");
-
-		// override setProperty methods, but don't call super first (we need the previous value)
-		type.overrideMethod("setProperty",                 false,  org.structr.web.entity.File.class.getName() + ".OnSetProperty(this, arg0,arg1);\n\t\treturn super.setProperty(arg0, arg1, false);");
-		type.overrideMethod("setProperties",               false,  org.structr.web.entity.File.class.getName() + ".OnSetProperties(this, arg0, arg1, arg2);\n\t\tsuper.setProperties(arg0, arg1, arg2);")
-				// the following lines make the overridden setProperties method more explicit in regards to its parameters
-				.setReturnType("void")
-				.addParameter("arg0", SecurityContext.class.getName())
-				.addParameter("arg1", "java.util.Map<java.lang.String, java.lang.Object>")
-				.addParameter("arg2", "boolean")
-				.addException(FrameworkException.class.getName());
-
-		type.overrideMethod("onCreation",                  true,  org.structr.web.entity.File.class.getName() + ".onCreation(this, arg0, arg1);");
-		type.overrideMethod("onModification",              true,  org.structr.web.entity.File.class.getName() + ".onModification(this, arg0, arg1, arg2);");
-		type.overrideMethod("onNodeDeletion",              true,  org.structr.web.entity.File.class.getName() + ".onNodeDeletion(this);");
-		type.overrideMethod("afterCreation",               true,  org.structr.web.entity.File.class.getName() + ".afterCreation(this, arg0);");
-
-		type.overrideMethod("increaseVersion",             false, org.structr.web.entity.File.class.getName() + ".increaseVersion(this);");
-		type.overrideMethod("notifyUploadCompletion",      false, org.structr.web.entity.File.class.getName() + ".notifyUploadCompletion(this);");
-		type.overrideMethod("callOnUploadHandler",         false, org.structr.web.entity.File.class.getName() + ".callOnUploadHandler(this, arg0);");
-
-		type.overrideMethod("getInputStream",              false, "return " + org.structr.web.entity.File.class.getName() + ".getInputStream(this);");
-		type.overrideMethod("getSearchContext",            false, "return " + org.structr.web.entity.File.class.getName() + ".getSearchContext(this, arg0, arg1, arg2);");
-		type.overrideMethod("getJavascriptLibraryCode",    false, "return " + org.structr.web.entity.File.class.getName() + ".getJavascriptLibraryCode(this);");
-		type.overrideMethod("getEnableBasicAuth",          false, "return getProperty(enableBasicAuthProperty);");
-
-		type.overrideMethod("getCurrentWorkingDir",        false, "return " + org.structr.web.entity.File.class.getName() + ".getCurrentWorkingDir(this);");
-
-		// overridden methods
-		final JsonMethod getOutputStream1 = type.addMethod("getOutputStream");
-		getOutputStream1.setSource("return " + org.structr.web.entity.File.class.getName() + ".getOutputStream(this, notifyIndexerAfterClosing, append);");
-		getOutputStream1.addParameter("notifyIndexerAfterClosing", "boolean");
-		getOutputStream1.addParameter("append", "boolean");
-		getOutputStream1.setReturnType(OutputStream.class.getName());
-
-		final JsonMethod getOutputStream2 = type.addMethod("getOutputStream");
-		getOutputStream2.setSource("return " + org.structr.web.entity.File.class.getName() + ".getOutputStream(this, true, false);");
-		getOutputStream2.setReturnType(OutputStream.class.getName());
-
-		type.addMethod("doCSVImport")
-				.setReturnType(Long.class.getName())
-				.addParameter("ctx", SecurityContext.class.getName())
-				.addParameter("parameters", "java.util.Map<java.lang.String, java.lang.Object>")
-				.setSource("return " + org.structr.web.entity.File.class.getName() + ".doCSVImport(this, parameters, ctx);")
-				.addException(FrameworkException.class.getName())
-				.setDoExport(true);
-
-
-		type.addMethod("doXMLImport")
-				.addParameter("ctx", SecurityContext.class.getName())
-				.addParameter("parameters", "java.util.Map<java.lang.String, java.lang.Object>")
-				.setReturnType(Long.class.getName())
-				.setSource("return " + org.structr.web.entity.File.class.getName() + ".doXMLImport(this, parameters, ctx);")
-				.addException(FrameworkException.class.getName())
-				.setDoExport(true);
-
-		type.addMethod("getFirstLines")
-				.addParameter("ctx", SecurityContext.class.getName())
-				.addParameter("parameters", "java.util.Map<java.lang.String, java.lang.Object>")
-				.setReturnType("java.util.Map<java.lang.String, java.lang.Object>")
-				.setSource("return " + org.structr.web.entity.File.class.getName() + ".getFirstLines(this, parameters, ctx);")
-				.setDoExport(true);
-
-		type.addMethod("getCSVHeaders")
-				.addParameter("ctx", SecurityContext.class.getName())
-				.addParameter("parameters", "java.util.Map<java.lang.String, java.lang.Object>")
-				.setReturnType("java.util.Map<java.lang.String, java.lang.Object>")
-				.setSource("return " + org.structr.web.entity.File.class.getName() + ".getCSVHeaders(this, parameters, ctx);")
-				.addException(FrameworkException.class.getName())
-				.setDoExport(true);
-
-		type.addMethod("getXMLStructure")
-				.addParameter("ctx", SecurityContext.class.getName())
-				.setReturnType("java.lang.String")
-				.setSource("return " + org.structr.web.entity.File.class.getName() + ".getXMLStructure(this);")
-				.addException(FrameworkException.class.getName())
-				.setDoExport(true);
-
-		type.addMethod("extractStructure")
-				.addParameter("ctx", SecurityContext.class.getName())
-				.addParameter("parameters", "java.util.Map<java.lang.String, java.lang.Object>")
-				.setReturnType("java.util.Map<java.lang.String, java.lang.Object>")
-				.setSource("return " + org.structr.web.entity.File.class.getName() + ".extractStructure(this);")
-				.addException(FrameworkException.class.getName())
-				.setDoExport(true);
-
-		// view configuration
-		type.addViewProperty(PropertyView.Public, "includeInFrontendExport");
-		type.addViewProperty(PropertyView.Public, "owner");
-
-		type.addViewProperty(PropertyView.Ui, "hasParent");
-		type.addViewProperty(PropertyView.Ui, "path");
-
-	}}
-	*/
-
 	private static <T> void OnSetProperty(final org.structr.web.entity.File thisFile, final PropertyKey<T> key, T value, final boolean isCreation) {
 
 		if (isCreation) {
@@ -490,41 +367,6 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 
 				thisFile.checkMoveBinaryContents(thisFile.getParent(), parentFolder);
 			}
-		}
-	}
-
-	private static void OnSetProperties(final org.structr.web.entity.File thisFile, final SecurityContext securityContext, final PropertyMap properties, final boolean isCreation) throws FrameworkException {
-
-		if (isCreation) {
-			return;
-		}
-
-		final Traits traits                                      = Traits.of(StructrTraits.FILE);
-		final PropertyKey<NodeInterface> storageConfigurationKey = traits.key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY);
-		final PropertyKey<NodeInterface> parentKey               = traits.key(AbstractFileTraitDefinition.PARENT_PROPERTY);
-		final PropertyKey<String> parentIdKey                    = traits.key(AbstractFileTraitDefinition.PARENT_ID_PROPERTY);
-
-		if (properties.containsKey(storageConfigurationKey)) {
-
-			thisFile.checkMoveBinaryContents(properties.get(storageConfigurationKey));
-
-		} else if (properties.containsKey(parentKey)) {
-
-			thisFile.checkMoveBinaryContents(thisFile.getParent(), properties.get(parentKey));
-
-		} else if (properties.containsKey(parentIdKey)) {
-
-			NodeInterface parentFolder = null;
-			try {
-
-				parentFolder = StructrApp.getInstance().nodeQuery(StructrTraits.FOLDER).uuid(properties.get(parentIdKey)).getFirst();
-
-			} catch (FrameworkException ex) {
-
-				LoggerFactory.getLogger(org.structr.web.entity.File.class).warn("Exception while trying to lookup parent folder.", ex);
-			}
-
-			thisFile.checkMoveBinaryContents(thisFile.getParent(), parentFolder);
 		}
 	}
 }

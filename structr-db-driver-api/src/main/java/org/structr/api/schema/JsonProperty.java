@@ -44,6 +44,7 @@ public interface JsonProperty extends Comparable<JsonProperty> {
 	boolean isUnique();
 	boolean isIndexed();
 	boolean isReadOnly();
+	boolean isAbstract();
 	boolean isSerializationDisabled();
 	Set<String> getTransformators();
 	Set<String> getValidators();
@@ -52,6 +53,7 @@ public interface JsonProperty extends Comparable<JsonProperty> {
 	JsonProperty setCategory(final String category);
 	JsonProperty setFormat(final String format);
 	JsonProperty setName(final String name);
+	JsonProperty setAbstract(final boolean isAbstractMethod);
 	JsonProperty setRequired(final boolean isRequired);
 	JsonProperty setCompound(final boolean isCompoundUnique);
 	JsonProperty setUnique(final boolean isUnique);
@@ -62,4 +64,5 @@ public interface JsonProperty extends Comparable<JsonProperty> {
 
 	JsonProperty addValidator(final String fqcn);
 	JsonProperty addTransformer(final String fqcn);
+
 }

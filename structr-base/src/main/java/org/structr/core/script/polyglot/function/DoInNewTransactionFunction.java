@@ -80,11 +80,11 @@ public class DoInNewTransactionFunction extends BuiltinFunctionHint implements P
 
 						try {
 
-							ContextHelper.incrementReferenceCount(innerContext);
 							innerContext.enter();
 
 							// Execute batch function until it returns anything but true
 							do {
+								ContextHelper.incrementReferenceCount(innerContext);
 								boolean hasError = false;
 
 								try (final Tx tx = StructrApp.getInstance(actionContext.getSecurityContext()).tx()) {
@@ -125,12 +125,12 @@ public class DoInNewTransactionFunction extends BuiltinFunctionHint implements P
 									}
 								}
 
+								ContextHelper.decrementReferenceCount(innerContext);
 							} while (result != null && result.equals(true));
 
 						} finally {
 
 							innerContext.leave();
-							ContextHelper.decrementReferenceCount(innerContext);
 
 							if (ContextHelper.getReferenceCount(innerContext) <= 0) {
 

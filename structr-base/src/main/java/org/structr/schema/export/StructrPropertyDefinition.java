@@ -59,6 +59,7 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 	protected String defaultValue           = null;
 	protected String hint                   = null;
 	protected String category               = null;
+	protected boolean isAbstract            = false;
 	protected boolean required              = false;
 	protected boolean compound              = false;
 	protected boolean unique                = false;
@@ -161,6 +162,11 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 	}
 
 	@Override
+	public boolean isAbstract() {
+		return isAbstract;
+	}
+
+	@Override
 	public boolean isReadOnly() {
 		return readOnly;
 	}
@@ -205,6 +211,13 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 	public JsonProperty setName(String name) {
 
 		this.name = name;
+		return this;
+	}
+
+	@Override
+	public JsonProperty setAbstract(boolean isAbstract) {
+
+		this.isAbstract = isAbstract;
 		return this;
 	}
 
@@ -302,6 +315,7 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.INDEXED_PROPERTY),                   isIndexed());
 			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.NOT_NULL_PROPERTY),                  isRequired());
 			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.READ_ONLY_PROPERTY),                 isReadOnly());
+			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.IS_ABSTRACT_PROPERTY),               isAbstract());
 			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.IS_SERIALIZATION_DISABLED_PROPERTY), isSerializationDisabled());
 			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.FORMAT_PROPERTY),                    getFormat());
 			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.HINT_PROPERTY),                      getHint());
@@ -351,6 +365,10 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 
 		if (source.containsKey(JsonSchema.KEY_READ_ONLY)) {
 			this.readOnly = (Boolean)source.get(JsonSchema.KEY_READ_ONLY);
+		}
+
+		if (source.containsKey(JsonSchema.KEY_IS_ABSTRACT)) {
+			this.isAbstract = (Boolean)source.get(JsonSchema.KEY_IS_ABSTRACT);
 		}
 
 		if (source.containsKey(JsonSchema.KEY_SERIALIZATION_DISABLED)) {
@@ -404,6 +422,7 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 		setUnique(property.isUnique());
 		setIndexed(property.isIndexed());
 		setReadOnly(property.isReadOnly());
+		setAbstract(property.isAbstract());
 		setSerializationDisabled(property.isSerializationDisabled());
 
 		setHint(property.getHint());
@@ -446,6 +465,10 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 
 		if (readOnly) {
 			map.put(JsonSchema.KEY_READ_ONLY, true);
+		}
+
+		if (isAbstract) {
+			map.put(JsonSchema.KEY_IS_ABSTRACT, true);
 		}
 
 		if (serializationDisabled) {

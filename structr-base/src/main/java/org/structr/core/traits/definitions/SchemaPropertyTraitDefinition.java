@@ -19,12 +19,16 @@
 package org.structr.core.traits.definitions;
 
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaProperty;
+import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
@@ -32,7 +36,10 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
+import org.structr.core.traits.operations.graphobject.OnCreation;
+import org.structr.core.traits.operations.graphobject.OnModification;
 import org.structr.core.traits.wrappers.SchemaPropertyTraitWrapper;
+import org.structr.schema.ReloadSchema;
 
 import java.util.Map;
 import java.util.Set;
@@ -61,6 +68,7 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String UNIQUE_PROPERTY                     = "unique";
 	public static final String INDEXED_PROPERTY                    = "indexed";
 	public static final String READ_ONLY_PROPERTY                  = "readOnly";
+	public static final String IS_ABSTRACT_PROPERTY                = "isAbstract";
 	public static final String IS_DYNAMIC_PROPERTY                 = "isDynamic";
 	public static final String IS_BUILTIN_PROPERTY_PROPERTY        = "isBuiltinProperty";
 	public static final String IS_PART_OF_BUILT_IN_SCHEMA_PROPERTY = "isPartOfBuiltInSchema";
@@ -92,6 +100,24 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 						schemaPropertyNamePattern,
 						"Property name must match the following pattern: '" + schemaPropertyNamePattern + "', which means it must begin with a lowercase letter and may only contain letters, numbers, underscores and hyphens.",
 						errorBuffer);
+				}
+			},
+
+			OnCreation.class,
+			new OnCreation() {
+
+				@Override
+				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+					TransactionCommand.postProcess("reloadSchema", new ReloadSchema(true));
+				}
+			},
+
+			OnModification.class,
+			new OnModification() {
+
+				@Override
+				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+					TransactionCommand.postProcess("reloadSchema", new ReloadSchema(true));
 				}
 			}
 		);
@@ -129,6 +155,7 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Boolean>            unique                  = new BooleanProperty(UNIQUE_PROPERTY);
 		final Property<Boolean>            indexed                 = new BooleanProperty(INDEXED_PROPERTY);
 		final Property<Boolean>            readOnly                = new BooleanProperty(READ_ONLY_PROPERTY);
+		final Property<Boolean>            isAbstract              = new BooleanProperty(IS_ABSTRACT_PROPERTY);
 		final Property<Boolean>            isDynamic               = new BooleanProperty(IS_DYNAMIC_PROPERTY);
 		final Property<Boolean>            isBuiltinProperty       = new BooleanProperty(IS_BUILTIN_PROPERTY_PROPERTY);
 		final Property<Boolean>            isPartOfBuiltInSchema   = new BooleanProperty(IS_PART_OF_BUILT_IN_SCHEMA_PROPERTY);
@@ -163,6 +190,7 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 			unique,
 			indexed,
 			readOnly,
+			isAbstract,
 			isDynamic,
 			isBuiltinProperty,
 			isPartOfBuiltInSchema,
@@ -188,8 +216,9 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 						DB_NAME_PROPERTY, SCHEMA_NODE_PROPERTY, SCHEMA_VIEWS_PROPERTY, EXCLUDED_VIEWS_PROPERTY, PROPERTY_TYPE_PROPERTY,
 						CONTENT_TYPE_PROPERTY, FORMAT_PROPERTY, FQCN_PROPERTY, TYPE_HINT_PROPERTY, HINT_PROPERTY, CATEGORY_PROPERTY,
 						NOT_NULL_PROPERTY, COMPOUND_PROPERTY, UNIQUE_PROPERTY, INDEXED_PROPERTY, READ_ONLY_PROPERTY, DEFAULT_VALUE_PROPERTY,
-						IS_BUILTIN_PROPERTY_PROPERTY, DECLARING_CLASS_PROPERTY, IS_DYNAMIC_PROPERTY, READ_FUNCTION_PROPERTY, WRITE_FUNCTION_PROPERTY,
-						IS_SERIALIZATION_DISABLED_PROPERTY, OPEN_API_RETURN_TYPE_PROPERTY, VALIDATORS_PROPERTY, TRANSFORMERS_PROPERTY, IS_CACHING_ENABLED_PROPERTY
+						IS_BUILTIN_PROPERTY_PROPERTY, DECLARING_CLASS_PROPERTY, IS_ABSTRACT_PROPERTY, IS_DYNAMIC_PROPERTY, READ_FUNCTION_PROPERTY,
+						WRITE_FUNCTION_PROPERTY, IS_SERIALIZATION_DISABLED_PROPERTY, OPEN_API_RETURN_TYPE_PROPERTY, VALIDATORS_PROPERTY,
+						TRANSFORMERS_PROPERTY, IS_CACHING_ENABLED_PROPERTY
 				),
 
 				PropertyView.Ui,
@@ -201,8 +230,9 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 						SCHEMA_NODE_PROPERTY, SCHEMA_VIEWS_PROPERTY, EXCLUDED_VIEWS_PROPERTY, PROPERTY_TYPE_PROPERTY, CONTENT_TYPE_PROPERTY,
 						FQCN_PROPERTY, FORMAT_PROPERTY, TYPE_HINT_PROPERTY, HINT_PROPERTY, CATEGORY_PROPERTY, NOT_NULL_PROPERTY,
 						COMPOUND_PROPERTY, UNIQUE_PROPERTY, INDEXED_PROPERTY, READ_ONLY_PROPERTY, DEFAULT_VALUE_PROPERTY,
-						IS_BUILTIN_PROPERTY_PROPERTY, DECLARING_CLASS_PROPERTY, IS_DYNAMIC_PROPERTY, READ_FUNCTION_PROPERTY, WRITE_FUNCTION_PROPERTY,
-						IS_SERIALIZATION_DISABLED_PROPERTY, OPEN_API_RETURN_TYPE_PROPERTY, VALIDATORS_PROPERTY, TRANSFORMERS_PROPERTY, IS_CACHING_ENABLED_PROPERTY
+						IS_BUILTIN_PROPERTY_PROPERTY, DECLARING_CLASS_PROPERTY, IS_ABSTRACT_PROPERTY, IS_DYNAMIC_PROPERTY, READ_FUNCTION_PROPERTY,
+						WRITE_FUNCTION_PROPERTY, IS_SERIALIZATION_DISABLED_PROPERTY, OPEN_API_RETURN_TYPE_PROPERTY, VALIDATORS_PROPERTY,
+						TRANSFORMERS_PROPERTY, IS_CACHING_ENABLED_PROPERTY
 				),
 
 				PropertyView.Schema,
@@ -211,8 +241,9 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 						DB_NAME_PROPERTY, SCHEMA_NODE_PROPERTY, EXCLUDED_VIEWS_PROPERTY, SCHEMA_VIEWS_PROPERTY, PROPERTY_TYPE_PROPERTY,
 						CONTENT_TYPE_PROPERTY, FORMAT_PROPERTY, FQCN_PROPERTY, TYPE_HINT_PROPERTY, HINT_PROPERTY, CATEGORY_PROPERTY,
 						NOT_NULL_PROPERTY, COMPOUND_PROPERTY, UNIQUE_PROPERTY, INDEXED_PROPERTY, READ_ONLY_PROPERTY, DEFAULT_VALUE_PROPERTY,
-						IS_BUILTIN_PROPERTY_PROPERTY, DECLARING_CLASS_PROPERTY, IS_DYNAMIC_PROPERTY, READ_FUNCTION_PROPERTY, WRITE_FUNCTION_PROPERTY,
-						IS_SERIALIZATION_DISABLED_PROPERTY, OPEN_API_RETURN_TYPE_PROPERTY, VALIDATORS_PROPERTY, TRANSFORMERS_PROPERTY, IS_CACHING_ENABLED_PROPERTY
+						IS_BUILTIN_PROPERTY_PROPERTY, DECLARING_CLASS_PROPERTY, IS_ABSTRACT_PROPERTY, IS_DYNAMIC_PROPERTY, READ_FUNCTION_PROPERTY,
+						WRITE_FUNCTION_PROPERTY, IS_SERIALIZATION_DISABLED_PROPERTY, OPEN_API_RETURN_TYPE_PROPERTY, VALIDATORS_PROPERTY,
+						TRANSFORMERS_PROPERTY, IS_CACHING_ENABLED_PROPERTY
 				)
 		);
 	}
@@ -221,89 +252,4 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 	public Relation getRelation() {
 		return null;
 	}
-
-	/*
-	@Override
-	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
-
-		super.onCreation(securityContext, errorBuffer);
-
-		// automatically add new property to the Ui or Custom view
-		final AbstractSchemaNode parent = getProperty(SchemaProperty.schemaNode);
-		if (parent != null) {
-
-			// register property (so we have a chance to back up an existing builtin property)
-			final ConfigurationProvider conf = StructrApp.getConfiguration();
-			final Class type = conf.getNodeEntityClass(parent.getName());
-
-			if (type != null) {
-				conf.registerProperty(type, conf.getPropertyKeyForJSONName(type, getPropertyName()));
-			}
-
-			final String viewToAddTo;
-			if (getProperty(isBuiltinProperty)) {
-				viewToAddTo = PropertyView.Ui;
-			} else {
-				viewToAddTo = PropertyView.Custom;
-			}
-
-			for (final SchemaView view : parent.getProperty(AbstractSchemaNode.schemaViews)) {
-
-				if (viewToAddTo.equals(view.getName())) {
-
-					final Set<SchemaProperty> properties = Iterables.toSet(view.getProperty(SchemaView.schemaProperties));
-
-					properties.add(this);
-
-					view.setProperty(SchemaView.schemaProperties, new LinkedList<>(properties));
-
-					break;
-				}
-			}
-		}
-	}
-
-	@Override
-	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
-
-		super.onModification(securityContext, errorBuffer, modificationQueue);
-
-		// acknowledge all events for this node when it is modified
-		RuntimeEventLog.acknowledgeAllEventsForId(getUuid());
-
-
-		if (getProperty(schemaNode) == null) {
-			StructrApp.getInstance().delete(this);
-		} else {
-
-			// prevent modification of properties using a content hash value
-			if (getProperty(isBuiltinProperty) && !getContentHash().equals(getProperty(contentHash))) {
-				throw new FrameworkException(403, "Modification of built-in properties not permitted.");
-			}
-		}
-	}
-
-	@Override
-	public void onNodeDeletion(SecurityContext securityContext) throws FrameworkException {
-
-		super.onNodeDeletion(securityContext);
-
-		final String thisName = getName();
-
-		// remove property from the sortOrder of views it is used in (directly)
-		for (SchemaView view : getProperty(SchemaProperty.schemaViews)) {
-
-			final String sortOrder = view.getProperty(SchemaView.sortOrder);
-
-			if (sortOrder != null) {
-
-				try {
-					view.setProperty(SchemaView.sortOrder, StringUtils.join(Arrays.stream(sortOrder.split(",")).filter(propertyName -> !thisName.equals(propertyName)).toArray(), ","));
-				} catch (FrameworkException ex) {
-					logger.error("Unable to remove property '{}' from view '{}'", thisName, view.getUuid());
-				}
-			}
-		}
-	}
-	*/
 }

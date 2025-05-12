@@ -83,6 +83,8 @@ public final class AbstractSchemaNodeTraitDefinition extends AbstractNodeTraitDe
 				@Override
 				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
+					graphObject.as(AbstractSchemaNode.class).checkInheritanceConstraints();
+
 					// register transaction post processing that recreates the schema information
 					TransactionCommand.postProcess("createDefaultProperties", new CreateBuiltInSchemaEntities(graphObject.as(AbstractSchemaNode.class)));
 				}
@@ -95,6 +97,8 @@ public final class AbstractSchemaNodeTraitDefinition extends AbstractNodeTraitDe
 
 				@Override
 				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
+					graphObject.as(AbstractSchemaNode.class).checkInheritanceConstraints();
 
 					// register transaction post processing that recreates the schema information
 					TransactionCommand.postProcess("createDefaultProperties", new CreateBuiltInSchemaEntities(graphObject.as(AbstractSchemaNode.class)));

@@ -49,10 +49,7 @@ public interface JsonType extends Comparable<JsonType> {
 	boolean isChangelogDisabled();
 	JsonType setIsChangelogDisabled();
 
-	boolean isVisibleForPublicUsers();
 	JsonType setVisibleForPublicUsers();
-
-	boolean isVisibleForAuthenticatedUsers();
 	JsonType setVisibleForAuthenticatedUsers();
 
 	JsonMethod addMethod(final String name, final String source);
@@ -82,15 +79,12 @@ public interface JsonType extends Comparable<JsonType> {
 
 	JsonStringProperty addStringProperty(final String name, final String... views);
 	JsonStringProperty addEncryptedProperty(final String name, final String... views);
-	JsonStringProperty addPasswordProperty(final String name, final String... views);
 	JsonDateProperty addDateProperty(final String name, final String... views);
 	JsonIntegerProperty addIntegerProperty(final String name, final String... views);
 	JsonLongProperty addLongProperty(final String name, final String... views);
 	JsonDoubleProperty addDoubleProperty(final String name, final String... views);
 	JsonBooleanProperty addBooleanProperty(final String name, final String... views);
-	JsonScriptProperty addScriptProperty(final String name, final String...views);
 	JsonFunctionProperty addFunctionProperty(final String name, final String...views);
-	JsonLongProperty addCountProperty(final String name, final String... views);
 	JsonEnumProperty addEnumProperty(final String name, final String...views);
 	JsonDynamicProperty addCustomProperty(final String name, final String fqcn, final String... views);
 	JsonStringArrayProperty addStringArrayProperty(final String name, final String... views);
@@ -102,5 +96,4 @@ public interface JsonType extends Comparable<JsonType> {
 	JsonByteArrayProperty addByteArrayProperty(final String name, final String... views);
 
 	JsonReferenceProperty addReferenceProperty(final String name, final JsonReferenceProperty referencedProperty, final String... views);
-	JsonReferenceProperty addIdReferenceProperty(final String name, final JsonReferenceProperty referencedProperty, final String... views);
 }

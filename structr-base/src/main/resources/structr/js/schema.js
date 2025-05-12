@@ -3688,7 +3688,7 @@ let _Schema = {
 			container.querySelector('.toggle-more-method-settings')?.classList.toggle('hidden', isLifecycleMethod);
 
 			let isStatic = (methodData.isStatic === true);
-			container.querySelector('.run-method-action')?.classList.toggle('hidden', !isStatic);
+			container.querySelector('.run-method-action')?.classList.toggle('hidden', !(isStatic && isCallableViaREST));
 		},
 		saveAndDisposePreviousEditor: (tr) => {
 
