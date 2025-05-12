@@ -940,7 +940,7 @@ public class Settings {
 					);
 
 			final PropertiesConfiguration config = builder.getConfiguration();
-            final Iterator<String> keys          = config.getKeys();
+                        final Iterator<String> keys          = config.getKeys();
 
 			Settings.checkConfigurationFilePermissions(builder, true);
 

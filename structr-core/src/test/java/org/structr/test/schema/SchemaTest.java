@@ -1502,6 +1502,34 @@ public class SchemaTest extends StructrTest {
 		}
 	}
 
+	@Test
+	public void testAbstractProperties2() {
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema sourceSchema = StructrSchema.createFromDatabase(app);
+			final JsonType testA          = sourceSchema.addType("TestA");
+			final JsonType testB          = sourceSchema.addType("TestB");
+
+			testB.addTrait("TestA");
+
+			// add properties
+			testA.addStringProperty("testAProperty");
+			testB.addFunctionProperty("testAProperty").setReadFunction("'test'").setTypeHint("string");
+
+			// apply schema changes
+			StructrSchema.extendDatabaseSchema(app, sourceSchema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+
+			fail("Overwriting a property with a correctly typed function property should not throw an exception.");
+		}
+	}
+
 	// ----- private methods -----
 	private void checkSchemaString(final String source) {
 
