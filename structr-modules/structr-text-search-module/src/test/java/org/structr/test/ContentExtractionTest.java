@@ -55,7 +55,7 @@ public class ContentExtractionTest extends StructrUiTest {
 
 				final Detector detector = new DefaultDetector(MimeTypes.getDefaultMimeTypes());
 
-				try (final FulltextTokenizer tokenizer = new FulltextTokenizer(3, 30)) {
+				try (final FulltextTokenizer tokenizer = new FulltextTokenizer()) {
 
 					final AutoDetectParser parser = new AutoDetectParser(detector);
 					final Metadata metadata       = new Metadata();
