@@ -29,10 +29,7 @@ import org.structr.core.graph.MigrationService;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.RelationProperty;
-import org.structr.core.traits.StructrTraits;
-import org.structr.core.traits.Trait;
-import org.structr.core.traits.TraitDefinition;
-import org.structr.core.traits.Traits;
+import org.structr.core.traits.*;
 import org.structr.core.traits.definitions.SchemaNodeTraitDefinition;
 import org.structr.schema.DynamicNodeTraitDefinition;
 
@@ -245,6 +242,24 @@ public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper imple
 		}
 
 		setInheritedTraits(traits);
+	}
+
+	// ----- interface TypeInfo -----
+	@Override
+	public String getTypeName() {
+		return getClassName();
+	}
+
+	public Iterable<PropertyInfo> getPropertyInfo() {
+
+		final List<PropertyInfo> propertyInfos = new LinkedList<>();
+
+		for (final SchemaProperty property : getSchemaProperties()) {
+
+			propertyInfos.add(new PropertyInfo(property));
+		}
+
+		return propertyInfos;
 	}
 
 	// ----- private methods -----

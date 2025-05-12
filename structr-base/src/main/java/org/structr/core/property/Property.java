@@ -65,6 +65,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	protected boolean dynamic                   = false;
 	protected boolean cachingEnabled            = false;
 	protected boolean nodeOnly                  = false;
+	protected boolean isAbstract                = false;
 	protected boolean serializationDisabled     = false;
 	protected String dbName                     = null;
 	protected String jsonName                   = null;
@@ -246,6 +247,11 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 
 	@Override
+	public boolean isAbstract() {
+		return isAbstract;
+	}
+
+	@Override
 	public boolean requiresSynchronization() {
 		return requiresSynchronization;
 	}
@@ -336,6 +342,14 @@ public abstract class Property<T> implements PropertyKey<T> {
 		if (unique) {
 			this.requiresSynchronization = true;
 		}
+
+		return this;
+	}
+
+	@Override
+	public Property<T> setIsAbstract(final boolean isAbstract) {
+
+		this.isAbstract = isAbstract;
 
 		return this;
 	}
@@ -640,7 +654,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 		return new DefaultSortOrder(this, descending);
 	}
 
-    // ----- interface Comparable -----
+	// ----- interface Comparable -----
 	@Override
 	public int compareTo(final PropertyKey other) {
 		return dbName().compareTo(other.dbName());

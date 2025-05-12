@@ -20,10 +20,11 @@ package org.structr.core.entity;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.traits.TraitDefinition;
+import org.structr.core.traits.TypeInfo;
 
 import java.util.Set;
 
-public interface SchemaNode extends AbstractSchemaNode {
+public interface SchemaNode extends AbstractSchemaNode, TypeInfo {
 
 	String schemaNodeNamePattern = "[A-Z][a-zA-Z0-9_]*";
 

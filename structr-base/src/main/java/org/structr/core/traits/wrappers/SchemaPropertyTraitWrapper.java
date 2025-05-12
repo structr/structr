@@ -150,6 +150,14 @@ public class SchemaPropertyTraitWrapper extends AbstractNodeTraitWrapper impleme
 	}
 
 	@Override
+	public boolean isAbstract() {
+
+		final Boolean isAbstract = wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.IS_ABSTRACT_PROPERTY));
+
+		return Boolean.TRUE.equals(isAbstract);
+	}
+
+	@Override
 	public AbstractSchemaNode getSchemaNode() {
 
 		final NodeInterface node = wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY));

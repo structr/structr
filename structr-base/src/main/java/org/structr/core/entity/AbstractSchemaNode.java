@@ -18,6 +18,7 @@
  */
 package org.structr.core.entity;
 
+import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 
 import java.util.List;
@@ -53,4 +54,6 @@ public interface AbstractSchemaNode extends NodeInterface {
 	String[] getTags();
 
 	Set<String> getViewNames();
+
+	void checkInheritanceConstraints() throws FrameworkException;
 }

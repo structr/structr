@@ -323,7 +323,7 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	 * @return whether this property is dynamic
 	 */
 	boolean isDynamic();
-
+	boolean isAbstract();
 	boolean isArray();
 
 	/**
@@ -366,6 +366,7 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	int getProcessingOrderPosition();
 
 	PropertyKey<T> defaultValue(final T defaultValue);
+	PropertyKey<T> setIsAbstract(final boolean isAbstract);
 	PropertyKey<T> notNull(final boolean notNull);
 	PropertyKey<T> unique(final boolean unique);
 	PropertyKey<T> format(final String format);
