@@ -24,9 +24,21 @@ import org.graalvm.polyglot.proxy.ProxyObject;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.schema.action.ActionContext;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+
 public class HttpSessionWrapper implements ProxyObject  {
 	private final ActionContext actionContext;
 	private final HttpSession session;
+
+	private static final Map<String, Function<HttpSession, Object>> staticKeywords = Map.of(
+			"id", HttpSession::getId,
+			"creationTime", HttpSession::getCreationTime,
+			"isNew", HttpSession::isNew,
+			"lastAccessedTime", HttpSession::getLastAccessedTime
+	);
 
 	public HttpSessionWrapper(final ActionContext actionContext, final HttpSession session) {
 
@@ -36,12 +48,25 @@ public class HttpSessionWrapper implements ProxyObject  {
 
 	@Override
 	public Object getMember(String key) {
+
+		if (staticKeywords.containsKey(key)) {
+			return PolyglotWrapper.wrap(actionContext, staticKeywords.get(key).apply(session));
+		}
 		return PolyglotWrapper.wrap(actionContext,  session.getAttribute(key));
 	}
 
 	@Override
 	public Object getMemberKeys() {
-		return PolyglotWrapper.wrap(actionContext, session.getAttributeNames());
+
+		List<String> keys = Collections.list(session.getAttributeNames());
+
+		staticKeywords.forEach((key, value) -> {
+			if (!keys.contains(key)) {
+				keys.add(key);
+			}
+		});
+
+		return PolyglotWrapper.wrap(actionContext, keys);
 	}
 
 	@Override

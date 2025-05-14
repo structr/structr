@@ -20,9 +20,12 @@ package org.structr.web.function;
 
 
 import jakarta.servlet.http.HttpSession;
+import org.graalvm.polyglot.Value;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.script.polyglot.PolyglotWrapper;
+import org.structr.core.script.polyglot.wrappers.HttpSessionWrapper;
 import org.structr.schema.action.ActionContext;
 
 public class SetSessionAttributeFunction extends UiAdvancedFunction {
@@ -50,9 +53,10 @@ public class SetSessionAttributeFunction extends UiAdvancedFunction {
 			assertArrayHasLengthAndAllElementsNotNull(sources, 2);
 
 			final HttpSession session = ctx.getSecurityContext().getSession();
+			final HttpSessionWrapper sessionWrapper = new HttpSessionWrapper(ctx, session);
 
 			if (session != null) {
-				session.setAttribute(ActionContext.SESSION_ATTRIBUTE_PREFIX.concat(sources[0].toString()), sources[1]);
+				sessionWrapper.putMember(sources[0].toString(), Value.asValue(sources[1]));
 			} else {
 				logger.warn("{}: No session available to set session attribute! (this can happen in onStructrLogin/onStructrLogout)", getReplacement());
 			}
