@@ -32,6 +32,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.common.geo.GeoCodingResult;
 import org.structr.common.geo.GeoHelper;
+import org.structr.core.Services;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Methods;
 import org.structr.core.api.UnnamedArguments;

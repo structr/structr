@@ -35,6 +35,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
+import org.structr.core.Services;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Methods;
 import org.structr.core.app.App;
@@ -48,6 +49,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.ScriptTestHelper;
 import org.structr.core.script.Scripting;
+import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.*;
@@ -1881,6 +1883,40 @@ public class UiScriptingTest extends StructrUiTest {
 			logger.warn("", ex);
 			fail("Unexpected exception.");
 		}
+	}
+
+	@Test
+	public void testNestedScheduleFunction() {
+
+		final ActionContext ctx = new ActionContext(securityContext);
+
+		try (final Tx tx = app.tx()) {
+
+			ScriptTestHelper.testExternalScript(ctx, UiScriptingTest.class.getResourceAsStream("/test/scripting/testNestedSchedule.js"));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+			// Gives scheduled tasks a moment to process
+			Thread.sleep(1000);
+
+			final Object storeResult = Services.getInstance().getApplicationStore().get("scheduleTestValidationPassed");
+			assertTrue(storeResult != null && ((org.graalvm.polyglot.Value) storeResult).asBoolean());
+
+			tx.success();
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception");
+		} catch (InterruptedException ex) {
+
+			fail("Test was interrupted");
+		}
+
 	}
 
 
