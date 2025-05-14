@@ -239,7 +239,7 @@ public class AbstractSchemaNodeTraitWrapper extends AbstractNodeTraitWrapper imp
 	@Override
 	public void checkInheritanceConstraints() throws FrameworkException {
 
-		if (this.is("SchemaNode")) {
+		if (this.is(StructrTraits.SCHEMA_NODE)) {
 
 			final App app                = StructrApp.getInstance();
 			final Set<String> traitNames = this.as(SchemaNode.class).getInheritedTraits();
@@ -276,8 +276,6 @@ public class AbstractSchemaNodeTraitWrapper extends AbstractNodeTraitWrapper imp
 
 		final String label1 = type1.getTypeName();
 		final String label2 = type2.getTypeName();
-
-		System.out.println(label1 + " / " + label2);
 
 		if (!label1.equals(label2)) {
 
