@@ -497,7 +497,7 @@ let _Dashboard = {
 						let downloadUrl = deploymentUrlInput.value;
 
 						if (!(downloadUrl && downloadUrl.length)) {
-							new WarningMessage().title('Unable to start application import from URL').text('Please enter a URL or upload a ZIP file containing the application export.').requiresConfirmation().allowConfirmAll().show();
+							new WarningMessage().title('Unable to start application import from URL').text('Please enter a URL or upload a ZIP file containing the application export.').requiresConfirmation().show();
 						} else {
 							_Dashboard.tabs.deployment.actions.importFromZIPURL('app', downloadUrl, zipContentPath);
 						}
@@ -544,7 +544,7 @@ let _Dashboard = {
 
 						if (!(downloadUrl && downloadUrl.length)) {
 
-							new WarningMessage().title('Unable to start data import from URL').text('Please enter a URL or upload a ZIP file containing the data export.').requiresConfirmation().allowConfirmAll().show();
+							new WarningMessage().title('Unable to start data import from URL').text('Please enter a URL or upload a ZIP file containing the data export.').requiresConfirmation().show();
 
 						} else {
 
@@ -600,7 +600,7 @@ let _Dashboard = {
 				deploy: async (mode, location) => {
 
 					if (!(location && location.length)) {
-						new WarningMessage().title(`Unable to start application ${mode}`).text(`Please enter a local directory path for application ${mode}.`).requiresConfirmation().allowConfirmAll().show();
+						new WarningMessage().title(`Unable to start application ${mode}`).text(`Please enter a local directory path for application ${mode}.`).requiresConfirmation().show();
 						return;
 					}
 
@@ -624,7 +624,7 @@ let _Dashboard = {
 				deployData: async (mode, location, types) => {
 
 					if (!(location && location.length)) {
-						new WarningMessage().title(`Unable to start data ${mode}`).text(`Please enter a local directory path for data ${mode}.`).requiresConfirmation().allowConfirmAll().show();
+						new WarningMessage().title(`Unable to start data ${mode}`).text(`Please enter a local directory path for data ${mode}.`).requiresConfirmation().show();
 						return;
 					}
 
@@ -638,7 +638,7 @@ let _Dashboard = {
 						if (types && types.length) {
 							data['types'] = types.join(',');
 						} else {
-							new WarningMessage().title(`Unable to ${mode} data`).text('Please select at least one data type.').requiresConfirmation().allowConfirmAll().show();
+							new WarningMessage().title(`Unable to ${mode} data`).text('Please select at least one data type.').requiresConfirmation().show();
 							return;
 						}
 					}
@@ -675,7 +675,7 @@ let _Dashboard = {
 
 					if (prefix === '') {
 
-						new WarningMessage().title('Unable to export application').text('Please enter a prefix or select "Append timestamp"').requiresConfirmation().allowConfirmAll().show();
+						new WarningMessage().title('Unable to export application').text('Please enter a prefix or select "Append timestamp"').requiresConfirmation().show();
 
 					} else {
 
@@ -703,11 +703,11 @@ let _Dashboard = {
 
 					if (types.length === 0) {
 
-						new WarningMessage().title('Unable to start data export').text('Please select at least one data type.').requiresConfirmation().allowConfirmAll().show();
+						new WarningMessage().title('Unable to start data export').text('Please select at least one data type.').requiresConfirmation().show();
 
 					} else if (prefix === '') {
 
-						new WarningMessage().title('Unable to start data export').text('Please enter a prefix or select "Append timestamp"').requiresConfirmation().allowConfirmAll().show();
+						new WarningMessage().title('Unable to start data export').text('Please enter a prefix or select "Append timestamp"').requiresConfirmation().show();
 
 					} else {
 
@@ -734,7 +734,7 @@ let _Dashboard = {
 						if (!response.ok && response.status === 400) {
 
 							let responseText = await response.text();
-							new WarningMessage().title(`Unable to import ${deploymentType} from ZIP URL`).text(responseText).requiresConfirmation().allowConfirmAll().show();
+							new WarningMessage().title(`Unable to import ${deploymentType} from ZIP URL`).text(responseText).requiresConfirmation().show();
 
 						} else {
 
@@ -765,7 +765,7 @@ let _Dashboard = {
 						if (!response.ok && response.status === 400) {
 
 							let responseText = await response.text();
-							new WarningMessage().title(`Unable to import ${deploymentType} from uploaded ZIP`).text(responseText).requiresConfirmation().allowConfirmAll().show();
+							new WarningMessage().title(`Unable to import ${deploymentType} from uploaded ZIP`).text(responseText).requiresConfirmation().show();
 
 						} else {
 
@@ -778,7 +778,7 @@ let _Dashboard = {
 				cleanFileNamePrefix: (prefix) => {
 					let cleaned = prefix.replaceAll(/[^a-zA-Z0-9 _-]/g, '').trim();
 					if (cleaned !== prefix) {
-						new InfoMessage().title('Cleaned prefix').text(`The given filename prefix was changed to "${cleaned}".`).requiresConfirmation().allowConfirmAll().show();
+						new InfoMessage().title('Cleaned prefix').text(`The given filename prefix was changed to "${cleaned}".`).requiresConfirmation().show();
 					}
 					return cleaned;
 				},

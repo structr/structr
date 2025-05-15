@@ -2178,6 +2178,7 @@ th.center {
 	bottom: 12px;
 }
 
+/*  BEGIN: Growl-Style Message Area Styles */
 #info-area {
 	z-index: 10000;
 	position: absolute;
@@ -2188,13 +2189,21 @@ th.center {
 	max-height: 100vh;
 }
 
+#info-area #close-all-button {
+	display: none;
+}
+
+#info-area:has(#messages .message:nth-of-type(2)) #close-all-button {
+	display: block;
+}
+
 #info-area .message-text {
 	max-height: 75vh;
 }
 
 #info-area .message.dismissed {
 	overflow: hidden;
-	animation: dismissMessage 0.5s;
+	animation: dismissMessage 0.25s;
 	animation-timing-function: ease-in;
 	animation-fill-mode: forwards;
 }
@@ -2217,9 +2226,9 @@ th.center {
 	list-style: disc;
 }
 
-#info-area .message.SCRIPT-QUEUED .text,
-#info-area .message.SCRIPT-BEGIN .text,
-#info-area .message.SCRIPT-END .text {
+#info-area .message.SCRIPT-QUEUED .message-text,
+#info-area .message.SCRIPT-BEGIN .message-text,
+#info-area .message.SCRIPT-END .message-text {
 	max-height: 200px;
 	overflow: auto;
 }
@@ -2227,11 +2236,7 @@ th.center {
 #info-area .message-buttons:empty {
 	margin: 0;
 }
-
-#info-area .message:only-child .confirmAll {
-	visibility: hidden;
-	display: none;
-}
+/*  END: Growl-Style Message Area Styles */
 
 table#relationship-options {
 	table-layout: fixed;
@@ -4256,6 +4261,9 @@ ul.combined-input-select-field li:hover {
 }
 .pb-4 {
 	padding-bottom: 1rem;
+}
+.pb-6 {
+	padding-bottom: 1.5rem;
 }
 .pt-1 {
 	padding-top: .25rem;

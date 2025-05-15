@@ -1289,7 +1289,7 @@ let _Files = {
 
 				if (closed) {
 
-					new SuccessMessage().requiresConfirmation("Close").show();
+					new SuccessMessage().text(message).requiresConfirmation().show();
 
 				} else {
 

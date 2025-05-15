@@ -250,9 +250,9 @@ let _Schema = {
 		if (Structr.isModuleActive(_Schema)) {
 
 			new InfoMessage()
-				.title("Schema recompiled")
-				.text("Another user made changes to the schema. Do you want to reload to see the changes?")
-				.specialInteractionButton("Reload", _Schema.reloadSchemaAfterRecompileNotification, "Ignore")
+				.title('Schema recompiled')
+				.text('Another user made changes to the schema. Do you want to reload to see the changes?')
+				.specialInteractionButton('Reload', _Schema.reloadSchemaAfterRecompileNotification)
 				.uniqueClass('schema')
 				.incrementsUniqueCount()
 				.show();

@@ -110,7 +110,6 @@ let _Apps = {
 			.title(`Unable to install "${app.name}"`)
 			.text('The <code>DeploymentServlet</code> needs to be activated in <code>structr.conf</code> for the installation process to work.')
 			.requiresConfirmation()
-			.allowConfirmAll()
 			.show();
 	},
 
