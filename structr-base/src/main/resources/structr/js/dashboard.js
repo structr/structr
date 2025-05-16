@@ -50,12 +50,9 @@ let _Dashboard = {
 				dashboardUiConfig.envInfo = dashboardUiConfig.envInfo[0];
 			}
 
-			dashboardUiConfig.envInfo.version = (dashboardUiConfig.envInfo.components['structr'] || dashboardUiConfig.envInfo.components['structr-ui']).version || '';
-			dashboardUiConfig.envInfo.build   = (dashboardUiConfig.envInfo.components['structr'] || dashboardUiConfig.envInfo.components['structr-ui']).build   || '';
-			dashboardUiConfig.envInfo.date    = (dashboardUiConfig.envInfo.components['structr'] || dashboardUiConfig.envInfo.components['structr-ui']).date    || '';
-
-			dashboardUiConfig.releasesIndexUrl  = dashboardUiConfig.envInfo.availableReleasesUrl;
-			dashboardUiConfig.snapshotsIndexUrl = dashboardUiConfig.envInfo.availableSnapshotsUrl;
+			dashboardUiConfig.envInfo.version = (dashboardUiConfig.envInfo.components['structr'] || dashboardUiConfig.envInfo.components['structr-base']).version || '';
+			dashboardUiConfig.envInfo.build   = (dashboardUiConfig.envInfo.components['structr'] || dashboardUiConfig.envInfo.components['structr-base']).build   || '';
+			dashboardUiConfig.envInfo.date    = (dashboardUiConfig.envInfo.components['structr'] || dashboardUiConfig.envInfo.components['structr-base']).date    || '';
 
 			if (dashboardUiConfig.envInfo.startDate) {
 				dashboardUiConfig.envInfo.startDate = dashboardUiConfig.envInfo.startDate.slice(0, 10);
@@ -359,17 +356,23 @@ let _Dashboard = {
 			onShow: async () => {},
 			onHide: async () => {},
 			init: (dashboardUiConfig) => {
-				_Dashboard.tabs['about-structr'].gatherVersionUpdateInfo(dashboardUiConfig.envInfo.version, dashboardUiConfig.releasesIndexUrl, dashboardUiConfig.snapshotsIndexUrl);
+				_Dashboard.tabs['about-structr'].gatherVersionUpdateInfo(dashboardUiConfig.envInfo);
 				_Dashboard.tabs['about-structr'].checkLicenseEnd(dashboardUiConfig.envInfo, $('#dashboard-about-structr .end-date'), { noSpan: true });
 			},
-			gatherVersionUpdateInfo: async (currentVersion, releasesIndexUrl, snapshotsIndexUrl) => {
+			gatherVersionUpdateInfo: async (envInfo) => {
+
+				let currentVersion = envInfo.version;
+				// let currentBuild = envInfo.build;
+				// let currentDate = envInfo.date;
+
+				let releasesIndexUrl  = 'https://download.structr.com/repositories/releases/org/structr/structr/index';
+				let snapshotsIndexUrl = 'https://download.structr.com/repositories/snapshots/org/structr/structr/index';
 
 				let releaseInfo  = '';
 				let snapshotInfo = '';
 
-				if (releasesIndexUrl !== '') {
-
-					// Search for newer releases and store latest version
+				// Search for newer releases and store latest version
+				{
 					let response = await fetch(releasesIndexUrl);
 					if (response.ok) {
 
@@ -386,8 +389,8 @@ let _Dashboard = {
 					}
 				}
 
-				if (snapshotsIndexUrl !== '') {
-
+				// Search for newer snapshots and store latest version
+				{
 					let response = await fetch(snapshotsIndexUrl);
 					if (response.ok) {
 
