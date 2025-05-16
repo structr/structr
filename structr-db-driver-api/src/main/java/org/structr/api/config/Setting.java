@@ -30,6 +30,7 @@ public abstract class Setting<T> {
 	protected SettingsGroup group                = null;
 	protected boolean isDynamic                  = false;
 	protected boolean isModified                 = false;
+	protected boolean isProtected                = false;
 	protected T defaultValue                     = null;
 	protected String category                    = null;
 	protected String key                         = null;
@@ -163,6 +164,15 @@ public abstract class Setting<T> {
 
 	public boolean isDynamic() {
 		return isDynamic;
+	}
+
+	public Setting setIsProtected() {
+		this.isProtected = true;
+		return this;
+	}
+
+	public boolean isProtected() {
+		return this.isProtected;
 	}
 
 	public void setIsDynamic(boolean isDynamic) {
