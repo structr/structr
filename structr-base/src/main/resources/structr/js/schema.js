@@ -57,6 +57,7 @@ let _Schema = {
 
 			_Schema.ui.canvas               = $('#schema-graph');
 
+			/*
 			_Schema.ui.canvas[0].addEventListener('mousedown', (e) => {
 				if (e.which === 1) {
 					_Schema.ui.clearSelection();
@@ -73,6 +74,7 @@ let _Schema = {
 			_Schema.ui.canvas[0].addEventListener('mouseup', (e) => {
 				_Schema.ui.selectionStop();
 			});
+			*/
 
 			_Schema.init(null,() => {
 				Structr.resize();
@@ -148,81 +150,27 @@ let _Schema = {
 			}
 		});
 
-		jsPlumb.ready(async () => {
+		_Schema.loadSchema();
 
-			if (_Schema.ui.jsPlumbInstance) {
-				_Schema.ui.jsPlumbInstance.unbindContainer();
-			}
+		$('.node').css({ zIndex: ++_Schema.ui.maxZ });
 
-			_Schema.ui.jsPlumbInstance = jsPlumb.getInstance({
-				//Connector: "StateMachine",
-				PaintStyle: {
-					lineWidth: 4,
-					strokeStyle: "#81ce25"
-				},
-				Endpoint: ["Dot", {radius: 6}],
-				EndpointStyle: {
-					fillStyle: "#aaa"
-				},
-				Container: "schema-graph",
-				ConnectionOverlays: [
-					["PlainArrow", { location: 1, width: 15, length: 12 }]
-				]
-			});
+		Structr.resize();
 
-			await _Schema.loadSchema();
+		Structr.mainMenu.unblock(500);
 
-			$('.node').css({ zIndex: ++_Schema.ui.maxZ });
+		let showSchemaOverlays = LSWrapper.getItem(_Schema.showSchemaOverlaysKey, true);
+		_Schema.ui.updateOverlayVisibility(showSchemaOverlays);
 
-			_Schema.ui.jsPlumbInstance.bind('connection', (info, originalEvent) => {
+		let showSchemaInheritance = LSWrapper.getItem(_Schema.showSchemaInheritanceArrowsKey, true);
+		_Schema.ui.updateInheritanceArrowsVisibility(showSchemaInheritance);
 
-				if (info.connection.scope === 'jsPlumb_DefaultScope') {
+		if (scrollPosition) {
+			window.scrollTo(scrollPosition.x, scrollPosition.y);
+		}
 
-					if (originalEvent) {
-
-						_Schema.relationships.showCreateRelationshipDialog(info);
-					}
-
-				} else {
-					new WarningMessage().text('Moving existing relationships is not permitted!').title('Not allowed').requiresConfirmation().show();
-					_Schema.reload();
-				}
-			});
-
-			_Schema.ui.jsPlumbInstance.bind('connectionDetached', (info) => {
-
-				if (info.connection.scope !== 'jsPlumb_DefaultScope') {
-					new WarningMessage().text('Deleting relationships is only possible via the delete button!').title('Not allowed').requiresConfirmation().show();
-					_Schema.reload();
-				}
-			});
-			_Schema.isReloading = false;
-
-			_Schema.ui.setZoom(_Schema.ui.zoomLevel, _Schema.ui.jsPlumbInstance, [0,0], _Schema.ui.canvas[0]);
-
-			$('._jsPlumb_connector').click(function(e) {
-				e.stopPropagation();
-				_Schema.ui.selectRel($(this));
-			});
-
-			Structr.resize();
-
-			Structr.mainMenu.unblock(500);
-
-			let showSchemaOverlays = LSWrapper.getItem(_Schema.showSchemaOverlaysKey, true);
-			_Schema.ui.updateOverlayVisibility(showSchemaOverlays);
-
-			let showSchemaInheritance = LSWrapper.getItem(_Schema.showSchemaInheritanceArrowsKey, true);
-			_Schema.ui.updateInheritanceArrowsVisibility(showSchemaInheritance);
-
-			if (scrollPosition) {
-				window.scrollTo(scrollPosition.x, scrollPosition.y);
-			}
-
-			if (typeof callback === "function") {
-				callback();
-			}
-		});
+		if (typeof callback === "function") {
+			callback();
+		}
 
 		Structr.adaptUiToAvailableFeatures();
 	},
@@ -569,6 +517,10 @@ let _Schema = {
 		},
 		loadNodes: async () => {
 
+			_Schema.newAutoLayout();
+
+			/*
+
 			_Schema.hiddenSchemaNodes = JSON.parse(LSWrapper.getItem(_Schema.hiddenSchemaNodesKey));
 
 			let schemaLayout = await _Schema.getFirstSchemaLayoutOrFalse();
@@ -828,6 +780,7 @@ let _Schema = {
 
 				throw new Error("Loading of Schema nodes failed");
 			}
+			*/
 		},
 		loadNode: (entity, mainTabs, contentDiv, targetView = 'local', callbackCancel) => {
 
@@ -4690,6 +4643,10 @@ let _Schema = {
 		document.getElementById('reset-schema-positions').addEventListener('click', (e) => {
 			_Schema.clearPositions();
 		});
+
+		document.getElementById('layout-schema-test').addEventListener('click', (e) => {
+			_Schema.newAutoLayout();
+		});
 	},
 	updateGroupedLayoutSelector: async (layoutSelector) => {
 
@@ -5226,7 +5183,151 @@ let _Schema = {
 
 		element.classList.toggle('has-changes', hasClass);
 	},
+	newAutoLayout: async () => {
 
+		let index    = {};
+		let relCount = {};
+
+		let input = {
+			id: 'root',
+			children: [],
+			edges: [],
+			layoutOptions: {
+				'elk.algorithm':                                       'layered',
+				'elk.direction':                                       'DOWN',
+				'elk.edgeWidth':                                       4,
+				'elk.edgeLabels.inline':                               true,
+				'elk.edgeLabels.placement':                            'CENTER',
+				'elk.layered.edgeLabels.centerLabelPlacementStrategy': 'SPACE_EFFICIENT_LAYER',
+				'elk.layered.edgeLabels.sideSelection':                'ALWAYS_UP',
+				'elk.layered.spacing.edgeNodeBetweenLayers':           40,
+			}
+		};
+
+		let nodeResponse = await fetch(`${Structr.rootUrl}SchemaNode/ui?${Structr.getRequestParameterName('sort')}=hierarchyLevel&${Structr.getRequestParameterName('order')}=asc&isServiceClass=false`);
+		let nodes = await nodeResponse.json();
+
+		for (let n of nodes.result) {
+
+			_Schema.nodeData['id_' + n.id] = n;
+
+			let width  = (n.name.length * 12) + 20; // n.clientWidth;
+			let height = 28; // n.clientHeight;
+
+			index[n.id] = true;
+
+			let item = {
+				id: 'id_' + n.id,
+				width: width,
+				height: height + 10,
+				labels: [
+					{ text: n.name }
+				],
+				ports: [
+					{
+						id: 'id_' + n.id + '_NORTH',
+						layoutOptions: { 'port.side': 'NORTH' }
+					},
+					{
+						id: 'id_' + n.id + '_SOUTH',
+						layoutOptions: { 'port.side': 'SOUTH' }
+					},
+				],
+				layoutOptions: {
+					portConstraints: 'FIXED_SIDE'
+				}
+			};
+
+			input.children.push(item);
+		}
+
+		// rels
+		let response = await fetch(Structr.rootUrl + 'SchemaRelationshipNode');
+		let data     = await response.json();
+
+		// inheritance
+		let includeInheritance = false;
+		let inheritanceRels    = [];
+
+		if (includeInheritance) {
+
+			for (let node of input.children) {
+
+				let data = _Schema.nodeData[node.id.substring(3)];
+				if (data) {
+
+					if (data?.extendsClass?.id) {
+
+						let id = data.extendsClass.id;
+
+						if (index[id]) {
+
+/*
+							inheritanceRels.push({
+								source: 'id_' + id,
+								target: node.id
+							});
+							 *
+ */
+
+							input.edges.push({
+								id:      node.id + 'extends' + id,
+								sources: [ 'id_' + id + '_SOUTH' ],
+								targets: [ node.id + '_NORTH' ],
+								//sources: [ 'id_' + id ],
+								//targets: [ node.id ]
+								labels: [
+									{ text: 'EXTENDS' }
+								]
+							});
+						}
+					}
+				}
+			}
+
+		} else {
+
+			for (let res of data.result) {
+
+				if (index[res.sourceId] === true && index[res.targetId] === true) {
+
+					let s = 'id_' + res.sourceId;
+					let t = 'id_' + res.targetId;
+
+					if (!relCount[s]) { relCount[s] = 0; }
+					if (!relCount[t]) { relCount[t] = 0; }
+
+					relCount[s]++;
+					relCount[t]++;
+
+					input.edges.push({
+						id:      res.id,
+						//sources: [ 'id_' + res.sourceId + '_SOUTH' ],
+						//targets: [ 'id_' + res.targetId + '_NORTH' ],
+						sources: [ s ],
+						targets: [ t ],
+						labels: [
+							{ text: res.relationshipType, width: (res.relationshipType.length * 12) + 20, height: 23 }
+						]
+					});
+				}
+			}
+
+		}
+
+		let container = document.querySelector('#schema-graph');
+
+		container.innerText = '';
+
+		_Pages.layout.createSVGDiagram(container, input, new SchemaNodesFormatter(inheritanceRels));
+
+		// todo: implement click handler for nodes
+		node[0].querySelector('.edit-type-icon').addEventListener('click', (e) => {
+			_Schema.openEditDialog(entity.id);
+		});
+
+
+	},
 	templates: {
 		main: config => `
 			<link rel="stylesheet" type="text/css" media="screen" href="css/schema.css">
@@ -5315,6 +5416,11 @@ let _Schema = {
 							<div class="row">
 								<a title="Reset the stored node positions and apply an automatic layouting algorithm." id="reset-schema-positions" class="flex items-center">
 									${_Icons.getSvgIcon(_Icons.iconResetArrow, 16, 16, 'mr-2')} Reset Layout (apply Auto-Layouting)
+								</a>
+							</div>
+							<div class="row">
+								<a title="Reset the stored node positions and apply an automatic layouting algorithm." id="layout-schema-test" class="flex items-center">
+									${_Icons.getSvgIcon(_Icons.iconResetArrow, 16, 16, 'mr-2')} Apply auto layout)
 								</a>
 							</div>
 						</div>

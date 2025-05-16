@@ -39,6 +39,8 @@ class SchemaNodesFormatter {
 				this.createAndAddDiagramNode(svg, grandChild, { x: child.x + offset.x, y: child.y + offset.y }, color + 8);
 			}
 		}
+
+		return shape;
 	}
 
 	createShapeForType(svg, child, offset, color) {
@@ -80,21 +82,6 @@ class SchemaNodesFormatter {
 		shape.setAttribute('rx', 0);
 		shape.setAttribute('width', child.width);
 		shape.setAttribute('height', child.height);
-
-		let id = child.id.substring(3);
-
-		Command.get(id, null, node => {
-			if (node.dataKey) {
-				// add "repeater decoration"
-				let decoration = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
-				decoration.setAttribute('cx', child.x + offset.x + child.width);
-				decoration.setAttribute('cy', child.y + offset.y);
-				decoration.setAttribute('rx', 5);
-				decoration.setAttribute('ry', 5);
-				decoration.setAttribute('fill', 'green');
-				svg.appendChild(decoration);
-			}
-		});
 
 		return shape;
 	}

@@ -3674,7 +3674,10 @@ let _Pages = {
 
 				let instance = panzoom(group, {
 					bounds: true,
-					boundsPadding: 0.1
+					boundsPadding: 0.1,
+					smoothScroll: true,
+					maxZoom: 2,
+					minZoom: 0.5
 				});
 
 				window.panZoomTest = instance;
