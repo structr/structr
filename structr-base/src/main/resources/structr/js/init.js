@@ -1371,7 +1371,7 @@ let Structr = {
 				if (showScheduledJobsNotifications && StructrWS.me.username === data.username) {
 
 					let messageBuilder = (data.subtype === 'END') ? new SuccessMessage() : new InfoMessage();
-					messageBuilder.title(scriptJobTitles[data.subtype]).text(`<div>${scriptJobTexts[data.subtype]}</div>`).uniqueClass(`${data.jobtype}-${data.subtype}`).appendsText();
+					messageBuilder.title(scriptJobTitles[data.subtype]).text(`<div>${scriptJobTexts[data.subtype]}</div>`).uniqueClass(`${data.jobtype}-${data.subtype}`).prependsText();
 
 					if (data.subtype !== 'QUEUED') {
 						messageBuilder.requiresConfirmation();
@@ -2453,7 +2453,9 @@ class MessageBuilder {
 			updatesText: false,
 			updatesButtons: false,
 			appendsText: false,
+			prependsText: false,
 			appendSelector: '',
+			prependSelector: '',
 			replacesElement: false,
 			replacesSelector: '',
 			replaceInParentSelector: '',
@@ -2555,6 +2557,16 @@ class MessageBuilder {
 					}
 
 					messageTextElement.innerHTML = this.params.text;
+
+				} else if (this.params.prependsText) {
+
+					if (titleElement) {
+						titleElement.innerHTML = this.params.title;
+					}
+
+					let prependTarget = (this.params.appendSelector === '') ? messageTextElement : (messageTextElement.querySelector(this.params.prependSelector) ?? messageTextElement);
+
+					prependTarget.insertAdjacentHTML('afterbegin', this.params.text);
 
 				} else if (this.params.appendsText) {
 
@@ -2670,6 +2682,12 @@ class MessageBuilder {
 	appendsText(selector = '') {
 		this.params.appendsText    = true;
 		this.params.appendSelector = selector;
+		return this;
+	};
+
+	prependsText(selector = '') {
+		this.params.prependsText    = true;
+		this.params.prependSelector = selector;
 		return this;
 	};
 
