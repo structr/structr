@@ -33,7 +33,7 @@ public abstract class CryptFunction extends AdvancedScriptingFunction {
 	public static byte[] secretKeyHash    = null;
 	public static final String CHARSET    = "UTF-8";
 	public static final String HASH_ALGO  = "MD5";
-	public static final String CRYPT_ALGO = "AES";
+	public static final String CRYPT_ALGO = "AES/CFB/PKCS5Padding";
 
 	// ----- public static methods -----
 	public static void setEncryptionKey(final String key) {
