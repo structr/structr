@@ -3240,11 +3240,9 @@ public class ScriptingTest extends StructrTest {
 		// test functions without global encryption key
 		try {
 
-			assertEquals("Invalid encryption result", "ZuAM6SQ7GTc2KW55M/apUA==", Scripting.replaceVariables(ctx, null, "${encrypt('plaintext', 'structr')}"));
-			assertEquals("Invalid encryption result", "b4bn2+w7yaEve3YGtn4IGA==", Scripting.replaceVariables(ctx, null, "${encrypt('plaintext', 'password')}"));
-
-			assertEquals("Invalid decryption result", "ZuAM6SQ7GTc2KW55M/apUA==", Scripting.replaceVariables(ctx, null, "${encrypt('plaintext', 'structr')}"));
-			assertEquals("Invalid decryption result", "b4bn2+w7yaEve3YGtn4IGA==", Scripting.replaceVariables(ctx, null, "${encrypt('plaintext', 'password')}"));
+			// test decrypt-encrypt roundtrip with new implementation (because of the IV, the results are not predictable)
+			assertEquals("Invalid decryption result", "plaintext", Scripting.replaceVariables(ctx, null, "${decrypt(encrypt('plaintext', 'structr'), 'structr')}"));
+			assertEquals("Invalid decryption result", "plaintext", Scripting.replaceVariables(ctx, null, "${decrypt(encrypt('plaintext', 'password'), 'password')}"));
 
 		} catch (FrameworkException fex) {
 			assertEquals("Invalid error code", 422, fex.getStatus());
@@ -3253,12 +3251,14 @@ public class ScriptingTest extends StructrTest {
 		// test functions with global encryption key
 		try {
 
-			assertEquals("Invalid response when setting encryption key via scriptin", "", Scripting.replaceVariables(ctx, null, "${set_encryption_key('structr')}"));
+			assertEquals("Invalid response when setting encryption key via scripting", "", Scripting.replaceVariables(ctx, null, "${set_encryption_key('structr')}"));
 
-			assertEquals("Invalid encryption result", "ZuAM6SQ7GTc2KW55M/apUA==", Scripting.replaceVariables(ctx, null, "${encrypt('plaintext')}"));
-			assertEquals("Invalid encryption result", "ZuAM6SQ7GTc2KW55M/apUA==", Scripting.replaceVariables(ctx, null, "${encrypt('plaintext', 'structr')}"));
-			assertEquals("Invalid encryption result", "b4bn2+w7yaEve3YGtn4IGA==", Scripting.replaceVariables(ctx, null, "${encrypt('plaintext', 'password')}"));
+			// test decrypt-encrypt roundtrip with new implementation (because of the IV, the results are not predictable)
+			assertEquals("Invalid encryption result", "plaintext", Scripting.replaceVariables(ctx, null, "${decrypt(encrypt('plaintext'))}"));
+			assertEquals("Invalid encryption result", "plaintext", Scripting.replaceVariables(ctx, null, "${decrypt(encrypt('plaintext', 'structr'), 'structr')}"));
+			assertEquals("Invalid encryption result", "plaintext", Scripting.replaceVariables(ctx, null, "${decrypt(encrypt('plaintext', 'password'), 'password')}"));
 
+			// test auto-fallback to previous mode to be able to decrypt ciphertexts encrypted with the old implementation
 			assertEquals("Invalid encryption result", "plaintext", Scripting.replaceVariables(ctx, null, "${decrypt('ZuAM6SQ7GTc2KW55M/apUA==')}"));
 			assertEquals("Invalid encryption result", "plaintext", Scripting.replaceVariables(ctx, null, "${decrypt('ZuAM6SQ7GTc2KW55M/apUA==', 'structr')}"));
 			assertEquals("Invalid encryption result", "plaintext", Scripting.replaceVariables(ctx, null, "${decrypt('b4bn2+w7yaEve3YGtn4IGA==', 'password')}"));
