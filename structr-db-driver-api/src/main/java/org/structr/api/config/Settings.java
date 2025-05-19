@@ -118,6 +118,7 @@ public class Settings {
 	public static final Setting<String> SnapshotsPath                  = new StringSetting(generalGroup,             "Paths",       "snapshot.path",                         "snapshots" + File.separator, "IMPORTANT: Path is relative to base.path");
 	public static final Setting<String> WebDataPath                    = new StringSetting(generalGroup,             "Paths",       "data.webapp.path",                      "webapp-data" + File.separator, "IMPORTANT: Path is relative to base.path");
 
+	public static final Setting<String> LogLevel                       = new ChoiceSetting(generalGroup,             "Logging",     "log.level",                             "INFO", Settings.getAvailableLogLevels(), "Configures the default log level. Takes effect immediately.");
 	public static final Setting<Boolean> LogSchemaOutput               = new BooleanSetting(generalGroup,            "Logging",     "NodeExtender.log",                      false, "Whether to write dynamically created Java code to the logfile, for debugging purposes.");
 	public static final Setting<Boolean> LogSchemaErrors               = new BooleanSetting(generalGroup,            "Logging",     "NodeExtender.log.errors",               true);
 	public static final Setting<Integer> QueryTimeLoggingThreshold     = new IntegerSetting(generalGroup,            "Logging",     "log.querytime.threshold",               3000, "Milliseconds after which a long-running query will be logged.");
@@ -1073,12 +1074,26 @@ public class Settings {
 	}
 
 	public static Map<String, String> getAllowedUUIDv4FormatOptions() {
-		return Map.of(
-			POSSIBLE_UUID_V4_FORMATS.without_dashes.toString(), "Without Dashes",
-			POSSIBLE_UUID_V4_FORMATS.with_dashes.toString(), "With Dashes",
-			POSSIBLE_UUID_V4_FORMATS.both.toString(), "Both (Read warning!)"
-		);
+
+		final Map<String, String> options = new LinkedHashMap();
+		options.put(POSSIBLE_UUID_V4_FORMATS.without_dashes.toString(), "Without Dashes");
+		options.put(POSSIBLE_UUID_V4_FORMATS.with_dashes.toString(), "With Dashes");
+		options.put(POSSIBLE_UUID_V4_FORMATS.both.toString(), "Both (Read warning!)");
+		return options;
 	}
+
+	public static Map<String, String> getAvailableLogLevels() {
+
+		final Map<String, String> options = new LinkedHashMap();
+		options.put("ALL", "ALL");
+		options.put("TRACE", "TRACE");
+		options.put("DEBUG", "DEBUG");
+		options.put("INFO", "INFO");
+		options.put("WARN", "WARN");
+		options.put("ERROR", "ERROR");
+		return options;
+	}
+
 
 	public enum SCRIPT_PROCESS_LOG_STYLE {
 		NOTHING(0), SCRIPT_PATH(1), CUSTOM(2);

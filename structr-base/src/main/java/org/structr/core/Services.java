@@ -40,6 +40,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.cluster.BroadcastReceiver;
 import org.structr.core.cluster.ClusterManager;
 import org.structr.core.cluster.StructrMessage;
+import org.structr.core.function.SetLogLevelFunction;
 import org.structr.core.graph.*;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaHelper;
@@ -215,6 +216,8 @@ public class Services implements StructrServices, BroadcastReceiver {
 			logger.info("Reading {}..", Settings.ConfigFileName);
 			Settings.loadConfiguration(Settings.ConfigFileName);
 
+			SetLogLevelFunction.setLogLevel(Settings.LogLevel.getValue());
+
 			// this might be the first start with a new / upgraded version
 			// check if we need to do some migration maybe?
 
@@ -357,6 +360,10 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 				RestartRequiredChangeHandler.logRestartRequiredMessage(setting);
 			}
+		});
+
+		Settings.LogLevel.setChangeHandler((setting, oldValue, newValue) -> {
+			SetLogLevelFunction.setLogLevel(newValue.toString());
 		});
 	}
 
