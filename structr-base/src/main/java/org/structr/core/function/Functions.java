@@ -52,31 +52,13 @@ public class Functions {
 
 	public static void put(final LicenseManager licenseManager, final Function<Object, Object> function, final boolean warnUnregistered) {
 
-		final boolean licensed = (licenseManager == null || licenseManager.isModuleLicensed(function.getRequiredModule()));
-
 		allFunctions.add(function);
 
-		registerFunction(licensed, function.getName(), function, warnUnregistered);
+		functions.put(function.getName(), function);
 
 		function.aliases().forEach(alias -> {
-			registerFunction(licensed, alias, function, warnUnregistered);
+			functions.put(alias, function);
 		});
-	}
-
-	private static void registerFunction(final boolean licensed, final String name, final Function<Object, Object> function, final boolean warnUnregistered) {
-
-		if (warnUnregistered && functions.containsKey(name)) {
-			logger.warn("A function named '{}' is already registered! The previous function will be overwritten with this one.", name);
-		}
-
-		if (licensed) {
-
-			functions.put(name, function);
-
-		} else {
-
-			functions.put(name, new UnlicensedFunction(name, function.getRequiredModule()));
-		}
 	}
 
 	public static Set<String> getNames() {

@@ -775,16 +775,9 @@ public class Services implements StructrServices, BroadcastReceiver {
 			logger.info("Creating {}..", serviceClass.getSimpleName());
 
 			final Service service = (Service) serviceClass.getDeclaredConstructor().newInstance();
-
-			if (licenseManager != null && !licenseManager.isValid(service)) {
-
-				logger.error("Configured service {} is not part of the currently licensed Structr Edition.", serviceClass.getSimpleName());
-				return new ServiceResult("Service is not part of the currently licensed Structr Edition", false);
-			}
-
-			final int retryDelay     = service.getRetryDelay();
-			int retryCount           = service.getRetryCount();
-			isVital                  = service.isVital();
+			final int retryDelay  = service.getRetryDelay();
+			int retryCount        = service.getRetryCount();
+			isVital               = service.isVital();
 
 			while (waitAndRetry && retryCount-- > 0) {
 

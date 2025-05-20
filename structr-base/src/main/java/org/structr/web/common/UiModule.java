@@ -52,12 +52,12 @@ public class UiModule implements StructrModule {
 	}
 
 	@Override
-	public void onLoad(final LicenseManager licenseManager) {
+	public void onLoad() {
 
-		DataSources.put(true, "ui", "idRequestParameterDataSource", new IdRequestParameterGraphDataSource("nodeId"));
-		DataSources.put(true, "ui", "restDataSource",               new RestDataSource());
-		DataSources.put(true, "ui", "cypherDataSource",             new CypherGraphDataSource());
-		DataSources.put(true, "ui", "functionDataSource",           new FunctionDataSource(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY));
+		DataSources.put("ui", "idRequestParameterDataSource", new IdRequestParameterGraphDataSource("nodeId"));
+		DataSources.put("ui", "restDataSource",               new RestDataSource());
+		DataSources.put("ui", "cypherDataSource",             new CypherGraphDataSource());
+		DataSources.put("ui", "functionDataSource",           new FunctionDataSource(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY));
 
 		StructrTraits.registerRelationshipType(StructrTraits.ABSTRACT_FILE_CONFIGURED_BY_STORAGE_CONFIGURATION,              new AbstractFileCONFIGURED_BYStorageConfiguration());
 		StructrTraits.registerRelationshipType(StructrTraits.ACTION_MAPPING_PARAMETER_PARAMETER_MAPPING,                     new ActionMappingPARAMETERParameterMapping());

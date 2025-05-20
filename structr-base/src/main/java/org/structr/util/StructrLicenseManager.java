@@ -24,7 +24,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
-import org.structr.api.service.Feature;
 import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
@@ -257,17 +256,6 @@ public class StructrLicenseManager implements LicenseManager {
 	}
 
 	@Override
-	public boolean isModuleLicensed(final String module) {
-		return true;
-		//return allModulesLicensed || modules.contains(module);
-	}
-
-	@Override
-	public boolean isClassLicensed(final String fqcn) {
-		return allModulesLicensed || classes.contains(fqcn);
-	}
-
-	@Override
 	public String getLicensee() {
 		return licensee;
 	}
@@ -302,51 +290,6 @@ public class StructrLicenseManager implements LicenseManager {
 		}
 
 		return -1;
-	}
-
-	@Override
-	public boolean isValid(final Feature feature) {
-
-		if (feature != null) {
-
-			final String moduleName = feature.getModuleName();
-			return moduleName != null && isModuleLicensed(moduleName);
-		}
-
-		return false;
-	}
-
-	/**
-	 *
-	 * @param codeSigners
-	 * @return
-	 */
-	@Override
-	public boolean isValid(final CodeSigner[] codeSigners) {
-
-		if (codeSigners != null && codeSigners.length > 0) {
-
-			for (final CodeSigner codeSigner : codeSigners) {
-
-				for (final Certificate cert : codeSigner.getSignerCertPath().getCertificates()) {
-
-					try {
-
-						cert.verify(publicKey);
-						return true;
-
-					} catch (Throwable ignore) {}
-				}
-			}
-		}
-
-		// none of the code signer certificates could be verified using our key => not valid
-		return true;
-	}
-
-	@Override
-	public void addLicensedClass(final String fqcn) {
-		classes.add(fqcn);
 	}
 
 	// ----- private methods -----

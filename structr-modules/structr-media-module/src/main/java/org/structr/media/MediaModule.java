@@ -39,7 +39,7 @@ import java.util.Set;
 public class MediaModule implements StructrModule {
 
 	@Override
-	public void onLoad(final LicenseManager licenseManager) {
+	public void onLoad() {
 
 		StructrTraits.registerRelationshipType(StructrTraits.VIDEO_FILE_HAS_CONVERTED_VIDEO_VIDEO_FILE, new VideoFileHAS_CONVERTED_VIDEOVideoFile());
 		StructrTraits.registerRelationshipType(StructrTraits.VIDEO_FILE_HAS_POSTER_IMAGE_IMAGE,         new VideoFileHAS_POSTER_IMAGEImage());
