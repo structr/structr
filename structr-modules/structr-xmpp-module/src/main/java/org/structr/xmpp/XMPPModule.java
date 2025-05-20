@@ -36,7 +36,7 @@ import java.util.Set;
 public class XMPPModule implements StructrModule {
 
 	@Override
-	public void onLoad(final LicenseManager licenseManager) {
+	public void onLoad() {
 
 		StructrTraits.registerRelationshipType(StructrTraits.XMPP_CLIENT_REQUEST, new XMPPClientRequest());
 

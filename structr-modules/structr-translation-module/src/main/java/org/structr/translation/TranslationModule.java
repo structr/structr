@@ -37,7 +37,7 @@ public class TranslationModule implements StructrModule {
 	public static final Setting<String> TranslationDeepLAPIKey       = new StringSetting(Settings.miscGroup,   "Translation Module", "translation.deepl.apikey", "", "DeepL API Key");
 
 	@Override
-	public void onLoad(final LicenseManager licenseManager) {
+	public void onLoad() {
 	}
 
 	@Override

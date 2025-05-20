@@ -896,7 +896,7 @@ public class Settings {
 		if (builder != null) {
 
 			final FileHandler fileHandler = builder.getFileHandler();
-			final String pathString = fileHandler.getURL().getPath();
+			final String pathString = fileHandler.getPath();
 			if (pathString != null) {
 				return Files.getPosixFilePermissions(Path.of(pathString));
 			}

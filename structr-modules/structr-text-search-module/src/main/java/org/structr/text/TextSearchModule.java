@@ -46,7 +46,7 @@ public class TextSearchModule implements FulltextIndexer, StructrModule {
 	private static final GenericProperty contextKey = new GenericProperty("context");
 
 	@Override
-	public void onLoad(final LicenseManager licenseManager) {
+	public void onLoad() {
 	}
 
 	@Override

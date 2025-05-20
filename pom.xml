@@ -63,8 +63,6 @@
 	<modules>
 		<module>structr-db-driver-api</module>
 		<module>structr-neo4j-bolt-driver</module>
-		<module>structr-memory-driver</module>
-		<!--module>structr-memgraph-driver</module-->
 		<module>structr-base</module>
 		<module>structr-core</module>
 		<module>structr-rest</module>

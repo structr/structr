@@ -39,7 +39,7 @@ import java.util.Set;
 public class ODFModule implements StructrModule{
 
 	@Override
-	public void onLoad(final LicenseManager licenseManager) {
+	public void onLoad() {
 
 		StructrTraits.registerRelationshipType(StructrTraits.ODF_EXPORTER_EXPORTS_TO_FILE,                       new ODFExporterEXPORTS_TOFile());
 		StructrTraits.registerRelationshipType(StructrTraits.ODF_EXPORTER_GETS_TRANSFORMATION_FROM_VIRTUAL_TYPE, new ODFExporterGETS_TRANSFORMATION_FROMVirtualType());

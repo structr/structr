@@ -28,16 +28,8 @@ public class DataSources {
 
 	private static final Map<String, GraphDataSource> dataSources = new LinkedHashMap<>();
 
-	public static void put(final boolean licensed, final String module, final String name, final GraphDataSource dataSource) {
-
-		if (licensed) {
-
-			dataSources.put(name, dataSource);
-
-		} else {
-
-			dataSources.put(name, new UnlicensedDataSource(name, module));
-		}
+	public static void put(final String module, final String name, final GraphDataSource dataSource) {
+		dataSources.put(name, dataSource);
 	}
 
 	public static Set<String> getNames() {

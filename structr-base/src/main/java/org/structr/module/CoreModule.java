@@ -32,7 +32,7 @@ import java.util.Set;
 public class CoreModule implements StructrModule {
 
 	@Override
-	public void onLoad(final LicenseManager licenseManager) {
+	public void onLoad() {
 
 		StructrTraits.registerBaseType(new PropertyContainerTraitDefinition());
 		StructrTraits.registerBaseType(new GraphObjectTraitDefinition());

@@ -32,7 +32,7 @@ import java.util.Set;
 public class FileAccessModule implements StructrModule {
 
 	@Override
-	public void onLoad(final LicenseManager licenseManager) {
+	public void onLoad() {
 	}
 
 	@Override

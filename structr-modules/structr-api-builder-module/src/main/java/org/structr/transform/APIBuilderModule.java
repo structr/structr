@@ -59,7 +59,7 @@ public class APIBuilderModule implements StructrModule, APIBuilder {
 	private static final Logger logger = LoggerFactory.getLogger(APIBuilderModule.class.getName());
 
 	@Override
-	public void onLoad(final LicenseManager licenseManager) {
+	public void onLoad() {
 
 		StructrTraits.registerRelationshipType(StructrTraits.VIRTUAL_TYPE_VIRTUAL_PROPERTY_VIRTUAL_PROPERTY, new VirtualTypevirtualPropertyVirtualProperty());
 

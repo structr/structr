@@ -38,7 +38,7 @@ import java.util.Set;
 public class DataFeedsModule implements StructrModule {
 
 	@Override
-	public void onLoad(final LicenseManager licenseManager) {
+	public void onLoad() {
 
 		StructrTraits.registerRelationshipType(StructrTraits.DATA_FEED_HAS_FEED_ITEMS_FEED_ITEM,                 new DataFeedHAS_FEED_ITEMSFeedItem());
 		StructrTraits.registerRelationshipType(StructrTraits.FEED_ITEM_FEED_ITEM_CONTENTS_FEED_ITEM_CONTENT,     new FeedItemFEED_ITEM_CONTENTSFeedItemContent());

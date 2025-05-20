@@ -34,10 +34,8 @@ public interface StructrModule {
 
 	/**
 	 * Called when the module is loaded.
-	 *
-	 * @param licenseManager the license manager or null
 	 */
-	void onLoad(final LicenseManager licenseManager);
+	void onLoad();
 
 	/**
 	 * Registers the functions of the module

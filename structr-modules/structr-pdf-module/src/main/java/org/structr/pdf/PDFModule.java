@@ -32,7 +32,7 @@ import java.util.Set;
 public class PDFModule implements StructrModule {
 
 	@Override
-	public void onLoad(LicenseManager licenseManager) {
+	public void onLoad() {
 	}
 
 	@Override

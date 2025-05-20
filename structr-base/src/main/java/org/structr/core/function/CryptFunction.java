@@ -18,6 +18,9 @@
  */
 package org.structr.core.function;
 
+import java.nio.ByteBuffer;
+import java.security.SecureRandom;
+import javax.crypto.spec.GCMParameterSpec;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.structr.api.config.Settings;
@@ -33,7 +36,11 @@ public abstract class CryptFunction extends AdvancedScriptingFunction {
 	public static byte[] secretKeyHash    = null;
 	public static final String CHARSET    = "UTF-8";
 	public static final String HASH_ALGO  = "MD5";
-	public static final String CRYPT_ALGO = "AES";
+	public static final String BASE_ALGO  = "AES";
+	public static final String CRYPT_ALGO = "AES/GCM/NoPadding";
+
+	private static final int GCM_IV_LENGTH = 12;
+	private static final int GCM_TAG_LENGTH = 128;
 
 	// ----- public static methods -----
 	public static void setEncryptionKey(final String key) {
@@ -49,7 +56,7 @@ public abstract class CryptFunction extends AdvancedScriptingFunction {
 
 		try {
 
-			secretKeyHash = MessageDigest.getInstance(HASH_ALGO).digest(key.getBytes("UTF-8"));
+			secretKeyHash = MessageDigest.getInstance(HASH_ALGO).digest(key.getBytes(CHARSET));
 
 		} catch (Throwable t) {
 			logger.error("Unable to set secret key: {}", t.getMessage());
@@ -60,14 +67,10 @@ public abstract class CryptFunction extends AdvancedScriptingFunction {
 
 		try {
 
-			final SecretKeySpec skeySpec = new SecretKeySpec(MessageDigest.getInstance(HASH_ALGO).digest(key.getBytes(CHARSET)), CRYPT_ALGO);
-			final Cipher cipher          = Cipher.getInstance(CRYPT_ALGO);
-
-			cipher.init(Cipher.ENCRYPT_MODE, skeySpec);
-
-			return Base64.getEncoder().encodeToString(cipher.doFinal(clearText.getBytes(CHARSET)));
+			return encryptWithKeyHash(clearText, MessageDigest.getInstance(HASH_ALGO).digest(key.getBytes(CHARSET)));
 
 		} catch (Throwable t) {
+
 			logger.error(ExceptionUtils.getStackTrace(t));
 		}
 
@@ -83,16 +86,32 @@ public abstract class CryptFunction extends AdvancedScriptingFunction {
 			throw new FrameworkException(422, "Unable to encrypt data, no secret key set.");
 		}
 
+		return encryptWithKeyHash(clearText, secretKeyHash);
+	}
+
+	public static String encryptWithKeyHash(final String clearText, final byte[] keyHash) {
+
 		try {
 
-			final SecretKeySpec skeySpec = new SecretKeySpec(secretKeyHash, CRYPT_ALGO);
-			final Cipher cipher          = Cipher.getInstance(CRYPT_ALGO);
+			final SecretKeySpec skeySpec   = new SecretKeySpec(keyHash, BASE_ALGO);
+			final Cipher cipher            = Cipher.getInstance(CRYPT_ALGO);
+			final byte[] iv                = new byte[GCM_IV_LENGTH];
+			final SecureRandom random      = new SecureRandom();
+			random.nextBytes(iv);
+			final GCMParameterSpec gcmSpec = new GCMParameterSpec(GCM_TAG_LENGTH, iv);
 
-			cipher.init(Cipher.ENCRYPT_MODE, skeySpec);
+			cipher.init(Cipher.ENCRYPT_MODE, skeySpec, gcmSpec);
 
-			return Base64.getEncoder().encodeToString(cipher.doFinal(clearText.getBytes(CHARSET)));
+			final byte[] ciphertext = cipher.doFinal(clearText.getBytes(CHARSET));
+
+			final ByteBuffer buffer = ByteBuffer.allocate(iv.length + ciphertext.length);
+			buffer.put(iv);
+			buffer.put(ciphertext);
+
+			return Base64.getEncoder().encodeToString(buffer.array());
 
 		} catch (Throwable t) {
+
 			logger.error(ExceptionUtils.getStackTrace(t));
 		}
 
@@ -103,14 +122,10 @@ public abstract class CryptFunction extends AdvancedScriptingFunction {
 
 		try {
 
-			final SecretKeySpec skeySpec = new SecretKeySpec(MessageDigest.getInstance(HASH_ALGO).digest(key.getBytes(CHARSET)), CRYPT_ALGO);
-			final Cipher cipher          = Cipher.getInstance(CRYPT_ALGO);
-
-			cipher.init(Cipher.DECRYPT_MODE, skeySpec);
-
-			return new String(cipher.doFinal(Base64.getDecoder().decode(encryptedText)), CHARSET);
+			return decryptWithKeyHash(encryptedText, MessageDigest.getInstance(HASH_ALGO).digest(key.getBytes(CHARSET)));
 
 		} catch (Throwable t) {
+
 			logger.error("Unable to decrypt ciphertext: {}: {}", t.getClass().getSimpleName(), t.getMessage());
 		}
 
@@ -127,16 +142,49 @@ public abstract class CryptFunction extends AdvancedScriptingFunction {
 			return null;
 		}
 
+		return decryptWithKeyHash(encryptedText, secretKeyHash);
+	}
+
+	public static String decryptWithKeyHash(final String encryptedText, final byte[] keyHash) {
+
 		try {
 
-			final SecretKeySpec skeySpec = new SecretKeySpec(secretKeyHash, CRYPT_ALGO);
-			final Cipher cipher          = Cipher.getInstance(CRYPT_ALGO);
+			ByteBuffer buffer = ByteBuffer.wrap(Base64.getDecoder().decode(encryptedText));
+			final byte[] iv = new byte[GCM_IV_LENGTH];
+			buffer.get(iv);
+			final byte[] ciphertext = new byte[buffer.remaining()];
+			buffer.get(ciphertext);
+
+			final SecretKeySpec skeySpec   = new SecretKeySpec(keyHash, BASE_ALGO);
+			final Cipher cipher            = Cipher.getInstance(CRYPT_ALGO);
+			final GCMParameterSpec gcmSpec = new GCMParameterSpec(GCM_TAG_LENGTH, iv);
+
+			cipher.init(Cipher.DECRYPT_MODE, skeySpec, gcmSpec);
+
+			return new String(cipher.doFinal(ciphertext), CHARSET);
+
+		} catch (Throwable t) {
+
+			logger.error("Unable to decrypt ciphertext. Falling back to previous method. If this works, it is recommended to update the value by re-encrypting it. Cause: {}: {}", t.getClass().getSimpleName(), t.getMessage());
+
+			return decryptWithKeyHash_deprecated(encryptedText, keyHash);
+		}
+	}
+
+	@Deprecated
+	public static String decryptWithKeyHash_deprecated(final String encryptedText, final byte[] keyHash) {
+
+		try {
+
+			final SecretKeySpec skeySpec = new SecretKeySpec(keyHash, BASE_ALGO);
+			final Cipher cipher          = Cipher.getInstance(BASE_ALGO);
 
 			cipher.init(Cipher.DECRYPT_MODE, skeySpec);
 
 			return new String(cipher.doFinal(Base64.getDecoder().decode(encryptedText)), CHARSET);
 
 		} catch (Throwable t) {
+
 			logger.error("Unable to decrypt ciphertext: {}: {}", t.getClass().getSimpleName(), t.getMessage());
 		}
 
