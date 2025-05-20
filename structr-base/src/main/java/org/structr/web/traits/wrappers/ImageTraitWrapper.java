@@ -175,6 +175,7 @@ public class ImageTraitWrapper extends FileTraitWrapper implements Image {
 		final SecurityContext securityContext = wrappedObject.getSecurityContext();
 		final String originalContentType      = getContentType();
 		final Image existingThumbnail         = getExistingThumbnail(maxWidth, maxHeight, cropToFit);
+		final boolean hasBytes                = getSize() > 0;
 
 		if (existingThumbnail != null) {
 
@@ -190,6 +191,11 @@ public class ImageTraitWrapper extends FileTraitWrapper implements Image {
 		// do not create thumbnails if thumbnail creation failed before
 		if (Boolean.TRUE.equals(thumbnailCreationFailed())) {
 
+			return null;
+		}
+
+		// don't create thumbnails for empty files
+		if (!hasBytes) {
 			return null;
 		}
 

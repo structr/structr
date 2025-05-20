@@ -53,6 +53,7 @@ public interface File extends AbstractFile, DataSource {
 	String getMd5();
 
 	void setSize(Long size) throws FrameworkException;
+	Long getSize();
 
 	Folder getCurrentWorkingDir();
 	String getFormattedSize();

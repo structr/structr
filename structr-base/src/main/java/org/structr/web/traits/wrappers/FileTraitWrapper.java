@@ -145,8 +145,13 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 	@Override
 	public String getFormattedSize() {
 		return FileUtils.byteCountToDisplaySize(
-				StorageProviderFactory.getStorageProvider(wrappedObject.as(AbstractFile.class)).size()
+				getSize()
 		);
+	}
+
+	@Override
+	public Long getSize() {
+		return StorageProviderFactory.getStorageProvider(wrappedObject.as(AbstractFile.class)).size();
 	}
 
 	@Override
