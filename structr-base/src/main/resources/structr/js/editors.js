@@ -115,9 +115,27 @@ require(['vs/editor/editor.main'], () => {
 	});
 
 	monaco.editor.registerEditorOpener({
-		openCodeEditor(sourceEditor, resourceUri, selectionOrPosition) {
+		openCodeEditor(sourceEditor, resourceUri, positionOrRange) {
 
 			if (Structr.isModuleActive(_Code)) {
+
+				let isSameEditor = (resourceUri.path === sourceEditor.getModel().uri.path);
+				if (isSameEditor) {
+
+					if (monaco.Selection.isIRange(positionOrRange)) {
+
+						sourceEditor.setSelection(positionOrRange);
+						sourceEditor.revealRangeInCenter(positionOrRange);
+						return true;
+					}
+
+					if (monaco.Position.isIPosition(positionOrRange)) {
+
+						sourceEditor.setPosition(positionOrRange);
+						sourceEditor.revealPositionInCenter(positionOrRange);
+						return true;
+					}
+				}
 
 				let targetModel    = monaco.editor.getModel(resourceUri);
 				let structr_entity = targetModel.uri.structr_entity;
