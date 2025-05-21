@@ -3048,7 +3048,8 @@ let _Schema = {
 					containerCssClass: 'select2-sortable hide-selected-options hide-disabled-options' + (viewIsEditable ? '' : ' not-editable'),
 					closeOnSelect: true,
 					scrollAfterSelect: false,
-					dropdownParent: dropdownParent
+					dropdownParent: dropdownParent,
+					closeOnSelect: false
 				});
 
 				if (!viewIsEditable) {
