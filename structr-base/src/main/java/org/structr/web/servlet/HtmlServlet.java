@@ -362,7 +362,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 								final NodeInterface possibleRootNode = findNodeByUuid(securityContext, PathHelper.getName(path));
 
-								if (possibleRootNode.is(StructrTraits.DOM_NODE)) {
+								if (possibleRootNode != null && possibleRootNode.is(StructrTraits.DOM_NODE)) {
 									rootElement = possibleRootNode.as(DOMNode.class);
 								}
 							}
