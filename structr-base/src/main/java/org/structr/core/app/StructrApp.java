@@ -209,7 +209,12 @@ public class StructrApp implements App {
 		} else {
 
 			try {
-				return nodeFactory.instantiate(getDatabaseService().getNodeById(nodeId));
+
+				final NodeInterface node = nodeFactory.instantiate(getDatabaseService().getNodeById(nodeId));
+				if (node != null && node.is(type)) {
+
+					return node;
+				}
 
 			} catch (NotFoundException ignore) {
 				nodeUuidMap.remove(uuid);
