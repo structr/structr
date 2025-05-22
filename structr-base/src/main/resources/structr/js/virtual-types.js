@@ -239,7 +239,7 @@ let _VirtualTypes = {
 			name: 'Delete Virtual Type',
 			clickHandler: async () => {
 
-				let confirm = await _Dialogs.confirmation.showPromise(`<p>Do you really want to delete the virtual type "<b>${virtualType.name}</b>" with all its virtual properties?</p>`);
+				let confirm = await _Dialogs.confirmation.showPromise(`Do you really want to delete the virtual type "<b>${virtualType.name}</b>" with all its virtual properties?`);
 
 				if (confirm === true) {
 

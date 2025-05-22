@@ -52,7 +52,7 @@
 #localization-main {
 	display: none;
 	height: calc(100% - 3rem);
-	margin: 2rem;
+	margin: 0 2rem 2rem 2rem;
 }
 
 #localization-list {

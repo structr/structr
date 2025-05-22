@@ -18,7 +18,7 @@
  */
 #importer-main {
 	width: calc(100% - 4rem);
-	margin: 2rem 0 0 2rem;
+	margin: 0 0 0 2rem;
 }
 
 #log-output {

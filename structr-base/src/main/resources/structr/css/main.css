@@ -395,9 +395,10 @@ input[type="checkbox"] {
 
 #main {
 	position: absolute;
-	top: 6rem;
+	top: 8rem;
 	width: 100%;
 	height: calc(100% - 8rem);
+	overflow: hidden;
 	background-color: var(--main-background);
 }
 
@@ -423,7 +424,7 @@ input[type="checkbox"] {
 }
 
 .main-app-box {
-	margin: 2rem;
+	margin: 0 2rem;
 }
 
 .menu > ul {
@@ -622,23 +623,23 @@ img.disabled {
  */
 #pagesTab,
 #widgetsTab {
-	top: 4rem;
+	top: 2rem;
 }
 
 #localizationsTab {
-	top: 10rem;
+	top: 8rem;
 }
 
 #componentsTab {
-	top: 9rem;
+	top: 7rem;
 }
 
 #elementsTab {
-	top: 15rem;
+	top: 13rem;
 }
 
 #previewTab {
-	top: 21rem;
+	top: 19rem;
 }
 
 
@@ -657,7 +658,7 @@ img.disabled {
 	height: calc(100% - 2rem);
 	position: absolute;
 	z-index: 2;
-	top: 2rem;
+	top: 0;
 	background-color: var(--solid-white) ! important;
 }
 
@@ -986,6 +987,7 @@ img.disabled {
 }
 
 .propTabContent {
+	margin-top: 1rem;
 	display: none;
 }
 
@@ -1331,9 +1333,27 @@ button.action.disabled:hover {
 	cursor: not-allowed;
 }
 
-.dialog {
+.non-block-ui-blocker-content {
+	position: relative;
+	display: flex;
+	width: 100%;
+	height: calc(100vh - 8rem);
+}
+
+.non-block-ui-blocker-content.maximized {
+	position: absolute;
+	top: 0;
+	height: calc(100vh);
+}
+
+body[style*=zoom] .non-block-ui-blocker-content {
+	height: calc(50vh - 4rem);
+}
+
+.dialog, .confirmationText {
 	padding: 1rem;
 	background-color: var(--solid-white);
+	margin: auto;
 }
 
 #dialogBox .window-icon {
@@ -1368,8 +1388,15 @@ button.action.disabled:hover {
 }
 
 #dialogBox {
+	min-width: calc(60vw);
+	min-height: calc(60vh);
 	padding-bottom: 4rem;
 	position: relative;
+}
+
+#dialogBox.maximized {
+	width: calc(100vw - 4rem);
+	height: calc(100vh - 7rem);
 }
 
 /* Make dialog title invisible */
@@ -1397,7 +1424,6 @@ button.action.disabled:hover {
 
 .dialogTextWrapper {
 	width: 100%;
-	overflow-y: auto;
 }
 
 .dialogText textarea {
@@ -1482,7 +1508,9 @@ button.action.disabled:hover {
 }
 
 #login {
-	width: 264px;
+	width: 20rem;
+	height: 13rem;
+	margin: auto;
 }
 
 .errorText img {
@@ -2433,7 +2461,7 @@ td#cascading-options, td#propagation-options {
 .tree-main {
 	display: flex;
 	height: calc(100% - 2rem);
-	margin: 2rem;
+	margin: 0 2rem 2rem 2rem;
 }
 
 .tree-container {

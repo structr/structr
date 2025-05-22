@@ -2905,7 +2905,7 @@ let _Crud = {
 		},
 		crudAskDelete: async (type, id) => {
 
-			let confirm = await _Dialogs.confirmation.showPromise(`<p>Are you sure you want to delete <b>${type}</b> ${id}?</p>`);
+			let confirm = await _Dialogs.confirmation.showPromise(`Are you sure you want to delete <b>${type}</b> ${id}?`);
 			if (confirm === true) {
 				_Crud.helpers.crudDelete(type, id);
 			}

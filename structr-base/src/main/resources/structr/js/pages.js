@@ -2626,7 +2626,7 @@ let _Pages = {
 
 								//console.log(e.clientX, e.clientY, el[0].getBoundingClientRect());
 
-								Command.get(structrId, null, (data) => { console.log('#', data);
+								Command.get(structrId, null, (data) => {
 									const entity = StructrModel.createFromData(data);
 									_Elements.contextMenu.activateContextMenu(e, el[0],
 										{
@@ -2843,6 +2843,8 @@ let _Pages = {
 					}
 
 					Command.get(pageId, 'id,name,path,site', (pageObj) => {
+
+						_Helpers.fastRemoveAllChildren(parentElement);
 
 						parentElement.insertAdjacentHTML('beforeend', _Pages.templates.preview({ pageId: pageObj.id }));
 
@@ -3118,7 +3120,7 @@ let _Pages = {
 
 				deleteUnattachedNodesButton.addEventListener('click', async () => {
 
-					let confirm = await _Dialogs.confirmation.showPromise('<p>Delete all DOM elements without parent?</p>');
+					let confirm = await _Dialogs.confirmation.showPromise('Delete all DOM elements without parent?');
 					if (confirm === true) {
 
 						Command.deleteUnattachedNodes();
