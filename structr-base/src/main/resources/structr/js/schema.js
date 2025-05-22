@@ -950,10 +950,8 @@ let _Schema = {
 
 			fetch(`${Structr.rootUrl}_schema`).then(response => response.json()).then(schemaData => {
 
-				let isHtmlType = (type) => type.traits.includes('DOMNode');
-
-				let customTypes  = schemaData.result.filter(type => !isHtmlType(type) && !type.isAbstract && !type.isRel && !type.isInterface && !type.isServiceClass && !type.isBuiltin && type.name !== entity.name);
-				let builtinTypes = schemaData.result.filter(type => !isHtmlType(type) && !type.isAbstract && !type.isRel && !type.isInterface && !type.isServiceClass && type.isBuiltin && type.name !== entity.name);
+				let customTypes  = schemaData.result.filter(type => !type.isAbstract && !type.isRel && !type.isInterface && !type.isServiceClass && !type.isBuiltin && type.name !== entity.name);
+				let builtinTypes = schemaData.result.filter(type => !type.isAbstract && !type.isRel && !type.isInterface && !type.isServiceClass && type.isBuiltin && type.name !== entity.name);
 
 				let getOptionsForListOfTypes = (typeList) => {
 					return typeList.map(type => type.name).sort().map(name => `<option ${(entity.inheritedTraits ?? []).includes(name) ? 'selected' : ''} value="${name}">${name}</option>`).join('');
