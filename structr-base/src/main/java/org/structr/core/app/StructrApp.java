@@ -211,7 +211,7 @@ public class StructrApp implements App {
 			try {
 
 				final NodeInterface node = nodeFactory.instantiate(getDatabaseService().getNodeById(nodeId));
-				if (node != null && node.is(type)) {
+				if (node != null && (type == null || node.is(type))) {
 
 					return node;
 				}
