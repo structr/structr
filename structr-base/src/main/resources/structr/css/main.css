@@ -1389,7 +1389,7 @@ body[style*=zoom] .non-block-ui-blocker-content {
 
 #dialogBox {
 	min-width: calc(60vw);
-	min-height: calc(60vh);
+	height: calc(60vh);
 	padding-bottom: 4rem;
 	position: relative;
 }
@@ -1424,6 +1424,8 @@ body[style*=zoom] .non-block-ui-blocker-content {
 
 .dialogTextWrapper {
 	width: 100%;
+	height: calc(60vh - 1rem);
+	overflow: auto;
 }
 
 .dialogText textarea {
