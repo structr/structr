@@ -29,13 +29,16 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.script.polyglot.PolyglotWrapper;
+import org.structr.core.traits.StructrTraits;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Arrays;
 
 public class DoAsFunction extends BuiltinFunctionHint implements ProxyExecutable {
-    private static final Logger logger = LoggerFactory.getLogger(DoAsFunction.class);
+
     private final ActionContext actionContext;
+
+    private final String PARAMETER_ERROR_MESSAGE = "Invalid parameter(s) for do_as function. Expected (non-null): Principal, Executable";
 
     public DoAsFunction(final ActionContext actionContext) {
 
@@ -47,25 +50,34 @@ public class DoAsFunction extends BuiltinFunctionHint implements ProxyExecutable
 
         Object[] parameters = Arrays.stream(arguments).map(a -> PolyglotWrapper.unwrap(actionContext, a)).toArray();
 
-        if (parameters.length == 2) {
+        if (parameters.length == 2 && parameters[0] != null && parameters[1] != null) {
 
             final SecurityContext initialSecurityContext = actionContext.getSecurityContext();
 
             try {
 
-                final Principal user = ((NodeInterface) parameters[0]).as(Principal.class);
-                final ProxyExecutable executable = (ProxyExecutable) parameters[1];
+                final NodeInterface node = (NodeInterface) parameters[0];
 
-                final SecurityContext userContext = SecurityContext.getInstance(user, initialSecurityContext.getRequest(), AccessMode.Frontend);
+                if (node.is(StructrTraits.USER)) {
 
-                userContext.setContextStore(initialSecurityContext.getContextStore());
-                actionContext.setSecurityContext(userContext);
-                executable.execute();
-                initialSecurityContext.setContextStore(userContext.getContextStore());
+                    final Principal user = node.as(Principal.class);
+                    final ProxyExecutable executable = (ProxyExecutable) parameters[1];
+
+                    final SecurityContext userContext = SecurityContext.getInstance(user, initialSecurityContext.getRequest(), AccessMode.Frontend);
+
+                    userContext.setContextStore(initialSecurityContext.getContextStore());
+                    actionContext.setSecurityContext(userContext);
+                    executable.execute();
+                    initialSecurityContext.setContextStore(userContext.getContextStore());
+
+                } else {
+
+                    throw new RuntimeException(new FrameworkException(422, PARAMETER_ERROR_MESSAGE));
+                }
 
             } catch (ClassCastException ex) {
 
-                throw new RuntimeException(new FrameworkException(422, "Invalid parameters for do_as function. Expected: Principal, Executable"));
+                throw new RuntimeException(new FrameworkException(422, PARAMETER_ERROR_MESSAGE));
 
             } finally {
 
@@ -74,7 +86,7 @@ public class DoAsFunction extends BuiltinFunctionHint implements ProxyExecutable
 
         } else {
 
-            throw new RuntimeException(new FrameworkException(422, "Invalid parameter count for do_as function."));
+            throw new RuntimeException(new FrameworkException(422, PARAMETER_ERROR_MESSAGE));
         }
 
         return null;
