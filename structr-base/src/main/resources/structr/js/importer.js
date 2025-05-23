@@ -271,7 +271,7 @@ let Importer = {
 
 		Importer.clearSchemaTypeCache();
 
-		let { dialogText, dialogMeta } = _Dialogs.custom.openDialog(`Import CSV from ${file.name}`, Importer.unload);
+		let { dialogText, dialogMeta } = _Dialogs.custom.openDialog(`Import CSV from ${file.name}`, Importer.unload, ['full-height-dialog-text']);
 
 		let startButton = _Dialogs.custom.prependCustomDialogButton('<button class="action disabled" disabled id="start-import">Start import</button>');
 

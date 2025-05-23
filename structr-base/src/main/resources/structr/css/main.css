@@ -987,7 +987,6 @@ img.disabled {
 }
 
 .propTabContent {
-	margin-top: 1rem;
 	display: none;
 }
 
@@ -3589,6 +3588,11 @@ table.props td.__value {
  */
 .popup-dialog-with-editor .dialogText {
 	height: 100%;
+}
+
+.popup-dialog-with-editor .dialogTextWrapper,
+.full-height-dialog-text .dialogTextWrapper {
+	height: calc(60vh - 5rem);
 }
 
 .popup-dialog-with-editor .dialogText #widget-dialog_content {

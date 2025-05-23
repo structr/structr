@@ -1113,7 +1113,7 @@ let Structr = {
 		});
 	},
 	isModulePresent: (moduleName) => {
-		return Structr.activeModules[moduleName] !== undefined;
+		return true; // Structr.activeModules[moduleName] !== undefined;
 	},
 	isModuleInformationAvailable: () => {
 		return (Object.keys(Structr.activeModules).length > 0);
@@ -1795,7 +1795,7 @@ let Structr = {
 		}
 
 		let reconnectDialog = `
-			<div id="reconnect-dialog">
+			<div id="reconnect-dialog" class="dialog">
 				<div class="flex flex-col gap-y-4 items-center justify-center">
 					<div class="flex items-center">
 						${_Icons.getSvgIcon(_Icons.iconWarningYellowFilled, 16, 16, 'mr-2')}

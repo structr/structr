@@ -67,7 +67,9 @@ let _Dialogs = {
 			return contentElement;
 		},
 		centerAll: () => {
-console.log('blocked centerAll'); return;
+			// do nothing
+			return;
+
 			for (let messageDiv of document.querySelectorAll(`.${_Dialogs.basic.contentClass}`)) {
 
 				messageDiv.style.top  = `${(window.innerHeight - messageDiv.offsetHeight) / 2}px`;

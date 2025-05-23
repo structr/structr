@@ -432,6 +432,9 @@ let _Files = {
 			});
 
 			Structr.performActionAfterEnvResourceLoaded(() => {
+
+console.log(fileCount, Structr.isModulePresent('xml'));
+
 				if (fileCount === 1 && Structr.isModulePresent('xml') && (contentType === 'text/xml' || contentType === 'application/xml')) {
 					elements.push({
 						icon: _Icons.getMenuSvgIcon(_Icons.iconFileTypeXML),
