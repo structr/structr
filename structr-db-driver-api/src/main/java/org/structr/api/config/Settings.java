@@ -110,6 +110,9 @@ public class Settings {
 	public static final Setting<String> ClusterName                    = new StringSetting(generalGroup,          "Application", "application.cluster.name",                    "structr", "The name of the Structr cluster");
 	public static final Setting<Boolean> ClusterDebugLogEnabled        = new BooleanSetting(generalGroup,         "Application", "application.cluster.log.enabled",                  false, "Enables debug logging for cluster mode communication");
 
+	// stats
+	public static final Setting<Integer> HttpStatsAggregationInterval  = new IntegerSetting(generalGroup,            "Logging",     "application.stats.aggreation.interval", 60_000,"Minimum aggregation interval for HTTP request stats.");
+
 	public static final Setting<String> BasePath                       = new StringSetting(generalGroup,             "Paths",       "base.path",                             ".", "Path of the Structr working directory. All files will be located relative to this directory.");
 	public static final Setting<String> TmpPath                        = new StringSetting(generalGroup,             "Paths",       "tmp.path",                              System.getProperty("java.io.tmpdir"), "Path to the temporary directory. Uses <code>java.io.tmpdir</code> by default");
 	public static final Setting<String> FilesPath                      = new StringSetting(generalGroup,             "Paths",       "files.path",                            System.getProperty("user.dir").concat(File.separator + "files"), "Path to the Structr file storage folder");

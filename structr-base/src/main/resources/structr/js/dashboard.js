@@ -118,14 +118,14 @@ let _Dashboard = {
 
 				let drawStatistics = (interval) => {
 
-					fetch(`${Structr.rootUrl}stats?interval=${interval}&max=3600`).then(response => response.json()).then(json => {
+					fetch(`${Structr.rootUrl}stats?interval=${interval}`).then(response => response.json()).then(json => {
 
 						httpStatisticsCell.innerHTML = `
 							<label>Resolution: </label>
 							<select id="statistics-resolution-selector">
-								<option value="1000">Seconds</option>
 								<option value="60000">Minutes</option>
 								<option value="3600000">Hours</option>
+								<option value="86400000">Days</option>
 								</option>
 							</select>
 							<button id="statistics-refresh-button">Refresh</button>
