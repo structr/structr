@@ -3594,6 +3594,11 @@ table.props td.__value {
 	height: calc(60vh - 5rem);
 }
 
+.popup-dialog-with-editor .dialogTextWrapper.maximized,
+.full-height-dialog-text .dialogTextWrapper.maximized {
+	height: calc(100vh - 12rem);
+}
+
 .popup-dialog-with-editor .dialogText #widget-dialog_content {
 	height: calc(100% - 8px);
 }
