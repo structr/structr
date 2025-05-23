@@ -275,7 +275,7 @@ let _Dialogs = {
 		show: (messageHtml = '') => {
 
 			let tempInfoMessage = `
-				<div class="text-center">
+				<div class="dialog text-center">
 					<div class="infoHeading"></div>
 					<div class="infoMsg min-h-20">
 						${messageHtml}

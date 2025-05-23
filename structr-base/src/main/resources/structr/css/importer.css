@@ -32,3 +32,8 @@
 	display: table;
 	width: 100%;
 }
+
+#importer-jobs-table tr th {
+	padding: 1rem 2rem;
+	background-color: white;
+}

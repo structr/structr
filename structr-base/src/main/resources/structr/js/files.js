@@ -420,7 +420,7 @@ let _Files = {
 			}
 
 			Structr.performActionAfterEnvResourceLoaded(() => {
-				if (fileCount === 1 && Structr.isModulePresent('csv') && Structr.isModulePresent('api-builder') && contentType === 'text/csv') {
+				if (fileCount === 1 && contentType === 'text/csv') {
 					elements.push({
 						icon: _Icons.getMenuSvgIcon(_Icons.iconFileTypeCSV),
 						name: 'Import CSV',
@@ -432,7 +432,6 @@ let _Files = {
 			});
 
 			Structr.performActionAfterEnvResourceLoaded(() => {
-
 				if (fileCount === 1 && (contentType === 'text/xml' || contentType === 'application/xml')) {
 					elements.push({
 						icon: _Icons.getMenuSvgIcon(_Icons.iconFileTypeXML),
