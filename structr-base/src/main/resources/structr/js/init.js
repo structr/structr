@@ -1814,7 +1814,7 @@ let Structr = {
 			</div>
 		`;
 
-		_Dialogs.basic.append(reconnectDialog, { padding: '1rem' });
+		_Dialogs.basic.append(reconnectDialog);
 	},
 	getReconnectDialogElement: () => {
 		return document.getElementById('reconnect-dialog');

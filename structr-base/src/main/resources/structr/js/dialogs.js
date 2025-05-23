@@ -285,7 +285,7 @@ let _Dialogs = {
 					</div>
 				</div>
 			`;
-			let messageDiv  = _Dialogs.basic.append(tempInfoMessage, { padding: '1rem' });
+			let messageDiv  = _Dialogs.basic.append(tempInfoMessage);
 			let closeButton = messageDiv.querySelector('.closeButton');
 
 			closeButton.addEventListener('click', (e) => {
@@ -328,7 +328,7 @@ let _Dialogs = {
 					</div>
 				`;
 
-				let messageDiv            = _Dialogs.basic.append(multipleChoiceMessage, { padding: '1rem' });
+				let messageDiv            = _Dialogs.basic.append(multipleChoiceMessage);
 				let confirmationContainer = messageDiv.querySelector('.confirmationText');
 
 				let answerFunction = (e, response) => {
@@ -418,7 +418,7 @@ let _Dialogs = {
 			_Dialogs.loadingMessage.hide(messageId);
 
 			let loadingMessage = `
-				<div id="${messageId}" class="text-center">
+				<div id="${messageId}" class="dialog text-center">
 					<div class="flex items-center justify-center">
 						${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, 'mr-2')}<b>${title}</b>
 					</div>
@@ -427,7 +427,7 @@ let _Dialogs = {
 				</div>
 			`;
 
-			_Dialogs.basic.append(loadingMessage, { padding: '1rem' });
+			_Dialogs.basic.append(loadingMessage);
 		},
 		hide: (messageId = _Dialogs.loadingMessage.defaultId) => {
 
