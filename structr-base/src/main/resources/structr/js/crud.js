@@ -1811,7 +1811,7 @@ let _Crud = {
 					let row = _Helpers.createSingleDOMElementFromHTML(`
 						<tr>
 							<td class="key"><label>${key}</label></td>
-							<td class="__value"></td>
+							<td class="__value relative"></td>
 						</tr>
 					`);
 					table.appendChild(row);
