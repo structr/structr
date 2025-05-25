@@ -49,6 +49,10 @@ public class HttpSessionWrapper implements ProxyObject  {
 	@Override
 	public Object getMember(String key) {
 
+		if (session == null) {
+			return null;
+		}
+
 		if (staticKeywords.containsKey(key)) {
 			return PolyglotWrapper.wrap(actionContext, staticKeywords.get(key).apply(session));
 		}
