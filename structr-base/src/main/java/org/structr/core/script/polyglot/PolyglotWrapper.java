@@ -450,7 +450,7 @@ public abstract class PolyglotWrapper {
 	public static class FunctionWrapper implements ProxyExecutable {
 
 		private Value func;
-		private final ActionContext actionContext;
+		private ActionContext actionContext;
 		private final ReentrantLock lock;
 		private boolean hasRun;
 
@@ -465,6 +465,10 @@ public abstract class PolyglotWrapper {
 				this.func = func;
 				ContextHelper.incrementReferenceCount(func.getContext());
 			}
+		}
+
+		public void setActionContext(final ActionContext actionContext) {
+			this.actionContext = actionContext;
 		}
 
 		@Override

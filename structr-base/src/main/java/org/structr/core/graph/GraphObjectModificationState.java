@@ -277,7 +277,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 
 			case 6: // created, modified => only creation callback will be called
 				counter.onCreate();
-				object.onCreation(securityContext, errorBuffer);
+				object.onCreation(object.getSecurityContext(), errorBuffer);
 				break;
 
 			case 5: // created, deleted => no callback
@@ -285,22 +285,22 @@ public class GraphObjectModificationState implements ModificationEvent {
 
 			case 4: // created => creation callback
 				counter.onCreate();
-				object.onCreation(securityContext, errorBuffer);
+				object.onCreation(object.getSecurityContext(), errorBuffer);
 				break;
 
 			case 3: // modified, deleted => deletion callback
 				counter.onDelete();
-				object.onDeletion(securityContext, errorBuffer, removedProperties);
+				object.onDeletion(object.getSecurityContext(), errorBuffer, removedProperties);
 				break;
 
 			case 2: // modified => modification callback
 				counter.onSave();
-				object.onModification(securityContext, errorBuffer, modificationQueue);
+				object.onModification(object.getSecurityContext(), errorBuffer, modificationQueue);
 				break;
 
 			case 1: // deleted => deletion callback
 				counter.onDelete();
-				object.onDeletion(securityContext, errorBuffer, removedProperties);
+				object.onDeletion(object.getSecurityContext(), errorBuffer, removedProperties);
 				break;
 
 			case 0:	// no action, no callback
