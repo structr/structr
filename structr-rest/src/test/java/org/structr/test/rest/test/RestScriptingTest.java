@@ -280,4 +280,51 @@ public class RestScriptingTest extends StructrRestTestBase {
 				.when()
 				.post("/API/calledTestMethod");
 	}
+
+	@Test
+	public void testRequestParameterAccess() {
+
+		try (final Tx tx = app.tx()) {
+
+			JsonSchema schema       = StructrSchema.createFromDatabase(app);
+			final JsonType type     = schema.addType("RequestTest");
+			final JsonMethod method = type.addMethod("doTest", "{ return Object.entries($.request); }");
+
+			method.setIsStatic(true);
+
+			StructrSchema.replaceDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		RestAssured
+				.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseTo(System.out))
+				.expect()
+				.body("result", hasSize(0))
+				.body("result_count", equalTo(0))
+				.body("page_count", equalTo(0))
+				.statusCode(200)
+				.when()
+				.post("/RequestTest/doTest");
+
+		RestAssured
+				.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseTo(System.out))
+				.expect()
+				.body("result", hasSize(1))
+				.body("result_count", equalTo(1))
+				.body("page_count", equalTo(1))
+				.body("result[0][0]", equalTo("a"))
+				.body("result[0][1]", equalTo("b"))
+				.statusCode(200)
+				.when()
+				.post("/RequestTest/doTest?a=b");
+	}
 }
