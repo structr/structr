@@ -45,9 +45,9 @@
 	</prerequisites>
 
 	<properties>
-		<java.version>21</java.version>
-		<maven.compiler.source>18</maven.compiler.source>
-		<maven.compiler.target>18</maven.compiler.target>
+		<java.version>22</java.version>
+		<maven.compiler.source>22</maven.compiler.source>
+		<maven.compiler.target>22</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<netbeans.hint.license>structr-gpl30</netbeans.hint.license>
 		<test.neo4j.version>neo4j:5.16</test.neo4j.version>
@@ -364,9 +364,9 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.13.0</version>
 				<configuration>
-					<source>18</source>
-					<target>18</target>
-					<release>18</release>
+					<source>22</source>
+					<target>22</target>
+					<release>22</release>
 					<encoding>${project.build.sourceEncoding}</encoding>
 					<debug>true</debug>
 					<useModulePath>true</useModulePath>
