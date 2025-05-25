@@ -31,9 +31,14 @@ import org.structr.core.GraphObject;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.property.StringProperty;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.AbstractTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 
@@ -123,7 +128,12 @@ public class SuperUser implements Principal {
 
 	@Override
 	public <V> V getProperty(PropertyKey<V> propertyKey) {
-		return null;
+
+		return switch(propertyKey) {
+			case StringProperty stringProperty when stringProperty.dbName().equals("name") -> (V)getName();
+			case BooleanProperty isAdminProperty when isAdminProperty.dbName().equals("isAdmin") -> (V)Boolean.valueOf(isAdmin());
+			default -> null;
+		};
 	}
 
 	@Override
@@ -193,11 +203,14 @@ public class SuperUser implements Principal {
 
 	@Override
 	public Traits getTraits() {
-		return null;
+		return Traits.of("Principal");
 	}
 
 	@Override
 	public <T> T as(Class<T> type) {
+		if (Principal.class.isAssignableFrom(type)) {
+			return (T)this;
+		}
 		return null;
 	}
 
@@ -208,7 +221,7 @@ public class SuperUser implements Principal {
 
 	@Override
 	public String getType() {
-		return null;
+		return "SuperUser";
 	}
 
 	@Override
