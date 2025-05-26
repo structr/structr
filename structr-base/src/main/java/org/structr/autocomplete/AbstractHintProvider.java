@@ -320,7 +320,7 @@ public abstract class AbstractHintProvider {
 
 				case "this":
 
-					if (currentNode.isNode()) {
+					if (currentNode != null && currentNode.isNode()) {
 
 						final NodeInterface node = (NodeInterface)currentNode;
 
