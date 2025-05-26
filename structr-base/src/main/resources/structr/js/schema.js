@@ -250,12 +250,12 @@ let _Schema = {
 				schemaContainer.style.cursor = 'default';
 			}
 		});
-		schemaContainer.parentElement.addEventListener('panzoomstart', (event) => {
+		schemaContainer.addEventListener('panzoomstart', (event) => {
 			if (!event.shiftKey) {
 				e.preventDefault();
 			}
 		});
-		schemaContainer.parentElement.addEventListener('wheel', (event) => {
+		schemaContainer.addEventListener('wheel', (event) => {
 			panzoom.zoomWithWheel(event);
 		});
 	},
