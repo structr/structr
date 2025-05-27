@@ -864,10 +864,6 @@ export class Frontend {
 
 			this.fireEvent('start', { target: target, data: data, event: event });
 
-			// server-side
-			// store event type in htmlEvent property
-			//data.htmlEvent = event.type;
-
 			fetch('/structr/rest/DOMElement/' + id + '/event', {
 				body: JSON.stringify(this.resolveData(event, target)),
 				method: 'POST',
